@@ -1,0 +1,27 @@
+Here are people who have contributed to Jackson JSON process development:
+(version numbers in brackets indicate release in which the problem was fixed)
+
+Tatu Saloranta, tatu.saloranta@iki.fi: Author
+
+Alain Penders:
+  * Reported problem with JavaTypeMapper, where floating point numbers were
+    accidentally converted to Booleans.
+    [0.8]
+
+Mike Eastey:
+  * Reported problem with JavaTypeMapper had a bug which prevented custom
+    mappers (as well as slower interface-based introspection) from working,
+    provided path to specific underlying bugs.
+    [0.8.2]
+
+Augusto Callejas
+  * Reported problem with JavaTypeMapper (and JsonTypeMapper), which
+    caused read operation not to handle EOF appropriately but instead
+    cause a NullPointerException.
+    [0.9]
+
+Maciej Pestka:
+  * JavaTypeMapper did not implicitly flush generator after mapping
+    objects: it should, and now will (note: JsonTypeMapper not directly
+    affected, flushing still needed)
+    [0.9]

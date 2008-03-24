@@ -1,0 +1,447 @@
+<?xml version="1.0" standalone='yes'?>
+
+    <project name="Jackson JSON parser" basedir="." default="readme">
+
+    <!-- Source directories -->
+    <property name="SrcDir" location="${basedir}/src" />
+    <property name="JavaSrcDir" location="${SrcDir}/java" />
+    <property name="TestSrcDir" location="${SrcDir}/test" />
+    <property name="RelNotesDir" location="${basedir}/release-notes" />
+
+    <!-- Libs -->
+    <property name="LibDir" location="${basedir}/lib" />
+    <!-- Build-related -->
+    <property name="BuildDir" location="${basedir}/build" />
+    <property name="BuildClassesDir" location="${BuildDir}/classes" />
+    <property name="EmmaBuildClassesDir" location="${BuildDir}/emma-classes" />
+    <!-- Documentation -->
+    <property name="DocDir" location="${basedir}/doc" />
+    <property name="JavaDocDir" location="${BuildDir}/javadoc" />
+    <!-- Test suite -->
+    <property name="TestDir" location="${basedir}/test" />
+    <property name="TestClassesDir" location="${TestDir}/classes" />
+    <property name="TestResultsDir" location="${TestDir}/results" />
+    <property name="TestXmlResultsDir" location="${TestResultsDir}/xml" />
+    <property name="StaxTestClassesDir" location="${TestDir}/staxtest-classes" />
+    <!-- Distribution -->
+    <property name="DistDir" location="${basedir}/dist" />
+
+    <!-- Version information -->
+
+    <!-- Version -->
+    <property name="JSON_TITLE" value="Json - JavaScript Object Notation" />
+    <property name="JSON_VERSION" value="1.0" />
+    <property name="JSON_VENDOR" value="http://www.ietf.org/rfc/rfc4627.txt" />
+    <property name="IMPL_TITLE" value="Jackson JSON parser" />
+    <property name="IMPL_VERSION" value="0.9.1" />
+    <property name="IMPL_VENDOR" value="http://www.cowtowncoder.com/" />
+
+    <!-- jars needed for compilation? None as of yet -->
+    <path id="compile-classpath">
+    </path>
+    <path id="junit-libs">
+       <fileset dir="${LibDir}">
+            <include name="junit/junit*.jar" />
+       </fileset>
+    </path>
+
+    <!-- Source files to include in source packages (tar, zip) -->
+    <patternset id="dist-src-files">
+          <include name="src/**/*.java" />
+          <include name="release-notes/*" />
+          <include name="build.xml" />
+          <include name="project.xml" />
+          <include name="src/maven/*.pom" />
+          <!-- need jars for auxiliary tasks (tests), although jackson
+               itself does not depend on any other packages, just JDK 1.5
+            -->
+          <include name="lib/**/*.jar" />
+          <include name="samples/**/*.jsn" />
+    </patternset>
+
+    <!-- Core Woodstox class files common to all license flavours: -->
+    <patternset id="dist-class-files">
+        <include name="org/codehaus/**/*.class" />
+        <include name="META-INF/services/javax.xml.stream.*" />
+    </patternset>
+
+    <!-- Support for Emma (http://emma.sourceforge.net) code
+       - coverage library
+      -->
+    <property name="emma.dir" value="${LibDir}/emma" />
+    <property name="emma.coverage.dir" value="${BuildDir}/coverage" />
+    <path id="emma.lib">
+      <pathelement location="${emma.dir}/emma.jar" />
+      <pathelement location="${emma.dir}/emma_ant.jar" />
+    </path>
+    <taskdef classpathref="emma.lib" resource="emma_ant.properties" />
+
+    <!-- Support for Cobertura code coverage tool -->
+    <property name="cobertura.coverage.dir" value="${BuildDir}/coverage" />
+    <path id="cobertura.lib">
+      <fileset dir="${LibDir}/cobertura" includes="*.jar" />
+    </path>
+    <taskdef classpathref="cobertura.lib" resource="tasks.properties" />
+
+
+    <!--*********************************************************************-->
+    <!-- The readme target shows a brief description of all targets          -->
+    <!-- supported by this ant build file                                    -->
+    <!--*********************************************************************-->
+    <target name="readme">
+        <echo message = "${ProjectName}'s Available Targets" />
+        <echo message = "---------------------------------------------------" />
+        <echo message = "1)  readme - Displays this information (default target)." />
+        <echo message = "2)  clean - Remove any generated files/directories." />
+        <echo message = "3)  compile - Compile all non-test ${ProjectName} code." />
+        <echo message = "4)  jars - Compile and create all jars for non-test ${ProjectName} code (see below for specific ones)." />
+        <echo message = "4b)  jar.asl - Compile and create jar for non-test ${ProjectName} cod, under Apache (2.0) license." />
+        <echo message = "5)  javadoc - Generate ${ProjectName} code documentation." />
+        <echo message = "6)  test.compile - Compile ${ProjectName} code and test code" />
+        <echo message = "       for JUnit tests." />
+        <echo message = "7)  test - Run JUnit tests." />
+        <echo message = "8)  dist - Create distribution directory and copy necessary files there" />
+        <echo message = "9) all - Run the clean, compile, javadoc," />
+        <echo message = "         test and dist targets." />  
+        <echo message = "" />
+        <echo message = "Available command-line arguments:" />
+        <echo message = "---------------------------------" />
+        <echo message = "none" />
+    </target>
+
+    <target name="prepare">
+        <!-- make build directories -->
+        <mkdir dir="${BuildDir}" />
+        <mkdir dir="${BuildClassesDir}" />
+
+        <!-- make docs directories -->
+        <mkdir dir="${DocDir}" />
+        <mkdir dir="${JavaDocDir}" />
+
+        <!-- make test output directories -->
+        <mkdir dir="${TestDir}" />
+        <mkdir dir="${TestClassesDir}" />
+        <mkdir dir="${TestResultsDir}" />
+        <mkdir dir="${TestXmlResultsDir}" />
+
+        <!-- and finally distribution dir -->
+        <mkdir dir="${DistDir}" />
+    </target>
+
+    <!-- ***********************************************
+       - supporting dummy tasks
+       - ***********************************************-->
+
+
+    <!-- ***********************************************
+       - clean - Removes all generated files/directories
+       - ***********************************************-->
+
+    <target name="clean">
+        <delete dir="${BuildDir}"/>
+        <delete dir="${DocDir}"/>
+        <delete dir="${TestDir}"/>
+        <delete dir="${DistDir}"/>
+        <delete file="coverage.ec" />
+    </target>
+
+    <target name="compile" depends="prepare">
+        <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
+            debug="true"
+        >
+            <compilerarg value="-Xlint:unchecked" />
+            <include name="org/codehaus/**/*.java" />
+            <include name="test/**/*.java" />
+            <classpath refid="compile-classpath" />
+        </javac>
+        <!-- Let's also compile micro-benchmarks... -->
+        <javac SrcDir="${SrcDir}/perf" destdir="${BuildClassesDir}"
+            debug="false"
+        >
+            <classpath>
+               <fileset dir="${LibDir}/perf">
+                    <include name="*.jar" />
+               </fileset>
+            </classpath>
+            <include name="**/*.java" />
+        </javac>
+    </target>
+
+    <!-- Dummy target that just includes all individual jars... --> 
+    <target name="jars"
+       depends="jar.asl"
+    />
+
+    <target name="jar.asl" depends="compile">
+        <jar jarfile="${BuildDir}/jackson-${IMPL_VERSION}.jar"
+         filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
+            <attribute name="Specification-Version" value="${JSON_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
+            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+          </manifest>
+          <fileset dir="${BuildClassesDir}">
+              <patternset refid="dist-class-files" />
+          </fileset>
+          <metainf dir="${RelNotesDir}">
+            <include name="LICENSE" />
+            <include name="NOTICE" />
+            <include name="ASL2.0" />
+          </metainf>
+        </jar>
+    </target> 
+
+    <target name="javadoc" depends="prepare">
+        <!-- Build a dirpath that contains just the "source" tree -->
+        <javadoc windowtitle="${ProjectName}"
+            destdir="${JavaDocDir}" 
+            author="true" 
+            version="true">
+            <packageset dir="${JavaSrcDir}" defaultexcludes="yes">
+                <include name="org/codehaus/**" />
+            </packageset>
+            <classpath refid="compile-classpath" />
+        </javadoc>
+    </target> 
+ 
+    <target name="dist" depends="compile,jars,javadoc"
+    >
+       <!-- First, let's copy the binary jars to dist -->
+       <copy todir="${DistDir}">
+          <fileset dir="${BuildDir}" includes="*.jar" />
+       </copy>
+       <!-- Then let's create the source distribution tar package
+          -->
+       <tar basedir="${basedir}" destfile="${DistDir}/jackson-src-${IMPL_VERSION}.tar">
+          <patternset refid="dist-src-files" />
+       </tar>
+       <gzip zipfile="${DistDir}/jackson-src-${IMPL_VERSION}.tar.gz" src="${DistDir}/jackson-src-${IMPL_VERSION}.tar" />
+       <delete file="${DistDir}/jackson-src-${IMPL_VERSION}.tar" />
+
+       <!-- as well as zip
+          -->
+       <zip basedir="${basedir}" destfile="${DistDir}/jackson-src-${IMPL_VERSION}.zip">
+          <patternset refid="dist-src-files" />
+       </zip>
+
+       <!-- Then copy javadocs -->
+       <copy todir="${DistDir}">
+         <fileset dir="${JavaDocDir}/.." includes="javadoc/**/*" />
+       </copy>
+       <!-- Plus, let's also just copy README and compatibility files, in
+            addition to being included in source package
+         -->
+       <copy todir="${DistDir}" >
+            <fileset dir="." includes="release-notes/*" />
+            <fileset dir="." includes="release-notes/asl/*" />
+            <fileset dir="." includes="release-notes/lgpl/*" />
+       </copy>
+       <!-- And also additional Maven stuff -->
+       <copy todir="${DistDir}">
+            <fileset dir="${SrcDir}/maven" includes="*.pom" />
+            <globmapper from="*.pom" to="*-${IMPL_VERSION}.pom" />
+            <filterset>
+              <filter token="VERSION" value="${IMPL_VERSION}" />
+            </filterset>
+       </copy>
+    </target>
+
+    <target name="all" depends="clean,javadoc,test,dist">
+        <!-- This target simply depends on others to do its job -->
+    </target>
+
+    <!--*********************************************************************-->
+    <!-- Tasks from here down are in support of junit tests.                 -->
+    <!--*********************************************************************-->
+    <target name="all-tests" depends="test" />
+
+
+    <!-- Compiling and running test cases
+      -->
+
+    <target name="test.compile" depends="compile">
+        <javac SrcDir="${TestSrcDir}" destdir="${TestClassesDir}"
+            debug="true"
+        >
+            <include name="**/*.java" />
+            <classpath refid="compile-classpath" />
+            <classpath>
+                <pathelement path="${BuildClassesDir}"/>  
+                <path refid="junit-libs"/>
+            </classpath>
+        </javac>
+    </target>
+
+
+    <target name="test" depends="test.compile">
+       <!-- showoutput 'yes' to allow outputting debug msgs... -->
+        <junit fork="no" printsummary="yes" haltonfailure="no"
+         showoutput="yes">
+            <batchtest fork="no" todir="${TestXmlResultsDir}">
+                <fileset dir="${TestClassesDir}">
+                    <!-- Need to exclude inner classes... -->
+                    <exclude name="**/*$*.class"/>
+                    <include name="**/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <classpath refid="compile-classpath" />
+            <classpath>
+                <pathelement path="${BuildClassesDir}" />
+                <pathelement location="${TestClassesDir}" /> 
+                <path refid="junit-libs"/>
+            </classpath>     
+        </junit>
+
+        <junitreport todir="${TestResultsDir}">
+            <fileset dir="${TestXmlResultsDir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="${TestResultsDir}" />
+        </junitreport>
+    </target>
+
+    <target name="test-emma" depends="test.compile">
+      <!-- First, need to instrument using Emma -->
+      <!-- This is silly, but apparently the only way to avoid
+           instrumenting and testing test/perf auxiliary classes
+        -->
+      <property name="emma.tmp.dir" value="${BuildDir}/emma-tmp" />
+      <path id="emma-classpath">
+          <pathelement location="${emma.tmp.dir}" />
+      </path>
+      <copy toDir="${emma.tmp.dir}">
+        <fileset dir="${BuildClassesDir}">
+          <include name="org/codehaus/**/*.class" />
+        </fileset>           	
+      </copy>
+      <emma enabled="true"> <!--  verbosity="verbose" -->
+        <instr instrpathref="emma-classpath"
+             destdir="${EmmaBuildClassesDir}"	
+             metadatafile="${emma.coverage.dir}/metadata.emma"
+             merge="true"
+ mode="fullcopy"
+        />
+      </emma>
+      <!-- Ok, so let's just nuke the stupid test classes...
+        -  ... for which there are 2 possible locations...
+        -->
+      <delete dir="${EmmaBuildClassesDir}/classes/test"/>
+      <delete dir="${EmmaBuildClassesDir}/test"/>
+
+      <!-- Then run tests. Note: need to fork for Emma to work...? -->
+      <junit fork="once" printsummary="yes" haltonfailure="no"
+         showoutput="yes">
+           <batchtest fork="yes" todir="${TestXmlResultsDir}">
+                <fileset dir="${TestClassesDir}">
+                    <exclude name="**/*$*.class"/>
+      <!-- Note: to speed up other tests, uncomment these slow ones:
+        -->
+      <!--
+                    <exclude name="**/TestStringGeneration.class"/>
+-->
+                    <include name="**/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <!-- Emma jars: -->
+            <classpath>
+                <pathelement path="${EmmaBuildClassesDir}/classes" />
+                <pathelement location="${LibDir}/emma/emma.jar" /> 
+                <path refid="junit-libs"/>
+            </classpath>     
+            <classpath path="${TestClassesDir}" />
+        </junit>
+
+       <!-- Then Emma coverage reporting... -->
+
+       <emma enabled="true"> <!-- verbosity="verbose"  -->
+        <report sourcepath="${JavaSrcDir}" >
+          <fileset dir="${emma.coverage.dir}" >
+            <include name="*.emma" />
+          </fileset>
+          <fileset dir="${basedir}" >
+            <include name="coverage.ec" />
+          </fileset>
+         <txt outfile="${emma.coverage.dir}/coverage.txt" />
+         <html outfile="${emma.coverage.dir}/coverage.html" />
+        </report>
+       </emma>
+
+        <!-- Don't really need actual JUnit output do we? -->
+        <junitreport todir="${TestResultsDir}">
+            <fileset dir="${TestXmlResultsDir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="${TestResultsDir}" />
+        </junitreport>
+        <!--
+        -->
+    </target>
+
+    <target name="test-cobertura" depends="test.compile">
+      <!-- First, need to instrument classes -->
+      <property name="cobertura.instr.dir" value="${BuildDir}/cobertura-instr" />
+      <cobertura-instrument todir="${cobertura.instr.dir}">
+        <fileset dir="${BuildClassesDir}">
+          <include name="**/*.class"/>
+        </fileset>
+      </cobertura-instrument>
+
+      <junit fork="once" printsummary="yes" haltonfailure="no" showoutput="yes"
+        maxmemory="300M"
+      >
+        <sysproperty key="net.sourceforge.cobertura.datafile" file="${basedir}/cobertura.ser" />
+            <batchtest fork="no" todir="${TestXmlResultsDir}">
+                <fileset dir="${TestClassesDir}">
+                    <!-- Need to exclude inner classes... -->
+                    <exclude name="**/*$*.class"/>
+
+<!-- !!!! TEST -->
+                    <exclude name="**/TestStringGeneration.class"/>
+
+                    <include name="**/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <!-- Order is important: must first have instrumented classes -->
+            <classpath location="${cobertura.instr.dir}" />
+
+            <classpath refid="compile-classpath" />
+            <!-- Actual tests: -->
+            <classpath path="${TestClassesDir}" />
+            <!-- Cobertura support: -->
+            <classpath refid="cobertura.lib" />
+            <classpath>
+                <!-- Note: while this may seem superfluous, it is actually
+                     needed because Cobertura does not instrument things
+                     like interfaces. So some of the class files are
+                     needed from non-instrumented location
+                  -->
+                <pathelement path="${BuildClassesDir}" />
+                <path refid="junit-libs"/>
+            </classpath>     
+        </junit>
+        <!-- and then reporting -->
+        <cobertura-report format="html" destdir="${cobertura.coverage.dir}" >
+          <fileset dir="${JavaSrcDir}">
+            <include name="**/*.java" />
+          </fileset>
+        </cobertura-report>
+
+        <!-- Let's also report junit results? (at least if they fail) -->
+<!--
+        <junitreport todir="${TestResultsDir}">
+            <fileset dir="${TestXmlResultsDir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="${TestResultsDir}" />
+        </junitreport>
+-->
+    </target>
+
+</project>

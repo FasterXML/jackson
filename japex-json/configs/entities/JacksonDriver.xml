@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Let's include all Jackson drivers in a single bundle -->
+<driverGroup name="JacksonGroup" xmlns="http://www.sun.com/japex/testSuite">
+  <driver name="JacksonDriver">
+    <description>
+        <div xmlns="">
+            <p>Driver for Jackson when used in "raw" streaming mode</p>
+        </div>
+    </description>
+    
+    <param name="japex.driverClass" value="org.codehaus.jsonpex.JacksonDriver"/>    
+    <param name="japex.classPath" value="dist/classes"/>
+    <param name="japex.classPath" value="lib/jackson*.jar"/>
+  </driver>
+  <driver name="JacksonJavaTypeDriver">
+    <description>
+        <div xmlns="">
+            <p>Driver for Jackson's "java type" mapper (tree model using Java collections and wrappers)
+</p>
+        </div>
+    </description>
+    
+    <param name="japex.driverClass" value="org.codehaus.jsonpex.JacksonJavaTypeDriver"/>    
+    <param name="japex.classPath" value="dist/classes"/>
+    <param name="japex.classPath" value="lib/jackson*.jar"/>
+  </driver>
+
+  <driver name="JacksonJsonTypeDriver">
+    <description>
+        <div xmlns="">
+            <p>Driver for Jackson's "JSON type" mapper (tree model using type-safe JSON nodes)
+</p>
+        </div>
+    </description>
+    
+    <param name="japex.driverClass" value="org.codehaus.jsonpex.JacksonJsonTypeDriver"/>    
+    <param name="japex.classPath" value="dist/classes"/>
+    <param name="japex.classPath" value="lib/jackson*.jar"/>
+  </driver>
+</driverGroup>
