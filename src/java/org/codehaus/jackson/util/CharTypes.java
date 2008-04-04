@@ -14,7 +14,10 @@ public final class CharTypes
      */
     final static int[] sInputCodes;
     static {
-        // backslash is ascii 94 or so
+        /* 96 would do for most cases (backslash is ascii 94)
+         * but if we want to do lookups by raw bytes it's better
+         * to have full table
+         */
         int[] table = new int[96];
         // Control chars and non-space white space are not allowed unquoted
         for (int i = 0; i < 32; ++i) {
@@ -32,7 +35,7 @@ public final class CharTypes
      */
     final static int[] sOutputEscapes;
     static {
-        int[] table = new int[96];
+        int[] table = new int[256];
         // Control chars need generic escape sequence
         for (int i = 0; i < 32; ++i) {
             table[i] = -(i + 1);

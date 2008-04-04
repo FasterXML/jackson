@@ -246,10 +246,8 @@ public final class SymbolTable
      *<p>
      * Note that caller has to make sure symbol table passed in is
      * really a child or sibling of this symbol table.
-     *
-     * @return True, if merge was done; false if not
      */
-    private synchronized boolean mergeChild(SymbolTable child)
+    private synchronized void mergeChild(SymbolTable child)
     {
         /* One caveat: let's try to avoid problems with
          * degenerate cases of documents with generated "random"
@@ -270,7 +268,7 @@ public final class SymbolTable
              * has added symbols first or such)
              */
             if (child.size() <= size()) { // nothing to add
-                return false;
+                return;
             }
             // Okie dokie, let's get the data in!
             mSymbols = child.mSymbols;
@@ -284,7 +282,6 @@ public final class SymbolTable
          * (which this is, given something is merged to it etc)
          */
         mDirty = false;
-        return true;
     }
 
     public void release()
@@ -294,7 +291,7 @@ public final class SymbolTable
             return;
         }
         if (mParent != null) {
-        	mParent.mergeChild(this);
+            mParent.mergeChild(this);
             /* Let's also mark this instance as dirty, so that just in
              * case release was too early, there's no corruption
              * of possibly shared data.

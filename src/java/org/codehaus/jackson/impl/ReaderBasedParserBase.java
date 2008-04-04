@@ -85,7 +85,6 @@ public abstract class ReaderBasedParserBase
         return false;
     }
 
-
     protected char getNextChar(String eofMsg)
         throws IOException, JsonParseException
     {

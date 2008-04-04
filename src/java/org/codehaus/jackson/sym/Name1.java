@@ -12,6 +12,8 @@ package org.codehaus.jackson.sym;
 public final class Name1
     extends Name
 {
+    final static Name1 sEmptyName = new Name1("", 0, 0);
+
     final int mQuad;
 
     Name1(String name, int hash, int quad)
@@ -19,6 +21,8 @@ public final class Name1
         super(name, hash);
         mQuad = quad;
     }
+
+    final static Name1 getEmptyName() { return sEmptyName; }
 
     public boolean equals(int quad1, int quad2)
     {

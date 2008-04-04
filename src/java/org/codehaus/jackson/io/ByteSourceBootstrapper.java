@@ -3,6 +3,10 @@ package org.codehaus.jackson.io;
 import java.io.*;
 
 import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.impl.ReaderBasedParser;
+import org.codehaus.jackson.sym.NameCanonicalizer;
+import org.codehaus.jackson.util.SymbolTable;
 
 /**
  * This class is used to determine the encoding of byte stream
@@ -85,16 +89,19 @@ public final class ByteSourceBootstrapper
         mInputProcessed = -inputStart;
     }
 
-    public static Reader bootstrap(IOContext ctxt, InputStream in)
-        throws IOException, JsonParseException
-    {
-        return new ByteSourceBootstrapper(ctxt, in)._bootstrap();
+    public static JsonParser bootstrap(IOContext ctxt, InputStream in,
+                                       SymbolTable basicSymbols,
+                                       NameCanonicalizer advancedSymbols)
+        throws IOException, JsonParseException    {
+        return new ByteSourceBootstrapper(ctxt, in)._bootstrap(basicSymbols, advancedSymbols);
     }
 
-    public static Reader bootstrap(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen)
+    public static JsonParser bootstrap(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen,
+                                       SymbolTable basicSymbols,
+                                       NameCanonicalizer advancedSymbols)
         throws IOException, JsonParseException
     {
-        return new ByteSourceBootstrapper(ctxt, inputBuffer, inputStart, inputLen)._bootstrap();
+        return new ByteSourceBootstrapper(ctxt, inputBuffer, inputStart, inputLen)._bootstrap(basicSymbols, advancedSymbols);
     }
 
     /*
@@ -107,7 +114,8 @@ public final class ByteSourceBootstrapper
      * @return Actual reader instance, if possibly valid content found;
      *   exception otherwise
      */
-    private Reader _bootstrap()
+    private JsonParser _bootstrap(SymbolTable basicSymbols,
+                                  NameCanonicalizer advancedSymbols)
         throws IOException, JsonParseException
     {
         boolean foundEncoding = false;
@@ -180,7 +188,7 @@ public final class ByteSourceBootstrapper
             throw new Error("Internal error"); // should never get here
         }
         mContext.setEncoding(enc);
-        return r;
+        return new ReaderBasedParser(mContext, r, basicSymbols.makeChild());
     }
 
     /**

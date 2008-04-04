@@ -7,6 +7,7 @@ import java.net.URL;
 import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.impl.ReaderBasedParser;
 import org.codehaus.jackson.impl.WriterBasedGenerator;
+import org.codehaus.jackson.sym.NameCanonicalizer;
 import org.codehaus.jackson.util.BufferRecycler;
 import org.codehaus.jackson.util.SymbolTable;
 
@@ -44,7 +45,16 @@ public final class JsonFactory
      * It should not be linked back to the original blueprint, to
      * avoid contents from leaking between factories.
      */
-    private SymbolTable mCurrSymbolTable = SymbolTable.createRoot();
+    private SymbolTable mCharSymbols = SymbolTable.createRoot();
+
+    /**
+     * Alternative to the basic symbol table, some stream-based
+     * parsers use different name canonicalization method.
+     *<p>
+     * TODO: should clean up this; looks messy having 2 alternatives
+     * with not very clear differences.
+     */
+    private NameCanonicalizer mByteSymbols = NameCanonicalizer.createRoot();
 
     public JsonFactory() { }
 
@@ -57,18 +67,16 @@ public final class JsonFactory
     public JsonParser createJsonParser(File f)
         throws IOException, JsonParseException
     {
-        IOContext ctxt = createContext(f);
-        Reader r = ByteSourceBootstrapper.bootstrap(ctxt, new FileInputStream(f));
-        return new ReaderBasedParser(ctxt, r, mCurrSymbolTable.makeChild());
+        return ByteSourceBootstrapper.bootstrap
+            (createContext(f), new FileInputStream(f), mCharSymbols, mByteSymbols);
     }
 
     public JsonParser createJsonParser(URL url)
         throws IOException, JsonParseException
     {
         InputStream in = optimizedStreamFromURL(url);
-        IOContext ctxt = createContext(url);
-        Reader r = ByteSourceBootstrapper.bootstrap(ctxt, in);
-        return new ReaderBasedParser(ctxt, r, mCurrSymbolTable.makeChild());
+        return ByteSourceBootstrapper.bootstrap
+            (createContext(url), in, mCharSymbols, mByteSymbols);
     }
 
     /**
@@ -79,16 +87,14 @@ public final class JsonFactory
     public JsonParser createJsonParser(InputStream in)
         throws IOException, JsonParseException
     {
-        IOContext ctxt = createContext(in);
-        Reader r = ByteSourceBootstrapper.bootstrap(ctxt, in);
-        return new ReaderBasedParser(ctxt, r, mCurrSymbolTable.makeChild());
+        return ByteSourceBootstrapper.bootstrap
+            (createContext(in), in, mCharSymbols, mByteSymbols);
     }
 
     public JsonParser createJsonParser(Reader r)
         throws IOException, JsonParseException
     {
-        IOContext ctxt = createContext(r);
-        return new ReaderBasedParser(ctxt, r, mCurrSymbolTable.makeChild());
+        return new ReaderBasedParser(createContext(r), r, mCharSymbols.makeChild());
     }
 
     /*

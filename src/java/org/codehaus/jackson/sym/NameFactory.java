@@ -16,6 +16,11 @@ public final class NameFactory
     //////////////////////////////////////////////////////////
      */
 
+    public final static Name getEmptyName()
+    {
+        return Name1.getEmptyName();
+    }
+
     public static Name construct(int hash, String name, int q1, int q2)
     {
         name = name.intern();

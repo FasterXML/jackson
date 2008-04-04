@@ -485,6 +485,16 @@ public final class TextBuffer
         return mCurrentSegment;
     }
 
+    public char[] emptyAndGetCurrentSegment()
+    {
+        resetWithEmpty();
+        char[] curr = mCurrentSegment;
+        if (curr == null) {
+            mCurrentSegment = curr = allocBuffer(0);
+        }
+        return curr;
+    }
+
     public int getCurrentSegmentSize() {
         return mCurrentSize;
     }
@@ -506,6 +516,21 @@ public final class TextBuffer
         mCurrentSize = 0;
         mCurrentSegment = curr;
         return curr;
+    }
+
+    /**
+     * Method called to expand size of the current segment, to
+     * accomodate for more contiguous content. Usually only
+     * used when parsing tokens like names.
+     */
+    public char[] expandCurrentSegment()
+    {
+        char[] curr = mCurrentSegment;
+        // Let's just double right away
+        int len = curr.length;
+        mCurrentSegment = new char[len + len];
+        System.arraycopy(curr, 0, mCurrentSegment, 0, len);
+        return mCurrentSegment;
     }
 
     /*

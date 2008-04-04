@@ -9,6 +9,15 @@ package org.codehaus.jackson.sym;
  */
 public final class NameCanonicalizer
 {
+    protected static final int DEFAULT_TABLE_SIZE = 64;
+
+    /**
+     * Let's limit max size to 3/4 of 8k; this corresponds
+     * to 32k main hash index. This should allow for enough distinct
+     * names for almost any case.
+     */
+    final static int MAX_TABLE_SIZE = 6000;
+
     final static int MIN_HASH_SIZE = 16;
 
     final static int INITIAL_COLLISION_LEN = 32;
@@ -18,6 +27,14 @@ public final class NameCanonicalizer
      * 'empty' status.
      */
     final static int LAST_VALID_BUCKET = 0xFE;
+
+    /*
+    /////////////////////////////////////////////////////
+    // Linkage, needed for merging symbol tables
+    /////////////////////////////////////////////////////    
+     */
+
+    final NameCanonicalizer mParent;
 
     /*
     /////////////////////////////////////////////////////
@@ -126,8 +143,38 @@ public final class NameCanonicalizer
     /////////////////////////////////////////////////////
      */
 
-    public NameCanonicalizer(int hashSize)
+    public static NameCanonicalizer createRoot()
     {
+        return new NameCanonicalizer(DEFAULT_TABLE_SIZE);
+    }
+
+    public synchronized NameCanonicalizer makeChild()
+    {
+        return new NameCanonicalizer(this);
+    }
+
+    /**
+     * Method called by the using code to indicate it is done
+     * with this instance. This lets instance merge accumulated
+     * changes into parent (if need be), safely and efficiently,
+     * and without calling code having to know about parent
+     * information
+     */
+    public void release()
+    {
+        if (maybeDirty() && mParent != null) {
+            mParent.mergeChild(this);
+            /* Let's also mark this instance as dirty, so that just in
+             * case release was too early, there's no corruption
+             * of possibly shared data.
+             */
+            markAsShared();
+        }
+    }
+
+    private NameCanonicalizer(int hashSize)
+    {
+        mParent = null;
         /* Sanity check: let's now allow hash sizes below certain
          * min. value
          */
@@ -142,30 +189,19 @@ public final class NameCanonicalizer
                 while (curr < hashSize) {
                     curr += curr;
                 }
-                //System.out.println("WARNING: hashSize "+hashSize+" illegal; padding up to "+curr);
                 hashSize = curr;
             }
         }
-
-        mCount = 0;
-        mMainHashShared = false;
-        mMainNamesShared = false;
-        mMainHashMask = hashSize - 1;
-        mMainHash = new int[hashSize];
-        mMainNames = new Name[hashSize];
-
-        mCollListShared = true; // just since it'll need to be allocated
-        mCollList = null;
-        mCollEnd = 0;
-
-        mNeedRehash = false;
+        initTables(hashSize);
     }
 
     /**
      * Constructor used when creating a child instance
      */
-    NameCanonicalizer(NameCanonicalizer parent)
+    private NameCanonicalizer(NameCanonicalizer parent)
     {
+        mParent = parent;
+
         // First, let's copy the state as is:
         mCount = parent.mCount;
         mMainHashMask = parent.mMainHashMask;
@@ -182,29 +218,57 @@ public final class NameCanonicalizer
         mCollListShared = true;
     }
 
-    public boolean mergeFromChild(NameCanonicalizer child)
+    private void initTables(int hashSize)
     {
-        // Only makes sense if child has more entries
-        if (child.mCount <= mCount) {
-            return false;
-        }
+        mCount = 0;
+        mMainHash = new int[hashSize];
+        mMainNames = new Name[hashSize];
+        mMainHashShared = false;
+        mMainNamesShared = false;
+        mMainHashMask = hashSize - 1;
 
-        mCount = child.mCount;
-        mMainHashMask = child.mMainHashMask;
-        mMainHash = child.mMainHash;
-        mMainNames = child.mMainNames;
-        mCollList = child.mCollList;
-        mCollCount = child.mCollCount;
-        mCollEnd = child.mCollEnd;
+        mCollListShared = true; // just since it'll need to be allocated
+        mCollList = null;
+        mCollEnd = 0;
 
-        /* Plus, as an added safety measure, let's mark child buffers
-         * as shared, just in case it might still be used:
-         */
-        child.markAsShared();
-        return true;
+        mNeedRehash = false;
     }
 
-    public void markAsShared()
+    private synchronized void mergeChild(NameCanonicalizer child)
+    {
+        // Only makes sense if child has more entries
+        int childCount = child.mCount;
+        if (childCount <= mCount) {
+            return;
+        }
+
+        /* One caveat: let's try to avoid problems with
+         * degenerate cases of documents with generated "random"
+         * names: for these, symbol tables would bloat indefinitely.
+         * One way to do this is to just purge tables if they grow
+         * too large, and that's what we'll do here.
+         */
+        if (child.size() > MAX_TABLE_SIZE) {
+            /* Should there be a way to get notified about this
+             * event, to log it or such? (as it's somewhat abnormal
+             * thing to happen)
+             */
+            // At any rate, need to clean up the tables, then:
+            initTables(DEFAULT_TABLE_SIZE);
+        } else {
+            mCount = child.mCount;
+            mMainHash = child.mMainHash;
+            mMainNames = child.mMainNames;
+            mMainHashShared = true; // shouldn't matter for parent
+            mMainNamesShared = true; // - "" -
+            mMainHashMask = child.mMainHashMask;
+            mCollList = child.mCollList;
+            mCollCount = child.mCollCount;
+            mCollEnd = child.mCollEnd;
+        }
+    }
+
+    private void markAsShared()
     {
         mMainHashShared = true;
         mMainNamesShared = true;
@@ -214,12 +278,14 @@ public final class NameCanonicalizer
     /**
      * Method used by test code, to reset state of the name table.
      */
+    /*
     public void nuke() {
         mMainHash = null;
         mMainNames = null;
         mCollList = null;
     }
 
+    */
     /*
     /////////////////////////////////////////////////////
     // API, accessors
@@ -256,9 +322,9 @@ public final class NameCanonicalizer
      * @return Name matching the symbol passed (or constructed for
      *   it)
      */
-    public Name canonicalize(int hash, int firstQuad, int secondQuad)
+    public Name findName(int firstQuad, int secondQuad)
     {
-        
+        int hash = calcHash(firstQuad, secondQuad);
         int ix = (hash & mMainHashMask);
         int val = mMainHash[ix];
         
@@ -308,11 +374,12 @@ public final class NameCanonicalizer
      * @return Name matching the symbol passed (or constructed for
      *   it)
      */
-    public Name canonicalize(int hash, int[] quads, int qlen)
+    public Name findName(int[] quads, int qlen)
     {
         if (qlen < 3) { // another sanity check
-            return canonicalize(hash, quads[0], (qlen < 2) ? 0 : quads[1]);
+            return findName(quads[0], (qlen < 2) ? 0 : quads[1]);
         }
+        int hash = calcHash(quads, qlen);
         // (for rest of comments regarding logic, see method above)
         int ix = (hash & mMainHashMask);
         int val = mMainHash[ix];
@@ -344,15 +411,9 @@ public final class NameCanonicalizer
     /////////////////////////////////////////////////////
      */
 
-    public Name addSymbol(int hash, String symbolStr, int firstQuad, int secondQuad)
+    public Name addName(String symbolStr, int[] quads, int qlen)
     {
-        Name symbol = NameFactory.construct(hash, symbolStr, firstQuad, secondQuad);
-        doAddSymbol(hash, symbol);
-        return symbol;
-    }
-
-    public Name addSymbol(int hash, String symbolStr, int[] quads, int qlen)
-    {
+        int hash = calcHash(quads, qlen);
         Name symbol = NameFactory.construct(hash, symbolStr, quads, qlen);
         doAddSymbol(hash, symbol);
         return symbol;

@@ -154,6 +154,9 @@
             <include name="test/**/*.java" />
             <classpath refid="compile-classpath" />
         </javac>
+    </target>
+
+    <target name="compile-perf" depends="compile">
         <!-- Let's also compile micro-benchmarks... -->
         <javac SrcDir="${SrcDir}/perf" destdir="${BuildClassesDir}"
             debug="false"
