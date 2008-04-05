@@ -14,26 +14,6 @@ import org.codehaus.jackson.util.SymbolTable;
 public final class JsonFactory
 {
     /**
-     * Legal JSON content always uses an Unicode encoding from the
-     * small list. As such we can just enumerate all legal types
-     * here
-     */
-    public enum Encoding {
-        UTF8("UTF-8"),
-            UTF16_BE("UTF-16BE"),
-            UTF16_LE("UTF-16LE"),
-            UTF32_BE("UTF-32BE"),
-            UTF32_LE("UTF-32LE")
-            ;
-
-        final String mJavaName;
-
-        Encoding(String javaName) { mJavaName = javaName; }
-
-        public String getJavaName() { return mJavaName; }
-    }
-
-    /**
      * This <code>ThreadLocal</code> contains a {@link SoftRerefence}
      * to a {@link BufferRecycler} used to provide a low-cost
      * buffer recycling between reader and writer instances.
@@ -103,12 +83,12 @@ public final class JsonFactory
     //////////////////////////////////////////////////////
      */
 
-    public JsonGenerator createJsonGenerator(OutputStream out, Encoding enc)
+    public JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
         throws IOException
     {
         IOContext ctxt = createContext(out);
-        ctxt.setEncoding(enc.getJavaName());
-        if (enc == Encoding.UTF8) { // We have optimized writer for UTF-8
+        ctxt.setEncoding(enc);
+        if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
             return new WriterBasedGenerator(ctxt, new UTF8Writer(ctxt, out));
         }
         return new WriterBasedGenerator(ctxt, new OutputStreamWriter(out, enc.getJavaName()));
@@ -121,7 +101,7 @@ public final class JsonFactory
         return new WriterBasedGenerator(ctxt, out);
     }
 
-    public JsonGenerator createJsonGenerator(File f, Encoding enc)
+    public JsonGenerator createJsonGenerator(File f, JsonEncoding enc)
         throws IOException
     {
         return createJsonGenerator(new FileOutputStream(f), enc);

@@ -16,11 +16,15 @@ public class TestParser
         JsonFactory f = new JsonFactory();
         JsonParser jp = f.createJsonParser(new File(args[0]));
 
+        System.out.print("Parser: "+jp);
+
         JsonToken t;
 
         while ((t = jp.nextToken()) != null) {
             System.out.print("Token: "+t);
-            if (t.toString().startsWith("VALUE")) {
+            if (t == JsonToken.FIELD_NAME) {
+                System.out.print(", name = '"+jp.getText()+"'");
+            } else if (t.toString().startsWith("VALUE")) {
                 System.out.print(", value = '"+jp.getText()+"'");
             }
             System.out.println();

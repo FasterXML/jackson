@@ -2,9 +2,11 @@ package org.codehaus.jackson.io;
 
 import java.io.*;
 
+import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.impl.ReaderBasedParser;
+import org.codehaus.jackson.impl.Utf8StreamParser;
 import org.codehaus.jackson.sym.NameCanonicalizer;
 import org.codehaus.jackson.util.SymbolTable;
 
@@ -38,6 +40,12 @@ public final class ByteSourceBootstrapper
     private int mInputPtr;
 
     private int mInputLen;
+
+    /**
+     * Flag that indicates whether buffer above is to be recycled
+     * after being used or not.
+     */
+    private final boolean mBufferRecyclable;
 
     /*
     ///////////////////////////////////////////////////////////////
@@ -76,6 +84,7 @@ public final class ByteSourceBootstrapper
         mInputBuffer = ctxt.allocReadIOBuffer();
         mInputLen = mInputPtr = 0;
         mInputProcessed = 0;
+        mBufferRecyclable = true;
     }
 
     private ByteSourceBootstrapper(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen)
@@ -87,6 +96,7 @@ public final class ByteSourceBootstrapper
         mInputLen = (inputStart + inputLen);
         // Need to offset this for correct location info
         mInputProcessed = -inputStart;
+        mBufferRecyclable = false;
     }
 
     public static JsonParser bootstrap(IOContext ctxt, InputStream in,
@@ -158,13 +168,14 @@ public final class ByteSourceBootstrapper
 
         /* Not found yet? As per specs, this means it must be UTF-8. */
         Reader r;
-        String enc;
+        JsonEncoding enc;
 
         if (!foundEncoding) {
-            enc = "UTF-8";
-            r = new UTF8Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputLen);
+            enc = JsonEncoding.UTF8;
+            //r = new UTF8Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputLen);
+            return new Utf8StreamParser(mContext, mIn, advancedSymbols, mInputBuffer, mInputPtr, mInputLen, mBufferRecyclable);
         } else if (mBytesPerChar == 2) {
-            enc = mBigEndian ? "UTF-16BE" : "UTF-16LE";
+            enc = mBigEndian ? JsonEncoding.UTF16_BE : JsonEncoding.UTF16_LE;
             mContext.setEncoding(enc);
 
             // First: do we have a Stream? If not, need to create one:
@@ -179,13 +190,13 @@ public final class ByteSourceBootstrapper
                     in = new MergedStream(mContext, in, mInputBuffer, mInputPtr, mInputLen);
                 }
             }
-            r = new InputStreamReader(in, enc);
+            r = new InputStreamReader(in, enc.getJavaName());
         } else if (mBytesPerChar == 4) {
-            enc = mBigEndian ? "UTF-32BE" : "UTF-32LE";
+            enc = mBigEndian ? JsonEncoding.UTF32_BE : JsonEncoding.UTF32_LE;
             r = new UTF32Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputLen,
                                 mBigEndian);
         } else {
-            throw new Error("Internal error"); // should never get here
+            throw new RuntimeException("Internal error"); // should never get here
         }
         mContext.setEncoding(enc);
         return new ReaderBasedParser(mContext, r, basicSymbols.makeChild());

@@ -18,7 +18,7 @@ public final class CharTypes
          * but if we want to do lookups by raw bytes it's better
          * to have full table
          */
-        int[] table = new int[96];
+        int[] table = new int[256];
         // Control chars and non-space white space are not allowed unquoted
         for (int i = 0; i < 32; ++i) {
             table[i] = 1;

@@ -10,7 +10,7 @@ import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.io.NumberInput;
 
 /**
- * Another intermediate base class used by all Jackson {@JsonParser}
+ * Another intermediate base class used by all Jackson {@link JsonParser}
  * implementations. Contains shared functionality for dealing with
  * number parsing aspects, independent of input source decoding.
  *

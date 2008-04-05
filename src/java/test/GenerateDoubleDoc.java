@@ -19,7 +19,7 @@ public class GenerateDoubleDoc
         // Let's first buffer in memory, to know exact length
         ByteArrayOutputStream bos = new ByteArrayOutputStream(bsize + 500);
         Random r = new Random(kbSize);
-        JsonGenerator gen = new JsonFactory().createJsonGenerator(bos, JsonFactory.Encoding.UTF8);
+        JsonGenerator gen = new JsonFactory().createJsonGenerator(bos, JsonEncoding.UTF8);
         gen.writeStartArray(); // outermost array
         gen.writeStartArray(); // inner array
 

@@ -7,7 +7,7 @@ import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.util.TextBuffer;
 
 /**
- * Intermediate base class used by all Jackson {@JsonParser}
+ * Intermediate base class used by all Jackson {@link JsonParser}
  * implementations. Contains most common things that are independent
  * of actual underlying input source
  *
@@ -418,7 +418,7 @@ public abstract class JsonParserBase
 
     /**
      * Method called to release internal buffers owned by the base
-     * reader. This may be called along with {@link #closeReader} (for
+     * reader. This may be called along with {@link #closeInput} (for
      * example, when explicitly closing this reader instance), or
      * separately (if need be).
      */

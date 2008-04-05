@@ -41,6 +41,7 @@ public final class Utf8StreamParser
     {
         super(ctxt, in, inputBuffer, start, end, bufferRecyclable);
         mSymbols = sym;
+        mParsingContext = JsonReadContext.createRootContext(this);
     }
 
     /*

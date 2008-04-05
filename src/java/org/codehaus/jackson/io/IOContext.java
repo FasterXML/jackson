@@ -1,5 +1,6 @@
 package org.codehaus.jackson.io;
 
+import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.util.BufferRecycler;
 import org.codehaus.jackson.util.TextBuffer;
 
@@ -22,12 +23,9 @@ public final class IOContext
     final Object mSourceRef;
 
     /**
-     * Encoding used by the underlying stream, if known. Will be
-     * a Java compatible encoding name (as opposed to, say, xml
-     * specification defined encodings), usable as-is with JDK
-     * classes.
+     * Encoding used by the underlying stream, if known.
      */
-    protected String mEncoding;
+    protected JsonEncoding mEncoding;
 
     // // // Allocated buffers that need to be kept track of
 
@@ -69,7 +67,7 @@ public final class IOContext
         mSourceRef = sourceRef;
     }
 
-    public void setEncoding(String enc)
+    public void setEncoding(JsonEncoding enc)
     {
         mEncoding = enc;
     }
@@ -181,5 +179,5 @@ public final class IOContext
      */
 
     public Object getSourceReference() { return mSourceRef; }
-    public String getEncoding() { return mEncoding; }
+    public JsonEncoding getEncoding() { return mEncoding; }
 }
