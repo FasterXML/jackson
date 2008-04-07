@@ -51,7 +51,8 @@ public final class ReaderBasedParser
         throws IOException, JsonParseException
     {
         if (mTokenIncomplete) {
-            skipPartial();
+            mTokenIncomplete = false;
+            skipString(); // only strings can be partial
         }
 
         int i;
@@ -488,36 +489,6 @@ public final class ReaderBasedParser
     // Internal methods, other parsing
     ////////////////////////////////////////////////////
      */
-
-    /**
-     * Method called to process and skip remaining contents of a
-     * partially read token.
-     */
-    protected final void skipPartial()
-        throws IOException, JsonParseException
-    {
-        mTokenIncomplete = false;
-        if (mCurrToken == JsonToken.VALUE_STRING) {
-            skipString();
-        } else {
-            throwInternal();
-        }
-    }
-
-    /**
-     * Method called to finish parsing of a partially parsed token,
-     * in order to access information regarding it.
-     */
-    protected final void finishToken()
-        throws IOException, JsonParseException
-    {
-        mTokenIncomplete = false;
-        if (mCurrToken == JsonToken.VALUE_STRING) {
-            finishString();
-        } else {
-            throwInternal();
-        }
-    }
 
     protected final char decodeEscaped()
         throws IOException, JsonParseException

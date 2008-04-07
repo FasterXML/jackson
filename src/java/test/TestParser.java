@@ -16,7 +16,7 @@ public class TestParser
         JsonFactory f = new JsonFactory();
         JsonParser jp = f.createJsonParser(new File(args[0]));
 
-        System.out.print("Parser: "+jp);
+        System.out.println("Parser: "+jp);
 
         JsonToken t;
 
@@ -25,7 +25,7 @@ public class TestParser
             if (t == JsonToken.FIELD_NAME) {
                 System.out.print(", name = '"+jp.getText()+"'");
             } else if (t.toString().startsWith("VALUE")) {
-                System.out.print(", value = '"+jp.getText()+"'");
+                System.out.print(", value = \""+jp.getText()+"\"");
             }
             System.out.println();
         }

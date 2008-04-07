@@ -5,6 +5,7 @@ import java.lang.ref.SoftReference;
 import java.net.URL;
 
 import org.codehaus.jackson.io.*;
+import org.codehaus.jackson.impl.ByteSourceBootstrapper;
 import org.codehaus.jackson.impl.ReaderBasedParser;
 import org.codehaus.jackson.impl.WriterBasedGenerator;
 import org.codehaus.jackson.sym.NameCanonicalizer;
@@ -47,16 +48,13 @@ public final class JsonFactory
     public JsonParser createJsonParser(File f)
         throws IOException, JsonParseException
     {
-        return ByteSourceBootstrapper.bootstrap
-            (createContext(f), new FileInputStream(f), mCharSymbols, mByteSymbols);
+        return createJsonParser(new FileInputStream(f), createContext(f));
     }
 
     public JsonParser createJsonParser(URL url)
         throws IOException, JsonParseException
     {
-        InputStream in = optimizedStreamFromURL(url);
-        return ByteSourceBootstrapper.bootstrap
-            (createContext(url), in, mCharSymbols, mByteSymbols);
+        return createJsonParser(optimizedStreamFromURL(url), createContext(url));
     }
 
     /**
@@ -67,8 +65,33 @@ public final class JsonFactory
     public JsonParser createJsonParser(InputStream in)
         throws IOException, JsonParseException
     {
-        return ByteSourceBootstrapper.bootstrap
-            (createContext(in), in, mCharSymbols, mByteSymbols);
+        return createJsonParser(in, createContext(in));
+    }
+
+    public JsonParser createJsonParser(InputStream in, boolean fast)
+        throws IOException, JsonParseException
+    {
+        return createJsonParser(in, createContext(in), fast);
+    }
+
+    private JsonParser createJsonParser(InputStream in, IOContext ctxt)
+        throws IOException, JsonParseException
+    {
+        return createJsonParser(in, ctxt, true);
+    }
+
+    /* !!! For testing alternative implementations
+     */
+    private JsonParser createJsonParser(InputStream in, IOContext ctxt,
+                                        boolean fast)
+        throws IOException, JsonParseException
+    {
+        ByteSourceBootstrapper bb = new ByteSourceBootstrapper(ctxt, in);
+        JsonEncoding enc = bb.detectEncoding();
+        if (fast && enc == JsonEncoding.UTF8) {
+            return bb.createFastUtf8Parser(mByteSymbols);
+        }
+        return new ReaderBasedParser(ctxt, bb.constructReader(), mCharSymbols.makeChild());
     }
 
     public JsonParser createJsonParser(Reader r)

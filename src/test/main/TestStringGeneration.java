@@ -117,7 +117,7 @@ public class TestStringGeneration
         throws Exception
     {
         ByteArrayOutputStream bow = new ByteArrayOutputStream(text.length());
-        JsonGenerator gen = new JsonFactory().createJsonGenerator(bow, JsonFactory.Encoding.UTF8);
+        JsonGenerator gen = new JsonFactory().createJsonGenerator(bow, JsonEncoding.UTF8);
         gen.writeStartArray();
         if (charArray) {
             char[] buf = new char[text.length()];
@@ -155,14 +155,14 @@ public class TestStringGeneration
         throws Exception
     {
         ByteArrayOutputStream bow = new ByteArrayOutputStream(text.length());
-        JsonGenerator gen = new JsonFactory().createJsonGenerator(bow, JsonFactory.Encoding.UTF8);
+        JsonGenerator gen = new JsonFactory().createJsonGenerator(bow, JsonEncoding.UTF8);
         gen.writeStartArray();
 
         gen.writeString(text);
         gen.writeEndArray();
         gen.close();
         
-        gen = new JsonFactory().createJsonGenerator(bow, JsonFactory.Encoding.UTF8);
+        gen = new JsonFactory().createJsonGenerator(bow, JsonEncoding.UTF8);
         gen.writeStartArray();
         gen.writeStartArray();
 

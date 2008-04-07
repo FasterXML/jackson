@@ -21,12 +21,39 @@ public final class CharTypes
         int[] table = new int[256];
         // Control chars and non-space white space are not allowed unquoted
         for (int i = 0; i < 32; ++i) {
-            table[i] = 1;
+            table[i] = -1;
         }
         // And then string end and quote markers are special too
         table['"'] = 1;
         table['\\'] = 1;
         sInputCodes = table;
+    }
+
+    /***
+     * Additionally we can combine UTF-8 decoding info into similar
+     * data table.
+     */
+    final static int[] sInputCodesUtf8;
+    static {
+        sInputCodesUtf8 = new int[sInputCodes.length];
+        System.arraycopy(sInputCodes, 0, sInputCodesUtf8, 0, sInputCodes.length);
+        for (int c = 128; c < 256; ++c) {
+            int code;
+
+            // We'll add number of bytes needed for decoding
+            if ((c & 0xE0) == 0xC0) { // 2 bytes (0x0080 - 0x07FF)
+                code = 2;
+            } else if ((c & 0xF0) == 0xE0) { // 3 bytes (0x0800 - 0xFFFF)
+                code = 3;
+            } else if ((c & 0xF8) == 0xF0) {
+                // 4 bytes; double-char with surrogates and all...
+                code = 4;
+            } else {
+                // And -1 seems like a good "universal" error marker...
+                code = -1;
+            }
+            sInputCodes[c] = code;
+        }
     }
 
     /**
@@ -72,6 +99,7 @@ public final class CharTypes
     }
 
     public static int[] getInputCode() { return sInputCodes; }
+    public static int[] getInputCodeUtf8() { return sInputCodes; }
     public static int[] getOutputEscapes() { return sOutputEscapes; }
 
     public static int charToHex(int ch)

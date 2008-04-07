@@ -304,6 +304,45 @@ public final class NameCanonicalizer
         return !mMainHashShared;
     }
 
+    public static Name getEmptyName()
+    {
+        return Name1.getEmptyName();
+    }
+
+    public Name findName(int firstQuad)
+    {
+        int hash = calcHash(firstQuad);
+        int ix = (hash & mMainHashMask);
+        int val = mMainHash[ix];
+        
+        /* High 24 bits of the value are low 24 bits of hash (low 8 bits
+         * are bucket index)... match?
+         */
+        if ((((val >> 8) ^ hash) << 8) == 0) { // match
+            // Ok, but do we have an actual match?
+            Name name = mMainNames[ix];
+            if (name == null) { // main slot empty; can't find
+                return null;
+            }
+            if (name.equals(firstQuad)) {
+                return name;
+            }
+        } else if (val == 0) { // empty slot? no match
+            return null;
+        }
+        // Maybe a spill-over?
+        val &= 0xFF;
+        if (val > 0) { // 0 means 'empty'
+            val -= 1; // to convert from 1-based to 0...
+            Bucket bucket = mCollList[val];
+            if (bucket != null) {
+                return bucket.find(hash, firstQuad, 0);
+            }
+        }
+        // Nope, no match whatsoever
+        return null;
+    }
+
     /**
      * Finds and returns name matching the specified symbol, if such
      * name already exists in the table; or if not, creates name object,
@@ -312,11 +351,11 @@ public final class NameCanonicalizer
      * Note: separate methods to optimize common case of relatively
      * short element/attribute names (8 or less ascii characters)
      *
-     * @param firstQuad int32 containing first 4 bytes of the pname;
+     * @param firstQuad int32 containing first 4 bytes of the name;
      *   if the whole name less than 4 bytes, padded with zero bytes
      *   in front (zero MSBs, ie. right aligned)
      * @param secondQuad int32 containing bytes 5 through 8 of the
-     *   pname; if less than 8 bytes, padded with up to 4 zero bytes
+     *   name; if less than 8 bytes, padded with up to 4 zero bytes
      *   in front (zero MSBs, ie. right aligned)
      *
      * @return Name matching the symbol passed (or constructed for
@@ -333,12 +372,12 @@ public final class NameCanonicalizer
          */
         if ((((val >> 8) ^ hash) << 8) == 0) { // match
             // Ok, but do we have an actual match?
-            Name pname = mMainNames[ix];
-            if (pname == null) { // main slot empty; can't find
+            Name name = mMainNames[ix];
+            if (name == null) { // main slot empty; can't find
                 return null;
             }
-            if (pname.equals(firstQuad, secondQuad)) {
-                return pname;
+            if (name.equals(firstQuad, secondQuad)) {
+                return name;
             }
         } else if (val == 0) { // empty slot? no match
             return null;
@@ -376,20 +415,20 @@ public final class NameCanonicalizer
      */
     public Name findName(int[] quads, int qlen)
     {
+        /* // Not needed, never gets called
         if (qlen < 3) { // another sanity check
             return findName(quads[0], (qlen < 2) ? 0 : quads[1]);
         }
+        */
         int hash = calcHash(quads, qlen);
         // (for rest of comments regarding logic, see method above)
         int ix = (hash & mMainHashMask);
         int val = mMainHash[ix];
         if ((((val >> 8) ^ hash) << 8) == 0) {
-            Name pname = mMainNames[ix];
-            if (pname == null) { // main slot empty; no collision list then either
-                return null;
-            }
-            if (pname.equals(quads, qlen)) { // should be match, let's verify
-                return pname;
+            Name name = mMainNames[ix];
+            if (name == null // main slot empty; no collision list then either
+                || name.equals(quads, qlen)) { // should be match, let's verify
+                return name;
             }
         } else if (val == 0) { // empty slot? no match
             return null;
@@ -414,7 +453,7 @@ public final class NameCanonicalizer
     public Name addName(String symbolStr, int[] quads, int qlen)
     {
         int hash = calcHash(quads, qlen);
-        Name symbol = NameFactory.construct(hash, symbolStr, quads, qlen);
+        Name symbol = constructName(hash, symbolStr, quads, qlen);
         doAddSymbol(hash, symbol);
         return symbol;
     }
@@ -427,7 +466,7 @@ public final class NameCanonicalizer
 
     public final static int calcHash(int firstQuad)
     {
-        int hash = firstQuad * 31;
+        int hash = firstQuad;
         hash ^= (hash >>> 16); // to xor hi- and low- 16-bits
         hash ^= (hash >>> 8); // as well as lowest 2 bytes
         return hash;
@@ -436,6 +475,10 @@ public final class NameCanonicalizer
     public final static int calcHash(int firstQuad, int secondQuad)
     {
         int hash = (firstQuad * 31) + secondQuad;
+
+        // If this was called for single-quad instance:
+        //int hash = (secondQuad == 0) ? firstQuad : ((firstQuad * 31) + secondQuad);
+
         hash ^= (hash >>> 16); // to xor hi- and low- 16-bits
         hash ^= (hash >>> 8); // as well as lowest 2 bytes
         return hash;
@@ -443,12 +486,15 @@ public final class NameCanonicalizer
 
     public final static int calcHash(int[] quads, int qlen)
     {
+        // Note: may be called for qlen < 3
         int hash = quads[0];
         for (int i = 1; i < qlen; ++i) {
             hash = (hash * 31) + quads[i];
         }
+
         hash ^= (hash >>> 16); // to xor hi- and low- 16-bits
         hash ^= (hash >>> 8); // as well as lowest 2 bytes
+
         return hash;
     }
 
@@ -533,6 +579,7 @@ public final class NameCanonicalizer
         }
 
         ++mCount;
+
         /* Ok, enough about set up: now we need to find the slot to add
          * symbol in:
          */
@@ -672,7 +719,7 @@ public final class NameCanonicalizer
         } // for (... list of bucket heads ... )
 
         if (symbolsSeen != mCount) { // sanity check
-            throw new Error("Internal error: count after rehash "+symbolsSeen+"; should be "+mCount);
+            throw new RuntimeException("Internal error: count after rehash "+symbolsSeen+"; should be "+mCount);
         }
     }
 
@@ -744,6 +791,44 @@ public final class NameCanonicalizer
         int len = old.length;
         mCollList = new Bucket[len+len];
         System.arraycopy(old, 0, mCollList, 0, len);
+    }
+
+
+    /*
+    /////////////////////////////////////////////////////
+    // Constructing name objects
+    /////////////////////////////////////////////////////
+     */
+
+    public static Name constructName(int hash, String name, int q1, int q2)
+    {
+        name = name.intern();
+        if (q2 == 0) { // one quad only?
+            return new Name1(name, hash, q1);
+        }
+        return new Name2(name, hash, q1, q2);
+    }
+
+    public static Name constructName(int hash, String name, int[] quads, int qlen)
+    {
+        name = name.intern();
+        if (qlen < 4) { // Need to check for 3 quad one, can do others too
+            switch (qlen) {
+            case 1:
+                return new Name1(name, hash, quads[0]);
+            case 2:
+                return new Name2(name, hash, quads[0], quads[1]);
+            case 3:
+                return new Name3(name, hash, quads[0], quads[1], quads[2]);
+            default:
+            }
+        }
+        // Otherwise, need to copy the incoming buffer
+        int[] buf = new int[qlen];
+        for (int i = 0; i < qlen; ++i) {
+            buf[i] = quads[i];
+        }
+        return new NameN(name, hash, buf, qlen);
     }
 
     /*

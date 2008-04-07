@@ -175,8 +175,7 @@ public abstract class ReaderBasedNumericParser
     private final JsonToken parseNumberText2(boolean negative)
         throws IOException, JsonParseException
     {
-        mTextBuffer.resetWithEmpty();
-        char[] outBuf = mTextBuffer.getCurrentSegment();
+        char[] outBuf = mTextBuffer.emptyAndGetCurrentSegment();
         int outPtr = 0;
 
         // Need to prepend sign?

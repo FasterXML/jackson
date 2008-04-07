@@ -51,24 +51,138 @@ public abstract class Utf8NumericParser
      * deferred, since it is usually the most complicated and costliest
      * part of processing.
      */
-    protected final JsonToken parseNumberText(int ch)
+    protected final JsonToken parseNumberText(int c)
         throws IOException, JsonParseException
     {
-        // !!! TBI
-        return null;
-    }
+        char[] outBuf = mTextBuffer.emptyAndGetCurrentSegment();
+        int outPtr = 0;
+        boolean negative = (c == INT_MINUS);
 
-    /**
-     * Method called to parse a number, when the primary parse
-     * method has failed to parse it, due to it being split on
-     * buffer boundary. As a result code is very similar, except
-     * that it has to explicitly copy contents to the text buffer
-     * instead of just sharing the main input buffer.
-     */
-    private final JsonToken parseNumberText2(boolean negative)
-        throws IOException, JsonParseException
-    {
-        // !!! TBI
-        return null;
+        // Need to prepend sign?
+        if (negative) {
+            outBuf[outPtr++] = '-';
+            // Must have something after sign too
+            if (mInputPtr >= mInputLast) {
+                loadMoreGuaranteed();
+            }
+            c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+        }
+
+        int intLen = 0;
+        boolean eof = false;
+
+        // Ok, first the obligatory integer part:
+        int_loop:
+        while (true) {
+            if (c < INT_0 || c > INT_9) {
+                break int_loop;
+            }
+            ++intLen;
+            // Quickie check: no leading zeroes allowed
+            if (intLen == 2) {
+                if (outBuf[outPtr-1] == '0') {
+                    reportInvalidNumber("Leading zeroes not allowed");
+                }
+            }
+            if (outPtr >= outBuf.length) {
+                outBuf = mTextBuffer.finishCurrentSegment();
+                outPtr = 0;
+            }
+            outBuf[outPtr++] = (char) c;
+            if (mInputPtr >= mInputLast && !loadMore()) {
+                // EOF is legal for main level int values
+                c = CHAR_NULL;
+                eof = true;
+                break int_loop;
+            }
+            c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+        }
+        // Also, integer part is not optional
+        if (intLen == 0) {
+            reportInvalidNumber("Missing integer part (next char "+getCharDesc(c)+")");
+        }
+
+        int fractLen = 0;
+        // And then see if we get other parts
+        if (c == '.') { // yes, fraction
+            outBuf[outPtr++] = (char) c;
+
+            fract_loop:
+            while (true) {
+                if (mInputPtr >= mInputLast && !loadMore()) {
+                    eof = true;
+                    break fract_loop;
+                }
+                c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+                if (c < INT_0 || c > INT_9) {
+                    break fract_loop;
+                }
+                ++fractLen;
+                if (outPtr >= outBuf.length) {
+                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outPtr = 0;
+                }
+                outBuf[outPtr++] = (char) c;
+            }
+            // must be followed by sequence of ints, one minimum
+            if (fractLen == 0) {
+                reportUnexpectedNumberChar(c, "Decimal point not followed by a digit");
+            }
+        }
+
+        int expLen = 0;
+        if (c == 'e' || c == 'E') { // exponent?
+            if (outPtr >= outBuf.length) {
+                outBuf = mTextBuffer.finishCurrentSegment();
+                outPtr = 0;
+            }
+            outBuf[outPtr++] = (char) c;
+            // Not optional, can require that we get one more char
+            if (mInputPtr >= mInputLast) {
+                loadMoreGuaranteed();
+            }
+            c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+            // Sign indicator?
+            if (c == '-' || c == '+') {
+                if (outPtr >= outBuf.length) {
+                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outPtr = 0;
+                }
+                outBuf[outPtr++] = (char) c;
+                // Likewise, non optional:
+                if (mInputPtr >= mInputLast) {
+                    loadMoreGuaranteed();
+                }
+                c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+            }
+
+            exp_loop:
+            while (c <= INT_9 && c >= INT_0) {
+                ++expLen;
+                if (outPtr >= outBuf.length) {
+                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outPtr = 0;
+                }
+                outBuf[outPtr++] = (char) c;
+                if (mInputPtr >= mInputLast && !loadMore()) {
+                    eof = true;
+                    break exp_loop;
+                }
+                c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+            }
+            // must be followed by sequence of ints, one minimum
+            if (expLen == 0) {
+                reportUnexpectedNumberChar(c, "Exponent indicator not followed by a digit");
+            }
+        }
+
+        // Ok; unless we hit end-of-input, need to push last char read back
+        if (!eof) {
+            --mInputPtr;
+        }
+        mTextBuffer.setCurrentLength(outPtr);
+
+        // And there we have it!
+        return reset(negative, intLen, fractLen, expLen);
     }
 }

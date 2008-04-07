@@ -1,12 +1,11 @@
-package org.codehaus.jackson.io;
+package org.codehaus.jackson.impl;
 
 import java.io.*;
 
 import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.impl.ReaderBasedParser;
-import org.codehaus.jackson.impl.Utf8StreamParser;
+import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.sym.NameCanonicalizer;
 import org.codehaus.jackson.util.SymbolTable;
 
@@ -39,7 +38,7 @@ public final class ByteSourceBootstrapper
 
     private int mInputPtr;
 
-    private int mInputLen;
+    private int mInputLast;
 
     /**
      * Flag that indicates whether buffer above is to be recycled
@@ -77,55 +76,34 @@ public final class ByteSourceBootstrapper
     ////////////////////////////////////////////////////
      */
 
-    private ByteSourceBootstrapper(IOContext ctxt, InputStream in)
+    public ByteSourceBootstrapper(IOContext ctxt, InputStream in)
     {
         mContext = ctxt;
         mIn = in;
         mInputBuffer = ctxt.allocReadIOBuffer();
-        mInputLen = mInputPtr = 0;
+        mInputLast = mInputPtr = 0;
         mInputProcessed = 0;
         mBufferRecyclable = true;
     }
 
-    private ByteSourceBootstrapper(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen)
+    public ByteSourceBootstrapper(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen)
     {
         mContext = ctxt;
         mIn = null;
         mInputBuffer = inputBuffer;
         mInputPtr = inputStart;
-        mInputLen = (inputStart + inputLen);
+        mInputLast = (inputStart + inputLen);
         // Need to offset this for correct location info
         mInputProcessed = -inputStart;
         mBufferRecyclable = false;
     }
 
-    public static JsonParser bootstrap(IOContext ctxt, InputStream in,
-                                       SymbolTable basicSymbols,
-                                       NameCanonicalizer advancedSymbols)
-        throws IOException, JsonParseException    {
-        return new ByteSourceBootstrapper(ctxt, in)._bootstrap(basicSymbols, advancedSymbols);
-    }
-
-    public static JsonParser bootstrap(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen,
-                                       SymbolTable basicSymbols,
-                                       NameCanonicalizer advancedSymbols)
-        throws IOException, JsonParseException
-    {
-        return new ByteSourceBootstrapper(ctxt, inputBuffer, inputStart, inputLen)._bootstrap(basicSymbols, advancedSymbols);
-    }
-
-    /*
-    /////////////////////////////////////////////////////////////////
-    // Internal methods, parsing
-    /////////////////////////////////////////////////////////////////
-    */
-
     /**
-     * @return Actual reader instance, if possibly valid content found;
-     *   exception otherwise
+     * Method that should be called after constructing an instace.
+     * It will figure out encoding that content uses, to allow
+     * for instantiating a proper scanner object.
      */
-    private JsonParser _bootstrap(SymbolTable basicSymbols,
-                                  NameCanonicalizer advancedSymbols)
+    public JsonEncoding detectEncoding()
         throws IOException, JsonParseException
     {
         boolean foundEncoding = false;
@@ -166,41 +144,69 @@ public final class ByteSourceBootstrapper
             }
         }
 
-        /* Not found yet? As per specs, this means it must be UTF-8. */
-        Reader r;
         JsonEncoding enc;
 
+        /* Not found yet? As per specs, this means it must be UTF-8. */
         if (!foundEncoding) {
             enc = JsonEncoding.UTF8;
-            //r = new UTF8Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputLen);
-            return new Utf8StreamParser(mContext, mIn, advancedSymbols, mInputBuffer, mInputPtr, mInputLen, mBufferRecyclable);
         } else if (mBytesPerChar == 2) {
             enc = mBigEndian ? JsonEncoding.UTF16_BE : JsonEncoding.UTF16_LE;
-            mContext.setEncoding(enc);
-
-            // First: do we have a Stream? If not, need to create one:
-            InputStream in = mIn;
-            if (in == null) {
-                in = new ByteArrayInputStream(mInputBuffer, mInputPtr, mInputLen);
-            } else {
-                /* Also, if we have any read but unused input (usually true),
-                 * need to merge that input in:
-                 */
-                if (mInputPtr < mInputLen) {
-                    in = new MergedStream(mContext, in, mInputBuffer, mInputPtr, mInputLen);
-                }
-            }
-            r = new InputStreamReader(in, enc.getJavaName());
         } else if (mBytesPerChar == 4) {
             enc = mBigEndian ? JsonEncoding.UTF32_BE : JsonEncoding.UTF32_LE;
-            r = new UTF32Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputLen,
-                                mBigEndian);
         } else {
             throw new RuntimeException("Internal error"); // should never get here
         }
         mContext.setEncoding(enc);
-        return new ReaderBasedParser(mContext, r, basicSymbols.makeChild());
+        return enc;
     }
+
+    public Reader constructReader()
+        throws IOException
+    {
+        JsonEncoding enc = mContext.getEncoding();
+        switch (enc) { 
+        case UTF32_BE:
+        case UTF32_LE:
+            return new UTF32Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputLast,
+                                   mContext.getEncoding().isBigEndian());
+
+        case UTF16_BE:
+        case UTF16_LE:
+            {
+                // First: do we have a Stream? If not, need to create one:
+                InputStream in = mIn;
+
+                if (in == null) {
+                    in = new ByteArrayInputStream(mInputBuffer, mInputPtr, mInputLast);
+                } else {
+                    /* Also, if we have any read but unused input (usually true),
+                     * need to merge that input in:
+                     */
+                    if (mInputPtr < mInputLast) {
+                        in = new MergedStream(mContext, in, mInputBuffer, mInputPtr, mInputLast);
+                    }
+                }
+                return new InputStreamReader(in, enc.getJavaName());
+            }
+
+        case UTF8:
+            return new UTF8Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputLast);
+        default:
+            throw new RuntimeException("Internal error"); // should never get here
+        }
+        //return new ReaderBasedParser(mContext, r, basicSymbols.makeChild());
+    }
+
+    public Utf8StreamParser createFastUtf8Parser(NameCanonicalizer nc)
+    {
+        return new Utf8StreamParser(mContext, mIn, nc, mInputBuffer, mInputPtr, mInputLast, mBufferRecyclable);
+    }
+
+    /*
+    /////////////////////////////////////////////////////////////////
+    // Internal methods, parsing
+    /////////////////////////////////////////////////////////////////
+    */
 
     /**
      * @return True if a BOM was succesfully found, and encoding
@@ -313,19 +319,19 @@ public final class ByteSourceBootstrapper
         /* Let's assume here buffer has enough room -- this will always
          * be true for the limited used this method gets
          */
-        int gotten = (mInputLen - mInputPtr);
+        int gotten = (mInputLast - mInputPtr);
         while (gotten < minimum) {
             int count;
 
             if (mIn == null) { // block source
                 count = -1;
             } else {
-                count = mIn.read(mInputBuffer, mInputLen, mInputBuffer.length - mInputLen);
+                count = mIn.read(mInputBuffer, mInputLast, mInputBuffer.length - mInputLast);
             }
             if (count < 1) {
                 return false;
             }
-            mInputLen += count;
+            mInputLast += count;
             gotten += count;
         }
         return true;

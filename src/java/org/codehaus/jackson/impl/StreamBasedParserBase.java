@@ -4,7 +4,6 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
-import org.codehaus.jackson.util.TextBuffer;
 
 /**
  * This is a simple low-level input reader base class, used by
@@ -96,20 +95,6 @@ public abstract class StreamBasedParserBase
             }
         }
         return false;
-    }
-
-
-    protected char getNextChar(String eofMsg)
-        throws IOException, JsonParseException
-    {
-        if (mInputPtr >= mInputLast) {
-            if (!loadMore()) {
-                reportInvalidEOF(eofMsg);
-            }
-        }
-        // !!! TBI
-        //return mInputBuffer[mInputPtr++];
-        return ' ';
     }
 
     protected void closeInput()

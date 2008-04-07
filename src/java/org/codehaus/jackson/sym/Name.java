@@ -26,17 +26,11 @@ public abstract class Name
     //////////////////////////////////////////////////////////
      */
 
+    public abstract boolean equals(int quad1);
+
     public abstract boolean equals(int quad1, int quad2);
 
     public abstract boolean equals(int[] quads, int qlen);
-
-    public abstract int sizeInQuads();
-
-    public abstract int getFirstQuad();
-
-    public abstract int getQuad(int index);
-
-    public abstract int getLastQuad();
 
     /*
     //////////////////////////////////////////////////////////

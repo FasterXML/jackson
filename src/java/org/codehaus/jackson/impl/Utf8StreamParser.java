@@ -58,7 +58,8 @@ public final class Utf8StreamParser
         throws IOException, JsonParseException
     {
         if (mTokenIncomplete) {
-            skipPartial();
+            mTokenIncomplete = false; // only strings can be partial
+            skipString();
         }
 
         int i;
@@ -156,7 +157,8 @@ public final class Utf8StreamParser
         // We now have the first char: what did we get?
         switch (i) {
         case INT_QUOTE:
-            return startString();
+            mTokenIncomplete = true;
+            return (mCurrToken = JsonToken.VALUE_STRING);
         case INT_LBRACKET:
             mParsingContext = mParsingContext.createChildArrayContext(this);
             return (mCurrToken = JsonToken.START_ARRAY);
@@ -232,7 +234,7 @@ public final class Utf8StreamParser
         int q = mInputBuffer[mInputPtr++] & 0xFF;
         if (codes[q] != 0) {
             if (q == INT_QUOTE) { // special case, ""
-                return NameFactory.getEmptyName();
+                return NameCanonicalizer.getEmptyName();
             }
             return parseFieldName(0, q, 1); // quoting or invalid char
         }
@@ -320,7 +322,10 @@ public final class Utf8StreamParser
         int qlen = 2;
 
         while (true) {
-            // Let's offline if we hit buffer boundary
+            /* Let's offline if we hit buffer boundary (otherwise would
+             * need to [try to] align input, which is bit complicated
+             * and may not always be possible)
+             */
             if ((mInputLast - mInputPtr) < 4) {
                 return parseEscapedFieldName(mQuadBuffer, qlen, 0, q, 0);
             }
@@ -385,7 +390,7 @@ public final class Utf8StreamParser
         }
         int i = mInputBuffer[mInputPtr++] & 0xFF;
         if (i == INT_QUOTE) { // special case, ""
-            return NameFactory.getEmptyName();
+            return NameCanonicalizer.getEmptyName();
         }
         return parseEscapedFieldName(mQuadBuffer, 0, 0, i, 0);
     }
@@ -479,6 +484,12 @@ public final class Utf8StreamParser
                 currQuad = ch;
                 currQuadBytes = 1;
             }
+            if (mInputPtr >= mInputLast) {
+                if (!loadMore()) {
+                    reportInvalidEOF(" in field name");
+                }
+            }
+            ch = mInputBuffer[mInputPtr++] & 0xFF;
         }
 
         if (currQuadBytes > 0) {
@@ -499,7 +510,7 @@ public final class Utf8StreamParser
         throws JsonParseException
     {
         // Usually we'll find it from the canonical symbol table already
-        Name name = mSymbols.findName(q1, 0);
+        Name name = mSymbols.findName(q1);
         if (name != null) {
             return name;
         }
@@ -568,7 +579,6 @@ public final class Utf8StreamParser
         }
 
         // Need some working space, TextBuffer works well:
-        mTextBuffer.resetWithEmpty();
         char[] cbuf = mTextBuffer.emptyAndGetCurrentSegment();
         int cix = 0;
 
@@ -656,77 +666,83 @@ public final class Utf8StreamParser
 
     }
 
-    protected JsonToken startString()
-        throws IOException, JsonParseException
-    {
-        /* First: let's try to see if we have simple String value: one
-         * that does not cross input buffer boundary, and does not
-         * contain escape sequences.
-         */
-        int ptr = mInputPtr;
-        final int inputLen = mInputLast;
-
-        if (ptr < inputLen) {
-            final int[] codes = CharTypes.getInputCode();
-            final int maxCode = codes.length;
-
-            do {
-                int ch = mInputBuffer[ptr];
-                if (ch < maxCode && codes[ch] != 0) {
-                    if (ch == '"') {
-                        // !!! TBI
-                        //mTextBuffer.resetWithShared(mInputBuffer, mInputPtr, (ptr-mInputPtr));
-                        mInputPtr = ptr+1;
-                        return (mCurrToken = JsonToken.VALUE_STRING);
-                    }
-                    break;
-                }
-                ++ptr;
-            } while (ptr < inputLen);
-        }
-
-        /* Nope: either ran out of input, or bumped into an escape
-         * sequence. Either way, let's defer further parsing to ensure
-         * String value is actually needed.
-         */
-        //int start = mInputPtr;
-        // !!! TBI
-        //mTextBuffer.resetWithShared(mInputBuffer, mInputPtr, (ptr-mInputPtr));
-        mInputPtr = ptr;
-        mTokenIncomplete = true;
-        return (mCurrToken = JsonToken.VALUE_STRING);
-    }
-
     protected void finishString()
         throws IOException, JsonParseException
     {
-        /* Output pointers; calls will also ensure that the buffer is
-         * not shared and has room for at least one more char.
-         */
-        char[] outBuf = mTextBuffer.getCurrentSegment();
-        int outPtr = mTextBuffer.getCurrentSegmentSize();
+        int outPtr = 0;
+        int c;
+        char[] outBuf = mTextBuffer.emptyAndGetCurrentSegment();
 
+        final int[] codes = CharTypes.getInputCodeUtf8();
+        final byte[] inputBuffer = mInputBuffer;
+
+        main_loop:
         while (true) {
-            if (mInputPtr >= mInputLast) {
-                if (!loadMore()) {
-                    reportInvalidEOF(": was expecting closing quote for a string value");
+            // Then the tight ascii non-funny-char loop:
+            ascii_loop:
+            while (true) {
+                int ptr = mInputPtr;
+                if (ptr >= mInputLast) {
+                    loadMoreGuaranteed();
+                    ptr = mInputPtr;
                 }
+                if (outPtr >= outBuf.length) {
+                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outPtr = 0;
+                }
+                int max = mInputLast;
+                {
+                    int max2 = ptr + (outBuf.length - outPtr);
+                    if (max2 < max) {
+                        max = max2;
+                    }
+                }
+                while (ptr < max) {
+                    c = (int) inputBuffer[ptr++] & 0xFF;
+                    if (codes[c] != 0) {
+                        mInputPtr = ptr;
+                        break ascii_loop;
+                    }
+                    outBuf[outPtr++] = (char) c;
+                }
+                mInputPtr = ptr;
             }
-            // !!! TBI
-            //char c = mInputBuffer[mInputPtr++];
-            char c = (char) mInputBuffer[mInputPtr++];
-            int i = (int) c;
-            if (i <= INT_BACKSLASH) {
-                if (i == INT_BACKSLASH) {
-                    c = decodeEscaped();
-                } else if (i <= INT_QUOTE) {
-                    if (i == INT_QUOTE) {
-                        break;
-                    }
-                    if (i < INT_SPACE) {
-                        throwUnquotedSpace(i, "string value");
-                    }
+            // Ok: end marker, escape or multi-byte?
+            if (c == INT_QUOTE) {
+                break main_loop;
+            }
+
+            switch (codes[c]) {
+            case 1: // backslash
+                c = decodeEscaped();
+                break;
+            case 2: // 2-byte UTF
+                c = decodeUtf8_2(c);
+                break;
+            case 3: // 3-byte UTF
+                if ((mInputLast - mInputPtr) >= 2) {
+                    c = decodeUtf8_3fast(c);
+                } else {
+                    c = decodeUtf8_3(c);
                 }
+                break;
+            case 4: // 4-byte UTF
+                c = decodeUtf8_4(c);
+                // Let's add first part right away:
+                outBuf[outPtr++] = (char) (0xD800 | (c >> 10));
+                if (outPtr >= outBuf.length) {
+                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outPtr = 0;
+                }
+                c = 0xDC00 | (c & 0x3FF);
+                // And let the other char output down below
+                break;
+            default:
+                if (c < INT_SPACE) {
+                    throwUnquotedSpace(c, "string value");
+                }
+                // Is this good enough error message?
+                reportUnexpectedChar(c, null);
             }
             // Need more room?
             if (outPtr >= outBuf.length) {
@@ -734,7 +750,7 @@ public final class Utf8StreamParser
                 outPtr = 0;
             }
             // Ok, let's add char to output:
-            outBuf[outPtr++] = c;
+            outBuf[outPtr++] = (char) c;
         }
         mTextBuffer.setCurrentLength(outPtr);
     }
@@ -747,46 +763,56 @@ public final class Utf8StreamParser
     protected void skipString()
         throws IOException, JsonParseException
     {
-        int inputPtr = mInputPtr;
-        int inputLen = mInputLast;
-        // !!! TBI
-        //char[] inputBuffer = mInputBuffer;
-        char[] inputBuffer = null;
+        final int[] codes = CharTypes.getInputCodeUtf8();
+        final byte[] inputBuffer = mInputBuffer;
 
+        main_loop:
         while (true) {
-            if (inputPtr >= inputLen) {
-                mInputPtr = inputPtr;
-                if (!loadMore()) {
-                    reportInvalidEOF(": was expecting closing quote for a string value");
+            int c;
+
+            ascii_loop:
+            while (true) {
+                int ptr = mInputPtr;
+                int max = mInputLast;
+                if (ptr >= max) {
+                    loadMoreGuaranteed();
+                    ptr = mInputPtr;
+                    max = mInputLast;
                 }
-                inputPtr = mInputPtr;
-                inputLen = mInputLast;
+                while (ptr < max) {
+                    c = (int) inputBuffer[ptr++] & 0xFF;
+                    if (codes[c] != 0) {
+                        mInputPtr = ptr;
+                        break ascii_loop;
+                    }
+                }
+                mInputPtr = ptr;
             }
-            // !!! TBI
-            /*
-            char c = inputBuffer[inputPtr++];
-            int i = (int) c;
-            if (i <= INT_BACKSLASH) {
-                if (i == INT_BACKSLASH) {
-                    // Although chars outside of BMP are to be escaped as
-                    // an UTF-16 surrogate pair, does that affect decoding?
-                    // For now let's assume it does not.
-                    mInputPtr = inputPtr;
-                    c = decodeEscaped();
-                    inputPtr = mInputPtr;
-                    inputLen = mInputLast;
-                } else if (i <= INT_QUOTE) {
-                    if (i == INT_QUOTE) {
-                        mInputPtr = inputPtr;
-                        break;
-                    }
-                    if (i < INT_SPACE) {
-                        mInputPtr = inputPtr;
-                        throwUnquotedSpace(i, "string value");
-                    }
-                    }
+            // Ok: end marker, escape or multi-byte?
+            if (c == INT_QUOTE) {
+                break main_loop;
+            }
+
+            switch (codes[c]) {
+            case 1: // backslash
+                decodeEscaped();
+                break;
+            case 2: // 2-byte UTF
+                skipUtf8_2(c);
+                break;
+            case 3: // 3-byte UTF
+                skipUtf8_3(c);
+                break;
+            case 4: // 4-byte UTF
+                skipUtf8_4(c);
+                break;
+            default:
+                if (c < INT_SPACE) {
+                    throwUnquotedSpace(c, "string value");
                 }
-            */
+                // Is this good enough error message?
+                reportUnexpectedChar(c, null);
+            }
         }
     }
 
@@ -794,20 +820,15 @@ public final class Utf8StreamParser
         throws IOException, JsonParseException
     {
         // First char is already matched, need to check the rest
-        String matchStr = token.asString();
+        byte[] matchBytes = token.asByteArray();
         int i = 1;
 
-        for (int len = matchStr.length(); i < len; ++i) {
+        for (int len = matchBytes.length; i < len; ++i) {
             if (mInputPtr >= mInputLast) {
-                if (!loadMore()) {
-                    reportInvalidEOF(" in a value");
-                }
+                loadMoreGuaranteed();
             }
-            // !!! TBI
-            //char c = mInputBuffer[mInputPtr];
-            char c = (char) mInputBuffer[mInputPtr];
-            if (c != matchStr.charAt(i)) {
-                reportInvalidToken(matchStr.substring(0, i));
+            if (matchBytes[i] != mInputBuffer[mInputPtr]) {
+                reportInvalidToken(token.asString().substring(0, i));
             }
             ++mInputPtr;
         }
@@ -824,17 +845,14 @@ public final class Utf8StreamParser
         StringBuilder sb = new StringBuilder(matchedPart);
         /* Let's just try to find what appears to be the token, using
          * regular Java identifier character rules. It's just a heuristic,
-         * nothing fancy here.
+         * nothing fancy here (nor fast).
          */
         while (true) {
-            if (mInputPtr >= mInputLast) {
-                if (!loadMore()) {
-                    break;
-                }
+            if (mInputPtr >= mInputLast && !loadMore()) {
+                break;
             }
-            // !!! TBI
-            //char c = mInputBuffer[mInputPtr];
-            char c = (char) mInputBuffer[mInputPtr];
+            int i = (int) mInputBuffer[mInputPtr++];
+            char c = (char) decodeCharForError(i);
             if (!Character.isJavaIdentifierPart(c)) {
                 break;
             }
@@ -847,39 +865,9 @@ public final class Utf8StreamParser
 
     /*
     ////////////////////////////////////////////////////
-    // Internal methods, other parsing
+    // Internal methods, escape/unescape
     ////////////////////////////////////////////////////
      */
-
-    /**
-     * Method called to process and skip remaining contents of a
-     * partially read token.
-     */
-    protected final void skipPartial()
-        throws IOException, JsonParseException
-    {
-        mTokenIncomplete = false;
-        if (mCurrToken == JsonToken.VALUE_STRING) {
-            skipString();
-        } else {
-            throwInternal();
-        }
-    }
-
-    /**
-     * Method called to finish parsing of a partially parsed token,
-     * in order to access information regarding it.
-     */
-    protected final void finishToken()
-        throws IOException, JsonParseException
-    {
-        mTokenIncomplete = false;
-        if (mCurrToken == JsonToken.VALUE_STRING) {
-            finishString();
-        } else {
-            throwInternal();
-        }
-    }
 
     protected final char decodeEscaped()
         throws IOException, JsonParseException
@@ -914,7 +902,7 @@ public final class Utf8StreamParser
             break;
 
         default:
-            reportError("Unrecognized character escape \\ followed by "+decodeCharForError(c));
+            reportError("Unrecognized character escape \\ followed by "+getCharDesc(decodeCharForError(c)));
         }
 
         // Ok, a hex escape. Need 4 characters
@@ -935,12 +923,230 @@ public final class Utf8StreamParser
         return (char) value;
     }
 
-    protected String decodeCharForError(int firstByte)
+    protected int decodeCharForError(int firstByte)
+        throws IOException, JsonParseException
     {
-        // !!! TBI
-        //return "'"+((char) firstByte)+"'";
-        return getCharDesc(firstByte);
+        int c = (int) firstByte;
+        if (c < 0) { // if >= 0, is ascii and fine as is
+            int needed;
+            
+            // Ok; if we end here, we got multi-byte combination
+            if ((c & 0xE0) == 0xC0) { // 2 bytes (0x0080 - 0x07FF)
+                c &= 0x1F;
+                needed = 1;
+            } else if ((c & 0xF0) == 0xE0) { // 3 bytes (0x0800 - 0xFFFF)
+                c &= 0x0F;
+                needed = 2;
+            } else if ((c & 0xF8) == 0xF0) {
+                // 4 bytes; double-char with surrogates and all...
+                c &= 0x07;
+                needed = 3;
+            } else {
+                reportInvalidInitial(c & 0xFF);
+                needed = 1; // never gets here
+            }
+
+            int d = nextByte();
+            if ((d & 0xC0) != 0x080) {
+                reportInvalidOther(d & 0xFF);
+            }
+            c = (c << 6) | (d & 0x3F);
+            
+            if (needed > 1) { // needed == 1 means 2 bytes total
+                d = nextByte(); // 3rd byte
+                if ((d & 0xC0) != 0x080) {
+                    reportInvalidOther(d & 0xFF);
+                }
+                c = (c << 6) | (d & 0x3F);
+                if (needed > 2) { // 4 bytes? (need surrogates)
+                    d = nextByte();
+                    if ((d & 0xC0) != 0x080) {
+                        reportInvalidOther(d & 0xFF);
+                    }
+                    c = (c << 6) | (d & 0x3F);
+                }
+            }
+        }
+        return c;
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods,UTF8 decoding
+    ////////////////////////////////////////////////////
+     */
+
+    private final int decodeUtf8_2(int c)
+        throws IOException, JsonParseException
+    {
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        int d = (int) mInputBuffer[mInputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+        return ((c & 0x1F) << 6) | (d & 0x3F);
+    }
+
+    private final int decodeUtf8_3(int c1)
+        throws IOException, JsonParseException
+    {
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        c1 &= 0x0F;
+        int d = (int) mInputBuffer[mInputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+        int c = (c1 << 6) | (d & 0x3F);
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        d = (int) mInputBuffer[mInputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+        c = (c << 6) | (d & 0x3F);
+        return c;
+    }
+
+    private final int decodeUtf8_3fast(int c1)
+        throws IOException, JsonParseException
+    {
+        c1 &= 0x0F;
+        int d = (int) mInputBuffer[mInputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+        int c = (c1 << 6) | (d & 0x3F);
+        d = (int) mInputBuffer[mInputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+        c = (c << 6) | (d & 0x3F);
+        return c;
+    }
+
+    /**
+     * @return Character value <b>minus 0x10000</c>; this so that caller
+     *    can readily expand it to actual surrogates
+     */
+    private final int decodeUtf8_4(int c)
+        throws IOException, JsonParseException
+    {
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        int d = (int) mInputBuffer[mInputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+        c = ((c & 0x07) << 6) | (d & 0x3F);
+
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        d = (int) mInputBuffer[mInputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+        c = (c << 6) | (d & 0x3F);
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        d = (int) mInputBuffer[mInputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+
+        /* note: won't change it to negative here, since caller
+         * already knows it'll need a surrogate
+         */
+        return ((c << 6) | (d & 0x3F)) - 0x10000;
+    }
+
+    private final void skipUtf8_2(int c)
+        throws IOException, JsonParseException
+    {
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        c = (int) mInputBuffer[mInputPtr++];
+        if ((c & 0xC0) != 0x080) {
+            reportInvalidOther(c & 0xFF, mInputPtr);
+        }
+    }
+
+    /* Alas, can't heavily optimize skipping, since we still have to
+     * do validity checks...
+     */
+    private final void skipUtf8_3(int c)
+        throws IOException, JsonParseException
+    {
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        //c &= 0x0F;
+        c = (int) mInputBuffer[mInputPtr++];
+        if ((c & 0xC0) != 0x080) {
+            reportInvalidOther(c & 0xFF, mInputPtr);
+        }
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        c = (int) mInputBuffer[mInputPtr++];
+        if ((c & 0xC0) != 0x080) {
+            reportInvalidOther(c & 0xFF, mInputPtr);
+        }
+    }
+
+    private final void skipUtf8_4(int c)
+        throws IOException, JsonParseException
+    {
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        int d = (int) mInputBuffer[mInputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        d = (int) mInputBuffer[mInputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            reportInvalidOther(d & 0xFF, mInputPtr);
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods, input loading
+    ////////////////////////////////////////////////////
+     */
+
+    private int nextByte()
+        throws IOException, JsonParseException
+    {
+        if (mInputPtr >= mInputLast) {
+            loadMoreGuaranteed();
+        }
+        return mInputBuffer[mInputPtr++] & 0xFF;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods, error reporting
+    ////////////////////////////////////////////////////
+     */
 
     protected void reportInvalidInitial(int mask)
         throws JsonParseException

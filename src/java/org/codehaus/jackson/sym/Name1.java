@@ -24,6 +24,11 @@ public final class Name1
 
     final static Name1 getEmptyName() { return sEmptyName; }
 
+    public boolean equals(int quad)
+    {
+        return (quad == mQuad);
+    }
+
     public boolean equals(int quad1, int quad2)
     {
         return (quad1 == mQuad) && (quad2 == 0);
@@ -33,18 +38,4 @@ public final class Name1
     {
         return (qlen == 1 && quads[0] == mQuad);
     }
-
-    public int getFirstQuad() {
-        return mQuad;
-    }
-
-    public int getLastQuad() {
-        return mQuad;
-    }
-
-    public int getQuad(int index) {
-        return (index == 0) ? mQuad : 0;
-    }
-
-    public int sizeInQuads() { return 1; }
 }

@@ -81,6 +81,8 @@ public enum JsonToken
 
     final char[] mSerializedChars;
 
+    final byte[] mSerializedBytes;
+
     /**
      * @param Textual representation for this token, if there is a
      *   single static representation; null otherwise
@@ -90,14 +92,22 @@ public enum JsonToken
         if (token == null) {
             mSerialized = null;
             mSerializedChars = null;
+            mSerializedBytes = null;
         } else {
             mSerialized = token;
             mSerializedChars = token.toCharArray();
+            // It's all in ascii, can just case...
+            int len = mSerializedChars.length;
+            mSerializedBytes = new byte[len];
+            for (int i = 0; i < len; ++i) {
+                mSerializedBytes[i] = (byte) mSerializedChars[i];
+            }
         }
     }
 
     public String asString() { return mSerialized; }
     public char[] asCharArray() { return mSerializedChars; }
+    public byte[] asByteArray() { return mSerializedBytes; }
 
     public boolean isNumeric() {
         return (this == VALUE_NUMBER_INT) || (this == VALUE_NUMBER_FLOAT);

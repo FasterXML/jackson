@@ -20,11 +20,11 @@ public final class Name3
         mQuad3 = q3;
     }
 
-    public boolean equals(int quad1, int quad2)
-    {
-        // Implies quad length < 3, never matches
-        return false;
-    }
+    // Implies quad length == 1, never matches
+    public boolean equals(int quad) { return false; }
+
+    // Implies quad length == 2, never matches
+    public boolean equals(int quad1, int quad2) { return false; }
 
     public boolean equals(int[] quads, int qlen)
     {
@@ -33,22 +33,4 @@ public final class Name3
             && (quads[1] == mQuad2)
             && (quads[2] == mQuad3);
     }
-
-    public int getFirstQuad() {
-        return mQuad1;
-    }
-
-    public int getLastQuad() {
-        return mQuad3;
-    }
-
-    public int getQuad(int index) {
-        if (index < 2) {
-            return (index == 0) ? mQuad1 : mQuad2;
-        }
-        // Whatever would be returned for invalid index is arbitrary, so:
-        return mQuad3;
-    }
-
-    public int sizeInQuads() { return 3; }
 }

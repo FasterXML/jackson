@@ -1,16 +1,5 @@
 package org.codehaus.jackson;
 
-import java.io.*;
-import java.lang.ref.SoftReference;
-import java.net.URL;
-
-import org.codehaus.jackson.io.*;
-import org.codehaus.jackson.impl.ReaderBasedParser;
-import org.codehaus.jackson.impl.WriterBasedGenerator;
-import org.codehaus.jackson.sym.NameCanonicalizer;
-import org.codehaus.jackson.util.BufferRecycler;
-import org.codehaus.jackson.util.SymbolTable;
-
 /**
  * Legal JSON content always uses an Unicode encoding from this
  * short list of allowed (as per RFC) encoding.
@@ -21,16 +10,25 @@ import org.codehaus.jackson.util.SymbolTable;
  * output sources.
  */
 public enum JsonEncoding {
-    UTF8("UTF-8"),
-        UTF16_BE("UTF-16BE"),
-        UTF16_LE("UTF-16LE"),
-        UTF32_BE("UTF-32BE"),
-        UTF32_LE("UTF-32LE")
+    UTF8("UTF-8", true), // N/A for big-endian, really
+        UTF16_BE("UTF-16BE", true),
+        UTF16_LE("UTF-16LE", false),
+        UTF32_BE("UTF-32BE", true),
+        UTF32_LE("UTF-32LE", false)
         ;
     
     final String mJavaName;
+
+    final boolean mBigEndian;
     
-    JsonEncoding(String javaName) { mJavaName = javaName; }
+    JsonEncoding(String javaName, boolean bigEndian)
+    {
+        mJavaName = javaName;
+        mBigEndian = bigEndian;
+    }
+    
     
     public String getJavaName() { return mJavaName; }
+
+    public boolean isBigEndian() { return mBigEndian; }
 }

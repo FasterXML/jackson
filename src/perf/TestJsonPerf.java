@@ -47,16 +47,16 @@ public final class TestJsonPerf
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
             // Use 7 to test all...
-            int round = (i++ % 2);
-            
+            int round = (i++ % 1);
+
             long curr = System.currentTimeMillis();
             String msg;
             boolean lf = false;
 
             switch (round) {
             case 0:
-                msg = "Jackson, stream";
-                sum += testJacksonStream(REPS);
+                msg = "Jackson, stream/byte";
+                sum += testJacksonStream(REPS, true);
                 break;
             case 1:
                 lf = true;
@@ -64,9 +64,15 @@ public final class TestJsonPerf
                 sum += testNoggit(REPS);
                 break;
             case 2:
+                msg = "Jackson, stream/char";
+                sum += testJacksonStream(REPS, false);
+                break;
+                /*
+            case 2:
                 msg = "Jackson, Java types";
                 sum += testJacksonJavaTypes(REPS);
                 break;
+                */
             case 3:
                 msg = "Jackson, JSON types";
                 sum += testJacksonJavaTypes(REPS);
@@ -193,16 +199,18 @@ public final class TestJsonPerf
         return sum;
     }
 
-    protected int testJacksonStream(int reps)
+    protected int testJacksonStream(int reps, boolean fast)
         throws Exception
     {
         int sum = 0;
         for (int i = 0; i < reps; ++i) {
-            JsonParser jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData));
+            JsonParser jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData), fast);
             JsonToken t;
             while ((t = jp.nextToken()) != null) {
                 // Field names are always constructed
-                if (t == JsonToken.VALUE_STRING) {
+                if (t == JsonToken.VALUE_STRING
+                    //|| t == JsonToken.FIELD_NAME
+                    ) {
                     sum += jp.getText().length();
                 }
             }

@@ -4,7 +4,6 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
-import org.codehaus.jackson.util.TextBuffer;
 
 /**
  * This is a simple low-level input reader base class, used by

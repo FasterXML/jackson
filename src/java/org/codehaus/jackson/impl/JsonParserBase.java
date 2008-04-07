@@ -175,8 +175,9 @@ public abstract class JsonParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected abstract void finishToken()
-        throws IOException, JsonParseException;
+    //protected abstract void finishToken() throws IOException, JsonParseException;
+
+    protected abstract void finishString() throws IOException, JsonParseException;
 
     /*
     ////////////////////////////////////////////////////
@@ -266,15 +267,17 @@ public abstract class JsonParserBase
     public String getText()
         throws IOException, JsonParseException
     {
-        if (mTokenIncomplete) {
-            finishToken();
-        }
         if (mCurrToken != null) { // null only before/after document
             switch (mCurrToken) {
             case FIELD_NAME:
                 return mParsingContext.getCurrentName();
 
             case VALUE_STRING:
+                if (mTokenIncomplete) {
+                    mTokenIncomplete = false;
+                    finishString(); // only strings can be incomplete
+                }
+                // fall through
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
                 return mTextBuffer.contentsAsString();
@@ -289,9 +292,6 @@ public abstract class JsonParserBase
     public char[] getTextCharacters()
         throws IOException, JsonParseException
     {
-        if (mTokenIncomplete) {
-            finishToken();
-        }
         if (mCurrToken != null) { // null only before/after document
             switch (mCurrToken) {
                 
@@ -303,6 +303,11 @@ public abstract class JsonParserBase
                 return mTextBuffer.getTextBuffer();
 
             case VALUE_STRING:
+                if (mTokenIncomplete) {
+                    mTokenIncomplete = false;
+                    finishString(); // only strings can be incomplete
+                }
+                // fall through
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
                 return mTextBuffer.getTextBuffer();
@@ -317,15 +322,17 @@ public abstract class JsonParserBase
     public int getTextLength()
         throws IOException, JsonParseException
     {
-        if (mTokenIncomplete) {
-            finishToken();
-        }
         if (mCurrToken != null) { // null only before/after document
             switch (mCurrToken) {
                 
             case FIELD_NAME:
                 return mParsingContext.getCurrentName().length();
             case VALUE_STRING:
+                if (mTokenIncomplete) {
+                    mTokenIncomplete = false;
+                    finishString(); // only strings can be incomplete
+                }
+                // fall through
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
                 return mTextBuffer.size();
@@ -340,16 +347,17 @@ public abstract class JsonParserBase
     public int getTextOffset()
         throws IOException, JsonParseException
     {
-        if (mTokenIncomplete) {
-            finishToken();
-        }
-
         // Most have offset of 0, only some may have other values:
         if (mCurrToken != null) {
             switch (mCurrToken) {
             case FIELD_NAME:
                 return 0;
             case VALUE_STRING:
+                if (mTokenIncomplete) {
+                    mTokenIncomplete = false;
+                    finishString(); // only strings can be incomplete
+                }
+                // fall through
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
                 return mTextBuffer.getTextOffset();
@@ -410,8 +418,13 @@ public abstract class JsonParserBase
     protected abstract boolean loadMore()
         throws IOException;
 
-    protected abstract char getNextChar(String eofMsg)
-        throws IOException, JsonParseException;
+    protected final void loadMoreGuaranteed()
+        throws IOException
+    {
+        if (!loadMore()) {
+            reportInvalidEOF();
+        }
+    }
 
     protected abstract void closeInput()
         throws IOException;
@@ -455,6 +468,12 @@ public abstract class JsonParserBase
             msg += ": "+comment;
         }
         reportError(msg);
+    }
+
+    protected void reportInvalidEOF()
+        throws JsonParseException
+    {
+        reportInvalidEOF(" in "+mCurrToken);
     }
 
     protected void reportInvalidEOF(String msg)

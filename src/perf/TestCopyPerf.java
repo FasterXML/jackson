@@ -48,7 +48,7 @@ public final class TestCopyPerf
         JsonGenerator jg = null;
         while (--reps >= 0) {
             bos.reset();
-            jg = mJsonFactory.createJsonGenerator(bos, JsonFactory.Encoding.UTF8);
+            jg = mJsonFactory.createJsonGenerator(bos, JsonEncoding.UTF8);
             mTree.writeTo(jg);
             jg.close();
         }

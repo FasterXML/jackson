@@ -23,6 +23,8 @@ public final class Name2
         mQuad2 = quad2;
     }
 
+    public boolean equals(int quad) { return false; }
+
     public boolean equals(int quad1, int quad2)
     {
         return (quad1 == mQuad1) && (quad2 == mQuad2);
@@ -32,21 +34,4 @@ public final class Name2
     {
         return (qlen == 2 && quads[0] == mQuad1 && quads[1] == mQuad2);
     }
-
-    public int getFirstQuad() {
-        return mQuad1;
-    }
-
-    public int getLastQuad() {
-        return mQuad2;
-    }
-
-    public int getQuad(int index) {
-        /* Note: should never be called with an illegal index; hence
-         * value return is arbitrary for indexes other than 0 or 1
-         */
-        return (index == 0) ? mQuad1 :mQuad2;
-    }
-
-    public int sizeInQuads() { return 2; }
 }
