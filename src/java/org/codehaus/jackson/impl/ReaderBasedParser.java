@@ -34,7 +34,6 @@ public final class ReaderBasedParser
     {
         super(ioCtxt, r);
         mSymbols = st;
-        mParsingContext = JsonReadContext.createRootContext(this);
     }
 
     /*
@@ -150,10 +149,12 @@ public final class ReaderBasedParser
         case INT_QUOTE:
             return startString();
         case INT_LBRACKET:
-            mParsingContext = mParsingContext.createChildArrayContext(this);
+            //mParsingContext = mParsingContext.createChildArrayContext(this);
+            mParsingContext = mParsingContext.createChildArrayContext(mTokenInputRow, mTokenInputCol);
             return (mCurrToken = JsonToken.START_ARRAY);
         case INT_LCURLY:
-            mParsingContext = mParsingContext.createChildObjectContext(this);
+            //mParsingContext = mParsingContext.createChildObjectContext(this);
+            mParsingContext = mParsingContext.createChildObjectContext(mTokenInputRow, mTokenInputCol);
             return (mCurrToken = JsonToken.START_OBJECT);
         case INT_RBRACKET:
         case INT_RCURLY:

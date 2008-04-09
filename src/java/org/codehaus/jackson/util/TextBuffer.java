@@ -53,6 +53,10 @@ public final class TextBuffer
      */
     private ArrayList<char[]> mSegments;
 
+    /**
+     * Flag that indicates whether mSegments is non-empty
+     */
+    private boolean mHasSegments = false;
 
     // // // Currently used segment; not (yet) contained in mSegments
 
@@ -124,13 +128,8 @@ public final class TextBuffer
         mResultArray = null;
 
         // And then reset internal input buffers, if necessary:
-        if (mSegments != null && mSegments.size() > 0) {
-            /* Let's start using _last_ segment from list; for one, it's
-             * the biggest one, and it's also most likely to be cached
-             */
-            mCurrentSegment = mSegments.get(mSegments.size() - 1);
-            mSegments.clear();
-            mSegmentSize = 0;
+        if (mHasSegments) {
+            clearSegments();
         }
         mCurrentSize = 0;
     }
@@ -153,13 +152,8 @@ public final class TextBuffer
         mInputLen = len;
 
         // And then reset internal input buffers, if necessary:
-        if (mSegments != null && mSegments.size() > 0) {
-            /* Let's start using _last_ segment from list; for one, it's
-             * the biggest one, and it's also most likely to be cached
-             */
-            mCurrentSegment = mSegments.get(mSegments.size() - 1);
-            mSegments.clear();
-            mCurrentSize = mSegmentSize = 0;
+        if (mHasSegments) {
+            clearSegments();
         }
     }
 
@@ -173,12 +167,8 @@ public final class TextBuffer
         mResultArray = null;
 
         // And then reset internal input buffers, if necessary:
-        if (mSegments != null && mSegments.size() > 0) {
-            /* Let's start using last segment from list; for one, it's
-             * the biggest one, and it's also most likely to be cached
-             */
-            mCurrentSegment = mSegments.get(mSegments.size() - 1);
-            mSegments.clear();
+        if (mHasSegments) {
+            clearSegments();
         }
         mCurrentSize = mSegmentSize = 0;
         append(buf, start, len);
@@ -197,7 +187,7 @@ public final class TextBuffer
 
         int len = str.length();
 
-        if (mSegments != null && mSegments.size() > 0) {
+        if (mHasSegments) {
             mCurrentSegment = mSegments.get(mSegments.size() - 1);
             mSegments.clear();
         } else if (mCurrentSegment == null) {
@@ -209,11 +199,23 @@ public final class TextBuffer
             mCurrentSegment = new char[len];
         }
         str.getChars(0, len, mCurrentSegment, 0);
+        mCurrentSize = len;
     }
 
     private final char[] allocBuffer(int needed)
     {
         return mAllocator.allocCharBuffer(BufferRecycler.CharBufferType.TEXT_BUFFER, needed);
+    }
+
+    private final void clearSegments()
+    {
+        mHasSegments = false;
+        /* Let's start using _last_ segment from list; for one, it's
+         * the biggest one, and it's also most likely to be cached
+         */
+        mCurrentSegment = mSegments.get(mSegments.size() - 1);
+        mSegments.clear();
+        mCurrentSize = mSegmentSize = 0;
     }
 
     /*
@@ -249,7 +251,7 @@ public final class TextBuffer
             return mInputBuffer;
         }
         // Nope; but does it fit in just one segment?
-        if (mSegments == null || mSegments.size() == 0) {
+        if (!mHasSegments) {
             return mCurrentSegment;
         }
         // Nope, need to have/create a non-segmented array and return it
@@ -508,6 +510,7 @@ public final class TextBuffer
         if (mSegments == null) {
             mSegments = new ArrayList<char[]>();
         }
+        mHasSegments = true;
         mSegments.add(mCurrentSegment);
         int oldLen = mCurrentSegment.length;
         mSegmentSize += oldLen;
@@ -590,6 +593,7 @@ public final class TextBuffer
             mSegments = new ArrayList<char[]>();
         }
         char[] curr = mCurrentSegment;
+        mHasSegments = true;
         mSegments.add(curr);
         mSegmentSize += curr.length;
         int oldLen = curr.length;

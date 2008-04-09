@@ -1,23 +1,24 @@
 package org.codehaus.jackson;
 
-import org.codehaus.jackson.impl.JsonParserBase;
 import org.codehaus.jackson.util.CharTypes;
 
 /**
  * Context object is used to keep track of relative logical position
- * of the current event when parsing.
+ * of the current event when parsing, as well as current state regarding
+ * separators and field name/value sequencing.
+ *<p>
+ * Note: implementation is bit ugly, as sub-classing is replaced by
+ * state variables. This is done due to performance benefits; essentially
+ * this allows for more aggeressive inlining by JVM.
  */
-public abstract class JsonReadContext
+public final class JsonReadContext
 {
     protected final static int INT_COLON = ':';
     protected final static int INT_COMMA = ',';
 
-    /**
-     * Type of the context
-     */
-    public enum Type {
-        ROOT, OBJECT, ARRAY;
-    }
+    private final static int TYPE_ROOT = 0;
+    private final static int TYPE_ARRAY = 1;
+    private final static int TYPE_OBJECT = 2;
 
     /*
     ////////////////////////////////////////////////////
@@ -35,7 +36,7 @@ public abstract class JsonReadContext
     public final static int NOT_EXP_SEPARATOR_NEED_VALUE = 4;
     public final static int NOT_EXP_SEPARATOR_NEED_NAME = 5;
 
-    protected final JsonReadContext mParent;
+    protected int mType;
 
     /**
      * Index of the currently processed entry. Starts with -1 to signal
@@ -48,22 +49,25 @@ public abstract class JsonReadContext
 
     // // // Location information (minus source reference)
 
-    long mTotalChars;
+    //long mTotalChars;
 
-    int mLineNr;
-    int mColumnNr;
+    protected int mLineNr;
+    protected int mColumnNr;
+
+    protected final JsonReadContext mParent;
+
+    protected String mCurrentName;
 
     /*
     //////////////////////////////////////////////////
-    // Simple instance reuse slots; speed up things
+    // Simple instance reuse slots; speeds up things
     // a bit (10-15%) for docs with lots of small
-    // arrays/objects
+    // arrays/objects (for which allocation was
+    // visible in profile stack frames)
     //////////////////////////////////////////////////
      */
 
-    JsonReadContext mChildArray = null;
-
-    JsonReadContext mChildObject = null;
+    JsonReadContext mChild = null;
 
     /*
     //////////////////////////////////////////////////
@@ -71,63 +75,64 @@ public abstract class JsonReadContext
     //////////////////////////////////////////////////
      */
 
-    public JsonReadContext(JsonReadContext parent, JsonParserBase ir)
+    public JsonReadContext(int type, JsonReadContext parent,
+                           int lineNr, int colNr)
     {
+        mType = type;
         mParent = parent;
         mIndex = -1;
-        mTotalChars = ir.getTokenCharacterOffset();
-        mLineNr = ir.getTokenLineNr();
-        mColumnNr = ir.getTokenColumnNr();
+        mLineNr = lineNr;
+        mColumnNr = colNr;
     }
 
-    private final void resetLocation(JsonParserBase ir)
+    private final void reset(int type, int lineNr, int colNr)
     {
+        mType = type;
         mIndex = -1;
-        mTotalChars = ir.getTokenCharacterOffset();
-        mLineNr = ir.getTokenLineNr();
-        mColumnNr = ir.getTokenColumnNr();
+        mLineNr = lineNr;
+        mColumnNr = colNr;
+        mCurrentName = null;
     }
 
     // // // Factory methods
 
-    public static JsonReadContext createRootContext(JsonParserBase ir)
+    public static JsonReadContext createRootContext(int lineNr, int colNr)
     {
-        return new RootRContext(ir);
+        return new JsonReadContext(TYPE_ROOT, null, lineNr, colNr);
     }
 
-    public final JsonReadContext createChildArrayContext(JsonParserBase ir)
+    public final JsonReadContext createChildArrayContext(int lineNr, int colNr)
     {
-        JsonReadContext ctxt = mChildArray;
+        JsonReadContext ctxt = mChild;
         if (ctxt == null) {
-            mChildArray = ctxt = new ArrayRContext(this, ir);
-        } else {
-            ctxt.resetLocation(ir);
+            return (mChild = new JsonReadContext(TYPE_ARRAY, this, lineNr, colNr));
         }
+        ctxt.reset(TYPE_ARRAY, lineNr, colNr);
         return ctxt;
     }
 
-    public final JsonReadContext createChildObjectContext(JsonParserBase ir)
+    public final JsonReadContext createChildObjectContext(int lineNr, int colNr)
     {
-        JsonReadContext ctxt = mChildObject;
+        JsonReadContext ctxt = mChild;
         if (ctxt == null) {
-            mChildObject = ctxt = new ObjectRContext(this, ir);
-        } else {
-            ctxt.resetLocation(ir);
+            return (mChild = new JsonReadContext(TYPE_OBJECT, this, lineNr, colNr));
         }
+        ctxt.reset(TYPE_OBJECT, lineNr, colNr);
         return ctxt;
     }
 
-    // // // Shared API
+    // // // Accessors:
 
     public final JsonReadContext getParent() { return mParent; }
-
-    public final boolean isRoot() { return mParent == null; }
 
     /**
      * @return Number of entries that are complete and started.
      */
     public final int getEntryCount()
     {
+        if (mType == TYPE_OBJECT) {
+            return (mIndex >> 1) + 1;
+        }
         return mIndex+1;
     }
 
@@ -136,7 +141,13 @@ public abstract class JsonReadContext
      */
     public final int getCurrentIndex()
     {
-        return (mIndex < 0) ? 0 : mIndex;
+        if (mIndex < 0) {
+            return 0;
+        }
+        if (mType == TYPE_OBJECT) {
+            return mIndex >> 1;
+        }
+        return mIndex;
     }
 
     /**
@@ -145,30 +156,72 @@ public abstract class JsonReadContext
      */
     public final JsonLocation getStartLocation(Object srcRef)
     {
-        return new JsonLocation(srcRef, mTotalChars, mLineNr, mColumnNr);
+        /* We don't keep track of offsets at this level (only
+         * reader does)
+         */
+        long totalChars = -1L;
+
+        return new JsonLocation(srcRef, totalChars, mLineNr, mColumnNr);
     }
 
-    // // // API sub-classes are to implement
+    public final boolean isArray() { return mType == TYPE_ARRAY; }
+    public final boolean isRoot() { return mType == TYPE_ROOT; }
+    public final boolean isObject() { return mType == TYPE_OBJECT; }
 
-    public abstract Type getType();
-    public abstract boolean isArray();
-    public abstract boolean isObject();
+    public final String getTypeDesc() {
+        switch (mType) {
+        case TYPE_ROOT: return "ROOT";
+        case TYPE_ARRAY: return "ARRAY";
+        case TYPE_OBJECT: return "OBJECT";
+        }
+        return "?";
+    }
 
-    public final String getTypeDesc() { return getType().toString(); }
+    public final String getCurrentName() { return mCurrentName; }
 
-    public abstract int handleSeparator(int ch);
+    // // // Workflow:
 
-    public abstract String getCurrentName();
+    public int handleSeparator(int ch)
+    {
+        int ix = ++mIndex;
+        if (mType == TYPE_OBJECT) {
+            if (ix == 0) {
+                return NOT_EXP_SEPARATOR_NEED_NAME;
+            }
+            if ((ix & 1) == 0) { // expect name
+                // Other than first, must get comma first
+                if (ch == INT_COMMA) {
+                    return HANDLED_EXPECT_NAME;
+                }
+                return MISSING_COMMA;
+            }
+            // Nope, need value
+            if (ch == INT_COLON) {
+                return HANDLED_EXPECT_VALUE;
+            }
+            return MISSING_COLON;
+        }
+
+        if (mType == TYPE_ARRAY) {
+            // New entry, first or not?
+            if (ix == 0) {
+                return NOT_EXP_SEPARATOR_NEED_VALUE;
+            }
+            // Other than first, must get comma first
+            if (ch == INT_COMMA) {
+                return HANDLED_EXPECT_VALUE;
+            }
+            return MISSING_COMMA;
+        }
+        // Starting of a new entry is implied in root context
+        return NOT_EXP_SEPARATOR_NEED_VALUE;
+    }
 
     // // // Internally used abstract methods
 
-    protected abstract void appendDesc(StringBuilder sb);
-
-    /**
-     * Method only to be called in the object context
-     */
-    public void setCurrentName(String name) {
-        throw new IllegalStateException("Can not call setCurrentName() for "+getTypeDesc());
+    public void setCurrentName(String name)
+    {
+        mCurrentName = name;
     }
 
     // // // Overridden standard methods
@@ -180,154 +233,27 @@ public abstract class JsonReadContext
     public final String toString()
     {
         StringBuilder sb = new StringBuilder(64);
-        appendDesc(sb);
-        return sb.toString();
-    }
-}
-
-/**
- * Root context is simple, as only state it keeps is the index of
- * the currently active entry.
- */
-final class RootRContext
-    extends JsonReadContext
-{
-    public RootRContext(JsonParserBase ir)
-    {
-        super(null, ir);
-    }
-
-    public Type getType() { return Type.ROOT; }
-    public boolean isArray() { return false; }
-    public boolean isObject() { return false; }
-
-    public String getCurrentName() { return null; }
-
-    public int handleSeparator(int ch)
-    {
-        // Starting of a new entry is implied
-        ++mIndex;
-        return NOT_EXP_SEPARATOR_NEED_VALUE;
-    }
-
-    protected void appendDesc(StringBuilder sb)
-    {
-        sb.append("/");
-    }
-}
-
-final class ArrayRContext
-    extends JsonReadContext
-{
-    public ArrayRContext(JsonReadContext parent, JsonParserBase ir)
-    {
-        super(parent, ir);
-    }
-
-    public Type getType() { return Type.ARRAY; }
-    public boolean isArray() { return true; }
-    public boolean isObject() { return false; }
-
-    public String getCurrentName() { return null; }
-
-    /**
-     * State handling for arrays is simple, the only consideration is
-     * for the first entry, which does not take leading comma.
-     */
-    public int handleSeparator(int ch)
-    {
-        // New entry, first or not?
-        int ix = mIndex;
-        ++mIndex;
-        if (ix < 0) {
-            return NOT_EXP_SEPARATOR_NEED_VALUE;
-        }
-        // Other than first, must get comma first
-        if (ch == INT_COMMA) {
-            return HANDLED_EXPECT_VALUE;
-        }
-        return MISSING_COMMA;
-    }
-
-    protected void appendDesc(StringBuilder sb)
-    {
-        sb.append('[');
-        sb.append(getCurrentIndex());
-        sb.append(']');
-    }
-}
-
-final class ObjectRContext
-    extends JsonReadContext
-{
-    /**
-     * Name of the field of which value is to be parsed.
-     */
-    protected String mCurrentName;
-
-    /**
-     * Flag to indicate that the context just received the
-     * field name, and is to get a value next
-     */
-    protected boolean mExpectValue;
-
-    public ObjectRContext(JsonReadContext parent, JsonParserBase ir)
-    {
-        super(parent, ir);
-        mCurrentName = null;
-        mExpectValue = false;
-    }
-
-    public Type getType() { return Type.OBJECT; }
-    public boolean isArray() { return false; }
-    public boolean isObject() { return true; }
-
-    public String getCurrentName() { return mCurrentName; }
-
-    /**
-     * Objects ("maps") have the most complicated state handling, so
-     * we get to return any of the constant, depending on exactly
-     * where we are.
-     */
-    public int handleSeparator(int ch)
-    {
-        if (mExpectValue) { // have name, expecting ':' followed by value
-            if (ch == INT_COLON) {
-                mExpectValue = false;
-                return HANDLED_EXPECT_VALUE;
+        switch (mType) {
+        case TYPE_ROOT:
+            sb.append("/");
+            break;
+        case TYPE_ARRAY:
+            sb.append('[');
+            sb.append(getCurrentIndex());
+            sb.append(']');
+            break;
+        case TYPE_OBJECT:
+            sb.append('{');
+            if (mCurrentName != null) {
+                sb.append('"');
+                CharTypes.appendQuoted(sb, mCurrentName);
+                sb.append('"');
+            } else {
+                sb.append('?');
             }
-            return MISSING_COLON;
+            sb.append(']');
+            break;
         }
-        // New entry, entries start with name. But is it the first or not?
-        if (mIndex < 0) { // First; no separator expected
-            mExpectValue = true;
-            return NOT_EXP_SEPARATOR_NEED_NAME;
-        }
-        // Other than first, must get comma first
-        if (ch == INT_COMMA) {
-            mExpectValue = true;
-            return HANDLED_EXPECT_NAME;
-        }
-        return MISSING_COMMA;
-    }
-
-    @Override
-    public void setCurrentName(String name)
-    {
-        mCurrentName = name;
-        ++mIndex; // so that we can deal with comma
-    }
-
-    protected void appendDesc(StringBuilder sb)
-    {
-        sb.append('{');
-        if (mCurrentName != null) {
-            sb.append('"');
-            CharTypes.appendQuoted(sb, mCurrentName);
-            sb.append('"');
-        } else {
-            sb.append('?');
-        }
-        sb.append(']');
+        return sb.toString();
     }
 }

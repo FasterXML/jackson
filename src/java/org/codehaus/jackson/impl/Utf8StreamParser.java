@@ -41,7 +41,6 @@ public final class Utf8StreamParser
     {
         super(ctxt, in, inputBuffer, start, end, bufferRecyclable);
         mSymbols = sym;
-        mParsingContext = JsonReadContext.createRootContext(this);
     }
 
     /*
@@ -160,10 +159,12 @@ public final class Utf8StreamParser
             mTokenIncomplete = true;
             return (mCurrToken = JsonToken.VALUE_STRING);
         case INT_LBRACKET:
-            mParsingContext = mParsingContext.createChildArrayContext(this);
+            //mParsingContext = mParsingContext.createChildArrayContext(this);
+            mParsingContext = mParsingContext.createChildArrayContext(mTokenInputRow, mTokenInputCol);
             return (mCurrToken = JsonToken.START_ARRAY);
         case INT_LCURLY:
-            mParsingContext = mParsingContext.createChildObjectContext(this);
+            //mParsingContext = mParsingContext.createChildObjectContext(this);
+            mParsingContext = mParsingContext.createChildObjectContext(mTokenInputRow, mTokenInputCol);
             return (mCurrToken = JsonToken.START_OBJECT);
         case INT_RBRACKET:
         case INT_RCURLY:
@@ -194,11 +195,10 @@ public final class Utf8StreamParser
         case INT_9:
             return parseNumberText(i);
         }
-
         reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
         return null; // never gets here
     }
-
+        
     @Override
     public void close()
         throws IOException

@@ -108,7 +108,7 @@ public class TestJsonParser
         /* Hmmh. UTF-32 is harder only because JDK doesn't come with
          * a codec for it. Can't test it yet using this method
          */
-        //doTestSpecIndividual("UTF-32", verify);
+        doTestSpecIndividual("UTF-32", verify);
     }
 
     private void doTestSpecIndividual(String enc, boolean verify)

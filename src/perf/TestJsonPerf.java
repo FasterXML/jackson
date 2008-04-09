@@ -47,7 +47,7 @@ public final class TestJsonPerf
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
             // Use 7 to test all...
-            int round = (i++ % 1);
+            int round = (i++ % 3);
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -59,13 +59,13 @@ public final class TestJsonPerf
                 sum += testJacksonStream(REPS, true);
                 break;
             case 1:
+                msg = "Jackson, stream/char";
+                sum += testJacksonStream(REPS, false);
+                break;
+            case 2:
                 lf = true;
                 msg = "Noggit";
                 sum += testNoggit(REPS);
-                break;
-            case 2:
-                msg = "Jackson, stream/char";
-                sum += testJacksonStream(REPS, false);
                 break;
                 /*
             case 2:

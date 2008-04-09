@@ -30,6 +30,7 @@ public abstract class JsonParserBase
     final static int INT_QUOTE = '"';
     final static int INT_BACKSLASH = '\\';
     final static int INT_SLASH = '/';
+    final static int INT_COLON = ':';
 
     // Letters we need
     final static int INT_b = 'b';
@@ -167,6 +168,8 @@ public abstract class JsonParserBase
     {
         mIOContext = ctxt;
         mTextBuffer = ctxt.constructTextBuffer();
+        //mParsingContext = JsonReadContext.createRootContext(this);
+        mParsingContext = JsonReadContext.createRootContext(mTokenInputRow, mTokenInputCol);
     }
 
     /*

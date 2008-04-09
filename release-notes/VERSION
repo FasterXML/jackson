@@ -1,17 +1,30 @@
-Version: 0.9.1
+Version: 0.9.2
 
-Release date: 14-Mar-2008
+Release date: xx-Apr-2008
 
 Description:
   Another pre-1.0 release
+
+  Changes:
+
+  * Replace JsonFactory.Encoding enum with JsonEncoding enum
+    (note: this is a backwards-incompatible API change)
+
+  Improvements:
+
+  * New slightly higher performing UTF-8 scanner.
+  
+  New features:
+
+== History: ==
+
+0.9.1 [14-Mar-2008]:
 
   New features:
 
   * JsonGenerator.useDefaultPrettyPrinter()/.setPrettyPrinter()
     allow for pretty printing (indentation).
    (thanks to Ziad M for suggestion, sample code)
-
-== History: ==
 
 0.9.0 [14-Feb-2008]:
 
