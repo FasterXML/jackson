@@ -38,7 +38,7 @@ public final class ByteSourceBootstrapper
 
     private int mInputPtr;
 
-    private int mInputLast;
+    private int mInputEnd;
 
     /**
      * Flag that indicates whether buffer above is to be recycled
@@ -81,7 +81,7 @@ public final class ByteSourceBootstrapper
         mContext = ctxt;
         mIn = in;
         mInputBuffer = ctxt.allocReadIOBuffer();
-        mInputLast = mInputPtr = 0;
+        mInputEnd = mInputPtr = 0;
         mInputProcessed = 0;
         mBufferRecyclable = true;
     }
@@ -92,7 +92,7 @@ public final class ByteSourceBootstrapper
         mIn = null;
         mInputBuffer = inputBuffer;
         mInputPtr = inputStart;
-        mInputLast = (inputStart + inputLen);
+        mInputEnd = (inputStart + inputLen);
         // Need to offset this for correct location info
         mInputProcessed = -inputStart;
         mBufferRecyclable = false;
@@ -167,7 +167,7 @@ public final class ByteSourceBootstrapper
         switch (enc) { 
         case UTF32_BE:
         case UTF32_LE:
-            return new UTF32Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputLast,
+            return new UTF32Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputEnd,
                                    mContext.getEncoding().isBigEndian());
 
         case UTF16_BE:
@@ -177,20 +177,20 @@ public final class ByteSourceBootstrapper
                 InputStream in = mIn;
 
                 if (in == null) {
-                    in = new ByteArrayInputStream(mInputBuffer, mInputPtr, mInputLast);
+                    in = new ByteArrayInputStream(mInputBuffer, mInputPtr, mInputEnd);
                 } else {
                     /* Also, if we have any read but unused input (usually true),
                      * need to merge that input in:
                      */
-                    if (mInputPtr < mInputLast) {
-                        in = new MergedStream(mContext, in, mInputBuffer, mInputPtr, mInputLast);
+                    if (mInputPtr < mInputEnd) {
+                        in = new MergedStream(mContext, in, mInputBuffer, mInputPtr, mInputEnd);
                     }
                 }
                 return new InputStreamReader(in, enc.getJavaName());
             }
 
         case UTF8:
-            return new UTF8Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputLast);
+            return new UTF8Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputEnd);
         default:
             throw new RuntimeException("Internal error"); // should never get here
         }
@@ -199,7 +199,7 @@ public final class ByteSourceBootstrapper
 
     public Utf8StreamParser createFastUtf8Parser(NameCanonicalizer nc)
     {
-        return new Utf8StreamParser(mContext, mIn, nc, mInputBuffer, mInputPtr, mInputLast, mBufferRecyclable);
+        return new Utf8StreamParser(mContext, mIn, nc, mInputBuffer, mInputPtr, mInputEnd, mBufferRecyclable);
     }
 
     /*
@@ -276,7 +276,8 @@ public final class ByteSourceBootstrapper
             // Can not be valid UTF-32 encoded JSON...
             return false;
         }
-        mInputPtr += 4;
+        // Not BOM (just regular content), nothing to skip past:
+        //mInputPtr += 4;
         mBytesPerChar = 4;
         return true;
     }
@@ -290,7 +291,8 @@ public final class ByteSourceBootstrapper
         } else { // nope, not  UTF-16
             return false;
         }
-        mInputPtr += 2;
+        // Not BOM (just regular content), nothing to skip past:
+        //mInputPtr += 2;
         mBytesPerChar = 2;
         return true;
     }
@@ -319,19 +321,19 @@ public final class ByteSourceBootstrapper
         /* Let's assume here buffer has enough room -- this will always
          * be true for the limited used this method gets
          */
-        int gotten = (mInputLast - mInputPtr);
+        int gotten = (mInputEnd - mInputPtr);
         while (gotten < minimum) {
             int count;
 
             if (mIn == null) { // block source
                 count = -1;
             } else {
-                count = mIn.read(mInputBuffer, mInputLast, mInputBuffer.length - mInputLast);
+                count = mIn.read(mInputBuffer, mInputEnd, mInputBuffer.length - mInputEnd);
             }
             if (count < 1) {
                 return false;
             }
-            mInputLast += count;
+            mInputEnd += count;
             gotten += count;
         }
         return true;

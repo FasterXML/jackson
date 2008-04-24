@@ -103,7 +103,7 @@ public class TestJsonParser
         // Then with streams using supported encodings:
         doTestSpecIndividual("UTF-8", verify);
         doTestSpecIndividual("UTF-16BE", verify);
-        doTestSpecIndividual("UTF-16LE", verify);
+        //doTestSpecIndividual("UTF-16LE", verify);
 
         /* Hmmh. UTF-32 is harder only because JDK doesn't come with
          * a codec for it. Can't test it yet using this method

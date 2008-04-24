@@ -5,6 +5,12 @@ Release date: xx-Apr-2008
 Description:
   Another pre-1.0 release
 
+  Bug fixes:
+
+  * UTF-16/32 handling was not completely correct, was erroneously
+    skipping first 2/4 bytes in some cases (even when no BOM included).
+    Also, related unit tests added/fixed.
+
   Changes:
 
   * Replace JsonFactory.Encoding enum with JsonEncoding enum
@@ -12,7 +18,7 @@ Description:
 
   Improvements:
 
-  * New slightly higher performing UTF-8 scanner.
+  * New higher performing UTF-8 scanner.
   
   New features:
 

@@ -224,7 +224,7 @@ public final class Utf8StreamParser
         mFieldInBuffer = false; // by default let's expect it won't get there
 
         // First: can we optimize out bounds checks?
-        if ((mInputLast - mInputPtr) < 8) { // got 1 byte, but need 7, plus one trailing
+        if ((mInputLast - mInputPtr) < 9) { // Need 8 chars, plus one trailing (quote)
             return slowParseFieldName();
         }
 

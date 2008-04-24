@@ -57,8 +57,18 @@ public class BaseTest
     protected JsonParser createParserUsingStream(String input, String encoding)
         throws IOException, JsonParseException
     {
-        byte[] data = input.getBytes(encoding);
-        InputStreamReader is = new InputStreamReader(new ByteArrayInputStream(data), encoding);
+        /* 23-Apr-2008, tatus: UTF-32 is not supported by JDK, have to
+         *   use our own codec too (which is not optimal since there's
+         *   a chance both encoder and decoder might have bugs, but ones
+         *   that cancel each other out or such)
+         */
+        byte[] data;
+        if (encoding.equalsIgnoreCase("UTF-32")) {
+            data = encodeInUTF32BE(input);
+        } else {
+            data = input.getBytes(encoding);
+        }
+        InputStream is = new ByteArrayInputStream(data);
         return new JsonFactory().createJsonParser(is);
     }
 
@@ -105,5 +115,19 @@ public class BaseTest
         /*String str2 =*/ new String(ch, jp.getTextOffset(), actLen);
 
         return str;
+    }
+
+    private byte[] encodeInUTF32BE(String input)
+    {
+        int len = input.length();
+        byte[] result = new byte[len * 4];
+        int ptr = 0;
+        for (int i = 0; i < len; ++i, ptr += 4) {
+            char c = input.charAt(i);
+            result[ptr] = result[ptr+1] = (byte) 0;
+            result[ptr+2] = (byte) (c >> 8);
+            result[ptr+3] = (byte) c;
+        }
+        return result;
     }
 }
