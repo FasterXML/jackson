@@ -1,9 +1,15 @@
-Version: 0.9.2
+Version: 0.9.3
 
-Release date: xx-Apr-2008
+Release date: xx-May-2008
 
 Description:
-  Another pre-1.0 release
+  Another pre-1.0 release.
+
+  Bug fixes:
+
+== History: ==
+
+0.9.2 [24-Apr-2008]:
 
   Bug fixes:
 
@@ -14,15 +20,11 @@ Description:
   Changes:
 
   * Replace JsonFactory.Encoding enum with JsonEncoding enum
-    (note: this is a backwards-incompatible API change)
+    (NOTE: this is a backwards-incompatible API change)
 
   Improvements:
 
   * New higher performing UTF-8 scanner.
-  
-  New features:
-
-== History: ==
 
 0.9.1 [14-Mar-2008]:
 

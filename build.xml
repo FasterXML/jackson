@@ -33,7 +33,7 @@
     <property name="JSON_VERSION" value="1.0" />
     <property name="JSON_VENDOR" value="http://www.ietf.org/rfc/rfc4627.txt" />
     <property name="IMPL_TITLE" value="Jackson JSON parser" />
-    <property name="IMPL_VERSION" value="0.9.2" />
+    <property name="IMPL_VERSION" value="0.9.3" />
     <property name="IMPL_VENDOR" value="http://www.cowtowncoder.com/" />
 
     <!-- jars needed for compilation? None as of yet -->
@@ -147,6 +147,7 @@
 
     <target name="compile" depends="prepare">
         <javac SrcDir="${JavaSrcDir}" destdir="${BuildClassesDir}"
+            source="1.5" target="1.5"
             debug="true"
         >
             <compilerarg value="-Xlint:unchecked" />
@@ -268,6 +269,7 @@
 
     <target name="test.compile" depends="compile">
         <javac SrcDir="${TestSrcDir}" destdir="${TestClassesDir}"
+            source="1.5" target="1.5"
             debug="true"
         >
             <include name="**/*.java" />
