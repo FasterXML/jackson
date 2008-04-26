@@ -1,5 +1,10 @@
 package org.codehaus.jackson;
 
+/**
+ * Object that encapsulates Location information used to report
+ * parsing or generation errors, as well as current location
+ * within input or output streams.
+ */
 public class JsonLocation
 {
     final long mTotalChars;
@@ -20,12 +25,36 @@ public class JsonLocation
         mSourceRef = srcRef;
     }
 
+    /**
+     * Reference to the original resource being read, if one available.
+     * For example, when a parser has been constructed by passing
+     * a {@link java.io.File} instance, this method would return
+     * that File. Will return null if no such reference is available,
+     * for example when {@link java.io.InputStream} was used to
+     * construct the parser instance.
+     */
     public Object getSourceRef() { return mSourceRef; }
+
+    /**
+     * @return Line number of the location (1-based)
+     */
     public int getLineNr() { return mLineNr; }
+
+    /**
+     * @return Column number of the location (1-based)
+     */
     public int getColumnNr() { return mColumnNr; }
 
+    /**
+     * @return Character offset within underlying stream, reader or writer,
+     *   if available; -1 if not.
+     */
     public long getCharOffset() { return mTotalChars; }
 
+    /**
+     * @return Byte offset within underlying stream, reader or writer,
+     *   if available; -1 if not.
+     */
     public long getByteOffset()
     {
         /* Unfortunately, none of legal encodings are straight single-byte
@@ -36,6 +65,7 @@ public class JsonLocation
         return -1;
     }
 
+    @Override
     public String toString()
     {
         StringBuilder sb = new StringBuilder(80);

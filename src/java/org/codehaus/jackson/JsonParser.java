@@ -4,7 +4,8 @@ import java.io.*;
 import java.math.BigDecimal;
 
 /**
- * This is the public API implemented by concrete JSON parser instances.
+ * This is the public API implemented by concrete JSON parser
+ * sub-classes.
  *
  * @author Tatu Saloranta
  */
@@ -40,6 +41,12 @@ public abstract class JsonParser
      */
     public abstract JsonToken getCurrentToken();
 
+    /**
+     * @return True if the parser just returned a valid
+     *   token via {@link #nextToken}; false otherwise (parser
+     *   was just constructed, or encountered end-of-input
+     *   and returned null from {@link #nextToken}.
+     */
     public abstract boolean hasCurrentToken();
 
     /**
@@ -50,6 +57,22 @@ public abstract class JsonParser
     public abstract String getCurrentName()
         throws IOException, JsonParseException;
 
+    /**
+     * Closes the parser so that no iteration or access methods
+     * can be called.
+     *<p>
+     * Method will also close the underlying input source,
+     * if (and only if) parser <b>owns</b> the input source.
+     * Whether parser owns the input source depends on factory
+     * method that was used to construct instance (so check
+     * {@link org.codehaus.jackson.JsonFactory} for details,
+     * but the general
+     * idea is that if caller passes in closable resource (such
+     * as {@link InputStream} or {@link Reader}) parser does NOT
+     * own the source; but if it passes a reference (such as
+     * {@link java.io.File} or {@link java.net.URL} and creates
+     * stream or reader it does own them.
+     */
     public abstract void close()
         throws IOException;
 

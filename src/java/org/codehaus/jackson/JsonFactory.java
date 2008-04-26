@@ -12,6 +12,10 @@ import org.codehaus.jackson.sym.NameCanonicalizer;
 import org.codehaus.jackson.util.BufferRecycler;
 import org.codehaus.jackson.util.SymbolTable;
 
+/**
+ * JsonFactory is a thread-safe reusable provider of
+ * parser and generator instances. After 
+ */
 public final class JsonFactory
 {
     /**
@@ -37,6 +41,14 @@ public final class JsonFactory
      */
     private NameCanonicalizer mByteSymbols = NameCanonicalizer.createRoot();
 
+    /**
+     * Creation of a factory instance is quite light-weight operation,
+     * and since there is no need for pluggable alternative implementations
+     * (since there is no "standard" json processor API to implement),
+     * default constructor is used for constructing factories.
+     * Also, there is no separation between parser and generator
+     * construction.
+     */
     public JsonFactory() { }
 
     /*
@@ -45,12 +57,37 @@ public final class JsonFactory
     //////////////////////////////////////////////////////
      */
 
+    /**
+     * Method for constructing json parser instance to parse
+     * contents of specified file. Encoding is auto-detected
+     * from contents according to json specification recommended
+     * mechanism.
+     *<p>
+     * Underlying input stream (needed for reading contents)
+     * will be <b>owned</b> (and managed, i.e. closed as need be) by
+     * the parser, since caller has no access to it.
+     *
+     * @param f File that contains JSON content to parse
+     */
     public JsonParser createJsonParser(File f)
         throws IOException, JsonParseException
     {
         return createJsonParser(new FileInputStream(f), createContext(f));
     }
 
+    /**
+     * Method for constructing json parser instance to parse
+     * contents of resource reference by given URL.
+     * Encoding is auto-detected
+     * from contents according to json specification recommended
+     * mechanism.
+     *<p>
+     * Underlying input stream (needed for reading contents)
+     * will be <b>owned</b> (and managed, i.e. closed as need be) by
+     * the parser, since caller has no access to it.
+     *
+     * @param url URL pointing to resource that contains JSON content to parse
+     */
     public JsonParser createJsonParser(URL url)
         throws IOException, JsonParseException
     {
@@ -58,15 +95,41 @@ public final class JsonFactory
     }
 
     /**
+     * Method for constructing json parser instance to parse
+     * the contents accessed via specified input stream.
+     *<p>
+     * Input stream will <b>NOT be owned</b> (not managed) by
+     * the parser, since caller does have access to it and
+     * is expected to close it if and as necessary.
      *<p>
      * Note: no encoding argument is taken since it can always be
      * auto-detected as suggested by Json RFC.
+     *
+     * @param in InputStream to use for reading JSON content to parse
      */
     public JsonParser createJsonParser(InputStream in)
         throws IOException, JsonParseException
     {
         return createJsonParser(in, createContext(in));
     }
+
+    /**
+     * Method for constructing json parser instance to parse
+     * the contents accessed via specified Reader.
+     *<p>
+     * Reader will <b>NOT be owned</b> (not managed) by
+     * the parser, since caller does have access to it and
+     * is expected to close it if and as necessary.
+     *
+     * @param r Reader to use for reading JSON content to parse
+     */
+    public JsonParser createJsonParser(Reader r)
+        throws IOException, JsonParseException
+    {
+        return new ReaderBasedParser(createContext(r), r, mCharSymbols.makeChild());
+    }
+
+    // // // !!! TEST only:
 
     public JsonParser createJsonParser(InputStream in, boolean fast)
         throws IOException, JsonParseException
@@ -94,18 +157,26 @@ public final class JsonFactory
         return new ReaderBasedParser(ctxt, bb.constructReader(), mCharSymbols.makeChild());
     }
 
-    public JsonParser createJsonParser(Reader r)
-        throws IOException, JsonParseException
-    {
-        return new ReaderBasedParser(createContext(r), r, mCharSymbols.makeChild());
-    }
-
     /*
     //////////////////////////////////////////////////////
     // Generator factories
     //////////////////////////////////////////////////////
      */
 
+    /**
+     * Method for constructing json generator for writing json content
+     * using specified output stream.
+     * Encoding to use must be specified, and needs to be one of available
+     * types (as per JSON specification).
+     *<p>
+     * Underlying stream <b>is NOT owned</b> by the generator constructed,
+     * so that generator will NOT close the output stream when
+     * {@link JsonGenerator#close} is called. 
+     * Using application needs to close it explicitly.
+     *
+     * @param out OutputStream to use for writing json content 
+     * @param enc Character encoding to use
+     */
     public JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
         throws IOException
     {
@@ -117,6 +188,17 @@ public final class JsonFactory
         return new WriterBasedGenerator(ctxt, new OutputStreamWriter(out, enc.getJavaName()));
     }
 
+    /**
+     * Method for constructing json generator for writing json content
+     * using specified Writer.
+     *<p>
+     * Underlying stream <b>is NOT owned</b> by the generator constructed,
+     * so that generator will NOT close the Reader when
+     * {@link JsonGenerator#close} is called. Using application
+     * needs to close Writer explicitly.
+     *
+     * @param out Writer to use for writing json content 
+     */
     public JsonGenerator createJsonGenerator(Writer out)
         throws IOException
     {
@@ -124,6 +206,20 @@ public final class JsonFactory
         return new WriterBasedGenerator(ctxt, out);
     }
 
+    /**
+     * Method for constructing json generator for writing json content
+     * to specified file, overwriting contents it might have (or creating
+     * it if such file does not yet exist).
+     * Encoding to use must be specified, and needs to be one of available
+     * types (as per JSON specification).
+     *<p>
+     * Underlying stream <b>is owned</b> by the generator constructed,
+     * i.e. generator will handle closing of file when
+     * {@link JsonGenerator#close} is called.
+     *
+     * @param f File to write contents to
+     * @param enc Character encoding to use
+     */
     public JsonGenerator createJsonGenerator(File f, JsonEncoding enc)
         throws IOException
     {
@@ -136,11 +232,19 @@ public final class JsonFactory
     ///////////////////////////////////////////////////////////
      */
 
+    /**
+     * Method used by the factory to create parsing context for parser
+     * instances.
+     */
     protected IOContext createContext(Object srcRef)
     {
         return new IOContext(getBufferRecycler(), srcRef);
     }
 
+    /**
+     * Method used by factory to create buffer recycler instances
+     * for parsers and generators.
+     */
     protected BufferRecycler getBufferRecycler()
     {
         SoftReference<BufferRecycler> ref = mRecyclerRef.get();
@@ -155,7 +259,12 @@ public final class JsonFactory
         return br;
     }
 
-    public static InputStream optimizedStreamFromURL(URL url)
+    /**
+     * Helper methods used for constructing an optimal stream for
+     * parsers to use, when input is to be read from an URL.
+     * This helps when reading file content via URL.
+     */
+    protected static InputStream optimizedStreamFromURL(URL url)
         throws IOException
     {
         if ("file".equals(url.getProtocol())) {

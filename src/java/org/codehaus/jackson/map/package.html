@@ -1,0 +1,31 @@
+<body>
+This package contains basic mapper (conversion) functionality that
+allows for converting between regular streaming json content and
+various tree/object-based alternatives.
+<p>
+Currently 2 main flavors are supported: "Java type" and "JSON type"
+mappers.
+<p>
+Java type mapper will use basic wrapper types (Integer,
+Boolean, Double), Collection types (List, Map), Strings and nulls
+to represent JSON concepts.
+<p>
+Json type mapper uses dynamically typed tree of <code>JsonNode</node>s,
+bit similar to how DOM model works with xml. Main benefits over
+Java type mapping are:
+<ul>
+ <li>No null checks are needed (dummy
+nodes are created as necessary to represent "missing" Object fields
+and Array elements
+  </li>
+ <li>No type casts are needed: all public methods are defined in
+basic JsonNode class, and when "incompatible" method (such as Array
+element access on, say, Boolean node) is used, returned node is
+virtual "missing" node.
+  </li>
+</ul>
+Because of its dynamic nature, this mapping is often convenient
+for basic path access and tree navigation, where structure of
+the resulting tree is known in advance.
+
+</body>

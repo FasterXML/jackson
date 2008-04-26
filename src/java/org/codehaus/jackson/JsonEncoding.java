@@ -26,9 +26,15 @@ public enum JsonEncoding {
         mJavaName = javaName;
         mBigEndian = bigEndian;
     }
-    
-    
+
+    /**
+     * @return Matching encoding name that JDK will support.
+     */
     public String getJavaName() { return mJavaName; }
 
+    /**
+     * @return True for big-endian encodings; false for little-endian
+     *   (or if not applicable)
+     */
     public boolean isBigEndian() { return mBigEndian; }
 }

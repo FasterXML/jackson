@@ -201,7 +201,7 @@
 
     <target name="javadoc" depends="prepare">
         <!-- Build a dirpath that contains just the "source" tree -->
-        <javadoc windowtitle="${ProjectName}"
+        <javadoc windowtitle="Jackson JSON Processor"
             destdir="${JavaDocDir}" 
             author="true" 
             version="true">
