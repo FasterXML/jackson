@@ -59,7 +59,7 @@
           <include name="samples/**/*.jsn" />
     </patternset>
 
-    <!-- Core Woodstox class files common to all license flavours: -->
+    <!-- Core Jackson class files common to all license flavours: -->
     <patternset id="dist-class-files">
         <include name="org/codehaus/**/*.class" />
         <include name="META-INF/services/javax.xml.stream.*" />
