@@ -12,8 +12,6 @@ public final class NumberOutput
     private static long MIN_INT_AS_LONG = (long) Integer.MIN_VALUE;
     private static long MAX_INT_AS_LONG = (long) Integer.MAX_VALUE;
 
-    final static String SMALLEST_INT = String.valueOf(Integer.MIN_VALUE);
-
     final static String SMALLEST_LONG = String.valueOf(Long.MIN_VALUE);
 
     final static char[] LEADING_TRIPLETS = new char[4000];
@@ -58,10 +56,10 @@ public final class NumberOutput
     {
         if (value < 0) {
             if (value == Integer.MIN_VALUE) {
-                // Special case: no matching positive value within range
-                int len = SMALLEST_INT.length();
-                SMALLEST_INT.getChars(0, len, buffer, offset);
-                return (offset + len);
+                /* Special case: no matching positive value within range;
+                 * let's then "upgrade" to long and output as such.
+                 */
+                return outputLong((long) value, buffer, offset);
             }
             buffer[offset++] = '-';
             value = -value;
@@ -122,7 +120,10 @@ public final class NumberOutput
     {
         // First: does it actually fit in an int?
         if (value < 0L) {
-            if (value >= MIN_INT_AS_LONG) {
+            /* MIN_INT is actually printed as long, just because its
+             * negation is not an int but long
+             */
+            if (value > MIN_INT_AS_LONG) {
                 return outputInt((int) value, buffer, offset);
             }
             if (value == Long.MIN_VALUE) {

@@ -168,7 +168,6 @@ public abstract class JsonParserBase
     {
         mIOContext = ctxt;
         mTextBuffer = ctxt.constructTextBuffer();
-        //mParsingContext = JsonReadContext.createRootContext(this);
         mParsingContext = JsonReadContext.createRootContext(mTokenInputRow, mTokenInputCol);
     }
 
