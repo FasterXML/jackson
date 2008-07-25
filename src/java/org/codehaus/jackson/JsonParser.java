@@ -28,10 +28,29 @@ public abstract class JsonParser
      */
 
     /**
+     * Main iteration method, which will advance stream enough
+     * to determine type of the next token, if any. If none
+     * remaining (stream has no content other than possible
+     * white space before ending), null will be returned.
+     *
      * @return Next token from the stream, if any found, or null
      *   to indicate end-of-input
      */
     public abstract JsonToken nextToken()
+        throws IOException, JsonParseException;
+
+    /**
+     * Method that will skip all child tokens of an array or
+     * object token that the parser currently points to,
+     * iff stream points to 
+     * {@link JsonToken.START_OBJECT} or {@link JsonToken.START_ARRAY}.
+     * If not, it will do nothing.
+     * After skipping, stream will point to <b>matching</b>
+     * {@link JsonToken.END_OBJECT} or {@link JsonToken.END_ARRAY}
+     * (possibly skipping nested pairs of START/END OBJECT/ARRAY tokens
+     * as well as value tokens).
+     */
+    public abstract void skipChildren()
         throws IOException, JsonParseException;
 
     /**

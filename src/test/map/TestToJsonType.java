@@ -3,6 +3,7 @@ package map;
 import main.BaseTest;
 
 import java.io.*;
+import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -13,7 +14,7 @@ import org.codehaus.jackson.map.impl.*;
  * mapper can properly parse JSON and bind contents into appropriate
  * JsonNode instances.
  */
-public class TestToJavaType
+public class TestToJsonType
     extends BaseTest
 {
     public void testSimple()
@@ -63,6 +64,8 @@ public class TestToJavaType
         assertTrue(ob.isArray());
         ArrayNode idList = (ArrayNode) ob;
         assertEquals(4, idList.size());
+        assertEquals(4, calcLength(idList.getElements()));
+        assertEquals(4, calcLength(idList.iterator()));
         {
             int[] values = new int[] {
                 SAMPLE_SPEC_VALUE_TN_ID1,
@@ -72,6 +75,11 @@ public class TestToJavaType
             };
             for (int i = 0; i < values.length; ++i) {
                 assertEquals(values[i], idList.getElementValue(i).getIntValue());
+            }
+            int i = 0;
+            for (JsonNode n : idList) {
+                assertEquals(values[i], n.getIntValue());
+                ++i;
             }
         }
     }
@@ -136,6 +144,16 @@ public class TestToJavaType
         if (!expType.isAssignableFrom(cls)) {
             fail("Expected type "+expType.getName()+", got "+cls.getName());
         }
+    }
+
+    private int calcLength(Iterator<JsonNode> it)
+    {
+        int count = 0;
+        while (it.hasNext()) {
+            it.next();
+            ++count;
+        }
+        return count;
     }
 }
 

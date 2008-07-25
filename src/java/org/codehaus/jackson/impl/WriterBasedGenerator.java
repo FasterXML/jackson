@@ -330,6 +330,13 @@ public final class WriterBasedGenerator
         writeRaw(dec.toString());
     }
 
+    public void writeNumber(String encodedValue)
+        throws IOException, JsonGenerationException
+    {
+        verifyValueWrite("write number");
+        writeRaw(encodedValue);
+    }
+
     public void writeBoolean(boolean state)
         throws IOException, JsonGenerationException
     {
@@ -403,7 +410,8 @@ public final class WriterBasedGenerator
             if (mOutputTail >= mOutputEnd) {
                 flushBuffer();
             }
-            mOutputBuffer[mOutputTail++] = c;
+            mOutputBuffer[mOutputTail] = c;
+            ++mOutputTail;
             return;
         }
 

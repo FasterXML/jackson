@@ -88,6 +88,58 @@ public class TestJsonParser
         doTestInvalidKeyword2("trueenough", JsonToken.VALUE_TRUE);
     }
 
+    public void testSkipping()
+        throws Exception
+    {
+        String DOC =
+            "[ 1, 3, [ true, null ], 3, { \"a\":\"b\" }, [ [ ] ], { } ]";
+            ;
+        JsonParser jp = createParserUsingStream(DOC, "UTF-8");
+
+        // First, skipping of the whole thing
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        jp.skipChildren();
+        assertEquals(JsonToken.END_ARRAY, jp.getCurrentToken());
+        JsonToken t = jp.nextToken();
+        if (t != null) {
+            fail("Expected null at end of doc, got "+t);
+        }
+        jp.close();
+
+        // Then individual ones
+        jp = createParserUsingStream(DOC, "UTF-8");
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        jp.skipChildren();
+        // shouldn't move
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.getCurrentToken());
+        assertEquals(1, jp.getIntValue());
+
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        // then skip array
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        jp.skipChildren();
+        assertToken(JsonToken.END_ARRAY, jp.getCurrentToken());
+
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+        jp.skipChildren();
+        assertToken(JsonToken.END_OBJECT, jp.getCurrentToken());
+
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        jp.skipChildren();
+        assertToken(JsonToken.END_ARRAY, jp.getCurrentToken());
+
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+        jp.skipChildren();
+        assertToken(JsonToken.END_OBJECT, jp.getCurrentToken());
+
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+
+        jp.close();
+    }
+
     /*
     /////////////////////////////////////////////
     // Helper methods

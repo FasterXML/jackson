@@ -12,6 +12,7 @@ import org.codehaus.jackson.JsonGenerator;
  * mapper
  */
 public abstract class JsonNode
+    implements Iterable<JsonNode>
 {
     final static List<JsonNode> NO_NODES = Collections.emptyList();
     final static List<String> NO_STRINGS = Collections.emptyList();
@@ -136,6 +137,8 @@ public abstract class JsonNode
     public int size() { return 0; }
 
     public Iterator<JsonNode> getElements() { return NO_NODES.iterator(); }
+
+    public final Iterator<JsonNode> iterator() { return getElements(); }
 
     public Iterator<String> getFieldNames() { return NO_STRINGS.iterator(); }
     public Iterator<JsonNode> getFieldValues() { return NO_NODES.iterator(); }

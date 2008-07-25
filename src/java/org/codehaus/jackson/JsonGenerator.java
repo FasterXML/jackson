@@ -67,6 +67,13 @@ public abstract class JsonGenerator
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method for outputting a String value. Depending on context
+     * this means either array element, (object) field value or
+     * a stand alone String; but in all cases, String will be
+     * surrounded in double quotes, and contents will be properly
+     * escaped as required by JSON specification.
+     */
     public abstract void writeString(String text)
         throws IOException, JsonGenerationException;
 
@@ -75,7 +82,9 @@ public abstract class JsonGenerator
 
     /**
      * Fallback method which can be used to make generator copy
-     * input text verbatim with no modifications
+     * input text verbatim with <b>no</b> modifications (including
+     * that no quoting is done and no separators are added even
+     * if context [array, object] would otherwise require such)
      */
     public abstract void writeRaw(String text)
         throws IOException, JsonGenerationException;
@@ -99,7 +108,7 @@ public abstract class JsonGenerator
 
     /*
     ////////////////////////////////////////////////////
-    // Public API, write methods, primitive
+    // Public API, write methods, primitives
     ////////////////////////////////////////////////////
      */
 
@@ -118,11 +127,15 @@ public abstract class JsonGenerator
     public abstract void writeNumber(BigDecimal dec)
         throws IOException, JsonGenerationException;
 
+    public abstract void writeNumber(String encodedValue)
+        throws IOException, JsonGenerationException;
+
     public abstract void writeBoolean(boolean state)
         throws IOException, JsonGenerationException;
 
     public abstract void writeNull()
         throws IOException, JsonGenerationException;
+
 
     /*
     ////////////////////////////////////////////////////

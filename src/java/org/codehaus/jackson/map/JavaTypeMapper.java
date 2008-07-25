@@ -275,7 +275,7 @@ public class JavaTypeMapper
              * are probably best off by just asking object to serialize
              * itself and assume that's good:
              */
-            jgen.writeRaw(value.toString());
+            jgen.writeNumber(value.toString());
             break;
 
             // // // Then array types:

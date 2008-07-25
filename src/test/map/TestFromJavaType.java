@@ -3,6 +3,7 @@ package map;
 import main.BaseTest;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -98,5 +99,23 @@ public class TestFromJavaType
         assertEquals(JsonToken.END_OBJECT, jp.nextToken());
 
         assertNull(jp.nextToken());
+    }
+
+    /**
+     * Unit test to catch bug [JACKSON-x].
+     */
+    public void testBigDecimal()
+        throws Exception
+    {
+        StringWriter sw = new StringWriter();
+        JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        String PI_STR = "3.14159265";
+        map.put("pi", new BigDecimal(PI_STR));
+        new JavaTypeMapper().writeAny(gen, map);
+        gen.close();
+
+        assertEquals("{\"pi\":3.14159265}", sw.toString());
     }
 }

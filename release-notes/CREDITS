@@ -25,3 +25,12 @@ Maciej Pestka:
     objects: it should, and now will (note: JsonTypeMapper not directly
     affected, flushing still needed)
     [0.9]
+
+Tudor Bosman:
+  * Symbol table handling not thread-safe
+    [0.9.3]
+
+Michael Mangeng:
+  * Suggested [JACKSON-1]: make JsonNode implement Iterable<JsonNode> to
+    allow use of Java 5 foreach loop with container nodes.
+

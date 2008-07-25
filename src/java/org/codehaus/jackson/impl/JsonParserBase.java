@@ -190,6 +190,37 @@ public abstract class JsonParserBase
     public abstract JsonToken nextToken()
         throws IOException, JsonParseException;
 
+    public void skipChildren()
+        throws IOException, JsonParseException
+    {
+        if (mCurrToken != JsonToken.START_OBJECT
+            && mCurrToken != JsonToken.START_ARRAY) {
+            return;
+        }
+        int open = 1;
+
+        /* Since proper matching of start/end markers is handled
+         * by nextToken(), we'll just count nesting levels here
+         */
+        while (true) {
+            JsonToken t = nextToken();
+            if (t == null) {
+                handleEOF();
+            }
+            switch (t) {
+            case START_OBJECT:
+            case START_ARRAY:
+                ++open;
+                break;
+            case END_OBJECT:
+            case END_ARRAY:
+                if (--open == 0) {
+                    return;
+                }
+                break;
+            }
+        }
+    }
 
     /**
      * @return Type of the token this parser currently points to,

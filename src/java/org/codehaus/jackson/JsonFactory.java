@@ -129,30 +129,13 @@ public final class JsonFactory
         return new ReaderBasedParser(createContext(r), r, mCharSymbols.makeChild());
     }
 
-    // // // !!! TEST only:
-
-    public JsonParser createJsonParser(InputStream in, boolean fast)
-        throws IOException, JsonParseException
-    {
-        return createJsonParser(in, createContext(in), fast);
-    }
-
     private JsonParser createJsonParser(InputStream in, IOContext ctxt)
-        throws IOException, JsonParseException
-    {
-        return createJsonParser(in, ctxt, true);
-    }
-
-    /* !!! For testing alternative implementations
-     */
-    private JsonParser createJsonParser(InputStream in, IOContext ctxt,
-                                        boolean fast)
         throws IOException, JsonParseException
     {
         ByteSourceBootstrapper bb = new ByteSourceBootstrapper(ctxt, in);
         JsonEncoding enc = bb.detectEncoding();
-        if (fast && enc == JsonEncoding.UTF8) {
-            return bb.createFastUtf8Parser(mByteSymbols);
+        if (enc == JsonEncoding.UTF8) {
+            return bb.createFastUtf8Parser(mByteSymbols.makeChild());
         }
         return new ReaderBasedParser(ctxt, bb.constructReader(), mCharSymbols.makeChild());
     }
