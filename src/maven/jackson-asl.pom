@@ -3,9 +3,10 @@
 
  <!-- General information -->
 
-  <modelVersion>q.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
   <groupId>org.codehaus.jackson</groupId>
-  <artifactId>jackso-asl</artifactId>
+  <artifactId>jackson-asl</artifactId>
+  <packaging>jar</packaging>
   <name>Jackson</name>
   <version>@VERSION@</version>
   <description>Jackson is a high-performance JSON processor (parser, generator)

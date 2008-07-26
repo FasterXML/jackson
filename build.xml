@@ -59,6 +59,15 @@
           <include name="samples/**/*.jsn" />
     </patternset>
 
+    <patternset id="dist-misc-files">
+          <include name="src/test/**/*.java" />
+          <include name="src/java/**/*.html" />
+          <include name="src/maven/*.pom" />
+          <include name="release-notes/*" />
+          <include name="release-notes/asl/*" />
+          <include name="release-notes/lgpl/*" />
+    </patternset>
+
     <!-- Core Jackson class files common to all license flavours: -->
     <patternset id="dist-class-files">
         <include name="org/codehaus/**/*.class" />
@@ -222,15 +231,28 @@
           -->
        <tar basedir="${basedir}" destfile="${DistDir}/jackson-src-${IMPL_VERSION}.tar">
           <patternset refid="dist-src-files" />
+          <patternset refid="dist-misc-files" />
        </tar>
        <gzip zipfile="${DistDir}/jackson-src-${IMPL_VERSION}.tar.gz" src="${DistDir}/jackson-src-${IMPL_VERSION}.tar" />
        <delete file="${DistDir}/jackson-src-${IMPL_VERSION}.tar" />
 
-       <!-- as well as zip
-          -->
+       <!-- as well as zip -->
        <zip basedir="${basedir}" destfile="${DistDir}/jackson-src-${IMPL_VERSION}.zip">
           <patternset refid="dist-src-files" />
+          <patternset refid="dist-misc-files" />
        </zip>
+
+       <!-- And create source jars for IDE support -->
+       <jar jarfile="${DistDir}/jackson-asl-${IMPL_VERSION}-sources.jar" filesonly="true" >
+          <fileset dir="${basedir}">
+              <patternset refid="dist-src-files" />
+          </fileset>
+       </jar>
+       <jar jarfile="${DistDir}/jackson-lgpl-${IMPL_VERSION}-sources.jar" filesonly="true" >
+          <fileset dir="${basedir}">
+              <patternset refid="dist-src-files" />
+          </fileset>
+       </jar>
 
        <!-- Then copy javadocs -->
        <copy todir="${DistDir}">
