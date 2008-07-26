@@ -33,4 +33,8 @@ Tudor Bosman:
 Michael Mangeng:
   * Suggested [JACKSON-1]: make JsonNode implement Iterable<JsonNode> to
     allow use of Java 5 foreach loop with container nodes.
+    [0.9.3]
 
+Johannes Link:
+  * Reported [JACKSON-8]: Serialization of BigDecimal broken with JavaTypeMapper
+    [0.9.3]
