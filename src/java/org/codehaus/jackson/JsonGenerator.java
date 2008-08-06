@@ -61,13 +61,7 @@ public abstract class JsonGenerator
     public abstract void writeEndObject()
         throws IOException, JsonGenerationException;
 
-    protected abstract void doWriteEndObject()
-        throws IOException, JsonGenerationException;
-
     public abstract void writeFieldName(String name)
-        throws IOException, JsonGenerationException;
-
-    protected abstract void doWriteFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException;
 
     /*
@@ -159,16 +153,24 @@ public abstract class JsonGenerator
      * {@link #writeString} method can not be used; nor
      * {@link #writeRaw} because that does not properly handle
      * value separators needed in Array or Object contexts.
+     *<p>
+     * Note: because of lack of type safety, some generator
+     * implementations may not be able to implement this
+     * method. For example, if a binary json format is used,
+     * it may require type information for encoding; similarly
+     * for generator-wrappers around Java objects or JSON nodes.
+     * If implementation does not implement this method,
+     * it needs to throw {@link UnsupportedOperationException}.
      */
     public abstract void writeNumber(String encodedValue)
-        throws IOException, JsonGenerationException;
+        throws IOException, JsonGenerationException,
+               UnsupportedOperationException;
 
     public abstract void writeBoolean(boolean state)
         throws IOException, JsonGenerationException;
 
     public abstract void writeNull()
         throws IOException, JsonGenerationException;
-
 
     /*
     ////////////////////////////////////////////////////
