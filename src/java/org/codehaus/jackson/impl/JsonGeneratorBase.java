@@ -130,20 +130,15 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
-    public abstract void writeString(String text)
-        throws IOException, JsonGenerationException;
+    //public abstract void writeString(String text) throws IOException, JsonGenerationException;
 
-    public abstract void writeString(char[] text, int offset, int len)
-        throws IOException, JsonGenerationException;
+    //public abstract void writeString(char[] text, int offset, int len) throws IOException, JsonGenerationException;
 
-    public abstract void writeRaw(String text)
-        throws IOException, JsonGenerationException;
+    //public abstract void writeRaw(String text) throws IOException, JsonGenerationException;
 
-    public abstract void writeRaw(char[] text, int offset, int len)
-        throws IOException, JsonGenerationException;
+    //public abstract void writeRaw(char[] text, int offset, int len) throws IOException, JsonGenerationException;
 
-    public abstract void writeBinary(byte[] data, int offset, int len)
-        throws IOException, JsonGenerationException;
+    //public abstract void writeBinary(byte[] data, int offset, int len, boolean includeLFs) throws IOException, JsonGenerationException;
 
     /*
     ////////////////////////////////////////////////////

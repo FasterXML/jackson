@@ -23,6 +23,15 @@ public abstract class JsonGenerator
     ////////////////////////////////////////////////////
       */
 
+    /**
+     * Method for setting a custom pretty printer, which is usually
+     * used to add indentation for improved human readability.
+     * By default, generator does not do pretty printing.
+     *<p>
+     * To use the default pretty printer that comes with core
+     * Jackson distribution, call {@link #useDefaultPrettyPrinter}
+     * instead.
+     */
     public final void setPrettyPrinter(PrettyPrinter pp) {
         mPrettyPrinter = pp;
     }
@@ -101,9 +110,25 @@ public abstract class JsonGenerator
     /**
      * Method that will output given chunk of binary data as base64
      * encoded, as a complete String value (surrounded by double quotes).
-     * Note: 
+     *<p>
+     * Note: because JSON Strings can not contain unescaped linefeeds,
+     * if linefeeds are included (as per last argument), they must be
+     * escaped. This adds overhead for decoding without improving
+     * readability.
+     * Alternatively if linefeeds are not included,
+     * resulting String value may violate the requirement of base64
+     * RFC which mandates line-length of 76 characters and use of
+     * linefeeds. However, all {@link JsonParser} implementations
+     * are required to accept such "long line base64"; as do
+     * typical production-level base64 decoders.
+     *
+     * @param includeLFs If true, will add linefeeds (single character,
+     *   "\n") as mandated by
+     *   the RFC that specifies canonical base64 encoding. Due to
+     *   JSON String value requirements, linefeeds must be escaped.
      */
-    public abstract void writeBinary(byte[] data, int offset, int len)
+    public abstract void writeBinary(byte[] data, int offset, int len,
+                                     boolean includeLFs)
         throws IOException, JsonGenerationException;
 
     /*
@@ -127,6 +152,14 @@ public abstract class JsonGenerator
     public abstract void writeNumber(BigDecimal dec)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Write method that can be used for custom numeric types that can
+     * not be (easily?) converted to "standard" Java number types.
+     * Because numbers are not surrounded by double quotes, regular
+     * {@link #writeString} method can not be used; nor
+     * {@link #writeRaw} because that does not properly handle
+     * value separators needed in Array or Object contexts.
+     */
     public abstract void writeNumber(String encodedValue)
         throws IOException, JsonGenerationException;
 

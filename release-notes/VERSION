@@ -1,6 +1,6 @@
 Version: 0.9.3
 
-Release date: xx-May-2008
+Release date: xx-Aug-2008
 
 Description:
   Another pre-1.0 release.
@@ -12,6 +12,10 @@ Description:
    (reported by Tudor B)
   * [JACKSON-8]: Serialization of BigDecimal broken with JavaTypeMapper
    (reported by Johannes L)
+  * Implicit conversions for numbers could sometimes lose accuracy,
+    if floating-point number was first accessed as int/long, and then
+    as a BigDecimal.
+  * One Nasty NPE fixed from NameCanonicalizer (which was added in 0.9.2)
 
   New features:
 

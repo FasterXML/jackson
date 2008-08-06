@@ -96,9 +96,9 @@ public abstract class JsonTypeMapperBase
             return numberNode(jp.getLongValue());
 
         case VALUE_NUMBER_FLOAT:
-            /* !!! Should we try to see if we should use some
-             *  other representation (BigDecimal)?
-             */
+            if (jp.getNumberType() == JsonParser.NumberType.BIG_DECIMAL) {
+                return numberNode(jp.getDecimalValue());
+            }
             return numberNode(jp.getDoubleValue());
 
         case VALUE_TRUE:

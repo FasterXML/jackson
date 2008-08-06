@@ -191,7 +191,7 @@ public class JavaTypeMapper
     public JsonParser createParserFor(Object data)
         throws JsonParseException
     {
-        // !!! TBI
+        // !!! TBI: parser for reading from Object (array/map, primitives)
         return null;
     }
 
@@ -200,10 +200,17 @@ public class JavaTypeMapper
      * Java objects as members of the current list, appending
      * them at the end of the list.
      */
-    public JsonGenerator createParserFor(List<Object> context)
+    public JsonGenerator createGeneratorFor(List<Object> context)
         throws JsonParseException
     {
-        // !!! TBI
+        // !!! TBI: generator for writing (appending) to Json Arrays (Java lists)
+        return null;
+    }
+
+    public JsonGenerator createGeneratorFor(Map<Object,Object> context)
+        throws JsonParseException
+    {
+        // !!! TBI: generator for writing (appending) to Json Objects (Java maps)
         return null;
     }
 
@@ -328,7 +335,7 @@ public class JavaTypeMapper
              */
             {
                 byte[] data = (byte[]) value;
-                jgen.writeBinary(data, 0, data.length);
+                jgen.writeBinary(data, 0, data.length, mCfgBase64LFs);
             }
             break;
 

@@ -24,6 +24,8 @@ public abstract class JsonNumericParserBase
      * the fastest one that works for given textual representation.
      */
 
+    final protected static int NR_UNKNOWN = 0;
+
     // First, integer types
 
     final protected static int NR_INT = 0x0001;
@@ -84,7 +86,7 @@ public abstract class JsonNumericParserBase
      * Bitfield that indicates which numeric representations
      * have been calculated for the current type
      */
-    protected int mNumTypesValid = 0;
+    protected int mNumTypesValid = NR_UNKNOWN;
 
     // First primitives
 
@@ -145,7 +147,7 @@ public abstract class JsonNumericParserBase
         mIntLength = intLen;
         mFractLength = fractLen;
         mExpLength = expLen;
-        mNumTypesValid = 0; // to force parsing
+        mNumTypesValid = NR_UNKNOWN; // to force parsing
         if (fractLen < 1 && expLen < 1) { // integer
             return (mCurrToken = JsonToken.VALUE_NUMBER_INT);
         }
@@ -171,8 +173,8 @@ public abstract class JsonNumericParserBase
     public Number getNumberValue()
         throws IOException, JsonParseException
     {
-        if (mNumTypesValid == 0) {
-            parseNumericValue(); // will also check event type
+        if (mNumTypesValid == NR_UNKNOWN) {
+            parseNumericValue(NR_UNKNOWN); // will also check event type
         }
         // Separate types for int types
         if (mCurrToken == JsonToken.VALUE_NUMBER_INT) {
@@ -204,8 +206,8 @@ public abstract class JsonNumericParserBase
     public NumberType getNumberType()
         throws IOException, JsonParseException
     {
-        if (mNumTypesValid == 0) {
-            parseNumericValue(); // will also check event type
+        if (mNumTypesValid == NR_UNKNOWN) {
+            parseNumericValue(NR_UNKNOWN); // will also check event type
         }
         if (mCurrToken == JsonToken.VALUE_NUMBER_INT) {
             if ((mNumTypesValid & NR_INT) != 0) {
@@ -219,7 +221,9 @@ public abstract class JsonNumericParserBase
 
         /* And then floating point types. Here optimal type
          * needs to be big decimal, to avoid losing any data?
-         * However...
+         * However... using BD is slow, so let's allow returning
+         * double as type if no explicit call has been made to access
+         * data as BD?
          */
         if ((mNumTypesValid & NR_BIGDECIMAL) != 0) {
             return NumberType.BIG_DECIMAL;
@@ -231,8 +235,8 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         if ((mNumTypesValid & NR_INT) == 0) {
-            if (mNumTypesValid == 0) { // not parsed at all
-                parseNumericValue(); // will also check event type
+            if (mNumTypesValid == NR_UNKNOWN) { // not parsed at all
+                parseNumericValue(NR_INT); // will also check event type
             }
             if ((mNumTypesValid & NR_INT) == 0) { // wasn't an int natively?
                 convertNumberToInt(); // let's make it so, if possible
@@ -245,8 +249,8 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         if ((mNumTypesValid & NR_LONG) == 0) {
-            if (mNumTypesValid == 0) {
-                parseNumericValue();
+            if (mNumTypesValid == NR_UNKNOWN) {
+                parseNumericValue(NR_LONG);
             }
             if ((mNumTypesValid & NR_LONG) == 0) {
                 convertNumberToLong();
@@ -259,8 +263,8 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         if ((mNumTypesValid & NR_DOUBLE) == 0) {
-            if (mNumTypesValid == 0) {
-                parseNumericValue();
+            if (mNumTypesValid == NR_UNKNOWN) {
+                parseNumericValue(NR_DOUBLE);
             }
             if ((mNumTypesValid & NR_DOUBLE) == 0) {
                 convertNumberToDouble();
@@ -273,8 +277,8 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         if ((mNumTypesValid & NR_BIGDECIMAL) == 0) {
-            if (mNumTypesValid == 0) {
-                parseNumericValue();
+            if (mNumTypesValid == NR_UNKNOWN) {
+                parseNumericValue(NR_BIGDECIMAL);
             }
             if ((mNumTypesValid & NR_BIGDECIMAL) == 0) {
                 convertNumberToBigDecimal();
@@ -295,8 +299,11 @@ public abstract class JsonNumericParserBase
      * valid number value. Type it will parse into depends on whether
      * it is a floating point number, as well as its magnitude: smallest
      * legal type (of ones available) is used for efficiency.
+     *
+     * @param neededType Numeric type that we will immediately need, if any;
+     *   mostly necessary to optimize handling of floating point numbers
      */
-    protected final void parseNumericValue()
+    protected final void parseNumericValue(int expType)
         throws JsonParseException
     {
         // First things first: must be a numeric event
@@ -323,21 +330,28 @@ public abstract class JsonNumericParserBase
                     mNumTypesValid = NR_LONG;
                     return;
                 }
-                // nope, need the heavy guns...
+                // nope, need the heavy guns... (rare case)
                 BigInteger bi = new BigInteger(mTextBuffer.contentsAsString());
                 mNumberBigDecimal = new BigDecimal(bi);
                 mNumTypesValid = NR_BIGDECIMAL;
                 return;
             }
 
-            // Nope: floating point
-
-            /* !!! TBI: Use BigDecimal if need be? And/or optimize with
-             *   faster parsing
+            /* Nope: floating point. Here we need to be careful to get
+             * optimal parsing strategy: choice is between accurate but
+             * slow (BigDecimal) and lossy but fast (Double). For now
+             * let's only use BD when explicitly requested -- it can
+             * still be constructed correctly at any point since we do
+             * retain textual representation
              */
-            String value = mTextBuffer.contentsAsString();
-            mNumberDouble = Double.parseDouble(value);
-            mNumTypesValid = NR_DOUBLE;
+            if (expType == NR_BIGDECIMAL) {
+                mNumberBigDecimal = mTextBuffer.contentsAsDecimal();
+                mNumTypesValid = NR_BIGDECIMAL;
+            } else {
+                // Otherwise double has to do
+                mNumberDouble = mTextBuffer.contentsAsDouble();
+                mNumTypesValid = NR_DOUBLE;
+            }
         } catch (NumberFormatException nex) {
             // Can this ever occur? Due to overflow, maybe?
             wrapError("Malformed numeric value '"+mTextBuffer.contentsAsString()+"'", nex);
@@ -372,7 +386,7 @@ public abstract class JsonNumericParserBase
                 || BD_MAX_INT.compareTo(mNumberBigDecimal) < 0) {
                 reportOverflowInt();
             }
-            mNumberLong = mNumberBigDecimal.longValue();
+            mNumberInt = mNumberBigDecimal.intValue();
         } else {
             throwInternal(); // should never get here
         }
@@ -407,12 +421,18 @@ public abstract class JsonNumericParserBase
     protected void convertNumberToDouble()
         throws IOException, JsonParseException
     {
-        if ((mNumTypesValid & NR_INT) != 0) {
-            mNumberDouble = (double) mNumberInt;
+        /* 05-Aug-2008, tatus: Important note: this MUST start with
+         *   more accurate representations, since we don't know which
+         *   value is the original one (others get generated when
+         *   requested)
+         */
+
+        if ((mNumTypesValid & NR_BIGDECIMAL) != 0) {
+            mNumberDouble = mNumberBigDecimal.doubleValue();
         } else if ((mNumTypesValid & NR_LONG) != 0) {
             mNumberDouble = (double) mNumberLong;
-        } else if ((mNumTypesValid & NR_BIGDECIMAL) != 0) {
-            mNumberDouble = mNumberBigDecimal.doubleValue();
+        } else if ((mNumTypesValid & NR_INT) != 0) {
+            mNumberDouble = (double) mNumberInt;
         } else {
             throwInternal(); // should never get here
         }
@@ -423,16 +443,24 @@ public abstract class JsonNumericParserBase
     protected void convertNumberToBigDecimal()
         throws IOException, JsonParseException
     {
-        if ((mNumTypesValid & NR_INT) != 0) {
-            mNumberBigDecimal = BigDecimal.valueOf((long) mNumberInt);
-        } else if ((mNumTypesValid & NR_LONG) != 0) {
-            mNumberBigDecimal = BigDecimal.valueOf(mNumberLong);
-        } else {
-            /* Otherwise, let's actually parse from String representation,
+        /* 05-Aug-2008, tatus: Important note: this MUST start with
+         *   more accurate representations, since we don't know which
+         *   value is the original one (others get generated when
+         *   requested)
+         */
+
+        if ((mNumTypesValid & NR_DOUBLE) != 0) {
+            /* Let's actually parse from String representation,
              * to avoid rounding errors that non-decimal floating operations
              * would incur
              */
             mNumberBigDecimal = new BigDecimal(getText());
+        } else if ((mNumTypesValid & NR_LONG) != 0) {
+            mNumberBigDecimal = BigDecimal.valueOf(mNumberLong);
+        } else if ((mNumTypesValid & NR_INT) != 0) {
+            mNumberBigDecimal = BigDecimal.valueOf((long) mNumberInt);
+        } else {
+            throwInternal(); // should never get here
         }
         mNumTypesValid |= NR_BIGDECIMAL;
     }

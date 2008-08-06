@@ -49,6 +49,12 @@ public final class NumberOutput
         "-1","-2","-3","-4","-5","-6","-7","-8","-9","-10"
     };
 
+    /*
+    ////////////////////////////////////////////////////
+    // Efficient serialization methods using raw buffers
+    ////////////////////////////////////////////////////
+     */
+
     /**
      * @return Offset within buffer after outputting int
      */
@@ -170,6 +176,16 @@ public final class NumberOutput
         return offset;
     }
 
+    /*
+    ////////////////////////////////////////////////////
+    // Secondary convenience serialization methods
+    ////////////////////////////////////////////////////
+     */
+
+    /* !!! 05-Aug-2008, tatus: Any ways to further optimize
+     *   these? (or need: only called by diagnostics methods?)
+     */
+
     public static String toString(int value)
     {
         // Lookup table for small values
@@ -182,7 +198,6 @@ public final class NumberOutput
                 return sSmallIntStrs2[v2];
             }
         }
-        // !!! TODO: further optimize?
         return Integer.toString(value);
     }
 
@@ -192,13 +207,11 @@ public final class NumberOutput
             value >= Integer.MIN_VALUE) {
             return toString((int) value);
         }
-        // !!! TODO: further optimize?
         return Long.toString(value);
     }
 
     public static String toString(double value)
     {
-        // !!! TODO: optimize?
         return Double.toString(value);
     }
 

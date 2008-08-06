@@ -1,6 +1,7 @@
 package org.codehaus.jackson.util;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 /**
@@ -315,6 +316,7 @@ public final class TextBuffer
     public int contentsToArray(int srcStart, char[] dst, int dstStart, int len) {
 
         // Easy to copy from shared buffer:
+
         if (mInputStart >= 0) {
 
             int amount = mInputLen - srcStart;
@@ -412,6 +414,39 @@ public final class TextBuffer
             rlen += mCurrentSize;
         }
         return rlen;
+    }
+
+    /**
+     * Convenience method for converting contents of the buffer
+     * into a {@link BigDecimal}.
+     */
+    public BigDecimal contentsAsDecimal()
+        throws NumberFormatException
+    {
+        // Already got a pre-cut array?
+        if (mResultArray != null) {
+            return new BigDecimal(mResultArray);
+        }
+        // Or a shared buffer?
+        if (mInputStart >= 0) {
+            return new BigDecimal(mInputBuffer, mInputStart, mInputLen);
+        }
+        // Or if not, just a single buffer (the usual case)
+        if (mSegmentSize == 0) {
+            return new BigDecimal(mCurrentSegment, 0, mCurrentSize);
+        }
+        // If not, let's just get it aggregated...
+        return new BigDecimal(contentsAsArray());
+    }
+
+    /**
+     * Convenience method for converting contents of the buffer
+     * into a Double value.
+     */
+    public double contentsAsDouble()
+        throws NumberFormatException
+    {
+        return Double.parseDouble(contentsAsString());
     }
 
     /*

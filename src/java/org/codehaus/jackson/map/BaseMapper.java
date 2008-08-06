@@ -37,6 +37,20 @@ public abstract class BaseMapper
      */
     protected DupFields mCfgDupFields = DupFields.ERROR;
 
+    /**
+     * Defines whether (escaped) linefeeds are included when serializing
+     * binary data into base64 values or not.
+     *<p>
+     * Default setting is <b>false</b> mostly because linefeeds can not
+     * be included natively anyway, and instead encoded/escaped entries
+     * have to be used. Additionally it is unlikely that recipient would
+     * not be able to decode data (since it needs to be json aware and
+     * do fair bit of handling before being able to access data).
+     * Nonetheless, for maximum interoperability it may be desireable
+     * to enable this setting.
+     */
+    protected boolean mCfgBase64LFs = false;
+
     /*
     ////////////////////////////////////////////////////
     // Life-cycle (construction, configuration)
@@ -47,6 +61,10 @@ public abstract class BaseMapper
 
     public void setDupFieldHandling(DupFields mode) { mCfgDupFields = mode; }
     public DupFields getDupFieldHandling() { return mCfgDupFields; }
+
+    public void setAddLinefeedsToBase64(boolean state) { mCfgBase64LFs = state; }
+
+    public boolean getAddLinefeedsToBase64() { return mCfgBase64LFs; }
 
     /*
     ////////////////////////////////////////////////////

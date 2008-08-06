@@ -597,6 +597,7 @@ public final class NameCanonicalizer
             if (mCollListShared) {
                 unshareCollision(); // also allocates if list was null
             }
+
             ++mCollCount;
             int entryValue = mMainHash[ix];
             int bucket = entryValue & 0xFF;
@@ -645,7 +646,6 @@ public final class NameCanonicalizer
         mNeedRehash = false;
         // Note: since we'll make copies, no need to unshare, can just mark as such:
         mMainNamesShared = false;
-        mCollListShared = false;
 
         /* And then we can first deal with the main hash area. Since we
          * are expanding linearly (double up), we know there'll be no
@@ -680,6 +680,7 @@ public final class NameCanonicalizer
 
         mCollCount = 0;
         mCollEnd = 0;
+        mCollListShared = false;
 
         Bucket[] oldBuckets = mCollList;
         mCollList = new Bucket[oldBuckets.length];

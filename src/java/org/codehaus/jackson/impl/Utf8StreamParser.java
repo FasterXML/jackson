@@ -210,6 +210,20 @@ public final class Utf8StreamParser
 
     /*
     ////////////////////////////////////////////////////
+    // Public API, binary access
+    ////////////////////////////////////////////////////
+     */
+
+    @Override
+    public int readBinaryValue(OutputStream results)
+        throws IOException, JsonParseException
+    {
+        // !!! TBI: implemented base64 decoding
+        return -1;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
     // Internal methods, secondary parsing
     ////////////////////////////////////////////////////
      */

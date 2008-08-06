@@ -238,12 +238,13 @@ public final class WriterBasedGenerator
         mOutputBuffer[mOutputTail++] = c;
     }
 
-    public void writeBinary(byte[] data, int offset, int len)
+    public void writeBinary(byte[] data, int offset, int len,
+                            boolean includeLFs)
         throws IOException, JsonGenerationException
     {
         // !!! TBI: base64-based binary output
 
-        throw new RuntimeException("Not yet implemented");
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     private void writeRawLong(String text)
@@ -300,13 +301,14 @@ public final class WriterBasedGenerator
         mOutputTail = NumberOutput.outputLong(l, mOutputBuffer, mOutputTail);
     }
 
+    /* !!! 05-Aug-2008, tatus: Any ways to optimize these?
+     */
+
     public void writeNumber(double d)
         throws IOException, JsonGenerationException
     {
         // What is the max length for doubles? 40 chars?
         verifyValueWrite("write number");
-
-        // !!! TODO: use a more efficient printing method?
         writeRaw(String.valueOf(d));
     }
 
@@ -315,8 +317,6 @@ public final class WriterBasedGenerator
     {
         // What is the max length for floats?
         verifyValueWrite("write number");
-
-        // !!! TODO: use a more efficient printing method?
         writeRaw(String.valueOf(f));
     }
 
@@ -325,11 +325,12 @@ public final class WriterBasedGenerator
     {
         // Don't really know max length for big decimal, no point checking
         verifyValueWrite("write number");
-
-        // !!! TODO: use a more efficient printing method?
         writeRaw(dec.toString());
     }
 
+    /**
+     *
+     */
     public void writeNumber(String encodedValue)
         throws IOException, JsonGenerationException
     {

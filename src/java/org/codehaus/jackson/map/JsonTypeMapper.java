@@ -71,6 +71,38 @@ public class JsonTypeMapper
 
     /*
     ////////////////////////////////////////////////////
+    // Public API, exposing JsonNode(s) via stream
+    // parsers/generators
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that will take in a Java object that could have
+     * been created by mappers write methods, and construct
+     * a {@link JsonParser} that exposes contents as JSON
+     * tokens
+     */
+    public JsonParser createParserFor(JsonNode node)
+        throws JsonParseException
+    {
+        // !!! TBI: parser for reading from JsonNode (array/map, primitives)
+        return null;
+    }
+
+    /**
+     * Method that will create a JSON generator that will build
+     * Java objects as members of the current list, appending
+     * them at the end of the list.
+     */
+    public JsonGenerator createGeneratorFor(JsonNode context)
+        throws JsonParseException
+    {
+        // !!! TBI: generator for writing (appending) to Objects (array/map, primitives)
+        return null;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
     // Factory methods
     ////////////////////////////////////////////////////
      */

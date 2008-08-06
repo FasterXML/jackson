@@ -52,8 +52,12 @@ public final class TestReadPerf
         JsonParser jp = null;
         while (--reps >= 0) {
             jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData));
-            while (jp.nextToken() != null) {
-                ;
+            JsonToken t;
+
+            while ((t = jp.nextToken()) != null) {
+                if (t == JsonToken.VALUE_NUMBER_FLOAT) {
+                    jp.getDoubleValue();
+                }
             }
             jp.close();
         }

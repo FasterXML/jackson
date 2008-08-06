@@ -163,7 +163,7 @@ public abstract class JsonParser
      * If current event is of type 
      * {@link JsonToken#VALUE_NUMBER_INT} or
      * {@link JsonToken#VALUE_NUMBER_FLOAT}, returns
-     * one of type constants; otherwise returns null.
+     * one of {@link NumberType} constants; otherwise returns null.
      */
     public abstract NumberType getNumberType()
         throws IOException, JsonParseException;
@@ -196,5 +196,32 @@ public abstract class JsonParser
         throws IOException, JsonParseException;
 
     public abstract BigDecimal getDecimalValue()
+        throws IOException, JsonParseException;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, access to token information, binary
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be used to read (and consume -- results
+     * may not be accessible using other methods after the call)
+     * base64-encoded binary data
+     * included in the current textual json value. It is equivalent
+     * to getting String value via {@link #getText} and decoding
+     * result, but should be significantly more performant.
+     *<p>
+     * Note that the contents may be consumed by this call, and thus
+     * only first call to method will produce any output. Likewise,
+     * calls to methods like {@link #getText} are not guaranteed
+     * to return anything.
+     *
+     * @param results Output stream used for returning decoded binary
+     *   data
+     *
+     * @return Number of bytes decoded and written to <b>results</b>
+     */
+    public abstract int readBinaryValue(OutputStream results)
         throws IOException, JsonParseException;
 }

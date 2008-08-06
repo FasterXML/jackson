@@ -204,7 +204,8 @@ public final class TestJsonPerf
     {
         int sum = 0;
         for (int i = 0; i < reps; ++i) {
-            JsonParser jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData), fast);
+            // note: fast is not used any more
+            JsonParser jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData));
             JsonToken t;
             while ((t = jp.nextToken()) != null) {
                 // Field names are always constructed
