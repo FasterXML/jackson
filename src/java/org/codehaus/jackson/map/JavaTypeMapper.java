@@ -19,7 +19,7 @@ import org.codehaus.jackson.*;
  */
 public class JavaTypeMapper
     extends BaseMapper
-    implements JavaTypeSerializer
+    implements JavaTypeSerializer<Object>
 {
     /*
     ////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ public class JavaTypeMapper
      * deal with (i.e  not including possible eventual conversion
      * to String, as per {@link #mCfgUnknownTypes} )
      */
-    protected JavaTypeSerializer mCustomSerializer = null;
+    protected JavaTypeSerializer<?> mCustomSerializer = null;
 
     /**
      * This defines how instances of unrecognized types (for JSON output)
@@ -76,8 +76,8 @@ public class JavaTypeMapper
 
     public JavaTypeMapper() { }
 
-    public void setCustomSerializer(JavaTypeSerializer ser) { mCustomSerializer = ser; }
-    public JavaTypeSerializer getCustomSerializer() { return mCustomSerializer; }
+    public void setCustomSerializer(JavaTypeSerializer<?> ser) { mCustomSerializer = ser; }
+    public JavaTypeSerializer<?> getCustomSerializer() { return mCustomSerializer; }
 
     public void setUnkownTypeHandling(UnknownType mode) { mCfgUnknownTypes = mode; }
     public UnknownType getUnkownTypeHandling() { return mCfgUnknownTypes; }
@@ -144,7 +144,7 @@ public class JavaTypeMapper
      * Note: method will explicitly call flush on underlying
      * generator.
      */
-    public final void write(JsonGenerator jg, Map<Object,Object> value)
+    public final void write(JsonGenerator jg, Map<?,?> value)
         throws IOException, JsonParseException
     {
         writeValue(this, jg, value);
@@ -156,7 +156,7 @@ public class JavaTypeMapper
      * Note: method will explicitly call flush on underlying
      * generator.
      */
-    public final void write(JsonGenerator jg, Collection<Object> value)
+    public final void write(JsonGenerator jg, Collection<?> value)
         throws IOException, JsonParseException
     {
         writeValue(this, jg, value);
@@ -200,14 +200,14 @@ public class JavaTypeMapper
      * Java objects as members of the current list, appending
      * them at the end of the list.
      */
-    public JsonGenerator createGeneratorFor(List<Object> context)
+    public JsonGenerator createGeneratorFor(List<?> context)
         throws JsonParseException
     {
         // !!! TBI: generator for writing (appending) to Json Arrays (Java lists)
         return null;
     }
 
-    public JsonGenerator createGeneratorFor(Map<Object,Object> context)
+    public JsonGenerator createGeneratorFor(Map<?,?> context)
         throws JsonParseException
     {
         // !!! TBI: generator for writing (appending) to Json Objects (Java maps)
@@ -229,7 +229,7 @@ public class JavaTypeMapper
      * passed object.
      */
     @SuppressWarnings("unchecked")
-	public final boolean writeAny(JavaTypeSerializer defaultSerializer,
+    public final boolean writeAny(JavaTypeSerializer<Object> defaultSerializer,
                                   JsonGenerator jgen, Object value)
         throws IOException, JsonParseException
     {
@@ -377,12 +377,12 @@ public class JavaTypeMapper
             // // // And finally java.util Collection types:
 
         case MAP:
-            return writeValue(defaultSerializer, jgen, (Map<Object,Object>) value);
+            return writeValue(defaultSerializer, jgen, (Map<?,?>) value);
 
         case LIST_INDEXED:
             jgen.writeStartArray();
             {
-                List<Object> l = (List<Object>) value;
+                List<?> l = (List<?>) value;
                 for (int i = 0, len = l.size(); i < len; ++i) {
                     writeAny(defaultSerializer, jgen, l.get(i));
                 }
@@ -392,7 +392,26 @@ public class JavaTypeMapper
             
         case LIST_OTHER:
         case COLLECTION:
-            return writeValue(defaultSerializer, jgen, (Collection<Object>) value);
+            return writeValue(defaultSerializer, jgen, (Collection<?>) value);
+
+        case ITERABLE:
+            jgen.writeStartArray();
+            for (Object elem : (Iterable<?>) value) {
+                writeAny(defaultSerializer, jgen, elem);
+            }
+            jgen.writeEndArray();
+            break;
+
+        case ITERATOR:
+            jgen.writeStartArray();
+            {
+                Iterator<?> it = (Iterator<?>) value;
+                while (it.hasNext()) {
+                    writeAny(defaultSerializer, jgen, it.next());
+                }
+            }
+            jgen.writeEndArray();
+            break;
             
         default: // should never get here
             throwInternal("unhandled internal type: "+jdkType);
@@ -409,11 +428,11 @@ public class JavaTypeMapper
      * explicitly flush the underlying generator after serializing
      * passed object.
      */
-    public boolean writeValue(JavaTypeSerializer defaultSerializer, JsonGenerator jgen, Map<Object,Object> value)
+    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Map<?,?> value)
         throws IOException, JsonParseException
     {
         jgen.writeStartObject();
-        for (Map.Entry<Object,Object> me: value.entrySet()) {
+        for (Map.Entry<?,?> me: value.entrySet()) {
             jgen.writeFieldName(me.getKey().toString());
             writeAny(defaultSerializer, jgen, me.getValue());
         }
@@ -429,7 +448,7 @@ public class JavaTypeMapper
      * explicitly flush the underlying generator after serializing
      * passed object.
      */
-    public boolean writeValue(JavaTypeSerializer defaultSerializer, JsonGenerator jgen, Collection<Object> values)
+    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Collection<?> values)
         throws IOException, JsonParseException
     {
         jgen.writeStartArray();
@@ -450,7 +469,7 @@ public class JavaTypeMapper
      * explicitly flush the underlying generator after serializing
      * passed object.
      */
-    public boolean writeValue(JavaTypeSerializer defaultSerializer, JsonGenerator jgen, Object[] values)
+    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Object[] values)
         throws IOException, JsonParseException
     {
         jgen.writeStartArray();

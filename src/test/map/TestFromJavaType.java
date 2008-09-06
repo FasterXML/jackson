@@ -19,9 +19,6 @@ public class TestFromJavaType
     public void testFromArray()
         throws Exception
     {
-        StringWriter sw = new StringWriter();
-        JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-
         ArrayList<Object> doc = new ArrayList<Object>();
         doc.add("Elem1");
         doc.add(Integer.valueOf(3));
@@ -31,74 +28,92 @@ public class TestFromJavaType
         doc.add(struct);
         doc.add(Boolean.FALSE);
 
-        new JavaTypeMapper().writeAny(gen, doc);
-        gen.close();
+        // Let's test using both of 2 possible methods (generic, typed)
+        for (int i = 0; i < 2; ++i) {
 
-        JsonParser jp = new JsonFactory().createJsonParser(new StringReader(sw.toString()));
+            StringWriter sw = new StringWriter();
+            JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
 
-        assertEquals(JsonToken.START_ARRAY, jp.nextToken());
+            if (i == 0) {
+                new JavaTypeMapper().writeAny(gen, doc);
+            } else {
+                new JavaTypeMapper().write(gen, doc);
+            }
 
-        assertEquals(JsonToken.VALUE_STRING, jp.nextToken());
-        assertEquals("Elem1", getAndVerifyText(jp));
-
-        assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
-        assertEquals(3, jp.getIntValue());
-
-        assertEquals(JsonToken.START_OBJECT, jp.nextToken());
-        assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
-        assertEquals("first", getAndVerifyText(jp));
-
-        assertEquals(JsonToken.VALUE_TRUE, jp.nextToken());
-        assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
-        assertEquals("Second", getAndVerifyText(jp));
-
-        assertEquals(JsonToken.START_ARRAY, jp.nextToken());
-        assertEquals(JsonToken.END_ARRAY, jp.nextToken());
-        assertEquals(JsonToken.END_OBJECT, jp.nextToken());
-
-        assertEquals(JsonToken.VALUE_FALSE, jp.nextToken());
-
-        assertEquals(JsonToken.END_ARRAY, jp.nextToken());
-        assertNull(jp.nextToken());
+            gen.close();
+            
+            JsonParser jp = new JsonFactory().createJsonParser(new StringReader(sw.toString()));
+            assertEquals(JsonToken.START_ARRAY, jp.nextToken());
+            
+            assertEquals(JsonToken.VALUE_STRING, jp.nextToken());
+            assertEquals("Elem1", getAndVerifyText(jp));
+            
+            assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(3, jp.getIntValue());
+            
+            assertEquals(JsonToken.START_OBJECT, jp.nextToken());
+            assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("first", getAndVerifyText(jp));
+            
+            assertEquals(JsonToken.VALUE_TRUE, jp.nextToken());
+            assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("Second", getAndVerifyText(jp));
+            
+            assertEquals(JsonToken.START_ARRAY, jp.nextToken());
+            assertEquals(JsonToken.END_ARRAY, jp.nextToken());
+            assertEquals(JsonToken.END_OBJECT, jp.nextToken());
+            
+            assertEquals(JsonToken.VALUE_FALSE, jp.nextToken());
+            
+            assertEquals(JsonToken.END_ARRAY, jp.nextToken());
+            assertNull(jp.nextToken());
+        }
     }
 
     public void testFromMap()
         throws Exception
     {
-        StringWriter sw = new StringWriter();
-        JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-
         LinkedHashMap<String,Object> doc = new LinkedHashMap<String,Object>();
 
         doc.put("a1", "\"text\"");
         doc.put("int", Integer.valueOf(137));
         doc.put("foo bar", Long.valueOf(1234567890L));
 
-        new JavaTypeMapper().writeAny(gen, doc);
-        gen.close();
+        // Let's test using both of 2 possible methods (generic, typed)
+        for (int i = 0; i < 2; ++i) {
 
-        JsonParser jp = new JsonFactory().createJsonParser(new StringReader(sw.toString()));
+            StringWriter sw = new StringWriter();
+            JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+            if (i == 0) {
+                new JavaTypeMapper().writeAny(gen, doc);
+            } else {
+                new JavaTypeMapper().write(gen, doc);
+            }
+            gen.close();
 
-        assertEquals(JsonToken.START_OBJECT, jp.nextToken());
-        
-        assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
-        assertEquals("a1", getAndVerifyText(jp));
-        assertEquals(JsonToken.VALUE_STRING, jp.nextToken());
-        assertEquals("\"text\"", getAndVerifyText(jp));
+            JsonParser jp = new JsonFactory().createJsonParser(new StringReader(sw.toString()));
+            
+            assertEquals(JsonToken.START_OBJECT, jp.nextToken());
+            
+            assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("a1", getAndVerifyText(jp));
+            assertEquals(JsonToken.VALUE_STRING, jp.nextToken());
+            assertEquals("\"text\"", getAndVerifyText(jp));
+            
+            assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("int", getAndVerifyText(jp));
+            assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(137, jp.getIntValue());
+            
+            assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("foo bar", getAndVerifyText(jp));
+            assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(1234567890L, jp.getLongValue());
+            
+            assertEquals(JsonToken.END_OBJECT, jp.nextToken());
 
-        assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
-        assertEquals("int", getAndVerifyText(jp));
-        assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
-        assertEquals(137, jp.getIntValue());
-
-        assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
-        assertEquals("foo bar", getAndVerifyText(jp));
-        assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
-        assertEquals(1234567890L, jp.getLongValue());
-
-        assertEquals(JsonToken.END_OBJECT, jp.nextToken());
-
-        assertNull(jp.nextToken());
+            assertNull(jp.nextToken());
+        }
     }
 
     /**

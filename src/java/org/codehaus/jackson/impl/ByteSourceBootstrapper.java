@@ -4,10 +4,8 @@ import java.io.*;
 
 import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.sym.NameCanonicalizer;
-import org.codehaus.jackson.util.SymbolTable;
 
 /**
  * This class is used to determine the encoding of byte stream

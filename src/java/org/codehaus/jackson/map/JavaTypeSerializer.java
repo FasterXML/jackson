@@ -20,7 +20,7 @@ import org.codehaus.jackson.*;
  * specialized serializers to only handle immediate container objects,
  * but to dispatch contents to the default handler.
  */
-public interface JavaTypeSerializer
+public interface JavaTypeSerializer<T>
 {
     /**
      * Method that can be called to ask implementation to serialize
@@ -38,15 +38,15 @@ public interface JavaTypeSerializer
      *    handling <b>value</b> itself, as that could lead to infinite
      *    recursion.
      */
-    public boolean writeAny(JavaTypeSerializer defaultSerializer, JsonGenerator jgen, Object value)
+    public boolean writeAny(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Object value)
         throws IOException, JsonParseException;
 
-    public boolean writeValue(JavaTypeSerializer defaultSerializer, JsonGenerator jgen, Map<Object,Object> value)
+    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Map<?,?> value)
         throws IOException, JsonParseException;
 
-    public boolean writeValue(JavaTypeSerializer defaultSerializer, JsonGenerator jgen, Collection<Object> value)
+    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Collection<?> value)
         throws IOException, JsonParseException;
 
-    public boolean writeValue(JavaTypeSerializer defaultSerializer, JsonGenerator jgen, Object[] value)
+    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Object[] value)
         throws IOException, JsonParseException;
 }

@@ -22,7 +22,8 @@ final class KnownClasses
             ARRAY_BOOLEAN,
             ARRAY_OBJECT,
 
-            MAP, LIST_INDEXED, LIST_OTHER, COLLECTION
+            MAP, LIST_INDEXED, LIST_OTHER, COLLECTION,
+            ITERABLE, ITERATOR
     };
 
     final static HashMap<String, JdkClasses> mConcrete = 
@@ -38,7 +39,9 @@ final class KnownClasses
         mConcrete.put(StringBuffer.class.getName(), JdkClasses.STRING_LIKE);
         mConcrete.put(StringBuilder.class.getName(), JdkClasses.STRING_LIKE);
         mConcrete.put(Character.class.getName(), JdkClasses.STRING_LIKE);
-
+        // including things best serialized as Strings
+        mConcrete.put(UUID.class.getName(), JdkClasses.STRING_LIKE);
+        
         // Arrays of various types (including common object types)
 
         mConcrete.put(new long[0].getClass().getName(), JdkClasses.ARRAY_LONG);
@@ -130,13 +133,17 @@ final class KnownClasses
         if (value instanceof Collection) {
             return JdkClasses.LIST_OTHER;
         }
-
         if (value instanceof CharSequence) {
             return JdkClasses.STRING_LIKE;
         }
-
         if (value instanceof Number) {
             return JdkClasses.NUMBER_OTHER;
+        }
+        if (value instanceof Iterable) {
+            return JdkClasses.ITERABLE;
+        }
+        if (value instanceof Iterator) {
+            return JdkClasses.ITERATOR;
         }
 
         return null;
