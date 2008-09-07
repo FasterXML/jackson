@@ -59,7 +59,7 @@ public class JavaTypeMapper
      * deal with (i.e  not including possible eventual conversion
      * to String, as per {@link #mCfgUnknownTypes} )
      */
-    protected JavaTypeSerializer mCustomSerializer = null;
+    protected JavaTypeSerializer<Object> mCustomSerializer = null;
 
     /**
      * This defines how instances of unrecognized types (for JSON output)
@@ -80,8 +80,8 @@ public class JavaTypeMapper
      * Method for specifying a custom type serializer to use when mapping
      * JSON content to Java objects.
      */
-    public void setCustomSerializer(JavaTypeSerializer ser) { mCustomSerializer = ser; }
-    public JavaTypeSerializer getCustomSerializer() { return mCustomSerializer; }
+    public void setCustomSerializer(JavaTypeSerializer<Object> ser) { mCustomSerializer = ser; }
+    public JavaTypeSerializer<Object> getCustomSerializer() { return mCustomSerializer; }
 
     /**
      * Method for configuring mapper regarding how to handle serialization
