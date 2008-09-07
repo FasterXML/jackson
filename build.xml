@@ -33,7 +33,7 @@
     <property name="JSON_VERSION" value="1.0" />
     <property name="JSON_VENDOR" value="http://www.ietf.org/rfc/rfc4627.txt" />
     <property name="IMPL_TITLE" value="Jackson JSON parser" />
-    <property name="IMPL_VERSION" value="0.9.3" />
+    <property name="IMPL_VERSION" value="0.9.4" />
     <property name="IMPL_VENDOR" value="http://www.cowtowncoder.com/" />
 
     <!-- jars needed for compilation? None as of yet -->
@@ -51,12 +51,6 @@
           <include name="release-notes/*" />
           <include name="build.xml" />
           <include name="project.xml" />
-          <include name="src/maven/*.pom" />
-          <!-- need jars for auxiliary tasks (tests), although jackson
-               itself does not depend on any other packages, just JDK 1.5
-            -->
-          <include name="lib/**/*.jar" />
-          <include name="samples/**/*.jsn" />
     </patternset>
 
     <patternset id="dist-misc-files">
@@ -66,6 +60,11 @@
           <include name="release-notes/*" />
           <include name="release-notes/asl/*" />
           <include name="release-notes/lgpl/*" />
+          <!-- need jars for auxiliary tasks (tests), although jackson
+               itself does not depend on any other packages, just JDK 1.5
+            -->
+          <include name="lib/**/*.jar" />
+          <include name="samples/**/*.jsn" />
     </patternset>
 
     <!-- Core Jackson class files common to all license flavours: -->
@@ -182,12 +181,11 @@
 
     <!-- Dummy target that just includes all individual jars... --> 
     <target name="jars"
-       depends="jar.asl"
+       depends="jar.asl, jar.lgpl"
     />
 
     <target name="jar.asl" depends="compile">
-        <jar jarfile="${BuildDir}/jackson-${IMPL_VERSION}.jar"
-         filesonly="true" >
+        <jar jarfile="${BuildDir}/jackson-asl-${IMPL_VERSION}.jar" filesonly="true" >
           <manifest>
             <attribute name="Built-By" value="${user.name}"/>
             <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
@@ -200,10 +198,32 @@
           <fileset dir="${BuildClassesDir}">
               <patternset refid="dist-class-files" />
           </fileset>
-          <metainf dir="${RelNotesDir}">
+          <metainf dir="${RelNotesDir}/asl">
             <include name="LICENSE" />
             <include name="NOTICE" />
             <include name="ASL2.0" />
+          </metainf>
+        </jar>
+    </target> 
+
+    <target name="jar.lgpl" depends="compile">
+        <jar jarfile="${BuildDir}/jackson-lgpl-${IMPL_VERSION}.jar" filesonly="true" >
+          <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
+            <attribute name="Specification-Version" value="${JSON_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
+            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+          </manifest>
+          <fileset dir="${BuildClassesDir}">
+              <patternset refid="dist-class-files" />
+          </fileset>
+          <metainf dir="${RelNotesDir}/lgpl">
+            <include name="LICENSE" />
+            <include name="NOTICE" />
+            <include name="LGPL2.1" />
           </metainf>
         </jar>
     </target> 

@@ -300,7 +300,7 @@ public abstract class JsonNumericParserBase
      * it is a floating point number, as well as its magnitude: smallest
      * legal type (of ones available) is used for efficiency.
      *
-     * @param neededType Numeric type that we will immediately need, if any;
+     * @param expType Numeric type that we will immediately need, if any;
      *   mostly necessary to optimize handling of floating point numbers
      */
     protected final void parseNumericValue(int expType)

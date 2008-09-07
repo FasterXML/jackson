@@ -1,9 +1,15 @@
-Version: 0.9.3
+Version: 0.9.4
 
-Release date: xx-Aug-2008
+Release date: 
 
 Description:
   Another pre-1.0 release.
+
+  Bug fixes:
+
+== History: ==
+
+0.9.3 [05-Sep-2008]:
 
   Bug fixes:
 
@@ -12,6 +18,8 @@ Description:
    (reported by Tudor B)
   * [JACKSON-8]: Serialization of BigDecimal broken with JavaTypeMapper
    (reported by Johannes L)
+  * [JACKSON-14]: Problems with generic collections, serializer
+    method signatures (due to lack of covariance wrt collection types)
   * Implicit conversions for numbers could sometimes lose accuracy,
     if floating-point number was first accessed as int/long, and then
     as a BigDecimal.
@@ -23,8 +31,6 @@ Description:
     it is possible use Java 5 foreach loop over array/object nodes.
    (suggested by Michael M)
   * [JACKSON-4] Added JsonParser.skipChildren() method.
-
-== History: ==
 
 0.9.2 [24-Apr-2008]:
 
@@ -51,10 +57,17 @@ Description:
     allow for pretty printing (indentation).
    (thanks to Ziad M for suggestion, sample code)
 
-0.9.0 [14-Feb-2008]:
+0.8.0 - 0.9.0 [between 17-Oct-2007 and 14-Feb-2008]:
 
   Bug fixes:
 
+  * Java type mapper had a bug in Collection mapping (mismatched
+    calls between writeStartArray and writeEndObject!)
+   (reported by Mike E)
+  * Java type mapper had a bug which prevented custom mappers (as
+    well as slower interface-based introspection) from working.
+   (reported by Mike E)
+  * Numeric value parsing had some problems
   * JavaTypeMapper and JsonTypeMapper had a bug which resulted
     in NullPointerException when stream ends, instead of returning
     null to indicate it.
@@ -63,33 +76,3 @@ Description:
     objects: it should, and now will (note: JsonTypeMapper not directly
     affected, flushing still needed)
    (suggested by Maciej P)
-
-0.8.2 [03-Feb-2008]:
-
-  Bug fixes:
-
-  * Java type mapper had a bug in Collection mapping (mismatched
-    calls between writeStartArray and writeEndObject!)
-   (reported by Mike E)
-
-0.8.1 [05-Dec-2007]:
-
-  Features:
-
-  * Completed JSON type mapper
-
-  Bug fixes:
-
-  * Java type mapper had a bug which prevented custom mappers (as
-    well as slower interface-based introspection) from working.
-   (reported by Mike E)
-
-0.8 [17-Oct-2007]:
-
-  Features:
-
-  * Experimental version of JSON type mapper
-
-  Bug fixes:
-
-  * Numeric value parsing had some problems

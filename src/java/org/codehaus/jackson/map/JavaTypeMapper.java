@@ -59,7 +59,7 @@ public class JavaTypeMapper
      * deal with (i.e  not including possible eventual conversion
      * to String, as per {@link #mCfgUnknownTypes} )
      */
-    protected JavaTypeSerializer<?> mCustomSerializer = null;
+    protected JavaTypeSerializer mCustomSerializer = null;
 
     /**
      * This defines how instances of unrecognized types (for JSON output)
@@ -76,9 +76,17 @@ public class JavaTypeMapper
 
     public JavaTypeMapper() { }
 
-    public void setCustomSerializer(JavaTypeSerializer<?> ser) { mCustomSerializer = ser; }
-    public JavaTypeSerializer<?> getCustomSerializer() { return mCustomSerializer; }
+    /**
+     * Method for specifying a custom type serializer to use when mapping
+     * JSON content to Java objects.
+     */
+    public void setCustomSerializer(JavaTypeSerializer ser) { mCustomSerializer = ser; }
+    public JavaTypeSerializer getCustomSerializer() { return mCustomSerializer; }
 
+    /**
+     * Method for configuring mapper regarding how to handle serialization
+     * of types it does not recognize.
+     */
     public void setUnkownTypeHandling(UnknownType mode) { mCfgUnknownTypes = mode; }
     public UnknownType getUnkownTypeHandling() { return mCfgUnknownTypes; }
 
@@ -92,9 +100,14 @@ public class JavaTypeMapper
     /**
      * Method that will use the current event of the underlying parser
      * (and if there's no event yet, tries to advance to an event)
-     * to construct a value, and advance the parser to point to the
-     * next event, if any. For structured tokens (objects, arrays),
+     * to construct a Java value, and advance the parser to point to the
+     * next event, if any.
+     * For structured tokens (objects, arrays),
      * will recursively handle and construct contained values.
+     *
+     * @return Value read and mapped from stream of input events.
+     *   Value can be a single value object type (String, Number,
+     *   Boolean), null, or structured type (List or Map).
      */
     public Object read(JsonParser jp)
         throws IOException, JsonParseException
@@ -107,7 +120,7 @@ public class JavaTypeMapper
                 return null;
             }
         }
-        Object result = readAndMap(jp, curr);
+        Object result = _readAndMap(jp, curr);
         /* Need to also advance the reader, if we get this far,
          * to allow handling of root level sequence of values
          */
@@ -144,7 +157,7 @@ public class JavaTypeMapper
      * Note: method will explicitly call flush on underlying
      * generator.
      */
-    public final void write(JsonGenerator jg, Map<?,?> value)
+    public final void write(JsonGenerator jg, Map<?,Object> value)
         throws IOException, JsonParseException
     {
         writeValue(this, jg, value);
@@ -156,7 +169,7 @@ public class JavaTypeMapper
      * Note: method will explicitly call flush on underlying
      * generator.
      */
-    public final void write(JsonGenerator jg, Collection<?> value)
+    public final void write(JsonGenerator jg, Collection<Object> value)
         throws IOException, JsonParseException
     {
         writeValue(this, jg, value);
@@ -228,7 +241,7 @@ public class JavaTypeMapper
      * explicitly flush the underlying generator after serializing
      * passed object.
      */
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     public final boolean writeAny(JavaTypeSerializer<Object> defaultSerializer,
                                   JsonGenerator jgen, Object value)
         throws IOException, JsonParseException
@@ -486,7 +499,7 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
-    protected Object readAndMap(JsonParser jp, JsonToken currToken)
+    protected Object _readAndMap(JsonParser jp, JsonToken currToken)
         throws IOException, JsonParseException
     {
         switch (currToken) {
@@ -499,7 +512,7 @@ public class JavaTypeMapper
                         reportProblem(jp, "Unexpected token ("+currToken+"), expected FIELD_NAME");
                     }
                     String fieldName = jp.getText();
-                    Object  value = readAndMap(jp, jp.nextToken());
+                    Object  value = _readAndMap(jp, jp.nextToken());
 
                     if (mCfgDupFields == DupFields.ERROR) {
                         Object old = result.put(fieldName, value);
@@ -522,7 +535,7 @@ public class JavaTypeMapper
             {
                 ArrayList<Object> result = new ArrayList<Object>();
                 while ((currToken = jp.nextToken()) != JsonToken.END_ARRAY) {
-                    Object value = readAndMap(jp, currToken);
+                    Object value = _readAndMap(jp, currToken);
                     result.add(value);
                 }
                 return result;

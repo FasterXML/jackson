@@ -38,15 +38,15 @@ public interface JavaTypeSerializer<T>
      *    handling <b>value</b> itself, as that could lead to infinite
      *    recursion.
      */
-    public boolean writeAny(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Object value)
+    public boolean writeAny(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, T value)
         throws IOException, JsonParseException;
 
-    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Map<?,?> value)
+    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Map<?,? extends T> value)
         throws IOException, JsonParseException;
 
-    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Collection<?> value)
+    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Collection<? extends T> value)
         throws IOException, JsonParseException;
 
-    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Object[] value)
+    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, T[] value)
         throws IOException, JsonParseException;
 }

@@ -38,3 +38,8 @@ Michael Mangeng:
 Johannes Link:
   * Reported [JACKSON-8]: Serialization of BigDecimal broken with JavaTypeMapper
     [0.9.3]
+
+Stanislaw Osinski:
+  * Reported [JACKSON-14], contributed code to resolve it and improve
+    generics-handling significantly.
+    [0.9.4]
