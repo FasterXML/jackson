@@ -7,6 +7,10 @@ Description:
 
   Bug fixes:
 
+  Improvements:
+
+  * More complete JavaDoc comments for core public classes.
+
 == History: ==
 
 0.9.3 [05-Sep-2008]:

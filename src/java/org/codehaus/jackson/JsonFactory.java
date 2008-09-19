@@ -13,8 +13,16 @@ import org.codehaus.jackson.util.BufferRecycler;
 import org.codehaus.jackson.util.SymbolTable;
 
 /**
- * JsonFactory is a thread-safe reusable provider of
- * parser and generator instances. After 
+ * JsonFactory is the main factory class of Jackson package.
+ * It is used for constructing streaming parser (readers) and
+ * generators (writers.
+ *<p>
+ * Factory instances are thread-safe and reusable after configuration
+ * (if any). Typically applications and services use only a single
+ * globally shared factory instance, unless they need differently
+ * configured factories.
+ *
+ * @author Tatu Saloranta
  */
 public final class JsonFactory
 {
@@ -72,7 +80,7 @@ public final class JsonFactory
     public JsonParser createJsonParser(File f)
         throws IOException, JsonParseException
     {
-        return createJsonParser(new FileInputStream(f), createContext(f));
+        return _createJsonParser(new FileInputStream(f), _createContext(f));
     }
 
     /**
@@ -91,7 +99,7 @@ public final class JsonFactory
     public JsonParser createJsonParser(URL url)
         throws IOException, JsonParseException
     {
-        return createJsonParser(optimizedStreamFromURL(url), createContext(url));
+        return _createJsonParser(_optimizedStreamFromURL(url), _createContext(url));
     }
 
     /**
@@ -110,7 +118,7 @@ public final class JsonFactory
     public JsonParser createJsonParser(InputStream in)
         throws IOException, JsonParseException
     {
-        return createJsonParser(in, createContext(in));
+        return _createJsonParser(in, _createContext(in));
     }
 
     /**
@@ -126,10 +134,10 @@ public final class JsonFactory
     public JsonParser createJsonParser(Reader r)
         throws IOException, JsonParseException
     {
-        return new ReaderBasedParser(createContext(r), r, mCharSymbols.makeChild());
+        return new ReaderBasedParser(_createContext(r), r, mCharSymbols.makeChild());
     }
 
-    private JsonParser createJsonParser(InputStream in, IOContext ctxt)
+    private JsonParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
         ByteSourceBootstrapper bb = new ByteSourceBootstrapper(ctxt, in);
@@ -163,7 +171,7 @@ public final class JsonFactory
     public JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
         throws IOException
     {
-        IOContext ctxt = createContext(out);
+        IOContext ctxt = _createContext(out);
         ctxt.setEncoding(enc);
         if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
             return new WriterBasedGenerator(ctxt, new UTF8Writer(ctxt, out));
@@ -185,7 +193,7 @@ public final class JsonFactory
     public JsonGenerator createJsonGenerator(Writer out)
         throws IOException
     {
-        IOContext ctxt = createContext(out);
+        IOContext ctxt = _createContext(out);
         return new WriterBasedGenerator(ctxt, out);
     }
 
@@ -219,16 +227,16 @@ public final class JsonFactory
      * Method used by the factory to create parsing context for parser
      * instances.
      */
-    protected IOContext createContext(Object srcRef)
+    protected IOContext _createContext(Object srcRef)
     {
-        return new IOContext(getBufferRecycler(), srcRef);
+        return new IOContext(_getBufferRecycler(), srcRef);
     }
 
     /**
      * Method used by factory to create buffer recycler instances
      * for parsers and generators.
      */
-    protected BufferRecycler getBufferRecycler()
+    protected BufferRecycler _getBufferRecycler()
     {
         SoftReference<BufferRecycler> ref = mRecyclerRef.get();
         BufferRecycler br = (ref == null) ? null : ref.get();
@@ -247,7 +255,7 @@ public final class JsonFactory
      * parsers to use, when input is to be read from an URL.
      * This helps when reading file content via URL.
      */
-    protected static InputStream optimizedStreamFromURL(URL url)
+    protected static InputStream _optimizedStreamFromURL(URL url)
         throws IOException
     {
         if ("file".equals(url.getProtocol())) {

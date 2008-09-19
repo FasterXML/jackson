@@ -11,6 +11,8 @@ import org.codehaus.jackson.JsonParseException;
  * An empty base implementation of the {@link JavaTypeSerializer} interface. All methods
  * do nothing and return <code>false</code>. Concrete implementation can choose which
  * methods to override.
+ *
+ * @author Stanislaw Osinski
  */
 public class JavaTypeSerializerBase<T> implements JavaTypeSerializer<T>
 {

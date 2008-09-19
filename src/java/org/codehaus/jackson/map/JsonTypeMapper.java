@@ -77,28 +77,47 @@ public class JsonTypeMapper
      */
 
     /**
-     * Method that will take in a Java object that could have
-     * been created by mappers write methods, and construct
-     * a {@link JsonParser} that exposes contents as JSON
-     * tokens
+     * Method that will take in a Node object and construct
+     * a {@link JsonParser} that can be used to traverse json
+     * content as streaming events.
+     * Method is meant for interoperability use cases, in cases where
+     * some code expects a {@link JsonParser}, but you already
+     * have content parser into {@link JsonNode} structure.
+     * This is more efficient than writing intermediate textual
+     * JSON serialization and parsing it via regular json stream reader.
+     *<p>
+     * Note that this should (and can) <b>NOT</b> be used to parse
+     * textual json content: for that purpose you should 
+     * use {@link org.codehaus.jackson.JsonFactory#createJsonParser(java.io.InputStream}
+     * instead.
      */
     public JsonParser createParserFor(JsonNode node)
         throws JsonParseException
     {
         // !!! TBI: parser for reading from JsonNode (array/map, primitives)
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     /**
-     * Method that will create a JSON generator that will build
-     * Java objects as members of the current list, appending
-     * them at the end of the list.
+     * Method that will construct a JSON generator that will build
+     * {@link JsonNode}s when generator's write methods are called.
+     * Method is meant for interoperability use cases, in cases where
+     * some code expects a {@link JsonGenerator} to use, but the output
+     * should be in {@link JsonNode} structure.
+     * This is more efficient than writing intermediate textual
+     * JSON serialization and parsing and mapping it to
+     * {@link JsonNode} based structure.
+     *<p>
+     * Note that this should (and can) <b>NOT</b> be used to output regular
+     * textual json content: for that purpose you should 
+     * use {@link org.codehaus.jackson.JsonFactory#createJsonGenerator(java.io.Writer}
+     * instead.
      */
     public JsonGenerator createGeneratorFor(JsonNode context)
         throws JsonParseException
     {
         // !!! TBI: generator for writing (appending) to Objects (array/map, primitives)
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     /*
@@ -121,10 +140,4 @@ public class JsonTypeMapper
     // public LongNode longNode(long v)
     // public DoubleNode doubleode(double v)
     // public DecimalNode decimalNode(BigDecimal v)
-
-    /*
-    ////////////////////////////////////////////////////
-    // Internal methods, overridable
-    ////////////////////////////////////////////////////
-     */
 }
