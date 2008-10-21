@@ -75,6 +75,39 @@ public class TestFromJsonType
         verifyFromMap(root.toString());
     }
 
+    /**
+     * Unit test to check for regression of [JACKSON-18].
+     */
+    public void testSmallNumbers()
+        throws Exception
+    {
+        JsonTypeMapper mapper = new JsonTypeMapper();
+        JsonNode root = mapper.arrayNode();
+        for (int i = -20; i <= 20; ++i) {
+            JsonNode n = mapper.numberNode(i);
+            root.appendElement(n);
+            // Hmmh. Not sure why toString() won't be triggered otherwise...
+            assertEquals(String.valueOf(i), n.toString());
+        }
+        
+        StringWriter sw = new StringWriter();
+        JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+        root.writeTo(gen);
+        gen.close();
+
+        String doc = sw.toString();
+        JsonParser jp = new JsonFactory().createJsonParser(new StringReader(doc));
+        
+        assertEquals(JsonToken.START_ARRAY, jp.nextToken());
+        for (int i = -20; i <= 20; ++i) {
+            assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(i, jp.getIntValue());
+            assertEquals(""+i, jp.getText());
+        }
+        assertEquals(JsonToken.END_ARRAY, jp.nextToken());
+        jp.close();
+    }
+
     /*
     ///////////////////////////////////////////////////////////////
     // Internal methods

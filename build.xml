@@ -332,6 +332,8 @@
                 <fileset dir="${TestClassesDir}">
                     <!-- Need to exclude inner classes... -->
                     <exclude name="**/*$*.class"/>
+                    <!-- And manual non-junit test classes -->
+                    <exclude name="test/*.class"/>
                     <include name="**/Test*.class"/>
                 </fileset>
             </batchtest>

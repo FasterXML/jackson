@@ -43,3 +43,8 @@ Stanislaw Osinski:
   * Reported [JACKSON-14], contributed code to resolve it and improve
     generics-handling significantly.
     [0.9.4]
+ 	 
+Michael Descher:
+  * Reported [JACKSON-18], ArrayIndexOutOfBounds on IntNode, due to
+    off-by-one problem with comparisons used for caching common values.
+    [0.9.4]

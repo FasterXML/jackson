@@ -194,7 +194,7 @@ public final class NumberOutput
                 return sSmallIntStrs[value];
             }
             int v2 = -value - 1;
-            if (v2 <= sSmallIntStrs2.length) {
+            if (v2 < sSmallIntStrs2.length) {
                 return sSmallIntStrs2[v2];
             }
         }

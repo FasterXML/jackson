@@ -7,6 +7,10 @@ Description:
 
   Bug fixes:
 
+  * [JACKSON-18]: ArrayIndexOutOfBounds on IntNode, due to off-by-one
+    problem with comparisons
+   (reported by Michael D)
+
   Improvements:
 
   * More complete JavaDoc comments for core public classes.
