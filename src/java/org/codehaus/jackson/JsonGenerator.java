@@ -127,9 +127,9 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     /**
-     * Similar to {@link #writeBinary(byte[].int,int,Base64Variant)},
+     * Similar to {@link #writeBinary(Base64Variant,byte[],int,int)},
      * but default to using the Jackson default Base64 variant 
-     * (which is {@link Base64Variant#MIME_NO_LINEFEEDS}).
+     * (which is {@link Base64Variants#MIME_NO_LINEFEEDS}).
      */
     public final void writeBinary(byte[] data, int offset, int len)
         throws IOException, JsonGenerationException
@@ -138,9 +138,9 @@ public abstract class JsonGenerator
     }
 
     /**
-     * Similar to {@link #writeBinary(byte[].int,int,Base64Variant)},
+     * Similar to {@link #writeBinary(Base64Variant,byte[],int,int)},
      * but assumes default to using the Jackson default Base64 variant 
-     * (which is {@link Base64Variant#MIME_NO_LINEFEEDS}). Also
+     * (which is {@link Base64Variants#MIME_NO_LINEFEEDS}). Also
      * assumes that whole byte array is to be output.
      */
     public final void writeBinary(byte[] data)

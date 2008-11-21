@@ -18,6 +18,7 @@ Description:
   New features:
 
   * [JACKSON-11]: Implement base64/binary methods for json generator.
+  * [JACKSON-23]: Add OSGi manifest headers for jars (to run on OSGi container).
 
 == History: ==
 

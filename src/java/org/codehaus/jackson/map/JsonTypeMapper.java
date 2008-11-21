@@ -88,15 +88,17 @@ public class JsonTypeMapper
      *<p>
      * Note that this should (and can) <b>NOT</b> be used to parse
      * textual json content: for that purpose you should 
-     * use {@link org.codehaus.jackson.JsonFactory#createJsonParser(java.io.InputStream}
+     * use {@link org.codehaus.jackson.JsonFactory#createJsonParser(java.io.InputStream)}
      * instead.
      */
+    /*
     public JsonParser createParserFor(JsonNode node)
         throws JsonParseException
     {
         // !!! TBI: parser for reading from JsonNode (array/map, primitives)
         throw new UnsupportedOperationException();
     }
+    */
 
     /**
      * Method that will construct a JSON generator that will build
@@ -110,15 +112,17 @@ public class JsonTypeMapper
      *<p>
      * Note that this should (and can) <b>NOT</b> be used to output regular
      * textual json content: for that purpose you should 
-     * use {@link org.codehaus.jackson.JsonFactory#createJsonGenerator(java.io.Writer}
+     * use {@link org.codehaus.jackson.JsonFactory#createJsonGenerator(java.io.Writer)}
      * instead.
      */
+    /*
     public JsonGenerator createGeneratorFor(JsonNode context)
         throws JsonParseException
     {
         // !!! TBI: generator for writing (appending) to Objects (array/map, primitives)
         throw new UnsupportedOperationException();
     }
+    */
 
     /*
     ////////////////////////////////////////////////////
