@@ -4,7 +4,7 @@ import java.io.*;
 import java.math.BigDecimal;
 
 /**
- * This base class defines API for output JSON content.
+ * This base class defines API for writing JSON content.
  */
 public abstract class JsonGenerator
 {
@@ -195,6 +195,58 @@ public abstract class JsonGenerator
 
     public abstract void writeNull()
         throws IOException, JsonGenerationException;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, copy-through methods
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for copying contents of the current event that
+     * the given parser instance points to.
+     * Note that the method <b>will not</b> copy any other events,
+     * such as events contained within JSON Array or Object structures.
+     *<p>
+     * Calling this method will not advance the given
+     * parser, although it may cause parser to internally process
+     * more data (if it lazy loads contents of value events, for example)
+     */
+    public abstract void copyCurrentEvent(JsonParser jp)
+        throws IOException, JsonProcessingException;
+
+    /**
+     * Method for copying contents of the current event
+     * <b>and following events that it encloses</b>
+     * the given parser instance points to.
+     *<p>
+     * So what constitutes enclosing? Here is the list of
+     * events that have associated enclosed events that will
+     * get copied:
+     *<ul>
+     * <li>{@link JsonToken#START_OBJECT}:
+     *   all events up to and including matching (closing)
+     *   {@link JsonToken#END_OBJECT} will be copied
+     *  </li>
+     * <li>{@link JsonToken#START_ARRAY}
+     *   all events up to and including matching (closing)
+     *   {@link JsonToken#END_ARRAY} will be copied
+     *  </li>
+     * <li>{@link JsonToken#FIELD_NAME} the logical value (which
+     *   can consist of a single scalar value; or a sequence of related
+     *   events for structured types (JSON Arrays, Objects)) will
+     *   be copied along with the name itself. So essentially the
+     *   whole <b>field entry</b> (name and value) will be copied.
+     *  </li>
+     *</ul>
+     *<p>
+     * After calling this method, parser will point to the
+     * <b>last event</b> that was copied. This will either be
+     * the event parser already pointed to (if there were no
+     * enclosed events), or the last enclosed event copied.
+     */
+    public abstract void copyCurrentStructure(JsonParser jp)
+        throws IOException, JsonProcessingException;
 
     /*
     ////////////////////////////////////////////////////
