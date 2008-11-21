@@ -8,6 +8,8 @@ import org.codehaus.jackson.*;
  */
 public abstract class BaseMapper
 {
+    private final static Base64Variant DEFAULT_BASE64_VARIANT = Base64Variants.getDefaultVariant();
+
     /*
     ////////////////////////////////////////////////////
     // Shared public enums for configuration
@@ -35,21 +37,13 @@ public abstract class BaseMapper
      * This option defines how duplicate field names (from JSON input)
      * are to be handled. Default is to throw a {@link JsonParseException}.
      */
-    protected DupFields mCfgDupFields = DupFields.ERROR;
+    protected DupFields _cfgDupFields = DupFields.ERROR;
 
     /**
-     * Defines whether (escaped) linefeeds are included when serializing
-     * binary data into base64 values or not.
-     *<p>
-     * Default setting is <b>false</b> mostly because linefeeds can not
-     * be included natively anyway, and instead encoded/escaped entries
-     * have to be used. Additionally it is unlikely that recipient would
-     * not be able to decode data (since it needs to be json aware and
-     * do fair bit of handling before being able to access data).
-     * Nonetheless, for maximum interoperability it may be desireable
-     * to enable this setting.
+     * Base64 variant to use for serializing binary data. Defaults to
+     * whatever {@link Base64Variants#getDefaultVariant} returns.
      */
-    protected boolean mCfgBase64LFs = false;
+    protected Base64Variant _cfgBase64Variant = DEFAULT_BASE64_VARIANT;
 
     /*
     ////////////////////////////////////////////////////
@@ -59,12 +53,21 @@ public abstract class BaseMapper
 
     public BaseMapper() { }
 
-    public void setDupFieldHandling(DupFields mode) { mCfgDupFields = mode; }
-    public DupFields getDupFieldHandling() { return mCfgDupFields; }
+    public void setDupFieldHandling(DupFields mode) { _cfgDupFields = mode; }
+    public DupFields getDupFieldHandling() { return _cfgDupFields; }
 
-    public void setAddLinefeedsToBase64(boolean state) { mCfgBase64LFs = state; }
+    /**
+     * Method for setting
+     * Base64 variant used for reading (decoding) and writing
+     * (decoding) of base64 encoded binary content
+     */
+    public void setBase64Variant(Base64Variant b64v) { _cfgBase64Variant = b64v; }
 
-    public boolean getAddLinefeedsToBase64() { return mCfgBase64LFs; }
+    /**
+     * @return Base64 variant used for reading (decoding) and writing
+     *    (decoding) of base64 encoded binary content
+     */
+    public Base64Variant getBase64Variant() { return _cfgBase64Variant; }
 
     /*
     ////////////////////////////////////////////////////

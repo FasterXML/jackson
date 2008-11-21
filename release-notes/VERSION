@@ -15,6 +15,10 @@ Description:
 
   * More complete JavaDoc comments for core public classes.
 
+  New features:
+
+  * [JACKSON-11]: Implement base64/binary methods for json generator.
+
 == History: ==
 
 0.9.3 [05-Sep-2008]:

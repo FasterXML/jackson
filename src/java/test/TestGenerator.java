@@ -19,6 +19,9 @@ public class TestGenerator
         jg.writeFieldName("pi");
         //jg.writeNumber(new BigDecimal("1.23"));
         jg.writeNumber(new BigDecimal("1.23"));
+        jg.writeFieldName("binary");
+        byte[] data = "Test string!".getBytes("UTF-8");
+        jg.writeBinary(data);
         jg.writeEndObject();
 
         jg.close();

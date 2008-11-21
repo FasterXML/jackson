@@ -104,6 +104,7 @@ public abstract class JsonGenerator
     /**
      * Method that will output given chunk of binary data as base64
      * encoded, as a complete String value (surrounded by double quotes).
+     * This method defaults
      *<p>
      * Note: because JSON Strings can not contain unescaped linefeeds,
      * if linefeeds are included (as per last argument), they must be
@@ -116,14 +117,37 @@ public abstract class JsonGenerator
      * are required to accept such "long line base64"; as do
      * typical production-level base64 decoders.
      *
-     * @param includeLFs If true, will add linefeeds (single character,
-     *   "\n") as mandated by
-     *   the RFC that specifies canonical base64 encoding. Due to
-     *   JSON String value requirements, linefeeds must be escaped.
+     * @param b64variant Base64 variant to use: defines details such as
+     *   whether padding is used (and if so, using which character);
+     *   what is the maximum line length before adding linefeed,
+     *   and also the underlying alphabet to use.
      */
-    public abstract void writeBinary(byte[] data, int offset, int len,
-                                     boolean includeLFs)
+    public abstract void writeBinary(Base64Variant b64variant,
+                                     byte[] data, int offset, int len)
         throws IOException, JsonGenerationException;
+
+    /**
+     * Similar to {@link #writeBinary(byte[].int,int,Base64Variant)},
+     * but default to using the Jackson default Base64 variant 
+     * (which is {@link Base64Variant#MIME_NO_LINEFEEDS}).
+     */
+    public final void writeBinary(byte[] data, int offset, int len)
+        throws IOException, JsonGenerationException
+    {
+        writeBinary(Base64Variants.getDefaultVariant(), data, offset, len);
+    }
+
+    /**
+     * Similar to {@link #writeBinary(byte[].int,int,Base64Variant)},
+     * but assumes default to using the Jackson default Base64 variant 
+     * (which is {@link Base64Variant#MIME_NO_LINEFEEDS}). Also
+     * assumes that whole byte array is to be output.
+     */
+    public final void writeBinary(byte[] data)
+        throws IOException, JsonGenerationException
+    {
+        writeBinary(Base64Variants.getDefaultVariant(), data, 0, data.length);
+    }
 
     /*
     ////////////////////////////////////////////////////

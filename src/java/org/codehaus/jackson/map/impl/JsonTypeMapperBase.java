@@ -59,12 +59,12 @@ public abstract class JsonTypeMapperBase
                     String fieldName = jp.getText();
                     JsonNode value = readAndMap(jp, jp.nextToken());
 
-                    if (mCfgDupFields == DupFields.ERROR) {
+                    if (_cfgDupFields == DupFields.ERROR) {
                         JsonNode old = node.setElement(fieldName, value);
                         if (old != null) {
-                            reportProblem(jp, "Duplicate value for field '"+fieldName+"', when dup fields mode is "+mCfgDupFields);
+                            reportProblem(jp, "Duplicate value for field '"+fieldName+"', when dup fields mode is "+_cfgDupFields);
                         }
-                    } else if (mCfgDupFields == DupFields.USE_LAST) {
+                    } else if (_cfgDupFields == DupFields.USE_LAST) {
                         // Easy, just add
                         node.setElement(fieldName, value);
                     } else { // use first; need to ensure we don't yet have it

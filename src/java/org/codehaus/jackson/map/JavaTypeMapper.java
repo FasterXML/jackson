@@ -57,7 +57,7 @@ public class JavaTypeMapper
      * If set, it will be called for the types that the default
      * serialization mechanism does not know how to explicitly
      * deal with (i.e  not including possible eventual conversion
-     * to String, as per {@link #mCfgUnknownTypes} )
+     * to String, as per {@link #_cfgUnknownTypes} )
      */
     protected JavaTypeSerializer<Object> mCustomSerializer = null;
 
@@ -66,7 +66,7 @@ public class JavaTypeMapper
      * are to be handled. Default is to call <b>toString()</b> on such
      * objects, and output result as String.
      */
-    protected UnknownType mCfgUnknownTypes = UnknownType.OUTPUT_USING_TO_STRING;
+    protected UnknownType _cfgUnknownTypes = UnknownType.OUTPUT_USING_TO_STRING;
 
     /*
     ////////////////////////////////////////////////////
@@ -87,8 +87,8 @@ public class JavaTypeMapper
      * Method for configuring mapper regarding how to handle serialization
      * of types it does not recognize.
      */
-    public void setUnkownTypeHandling(UnknownType mode) { mCfgUnknownTypes = mode; }
-    public UnknownType getUnkownTypeHandling() { return mCfgUnknownTypes; }
+    public void setUnkownTypeHandling(UnknownType mode) { _cfgUnknownTypes = mode; }
+    public UnknownType getUnkownTypeHandling() { return _cfgUnknownTypes; }
 
     /*
     ////////////////////////////////////////////////////
@@ -264,7 +264,7 @@ public class JavaTypeMapper
 
             if (jdkType == null) {
                 // Nope, can't figure it out. Error or toString();
-                if (mCfgUnknownTypes == UnknownType.ERROR) {
+                if (_cfgUnknownTypes == UnknownType.ERROR) {
                     throw new JsonGenerationException("Unknown type ("+value.getClass().getName()+"): don't know how to handle");
                 }
                 jgen.writeString(value.toString());
@@ -348,7 +348,7 @@ public class JavaTypeMapper
              */
             {
                 byte[] data = (byte[]) value;
-                jgen.writeBinary(data, 0, data.length, mCfgBase64LFs);
+                jgen.writeBinary(data, 0, data.length);
             }
             break;
 
@@ -514,12 +514,12 @@ public class JavaTypeMapper
                     String fieldName = jp.getText();
                     Object  value = _readAndMap(jp, jp.nextToken());
 
-                    if (mCfgDupFields == DupFields.ERROR) {
+                    if (_cfgDupFields == DupFields.ERROR) {
                         Object old = result.put(fieldName, value);
                         if (old != null) {
-                            reportProblem(jp, "Duplicate value for field '"+fieldName+"', when dup fields mode is "+mCfgDupFields);
+                            reportProblem(jp, "Duplicate value for field '"+fieldName+"', when dup fields mode is "+_cfgDupFields);
                         }
-                    } else if (mCfgDupFields == DupFields.USE_LAST) {
+                    } else if (_cfgDupFields == DupFields.USE_LAST) {
                         // Easy, just add
                         result.put(fieldName, value);
                     } else { // use first; need to ensure we don't yet have it
