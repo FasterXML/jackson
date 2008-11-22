@@ -21,24 +21,4 @@ public class JavaTypeSerializerBase<T> implements JavaTypeSerializer<T>
     {
         return false;
     }
-
-    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer,
-        JsonGenerator jgen, Map<?, ? extends T> value) throws IOException,
-        JsonParseException
-    {
-        return false;
-    }
-
-    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer,
-        JsonGenerator jgen, Collection<? extends T> value) throws IOException,
-        JsonParseException
-    {
-        return false;
-    }
-
-    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer,
-        JsonGenerator jgen, T [] value) throws IOException, JsonParseException
-    {
-        return false;
-    }
 }

@@ -410,7 +410,7 @@ public final class WriterBasedGenerator
     {
         int status = mWriteContext.writeValue();
         if (status == JsonWriteContext.STATUS_EXPECT_NAME) {
-            reportError("Can not "+typeMsg+", expecting field name");
+            _reportError("Can not "+typeMsg+", expecting field name");
         }
 
         if (mPrettyPrinter == null) {

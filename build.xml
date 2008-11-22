@@ -82,6 +82,13 @@
     <taskdef classpathref="cobertura.lib" resource="tasks.properties" />
 
 
+    <!-- Need BND task for OSGi bundle/metadata creation -->
+    <taskdef name="bundle" classname="net.luminis.build.plugin.bnd.BuildTask">
+      <classpath>
+       <fileset dir="${dir.lib}/ant" includes="bndtask*.jar" />
+      </classpath>
+    </taskdef>
+
     <!--*********************************************************************-->
     <!-- The readme target shows a brief description of all targets          -->
     <!-- supported by this ant build file                                    -->
@@ -215,6 +222,19 @@
             <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
           </manifest>
         </osgiJar>
+    </target> 
+
+    <target name="osgi">
+      <bundle bundleName="jackson-asl"
+        exportPackage="com.ctc.wstx.stax, com.ctc.wstx.api"
+      >
+        <classpath>
+<!--
+          <pathelement path="${BuildClassesDir}"/>  
+-->
+          <pathelement location="${BuildClassesDir}"/>  
+        </classpath>
+      </bundle>
     </target> 
 
     <target name="jar.lgpl" depends="compile">
