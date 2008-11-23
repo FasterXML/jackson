@@ -15,15 +15,6 @@ public abstract class JsonGeneratorBase
 {
     /*
     ////////////////////////////////////////////////////
-    // State
-    ////////////////////////////////////////////////////
-     */
-
-    protected JsonWriteContext mWriteContext;
-
-
-    /*
-    ////////////////////////////////////////////////////
     // Life-cycle
     ////////////////////////////////////////////////////
      */
@@ -31,7 +22,7 @@ public abstract class JsonGeneratorBase
     protected JsonGeneratorBase()
     {
         super();
-        mWriteContext = JsonWriteContext.createRootContext();
+        _writeContext = JsonWriteContext.createRootContext();
     }
 
     public final void useDefaultPrettyPrinter()
@@ -50,9 +41,9 @@ public abstract class JsonGeneratorBase
     {
         // Array is a value, need to verify it's allowed
         verifyValueWrite("start an array");
-        mWriteContext = mWriteContext.createChildArrayContext();
-        if (mPrettyPrinter != null) {
-            mPrettyPrinter.writeStartArray(this);
+        _writeContext = _writeContext.createChildArrayContext();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeStartArray(this);
         } else {
             doWriteStartArray();
         }
@@ -64,15 +55,15 @@ public abstract class JsonGeneratorBase
     public final void writeEndArray()
         throws IOException, JsonGenerationException
     {
-        if (!mWriteContext.inArray()) {
-            _reportError("Current context not an array but "+mWriteContext.getType());
+        if (!_writeContext.inArray()) {
+            _reportError("Current context not an array but "+_writeContext.getType());
         }
-        if (mPrettyPrinter != null) {
-            mPrettyPrinter.writeEndArray(this, mWriteContext.getEntryCount());
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
         } else {
             doWriteEndArray();
         }
-        mWriteContext = mWriteContext.getParent();
+        _writeContext = _writeContext.getParent();
     }
 
     protected abstract void doWriteEndArray()
@@ -82,9 +73,9 @@ public abstract class JsonGeneratorBase
         throws IOException, JsonGenerationException
     {
         verifyValueWrite("start an object");
-        mWriteContext = mWriteContext.createChildObjectContext();
-        if (mPrettyPrinter != null) {
-            mPrettyPrinter.writeStartObject(this);
+        _writeContext = _writeContext.createChildObjectContext();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeStartObject(this);
         } else {
             doWriteStartObject();
         }
@@ -96,12 +87,12 @@ public abstract class JsonGeneratorBase
     public final void writeEndObject()
         throws IOException, JsonGenerationException
     {
-        if (!mWriteContext.inObject()) {
-            _reportError("Current context not an object but "+mWriteContext.getType());
+        if (!_writeContext.inObject()) {
+            _reportError("Current context not an object but "+_writeContext.getType());
         }
-        mWriteContext = mWriteContext.getParent();
-        if (mPrettyPrinter != null) {
-            mPrettyPrinter.writeEndObject(this, mWriteContext.getEntryCount());
+        _writeContext = _writeContext.getParent();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
         } else {
             doWriteEndObject();
         }
@@ -114,7 +105,7 @@ public abstract class JsonGeneratorBase
         throws IOException, JsonGenerationException
     {
         // Object is a value, need to verify it's allowed
-        int status = mWriteContext.writeFieldName(name);
+        int status = _writeContext.writeFieldName(name);
         if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }

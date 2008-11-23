@@ -119,11 +119,11 @@ public final class WriterBasedGenerator
     public void doWriteFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
-        if (mPrettyPrinter != null) {
+        if (_cfgPrettyPrinter != null) {
             if (commaBefore) {
-                mPrettyPrinter.writeObjectEntrySeparator(this);
+                _cfgPrettyPrinter.writeObjectEntrySeparator(this);
             } else {
-                mPrettyPrinter.beforeObjectEntries(this);
+                _cfgPrettyPrinter.beforeObjectEntries(this);
             }
         } else {
             if (commaBefore) {
@@ -408,12 +408,12 @@ public final class WriterBasedGenerator
     protected final void verifyValueWrite(String typeMsg)
         throws IOException, JsonGenerationException
     {
-        int status = mWriteContext.writeValue();
+        int status = _writeContext.writeValue();
         if (status == JsonWriteContext.STATUS_EXPECT_NAME) {
             _reportError("Can not "+typeMsg+", expecting field name");
         }
 
-        if (mPrettyPrinter == null) {
+        if (_cfgPrettyPrinter == null) {
             char c;
             switch (status) {
             case JsonWriteContext.STATUS_OK_AFTER_COMMA:
@@ -440,20 +440,20 @@ public final class WriterBasedGenerator
         // If we have a pretty printer, it knows what to do:
         switch (status) {
         case JsonWriteContext.STATUS_OK_AFTER_COMMA: // array
-            mPrettyPrinter.writeArrayValueSeparator(this);
+            _cfgPrettyPrinter.writeArrayValueSeparator(this);
             break;
         case JsonWriteContext.STATUS_OK_AFTER_COLON:
-            mPrettyPrinter.writeObjectFieldValueSeparator(this);
+            _cfgPrettyPrinter.writeObjectFieldValueSeparator(this);
             break;
         case JsonWriteContext.STATUS_OK_AFTER_SPACE:
-            mPrettyPrinter.writeRootValueSeparator(this);
+            _cfgPrettyPrinter.writeRootValueSeparator(this);
             break;
         case JsonWriteContext.STATUS_OK_AS_IS:
             // First entry, but of which context?
-            if (mWriteContext.inArray()) {
-                mPrettyPrinter.beforeArrayValues(this);
-            } else if (mWriteContext.inObject()) {
-                mPrettyPrinter.beforeObjectEntries(this);
+            if (_writeContext.inArray()) {
+                _cfgPrettyPrinter.beforeArrayValues(this);
+            } else if (_writeContext.inObject()) {
+                _cfgPrettyPrinter.beforeObjectEntries(this);
             }
             break;
         }

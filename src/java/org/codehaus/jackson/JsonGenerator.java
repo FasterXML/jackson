@@ -8,12 +8,22 @@ import java.math.BigDecimal;
  */
 public abstract class JsonGenerator
 {
+    // // // Configuration:
+
     /**
      * Object that handles pretty-printing (usually additional
      * white space to make results more human-readable) during
      * output. If null, no pretty-printing is done.
      */
-    protected PrettyPrinter mPrettyPrinter;
+    protected PrettyPrinter _cfgPrettyPrinter;
+
+    // // // State:
+
+    /**
+     * Object that keeps track of the current contextual state
+     * of the generator.
+     */
+    protected JsonWriteContext _writeContext;
 
     protected JsonGenerator() { }
 
@@ -33,7 +43,7 @@ public abstract class JsonGenerator
      * instead.
      */
     public final void setPrettyPrinter(PrettyPrinter pp) {
-        mPrettyPrinter = pp;
+        _cfgPrettyPrinter = pp;
     }
 
     /**
@@ -247,6 +257,14 @@ public abstract class JsonGenerator
      */
     public abstract void copyCurrentStructure(JsonParser jp)
         throws IOException, JsonProcessingException;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, context access
+    ////////////////////////////////////////////////////
+     */
+
+    public final JsonWriteContext getContext() { return _writeContext; }
 
     /*
     ////////////////////////////////////////////////////
