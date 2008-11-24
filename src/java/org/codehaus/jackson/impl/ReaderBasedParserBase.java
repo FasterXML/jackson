@@ -64,21 +64,21 @@ public abstract class ReaderBasedParserBase
     protected final boolean loadMore()
         throws IOException
     {
-        mCurrInputProcessed += mInputLast;
-        mCurrInputRowStart -= mInputLast;
+        _currInputProcessed += _inputEnd;
+        _currInputRowStart -= _inputEnd;
 
         if (mReader != null) {
             int count = mReader.read(mInputBuffer, 0, mInputBuffer.length);
             if (count > 0) {
-                mInputPtr = 0;
-                mInputLast = count;
+                _inputPtr = 0;
+                _inputEnd = count;
                 return true;
             }
             // End of input
             closeInput();
             // Should never return 0, so let's fail
             if (count == 0) {
-                throw new IOException("Reader returned 0 characters when trying to read "+mInputLast);
+                throw new IOException("Reader returned 0 characters when trying to read "+_inputEnd);
             }
         }
         return false;
@@ -87,12 +87,12 @@ public abstract class ReaderBasedParserBase
     protected char getNextChar(String eofMsg)
         throws IOException, JsonParseException
     {
-        if (mInputPtr >= mInputLast) {
+        if (_inputPtr >= _inputEnd) {
             if (!loadMore()) {
                 reportInvalidEOF(eofMsg);
             }
         }
-        return mInputBuffer[mInputPtr++];
+        return mInputBuffer[_inputPtr++];
     }
 
     protected void closeInput()
@@ -123,7 +123,7 @@ public abstract class ReaderBasedParserBase
         char[] buf = mInputBuffer;
         if (buf != null) {
             mInputBuffer = null;
-            mIOContext.releaseTokenBuffer(buf);
+            _ioContext.releaseTokenBuffer(buf);
         }
     }
 }

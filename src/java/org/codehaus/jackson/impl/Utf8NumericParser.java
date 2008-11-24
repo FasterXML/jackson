@@ -54,7 +54,7 @@ public abstract class Utf8NumericParser
     protected final JsonToken parseNumberText(int c)
         throws IOException, JsonParseException
     {
-        char[] outBuf = mTextBuffer.emptyAndGetCurrentSegment();
+        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
         int outPtr = 0;
         boolean negative = (c == INT_MINUS);
 
@@ -62,10 +62,10 @@ public abstract class Utf8NumericParser
         if (negative) {
             outBuf[outPtr++] = '-';
             // Must have something after sign too
-            if (mInputPtr >= mInputLast) {
+            if (_inputPtr >= _inputEnd) {
                 loadMoreGuaranteed();
             }
-            c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+            c = (int) mInputBuffer[_inputPtr++] & 0xFF;
         }
 
         int intLen = 0;
@@ -85,17 +85,17 @@ public abstract class Utf8NumericParser
                 }
             }
             if (outPtr >= outBuf.length) {
-                outBuf = mTextBuffer.finishCurrentSegment();
+                outBuf = _textBuffer.finishCurrentSegment();
                 outPtr = 0;
             }
             outBuf[outPtr++] = (char) c;
-            if (mInputPtr >= mInputLast && !loadMore()) {
+            if (_inputPtr >= _inputEnd && !loadMore()) {
                 // EOF is legal for main level int values
                 c = CHAR_NULL;
                 eof = true;
                 break int_loop;
             }
-            c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+            c = (int) mInputBuffer[_inputPtr++] & 0xFF;
         }
         // Also, integer part is not optional
         if (intLen == 0) {
@@ -109,17 +109,17 @@ public abstract class Utf8NumericParser
 
             fract_loop:
             while (true) {
-                if (mInputPtr >= mInputLast && !loadMore()) {
+                if (_inputPtr >= _inputEnd && !loadMore()) {
                     eof = true;
                     break fract_loop;
                 }
-                c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+                c = (int) mInputBuffer[_inputPtr++] & 0xFF;
                 if (c < INT_0 || c > INT_9) {
                     break fract_loop;
                 }
                 ++fractLen;
                 if (outPtr >= outBuf.length) {
-                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outBuf = _textBuffer.finishCurrentSegment();
                     outPtr = 0;
                 }
                 outBuf[outPtr++] = (char) c;
@@ -133,42 +133,42 @@ public abstract class Utf8NumericParser
         int expLen = 0;
         if (c == 'e' || c == 'E') { // exponent?
             if (outPtr >= outBuf.length) {
-                outBuf = mTextBuffer.finishCurrentSegment();
+                outBuf = _textBuffer.finishCurrentSegment();
                 outPtr = 0;
             }
             outBuf[outPtr++] = (char) c;
             // Not optional, can require that we get one more char
-            if (mInputPtr >= mInputLast) {
+            if (_inputPtr >= _inputEnd) {
                 loadMoreGuaranteed();
             }
-            c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+            c = (int) mInputBuffer[_inputPtr++] & 0xFF;
             // Sign indicator?
             if (c == '-' || c == '+') {
                 if (outPtr >= outBuf.length) {
-                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outBuf = _textBuffer.finishCurrentSegment();
                     outPtr = 0;
                 }
                 outBuf[outPtr++] = (char) c;
                 // Likewise, non optional:
-                if (mInputPtr >= mInputLast) {
+                if (_inputPtr >= _inputEnd) {
                     loadMoreGuaranteed();
                 }
-                c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+                c = (int) mInputBuffer[_inputPtr++] & 0xFF;
             }
 
             exp_loop:
             while (c <= INT_9 && c >= INT_0) {
                 ++expLen;
                 if (outPtr >= outBuf.length) {
-                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outBuf = _textBuffer.finishCurrentSegment();
                     outPtr = 0;
                 }
                 outBuf[outPtr++] = (char) c;
-                if (mInputPtr >= mInputLast && !loadMore()) {
+                if (_inputPtr >= _inputEnd && !loadMore()) {
                     eof = true;
                     break exp_loop;
                 }
-                c = (int) mInputBuffer[mInputPtr++] & 0xFF;
+                c = (int) mInputBuffer[_inputPtr++] & 0xFF;
             }
             // must be followed by sequence of ints, one minimum
             if (expLen == 0) {
@@ -178,9 +178,9 @@ public abstract class Utf8NumericParser
 
         // Ok; unless we hit end-of-input, need to push last char read back
         if (!eof) {
-            --mInputPtr;
+            --_inputPtr;
         }
-        mTextBuffer.setCurrentLength(outPtr);
+        _textBuffer.setCurrentLength(outPtr);
 
         // And there we have it!
         return reset(negative, intLen, fractLen, expLen);

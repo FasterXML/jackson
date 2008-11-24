@@ -9,6 +9,9 @@ import org.codehaus.jackson.*;
 public final class JsonReadContextImpl
     extends JsonReadContext
 {
+    protected final static int INT_COLON = ':';
+    protected final static int INT_COMMA = ',';
+
     /*
     ////////////////////////////////////////////////////
     // Return codes for methods that verify which separator

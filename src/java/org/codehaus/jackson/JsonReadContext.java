@@ -28,8 +28,7 @@ import org.codehaus.jackson.util.CharTypes;
  */
 public abstract class JsonReadContext
 {
-    protected final static int INT_COLON = ':';
-    protected final static int INT_COMMA = ',';
+    // // // Type constants used internally
 
     protected final static int TYPE_ROOT = 0;
     protected final static int TYPE_ARRAY = 1;

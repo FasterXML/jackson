@@ -50,7 +50,7 @@ public abstract class JsonParserBase
      * I/O context for this reader. It handles buffer allocation
      * for the reader.
      */
-    final protected IOContext mIOContext;
+    final protected IOContext _ioContext;
 
     /*
     ////////////////////////////////////////////////////
@@ -58,19 +58,19 @@ public abstract class JsonParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected JsonToken mCurrToken;
+    protected JsonToken _currToken;
 
     // Note: type of actual buffer depends on sub-class, can't include
 
     /**
      * Pointer to next available character in buffer
      */
-    protected int mInputPtr = 0;
+    protected int _inputPtr = 0;
 
     /**
      * Index of character after last available one in the buffer.
      */
-    protected int mInputLast = 0;
+    protected int _inputEnd = 0;
 
     /*
     ////////////////////////////////////////////////////
@@ -82,13 +82,13 @@ public abstract class JsonParserBase
      * Number of characters that were contained in previous blocks
      * (blocks that were already processed prior to the current buffer).
      */
-    protected long mCurrInputProcessed = 0L;
+    protected long _currInputProcessed = 0L;
 
     /**
      * Current row location of current point in input buffer, starting
      * from 1
      */
-    protected int mCurrInputRow = 1;
+    protected int _currInputRow = 1;
 
     /**
      * Current index of the first character of the current row in input
@@ -96,7 +96,7 @@ public abstract class JsonParserBase
      * of not having column itself is that this only has to be updated
      * once per line.
      */
-    protected int mCurrInputRowStart = 0;
+    protected int _currInputRowStart = 0;
 
     /*
     ////////////////////////////////////////////////////
@@ -112,18 +112,18 @@ public abstract class JsonParserBase
      * For big (gigabyte-sized) sizes are possible, needs to be long,
      * unlike pointers and sizes related to in-memory buffers.
      */
-    protected long mTokenInputTotal = 0; 
+    protected long _tokenInputTotal = 0; 
 
     /**
      * Input row on which current token starts, 1-based
      */
-    protected int mTokenInputRow = 1;
+    protected int _tokenInputRow = 1;
 
     /**
      * Column on input row that current token starts; 0-based (although
      * in the end it'll be converted to 1-based)
      */
-    protected int mTokenInputCol = 0;
+    protected int _tokenInputCol = 0;
 
     /*
     ////////////////////////////////////////////////////
@@ -138,7 +138,7 @@ public abstract class JsonParserBase
      * been fully processed, and needs to be finished for
      * some access (or skipped to obtain the next token)
      */
-    protected boolean mTokenIncomplete = false;
+    protected boolean _tokenIncomplete = false;
 
     /*
     ////////////////////////////////////////////////////
@@ -150,13 +150,13 @@ public abstract class JsonParserBase
      * field names if necessary (name split across boundary,
      * contains escape sequence, or access needed to char array)
      */
-    protected final TextBuffer mTextBuffer;
+    protected final TextBuffer _textBuffer;
 
     /**
      * Flag set to indicate whether field name parsed is available
      * from the text buffer or not.
      */
-    protected boolean mFieldInBuffer = false;
+    protected boolean _fieldInBuffer = false;
 
     /*
     ////////////////////////////////////////////////////
@@ -166,9 +166,9 @@ public abstract class JsonParserBase
 
     protected JsonParserBase(IOContext ctxt)
     {
-        mIOContext = ctxt;
-        mTextBuffer = ctxt.constructTextBuffer();
-        _parsingContext = JsonReadContextImpl.createRootContext(mTokenInputRow, mTokenInputCol);
+        _ioContext = ctxt;
+        _textBuffer = ctxt.constructTextBuffer();
+        _parsingContext = JsonReadContextImpl.createRootContext(_tokenInputRow, _tokenInputCol);
     }
 
     /*
@@ -193,8 +193,8 @@ public abstract class JsonParserBase
     public void skipChildren()
         throws IOException, JsonParseException
     {
-        if (mCurrToken != JsonToken.START_OBJECT
-            && mCurrToken != JsonToken.START_ARRAY) {
+        if (_currToken != JsonToken.START_OBJECT
+            && _currToken != JsonToken.START_ARRAY) {
             return;
         }
         int open = 1;
@@ -229,12 +229,12 @@ public abstract class JsonParserBase
      */
     public JsonToken getCurrentToken()
     {
-        return mCurrToken;
+        return _currToken;
     }
 
     public boolean hasCurrentToken()
     {
-        return mCurrToken != null;
+        return _currToken != null;
     }
 
     /**
@@ -245,7 +245,7 @@ public abstract class JsonParserBase
     public String getCurrentName()
         throws IOException, JsonParseException
     {
-        return (mCurrToken == JsonToken.FIELD_NAME) ? _parsingContext.getCurrentName() : null;
+        return (_currToken == JsonToken.FIELD_NAME) ? _parsingContext.getCurrentName() : null;
     }
 
     public void close()
@@ -268,9 +268,9 @@ public abstract class JsonParserBase
      */
     public JsonLocation getTokenLocation()
     {
-        return new JsonLocation(mIOContext.getSourceReference(),
-                                mTokenInputTotal,
-                                mTokenInputRow, mTokenInputCol + 1);
+        return new JsonLocation(_ioContext.getSourceReference(),
+                                _tokenInputTotal,
+                                _tokenInputRow, _tokenInputCol + 1);
     }
 
     /**
@@ -279,9 +279,9 @@ public abstract class JsonParserBase
      */
     public JsonLocation getCurrentLocation()
     {
-        return new JsonLocation(mIOContext.getSourceReference(),
-                                mCurrInputProcessed + mInputPtr - 1,
-                                mCurrInputRow, mInputPtr - mCurrInputRowStart);
+        return new JsonLocation(_ioContext.getSourceReference(),
+                                _currInputProcessed + _inputPtr - 1,
+                                _currInputRow, _inputPtr - _currInputRowStart);
     }
 
     /*
@@ -299,23 +299,23 @@ public abstract class JsonParserBase
     public String getText()
         throws IOException, JsonParseException
     {
-        if (mCurrToken != null) { // null only before/after document
-            switch (mCurrToken) {
+        if (_currToken != null) { // null only before/after document
+            switch (_currToken) {
             case FIELD_NAME:
                 return _parsingContext.getCurrentName();
 
             case VALUE_STRING:
-                if (mTokenIncomplete) {
-                    mTokenIncomplete = false;
+                if (_tokenIncomplete) {
+                    _tokenIncomplete = false;
                     finishString(); // only strings can be incomplete
                 }
                 // fall through
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
-                return mTextBuffer.contentsAsString();
+                return _textBuffer.contentsAsString();
                 
             default:
-                return mCurrToken.asString();
+                return _currToken.asString();
             }
         }
         return null;
@@ -324,28 +324,28 @@ public abstract class JsonParserBase
     public char[] getTextCharacters()
         throws IOException, JsonParseException
     {
-        if (mCurrToken != null) { // null only before/after document
-            switch (mCurrToken) {
+        if (_currToken != null) { // null only before/after document
+            switch (_currToken) {
                 
             case FIELD_NAME:
-                if (!mFieldInBuffer) {
-                    mTextBuffer.resetWithString(_parsingContext.getCurrentName());
-                    mFieldInBuffer = true;
+                if (!_fieldInBuffer) {
+                    _textBuffer.resetWithString(_parsingContext.getCurrentName());
+                    _fieldInBuffer = true;
                 }
-                return mTextBuffer.getTextBuffer();
+                return _textBuffer.getTextBuffer();
 
             case VALUE_STRING:
-                if (mTokenIncomplete) {
-                    mTokenIncomplete = false;
+                if (_tokenIncomplete) {
+                    _tokenIncomplete = false;
                     finishString(); // only strings can be incomplete
                 }
                 // fall through
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
-                return mTextBuffer.getTextBuffer();
+                return _textBuffer.getTextBuffer();
                 
             default:
-                return mCurrToken.asCharArray();
+                return _currToken.asCharArray();
             }
         }
         return null;
@@ -354,23 +354,23 @@ public abstract class JsonParserBase
     public int getTextLength()
         throws IOException, JsonParseException
     {
-        if (mCurrToken != null) { // null only before/after document
-            switch (mCurrToken) {
+        if (_currToken != null) { // null only before/after document
+            switch (_currToken) {
                 
             case FIELD_NAME:
                 return _parsingContext.getCurrentName().length();
             case VALUE_STRING:
-                if (mTokenIncomplete) {
-                    mTokenIncomplete = false;
+                if (_tokenIncomplete) {
+                    _tokenIncomplete = false;
                     finishString(); // only strings can be incomplete
                 }
                 // fall through
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
-                return mTextBuffer.size();
+                return _textBuffer.size();
                 
             default:
-                return mCurrToken.asCharArray().length;
+                return _currToken.asCharArray().length;
             }
         }
         return 0;
@@ -380,19 +380,19 @@ public abstract class JsonParserBase
         throws IOException, JsonParseException
     {
         // Most have offset of 0, only some may have other values:
-        if (mCurrToken != null) {
-            switch (mCurrToken) {
+        if (_currToken != null) {
+            switch (_currToken) {
             case FIELD_NAME:
                 return 0;
             case VALUE_STRING:
-                if (mTokenIncomplete) {
-                    mTokenIncomplete = false;
+                if (_tokenIncomplete) {
+                    _tokenIncomplete = false;
                     finishString(); // only strings can be incomplete
                 }
                 // fall through
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
-                return mTextBuffer.getTextOffset();
+                return _textBuffer.getTextOffset();
             }
         }
         return 0;
@@ -404,9 +404,9 @@ public abstract class JsonParserBase
     ////////////////////////////////////////////////////
      */
 
-    public final long getTokenCharacterOffset() { return mTokenInputTotal; }
-    public final int getTokenLineNr() { return mTokenInputRow; }
-    public final int getTokenColumnNr() { return mTokenInputCol; }
+    public final long getTokenCharacterOffset() { return _tokenInputTotal; }
+    public final int getTokenLineNr() { return _tokenInputRow; }
+    public final int getTokenColumnNr() { return _tokenInputCol; }
 
     /*
     ////////////////////////////////////////////////////
@@ -417,28 +417,28 @@ public abstract class JsonParserBase
     protected final void skipCR()
         throws IOException
     {
-        if (mInputPtr < mInputLast || loadMore()) {
-            ++mInputPtr;
+        if (_inputPtr < _inputEnd || loadMore()) {
+            ++_inputPtr;
         }
-        ++mCurrInputRow;
-        mCurrInputRowStart = mInputPtr;
+        ++_currInputRow;
+        _currInputRowStart = _inputPtr;
     }
 
     protected final void skipLF()
         throws IOException
     {
-        ++mCurrInputRow;
-        mCurrInputRowStart = mInputPtr;
+        ++_currInputRow;
+        _currInputRowStart = _inputPtr;
     }
 
     protected final void markLF() {
-        ++mCurrInputRow;
-        mCurrInputRowStart = mInputPtr;
+        ++_currInputRow;
+        _currInputRowStart = _inputPtr;
     }
 
     protected final void markLF(int inputPtr) {
-        ++mCurrInputRow;
-        mCurrInputRowStart = inputPtr;
+        ++_currInputRow;
+        _currInputRowStart = inputPtr;
     }
 
     /*
@@ -470,7 +470,7 @@ public abstract class JsonParserBase
     protected void releaseBuffers()
         throws IOException
     {
-        mTextBuffer.releaseBuffers();
+        _textBuffer.releaseBuffers();
     }
 
     /**
@@ -482,7 +482,7 @@ public abstract class JsonParserBase
         throws JsonParseException
     {
         if (!_parsingContext.isRoot()) {
-            reportInvalidEOF(": expected close marker for "+_parsingContext.getTypeDesc()+" (from "+_parsingContext.getStartLocation(mIOContext.getSourceReference())+")");
+            reportInvalidEOF(": expected close marker for "+_parsingContext.getTypeDesc()+" (from "+_parsingContext.getStartLocation(_ioContext.getSourceReference())+")");
         }
     }
 
@@ -505,7 +505,7 @@ public abstract class JsonParserBase
     protected void reportInvalidEOF()
         throws JsonParseException
     {
-        reportInvalidEOF(" in "+mCurrToken);
+        reportInvalidEOF(" in "+_currToken);
     }
 
     protected void reportInvalidEOF(String msg)
@@ -533,7 +533,7 @@ public abstract class JsonParserBase
     protected void reportMismatchedEndMarker(int actCh, char expCh)
         throws JsonParseException
     {
-        String startDesc = ""+_parsingContext.getStartLocation(mIOContext.getSourceReference());
+        String startDesc = ""+_parsingContext.getStartLocation(_ioContext.getSourceReference());
         reportError("Unexpected close marker '"+((char) actCh)+"': expected '"+expCh+"' (for "+_parsingContext.getTypeDesc()+" starting at "+startDesc+")");
     }
 

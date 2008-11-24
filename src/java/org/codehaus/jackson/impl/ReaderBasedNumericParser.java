@@ -58,14 +58,14 @@ public abstract class ReaderBasedNumericParser
          * note that no representations are valid yet
          */
         boolean negative = (ch == INT_MINUS);
-        int ptr = mInputPtr;
+        int ptr = _inputPtr;
         int startPtr = ptr-1; // to include sign/digit already read
-        final int inputLen = mInputLast;
+        final int inputLen = _inputEnd;
 
         dummy_loop:
         do { // dummy loop, to be able to break out
             if (negative) { // need to read the next digit
-                if (ptr >= mInputLast) {
+                if (ptr >= _inputEnd) {
                     break dummy_loop;
                 }
                 ch = mInputBuffer[ptr++];
@@ -91,7 +91,7 @@ public abstract class ReaderBasedNumericParser
             
             int_loop:
             while (true) {
-                if (ptr >= mInputLast) {
+                if (ptr >= _inputEnd) {
                     break dummy_loop;
                 }
                 ch = (int) mInputBuffer[ptr++];
@@ -155,13 +155,13 @@ public abstract class ReaderBasedNumericParser
 
             // Got it all: let's add to text buffer for parsing, access
             --ptr; // need to push back following separator
-            mInputPtr = ptr;
+            _inputPtr = ptr;
             int len = ptr-startPtr;
-            mTextBuffer.resetWithShared(mInputBuffer, startPtr, len);
+            _textBuffer.resetWithShared(mInputBuffer, startPtr, len);
             return reset(negative, intLen, fractLen, expLen);
         } while (false);
 
-        mInputPtr = negative ? (startPtr+1) : startPtr;
+        _inputPtr = negative ? (startPtr+1) : startPtr;
         return parseNumberText2(negative);
     }
 
@@ -175,7 +175,7 @@ public abstract class ReaderBasedNumericParser
     private final JsonToken parseNumberText2(boolean negative)
         throws IOException, JsonParseException
     {
-        char[] outBuf = mTextBuffer.emptyAndGetCurrentSegment();
+        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
         int outPtr = 0;
 
         // Need to prepend sign?
@@ -190,13 +190,13 @@ public abstract class ReaderBasedNumericParser
         // Ok, first the obligatory integer part:
         int_loop:
         while (true) {
-            if (mInputPtr >= mInputLast && !loadMore()) {
+            if (_inputPtr >= _inputEnd && !loadMore()) {
                 // EOF is legal for main level int values
                 c = CHAR_NULL;
                 eof = true;
                 break int_loop;
             }
-            c = mInputBuffer[mInputPtr++];
+            c = mInputBuffer[_inputPtr++];
             if (c < INT_0 || c > INT_9) {
                 break int_loop;
             }
@@ -208,7 +208,7 @@ public abstract class ReaderBasedNumericParser
                 }
             }
             if (outPtr >= outBuf.length) {
-                outBuf = mTextBuffer.finishCurrentSegment();
+                outBuf = _textBuffer.finishCurrentSegment();
                 outPtr = 0;
             }
             outBuf[outPtr++] = c;
@@ -225,17 +225,17 @@ public abstract class ReaderBasedNumericParser
 
             fract_loop:
             while (true) {
-                if (mInputPtr >= mInputLast && !loadMore()) {
+                if (_inputPtr >= _inputEnd && !loadMore()) {
                     eof = true;
                     break fract_loop;
                 }
-                c = mInputBuffer[mInputPtr++];
+                c = mInputBuffer[_inputPtr++];
                 if (c < INT_0 || c > INT_9) {
                     break fract_loop;
                 }
                 ++fractLen;
                 if (outPtr >= outBuf.length) {
-                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outBuf = _textBuffer.finishCurrentSegment();
                     outPtr = 0;
                 }
                 outBuf[outPtr++] = c;
@@ -249,22 +249,22 @@ public abstract class ReaderBasedNumericParser
         int expLen = 0;
         if (c == 'e' || c == 'E') { // exponent?
             if (outPtr >= outBuf.length) {
-                outBuf = mTextBuffer.finishCurrentSegment();
+                outBuf = _textBuffer.finishCurrentSegment();
                 outPtr = 0;
             }
             outBuf[outPtr++] = c;
             // Not optional, can require that we get one more char
-            c = (mInputPtr < mInputLast) ? mInputBuffer[mInputPtr++]
+            c = (_inputPtr < _inputEnd) ? mInputBuffer[_inputPtr++]
                 : getNextChar("expected a digit for number exponent");
             // Sign indicator?
             if (c == '-' || c == '+') {
                 if (outPtr >= outBuf.length) {
-                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outBuf = _textBuffer.finishCurrentSegment();
                     outPtr = 0;
                 }
                 outBuf[outPtr++] = c;
                 // Likewise, non optional:
-                c = (mInputPtr < mInputLast) ? mInputBuffer[mInputPtr++]
+                c = (_inputPtr < _inputEnd) ? mInputBuffer[_inputPtr++]
                     : getNextChar("expected a digit for number exponent");
             }
 
@@ -272,15 +272,15 @@ public abstract class ReaderBasedNumericParser
             while (c <= INT_9 && c >= INT_0) {
                 ++expLen;
                 if (outPtr >= outBuf.length) {
-                    outBuf = mTextBuffer.finishCurrentSegment();
+                    outBuf = _textBuffer.finishCurrentSegment();
                     outPtr = 0;
                 }
                 outBuf[outPtr++] = c;
-                if (mInputPtr >= mInputLast && !loadMore()) {
+                if (_inputPtr >= _inputEnd && !loadMore()) {
                     eof = true;
                     break exp_loop;
                 }
-                c = mInputBuffer[mInputPtr++];
+                c = mInputBuffer[_inputPtr++];
             }
             // must be followed by sequence of ints, one minimum
             if (expLen == 0) {
@@ -290,9 +290,9 @@ public abstract class ReaderBasedNumericParser
 
         // Ok; unless we hit end-of-input, need to push last char read back
         if (!eof) {
-            --mInputPtr;
+            --_inputPtr;
         }
-        mTextBuffer.setCurrentLength(outPtr);
+        _textBuffer.setCurrentLength(outPtr);
 
         // And there we have it!
         return reset(negative, intLen, fractLen, expLen);

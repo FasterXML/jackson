@@ -149,10 +149,10 @@ public abstract class JsonNumericParserBase
         mExpLength = expLen;
         mNumTypesValid = NR_UNKNOWN; // to force parsing
         if (fractLen < 1 && expLen < 1) { // integer
-            return (mCurrToken = JsonToken.VALUE_NUMBER_INT);
+            return (_currToken = JsonToken.VALUE_NUMBER_INT);
         }
         // Nope, floating point
-        return (mCurrToken = JsonToken.VALUE_NUMBER_FLOAT);
+        return (_currToken = JsonToken.VALUE_NUMBER_FLOAT);
     }
 
     /*
@@ -177,7 +177,7 @@ public abstract class JsonNumericParserBase
             parseNumericValue(NR_UNKNOWN); // will also check event type
         }
         // Separate types for int types
-        if (mCurrToken == JsonToken.VALUE_NUMBER_INT) {
+        if (_currToken == JsonToken.VALUE_NUMBER_INT) {
             if ((mNumTypesValid & NR_INT) != 0) {
                 return Integer.valueOf(mNumberInt);
             }
@@ -209,7 +209,7 @@ public abstract class JsonNumericParserBase
         if (mNumTypesValid == NR_UNKNOWN) {
             parseNumericValue(NR_UNKNOWN); // will also check event type
         }
-        if (mCurrToken == JsonToken.VALUE_NUMBER_INT) {
+        if (_currToken == JsonToken.VALUE_NUMBER_INT) {
             if ((mNumTypesValid & NR_INT) != 0) {
                 return NumberType.INT;
             }
@@ -307,14 +307,14 @@ public abstract class JsonNumericParserBase
         throws JsonParseException
     {
         // First things first: must be a numeric event
-        if (mCurrToken == null || !mCurrToken.isNumeric()) {
-            reportError("Current token ("+mCurrToken+") not numeric, can not use numeric value accessors");
+        if (_currToken == null || !_currToken.isNumeric()) {
+            reportError("Current token ("+_currToken+") not numeric, can not use numeric value accessors");
         }
         try {
             // Int or float?
-            if (mCurrToken == JsonToken.VALUE_NUMBER_INT) {
-                char[] buf = mTextBuffer.getTextBuffer();
-                int offset = mTextBuffer.getTextOffset();
+            if (_currToken == JsonToken.VALUE_NUMBER_INT) {
+                char[] buf = _textBuffer.getTextBuffer();
+                int offset = _textBuffer.getTextOffset();
                 if (mNumberNegative) {
                     ++offset;
                 }
@@ -331,7 +331,7 @@ public abstract class JsonNumericParserBase
                     return;
                 }
                 // nope, need the heavy guns... (rare case)
-                BigInteger bi = new BigInteger(mTextBuffer.contentsAsString());
+                BigInteger bi = new BigInteger(_textBuffer.contentsAsString());
                 mNumberBigDecimal = new BigDecimal(bi);
                 mNumTypesValid = NR_BIGDECIMAL;
                 return;
@@ -345,16 +345,16 @@ public abstract class JsonNumericParserBase
              * retain textual representation
              */
             if (expType == NR_BIGDECIMAL) {
-                mNumberBigDecimal = mTextBuffer.contentsAsDecimal();
+                mNumberBigDecimal = _textBuffer.contentsAsDecimal();
                 mNumTypesValid = NR_BIGDECIMAL;
             } else {
                 // Otherwise double has to do
-                mNumberDouble = mTextBuffer.contentsAsDouble();
+                mNumberDouble = _textBuffer.contentsAsDouble();
                 mNumTypesValid = NR_DOUBLE;
             }
         } catch (NumberFormatException nex) {
             // Can this ever occur? Due to overflow, maybe?
-            wrapError("Malformed numeric value '"+mTextBuffer.contentsAsString()+"'", nex);
+            wrapError("Malformed numeric value '"+_textBuffer.contentsAsString()+"'", nex);
         }
     }
 

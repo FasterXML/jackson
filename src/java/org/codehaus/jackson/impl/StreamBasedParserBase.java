@@ -62,8 +62,8 @@ public abstract class StreamBasedParserBase
         super(ctxt);
         mInputStream = in;
         mInputBuffer = inputBuffer;
-        mInputPtr = start;
-        mInputLast = end;
+        _inputPtr = start;
+        _inputEnd = end;
         mBufferRecyclable = bufferRecyclable;
     }
 
@@ -76,21 +76,21 @@ public abstract class StreamBasedParserBase
     protected final boolean loadMore()
         throws IOException
     {
-        mCurrInputProcessed += mInputLast;
-        mCurrInputRowStart -= mInputLast;
+        _currInputProcessed += _inputEnd;
+        _currInputRowStart -= _inputEnd;
 
         if (mInputStream != null) {
             int count = mInputStream.read(mInputBuffer, 0, mInputBuffer.length);
             if (count > 0) {
-                mInputPtr = 0;
-                mInputLast = count;
+                _inputPtr = 0;
+                _inputEnd = count;
                 return true;
             }
             // End of input
             closeInput();
             // Should never return 0, so let's fail
             if (count == 0) {
-                throw new IOException("Reader returned 0 characters when trying to read "+mInputLast);
+                throw new IOException("Reader returned 0 characters when trying to read "+_inputEnd);
             }
         }
         return false;
@@ -121,7 +121,7 @@ public abstract class StreamBasedParserBase
             byte[] buf = mInputBuffer;
             if (buf != null) {
                 mInputBuffer = null;
-                mIOContext.releaseReadIOBuffer(buf);
+                _ioContext.releaseReadIOBuffer(buf);
             }
         }
     }
