@@ -1,3 +1,17 @@
+/* Jackson JSON-processor.
+ *
+ * Copyright (c) 2007- Tatu Saloranta, tatu.saloranta@iki.fi
+ *
+ * Licensed under the License specified in file LICENSE, included with
+ * the source code and binary code bundles.
+ * You may not use this file except in compliance with the License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.codehaus.jackson;
 
 import java.io.*;
@@ -31,14 +45,14 @@ public final class JsonFactory
      * to a {@link BufferRecycler} used to provide a low-cost
      * buffer recycling between reader and writer instances.
      */
-    final static ThreadLocal<SoftReference<BufferRecycler>> mRecyclerRef = new ThreadLocal<SoftReference<BufferRecycler>>();
+    final static ThreadLocal<SoftReference<BufferRecycler>> _recyclerRef = new ThreadLocal<SoftReference<BufferRecycler>>();
 
     /**
      * Each factory comes equipped with a shared root symbol table.
      * It should not be linked back to the original blueprint, to
      * avoid contents from leaking between factories.
      */
-    private SymbolTable mCharSymbols = SymbolTable.createRoot();
+    private SymbolTable _charSymbols = SymbolTable.createRoot();
 
     /**
      * Alternative to the basic symbol table, some stream-based
@@ -47,7 +61,7 @@ public final class JsonFactory
      * TODO: should clean up this; looks messy having 2 alternatives
      * with not very clear differences.
      */
-    private NameCanonicalizer mByteSymbols = NameCanonicalizer.createRoot();
+    private NameCanonicalizer _byteSymbols = NameCanonicalizer.createRoot();
 
     /**
      * Creation of a factory instance is quite light-weight operation,
@@ -134,7 +148,7 @@ public final class JsonFactory
     public JsonParser createJsonParser(Reader r)
         throws IOException, JsonParseException
     {
-        return new ReaderBasedParser(_createContext(r), r, mCharSymbols.makeChild());
+        return new ReaderBasedParser(_createContext(r), r, _charSymbols.makeChild());
     }
 
     private JsonParser _createJsonParser(InputStream in, IOContext ctxt)
@@ -143,9 +157,9 @@ public final class JsonFactory
         ByteSourceBootstrapper bb = new ByteSourceBootstrapper(ctxt, in);
         JsonEncoding enc = bb.detectEncoding();
         if (enc == JsonEncoding.UTF8) {
-            return bb.createFastUtf8Parser(mByteSymbols.makeChild());
+            return bb.createFastUtf8Parser(_byteSymbols.makeChild());
         }
-        return new ReaderBasedParser(ctxt, bb.constructReader(), mCharSymbols.makeChild());
+        return new ReaderBasedParser(ctxt, bb.constructReader(), _charSymbols.makeChild());
     }
 
     /*
@@ -238,13 +252,13 @@ public final class JsonFactory
      */
     protected BufferRecycler _getBufferRecycler()
     {
-        SoftReference<BufferRecycler> ref = mRecyclerRef.get();
+        SoftReference<BufferRecycler> ref = _recyclerRef.get();
         BufferRecycler br = (ref == null) ? null : ref.get();
 
         if (br == null) {
             br = new BufferRecycler();
             if (ref == null) {
-                mRecyclerRef.set(new SoftReference<BufferRecycler>(br));
+                _recyclerRef.set(new SoftReference<BufferRecycler>(br));
             }
         }
         return br;

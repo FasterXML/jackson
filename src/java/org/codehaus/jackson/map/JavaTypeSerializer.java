@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map;
 
 import java.io.IOException;
-import java.util.*;
 
 import org.codehaus.jackson.*;
 

@@ -1,3 +1,18 @@
+/* Jackson JSON-processor.
+ *
+ * Copyright (c) 2007- Tatu Saloranta, tatu.saloranta@iki.fi
+ *
+ * Licensed under the License specified in file LICENSE, included with
+ * the source code and binary code bundles.
+ * You may not use this file except in compliance with the License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.codehaus.jackson;
 
 import org.codehaus.jackson.util.CharTypes;
@@ -11,14 +26,14 @@ import org.codehaus.jackson.util.CharTypes;
  * state variables. This is done due to performance benefits; essentially
  * this allows for more aggeressive inlining by JVM.
  */
-public final class JsonReadContext
+public abstract class JsonReadContext
 {
     protected final static int INT_COLON = ':';
     protected final static int INT_COMMA = ',';
 
-    private final static int TYPE_ROOT = 0;
-    private final static int TYPE_ARRAY = 1;
-    private final static int TYPE_OBJECT = 2;
+    protected final static int TYPE_ROOT = 0;
+    protected final static int TYPE_ARRAY = 1;
+    protected final static int TYPE_OBJECT = 2;
 
     /*
     ////////////////////////////////////////////////////
@@ -36,7 +51,7 @@ public final class JsonReadContext
     public final static int NOT_EXP_SEPARATOR_NEED_VALUE = 4;
     public final static int NOT_EXP_SEPARATOR_NEED_NAME = 5;
 
-    protected int mType;
+    protected int _type;
 
     /**
      * Index of the currently processed entry. Starts with -1 to signal
@@ -45,29 +60,16 @@ public final class JsonReadContext
      * separator, or with new values if no separators are expected
      * (the case for root context).
      */
-    protected int mIndex;
+    protected int _index;
 
     // // // Location information (minus source reference)
 
     //long mTotalChars;
 
-    protected int mLineNr;
-    protected int mColumnNr;
+    protected int _lineNr;
+    protected int _columnNr;
 
-    protected final JsonReadContext mParent;
-
-    protected String mCurrentName;
-
-    /*
-    //////////////////////////////////////////////////
-    // Simple instance reuse slots; speeds up things
-    // a bit (10-15%) for docs with lots of small
-    // arrays/objects (for which allocation was
-    // visible in profile stack frames)
-    //////////////////////////////////////////////////
-     */
-
-    JsonReadContext mChild = null;
+    protected String _currentName;
 
     /*
     //////////////////////////////////////////////////
@@ -75,65 +77,31 @@ public final class JsonReadContext
     //////////////////////////////////////////////////
      */
 
-    public JsonReadContext(int type, JsonReadContext parent,
-                           int lineNr, int colNr)
+    public JsonReadContext(int type, int lineNr, int colNr)
     {
-        mType = type;
-        mParent = parent;
-        mIndex = -1;
-        mLineNr = lineNr;
-        mColumnNr = colNr;
+        _type = type;
+        _index = -1;
+        _lineNr = lineNr;
+        _columnNr = colNr;
     }
 
-    private final void reset(int type, int lineNr, int colNr)
-    {
-        mType = type;
-        mIndex = -1;
-        mLineNr = lineNr;
-        mColumnNr = colNr;
-        mCurrentName = null;
-    }
+    /*
+    //////////////////////////////////////////////////
+    // Public API, accessors
+    //////////////////////////////////////////////////
+     */
 
-    // // // Factory methods
-
-    public static JsonReadContext createRootContext(int lineNr, int colNr)
-    {
-        return new JsonReadContext(TYPE_ROOT, null, lineNr, colNr);
-    }
-
-    public final JsonReadContext createChildArrayContext(int lineNr, int colNr)
-    {
-        JsonReadContext ctxt = mChild;
-        if (ctxt == null) {
-            return (mChild = new JsonReadContext(TYPE_ARRAY, this, lineNr, colNr));
-        }
-        ctxt.reset(TYPE_ARRAY, lineNr, colNr);
-        return ctxt;
-    }
-
-    public final JsonReadContext createChildObjectContext(int lineNr, int colNr)
-    {
-        JsonReadContext ctxt = mChild;
-        if (ctxt == null) {
-            return (mChild = new JsonReadContext(TYPE_OBJECT, this, lineNr, colNr));
-        }
-        ctxt.reset(TYPE_OBJECT, lineNr, colNr);
-        return ctxt;
-    }
-
-    // // // Accessors:
-
-    public final JsonReadContext getParent() { return mParent; }
+    public abstract JsonReadContext getParent();
 
     /**
      * @return Number of entries that are complete and started.
      */
     public final int getEntryCount()
     {
-        if (mType == TYPE_OBJECT) {
-            return (mIndex >> 1) + 1;
+        if (_type == TYPE_OBJECT) {
+            return (_index >> 1) + 1;
         }
-        return mIndex+1;
+        return _index+1;
     }
 
     /**
@@ -141,13 +109,13 @@ public final class JsonReadContext
      */
     public final int getCurrentIndex()
     {
-        if (mIndex < 0) {
+        if (_index < 0) {
             return 0;
         }
-        if (mType == TYPE_OBJECT) {
-            return mIndex >> 1;
+        if (_type == TYPE_OBJECT) {
+            return _index >> 1;
         }
-        return mIndex;
+        return _index;
     }
 
     /**
@@ -161,15 +129,15 @@ public final class JsonReadContext
          */
         long totalChars = -1L;
 
-        return new JsonLocation(srcRef, totalChars, mLineNr, mColumnNr);
+        return new JsonLocation(srcRef, totalChars, _lineNr, _columnNr);
     }
 
-    public final boolean isArray() { return mType == TYPE_ARRAY; }
-    public final boolean isRoot() { return mType == TYPE_ROOT; }
-    public final boolean isObject() { return mType == TYPE_OBJECT; }
+    public final boolean isArray() { return _type == TYPE_ARRAY; }
+    public final boolean isRoot() { return _type == TYPE_ROOT; }
+    public final boolean isObject() { return _type == TYPE_OBJECT; }
 
     public final String getTypeDesc() {
-        switch (mType) {
+        switch (_type) {
         case TYPE_ROOT: return "ROOT";
         case TYPE_ARRAY: return "ARRAY";
         case TYPE_OBJECT: return "OBJECT";
@@ -177,52 +145,7 @@ public final class JsonReadContext
         return "?";
     }
 
-    public final String getCurrentName() { return mCurrentName; }
-
-    // // // Workflow:
-
-    public int handleSeparator(int ch)
-    {
-        int ix = ++mIndex;
-        if (mType == TYPE_OBJECT) {
-            if (ix == 0) {
-                return NOT_EXP_SEPARATOR_NEED_NAME;
-            }
-            if ((ix & 1) == 0) { // expect name
-                // Other than first, must get comma first
-                if (ch == INT_COMMA) {
-                    return HANDLED_EXPECT_NAME;
-                }
-                return MISSING_COMMA;
-            }
-            // Nope, need value
-            if (ch == INT_COLON) {
-                return HANDLED_EXPECT_VALUE;
-            }
-            return MISSING_COLON;
-        }
-
-        if (mType == TYPE_ARRAY) {
-            // New entry, first or not?
-            if (ix == 0) {
-                return NOT_EXP_SEPARATOR_NEED_VALUE;
-            }
-            // Other than first, must get comma first
-            if (ch == INT_COMMA) {
-                return HANDLED_EXPECT_VALUE;
-            }
-            return MISSING_COMMA;
-        }
-        // Starting of a new entry is implied in root context
-        return NOT_EXP_SEPARATOR_NEED_VALUE;
-    }
-
-    // // // Internally used abstract methods
-
-    public void setCurrentName(String name)
-    {
-        mCurrentName = name;
-    }
+    public final String getCurrentName() { return _currentName; }
 
     // // // Overridden standard methods
 
@@ -233,7 +156,7 @@ public final class JsonReadContext
     public final String toString()
     {
         StringBuilder sb = new StringBuilder(64);
-        switch (mType) {
+        switch (_type) {
         case TYPE_ROOT:
             sb.append("/");
             break;
@@ -244,9 +167,9 @@ public final class JsonReadContext
             break;
         case TYPE_OBJECT:
             sb.append('{');
-            if (mCurrentName != null) {
+            if (_currentName != null) {
                 sb.append('"');
-                CharTypes.appendQuoted(sb, mCurrentName);
+                CharTypes.appendQuoted(sb, _currentName);
                 sb.append('"');
             } else {
                 sb.append('?');

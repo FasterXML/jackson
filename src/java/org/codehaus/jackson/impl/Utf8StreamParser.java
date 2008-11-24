@@ -95,22 +95,22 @@ public final class Utf8StreamParser
 
         // Closing scope?
         if (i == INT_RBRACKET) {
-            if (!mParsingContext.isArray()) {
+            if (!_parsingContext.isArray()) {
                 reportMismatchedEndMarker(i, ']');
             }
-            mParsingContext = mParsingContext.getParent();
+            _parsingContext = _parsingContext.getParentImpl();
             return (mCurrToken = JsonToken.END_ARRAY);
         }
         if (i == INT_RCURLY) {
-            if (!mParsingContext.isObject()) {
+            if (!_parsingContext.isObject()) {
                 reportMismatchedEndMarker(i, '}');
             }
-            mParsingContext = mParsingContext.getParent();
+            _parsingContext = _parsingContext.getParentImpl();
             return (mCurrToken = JsonToken.END_OBJECT);
         }
 
         // Nope. Have and/or need a separator?
-        int sep = mParsingContext.handleSeparator(i);
+        int sep = _parsingContext.handleSeparator(i);
 
         switch (sep) {
         case HANDLED_EXPECT_NAME:
@@ -119,7 +119,7 @@ public final class Utf8StreamParser
             while (true) {
                 if (mInputPtr >= mInputLast) {
                     if (!loadMore()) {
-                        reportError("Unexpected end-of-input within/between "+mParsingContext.getTypeDesc()+" entries");
+                        reportError("Unexpected end-of-input within/between "+_parsingContext.getTypeDesc()+" entries");
                     }
                 }
                 i = mInputBuffer[mInputPtr++] & 0xFF;
@@ -138,18 +138,18 @@ public final class Utf8StreamParser
             }
             // And if we expect a name, must be quote
             if (sep == HANDLED_EXPECT_NAME) {
-                mParsingContext.setCurrentName(parseFieldName(i).getName());
+                _parsingContext.setCurrentName(parseFieldName(i).getName());
                 return (mCurrToken = JsonToken.FIELD_NAME);
             }
             break;
         case MISSING_COMMA:
-            reportUnexpectedChar(i, "was expecting comma to separate "+mParsingContext.getTypeDesc()+" entries");
+            reportUnexpectedChar(i, "was expecting comma to separate "+_parsingContext.getTypeDesc()+" entries");
         case MISSING_COLON:
             reportUnexpectedChar(i, "was expecting colon to separate field name and value");
         case NOT_EXP_SEPARATOR_NEED_VALUE:
             break;
         case NOT_EXP_SEPARATOR_NEED_NAME:
-            mParsingContext.setCurrentName(parseFieldName(i).getName());
+            _parsingContext.setCurrentName(parseFieldName(i).getName());
             return (mCurrToken = JsonToken.FIELD_NAME);
         }
 
@@ -159,12 +159,12 @@ public final class Utf8StreamParser
             mTokenIncomplete = true;
             return (mCurrToken = JsonToken.VALUE_STRING);
         case INT_LBRACKET:
-            //mParsingContext = mParsingContext.createChildArrayContext(this);
-            mParsingContext = mParsingContext.createChildArrayContext(mTokenInputRow, mTokenInputCol);
+            //_parsingContext = _parsingContext.createChildArrayContext(this);
+            _parsingContext = _parsingContext.createChildArrayContext(mTokenInputRow, mTokenInputCol);
             return (mCurrToken = JsonToken.START_ARRAY);
         case INT_LCURLY:
-            //mParsingContext = mParsingContext.createChildObjectContext(this);
-            mParsingContext = mParsingContext.createChildObjectContext(mTokenInputRow, mTokenInputCol);
+            //_parsingContext = _parsingContext.createChildObjectContext(this);
+            _parsingContext = _parsingContext.createChildObjectContext(mTokenInputRow, mTokenInputCol);
             return (mCurrToken = JsonToken.START_OBJECT);
         case INT_RBRACKET:
         case INT_RCURLY:

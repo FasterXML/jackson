@@ -131,7 +131,7 @@ public abstract class JsonParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected JsonReadContext mParsingContext;
+    protected JsonReadContextImpl _parsingContext;
 
     /**
      * Flag that indicates that the current token has not yet
@@ -168,7 +168,7 @@ public abstract class JsonParserBase
     {
         mIOContext = ctxt;
         mTextBuffer = ctxt.constructTextBuffer();
-        mParsingContext = JsonReadContext.createRootContext(mTokenInputRow, mTokenInputCol);
+        _parsingContext = JsonReadContextImpl.createRootContext(mTokenInputRow, mTokenInputCol);
     }
 
     /*
@@ -245,7 +245,7 @@ public abstract class JsonParserBase
     public String getCurrentName()
         throws IOException, JsonParseException
     {
-        return (mCurrToken == JsonToken.FIELD_NAME) ? mParsingContext.getCurrentName() : null;
+        return (mCurrToken == JsonToken.FIELD_NAME) ? _parsingContext.getCurrentName() : null;
     }
 
     public void close()
@@ -258,9 +258,8 @@ public abstract class JsonParserBase
 
     public JsonReadContext getParsingContext()
     {
-        return mParsingContext;
+        return _parsingContext;
     }
-
 
     /**
      * Method that return the <b>starting</b> location of the current
@@ -303,7 +302,7 @@ public abstract class JsonParserBase
         if (mCurrToken != null) { // null only before/after document
             switch (mCurrToken) {
             case FIELD_NAME:
-                return mParsingContext.getCurrentName();
+                return _parsingContext.getCurrentName();
 
             case VALUE_STRING:
                 if (mTokenIncomplete) {
@@ -330,7 +329,7 @@ public abstract class JsonParserBase
                 
             case FIELD_NAME:
                 if (!mFieldInBuffer) {
-                    mTextBuffer.resetWithString(mParsingContext.getCurrentName());
+                    mTextBuffer.resetWithString(_parsingContext.getCurrentName());
                     mFieldInBuffer = true;
                 }
                 return mTextBuffer.getTextBuffer();
@@ -359,7 +358,7 @@ public abstract class JsonParserBase
             switch (mCurrToken) {
                 
             case FIELD_NAME:
-                return mParsingContext.getCurrentName().length();
+                return _parsingContext.getCurrentName().length();
             case VALUE_STRING:
                 if (mTokenIncomplete) {
                     mTokenIncomplete = false;
@@ -482,8 +481,8 @@ public abstract class JsonParserBase
     protected void handleEOF()
         throws JsonParseException
     {
-        if (!mParsingContext.isRoot()) {
-            reportInvalidEOF(": expected close marker for "+mParsingContext.getTypeDesc()+" (from "+mParsingContext.getStartLocation(mIOContext.getSourceReference())+")");
+        if (!_parsingContext.isRoot()) {
+            reportInvalidEOF(": expected close marker for "+_parsingContext.getTypeDesc()+" (from "+_parsingContext.getStartLocation(mIOContext.getSourceReference())+")");
         }
     }
 
@@ -534,8 +533,8 @@ public abstract class JsonParserBase
     protected void reportMismatchedEndMarker(int actCh, char expCh)
         throws JsonParseException
     {
-        String startDesc = ""+mParsingContext.getStartLocation(mIOContext.getSourceReference());
-        reportError("Unexpected close marker '"+((char) actCh)+"': expected '"+expCh+"' (for "+mParsingContext.getTypeDesc()+" starting at "+startDesc+")");
+        String startDesc = ""+_parsingContext.getStartLocation(mIOContext.getSourceReference());
+        reportError("Unexpected close marker '"+((char) actCh)+"': expected '"+expCh+"' (for "+_parsingContext.getTypeDesc()+" starting at "+startDesc+")");
     }
 
     /*

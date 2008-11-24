@@ -22,14 +22,14 @@ public abstract class JsonWriteContext
     public final static int STATUS_EXPECT_VALUE = 4;
     public final static int STATUS_EXPECT_NAME = 5;
 
-    protected final JsonWriteContext mParent;
+    protected final JsonWriteContext _parent;
 
     /**
      * Index of the currently processed entry. Starts with -1 to signal
      * that no entries have been started, and gets advanced each
      * time a new entry is started.
      */
-    protected int mIndex;
+    protected int _index;
 
     /*
     //////////////////////////////////////////////////
@@ -39,9 +39,9 @@ public abstract class JsonWriteContext
     //////////////////////////////////////////////////
      */
 
-    JsonWriteContext mChildArray = null;
+    JsonWriteContext _childArray = null;
 
-    JsonWriteContext mChildObject = null;
+    JsonWriteContext _childObject = null;
 
     /*
     //////////////////////////////////////////////////
@@ -51,8 +51,8 @@ public abstract class JsonWriteContext
 
     public JsonWriteContext(JsonWriteContext parent)
     {
-        mParent = parent;
-        mIndex = -1;
+        _parent = parent;
+        _index = -1;
     }
 
     // // // Factory methods
@@ -64,35 +64,35 @@ public abstract class JsonWriteContext
 
     public final JsonWriteContext createChildArrayContext()
     {
-        JsonWriteContext ctxt = mChildArray;
+        JsonWriteContext ctxt = _childArray;
         if (ctxt == null) {
-            mChildArray = ctxt = new ArrayWContext(this);
+            _childArray = ctxt = new ArrayWContext(this);
         } else { // need to reset settings; parent is already ok
-            ctxt.mIndex = -1;
+            ctxt._index = -1;
         }
         return ctxt;
     }
 
     public final JsonWriteContext createChildObjectContext()
     {
-        JsonWriteContext ctxt = mChildObject;
+        JsonWriteContext ctxt = _childObject;
         if (ctxt == null) {
-            mChildObject = ctxt = new ObjectWContext(this);
+            _childObject = ctxt = new ObjectWContext(this);
         } else { // need to reset settings; parent is already ok
-            ctxt.mIndex = -1;
+            ctxt._index = -1;
         }
         return ctxt;
     }
 
     // // // Shared API
 
-    public final JsonWriteContext getParent() { return mParent; }
+    public final JsonWriteContext getParent() { return _parent; }
 
-    public final boolean isRoot() { return mParent == null; }
+    public final boolean isRoot() { return _parent == null; }
 
     public final int getEntryCount()
     {
-        return mIndex+1;
+        return _index+1;
     }
 
     /**
@@ -100,7 +100,7 @@ public abstract class JsonWriteContext
      */
     public final int getCurrentIndex()
     {
-        return (mIndex < 0) ? 0 : mIndex;
+        return (_index < 0) ? 0 : _index;
     }
 
     // // // API sub-classes are to implement
@@ -162,8 +162,8 @@ final class RootWContext
     public int writeValue()
     {
         // No commas within root context, but need space
-        ++mIndex;
-        return (mIndex == 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_SPACE;
+        ++_index;
+        return (_index == 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_SPACE;
     }
 
     protected void appendDesc(StringBuilder sb)
@@ -191,8 +191,8 @@ final class ArrayWContext
 
     public int writeValue()
     {
-        int ix = mIndex;
-        ++mIndex;
+        int ix = _index;
+        ++_index;
         return (ix < 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_COMMA;
     }
 
@@ -237,7 +237,7 @@ final class ObjectWContext
             return STATUS_EXPECT_VALUE;
         }
         mCurrentName = name;
-        return (mIndex < 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_COMMA;
+        return (_index < 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_COMMA;
     }
 
     public int writeValue()
@@ -246,7 +246,7 @@ final class ObjectWContext
             return STATUS_EXPECT_NAME;
         }
         mCurrentName = null;
-        ++mIndex;
+        ++_index;
         return STATUS_OK_AFTER_COLON;
     }
 

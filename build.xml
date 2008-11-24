@@ -147,7 +147,7 @@
         <delete dir="${dir.doc}"/>
         <delete dir="${dir.test}"/>
         <delete dir="${dir.dist}"/>
-        <delete file="coverage.ec" />
+        <delete file="cobertura.ser" />
     </target>
 
     <target name="compile" depends="prepare">
@@ -399,15 +399,14 @@
         </junitreport>
     </target>
 
-  <!-- Code coverage using Cobertura:
-    -->
+  <!-- Code coverage using Cobertura: -->
 
-  <target name="build.coverage.cobertura" depends="test.compile">
+  <target name="build.coverage" depends="test.compile">
       <!-- First, need to instrument classes -->
       <property name="cobertura.instr.dir" value="${dir.build}/cobertura-instr" />
       <cobertura-instrument todir="${cobertura.instr.dir}">
         <fileset dir="${dir.build.classes}">
-          <include name="**/*.class"/>
+          <include name="org/codehaus/jackson/**/*.class"/>
         </fileset>
       </cobertura-instrument>
 

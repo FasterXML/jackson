@@ -7,22 +7,22 @@ package org.codehaus.jackson;
  */
 public class JsonLocation
 {
-    final long mTotalChars;
+    final long _totalChars;
 
-    final int mLineNr;
-    final int mColumnNr;
+    final int _lineNr;
+    final int _columnNr;
 
     /**
      * Displayable description for input source: file path, url
      */
-    final Object mSourceRef;
+    final Object _sourceRef;
 
     public JsonLocation(Object srcRef, long totalChars, int lineNr, int colNr)
     {
-        mTotalChars = totalChars;
-        mLineNr = lineNr;
-        mColumnNr = colNr;
-        mSourceRef = srcRef;
+        _totalChars = totalChars;
+        _lineNr = lineNr;
+        _columnNr = colNr;
+        _sourceRef = srcRef;
     }
 
     /**
@@ -33,23 +33,23 @@ public class JsonLocation
      * for example when {@link java.io.InputStream} was used to
      * construct the parser instance.
      */
-    public Object getSourceRef() { return mSourceRef; }
+    public Object getSourceRef() { return _sourceRef; }
 
     /**
      * @return Line number of the location (1-based)
      */
-    public int getLineNr() { return mLineNr; }
+    public int getLineNr() { return _lineNr; }
 
     /**
      * @return Column number of the location (1-based)
      */
-    public int getColumnNr() { return mColumnNr; }
+    public int getColumnNr() { return _columnNr; }
 
     /**
      * @return Character offset within underlying stream, reader or writer,
      *   if available; -1 if not.
      */
-    public long getCharOffset() { return mTotalChars; }
+    public long getCharOffset() { return _totalChars; }
 
     /**
      * @return Byte offset within underlying stream, reader or writer,
@@ -70,15 +70,15 @@ public class JsonLocation
     {
         StringBuilder sb = new StringBuilder(80);
         sb.append("[Source: ");
-        if (mSourceRef == null) {
+        if (_sourceRef == null) {
             sb.append("UNKNOWN");
         } else {
-            sb.append(mSourceRef.toString());
+            sb.append(_sourceRef.toString());
         }
         sb.append("; line: ");
-        sb.append(mLineNr);
+        sb.append(_lineNr);
         sb.append(", column: ");
-        sb.append(mColumnNr);
+        sb.append(_columnNr);
         sb.append(']');
         return sb.toString();
     }
