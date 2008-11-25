@@ -198,12 +198,12 @@ public class TestJsonParser
     {
         final Map<String,String> NAME_MAP = new LinkedHashMap<String,String>();
         NAME_MAP.put("", "");
+        NAME_MAP.put("\\\"funny\\\"", "\"funny\"");
         NAME_MAP.put("\\\\", "\\");
         NAME_MAP.put("\\r", "\r");
         NAME_MAP.put("\\n", "\n");
         NAME_MAP.put("\\t", "\t");
         NAME_MAP.put("\\r\\n", "\r\n");
-        NAME_MAP.put("\\\"funny\\\"", "\"funny\"");
         NAME_MAP.put("Line\\nfeed", "Line\nfeed");
 
         JsonFactory jf = new JsonFactory();

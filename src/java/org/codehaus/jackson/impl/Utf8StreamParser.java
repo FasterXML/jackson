@@ -269,7 +269,7 @@ public final class Utf8StreamParser
             if (q == INT_QUOTE) { // special case, ""
                 return NameCanonicalizer.getEmptyName();
             }
-            return parseFieldName(0, q, 1); // quoting or invalid char
+            return parseFieldName(0, q, 0); // quoting or invalid char
         }
 
         i = _inputBuffer[_inputPtr++] & 0xFF;
@@ -538,7 +538,6 @@ public final class Utf8StreamParser
             }
             quads[qlen++] = currQuad;
         }
-
         Name name = _symbols.findName(quads, qlen);
         if (name == null) {
             name = addName(quads, qlen, currQuadBytes);

@@ -24,7 +24,7 @@ public class TestUtf8Parser
     };
 
     final static String[] UTF8_3BYTE_STRINGS = new String[] {
-        "\uC823?",
+        "\uC823?", "A\u400F", "1\u1234?",
         "Ab123\u4034",
         "Even-longer:\uC023"
     };
