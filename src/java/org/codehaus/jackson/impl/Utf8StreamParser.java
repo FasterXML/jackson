@@ -138,15 +138,11 @@ public final class Utf8StreamParser
          */
         boolean inObject = _parsingContext.isObject();
         if (inObject) {
+            // First, field name itself:
             Name n = _parseFieldName(i);
             _parsingContext.setCurrentName(n.getName());
             _currToken = JsonToken.FIELD_NAME;
-            i = _skipWS();
-            if (i != INT_COLON) {
-                _nextToken = null;
-                reportUnexpectedChar(i, "was expecting colon to separate field name and value");
-            }
-            i = _skipWS();
+            i = _skipWSAndColon();
         }
 
         // Ok: we must have a value... what is it?
@@ -247,7 +243,7 @@ public final class Utf8StreamParser
     ////////////////////////////////////////////////////
      */
 
-    protected Name _parseFieldName(int i)
+    protected final  Name _parseFieldName(int i)
         throws IOException, JsonParseException
     {
         if (i != INT_QUOTE) {
@@ -924,6 +920,45 @@ public final class Utf8StreamParser
             }
         }
     }
+
+    private final int _skipWSAndColon()
+        throws IOException, JsonParseException
+    {
+        int i;
+        boolean gotColon = false;
+
+        // Need to skip space, find next char
+        while (true) {
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportError("Unexpected end-of-input after field name (\""+_parsingContext.getCurrentName()+"\"");
+                }
+            }
+            i = mInputBuffer[_inputPtr++] & 0xFF;
+            if (i > INT_SPACE) {
+                if (i != INT_COLON) {
+                    break;
+                }
+                if (gotColon) {
+                    reportUnexpectedChar(i, "expected a valid value, not duplicate colon");
+                }
+                gotColon = true;
+            } else if (i != INT_SPACE) {
+                if (i == INT_LF) {
+                    skipLF();
+                } else if (i == INT_CR) {
+                    skipCR();
+                } else if (i != INT_TAB) {
+                    throwInvalidSpace(i);
+                }
+            }
+        }
+        if (!gotColon) {
+            reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+        }
+        return i;
+    }
+
 
     protected final char _decodeEscaped()
         throws IOException, JsonParseException
