@@ -436,51 +436,17 @@ public abstract class JsonParserBase
 
     /*
     ////////////////////////////////////////////////////
-    // Low-level reading, linefeed handling
-    ////////////////////////////////////////////////////
-     */
-
-    protected final void skipCR()
-        throws IOException
-    {
-        if (_inputPtr < _inputEnd || loadMore()) {
-            ++_inputPtr;
-        }
-        ++_currInputRow;
-        _currInputRowStart = _inputPtr;
-    }
-
-    protected final void skipLF()
-        throws IOException
-    {
-        ++_currInputRow;
-        _currInputRowStart = _inputPtr;
-    }
-
-    protected final void markLF() {
-        ++_currInputRow;
-        _currInputRowStart = _inputPtr;
-    }
-
-    protected final void markLF(int inputPtr) {
-        ++_currInputRow;
-        _currInputRowStart = inputPtr;
-    }
-
-    /*
-    ////////////////////////////////////////////////////
     // Low-level reading, other
     ////////////////////////////////////////////////////
      */
 
-    protected abstract boolean loadMore()
-        throws IOException;
+    protected abstract boolean loadMore() throws IOException;
 
     protected final void loadMoreGuaranteed()
         throws IOException
     {
         if (!loadMore()) {
-            reportInvalidEOF();
+            _reportInvalidEOF();
         }
     }
 
@@ -512,8 +478,8 @@ public abstract class JsonParserBase
     protected void handleEOF()
         throws JsonParseException
     {
-        if (!_parsingContext.isRoot()) {
-            reportInvalidEOF(": expected close marker for "+_parsingContext.getTypeDesc()+" (from "+_parsingContext.getStartLocation(_ioContext.getSourceReference())+")");
+        if (!_parsingContext.inRoot()) {
+            _reportInvalidEOF(": expected close marker for "+_parsingContext.getTypeDesc()+" (from "+_parsingContext.getStartLocation(_ioContext.getSourceReference())+")");
         }
     }
 
@@ -523,7 +489,7 @@ public abstract class JsonParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected void reportUnexpectedChar(int ch, String comment)
+    protected void _reportUnexpectedChar(int ch, String comment)
         throws JsonParseException
     {
         String msg = "Unexpected character ("+_getCharDesc(ch)+")";
@@ -533,13 +499,13 @@ public abstract class JsonParserBase
         _reportError(msg);
     }
 
-    protected void reportInvalidEOF()
+    protected void _reportInvalidEOF()
         throws JsonParseException
     {
-        reportInvalidEOF(" in "+_currToken);
+        _reportInvalidEOF(" in "+_currToken);
     }
 
-    protected void reportInvalidEOF(String msg)
+    protected void _reportInvalidEOF(String msg)
         throws JsonParseException
     {
         _reportError("Unexpected end-of-input"+msg);
@@ -553,7 +519,7 @@ public abstract class JsonParserBase
         _reportError(msg);
     }
 
-    protected void throwUnquotedSpace(int i, String ctxtDesc)
+    protected void _throwUnquotedSpace(int i, String ctxtDesc)
         throws JsonParseException
     {
         char c = (char) i;
@@ -561,7 +527,7 @@ public abstract class JsonParserBase
         _reportError(msg);
     }
 
-    protected void reportMismatchedEndMarker(int actCh, char expCh)
+    protected void _reportMismatchedEndMarker(int actCh, char expCh)
         throws JsonParseException
     {
         String startDesc = ""+_parsingContext.getStartLocation(_ioContext.getSourceReference());

@@ -10,10 +10,14 @@ Description:
   * [JACKSON-18]: ArrayIndexOutOfBounds on IntNode, due to off-by-one
     problem with comparisons
    (reported by Michael D)
+  * Fixed a problem with CR (\r) handling; was sometimes skipping
+    characters (problematic if there's no indentation).
 
   Improvements:
 
   * More complete JavaDoc comments for core public classes.
+  * Internal cleanup of core parsing, to unify handling of Object and
+    Array entries
 
   New features:
 

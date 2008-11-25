@@ -4,8 +4,10 @@ import java.io.*;
 
 import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.sym.NameCanonicalizer;
+import org.codehaus.jackson.util.SymbolTable;
 
 /**
  * This class is used to determine the encoding of byte stream
@@ -22,9 +24,9 @@ public final class ByteSourceBootstrapper
     ////////////////////////////////////////
     */
 
-    final IOContext mContext;
+    final IOContext _context;
 
-    final InputStream mIn;
+    final InputStream _in;
 
     /*
     ///////////////////////////////////////////////////////////////
@@ -32,17 +34,17 @@ public final class ByteSourceBootstrapper
     ///////////////////////////////////////////////////////////////
     */
 
-    final byte[] mInputBuffer;
+    final byte[] _inputBuffer;
 
-    private int mInputPtr;
+    private int _inputPtr;
 
-    private int mInputEnd;
+    private int _inputEnd;
 
     /**
      * Flag that indicates whether buffer above is to be recycled
      * after being used or not.
      */
-    private final boolean mBufferRecyclable;
+    private final boolean _bufferRecyclable;
 
     /*
     ///////////////////////////////////////////////////////////////
@@ -57,7 +59,7 @@ public final class ByteSourceBootstrapper
      *<p>
      * Note: includes possible BOMs, if those were part of the input.
      */
-    protected int mInputProcessed;
+    protected int _inputProcessed;
 
     /*
     ///////////////////////////////////////////////////////////////
@@ -65,8 +67,8 @@ public final class ByteSourceBootstrapper
     ///////////////////////////////////////////////////////////////
     */
 
-    boolean mBigEndian = true;
-    int mBytesPerChar = 0; // 0 means "dunno yet"
+    boolean _bigEndian = true;
+    int _bytesPerChar = 0; // 0 means "dunno yet"
 
     /*
     ////////////////////////////////////////////////////
@@ -76,24 +78,24 @@ public final class ByteSourceBootstrapper
 
     public ByteSourceBootstrapper(IOContext ctxt, InputStream in)
     {
-        mContext = ctxt;
-        mIn = in;
-        mInputBuffer = ctxt.allocReadIOBuffer();
-        mInputEnd = mInputPtr = 0;
-        mInputProcessed = 0;
-        mBufferRecyclable = true;
+        _context = ctxt;
+        _in = in;
+        _inputBuffer = ctxt.allocReadIOBuffer();
+        _inputEnd = _inputPtr = 0;
+        _inputProcessed = 0;
+        _bufferRecyclable = true;
     }
 
     public ByteSourceBootstrapper(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen)
     {
-        mContext = ctxt;
-        mIn = null;
-        mInputBuffer = inputBuffer;
-        mInputPtr = inputStart;
-        mInputEnd = (inputStart + inputLen);
+        _context = ctxt;
+        _in = null;
+        _inputBuffer = inputBuffer;
+        _inputPtr = inputStart;
+        _inputEnd = (inputStart + inputLen);
         // Need to offset this for correct location info
-        mInputProcessed = -inputStart;
-        mBufferRecyclable = false;
+        _inputProcessed = -inputStart;
+        _bufferRecyclable = false;
     }
 
     /**
@@ -114,10 +116,10 @@ public final class ByteSourceBootstrapper
          * is always at least 4 chars long)
          */
         if (ensureLoaded(4)) {
-            int quad =  (mInputBuffer[mInputPtr] << 24)
-                | ((mInputBuffer[mInputPtr+1] & 0xFF) << 16)
-                | ((mInputBuffer[mInputPtr+2] & 0xFF) << 8)
-                | (mInputBuffer[mInputPtr+3] & 0xFF);
+            int quad =  (_inputBuffer[_inputPtr] << 24)
+                | ((_inputBuffer[_inputPtr+1] & 0xFF) << 16)
+                | ((_inputBuffer[_inputPtr+2] & 0xFF) << 8)
+                | (_inputBuffer[_inputPtr+3] & 0xFF);
             
             if (handleBOM(quad)) {
                 foundEncoding = true;
@@ -135,8 +137,8 @@ public final class ByteSourceBootstrapper
                 }
             }
         } else if (ensureLoaded(2)) {
-            int i16 = ((mInputBuffer[mInputPtr] & 0xFF) << 8)
-                | (mInputBuffer[mInputPtr+1] & 0xFF);
+            int i16 = ((_inputBuffer[_inputPtr] & 0xFF) << 8)
+                | (_inputBuffer[_inputPtr+1] & 0xFF);
             if (checkUTF16(i16)) {
                 foundEncoding = true;
             }
@@ -147,57 +149,69 @@ public final class ByteSourceBootstrapper
         /* Not found yet? As per specs, this means it must be UTF-8. */
         if (!foundEncoding) {
             enc = JsonEncoding.UTF8;
-        } else if (mBytesPerChar == 2) {
-            enc = mBigEndian ? JsonEncoding.UTF16_BE : JsonEncoding.UTF16_LE;
-        } else if (mBytesPerChar == 4) {
-            enc = mBigEndian ? JsonEncoding.UTF32_BE : JsonEncoding.UTF32_LE;
+        } else if (_bytesPerChar == 2) {
+            enc = _bigEndian ? JsonEncoding.UTF16_BE : JsonEncoding.UTF16_LE;
+        } else if (_bytesPerChar == 4) {
+            enc = _bigEndian ? JsonEncoding.UTF32_BE : JsonEncoding.UTF32_LE;
         } else {
             throw new RuntimeException("Internal error"); // should never get here
         }
-        mContext.setEncoding(enc);
+        _context.setEncoding(enc);
         return enc;
     }
 
     public Reader constructReader()
         throws IOException
     {
-        JsonEncoding enc = mContext.getEncoding();
+        JsonEncoding enc = _context.getEncoding();
         switch (enc) { 
         case UTF32_BE:
         case UTF32_LE:
-            return new UTF32Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputEnd,
-                                   mContext.getEncoding().isBigEndian());
+            return new UTF32Reader(_context, _in, _inputBuffer, _inputPtr, _inputEnd,
+                                   _context.getEncoding().isBigEndian());
 
         case UTF16_BE:
         case UTF16_LE:
             {
                 // First: do we have a Stream? If not, need to create one:
-                InputStream in = mIn;
+                InputStream in = _in;
 
                 if (in == null) {
-                    in = new ByteArrayInputStream(mInputBuffer, mInputPtr, mInputEnd);
+                    in = new ByteArrayInputStream(_inputBuffer, _inputPtr, _inputEnd);
                 } else {
                     /* Also, if we have any read but unused input (usually true),
                      * need to merge that input in:
                      */
-                    if (mInputPtr < mInputEnd) {
-                        in = new MergedStream(mContext, in, mInputBuffer, mInputPtr, mInputEnd);
+                    if (_inputPtr < _inputEnd) {
+                        in = new MergedStream(_context, in, _inputBuffer, _inputPtr, _inputEnd);
                     }
                 }
                 return new InputStreamReader(in, enc.getJavaName());
             }
 
         case UTF8:
-            return new UTF8Reader(mContext, mIn, mInputBuffer, mInputPtr, mInputEnd);
+            /* 25-Nov-2008, tatu: We used to use specialized UTF-8
+             *    Reader; but now that we have even better UTF-8
+             *    integrated codec, we don't need the Reader
+             *   (and reader source has been moved to "obsolete-src")
+             */
+            //return new UTF8Reader(_context, _in, _inputBuffer, _inputPtr, _inputEnd);
+            throw new RuntimeException("Internal error: should be using Utf8StreamParser directly"); // should never get here
+
         default:
             throw new RuntimeException("Internal error"); // should never get here
         }
-        //return new ReaderBasedParser(mContext, r, basicSymbols.makeChild());
+        //return new ReaderBasedParser(_context, r, basicSymbols.makeChild());
     }
 
-    public Utf8StreamParser createFastUtf8Parser(NameCanonicalizer nc)
+    public JsonParser constructParser(NameCanonicalizer byteSymbols, SymbolTable charSymbols)
+        throws IOException, JsonParseException
     {
-        return new Utf8StreamParser(mContext, mIn, nc, mInputBuffer, mInputPtr, mInputEnd, mBufferRecyclable);
+        JsonEncoding enc = detectEncoding();
+        if (enc == JsonEncoding.UTF8) {
+            return new Utf8StreamParser(_context, _in, byteSymbols, _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
+        }
+        return new ReaderBasedParser(_context, constructReader(), charSymbols.makeChild());
     }
 
     /*
@@ -218,14 +232,14 @@ public final class ByteSourceBootstrapper
          */
         switch (quad) {
         case 0x0000FEFF:
-            mBigEndian = true;
-            mInputPtr += 4;
-            mBytesPerChar = 4;
+            _bigEndian = true;
+            _inputPtr += 4;
+            _bytesPerChar = 4;
             return true;
         case 0xFFFE0000: // UCS-4, LE?
-            mInputPtr += 4;
-            mBytesPerChar = 4;
-            mBigEndian = false;
+            _inputPtr += 4;
+            _bytesPerChar = 4;
+            _bigEndian = false;
             return true;
         case 0x0000FFFE: // UCS-4, in-order...
             reportWeirdUCS4("2143"); // throws exception
@@ -235,22 +249,22 @@ public final class ByteSourceBootstrapper
         // Ok, if not, how about 16-bit encoding BOMs?
         int msw = quad >>> 16;
         if (msw == 0xFEFF) { // UTF-16, BE
-            mInputPtr += 2;
-            mBytesPerChar = 2;
-            mBigEndian = true;
+            _inputPtr += 2;
+            _bytesPerChar = 2;
+            _bigEndian = true;
             return true;
         }
         if (msw == 0xFFFE) { // UTF-16, LE
-            mInputPtr += 2;
-            mBytesPerChar = 2;
-            mBigEndian = false;
+            _inputPtr += 2;
+            _bytesPerChar = 2;
+            _bigEndian = false;
             return true;
         }
         // And if not, then UTF-8 BOM?
         if ((quad >>> 8) == 0xEFBBBF) { // UTF-8
-            mInputPtr += 3;
-            mBytesPerChar = 1;
-            mBigEndian = true; // doesn't really matter
+            _inputPtr += 3;
+            _bytesPerChar = 1;
+            _bigEndian = true; // doesn't really matter
             return true;
         }
         return false;
@@ -263,9 +277,9 @@ public final class ByteSourceBootstrapper
          * multi-byte formats); first 32-bit charsets:
          */
         if ((quad >> 8) == 0) { // 0x000000?? -> UTF32-BE
-            mBigEndian = true;
+            _bigEndian = true;
         } else if ((quad & 0x00FFFFFF) == 0) { // 0x??000000 -> UTF32-LE
-            mBigEndian = false;
+            _bigEndian = false;
         } else if ((quad & ~0x00FF0000) == 0) { // 0x00??0000 -> UTF32-in-order
             reportWeirdUCS4("3412");
         } else if ((quad & ~0x0000FF00) == 0) { // 0x0000??00 -> UTF32-in-order
@@ -275,23 +289,23 @@ public final class ByteSourceBootstrapper
             return false;
         }
         // Not BOM (just regular content), nothing to skip past:
-        //mInputPtr += 4;
-        mBytesPerChar = 4;
+        //_inputPtr += 4;
+        _bytesPerChar = 4;
         return true;
     }
 
     private boolean checkUTF16(int i16)
     {
         if ((i16 & 0xFF00) == 0) { // UTF-16BE
-            mBigEndian = true;
+            _bigEndian = true;
         } else if ((i16 & 0x00FF) == 0) { // UTF-16LE
-            mBigEndian = false;
+            _bigEndian = false;
         } else { // nope, not  UTF-16
             return false;
         }
         // Not BOM (just regular content), nothing to skip past:
-        //mInputPtr += 2;
-        mBytesPerChar = 2;
+        //_inputPtr += 2;
+        _bytesPerChar = 2;
         return true;
     }
 
@@ -319,19 +333,19 @@ public final class ByteSourceBootstrapper
         /* Let's assume here buffer has enough room -- this will always
          * be true for the limited used this method gets
          */
-        int gotten = (mInputEnd - mInputPtr);
+        int gotten = (_inputEnd - _inputPtr);
         while (gotten < minimum) {
             int count;
 
-            if (mIn == null) { // block source
+            if (_in == null) { // block source
                 count = -1;
             } else {
-                count = mIn.read(mInputBuffer, mInputEnd, mInputBuffer.length - mInputEnd);
+                count = _in.read(_inputBuffer, _inputEnd, _inputBuffer.length - _inputEnd);
             }
             if (count < 1) {
                 return false;
             }
-            mInputEnd += count;
+            _inputEnd += count;
             gotten += count;
         }
         return true;

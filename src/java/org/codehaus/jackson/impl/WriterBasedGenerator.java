@@ -156,7 +156,7 @@ public final class WriterBasedGenerator
     public void writeString(String text)
         throws IOException, JsonGenerationException
     {
-        verifyValueWrite("write text value");
+        _verifyValueWrite("write text value");
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
@@ -172,7 +172,7 @@ public final class WriterBasedGenerator
     public void writeString(char[] text, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        verifyValueWrite("write text value");
+        _verifyValueWrite("write text value");
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
@@ -254,7 +254,7 @@ public final class WriterBasedGenerator
     public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        verifyValueWrite("write binary value");
+        _verifyValueWrite("write binary value");
         // Starting quotes
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
@@ -303,7 +303,7 @@ public final class WriterBasedGenerator
     public void writeNumber(int i)
         throws IOException, JsonGenerationException
     {
-        verifyValueWrite("write number");
+        _verifyValueWrite("write number");
         // up to 10 digits, minus sign
         if ((_outputTail + 11) >= _outputEnd) {
             _flushBuffer();
@@ -315,7 +315,7 @@ public final class WriterBasedGenerator
         throws IOException, JsonGenerationException
     {
         // up to 20 digits, minus sign
-        verifyValueWrite("write number");
+        _verifyValueWrite("write number");
         if ((_outputTail + 21) >= _outputEnd) {
             _flushBuffer();
         }
@@ -329,7 +329,7 @@ public final class WriterBasedGenerator
         throws IOException, JsonGenerationException
     {
         // What is the max length for doubles? 40 chars?
-        verifyValueWrite("write number");
+        _verifyValueWrite("write number");
         writeRaw(String.valueOf(d));
     }
 
@@ -337,7 +337,7 @@ public final class WriterBasedGenerator
         throws IOException, JsonGenerationException
     {
         // What is the max length for floats?
-        verifyValueWrite("write number");
+        _verifyValueWrite("write number");
         writeRaw(String.valueOf(f));
     }
 
@@ -345,7 +345,7 @@ public final class WriterBasedGenerator
         throws IOException, JsonGenerationException
     {
         // Don't really know max length for big decimal, no point checking
-        verifyValueWrite("write number");
+        _verifyValueWrite("write number");
         writeRaw(dec.toString());
     }
 
@@ -355,14 +355,14 @@ public final class WriterBasedGenerator
     public void writeNumber(String encodedValue)
         throws IOException, JsonGenerationException
     {
-        verifyValueWrite("write number");
+        _verifyValueWrite("write number");
         writeRaw(encodedValue);
     }
 
     public void writeBoolean(boolean state)
         throws IOException, JsonGenerationException
     {
-        verifyValueWrite("write boolean value");
+        _verifyValueWrite("write boolean value");
         if ((_outputTail + 5) >= _outputEnd) {
             _flushBuffer();
         }
@@ -386,7 +386,7 @@ public final class WriterBasedGenerator
     public void writeNull()
         throws IOException, JsonGenerationException
     {
-        verifyValueWrite("write null value");
+        _verifyValueWrite("write null value");
         if ((_outputTail + 4) >= _outputEnd) {
             _flushBuffer();
         }
@@ -405,27 +405,27 @@ public final class WriterBasedGenerator
     ////////////////////////////////////////////////////
      */
 
-    protected final void verifyValueWrite(String typeMsg)
+    protected final void _verifyValueWrite(String typeMsg)
         throws IOException, JsonGenerationException
     {
         int status = _writeContext.writeValue();
-        if (status == JsonWriteContext.STATUS_EXPECT_NAME) {
+        if (status == JsonWriteContextImpl.STATUS_EXPECT_NAME) {
             _reportError("Can not "+typeMsg+", expecting field name");
         }
 
         if (_cfgPrettyPrinter == null) {
             char c;
             switch (status) {
-            case JsonWriteContext.STATUS_OK_AFTER_COMMA:
+            case JsonWriteContextImpl.STATUS_OK_AFTER_COMMA:
                 c = ',';
                 break;
-            case JsonWriteContext.STATUS_OK_AFTER_COLON:
+            case JsonWriteContextImpl.STATUS_OK_AFTER_COLON:
                 c = ':';
                 break;
-            case JsonWriteContext.STATUS_OK_AFTER_SPACE:
+            case JsonWriteContextImpl.STATUS_OK_AFTER_SPACE:
                 c = ' ';
                 break;
-            case JsonWriteContext.STATUS_OK_AS_IS:
+            case JsonWriteContextImpl.STATUS_OK_AS_IS:
             default:
                 return;
             }
@@ -439,16 +439,16 @@ public final class WriterBasedGenerator
 
         // If we have a pretty printer, it knows what to do:
         switch (status) {
-        case JsonWriteContext.STATUS_OK_AFTER_COMMA: // array
+        case JsonWriteContextImpl.STATUS_OK_AFTER_COMMA: // array
             _cfgPrettyPrinter.writeArrayValueSeparator(this);
             break;
-        case JsonWriteContext.STATUS_OK_AFTER_COLON:
+        case JsonWriteContextImpl.STATUS_OK_AFTER_COLON:
             _cfgPrettyPrinter.writeObjectFieldValueSeparator(this);
             break;
-        case JsonWriteContext.STATUS_OK_AFTER_SPACE:
+        case JsonWriteContextImpl.STATUS_OK_AFTER_SPACE:
             _cfgPrettyPrinter.writeRootValueSeparator(this);
             break;
-        case JsonWriteContext.STATUS_OK_AS_IS:
+        case JsonWriteContextImpl.STATUS_OK_AS_IS:
             // First entry, but of which context?
             if (_writeContext.inArray()) {
                 _cfgPrettyPrinter.beforeArrayValues(this);

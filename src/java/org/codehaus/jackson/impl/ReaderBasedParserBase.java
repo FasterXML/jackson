@@ -89,7 +89,7 @@ public abstract class ReaderBasedParserBase
     {
         if (_inputPtr >= _inputEnd) {
             if (!loadMore()) {
-                reportInvalidEOF(eofMsg);
+                _reportInvalidEOF(eofMsg);
             }
         }
         return _inputBuffer[_inputPtr++];

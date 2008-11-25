@@ -35,14 +35,6 @@ public abstract class JsonGenerator
      */
     protected PrettyPrinter _cfgPrettyPrinter;
 
-    // // // State:
-
-    /**
-     * Object that keeps track of the current contextual state
-     * of the generator.
-     */
-    protected JsonWriteContext _writeContext;
-
     protected JsonGenerator() { }
 
     /*
@@ -282,7 +274,11 @@ public abstract class JsonGenerator
     ////////////////////////////////////////////////////
      */
 
-    public final JsonWriteContext getContext() { return _writeContext; }
+    /**
+     * @return Context object that can give information about logical
+     *   position within generated json content.
+     */
+    public abstract JsonWriteContext getOutputContext();
 
     /*
     ////////////////////////////////////////////////////

@@ -65,7 +65,7 @@ public abstract class Utf8NumericParser
             if (_inputPtr >= _inputEnd) {
                 loadMoreGuaranteed();
             }
-            c = (int) mInputBuffer[_inputPtr++] & 0xFF;
+            c = (int) _inputBuffer[_inputPtr++] & 0xFF;
         }
 
         int intLen = 0;
@@ -95,7 +95,7 @@ public abstract class Utf8NumericParser
                 eof = true;
                 break int_loop;
             }
-            c = (int) mInputBuffer[_inputPtr++] & 0xFF;
+            c = (int) _inputBuffer[_inputPtr++] & 0xFF;
         }
         // Also, integer part is not optional
         if (intLen == 0) {
@@ -113,7 +113,7 @@ public abstract class Utf8NumericParser
                     eof = true;
                     break fract_loop;
                 }
-                c = (int) mInputBuffer[_inputPtr++] & 0xFF;
+                c = (int) _inputBuffer[_inputPtr++] & 0xFF;
                 if (c < INT_0 || c > INT_9) {
                     break fract_loop;
                 }
@@ -141,7 +141,7 @@ public abstract class Utf8NumericParser
             if (_inputPtr >= _inputEnd) {
                 loadMoreGuaranteed();
             }
-            c = (int) mInputBuffer[_inputPtr++] & 0xFF;
+            c = (int) _inputBuffer[_inputPtr++] & 0xFF;
             // Sign indicator?
             if (c == '-' || c == '+') {
                 if (outPtr >= outBuf.length) {
@@ -153,7 +153,7 @@ public abstract class Utf8NumericParser
                 if (_inputPtr >= _inputEnd) {
                     loadMoreGuaranteed();
                 }
-                c = (int) mInputBuffer[_inputPtr++] & 0xFF;
+                c = (int) _inputBuffer[_inputPtr++] & 0xFF;
             }
 
             exp_loop:
@@ -168,7 +168,7 @@ public abstract class Utf8NumericParser
                     eof = true;
                     break exp_loop;
                 }
-                c = (int) mInputBuffer[_inputPtr++] & 0xFF;
+                c = (int) _inputBuffer[_inputPtr++] & 0xFF;
             }
             // must be followed by sequence of ints, one minimum
             if (expLen == 0) {

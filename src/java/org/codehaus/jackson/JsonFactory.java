@@ -162,12 +162,7 @@ public final class JsonFactory
     private JsonParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        ByteSourceBootstrapper bb = new ByteSourceBootstrapper(ctxt, in);
-        JsonEncoding enc = bb.detectEncoding();
-        if (enc == JsonEncoding.UTF8) {
-            return bb.createFastUtf8Parser(_byteSymbols.makeChild());
-        }
-        return new ReaderBasedParser(ctxt, bb.constructReader(), _charSymbols.makeChild());
+        return new ByteSourceBootstrapper(ctxt, in).constructParser(_byteSymbols, _charSymbols);
     }
 
     /*

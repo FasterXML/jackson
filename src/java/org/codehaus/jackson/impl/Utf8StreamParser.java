@@ -14,6 +14,8 @@ import org.codehaus.jackson.util.*;
 public final class Utf8StreamParser
     extends Utf8NumericParser
 {
+    final static byte BYTE_LF = (byte) '\n';
+
     /*
     ////////////////////////////////////////////////////
     // Configuration
@@ -73,7 +75,7 @@ public final class Utf8StreamParser
         }
         if (_tokenIncomplete) {
             _tokenIncomplete = false;
-            skipString(); // only strings can be partial
+            _skipString(); // only strings can be partial
         }
 
         int i;
@@ -86,15 +88,15 @@ public final class Utf8StreamParser
                     return (_currToken = null);
                 }
             }
-            i = mInputBuffer[_inputPtr++] & 0xFF;
+            i = _inputBuffer[_inputPtr++] & 0xFF;
             if (i > INT_SPACE) {
                 break;
             }
             if (i != INT_SPACE) {
                 if (i == INT_LF) {
-                    skipLF();
+                    _skipLF();
                 } else if (i == INT_CR) {
-                    skipCR();
+                    _skipCR();
                 } else if (i != INT_TAB) {
                     throwInvalidSpace(i);
                 }
@@ -110,15 +112,15 @@ public final class Utf8StreamParser
 
         // Closing scope?
         if (i == INT_RBRACKET) {
-            if (!_parsingContext.isArray()) {
-                reportMismatchedEndMarker(i, ']');
+            if (!_parsingContext.inArray()) {
+                _reportMismatchedEndMarker(i, ']');
             }
             _parsingContext = _parsingContext.getParentImpl();
             return (_currToken = JsonToken.END_ARRAY);
         }
         if (i == INT_RCURLY) {
-            if (!_parsingContext.isObject()) {
-                reportMismatchedEndMarker(i, '}');
+            if (!_parsingContext.inObject()) {
+                _reportMismatchedEndMarker(i, '}');
             }
             _parsingContext = _parsingContext.getParentImpl();
             return (_currToken = JsonToken.END_OBJECT);
@@ -127,7 +129,7 @@ public final class Utf8StreamParser
         // Nope: do we then expect a comma?
         if (_parsingContext.expectComma()) {
             if (i != INT_COMMA) {
-                reportUnexpectedChar(i, "was expecting comma to separate "+_parsingContext.getTypeDesc()+" entries");
+                _reportUnexpectedChar(i, "was expecting comma to separate "+_parsingContext.getTypeDesc()+" entries");
             }
             i = _skipWS();
         }
@@ -136,7 +138,7 @@ public final class Utf8StreamParser
          * Object contexts, since the intermediate 'expect-value'
          * state is never retained.
          */
-        boolean inObject = _parsingContext.isObject();
+        boolean inObject = _parsingContext.inObject();
         if (inObject) {
             // First, field name itself:
             Name n = _parseFieldName(i);
@@ -170,7 +172,7 @@ public final class Utf8StreamParser
         case INT_RCURLY:
             // Error: neither is valid at this point; valid closers have
             // been handled earlier
-            reportUnexpectedChar(i, "expected a value");
+            _reportUnexpectedChar(i, "expected a value");
         case INT_t:
             _matchToken(JsonToken.VALUE_TRUE);
             t = JsonToken.VALUE_TRUE;
@@ -202,7 +204,7 @@ public final class Utf8StreamParser
             t = parseNumberText(i);
             break;
         default:
-            reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
+            _reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
             t = null; // never gets here
         }
 
@@ -247,7 +249,7 @@ public final class Utf8StreamParser
         throws IOException, JsonParseException
     {
         if (i != INT_QUOTE) {
-            reportUnexpectedChar(i, "was expecting double-quote to start field name");
+            _reportUnexpectedChar(i, "was expecting double-quote to start field name");
         }
         // First: can we optimize out bounds checks?
         if ((_inputEnd - _inputPtr) < 9) { // Need 8 chars, plus one trailing (quote)
@@ -257,7 +259,7 @@ public final class Utf8StreamParser
         // If so, can also unroll loops nicely
         final int[] codes = CharTypes.getInputCode();
 
-        int q = mInputBuffer[_inputPtr++] & 0xFF;
+        int q = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[q] != 0) {
             if (q == INT_QUOTE) { // special case, ""
                 return NameCanonicalizer.getEmptyName();
@@ -265,7 +267,7 @@ public final class Utf8StreamParser
             return parseFieldName(0, q, 1); // quoting or invalid char
         }
 
-        i = mInputBuffer[_inputPtr++] & 0xFF;
+        i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // one byte/char case or broken
                 return findName(q, 1);
@@ -273,7 +275,7 @@ public final class Utf8StreamParser
             return parseFieldName(q, i, 1);
         }
         q = (q << 8) | i;
-        i = mInputBuffer[_inputPtr++] & 0xFF;
+        i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // two byte name or broken
                 return findName(q, 2);
@@ -281,7 +283,7 @@ public final class Utf8StreamParser
             return parseFieldName(q, i, 2);
         }
         q = (q << 8) | i;
-        i = mInputBuffer[_inputPtr++] & 0xFF;
+        i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // three byte name or broken
                 return findName(q, 3);
@@ -289,7 +291,7 @@ public final class Utf8StreamParser
             return parseFieldName(q, i, 3);
         }
         q = (q << 8) | i;
-        i = mInputBuffer[_inputPtr++] & 0xFF;
+        i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // four byte name or broken
                 return findName(q, 4);
@@ -305,7 +307,7 @@ public final class Utf8StreamParser
         final int[] codes = CharTypes.getInputCode();
 
         // Ok, got 5 name bytes so far
-        int i = mInputBuffer[_inputPtr++] & 0xFF;
+        int i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // 5 bytes
                 return findName(q1, q2, 1);
@@ -313,7 +315,7 @@ public final class Utf8StreamParser
             return parseFieldName(q1, q2, i, 1); // quoting or invalid char
         }
         q2 = (q2 << 8) | i;
-        i = mInputBuffer[_inputPtr++] & 0xFF;
+        i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // 6 bytes
                 return findName(q1, q2, 2);
@@ -321,7 +323,7 @@ public final class Utf8StreamParser
             return parseFieldName(q1, q2, i, 2);
         }
         q2 = (q2 << 8) | i;
-        i = mInputBuffer[_inputPtr++] & 0xFF;
+        i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // 7 bytes
                 return findName(q1, q2, 3);
@@ -329,7 +331,7 @@ public final class Utf8StreamParser
             return parseFieldName(q1, q2, i, 3);
         }
         q2 = (q2 << 8) | i;
-        i = mInputBuffer[_inputPtr++] & 0xFF;
+        i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // 8 bytes
                 return findName(q1, q2, 4);
@@ -357,7 +359,7 @@ public final class Utf8StreamParser
             }
             // Otherwise can skip boundary checks for 4 bytes in loop
 
-            int i = mInputBuffer[_inputPtr++] & 0xFF;
+            int i = _inputBuffer[_inputPtr++] & 0xFF;
             if (codes[i] != 0) {
                 if (i == INT_QUOTE) {
                     return findName(_quadBuffer, qlen, q, 1);
@@ -366,7 +368,7 @@ public final class Utf8StreamParser
             }
 
             q = (q << 8) | i;
-            i = mInputBuffer[_inputPtr++] & 0xFF;
+            i = _inputBuffer[_inputPtr++] & 0xFF;
             if (codes[i] != 0) {
                 if (i == INT_QUOTE) {
                     return findName(_quadBuffer, qlen, q, 2);
@@ -375,7 +377,7 @@ public final class Utf8StreamParser
             }
 
             q = (q << 8) | i;
-            i = mInputBuffer[_inputPtr++] & 0xFF;
+            i = _inputBuffer[_inputPtr++] & 0xFF;
             if (codes[i] != 0) {
                 if (i == INT_QUOTE) {
                     return findName(_quadBuffer, qlen, q, 3);
@@ -384,7 +386,7 @@ public final class Utf8StreamParser
             }
 
             q = (q << 8) | i;
-            i = mInputBuffer[_inputPtr++] & 0xFF;
+            i = _inputBuffer[_inputPtr++] & 0xFF;
             if (codes[i] != 0) {
                 if (i == INT_QUOTE) {
                     return findName(_quadBuffer, qlen, q, 4);
@@ -411,10 +413,10 @@ public final class Utf8StreamParser
     {
         if (_inputPtr >= _inputEnd) {
             if (!loadMore()) {
-                reportInvalidEOF(": was expecting closing quote for name");
+                _reportInvalidEOF(": was expecting closing quote for name");
             }
         }
-        int i = mInputBuffer[_inputPtr++] & 0xFF;
+        int i = _inputBuffer[_inputPtr++] & 0xFF;
         if (i == INT_QUOTE) { // special case, ""
             return NameCanonicalizer.getEmptyName();
         }
@@ -454,7 +456,7 @@ public final class Utf8StreamParser
                 }
                 // Unquoted white space?
                 if (ch != INT_BACKSLASH) {
-                    throwUnquotedSpace(ch, "name");
+                    _throwUnquotedSpace(ch, "name");
                 }
 
                 // Nope, escape sequence
@@ -512,10 +514,10 @@ public final class Utf8StreamParser
             }
             if (_inputPtr >= _inputEnd) {
                 if (!loadMore()) {
-                    reportInvalidEOF(" in field name");
+                    _reportInvalidEOF(" in field name");
                 }
             }
-            ch = mInputBuffer[_inputPtr++] & 0xFF;
+            ch = _inputBuffer[_inputPtr++] & 0xFF;
         }
 
         if (currQuadBytes > 0) {
@@ -626,11 +628,11 @@ public final class Utf8StreamParser
                     ch &= 0x07;
                     needed = 3;
                 } else { // 5- and 6-byte chars not valid xml chars
-                    reportInvalidInitial(ch);
+                    _reportInvalidInitial(ch);
                     needed = ch = 1; // never really gets this far
                 }
                 if ((ix + needed) > byteLen) {
-                    reportInvalidEOF(" in field name");
+                    _reportInvalidEOF(" in field name");
                 }
                 
                 // Ok, always need at least one more:
@@ -640,7 +642,7 @@ public final class Utf8StreamParser
                 ++ix;
                 
                 if ((ch2 & 0xC0) != 0x080) {
-                    reportInvalidOther(ch2);
+                    _reportInvalidOther(ch2);
                 }
                 ch = (ch << 6) | (ch2 & 0x3F);
                 if (needed > 1) {
@@ -650,7 +652,7 @@ public final class Utf8StreamParser
                     ++ix;
                     
                     if ((ch2 & 0xC0) != 0x080) {
-                        reportInvalidOther(ch2);
+                        _reportInvalidOther(ch2);
                     }
                     ch = (ch << 6) | (ch2 & 0x3F);
                     if (needed > 2) { // 4 bytes? (need surrogates on output)
@@ -659,7 +661,7 @@ public final class Utf8StreamParser
                         ch2 = (ch2 >> ((3 - byteIx) << 3));
                         ++ix;
                         if ((ch2 & 0xC0) != 0x080) {
-                            reportInvalidOther(ch2 & 0xFF);
+                            _reportInvalidOther(ch2 & 0xFF);
                         }
                         ch = (ch << 6) | (ch2 & 0x3F);
                     }
@@ -700,7 +702,7 @@ public final class Utf8StreamParser
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
 
         final int[] codes = CharTypes.getInputCodeUtf8();
-        final byte[] inputBuffer = mInputBuffer;
+        final byte[] inputBuffer = _inputBuffer;
 
         main_loop:
         while (true) {
@@ -765,10 +767,10 @@ public final class Utf8StreamParser
                 break;
             default:
                 if (c < INT_SPACE) {
-                    throwUnquotedSpace(c, "string value");
+                    _throwUnquotedSpace(c, "string value");
                 }
                 // Is this good enough error message?
-                reportUnexpectedChar(c, null);
+                _reportUnexpectedChar(c, null);
             }
             // Need more room?
             if (outPtr >= outBuf.length) {
@@ -786,11 +788,11 @@ public final class Utf8StreamParser
      * if it is not needed. This can be done bit faster if contents
      * need not be stored for future access.
      */
-    protected void skipString()
+    protected void _skipString()
         throws IOException, JsonParseException
     {
         final int[] codes = CharTypes.getInputCodeUtf8();
-        final byte[] inputBuffer = mInputBuffer;
+        final byte[] inputBuffer = _inputBuffer;
 
         main_loop:
         while (true) {
@@ -824,20 +826,20 @@ public final class Utf8StreamParser
                 _decodeEscaped();
                 break;
             case 2: // 2-byte UTF
-                skipUtf8_2(c);
+                _skipUtf8_2(c);
                 break;
             case 3: // 3-byte UTF
-                skipUtf8_3(c);
+                _skipUtf8_3(c);
                 break;
             case 4: // 4-byte UTF
-                skipUtf8_4(c);
+                _skipUtf8_4(c);
                 break;
             default:
                 if (c < INT_SPACE) {
-                    throwUnquotedSpace(c, "string value");
+                    _throwUnquotedSpace(c, "string value");
                 }
                 // Is this good enough error message?
-                reportUnexpectedChar(c, null);
+                _reportUnexpectedChar(c, null);
             }
         }
     }
@@ -853,8 +855,8 @@ public final class Utf8StreamParser
             if (_inputPtr >= _inputEnd) {
                 loadMoreGuaranteed();
             }
-            if (matchBytes[i] != mInputBuffer[_inputPtr]) {
-                reportInvalidToken(token.asString().substring(0, i));
+            if (matchBytes[i] != _inputBuffer[_inputPtr]) {
+                _reportInvalidToken(token.asString().substring(0, i));
             }
             ++_inputPtr;
         }
@@ -865,7 +867,7 @@ public final class Utf8StreamParser
         return;
     }
 
-    private void reportInvalidToken(String matchedPart)
+    private void _reportInvalidToken(String matchedPart)
         throws IOException, JsonParseException
     {
         StringBuilder sb = new StringBuilder(matchedPart);
@@ -877,7 +879,7 @@ public final class Utf8StreamParser
             if (_inputPtr >= _inputEnd && !loadMore()) {
                 break;
             }
-            int i = (int) mInputBuffer[_inputPtr++];
+            int i = (int) _inputBuffer[_inputPtr++];
             char c = (char) _decodeCharForError(i);
             if (!Character.isJavaIdentifierPart(c)) {
                 break;
@@ -905,15 +907,15 @@ public final class Utf8StreamParser
                     _reportError("Unexpected end-of-input within/between "+_parsingContext.getTypeDesc()+" entries");
                 }
             }
-            int i = mInputBuffer[_inputPtr++] & 0xFF;
+            int i = _inputBuffer[_inputPtr++] & 0xFF;
             if (i > INT_SPACE) {
                 return i;
             }
             if (i != INT_SPACE) {
                 if (i == INT_LF) {
-                        skipLF();
+                    _skipLF();
                 } else if (i == INT_CR) {
-                    skipCR();
+                    _skipCR();
                 } else if (i != INT_TAB) {
                     throwInvalidSpace(i);
                 }
@@ -934,27 +936,27 @@ public final class Utf8StreamParser
                     _reportError("Unexpected end-of-input after field name (\""+_parsingContext.getCurrentName()+"\"");
                 }
             }
-            i = mInputBuffer[_inputPtr++] & 0xFF;
+            i = _inputBuffer[_inputPtr++] & 0xFF;
             if (i > INT_SPACE) {
                 if (i != INT_COLON) {
                     break;
                 }
                 if (gotColon) {
-                    reportUnexpectedChar(i, "expected a valid value, not duplicate colon");
+                    _reportUnexpectedChar(i, "expected a valid value, not duplicate colon");
                 }
                 gotColon = true;
             } else if (i != INT_SPACE) {
                 if (i == INT_LF) {
-                    skipLF();
+                    _skipLF();
                 } else if (i == INT_CR) {
-                    skipCR();
+                    _skipCR();
                 } else if (i != INT_TAB) {
                     throwInvalidSpace(i);
                 }
             }
         }
         if (!gotColon) {
-            reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+            _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
         }
         return i;
     }
@@ -965,10 +967,10 @@ public final class Utf8StreamParser
     {
         if (_inputPtr >= _inputEnd) {
             if (!loadMore()) {
-                reportInvalidEOF(" in character escape sequence");
+                _reportInvalidEOF(" in character escape sequence");
             }
         }
-        int c = (int) mInputBuffer[_inputPtr++];
+        int c = (int) _inputBuffer[_inputPtr++];
 
         switch ((int) c) {
             // First, ones that are mapped
@@ -1001,13 +1003,13 @@ public final class Utf8StreamParser
         for (int i = 0; i < 4; ++i) {
             if (_inputPtr >= _inputEnd) {
                 if (!loadMore()) {
-                    reportInvalidEOF(" in character escape sequence");
+                    _reportInvalidEOF(" in character escape sequence");
                 }
             }
-            int ch = (int) mInputBuffer[_inputPtr++];
+            int ch = (int) _inputBuffer[_inputPtr++];
             int digit = CharTypes.charToHex(ch);
             if (digit < 0) {
-                reportUnexpectedChar(ch, "expected a hex-digit for character escape sequence");
+                _reportUnexpectedChar(ch, "expected a hex-digit for character escape sequence");
             }
             value = (value << 4) | digit;
         }
@@ -1033,26 +1035,26 @@ public final class Utf8StreamParser
                 c &= 0x07;
                 needed = 3;
             } else {
-                reportInvalidInitial(c & 0xFF);
+                _reportInvalidInitial(c & 0xFF);
                 needed = 1; // never gets here
             }
 
             int d = nextByte();
             if ((d & 0xC0) != 0x080) {
-                reportInvalidOther(d & 0xFF);
+                _reportInvalidOther(d & 0xFF);
             }
             c = (c << 6) | (d & 0x3F);
             
             if (needed > 1) { // needed == 1 means 2 bytes total
                 d = nextByte(); // 3rd byte
                 if ((d & 0xC0) != 0x080) {
-                    reportInvalidOther(d & 0xFF);
+                    _reportInvalidOther(d & 0xFF);
                 }
                 c = (c << 6) | (d & 0x3F);
                 if (needed > 2) { // 4 bytes? (need surrogates)
                     d = nextByte();
                     if ((d & 0xC0) != 0x080) {
-                        reportInvalidOther(d & 0xFF);
+                        _reportInvalidOther(d & 0xFF);
                     }
                     c = (c << 6) | (d & 0x3F);
                 }
@@ -1073,9 +1075,9 @@ public final class Utf8StreamParser
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
-        int d = (int) mInputBuffer[_inputPtr++];
+        int d = (int) _inputBuffer[_inputPtr++];
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
         return ((c & 0x1F) << 6) | (d & 0x3F);
     }
@@ -1087,17 +1089,17 @@ public final class Utf8StreamParser
             loadMoreGuaranteed();
         }
         c1 &= 0x0F;
-        int d = (int) mInputBuffer[_inputPtr++];
+        int d = (int) _inputBuffer[_inputPtr++];
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
         int c = (c1 << 6) | (d & 0x3F);
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
-        d = (int) mInputBuffer[_inputPtr++];
+        d = (int) _inputBuffer[_inputPtr++];
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
         c = (c << 6) | (d & 0x3F);
         return c;
@@ -1107,14 +1109,14 @@ public final class Utf8StreamParser
         throws IOException, JsonParseException
     {
         c1 &= 0x0F;
-        int d = (int) mInputBuffer[_inputPtr++];
+        int d = (int) _inputBuffer[_inputPtr++];
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
         int c = (c1 << 6) | (d & 0x3F);
-        d = (int) mInputBuffer[_inputPtr++];
+        d = (int) _inputBuffer[_inputPtr++];
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
         c = (c << 6) | (d & 0x3F);
         return c;
@@ -1130,26 +1132,26 @@ public final class Utf8StreamParser
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
-        int d = (int) mInputBuffer[_inputPtr++];
+        int d = (int) _inputBuffer[_inputPtr++];
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
         c = ((c & 0x07) << 6) | (d & 0x3F);
 
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
-        d = (int) mInputBuffer[_inputPtr++];
+        d = (int) _inputBuffer[_inputPtr++];
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
         c = (c << 6) | (d & 0x3F);
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
-        d = (int) mInputBuffer[_inputPtr++];
+        d = (int) _inputBuffer[_inputPtr++];
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
 
         /* note: won't change it to negative here, since caller
@@ -1158,63 +1160,63 @@ public final class Utf8StreamParser
         return ((c << 6) | (d & 0x3F)) - 0x10000;
     }
 
-    private final void skipUtf8_2(int c)
+    private final void _skipUtf8_2(int c)
         throws IOException, JsonParseException
     {
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
-        c = (int) mInputBuffer[_inputPtr++];
+        c = (int) _inputBuffer[_inputPtr++];
         if ((c & 0xC0) != 0x080) {
-            reportInvalidOther(c & 0xFF, _inputPtr);
+            _reportInvalidOther(c & 0xFF, _inputPtr);
         }
     }
 
     /* Alas, can't heavily optimize skipping, since we still have to
      * do validity checks...
      */
-    private final void skipUtf8_3(int c)
+    private final void _skipUtf8_3(int c)
         throws IOException, JsonParseException
     {
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
         //c &= 0x0F;
-        c = (int) mInputBuffer[_inputPtr++];
+        c = (int) _inputBuffer[_inputPtr++];
         if ((c & 0xC0) != 0x080) {
-            reportInvalidOther(c & 0xFF, _inputPtr);
+            _reportInvalidOther(c & 0xFF, _inputPtr);
         }
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
-        c = (int) mInputBuffer[_inputPtr++];
+        c = (int) _inputBuffer[_inputPtr++];
         if ((c & 0xC0) != 0x080) {
-            reportInvalidOther(c & 0xFF, _inputPtr);
+            _reportInvalidOther(c & 0xFF, _inputPtr);
         }
     }
 
-    private final void skipUtf8_4(int c)
+    private final void _skipUtf8_4(int c)
         throws IOException, JsonParseException
     {
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
-        int d = (int) mInputBuffer[_inputPtr++];
+        int d = (int) _inputBuffer[_inputPtr++];
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
-        d = (int) mInputBuffer[_inputPtr++];
+        d = (int) _inputBuffer[_inputPtr++];
         if ((d & 0xC0) != 0x080) {
-            reportInvalidOther(d & 0xFF, _inputPtr);
+            _reportInvalidOther(d & 0xFF, _inputPtr);
         }
     }
 
@@ -1224,13 +1226,34 @@ public final class Utf8StreamParser
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * We actually need to check the character value here
+     * (to see if we have \n following \r).
+     */
+    protected final void _skipCR() throws IOException
+    {
+        if (_inputPtr < _inputEnd || loadMore()) {
+            if (_inputBuffer[_inputPtr] == BYTE_LF) {
+                ++_inputPtr;
+            }
+        }
+        ++_currInputRow;
+        _currInputRowStart = _inputPtr;
+    }
+
+    protected final void _skipLF() throws IOException
+    {
+        ++_currInputRow;
+        _currInputRowStart = _inputPtr;
+    }
+
     private int nextByte()
         throws IOException, JsonParseException
     {
         if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
-        return mInputBuffer[_inputPtr++] & 0xFF;
+        return _inputBuffer[_inputPtr++] & 0xFF;
     }
 
     /*
@@ -1239,23 +1262,23 @@ public final class Utf8StreamParser
     ////////////////////////////////////////////////////
      */
 
-    protected void reportInvalidInitial(int mask)
+    protected void _reportInvalidInitial(int mask)
         throws JsonParseException
     {
         _reportError("Invalid UTF-8 start byte 0x"+Integer.toHexString(mask));
     }
 
-    protected void reportInvalidOther(int mask)
+    protected void _reportInvalidOther(int mask)
         throws JsonParseException
     {
         _reportError("Invalid UTF-8 middle byte 0x"+Integer.toHexString(mask));
     }
 
-    protected void reportInvalidOther(int mask, int ptr)
+    protected void _reportInvalidOther(int mask, int ptr)
         throws JsonParseException
     {
         _inputPtr = ptr;
-        reportInvalidOther(mask);
+        _reportInvalidOther(mask);
     }
 
     public static int[] growArrayBy(int[] arr, int more)

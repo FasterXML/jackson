@@ -4,7 +4,7 @@ import org.codehaus.jackson.*;
 
 /**
  * Implementation of {@link JsonReadContext}, which also exposes
- * more complete API to the other implementation classes.
+ * more complete API to the core implementation classes.
  */
 public final class JsonReadContextImpl
     extends JsonReadContext
@@ -79,14 +79,7 @@ public final class JsonReadContextImpl
     //////////////////////////////////////////////////
      */
 
-    public final JsonReadContext getParent() { return _parent; }
-
-    /*
-    //////////////////////////////////////////////////
-    // Private/package accessors
-    //////////////////////////////////////////////////
-     */
-
+    public final JsonReadContextImpl getParent() { return _parent; }
     public final JsonReadContextImpl getParentImpl() { return _parent; }
 
     /*

@@ -11,7 +11,6 @@ import java.io.IOException;
 public class TestJsonParser
     extends BaseTest
 {
-
     /**
      * This basic unit test verifies that example given in the Json
      * specification (RFC-4627 or later) is properly parsed at

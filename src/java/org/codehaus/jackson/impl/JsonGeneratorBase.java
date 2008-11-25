@@ -13,6 +13,14 @@ import org.codehaus.jackson.*;
 public abstract class JsonGeneratorBase
     extends JsonGenerator
 {
+    // // // State:
+
+    /**
+     * Object that keeps track of the current contextual state
+     * of the generator.
+     */
+    protected JsonWriteContextImpl _writeContext;
+
     /*
     ////////////////////////////////////////////////////
     // Life-cycle
@@ -22,13 +30,21 @@ public abstract class JsonGeneratorBase
     protected JsonGeneratorBase()
     {
         super();
-        _writeContext = JsonWriteContext.createRootContext();
+        _writeContext = JsonWriteContextImpl.createRootContext();
     }
 
     public final void useDefaultPrettyPrinter()
     {
         setPrettyPrinter(new DefaultPrettyPrinter());
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, accessors
+    ////////////////////////////////////////////////////
+     */
+
+    public final JsonWriteContext getOutputContext() { return _writeContext; }
 
     /*
     ////////////////////////////////////////////////////
@@ -40,7 +56,7 @@ public abstract class JsonGeneratorBase
         throws IOException, JsonGenerationException
     {
         // Array is a value, need to verify it's allowed
-        verifyValueWrite("start an array");
+        _verifyValueWrite("start an array");
         _writeContext = _writeContext.createChildArrayContext();
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeStartArray(this);
@@ -56,14 +72,14 @@ public abstract class JsonGeneratorBase
         throws IOException, JsonGenerationException
     {
         if (!_writeContext.inArray()) {
-            _reportError("Current context not an array but "+_writeContext.getType());
+            _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
         }
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
         } else {
             doWriteEndArray();
         }
-        _writeContext = _writeContext.getParent();
+        _writeContext = _writeContext.getParentImpl();
     }
 
     protected abstract void doWriteEndArray()
@@ -72,7 +88,7 @@ public abstract class JsonGeneratorBase
     public final void writeStartObject()
         throws IOException, JsonGenerationException
     {
-        verifyValueWrite("start an object");
+        _verifyValueWrite("start an object");
         _writeContext = _writeContext.createChildObjectContext();
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeStartObject(this);
@@ -88,9 +104,9 @@ public abstract class JsonGeneratorBase
         throws IOException, JsonGenerationException
     {
         if (!_writeContext.inObject()) {
-            _reportError("Current context not an object but "+_writeContext.getType());
+            _reportError("Current context not an object but "+_writeContext.getTypeDesc());
         }
-        _writeContext = _writeContext.getParent();
+        _writeContext = _writeContext.getParentImpl();
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
         } else {
@@ -106,10 +122,10 @@ public abstract class JsonGeneratorBase
     {
         // Object is a value, need to verify it's allowed
         int status = _writeContext.writeFieldName(name);
-        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
+        if (status == JsonWriteContextImpl.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
-        doWriteFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+        doWriteFieldName(name, (status == JsonWriteContextImpl.STATUS_OK_AFTER_COMMA));
     }
 
     public abstract void doWriteFieldName(String name, boolean commaBefore)
@@ -257,7 +273,7 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
-    protected abstract void verifyValueWrite(String typeMsg)
+    protected abstract void _verifyValueWrite(String typeMsg)
         throws IOException, JsonGenerationException;
 
     protected void _reportError(String msg)

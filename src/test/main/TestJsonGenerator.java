@@ -16,19 +16,42 @@ public class TestJsonGenerator
     public void testStringWrite()
         throws Exception
     {
-        StringWriter sw = new StringWriter();
-        JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-        String VALUE = "";
-        gen.writeString(VALUE);
-        gen.close();
-        String docStr = sw.toString();
-        JsonParser jp = createParserUsingReader(docStr);
-        JsonToken t = jp.nextToken();
-        assertNotNull("Document \""+docStr+"\" yielded no tokens", t);
-        assertEquals(JsonToken.VALUE_STRING, t);
-        assertEquals(VALUE, jp.getText());
-        assertEquals(null, jp.nextToken());
-        jp.close();
+        JsonFactory jf = new JsonFactory();
+        String[] inputStrings = new String[] { "", "X", "1234567890" };
+        for (int useReader = 0; useReader < 2; ++useReader) {
+            for (int writeString = 0; writeString < 2; ++writeString) {
+                for (int strIx = 0; strIx < inputStrings.length; ++strIx) {
+                    String input = inputStrings[strIx];
+                    JsonGenerator gen;
+                    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                    if (useReader != 0) {
+                        gen = jf.createJsonGenerator(new OutputStreamWriter(bout, "UTF-8"));
+                    } else {
+                        gen = jf.createJsonGenerator(bout, JsonEncoding.UTF8);
+                    }
+                    if (writeString > 0) {
+                        gen.writeString(input);
+                    } else {
+                        int len = input.length();
+                        char[] buffer = new char[len + 20];
+                        // Let's use non-zero base offset too...
+                        input.getChars(0, len, buffer, strIx);
+                        gen.writeString(buffer, strIx, len);
+                    }
+                    gen.flush();
+                    gen.close();
+                
+                    JsonParser jp = jf.createJsonParser(new ByteArrayInputStream(bout.toByteArray()));
+                
+                    JsonToken t = jp.nextToken();
+                    assertNotNull("Document \""+bout.toString("UTF-8")+"\" yielded no tokens", t);
+                    assertEquals(JsonToken.VALUE_STRING, t);
+                    assertEquals(input, jp.getText());
+                    assertEquals(null, jp.nextToken());
+                    jp.close();
+                }
+            }
+        }
     }
 
     public void testIntWrite()
@@ -103,8 +126,13 @@ public class TestJsonGenerator
      * as some kind of sanity check. Reader-side should more thoroughly
      * test things, as it does need writers to construct the data first.
      */
-    public void testBinaryWrite()
-        throws Exception
+    public void testBinaryWrite() throws Exception
+    {
+        _testBinaryWrite(false);
+        _testBinaryWrite(true);
+    }
+
+    private void _testBinaryWrite(boolean useCharBased) throws Exception
     {
         /* The usual sample input string, from Thomas Hobbes's "Leviathan"
          * (via Wikipedia)
@@ -124,10 +152,16 @@ public class TestJsonGenerator
          * values in root, array and object contexts.
          */
         Base64Variant b64v = Base64Variants.getDefaultVariant();
+        JsonFactory jf = new JsonFactory();
 
         for (int i = 0; i < 3; ++i) {
-            StringWriter sw = new StringWriter();
-            JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+            JsonGenerator gen;
+            ByteArrayOutputStream bout = new ByteArrayOutputStream(200);
+            if (useCharBased) {
+                gen = jf.createJsonGenerator(new OutputStreamWriter(bout, "UTF-8"));
+            } else {
+                gen = jf.createJsonGenerator(bout, JsonEncoding.UTF8);
+            }
 
             switch (i) {
             case 0: // root
@@ -147,8 +181,7 @@ public class TestJsonGenerator
             }
             gen.close();
 
-            String docStr = sw.toString();
-            JsonParser jp = createParserUsingReader(docStr);
+            JsonParser jp = jf.createJsonParser(new ByteArrayInputStream(bout.toByteArray()));
             
             // Need to skip other events before binary data:
             switch (i) {

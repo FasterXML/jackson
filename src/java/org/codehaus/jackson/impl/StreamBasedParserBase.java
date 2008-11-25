@@ -28,7 +28,7 @@ public abstract class StreamBasedParserBase
      * in use. May be null, if input comes just as a full buffer,
      * or if the stream has been closed.
      */
-    protected InputStream mInputStream;
+    protected InputStream _inputStream;
 
     /*
     ////////////////////////////////////////////////////
@@ -41,13 +41,13 @@ public abstract class StreamBasedParserBase
      * buffer from input source, but in some cases pre-loaded buffer
      * is handed to the parser.
      */
-    protected byte[] mInputBuffer;
+    protected byte[] _inputBuffer;
 
     /**
      * Flag that indicates whether the input buffer is recycable (and
      * needs to be returned to recycler once we are done) or not.
      */
-    protected boolean mBufferRecyclable;
+    protected boolean _bufferRecyclable;
 
     /*
     ////////////////////////////////////////////////////
@@ -60,11 +60,11 @@ public abstract class StreamBasedParserBase
                                     boolean bufferRecyclable)
     {
         super(ctxt);
-        mInputStream = in;
-        mInputBuffer = inputBuffer;
+        _inputStream = in;
+        _inputBuffer = inputBuffer;
         _inputPtr = start;
         _inputEnd = end;
-        mBufferRecyclable = bufferRecyclable;
+        _bufferRecyclable = bufferRecyclable;
     }
 
     /*
@@ -79,8 +79,8 @@ public abstract class StreamBasedParserBase
         _currInputProcessed += _inputEnd;
         _currInputRowStart -= _inputEnd;
 
-        if (mInputStream != null) {
-            int count = mInputStream.read(mInputBuffer, 0, mInputBuffer.length);
+        if (_inputStream != null) {
+            int count = _inputStream.read(_inputBuffer, 0, _inputBuffer.length);
             if (count > 0) {
                 _inputPtr = 0;
                 _inputEnd = count;
@@ -99,9 +99,9 @@ public abstract class StreamBasedParserBase
     protected void closeInput()
         throws IOException
     {
-        InputStream in = mInputStream;
+        InputStream in = _inputStream;
         if (in != null) {
-            mInputStream = null;
+            _inputStream = null;
             in.close();
         }
     }
@@ -117,10 +117,10 @@ public abstract class StreamBasedParserBase
         throws IOException
     {
         super.releaseBuffers();
-        if (mBufferRecyclable) {
-            byte[] buf = mInputBuffer;
+        if (_bufferRecyclable) {
+            byte[] buf = _inputBuffer;
             if (buf != null) {
-                mInputBuffer = null;
+                _inputBuffer = null;
                 _ioContext.releaseReadIOBuffer(buf);
             }
         }

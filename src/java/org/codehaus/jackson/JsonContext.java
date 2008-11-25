@@ -16,7 +16,12 @@
 package org.codehaus.jackson;
 
 /**
- * Shared base class for read and write contexts.
+ * Shared base class for read (input) and write (output) contexts.
+ * Context object can be used by applications to get an idea of
+ * relative position of the parser/generator within json content
+ * being processed. This allows for some contextual processing: for
+ * example, output within Array context can differ from that of
+ * Object context.
  */
 public abstract class JsonContext
 {
@@ -57,9 +62,24 @@ public abstract class JsonContext
 
     public abstract JsonContext getParent();
 
-    public final boolean isArray() { return _type == TYPE_ARRAY; }
-    public final boolean isRoot() { return _type == TYPE_ROOT; }
-    public final boolean isObject() { return _type == TYPE_OBJECT; }
+    /**
+     * Method that returns true if this context is an Array context;
+     * that is, content is being read from or written to a Json Array.
+     */
+    public final boolean inArray() { return _type == TYPE_ARRAY; }
+
+    /**
+     * Method that returns true if this context is a Root context;
+     * that is, content is being read from or written to without
+     * enclosing array or object structure.
+     */
+    public final boolean inRoot() { return _type == TYPE_ROOT; }
+
+    /**
+     * Method that returns true if this context is an Object context;
+     * that is, content is being read from or written to a Json Object.
+     */
+    public final boolean inObject() { return _type == TYPE_OBJECT; }
 
     public final String getTypeDesc() {
         switch (_type) {
@@ -75,7 +95,7 @@ public abstract class JsonContext
      */
     public final int getEntryCount()
     {
-        return (_index < 1) ? 0 : _index;
+        return _index + 1;
     }
 
     /**
@@ -86,4 +106,5 @@ public abstract class JsonContext
         return (_index < 0) ? 0 : _index;
     }
 
+    public abstract String getCurrentName();
 }

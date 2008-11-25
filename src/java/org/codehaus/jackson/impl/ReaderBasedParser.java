@@ -65,7 +65,7 @@ public final class ReaderBasedParser
         }
         if (_tokenIncomplete) {
             _tokenIncomplete = false;
-            skipString(); // only strings can be partial
+            _skipString(); // only strings can be partial
         }
 
         int i;
@@ -84,9 +84,9 @@ public final class ReaderBasedParser
             }
             if (i != INT_SPACE) {
                 if (i == INT_LF) {
-                    skipLF();
+                    _skipLF();
                 } else if (i == INT_CR) {
-                    skipCR();
+                    _skipCR();
                 } else if (i != INT_TAB) {
                     throwInvalidSpace(i);
                 }
@@ -102,15 +102,15 @@ public final class ReaderBasedParser
 
         // Closing scope?
         if (i == INT_RBRACKET) {
-            if (!_parsingContext.isArray()) {
-                reportMismatchedEndMarker(i, ']');
+            if (!_parsingContext.inArray()) {
+                _reportMismatchedEndMarker(i, ']');
             }
             _parsingContext = _parsingContext.getParentImpl();
             return (_currToken = JsonToken.END_ARRAY);
         }
         if (i == INT_RCURLY) {
-            if (!_parsingContext.isObject()) {
-                reportMismatchedEndMarker(i, '}');
+            if (!_parsingContext.inObject()) {
+                _reportMismatchedEndMarker(i, '}');
             }
             _parsingContext = _parsingContext.getParentImpl();
             return (_currToken = JsonToken.END_OBJECT);
@@ -119,7 +119,7 @@ public final class ReaderBasedParser
         // Nope: do we then expect a comma?
         if (_parsingContext.expectComma()) {
             if (i != INT_COMMA) {
-                reportUnexpectedChar(i, "was expecting comma to separate "+_parsingContext.getTypeDesc()+" entries");
+                _reportUnexpectedChar(i, "was expecting comma to separate "+_parsingContext.getTypeDesc()+" entries");
             }
             i = _skipWS();
         }
@@ -128,16 +128,11 @@ public final class ReaderBasedParser
          * Object contexts, since the intermediate 'expect-value'
          * state is never retained.
          */
-        boolean inObject = _parsingContext.isObject();
+        boolean inObject = _parsingContext.inObject();
         if (inObject) {
             _handleFieldName(i);
             _currToken = JsonToken.FIELD_NAME;
-            i = _skipWS();
-            if (i != INT_COLON) {
-                _nextToken = null;
-                reportUnexpectedChar(i, "was expecting colon to separate field name and value");
-            }
-            i = _skipWS();
+            i = _skipWSAndColon();
         }
 
         // Ok: we must have a value... what is it?
@@ -165,7 +160,7 @@ public final class ReaderBasedParser
         case INT_RCURLY:
             // Error: neither is valid at this point; valid closers have
             // been handled earlier
-            reportUnexpectedChar(i, "expected a value");
+            _reportUnexpectedChar(i, "expected a value");
         case INT_t:
             _matchToken(JsonToken.VALUE_TRUE);
             t = JsonToken.VALUE_TRUE;
@@ -197,7 +192,7 @@ public final class ReaderBasedParser
             t = parseNumberText(i);
             break;
         default:
-            reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
+            _reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
             t = null; // never gets here
         }
 
@@ -240,7 +235,7 @@ public final class ReaderBasedParser
         throws IOException, JsonParseException
     {
         if (i != INT_QUOTE) {
-            reportUnexpectedChar(i, "was expecting double-quote to start field name");
+            _reportUnexpectedChar(i, "was expecting double-quote to start field name");
         }
         /* First: let's try to see if we have a simple name: one that does
          * not cross input buffer boundary, and does not contain escape
@@ -290,7 +285,7 @@ public final class ReaderBasedParser
         while (true) {
             if (_inputPtr >= _inputEnd) {
                 if (!loadMore()) {
-                    reportInvalidEOF(": was expecting closing quote for name");
+                    _reportInvalidEOF(": was expecting closing quote for name");
                 }
             }
             char c = _inputBuffer[_inputPtr++];
@@ -307,7 +302,7 @@ public final class ReaderBasedParser
                         break;
                     }
                     if (i < INT_SPACE) {
-                        throwUnquotedSpace(i, "name");
+                        _throwUnquotedSpace(i, "name");
                     }
                 }
             }
@@ -378,7 +373,7 @@ public final class ReaderBasedParser
         while (true) {
             if (_inputPtr >= _inputEnd) {
                 if (!loadMore()) {
-                    reportInvalidEOF(": was expecting closing quote for a string value");
+                    _reportInvalidEOF(": was expecting closing quote for a string value");
                 }
             }
             char c = _inputBuffer[_inputPtr++];
@@ -395,7 +390,7 @@ public final class ReaderBasedParser
                         break;
                     }
                     if (i < INT_SPACE) {
-                        throwUnquotedSpace(i, "string value");
+                        _throwUnquotedSpace(i, "string value");
                     }
                 }
             }
@@ -415,7 +410,7 @@ public final class ReaderBasedParser
      * if it is not needed. This can be done bit faster if contents
      * need not be stored for future access.
      */
-    protected void skipString()
+    protected void _skipString()
         throws IOException, JsonParseException
     {
         int inputPtr = _inputPtr;
@@ -426,7 +421,7 @@ public final class ReaderBasedParser
             if (inputPtr >= inputLen) {
                 _inputPtr = inputPtr;
                 if (!loadMore()) {
-                    reportInvalidEOF(": was expecting closing quote for a string value");
+                    _reportInvalidEOF(": was expecting closing quote for a string value");
                 }
                 inputPtr = _inputPtr;
                 inputLen = _inputEnd;
@@ -450,7 +445,7 @@ public final class ReaderBasedParser
                     }
                     if (i < INT_SPACE) {
                         _inputPtr = inputPtr;
-                        throwUnquotedSpace(i, "string value");
+                        _throwUnquotedSpace(i, "string value");
                     }
                 }
             }
@@ -470,12 +465,12 @@ public final class ReaderBasedParser
         for (int len = matchStr.length(); i < len; ++i) {
             if (_inputPtr >= _inputEnd) {
                 if (!loadMore()) {
-                    reportInvalidEOF(" in a value");
+                    _reportInvalidEOF(" in a value");
                 }
             }
             char c = _inputBuffer[_inputPtr];
             if (c != matchStr.charAt(i)) {
-                reportInvalidToken(matchStr.substring(0, i));
+                _reportInvalidToken(matchStr.substring(0, i));
             }
             ++_inputPtr;
         }
@@ -486,7 +481,7 @@ public final class ReaderBasedParser
         return;
     }
 
-    private void reportInvalidToken(String matchedPart)
+    private void _reportInvalidToken(String matchedPart)
         throws IOException, JsonParseException
     {
         StringBuilder sb = new StringBuilder(matchedPart);
@@ -517,6 +512,27 @@ public final class ReaderBasedParser
     ////////////////////////////////////////////////////
      */
     
+    /**
+     * We actually need to check the character value here
+     * (to see if we have \n following \r).
+     */
+    protected final void _skipCR() throws IOException
+    {
+        if (_inputPtr < _inputEnd || loadMore()) {
+            if (_inputBuffer[_inputPtr] == '\n') {
+                ++_inputPtr;
+            }
+        }
+        ++_currInputRow;
+        _currInputRowStart = _inputPtr;
+    }
+
+    protected final void _skipLF() throws IOException
+    {
+        ++_currInputRow;
+        _currInputRowStart = _inputPtr;
+    }
+
     private final int _skipWS()
         throws IOException, JsonParseException
     {
@@ -532,9 +548,9 @@ public final class ReaderBasedParser
             }
             if (i != INT_SPACE) {
                 if (i == INT_LF) {
-                    skipLF();
+                    _skipLF();
                 } else if (i == INT_CR) {
-                    skipCR();
+                    _skipCR();
                 } else if (i != INT_TAB) {
                     throwInvalidSpace(i);
                 }
@@ -542,12 +558,50 @@ public final class ReaderBasedParser
         }
     }
 
+    private final int _skipWSAndColon()
+        throws IOException, JsonParseException
+    {
+        int i;
+        boolean gotColon = false;
+
+        // Need to skip space, find next char
+        while (true) {
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportError("Unexpected end-of-input after field name (\""+_parsingContext.getCurrentName()+"\"");
+                }
+            }
+            i = (int) _inputBuffer[_inputPtr++];
+            if (i > INT_SPACE) {
+                if (i != INT_COLON) {
+                    break;
+                }
+                if (gotColon) {
+                    _reportUnexpectedChar(i, "expected a valid value, not duplicate colon");
+                }
+                gotColon = true;
+            } else if (i != INT_SPACE) {
+                if (i == INT_LF) {
+                    _skipLF();
+                } else if (i == INT_CR) {
+                    _skipCR();
+                } else if (i != INT_TAB) {
+                    throwInvalidSpace(i);
+                }
+            }
+        }
+        if (!gotColon) {
+            _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+        }
+        return i;
+    }
+
     protected final char _decodeEscaped()
         throws IOException, JsonParseException
     {
         if (_inputPtr >= _inputEnd) {
             if (!loadMore()) {
-                reportInvalidEOF(" in character escape sequence");
+                _reportInvalidEOF(" in character escape sequence");
             }
         }
         char c = _inputBuffer[_inputPtr++];
@@ -583,13 +637,13 @@ public final class ReaderBasedParser
         for (int i = 0; i < 4; ++i) {
             if (_inputPtr >= _inputEnd) {
                 if (!loadMore()) {
-                    reportInvalidEOF(" in character escape sequence");
+                    _reportInvalidEOF(" in character escape sequence");
                 }
             }
             int ch = (int) _inputBuffer[_inputPtr++];
             int digit = CharTypes.charToHex(ch);
             if (digit < 0) {
-                reportUnexpectedChar(ch, "expected a hex-digit for character escape sequence");
+                _reportUnexpectedChar(ch, "expected a hex-digit for character escape sequence");
             }
             value = (value << 4) | digit;
         }
