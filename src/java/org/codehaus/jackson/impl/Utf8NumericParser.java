@@ -99,7 +99,7 @@ public abstract class Utf8NumericParser
         }
         // Also, integer part is not optional
         if (intLen == 0) {
-            reportInvalidNumber("Missing integer part (next char "+getCharDesc(c)+")");
+            reportInvalidNumber("Missing integer part (next char "+_getCharDesc(c)+")");
         }
 
         int fractLen = 0;

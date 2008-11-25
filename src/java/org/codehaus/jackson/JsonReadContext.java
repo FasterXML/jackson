@@ -27,40 +27,8 @@ import org.codehaus.jackson.util.CharTypes;
  * this allows for more aggeressive inlining by JVM.
  */
 public abstract class JsonReadContext
+    extends JsonContext
 {
-    // // // Type constants used internally
-
-    protected final static int TYPE_ROOT = 0;
-    protected final static int TYPE_ARRAY = 1;
-    protected final static int TYPE_OBJECT = 2;
-
-    /*
-    ////////////////////////////////////////////////////
-    // Return codes for methods that verify which separator
-    // is used for which kind of scope.
-    // Reason for using ints over enums is that enum handling
-    // appears slower than int handling for switch statements
-    ////////////////////////////////////////////////////
-     */
-
-    public final static int HANDLED_EXPECT_NAME = 0;
-    public final static int HANDLED_EXPECT_VALUE = 1;
-    public final static int MISSING_COMMA = 2;
-    public final static int MISSING_COLON = 3;
-    public final static int NOT_EXP_SEPARATOR_NEED_VALUE = 4;
-    public final static int NOT_EXP_SEPARATOR_NEED_NAME = 5;
-
-    protected int _type;
-
-    /**
-     * Index of the currently processed entry. Starts with -1 to signal
-     * that no entries have been started, and gets advanced each
-     * time a new entry is started, either by encountering an expected
-     * separator, or with new values if no separators are expected
-     * (the case for root context).
-     */
-    protected int _index;
-
     // // // Location information (minus source reference)
 
     //long mTotalChars;
@@ -78,8 +46,8 @@ public abstract class JsonReadContext
 
     public JsonReadContext(int type, int lineNr, int colNr)
     {
+        super(type);
         _type = type;
-        _index = -1;
         _lineNr = lineNr;
         _columnNr = colNr;
     }
@@ -90,32 +58,9 @@ public abstract class JsonReadContext
     //////////////////////////////////////////////////
      */
 
+    // note: co-variant
+    @Override
     public abstract JsonReadContext getParent();
-
-    /**
-     * @return Number of entries that are complete and started.
-     */
-    public final int getEntryCount()
-    {
-        if (_type == TYPE_OBJECT) {
-            return (_index >> 1) + 1;
-        }
-        return _index+1;
-    }
-
-    /**
-     * @return Index of the currently processed entry, if any
-     */
-    public final int getCurrentIndex()
-    {
-        if (_index < 0) {
-            return 0;
-        }
-        if (_type == TYPE_OBJECT) {
-            return _index >> 1;
-        }
-        return _index;
-    }
 
     /**
      * @return Location pointing to the point where the context
@@ -129,19 +74,6 @@ public abstract class JsonReadContext
         long totalChars = -1L;
 
         return new JsonLocation(srcRef, totalChars, _lineNr, _columnNr);
-    }
-
-    public final boolean isArray() { return _type == TYPE_ARRAY; }
-    public final boolean isRoot() { return _type == TYPE_ROOT; }
-    public final boolean isObject() { return _type == TYPE_OBJECT; }
-
-    public final String getTypeDesc() {
-        switch (_type) {
-        case TYPE_ROOT: return "ROOT";
-        case TYPE_ARRAY: return "ARRAY";
-        case TYPE_OBJECT: return "OBJECT";
-        }
-        return "?";
     }
 
     public final String getCurrentName() { return _currentName; }

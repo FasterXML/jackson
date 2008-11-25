@@ -14,7 +14,9 @@ public class TestParser
             System.exit(1);
         }
         JsonFactory f = new JsonFactory();
-        JsonParser jp = f.createJsonParser(new File(args[0]));
+
+        //JsonParser jp = f.createJsonParser(new File(args[0]));
+        JsonParser jp = f.createJsonParser(new InputStreamReader(new FileInputStream(args[0]), "UTF-8"));
 
         System.out.println("Parser: "+jp);
 
@@ -23,8 +25,12 @@ public class TestParser
         while ((t = jp.nextToken()) != null) {
             System.out.print("Token: "+t);
             if (t == JsonToken.FIELD_NAME) {
-                System.out.print(", name = '"+jp.getText()+"'");
+                String name = new String(jp.getTextCharacters(), jp.getTextOffset(), jp.getTextLength());
+                System.out.print(", name = '"+name+"'/'"+jp.getCurrentName()+"'");
             } else if (t.toString().startsWith("VALUE")) {
+                if (t == JsonToken.VALUE_STRING) {
+                    System.out.print(" [len: "+jp.getTextLength()+"]");
+                }
                 System.out.print(", value = \""+jp.getText()+"\"");
             }
             System.out.println();

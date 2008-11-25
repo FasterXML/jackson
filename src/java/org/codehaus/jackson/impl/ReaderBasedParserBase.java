@@ -28,7 +28,7 @@ public abstract class ReaderBasedParserBase
      * buffer from input source, but in some cases pre-loaded buffer
      * is handed to the parser.
      */
-    protected Reader mReader;
+    protected Reader _reader;
 
     /*
     ////////////////////////////////////////////////////
@@ -40,7 +40,7 @@ public abstract class ReaderBasedParserBase
      * Current buffer from which data is read; generally data is read into
      * buffer from input source.
      */
-    protected char[] mInputBuffer;
+    protected char[] _inputBuffer;
 
     /*
     ////////////////////////////////////////////////////
@@ -51,8 +51,8 @@ public abstract class ReaderBasedParserBase
     protected ReaderBasedParserBase(IOContext ctxt, Reader r)
     {
         super(ctxt);
-        mReader = r;
-        mInputBuffer = ctxt.allocTokenBuffer();
+        _reader = r;
+        _inputBuffer = ctxt.allocTokenBuffer();
     }
 
     /*
@@ -67,8 +67,8 @@ public abstract class ReaderBasedParserBase
         _currInputProcessed += _inputEnd;
         _currInputRowStart -= _inputEnd;
 
-        if (mReader != null) {
-            int count = mReader.read(mInputBuffer, 0, mInputBuffer.length);
+        if (_reader != null) {
+            int count = _reader.read(_inputBuffer, 0, _inputBuffer.length);
             if (count > 0) {
                 _inputPtr = 0;
                 _inputEnd = count;
@@ -92,15 +92,15 @@ public abstract class ReaderBasedParserBase
                 reportInvalidEOF(eofMsg);
             }
         }
-        return mInputBuffer[_inputPtr++];
+        return _inputBuffer[_inputPtr++];
     }
 
     protected void closeInput()
         throws IOException
     {
-        Reader r = mReader;
+        Reader r = _reader;
         if (r != null) {
-            mReader = null;
+            _reader = null;
             /* Reader takes care of returning buffers it uses. Likewise,
              * we need to take care of returning temporary buffers
              * we have allocated.
@@ -120,9 +120,9 @@ public abstract class ReaderBasedParserBase
         throws IOException
     {
         super.releaseBuffers();
-        char[] buf = mInputBuffer;
+        char[] buf = _inputBuffer;
         if (buf != null) {
-            mInputBuffer = null;
+            _inputBuffer = null;
             _ioContext.releaseTokenBuffer(buf);
         }
     }

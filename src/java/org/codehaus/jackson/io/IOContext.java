@@ -55,6 +55,14 @@ public final class IOContext
      */
     protected char[] mConcatBuffer = null;
 
+    /**
+     * Reference temporary buffer Parser instances need if calling
+     * app decides it wants to access name via 'getTextCharacters' method.
+     * Regular text buffer can not be used as it may contain textual
+     * representation of the value token.
+     */
+    protected char[] mNameCopyBuffer = null;
+
     /*
     //////////////////////////////////////////////////////
     // Life-cycle
@@ -118,6 +126,15 @@ public final class IOContext
         return mConcatBuffer;
     }
 
+    public char[] allocNameCopyBuffer(int minSize)
+    {
+        if (mNameCopyBuffer != null) {
+            throw new IllegalStateException("Trying to call allocNameCopyBuffer() second time");
+        }
+        mNameCopyBuffer = mBufferRecycler.allocCharBuffer(BufferRecycler.CharBufferType.NAME_COPY_BUFFER, minSize);
+        return mNameCopyBuffer;
+    }
+
     /**
      * Method to call when all the processing buffers can be safely
      * recycled.
@@ -169,6 +186,17 @@ public final class IOContext
             }
             mConcatBuffer = null;
             mBufferRecycler.releaseCharBuffer(BufferRecycler.CharBufferType.CONCAT_BUFFER, buf);
+        }
+    }
+
+    public void releaseNameCopyBuffer(char[] buf)
+    {
+        if (buf != null) {
+            if (buf != mNameCopyBuffer) {
+                throw new IllegalArgumentException("Trying to release buffer not owned by the context");
+            }
+            mNameCopyBuffer = null;
+            mBufferRecycler.releaseCharBuffer(BufferRecycler.CharBufferType.NAME_COPY_BUFFER, buf);
         }
     }
 

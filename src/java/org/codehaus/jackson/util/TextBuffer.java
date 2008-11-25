@@ -170,6 +170,8 @@ public final class TextBuffer
         // And then reset internal input buffers, if necessary:
         if (mHasSegments) {
             clearSegments();
+        } else if (mCurrentSegment == null) {
+            mCurrentSegment = allocBuffer(len);
         }
         mCurrentSize = mSegmentSize = 0;
         append(buf, start, len);

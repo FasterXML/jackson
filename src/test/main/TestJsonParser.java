@@ -273,8 +273,11 @@ public class TestJsonParser
     {
         JsonParser jp = createParserUsingStream("{ \"key1\" : "+value+" }", "UTF-8");
         assertToken(JsonToken.START_OBJECT, jp.nextToken());
-        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        /* 24-Nov-2008, tatu: Note that depending on parser impl, we may
+         *   get the exception early or late...
+         */
         try {
+            assertToken(JsonToken.FIELD_NAME, jp.nextToken());
             jp.nextToken();
             fail("Expected an exception for malformed value keyword");
         } catch (JsonParseException jex) {
@@ -302,8 +305,11 @@ public class TestJsonParser
     {
         JsonParser jp = createParserUsingStream("{ \"key1\" : "+value+" }", "UTF-8");
         assertToken(JsonToken.START_OBJECT, jp.nextToken());
-        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        /* 24-Nov-2008, tatu: Note that depending on parser impl, we may
+         *   get the exception early or late...
+         */
         try {
+            assertToken(JsonToken.FIELD_NAME, jp.nextToken());
             jp.nextToken();
             fail("Expected an exception for malformed value keyword");
         } catch (JsonParseException jex) {

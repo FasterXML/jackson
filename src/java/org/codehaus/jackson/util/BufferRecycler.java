@@ -23,7 +23,7 @@ public final class BufferRecycler
         TOKEN_BUFFER(2000) // Tokenizable input
             ,CONCAT_BUFFER(2000) // concatenated output
             ,TEXT_BUFFER(200) // Text content from input
-            ,BOOTSTRAP_BUFFER(200) // Temporary buffer for merged reader
+            ,NAME_COPY_BUFFER(200) // Temporary buffer for getting name characters
             ;
         
         private final int size;
@@ -60,7 +60,9 @@ public final class BufferRecycler
 
     public char[] allocCharBuffer(CharBufferType type, int minSize)
     {
-        minSize = (minSize >= type.size) ? minSize : type.size;
+        if (type.size > minSize) {
+            minSize = type.size;
+        }
         int ix = type.ordinal();
         char[] buffer = mCharBuffers[ix];
         if (buffer == null || buffer.length < minSize) {

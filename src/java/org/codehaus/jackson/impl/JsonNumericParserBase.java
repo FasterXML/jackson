@@ -149,10 +149,10 @@ public abstract class JsonNumericParserBase
         mExpLength = expLen;
         mNumTypesValid = NR_UNKNOWN; // to force parsing
         if (fractLen < 1 && expLen < 1) { // integer
-            return (_currToken = JsonToken.VALUE_NUMBER_INT);
+            return JsonToken.VALUE_NUMBER_INT;
         }
         // Nope, floating point
-        return (_currToken = JsonToken.VALUE_NUMBER_FLOAT);
+        return JsonToken.VALUE_NUMBER_FLOAT;
     }
 
     /*
@@ -198,7 +198,7 @@ public abstract class JsonNumericParserBase
             return mNumberBigDecimal;
         }
         if ((mNumTypesValid & NR_DOUBLE) == 0) { // sanity check
-            throwInternal();
+            _throwInternal();
         }
         return Double.valueOf(mNumberDouble);
     }
@@ -308,7 +308,7 @@ public abstract class JsonNumericParserBase
     {
         // First things first: must be a numeric event
         if (_currToken == null || !_currToken.isNumeric()) {
-            reportError("Current token ("+_currToken+") not numeric, can not use numeric value accessors");
+            _reportError("Current token ("+_currToken+") not numeric, can not use numeric value accessors");
         }
         try {
             // Int or float?
@@ -354,7 +354,7 @@ public abstract class JsonNumericParserBase
             }
         } catch (NumberFormatException nex) {
             // Can this ever occur? Due to overflow, maybe?
-            wrapError("Malformed numeric value '"+_textBuffer.contentsAsString()+"'", nex);
+            _wrapError("Malformed numeric value '"+_textBuffer.contentsAsString()+"'", nex);
         }
     }
 
@@ -372,7 +372,7 @@ public abstract class JsonNumericParserBase
             // Let's verify it's lossless conversion by simple roundtrip
             int result = (int) mNumberLong;
             if (((long) result) != mNumberLong) {
-                reportError("Numeric value ("+getText()+") out of range of int");
+                _reportError("Numeric value ("+getText()+") out of range of int");
             }
             mNumberInt = result;
         } else if ((mNumTypesValid & NR_DOUBLE) != 0) {
@@ -388,7 +388,7 @@ public abstract class JsonNumericParserBase
             }
             mNumberInt = mNumberBigDecimal.intValue();
         } else {
-            throwInternal(); // should never get here
+            _throwInternal(); // should never get here
         }
 
         mNumTypesValid |= NR_INT;
@@ -412,7 +412,7 @@ public abstract class JsonNumericParserBase
             }
             mNumberLong = mNumberBigDecimal.longValue();
         } else {
-            throwInternal(); // should never get here
+            _throwInternal(); // should never get here
         }
 
         mNumTypesValid |= NR_LONG;
@@ -434,7 +434,7 @@ public abstract class JsonNumericParserBase
         } else if ((mNumTypesValid & NR_INT) != 0) {
             mNumberDouble = (double) mNumberInt;
         } else {
-            throwInternal(); // should never get here
+            _throwInternal(); // should never get here
         }
 
         mNumTypesValid |= NR_DOUBLE;
@@ -460,7 +460,7 @@ public abstract class JsonNumericParserBase
         } else if ((mNumTypesValid & NR_INT) != 0) {
             mNumberBigDecimal = BigDecimal.valueOf((long) mNumberInt);
         } else {
-            throwInternal(); // should never get here
+            _throwInternal(); // should never get here
         }
         mNumTypesValid |= NR_BIGDECIMAL;
     }
@@ -474,30 +474,30 @@ public abstract class JsonNumericParserBase
     protected void reportUnexpectedNumberChar(int ch, String comment)
         throws JsonParseException
     {
-        String msg = "Unexpected character ("+getCharDesc(ch)+") in numeric value";
+        String msg = "Unexpected character ("+_getCharDesc(ch)+") in numeric value";
         if (comment != null) {
             msg += ": "+comment;
         }
-        reportError(msg);
+        _reportError(msg);
     }
 
     protected void reportInvalidNumber(String msg)
         throws JsonParseException
     {
-        reportError("Invalid numeric value: "+msg);
+        _reportError("Invalid numeric value: "+msg);
     }
 
 
     protected void reportOverflowInt()
         throws IOException, JsonParseException
     {
-        reportError("Numeric value ("+getText()+") out of range of int ("+Integer.MIN_VALUE+" - "+Integer.MAX_VALUE+")");
+        _reportError("Numeric value ("+getText()+") out of range of int ("+Integer.MIN_VALUE+" - "+Integer.MAX_VALUE+")");
     }
 
     protected void reportOverflowLong()
         throws IOException, JsonParseException
     {
-        reportError("Numeric value ("+getText()+") out of range of long ("+Long.MIN_VALUE+" - "+Long.MAX_VALUE+")");
+        _reportError("Numeric value ("+getText()+") out of range of long ("+Long.MIN_VALUE+" - "+Long.MAX_VALUE+")");
     }
 
 }

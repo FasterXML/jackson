@@ -28,13 +28,19 @@ import org.codehaus.jackson.util.SymbolTable;
 
 /**
  * JsonFactory is the main factory class of Jackson package.
- * It is used for constructing streaming parser (readers) and
- * generators (writers.
+ * It is used for constructing streaming parser
+ * (aka readers, deserializers) and generators (aka writers, serializers).
  *<p>
  * Factory instances are thread-safe and reusable after configuration
  * (if any). Typically applications and services use only a single
  * globally shared factory instance, unless they need differently
  * configured factories.
+ *<p>
+ * Creation of a factory instance is a light-weight operation,
+ * and since there is no need for pluggable alternative implementations
+ * (as there is no "standard" json processor API to implement),
+ * the default constructor is used for constructing factory
+ * instances.
  *
  * @author Tatu Saloranta
  */
@@ -64,12 +70,14 @@ public final class JsonFactory
     private NameCanonicalizer _byteSymbols = NameCanonicalizer.createRoot();
 
     /**
-     * Creation of a factory instance is quite light-weight operation,
-     * and since there is no need for pluggable alternative implementations
-     * (since there is no "standard" json processor API to implement),
-     * default constructor is used for constructing factories.
-     * Also, there is no separation between parser and generator
-     * construction.
+     * Default constructor used to create factory instances.
+     * Creation of a factory instance is a light-weight operation,
+     * but it is still a good idea to reuse limited number of
+     * factory instances (and quite often just a single instance):
+     * factories are used as context for storing some reused
+     * processing objects (such as symbol tables parsers use)
+     * and this reuse only works within context of a single
+     * factory instance.
      */
     public JsonFactory() { }
 

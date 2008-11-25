@@ -9,25 +9,6 @@ import org.codehaus.jackson.*;
 public final class JsonReadContextImpl
     extends JsonReadContext
 {
-    protected final static int INT_COLON = ':';
-    protected final static int INT_COMMA = ',';
-
-    /*
-    ////////////////////////////////////////////////////
-    // Return codes for methods that verify which separator
-    // is used for which kind of scope.
-    // Reason for using ints over enums is that enum handling
-    // appears slower than int handling for switch statements
-    ////////////////////////////////////////////////////
-     */
-
-    public final static int HANDLED_EXPECT_NAME = 0;
-    public final static int HANDLED_EXPECT_VALUE = 1;
-    public final static int MISSING_COMMA = 2;
-    public final static int MISSING_COLON = 3;
-    public final static int NOT_EXP_SEPARATOR_NEED_VALUE = 4;
-    public final static int NOT_EXP_SEPARATOR_NEED_NAME = 5;
-
     // // // Configuration
 
     protected final JsonReadContextImpl _parent;
@@ -114,40 +95,14 @@ public final class JsonReadContextImpl
     //////////////////////////////////////////////////
      */
 
-    public int handleSeparator(int ch)
+    public final boolean expectComma()
     {
-        int ix = ++_index;
-        if (_type == TYPE_OBJECT) {
-            if (ix == 0) {
-                return NOT_EXP_SEPARATOR_NEED_NAME;
-            }
-            if ((ix & 1) == 0) { // expect name
-                // Other than first, must get comma first
-                if (ch == INT_COMMA) {
-                    return HANDLED_EXPECT_NAME;
-                }
-                return MISSING_COMMA;
-            }
-            // Nope, need value
-            if (ch == INT_COLON) {
-                return HANDLED_EXPECT_VALUE;
-            }
-            return MISSING_COLON;
-        }
-
-        if (_type == TYPE_ARRAY) {
-            // New entry, first or not?
-            if (ix == 0) {
-                return NOT_EXP_SEPARATOR_NEED_VALUE;
-            }
-            // Other than first, must get comma first
-            if (ch == INT_COMMA) {
-                return HANDLED_EXPECT_VALUE;
-            }
-            return MISSING_COMMA;
-        }
-        // Starting of a new entry is implied in root context
-        return NOT_EXP_SEPARATOR_NEED_VALUE;
+        /* Assumption here is that we will be getting a value (at least
+         * before calling this method again), and
+         * so will auto-increment index to avoid having to do another call
+         */
+        int ix = ++_index; // starts from -1
+        return (_type != TYPE_ROOT && ix > 0);
     }
 
     public void setCurrentName(String name)

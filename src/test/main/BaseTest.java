@@ -110,7 +110,9 @@ public class BaseTest
 
         // Ok, let's verify other accessors
         int actLen = jp.getTextLength();
-        assertEquals(str.length(), actLen);
+        if (str.length() !=  actLen) {
+            fail("Internal problem (jp.token == "+jp.getCurrentToken()+"): jp.getText().length() ['"+str+"'] == "+str.length()+"; jp.getTextLength() == "+actLen);
+        }
         char[] ch = jp.getTextCharacters();
         /*String str2 =*/ new String(ch, jp.getTextOffset(), actLen);
 

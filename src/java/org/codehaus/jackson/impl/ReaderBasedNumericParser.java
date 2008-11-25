@@ -68,7 +68,7 @@ public abstract class ReaderBasedNumericParser
                 if (ptr >= _inputEnd) {
                     break dummy_loop;
                 }
-                ch = mInputBuffer[ptr++];
+                ch = _inputBuffer[ptr++];
                 // First check: must have a digit to follow minus sign
                 if (ch > INT_9 || ch < INT_0) {
                     reportUnexpectedNumberChar(ch, "expected digit (0-9) to follow minus sign, for valid numeric value");
@@ -94,13 +94,13 @@ public abstract class ReaderBasedNumericParser
                 if (ptr >= _inputEnd) {
                     break dummy_loop;
                 }
-                ch = (int) mInputBuffer[ptr++];
+                ch = (int) _inputBuffer[ptr++];
                 if (ch < INT_0 || ch > INT_9) {
                     break int_loop;
                 }
                 // The only check: no leading zeroes
                 if (++intLen == 2) { // To ensure no leading zeroes
-                    if (mInputBuffer[ptr-2] == '0') {
+                    if (_inputBuffer[ptr-2] == '0') {
                         reportInvalidNumber("Leading zeroes not allowed");
                     }
                 }
@@ -115,7 +115,7 @@ public abstract class ReaderBasedNumericParser
                     if (ptr >= inputLen) {
                         break dummy_loop;
                     }
-                    ch = (int) mInputBuffer[ptr++];
+                    ch = (int) _inputBuffer[ptr++];
                     if (ch < INT_0 || ch > INT_9) {
                         break fract_loop;
                     }
@@ -133,19 +133,19 @@ public abstract class ReaderBasedNumericParser
                     break dummy_loop;
                 }
                 // Sign indicator?
-                ch = (int) mInputBuffer[ptr++];
+                ch = (int) _inputBuffer[ptr++];
                 if (ch == INT_MINUS || ch == INT_PLUS) { // yup, skip for now
                     if (ptr >= inputLen) {
                         break dummy_loop;
                     }
-                    ch = (int) mInputBuffer[ptr++];
+                    ch = (int) _inputBuffer[ptr++];
                 }
                 while (ch <= INT_9 && ch >= INT_0) {
                     ++expLen;
                     if (ptr >= inputLen) {
                         break dummy_loop;
                     }
-                    ch = (int) mInputBuffer[ptr++];
+                    ch = (int) _inputBuffer[ptr++];
                 }
                 // must be followed by sequence of ints, one minimum
                 if (expLen == 0) {
@@ -157,7 +157,7 @@ public abstract class ReaderBasedNumericParser
             --ptr; // need to push back following separator
             _inputPtr = ptr;
             int len = ptr-startPtr;
-            _textBuffer.resetWithShared(mInputBuffer, startPtr, len);
+            _textBuffer.resetWithShared(_inputBuffer, startPtr, len);
             return reset(negative, intLen, fractLen, expLen);
         } while (false);
 
@@ -196,7 +196,7 @@ public abstract class ReaderBasedNumericParser
                 eof = true;
                 break int_loop;
             }
-            c = mInputBuffer[_inputPtr++];
+            c = _inputBuffer[_inputPtr++];
             if (c < INT_0 || c > INT_9) {
                 break int_loop;
             }
@@ -215,7 +215,7 @@ public abstract class ReaderBasedNumericParser
         }
         // Also, integer part is not optional
         if (intLen == 0) {
-            reportInvalidNumber("Missing integer part (next char "+getCharDesc(c)+")");
+            reportInvalidNumber("Missing integer part (next char "+_getCharDesc(c)+")");
         }
 
         int fractLen = 0;
@@ -229,7 +229,7 @@ public abstract class ReaderBasedNumericParser
                     eof = true;
                     break fract_loop;
                 }
-                c = mInputBuffer[_inputPtr++];
+                c = _inputBuffer[_inputPtr++];
                 if (c < INT_0 || c > INT_9) {
                     break fract_loop;
                 }
@@ -254,7 +254,7 @@ public abstract class ReaderBasedNumericParser
             }
             outBuf[outPtr++] = c;
             // Not optional, can require that we get one more char
-            c = (_inputPtr < _inputEnd) ? mInputBuffer[_inputPtr++]
+            c = (_inputPtr < _inputEnd) ? _inputBuffer[_inputPtr++]
                 : getNextChar("expected a digit for number exponent");
             // Sign indicator?
             if (c == '-' || c == '+') {
@@ -264,7 +264,7 @@ public abstract class ReaderBasedNumericParser
                 }
                 outBuf[outPtr++] = c;
                 // Likewise, non optional:
-                c = (_inputPtr < _inputEnd) ? mInputBuffer[_inputPtr++]
+                c = (_inputPtr < _inputEnd) ? _inputBuffer[_inputPtr++]
                     : getNextChar("expected a digit for number exponent");
             }
 
@@ -280,7 +280,7 @@ public abstract class ReaderBasedNumericParser
                     eof = true;
                     break exp_loop;
                 }
-                c = mInputBuffer[_inputPtr++];
+                c = _inputBuffer[_inputPtr++];
             }
             // must be followed by sequence of ints, one minimum
             if (expLen == 0) {

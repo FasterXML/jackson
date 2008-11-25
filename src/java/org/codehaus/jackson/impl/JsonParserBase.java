@@ -31,6 +31,7 @@ public abstract class JsonParserBase
     final static int INT_BACKSLASH = '\\';
     final static int INT_SLASH = '/';
     final static int INT_COLON = ':';
+    final static int INT_COMMA = ',';
 
     // Letters we need
     final static int INT_b = 'b';
@@ -131,7 +132,18 @@ public abstract class JsonParserBase
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Information about parser context, context in which
+     * the next token is to be parsed (root, array, object).
+     */
     protected JsonReadContextImpl _parsingContext;
+
+    /**
+     * Secondary token related to the current token: used when
+     * the current token is <code>FIELD_NAME</code> but the
+     * actual value token is also known.
+     */
+    protected JsonToken _nextToken;
 
     /**
      * Flag that indicates that the current token has not yet
@@ -153,10 +165,18 @@ public abstract class JsonParserBase
     protected final TextBuffer _textBuffer;
 
     /**
-     * Flag set to indicate whether field name parsed is available
-     * from the text buffer or not.
+     * Temporary buffer that is needed if field name is accessed
+     * using {@link #getTextCharacters} method (instead of String
+     * returning alternatives)
      */
-    protected boolean _fieldInBuffer = false;
+    protected char[] _nameCopyBuffer = null;
+
+    /**
+     * Flag set to indicate whether the field name is available
+     * from the name copy buffer or not (in addition to its String
+     * representation  being available via read context)
+     */
+    protected boolean _nameCopied = false;
 
     /*
     ////////////////////////////////////////////////////
@@ -239,13 +259,12 @@ public abstract class JsonParserBase
 
     /**
      * Method that can be called to get the name associated with
-     * the current event. Will return null for all token types
-     * except for {@link JsonToken#FIELD_NAME}.
+     * the current event.
      */
     public String getCurrentName()
         throws IOException, JsonParseException
     {
-        return (_currToken == JsonToken.FIELD_NAME) ? _parsingContext.getCurrentName() : null;
+        return _parsingContext.getCurrentName();
     }
 
     public void close()
@@ -328,11 +347,18 @@ public abstract class JsonParserBase
             switch (_currToken) {
                 
             case FIELD_NAME:
-                if (!_fieldInBuffer) {
-                    _textBuffer.resetWithString(_parsingContext.getCurrentName());
-                    _fieldInBuffer = true;
+                if (!_nameCopied) {
+                    String name = _parsingContext.getCurrentName();
+                    int nameLen = name.length();
+                    if (_nameCopyBuffer == null) {
+                        _nameCopyBuffer = _ioContext.allocNameCopyBuffer(nameLen);
+                    } else if (_nameCopyBuffer.length < nameLen) {
+                        _nameCopyBuffer = new char[nameLen];
+                    }
+                    name.getChars(0, nameLen, _nameCopyBuffer, 0);
+                    _nameCopied = true;
                 }
-                return _textBuffer.getTextBuffer();
+                return _nameCopyBuffer;
 
             case VALUE_STRING:
                 if (_tokenIncomplete) {
@@ -471,6 +497,11 @@ public abstract class JsonParserBase
         throws IOException
     {
         _textBuffer.releaseBuffers();
+        char[] buf = _nameCopyBuffer;
+        if (buf != null) {
+            _nameCopyBuffer = null;
+            _ioContext.releaseNameCopyBuffer(buf);
+        }
     }
 
     /**
@@ -495,11 +526,11 @@ public abstract class JsonParserBase
     protected void reportUnexpectedChar(int ch, String comment)
         throws JsonParseException
     {
-        String msg = "Unexpected character ("+getCharDesc(ch)+")";
+        String msg = "Unexpected character ("+_getCharDesc(ch)+")";
         if (comment != null) {
             msg += ": "+comment;
         }
-        reportError(msg);
+        _reportError(msg);
     }
 
     protected void reportInvalidEOF()
@@ -511,30 +542,30 @@ public abstract class JsonParserBase
     protected void reportInvalidEOF(String msg)
         throws JsonParseException
     {
-        reportError("Unexpected end-of-input"+msg);
+        _reportError("Unexpected end-of-input"+msg);
     }
 
     protected void throwInvalidSpace(int i)
         throws JsonParseException
     {
         char c = (char) i;
-        String msg = "Illegal character ("+getCharDesc(c)+"): only regular white space (\\r, \\n, \\t) is allowed between tokens";
-        reportError(msg);
+        String msg = "Illegal character ("+_getCharDesc(c)+"): only regular white space (\\r, \\n, \\t) is allowed between tokens";
+        _reportError(msg);
     }
 
     protected void throwUnquotedSpace(int i, String ctxtDesc)
         throws JsonParseException
     {
         char c = (char) i;
-        String msg = "Illegal unquoted character ("+getCharDesc(c)+"): has to be escaped using backslash to be included in "+ctxtDesc;
-        reportError(msg);
+        String msg = "Illegal unquoted character ("+_getCharDesc(c)+"): has to be escaped using backslash to be included in "+ctxtDesc;
+        _reportError(msg);
     }
 
     protected void reportMismatchedEndMarker(int actCh, char expCh)
         throws JsonParseException
     {
         String startDesc = ""+_parsingContext.getStartLocation(_ioContext.getSourceReference());
-        reportError("Unexpected close marker '"+((char) actCh)+"': expected '"+expCh+"' (for "+_parsingContext.getTypeDesc()+" starting at "+startDesc+")");
+        _reportError("Unexpected close marker '"+((char) actCh)+"': expected '"+expCh+"' (for "+_parsingContext.getTypeDesc()+" starting at "+startDesc+")");
     }
 
     /*
@@ -543,7 +574,7 @@ public abstract class JsonParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected static String getCharDesc(int ch)
+    protected final static String _getCharDesc(int ch)
     {
         char c = (char) ch;
         if (Character.isISOControl(c)) {
@@ -555,19 +586,19 @@ public abstract class JsonParserBase
         return "'"+c+"' (code "+ch+")";
     }
 
-    protected void reportError(String msg)
+    protected final void _reportError(String msg)
         throws JsonParseException
     {
         throw new JsonParseException(msg, getCurrentLocation());
     }
 
-    protected void wrapError(String msg, Throwable t)
+    protected final void _wrapError(String msg, Throwable t)
         throws JsonParseException
     {
         throw new JsonParseException(msg, getCurrentLocation(), t);
     }
 
-    protected void throwInternal()
+    protected final void _throwInternal()
     {
         throw new RuntimeException("Internal error: this code path should never get executed");
     }

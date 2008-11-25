@@ -18,8 +18,9 @@ import java.io.*;
 import java.math.BigDecimal;
 
 /**
- * This is the public API implemented by concrete JSON parser
- * sub-classes.
+ * Base class that defines public API for reading JSON content.
+ * Instances are created using factory methods of
+ * a {@link JsonFactory} instance.
  *
  * @author Tatu Saloranta
  */
@@ -63,6 +64,9 @@ public abstract class JsonParser
      * {@link JsonToken#END_OBJECT} or {@link JsonToken#END_ARRAY}
      * (possibly skipping nested pairs of START/END OBJECT/ARRAY tokens
      * as well as value tokens).
+     * The idea is that after calling this method, application
+     * will call {@link #nextToken} to point to the next
+     * available token, if any.
      */
     public abstract void skipChildren()
         throws IOException, JsonParseException;
@@ -84,8 +88,10 @@ public abstract class JsonParser
 
     /**
      * Method that can be called to get the name associated with
-     * the current event. Will return null for all token types
-     * except for {@link JsonToken#FIELD_NAME}.
+     * the current event: for {@link JsonToken#FIELD_NAME} it will
+     * be the same as {@link #getName}, for field values Objects name
+     * of matching field name; and for others (array values, root-level
+     * values) null.
      */
     public abstract String getCurrentName()
         throws IOException, JsonParseException;
@@ -149,12 +155,47 @@ public abstract class JsonParser
     public abstract String getText()
         throws IOException, JsonParseException;
 
+    /**
+     * Method similar to {@link #getText}, but that will return
+     * underlying (unmodifiable) character array that contains
+     * textual value, instead of constructing a String object
+     * to contain this information.
+     * Note, however, that:
+     *<ul>
+     * <li>Textual contents are not guaranteed to start at
+     *   index 0 (rather, call {@link #getTextOffset}) to
+     *   know the actual offset
+     *  </li>
+     * <li>Length of textual contents may be less than the
+     *  length of returned buffer: call {@link #getTextLength}
+     *  for actual length of returned content.
+     *  </li>
+     * </ul>
+     *<p>
+     * Note that caller <b>MUST NOT</b> modify the returned
+     * character array in any way -- doing so may corrupt
+     * current parser state and render parser instance useless.
+     *<p>
+     * The only reason to call this method (over {@link #getText})
+     * is to avoid construction of a String object (which
+     * will make a copy of contents).
+     */
     public abstract char[] getTextCharacters()
         throws IOException, JsonParseException;
 
+    /**
+     * @return Number of characters within buffer returned
+     *   by {@link #getTextCharacters} that are part of
+     *   textual content of the current token.
+     */
     public abstract int getTextLength()
         throws IOException, JsonParseException;
 
+    /**
+     * @return Offset of the first character within buffer returned
+     *   by {@link #getTextCharacters} that is part of
+     *   textual content of the current token.
+     */
     public abstract int getTextOffset()
         throws IOException, JsonParseException;
 
@@ -222,20 +263,63 @@ public abstract class JsonParser
      * Method that can be used to read (and consume -- results
      * may not be accessible using other methods after the call)
      * base64-encoded binary data
-     * included in the current textual json value. It is equivalent
-     * to getting String value via {@link #getText} and decoding
-     * result, but should be significantly more performant.
+     * included in the current textual json value.
+     * It works similar to getting String value via {@link #getText}
+     * and decoding result (except for decoding part),
+     * but should be significantly more performant.
      *<p>
      * Note that the contents may be consumed by this call, and thus
      * only first call to method will produce any output. Likewise,
      * calls to methods like {@link #getText} are not guaranteed
-     * to return anything.
+     * to return anything, although they are not prevent from returning
+     * some subset of content. That is, results of those calls are
+     * undefined if done after call to this method.
+     *<p>
+     * Main benefit of this method compared to
+     * {@link #readBinaryValue()} is that this method does not hold
+     * the whole value contents in memory, and can be used to avoid
+     * excessive memory usage, if the base64 segment is long.
      *
-     * @param results Output stream used for returning decoded binary
-     *   data
+     * @param b64variant Expected variant of base64 encoded
+     *   content (see {@link Base64Variants} for definitions
+     *   of "standard" variants).
      *
-     * @return Number of bytes decoded and written to <b>results</b>
+     * @return Input stream through which decoded contents can
+     *   be read
      */
-    public abstract int readBinaryValue(OutputStream results)
+    public abstract InputStream readBinaryValue(Base64Variant b64variant)
         throws IOException, JsonParseException;
+
+    public final InputStream readBinaryValue() throws IOException, JsonParseException
+    {
+        return readBinaryValue(Base64Variants.getDefaultVariant());
+    }
+
+    /**
+     * Method that can be used to read (and consume -- results
+     * may not be accessible using other methods after the call)
+     * base64-encoded binary data
+     * included in the current textual json value.
+     * It works similar to getting String value via {@link #getText}
+     * and decoding result (except for decoding part),
+     * but should be significantly more performant.
+     *<p>
+     * Note that the contents may be consumed by this call so that
+     * the textual contents may not be visible via tohers calls
+     * such as {@link #getText}. However, contents will be retained
+     * as long as parser is not advanced, so that multiple calls
+     * to this method will return the same contents.
+     *<p>
+     * Compared to {@link #readBinaryValue(OutputStream)} the main
+     * difference is that this method will read and retain the whole
+     * decoded binary results in memory until parser is advanced.
+     *
+     * @param b64variant Expected variant of base64 encoded
+     *   content (see {@link Base64Variants} for definitions
+     *   of "standard" variants).
+     *
+     * @return Decoded binary data
+     */
+    //public abstract byte[] readBinaryValue(Base64Variant b64variant) throws IOException, JsonParseException;
+    //public abstract byte[] readBinaryValue() throws IOException, JsonParseException;
 }

@@ -150,7 +150,6 @@ public class TestFromJsonType
     {
         JsonParser jp = new JsonFactory().createJsonParser(new StringReader(input));
         assertEquals(JsonToken.START_OBJECT, jp.nextToken());
-        
         assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
         assertEquals(FIELD4, getAndVerifyText(jp));
         assertEquals(JsonToken.VALUE_STRING, jp.nextToken());

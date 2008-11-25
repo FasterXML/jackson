@@ -14,14 +14,17 @@
     <property name="dir.build" location="${basedir}/build" />
     <property name="dir.build.classes" location="${dir.build}/classes" />
 
-    <!-- Documentation -->
-    <property name="dir.doc" location="${basedir}/doc" />
-    <property name="dir.javadoc" location="${dir.build}/javadoc" />
     <!-- Test suite -->
     <property name="dir.test" location="${basedir}/test" />
     <property name="dir.test.classes" location="${dir.test}/classes" />
     <property name="dir.test.results" location="${dir.test}/results" />
     <property name="dir.test.xmlresults" location="${dir.test.results}/xml" />
+    <!-- some support for perf testing -->
+    <property name="dir.perf.classes" location="${dir.build}/perf-classes" />
+
+    <!-- Documentation -->
+    <property name="dir.doc" location="${basedir}/doc" />
+    <property name="dir.javadoc" location="${dir.build}/javadoc" />
 
     <!-- Distribution -->
     <property name="dir.dist" location="${basedir}/dist" />
@@ -163,14 +166,15 @@
     </target>
 
     <target name="compile-perf" depends="compile">
+      <mkdir dir="${dir.perf.classes}" />
         <!-- Let's also compile micro-benchmarks... -->
-        <javac srcir="${SrcDir}/perf" destdir="${dir.build.classes}"
-            debug="false"
+        <javac srcdir="${dir.src}/perf" destdir="${dir.perf.classes}" debug="false"
         >
             <classpath>
                <fileset dir="${dir.lib}/perf">
                     <include name="*.jar" />
                </fileset>
+               <pathelement path="${dir.build.classes}"/>  
             </classpath>
             <include name="**/*.java" />
         </javac>
@@ -460,6 +464,22 @@
             <report todir="${dir.test.results}" />
         </junitreport>
 -->
+    </target>
+
+    <!-- Running a single Unit Test -->
+    <target name="test.single" depends="test.compile">
+         <fail unless="testname" message="Must define -Dtestname" />
+       <!-- showoutput 'yes' to allow outputting debug msgs... -->
+        <junit fork="no" maxmemory="128M" showoutput="no" printsummary="yes">
+          <formatter type="plain" usefile="no" />
+          <test name="${testname}" />
+          <classpath refid="compile-classpath" />
+          <classpath>
+                <pathelement path="${dir.build.classes}" />
+                <pathelement location="${dir.test.classes}" /> 
+                <path refid="junit-libs"/>
+          </classpath>     
+        </junit>
     </target>
 
 </project>
