@@ -2,7 +2,8 @@ package main;
 
 import org.codehaus.jackson.*;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.*;
 
 /**
  * Set of basic unit tests for verifying that the basic parser
@@ -49,14 +50,62 @@ public class TestJsonParser
             ;
 
         JsonParser jp = createParserUsingStream(DOC, "UTF-8");
+
+        JsonReadContext ctxt = jp.getParsingContext();
+        assertTrue(ctxt.inRoot());
+        assertFalse(ctxt.inArray());
+        assertFalse(ctxt.inObject());
+        assertEquals(0, ctxt.getEntryCount());
+        assertEquals(0, ctxt.getCurrentIndex());
+
+        /* Before advancing to content, we should have following
+         * default state...
+         */
+        assertFalse(jp.hasCurrentToken());
+        assertNull(jp.getText());
+        assertNull(jp.getTextCharacters());
+        assertEquals(0, jp.getTextLength());
+        // not sure if this is defined but:
+        assertEquals(0, jp.getTextOffset());
+
         assertToken(JsonToken.START_OBJECT, jp.nextToken());
+
+        assertTrue(jp.hasCurrentToken());
+        JsonLocation loc = jp.getTokenLocation();
+        assertNotNull(loc);
+        assertEquals(1, loc.getLineNr());
+        assertEquals(1, loc.getColumnNr());
+
+        ctxt = jp.getParsingContext();
+        assertFalse(ctxt.inRoot());
+        assertFalse(ctxt.inArray());
+        assertTrue(ctxt.inObject());
+        assertEquals(0, ctxt.getEntryCount());
+        assertEquals(0, ctxt.getCurrentIndex());
 
         assertToken(JsonToken.FIELD_NAME, jp.nextToken());
         verifyFieldName(jp, "key1");
+        assertEquals(2, jp.getTokenLocation().getLineNr());
+
+        ctxt = jp.getParsingContext();
+        assertFalse(ctxt.inRoot());
+        assertFalse(ctxt.inArray());
+        assertTrue(ctxt.inObject());
+        assertEquals(1, ctxt.getEntryCount());
+        assertEquals(0, ctxt.getCurrentIndex());
+
         assertToken(JsonToken.VALUE_NULL, jp.nextToken());
+
+        ctxt = jp.getParsingContext();
+        assertEquals(1, ctxt.getEntryCount());
+        assertEquals(0, ctxt.getCurrentIndex());
 
         assertToken(JsonToken.FIELD_NAME, jp.nextToken());
         verifyFieldName(jp, "key2");
+        ctxt = jp.getParsingContext();
+        assertEquals(2, ctxt.getEntryCount());
+        assertEquals(1, ctxt.getCurrentIndex());
+
         assertToken(JsonToken.VALUE_TRUE, jp.nextToken());
 
         assertToken(JsonToken.FIELD_NAME, jp.nextToken());
@@ -137,6 +186,57 @@ public class TestJsonParser
         assertToken(JsonToken.END_ARRAY, jp.nextToken());
 
         jp.close();
+    }
+
+    public void testNameEscaping() throws IOException
+    {
+        _testNameEscaping(false);
+        _testNameEscaping(true);
+    }
+
+    private void _testNameEscaping(boolean useStream) throws IOException
+    {
+        final Map<String,String> NAME_MAP = new LinkedHashMap<String,String>();
+        NAME_MAP.put("", "");
+        NAME_MAP.put("\\\\", "\\");
+        NAME_MAP.put("\\r", "\r");
+        NAME_MAP.put("\\n", "\n");
+        NAME_MAP.put("\\t", "\t");
+        NAME_MAP.put("\\r\\n", "\r\n");
+        NAME_MAP.put("\\\"funny\\\"", "\"funny\"");
+        NAME_MAP.put("Line\\nfeed", "Line\nfeed");
+
+        JsonFactory jf = new JsonFactory();
+        int entry = 0;
+        for (Map.Entry<String,String> en : NAME_MAP.entrySet()) {
+            ++entry;
+            String input = en.getKey();
+            String expResult = en.getValue();
+            final String DOC = "{ \""+input+"\":null}";
+            JsonParser jp = useStream ?
+                jf.createJsonParser(new ByteArrayInputStream(DOC.getBytes("UTF-8")))
+                : jf.createJsonParser(new StringReader(DOC));
+
+            assertToken(JsonToken.START_OBJECT, jp.nextToken());
+            assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+            // first, sanity check (field name == getText()
+            String act = jp.getCurrentName();
+            assertEquals(act, getAndVerifyText(jp));
+            if (!expResult.equals(act)) {
+                String msg = "Failed for name #"+entry+"/"+NAME_MAP.size();
+                if (expResult.length() != act.length()) {
+                    /*
+System.err.println("DEBUG -> '"+act+"', jp = "+jp);
+for (int i = 0; i < act.length(); ++i) System.err.println("Char: "+((int) act.charAt(i)));
+                    */
+                    fail(msg+": exp length "+expResult.length()+", actual "+act.length());
+                }
+                assertEquals(msg, expResult, act);
+            }
+            assertToken(JsonToken.VALUE_NULL, jp.nextToken());
+            assertToken(JsonToken.END_OBJECT, jp.nextToken());
+            jp.close();
+        }
     }
 
     /*

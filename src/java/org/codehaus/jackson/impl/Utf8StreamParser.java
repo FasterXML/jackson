@@ -257,7 +257,12 @@ public final class Utf8StreamParser
         }
 
         // If so, can also unroll loops nicely
-        final int[] codes = CharTypes.getInputCode();
+        /* 25-Nov-2008, tatu: This may seem weird, but here we do
+         *   NOT want to worry about UTF-8 decoding. Rather, we'll
+         *   assume that part is ok (if not it will get caught
+         *   later on), and just handle quotes and backslashes here.
+         */
+        final int[] codes = CharTypes.getInputCodeLatin1();
 
         int q = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[q] != 0) {
@@ -304,7 +309,8 @@ public final class Utf8StreamParser
     protected Name parseMediumFieldName(int q1, int q2)
         throws IOException, JsonParseException
     {
-        final int[] codes = CharTypes.getInputCode();
+        // As mentioned earlier, we do ignore UTF-8 aspects at this point
+        final int[] codes = CharTypes.getInputCodeLatin1();
 
         // Ok, got 5 name bytes so far
         int i = _inputBuffer[_inputPtr++] & 0xFF;
@@ -346,7 +352,8 @@ public final class Utf8StreamParser
     protected Name parseLongFieldName(int q)
         throws IOException, JsonParseException
     {
-        final int[] codes = CharTypes.getInputCode();
+        // As explained above, will ignore utf-8 encoding at this point
+        final int[] codes = CharTypes.getInputCodeLatin1();
         int qlen = 2;
 
         while (true) {
@@ -447,7 +454,12 @@ public final class Utf8StreamParser
                                          int currQuadBytes)
         throws IOException, JsonParseException
     {
-        final int[] codes = CharTypes.getInputCode();
+        /* 25-Nov-2008, tatu: This may seem weird, but here we do
+         *   NOT want to worry about UTF-8 decoding. Rather, we'll
+         *   assume that part is ok (if not it will get caught
+         *   later on), and just handle quotes and backslashes here.
+         */
+        final int[] codes = CharTypes.getInputCodeLatin1();
 
         while (true) {
             if (codes[ch] != 0) {
@@ -701,6 +713,7 @@ public final class Utf8StreamParser
         int c;
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
 
+        // Here we do want to do full decoding, hence:
         final int[] codes = CharTypes.getInputCodeUtf8();
         final byte[] inputBuffer = _inputBuffer;
 
@@ -791,6 +804,7 @@ public final class Utf8StreamParser
     protected void _skipString()
         throws IOException, JsonParseException
     {
+        // Need to be fully UTF-8 aware here:
         final int[] codes = CharTypes.getInputCodeUtf8();
         final byte[] inputBuffer = _inputBuffer;
 

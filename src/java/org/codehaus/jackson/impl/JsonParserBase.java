@@ -288,8 +288,9 @@ public abstract class JsonParserBase
     public JsonLocation getTokenLocation()
     {
         return new JsonLocation(_ioContext.getSourceReference(),
-                                _tokenInputTotal,
-                                _tokenInputRow, _tokenInputCol + 1);
+                                getTokenCharacterOffset(),
+                                getTokenLineNr(),
+                                getTokenColumnNr());
     }
 
     /**
@@ -298,9 +299,10 @@ public abstract class JsonParserBase
      */
     public JsonLocation getCurrentLocation()
     {
+        int col = _inputPtr - _currInputRowStart + 1; // 1-based
         return new JsonLocation(_ioContext.getSourceReference(),
                                 _currInputProcessed + _inputPtr - 1,
-                                _currInputRow, _inputPtr - _currInputRowStart);
+                                _currInputRow, col);
     }
 
     /*
@@ -432,7 +434,7 @@ public abstract class JsonParserBase
 
     public final long getTokenCharacterOffset() { return _tokenInputTotal; }
     public final int getTokenLineNr() { return _tokenInputRow; }
-    public final int getTokenColumnNr() { return _tokenInputCol; }
+    public final int getTokenColumnNr() { return _tokenInputCol+1; }
 
     /*
     ////////////////////////////////////////////////////

@@ -209,8 +209,33 @@ public class TestJsonGenerator
     {
         StringWriter sw = new StringWriter();
         JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+
+        JsonWriteContext ctxt = gen.getOutputContext();
+        assertTrue(ctxt.inRoot());
+        assertFalse(ctxt.inArray());
+        assertFalse(ctxt.inObject());
+        assertEquals(0, ctxt.getEntryCount());
+        assertEquals(0, ctxt.getCurrentIndex());
+
         gen.writeStartArray();
+
+        ctxt = gen.getOutputContext();
+        assertFalse(ctxt.inRoot());
+        assertTrue(ctxt.inArray());
+        assertFalse(ctxt.inObject());
+        assertEquals(0, ctxt.getEntryCount());
+        assertEquals(0, ctxt.getCurrentIndex());
+
         gen.writeEndArray();
+
+        ctxt = gen.getOutputContext();
+        assertTrue("Should be in root, was "+ctxt.getTypeDesc(), ctxt.inRoot());
+        assertFalse(ctxt.inArray());
+        assertFalse(ctxt.inObject());
+        assertEquals(1, ctxt.getEntryCount());
+        // Index won't yet move
+        assertEquals(0, ctxt.getCurrentIndex());
+
         gen.close();
         String docStr = sw.toString();
         JsonParser jp = createParserUsingReader(docStr);
@@ -280,9 +305,35 @@ public class TestJsonGenerator
     {
         StringWriter sw = new StringWriter();
         JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+
+        JsonWriteContext ctxt = gen.getOutputContext();
+        assertTrue(ctxt.inRoot());
+        assertFalse(ctxt.inArray());
+        assertFalse(ctxt.inObject());
+        assertEquals(0, ctxt.getEntryCount());
+        assertEquals(0, ctxt.getCurrentIndex());
+
         gen.writeStartObject();
+
+        ctxt = gen.getOutputContext();
+        assertFalse(ctxt.inRoot());
+        assertFalse(ctxt.inArray());
+        assertTrue(ctxt.inObject());
+        assertEquals(0, ctxt.getEntryCount());
+        assertEquals(0, ctxt.getCurrentIndex());
+
         gen.writeEndObject();
+
+        ctxt = gen.getOutputContext();
+        assertTrue(ctxt.inRoot());
+        assertFalse(ctxt.inArray());
+        assertFalse(ctxt.inObject());
+        assertEquals(1, ctxt.getEntryCount());
+        // Index won't yet move
+        assertEquals(0, ctxt.getCurrentIndex());
+
         gen.close();
+
         String docStr = sw.toString();
         JsonParser jp = createParserUsingReader(docStr);
         assertEquals(JsonToken.START_OBJECT, jp.nextToken());

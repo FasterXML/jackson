@@ -35,8 +35,8 @@ public final class CharTypes
      */
     final static int[] sInputCodesUtf8;
     static {
-        sInputCodesUtf8 = new int[sInputCodes.length];
-        System.arraycopy(sInputCodes, 0, sInputCodesUtf8, 0, sInputCodes.length);
+        int[] table = new int[sInputCodes.length];
+        System.arraycopy(sInputCodes, 0, table, 0, sInputCodes.length);
         for (int c = 128; c < 256; ++c) {
             int code;
 
@@ -52,8 +52,9 @@ public final class CharTypes
                 // And -1 seems like a good "universal" error marker...
                 code = -1;
             }
-            sInputCodes[c] = code;
+            table[c] = code;
         }
+        sInputCodesUtf8 = table;
     }
 
     /**
@@ -98,8 +99,8 @@ public final class CharTypes
         }
     }
 
-    public static int[] getInputCode() { return sInputCodes; }
-    public static int[] getInputCodeUtf8() { return sInputCodes; }
+    public static int[] getInputCodeLatin1() { return sInputCodes; }
+    public static int[] getInputCodeUtf8() { return sInputCodesUtf8; }
     public static int[] getOutputEscapes() { return sOutputEscapes; }
 
     public static int charToHex(int ch)

@@ -12,6 +12,7 @@ Description:
    (reported by Michael D)
   * Fixed a problem with CR (\r) handling; was sometimes skipping
     characters (problematic if there's no indentation).
+  * UTF-8 decoding was not reliably working for names.
 
   Improvements:
 

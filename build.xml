@@ -468,11 +468,11 @@
 
     <!-- Running a single Unit Test -->
     <target name="test.single" depends="test.compile">
-         <fail unless="testname" message="Must define -Dtestname" />
+         <fail unless="test" message="Must define -Dtest" />
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="no" maxmemory="128M" showoutput="no" printsummary="yes">
           <formatter type="plain" usefile="no" />
-          <test name="${testname}" />
+          <test name="${test}" />
           <classpath refid="compile-classpath" />
           <classpath>
                 <pathelement path="${dir.build.classes}" />

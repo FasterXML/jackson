@@ -246,7 +246,7 @@ public final class ReaderBasedParser
         final int inputLen = _inputEnd;
 
         if (ptr < inputLen) {
-            final int[] codes = CharTypes.getInputCode();
+            final int[] codes = CharTypes.getInputCodeLatin1();
             final int maxCode = codes.length;
 
             do {
@@ -338,7 +338,7 @@ public final class ReaderBasedParser
         final int inputLen = _inputEnd;
 
         if (ptr < inputLen) {
-            final int[] codes = CharTypes.getInputCode();
+            final int[] codes = CharTypes.getInputCodeLatin1();
             final int maxCode = codes.length;
 
             do {
