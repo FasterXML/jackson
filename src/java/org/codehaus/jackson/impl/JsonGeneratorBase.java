@@ -252,18 +252,21 @@ public abstract class JsonGeneratorBase
 
         switch (t) {
         case START_ARRAY:
-            endMarker = JsonToken.END_ARRAY;
+            writeStartArray();
+            while (jp.nextToken() != JsonToken.END_ARRAY) {
+                copyCurrentStructure(jp);
+            }
+            writeEndArray();
             break;
         case START_OBJECT:
-            endMarker = JsonToken.END_OBJECT;
+            writeStartObject();
+            while (jp.nextToken() != JsonToken.END_OBJECT) {
+                copyCurrentStructure(jp);
+            }
+            writeEndObject();
             break;
         default: // others are simple:
             copyCurrentEvent(jp);
-            return;
-        }
-
-        while (jp.nextToken() != endMarker) {
-            copyCurrentStructure(jp);
         }
     }
 
