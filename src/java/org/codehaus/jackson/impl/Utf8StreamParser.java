@@ -35,12 +35,13 @@ public final class Utf8StreamParser
     ////////////////////////////////////////////////////
      */
 
-    public Utf8StreamParser(IOContext ctxt, InputStream in,
+    public Utf8StreamParser(IOContext ctxt, int features,
+                            InputStream in,
                             NameCanonicalizer sym,
                             byte[] inputBuffer, int start, int end,
                             boolean bufferRecyclable)
     {
-        super(ctxt, in, inputBuffer, start, end, bufferRecyclable);
+        super(ctxt, features, in, inputBuffer, start, end, bufferRecyclable);
         _symbols = sym;
     }
 

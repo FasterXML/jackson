@@ -48,9 +48,9 @@ public abstract class ReaderBasedParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected ReaderBasedParserBase(IOContext ctxt, Reader r)
+    protected ReaderBasedParserBase(IOContext ctxt, int features, Reader r)
     {
-        super(ctxt);
+        super(ctxt, features);
         _reader = r;
         _inputBuffer = ctxt.allocTokenBuffer();
     }
@@ -75,7 +75,7 @@ public abstract class ReaderBasedParserBase
                 return true;
             }
             // End of input
-            closeInput();
+            _closeInput();
             // Should never return 0, so let's fail
             if (count == 0) {
                 throw new IOException("Reader returned 0 characters when trying to read "+_inputEnd);
@@ -95,17 +95,21 @@ public abstract class ReaderBasedParserBase
         return _inputBuffer[_inputPtr++];
     }
 
-    protected void closeInput()
-        throws IOException
+    @Override
+    protected void _closeInput() throws IOException
     {
-        Reader r = _reader;
-        if (r != null) {
+        /* 25-Nov-2008, tatus: As per [JACKSON-16] we are not to call close()
+         *   on the underlying Reader, unless we "own" it, or auto-closing
+         *   feature is enabled.
+         *   One downside is that when using our optimized
+         *   Reader (granted, we only do that for UTF-32...) this
+         *   means that buffer recycling won't work correctly.
+         */
+        if (_reader != null) {
+            if (_ioContext.isResourceManaged() || isFeatureEnabled(Feature.AUTO_CLOSE_SOURCE)) {
+                _reader.close();
+            }
             _reader = null;
-            /* Reader takes care of returning buffers it uses. Likewise,
-             * we need to take care of returning temporary buffers
-             * we have allocated.
-             */
-            r.close();
         }
     }
 

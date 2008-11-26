@@ -26,6 +26,52 @@ import java.math.BigDecimal;
  */
 public abstract class JsonGenerator
 {
+    /**
+     * Enumeration that defines all togglable features for parsers.
+     */
+    public enum Feature {
+        /**
+         * Feature that determines whether generator will automatically
+         * close underlying output target that is NOT owned by the
+         * generator.
+         * If disabled, calling application has to separately
+         * close the underlying {@link OutputStream} and {@link Writer}
+         * instances used to create the generator. If enabled, generator
+         * will handle closing, as long as generator itself gets closed:
+         * this happens when end-of-input is encountered, or generator
+         * is closed by a call to {@link JsonGenerator#close}.
+         *<p>
+         * Feature is enabled by default.
+         */
+        AUTO_CLOSE_TARGET(true);
+            ;
+
+        final boolean _defaultState;
+
+        /**
+         * Method that calculates bit set (flags) of all features that
+         * are enabled by default.
+         */
+        public static int collectDefaults()
+        {
+            int flags = 0;
+            for (Feature f : values()) {
+                if (f.enabledByDefault()) {
+                    flags |= f.getMask();
+                }
+            }
+            return flags;
+        }
+        
+        private Feature(boolean defaultState) {
+            _defaultState = defaultState;
+        }
+        
+        public boolean enabledByDefault() { return _defaultState; }
+    
+        public int getMask() { return (1 << ordinal()); }
+    };
+
     // // // Configuration:
 
     /**
@@ -36,6 +82,28 @@ public abstract class JsonGenerator
     protected PrettyPrinter _cfgPrettyPrinter;
 
     protected JsonGenerator() { }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, configuration
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for enabling specified parser features
+     * (check {@link Feature} for list of features)
+     */
+    public abstract void enableFeature(Feature f);
+
+    /**
+     * Method for disabling specified  features
+     * (check {@link Feature} for list of features)
+     */
+    public abstract void disableFeature(Feature f);
+
+    public abstract void setFeature(Feature f, boolean state);
+
+    public abstract boolean isFeatureEnabled(Feature f);
 
     /*
     ////////////////////////////////////////////////////

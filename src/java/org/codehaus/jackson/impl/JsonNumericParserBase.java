@@ -136,9 +136,9 @@ public abstract class JsonNumericParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected JsonNumericParserBase(IOContext ctxt)
+    protected JsonNumericParserBase(IOContext ctxt, int features)
     {
-        super(ctxt);
+        super(ctxt, features);
     }
 
     protected final JsonToken reset(boolean negative, int intLen, int fractLen, int expLen)

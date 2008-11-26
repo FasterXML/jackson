@@ -53,6 +53,12 @@ public abstract class JsonParserBase
      */
     final protected IOContext _ioContext;
 
+    /**
+     * Bit flag composed of bits that indicate which {@link Feature}s
+     * are enabled.
+     */
+    protected int _features;
+
     /*
     ////////////////////////////////////////////////////
     // Current input data
@@ -184,11 +190,38 @@ public abstract class JsonParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected JsonParserBase(IOContext ctxt)
+    protected JsonParserBase(IOContext ctxt, int features)
     {
         _ioContext = ctxt;
+        _features = features;
         _textBuffer = ctxt.constructTextBuffer();
         _parsingContext = JsonReadContextImpl.createRootContext(_tokenInputRow, _tokenInputCol);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration
+    ////////////////////////////////////////////////////
+     */
+
+    public void enableFeature(Feature f) {
+        _features |= f.getMask();
+    }
+
+    public void disableFeature(Feature f) {
+        _features &= ~f.getMask();
+    }
+
+    public void setFeature(Feature f, boolean state) {
+        if (state) {
+            enableFeature(f);
+        } else {
+            disableFeature(f);
+        }
+    }
+
+    public boolean isFeatureEnabled(Feature f) {
+        return (_features & f.getMask()) != 0;
     }
 
     /*
@@ -270,7 +303,7 @@ public abstract class JsonParserBase
     public void close()
         throws IOException
     {
-        closeInput();
+        _closeInput();
         // Also, internal buffer(s) can now be released as well
         releaseBuffers();
     }
@@ -452,12 +485,12 @@ public abstract class JsonParserBase
         }
     }
 
-    protected abstract void closeInput()
+    protected abstract void _closeInput()
         throws IOException;
 
     /**
      * Method called to release internal buffers owned by the base
-     * reader. This may be called along with {@link #closeInput} (for
+     * reader. This may be called along with {@link #_closeInput} (for
      * example, when explicitly closing this reader instance), or
      * separately (if need be).
      */

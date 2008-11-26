@@ -55,11 +55,12 @@ public abstract class StreamBasedParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected StreamBasedParserBase(IOContext ctxt, InputStream in,
+    protected StreamBasedParserBase(IOContext ctxt, int features,
+                                    InputStream in,
                                     byte[] inputBuffer, int start, int end,
                                     boolean bufferRecyclable)
     {
-        super(ctxt);
+        super(ctxt, features);
         _inputStream = in;
         _inputBuffer = inputBuffer;
         _inputPtr = start;
@@ -87,7 +88,7 @@ public abstract class StreamBasedParserBase
                 return true;
             }
             // End of input
-            closeInput();
+            _closeInput();
             // Should never return 0, so let's fail
             if (count == 0) {
                 throw new IOException("Reader returned 0 characters when trying to read "+_inputEnd);
@@ -96,13 +97,18 @@ public abstract class StreamBasedParserBase
         return false;
     }
 
-    protected void closeInput()
-        throws IOException
+    @Override
+    protected void _closeInput() throws IOException
     {
-        InputStream in = _inputStream;
-        if (in != null) {
+        /* 25-Nov-2008, tatus: As per [JACKSON-16] we are not to call close()
+         *   on the underlying Reader, unless we "own" it, or auto-closing
+         *   feature is enabled.
+         */
+        if (_inputStream != null) {
+            if (_ioContext.isResourceManaged() || isFeatureEnabled(Feature.AUTO_CLOSE_SOURCE)) {
+                _inputStream.close();
+            }
             _inputStream = null;
-            in.close();
         }
     }
 
@@ -113,8 +119,7 @@ public abstract class StreamBasedParserBase
      * separately (if need be).
      */
     @Override
-    protected void releaseBuffers()
-        throws IOException
+    protected void releaseBuffers() throws IOException
     {
         super.releaseBuffers();
         if (_bufferRecyclable) {

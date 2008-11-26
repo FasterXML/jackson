@@ -34,7 +34,74 @@ public abstract class JsonParser
         INT, LONG, BIG_INTEGER, FLOAT, DOUBLE, BIG_DECIMAL
     };
 
+    /**
+     * Enumeration that defines all togglable features for parsers.
+     */
+    public enum Feature {
+        /**
+         * Feature that determines whether parser will automatically
+         * close underlying input source that is NOT owned by the
+         * parser. If disabled, calling application has to separately
+         * close the underlying {@link InputStream} and {@link Reader}
+         * instances used to create the parser. If enabled, parser
+         * will handle closing, as long as parser itself gets closed:
+         * this happens when end-of-input is encountered, or parser
+         * is closed by a call to {@link JsonParser#close}.
+         *<p>
+         * Feature is enabled by default.
+         */
+        AUTO_CLOSE_SOURCE(true);
+            ;
+
+        final boolean _defaultState;
+
+        /**
+         * Method that calculates bit set (flags) of all features that
+         * are enabled by default.
+         */
+        public static int collectDefaults()
+        {
+            int flags = 0;
+            for (Feature f : values()) {
+                if (f.enabledByDefault()) {
+                    flags |= f.getMask();
+                }
+            }
+            return flags;
+        }
+        
+        private Feature(boolean defaultState) {
+            _defaultState = defaultState;
+        }
+        
+        public boolean enabledByDefault() { return _defaultState; }
+    
+        public int getMask() { return (1 << ordinal()); }
+    };
+
     protected JsonParser() { }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, configuration
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for enabling specified parser features
+     * (check {@link Feature} for list of features)
+     */
+    public abstract void enableFeature(Feature f);
+
+    /**
+     * Method for disabling specified  features
+     * (check {@link Feature} for list of features)
+     */
+    public abstract void disableFeature(Feature f);
+
+    public abstract void setFeature(Feature f, boolean state);
+
+    public abstract boolean isFeatureEnabled(Feature f);
 
     /*
     ////////////////////////////////////////////////////
@@ -101,7 +168,8 @@ public abstract class JsonParser
      * can be called.
      *<p>
      * Method will also close the underlying input source,
-     * if (and only if) parser <b>owns</b> the input source.
+     * if parser either <b>owns</b> the input source, or feature
+     * {@link Feature#AUTO_CLOSE_SOURCE} is enabled.
      * Whether parser owns the input source depends on factory
      * method that was used to construct instance (so check
      * {@link org.codehaus.jackson.JsonFactory} for details,
@@ -112,8 +180,7 @@ public abstract class JsonParser
      * {@link java.io.File} or {@link java.net.URL} and creates
      * stream or reader it does own them.
      */
-    public abstract void close()
-        throws IOException;
+    public abstract void close() throws IOException;
 
     /**
      * Method that can be used to access current parsing context reader

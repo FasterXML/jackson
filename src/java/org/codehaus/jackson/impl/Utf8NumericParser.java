@@ -23,11 +23,12 @@ public abstract class Utf8NumericParser
     ////////////////////////////////////////////////////
      */
 
-    public Utf8NumericParser(IOContext pc, InputStream in,
+    public Utf8NumericParser(IOContext pc, int features,
+                             InputStream in,
                              byte[] inputBuffer, int start, int end,
                              boolean bufferRecyclable)
     {
-        super(pc, in, inputBuffer, start, end, bufferRecyclable);
+        super(pc, features, in, inputBuffer, start, end, bufferRecyclable);
     }
 
     /*

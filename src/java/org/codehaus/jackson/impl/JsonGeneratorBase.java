@@ -13,6 +13,18 @@ import org.codehaus.jackson.*;
 public abstract class JsonGeneratorBase
     extends JsonGenerator
 {
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Bit flag composed of bits that indicate which {@link Feature}s
+     * are enabled.
+     */
+    protected int _features;
+
     // // // State:
 
     /**
@@ -31,6 +43,32 @@ public abstract class JsonGeneratorBase
     {
         super();
         _writeContext = JsonWriteContextImpl.createRootContext();
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration
+    ////////////////////////////////////////////////////
+     */
+
+    public void enableFeature(Feature f) {
+        _features |= f.getMask();
+    }
+
+    public void disableFeature(Feature f) {
+        _features &= ~f.getMask();
+    }
+
+    public void setFeature(Feature f, boolean state) {
+        if (state) {
+            enableFeature(f);
+        } else {
+            disableFeature(f);
+        }
+    }
+
+    public boolean isFeatureEnabled(Feature f) {
+        return (_features & f.getMask()) != 0;
     }
 
     public final void useDefaultPrettyPrinter()

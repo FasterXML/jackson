@@ -478,11 +478,19 @@ public final class WriterBasedGenerator
         throws IOException
     {
         _flushBuffer();
-        /* Note: writer is responsible for its own buffers (acquired
-         * using processing context), and will close them as appropriate.
+        /* 25-Nov-2008, tatus: As per [JACKSON-16] we are not to call close()
+         *   on the underlying Reader, unless we "own" it, or auto-closing
+         *   feature is enabled.
+         *   One downside: when using UTF8Writer, underlying buffer(s)
+         *   may not be properly recycled if we don't close the writer.
          */
-        _writer.close();
-        // Also, internal buffer(s) can now be released as well
+        if (_ioContext.isResourceManaged() || isFeatureEnabled(Feature.AUTO_CLOSE_TARGET)) {
+            _writer.close();
+        } else {
+            // If we can't close it, we should at least flush
+            _writer.flush();
+        }
+        // Internal buffer(s) generator has can now be released as well
         releaseBuffers();
     }
 

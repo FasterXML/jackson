@@ -47,6 +47,24 @@ import org.codehaus.jackson.util.SymbolTable;
 public final class JsonFactory
 {
     /**
+     * Bitfield (set of flags) of all parser features that are enabled
+     * by default.
+     */
+    final static int DEFAULT_PARSER_FEATURE_FLAGS = JsonParser.Feature.collectDefaults();
+
+    /**
+     * Bitfield (set of flags) of all generator features that are enabled
+     * by default.
+     */
+    final static int DEFAULT_GENERATOR_FEATURE_FLAGS = JsonGenerator.Feature.collectDefaults();
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Buffer, symbol table management
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
      * This <code>ThreadLocal</code> contains a {@link SoftRerefence}
      * to a {@link BufferRecycler} used to provide a low-cost
      * buffer recycling between reader and writer instances.
@@ -69,6 +87,16 @@ public final class JsonFactory
      */
     private NameCanonicalizer _byteSymbols = NameCanonicalizer.createRoot();
 
+    /*
+    ///////////////////////////////////////////////////////
+    // Configuration
+    ///////////////////////////////////////////////////////
+     */
+
+    private int _parserFeatures = DEFAULT_PARSER_FEATURE_FLAGS;
+
+    private int _generatorFeatures = DEFAULT_GENERATOR_FEATURE_FLAGS;
+
     /**
      * Default constructor used to create factory instances.
      * Creation of a factory instance is a light-weight operation,
@@ -80,6 +108,68 @@ public final class JsonFactory
      * factory instance.
      */
     public JsonFactory() { }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Configuration
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for enabling specified parser features
+     * (check {@link JsonParser.Feature} for list of features)
+     */
+    public void enableParserFeature(JsonParser.Feature f) {
+        _parserFeatures |= f.getMask();
+    }
+
+    /**
+     * Method for disabling specified parser features
+     * (check {@link JsonParser.Feature} for list of features)
+     */
+    public void disableParserFeature(JsonParser.Feature f) {
+        _parserFeatures &= ~f.getMask();
+    }
+
+    public void setParserFeature(JsonParser.Feature f, boolean state) {
+        if (state) {
+            enableParserFeature(f);
+        } else {
+            disableParserFeature(f);
+        }
+    }
+
+    public boolean isParserFeatureEnabled(JsonParser.Feature f) {
+        return (_parserFeatures & f.getMask()) != 0;
+    }
+
+    /**
+     * Method for enabling specified generator features
+     * (check {@link JsonGenerator.Feature} for list of features)
+     */
+    public void enableGeneratorFeature(JsonGenerator.Feature f) {
+        _generatorFeatures |= f.getMask();
+    }
+
+    /**
+     * Method for disabling specified generator features
+     * (check {@link JsonGenerator.Feature} for list of features)
+     */
+    public void disableGeneratorFeature(JsonGenerator.Feature f) {
+        _generatorFeatures &= ~f.getMask();
+    }
+
+    public void setGeneratorFeature(JsonGenerator.Feature f, boolean state) {
+        if (state) {
+            enableGeneratorFeature(f);
+        } else {
+            disableGeneratorFeature(f);
+        }
+    }
+
+    public boolean isGeneratorFeatureEnabled(JsonGenerator.Feature f) {
+        return (_generatorFeatures & f.getMask()) != 0;
+    }
 
     /*
     //////////////////////////////////////////////////////
@@ -102,7 +192,7 @@ public final class JsonFactory
     public JsonParser createJsonParser(File f)
         throws IOException, JsonParseException
     {
-        return _createJsonParser(new FileInputStream(f), _createContext(f));
+        return _createJsonParser(new FileInputStream(f), _createContext(f, true));
     }
 
     /**
@@ -121,16 +211,18 @@ public final class JsonFactory
     public JsonParser createJsonParser(URL url)
         throws IOException, JsonParseException
     {
-        return _createJsonParser(_optimizedStreamFromURL(url), _createContext(url));
+        return _createJsonParser(_optimizedStreamFromURL(url), _createContext(url, true));
     }
 
     /**
      * Method for constructing json parser instance to parse
      * the contents accessed via specified input stream.
      *<p>
-     * Input stream will <b>NOT be owned</b> (not managed) by
-     * the parser, since caller does have access to it and
-     * is expected to close it if and as necessary.
+     * The input stream will <b>not be owned</b> by
+     * the parser, it will still be managed (i.e. closed if
+     * end-of-stream is reacher, or parser close method called)
+     * if (and only if) {@link JsonParser.Feature.AUTO_CLOSE_SOURCE}
+     * is enabled.
      *<p>
      * Note: no encoding argument is taken since it can always be
      * auto-detected as suggested by Json RFC.
@@ -140,29 +232,32 @@ public final class JsonFactory
     public JsonParser createJsonParser(InputStream in)
         throws IOException, JsonParseException
     {
-        return _createJsonParser(in, _createContext(in));
+        return _createJsonParser(in, _createContext(in, false));
     }
 
     /**
      * Method for constructing json parser instance to parse
      * the contents accessed via specified Reader.
+     <p>
+     * The read stream will <b>not be owned</b> by
+     * the parser, it will still be managed (i.e. closed if
+     * end-of-stream is reacher, or parser close method called)
+     * if (and only if) {@link JsonParser.Feature.AUTO_CLOSE_SOURCE}
+     * is enabled.
      *<p>
-     * Reader will <b>NOT be owned</b> (not managed) by
-     * the parser, since caller does have access to it and
-     * is expected to close it if and as necessary.
      *
      * @param r Reader to use for reading JSON content to parse
      */
     public JsonParser createJsonParser(Reader r)
         throws IOException, JsonParseException
     {
-        return new ReaderBasedParser(_createContext(r), r, _charSymbols.makeChild());
+        return new ReaderBasedParser(_createContext(r, false), _parserFeatures, r, _charSymbols.makeChild());
     }
 
     private JsonParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        return new ByteSourceBootstrapper(ctxt, in).constructParser(_byteSymbols, _charSymbols);
+        return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _byteSymbols, _charSymbols);
     }
 
     /*
@@ -179,7 +274,8 @@ public final class JsonFactory
      *<p>
      * Underlying stream <b>is NOT owned</b> by the generator constructed,
      * so that generator will NOT close the output stream when
-     * {@link JsonGenerator#close} is called. 
+     * {@link JsonGenerator#close} is called (unless auto-closing
+     * feature, {@link JsonGenerator#Feature#AUTO_CLOSE_TARGET} is enabled).
      * Using application needs to close it explicitly.
      *
      * @param out OutputStream to use for writing json content 
@@ -188,7 +284,7 @@ public final class JsonFactory
     public JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
         throws IOException
     {
-        IOContext ctxt = _createContext(out);
+        IOContext ctxt = _createContext(out, false);
         ctxt.setEncoding(enc);
         if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
             return new WriterBasedGenerator(ctxt, new UTF8Writer(ctxt, out));
@@ -202,15 +298,16 @@ public final class JsonFactory
      *<p>
      * Underlying stream <b>is NOT owned</b> by the generator constructed,
      * so that generator will NOT close the Reader when
-     * {@link JsonGenerator#close} is called. Using application
-     * needs to close Writer explicitly.
+     * {@link JsonGenerator#close} is called (unless auto-closing
+     * feature, {@link JsonGenerator#Feature#AUTO_CLOSE_TARGET} is enabled).
+     * Using application needs to close it explicitly.
      *
      * @param out Writer to use for writing json content 
      */
     public JsonGenerator createJsonGenerator(Writer out)
         throws IOException
     {
-        IOContext ctxt = _createContext(out);
+        IOContext ctxt = _createContext(out, false);
         return new WriterBasedGenerator(ctxt, out);
     }
 
@@ -244,9 +341,9 @@ public final class JsonFactory
      * Method used by the factory to create parsing context for parser
      * instances.
      */
-    protected IOContext _createContext(Object srcRef)
+    protected IOContext _createContext(Object srcRef, boolean resourceManaged)
     {
-        return new IOContext(_getBufferRecycler(), srcRef);
+        return new IOContext(_getBufferRecycler(), srcRef, resourceManaged);
     }
 
     /**

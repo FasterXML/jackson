@@ -14,66 +14,66 @@ import java.io.*;
 public final class MergedStream
     extends InputStream
 {
-    final protected IOContext mContext;
+    final protected IOContext _context;
 
-    final InputStream mIn;
+    final InputStream _in;
 
-    byte[] mBuffer;
+    byte[] _buffer;
 
-    int mPtr;
+    int _ptr;
 
-    final int mEnd;
+    final int _end;
 
     public MergedStream(IOContext context,
                         InputStream in, byte[] buf, int start, int end)
     {
-        mContext = context;
-        mIn = in;
-        mBuffer = buf;
-        mPtr = start;
-        mEnd = end;
+        _context = context;
+        _in = in;
+        _buffer = buf;
+        _ptr = start;
+        _end = end;
     }
 
     public int available()
         throws IOException
     {
-        if (mBuffer != null) {
-            return mEnd - mPtr;
+        if (_buffer != null) {
+            return _end - _ptr;
         }
-        return mIn.available();
+        return _in.available();
     }
 
     public void close()
         throws IOException
     {
         freeMergedBuffer();
-        mIn.close();
+        _in.close();
     }
 
     public void mark(int readlimit)
     {
-        if (mBuffer == null) {
-            mIn.mark(readlimit);
+        if (_buffer == null) {
+            _in.mark(readlimit);
         }
     }
     
     public boolean markSupported()
     {
         // Only supports marks past the initial rewindable section...
-        return (mBuffer == null) && mIn.markSupported();
+        return (_buffer == null) && _in.markSupported();
     }
     
     public int read()
         throws IOException
     {
-        if (mBuffer != null) {
-            int c = mBuffer[mPtr++] & 0xFF;
-            if (mPtr >= mEnd) {
+        if (_buffer != null) {
+            int c = _buffer[_ptr++] & 0xFF;
+            if (_ptr >= _end) {
                 freeMergedBuffer();
             }
             return c;
         }
-        return mIn.read();
+        return _in.read();
     }
     
     public int read(byte[] b)
@@ -85,26 +85,26 @@ public final class MergedStream
     public int 	read(byte[] b, int off, int len)
         throws IOException
     {
-        if (mBuffer != null) {
-            int avail = mEnd - mPtr;
+        if (_buffer != null) {
+            int avail = _end - _ptr;
             if (len > avail) {
                 len = avail;
             }
-            System.arraycopy(mBuffer, mPtr, b, off, len);
-            mPtr += len;
-            if (mPtr >= mEnd) {
+            System.arraycopy(_buffer, _ptr, b, off, len);
+            _ptr += len;
+            if (_ptr >= _end) {
                 freeMergedBuffer();
             }
             return len;
         }
-        return mIn.read(b, off, len);
+        return _in.read(b, off, len);
     }
 
     public void reset()
         throws IOException
     {
-        if (mBuffer == null) {
-            mIn.reset();
+        if (_buffer == null) {
+            _in.reset();
         }
     }
 
@@ -113,11 +113,11 @@ public final class MergedStream
     {
         long count = 0L;
 
-        if (mBuffer != null) {
-            int amount = mEnd - mPtr;
+        if (_buffer != null) {
+            int amount = _end - _ptr;
 
             if (amount > n) { // all in pushed back segment?
-                mPtr += (int) n;
+                _ptr += (int) n;
                 return amount;
             }
             freeMergedBuffer();
@@ -126,17 +126,17 @@ public final class MergedStream
         }
 
         if (n > 0) {
-            count += mIn.skip(n);
+            count += _in.skip(n);
         }
         return count;
     }
 
     private void freeMergedBuffer()
     {
-        byte[] buf = mBuffer;
+        byte[] buf = _buffer;
         if (buf != null) {
-            mBuffer = null;
-            mContext.releaseReadIOBuffer(buf);
+            _buffer = null;
+            _context.releaseReadIOBuffer(buf);
         }
     }
 }

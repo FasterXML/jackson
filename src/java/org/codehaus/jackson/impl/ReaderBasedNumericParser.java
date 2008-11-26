@@ -23,9 +23,9 @@ public abstract class ReaderBasedNumericParser
     ////////////////////////////////////////////////////
      */
 
-    public ReaderBasedNumericParser(IOContext pc, Reader r)
+    public ReaderBasedNumericParser(IOContext pc, int features, Reader r)
     {
-        super(pc, r);
+        super(pc, features, r);
     }
 
     /*

@@ -28,9 +28,9 @@ public final class ReaderBasedParser
     ////////////////////////////////////////////////////
      */
 
-    public ReaderBasedParser(IOContext ioCtxt, Reader r, SymbolTable st)
+    public ReaderBasedParser(IOContext ioCtxt, int features, Reader r, SymbolTable st)
     {
-        super(ioCtxt, r);
+        super(ioCtxt, features, r);
         _symbols = st;
     }
 

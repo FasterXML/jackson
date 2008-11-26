@@ -197,21 +197,18 @@ public final class ByteSourceBootstrapper
              */
             //return new UTF8Reader(_context, _in, _inputBuffer, _inputPtr, _inputEnd);
             throw new RuntimeException("Internal error: should be using Utf8StreamParser directly"); // should never get here
-
-        default:
-            throw new RuntimeException("Internal error"); // should never get here
         }
-        //return new ReaderBasedParser(_context, r, basicSymbols.makeChild());
+        throw new RuntimeException("Internal error"); // should never get here
     }
 
-    public JsonParser constructParser(NameCanonicalizer byteSymbols, SymbolTable charSymbols)
+    public JsonParser constructParser(int features, NameCanonicalizer byteSymbols, SymbolTable charSymbols)
         throws IOException, JsonParseException
     {
         JsonEncoding enc = detectEncoding();
         if (enc == JsonEncoding.UTF8) {
-            return new Utf8StreamParser(_context, _in, byteSymbols, _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
+            return new Utf8StreamParser(_context, features, _in, byteSymbols, _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
         }
-        return new ReaderBasedParser(_context, constructReader(), charSymbols.makeChild());
+        return new ReaderBasedParser(_context, features, constructReader(), charSymbols.makeChild());
     }
 
     /*
