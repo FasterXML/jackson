@@ -275,7 +275,7 @@ public final class JsonFactory
      * Underlying stream <b>is NOT owned</b> by the generator constructed,
      * so that generator will NOT close the output stream when
      * {@link JsonGenerator#close} is called (unless auto-closing
-     * feature, {@link JsonGenerator#Feature#AUTO_CLOSE_TARGET} is enabled).
+     * feature, {@link JsonGenerator.Feature#AUTO_CLOSE_TARGET} is enabled).
      * Using application needs to close it explicitly.
      *
      * @param out OutputStream to use for writing json content 
@@ -287,9 +287,9 @@ public final class JsonFactory
         IOContext ctxt = _createContext(out, false);
         ctxt.setEncoding(enc);
         if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
-            return new WriterBasedGenerator(ctxt, new UTF8Writer(ctxt, out));
+            return new WriterBasedGenerator(ctxt, _generatorFeatures, new UTF8Writer(ctxt, out));
         }
-        return new WriterBasedGenerator(ctxt, new OutputStreamWriter(out, enc.getJavaName()));
+        return new WriterBasedGenerator(ctxt, _generatorFeatures, new OutputStreamWriter(out, enc.getJavaName()));
     }
 
     /**
@@ -299,7 +299,7 @@ public final class JsonFactory
      * Underlying stream <b>is NOT owned</b> by the generator constructed,
      * so that generator will NOT close the Reader when
      * {@link JsonGenerator#close} is called (unless auto-closing
-     * feature, {@link JsonGenerator#Feature#AUTO_CLOSE_TARGET} is enabled).
+     * feature, {@link JsonGenerator.Feature#AUTO_CLOSE_TARGET} is enabled).
      * Using application needs to close it explicitly.
      *
      * @param out Writer to use for writing json content 
@@ -308,7 +308,7 @@ public final class JsonFactory
         throws IOException
     {
         IOContext ctxt = _createContext(out, false);
-        return new WriterBasedGenerator(ctxt, out);
+        return new WriterBasedGenerator(ctxt, _generatorFeatures, out);
     }
 
     /**

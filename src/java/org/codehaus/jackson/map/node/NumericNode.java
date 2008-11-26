@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.impl;
+package org.codehaus.jackson.map.node;
 
 import java.math.BigDecimal;
 

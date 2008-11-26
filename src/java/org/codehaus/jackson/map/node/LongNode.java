@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.impl;
+package org.codehaus.jackson.map.node;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -8,33 +8,33 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.io.NumberOutput;
 
 /**
- * Numeric node that contains simple 32-bit integer values.
+ * Numeric node that contains simple 64-bit integer values.
  */
-public final class IntNode
+public final class LongNode
     extends NumericNode
 {
-    final int mValue;
+    final long mValue;
 
-    public IntNode(int v) { mValue = v; }
+    public LongNode(long v) { mValue = v; }
 
-    public static IntNode valueOf(int i) { return new IntNode(i); }
+    public static LongNode valueOf(long l) { return new LongNode(l); }
 
     @Override
     public boolean isIntegralNumber() { return true; }
 
     @Override
-    public boolean isInt() { return true; }
+    public boolean isLong() { return true; }
 
     @Override
     public Number getNumberValue() {
-        return Integer.valueOf(mValue);
+        return Long.valueOf(mValue);
     }
 
     @Override
-        public int getIntValue() { return mValue; }
+        public int getIntValue() { return (int) mValue; }
 
     @Override
-        public long getLongValue() { return (long) mValue; }
+        public long getLongValue() { return mValue; }
 
     @Override
         public double getDoubleValue() { return (double) mValue; }
@@ -60,6 +60,6 @@ public final class IntNode
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
-        return ((IntNode) o).mValue == mValue;
+        return ((LongNode) o).mValue == mValue;
     }
 }

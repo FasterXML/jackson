@@ -201,31 +201,37 @@ public class JavaTypeMapper
      * a {@link JsonParser} that exposes contents as JSON
      * tokens
      */
+    /*
     public JsonParser createParserFor(Object data)
         throws JsonParseException
     {
         // !!! TBI: parser for reading from Object (array/map, primitives)
         return null;
     }
+    */
 
     /**
      * Method that will create a JSON generator that will build
      * Java objects as members of the current list, appending
      * them at the end of the list.
      */
+    /*
     public JsonGenerator createGeneratorFor(List<?> context)
         throws JsonParseException
     {
         // !!! TBI: generator for writing (appending) to Json Arrays (Java lists)
         return null;
     }
+    */
 
+    /*
     public JsonGenerator createGeneratorFor(Map<?,?> context)
         throws JsonParseException
     {
         // !!! TBI: generator for writing (appending) to Json Objects (Java maps)
         return null;
     }
+    */
 
     /*
     ////////////////////////////////////////////////////

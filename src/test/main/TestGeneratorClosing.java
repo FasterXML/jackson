@@ -28,13 +28,13 @@ public class TestGeneratorClosing
         f.disableGeneratorFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         assertFalse(f.isGeneratorFeatureEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET));
         MyWriter output = new MyWriter();
-        JsonGenerator jp = f.createJsonGenerator(output);
+        JsonGenerator jg = f.createJsonGenerator(output);
 
         // shouldn't be closed to begin with...
         assertFalse(output.isClosed());
-        jp.writeNumber(39);
+        jg.writeNumber(39);
         // regular close won't close it either:
-        jp.close();
+        jg.close();
         assertFalse(output.isClosed());
     }
 
@@ -45,13 +45,13 @@ public class TestGeneratorClosing
 
         f.enableGeneratorFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         MyWriter output = new MyWriter();
-        JsonGenerator jp = f.createJsonGenerator(output);
+        JsonGenerator jg = f.createJsonGenerator(output);
 
         // shouldn't be closed to begin with...
         assertFalse(output.isClosed());
-        jp.writeNumber(39);
+        jg.writeNumber(39);
         // but close() should now close the writer
-        jp.close();
+        jg.close();
         assertTrue(output.isClosed());
     }
 
@@ -61,11 +61,11 @@ public class TestGeneratorClosing
         JsonFactory f = new JsonFactory();
         f.disableGeneratorFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         MyStream output = new MyStream();
-        JsonGenerator jp = f.createJsonGenerator(output, JsonEncoding.UTF8);
+        JsonGenerator jg = f.createJsonGenerator(output, JsonEncoding.UTF8);
 
         assertFalse(output.isClosed());
-        jp.writeNumber(39);
-        jp.close();
+        jg.writeNumber(39);
+        jg.close();
         assertFalse(output.isClosed());
     }
 

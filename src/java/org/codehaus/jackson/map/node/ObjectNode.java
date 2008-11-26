@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.impl;
+package org.codehaus.jackson.map.node;
 
 import java.io.IOException;
 import java.util.*;
@@ -14,7 +14,7 @@ public final class ObjectNode
 {
     LinkedHashMap<String, JsonNode> mChildren = null;
 
-    protected ObjectNode() { }
+    public ObjectNode() { }
 
     @Override
     public boolean isObject() { return true; }

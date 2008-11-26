@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.impl;
+package org.codehaus.jackson.map.node;
 
 import java.io.IOException;
 import java.util.*;
@@ -14,7 +14,7 @@ public final class ArrayNode
 {
     ArrayList<JsonNode> mChildren;
 
-    protected ArrayNode() { }
+    public ArrayNode() { }
 
     @Override
     public boolean isArray() { return true; }

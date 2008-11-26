@@ -20,7 +20,7 @@ public abstract class JsonGeneratorBase
      */
 
     /**
-     * Bit flag composed of bits that indicate which {@link Feature}s
+     * Bit flag composed of bits that indicate which {@link JsonGenerator.Feature}s
      * are enabled.
      */
     protected int _features;
@@ -39,9 +39,10 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
-    protected JsonGeneratorBase()
+    protected JsonGeneratorBase(int features)
     {
         super();
+        _features = features;
         _writeContext = JsonWriteContextImpl.createRootContext();
     }
 

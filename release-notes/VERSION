@@ -12,7 +12,8 @@ Description:
    (reported by Michael D)
   * Fixed a problem with CR (\r) handling; was sometimes skipping
     characters (problematic if there's no indentation).
-  * UTF-8 decoding was not reliably working for names.
+  * Multiple UTF-8 decoding fixes: was specifically not working for
+    names.
 
   Improvements:
 
@@ -23,6 +24,8 @@ Description:
   New features:
 
   * [JACKSON-11]: Implement base64/binary methods for json generator.
+  * [JACKSON-15]: Add copy-through methods to JsonGenerator for
+    pass-through copying of content (copyCurrentEvent, copyCurrentStructure)
   * [JACKSON-23]: Add OSGi manifest headers for jars (to run on OSGi container).
 
 == History: ==

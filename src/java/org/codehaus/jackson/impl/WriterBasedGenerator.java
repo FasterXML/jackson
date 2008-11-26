@@ -65,9 +65,9 @@ public final class WriterBasedGenerator
     ////////////////////////////////////////////////////
      */
 
-    public WriterBasedGenerator(IOContext ctxt, Writer w)
+    public WriterBasedGenerator(IOContext ctxt, int features, Writer w)
     {
-        super();
+        super(features);
         _ioContext = ctxt;
         _writer = w;
         _outputBuffer = ctxt.allocConcatBuffer();
