@@ -20,7 +20,8 @@ public abstract class JsonGeneratorBase
      */
 
     /**
-     * Bit flag composed of bits that indicate which {@link JsonGenerator.Feature}s
+     * Bit flag composed of bits that indicate which
+     * {@link org.codehaus.jackson.JsonGenerator.Feature}s
      * are enabled.
      */
     protected int _features;
@@ -219,7 +220,7 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
-    protected abstract void releaseBuffers();
+    protected abstract void _releaseBuffers();
 
     public abstract void flush()
         throws IOException;
@@ -286,8 +287,6 @@ public abstract class JsonGeneratorBase
             t = jp.nextToken();
             // fall-through to copy the associated value
         }
-
-        JsonToken endMarker;
 
         switch (t) {
         case START_ARRAY:

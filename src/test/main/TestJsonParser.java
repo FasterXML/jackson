@@ -205,6 +205,7 @@ public class TestJsonParser
         NAME_MAP.put("\\t", "\t");
         NAME_MAP.put("\\r\\n", "\r\n");
         NAME_MAP.put("Line\\nfeed", "Line\nfeed");
+        NAME_MAP.put("Yet even longer \\"name\\"!", "Yet even longer \"name\"!");
 
         JsonFactory jf = new JsonFactory();
         int entry = 0;
@@ -234,6 +235,73 @@ for (int i = 0; i < act.length(); ++i) System.err.println("Char: "+((int) act.ch
                 assertEquals(msg, expResult, act);
             }
             assertToken(JsonToken.VALUE_NULL, jp.nextToken());
+            assertToken(JsonToken.END_OBJECT, jp.nextToken());
+            jp.close();
+        }
+    }
+    
+    /**
+     * Unit test that verifies that long text segments are handled
+     * correctly; mostly to stress-test underlying segment-based
+     * text buffer(s).
+     */
+    public void testLongText() throws Exception
+    {
+        final int LEN = 96000;
+        StringBuilder sb = new StringBuilder(LEN + 100);
+        Random r = new Random(99);
+        while (sb.length() < LEN) {
+            sb.append(r.nextInt());
+            sb.append(" xyz foo");
+            if (r.nextBoolean()) {
+                sb.append(" and \"bar\"");
+            } else {
+                sb.append(" [whatever].... ");
+            }
+            if (r.nextBoolean()) {
+                if (r.nextBoolean()) {
+                    sb.append('\n');
+                } else if (r.nextBoolean()) {
+                    sb.append('\r');
+                } else {
+                    sb.append("\r\n");
+                }
+            }
+        }
+        final String VALUE = sb.toString();
+
+        JsonFactory jf = new JsonFactory();
+
+        // Let's use real generator to get json done right
+        StringWriter sw = new StringWriter(LEN + (LEN >> 2));
+        JsonGenerator jg = jf.createJsonGenerator(sw);
+        jg.writeStartObject();
+        jg.writeFieldName("doc");
+        jg.writeString(VALUE);
+        jg.writeEndObject();
+        jg.close();
+
+        final String DOC = sw.toString();
+
+        for (int type = 0; type < 2; ++type) {
+            JsonParser jp = (type == 0) ?
+                jf.createJsonParser(DOC.getBytes("UTF-8"))
+                : jf.createJsonParser(DOC);
+            assertToken(JsonToken.START_OBJECT, jp.nextToken());
+            assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("doc", jp.getCurrentName());
+            assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+
+            String act = getAndVerifyText(jp);
+            if (act.length() != VALUE.length()) {
+                fail("Expected length "+VALUE.length()+", got "+act.length());
+            }
+            if (!act.equals(VALUE)) {
+                fail("Long text differs");
+            }
+
+            // should still know the field name
+            assertEquals("doc", jp.getCurrentName());
             assertToken(JsonToken.END_OBJECT, jp.nextToken());
             jp.close();
         }

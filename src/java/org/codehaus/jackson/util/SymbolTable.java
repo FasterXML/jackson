@@ -151,13 +151,6 @@ public final class SymbolTable
     }
 
     /**
-     * Method for constructing a master symbol table instance.
-     */
-    public SymbolTable() {
-        this(DEFAULT_TABLE_SIZE);
-    }
-
-    /**
      * Main method for constructing a master symbol table instance; will
      * be called by other public constructors.
      *
@@ -263,7 +256,7 @@ public final class SymbolTable
             // At any rate, need to clean up the tables, then:
             initTables(DEFAULT_TABLE_SIZE);
         } else {
-            /* Otherwise, we'll merge chaged stuff in, if there are
+            /* Otherwise, we'll merge changed stuff in, if there are
              * more entries (which may not be the case if one of siblings
              * has added symbols first or such)
              */
@@ -383,6 +376,10 @@ public final class SymbolTable
      * do potentially cheap intern() (if table already has intern()ed version),
      * or to pre-populate symbol table with known values.
      */
+    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
+     *   let's just delete it.
+     */
+    /*
     public String findSymbol(String str)
     {
         int len = str.length();
@@ -422,9 +419,8 @@ public final class SymbolTable
         // Need to expand?
         if (mSize >= mSizeThreshold) {
             rehash();
-            /* Need to recalc hash; rare occurence (index mask has been
-             * recalculated as part of rehash)
-             */
+            // Need to recalc hash; rare occurence (index mask has been
+            // recalculated as part of rehash)
             index = calcHash(str) & mIndexMask;
         } else if (!mDirty) {
             // Or perhaps we need to do copy-on-write?
@@ -446,6 +442,7 @@ public final class SymbolTable
 
         return str;
     }
+    */
 
     /**
      * Implementation of a hashing method for variable length

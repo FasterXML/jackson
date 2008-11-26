@@ -221,7 +221,7 @@ public final class JsonFactory
      * The input stream will <b>not be owned</b> by
      * the parser, it will still be managed (i.e. closed if
      * end-of-stream is reacher, or parser close method called)
-     * if (and only if) {@link JsonParser.Feature.AUTO_CLOSE_SOURCE}
+     * if (and only if) {@link org.codehaus.jackson.JsonParser.Feature#AUTO_CLOSE_SOURCE}
      * is enabled.
      *<p>
      * Note: no encoding argument is taken since it can always be
@@ -242,7 +242,7 @@ public final class JsonFactory
      * The read stream will <b>not be owned</b> by
      * the parser, it will still be managed (i.e. closed if
      * end-of-stream is reacher, or parser close method called)
-     * if (and only if) {@link JsonParser.Feature.AUTO_CLOSE_SOURCE}
+     * if (and only if) {@link org.codehaus.jackson.JsonParser.Feature#AUTO_CLOSE_SOURCE}
      * is enabled.
      *<p>
      *
@@ -252,6 +252,29 @@ public final class JsonFactory
         throws IOException, JsonParseException
     {
         return new ReaderBasedParser(_createContext(r, false), _parserFeatures, r, _charSymbols.makeChild());
+    }
+
+    public JsonParser createJsonParser(byte[] data, int offset, int len)
+        throws IOException, JsonParseException
+    {
+        // !!! TODO: make efficient (see [JACKSON-24])
+        InputStream in = new ByteArrayInputStream(data, offset, len);
+        // true -> must be managed as caller didn't hand stream
+        return _createJsonParser(in,  _createContext(in, true));
+    }
+
+    public final JsonParser createJsonParser(byte[] data)
+        throws IOException, JsonParseException
+    {
+        return createJsonParser(data, 0, data.length);
+    }
+
+    public final JsonParser createJsonParser(String content)
+        throws IOException, JsonParseException
+    {
+        StringReader r = new StringReader(content);
+        // true -> must be managed as caller didn't hand Reader
+        return new ReaderBasedParser(_createContext(r, true), _parserFeatures, r, _charSymbols.makeChild());
     }
 
     private JsonParser _createJsonParser(InputStream in, IOContext ctxt)
@@ -275,8 +298,10 @@ public final class JsonFactory
      * Underlying stream <b>is NOT owned</b> by the generator constructed,
      * so that generator will NOT close the output stream when
      * {@link JsonGenerator#close} is called (unless auto-closing
-     * feature, {@link JsonGenerator.Feature#AUTO_CLOSE_TARGET} is enabled).
-     * Using application needs to close it explicitly.
+     * feature,
+     * {@link org.codehaus.jackson.JsonGenerator.Feature#AUTO_CLOSE_TARGET}
+     * is enabled).
+     * Using application needs to close it explicitly if this is the case.
      *
      * @param out OutputStream to use for writing json content 
      * @param enc Character encoding to use
@@ -299,7 +324,8 @@ public final class JsonFactory
      * Underlying stream <b>is NOT owned</b> by the generator constructed,
      * so that generator will NOT close the Reader when
      * {@link JsonGenerator#close} is called (unless auto-closing
-     * feature, {@link JsonGenerator.Feature#AUTO_CLOSE_TARGET} is enabled).
+     * feature,
+     * {@link org.codehaus.jackson.JsonGenerator.Feature#AUTO_CLOSE_TARGET} is enabled).
      * Using application needs to close it explicitly.
      *
      * @param out Writer to use for writing json content 

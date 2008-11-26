@@ -1,9 +1,8 @@
 package org.codehaus.jackson.sym;
 
 /**
- * Specialized implementation of PName: can be used for short Strings
- * that consists of 9 to 12 bytes. It's the longest special purpose
- * implementaion; longer ones are expressed using {@link NameN}.
+ * Generic implementation of PName used for "long" names, where long
+ * means that its byte (UTF-8) representation is 13 bytes or more.
  */
 public final class NameN
     extends Name

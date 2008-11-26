@@ -54,7 +54,8 @@ public abstract class JsonParserBase
     final protected IOContext _ioContext;
 
     /**
-     * Bit flag composed of bits that indicate which {@link Feature}s
+     * Bit flag composed of bits that indicate which
+     * {@link org.codehaus.jackson.JsonParser.Feature}s
      * are enabled.
      */
     protected int _features;
@@ -305,7 +306,7 @@ public abstract class JsonParserBase
     {
         _closeInput();
         // Also, internal buffer(s) can now be released as well
-        releaseBuffers();
+        _releaseBuffers();
     }
 
     public JsonReadContext getParsingContext()
@@ -494,8 +495,7 @@ public abstract class JsonParserBase
      * example, when explicitly closing this reader instance), or
      * separately (if need be).
      */
-    protected void releaseBuffers()
-        throws IOException
+    protected void _releaseBuffers() throws IOException
     {
         _textBuffer.releaseBuffers();
         char[] buf = _nameCopyBuffer;

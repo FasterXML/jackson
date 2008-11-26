@@ -115,15 +115,15 @@ public abstract class ReaderBasedParserBase
 
     /**
      * Method called to release internal buffers owned by the base
-     * reader. This may be called along with {@link #closeInput} (for
+     * reader. This may be called along with {@link #_closeInput} (for
      * example, when explicitly closing this reader instance), or
      * separately (if need be).
      */
     @Override
-    protected void releaseBuffers()
+    protected void _releaseBuffers()
         throws IOException
     {
-        super.releaseBuffers();
+        super._releaseBuffers();
         char[] buf = _inputBuffer;
         if (buf != null) {
             _inputBuffer = null;

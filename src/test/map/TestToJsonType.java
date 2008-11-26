@@ -7,7 +7,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.impl.*;
+import org.codehaus.jackson.map.node.*;
 
 /**
  * This unit test suite tries to verify that the "JSON" type
@@ -134,17 +134,6 @@ public class TestToJsonType
     // Helper methods
     //////////////////////////////////////////////
      */
-
-    private void assertType(Object ob, Class<?> expType)
-    {
-        if (ob == null) {
-            fail("Expected an object of type "+expType.getName()+", got null");
-        }
-        Class<?> cls = ob.getClass();
-        if (!expType.isAssignableFrom(cls)) {
-            fail("Expected type "+expType.getName()+", got "+cls.getName());
-        }
-    }
 
     private int calcLength(Iterator<JsonNode> it)
     {

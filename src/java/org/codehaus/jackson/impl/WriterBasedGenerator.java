@@ -491,11 +491,11 @@ public final class WriterBasedGenerator
             _writer.flush();
         }
         // Internal buffer(s) generator has can now be released as well
-        releaseBuffers();
+        _releaseBuffers();
     }
 
     @Override
-    protected void releaseBuffers()
+    protected void _releaseBuffers()
     {
         char[] buf = _outputBuffer;
         if (buf != null) {

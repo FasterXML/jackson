@@ -177,6 +177,10 @@ public final class TextBuffer
         append(buf, start, len);
     }
 
+    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
+     *   let's just delete it.
+     */
+    /*
     public void resetWithString(String str)
     {
         // First things first, let's reset the buffer
@@ -204,6 +208,7 @@ public final class TextBuffer
         str.getChars(0, len, _currentSegment, 0);
         _currentSize = len;
     }
+    */
 
     private final char[] allocBuffer(int needed)
     {
@@ -315,6 +320,10 @@ public final class TextBuffer
         return result;
     }
 
+    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
+     *   let's just delete it.
+     */
+    /*
     public int contentsToArray(int srcStart, char[] dst, int dstStart, int len) {
 
         // Easy to copy from shared buffer:
@@ -334,11 +343,9 @@ public final class TextBuffer
             return amount;
         }
 
-        /* Could also check if we have array, but that'd only help with
-         * braindead clients that get full array first, then segments...
-         * which hopefully aren't that common
-         */
-
+        // Could also check if we have array, but that'd only help with
+        // braindead clients that get full array first, then segments...
+        // which hopefully aren't that common
         // Copying from segmented array is bit more involved:
         int totalAmount = 0;
         if (_segments != null) {
@@ -362,7 +369,6 @@ public final class TextBuffer
                 srcStart = 0;
             }
         }
-
         // Need to copy anything from last segment?
         if (len > 0) {
             int maxAmount = _currentSize - srcStart;
@@ -374,14 +380,18 @@ public final class TextBuffer
                 totalAmount += len;
             }
         }
-
         return totalAmount;
     }
+    */
 
     /**
      * Method that will stream contents of this buffer into specified
      * Writer.
      */
+    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
+     *   let's just delete it.
+     */
+    /*
     public int rawContentsTo(Writer w)
         throws IOException
     {
@@ -417,6 +427,7 @@ public final class TextBuffer
         }
         return rlen;
     }
+    */
 
     /**
      * Convenience method for converting contents of the buffer

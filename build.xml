@@ -101,11 +101,11 @@
         <echo message = "---------------------------------------------------" />
         <echo message = "1)  readme - Displays this information (default target)." />
         <echo message = "2)  clean - Remove any generated files/directories." />
-        <echo message = "3)  compile - Compile all non-test ${ant.project.name} code." />
+        <echo message = "3)  compile.core - Compile all non-test ${ant.project.name} code." />
         <echo message = "4)  jars - Compile and create all jars for non-test ${ant.project.name} code (see below for specific ones)." />
         <echo message = "4b)  jar.asl - Compile and create jar for non-test ${ant.project.name} cod, under Apache (2.0) license." />
         <echo message = "5)  javadoc - Generate ${ant.project.name} code documentation." />
-        <echo message = "6)  test.compile - Compile ${ant.project.name} code and test code" />
+        <echo message = "6)  compile.test - Compile ${ant.project.name} code and test code" />
         <echo message = "       for JUnit tests." />
         <echo message = "7)  test - Run JUnit tests." />
         <echo message = "8)  dist - Create distribution directory and copy necessary files there" />
@@ -153,7 +153,9 @@
         <delete file="cobertura.ser" />
     </target>
 
-    <target name="compile" depends="prepare">
+    <target name="compile" depends="compile.core, compile.test" />
+
+    <target name="compile.core" depends="prepare">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
             source="1.5" target="1.5"
             debug="true"
@@ -192,7 +194,7 @@
     <!-- Jackson requires Java5 (enums, some generics) -->
     <property name="REQ_JDK_VERSION" value="J2SE-1.5" />
 
-    <target name="jar.asl" depends="compile">
+    <target name="jar.asl" depends="compile.core">
         <osgiJar
          outputdir="${dir.build}"
          bundleName="${IMPL_TITLE}"
@@ -243,7 +245,7 @@
       </bundle>
     </target> 
 
-    <target name="jar.lgpl" depends="compile">
+    <target name="jar.lgpl" depends="compile.core">
         <osgiJar
          outputdir="${dir.build}"
          bundleName="${IMPL_TITLE}"
@@ -360,7 +362,7 @@
     <!-- Compiling and running test cases
       -->
 
-    <target name="test.compile" depends="compile">
+    <target name="compile.test" depends="compile.core">
         <javac srcdir="${src.dir.test}" destdir="${dir.test.classes}"
             source="1.5" target="1.5"
             debug="true"
@@ -375,7 +377,7 @@
     </target>
 
 
-    <target name="test" depends="test.compile">
+    <target name="test" depends="compile.test">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="no" printsummary="yes" haltonfailure="no"
          showoutput="yes">
@@ -407,7 +409,7 @@
 
   <!-- Code coverage using Cobertura: -->
 
-  <target name="build.coverage" depends="test.compile">
+  <target name="build.coverage" depends="compile.test">
       <!-- First, need to instrument classes -->
       <property name="cobertura.instr.dir" value="${dir.build}/cobertura-instr" />
       <cobertura-instrument todir="${cobertura.instr.dir}">
@@ -469,7 +471,7 @@
     </target>
 
     <!-- Running a single Unit Test -->
-    <target name="test.single" depends="test.compile">
+    <target name="test.single" depends="compile.test">
          <fail unless="test" message="Must define -Dtest" />
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="no" maxmemory="128M" showoutput="no" printsummary="yes">

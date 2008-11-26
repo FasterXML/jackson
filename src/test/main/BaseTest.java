@@ -90,6 +90,17 @@ public class BaseTest
         assertToken(expToken, jp.getCurrentToken());
     }
 
+    protected void assertType(Object ob, Class<?> expType)
+    {
+        if (ob == null) {
+            fail("Expected an object of type "+expType.getName()+", got null");
+        }
+        Class<?> cls = ob.getClass();
+        if (!expType.isAssignableFrom(cls)) {
+            fail("Expected type "+expType.getName()+", got "+cls.getName());
+        }
+    }
+
     protected void verifyException(Exception e, String match)
     {
         String msg = e.getMessage();
@@ -108,15 +119,16 @@ public class BaseTest
     protected String getAndVerifyText(JsonParser jp)
         throws IOException, JsonParseException
     {
-        String str = jp.getText();
-
         // Ok, let's verify other accessors
         int actLen = jp.getTextLength();
+        char[] ch = jp.getTextCharacters();
+        String str2 = new String(ch, jp.getTextOffset(), actLen);
+        String str = jp.getText();
+
         if (str.length() !=  actLen) {
             fail("Internal problem (jp.token == "+jp.getCurrentToken()+"): jp.getText().length() ['"+str+"'] == "+str.length()+"; jp.getTextLength() == "+actLen);
         }
-        char[] ch = jp.getTextCharacters();
-        /*String str2 =*/ new String(ch, jp.getTextOffset(), actLen);
+        assertEquals("String access via getText(), getTextXxx() must be the same", str, str2);
 
         return str;
     }

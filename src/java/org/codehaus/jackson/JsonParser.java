@@ -156,7 +156,7 @@ public abstract class JsonParser
     /**
      * Method that can be called to get the name associated with
      * the current event: for {@link JsonToken#FIELD_NAME} it will
-     * be the same as {@link #getName}, for field values Objects name
+     * be the same as {@link #getText}, for field values Objects name
      * of matching field name; and for others (array values, root-level
      * values) null.
      */

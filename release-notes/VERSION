@@ -3,10 +3,17 @@ Version: 0.9.4
 Release date: 
 
 Description:
-  Another pre-1.0 release.
+  Another pre-1.0 release: this time significantly improving unit test
+  coverage, fixing bugs uncovered by doing so, and addressing accumulated
+  minor feature requests.
 
   Bug fixes:
 
+  * [JACKSON-16]: JavaDocs regarding whether Jackson is to close underlying
+    streams, readers and writers, were incorrect. Additionally added
+    parser/generator features to allow specifying whether automatic closing
+    is to be done by Jackson: feature is enabled by default, both for
+    backwards compatibility, and because it seems like the right setting.
   * [JACKSON-18]: ArrayIndexOutOfBounds on IntNode, due to off-by-one
     problem with comparisons
    (reported by Michael D)
@@ -27,6 +34,9 @@ Description:
   * [JACKSON-15]: Add copy-through methods to JsonGenerator for
     pass-through copying of content (copyCurrentEvent, copyCurrentStructure)
   * [JACKSON-23]: Add OSGi manifest headers for jars (to run on OSGi container).
+  * Added generic "feature" mechanism to parsers, writers; features are
+    togglable (on/off) things with well-defined default values, implemented
+    as Enums.
 
 == History: ==
 
