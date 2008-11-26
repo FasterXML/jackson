@@ -4,6 +4,7 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.sym.SymbolTable;
 import org.codehaus.jackson.util.*;
 
 /**
@@ -217,6 +218,7 @@ public final class ReaderBasedParser
     ////////////////////////////////////////////////////
      */
 
+    /*
     @Override
     public InputStream readBinaryValue(Base64Variant b64v)
         throws IOException, JsonParseException
@@ -224,6 +226,7 @@ public final class ReaderBasedParser
         // !!! TBI: implemented base64 decoding
         return null;
     }
+    */
 
     /*
     ////////////////////////////////////////////////////

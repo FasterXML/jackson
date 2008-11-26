@@ -7,7 +7,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.sym.NameCanonicalizer;
-import org.codehaus.jackson.util.SymbolTable;
+import org.codehaus.jackson.sym.SymbolTable;
 
 /**
  * This class is used to determine the encoding of byte stream
@@ -206,7 +206,7 @@ public final class ByteSourceBootstrapper
     {
         JsonEncoding enc = detectEncoding();
         if (enc == JsonEncoding.UTF8) {
-            return new Utf8StreamParser(_context, features, _in, byteSymbols, _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
+            return new Utf8StreamParser(_context, features, _in, byteSymbols.makeChild(), _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
         }
         return new ReaderBasedParser(_context, features, constructReader(), charSymbols.makeChild());
     }

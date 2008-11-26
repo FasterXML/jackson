@@ -1,7 +1,8 @@
-package org.codehaus.jackson.io;
+//package org.codehaus.jackson.io;
 
 import java.io.*;
 
+import org.codehaus.jackson.io.IOContext;
 
 /**
  * Optimized Reader that reads UTF-8 encoded content from an input stream.

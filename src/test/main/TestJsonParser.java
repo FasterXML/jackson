@@ -205,7 +205,7 @@ public class TestJsonParser
         NAME_MAP.put("\\t", "\t");
         NAME_MAP.put("\\r\\n", "\r\n");
         NAME_MAP.put("Line\\nfeed", "Line\nfeed");
-        NAME_MAP.put("Yet even longer \\"name\\"!", "Yet even longer \"name\"!");
+        NAME_MAP.put("Yet even longer \\\"name\\\"!", "Yet even longer \"name\"!");
 
         JsonFactory jf = new JsonFactory();
         int entry = 0;
@@ -255,8 +255,11 @@ for (int i = 0; i < act.length(); ++i) System.err.println("Char: "+((int) act.ch
             sb.append(" xyz foo");
             if (r.nextBoolean()) {
                 sb.append(" and \"bar\"");
-            } else {
+            } else if (r.nextBoolean()) {
                 sb.append(" [whatever].... ");
+            } else {
+                // Let's try some more 'exotic' chars
+                sb.append(" UTF-8-fu: try this {\u00E2/\u0BF8/\uA123!} (look funny?)");
             }
             if (r.nextBoolean()) {
                 if (r.nextBoolean()) {
@@ -283,10 +286,20 @@ for (int i = 0; i < act.length(); ++i) System.err.println("Char: "+((int) act.ch
 
         final String DOC = sw.toString();
 
-        for (int type = 0; type < 2; ++type) {
-            JsonParser jp = (type == 0) ?
-                jf.createJsonParser(DOC.getBytes("UTF-8"))
-                : jf.createJsonParser(DOC);
+        for (int type = 0; type < 3; ++type) {
+            JsonParser jp;
+
+            switch (type) {
+            default:
+                jp = jf.createJsonParser(DOC.getBytes("UTF-8"));
+                break;
+            case 1:
+                jp = jf.createJsonParser(DOC);
+                break;
+            case 2: // NEW: let's also exercise UTF-32...
+                jp = jf.createJsonParser(encodeInUTF32BE(DOC));
+                break;
+            }
             assertToken(JsonToken.START_OBJECT, jp.nextToken());
             assertToken(JsonToken.FIELD_NAME, jp.nextToken());
             assertEquals("doc", jp.getCurrentName());
@@ -322,7 +335,7 @@ for (int i = 0; i < act.length(); ++i) System.err.println("Char: "+((int) act.ch
         // Then with streams using supported encodings:
         doTestSpecIndividual("UTF-8", verify);
         doTestSpecIndividual("UTF-16BE", verify);
-        //doTestSpecIndividual("UTF-16LE", verify);
+        doTestSpecIndividual("UTF-16LE", verify);
 
         /* Hmmh. UTF-32 is harder only because JDK doesn't come with
          * a codec for it. Can't test it yet using this method

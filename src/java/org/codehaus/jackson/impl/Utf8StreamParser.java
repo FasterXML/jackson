@@ -232,6 +232,7 @@ public final class Utf8StreamParser
     ////////////////////////////////////////////////////
      */
 
+    /*
     @Override
     public InputStream readBinaryValue(Base64Variant b64v)
         throws IOException, JsonParseException
@@ -239,6 +240,7 @@ public final class Utf8StreamParser
         // !!! TBI: implemented base64 decoding
         return null;
     }
+    */
 
     /*
     ////////////////////////////////////////////////////

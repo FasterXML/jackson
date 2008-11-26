@@ -3,12 +3,15 @@ package impl;
 import java.io.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.sym.Name;
+import org.codehaus.jackson.sym.NameCanonicalizer;
 
 import main.BaseTest;
 
 /**
- * Unit test(s) to verify that handling of byte-based symbol tables
- * is working. Created to verify fix to [JACKSON-5]
+ * Unit test(s) to verify that handling of (byte-based) symbol tables
+ * is working. Created to verify fix to [JACKSON-5] (although not very
+ * good at catching it...).
  */
 public class TestByteBasedSymbols
     extends BaseTest
@@ -73,6 +76,31 @@ public class TestByteBasedSymbols
             jp1.close();
             jp2.close();
         }
+    }
+
+    public void testAuxMethods()
+        throws Exception
+    {
+        final int A_BYTES = 0x41414141; // "AAAA"
+        final int B_BYTES = 0x42424242; // "BBBB"
+
+        NameCanonicalizer nc = NameCanonicalizer.createRoot();
+        assertNull(nc.findName(A_BYTES));
+        assertNull(nc.findName(A_BYTES, B_BYTES));
+
+        nc.addName("AAAA", new int[] { A_BYTES }, 1);
+        Name n1 = nc.findName(A_BYTES);
+        assertNotNull(n1);
+        assertEquals("AAAA", n1.getName());
+        nc.addName("AAAABBBB", new int[] { A_BYTES, B_BYTES }, 2);
+        Name n2 = nc.findName(A_BYTES, B_BYTES);
+        assertEquals("AAAABBBB", n2.getName());
+        assertNotNull(n2);
+
+        /* and let's then just exercise this method so it gets covered;
+         * it's only used for debugging.
+         */
+        assertNotNull(nc.toString());
     }
 
     /*

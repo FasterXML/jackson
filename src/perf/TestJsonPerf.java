@@ -2,7 +2,6 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
-import org.codehaus.jackson.io.UTF8Reader;
 import org.codehaus.jackson.map.JavaTypeMapper;
 import org.codehaus.jackson.map.JsonTypeMapper;
 import org.codehaus.jackson.util.BufferRecycler;
@@ -175,7 +174,7 @@ public final class TestJsonPerf
 
         char[] cbuf = new char[mData.length];
 
-        IOContext ctxt = new IOContext(new BufferRecycler(), this);
+        IOContext ctxt = new IOContext(new BufferRecycler(), this, false);
         int sum = 0;
 
         for (int i = 0; i < reps; ++i) {

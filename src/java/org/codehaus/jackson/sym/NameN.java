@@ -31,27 +31,35 @@ public final class NameN
 
     public boolean equals(int[] quads, int qlen)
     {
-        if (qlen == mQuadLen) {
-            // Will always have >= 3 quads, can unroll
-            /*
-            if (quads[0] == mQuads[0]
-                && quads[1] == mQuads[1]
-                && quads[2] == mQuads[2]) {
-                for (int i = 3; i < qlen; ++i) {
-                    if (quads[i] != mQuads[i]) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            */
-            for (int i = 0; i < qlen; ++i) {
+        if (qlen != mQuadLen) {
+            return false;
+        }
+
+        /* 26-Nov-2008, tatus: Strange, but it does look like
+         *   unrolling here is counter-productive, reducing
+         *   speed. Perhaps it prevents inlining by HotSpot or
+         *   something...
+         */
+        // Will always have >= 3 quads, can unroll
+        /*
+        if (quads[0] == mQuads[0]
+            && quads[1] == mQuads[1]
+            && quads[2] == mQuads[2]) {
+            for (int i = 3; i < qlen; ++i) {
                 if (quads[i] != mQuads[i]) {
                     return false;
                 }
             }
             return true;
         }
-        return false;
+        */
+
+        // or simpler way without unrolling:
+        for (int i = 0; i < qlen; ++i) {
+            if (quads[i] != mQuads[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }

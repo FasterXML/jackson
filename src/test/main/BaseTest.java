@@ -133,7 +133,7 @@ public class BaseTest
         return str;
     }
 
-    private byte[] encodeInUTF32BE(String input)
+    protected byte[] encodeInUTF32BE(String input)
     {
         int len = input.length();
         byte[] result = new byte[len * 4];

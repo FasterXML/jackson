@@ -354,6 +354,7 @@ public abstract class JsonParser
      * @return Input stream through which decoded contents can
      *   be read
      */
+    /*
     public abstract InputStream readBinaryValue(Base64Variant b64variant)
         throws IOException, JsonParseException;
 
@@ -361,6 +362,7 @@ public abstract class JsonParser
     {
         return readBinaryValue(Base64Variants.getDefaultVariant());
     }
+    */
 
     /**
      * Method that can be used to read (and consume -- results

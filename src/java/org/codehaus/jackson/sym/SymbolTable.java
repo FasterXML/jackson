@@ -1,4 +1,4 @@
-package org.codehaus.jackson.util;
+package org.codehaus.jackson.sym;
 
 /**
  * This class is a kind of specialized type-safe Map, from char array to
@@ -598,6 +598,10 @@ public final class SymbolTable
             return null;
         }
 
+    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
+     *   let's just delete it.
+     */
+        /*
         public String find(String str) {
             String sym = mSymbol;
             Bucket b = mNext;
@@ -614,5 +618,6 @@ public final class SymbolTable
             }
             return null;
         }
+        */
     }
 }

@@ -309,6 +309,21 @@ public final class NameCanonicalizer
         return Name1.getEmptyName();
     }
 
+    /**
+     * Finds and returns name matching the specified symbol, if such
+     * name already exists in the table.
+     * If not, will return null.
+     *<p>
+     * Note: separate methods to optimize common case of
+     * short element/attribute names (4 or less ascii characters)
+     *
+     * @param firstQuad int32 containing first 4 bytes of the name;
+     *   if the whole name less than 4 bytes, padded with zero bytes
+     *   in front (zero MSBs, ie. right aligned)
+     *
+     * @return Name matching the symbol passed (or constructed for
+     *   it)
+     */
     public Name findName(int firstQuad)
     {
         int hash = calcHash(firstQuad);
@@ -345,17 +360,15 @@ public final class NameCanonicalizer
 
     /**
      * Finds and returns name matching the specified symbol, if such
-     * name already exists in the table; or if not, creates name object,
-     * adds to the table, and returns it.
+     * name already exists in the table.
+     * If not, will return null.
      *<p>
      * Note: separate methods to optimize common case of relatively
      * short element/attribute names (8 or less ascii characters)
      *
-     * @param firstQuad int32 containing first 4 bytes of the name;
-     *   if the whole name less than 4 bytes, padded with zero bytes
-     *   in front (zero MSBs, ie. right aligned)
+     * @param firstQuad int32 containing first 4 bytes of the name.
      * @param secondQuad int32 containing bytes 5 through 8 of the
-     *   name; if less than 8 bytes, padded with up to 4 zero bytes
+     *   name; if less than 8 bytes, padded with up to 3 zero bytes
      *   in front (zero MSBs, ie. right aligned)
      *
      * @return Name matching the symbol passed (or constructed for
@@ -454,7 +467,7 @@ public final class NameCanonicalizer
     {
         int hash = calcHash(quads, qlen);
         Name symbol = constructName(hash, symbolStr, quads, qlen);
-        doAddSymbol(hash, symbol);
+        _addSymbol(hash, symbol);
         return symbol;
     }
 
@@ -498,6 +511,10 @@ public final class NameCanonicalizer
         return hash;
     }
 
+    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
+     *   let's just delete it.
+     */
+    /*
     public static int[] calcQuads(byte[] wordBytes)
     {
         int blen = wordBytes.length;
@@ -518,6 +535,7 @@ public final class NameCanonicalizer
         }
         return result;
     }
+    */
 
     /*
     /////////////////////////////////////////////////////
@@ -568,7 +586,7 @@ public final class NameCanonicalizer
     /////////////////////////////////////////////////////
      */
 
-    private void doAddSymbol(int hash, Name symbol)
+    private void _addSymbol(int hash, Name symbol)
     {
         if (mMainHashShared) { // always have to modify main entry
             unshareMain();

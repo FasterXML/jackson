@@ -75,6 +75,9 @@ public class TestWithTonsaSymbols
             sb.append('.');
             if (index > 200) {
                 sb.append(index);
+                if (index > 4000) { // and some even longer symbols...
+                    sb.append(".").append(index);
+                }
             } else {
                 sb.append(index >> 3); // divide by 8
             }

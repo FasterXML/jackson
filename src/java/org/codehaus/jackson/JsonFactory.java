@@ -23,8 +23,8 @@ import org.codehaus.jackson.impl.ByteSourceBootstrapper;
 import org.codehaus.jackson.impl.ReaderBasedParser;
 import org.codehaus.jackson.impl.WriterBasedGenerator;
 import org.codehaus.jackson.sym.NameCanonicalizer;
+import org.codehaus.jackson.sym.SymbolTable;
 import org.codehaus.jackson.util.BufferRecycler;
-import org.codehaus.jackson.util.SymbolTable;
 
 /**
  * JsonFactory is the main factory class of Jackson package.

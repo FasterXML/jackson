@@ -1,6 +1,5 @@
 package org.codehaus.jackson.util;
 
-import java.io.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
