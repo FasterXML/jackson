@@ -63,45 +63,15 @@ public final class Utf8StreamParser
          * state handling. If so, can and need to use secondary token:
          */
         if (_currToken == JsonToken.FIELD_NAME) {
-            _nameCopied = false; // need to invalidate if it was copied
-            JsonToken t = _nextToken;
-            _nextToken = null;
-            // Also: may need to start new context?
-            if (t == JsonToken.START_ARRAY) {
-                _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
-            } else if (t == JsonToken.START_OBJECT) {
-                _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
-            }
-            return (_currToken = t);
+            return _nextAfterName();
         }
         if (_tokenIncomplete) {
-            _tokenIncomplete = false;
             _skipString(); // only strings can be partial
         }
 
-        int i;
-
-        // Space to skip? (can't call skipWS, since EOF may be ok)
-        while (true) {
-            if (_inputPtr >= _inputEnd) {
-                if (!loadMore()) {
-                    handleEOF();
-                    return (_currToken = null);
-                }
-            }
-            i = _inputBuffer[_inputPtr++] & 0xFF;
-            if (i > INT_SPACE) {
-                break;
-            }
-            if (i != INT_SPACE) {
-                if (i == INT_LF) {
-                    _skipLF();
-                } else if (i == INT_CR) {
-                    _skipCR();
-                } else if (i != INT_TAB) {
-                    throwInvalidSpace(i);
-                }
-            }
+        int i = _skipWSOrEnd();
+        if (i < 0) { // end-of-input
+            return (_currToken = null);
         }
 
         /* First, need to ensure we know the starting location of token
@@ -217,6 +187,20 @@ public final class Utf8StreamParser
         return t;
     }
         
+    private final JsonToken _nextAfterName()
+    {
+        _nameCopied = false; // need to invalidate if it was copied
+        JsonToken t = _nextToken;
+        _nextToken = null;
+        // Also: may need to start new context?
+        if (t == JsonToken.START_ARRAY) {
+            _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
+        } else if (t == JsonToken.START_OBJECT) {
+            _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
+        }
+        return (_currToken = t);
+    }
+
     @Override
     public void close()
         throws IOException
@@ -806,6 +790,8 @@ public final class Utf8StreamParser
     protected void _skipString()
         throws IOException, JsonParseException
     {
+        _tokenIncomplete = false;
+
         // Need to be fully UTF-8 aware here:
         final int[] codes = CharTypes.getInputCodeUtf8();
         final byte[] inputBuffer = _inputBuffer;
@@ -916,51 +902,13 @@ public final class Utf8StreamParser
     private final int _skipWS()
         throws IOException, JsonParseException
     {
-        // Need to skip space, find next char
-        while (true) {
-            if (_inputPtr >= _inputEnd) {
-                if (!loadMore()) {
-                    _reportError("Unexpected end-of-input within/between "+_parsingContext.getTypeDesc()+" entries");
-                }
-            }
+        while (_inputPtr < _inputEnd || loadMore()) {
             int i = _inputBuffer[_inputPtr++] & 0xFF;
             if (i > INT_SPACE) {
-                return i;
-            }
-            if (i != INT_SPACE) {
-                if (i == INT_LF) {
-                    _skipLF();
-                } else if (i == INT_CR) {
-                    _skipCR();
-                } else if (i != INT_TAB) {
-                    throwInvalidSpace(i);
+                if (i != INT_SLASH) {
+                    return i;
                 }
-            }
-        }
-    }
-
-    private final int _skipWSAndColon()
-        throws IOException, JsonParseException
-    {
-        int i;
-        boolean gotColon = false;
-
-        // Need to skip space, find next char
-        while (true) {
-            if (_inputPtr >= _inputEnd) {
-                if (!loadMore()) {
-                    _reportError("Unexpected end-of-input after field name (\""+_parsingContext.getCurrentName()+"\"");
-                }
-            }
-            i = _inputBuffer[_inputPtr++] & 0xFF;
-            if (i > INT_SPACE) {
-                if (i != INT_COLON) {
-                    break;
-                }
-                if (gotColon) {
-                    _reportUnexpectedChar(i, "expected a valid value, not duplicate colon");
-                }
-                gotColon = true;
+                _skipComment();
             } else if (i != INT_SPACE) {
                 if (i == INT_LF) {
                     _skipLF();
@@ -971,12 +919,72 @@ public final class Utf8StreamParser
                 }
             }
         }
-        if (!gotColon) {
-            _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
-        }
-        return i;
+        throw _constructError("Unexpected end-of-input within/between "+_parsingContext.getTypeDesc()+" entries");
     }
 
+    private final int _skipWSOrEnd()
+        throws IOException, JsonParseException
+    {
+        while ((_inputPtr < _inputEnd) || loadMore()) {
+            int i = _inputBuffer[_inputPtr++] & 0xFF;
+            if (i > INT_SPACE) {
+                if (i != INT_SLASH) {
+                    return i;
+                }
+                _skipComment();
+            } else if (i != INT_SPACE) {
+                if (i == INT_LF) {
+                    _skipLF();
+                } else if (i == INT_CR) {
+                    _skipCR();
+                } else if (i != INT_TAB) {
+                    throwInvalidSpace(i);
+                }
+            }
+        }
+        // We ran out of input...
+        _handleEOF();
+        return -1;
+    }
+
+    private final int _skipWSAndColon()
+        throws IOException, JsonParseException
+    {
+        while (_inputPtr < _inputEnd || loadMore()) {
+            int i = _inputBuffer[_inputPtr++] & 0xFF;
+            if (i > INT_SPACE) {
+                if (i == INT_COLON) {
+                    return _skipWS();
+                }
+                if (i == INT_SLASH) {
+                    _skipComment();
+                    continue;
+                }
+                _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+            } else if (i != INT_SPACE) {
+                if (i == INT_LF) {
+                    _skipLF();
+                } else if (i == INT_CR) {
+                    _skipCR();
+                } else if (i != INT_TAB) {
+                    throwInvalidSpace(i);
+                }
+            }
+        }
+        throw _constructError("Unexpected end-of-input within/between "+_parsingContext.getTypeDesc()+" entries");
+    }
+
+    private final boolean _skipComment()
+        throws IOException, JsonParseException
+    {
+        if (!isFeatureEnabled(Feature.ALLOW_COMMENTS)) {
+            _reportUnexpectedChar('/', "maybe a (non-standard) comment? (not recognized as one since Feature 'ALLOW_COMMENTS' not enabled for parser)");
+        }
+        /* Otherwise, let's skip the comment... for now, we won't collect
+         * contents; they could be reported if such feature is requested
+         */
+        return true;
+    }
 
     protected final char _decodeEscaped()
         throws IOException, JsonParseException

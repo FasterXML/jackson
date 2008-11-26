@@ -259,7 +259,7 @@ public abstract class JsonParserBase
         while (true) {
             JsonToken t = nextToken();
             if (t == null) {
-                handleEOF();
+                _handleEOF();
             }
             switch (t) {
             case START_OBJECT:
@@ -510,7 +510,7 @@ public abstract class JsonParserBase
      * If so, it may be a legitimate EOF, but only iff there
      * is no open non-root context.
      */
-    protected void handleEOF()
+    protected void _handleEOF()
         throws JsonParseException
     {
         if (!_parsingContext.inRoot()) {
@@ -590,7 +590,7 @@ public abstract class JsonParserBase
     protected final void _reportError(String msg)
         throws JsonParseException
     {
-        throw new JsonParseException(msg, getCurrentLocation());
+        throw _constructError(msg);
     }
 
     protected final void _wrapError(String msg, Throwable t)
@@ -604,4 +604,8 @@ public abstract class JsonParserBase
         throw new RuntimeException("Internal error: this code path should never get executed");
     }
 
+    protected final JsonParseException _constructError(String msg)
+    {
+        return new JsonParseException(msg, getCurrentLocation());
+    }
 }

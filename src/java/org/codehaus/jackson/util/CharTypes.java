@@ -58,6 +58,23 @@ public final class CharTypes
     }
 
     /**
+     * Decoding table used to quickly determine characters that are
+     * ignorable/skippable white space
+     */
+    /*
+    final static int[] sInputWhitespace = new int[256];
+    static {
+        // default (0) means "don't process"
+        Arrays.fill(sInputWhitespace, 0, 32, 2); // 2 -> illegal
+        sInputWhitespace[' '] = 1; // 1 -> skip
+        sInputWhitespace['\t'] = 1;
+        sInputWhitespace['\n'] = 3;
+        sInputWhitespace['\r'] = 4;
+        sInputWhitespace['/'] = 5; // 5 -> potential comment
+    }
+    */
+
+    /**
      * Lookup table used for determining which output characters
      * need to be quoted.
      */
@@ -99,9 +116,9 @@ public final class CharTypes
         }
     }
 
-    public static int[] getInputCodeLatin1() { return sInputCodes; }
-    public static int[] getInputCodeUtf8() { return sInputCodesUtf8; }
-    public static int[] getOutputEscapes() { return sOutputEscapes; }
+    public final static int[] getInputCodeLatin1() { return sInputCodes; }
+    public final static int[] getInputCodeUtf8() { return sInputCodesUtf8; }
+    public final static int[] getOutputEscapes() { return sOutputEscapes; }
 
     public static int charToHex(int ch)
     {

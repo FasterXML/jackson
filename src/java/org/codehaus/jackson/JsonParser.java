@@ -50,7 +50,19 @@ public abstract class JsonParser
          *<p>
          * Feature is enabled by default.
          */
-        AUTO_CLOSE_SOURCE(true);
+        AUTO_CLOSE_SOURCE(true)
+            
+            /**
+             * Feature that determines whether parser will allow use
+             * of Java/C++ style comments (both '/'+'*' and
+             * '//' varieties) within parsed content or not.
+             * Given that JSON specification does not mention comments,
+             * this is a non-standards feature; however, in the wild
+             * this is extensively used. As such, feature is
+             * <b>disabled by default</b> for parsers and must be
+             * explicitly enabled (via factory or parser instance).
+             */
+            ,ALLOW_COMMENTS(false)
             ;
 
         final boolean _defaultState;
