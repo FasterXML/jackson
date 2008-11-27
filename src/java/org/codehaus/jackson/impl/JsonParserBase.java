@@ -32,6 +32,7 @@ public abstract class JsonParserBase
     final static int INT_SLASH = '/';
     final static int INT_COLON = ':';
     final static int INT_COMMA = ',';
+    final static int INT_ASTERISK = '*';
 
     // Letters we need
     final static int INT_b = 'b';
@@ -546,7 +547,7 @@ public abstract class JsonParserBase
         _reportError("Unexpected end-of-input"+msg);
     }
 
-    protected void throwInvalidSpace(int i)
+    protected void _throwInvalidSpace(int i)
         throws JsonParseException
     {
         char c = (char) i;

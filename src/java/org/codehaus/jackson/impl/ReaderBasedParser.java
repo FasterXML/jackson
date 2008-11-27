@@ -103,7 +103,11 @@ public final class ReaderBasedParser
         if (inObject) {
             _handleFieldName(i);
             _currToken = JsonToken.FIELD_NAME;
-            i = _skipWSAndColon();
+            i = _skipWS();
+            if (i != INT_COLON) {
+                _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+            }
+            i = _skipWS();
         }
 
         // Ok: we must have a value... what is it?
@@ -570,43 +574,76 @@ public final class ReaderBasedParser
         return -1;
     }
 
-    private final int _skipWSAndColon()
-        throws IOException, JsonParseException
-    {
-        while (_inputPtr < _inputEnd || loadMore()) {
-            int i = _inputBuffer[_inputPtr++];
-            if (i > INT_SPACE) {
-                if (i == INT_COLON) {
-                    return _skipWS();
-                }
-                if (i == INT_SLASH) {
-                    _skipComment();
-                    continue;
-                }
-                _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
-            } else if (i != INT_SPACE) {
-                if (i == INT_LF) {
-                    _skipLF();
-                } else if (i == INT_CR) {
-                    _skipCR();
-                } else if (i != INT_TAB) {
-                    throwInvalidSpace(i);
-                }
-            }
-        }
-        throw _constructError("Unexpected end-of-input within/between "+_parsingContext.getTypeDesc()+" entries");
-    }
-
-    private final boolean _skipComment()
+    private final void _skipComment()
         throws IOException, JsonParseException
     {
         if (!isFeatureEnabled(Feature.ALLOW_COMMENTS)) {
             _reportUnexpectedChar('/', "maybe a (non-standard) comment? (not recognized as one since Feature 'ALLOW_COMMENTS' not enabled for parser)");
         }
-        /* Otherwise, let's skip the comment... for now, we won't collect
-         * contents; they could be reported if such feature is requested
-         */
-        return true;
+        // First: check which comment (if either) it is:
+        if (_inputPtr >= _inputEnd && !loadMore()) {
+            _reportInvalidEOF(" in a comment");
+        }
+        char c = _inputBuffer[_inputPtr++];
+        if (c == '/') {
+            _skipCppComment();
+        } else if (c == '*') {
+            _skipCComment();
+        } else {
+            _reportUnexpectedChar(c, "was expecting either '*' or '/' for a comment");
+        }
+    }
+
+    private final void _skipCComment()
+        throws IOException, JsonParseException
+    {
+        // Ok: need the matching '*/'
+        main_loop:
+        while ((_inputPtr < _inputEnd) || loadMore()) {
+            int i = (int) _inputBuffer[_inputPtr++];
+            if (i <= INT_ASTERISK) {
+                if (i == INT_ASTERISK) { // end?
+                    if ((_inputPtr >= _inputEnd) && !loadMore()) {
+                        break main_loop;
+                    }
+                    if (_inputBuffer[_inputPtr] == INT_SLASH) {
+                        ++_inputPtr;
+                        return;
+                    }
+                    continue;
+                }
+                if (i < INT_SPACE) {
+                    if (i == INT_LF) {
+                        _skipLF();
+                    } else if (i == INT_CR) {
+                        _skipCR();
+                    } else if (i != INT_TAB) {
+                        throwInvalidSpace(i);
+                    }
+                }
+            }
+        }
+        _reportInvalidEOF(" in a comment");
+    }
+
+    private final void _skipCppComment()
+        throws IOException, JsonParseException
+    {
+        // Ok: need to find EOF or linefeed
+        while ((_inputPtr < _inputEnd) || loadMore()) {
+            int i = (int) _inputBuffer[_inputPtr++];
+            if (i < INT_SPACE) {
+                if (i == INT_LF) {
+                    _skipLF();
+                    break;
+                } else if (i == INT_CR) {
+                    _skipCR();
+                    break;
+                } else if (i != INT_TAB) {
+                    throwInvalidSpace(i);
+                }
+            }
+        }
     }
 
     protected final char _decodeEscaped()

@@ -31,6 +31,8 @@ Description:
 
   New features:
 
+  * [JACKSON-9]: Add support for (non-standard) Json comments.
+    (requested by Mike G)
   * [JACKSON-11]: Implement base64/binary methods for json generator.
   * [JACKSON-15]: Add copy-through methods to JsonGenerator for
     pass-through copying of content (copyCurrentEvent, copyCurrentStructure)

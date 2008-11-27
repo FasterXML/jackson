@@ -114,8 +114,12 @@ public final class Utf8StreamParser
             // First, field name itself:
             Name n = _parseFieldName(i);
             _parsingContext.setCurrentName(n.getName());
+            i = _skipWS();
+            if (i != INT_COLON) {
+                _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+            }
             _currToken = JsonToken.FIELD_NAME;
-            i = _skipWSAndColon();
+            i = _skipWS();
         }
 
         // Ok: we must have a value... what is it?
@@ -769,7 +773,7 @@ public final class Utf8StreamParser
                     _throwUnquotedSpace(c, "string value");
                 }
                 // Is this good enough error message?
-                _reportUnexpectedChar(c, null);
+                _reportInvalidChar(c);
             }
             // Need more room?
             if (outPtr >= outBuf.length) {
@@ -841,7 +845,7 @@ public final class Utf8StreamParser
                     _throwUnquotedSpace(c, "string value");
                 }
                 // Is this good enough error message?
-                _reportUnexpectedChar(c, null);
+                _reportInvalidChar(c);
             }
         }
     }
@@ -895,7 +899,7 @@ public final class Utf8StreamParser
 
     /*
     ////////////////////////////////////////////////////
-    // Internal methods, escape/unescape
+    // Internal methods, ws skipping, escape/unescape
     ////////////////////////////////////////////////////
      */
 
@@ -915,7 +919,7 @@ public final class Utf8StreamParser
                 } else if (i == INT_CR) {
                     _skipCR();
                 } else if (i != INT_TAB) {
-                    throwInvalidSpace(i);
+                    _throwInvalidSpace(i);
                 }
             }
         }
@@ -938,7 +942,7 @@ public final class Utf8StreamParser
                 } else if (i == INT_CR) {
                     _skipCR();
                 } else if (i != INT_TAB) {
-                    throwInvalidSpace(i);
+                    _throwInvalidSpace(i);
                 }
             }
         }
@@ -947,43 +951,84 @@ public final class Utf8StreamParser
         return -1;
     }
 
-    private final int _skipWSAndColon()
-        throws IOException, JsonParseException
-    {
-        while (_inputPtr < _inputEnd || loadMore()) {
-            int i = _inputBuffer[_inputPtr++] & 0xFF;
-            if (i > INT_SPACE) {
-                if (i == INT_COLON) {
-                    return _skipWS();
-                }
-                if (i == INT_SLASH) {
-                    _skipComment();
-                    continue;
-                }
-                _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
-            } else if (i != INT_SPACE) {
-                if (i == INT_LF) {
-                    _skipLF();
-                } else if (i == INT_CR) {
-                    _skipCR();
-                } else if (i != INT_TAB) {
-                    throwInvalidSpace(i);
-                }
-            }
-        }
-        throw _constructError("Unexpected end-of-input within/between "+_parsingContext.getTypeDesc()+" entries");
-    }
-
-    private final boolean _skipComment()
+    private final void _skipComment()
         throws IOException, JsonParseException
     {
         if (!isFeatureEnabled(Feature.ALLOW_COMMENTS)) {
             _reportUnexpectedChar('/', "maybe a (non-standard) comment? (not recognized as one since Feature 'ALLOW_COMMENTS' not enabled for parser)");
         }
-        /* Otherwise, let's skip the comment... for now, we won't collect
-         * contents; they could be reported if such feature is requested
-         */
-        return true;
+        // First: check which comment (if either) it is:
+        if (_inputPtr >= _inputEnd && !loadMore()) {
+            _reportInvalidEOF(" in a comment");
+        }
+        int c = _inputBuffer[_inputPtr++] & 0xFF;
+        if (c == INT_SLASH) {
+            _skipCppComment();
+        } else if (c == INT_ASTERISK) {
+            _skipCComment();
+        } else {
+            _reportUnexpectedChar(c, "was expecting either '*' or '/' for a comment");
+        }
+    }
+
+    private final void _skipCComment()
+        throws IOException, JsonParseException
+    {
+        // Need to be UTF-8 aware here to decode content (for skipping)
+        final int[] codes = CharTypes.getInputCodeComment();
+
+        // Ok: need the matching '*/'
+        main_loop:
+        while ((_inputPtr < _inputEnd) || loadMore()) {
+            int i = (int) _inputBuffer[_inputPtr++] & 0xFF;
+            int code = codes[i];
+            if (code != 0) {
+                switch (code) {
+                case INT_ASTERISK:
+                    if (_inputBuffer[_inputPtr] == INT_SLASH) {
+                        ++_inputPtr;
+                        return;
+                    }
+                    break;
+                case INT_LF:
+                    _skipLF();
+                    break;
+                case INT_CR:
+                    _skipCR();
+                    break;
+                default: // e.g. -1
+                    // Is this good enough error message?
+                    _reportInvalidChar(i);
+                }
+            }
+        }
+        _reportInvalidEOF(" in a comment");
+    }
+
+    private final void _skipCppComment()
+        throws IOException, JsonParseException
+    {
+        // Ok: need to find EOF or linefeed
+        final int[] codes = CharTypes.getInputCodeComment();
+        while ((_inputPtr < _inputEnd) || loadMore()) {
+            int i = (int) _inputBuffer[_inputPtr++] & 0xFF;
+            int code = codes[i];
+            if (code != 0) {
+                switch (code) {
+                case INT_LF:
+                    _skipLF();
+                    return;
+                case INT_CR:
+                    _skipCR();
+                    return;
+                case INT_ASTERISK: // nop for these comments
+                    break;
+                default: // e.g. -1
+                    // Is this good enough error message?
+                    _reportInvalidChar(i);
+                }
+            }
+        }
     }
 
     protected final char _decodeEscaped()
@@ -1285,6 +1330,16 @@ public final class Utf8StreamParser
     // Internal methods, error reporting
     ////////////////////////////////////////////////////
      */
+
+    protected void _reportInvalidChar(int c)
+        throws JsonParseException
+        {
+            // Either invalid WS or illegal UTF-8 start char
+            if (c < INT_SPACE) {
+                _throwInvalidSpace(c);
+            }
+            _reportInvalidInitial(c);
+        }
 
     protected void _reportInvalidInitial(int mask)
         throws JsonParseException
