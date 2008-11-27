@@ -4,7 +4,7 @@ import org.codehaus.jackson.*;
 
 import java.io.*;
 
-s/**
+/**
  * Some unit tests to try to exercise part of parser code that
  * deals with symbol (table) management.
  */

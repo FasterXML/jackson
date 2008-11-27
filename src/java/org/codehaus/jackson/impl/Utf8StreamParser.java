@@ -999,7 +999,7 @@ public final class Utf8StreamParser
                     // Is this good enough error message?
                     _reportInvalidChar(i);
                 }
-s            }
+            }
         }
         _reportInvalidEOF(" in a comment");
     }
