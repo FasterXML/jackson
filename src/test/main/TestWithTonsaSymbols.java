@@ -3,9 +3,8 @@ package main;
 import org.codehaus.jackson.*;
 
 import java.io.*;
-import java.util.*;
 
-/**
+s/**
  * Some unit tests to try to exercise part of parser code that
  * deals with symbol (table) management.
  */

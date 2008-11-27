@@ -542,7 +542,7 @@ public final class ReaderBasedParser
                 } else if (i == INT_CR) {
                     _skipCR();
                 } else if (i != INT_TAB) {
-                    throwInvalidSpace(i);
+                    _throwInvalidSpace(i);
                 }
             }
         }
@@ -565,7 +565,7 @@ public final class ReaderBasedParser
                 } else if (i == INT_CR) {
                     _skipCR();
                 } else if (i != INT_TAB) {
-                    throwInvalidSpace(i);
+                    _throwInvalidSpace(i);
                 }
             }
         }
@@ -618,7 +618,7 @@ public final class ReaderBasedParser
                     } else if (i == INT_CR) {
                         _skipCR();
                     } else if (i != INT_TAB) {
-                        throwInvalidSpace(i);
+                        _throwInvalidSpace(i);
                     }
                 }
             }
@@ -640,7 +640,7 @@ public final class ReaderBasedParser
                     _skipCR();
                     break;
                 } else if (i != INT_TAB) {
-                    throwInvalidSpace(i);
+                    _throwInvalidSpace(i);
                 }
             }
         }

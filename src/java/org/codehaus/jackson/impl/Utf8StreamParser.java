@@ -978,7 +978,6 @@ public final class Utf8StreamParser
         final int[] codes = CharTypes.getInputCodeComment();
 
         // Ok: need the matching '*/'
-        main_loop:
         while ((_inputPtr < _inputEnd) || loadMore()) {
             int i = (int) _inputBuffer[_inputPtr++] & 0xFF;
             int code = codes[i];
@@ -1000,7 +999,7 @@ public final class Utf8StreamParser
                     // Is this good enough error message?
                     _reportInvalidChar(i);
                 }
-            }
+s            }
         }
         _reportInvalidEOF(" in a comment");
     }

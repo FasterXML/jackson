@@ -11,7 +11,8 @@ import org.codehaus.jackson.map.*;
 public class TestToJavaType
     extends BaseTest
 {
-    public void testSampleDoc()
+    @SuppressWarnings("unchecked")
+	public void testSampleDoc()
         throws Exception
     {
         final String JSON = SAMPLE_DOC_JSON_SPEC;
