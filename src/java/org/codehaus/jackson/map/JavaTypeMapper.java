@@ -51,6 +51,9 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
+    // !!! TBI
+    protected JsonSerializerProvider _serializerProvider = null;
+
     /**
      * Optional custom serializer, which can be called to handle
      * Java types that the default handler can not handle.
@@ -59,7 +62,7 @@ public class JavaTypeMapper
      * deal with (i.e  not including possible eventual conversion
      * to String, as per {@link #_cfgUnknownTypes} )
      */
-    protected JavaTypeSerializer<Object> mCustomSerializer = null;
+    protected JavaTypeSerializer<Object> _customSerializer = null;
 
     /**
      * This defines how instances of unrecognized types (for JSON output)
@@ -80,8 +83,8 @@ public class JavaTypeMapper
      * Method for specifying a custom type serializer to use when mapping
      * JSON content to Java objects.
      */
-    public void setCustomSerializer(JavaTypeSerializer<Object> ser) { mCustomSerializer = ser; }
-    public JavaTypeSerializer<Object> getCustomSerializer() { return mCustomSerializer; }
+    public void setCustomSerializer(JavaTypeSerializer<Object> ser) { _customSerializer = ser; }
+    public JavaTypeSerializer<Object> getCustomSerializer() { return _customSerializer; }
 
     /**
      * Method for configuring mapper regarding how to handle serialization
@@ -135,10 +138,31 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
+    @SuppressWarnings("unchecked")
+	public final void writeValue(JsonGenerator gen, Object value)
+        throws IOException, JsonParseException
+    {
+        /* Unfortunate cast, no way around it (or one alternative cast on
+         * next line)...
+         */
+        JsonSerializer<Object> ser = (JsonSerializer<Object>)_serializerProvider.findSerializer(value.getClass());
+        ser.serialize(value, gen, _serializerProvider);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // !!! TODO: remove
+    //
+    // Old serialization methods
+    ////////////////////////////////////////////////////
+     */
+
     /**
      *<p>
      * Note: method will explicitly call flush on underlying
      * generator.
+     *<p>
+     * @deprecated Use {@link #writeValue}
      */
     public final void writeAny(JsonGenerator jg, Object value)
         throws IOException, JsonParseException
@@ -156,6 +180,8 @@ public class JavaTypeMapper
      *<p>
      * Note: method will explicitly call flush on underlying
      * generator.
+     *<p>
+     * @deprecated Use {@link #writeValue}
      */
     public final void write(JsonGenerator jg, Map<?,Object> value)
         throws IOException, JsonParseException
@@ -168,6 +194,8 @@ public class JavaTypeMapper
      *<p>
      * Note: method will explicitly call flush on underlying
      * generator.
+     *<p>
+     * @deprecated Use {@link #writeValue}
      */
     public final void write(JsonGenerator jg, Collection<Object> value)
         throws IOException, JsonParseException
@@ -180,6 +208,8 @@ public class JavaTypeMapper
      *<p>
      * Note: method will explicitly call flush on underlying
      * generator.
+     *<p>
+     * @deprecated Use {@link #writeValue}
      */
     public final void write(JsonGenerator jg, Object[] value)
         throws IOException, JsonParseException
@@ -260,8 +290,8 @@ public class JavaTypeMapper
         KnownClasses.JdkClasses jdkType = KnownClasses.findTypeFast(value);
         if (jdkType == null) {
             // If not, maybe we have an auxiliary converter?
-            if (mCustomSerializer != null) {
-                if (mCustomSerializer.writeAny(defaultSerializer, jgen, value)) {
+            if (_customSerializer != null) {
+                if (_customSerializer.writeAny(defaultSerializer, jgen, value)) {
                     return true;
                 }
             }

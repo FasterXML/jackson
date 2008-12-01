@@ -1,12 +1,18 @@
-Version: 0.9.4
+Version: 0.9.5
 
 Release date: 
-  26-Nov-2008
+  xx-Dec-2008
 
 Description:
   Another pre-1.0 release: this time significantly improving unit test
   coverage, fixing bugs uncovered by doing so, and addressing accumulated
   minor feature requests.
+
+  Bug fixes:
+
+== History: ==
+
+0.9.4 [26-Nov-2008]:
 
   Bug fixes:
 
@@ -40,8 +46,6 @@ Description:
   * Added generic "feature" mechanism to parsers, writers; features are
     togglable (on/off) things with well-defined default values, implemented
     as Enums.
-
-== History: ==
 
 0.9.3 [05-Sep-2008]:
 
