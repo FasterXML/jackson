@@ -340,13 +340,20 @@
             <fileset dir="." includes="release-notes/lgpl/*" />
        </copy>
        <!-- And also additional Maven stuff -->
-       <copy todir="${dir.dist}">
+        <copy todir="${dir.dist}">
             <fileset dir="${dir.src}/maven" includes="*.pom" />
             <globmapper from="*.pom" to="*-${IMPL_VERSION}.pom" />
             <filterset>
-              <filter token="VERSION" value="${IMPL_VERSION}" />
+                <filter token="VERSION" value="${IMPL_VERSION}" />
             </filterset>
-       </copy>
+        </copy>
+        <!-- 03-Dec-2008, tatu: Let's validate well-formedness of
+          resulting files (to avoid things like [JACKSON-25])
+         -->
+        <xmlvalidate lenient="true">
+        <!-- lenient: check only well-formedness, no dtd/schema (yet) -->
+            <fileset dir="${dir.src}/maven" includes="*.pom" />
+        </xmlvalidate>
     </target>
 
     <target name="all" depends="clean,javadoc,test,dist">

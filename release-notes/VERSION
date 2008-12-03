@@ -10,6 +10,10 @@ Description:
 
   Bug fixes:
 
+  * [JACKSON-25]: Problems with Maven pom for lgpl version
+    (report by Ray R)
+    note: backported to 0.9.4 Codehaus Maven repo
+
 == History: ==
 
 0.9.4 [26-Nov-2008]:

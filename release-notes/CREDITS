@@ -52,3 +52,7 @@ Michael Descher:
 Mike Goodwin:
   * Suggested [JACKSON-9]: Add support for (non-standard) Json comments.
     [0.9.4]
+
+Ray Racine:
+  * Pointed out [JACKSON-25]: Problems with Maven pom for lgpl version
+    [0.9.4-backport]
