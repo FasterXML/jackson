@@ -116,10 +116,14 @@ public class TestToJsonType
 
         JsonNode result = mapper.read(jp);
         assertTrue(result.isIntegralNumber());
+        assertTrue(result.isInt());
+        assertFalse(result.isTextual());
         assertEquals(12, result.getIntValue());
 
         result = mapper.read(jp);
         assertTrue(result.isTextual());
+        assertFalse(result.isIntegralNumber());
+        assertFalse(result.isInt());
         assertEquals("string", result.getTextValue());
 
         result = mapper.read(jp);
@@ -127,6 +131,75 @@ public class TestToJsonType
         assertEquals(3, result.size());
 
         assertNull(mapper.read(jp));
+    }
+
+    /**
+     * Let's also verify behavior of "MissingNode" -- one needs to be able
+     * to traverse such bogus nodes with appropriate methods.
+     */
+    public void testMissingNode()
+        throws Exception
+    {
+        JsonFactory jf = new JsonFactory();
+        String JSON = "[ { }, [ ] ]";
+        JsonParser jp = jf.createJsonParser(new StringReader(JSON));
+        JsonTypeMapper mapper = new JsonTypeMapper();
+        JsonNode result = mapper.read(jp);
+        jp.close();
+
+        assertTrue(result.isContainerNode());
+        assertTrue(result.isArray());
+        assertEquals(2, result.size());
+
+        int count = 0;
+        for (JsonNode n : result) {
+            ++count;
+        }
+        assertEquals(2, count);
+
+        Iterator<JsonNode> it = result.iterator();
+
+        JsonNode onode = it.next();
+        assertTrue(onode.isContainerNode());
+        assertTrue(onode.isObject());
+        assertEquals(0, onode.size());
+        assertFalse(onode.isMissingNode()); // real node
+        assertNull(onode.getTextValue());
+
+        // how about dereferencing?
+        assertNull(onode.getElementValue(0));
+        JsonNode dummyNode = onode.getPath(0);
+        assertNotNull(dummyNode);
+        assertTrue(dummyNode.isMissingNode());
+        assertNull(dummyNode.getElementValue(3));
+        assertNull(dummyNode.getFieldValue("whatever"));
+        JsonNode dummyNode2 = dummyNode.getPath(98);
+        assertNotNull(dummyNode2);
+        assertTrue(dummyNode2.isMissingNode());
+        JsonNode dummyNode3 = dummyNode.getPath("field");
+        assertNotNull(dummyNode3);
+        assertTrue(dummyNode3.isMissingNode());
+
+        // and same for the array node
+
+        JsonNode anode = it.next();
+        assertTrue(anode.isContainerNode());
+        assertTrue(anode.isArray());
+        assertFalse(anode.isMissingNode()); // real node
+        assertEquals(0, anode.size());
+
+        assertNull(anode.getElementValue(0));
+        dummyNode = anode.getPath(0);
+        assertNotNull(dummyNode);
+        assertTrue(dummyNode.isMissingNode());
+        assertNull(dummyNode.getElementValue(0));
+        assertNull(dummyNode.getFieldValue("myfield"));
+        dummyNode2 = dummyNode.getPath(98);
+        assertNotNull(dummyNode2);
+        assertTrue(dummyNode2.isMissingNode());
+        dummyNode3 = dummyNode.getPath("f");
+        assertNotNull(dummyNode3);
+        assertTrue(dummyNode3.isMissingNode());
     }
 
     /*

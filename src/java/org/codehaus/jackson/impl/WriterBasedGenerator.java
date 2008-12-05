@@ -477,7 +477,25 @@ public final class WriterBasedGenerator
     public void close()
         throws IOException
     {
+        /* 05-Dec-2008, tatu: To add [JACKSON-27], need to close open
+         *   scopes.
+         */
+        // First: let's see that we still have buffers...
+        if (_outputBuffer != null
+            && isFeatureEnabled(Feature.AUTO_CLOSE_JSON_CONTENT)) {
+            while (true) {
+                JsonWriteContext ctxt = getOutputContext();
+                if (ctxt.inArray()) {
+                    writeEndArray();
+                } else if (ctxt.inObject()) {
+                    writeEndObject();
+                } else {
+                    break;
+                }
+            }
+        }
         _flushBuffer();
+
         /* 25-Nov-2008, tatus: As per [JACKSON-16] we are not to call close()
          *   on the underlying Reader, unless we "own" it, or auto-closing
          *   feature is enabled.

@@ -9,7 +9,8 @@ import org.codehaus.jackson.JsonGenerator;
 
 /**
  * Base class for all JSON nodes, used with the "dynamic" (JSON type)
- * mapper
+ * mapper. One way to think of these nodes is to think them as being
+ * similar to DOM nodes in XML DOM trees.
  */
 public abstract class JsonNode
     implements Iterable<JsonNode>
@@ -62,19 +63,62 @@ public abstract class JsonNode
     // // Then more specific type introspection
     // // (along with defaults to be overridden)
 
+    /**
+     * @return True if this node represents Json Array
+     */
     public boolean isArray() { return false; }
+
+    /**
+     * @return True if this node represents Json Object
+     */
     public boolean isObject() { return false; }
+
+    /**
+     * @return True if this node represents a numeric Json
+     *   value
+     */
     public boolean isNumber() { return false; }
+
+    /**
+     * @return True if this node represents an integral (integer)
+     *   numeric Json value
+     */
     public boolean isIntegralNumber() { return false; }
+
+    /**
+     * @return True if this node represents a non-integral
+     *   numeric Json value
+     */
     public boolean isFloatingPointNumber() { return false; }
 
+    /**
+     * @return True if this node represents an integral
+     *   numeric Json value that withs in Java int value space
+     */
     public boolean isInt() { return false; }
+
+    /**
+     * @return True if this node represents an integral
+     *   numeric Json value that fits in Java long value space
+     *   (but not int value space, i.e. {@link #isInt} returns false)
+     */
     public boolean isLong() { return false; }
+
     public boolean isDouble() { return false; }
     public boolean isBigDecimal() { return false; }
 
     public boolean isTextual() { return false; }
+
+    /**
+     * Method that can be used to check if this node was created from
+     * Json boolean value (literals "true" and "false").
+     */
     public boolean isBoolean() { return false; }
+
+    /**
+     * Method that can be used to check if this node was created from
+     * Json liternal null value.
+     */
     public boolean isNull() { return false; }
 
     /*
@@ -83,7 +127,20 @@ public abstract class JsonNode
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method to use for accessing String values (list values, Object
+     * field values, root-level values).
+     * Does <b>NOT</b> do any conversions;
+     * for non-String values (ones for which {@link #isTextual} returns
+     * false) null will be returned.
+     * For String values, null is never returned; empty Strings are returned
+     * as is.
+     *
+     * @return Textual value this node contains, iff it is a textual
+     *   json node (comes from Json String value entry)
+     */
     public String getTextValue() { return null; }
+
     public boolean getBooleanValue() { return false; }
     public Number getNumberValue() { return Integer.valueOf(getIntValue()); }
     public int getIntValue() { return 0; }
@@ -149,35 +206,63 @@ public abstract class JsonNode
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method for appending a value Node as the list child of
+     * this node. Only works for Array
+     * nodes, i.e. nodes for which {@link #isArray} returns true;
+     * for Arrays given node gets added as the last child element.
+     */
     public void appendElement(JsonNode node) {
-        reportNoArrayMods();
+        _reportNoArrayMods();
     }
 
-    // TODO: add convenience methods (appendElement(int x) etc)
+    // !!! TODO: add convenience methods (appendElement(int x) etc)
 
+    /**
+     * Method for inserting specified node, at specified index, within
+     * this Array node.
+     * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
+     */
     public void insertElement(int index, JsonNode value) {
-        reportNoArrayMods();
+        _reportNoArrayMods();
     }
 
+    /**
+     * Method for removing specified value of this Array node.
+     * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
+     */
     public JsonNode removeElement(int index) {
-        reportNoArrayMods();
+        _reportNoArrayMods();
         return null;
     }
 
+    /**
+     * Method for removing specified value of this Object node.
+     * Only works for Object nodes, i.e. nodes for which {@link #isObject} returns true.
+     */
     public JsonNode removeElement(String fieldName) {
-        reportNoObjectMods();
+        _reportNoObjectMods();
         return null;
     }
 
     // TODO: add convenience methods (insertElement(int x) etc)
 
+    /**
+     * Method for setting specified value of this Array node.
+     * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
+     */
     public JsonNode setElement(int index, JsonNode value) {
-        reportNoArrayMods();
+        _reportNoArrayMods();
         return null;
     }
 
+    /**
+     * Method for setting value of specified field of this Object node.
+     * Only works for Object nodes, i.e. nodes for which {@link #isObject}
+     * returns true.
+     */
     public JsonNode setElement(String fieldName, JsonNode value) {
-        reportNoObjectMods();
+        _reportNoObjectMods();
         return null;
     }
 
@@ -249,12 +334,12 @@ public abstract class JsonNode
     ////////////////////////////////////////////////////
      */
 
-    protected JsonNode reportNoArrayMods()
+    protected JsonNode _reportNoArrayMods()
     {
         throw new UnsupportedOperationException("Node of type "+getClass()+" does not support appendElement, insertElement or setElement(int, ...) operations (only ArrayNodes do)");
     }
 
-    protected JsonNode reportNoObjectMods()
+    protected JsonNode _reportNoObjectMods()
     {
         throw new UnsupportedOperationException("Node of type "+getClass()+" does not support setElement(String, ...) operations (only ObjectNodes do)");
     }

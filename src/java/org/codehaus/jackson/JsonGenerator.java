@@ -18,7 +18,7 @@ import java.io.*;
 import java.math.BigDecimal;
 
 /**
- * Base class that defines public API for writing JSON content.
+ * Base class that defines public API for writing Json content.
  * Instances are created using factory methods of
  * a {@link JsonFactory} instance.
  *
@@ -43,7 +43,19 @@ public abstract class JsonGenerator
          *<p>
          * Feature is enabled by default.
          */
-        AUTO_CLOSE_TARGET(true);
+        AUTO_CLOSE_TARGET(true),
+
+        /**
+         * Feature that determines what happens when the generator is
+         * closed while there are still unmatched
+         * {@link JsonToken#START_ARRAY} or {@link JsonToken#START_OBJECT}
+         * entries in output content. If enabled, such Array(s) and/or
+         * Object(s) are automatically closed; if disabled, nothing
+         * specific is done.
+         *<p>
+         * Feature is enabled by default.
+         */
+        AUTO_CLOSE_JSON_CONTENT(true)
             ;
 
         final boolean _defaultState;
@@ -90,8 +102,8 @@ public abstract class JsonGenerator
      */
 
     /**
-     * Method for enabling specified parser features
-     * (check {@link Feature} for list of features)
+     * Method for enabling specified parser features:
+     * check {@link Feature} for list of available features.
      */
     public abstract void enableFeature(Feature f);
 
@@ -101,8 +113,23 @@ public abstract class JsonGenerator
      */
     public abstract void disableFeature(Feature f);
 
-    public abstract void setFeature(Feature f, boolean state);
+    /**
+     * Method for enabling or disabling specified feature:
+     * check {@link Feature} for list of available features.
+     */
+    public final void setFeature(Feature f, boolean state)
+    {
+        if (state) {
+            enableFeature(f);
+        } else {
+            disableFeature(f);
+        }
+    }
 
+    /**
+     * Method for checking whether given feature is enabled.
+     * Check {@link Feature} for list of available features.
+     */
     public abstract boolean isFeatureEnabled(Feature f);
 
     /*
@@ -137,18 +164,63 @@ public abstract class JsonGenerator
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method for writing starting marker of an Array value
+     * (character '['; plus possible white space decoration
+     * if pretty-printing is enabled).
+     *<p>
+     * Array values can be written in any context where values
+     * are allowed: meaning everywhere except for when
+     * a field name is expected.
+     */
     public abstract void writeStartArray()
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method for writing closing marker of an Array value
+     * (character ']'; plus possible white space decoration
+     * if pretty-printing is enabled).
+     *<p>
+     * Marker can be written if the innermost structured type
+     * is Array.
+     */
     public abstract void writeEndArray()
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method for writing starting marker of an Object value
+     * (character '{'; plus possible white space decoration
+     * if pretty-printing is enabled).
+     *<p>
+     * Object values can be written in any context where values
+     * are allowed: meaning everywhere except for when
+     * a field name is expected.
+     */
     public abstract void writeStartObject()
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method for writing closing marker of an Object value
+     * (character '}'; plus possible white space decoration
+     * if pretty-printing is enabled).
+     *<p>
+     * Marker can be written if the innermost structured type
+     * is Object, and the last written event was either a
+     * complete value, or START-OBJECT marker (see Json specification
+     * for more details).
+     */
     public abstract void writeEndObject()
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method for writing a field name (json String surrounded by
+     * double quotes: syntactically identical to a json String value),
+     * possibly decorated by white space if pretty-printing is enabled.
+     *<p>
+     * Field names can only be written in Object context (check out
+     * Json specification for details), when field name is expected
+     * (field names alternate with values).
+     */
     public abstract void writeFieldName(String name)
         throws IOException, JsonGenerationException;
 
@@ -163,7 +235,7 @@ public abstract class JsonGenerator
      * this means either array element, (object) field value or
      * a stand alone String; but in all cases, String will be
      * surrounded in double quotes, and contents will be properly
-     * escaped as required by JSON specification.
+     * escaped as required by Json specification.
      */
     public abstract void writeString(String text)
         throws IOException, JsonGenerationException;
@@ -194,7 +266,7 @@ public abstract class JsonGenerator
      * encoded, as a complete String value (surrounded by double quotes).
      * This method defaults
      *<p>
-     * Note: because JSON Strings can not contain unescaped linefeeds,
+     * Note: because Json Strings can not contain unescaped linefeeds,
      * if linefeeds are included (as per last argument), they must be
      * escaped. This adds overhead for decoding without improving
      * readability.
@@ -239,22 +311,57 @@ public abstract class JsonGenerator
 
     /*
     ////////////////////////////////////////////////////
-    // Public API, write methods, primitives
+    // Public API, write methods, other value types
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method for outputting indicate Json numeric value.
+     * Can be called in any context where a value is expected
+     * (Array value, Object field value, root-level value).
+     * Additional white space may be added around the value
+     * if pretty-printing is enabled.
+     */
     public abstract void writeNumber(int i)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method for outputting indicate Json numeric value.
+     * Can be called in any context where a value is expected
+     * (Array value, Object field value, root-level value).
+     * Additional white space may be added around the value
+     * if pretty-printing is enabled.
+     */
     public abstract void writeNumber(long l)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method for outputting indicate Json numeric value.
+     * Can be called in any context where a value is expected
+     * (Array value, Object field value, root-level value).
+     * Additional white space may be added around the value
+     * if pretty-printing is enabled.
+     */
     public abstract void writeNumber(double d)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method for outputting indicate Json numeric value.
+     * Can be called in any context where a value is expected
+     * (Array value, Object field value, root-level value).
+     * Additional white space may be added around the value
+     * if pretty-printing is enabled.
+     */
     public abstract void writeNumber(float f)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method for outputting indicate Json numeric value.
+     * Can be called in any context where a value is expected
+     * (Array value, Object field value, root-level value).
+     * Additional white space may be added around the value
+     * if pretty-printing is enabled.
+     */
     public abstract void writeNumber(BigDecimal dec)
         throws IOException, JsonGenerationException;
 
@@ -270,7 +377,7 @@ public abstract class JsonGenerator
      * implementations may not be able to implement this
      * method. For example, if a binary json format is used,
      * it may require type information for encoding; similarly
-     * for generator-wrappers around Java objects or JSON nodes.
+     * for generator-wrappers around Java objects or Json nodes.
      * If implementation does not implement this method,
      * it needs to throw {@link UnsupportedOperationException}.
      */
@@ -278,11 +385,193 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException,
                UnsupportedOperationException;
 
+    /**
+     * Method for outputting literal Json boolean value (one of
+     * Strings 'true' and 'false').
+     * Can be called in any context where a value is expected
+     * (Array value, Object field value, root-level value).
+     * Additional white space may be added around the value
+     * if pretty-printing is enabled.
+     */
     public abstract void writeBoolean(boolean state)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method for outputting literal Json null value.
+     * Can be called in any context where a value is expected
+     * (Array value, Object field value, root-level value).
+     * Additional white space may be added around the value
+     * if pretty-printing is enabled.
+     */
     public abstract void writeNull()
         throws IOException, JsonGenerationException;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, convenience field write methods
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that has a String value. Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeString(value);
+     *</pre>
+     */
+    public final void writeStringField(String fieldName, String value)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeString(value);
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that has a boolean value. Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeBoolean(value);
+     *</pre>
+     */
+    public final void writeBooleanField(String fieldName, boolean value)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeBoolean(value);
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that has Json literal value null. Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeNull();
+     *</pre>
+     */
+    public final void writeNullField(String fieldName)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeNull();
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that has the specified numeric value. Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeNumber(value);
+     *</pre>
+     */
+    public final void writeNumberField(String fieldName, int value)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeNumber(value);
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that has the specified numeric value. Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeNumber(value);
+     *</pre>
+     */
+    public final void writeNumberField(String fieldName, long value)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeNumber(value);
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that has the specified numeric value. Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeNumber(value);
+     *</pre>
+     */
+    public final void writeNumberField(String fieldName, double value)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeNumber(value);
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that has the specified numeric value. Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeNumber(value);
+     *</pre>
+     */
+    public final void writeNumberField(String fieldName, float value)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeNumber(value);
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that has the specified numeric value.
+     * Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeNumber(value);
+     *</pre>
+     */
+    public final void writeNumberField(String fieldName, BigDecimal value)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeNumber(value);
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that contains an array value, and the START-ARRAY marker.
+     * Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeStartArray();
+     *</pre>
+     *<p>
+     * Note: caller still has to take care to close the array
+     * (by calling {#link #writeEndArray}) after writing all values
+     * of the value Array.
+     */
+    public final void writeArrayFieldStart(String fieldName)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeStartArray();
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that contains an array value, and the START-OBJECT marker.
+     * Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeStartObject();
+     *</pre>
+     *<p>
+     * Note: caller still has to take care to close the Object
+     * (by calling {#link #writeEndObject}) after writing all
+     * entries of the value Object.
+     */
+    public final void writeObjectFieldStart(String fieldName)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeStartObject();
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -294,7 +583,7 @@ public abstract class JsonGenerator
      * Method for copying contents of the current event that
      * the given parser instance points to.
      * Note that the method <b>will not</b> copy any other events,
-     * such as events contained within JSON Array or Object structures.
+     * such as events contained within Json Array or Object structures.
      *<p>
      * Calling this method will not advance the given
      * parser, although it may cause parser to internally process
@@ -322,7 +611,7 @@ public abstract class JsonGenerator
      *  </li>
      * <li>{@link JsonToken#FIELD_NAME} the logical value (which
      *   can consist of a single scalar value; or a sequence of related
-     *   events for structured types (JSON Arrays, Objects)) will
+     *   events for structured types (Json Arrays, Objects)) will
      *   be copied along with the name itself. So essentially the
      *   whole <b>field entry</b> (name and value) will be copied.
      *  </li>
@@ -354,9 +643,26 @@ public abstract class JsonGenerator
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method called to flush any buffered content to the underlying
+     * target (output stream, writer), and to flush the target itself
+     * as well.
+     */
     public abstract void flush()
         throws IOException;
 
+    /**
+     * Method called to close this generator, so that no more content
+     * can be written.
+     *<p>
+     * Whether the underlying target (stream, writer) gets closed depends
+     * on whether this generator either manages the target (i.e. is the
+     * only one with access to the target -- case if caller passes a
+     * reference to the resource such as File, but not stream); or
+     * has feature {@link Feature#AUTO_CLOSE_TARGET} enabled.
+     * If either of above is true, the target is also closed. Otherwise
+     * (not managing, feature not enabled), target is not closed.
+     */
     public abstract void close()
         throws IOException;
 }

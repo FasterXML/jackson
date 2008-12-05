@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonNode;
 
 /**
+ * Node class that represents Arrays mapped from Json content.
  */
 public final class ArrayNode
     extends ContainerNode
@@ -90,7 +91,7 @@ public final class ArrayNode
 
     public JsonNode removeElement(String fieldName)
     {
-        return reportNoObjectMods();
+        return _reportNoObjectMods();
     }
 
     public JsonNode setElement(int index, JsonNode value)
@@ -103,7 +104,7 @@ public final class ArrayNode
 
     public JsonNode setElement(String fieldName, JsonNode value)
     {
-        return reportNoObjectMods();
+        return _reportNoObjectMods();
     }
 
     public void writeTo(JsonGenerator jg)

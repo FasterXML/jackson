@@ -61,13 +61,7 @@ public abstract class JsonGeneratorBase
         _features &= ~f.getMask();
     }
 
-    public void setFeature(Feature f, boolean state) {
-        if (state) {
-            enableFeature(f);
-        } else {
-            disableFeature(f);
-        }
-    }
+    //public final void setFeature(Feature f, boolean state) {
 
     public boolean isFeatureEnabled(Feature f) {
         return (_features & f.getMask()) != 0;
@@ -220,13 +214,9 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
-    protected abstract void _releaseBuffers();
+    public abstract void flush() throws IOException;
 
-    public abstract void flush()
-        throws IOException;
-
-    public abstract void close()
-        throws IOException;
+    public abstract void close() throws IOException;
 
     /*
     ////////////////////////////////////////////////////
@@ -313,6 +303,8 @@ public abstract class JsonGeneratorBase
     // Package methods for this, sub-classes
     ////////////////////////////////////////////////////
      */
+
+    protected abstract void _releaseBuffers();
 
     protected abstract void _verifyValueWrite(String typeMsg)
         throws IOException, JsonGenerationException;

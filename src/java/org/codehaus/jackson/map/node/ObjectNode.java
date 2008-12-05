@@ -68,17 +68,17 @@ public final class ObjectNode
 
     public void appendElement(JsonNode node)
     {
-        reportNoArrayMods();
+        _reportNoArrayMods();
     }
 
     public void insertElement(int index, JsonNode value)
     {
-        reportNoArrayMods();
+        _reportNoArrayMods();
     }
 
     public JsonNode removeElement(int index)
     {
-        return reportNoArrayMods();
+        return _reportNoArrayMods();
     }
 
     public JsonNode removeElement(String fieldName)
@@ -91,7 +91,7 @@ public final class ObjectNode
 
     public JsonNode setElement(int index, JsonNode value)
     {
-        return reportNoArrayMods();
+        return _reportNoArrayMods();
     }
 
     public JsonNode setElement(String fieldName, JsonNode value)

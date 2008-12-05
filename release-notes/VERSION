@@ -14,6 +14,16 @@ Description:
     (report by Ray R)
     note: backported to 0.9.4 Codehaus Maven repo
 
+  Improvements:
+
+  * [JACKSON-26]: Add convenience JsonGenerator.writeXxxField() methods
+    to simplify json generation.
+
+  New features:
+
+  * [JACKSON-27]: Allow automatic closing of incomplete START_ARRAY and
+    START_OBJET events, when JsonGenerator.close() is called.
+
 == History: ==
 
 0.9.4 [26-Nov-2008]:

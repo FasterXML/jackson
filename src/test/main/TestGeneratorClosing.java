@@ -5,9 +5,16 @@ import org.codehaus.jackson.*;
 import java.io.*;
 
 /**
- * Set of basic unit tests that verify that the closing (or not) of
- * the underlying target occurs as expected and specified
- * by documentation.
+ * Set of basic unit tests that verify aspect of closing a
+ * {@link JsonGenerator} instance. This includes both closing
+ * of physical resources (target), and logical content
+ * (json content tree)
+ *<p>
+ * Specifically, features
+ * {@link JsonGenerator.Feature#AUTO_CLOSE_TARGET}
+ * and
+ * {@link JsonGenerator.Feature#AUTO_CLOSE_JSON_CONTENT}
+ * are tested.
  */
 public class TestGeneratorClosing
     extends BaseTest
@@ -42,7 +49,6 @@ public class TestGeneratorClosing
         throws Exception
     {
         JsonFactory f = new JsonFactory();
-
         f.enableGeneratorFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         MyWriter output = new MyWriter();
         JsonGenerator jg = f.createJsonGenerator(output);
@@ -67,6 +73,48 @@ public class TestGeneratorClosing
         jg.writeNumber(39);
         jg.close();
         assertFalse(output.isClosed());
+    }
+
+    public void testAutoCloseArraysAndObjects()
+        throws Exception
+    {
+        JsonFactory f = new JsonFactory();
+        // let's verify default setting, first:
+        assertTrue(f.isGeneratorFeatureEnabled(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT));
+        StringWriter sw = new StringWriter();
+
+        // First, test arrays:
+        JsonGenerator jg = f.createJsonGenerator(sw);
+        jg.writeStartArray();
+        jg.close();
+        assertEquals("[]", sw.toString());
+
+        // Then objects
+        sw = new StringWriter();
+        jg = f.createJsonGenerator(sw);
+        jg.writeStartObject();
+        jg.close();
+        assertEquals("{}", sw.toString());
+    }
+
+    public void testNoAutoCloseArraysAndObjects()
+        throws Exception
+    {
+        JsonFactory f = new JsonFactory();
+        f.disableGeneratorFeature(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT);
+        StringWriter sw = new StringWriter();
+        JsonGenerator jg = f.createJsonGenerator(sw);
+        jg.writeStartArray();
+        jg.close();
+        // shouldn't close
+        assertEquals("[", sw.toString());
+
+        // Then objects
+        sw = new StringWriter();
+        jg = f.createJsonGenerator(sw);
+        jg.writeStartObject();
+        jg.close();
+        assertEquals("{", sw.toString());
     }
 
     /*

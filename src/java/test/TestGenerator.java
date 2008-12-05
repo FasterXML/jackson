@@ -22,7 +22,9 @@ public class TestGenerator
         jg.writeFieldName("binary");
         byte[] data = "Test string!".getBytes("UTF-8");
         jg.writeBinary(data);
-        jg.writeEndObject();
+
+        // what happens if we leave this out?
+        //jg.writeEndObject();
 
         jg.close();
 
