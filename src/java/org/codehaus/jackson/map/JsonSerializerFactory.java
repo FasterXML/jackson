@@ -5,12 +5,12 @@ package org.codehaus.jackson.map;
  * to obtain actual
  * {@link JsonSerializer} instances from multiple distinct factories.
  */
-public interface JsonSerializerFactory
+public abstract class JsonSerializerFactory
 {
     /**
      * Method called to create (or, for completely immutable serializers,
      * reuse) a serializer for given type.
      */
-    public <T> JsonSerializer<T> createSerializer(Class<T> type);
+    public abstract <T> JsonSerializer<T> createSerializer(Class<T> type);
 }
 

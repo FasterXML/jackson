@@ -9,7 +9,7 @@ import org.codehaus.jackson.*;
  * other chained {@link JsonSerializer}s too) to serialize Objects of
  * arbitrary types into JSON, using provided {@link JsonGenerator}.
  */
-public interface JsonSerializer<T>
+public abstract class JsonSerializer<T>
 {
     /**
      * Method that can be called to ask implementation to serialize
@@ -20,6 +20,6 @@ public interface JsonSerializer<T>
      * @param provider Provider that can be used to get serializers for
      *   serializing Objects value contains, if any.
      */
-    public void serialize(T value, JsonGenerator jgen, JsonSerializerProvider provider)
+    public abstract void serialize(T value, JsonGenerator jgen, JsonSerializerProvider provider)
         throws IOException, JsonGenerationException;
 }
