@@ -370,7 +370,6 @@ public class StdSerializerFactory
     {
         public final static IndexedListSerializer instance = new IndexedListSerializer();
 
-        @SuppressWarnings("unchecked")
         public void serialize(List<?> value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
@@ -392,7 +391,7 @@ public class StdSerializerFactory
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = (JsonSerializer<Object>)provider.findValueSerializer(cc);
+                            currSerializer = provider.findValueSerializer(cc);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -417,7 +416,6 @@ public class StdSerializerFactory
     {
         public final static CollectionSerializer instance = new CollectionSerializer();
 
-        @SuppressWarnings("unchecked")
         public void serialize(Collection<?> value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
@@ -439,7 +437,7 @@ public class StdSerializerFactory
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = (JsonSerializer<Object>)provider.findValueSerializer(cc);
+                            currSerializer = provider.findValueSerializer(cc);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -455,7 +453,6 @@ public class StdSerializerFactory
     public final static class IteratorSerializer
         extends JsonSerializer<Iterator<?>>
     {
-        @SuppressWarnings("unchecked")
         public void serialize(Iterator<?> value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
@@ -474,7 +471,7 @@ public class StdSerializerFactory
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = (JsonSerializer<Object>)provider.findValueSerializer(cc);
+                            currSerializer = provider.findValueSerializer(cc);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -489,7 +486,6 @@ public class StdSerializerFactory
     public final static class IterableSerializer
         extends JsonSerializer<Iterable<?>>
     {
-        @SuppressWarnings("unchecked")
         public void serialize(Iterable<?> value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
@@ -509,7 +505,7 @@ public class StdSerializerFactory
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = (JsonSerializer<Object>)provider.findValueSerializer(cc);
+                            currSerializer = provider.findValueSerializer(cc);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -548,11 +544,10 @@ public class StdSerializerFactory
     {
         public final static MapSerializer instance = new MapSerializer();
 
-        @SuppressWarnings("unchecked")
         public void serialize(Map<?,?> value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
+            jgen.writeStartObject();
 
             final int len = value.size();
 
@@ -571,7 +566,7 @@ public class StdSerializerFactory
                     }
 
                     // And then value
-                    Object valueElem = entry.getKey();
+                    Object valueElem = entry.getValue();
                     if (valueElem == null) {
                         provider.getNullValueSerializer().serialize(null, jgen, provider);
                     } else {
@@ -580,7 +575,7 @@ public class StdSerializerFactory
                         if (cc == prevValueClass) {
                             currSerializer = prevValueSerializer;
                         } else {
-                            currSerializer = (JsonSerializer<Object>)provider.findValueSerializer(cc);
+                            currSerializer = provider.findValueSerializer(cc);
                             prevValueSerializer = currSerializer;
                             prevValueClass = cc;
                         }
@@ -589,18 +584,17 @@ public class StdSerializerFactory
                 }
             }
                 
-            jgen.writeEndArray();
+            jgen.writeEndObject();
         }
     }
 
     public final static class EnumMapSerializer
         extends JsonSerializer<EnumMap<? extends Enum<?>, ?>>
     {
-        @SuppressWarnings("unchecked")
 		public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
+            jgen.writeStartObject();
             JsonSerializer<Object> prevSerializer = null;
             Class<?> prevClass = null;
 
@@ -617,15 +611,14 @@ public class StdSerializerFactory
                     if (cc == prevClass) {
                         currSerializer = prevSerializer;
                     } else {
-                        currSerializer = (JsonSerializer<Object>)provider.findValueSerializer(cc);
+                        currSerializer = provider.findValueSerializer(cc);
                         prevSerializer = currSerializer;
                         prevClass = cc;
                     }
                     currSerializer.serialize(valueElem, jgen, provider);
                 }
             }
-                
-            jgen.writeEndArray();
+            jgen.writeEndObject();
         }
     }
 
@@ -643,7 +636,6 @@ public class StdSerializerFactory
     {
         public final static ObjectArraySerializer instance = new ObjectArraySerializer();
 
-        @SuppressWarnings("unchecked")
         public void serialize(Object[] value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
@@ -663,7 +655,7 @@ public class StdSerializerFactory
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = (JsonSerializer<Object>)provider.findValueSerializer(cc);
+                            currSerializer = provider.findValueSerializer(cc);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -690,7 +682,7 @@ public class StdSerializerFactory
                  *  But for now, that seems like an overkill: and caller can
                  *  add custom serializer if that is needed as well.
                  */
-                //JsonSerializer<String> ser = provider.findValueSerializer(String.class);
+                //JsonSerializer<String> ser = (JsonSerializer<String>)provider.findValueSerializer(String.class);
                 for (int i = 0; i < len; ++i) {
                     //ser.serialize(value[i], jgen, provider);
                     jgen.writeString(value[i]);

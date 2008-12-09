@@ -1,6 +1,6 @@
 package org.codehaus.jackson.map.ser;
 
-//import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.JsonSerializerProvider;
@@ -14,12 +14,29 @@ import org.codehaus.jackson.map.JsonSerializerProvider;
 public abstract class SerializerProviderBase
     extends JsonSerializerProvider
 {
-    // ConcurrentHashMap _resolvedSerializers;
+    final ConcurrentHashMap<ClassKey, JsonSerializer<Object>> _resolvedSerializers = new ConcurrentHashMap<ClassKey, JsonSerializer<Object>>(4);
 
-    public final JsonSerializer<?> findValueSerializer(Class<?> type)
+    @SuppressWarnings("unchecked")
+    public final JsonSerializer<Object> findValueSerializer(Class<?> type)
     {
-        // !!! TBI
-        return null;
+        ClassKey key = new ClassKey(type);
+        JsonSerializer<Object> ser = _resolvedSerializers.get(key);
+        if (ser != null) {
+            return ser;
+        }
+        // Not yet constructed? Construct it if possible
+        ser = (JsonSerializer<Object>)constructValueSerializer(type);
+        if (ser == null) {
+            ser = getUnknownTypeSerializer();
+            /* But should we add this to resolved ones?
+             * May need to allow configuring behavior: but
+             * for now, let's not 'cache' it.
+             */
+            return ser;
+        }
+        // otherwise, let's add it to known serializers
+        _resolvedSerializers.put(key, ser);
+        return ser;
     }
 
     @Override
@@ -29,7 +46,7 @@ public abstract class SerializerProviderBase
     public abstract JsonSerializer<Object> getNullKeySerializer();
 
     @Override
-    public abstract JsonSerializer<Object> getNullValueSerializer();
+    public abstract JsonSerializer<Object> getUnknownTypeSerializer();
 
     /*
     //////////////////////////////////////////////////

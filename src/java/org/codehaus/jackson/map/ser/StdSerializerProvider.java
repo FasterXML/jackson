@@ -171,5 +171,10 @@ public class StdSerializerProvider
     public final JsonSerializer<Object> getNullValueSerializer() {
         return _nullValueSerializer;
     }
+
+    @Override
+    public final JsonSerializer<Object> getUnknownTypeSerializer() {
+        return _unknownTypeSerializer;
+    }
 }
 

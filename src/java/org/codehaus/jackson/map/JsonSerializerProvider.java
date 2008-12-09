@@ -22,7 +22,7 @@ public abstract class JsonSerializerProvider
      * Note: this method is only called for non-null values; not for keys
      * or null values. For these, check out other accessor methods.
      */
-    public abstract JsonSerializer<?> findValueSerializer(Class<?> type);
+    public abstract JsonSerializer<Object> findValueSerializer(Class<?> type);
 
     /*
     //////////////////////////////////////////////////////
@@ -63,4 +63,16 @@ public abstract class JsonSerializerProvider
      * null value.
      */
     public abstract JsonSerializer<Object> getNullValueSerializer();
+
+    /**
+     * Method called to get the serializer to use if provider
+     * can not determine an actual type-specific serializer
+     * to use; typically when none of {@link JsonSerializerFactory}
+     * instances are able to construct a serializer.
+     *<p>
+     * Typically, returned serializer will throw an exception,
+     * although alternatively {@link ToStringSerializer} could
+     * be returned as well.
+     */
+    public abstract JsonSerializer<Object> getUnknownTypeSerializer();
 }

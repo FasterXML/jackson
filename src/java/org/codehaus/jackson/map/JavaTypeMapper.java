@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.ser.StdSerializerProvider;
+import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 
 /**
  * This mapper (or, codec) provides for conversions between core
@@ -51,8 +53,7 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
-    // !!! TBI
-    protected JsonSerializerProvider _serializerProvider = null;
+    protected final JsonSerializerProvider _serializerProvider;
 
     /**
      * Optional custom serializer, which can be called to handle
@@ -77,7 +78,22 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
-    public JavaTypeMapper() { }
+    /**
+     * Default constructor, which will use
+     * {@link StdSerializerProvider} as its
+     * {@link JsonSerializerProvider}. This means that it
+     * can serializer all standard JDK types, as well as regular
+     * Java Beans; but does have support for JAXB annotations.
+     */
+    public JavaTypeMapper()
+    {
+        this(new StdSerializerProvider(BeanSerializerFactory.instance));
+    }
+
+    public JavaTypeMapper(JsonSerializerProvider sp)
+    {
+        _serializerProvider = sp;
+    }
 
     /**
      * Method for specifying a custom type serializer to use when mapping
@@ -138,14 +154,10 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
-    @SuppressWarnings("unchecked")
-	public final void writeValue(JsonGenerator gen, Object value)
+    public final void writeValue(JsonGenerator gen, Object value)
         throws IOException, JsonParseException
     {
-        /* Unfortunate cast, no way around it (or one alternative cast on
-         * next line)...
-         */
-        JsonSerializer<Object> ser = (JsonSerializer<Object>)_serializerProvider.findValueSerializer(value.getClass());
+        JsonSerializer<Object> ser = _serializerProvider.findValueSerializer(value.getClass());
         ser.serialize(value, gen, _serializerProvider);
     }
 
