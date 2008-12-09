@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.impl.prov;
+package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
