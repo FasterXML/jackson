@@ -145,7 +145,7 @@ public class JavaTypeMapper
         /* Unfortunate cast, no way around it (or one alternative cast on
          * next line)...
          */
-        JsonSerializer<Object> ser = (JsonSerializer<Object>)_serializerProvider.findSerializer(value.getClass());
+        JsonSerializer<Object> ser = (JsonSerializer<Object>)_serializerProvider.findValueSerializer(value.getClass());
         ser.serialize(value, gen, _serializerProvider);
     }
 

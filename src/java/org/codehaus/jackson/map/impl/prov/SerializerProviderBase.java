@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.impl.prov;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.JsonSerializerProvider;
@@ -14,5 +15,17 @@ import org.codehaus.jackson.map.JsonSerializerProvider;
 public abstract class SerializerProviderBase
     extends JsonSerializerProvider
 {
-    public abstract <T> JsonSerializer<T> findSerializer(Class<T> type);
+    // ConcurrentHashMap _resolvedSerializers;
+
+    @Override
+    public abstract <T> JsonSerializer<T> findValueSerializer(Class<T> type);
+
+    @Override
+    public abstract <T> JsonSerializer<T> findNonNullKeySerializer(Class<T> type);
+
+    @Override
+    public abstract JsonSerializer<?> getNullKeySerializer();
+
+    @Override
+    public abstract JsonSerializer<?> getNullValueSerializer();
 }
