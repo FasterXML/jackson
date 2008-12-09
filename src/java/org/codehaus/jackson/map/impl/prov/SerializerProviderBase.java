@@ -17,15 +17,26 @@ public abstract class SerializerProviderBase
 {
     // ConcurrentHashMap _resolvedSerializers;
 
-    @Override
-    public abstract <T> JsonSerializer<T> findValueSerializer(Class<T> type);
+    public final JsonSerializer<?> findValueSerializer(Class<?> type)
+    {
+        // !!! TBI
+        return null;
+    }
 
     @Override
-    public abstract <T> JsonSerializer<T> findNonNullKeySerializer(Class<T> type);
+    public abstract JsonSerializer<?> findNonNullKeySerializer(Class<?> type);
 
     @Override
     public abstract JsonSerializer<?> getNullKeySerializer();
 
     @Override
     public abstract JsonSerializer<?> getNullValueSerializer();
+
+    /*
+    //////////////////////////////////////////////////
+    // Abstract methods sub-classes need to implement
+    //////////////////////////////////////////////////
+     */
+
+    protected abstract JsonSerializer<?> constructValueSerializer(Class<?> type);
 }

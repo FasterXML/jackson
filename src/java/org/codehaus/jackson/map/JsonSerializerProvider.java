@@ -22,7 +22,7 @@ public abstract class JsonSerializerProvider
      * Note: this method is only called for non-null values; not for keys
      * or null values. For these, check out other accessor methods.
      */
-    public abstract <T> JsonSerializer<T> findValueSerializer(Class<T> type);
+    public abstract JsonSerializer<?> findValueSerializer(Class<?> type);
 
     /*
     //////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ public abstract class JsonSerializerProvider
      * Json Strings as field names; and hence different serialization
      * strategy may be needed.
      */
-    public abstract <T> JsonSerializer<T> findNonNullKeySerializer(Class<T> type);
+    public abstract JsonSerializer<?> findNonNullKeySerializer(Class<?> type);
 
     /**
      * Method called to get the serializer to use for serializing

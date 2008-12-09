@@ -240,7 +240,7 @@ public class StdSerializerFactory
 
     /*
     ////////////////////////////////////////////////////////////
-    // Concrete serializers, non-numeric primitives, Strings, nulls
+    // Concrete serializers, non-numeric primitives, Strings
     ////////////////////////////////////////////////////////////
      */
 
@@ -281,20 +281,6 @@ public class StdSerializerFactory
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());
-        }
-    }
-
-    public final static class NullSerializer
-        extends JsonSerializer<Object>
-    {
-        final static NullSerializer instance = new NullSerializer();
-
-        private NullSerializer() { }
-
-        public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeNull();
         }
     }
 
@@ -774,6 +760,51 @@ public class StdSerializerFactory
                 jgen.writeNumber(value[i]);
             }
             jgen.writeEndArray();
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Other odd-ball special purpose serializers
+    ////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * To allow for special handling for null values (in Objects, Arrays,
+     * root-level), handling for nulls is done via serializers too.
+     * This is the default serializer for nulls.
+     */
+    public final static class NullSerializer
+        extends JsonSerializer<Object>
+    {
+        final static NullSerializer instance = new NullSerializer();
+
+        private NullSerializer() { }
+
+        public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeNull();
+        }
+    }
+
+    /**
+     * This special "serializer" can be used to throw
+     * {@link JsonGenerationException} by registering it to handle
+     * a type, or as one of special serializers (like one used to handle
+     * null Map/Object keys).
+     */
+    public final static class FailingSerializer
+        extends JsonSerializer<Object>
+    {
+        final String _msg;
+
+        public FailingSerializer(String msg) { _msg = msg; }
+
+        public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            throw new JsonGenerationException(_msg);
         }
     }
 }
