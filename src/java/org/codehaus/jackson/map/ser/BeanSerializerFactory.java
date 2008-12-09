@@ -1,13 +1,6 @@
 package org.codehaus.jackson.map.ser;
 
-import java.io.IOException;
-import java.util.*;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.JsonSerializerFactory;
-import org.codehaus.jackson.map.JsonSerializerProvider;
 
 /**
  * Factory class that can provide serializers for any regular Java beans

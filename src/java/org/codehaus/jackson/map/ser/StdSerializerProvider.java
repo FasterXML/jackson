@@ -1,8 +1,5 @@
 package org.codehaus.jackson.map.ser;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 
 import org.codehaus.jackson.map.JsonSerializer;
@@ -20,12 +17,14 @@ import org.codehaus.jackson.map.JsonSerializerProvider;
 public class StdSerializerProvider
     extends SerializerProviderBase
 {
-    public final static JsonSerializer<?> DEFAULT_NULL_KEY_SERIALIZER =
+    public final static JsonSerializer<Object> DEFAULT_NULL_KEY_SERIALIZER =
         new StdSerializerFactory.FailingSerializer("Null key for a Map not allower in Json (use a converting NullKeySerializer?)");
+
+    public final static JsonSerializer<Object> DEFAULT_KEY_SERIALIZER = new StdKeySerializer();
 
     /*
     ////////////////////////////////////////////////////
-    // Configuration
+    // Configuration, factories
     ////////////////////////////////////////////////////
      */
 
@@ -41,20 +40,42 @@ public class StdSerializerProvider
      */
     protected JsonSerializerFactory _overrideSerializerFactory = null;
 
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration, specialized serializers
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Serializer that gets called for values of types for which no
+     * serializers can be constructed.
+     *<p>
+     * The default serializer will thrown an exception; a possible
+     * alternative that can be used would be
+     * {@link ToStringSerializer}.
+     */
+    protected JsonSerializer<Object> _unknownTypeSerializer;
+
+    /**
+     * Serializer used to output non-null keys of Maps (which will get
+     * output as Json Objects).
+     */
+    protected JsonSerializer<Object> _keySerializer = DEFAULT_KEY_SERIALIZER;
+
     /**
      * Serializer used to output a null value. Default implementation
      * writes nulls using {@link JsonGenerator#writeNull}.
      */
-    protected JsonSerializer<?> _nullValueSerializer = StdSerializerFactory.NullSerializer.instance;
+    protected JsonSerializer<Object> _nullValueSerializer = StdSerializerFactory.NullSerializer.instance;
 
     /**
      * Serializer used to (try to) output a null key, due to an entry of
-     * {@link Map} having null key.
+     * {@link java.util.Map} having null key.
      * The default implementation will throw an exception if this happens;
      * alternative implementation (like one that would write an Empty String)
      * can be defined.
      */
-    protected JsonSerializer<?> _nullKeySerializer = DEFAULT_NULL_KEY_SERIALIZER;
+    protected JsonSerializer<Object> _nullKeySerializer = DEFAULT_NULL_KEY_SERIALIZER;
 
     /*
     ////////////////////////////////////////////////////
@@ -86,7 +107,15 @@ public class StdSerializerProvider
         _overrideSerializerFactory = jf;
     }
 
-    public void setNullValueSerializer(JsonSerializer<?> nvs)
+    public void setKeySerializer(JsonSerializer<Object> ks)
+    {
+        if (ks == null) {
+            throw new IllegalArgumentException("Can not pass null JsonSerializer");
+        }
+        _keySerializer = ks;
+    }
+
+    public void setNullValueSerializer(JsonSerializer<Object> nvs)
     {
         if (nvs == null) {
             throw new IllegalArgumentException("Can not pass null JsonSerializer");
@@ -94,7 +123,7 @@ public class StdSerializerProvider
         _nullValueSerializer = nvs;
     }
 
-    public void setNullKeySerializer(JsonSerializer<?> nks)
+    public void setNullKeySerializer(JsonSerializer<Object> nks)
     {
         if (nks == null) {
             throw new IllegalArgumentException("Can not pass null JsonSerializer");
@@ -111,24 +140,35 @@ public class StdSerializerProvider
     @Override
     protected JsonSerializer<?> constructValueSerializer(Class<?> type)
     {
-        // !!! TBI
-        return null;
+        if (_overrideSerializerFactory != null) {
+            JsonSerializer<?> ser = _overrideSerializerFactory.createSerializer(type);
+            if (ser != null) {
+                return ser;
+            }
+        }
+        JsonSerializer<?> ser = _serializerFactory.createSerializer(type);
+        if (ser != null) {
+            return ser;
+        }
+        /* No match yet? Need to return the fallback serializer, which
+         * most likely will report an error
+         */
+        return _unknownTypeSerializer;
     }
 
     @Override
-    public final JsonSerializer<?> findNonNullKeySerializer(Class<?> type)
+    public final JsonSerializer<Object> getKeySerializer()
     {
-        // !!! TBI
-        return null;
+        return _keySerializer;
     }
 
     @Override
-    public final JsonSerializer<?> getNullKeySerializer() {
+    public final JsonSerializer<Object> getNullKeySerializer() {
         return _nullKeySerializer;
     }
 
     @Override
-    public final JsonSerializer<?> getNullValueSerializer() {
+    public final JsonSerializer<Object> getNullValueSerializer() {
         return _nullValueSerializer;
     }
 }

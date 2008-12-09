@@ -207,12 +207,14 @@
 ,org.codehaus.jackson.io;version=${IMPL_VERSION}
 ,org.codehaus.jackson.map;version=${IMPL_VERSION}
 ,org.codehaus.jackson.map.node;version=${IMPL_VERSION}
+,org.codehaus.jackson.map.ser;version=${IMPL_VERSION}
 '
          privatePackage="!test
 ,!org.codehaus.jackson
 ,!org.codehaus.jackson.io
 ,!org.codehaus.jackson.map
 ,!org.codehaus.jackson.map.node
+,!org.codehaus.jackson.map.ser
 ,*"
          includeResource="META-INF=release-notes/asl"
          includeIncludeResourceHeader="false"

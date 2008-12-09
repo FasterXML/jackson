@@ -32,14 +32,15 @@ public abstract class JsonSerializerProvider
 
     /**
      * Method called to get the serializer to use for serializing
-     * Map keys that are not nulls (for null keys,
-     * {@link #getNullKeySerializer} is called instead).
-     * Separation from regular
-     * {@link #findSerializer} method is due to Json only allowing
-     * Json Strings as field names; and hence different serialization
-     * strategy may be needed.
+     * non-null Map keys. Separation from regular
+     * {@link #findValueSerializer} method is because actual write
+     * method must be different (@link JsonGenerator#writeFieldName};
+     * but also since behavior for some key types may differ.
+     *<p>
+     * Note that the serializer itself can be called with instances
+     * of any Java object, but not nulls.
      */
-    public abstract JsonSerializer<?> findNonNullKeySerializer(Class<?> type);
+    public abstract JsonSerializer<Object> getKeySerializer();
 
     /**
      * Method called to get the serializer to use for serializing
@@ -50,7 +51,7 @@ public abstract class JsonSerializerProvider
      * will either throw an exception, or use an empty String; but
      * other behaviors are possible.
      */
-    public abstract JsonSerializer<?> getNullKeySerializer();
+    public abstract JsonSerializer<Object> getNullKeySerializer();
 
     /**
      * Method called to get the serializer to use for serializing
@@ -61,5 +62,5 @@ public abstract class JsonSerializerProvider
      * Typically returned serializer just writes out Json literal
      * null value.
      */
-    public abstract JsonSerializer<?> getNullValueSerializer();
+    public abstract JsonSerializer<Object> getNullValueSerializer();
 }

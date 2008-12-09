@@ -16,7 +16,7 @@ public abstract class JsonSerializer<T>
      * values of type this serializer handles.
      *
      * @param value Value to serialize
-     * @param gen Generator used to output resulting Json content
+     * @param jgen Generator used to output resulting Json content
      * @param provider Provider that can be used to get serializers for
      *   serializing Objects value contains, if any.
      */

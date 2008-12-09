@@ -13,4 +13,3 @@ public abstract class JsonSerializerFactory
      */
     public abstract <T> JsonSerializer<T> createSerializer(Class<T> type);
 }
-

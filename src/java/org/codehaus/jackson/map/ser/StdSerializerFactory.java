@@ -39,11 +39,12 @@ public class StdSerializerFactory
         // String and string-like types (note: date types explicitly
         // not included -- can use either textual or numeric serialization)
         _concrete.put(String.class.getName(), new StringSerializer());
-        _concrete.put(StringBuffer.class.getName(), StringLikeSerializer.instance);
-        _concrete.put(StringBuilder.class.getName(), StringLikeSerializer.instance);
-        _concrete.put(Character.class.getName(), StringLikeSerializer.instance);
+        ToStringSerializer sls = ToStringSerializer.instance;
+        _concrete.put(StringBuffer.class.getName(), sls);
+        _concrete.put(StringBuilder.class.getName(), sls);
+        _concrete.put(Character.class.getName(), sls);
         // including things best serialized as Strings
-        _concrete.put(UUID.class.getName(), StringLikeSerializer.instance);
+        _concrete.put(UUID.class.getName(), sls);
         
         // Numbers, limited length integral
         final IntegerSerializer intS = new IntegerSerializer();
@@ -89,12 +90,15 @@ public class StdSerializerFactory
         _concrete.put(Hashtable.class.getName(), mapS);
         _concrete.put(LinkedHashMap.class.getName(), mapS);
         _concrete.put(TreeMap.class.getName(), mapS);
-        _concrete.put(EnumMap.class.getName(), mapS);
         _concrete.put(Properties.class.getName(), mapS);
 
         _concrete.put(HashSet.class.getName(), collectionS);
         _concrete.put(LinkedHashSet.class.getName(), collectionS);
         _concrete.put(TreeSet.class.getName(), collectionS);
+
+        // and Enum-variations of set/map
+        _concrete.put(EnumMap.class.getName(), new EnumMapSerializer());
+        _concrete.put(EnumSet.class.getName(), new EnumSetSerializer());
 
         /* Finally, couple of oddball types. Not sure if these are
          * really needed...
@@ -206,11 +210,14 @@ public class StdSerializerFactory
             }
             return CollectionSerializer.instance;
         }
-        if (Collection.class.isAssignableFrom(type)) {
-            return CollectionSerializer.instance;
-        }
         if (Number.class.isAssignableFrom(type)) {
             return NumberSerializer.instance;
+        }
+        if (Enum.class.isAssignableFrom(type)) {
+            return new EnumSerializer();
+        }
+        if (Collection.class.isAssignableFrom(type)) {
+            return CollectionSerializer.instance;
         }
         return null;
     }
@@ -514,6 +521,22 @@ public class StdSerializerFactory
         }
     }
 
+    public final static class EnumSetSerializer
+        extends JsonSerializer<EnumSet<? extends Enum<?>>>
+    {
+        public final static CollectionSerializer instance = new CollectionSerializer();
+
+        public void serialize(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, JsonSerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeStartArray();
+            for (Enum<?> en : value) {
+                jgen.writeString(en.name());
+            }
+            jgen.writeEndArray();
+        }
+    }
+
     /*
     ////////////////////////////////////////////////////////////
     // Concrete serializers, Maps
@@ -534,9 +557,8 @@ public class StdSerializerFactory
             final int len = value.size();
 
             if (len > 0) {
-                JsonSerializer<Object> prevKeySerializer = null;
+                final JsonSerializer<Object> keySerializer = provider.getKeySerializer();
                 JsonSerializer<Object> prevValueSerializer = null;
-                Class<?> prevKeyClass = null;
                 Class<?> prevValueClass = null;
 
                 for (Map.Entry<?,?> entry : value.entrySet()) {
@@ -545,16 +567,7 @@ public class StdSerializerFactory
                     if (keyElem == null) {
                         provider.getNullKeySerializer().serialize(null, jgen, provider);
                     } else {
-                        Class<?> cc = keyElem.getClass();
-                        JsonSerializer<Object> currSerializer;
-                        if (cc == prevKeyClass) {
-                            currSerializer = prevKeySerializer;
-                        } else {
-                            currSerializer = (JsonSerializer<Object>)provider.findNonNullKeySerializer(cc);
-                            prevKeySerializer = currSerializer;
-                            prevKeyClass = cc;
-                        }
-                        currSerializer.serialize(keyElem, jgen, provider);
+                        keySerializer.serialize(keyElem, jgen, provider);
                     }
 
                     // And then value
@@ -573,6 +586,42 @@ public class StdSerializerFactory
                         }
                         currSerializer.serialize(valueElem, jgen, provider);
                     }
+                }
+            }
+                
+            jgen.writeEndArray();
+        }
+    }
+
+    public final static class EnumMapSerializer
+        extends JsonSerializer<EnumMap<? extends Enum<?>, ?>>
+    {
+        @SuppressWarnings("unchecked")
+		public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, JsonSerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeStartArray();
+            JsonSerializer<Object> prevSerializer = null;
+            Class<?> prevClass = null;
+
+            for (Map.Entry<? extends Enum<?>,?> entry : value.entrySet()) {
+                // First, serialize key
+                jgen.writeFieldName(entry.getKey().name());
+                // And then value
+                Object valueElem = entry.getKey();
+                if (valueElem == null) {
+                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                } else {
+                    Class<?> cc = valueElem.getClass();
+                    JsonSerializer<Object> currSerializer;
+                    if (cc == prevClass) {
+                        currSerializer = prevSerializer;
+                    } else {
+                        currSerializer = (JsonSerializer<Object>)provider.findValueSerializer(cc);
+                        prevSerializer = currSerializer;
+                        prevClass = cc;
+                    }
+                    currSerializer.serialize(valueElem, jgen, provider);
                 }
             }
                 
@@ -765,9 +814,19 @@ public class StdSerializerFactory
 
     /*
     ////////////////////////////////////////////////////////////
-    // Other odd-ball special purpose serializers
+    // Other odd-ball special-purpose serializers
     ////////////////////////////////////////////////////////////
      */
+
+    public final static class EnumSerializer
+        extends JsonSerializer<Enum<?>>
+    {
+        public void serialize(Enum<?> value, JsonGenerator jgen, JsonSerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeString(value.name());
+        }
+    }
 
     /**
      * To allow for special handling for null values (in Objects, Arrays,
