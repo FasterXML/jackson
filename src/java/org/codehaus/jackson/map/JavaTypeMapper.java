@@ -25,52 +25,11 @@ public class JavaTypeMapper
 {
     /*
     ////////////////////////////////////////////////////
-    // Public enums for configuration
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Enumeration that defines strategies available for dealing with
-     * unknown Java object types (when mapping java objects to JSON)
-     */
-    public enum UnknownType {
-        /**
-         * This option defines that if a type is not recognized a
-         * {@link JsonGenerationException} is to be thrown
-         */
-        ERROR
-            /**
-             * This option means that if a type is not recognized,
-             * objects {@link Object#toString} method will be called
-             * and output will be done as JSON string.
-             */
-            ,OUTPUT_USING_TO_STRING /* default */
-    }
-
-    /*
-    ////////////////////////////////////////////////////
     // Configuration settings
     ////////////////////////////////////////////////////
      */
 
     protected final JsonSerializerProvider _serializerProvider;
-
-    /**
-     * Optional custom serializer, which can be called to handle
-     * Java types that the default handler can not handle.
-     * If set, it will be called for the types that the default
-     * serialization mechanism does not know how to explicitly
-     * deal with (i.e  not including possible eventual conversion
-     * to String, as per {@link #_cfgUnknownTypes} )
-     */
-    protected JavaTypeSerializer<Object> _customSerializer = null;
-
-    /**
-     * This defines how instances of unrecognized types (for JSON output)
-     * are to be handled. Default is to call <b>toString()</b> on such
-     * objects, and output result as String.
-     */
-    protected UnknownType _cfgUnknownTypes = UnknownType.OUTPUT_USING_TO_STRING;
 
     /*
     ////////////////////////////////////////////////////
@@ -94,20 +53,6 @@ public class JavaTypeMapper
     {
         _serializerProvider = sp;
     }
-
-    /**
-     * Method for specifying a custom type serializer to use when mapping
-     * JSON content to Java objects.
-     */
-    public void setCustomSerializer(JavaTypeSerializer<Object> ser) { _customSerializer = ser; }
-    public JavaTypeSerializer<Object> getCustomSerializer() { return _customSerializer; }
-
-    /**
-     * Method for configuring mapper regarding how to handle serialization
-     * of types it does not recognize.
-     */
-    public void setUnkownTypeHandling(UnknownType mode) { _cfgUnknownTypes = mode; }
-    public UnknownType getUnkownTypeHandling() { return _cfgUnknownTypes; }
 
     /*
     ////////////////////////////////////////////////////
@@ -301,22 +246,12 @@ public class JavaTypeMapper
         // Perhaps it's one of common core JDK types?
         KnownClasses.JdkClasses jdkType = KnownClasses.findTypeFast(value);
         if (jdkType == null) {
-            // If not, maybe we have an auxiliary converter?
-            if (_customSerializer != null) {
-                if (_customSerializer.writeAny(defaultSerializer, jgen, value)) {
-                    return true;
-                }
-            }
             // And if not, maybe we can further introspect the type
             jdkType = KnownClasses.findTypeSlow(value);
 
             if (jdkType == null) {
-                // Nope, can't figure it out. Error or toString();
-                if (_cfgUnknownTypes == UnknownType.ERROR) {
-                    throw new JsonGenerationException("Unknown type ("+value.getClass().getName()+"): don't know how to handle");
-                }
-                jgen.writeString(value.toString());
-                return true;
+                // Nope, can't figure it out. Error out:
+                throw new JsonGenerationException("Unknown type ("+value.getClass().getName()+"): don't know how to handle");
             }
         }
 

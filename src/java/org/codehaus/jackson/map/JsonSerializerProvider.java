@@ -71,7 +71,7 @@ public abstract class JsonSerializerProvider
      * instances are able to construct a serializer.
      *<p>
      * Typically, returned serializer will throw an exception,
-     * although alternatively {@link ToStringSerializer} could
+     * although alternatively {@link org.codehaus.jackson.map.ser.ToStringSerializer} could
      * be returned as well.
      */
     public abstract JsonSerializer<Object> getUnknownTypeSerializer();

@@ -706,17 +706,18 @@ public class StdSerializerFactory
         }
     }
 
+    /**
+     * Unlike other integral number array serializers, we do not just print out byte values
+     * as numbers. Instead, we assume that it would make more sense to output content
+     * as base64 encoded bytes (using default base64 encoding).
+     */
     public final static class ByteArraySerializer
         extends JsonSerializer<byte[]>
     {
         public void serialize(byte[] value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
-            for (int i = 0, len = value.length; i < len; ++i) {
-                jgen.writeNumber((int)value[i]);
-            }
-            jgen.writeEndArray();
+            jgen.writeBinary(value);
         }
     }
 
