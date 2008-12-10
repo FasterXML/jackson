@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.JsonSerializable;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.JsonSerializerFactory;
 import org.codehaus.jackson.map.JsonSerializerProvider;
@@ -195,9 +196,13 @@ public class StdSerializerFactory
          *
          * But we do need to check for
          *
+         * - "primary" interfaces: Enum, Number, JsonSerializable
          * - Most collection types
          * - java.lang.Number (but is that integral or not?)
          */
+        if (JsonSerializable.class.isAssignableFrom(type)) {
+            return SerializableSerializer.instance;
+        }
         if (Map.class.isAssignableFrom(type)) {
             return MapSerializer.instance;
         }
@@ -837,6 +842,20 @@ public class StdSerializerFactory
             throws IOException, JsonGenerationException
         {
             jgen.writeNull();
+        }
+    }
+
+    public final static class SerializableSerializer
+        extends JsonSerializer<JsonSerializable>
+    {
+        final static SerializableSerializer instance = new SerializableSerializer();
+
+        private SerializableSerializer() { }
+
+        public void serialize(JsonSerializable value, JsonGenerator jgen, JsonSerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            value.serialize(jgen, provider);
         }
     }
 

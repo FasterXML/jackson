@@ -103,9 +103,10 @@ public class StdSerializerProvider
      */
 
     /**
-     *
+     * For fast lookups, we will have a local non-shared read-only
+     * map that contains serializers previously fetched.
      */
-    private final HashMap<ClassKey, JsonSerializer<Object>> _knownSerializers;
+    private final ReadOnlyClassToSerializerMap _knownSerializers;
 
     /*
     ////////////////////////////////////////////////////
@@ -227,13 +228,13 @@ public class StdSerializerProvider
     ////////////////////////////////////////////////////
      */
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public JsonSerializer<Object> findValueSerializer(Class<?> type)
     {
-        ClassKey key = new ClassKey(type);
-        JsonSerializer<Object> ser = _knownSerializers.get(key);
+        JsonSerializer<Object> ser = _knownSerializers.get(type);
         if (ser == null) {
-            ser = _serializerCache.findSerializer(key);
+            ser = _serializerCache.findSerializer(type);
             // not found from local Map; nor from shared? Must create, then
             if (ser == null) {
                 ser = (JsonSerializer<Object>)_serializerFactory.createSerializer(type, this);
@@ -248,7 +249,7 @@ public class StdSerializerProvider
                     }
                 }
             }
-            _serializerCache.addSerializer(key, ser);
+            _serializerCache.addSerializer(type, ser);
         }
         return ser;
     }

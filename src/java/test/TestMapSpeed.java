@@ -63,6 +63,8 @@ public final class TestMapSpeed
             String msg;
             int sum = 0;
 
+round = 1;
+
             switch (round) {
             case 0:
                 msg = "Map using OLD";

@@ -1,38 +1,53 @@
 package org.codehaus.jackson.map.ser;
 
 /**
- * Immutable key class, used as an efficient and accurate key
+ * Key class, used as an efficient and accurate key
  * for locating per-class values, such as
  * {@link org.codehaus.jackson.map.JsonSerializer}s.
  *<p>
  * The reason for having a separate key class instead of
  * directly using {@link Class} as key is mostly
- * for efficiency when used as accessors within maps
- * (such as {@link java.util.HashMap}): the problem with
- * {link Class} is that its <code>hashCode</code> method
- * uses (slow) identity map.
+ * to allow for redefining <code>hashCode</code> method --
+ * for some strange reason, {@link Class} does not
+ * redefine {@link Object#hashCode} and thus uses identity
+ * hash, which is pretty slow. This makes key access using
+ * {@link Class} unnecessarily slow.
+ *<p>
+ * Note: since class is not strictly immutable, caller must
+ * know what it is doing, if changing field values.
  */
 public final class ClassKey
     implements Comparable<ClassKey>
 {
-    final String _className;
+    String _className;
 
-    final Class<?> _class;
+    Class<?> _class;
 
     /**
      * Let's cache hash code straight away, since we are
      * almost certain to need it.
      */
-    final int _hashCode;
+    int _hashCode;
+
+    public ClassKey() 
+    {
+        _class = null;
+        _className = null;
+        _hashCode = 0;
+    }
 
     public ClassKey(Class<?> clz)
     {
-        _className = clz.getName();
-        /* No way to easily get hash for class loader, but
-         * shouldn't even need it.
-         */
-        _hashCode = _className.hashCode();
         _class = clz;
+        _className = clz.getName();
+        _hashCode = _className.hashCode();
+    }
+
+    protected void reset(Class<?> clz)
+    {
+        _class = clz;
+        _className = clz.getName();
+        _hashCode = _className.hashCode();
     }
 
     /*
