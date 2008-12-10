@@ -10,6 +10,10 @@ public abstract class JsonSerializerFactory
     /**
      * Method called to create (or, for completely immutable serializers,
      * reuse) a serializer for given type.
+     *
+     * @param type Type to be serialized
+     * @param prov Serializer provider that can be called to find
+     *   serializers for contained types.
      */
-    public abstract <T> JsonSerializer<T> createSerializer(Class<T> type);
+    public abstract <T> JsonSerializer<T> createSerializer(Class<T> type, JsonSerializerProvider prov);
 }

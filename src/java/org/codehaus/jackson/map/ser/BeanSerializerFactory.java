@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.JsonSerializerProvider;
 
 /**
  * Factory class that can provide serializers for any regular Java beans
@@ -43,7 +44,7 @@ public class BeanSerializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> JsonSerializer<T> createSerializer(Class<T> type)
+        public <T> JsonSerializer<T> createSerializer(Class<T> type, JsonSerializerProvider prov)
     {
         // First, fast lookup for exact type:
         JsonSerializer<?> ser = findSerializerByLookup(type);

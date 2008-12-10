@@ -1,5 +1,9 @@
 package org.codehaus.jackson.map.ser;
 
+import java.io.IOException;
+import java.util.HashMap;
+
+import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 
 import org.codehaus.jackson.map.JsonSerializer;
@@ -7,16 +11,36 @@ import org.codehaus.jackson.map.JsonSerializerFactory;
 import org.codehaus.jackson.map.JsonSerializerProvider;
 
 /**
- * Default {@link JsonSerializerProvider} implementation. By default will use
- * {@link BeanSerializerFactory} as the underlying main serializer factory,
- * but can be configured to use any other implementation. Additionally,
- * an "override" serializer factory can be defined to specify explicit
- * overrides for custom classes, in cases where default serialization
- * introspection would not work, or where additional efficiency is needed.
+ * Default {@link JsonSerializerProvider} implementation.
+ * By default will use {@link BeanSerializerFactory} as the underlying
+ * serializer factory, but can be configured to use any other implementation.
+ * Usually overrides are used to provide a sub-class of the standard
+ * serializer factory that provides hand-written (or otherwise more
+ * optimal) serializer classes.
+ *<p>
+ * One note about implementation: the main instance constructed will
+ * be so-called "blueprint" object, and will NOT be used during actual
+ * serialization. Rather, an "instance" instance is created so that
+ * state can be carried along, as well as to avoid synchronization
+ * during serializer access. Because of this, if sub-classing, one
+ * must override method {@link #createInstance}: if this is not done,
+ * an exception will get thrown as base class verifies that the
+ * instance has same class as the blueprint
+ * (<code>instance.getClass() == blueprint.getClass()</code>).
+ * Check is done to prevent weird bugs that would otherwise occur.
  */
 public class StdSerializerProvider
-    extends SerializerProviderBase
+    extends JsonSerializerProvider
 {
+    /**
+     * Setting for determining whether mappings for "unknown classes" should be
+     * cached for faster resolution. Usually this isn't needed, but maybe it
+     * is in some cases?
+     *<p>
+     * TODO: make configurable
+     */
+    final static boolean CACHE_UNKNOWN_MAPPINGS = false;
+
     public final static JsonSerializer<Object> DEFAULT_NULL_KEY_SERIALIZER =
         new StdSerializerFactory.FailingSerializer("Null key for a Map not allower in Json (use a converting NullKeySerializer?)");
 
@@ -33,12 +57,7 @@ public class StdSerializerProvider
      */
     final protected JsonSerializerFactory _serializerFactory;
 
-    /**
-     * Optional serializer factory that can be defined to provide overrides;
-     * typically used to specify custom-written serializers for custom
-     * classes.
-     */
-    protected JsonSerializerFactory _overrideSerializerFactory = null;
+    final protected SerializerCache _serializerCache;
 
     /*
     ////////////////////////////////////////////////////
@@ -79,7 +98,18 @@ public class StdSerializerProvider
 
     /*
     ////////////////////////////////////////////////////
-    // Configuration
+    // State, for non-blueprint instances
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     *
+     */
+    private final HashMap<ClassKey, JsonSerializer<Object>> _knownSerializers;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Life-cycle
     ////////////////////////////////////////////////////
      */
 
@@ -94,6 +124,71 @@ public class StdSerializerProvider
             throw new IllegalArgumentException("Can not pass null serializerFactory");
         }
         _serializerFactory = serializerFactory;
+        _serializerCache = new SerializerCache();
+        // Blueprints doesn't have access to any serializers...
+        _knownSerializers = null;
+    }
+
+    /**
+     * "Copy-constructor", used from {@link #createInstance} (or by
+     * sub-classes)
+     */
+    protected StdSerializerProvider(StdSerializerProvider src)
+    {
+        _serializerFactory = src._serializerFactory;
+        _serializerCache = src._serializerCache;
+        _unknownTypeSerializer = src._unknownTypeSerializer;
+        _keySerializer = src._keySerializer;
+        _nullValueSerializer = src._nullValueSerializer;
+        _nullKeySerializer = src._nullKeySerializer;
+
+        /* Non-blueprint instances do have a read-only map; one that doesn't need
+         * synchronization for lookups.
+         */
+        _knownSerializers = _serializerCache.getReadOnlyLookupMap();
+    }
+
+    /**
+     * Overridable method, used to create a non-blueprint instances from the blueprint.
+     * This is needed to retain state during serialization.
+     */
+    protected StdSerializerProvider createInstance()
+    {
+        return new StdSerializerProvider(this);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Main entry method to be called by JavaTypeMapper
+    ////////////////////////////////////////////////////
+     */
+
+    public final void serializeValue(JsonGenerator jgen, Object value)
+        throws IOException, JsonGenerationException
+    {
+        /* First: we need a separate instance, which will hold a distinct copy of the
+         * non-shared ("local") read-only lookup Map for fast class-to-serializer
+         * lookup
+         */
+        StdSerializerProvider inst = createInstance();
+        // sanity check to avoid weird errors; to ensure sub-classes do override createInstance
+        if (inst.getClass() != getClass()) {
+            throw new IllegalStateException("Broken serializer provider: createInstance returned instance of type "+inst.getClass()+"; blueprint of type "+getClass());
+        }
+        // And then we can do actual serialization, through the instance
+        inst._serializeValue(jgen, value);
+    }
+
+    /**
+     * Method called on the actual non-blueprint provider instance object, to kick off
+     * the serialization.
+     */
+    protected  void _serializeValue(JsonGenerator jgen, Object value)
+        throws IOException, JsonGenerationException
+    {
+        JsonSerializer<Object> ser = (value == null) ?
+            getNullValueSerializer() : findValueSerializer(value.getClass());
+        ser.serialize(value, jgen, this);
     }
 
     /*
@@ -101,11 +196,6 @@ public class StdSerializerProvider
     // Configuration methods
     ////////////////////////////////////////////////////
      */
-
-    public void setOverrideSerializerFactory(JsonSerializerFactory jf)
-    {
-        _overrideSerializerFactory = jf;
-    }
 
     public void setKeySerializer(JsonSerializer<Object> ks)
     {
@@ -138,22 +228,29 @@ public class StdSerializerProvider
      */
 
     @Override
-    protected JsonSerializer<?> constructValueSerializer(Class<?> type)
+    public JsonSerializer<Object> findValueSerializer(Class<?> type)
     {
-        if (_overrideSerializerFactory != null) {
-            JsonSerializer<?> ser = _overrideSerializerFactory.createSerializer(type);
-            if (ser != null) {
-                return ser;
+        ClassKey key = new ClassKey(type);
+        JsonSerializer<Object> ser = _knownSerializers.get(key);
+        if (ser == null) {
+            ser = _serializerCache.findSerializer(key);
+            // not found from local Map; nor from shared? Must create, then
+            if (ser == null) {
+                ser = (JsonSerializer<Object>)_serializerFactory.createSerializer(type, this);
+                /* Couldn't create? Need to return the fallback serializer, which
+                 * most likely will report an error
+                 */
+                if (ser == null) {
+                    ser = _unknownTypeSerializer;
+                    // Should this be added to lookups?
+                    if (!CACHE_UNKNOWN_MAPPINGS) {
+                        return ser;
+                    }
+                }
             }
+            _serializerCache.addSerializer(key, ser);
         }
-        JsonSerializer<?> ser = _serializerFactory.createSerializer(type);
-        if (ser != null) {
-            return ser;
-        }
-        /* No match yet? Need to return the fallback serializer, which
-         * most likely will report an error
-         */
-        return _unknownTypeSerializer;
+        return ser;
     }
 
     @Override

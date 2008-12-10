@@ -137,7 +137,7 @@ public class StdSerializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> JsonSerializer<T> createSerializer(Class<T> type)
+    public <T> JsonSerializer<T> createSerializer(Class<T> type, JsonSerializerProvider prov)
     {
         // First, fast lookup for exact type:
         JsonSerializer<?> ser = findSerializerByLookup(type);

@@ -99,11 +99,10 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
-    public final void writeValue(JsonGenerator gen, Object value)
+    public final void writeValue(JsonGenerator jgen, Object value)
         throws IOException, JsonParseException
     {
-        JsonSerializer<Object> ser = _serializerProvider.findValueSerializer(value.getClass());
-        ser.serialize(value, gen, _serializerProvider);
+        _serializerProvider.serializeValue(jgen, value);
     }
 
     /*

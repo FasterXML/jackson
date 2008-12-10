@@ -1,15 +1,39 @@
 package org.codehaus.jackson.map;
 
+import java.io.IOException;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
+
 /**
  * Abstract class that defines API used by {@link JavaTypeMapper} and
  * {@link JsonSerializer}s to obtain serializers capable of serializing
  * instances of specific types.
+ *<p>
+ * Note about usage: for {@link JsonSerializer} instances, only accessors
+ * for locating other (sub-)serializers are to be used. {@link JavaTypeMapper},
+ * on the other hand, is to initialize recursive serialization process by
+ * calling {@link #serialize}.
  */
 public abstract class JsonSerializerProvider
 {
     /*
     //////////////////////////////////////////////////////
-    // General serializer locating methods
+    // Entry point for JavaTypeMapper
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     * The method to be called by {@link JavaTypeMapper} to
+     * execute recursive serialization, using serializers that
+     * this provider has access to.
+     */
+    public abstract void serializeValue(JsonGenerator jgen, Object value)
+        throws IOException, JsonGenerationException;
+
+    /*
+    //////////////////////////////////////////////////////
+    // General serializer locating method
     //////////////////////////////////////////////////////
      */
 
