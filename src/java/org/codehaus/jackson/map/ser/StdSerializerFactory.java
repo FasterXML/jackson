@@ -34,9 +34,6 @@ public class StdSerializerFactory
     final static HashMap<String, JsonSerializer<?>> _concrete = 
         new HashMap<String, JsonSerializer<?>>();
     static {
-        // Boolean type
-        _concrete.put(Boolean.class.getName(), new BooleanSerializer());
-
         // String and string-like types (note: date types explicitly
         // not included -- can use either textual or numeric serialization)
         _concrete.put(String.class.getName(), new StringSerializer());
@@ -47,16 +44,28 @@ public class StdSerializerFactory
         // including things best serialized as Strings
         _concrete.put(UUID.class.getName(), sls);
         
-        // Numbers, limited length integral
+        // Primitives/wrappers for primitives:
+        _concrete.put(Boolean.class.getName(), BooleanSerializer.instance);
+        _concrete.put(Boolean.TYPE.getName(), BooleanSerializer.instance);
         final IntegerSerializer intS = new IntegerSerializer();
         _concrete.put(Byte.class.getName(), intS);
+        /* not 100% sure if this is needed, but I think it might be
+         * needed for bean-introspection, since methods can return 
+         * primitive type.
+         */
+        _concrete.put(Byte.TYPE.getName(), intS);
         _concrete.put(Short.class.getName(), intS);
+        _concrete.put(Short.TYPE.getName(), intS);
         _concrete.put(Integer.class.getName(), intS);
-        _concrete.put(Long.class.getName(), new LongSerializer());
+        _concrete.put(Integer.TYPE.getName(), intS);
+        _concrete.put(Long.class.getName(), LongSerializer.instance);
+        _concrete.put(Long.TYPE.getName(), LongSerializer.instance);
 
         // Numbers, limited length floating point
-        _concrete.put(Float.class.getName(), new FloatSerializer());
-        _concrete.put(Double.class.getName(), new DoubleSerializer());
+        _concrete.put(Float.class.getName(), FloatSerializer.instance);
+        _concrete.put(Float.TYPE.getName(), FloatSerializer.instance);
+        _concrete.put(Double.class.getName(), DoubleSerializer.instance);
+        _concrete.put(Double.TYPE.getName(), DoubleSerializer.instance);
 
         // Other numbers, more complicated
         final NumberSerializer ns = new NumberSerializer();
@@ -138,7 +147,7 @@ public class StdSerializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> JsonSerializer<T> createSerializer(Class<T> type, JsonSerializerProvider prov)
+    public <T> JsonSerializer<T> createSerializer(Class<T> type)
     {
         // First, fast lookup for exact type:
         JsonSerializer<?> ser = findSerializerByLookup(type);
@@ -259,6 +268,8 @@ public class StdSerializerFactory
     public final static class BooleanSerializer
         extends JsonSerializer<Boolean>
     {
+        final static BooleanSerializer instance = new BooleanSerializer();
+
         public void serialize(Boolean value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
@@ -315,6 +326,8 @@ public class StdSerializerFactory
     public final static class LongSerializer
         extends JsonSerializer<Long>
     {
+        final static LongSerializer instance = new LongSerializer();
+
         public void serialize(Long value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
@@ -325,6 +338,8 @@ public class StdSerializerFactory
     public final static class FloatSerializer
         extends JsonSerializer<Float>
     {
+        final static FloatSerializer instance = new FloatSerializer();
+
         public void serialize(Float value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
@@ -335,6 +350,8 @@ public class StdSerializerFactory
     public final static class DoubleSerializer
         extends JsonSerializer<Double>
     {
+        final static DoubleSerializer instance = new DoubleSerializer();
+
         public void serialize(Double value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {

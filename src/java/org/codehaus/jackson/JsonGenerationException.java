@@ -15,8 +15,13 @@ public class JsonGenerationException
         super(rootCause);
     }
 
-	public JsonGenerationException(String msg)
+    public JsonGenerationException(String msg)
     {
         super(msg, (JsonLocation)null);
+    }
+
+    public JsonGenerationException(String msg, Throwable rootCause)
+    {
+        super(msg, (JsonLocation)null, rootCause);
     }
 }

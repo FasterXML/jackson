@@ -13,7 +13,7 @@ import org.codehaus.jackson.JsonGenerator;
  * Note about usage: for {@link JsonSerializer} instances, only accessors
  * for locating other (sub-)serializers are to be used. {@link JavaTypeMapper},
  * on the other hand, is to initialize recursive serialization process by
- * calling {@link #serialize}.
+ * calling {@link #serializeValue}.
  */
 public abstract class JsonSerializerProvider
 {

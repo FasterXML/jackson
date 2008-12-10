@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
@@ -9,6 +8,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.JsonSerializerFactory;
 import org.codehaus.jackson.map.JsonSerializerProvider;
+import org.codehaus.jackson.map.Resolvable;
 
 /**
  * Default {@link JsonSerializerProvider} implementation.
@@ -228,28 +228,42 @@ public class StdSerializerProvider
     ////////////////////////////////////////////////////
      */
 
-    @SuppressWarnings("unchecked")
-	@Override
+    @Override
     public JsonSerializer<Object> findValueSerializer(Class<?> type)
     {
+        // Fast lookup from local lookup thingy works?
         JsonSerializer<Object> ser = _knownSerializers.get(type);
+        if (ser != null) {
+            return ser;
+        }
+        // If not, maybe shared map already has it?
+        ser = _serializerCache.findSerializer(type);
+        if (ser != null) {
+            return ser;
+        }
+
+        /* If neither, must create. So far so good: creation should be
+         * safe...
+         */
+        ser = _createSerializer(type);
+
+        /* Couldn't create? Need to return the fallback serializer, which
+         * most likely will report an error: but one question is whether
+         * we should cache it?
+         */
         if (ser == null) {
-            ser = _serializerCache.findSerializer(type);
-            // not found from local Map; nor from shared? Must create, then
-            if (ser == null) {
-                ser = (JsonSerializer<Object>)_serializerFactory.createSerializer(type, this);
-                /* Couldn't create? Need to return the fallback serializer, which
-                 * most likely will report an error
-                 */
-                if (ser == null) {
-                    ser = _unknownTypeSerializer;
-                    // Should this be added to lookups?
-                    if (!CACHE_UNKNOWN_MAPPINGS) {
-                        return ser;
-                    }
-                }
-                _serializerCache.addSerializer(type, ser);
+            ser = _unknownTypeSerializer;
+            // Should this be added to lookups?
+            if (!CACHE_UNKNOWN_MAPPINGS) {
+                return ser;
             }
+        }
+        _serializerCache.addSerializer(type, ser);
+        /* Finally: some serializers want to do post-processing, after
+         * getting registered (to handle cyclic deps).
+         */
+        if (ser instanceof Resolvable) {
+            _resolveSerializer((Resolvable)ser);
         }
         return ser;
     }
@@ -273,6 +287,29 @@ public class StdSerializerProvider
     @Override
     public final JsonSerializer<Object> getUnknownTypeSerializer() {
         return _unknownTypeSerializer;
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////////
+    // Helper methods: can be overridden by sub-classes
+    ////////////////////////////////////////////////////////////////
+     */
+
+    @SuppressWarnings("unchecked")
+    protected JsonSerializer<Object> _createSerializer(Class<?> type)
+    {
+        /* 10-Dec-2008, tatu: Is there a possibility of infinite loops
+         *   here? Shouldn't be, given that we do not pass back-reference
+         *   to this provider. But if there is, we'd need to sync calls,
+         *   and keep track of creation chain to look for loops -- fairly
+         *   easy to do, but won't add yet since it seems unnecessary.
+         */
+        return (JsonSerializer<Object>)_serializerFactory.createSerializer(type);
+    }
+
+    protected void _resolveSerializer(Resolvable ser)
+    {
+        ser.resolve(this);
     }
 }
 

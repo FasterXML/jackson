@@ -47,7 +47,7 @@ public final class SerializerCache
      * Method that checks if the shared (and hence, synchronized) lookup Map might have
      * the serializer already.
      */
-    public JsonSerializer<Object> findSerializer(Class type)
+    public JsonSerializer<Object> findSerializer(Class<?> type)
     {
         synchronized (this) {
             return _sharedMap.get(new ClassKey(type));
@@ -59,7 +59,7 @@ public final class SerializerCache
      * a serializer. If so, we will update the shared lookup map so that it
      * can be resolved via it next time.
      */
-    public void addSerializer(Class type, JsonSerializer<Object> ser)
+    public void addSerializer(Class<?> type, JsonSerializer<Object> ser)
     {
         synchronized (this) {
             ClassKey key = new ClassKey(type);

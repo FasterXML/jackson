@@ -8,7 +8,6 @@ import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 
 // And then temporary (until 1.0?) support for legacy mapper:
-import org.codehaus.jackson.map.legacy.JavaTypeSerializer;
 import org.codehaus.jackson.map.legacy.LegacyJavaTypeMapper;
 
 /**
