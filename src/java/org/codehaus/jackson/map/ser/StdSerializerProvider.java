@@ -248,8 +248,8 @@ public class StdSerializerProvider
                         return ser;
                     }
                 }
+                _serializerCache.addSerializer(type, ser);
             }
-            _serializerCache.addSerializer(type, ser);
         }
         return ser;
     }

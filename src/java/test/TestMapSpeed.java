@@ -62,8 +62,7 @@ public final class TestMapSpeed
             long now = System.currentTimeMillis();
             String msg;
             int sum = 0;
-
-round = 1;
+//round = 1; // testing just old or new?
 
             switch (round) {
             case 0:

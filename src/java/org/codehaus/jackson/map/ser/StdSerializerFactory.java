@@ -740,17 +740,18 @@ public class StdSerializerFactory
         }
     }
 
+    /**
+     * Character arrays are different from other integral number arrays in that
+     * they are most likely to be textual data, and should be written as
+     * Strings, not arrays of entries.
+     */
     public final static class CharArraySerializer
         extends JsonSerializer<char[]>
     {
         public void serialize(char[] value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
-            for (int i = 0, len = value.length; i < len; ++i) {
-                jgen.writeNumber(value[i]);
-            }
-            jgen.writeEndArray();
+            jgen.writeString(value, 0, value.length);
         }
     }
 

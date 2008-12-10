@@ -75,12 +75,12 @@ public abstract class BaseMapper
     ////////////////////////////////////////////////////
      */
 
-    protected void throwInternal(String msg)
+    protected void _throwInternal(String msg)
     {
         throw new RuntimeException("Internal error: "+msg);
     }
 
-    protected void reportProblem(JsonParser jp, String msg)
+    protected void _reportProblem(JsonParser jp, String msg)
         throws JsonParseException
     {
         throw new JsonParseException(msg, jp.getTokenLocation());

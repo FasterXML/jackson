@@ -45,7 +45,7 @@ public final class ReadOnlyClassToSerializerMap
     public JsonSerializer<Object> get(Class<?> clz)
     {
         _key.reset(clz);
-        return _map.get(clz);
+        return _map.get(_key);
     }
 }
 

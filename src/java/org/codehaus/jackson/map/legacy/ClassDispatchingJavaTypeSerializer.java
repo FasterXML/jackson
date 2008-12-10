@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.legacy;
 
 import java.io.IOException;
 import java.util.*;
@@ -13,7 +13,8 @@ import org.codehaus.jackson.JsonParseException;
  *
  * @author Stanislaw Osinski
  */
-public class ClassDispatchingJavaTypeSerializer extends JavaTypeSerializerBase<Object>
+public class ClassDispatchingJavaTypeSerializer
+    implements JavaTypeSerializer<Object>
 {
     private final Map<Class<?>, JavaTypeSerializer<?>> serializerByClass;
 
@@ -52,6 +53,6 @@ public class ClassDispatchingJavaTypeSerializer extends JavaTypeSerializerBase<O
                 return true;
             }
         }
-        return super.writeAny(defaultSerializer, jgen, value);
+        return false;
     }
 }

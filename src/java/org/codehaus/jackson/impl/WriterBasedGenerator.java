@@ -412,7 +412,6 @@ public final class WriterBasedGenerator
         if (status == JsonWriteContextImpl.STATUS_EXPECT_NAME) {
             _reportError("Can not "+typeMsg+", expecting field name");
         }
-
         if (_cfgPrettyPrinter == null) {
             char c;
             switch (status) {
@@ -436,7 +435,13 @@ public final class WriterBasedGenerator
             ++_outputTail;
             return;
         }
+        // Otherwise, pretty printer knows what to do...
+        _verifyPrettyValueWrite(typeMsg, status);
+    }
 
+    protected final void _verifyPrettyValueWrite(String typeMsg, int status)
+        throws IOException, JsonGenerationException
+    {
         // If we have a pretty printer, it knows what to do:
         switch (status) {
         case JsonWriteContextImpl.STATUS_OK_AFTER_COMMA: // array
@@ -455,6 +460,9 @@ public final class WriterBasedGenerator
             } else if (_writeContext.inObject()) {
                 _cfgPrettyPrinter.beforeObjectEntries(this);
             }
+            break;
+        default:
+            _cantHappen();
             break;
         }
     }

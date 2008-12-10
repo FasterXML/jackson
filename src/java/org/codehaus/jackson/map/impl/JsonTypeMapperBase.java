@@ -55,7 +55,7 @@ public abstract class JsonTypeMapperBase
                 ObjectNode node = objectNode();
                 while ((currToken = jp.nextToken()) != JsonToken.END_OBJECT) {
                     if (currToken != JsonToken.FIELD_NAME) {
-                        reportProblem(jp, "Unexpected token ("+currToken+"), expected FIELD_NAME");
+                        _reportProblem(jp, "Unexpected token ("+currToken+"), expected FIELD_NAME");
                     }
                     String fieldName = jp.getText();
                     JsonNode value = readAndMap(jp, jp.nextToken());
@@ -63,7 +63,7 @@ public abstract class JsonTypeMapperBase
                     if (_cfgDupFields == DupFields.ERROR) {
                         JsonNode old = node.setElement(fieldName, value);
                         if (old != null) {
-                            reportProblem(jp, "Duplicate value for field '"+fieldName+"', when dup fields mode is "+_cfgDupFields);
+                            _reportProblem(jp, "Duplicate value for field '"+fieldName+"', when dup fields mode is "+_cfgDupFields);
                         }
                     } else if (_cfgDupFields == DupFields.USE_LAST) {
                         // Easy, just add
@@ -117,10 +117,10 @@ public abstract class JsonTypeMapperBase
         case FIELD_NAME:
         case END_OBJECT:
         case END_ARRAY:
-            reportProblem(jp, "Can not map token "+currToken+": stream off by a token or two?");
+            _reportProblem(jp, "Can not map token "+currToken+": stream off by a token or two?");
 
         default: // sanity check, should never happen
-            throwInternal("Unrecognized event type: "+currToken);
+            _throwInternal("Unrecognized event type: "+currToken);
             return null; // never gets this far
         }
     }

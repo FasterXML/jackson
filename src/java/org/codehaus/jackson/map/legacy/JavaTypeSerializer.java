@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.legacy;
 
 import java.io.IOException;
 

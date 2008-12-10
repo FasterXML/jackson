@@ -5,11 +5,14 @@ import java.util.*;
 import org.codehaus.jackson.map.JsonSerializer;
 
 /**
- * Simple cache object that allows for doing 2-level lookups: first level is by "local"
- * read-only lookup Map (used without locking); and second backup level is by shared
- * modifiable Map. The idea is that after a while, most serializers are found from the
- * local Map (to optimize performance, reduce lock contention), while trying to reduce
- * unnecessary construction of serializers during rampup.
+ * Simple cache object that allows for doing 2-level lookups: first level is
+ * by "local" read-only lookup Map (used without locking)
+ * and second backup level is by a shared modifiable HashMap.
+ * The idea is that after a while, most serializers are found from the
+ * local Map (to optimize performance, reduce lock contention),
+ * but that during buildup we can use a shared map to reduce both
+ * number of distinct read-only maps constructed, and number of
+ * serializers constructed.
  */
 public final class SerializerCache
 {

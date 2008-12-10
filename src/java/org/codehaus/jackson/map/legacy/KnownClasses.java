@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.legacy;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -7,6 +7,8 @@ import java.util.*;
 /**
  * Helper class used for fast handling of "well-known" JDK primitive
  * wrapper and data struct classes.
+ * 
+ * @deprecated Only used to support legacy mapper implementation (pre-0.9.5)
  */
 final class KnownClasses
 {
