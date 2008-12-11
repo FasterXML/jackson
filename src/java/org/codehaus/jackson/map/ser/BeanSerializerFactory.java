@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.ser;
 import java.util.*;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 
 import org.codehaus.jackson.map.JsonSerializer;
@@ -173,12 +174,16 @@ public class BeanSerializerFactory
 
     protected boolean okSignatureForAccessor(Method m)
     {
+        // First: we can't use static methods
+        if (Modifier.isStatic(m.getModifiers())) {
+            return false;
+        }
         // Must take no args
         Class<?>[] pts = m.getParameterTypes();
         if ((pts != null) && (pts.length > 0)) {
             return false;
         }
-        // And can't be a void method
+        // Can't be a void method
         Class<?> rt = m.getReturnType();
         if (rt == Void.TYPE) {
             return false;
@@ -214,6 +219,14 @@ public class BeanSerializerFactory
     {
         String name = m.getName();
 
+        /* Actually, for non-annotation based names, let's require that
+         * the method is public?
+         */
+        Class<?> rt = m.getReturnType();
+        if (!Modifier.isPublic(rt.getModifiers())) {
+            return null;
+        }
+
         if (name.startsWith("get")) {
             /* also, base definition (from java.lang.Object) of getClass()
              * is not consider a bean accessor.
@@ -226,7 +239,6 @@ public class BeanSerializerFactory
         }
         if (name.startsWith("is")) {
             // plus, must return boolean...
-            Class<?> rt = m.getReturnType();
             if (rt != Boolean.class && rt != Boolean.TYPE) {
                 return null;
             }

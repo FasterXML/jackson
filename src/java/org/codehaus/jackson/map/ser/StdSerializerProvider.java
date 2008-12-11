@@ -42,9 +42,17 @@ public class StdSerializerProvider
     final static boolean CACHE_UNKNOWN_MAPPINGS = false;
 
     public final static JsonSerializer<Object> DEFAULT_NULL_KEY_SERIALIZER =
-        new StdSerializerFactory.FailingSerializer("Null key for a Map not allower in Json (use a converting NullKeySerializer?)");
+        new FailingSerializer("Null key for a Map not allower in Json (use a converting NullKeySerializer?)");
 
     public final static JsonSerializer<Object> DEFAULT_KEY_SERIALIZER = new StdKeySerializer();
+
+    public final static JsonSerializer<Object> DEFAULT_UNKNOWN_SERIALIZER = new JsonSerializer<Object>() {
+        public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            throw new  JsonGenerationException("No serializer found for type "+value.getClass());
+        }
+    };
 
     /*
     ////////////////////////////////////////////////////
@@ -69,11 +77,11 @@ public class StdSerializerProvider
      * Serializer that gets called for values of types for which no
      * serializers can be constructed.
      *<p>
-     * The default serializer will thrown an exception; a possible
+     * The default serializer will simply thrown an exception; a possible
      * alternative that can be used would be
      * {@link ToStringSerializer}.
      */
-    protected JsonSerializer<Object> _unknownTypeSerializer;
+    protected JsonSerializer<Object> _unknownTypeSerializer = DEFAULT_UNKNOWN_SERIALIZER;
 
     /**
      * Serializer used to output non-null keys of Maps (which will get

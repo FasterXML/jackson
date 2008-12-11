@@ -70,18 +70,15 @@ public final class BeanSerializer
 
     public void resolve(JsonSerializerProvider provider)
     {
-System.err.println("DEBUG: resolve "+this);
         for (WritableBeanProperty prop : _props) {
             if (!prop.hasSerializer()) {
                 Class<?> rt = prop.getReturnType();
                 if (Modifier.isFinal(rt.getModifiers())) {
                     JsonSerializer<Object> ser = provider.findValueSerializer(rt);
                     prop.assignSerializer(ser);
-System.err.println(" prop "+prop+", set serializer -> "+ser);
                     continue;
                 }
             }
-System.err.println("NO SERIALIZER for prop "+prop);
         }
     }
 

@@ -876,24 +876,4 @@ public class StdSerializerFactory
             value.serialize(jgen, provider);
         }
     }
-
-    /**
-     * This special "serializer" can be used to throw
-     * {@link JsonGenerationException} by registering it to handle
-     * a type, or as one of special serializers (like one used to handle
-     * null Map/Object keys).
-     */
-    public final static class FailingSerializer
-        extends JsonSerializer<Object>
-    {
-        final String _msg;
-
-        public FailingSerializer(String msg) { _msg = msg; }
-
-        public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            throw new JsonGenerationException(_msg);
-        }
-    }
 }
