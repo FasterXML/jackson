@@ -1,6 +1,6 @@
 package org.codehaus.jackson.map;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -11,16 +11,10 @@ import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.legacy.LegacyJavaTypeMapper;
 
 /**
- * This mapper (or, codec) provides for conversions between core
- * JDK-defined Java types, and matching JSON constructs.
+ * This mapper (or, codec) provides for conversions between Java class
+ * (JDK provided core classes, beans), and matching JSON constructs.
  * It will use instances of {@link JsonParser} and {@link JsonGenerator}
  * for implementing actual reading/writing of JSON.
- *<p>
- * In addition to mapping to/from textual JSON serialization using
- * json parser and generator, mapper can also expose resulting
- * Java containers via a parser or generator: either as the source
- * of JSON events, or as target so that java objects can be
- * constructed from calls to json generator.
  */
 public class JavaTypeMapper
     extends BaseMapper
@@ -31,7 +25,23 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
-    protected final JsonSerializerProvider _serializerProvider;
+    /**
+     * Factory used to create {@link JsonParser} and {@link JsonGenerator}
+     * instances as necessary.
+     */
+    protected final JsonFactory _jsonFactory;
+
+    /**
+     * Object that manages access to serializers used for serialization,
+     * including caching.
+     * It is configured with {@link #_serializerFactory} for mapping.
+     */
+    protected JsonSerializerProvider _serializerProvider;
+
+    /**
+     * Serializer factory used for constructing serializers serializers.
+     */
+    protected JsonSerializerFactory _serializerFactory;
 
     /*
     ////////////////////////////////////////////////////
@@ -40,20 +50,45 @@ public class JavaTypeMapper
      */
 
     /**
-     * Default constructor, which will use
+     * Default constructor, which will construct the default
+     * {@link JsonFactory} as necessary, use
      * {@link StdSerializerProvider} as its
-     * {@link JsonSerializerProvider}. This means that it
-     * can serializer all standard JDK types, as well as regular
-     * Java Beans; but does have support for JAXB annotations.
+     * {@link JsonSerializerProvider}, and
+     * {@link BeanSerializerFacotyr} as its
+     * {@link JsonSerializerFactory}.
+     * This means that it
+     * can serialize all standard JDK types, as well as regular
+     * Java Beans (based on method names and Jackson-specific annotations),
+     * but does not support JAXB annotations.
      */
     public JavaTypeMapper()
     {
-        this(new StdSerializerProvider(BeanSerializerFactory.instance));
+        this(null);
     }
 
-    public JavaTypeMapper(JsonSerializerProvider sp)
+    public JavaTypeMapper(JsonFactory jf)
     {
-        _serializerProvider = sp;
+        this(jf, null);
+    }
+
+    public JavaTypeMapper(JsonFactory jf, JsonSerializerProvider sp)
+    {
+        this(jf, sp, null);
+    }
+
+    public JavaTypeMapper(JsonFactory jf, JsonSerializerProvider p, JsonSerializerFactory jsf)
+    {
+        _jsonFactory = (jf == null) ? new JsonFactory() : jf;
+        _serializerProvider = (p == null) ? new StdSerializerProvider() : p;
+        _serializerFactory = (jsf == null) ? BeanSerializerFactory.instance : jsf;
+    }
+
+    public void setSerializerFactory(JsonSerializerFactory f) {
+        _serializerFactory = f;
+    }
+
+    public void setSerializerProvider(JsonSerializerProvider p) {
+        _serializerProvider = p;
     }
 
     /*
@@ -101,10 +136,67 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method that can be used to serialize any Java value as
+     * Json output, using provided {@link JsonGenerator}.
+     */
     public final void writeValue(JsonGenerator jgen, Object value)
         throws IOException, JsonGenerationException
     {
-        _serializerProvider.serializeValue(jgen, value);
+        _serializerProvider.serializeValue(jgen, value, _serializerFactory);
+        jgen.flush();
+    }
+
+    /**
+     * Method that can be used to serialize any Java value as
+     * Json output, written to File provided.
+     */
+    public final void writeValue(File resultFile, Object value)
+        throws IOException, JsonGenerationException
+    {
+        JsonGenerator jgen = _jsonFactory.createJsonGenerator(resultFile, JsonEncoding.UTF8);
+        boolean closed = false;
+        try {
+            writeValue(jgen, value);
+            closed = true;
+            jgen.close();
+        } finally {
+            /* won't try to close twice; also, must catch exception (to it 
+             * will not mask exception that is pending)
+            */
+            if (!closed) {
+                try {
+                    jgen.close();
+                } catch (IOException ioe) { }
+            }
+        }
+    }
+
+    /**
+     * Method that can be used to serialize any Java value as
+     * Json output, using output stream provided (using encoding
+     * {link JsonEncoding#UTF8}).
+     *<p>
+     * Note: method does not close the underlying stream explicitly
+     * here; however, {@link JsonFactory} this mapper uses may choose
+     * to close the stream depending on its settings (by default,
+     * it will try to close it when {@link JsonGenerator} we construct
+     * is closed).
+     */
+    public final void writeValue(OutputStream out, Object value)
+        throws IOException, JsonGenerationException
+    {
+        JsonGenerator jgen = _jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8);
+        boolean closed = false;
+        try {
+            writeValue(jgen, value);
+            closed = true;
+            jgen.close();
+        } finally {
+            if (!closed) {
+                jgen.close();
+            }
+        }
     }
 
     /*
@@ -128,6 +220,7 @@ public class JavaTypeMapper
         throws IOException, JsonGenerationException
     {
         _legacyMapper.writeAny(jg, value);
+        jg.flush();
     }
 
     /*

@@ -1,12 +1,13 @@
 Version: 0.9.5
 
 Release date: 
-  xx-Dec-2008
+  11-Dec-2008
 
 Description:
-  Another pre-1.0 release: this time significantly improving unit test
-  coverage, fixing bugs uncovered by doing so, and addressing accumulated
-  minor feature requests.
+  Another pre-1.0 release: this time just one big new feature: ability
+  to do automatic Bean-based ("any java object with getters") serialization
+  using JavaTypeMapper. Related to this, the whole serialization sub-system
+  of JavaTypeMapper rewritten -- and this may cause backwards incompatibility.
 
   Bug fixes:
 
@@ -16,6 +17,12 @@ Description:
 
   Improvements:
 
+  * [JACKSON-13]: JavaTypeMapper can now take JsonFactory argument, and
+    thus is able to construct JsonParser/JsonGenerator instances as necessary
+  * [JACKSON-17]: Handling of unknown types now configurable with
+    JavaTypeMapper serialization (see JsonSerializerProvider for methods)
+  * [JACKSON-20]: Handling of nulls (key, value) configurable with
+    JavaTypeMapper serialization (see JsonSerializerProvider for methods)
   * [JACKSON-26]: Add convenience JsonGenerator.writeXxxField() methods
     to simplify json generation.
 

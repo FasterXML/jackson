@@ -60,9 +60,6 @@ public class StdSerializerProvider
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * The main serializer factory used for finding serializers.
-     */
     final protected JsonSerializerFactory _serializerFactory;
 
     final protected SerializerCache _serializerCache;
@@ -114,7 +111,7 @@ public class StdSerializerProvider
      * For fast lookups, we will have a local non-shared read-only
      * map that contains serializers previously fetched.
      */
-    private final ReadOnlyClassToSerializerMap _knownSerializers;
+    protected final ReadOnlyClassToSerializerMap _knownSerializers;
 
     /*
     ////////////////////////////////////////////////////
@@ -122,17 +119,14 @@ public class StdSerializerProvider
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Constructor for creating master (or "blue-print") provider object,
+     * which is only used as the template for constructing per-binding
+     * instances.
+     */
     public StdSerializerProvider()
     {
-        this(BeanSerializerFactory.instance);
-    }
-
-    public StdSerializerProvider(JsonSerializerFactory serializerFactory)
-    {
-        if (serializerFactory == null) {
-            throw new IllegalArgumentException("Can not pass null serializerFactory");
-        }
-        _serializerFactory = serializerFactory;
+        _serializerFactory = null;
         _serializerCache = new SerializerCache();
         // Blueprints doesn't have access to any serializers...
         _knownSerializers = null;
@@ -142,9 +136,11 @@ public class StdSerializerProvider
      * "Copy-constructor", used from {@link #createInstance} (or by
      * sub-classes)
      */
-    protected StdSerializerProvider(StdSerializerProvider src)
+    protected StdSerializerProvider(StdSerializerProvider src,
+                                    JsonSerializerFactory f)
     {
-        _serializerFactory = src._serializerFactory;
+        _serializerFactory = f;
+
         _serializerCache = src._serializerCache;
         _unknownTypeSerializer = src._unknownTypeSerializer;
         _keySerializer = src._keySerializer;
@@ -161,9 +157,9 @@ public class StdSerializerProvider
      * Overridable method, used to create a non-blueprint instances from the blueprint.
      * This is needed to retain state during serialization.
      */
-    protected StdSerializerProvider createInstance()
+    protected StdSerializerProvider createInstance(JsonSerializerFactory jsf)
     {
-        return new StdSerializerProvider(this);
+        return new StdSerializerProvider(this, jsf);
     }
 
     /*
@@ -172,14 +168,19 @@ public class StdSerializerProvider
     ////////////////////////////////////////////////////
      */
 
-    public final void serializeValue(JsonGenerator jgen, Object value)
+    public final void serializeValue(JsonGenerator jgen, Object value,
+                                     JsonSerializerFactory jsf)
         throws IOException, JsonGenerationException
     {
-        /* First: we need a separate instance, which will hold a distinct copy of the
-         * non-shared ("local") read-only lookup Map for fast class-to-serializer
-         * lookup
+        if (jsf == null) {
+            throw new IllegalArgumentException("Can not pass null serializerFactory");
+        }
+
+        /* First: we need a separate instance, which will hold a copy of the
+         * non-shared ("local") read-only lookup Map for fast
+         * class-to-serializer lookup
          */
-        StdSerializerProvider inst = createInstance();
+        StdSerializerProvider inst = createInstance(jsf);
         // sanity check to avoid weird errors; to ensure sub-classes do override createInstance
         if (inst.getClass() != getClass()) {
             throw new IllegalStateException("Broken serializer provider: createInstance returned instance of type "+inst.getClass()+"; blueprint of type "+getClass());
@@ -277,23 +278,23 @@ public class StdSerializerProvider
     }
 
     @Override
-    public final JsonSerializer<Object> getKeySerializer()
+    public JsonSerializer<Object> getKeySerializer()
     {
         return _keySerializer;
     }
 
     @Override
-    public final JsonSerializer<Object> getNullKeySerializer() {
+    public JsonSerializer<Object> getNullKeySerializer() {
         return _nullKeySerializer;
     }
 
     @Override
-    public final JsonSerializer<Object> getNullValueSerializer() {
+    public JsonSerializer<Object> getNullValueSerializer() {
         return _nullValueSerializer;
     }
 
     @Override
-    public final JsonSerializer<Object> getUnknownTypeSerializer() {
+    public JsonSerializer<Object> getUnknownTypeSerializer() {
         return _unknownTypeSerializer;
     }
 

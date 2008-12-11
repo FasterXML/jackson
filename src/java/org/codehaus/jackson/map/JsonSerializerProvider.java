@@ -27,8 +27,12 @@ public abstract class JsonSerializerProvider
      * The method to be called by {@link JavaTypeMapper} to
      * execute recursive serialization, using serializers that
      * this provider has access to.
+     *
+     * @param jsf Underlying factory object used for creating serializers
+     *    as needed
      */
-    public abstract void serializeValue(JsonGenerator jgen, Object value)
+    public abstract void serializeValue(JsonGenerator jgen, Object value,
+                                        JsonSerializerFactory jsf)
         throws IOException, JsonGenerationException;
 
     /*

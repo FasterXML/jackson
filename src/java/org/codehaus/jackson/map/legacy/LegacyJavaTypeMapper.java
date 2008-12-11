@@ -21,7 +21,6 @@ public final class LegacyJavaTypeMapper
         throws IOException, JsonGenerationException
     {
         writeAny(this, jg, value);
-        jg.flush();
     }
 
     /*
