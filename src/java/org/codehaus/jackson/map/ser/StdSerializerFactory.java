@@ -72,6 +72,10 @@ public class StdSerializerFactory
         _concrete.put(BigInteger.class.getName(), ns);
         _concrete.put(BigDecimal.class.getName(), ns);
 
+        // Other discrete non-container types
+        _concrete.put(Calendar.class.getName(), CalendarSerializer.instance);
+        _concrete.put(Date.class.getName(), DateSerializer.instance);
+
         // Arrays of various types (including common object types)
         _concrete.put(boolean[].class.getName(), new BooleanArraySerializer());
         _concrete.put(byte[].class.getName(), new ByteArraySerializer());
@@ -229,6 +233,12 @@ public class StdSerializerFactory
         }
         if (Enum.class.isAssignableFrom(type)) {
             return new EnumSerializer();
+        }
+        if (Calendar.class.isAssignableFrom(type)) {
+            return CalendarSerializer.instance;
+        }
+        if (Date.class.isAssignableFrom(type)) {
+            return DateSerializer.instance;
         }
         if (Collection.class.isAssignableFrom(type)) {
             return CollectionSerializer.instance;
@@ -845,6 +855,33 @@ public class StdSerializerFactory
     }
 
     /**
+     * For time values we should use timestamp, since that is about the only
+     * thing that can be reliably converted between date-based objects
+     * and json.
+     */
+    public final static class CalendarSerializer
+        extends JsonSerializer<Calendar>
+    {
+        public final static CalendarSerializer instance = new CalendarSerializer();
+        public void serialize(Calendar value, JsonGenerator jgen, JsonSerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeNumber(value.getTimeInMillis());
+        }
+    }
+
+    public final static class DateSerializer
+        extends JsonSerializer<Date>
+    {
+        public final static DateSerializer instance = new DateSerializer();
+        public void serialize(Date value, JsonGenerator jgen, JsonSerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeNumber(value.getTime());
+        }
+    }
+
+    /**
      * To allow for special handling for null values (in Objects, Arrays,
      * root-level), handling for nulls is done via serializers too.
      * This is the default serializer for nulls.
@@ -852,7 +889,7 @@ public class StdSerializerFactory
     public final static class NullSerializer
         extends JsonSerializer<Object>
     {
-        final static NullSerializer instance = new NullSerializer();
+        public final static NullSerializer instance = new NullSerializer();
 
         private NullSerializer() { }
 

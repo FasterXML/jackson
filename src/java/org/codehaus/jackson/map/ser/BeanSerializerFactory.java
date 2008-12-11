@@ -14,7 +14,16 @@ import org.codehaus.jackson.map.JsonSerializer;
  * accessor" -- where {@link Object#getClass} does not count);
  * as well as for "standard" JDK types. Latter is achieved
  * by sub-classing {@link StdSerializerFactory} to augment its functionality
- * by bean introspection
+ * by bean introspection.
+ *<p>
+ * Note about design: although it would be nicer to use linear delegation
+ * for construction (to essentially dispatch all calls first to the
+ * underlying {@link StdSerializerFactory}, there is one problem:
+ * priority levels for detecting standard types are mixed. That is,
+ * we want to check if a type is a bean after some of "standard" JDK
+ * types, but before the rest. This is why sub-classing is used, and
+ * specific calls that std serializer factory exposes, instead of using
+ * public {@link JsonSerializerFactory} api.
  */
 public class BeanSerializerFactory
     extends StdSerializerFactory
@@ -81,7 +90,7 @@ public class BeanSerializerFactory
     protected JsonSerializer<?> findBeanSerializer(Class<?> type)
     {
         // First things first: we know some types are not beans...
-        if (!canBeABeanType(type)) {
+        if (!canBeABeanType(type) || isProxyType(type)) {
             return null;
         }
 
@@ -96,8 +105,11 @@ public class BeanSerializerFactory
 
     /**
      * Helper method used to skip processing for types that we know
-     * can not be (i.e. are never consider to be) beans: usually
-     * includes things like Arrays.
+     * can not be (i.e. are never consider to be) beans: 
+     * things like primitives, Arrays, Enums.
+     *<p>
+     * Note that usually we shouldn't really be getting these sort of
+     * types anyway; but better safe than sorry.
      */
     protected boolean canBeABeanType(Class<?> type)
     {
@@ -106,15 +118,33 @@ public class BeanSerializerFactory
             || type.isPrimitive()) {
             return false;
         }
-        // Then: well-known proxy (etc) classes
-        if (Proxy.isProxyClass(type)) {
-            return false;
-        }
-
-        // Otherwise, might be a bean...
         return true;
     }
 
+    /**
+     * Helper method used to weed out dynamic Proxy types; types that do
+     * not expose concrete method API that we could use to figure out
+     * automatic Bean (property) based serialization.
+     */
+    protected boolean isProxyType(Class<?> type)
+    {
+        // Then: well-known proxy (etc) classes
+        if (Proxy.isProxyClass(type)) {
+            return true;
+        }
+        String name = type.getName();
+        // Hibernate uses proxies heavily as well:
+        if (name.startsWith("net.sf.cglib.proxy.")
+            || name.startsWith("org.hibernate.proxy.")) {
+            return true;
+        }
+        // Not one of known proxies, nope:
+        return false;
+    }
+
+    /**
+     * Method used to collect all actual serializable properties
+     */
     protected Collection<WritableBeanProperty> findBeanProperties(Class<?> type)
     {
         /* Ok, now; we could try Class.getMethods(), but it has couple of
