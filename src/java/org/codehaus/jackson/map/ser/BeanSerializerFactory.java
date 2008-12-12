@@ -7,27 +7,39 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.JsonSerializerFactory;
 
 /**
  * Factory class that can provide serializers for any regular Java beans
  * (as defined by "having at least one get method recognizable as bean
  * accessor" -- where {@link Object#getClass} does not count);
  * as well as for "standard" JDK types. Latter is achieved
- * by sub-classing {@link StdSerializerFactory} to augment its functionality
- * by bean introspection.
+ * by delegating calls to {@link StdSerializerFactory} 
+ * to find serializers both for "standard" JDK types (and in some cases,
+ * sub-classes as is the case for collection classes like
+ * {@link java.util.List}s and {@link java.util.Map}s) and bean (value)
+ * classes.
  *<p>
- * Note about design: although it would be nicer to use linear delegation
+ * Note about delegating calls to {@link StdSerializerFactory}:
+ * although it would be nicer to use linear delegation
  * for construction (to essentially dispatch all calls first to the
- * underlying {@link StdSerializerFactory}, there is one problem:
+ * underlying {@link StdSerializerFactory}; or alternatively after
+ * failing to provide bean-based serializer}, there is a problem:
  * priority levels for detecting standard types are mixed. That is,
  * we want to check if a type is a bean after some of "standard" JDK
- * types, but before the rest. This is why sub-classing is used, and
- * specific calls that std serializer factory exposes, instead of using
- * public {@link JsonSerializerFactory} api.
+ * types, but before the rest.
+ * As a result, "mixed" delegation used, and calls are NOT done using
+ * regular {@link JsonSerializerFactory} interface but rather via
+ * direct calls to {@link StdSerializerFactory}.
  */
 public class BeanSerializerFactory
-    extends StdSerializerFactory
+    extends JsonSerializerFactory
 {
+    /**
+     * Like {@link StdSerializerFactory}, this factory is stateless, and
+     * thus a single shared global (== singleton) instance can be used
+     * without thread-safety issues.
+     */
     public final static BeanSerializerFactory instance = new BeanSerializerFactory();
 
     /*
@@ -55,22 +67,32 @@ public class BeanSerializerFactory
      * we want to reliably figure out which classes are standard types,
      * and which are beans. The problem is that some bean Classes may
      * implement standard interfaces (say, {@link java.lang.Iterable}.
+     *<p>
+     * Note: sub-classes may choose to complete replace implementation,
+     * if they want to alter priority of serializer lookups.
      */
     @Override
     @SuppressWarnings("unchecked")
     public <T> JsonSerializer<T> createSerializer(Class<T> type)
     {
         // First, fast lookup for exact type:
-        JsonSerializer<?> ser = findSerializerByLookup(type);
+        StdSerializerFactory stdF = StdSerializerFactory.instance;
+        JsonSerializer<?> ser = stdF.findSerializerByLookup(type);
         if (ser == null) {
             // and then introspect for some safe (?) JDK types
-            ser = findSerializerByPrimaryType(type);
+            ser = stdF.findSerializerByPrimaryType(type);
             if (ser == null) {
-                // But if no  match, let's see if it might be a bean
-                ser = findBeanSerializer(type);
-                // if not, then fall back to other JDK types
+                /* And this is where this class comes in: if type is
+                 * not a known "primary JDK type", perhaps it's a bean?
+                 * We can still get a null, if we can't find a single
+                 * suitable bean property.
+                 */
+                ser = this.findBeanSerializer(type);
+                /* Finally: maybe we can still deal with it as an
+                 * implementation of some basic JDK interface?
+                 */
                 if (ser == null) {
-                    ser = findSerializerByAddonType(type);
+                    ser = stdF.findSerializerByAddonType(type);
                 }
             }
         }
@@ -79,7 +101,8 @@ public class BeanSerializerFactory
 
     /*
     ////////////////////////////////////////////////////////////
-    // Internal methods
+    // Other public methods that are not part of
+    // JsonSerializerFactory API
     ////////////////////////////////////////////////////////////
      */
 
@@ -87,7 +110,7 @@ public class BeanSerializerFactory
      * Method that will try to construct a {@link BeanSerializer} for
      * given class. Returns null if no properties are found.
      */
-    protected JsonSerializer<?> findBeanSerializer(Class<?> type)
+    public JsonSerializer<?> findBeanSerializer(Class<?> type)
     {
         // First things first: we know some types are not beans...
         if (!canBeABeanType(type) || isProxyType(type)) {
@@ -102,6 +125,12 @@ public class BeanSerializerFactory
         }
         return new BeanSerializer(type, props);
     }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Overridable internal methods
+    ////////////////////////////////////////////////////////////
+     */
 
     /**
      * Helper method used to skip processing for types that we know
@@ -308,6 +337,12 @@ public class BeanSerializerFactory
         }
         return (sb == null) ? basename : sb.toString();
     }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Other internal methods
+    ////////////////////////////////////////////////////////////
+     */
 
     /**
      * Method called to check if we can use the passed method (wrt

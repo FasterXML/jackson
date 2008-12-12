@@ -16,6 +16,12 @@ import org.codehaus.jackson.map.JsonSerializerProvider;
  * Factory class that can provide serializers for standard JDK classes,
  * as well as custom classes that extend standard classes or implement
  * one of "well-known" interfaces (such as {@link java.util.Collection}).
+ *<p>
+ * Since all the serializers are eagerly instantiated, and there is
+ * no additional introspection or customazibility of these types,
+ * this factory is stateless. This means that other delegating
+ * factories (or {@link JsonSerializerProvider}s) can just use the
+ * shared singleton instance via {@link #singleton} field.
  */
 public class StdSerializerFactory
     extends JsonSerializerFactory
@@ -121,6 +127,17 @@ public class StdSerializerFactory
         _concrete.put(Void.TYPE.getName(), nullS);
     }
 
+    /*
+    ////////////////////////////////////////////////////////////
+    // Life cycle
+    ////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Stateless global singleton instance that should be used
+     * for factories that want to use delegation to access
+     * standard serializers.
+     */
     public final static StdSerializerFactory instance = new StdSerializerFactory();
 
     /*
@@ -185,7 +202,9 @@ public class StdSerializerFactory
      */
 
     /**
-     * Fast lookup-based accessor method
+     * Fast lookup-based accessor method, which will only check for
+     * type itself, but not consider super-classes or implemented
+     * interfaces.
      */
     public final JsonSerializer<?> findSerializerByLookup(Class<?> type)
     {
