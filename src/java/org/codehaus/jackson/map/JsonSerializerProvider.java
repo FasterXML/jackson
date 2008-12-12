@@ -2,8 +2,7 @@ package org.codehaus.jackson.map;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.*;
 
 /**
  * Abstract class that defines API used by {@link JavaTypeMapper} and
