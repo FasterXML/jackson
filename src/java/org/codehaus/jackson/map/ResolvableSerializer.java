@@ -1,13 +1,13 @@
 package org.codehaus.jackson.map;
 
 /**
- * Interface used to indicate serializer that want to do post-processing
+ * Interface used to indicate serializers that want to do post-processing
  * after construction and being added to {@link JsonSerializerProvider},
  * but before being used. This is typically used to resolve references
  * to other contained types; for example, bean serializers use this
  * to eagerly find serializers for contained field types.
  */
-public interface Resolvable
+public interface ResolvableSerializer
 {
     /**
      * Method called after {@link JsonSerializerProvider} has registered

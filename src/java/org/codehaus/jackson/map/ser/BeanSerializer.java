@@ -9,7 +9,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.JsonSerializerProvider;
-import org.codehaus.jackson.map.Resolvable;
+import org.codehaus.jackson.map.ResolvableSerializer;
 
 /**
  * Serializer class that can serializer arbitrary bean objects.
@@ -21,7 +21,7 @@ import org.codehaus.jackson.map.Resolvable;
  */
 public final class BeanSerializer
     extends JsonSerializer<Object>
-            implements Resolvable
+    implements ResolvableSerializer
 {
     final String _className;
 
@@ -64,7 +64,7 @@ public final class BeanSerializer
 
     /*
     ////////////////////////////////////////////////////////
-    // Resolvable impl
+    // ResolvableSerializer impl
     ////////////////////////////////////////////////////////
      */
 

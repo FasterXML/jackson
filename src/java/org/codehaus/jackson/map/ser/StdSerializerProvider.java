@@ -8,7 +8,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.JsonSerializerFactory;
 import org.codehaus.jackson.map.JsonSerializerProvider;
-import org.codehaus.jackson.map.Resolvable;
+import org.codehaus.jackson.map.ResolvableSerializer;
 
 /**
  * Default {@link JsonSerializerProvider} implementation.
@@ -271,8 +271,8 @@ public class StdSerializerProvider
         /* Finally: some serializers want to do post-processing, after
          * getting registered (to handle cyclic deps).
          */
-        if (ser instanceof Resolvable) {
-            _resolveSerializer((Resolvable)ser);
+        if (ser instanceof ResolvableSerializer) {
+            _resolveSerializer((ResolvableSerializer)ser);
         }
         return ser;
     }
@@ -316,7 +316,7 @@ public class StdSerializerProvider
         return (JsonSerializer<Object>)_serializerFactory.createSerializer(type);
     }
 
-    protected void _resolveSerializer(Resolvable ser)
+    protected void _resolveSerializer(ResolvableSerializer ser)
     {
         ser.resolve(this);
     }
