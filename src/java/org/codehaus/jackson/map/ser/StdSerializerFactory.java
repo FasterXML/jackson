@@ -47,25 +47,22 @@ public class StdSerializerFactory
         _concrete.put(StringBuffer.class.getName(), sls);
         _concrete.put(StringBuilder.class.getName(), sls);
         _concrete.put(Character.class.getName(), sls);
+        _concrete.put(Character.TYPE.getName(), sls);
         // including things best serialized as Strings
         _concrete.put(UUID.class.getName(), sls);
         
-        // Primitives/wrappers for primitives:
+        // Primitives/wrappers for primitives (primitives needed for Beans)
         _concrete.put(Boolean.class.getName(), BooleanSerializer.instance);
         _concrete.put(Boolean.TYPE.getName(), BooleanSerializer.instance);
         final IntegerSerializer intS = new IntegerSerializer();
-        _concrete.put(Byte.class.getName(), intS);
-        /* not 100% sure if this is needed, but I think it might be
-         * needed for bean-introspection, since methods can return 
-         * primitive type.
-         */
-        _concrete.put(Byte.TYPE.getName(), intS);
-        _concrete.put(Short.class.getName(), intS);
-        _concrete.put(Short.TYPE.getName(), intS);
         _concrete.put(Integer.class.getName(), intS);
         _concrete.put(Integer.TYPE.getName(), intS);
         _concrete.put(Long.class.getName(), LongSerializer.instance);
         _concrete.put(Long.TYPE.getName(), LongSerializer.instance);
+        _concrete.put(Byte.class.getName(), IntLikeSerializer.instance);
+        _concrete.put(Byte.TYPE.getName(), IntLikeSerializer.instance);
+        _concrete.put(Short.class.getName(), IntLikeSerializer.instance);
+        _concrete.put(Short.TYPE.getName(), IntLikeSerializer.instance);
 
         // Numbers, limited length floating point
         _concrete.put(Float.class.getName(), FloatSerializer.instance);
@@ -83,8 +80,8 @@ public class StdSerializerFactory
         _concrete.put(Calendar.class.getName(), CalendarSerializer.instance);
         _concrete.put(Date.class.getName(), DateSerializer.instance);
         // URLs and URIs should be convertible too
-        _concrete.put(java.net.URL.class.getName(), StringLikeSerializer.instance;);
-        _concrete.put(java.net.URI.class.getName(), StringLikeSerializer.instance;);
+        _concrete.put(java.net.URL.class.getName(), StringLikeSerializer.instance);
+        _concrete.put(java.net.URI.class.getName(), StringLikeSerializer.instance);
 
         // Arrays of various types (including common object types)
         _concrete.put(boolean[].class.getName(), new BooleanArraySerializer());
@@ -350,6 +347,23 @@ public class StdSerializerFactory
         extends JsonSerializer<Integer>
     {
         public void serialize(Integer value, JsonGenerator jgen, JsonSerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeNumber(value.intValue());
+        }
+    }
+
+    /**
+     * Similar to {@link IntegerSerializer}, but will not cast to Integer:
+     * instead, cast is to {@link java.lang.Number}, and conversion is
+     * by calling {@link java.lang.Number#intValue}.
+     */
+    public final static class IntLikeSerializer
+        extends JsonSerializer<Number>
+    {
+        final static IntLikeSerializer instance = new IntLikeSerializer();
+
+        public void serialize(Number value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.intValue());

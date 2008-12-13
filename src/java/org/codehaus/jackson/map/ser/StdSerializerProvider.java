@@ -50,7 +50,7 @@ public class StdSerializerProvider
         public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            throw new  JsonGenerationException("No serializer found for type "+value.getClass());
+            throw new  JsonGenerationException("No serializer found for class "+value.getClass().getName());
         }
     };
 
@@ -261,7 +261,7 @@ public class StdSerializerProvider
          * we should cache it?
          */
         if (ser == null) {
-            ser = _unknownTypeSerializer;
+            ser = getUnknownTypeSerializer(type);
             // Should this be added to lookups?
             if (!CACHE_UNKNOWN_MAPPINGS) {
                 return ser;
@@ -294,7 +294,7 @@ public class StdSerializerProvider
     }
 
     @Override
-    public JsonSerializer<Object> getUnknownTypeSerializer() {
+    public JsonSerializer<Object> getUnknownTypeSerializer(Class<?> unknownType) {
         return _unknownTypeSerializer;
     }
 

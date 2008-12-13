@@ -281,8 +281,7 @@ public class BeanSerializerFactory
         /* Actually, for non-annotation based names, let's require that
          * the method is public?
          */
-        Class<?> rt = m.getReturnType();
-        if (!Modifier.isPublic(rt.getModifiers())) {
+        if (!Modifier.isPublic(m.getModifiers())) {
             return null;
         }
 
@@ -298,6 +297,7 @@ public class BeanSerializerFactory
         }
         if (name.startsWith("is")) {
             // plus, must return boolean...
+            Class<?> rt = m.getReturnType();
             if (rt != Boolean.class && rt != Boolean.TYPE) {
                 return null;
             }

@@ -100,6 +100,8 @@ public abstract class JsonSerializerProvider
      * Typically, returned serializer will throw an exception,
      * although alternatively {@link org.codehaus.jackson.map.ser.ToStringSerializer} could
      * be returned as well.
+     *
+     * @param unknownType Type for which no serializer is found
      */
-    public abstract JsonSerializer<Object> getUnknownTypeSerializer();
+    public abstract JsonSerializer<Object> getUnknownTypeSerializer(Class<?> unknownType);
 }

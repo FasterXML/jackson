@@ -199,6 +199,32 @@ public class JavaTypeMapper
         }
     }
 
+    /**
+     * Method that can be used to serialize any Java value as
+     * Json output, using Writer provided.
+     *<p>
+     * Note: method does not close the underlying stream explicitly
+     * here; however, {@link JsonFactory} this mapper uses may choose
+     * to close the stream depending on its settings (by default,
+     * it will try to close it when {@link JsonGenerator} we construct
+     * is closed).
+     */
+    public final void writeValue(Writer w, Object value)
+        throws IOException, JsonGenerationException
+    {
+        JsonGenerator jgen = _jsonFactory.createJsonGenerator(w);
+        boolean closed = false;
+        try {
+            writeValue(jgen, value);
+            closed = true;
+            jgen.close();
+        } finally {
+            if (!closed) {
+                jgen.close();
+            }
+        }
+    }
+
     /*
     ////////////////////////////////////////////////////
     // !!! TODO: remove

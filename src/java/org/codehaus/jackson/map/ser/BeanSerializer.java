@@ -50,7 +50,7 @@ public final class BeanSerializer
 
         int i = 0;
         try {
-            for (int len = _props.length; i < len; ++i) {
+            for (final int len = _props.length; i < len; ++i) {
                 _props[i].serializeAsField(bean, jgen, provider);
             }
         } catch (IllegalAccessException e1) {
