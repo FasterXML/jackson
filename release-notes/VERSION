@@ -1,7 +1,7 @@
 Version: 0.9.5
 
 Release date: 
-  11-Dec-2008
+  10-Dec-2008
 
 Description:
   Another pre-1.0 release: this time just one big new feature: ability
@@ -29,7 +29,7 @@ Description:
   New features:
 
   * [JACKSON-27]: Allow automatic closing of incomplete START_ARRAY and
-    START_OBJET events, when JsonGenerator.close() is called.
+    START_OBJECT events, when JsonGenerator.close() is called.
 
 == History: ==
 

@@ -78,9 +78,13 @@ public class StdSerializerFactory
         _concrete.put(BigInteger.class.getName(), ns);
         _concrete.put(BigDecimal.class.getName(), ns);
 
-        // Other discrete non-container types
+        /* Other discrete non-container types
+         */
         _concrete.put(Calendar.class.getName(), CalendarSerializer.instance);
         _concrete.put(Date.class.getName(), DateSerializer.instance);
+        // URLs and URIs should be convertible too
+        _concrete.put(java.net.URL.class.getName(), StringLikeSerializer.instance;);
+        _concrete.put(java.net.URI.class.getName(), StringLikeSerializer.instance;);
 
         // Arrays of various types (including common object types)
         _concrete.put(boolean[].class.getName(), new BooleanArraySerializer());

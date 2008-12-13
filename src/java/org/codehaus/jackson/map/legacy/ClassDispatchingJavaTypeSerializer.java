@@ -42,7 +42,7 @@ public class ClassDispatchingJavaTypeSerializer
     }
 
     @SuppressWarnings("unchecked")
-    @Override
+    //@Override
     public boolean writeAny(JavaTypeSerializer<Object> defaultSerializer,
         JsonGenerator jgen, Object value) throws IOException, JsonParseException
     {
