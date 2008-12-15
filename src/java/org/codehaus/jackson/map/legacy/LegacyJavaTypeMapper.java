@@ -3,8 +3,8 @@ package org.codehaus.jackson.map.legacy;
 import java.io.IOException;
 import java.util.*;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.BaseMapper;
 
 /**
  * This class contains legacy support code, to implement pre-0.9.5
@@ -12,20 +12,125 @@ import org.codehaus.jackson.JsonGenerator;
  * has since been refactored, but to smooth upgrade path, we'll
  * still retain old functionality for a while.
  */
-public final class LegacyJavaTypeMapper
+public class LegacyJavaTypeMapper
+    extends BaseMapper
     implements JavaTypeSerializer<Object>
 {
     public LegacyJavaTypeMapper() { }
 
-    public final void writeAny(JsonGenerator jg, Object value)
+    /*
+    ////////////////////////////////////////////////////
+    // Public API
+    ////////////////////////////////////////////////////
+     */
+
+    public final void legacyWriteAny(JsonGenerator jg, Object value)
         throws IOException, JsonGenerationException
     {
         writeAny(this, jg, value);
     }
 
+    public Object legacyReadAndMap(JsonParser jp)
+        throws IOException, JsonParseException
+    {
+        JsonToken curr = jp.getCurrentToken();
+        if (curr == null) {
+            curr  = jp.nextToken();
+            // We hit EOF? Nothing more to do, if so:
+            if (curr == null) {
+                return null;
+            }
+        }
+        Object result = _readAndMap(jp, curr);
+        /* Need to also advance the reader, if we get this far,
+         * to allow handling of root level sequence of values
+         */
+        jp.nextToken();
+        return result;
+    }
+
     /*
     ////////////////////////////////////////////////////
-    // JavaTypeSerializer implementation
+    // Deserialization
+    ////////////////////////////////////////////////////
+     */
+
+    protected Object _readAndMap(JsonParser jp, JsonToken currToken)
+        throws IOException, JsonParseException
+    {
+        switch (currToken) {
+        case START_OBJECT:
+            {
+                LinkedHashMap<String, Object> result = new LinkedHashMap<String, Object>();
+
+                while ((currToken = jp.nextToken()) != JsonToken.END_OBJECT) {
+                    if (currToken != JsonToken.FIELD_NAME) {
+                        _reportProblem(jp, "Unexpected token ("+currToken+"), expected FIELD_NAME");
+                    }
+                    String fieldName = jp.getText();
+                    Object  value = _readAndMap(jp, jp.nextToken());
+
+                    if (_cfgDupFields == DupFields.ERROR) {
+                        Object old = result.put(fieldName, value);
+                        if (old != null) {
+                            _reportProblem(jp, "Duplicate value for field '"+fieldName+"', when dup fields mode is "+_cfgDupFields);
+                        }
+                    } else if (_cfgDupFields == DupFields.USE_LAST) {
+                        // Easy, just add
+                        result.put(fieldName, value);
+                    } else { // use first; need to ensure we don't yet have it
+                        if (!result.containsKey(fieldName)) {
+                            result.put(fieldName, value);
+                        }
+                    }
+                }
+                return result;
+            }
+
+        case START_ARRAY:
+            {
+                ArrayList<Object> result = new ArrayList<Object>();
+                while ((currToken = jp.nextToken()) != JsonToken.END_ARRAY) {
+                    Object value = _readAndMap(jp, currToken);
+                    result.add(value);
+                }
+                return result;
+            }
+
+        case VALUE_STRING:
+            return jp.getText();
+
+        case VALUE_NUMBER_INT:
+        case VALUE_NUMBER_FLOAT:
+            return jp.getNumberValue();
+
+        case VALUE_TRUE:
+            return Boolean.TRUE;
+
+        case VALUE_FALSE:
+            return Boolean.FALSE;
+
+        case VALUE_NULL:
+            return null;
+
+            /* These states can not be mapped; input stream is
+             * off by an event or two
+             */
+
+        case FIELD_NAME:
+        case END_OBJECT:
+        case END_ARRAY:
+            _reportProblem(jp, "Can not map token "+currToken+": stream off by a token or two?");
+
+        default: // sanity check, should never happen
+            _throwInternal("Unrecognized event type: "+currToken);
+            return null; // never gets this far
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Serialization: JavaTypeSerializer implementation
     ////////////////////////////////////////////////////
      */
 
@@ -173,12 +278,12 @@ public final class LegacyJavaTypeMapper
             break;
 
         case ARRAY_OBJECT:
-            return writeValue(defaultSerializer, jgen, (Object[]) value);
+            return _writeValue(defaultSerializer, jgen, (Object[]) value);
 
             // // // And finally java.util Collection types:
 
         case MAP:
-            return writeValue(defaultSerializer, jgen, (Map<?,?>) value);
+            return _writeValue(defaultSerializer, jgen, (Map<?,?>) value);
 
         case LIST_INDEXED:
             jgen.writeStartArray();
@@ -193,7 +298,7 @@ public final class LegacyJavaTypeMapper
             
         case LIST_OTHER:
         case COLLECTION:
-            return writeValue(defaultSerializer, jgen, (Collection<?>) value);
+            return _writeValue(defaultSerializer, jgen, (Collection<?>) value);
 
         case ITERABLE:
             jgen.writeStartArray();
@@ -229,7 +334,7 @@ public final class LegacyJavaTypeMapper
      * explicitly flush the underlying generator after serializing
      * passed object.
      */
-    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Map<?,?> value)
+    public boolean _writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Map<?,?> value)
         throws IOException, JsonGenerationException
     {
         jgen.writeStartObject();
@@ -249,7 +354,7 @@ public final class LegacyJavaTypeMapper
      * explicitly flush the underlying generator after serializing
      * passed object.
      */
-    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Collection<?> values)
+    public boolean _writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Collection<?> values)
         throws IOException, JsonGenerationException
     {
         jgen.writeStartArray();
@@ -270,7 +375,7 @@ public final class LegacyJavaTypeMapper
      * explicitly flush the underlying generator after serializing
      * passed object.
      */
-    public boolean writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Object[] values)
+    public boolean _writeValue(JavaTypeSerializer<Object> defaultSerializer, JsonGenerator jgen, Object[] values)
         throws IOException, JsonGenerationException
     {
         jgen.writeStartArray();

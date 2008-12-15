@@ -38,7 +38,6 @@ public abstract class BaseMapper
      * are to be handled. Default is to throw a {@link JsonParseException}.
      */
     protected DupFields _cfgDupFields = DupFields.ERROR;
-
     /**
      * Base64 variant to use for serializing binary data. Defaults to
      * whatever {@link Base64Variants#getDefaultVariant} returns.

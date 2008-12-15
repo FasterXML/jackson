@@ -9,7 +9,9 @@ import java.lang.reflect.Method;
 
 /**
  * Annotation that can be used to define factory method to use
- * for instantiating a propertu value type.
+ * for instantiating a property value type.
+ * Annotation is attached to the method that is associated with
+ * (i.e. implies existince of) the logical property
  *
  * @see org.codehaus.jackson.map.annotation.JsonType
  */
