@@ -213,7 +213,7 @@ public abstract class JsonNode
      * for Arrays given node gets added as the last child element.
      */
     public void appendElement(JsonNode node) {
-        _reportNoArrayMods();
+        throw _constructNoArrayMods();
     }
 
     // !!! TODO: add convenience methods (appendElement(int x) etc)
@@ -224,7 +224,7 @@ public abstract class JsonNode
      * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
      */
     public void insertElement(int index, JsonNode value) {
-        _reportNoArrayMods();
+        throw _constructNoArrayMods();
     }
 
     /**
@@ -232,8 +232,7 @@ public abstract class JsonNode
      * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
      */
     public JsonNode removeElement(int index) {
-        _reportNoArrayMods();
-        return null;
+        throw _constructNoArrayMods();
     }
 
     /**
@@ -241,8 +240,7 @@ public abstract class JsonNode
      * Only works for Object nodes, i.e. nodes for which {@link #isObject} returns true.
      */
     public JsonNode removeElement(String fieldName) {
-        _reportNoObjectMods();
-        return null;
+        throw _constructNoObjectMods();
     }
 
     // TODO: add convenience methods (insertElement(int x) etc)
@@ -252,8 +250,7 @@ public abstract class JsonNode
      * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
      */
     public JsonNode setElement(int index, JsonNode value) {
-        _reportNoArrayMods();
-        return null;
+        throw _constructNoArrayMods();
     }
 
     /**
@@ -262,8 +259,7 @@ public abstract class JsonNode
      * returns true.
      */
     public JsonNode setElement(String fieldName, JsonNode value) {
-        _reportNoObjectMods();
-        return null;
+        throw _constructNoObjectMods();
     }
 
     // TODO: add convenience methods (setElement(String, int) etc)
@@ -334,13 +330,13 @@ public abstract class JsonNode
     ////////////////////////////////////////////////////
      */
 
-    protected JsonNode _reportNoArrayMods()
+    protected UnsupportedOperationException _constructNoArrayMods()
     {
-        throw new UnsupportedOperationException("Node of type "+getClass()+" does not support appendElement, insertElement or setElement(int, ...) operations (only ArrayNodes do)");
+        return new UnsupportedOperationException("Node of type "+getClass()+" does not support appendElement, insertElement or setElement(int, ...) operations (only ArrayNodes do)");
     }
 
-    protected JsonNode _reportNoObjectMods()
+    protected UnsupportedOperationException _constructNoObjectMods()
     {
-        throw new UnsupportedOperationException("Node of type "+getClass()+" does not support setElement(String, ...) operations (only ObjectNodes do)");
+        return new UnsupportedOperationException("Node of type "+getClass()+" does not support setElement(String, ...) operations (only ObjectNodes do)");
     }
 }

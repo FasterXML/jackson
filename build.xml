@@ -162,6 +162,7 @@
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/**/*.java" />
+            <include name="sample/**/*.java" />
             <include name="test/**/*.java" />
             <classpath refid="compile-classpath" />
         </javac>
@@ -435,10 +436,7 @@
                 <fileset dir="${dir.test.classes}">
                     <!-- Need to exclude inner classes... -->
                     <exclude name="**/*$*.class"/>
-
-<!-- !!!! TEST -->
                     <exclude name="**/TestStringGeneration.class"/>
-
                     <include name="**/Test*.class"/>
                 </fileset>
             </batchtest>
@@ -464,7 +462,7 @@
         <!-- and then reporting -->
         <cobertura-report format="html" destdir="${cobertura.coverage.dir}" >
           <fileset dir="${dir.src.java}">
-            <include name="**/*.java" />
+            <include name="org/codehaus/**/*.java" />
           </fileset>
         </cobertura-report>
 

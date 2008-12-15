@@ -53,14 +53,23 @@ public final class DoubleNode
         jg.writeNumber(mValue);
     }
 
+    @Override
     public boolean equals(Object o)
     {
-        if (o == this) {
-            return true;
-        }
+        if (o == this) return true;
+        if (o == null) return false;
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
         return ((DoubleNode) o).mValue == mValue;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        // same as hashCode Double.class uses
+        long l = Double.doubleToLongBits(mValue);
+        return ((int) l) ^ (int) (l >> 32);
+
     }
 }

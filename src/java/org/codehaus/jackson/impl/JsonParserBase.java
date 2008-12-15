@@ -261,6 +261,11 @@ public abstract class JsonParserBase
             JsonToken t = nextToken();
             if (t == null) {
                 _handleEOF();
+                /* given constraints, above should nevert return;
+                 * however, FindBugs doesn't know about it and
+                 * complains... so let's add dummy break here
+                 */
+                break;
             }
             switch (t) {
             case START_OBJECT:

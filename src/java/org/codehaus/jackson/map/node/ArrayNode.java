@@ -91,7 +91,7 @@ public final class ArrayNode
 
     public JsonNode removeElement(String fieldName)
     {
-        return _reportNoObjectMods();
+        throw _constructNoObjectMods();
     }
 
     public JsonNode setElement(int index, JsonNode value)
@@ -104,7 +104,7 @@ public final class ArrayNode
 
     public JsonNode setElement(String fieldName, JsonNode value)
     {
-        return _reportNoObjectMods();
+        throw _constructNoObjectMods();
     }
 
     public void writeTo(JsonGenerator jg)
@@ -125,12 +125,12 @@ public final class ArrayNode
     ////////////////////////////////////////////////////////
      */
 
+    @Override
     public boolean equals(Object o)
     {
-        if (o == this) {
-            return true;
-        }
-        if (o.getClass() != getClass()) {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
         ArrayNode other = (ArrayNode) o;
@@ -139,6 +139,24 @@ public final class ArrayNode
         }
         return other.sameChildren(mChildren);
     }
+
+    @Override
+    public int hashCode()
+    {
+        int hash;
+        if (mChildren == null) {
+            hash = 1;
+        } else {
+            hash = mChildren.size();
+            for (JsonNode n : mChildren) {
+                if (n != null) {
+                    hash ^= n.hashCode();
+                }
+            }
+        }
+        return hash;
+    }
+
 
     @Override
     public String toString()

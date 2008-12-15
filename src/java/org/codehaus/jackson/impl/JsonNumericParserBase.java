@@ -67,7 +67,7 @@ public abstract class JsonNumericParserBase
     final protected static int INT_9 = '9';
 
     final protected static int INT_MINUS = '-';
-    final protected static int INT_PLUS = '-';
+    final protected static int INT_PLUS = '+';
     final protected static int INT_DECIMAL_POINT = '.';
 
     final protected static int INT_e = 'e';

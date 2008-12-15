@@ -34,7 +34,7 @@ public class TestBeanMapper
         new TestBeanMapper().test();
     }
 
-    private final /*static*/ class MyObject
+    private final class MyObject
     {
         final int _x, _y;
 
@@ -62,7 +62,7 @@ public class TestBeanMapper
         }
     }
 
-    /*final*/ static class MyObject2 {
+    final static class MyObject2 {
         public String getName() { return "dummy"; }
     }
 }

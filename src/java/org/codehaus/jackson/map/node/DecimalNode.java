@@ -50,14 +50,17 @@ public final class DecimalNode
         jg.writeNumber(mValue);
     }
 
+    @Override
     public boolean equals(Object o)
     {
-        if (o == this) {
-            return true;
-        }
+        if (o == this) return true;
+        if (o == null) return false;
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
         return ((DecimalNode) o).mValue.equals(mValue);
     }
+
+    @Override
+        public int hashCode() { return mValue.hashCode(); }
 }

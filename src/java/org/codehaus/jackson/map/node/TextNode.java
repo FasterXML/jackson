@@ -47,16 +47,19 @@ public final class TextNode
         jg.writeString(mValue);
     }
 
+    @Override
     public boolean equals(Object o)
     {
-        if (o == this) {
-            return true;
-        }
+        if (o == this) return true;
+        if (o == null) return false;
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
         return ((TextNode) o).mValue == mValue;
     }
+
+    @Override
+        public int hashCode() { return mValue.hashCode(); }
 
     /**
      * Different from other values, Strings need quoting

@@ -52,14 +52,17 @@ public final class IntNode
         jg.writeNumber(mValue);
     }
 
+    @Override
     public boolean equals(Object o)
     {
-        if (o == this) {
-            return true;
-        }
+        if (o == this) return true;
+        if (o == null) return false;
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
         return ((IntNode) o).mValue == mValue;
     }
+
+    @Override
+        public int hashCode() { return mValue; }
 }

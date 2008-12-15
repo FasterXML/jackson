@@ -66,19 +66,18 @@ public final class ObjectNode
         return MissingNode.getInstance();
     }
 
-    public void appendElement(JsonNode node)
-    {
-        _reportNoArrayMods();
+    public void appendElement(JsonNode node) {
+        throw _constructNoArrayMods();
     }
 
     public void insertElement(int index, JsonNode value)
     {
-        _reportNoArrayMods();
+        throw _constructNoArrayMods();
     }
 
     public JsonNode removeElement(int index)
     {
-        return _reportNoArrayMods();
+        throw _constructNoArrayMods();
     }
 
     public JsonNode removeElement(String fieldName)
@@ -91,7 +90,7 @@ public final class ObjectNode
 
     public JsonNode setElement(int index, JsonNode value)
     {
-        return _reportNoArrayMods();
+        throw _constructNoArrayMods();
     }
 
     public JsonNode setElement(String fieldName, JsonNode value)
@@ -123,9 +122,8 @@ public final class ObjectNode
 
     public boolean equals(Object o)
     {
-        if (o == this) {
-            return true;
-        }
+        if (o == this) return true;
+        if (o == null) return false;
         if (o.getClass() != getClass()) {
             return false;
         }
@@ -146,6 +144,12 @@ public final class ObjectNode
             }
         }
         return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return (mChildren == null) ? -1 : mChildren.hashCode();
     }
 
     @Override
