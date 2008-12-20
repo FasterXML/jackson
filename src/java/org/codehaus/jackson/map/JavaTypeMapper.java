@@ -99,6 +99,13 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
+    public final <T> T readValue(JsonParser jp, Class<T> valueType)
+        throws IOException, JsonParseException
+    {
+        // !!! TBI
+        return null;
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Public API: serialization

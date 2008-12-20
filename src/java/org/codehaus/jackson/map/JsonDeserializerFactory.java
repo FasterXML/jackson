@@ -42,8 +42,8 @@ public abstract class JsonDeserializerFactory
      *   <code>String[].class</code>)
      * @param elementType Expected type of values contained within
      *   container, which is usually same as what
-     *   {@link Class#getComponentType} for the array type returns
-     *   (but not always, if annotations indicate more accurate type)
+     *   {@link Class#getComponentType} for the array type returns,
+     *   .but not always: annotations may indicate more accurate type.
      */
     public abstract <T> JsonDeserializer<T> createArrayDeserializer(Class<T> arrayType);
 
@@ -54,7 +54,8 @@ public abstract class JsonDeserializerFactory
      * @param containerType Expected Java container type (for example,
      *   {@link java.util.ArrayList}.class)
      * @param elementType Expected type of values contained within
-     *   container.
+     *   container: can not be determined from container type due to
+     *   type erasusre.
      */
     public abstract <T> JsonDeserializer<T> createArrayDeserializer(Class<T> containerType, Class<?> elementType);
 
