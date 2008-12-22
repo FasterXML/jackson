@@ -26,6 +26,23 @@ public abstract class JavaType
 
     /*
     ///////////////////////////////////////////////////////////////
+    // Public API
+    ///////////////////////////////////////////////////////////////
+     */
+
+    public final Class<?> getRawClass() { return _class; }
+
+    /**
+     * Method that can be used to check whether type described is
+     * fully typed, regarding the way JavaTypes are used for
+     * deserialization. For this to be true, all Collection and Map
+     * types must have proper element/value/key type information,
+     * and can not be plain classes.
+     */
+    public abstract boolean isFullyTyped();
+
+    /*
+    ///////////////////////////////////////////////////////////////
     // Standard methods; let's make them abstract to force override
     ///////////////////////////////////////////////////////////////
      */

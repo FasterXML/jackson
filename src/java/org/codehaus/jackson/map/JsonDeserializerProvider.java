@@ -31,11 +31,8 @@ public abstract class JsonDeserializerProvider
      *
      * @param jp Parser to use to read  Json content
      * @param type Type of the root value object to deserialize
-     * @param jdf Underlying factory object used for creating deserializers
-     *    as needed
      */
-    public abstract void deserializeValue(JsonParser jp, JavaType type,
-                                          JsonDeserializerFactory jdf)
+    public abstract void deserializeValue(JsonParser jp, JavaType type)
         throws IOException, JsonParseException;
 
     /*

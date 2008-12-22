@@ -14,14 +14,16 @@ public class TestReflection
         throws Exception
     {
         TestReflection test = new TestReflection();
-        test.test();
+        test.test0();
     }
 
     private void test() throws Exception
     {
-        //Class<?> cls1 = new ArrayList().getClass();
-        Class<?> cls1 = ArrayList.class;
-        Class<?> cls2 = new ArrayList<Object>().getClass();
+        //Class<?> cls1 = ArrayList.class;
+        //Class<?> cls2 = new ArrayList<Object>().getClass();
+
+        Class<?> cls1 = ArrayList[].class;
+        Class<?> cls2 = List[].class;
 
         System.out.println("Cls 1 = "+cls1);
         System.out.println("Cls 2 = "+cls2);
@@ -42,8 +44,8 @@ public class TestReflection
 
     public Integer methodPlain() { return null; }
 
-    public Boolean[] methodArrayPlain() { return null; }
-    public LinkedList<String>[] methodArrayParam() { return null; }
+    public int[][][] methodArrayPlain() { return null; }
+    public LinkedList<List<List<Integer>>>[][][] methodArrayParam() { return null; }
 
     public Set<? extends List> methodWildcard() { return null; }
 

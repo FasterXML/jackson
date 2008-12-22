@@ -11,12 +11,52 @@ public final class CollectionType
      */
     final JavaType _elementType;
 
-    public CollectionType(Class<?> collT, JavaType elemT)
+    final boolean _fullyTyped;
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Life-cycle
+    //////////////////////////////////////////////////////////
+     */
+
+    private CollectionType(Class<?> collT, JavaType elemT,
+                           boolean fullyTyped)
     {
         super(collT);
         _elementType = elemT;
         _hashCode += elemT.hashCode();
+        _fullyTyped = fullyTyped;
     }
+
+    /**
+     * Method called to construct a partially typed instance. Partial
+     * means that we can not determine component types, due to type
+     * erasure. Resulting type may or may not be acceptable to caller.
+     */
+    public static CollectionType untyped(Class<?> rawType, JavaType elemT)
+    {
+        // nominally component types will be just Object.class
+        return new CollectionType(rawType, elemT, false);
+    }
+
+    public static CollectionType typed(Class<?> rawType, JavaType elemT)
+    {
+        return new CollectionType(rawType, elemT, elemT.isFullyTyped());
+    }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Public API
+    //////////////////////////////////////////////////////////
+     */
+
+    public boolean isFullyTyped() { return _fullyTyped; }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Standard methods
+    //////////////////////////////////////////////////////////
+     */
 
     @Override
         public String toString()

@@ -16,14 +16,54 @@ public final class MapType
      */
     final JavaType _valueType;
 
-    public MapType(Class<?> mapType, JavaType keyT, JavaType valueT)
+    final boolean _fullyTyped;
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Life-cycle
+    //////////////////////////////////////////////////////////
+     */
+
+    private MapType(Class<?> mapType, JavaType keyT, JavaType valueT,
+                    boolean fullyTyped)
     {
         super(mapType);
         _keyType = keyT;
         _hashCode += keyT.hashCode();
         _valueType = valueT;
         _hashCode += valueT.hashCode();
+        _fullyTyped = fullyTyped;
     }
+
+    /**
+     * Method called to construct a partially typed instance. Partial
+     * means that we can not determine component types, due to type
+     * erasure. Resulting type may or may not be acceptable to caller.
+     */
+    public static MapType untyped(Class<?> rawType, JavaType keyT, JavaType valueT)
+    {
+        // nominally component types will be just Object.class
+        return new MapType(rawType, keyT, valueT, false);
+    }
+
+    public static MapType typed(Class<?> rawType, JavaType keyT, JavaType valueT)
+    {
+        return new MapType(rawType, keyT, valueT, keyT.isFullyTyped() & valueT.isFullyTyped());
+    }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Public API
+    //////////////////////////////////////////////////////////
+     */
+
+    public boolean isFullyTyped() { return _fullyTyped; }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Standard methods
+    //////////////////////////////////////////////////////////
+     */
 
     @Override
         public String toString()
