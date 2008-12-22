@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import java.io.IOException;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.type.JavaType;
 
 /**
  * Abstract class that defines API used by {@link JavaTypeMapper} and
@@ -33,7 +34,7 @@ public abstract class JsonDeserializerProvider
      * @param jdf Underlying factory object used for creating deserializers
      *    as needed
      */
-    public abstract void deserializeValue(JsonParser jp, Class<?> type,
+    public abstract void deserializeValue(JsonParser jp, JavaType type,
                                           JsonDeserializerFactory jdf)
         throws IOException, JsonParseException;
 
@@ -52,7 +53,7 @@ public abstract class JsonDeserializerProvider
      * Note: this method is only called for non-null values; not for keys
      * or null values. For these, check out other accessor methods.
      */
-    public abstract JsonDeserializer<Object> findValueDeserializer(Class<?> type);
+    public abstract JsonDeserializer<Object> findValueDeserializer(JavaType type);
 
     /*
     //////////////////////////////////////////////////////

@@ -17,10 +17,19 @@ public class TestReflection
         test.test();
     }
 
-    static class Wrapper extends ArrayList<HashMap<String,Integer>> {
+    private void test() throws Exception
+    {
+        //Class<?> cls1 = new ArrayList().getClass();
+        Class<?> cls1 = ArrayList.class;
+        Class<?> cls2 = new ArrayList<Object>().getClass();
+
+        System.out.println("Cls 1 = "+cls1);
+        System.out.println("Cls 2 = "+cls2);
+        System.out.println("1 === 2? "+(cls1 == cls2));
+        System.out.println("1 == 2? "+(cls1.equals(cls2)));
     }
 
-    private void test() throws Exception
+    private void test0() throws Exception
     {
         testMethod(getClass().getMethod("methodPlain"));
         testMethod(getClass().getMethod("methodParam"));

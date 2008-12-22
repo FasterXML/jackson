@@ -55,7 +55,7 @@ public class JavaTypeMapper
      * {@link JsonFactory} as necessary, use
      * {@link StdSerializerProvider} as its
      * {@link JsonSerializerProvider}, and
-     * {@link BeanSerializerFacotyr} as its
+     * {@link BeanSerializerFactory} as its
      * {@link JsonSerializerFactory}.
      * This means that it
      * can serialize all standard JDK types, as well as regular
@@ -72,16 +72,15 @@ public class JavaTypeMapper
         this(jf, null);
     }
 
-    public JavaTypeMapper(JsonFactory jf, JsonSerializerProvider sp)
-    {
-        this(jf, sp, null);
-    }
-
-    public JavaTypeMapper(JsonFactory jf, JsonSerializerProvider p, JsonSerializerFactory jsf)
+    public JavaTypeMapper(JsonFactory jf, JsonSerializerProvider p)
     {
         _jsonFactory = (jf == null) ? new JsonFactory() : jf;
         _serializerProvider = (p == null) ? new StdSerializerProvider() : p;
-        _serializerFactory = (jsf == null) ? BeanSerializerFactory.instance : jsf;
+
+        /* Let's just initialize the factory: it's stateless, no need
+         * to create anything, no cost to re-set later on
+         */
+        _serializerFactory = BeanSerializerFactory.instance;
     }
 
     public void setSerializerFactory(JsonSerializerFactory f) {
@@ -99,12 +98,20 @@ public class JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
-    public final <T> T readValue(JsonParser jp, Class<T> valueType)
-        throws IOException, JsonParseException
+    /**
+     * Method to deserialize Json content into a non-container
+     * type (it can be an array type, however): typically a bean, array
+     * or a wrapper type (like {@link java.lang.Boolean}).
+     *<p>
+     * Note: this method should NOT be used if the result type is a
+     * container ({@link java.util.Collection} or {@link java.util.Map}.
+     * The reason is that due to type erasure, key and value types
+     * can not be introspected when using this method.
+     */
+    public <T> T readValue(JsonParser jp, Class<T> valueType)
     {
-        // !!! TBI
         return null;
-    }
+    } 
 
     /*
     ////////////////////////////////////////////////////
@@ -117,7 +124,7 @@ public class JavaTypeMapper
      * Method that can be used to serialize any Java value as
      * Json output, using provided {@link JsonGenerator}.
      */
-    public final void writeValue(JsonGenerator jgen, Object value)
+    public void writeValue(JsonGenerator jgen, Object value)
         throws IOException, JsonGenerationException
     {
         _serializerProvider.serializeValue(jgen, value, _serializerFactory);
@@ -128,7 +135,7 @@ public class JavaTypeMapper
      * Method that can be used to serialize any Java value as
      * Json output, written to File provided.
      */
-    public final void writeValue(File resultFile, Object value)
+    public void writeValue(File resultFile, Object value)
         throws IOException, JsonGenerationException
     {
         JsonGenerator jgen = _jsonFactory.createJsonGenerator(resultFile, JsonEncoding.UTF8);
@@ -160,7 +167,7 @@ public class JavaTypeMapper
      * it will try to close it when {@link JsonGenerator} we construct
      * is closed).
      */
-    public final void writeValue(OutputStream out, Object value)
+    public void writeValue(OutputStream out, Object value)
         throws IOException, JsonGenerationException
     {
         JsonGenerator jgen = _jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8);
@@ -186,7 +193,7 @@ public class JavaTypeMapper
      * it will try to close it when {@link JsonGenerator} we construct
      * is closed).
      */
-    public final void writeValue(Writer w, Object value)
+    public void writeValue(Writer w, Object value)
         throws IOException, JsonGenerationException
     {
         JsonGenerator jgen = _jsonFactory.createJsonGenerator(w);
@@ -235,7 +242,7 @@ public class JavaTypeMapper
      *<p>
      * @deprecated Use {@link #writeValue}
      */
-    public final void writeAny(JsonGenerator jg, Object value)
+    public void writeAny(JsonGenerator jg, Object value)
         throws IOException, JsonGenerationException
     {
         this.legacyWriteAny(jg, value);

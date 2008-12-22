@@ -16,11 +16,9 @@ public abstract class JsonDeserializer<T>
      * json content into the value type this serializer handles.
      *
      * @param jp Parsed used for reading Json content
-     * @param provider Provider that can be used to get serializers for
-     *   serializing Objects value contains, if any.
      *
      * @return Deserializer value
      */
-    public abstract T deserialize(JsonParser jp, JsonDeserializerProvider provider)
+    public abstract T deserialize(JsonParser jp)
         throws IOException, JsonParseException;
 }

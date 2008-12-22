@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.JsonSerializable;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.JsonSerializerFactory;
 import org.codehaus.jackson.map.JsonSerializerProvider;
+import org.codehaus.jackson.map.type.JavaType;
 
 /**
  * Factory class that can provide serializers for standard JDK classes,
@@ -21,7 +22,7 @@ import org.codehaus.jackson.map.JsonSerializerProvider;
  * no additional introspection or customazibility of these types,
  * this factory is stateless. This means that other delegating
  * factories (or {@link JsonSerializerProvider}s) can just use the
- * shared singleton instance via {@link #singleton} field.
+ * shared singleton instance via static {@link #instance} field.
  */
 public class StdSerializerFactory
     extends JsonSerializerFactory

@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.map.type.JavaType;
+
 /**
  * Abstract class that defines API used by {@link JsonDeserializerProvider}
  * to obtain actual
@@ -27,54 +29,10 @@ public abstract class JsonDeserializerFactory
 {
     /**
      * Method called to create (or, for completely immutable deserializers,
-     * reuse) a deserializer that can convert Json scalar values (String,
-     * number, boolean) into given Java type.
+     * reuse) a deserializer that can convert Json content into values of
+     * specified Java type.
      *
      * @param type Type to be deserialized
      */
-    public abstract <T> JsonDeserializer<T> createScalarDeserializer(Class<T> type);
-
-    /**
-     * Method called to create  a deserializer that can convert Json Array (== "list")
-     * values into Java array values of specified type.
-     *
-     * @param containerType Expected Java array type (for example,
-     *   <code>String[].class</code>)
-     * @param elementType Expected type of values contained within
-     *   container, which is usually same as what
-     *   {@link Class#getComponentType} for the array type returns,
-     *   .but not always: annotations may indicate more accurate type.
-     */
-    public abstract <T> JsonDeserializer<T> createArrayDeserializer(Class<T> arrayType);
-
-    /**
-     * Method called to create  a deserializer that can convert Json Array (== "list")
-     * values into given Java non-array container types.
-     *
-     * @param containerType Expected Java container type (for example,
-     *   {@link java.util.ArrayList}.class)
-     * @param elementType Expected type of values contained within
-     *   container: can not be determined from container type due to
-     *   type erasusre.
-     */
-    public abstract <T> JsonDeserializer<T> createArrayDeserializer(Class<T> containerType, Class<?> elementType);
-
-   /**
-     * Method called to create deserializer that can convert Json Object (== "map")
-     * values into specified Java {@link java.util.Map} type.
-     *
-     * @param containerType Expected Java container type (for example,
-     *   {@link java.util.ArrayList}.class)
-     * @param keyType elementType Expected type of keys of the resulting
-     *   Map.
-     * @param valueType elementType Expected type of values of the resulting
-     *   Map.
-     */
-    public abstract <T> JsonDeserializer<T> createMapDeserializer(Class<T> mapType, Class<?> keyType, Class<?> valueType);
-
-   /**
-     * Method called to create deserializer that can convert Json Object (== "map")
-     * values into specified Java bean type.
-     */
-    public abstract <T> JsonDeserializer<T> createObjectDeserializer(Class<T> beanType);
+    public abstract <T> JsonDeserializer<T> createDeserializer(JavaType type);
 }

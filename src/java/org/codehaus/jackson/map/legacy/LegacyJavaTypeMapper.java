@@ -142,7 +142,7 @@ public class LegacyJavaTypeMapper
      * explicitly flush the underlying generator after serializing
      * passed object.
      *<p>
-     * @deprecated Use {@link #writeValue}
+     * @deprecated Use {@link org.codehaus.jackson.map.JavaTypeMapper#writeValue}
      */
     //@SuppressWarnings("unchecked")
     public final boolean writeAny(JavaTypeSerializer<Object> defaultSerializer,

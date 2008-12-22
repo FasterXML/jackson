@@ -15,7 +15,7 @@ public abstract class JavaType
      */
     final Class<?> _class;
 
-    final int _hashCode;
+    protected int _hashCode;
 
     protected JavaType(Class<?> clz)
     {
@@ -26,13 +26,12 @@ public abstract class JavaType
 
     /*
     ///////////////////////////////////////////////////////////////
-    // Standard method overrides
+    // Standard methods; let's make them abstract to force override
     ///////////////////////////////////////////////////////////////
      */
 
     public abstract String toString();
 
-    // Let's make this abstract so sub-classes will implement
     public abstract boolean equals(Object o);
 
     public final int hashCode() { return _hashCode; }
