@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.type;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -17,13 +18,33 @@ public final class ArrayType
 
     final boolean _fullyTyped;
 
-    public ArrayType(Class<?> arrayClass, JavaType componentType)
+    /**
+     * We will also keep track of shareable instance of empty array,
+     * since it usually needs to be constructed any way; and because
+     * it is essentially immutable and thus can be shared.
+     */
+    final Object _emptyArray;
+
+    private ArrayType(JavaType componentType, Object emptyInstance)
     {
-        super(arrayClass);
-        _hashCode += componentType.hashCode();
+        super(emptyInstance.getClass());
         _componentType = componentType;
+        _emptyArray = emptyInstance;
+        _hashCode += componentType.hashCode();
         _fullyTyped = componentType.isFullyTyped();
     }
+
+    public static ArrayType construct(JavaType componentType)
+    {
+        /* This is bit messy: there is apparently no other way to
+         * reconstruct actual concrete/raw array class from component
+         * type, than to construct an instance, get class (same is
+         * true for GenericArracyType as well; hence we won't bother
+         * passing that in).
+         */
+        Object emptyInstance = Array.newInstance(componentType.getRawClass(), 0);
+        return new ArrayType(componentType, emptyInstance);
+    }                                   
 
     /**
      * Method that can be called to add known simple types into given
@@ -39,9 +60,9 @@ public final class ArrayType
          */
         Class<?>[] classes = new Class<?>[] {
             // First, primitive arrays
-            boolean[].class, char[].class,
-                byte[].class, short[].class, int[].class, long[].class,
-                float[].class, double[].class,
+            boolean.class, char.class,
+                byte.class, short.class, int.class, long.class,
+                float.class, double.class,
                 
                 // let's skip wrappers here (i.e. just construct as/if needed)
                 
@@ -51,8 +72,9 @@ public final class ArrayType
                 String.class,
                 };
         for (Class<?> cls : classes) {
-            SimpleType st = SimpleType.construct(cls.getComponentType());
-            types.put(cls.getName(), new ArrayType(cls, st));
+            SimpleType compType = SimpleType.construct(cls);
+            ArrayType arrayType = construct(compType);
+            types.put(arrayType.getRawClass().getName(), arrayType);
         }
     }
 
@@ -67,6 +89,36 @@ public final class ArrayType
      * no instances are ever created for Collection/Map types.
      */
     public boolean isFullyTyped() { return _fullyTyped; }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Extended API
+    //////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Factory method that will construct an array instance with
+     * specified length.
+     */
+    public Object newInstance(int length)
+    {
+        if (length == 0) {
+            return _emptyArray;
+        }
+        return Array.newInstance(_componentType.getRawClass(), length);
+    }
+
+    public Object instanceFrom(Object[] src)
+    {
+        int len = src.length;
+
+        if (len == 0) {
+            return _emptyArray;
+        }
+        Object result = newInstance(len);
+        System.arraycopy(src, 0, result, 0, len);
+        return result;
+    }
 
     /*
     //////////////////////////////////////////////////////////

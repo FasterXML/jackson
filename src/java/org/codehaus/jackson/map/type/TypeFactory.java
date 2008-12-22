@@ -71,7 +71,7 @@ public class TypeFactory
 
         // Ok, not a known type. So is it an array?
         if (clz.isArray()) {
-            return new ArrayType(clz, fromClass(clz.getComponentType()));
+            return ArrayType.construct(fromClass(clz.getComponentType()));
         }
         /* Maps and Collections aren't quite as hot; problem is, due
          * to type erasure we can't know typing and can only assume
@@ -97,9 +97,9 @@ public class TypeFactory
      * done if the root type to bind to is generic; but if so,
      * it must be done to get proper typing.
      */
-    public JavaType fromTypeReference(TypeReference<Class<?>> clz)
+    public JavaType fromTypeReference(TypeReference<?> ref)
     {
-        return fromType(clz.getType());
+        return fromType(ref.getType());
     }
 
     /**
@@ -166,20 +166,10 @@ public class TypeFactory
         return fromClass(rawType);
     }
 
-    /**
-     * Ugh: dealing with generic array types is a pain. For some
-     * odd reason (or, lacking one?) there is no way to find the
-     * raw Class from this type, so we essentially must
-     * reconstruct it recursively.
-     */
     protected JavaType fromArrayType(GenericArrayType type)
     {
         JavaType compType = fromType(type.getGenericComponentType());
-        /* And with that, we can reconstruct Array class, just
-         * need to construct a bogus array, get its class.
-         */
-        Object bogusArray = Array.newInstance(compType.getRawClass(), 0);
-        return new ArrayType(bogusArray.getClass(), compType);
+        return ArrayType.construct(compType);
     }
 
     protected JavaType fromVariable(TypeVariable type)

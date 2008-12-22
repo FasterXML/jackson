@@ -61,6 +61,15 @@ public final class MapType
 
     /*
     //////////////////////////////////////////////////////////
+    // Extended API
+    //////////////////////////////////////////////////////////
+     */
+
+    public JavaType getKeyType() { return _keyType; }
+    public JavaType getValueType() { return _valueType; }
+
+    /*
+    //////////////////////////////////////////////////////////
     // Standard methods
     //////////////////////////////////////////////////////////
      */
@@ -79,6 +88,6 @@ public final class MapType
 
         MapType other = (MapType) o;
         return _keyType.equals(other._keyType)
-            || _valueType.equals(other._valueType);
+            && _valueType.equals(other._valueType);
     }
 }
