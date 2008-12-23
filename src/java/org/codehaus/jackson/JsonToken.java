@@ -6,6 +6,14 @@ package org.codehaus.jackson;
  */
 public enum JsonToken
 {
+    /* Some notes on implementation:
+     *
+     * - Entries are to be ordered such that start/end array/object
+     *   markers come first, then field name marker (if any), and
+     *   finally scalar value tokens. This is assumed by some
+     *   typing checks.
+     */
+
     /**
      * START_OBJECT is returned when encountering '{'
      * which signals starting of an Object value
@@ -111,5 +119,14 @@ public enum JsonToken
 
     public boolean isNumeric() {
         return (this == VALUE_NUMBER_INT) || (this == VALUE_NUMBER_FLOAT);
+    }
+
+    /**
+     * Method that can be used to check whether this token represents
+     * a valid non-structured value. This means all tokens other than
+     * Object/Array start/end markers all field names.
+     */
+    public boolean isScalarValue() {
+        return ordinal() > FIELD_NAME.ordinal();
     }
 }
