@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializable;
 import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.JsonDeserializationContext;
 import org.codehaus.jackson.map.type.*;
 
 /**
@@ -30,7 +31,7 @@ public abstract class StdDeserializer<T>
     {
         public StringDeserializer() { }
 
-        public String deserialize(JsonParser jp)
+        public String deserialize(JsonParser jp, JsonDeserializationContext ctxt)
             throws IOException, JsonParseException
         {
             JsonToken curr = jp.getCurrentToken();

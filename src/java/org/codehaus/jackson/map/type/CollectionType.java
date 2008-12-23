@@ -60,6 +60,8 @@ public final class CollectionType
 
     public JavaType getElementType() { return _elementType; }
 
+    public boolean isContainerType() { return true; }
+
     /*
     //////////////////////////////////////////////////////////
     // Standard methods

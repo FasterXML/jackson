@@ -18,22 +18,7 @@ import org.codehaus.jackson.map.type.JavaType;
  */
 public abstract class JsonDeserializerProvider
 {
-    /*
-    //////////////////////////////////////////////////////
-    // Entry points for JavaTypeMapper
-    //////////////////////////////////////////////////////
-     */
-
-    /**
-     * The method to be called by {@link JavaTypeMapper} to
-     * execute recursive serialization, using deserializers that
-     * this provider has access to.
-     *
-     * @param jp Parser to use to read  Json content
-     * @param type Type of the root value object to deserialize
-     */
-    public abstract Object deserializeValue(JsonParser jp, JavaType type, JsonDeserializerFactory jdf)
-        throws IOException, JsonParseException;
+    protected JsonDeserializerProvider() { }
 
     /*
     //////////////////////////////////////////////////////
@@ -50,23 +35,5 @@ public abstract class JsonDeserializerProvider
      * Note: this method is only called for non-null values; not for keys
      * or null values. For these, check out other accessor methods.
      */
-    public abstract JsonDeserializer<Object> findValueDeserializer(JavaType type);
-
-    /*
-    //////////////////////////////////////////////////////
-    // Accessors for specialized deserializers
-    //////////////////////////////////////////////////////
-     */
-
-    /**
-     * Method called to get the deserializer to use if provider
-     * can not determine an actual type-specific deserializer
-     * to use; typically when none of {@link JsonDeserializerFactory}
-     * instances are able to construct a deserializer.
-     *<p>
-     * Usually returned deserializer will throw an exception,
-     * although alternative strategies (like maybe returning null)
-     * could be used as well.
-     */
-    //public abstract JsonDeserializer<Object> getUnknownTypeDeserializer();
+    public abstract JsonDeserializer<Object> findValueDeserializer(JavaType type, JsonDeserializerFactory f);
 }

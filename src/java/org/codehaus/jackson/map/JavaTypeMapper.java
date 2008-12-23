@@ -2,10 +2,17 @@ package org.codehaus.jackson.map;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.deser.StdDeserializationContext;
+import org.codehaus.jackson.map.deser.StdDeserializerProvider;
+import org.codehaus.jackson.map.deser.StdDeserializerFactory;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
+import org.codehaus.jackson.map.type.JavaType;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.type.TypeReference;
 
 // And then temporary (until 1.0?) support for legacy mapper:
 import org.codehaus.jackson.map.legacy.LegacyJavaTypeMapper;
@@ -35,14 +42,56 @@ public class JavaTypeMapper
     /**
      * Object that manages access to serializers used for serialization,
      * including caching.
-     * It is configured with {@link #_serializerFactory} for mapping.
+     * It is configured with {@link #_serializerFactory} to allow
+     * for constructing custom serializers.
      */
     protected JsonSerializerProvider _serializerProvider;
 
     /**
-     * Serializer factory used for constructing serializers serializers.
+     * Serializer factory used for constructing serializers.
      */
     protected JsonSerializerFactory _serializerFactory;
+
+    /**
+     * Object that manages access to deserializers used for deserializing
+     * Json content into Java objects, including possible caching
+     * of the deserializers.
+     * It is configured with {@link #_deserializerFactory} to allow
+     * for constructing custom deserializers.
+     */
+    protected JsonDeserializerProvider _deserializerProvider;
+
+    /**
+     * Serializer factory used for constructing deserializers.
+     */
+    protected JsonDeserializerFactory _deserializerFactory;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Caching
+    ////////////////////////////////////////////////////
+     */
+
+    /* Note: handling of serializers and deserializers is not symmetric;
+     * and as a result, only root-level deserializers can be cached here.
+     * This is mostly because typing and resolution for deserializers is
+     * fully static; whereas it is quite dynamic for serialization.
+     */
+
+    /**
+     * We will use a separate main-level Map for keeping track
+     * of root-level deserializers. This is where most succesful
+     * cache lookups get resolved.
+     * Map will contain resolvers for all kinds of types, including
+     * container types: this is different from the component cache
+     * which will only cache bean deserializers.
+     *<p>
+     * Given that we don't expect much concurrency for additions
+     * (should very quickly converge to zero after startup), let's
+     * explicitly define a low concurrency setting.
+     */
+    final protected ConcurrentHashMap<JavaType, JsonDeserializer<Object>> _rootDeserializers
+        = new ConcurrentHashMap<JavaType, JsonDeserializer<Object>>(64, 0.6f, 2);
 
     /*
     ////////////////////////////////////////////////////
@@ -69,26 +118,35 @@ public class JavaTypeMapper
 
     public JavaTypeMapper(JsonFactory jf)
     {
-        this(jf, null);
+        this(jf, null, null);
     }
 
-    public JavaTypeMapper(JsonFactory jf, JsonSerializerProvider p)
+    public JavaTypeMapper(JsonFactory jf, JsonSerializerProvider sp,
+                          JsonDeserializerProvider dp)
     {
         _jsonFactory = (jf == null) ? new JsonFactory() : jf;
-        _serializerProvider = (p == null) ? new StdSerializerProvider() : p;
+        _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
+        _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
-        /* Let's just initialize the factory: it's stateless, no need
-         * to create anything, no cost to re-set later on
+        /* Let's just initialize ser/deser factories: they are stateless,
+         * no need to create anything, no cost to re-set later on
          */
         _serializerFactory = BeanSerializerFactory.instance;
+        _deserializerFactory = StdDeserializerFactory.instance;
     }
 
     public void setSerializerFactory(JsonSerializerFactory f) {
         _serializerFactory = f;
     }
+    public void setDeserializerFactory(JsonDeserializerFactory f) {
+        _deserializerFactory = f;
+    }
 
     public void setSerializerProvider(JsonSerializerProvider p) {
         _serializerProvider = p;
+    }
+    public void setDeserializerProvider(JsonDeserializerProvider p) {
+        _deserializerProvider = p;
     }
 
     /*
@@ -108,9 +166,25 @@ public class JavaTypeMapper
      * The reason is that due to type erasure, key and value types
      * can not be introspected when using this method.
      */
+    @SuppressWarnings("unchecked")
     public <T> T readValue(JsonParser jp, Class<T> valueType)
+        throws IOException, JsonParseException
     {
-        return null;
+        return (T) _readValue(jp, TypeFactory.instance.fromClass(valueType));
+    } 
+
+    /**
+     * Method to deserialize Json content into a Java type, reference
+     * to which is passed as argument. Type is passed using so-called
+     * "super type token" (see )
+     * and specifically needs to be used if the root type is a 
+     * parameterized (generic) container type.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(JsonParser jp, TypeReference valueTypeRef)
+        throws IOException, JsonParseException
+    {
+        return (T) _readValue(jp, TypeFactory.instance.fromTypeReference(valueTypeRef));
     } 
 
     /*
@@ -293,5 +367,40 @@ public class JavaTypeMapper
         return null;
     }
     */
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods, overridable
+    ////////////////////////////////////////////////////
+     */
+
+    protected Object _readValue(JsonParser jp, JavaType valueType)
+        throws IOException, JsonParseException
+    {
+        JsonDeserializationContext ctxt = _createDeserializationContext();
+        return _findDeserializer(valueType).deserialize(jp, ctxt);
+    }
+
+    protected JsonDeserializer<Object> _findDeserializer(JavaType valueType)
+    {
+        // First: have we already seen it?
+        JsonDeserializer<Object> deser = _rootDeserializers.get(valueType);
+        if (deser == null) {
+            return deser;
+        }
+
+        // Nope: need to ask provider to resolve it
+        deser = _deserializerProvider.findValueDeserializer(valueType, _deserializerFactory);
+        if (deser == null) { // can this happen?
+            throw new IllegalArgumentException("Can not find a deserializer for type "+valueType);
+        }
+        _rootDeserializers.put(valueType, deser);
+        return deser;
+    }
+
+    protected JsonDeserializationContext _createDeserializationContext()
+    {
+        return new StdDeserializationContext();
+    }
 }
 

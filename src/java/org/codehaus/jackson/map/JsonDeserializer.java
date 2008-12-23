@@ -16,9 +16,11 @@ public abstract class JsonDeserializer<T>
      * json content into the value type this serializer handles.
      *
      * @param jp Parsed used for reading Json content
+     * @param ctxt Context that can be used to access information about
+     *   this deserialization activity.
      *
      * @return Deserializer value
      */
-    public abstract T deserialize(JsonParser jp)
+    public abstract T deserialize(JsonParser jp, JsonDeserializationContext ctxt)
         throws IOException, JsonParseException;
 }

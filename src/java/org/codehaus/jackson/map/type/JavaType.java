@@ -41,6 +41,12 @@ public abstract class JavaType
      */
     public abstract boolean isFullyTyped();
 
+    /**
+     * @return True if type represented is a container type; this includes
+     *    array, Map and Collection types.
+     */
+    public abstract boolean isContainerType();
+
     /*
     ///////////////////////////////////////////////////////////////
     // Standard methods; let's make them abstract to force override

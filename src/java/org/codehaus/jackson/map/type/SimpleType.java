@@ -107,6 +107,8 @@ public final class SimpleType
         return (this != TYPE_UNSPECIFIED && this != TYPE_WILDCARD);
     }
 
+    public boolean isContainerType() { return false; }
+
     /*
     //////////////////////////////////////////////////////////
     // Standard methods
@@ -116,7 +118,7 @@ public final class SimpleType
     @Override
         public String toString()
     {
-        return "[simple type "+_class.getName()+"]";
+        return "[simple type, class "+_class.getName()+"]";
     }
 
     public boolean equals(Object o)

@@ -90,6 +90,8 @@ public final class ArrayType
      */
     public boolean isFullyTyped() { return _fullyTyped; }
 
+    public boolean isContainerType() { return true; }
+
     /*
     //////////////////////////////////////////////////////////
     // Extended API
