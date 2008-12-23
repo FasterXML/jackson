@@ -9,7 +9,7 @@ import org.codehaus.jackson.map.JsonDeserializable;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonDeserializerFactory;
 import org.codehaus.jackson.map.JsonDeserializerProvider;
-import org.codehaus.jackson.map.type.JavaType;
+import org.codehaus.jackson.map.type.*;
 
 /**
  * Factory class that can provide deserializers for standard JDK classes,
@@ -36,8 +36,8 @@ public class StdDeserializerFactory
      * (that is things other than Collection, Map or array)
      * types.
      */
-    final static HashMap<JavaType, JsonDeserializer<?>> _concrete = 
-        new HashMap<JavaType, JsonDeserializer<?>>();
+    final static HashMap<JavaType, JsonDeserializer<Object>> _concrete = 
+        new HashMap<JavaType, JsonDeserializer<Object>>();
     static {
         // !!! TODO
     }
@@ -47,6 +47,8 @@ public class StdDeserializerFactory
     // Life cycle
     ////////////////////////////////////////////////////////////
      */
+
+    public final static StdDeserializerFactory instance = new StdDeserializerFactory();
 
     /**
      * We will provide default constructor to allow sub-classing,
@@ -70,28 +72,59 @@ public class StdDeserializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> JsonDeserializer<T> createDeserializer(JavaType type)
+    public JsonDeserializer<Object> createDeserializer(JavaType type)
     {
         // First, fast lookup for exact type:
-        /*
-        JsonSerializer<?> ser = findSerializerByLookup(type);
-        if (ser == null) {
-            //
-            ser = findSerializerByPrimaryType(type);
-            if (ser == null) {
-                // And if that fails, one with "secondary" traits:
-                ser = findSerializerByAddonType(type);
-            }
+        JsonDeserializer<Object> ser = _concrete.get(type);
+        if (ser != null) {
+            return ser;
         }
-        return (JsonSerializer<T>) ser;
-        */
+        // And lacking that, divide by type
+        if (type instanceof ArrayType) {
+            return createArrayDeserializer((ArrayType) type);
+        }
+        if (type instanceof MapType) {
+            return createMapDeserializer((MapType) type);
+        }
+        if (type instanceof CollectionType) {
+            return createCollectionDeserializer((CollectionType) type);
+        }
+        return createBeanDeserializer(type);
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Specific type-specific factory methods
+    ////////////////////////////////////////////////////////////
+     */
+
+    protected JsonDeserializer<Object> createArrayDeserializer(ArrayType type)
+    {
+        // !!! TBI
+        return null;
+    }
+
+    protected JsonDeserializer<Object> createMapDeserializer(MapType type)
+    {
+        // !!! TBI
+        return null;
+    }
+
+    protected JsonDeserializer<Object> createCollectionDeserializer(CollectionType type)
+    {
+        // !!! TBI
+        return null;
+    }
+
+    protected JsonDeserializer<Object> createBeanDeserializer(JavaType type)
+    {
         // !!! TBI
         return null;
     }
 
     /*
     ////////////////////////////////////////////////////////////
-    // Other public methods
+    // Internal methods
     ////////////////////////////////////////////////////////////
      */
 }

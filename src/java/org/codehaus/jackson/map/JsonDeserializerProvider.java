@@ -32,7 +32,7 @@ public abstract class JsonDeserializerProvider
      * @param jp Parser to use to read  Json content
      * @param type Type of the root value object to deserialize
      */
-    public abstract void deserializeValue(JsonParser jp, JavaType type)
+    public abstract Object deserializeValue(JsonParser jp, JavaType type, JsonDeserializerFactory jdf)
         throws IOException, JsonParseException;
 
     /*
@@ -68,5 +68,5 @@ public abstract class JsonDeserializerProvider
      * although alternative strategies (like maybe returning null)
      * could be used as well.
      */
-    public abstract JsonDeserializer<Object> getUnknownTypeDeserializer();
+    //public abstract JsonDeserializer<Object> getUnknownTypeDeserializer();
 }

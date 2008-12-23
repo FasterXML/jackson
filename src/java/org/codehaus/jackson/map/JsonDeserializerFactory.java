@@ -34,5 +34,5 @@ public abstract class JsonDeserializerFactory
      *
      * @param type Type to be deserialized
      */
-    public abstract <T> JsonDeserializer<T> createDeserializer(JavaType type);
+    public abstract JsonDeserializer<Object> createDeserializer(JavaType type);
 }

@@ -11,12 +11,9 @@ import org.codehaus.jackson.map.JsonSerializerProvider;
 import org.codehaus.jackson.map.ResolvableSerializer;
 
 /**
- * Default {@link JsonSerializerProvider} implementation.
- * By default will use {@link BeanSerializerFactory} as the underlying
- * serializer factory, but can be configured to use any other implementation.
- * Usually overrides are used to provide a sub-class of the standard
- * serializer factory that provides hand-written (or otherwise more
- * optimal) serializer classes.
+ * Default {@link JsonSerializerProvider} implementation. Handles
+ * caching aspects of serializer handling; all construction details
+ * are delegated to {@link JsonSerializerFactory} instance.
  *<p>
  * One note about implementation: the main instance constructed will
  * be so-called "blueprint" object, and will NOT be used during actual

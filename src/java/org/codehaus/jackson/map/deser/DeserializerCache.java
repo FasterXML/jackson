@@ -1,69 +1,70 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.deser;
 
 import java.util.*;
 
-import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.type.JavaType;
 
 /**
  * Simple cache object that allows for doing 2-level lookups: first level is
  * by "local" read-only lookup Map (used without locking)
  * and second backup level is by a shared modifiable HashMap.
- * The idea is that after a while, most serializers are found from the
+ * The idea is that after a while, most deserializers are found from the
  * local Map (to optimize performance, reduce lock contention),
  * but that during buildup we can use a shared map to reduce both
  * number of distinct read-only maps constructed, and number of
- * serializers constructed.
+ * deserializers constructed.
  */
-public final class SerializerCache
+public final class DeserializerCache
 {
     /**
      * Shared, modifiable map; all access needs to be through synchronized blocks.
      */
-    private HashMap<ClassKey, JsonSerializer<Object>> _sharedMap = new HashMap<ClassKey, JsonSerializer<Object>>(64);
+    private HashMap<JavaType, JsonDeserializer<Object>> _sharedMap = new HashMap<JavaType, JsonDeserializer<Object>>(64);
 
     /**
      * Most recent read-only instance, created from _sharedMap, if any.
      */
-    private ReadOnlyClassToSerializerMap _readOnlyMap = null;
+    private HashMap<JavaType, JsonDeserializer<Object>> _readOnlyMap = null;
 
-    public SerializerCache() {
+    public DeserializerCache() {
     }
 
     /**
      * Method that can be called to get a read-only instance populated from the
      * most recent version of the shared lookup Map.
      */
-    public ReadOnlyClassToSerializerMap getReadOnlyLookupMap()
+    @SuppressWarnings("unchecked")
+    public HashMap<JavaType, JsonDeserializer<Object>> getReadOnlyLookupMap()
     {
         synchronized (this) {
             if (_readOnlyMap == null) {
-                _readOnlyMap = ReadOnlyClassToSerializerMap.from(_sharedMap);
+                _readOnlyMap = (HashMap<JavaType, JsonDeserializer<Object>>) _sharedMap.clone();
             }
-            return _readOnlyMap.instance();
+            return _readOnlyMap;
         }
     }
 
     /**
      * Method that checks if the shared (and hence, synchronized) lookup Map might have
-     * the serializer already.
+     * the deserializer already.
      */
-    public JsonSerializer<Object> findSerializer(Class<?> type)
+    public JsonDeserializer<Object> findDeserializer(JavaType type)
     {
         synchronized (this) {
-            return _sharedMap.get(new ClassKey(type));
+            return _sharedMap.get(type);
         }
     }
 
     /**
      * Method called if none of lookups succeeded, and caller had to construct
-     * a serializer. If so, we will update the shared lookup map so that it
+     * a deserializer. If so, we will update the shared lookup map so that it
      * can be resolved via it next time.
      */
-    public void addSerializer(Class<?> type, JsonSerializer<Object> ser)
+    public void addDeserializer(JavaType type, JsonDeserializer<Object> ser)
     {
         synchronized (this) {
-            ClassKey key = new ClassKey(type);
-            if (_sharedMap.put(key, ser) == null) {
+            if (_sharedMap.put(type, ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
