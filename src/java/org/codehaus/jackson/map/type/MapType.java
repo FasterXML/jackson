@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.type;
 
+import java.util.Map;
+
 /**
  * Type that represents Java Map types.
  */
@@ -69,6 +71,11 @@ public final class MapType
 
     public JavaType getKeyType() { return _keyType; }
     public JavaType getValueType() { return _valueType; }
+
+    @SuppressWarnings("unchecked")
+    public Class<Map<Object,Object>> asMapClass() {
+        return (Class<Map<Object,Object>>) getRawClass();
+    }
 
     /*
     //////////////////////////////////////////////////////////

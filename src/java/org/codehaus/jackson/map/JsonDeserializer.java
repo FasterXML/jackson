@@ -22,5 +22,5 @@ public abstract class JsonDeserializer<T>
      * @return Deserializer value
      */
     public abstract T deserialize(JsonParser jp, JsonDeserializationContext ctxt)
-        throws IOException, JsonParseException;
+        throws IOException, JsonProcessingException;
 }

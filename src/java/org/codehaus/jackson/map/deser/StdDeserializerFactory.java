@@ -5,7 +5,6 @@ import java.util.*;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.JsonDeserializable;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonDeserializerFactory;
 import org.codehaus.jackson.map.JsonDeserializerProvider;
@@ -72,7 +71,7 @@ public class StdDeserializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public JsonDeserializer<Object> createDeserializer(JavaType type)
+    public JsonDeserializer<Object> createDeserializer(JavaType type, JsonDeserializerProvider p)
     {
         // First, fast lookup for exact type:
         JsonDeserializer<Object> ser = _concrete.get(type);
@@ -81,15 +80,15 @@ public class StdDeserializerFactory
         }
         // And lacking that, divide by type
         if (type instanceof ArrayType) {
-            return createArrayDeserializer((ArrayType) type);
+            return createArrayDeserializer((ArrayType) type, p);
         }
         if (type instanceof MapType) {
-            return createMapDeserializer((MapType) type);
+            return createMapDeserializer((MapType) type, p);
         }
         if (type instanceof CollectionType) {
-            return createCollectionDeserializer((CollectionType) type);
+            return createCollectionDeserializer((CollectionType) type, p);
         }
-        return createBeanDeserializer(type);
+        return createBeanDeserializer(type, p);
     }
 
     /*
@@ -98,25 +97,33 @@ public class StdDeserializerFactory
     ////////////////////////////////////////////////////////////
      */
 
-    protected JsonDeserializer<Object> createArrayDeserializer(ArrayType type)
+    protected JsonDeserializer<Object> createArrayDeserializer(ArrayType type, JsonDeserializerProvider p)
+    {
+        Class<?> arrayClass = type.getRawClass();
+
+        // First, special type(s):
+
+        // EnumMap requires special handling
+        if (EnumMap.class.isAssignableFrom(arrayClass)) {
+        }
+
+        // !!! TBI
+        return null;
+    }
+
+    protected JsonDeserializer<Object> createMapDeserializer(MapType type, JsonDeserializerProvider p)
     {
         // !!! TBI
         return null;
     }
 
-    protected JsonDeserializer<Object> createMapDeserializer(MapType type)
+    protected JsonDeserializer<Object> createCollectionDeserializer(CollectionType type, JsonDeserializerProvider p)
     {
         // !!! TBI
         return null;
     }
 
-    protected JsonDeserializer<Object> createCollectionDeserializer(CollectionType type)
-    {
-        // !!! TBI
-        return null;
-    }
-
-    protected JsonDeserializer<Object> createBeanDeserializer(JavaType type)
+    protected JsonDeserializer<Object> createBeanDeserializer(JavaType type, JsonDeserializerProvider p)
     {
         // !!! TBI
         return null;

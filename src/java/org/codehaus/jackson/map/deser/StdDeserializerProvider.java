@@ -90,9 +90,9 @@ public class StdDeserializerProvider
      * annotation...
      */
     @SuppressWarnings("unchecked")
-        protected JsonDeserializer<Object> _createDeserializer(JsonDeserializerFactory f, JavaType type)
+    protected JsonDeserializer<Object> _createDeserializer(JsonDeserializerFactory f, JavaType type)
     {
-        return (JsonDeserializer<Object>)f.createDeserializer(type);
+        return (JsonDeserializer<Object>)f.createDeserializer(type, this);
     }
 
     protected void _resolveDeserializer(ResolvableDeserializer ser)

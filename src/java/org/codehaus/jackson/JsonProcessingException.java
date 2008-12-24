@@ -20,6 +20,11 @@ public class JsonProcessingException
         mLocation = loc;
     }
 
+    protected JsonProcessingException(String msg)
+    {
+        super(msg);
+    }
+
     protected JsonProcessingException(String msg, JsonLocation loc)
     {
         this(msg, loc, null);

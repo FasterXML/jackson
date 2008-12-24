@@ -33,6 +33,8 @@ public abstract class JsonDeserializerFactory
      * specified Java type.
      *
      * @param type Type to be deserialized
+     * @param p Provider that can be called to create deserializers for
+     *   contained member types
      */
-    public abstract JsonDeserializer<Object> createDeserializer(JavaType type);
+    public abstract JsonDeserializer<Object> createDeserializer(JavaType type, JsonDeserializerProvider p);
 }
