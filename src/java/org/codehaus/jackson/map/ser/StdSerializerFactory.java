@@ -11,7 +11,6 @@ import org.codehaus.jackson.map.JsonSerializable;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.JsonSerializerFactory;
 import org.codehaus.jackson.map.JsonSerializerProvider;
-import org.codehaus.jackson.map.type.JavaType;
 
 /**
  * Factory class that can provide serializers for standard JDK classes,

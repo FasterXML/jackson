@@ -7,6 +7,7 @@ import java.util.*;
  * Manually run class used for figuring out exactly how JDK/generics
  * expose type information.
  */
+@SuppressWarnings("serial")
 public class TestReflection
     extends ArrayList<Integer>
 {
@@ -17,7 +18,8 @@ public class TestReflection
         test.test0();
     }
 
-    private void test() throws Exception
+    @SuppressWarnings("unused")
+	private void test() throws Exception
     {
         //Class<?> cls1 = ArrayList.class;
         //Class<?> cls2 = new ArrayList<Object>().getClass();
@@ -47,12 +49,12 @@ public class TestReflection
     public int[][][] methodArrayPlain() { return null; }
     public LinkedList<List<List<Integer>>>[][][] methodArrayParam() { return null; }
 
-    public Set<? extends List> methodWildcard() { return null; }
+    public Set<? extends List<?>> methodWildcard() { return null; }
 
     private void testMethod(Method m) throws Exception
     {
         System.out.println("Return type for ["+m+"]:");
-        int ix = 0;
+        //int ix = 0;
         Type type = m.getGenericReturnType();
 
         printType(1, type);
@@ -72,7 +74,7 @@ public class TestReflection
             System.out.println("[null]");
         }
         else if (type instanceof Class) {
-            System.out.println("simple class: "+((Class) type).getName());
+            System.out.println("simple class: "+((Class<?>) type).getName());
         }
         else if (type instanceof GenericArrayType) {
             System.out.println("array type, component:");
@@ -99,7 +101,7 @@ public class TestReflection
             }
         }
         else if (type instanceof TypeVariable) {
-            TypeVariable v = (TypeVariable) type;
+            TypeVariable<?> v = (TypeVariable<?>) type;
             System.out.println("type variable '"+v.getName()+"'");
         }
         else if (type instanceof WildcardType) {

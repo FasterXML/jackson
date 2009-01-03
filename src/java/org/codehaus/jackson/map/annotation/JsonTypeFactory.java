@@ -5,8 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import java.lang.reflect.Method;
-
 /**
  * Annotation that can be used to define factory method to use
  * for instantiating a property value type.
@@ -34,5 +32,5 @@ public @interface JsonTypeFactory
      * of the type itself is assumed (which comes from property type
      * or {@link JsonType} annotation).
      */
-    public Class factoryClass();
+    public Class<?> factoryClass();
 }

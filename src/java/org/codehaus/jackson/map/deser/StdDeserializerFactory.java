@@ -1,10 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
 import java.util.*;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonDeserializerFactory;
 import org.codehaus.jackson.map.JsonDeserializerProvider;
@@ -70,7 +67,6 @@ public class StdDeserializerFactory
      * Sub-classes can (and do) change this behavior to alter behavior.
      */
     @Override
-    @SuppressWarnings("unchecked")
     public JsonDeserializer<Object> createDeserializer(JavaType type, JsonDeserializerProvider p)
     {
         // First, fast lookup for exact type:

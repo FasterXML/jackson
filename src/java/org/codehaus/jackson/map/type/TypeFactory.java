@@ -121,7 +121,7 @@ public class TypeFactory
             return fromArrayType((GenericArrayType) type);
         }
         if (type instanceof TypeVariable) {
-            return fromVariable((TypeVariable) type);
+            return fromVariable((TypeVariable<?>) type);
         }
         if (type instanceof WildcardType) {
             return fromWildcard((WildcardType) type);
@@ -172,7 +172,7 @@ public class TypeFactory
         return ArrayType.construct(compType);
     }
 
-    protected JavaType fromVariable(TypeVariable type)
+    protected JavaType fromVariable(TypeVariable<?> type)
     {
         /* With type variables we must use bound information.
          * Theoretically this gets tricky, as there may be multiple

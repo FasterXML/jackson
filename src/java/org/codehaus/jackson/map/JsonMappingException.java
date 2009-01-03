@@ -6,6 +6,7 @@ import org.codehaus.jackson.*;
  * Checked exception used to signal fatal problems with mapping of
  * content.
  */
+@SuppressWarnings("serial")
 public class JsonMappingException
     extends JsonProcessingException
 {

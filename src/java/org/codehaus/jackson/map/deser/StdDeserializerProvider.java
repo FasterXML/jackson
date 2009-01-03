@@ -1,11 +1,6 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
 
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonDeserializerFactory;
@@ -89,7 +84,6 @@ public class StdDeserializerProvider
     /* Refactored so we can isolate the cast that requires this
      * annotation...
      */
-    @SuppressWarnings("unchecked")
     protected JsonDeserializer<Object> _createDeserializer(JsonDeserializerFactory f, JavaType type)
     {
         return (JsonDeserializer<Object>)f.createDeserializer(type, this);

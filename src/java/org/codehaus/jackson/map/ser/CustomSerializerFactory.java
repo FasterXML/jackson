@@ -157,7 +157,6 @@ public class CustomSerializerFactory
         // No match? How about more generic ones?
         // Mappings for super-classes?
         if (ser == null && _transitiveClassMappings != null) {
-            loop:
             for (Class<?> curr = type; (curr != null) && (ser == null); curr = curr.getSuperclass()) {
                 key.reset(curr);
                 ser = _transitiveClassMappings.get(key);
@@ -167,8 +166,8 @@ public class CustomSerializerFactory
         // And if still no match, how about interfaces?
         if (ser == null && _interfaceMappings != null) {
             for (Class<?> curr = type; (curr != null) && (ser == null); curr = curr.getSuperclass()) {
-                for (Class iface : curr.getInterfaces()) {
-                    key.reset(curr);
+                for (Class<?> iface : curr.getInterfaces()) {
+                    key.reset(iface);
                     ser = _interfaceMappings.get(key);
                     if (ser != null) {
                         break;

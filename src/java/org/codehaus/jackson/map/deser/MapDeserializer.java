@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
 import java.util.*;
@@ -16,7 +16,7 @@ import org.codehaus.jackson.map.type.*;
  * construct a {@link java.util.Map} instance
  */
 public class MapDeserializer
-    extends StdDeserializer<Map>
+    extends StdDeserializer<Map<?,?>>
 {
     final Class<Map<Object,Object>> _mapClass;
 
@@ -38,7 +38,7 @@ public class MapDeserializer
         _valueDeserializer = valueDeser;
     }
 
-    public Map deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+    public Map<?,?> deserialize(JsonParser jp, JsonDeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_OBJECT
@@ -52,7 +52,8 @@ public class MapDeserializer
         } catch (Exception e) {
             throw instantiationException(jp, _mapClass, e);
         }
-        JsonToken t;
+        @SuppressWarnings("unused")
+		JsonToken t;
         KeyDeserializer keyDes = _keyDeserializer;
         JsonDeserializer<Object> valueDes = _valueDeserializer;
 

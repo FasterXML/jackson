@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map;
 
 import java.io.*;
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;

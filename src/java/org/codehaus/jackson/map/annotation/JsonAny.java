@@ -5,8 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import java.lang.reflect.Method;
-
 /**
  * Marker annotation that can be used to define a specific property 
  * to be a "fallback" container of all unknown entries when

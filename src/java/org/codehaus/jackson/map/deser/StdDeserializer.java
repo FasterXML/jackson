@@ -1,7 +1,6 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
-import java.util.*;
 
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
@@ -9,7 +8,6 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonDeserializationContext;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.type.*;
 
 /**
  * Base class for simple standard deserializers

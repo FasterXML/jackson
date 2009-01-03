@@ -28,5 +28,5 @@ public @interface JsonType
      * Note: if a non-property method is annotated with this annotation,
      * deserializer will throw an exception to denote invalid annotation.
      */
-    public Class value();
+    public Class<?> value();
 }
