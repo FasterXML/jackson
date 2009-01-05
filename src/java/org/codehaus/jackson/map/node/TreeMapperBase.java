@@ -15,7 +15,7 @@ import org.codehaus.jackson.map.node.*;
 public abstract class TreeMapperBase
     extends BaseMapper
 {
-    protected TreeMapperBase() { }
+    protected TreeMapperBase(JsonFactory jf) { super(jf); }
 
     /*
     /////////////////////////////////////////////////////

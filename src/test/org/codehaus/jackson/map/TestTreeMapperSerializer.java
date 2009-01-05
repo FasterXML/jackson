@@ -11,7 +11,7 @@ import org.codehaus.jackson.map.*;
  * This unit test suite tries to verify that the "JSON type"
  * mapper constructed JsonNodes can be serialized properly.
  */
-public class TestFromJsonType
+public class TestTreeMapperSerializer
     extends BaseTest
 {
     final static String FIELD1 = "first";
@@ -40,13 +40,20 @@ public class TestFromJsonType
 
         /* Ok, ready... let's serialize using one of two alternate
          * methods: first preferred (using generator)
+         * (there are 2 variants here too)
          */
-        StringWriter sw = new StringWriter();
-        JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-        root.writeTo(gen);
-        gen.close();
-        verifyFromArray(sw.toString());
-
+        for (int i = 0; i < 2; ++i) {
+            StringWriter sw = new StringWriter();
+            if (i == 0) {
+                JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+                root.writeTo(gen);
+                gen.close();
+            } else {
+                mapper.writeTree(root, sw);
+            }
+            verifyFromArray(sw.toString());
+        }
+            
         // And then convenient but less efficient alternative:
         verifyFromArray(root.toString());
     }
@@ -64,12 +71,19 @@ public class TestFromJsonType
 
         /* Let's serialize using one of two alternate methods:
          * first preferred (using generator)
+         * (there are 2 variants here too)
          */
-        StringWriter sw = new StringWriter();
-        JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-        root.writeTo(gen);
-        gen.close();
-        verifyFromMap(sw.toString());
+        for (int i = 0; i < 2; ++i) {
+            StringWriter sw = new StringWriter();
+            if (i == 0) {
+                JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+                root.writeTo(gen);
+                gen.close();
+            } else {
+                mapper.writeTree(root, sw);
+            }
+            verifyFromMap(sw.toString());
+        }
 
         // And then convenient but less efficient alternative:
         verifyFromMap(root.toString());
@@ -89,23 +103,30 @@ public class TestFromJsonType
             // Hmmh. Not sure why toString() won't be triggered otherwise...
             assertEquals(String.valueOf(i), n.toString());
         }
-        
-        StringWriter sw = new StringWriter();
-        JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-        root.writeTo(gen);
-        gen.close();
 
-        String doc = sw.toString();
-        JsonParser jp = new JsonFactory().createJsonParser(new StringReader(doc));
-        
-        assertEquals(JsonToken.START_ARRAY, jp.nextToken());
-        for (int i = -20; i <= 20; ++i) {
-            assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
-            assertEquals(i, jp.getIntValue());
-            assertEquals(""+i, jp.getText());
+        // Loop over 2 different serialization methods
+        for (int type = 0; type < 2; ++type) {
+            StringWriter sw = new StringWriter();
+            if (type == 0) {
+                JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+                root.writeTo(gen);
+                gen.close();
+            } else {
+                mapper.writeTree(root, sw);
+            }
+            
+            String doc = sw.toString();
+            JsonParser jp = new JsonFactory().createJsonParser(new StringReader(doc));
+            
+            assertEquals(JsonToken.START_ARRAY, jp.nextToken());
+            for (int i = -20; i <= 20; ++i) {
+                assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+                assertEquals(i, jp.getIntValue());
+                assertEquals(""+i, jp.getText());
+            }
+            assertEquals(JsonToken.END_ARRAY, jp.nextToken());
+            jp.close();
         }
-        assertEquals(JsonToken.END_ARRAY, jp.nextToken());
-        jp.close();
     }
 
     /*

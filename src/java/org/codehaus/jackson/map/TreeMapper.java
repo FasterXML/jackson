@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.node.TreeMapperBase;
@@ -32,7 +33,15 @@ public class TreeMapper
     ////////////////////////////////////////////////////
      */
 
-    public TreeMapper() { super(); }
+    public TreeMapper()
+    {
+        this(null);
+    }
+
+    public TreeMapper(JsonFactory jf)
+    {
+        super(jf);
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -40,6 +49,42 @@ public class TreeMapper
     // mapping from JSON content to nodes
     ////////////////////////////////////////////////////
      */
+
+    public JsonNode readTree(File src)
+        throws IOException, JsonParseException
+    {
+        return _readMapAndClose(_jsonFactory.createJsonParser(src));
+    }
+
+    public JsonNode readTree(URL src)
+        throws IOException, JsonParseException
+    {
+        return _readMapAndClose(_jsonFactory.createJsonParser(src));
+    }
+
+    public JsonNode readTree(InputStream src)
+        throws IOException, JsonParseException
+    {
+        return _readMapAndClose(_jsonFactory.createJsonParser(src));
+    }
+
+    public JsonNode readTree(Reader src)
+        throws IOException, JsonParseException
+    {
+        return _readMapAndClose(_jsonFactory.createJsonParser(src));
+    }
+
+    public JsonNode readTree(String jsonContent)
+        throws IOException, JsonParseException
+    {
+        return _readMapAndClose(_jsonFactory.createJsonParser(jsonContent));
+    }
+
+    public JsonNode readTree(byte[] jsonContent)
+        throws IOException, JsonParseException
+    {
+        return _readMapAndClose(_jsonFactory.createJsonParser(jsonContent));
+    }
 
     /**
      * Method that will use the current event of the underlying parser
@@ -67,6 +112,31 @@ public class TreeMapper
          */
         jp.nextToken();
         return result;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, root-level mapping methods,
+    // writing nodes as JSON content
+    ////////////////////////////////////////////////////
+     */
+
+    public void writeTree(JsonNode rootNode, File dst)
+        throws IOException, JsonParseException
+    {
+        _writeNodeAndClose(_jsonFactory.createJsonGenerator(dst, JsonEncoding.UTF8), rootNode);
+    }
+
+    public void writeTree(JsonNode rootNode, Writer dst)
+        throws IOException, JsonParseException
+    {
+        _writeNodeAndClose(_jsonFactory.createJsonGenerator(dst), rootNode);
+    }
+
+    public void writeTree(JsonNode rootNode, OutputStream dst)
+        throws IOException, JsonParseException
+    {
+        _writeNodeAndClose(_jsonFactory.createJsonGenerator(dst, JsonEncoding.UTF8), rootNode);
     }
 
     /*
@@ -144,4 +214,44 @@ public class TreeMapper
     // public LongNode longNode(long v)
     // public DoubleNode doubleNode(double v)
     // public DecimalNode decimalNode(BigDecimal v)
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method used to read and map Json content read from passed-in
+     * parser, and then close the parser. This is done when caller
+     * passed as a source instead of a parser; in which case mapper
+     * is responsible for closing resources.
+     */
+    protected JsonNode _readMapAndClose(JsonParser jp)
+        throws IOException, JsonParseException
+    {
+        try {
+            return read(jp);
+        } finally {
+            try {
+                jp.close();
+            } catch (IOException ioe) { }
+        }
+    }
+
+    /**
+     * Method called to serialize a Json content tree (identified
+     * by the given root node) using given {@link JsonGenerator}.
+     */
+    protected void _writeNodeAndClose(JsonGenerator jg, JsonNode rootNode)
+        throws IOException, JsonParseException
+    {
+        try {
+            rootNode.writeTo(jg);
+        } finally {
+            try {
+                jg.close();
+            } catch (IOException ioe) { }
+        }
+    }
 }

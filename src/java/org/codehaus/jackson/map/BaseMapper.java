@@ -46,11 +46,26 @@ public abstract class BaseMapper
 
     /*
     ////////////////////////////////////////////////////
+    // Other state/config
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Factory used to create {@link JsonParser} and {@link JsonGenerator}
+     * instances as necessary.
+     */
+    protected final JsonFactory _jsonFactory;
+
+    /*
+    ////////////////////////////////////////////////////
     // Life-cycle (construction, configuration)
     ////////////////////////////////////////////////////
      */
 
-    public BaseMapper() { }
+    public BaseMapper(JsonFactory jf)
+    {
+        _jsonFactory = (jf == null) ? new JsonFactory() : jf;
+    }
 
     public void setDupFieldHandling(DupFields mode) { _cfgDupFields = mode; }
     public DupFields getDupFieldHandling() { return _cfgDupFields; }
@@ -67,6 +82,15 @@ public abstract class BaseMapper
      *    (decoding) of base64 encoded binary content
      */
     public Base64Variant getBase64Variant() { return _cfgBase64Variant; }
+
+    /**
+     * Method that can be used to get hold of Json factory that this
+     * mapper uses if it needs to construct Json parsers and/or generators.
+     *
+     * @return Json factory that this mapper uses when it needs to
+     *   construct Json parser and generators
+     */
+    public JsonFactory getJsonFactory() { return _jsonFactory; }
 
     /*
     ////////////////////////////////////////////////////

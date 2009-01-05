@@ -30,12 +30,6 @@ public class ObjectMapper
      */
 
     /**
-     * Factory used to create {@link JsonParser} and {@link JsonGenerator}
-     * instances as necessary.
-     */
-    protected final JsonFactory _jsonFactory;
-
-    /**
      * Object that manages access to serializers used for serialization,
      * including caching.
      * It is configured with {@link #_serializerFactory} to allow
@@ -120,7 +114,7 @@ public class ObjectMapper
     public ObjectMapper(JsonFactory jf, JsonSerializerProvider sp,
                           JsonDeserializerProvider dp)
     {
-        _jsonFactory = (jf == null) ? new JsonFactory() : jf;
+        super(jf);
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 

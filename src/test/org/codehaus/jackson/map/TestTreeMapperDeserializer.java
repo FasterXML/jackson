@@ -14,7 +14,7 @@ import org.codehaus.jackson.map.node.*;
  * mapper can properly parse JSON and bind contents into appropriate
  * JsonNode instances.
  */
-public class TestToJsonType
+public class TestTreeMapperDeserializer
     extends BaseTest
 {
     public void testSimple()
@@ -23,63 +23,74 @@ public class TestToJsonType
         final String JSON = SAMPLE_DOC_JSON_SPEC;
 
         JsonFactory jf = new JsonFactory();
-        JsonNode result = new TreeMapper().read(jf.createJsonParser(new StringReader(JSON)));
-        assertType(result, ObjectNode.class);
-        assertEquals(1, result.size());
-        assertTrue(result.isObject());
+        TreeMapper mapper = new TreeMapper();
 
-        ObjectNode main = (ObjectNode) result;
-        assertEquals("Image", main.getFieldNames().next());
-        JsonNode ob = main.getFieldValues().next();
-        assertType(ob, ObjectNode.class);
-        ObjectNode imageMap = (ObjectNode) ob;
+        for (int type = 0; type < 2; ++type) {
+            JsonNode result;
 
-        assertEquals(5, imageMap.size());
-        ob = imageMap.getFieldValue("Width");
-        assertTrue(ob.isIntegralNumber());
-        assertEquals(SAMPLE_SPEC_VALUE_WIDTH, ob.getIntValue());
-
-        ob = imageMap.getFieldValue("Height");
-        assertTrue(ob.isIntegralNumber());
-        assertEquals(SAMPLE_SPEC_VALUE_HEIGHT, ob.getIntValue());
-
-        ob = imageMap.getFieldValue("Title");
-        assertTrue(ob.isTextual());
-        assertEquals(SAMPLE_SPEC_VALUE_TITLE, ob.getTextValue());
-
-        ob = imageMap.getFieldValue("Thumbnail");
-        assertType(ob, ObjectNode.class);
-        ObjectNode tn = (ObjectNode) ob;
-        ob = tn.getFieldValue("Url");
-        assertTrue(ob.isTextual());
-        assertEquals(SAMPLE_SPEC_VALUE_TN_URL, ob.getTextValue());
-        ob = tn.getFieldValue("Height");
-        assertTrue(ob.isIntegralNumber());
-        assertEquals(SAMPLE_SPEC_VALUE_TN_HEIGHT, ob.getIntValue());
-        ob = tn.getFieldValue("Width");
-        assertTrue(ob.isTextual());
-        assertEquals(SAMPLE_SPEC_VALUE_TN_WIDTH, ob.getTextValue());
-
-        ob = imageMap.getFieldValue("IDs");
-        assertTrue(ob.isArray());
-        ArrayNode idList = (ArrayNode) ob;
-        assertEquals(4, idList.size());
-        assertEquals(4, calcLength(idList.getElements()));
-        assertEquals(4, calcLength(idList.iterator()));
-        {
-            int[] values = new int[] {
-                SAMPLE_SPEC_VALUE_TN_ID1,
-                SAMPLE_SPEC_VALUE_TN_ID2,
-                SAMPLE_SPEC_VALUE_TN_ID3,
-                SAMPLE_SPEC_VALUE_TN_ID4
-            };
-            for (int i = 0; i < values.length; ++i) {
-                assertEquals(values[i], idList.getElementValue(i).getIntValue());
+            if (type == 0) {
+                result = mapper.read(jf.createJsonParser(new StringReader(JSON)));
+            } else {
+                result = mapper.readTree(JSON);
             }
-            int i = 0;
-            for (JsonNode n : idList) {
-                assertEquals(values[i], n.getIntValue());
-                ++i;
+
+            assertType(result, ObjectNode.class);
+            assertEquals(1, result.size());
+            assertTrue(result.isObject());
+            
+            ObjectNode main = (ObjectNode) result;
+            assertEquals("Image", main.getFieldNames().next());
+            JsonNode ob = main.getFieldValues().next();
+            assertType(ob, ObjectNode.class);
+            ObjectNode imageMap = (ObjectNode) ob;
+            
+            assertEquals(5, imageMap.size());
+            ob = imageMap.getFieldValue("Width");
+            assertTrue(ob.isIntegralNumber());
+            assertEquals(SAMPLE_SPEC_VALUE_WIDTH, ob.getIntValue());
+            
+            ob = imageMap.getFieldValue("Height");
+            assertTrue(ob.isIntegralNumber());
+            assertEquals(SAMPLE_SPEC_VALUE_HEIGHT, ob.getIntValue());
+            
+            ob = imageMap.getFieldValue("Title");
+            assertTrue(ob.isTextual());
+            assertEquals(SAMPLE_SPEC_VALUE_TITLE, ob.getTextValue());
+            
+            ob = imageMap.getFieldValue("Thumbnail");
+            assertType(ob, ObjectNode.class);
+            ObjectNode tn = (ObjectNode) ob;
+            ob = tn.getFieldValue("Url");
+            assertTrue(ob.isTextual());
+            assertEquals(SAMPLE_SPEC_VALUE_TN_URL, ob.getTextValue());
+            ob = tn.getFieldValue("Height");
+            assertTrue(ob.isIntegralNumber());
+            assertEquals(SAMPLE_SPEC_VALUE_TN_HEIGHT, ob.getIntValue());
+            ob = tn.getFieldValue("Width");
+            assertTrue(ob.isTextual());
+            assertEquals(SAMPLE_SPEC_VALUE_TN_WIDTH, ob.getTextValue());
+            
+            ob = imageMap.getFieldValue("IDs");
+            assertTrue(ob.isArray());
+            ArrayNode idList = (ArrayNode) ob;
+            assertEquals(4, idList.size());
+            assertEquals(4, calcLength(idList.getElements()));
+            assertEquals(4, calcLength(idList.iterator()));
+            {
+                int[] values = new int[] {
+                    SAMPLE_SPEC_VALUE_TN_ID1,
+                    SAMPLE_SPEC_VALUE_TN_ID2,
+                    SAMPLE_SPEC_VALUE_TN_ID3,
+                    SAMPLE_SPEC_VALUE_TN_ID4
+                };
+                for (int i = 0; i < values.length; ++i) {
+                    assertEquals(values[i], idList.getElementValue(i).getIntValue());
+                }
+                int i = 0;
+                for (JsonNode n : idList) {
+                    assertEquals(values[i], n.getIntValue());
+                    ++i;
+                }
             }
         }
     }
@@ -91,30 +102,31 @@ public class TestToJsonType
     public void testEOF()
         throws Exception
     {
-        JsonFactory jf = new JsonFactory();
         String JSON =
             "{ \"key\": [ { \"a\" : { \"name\": \"foo\",  \"type\": 1\n"
             +"},  \"type\": 3, \"url\": \"http://www.google.com\" } ],\n"
             +"\"name\": \"xyz\", \"type\": 1, \"url\" : null }\n  "
             ;
-        JsonParser jp = jf.createJsonParser(new StringReader(JSON));
+        JsonFactory jf = new JsonFactory();
         TreeMapper mapper = new TreeMapper();
+        JsonParser jp = jf.createJsonParser(new StringReader(JSON));
         JsonNode result = mapper.read(jp);
+
         assertTrue(result.isObject());
         assertEquals(4, result.size());
 
         assertNull(mapper.read(jp));
     }
 
-    public void testMultipl()
+    public void testMultiple()
         throws Exception
     {
-        JsonFactory jf = new JsonFactory();
         String JSON = "12  \"string\" [ 1, 2, 3 ]";
-        JsonParser jp = jf.createJsonParser(new StringReader(JSON));
+        JsonFactory jf = new JsonFactory();
         TreeMapper mapper = new TreeMapper();
-
+        JsonParser jp = jf.createJsonParser(new StringReader(JSON));
         JsonNode result = mapper.read(jp);
+
         assertTrue(result.isIntegralNumber());
         assertTrue(result.isInt());
         assertFalse(result.isTextual());
@@ -140,12 +152,9 @@ public class TestToJsonType
     public void testMissingNode()
         throws Exception
     {
-        JsonFactory jf = new JsonFactory();
         String JSON = "[ { }, [ ] ]";
-        JsonParser jp = jf.createJsonParser(new StringReader(JSON));
         TreeMapper mapper = new TreeMapper();
-        JsonNode result = mapper.read(jp);
-        jp.close();
+        JsonNode result = mapper.readTree(new StringReader(JSON));
 
         assertTrue(result.isContainerNode());
         assertTrue(result.isArray());
