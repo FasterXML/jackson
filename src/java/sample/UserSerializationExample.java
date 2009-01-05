@@ -12,7 +12,7 @@ public class UserSerializationExample
     public static void main(String[] args)
             throws Exception
     {
-        JavaTypeMapper mapper = new JavaTypeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         StringWriter sw = new StringWriter();
         mapper.writeValue(sw, new User());
         System.out.println("--- JSON ---");

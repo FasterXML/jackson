@@ -8,6 +8,9 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
+/**
+ * Unit tests for verifying "old" data binding from Json to JDK objects.
+ */
 public class TestToJavaType
     extends BaseTest
 {

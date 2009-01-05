@@ -13,7 +13,7 @@ public class TestBeanMapper
     private void test() throws Exception
     {
         JsonFactory f = new JsonFactory();
-        JavaTypeMapper jmap = new JavaTypeMapper();
+        ObjectMapper jmap = new ObjectMapper();
         Object foo = new MyObject(5, -90, "Desc");
         StringWriter sw = new StringWriter();
         JsonGenerator jg = f.createJsonGenerator(sw);

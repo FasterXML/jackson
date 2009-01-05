@@ -10,7 +10,7 @@ import java.util.*;
  * 
  * @deprecated Only used to support legacy mapper implementation (pre-0.9.5)
  */
-final class KnownClasses
+public final class KnownClasses
 {
     public enum JdkClasses {
         BOOLEAN,

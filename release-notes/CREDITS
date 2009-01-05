@@ -56,3 +56,8 @@ Mike Goodwin:
 Ray Racine:
   * Pointed out [JACKSON-25]: Problems with Maven pom for lgpl version
     [0.9.4-backport]
+
+Scott Dixon:
+  * Contributed unit test (TestComplexJavaType) for verifying functioning
+    of object serialization
+    [0.9.5]

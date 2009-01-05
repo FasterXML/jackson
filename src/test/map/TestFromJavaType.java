@@ -10,8 +10,11 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 /**
- * This unit test suite tries to verify that the "Native" java type
- * mapper can properly serialize Java core objects to JSON.
+ * This unit test suite tries verify simplest aspects of
+ * "Native" java type mapper; basically that is can properly serialize
+ * core JDK objects to JSON.
+ *
+ * @author Tatu Saloranta
  */
 public class TestFromJavaType
     extends BaseTest
@@ -125,7 +128,7 @@ public class TestFromJavaType
     }
 
     /**
-     * Unit test to catch bug [JACKSON-x].
+     * Unit test to catch bug [JACKSON-8].
      */
     public void testBigDecimal()
         throws Exception
