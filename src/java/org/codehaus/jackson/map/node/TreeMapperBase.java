@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.impl;
+package org.codehaus.jackson.map.node;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -12,10 +12,10 @@ import org.codehaus.jackson.map.node.*;
  * This intermediate base class is needed to access non-public
  * (package) interface of node implementations during building.
  */
-public abstract class JsonTypeMapperBase
+public abstract class TreeMapperBase
     extends BaseMapper
 {
-    protected JsonTypeMapperBase() { }
+    protected TreeMapperBase() { }
 
     /*
     /////////////////////////////////////////////////////

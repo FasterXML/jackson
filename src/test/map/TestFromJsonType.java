@@ -27,7 +27,7 @@ public class TestFromJsonType
     public void testFromArray()
         throws Exception
     {
-        JsonTypeMapper mapper = new JsonTypeMapper();
+        TreeMapper mapper = new TreeMapper();
 
         JsonNode root = mapper.arrayNode();
         root.appendElement(mapper.textNode(TEXT1));
@@ -54,7 +54,7 @@ public class TestFromJsonType
     public void testFromMap()
         throws Exception
     {
-        JsonTypeMapper mapper = new JsonTypeMapper();
+        TreeMapper mapper = new TreeMapper();
 
         JsonNode root = mapper.objectNode();
         root.setElement(FIELD4, mapper.textNode(TEXT2));
@@ -81,7 +81,7 @@ public class TestFromJsonType
     public void testSmallNumbers()
         throws Exception
     {
-        JsonTypeMapper mapper = new JsonTypeMapper();
+        TreeMapper mapper = new TreeMapper();
         JsonNode root = mapper.arrayNode();
         for (int i = -20; i <= 20; ++i) {
             JsonNode n = mapper.numberNode(i);

@@ -23,7 +23,7 @@ public class TestToJsonType
         final String JSON = SAMPLE_DOC_JSON_SPEC;
 
         JsonFactory jf = new JsonFactory();
-        JsonNode result = new JsonTypeMapper().read(jf.createJsonParser(new StringReader(JSON)));
+        JsonNode result = new TreeMapper().read(jf.createJsonParser(new StringReader(JSON)));
         assertType(result, ObjectNode.class);
         assertEquals(1, result.size());
         assertTrue(result.isObject());
@@ -98,7 +98,7 @@ public class TestToJsonType
             +"\"name\": \"xyz\", \"type\": 1, \"url\" : null }\n  "
             ;
         JsonParser jp = jf.createJsonParser(new StringReader(JSON));
-        JsonTypeMapper mapper = new JsonTypeMapper();
+        TreeMapper mapper = new TreeMapper();
         JsonNode result = mapper.read(jp);
         assertTrue(result.isObject());
         assertEquals(4, result.size());
@@ -112,7 +112,7 @@ public class TestToJsonType
         JsonFactory jf = new JsonFactory();
         String JSON = "12  \"string\" [ 1, 2, 3 ]";
         JsonParser jp = jf.createJsonParser(new StringReader(JSON));
-        JsonTypeMapper mapper = new JsonTypeMapper();
+        TreeMapper mapper = new TreeMapper();
 
         JsonNode result = mapper.read(jp);
         assertTrue(result.isIntegralNumber());
@@ -143,7 +143,7 @@ public class TestToJsonType
         JsonFactory jf = new JsonFactory();
         String JSON = "[ { }, [ ] ]";
         JsonParser jp = jf.createJsonParser(new StringReader(JSON));
-        JsonTypeMapper mapper = new JsonTypeMapper();
+        TreeMapper mapper = new TreeMapper();
         JsonNode result = mapper.read(jp);
         jp.close();
 
