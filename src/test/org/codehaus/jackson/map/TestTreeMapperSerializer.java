@@ -1,4 +1,4 @@
-package map;
+package org.codehaus.jackson.map;
 
 import main.BaseTest;
 
@@ -127,6 +127,14 @@ public class TestTreeMapperSerializer
             assertEquals(JsonToken.END_ARRAY, jp.nextToken());
             jp.close();
         }
+    }
+
+    public void testNull() throws Exception
+    {
+        TreeMapper mapper = new TreeMapper();
+        StringWriter sw = new StringWriter();
+        mapper.writeTree(mapper.nullNode(), sw);
+        assertEquals("null", sw.toString());
     }
 
     /*

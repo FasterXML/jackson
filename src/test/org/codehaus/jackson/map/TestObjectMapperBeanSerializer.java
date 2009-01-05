@@ -1,4 +1,4 @@
-package map;
+package org.codehaus.jackson.map;
 
 import main.BaseTest;
 
@@ -17,7 +17,7 @@ import org.codehaus.jackson.map.*;
  *
  * @author Scott Dixon
  */
-public class TestComplexJavaType
+public class TestObjectMapperBeanSerializer
     extends BaseTest
 {
     /**

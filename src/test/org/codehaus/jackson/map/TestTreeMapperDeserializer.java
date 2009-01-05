@@ -1,8 +1,9 @@
-package map;
+package org.codehaus.jackson.map;
 
 import main.BaseTest;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -47,8 +48,8 @@ public class TestTreeMapperDeserializer
             assertEquals(5, imageMap.size());
             ob = imageMap.getFieldValue("Width");
             assertTrue(ob.isIntegralNumber());
+            assertFalse(ob.isFloatingPointNumber());
             assertEquals(SAMPLE_SPEC_VALUE_WIDTH, ob.getIntValue());
-            
             ob = imageMap.getFieldValue("Height");
             assertTrue(ob.isIntegralNumber());
             assertEquals(SAMPLE_SPEC_VALUE_HEIGHT, ob.getIntValue());
@@ -93,6 +94,201 @@ public class TestTreeMapperDeserializer
                 }
             }
         }
+    }
+
+    public void testBoolean()
+        throws Exception
+    {
+        TreeMapper mapper = new TreeMapper();
+        JsonNode result = mapper.readTree("true\n");
+        assertFalse(result.isNull());
+        assertFalse(result.isNumber());
+        assertFalse(result.isTextual());
+        assertTrue(result.isBoolean());
+        assertType(result, BooleanNode.class);
+        assertTrue(result.getBooleanValue());
+        assertEquals("true", result.getValueAsText());
+        assertFalse(result.isMissingNode());
+
+        // also, equality should work ok
+        assertEquals(result, BooleanNode.valueOf(true));
+        assertEquals(result, BooleanNode.getTrue());
+    }
+
+    public void testDouble()
+        throws Exception
+    {
+        TreeMapper mapper = new TreeMapper();
+        double value = 3.04;
+        JsonNode result = mapper.readTree(String.valueOf(value));
+        assertTrue(result.isNumber());
+        assertFalse(result.isNull());
+        assertType(result, DoubleNode.class);
+        assertTrue(result.isFloatingPointNumber());
+        assertTrue(result.isDouble());
+        assertFalse(result.isInt());
+        assertFalse(result.isLong());
+        assertFalse(result.isIntegralNumber());
+        assertFalse(result.isTextual());
+        assertFalse(result.isMissingNode());
+
+        assertEquals(value, result.getDoubleValue());
+        assertEquals(value, result.getNumberValue().doubleValue());
+        assertEquals((int) value, result.getIntValue());
+        assertEquals((long) value, result.getLongValue());
+        assertEquals(String.valueOf(value), result.getValueAsText());
+
+        // also, equality should work ok
+        assertEquals(result, mapper.numberNode(value));
+    }
+
+    public void testInt()
+        throws Exception
+    {
+        TreeMapper mapper = new TreeMapper();
+        int value = -90184;
+        JsonNode result = mapper.readTree(String.valueOf(value));
+        assertTrue(result.isNumber());
+        assertTrue(result.isIntegralNumber());
+        assertTrue(result.isInt());
+        assertType(result, IntNode.class);
+        assertFalse(result.isLong());
+        assertFalse(result.isFloatingPointNumber());
+        assertFalse(result.isDouble());
+        assertFalse(result.isNull());
+        assertFalse(result.isTextual());
+        assertFalse(result.isMissingNode());
+
+        assertEquals(value, result.getNumberValue().intValue());
+        assertEquals(value, result.getIntValue());
+        assertEquals(String.valueOf(value), result.getValueAsText());
+        assertEquals((double) value, result.getDoubleValue());
+        assertEquals((long) value, result.getLongValue());
+
+        // also, equality should work ok
+        assertEquals(result, mapper.numberNode(value));
+    }
+
+    public void testLong()
+        throws Exception
+    {
+        TreeMapper mapper = new TreeMapper();
+        // need to use something being 32-bit value space
+        long value = 12345678L << 32;
+        JsonNode result = mapper.readTree(String.valueOf(value));
+        assertTrue(result.isNumber());
+        assertTrue(result.isIntegralNumber());
+        assertTrue(result.isLong());
+        assertType(result, LongNode.class);
+        assertFalse(result.isInt());
+        assertFalse(result.isFloatingPointNumber());
+        assertFalse(result.isDouble());
+        assertFalse(result.isNull());
+        assertFalse(result.isTextual());
+        assertFalse(result.isMissingNode());
+
+        assertEquals(value, result.getNumberValue().longValue());
+        assertEquals(value, result.getLongValue());
+        assertEquals(String.valueOf(value), result.getValueAsText());
+        assertEquals((double) value, result.getDoubleValue());
+
+        // also, equality should work ok
+        assertEquals(result, mapper.numberNode(value));
+    }
+
+    public void testNull()
+        throws Exception
+    {
+        TreeMapper mapper = new TreeMapper();
+        JsonNode result = mapper.readTree("   null ");
+        assertTrue(result.isNull());
+        assertFalse(result.isNumber());
+        assertFalse(result.isTextual());
+        assertEquals("null", result.getValueAsText());
+
+        // also, equality should work ok
+        assertEquals(result, mapper.nullNode());
+    }
+
+    public void testDecimalNode()
+        throws Exception
+    {
+        // no "natural" way to get it, must construct
+        TreeMapper mapper = new TreeMapper();
+        BigDecimal value = new BigDecimal("0.1");
+        JsonNode result = mapper.numberNode(value);
+
+        assertFalse(result.isArray());
+        assertFalse(result.isObject());
+        assertTrue(result.isNumber());
+        assertFalse(result.isIntegralNumber());
+        assertFalse(result.isLong());
+        assertType(result, DecimalNode.class);
+        assertFalse(result.isInt());
+        assertTrue(result.isFloatingPointNumber());
+        assertTrue(result.isBigDecimal());
+        assertFalse(result.isDouble());
+        assertFalse(result.isNull());
+        assertFalse(result.isTextual());
+        assertFalse(result.isMissingNode());
+
+        assertEquals(value, result.getNumberValue());
+        assertEquals(value.toString(), result.getValueAsText());
+
+        // also, equality should work ok
+        assertEquals(result, mapper.numberNode(value));
+    }
+
+    public void testSimpleArray() throws Exception
+    {
+        TreeMapper mapper = new TreeMapper();
+        JsonNode result = mapper.arrayNode();
+
+        assertTrue(result.isArray());
+        assertType(result, ArrayNode.class);
+
+        assertFalse(result.isObject());
+        assertFalse(result.isNumber());
+        assertFalse(result.isNull());
+        assertFalse(result.isTextual());
+
+        // and let's add stuff...
+        result.appendElement(mapper.booleanNode(false));
+        result.insertElement(0, mapper.nullNode());
+
+        // should be equal to itself no matter what
+        assertEquals(result, result);
+        assertFalse(result.equals(null)); // but not to null
+
+        // plus see that we can access stuff
+        assertEquals(mapper.nullNode(), result.getPath(0));
+        assertEquals(mapper.nullNode(), result.getElementValue(0));
+        assertEquals(BooleanNode.getFalse(), result.getPath(1));
+        assertEquals(BooleanNode.getFalse(), result.getElementValue(1));
+        assertEquals(2, result.size());
+
+        assertNull(result.getElementValue(-1));
+        assertNull(result.getElementValue(2));
+        JsonNode missing = result.getPath(2);
+        assertTrue(missing.isMissingNode());
+        assertTrue(result.getPath(-100).isMissingNode());
+
+        // then construct and compare
+        JsonNode array2 = mapper.arrayNode();
+        array2.appendElement(mapper.nullNode());
+        array2.appendElement(BooleanNode.getFalse());
+        assertEquals(result, array2);
+
+        // plus remove entries
+        JsonNode rm1 = array2.removeElement(0);
+        assertEquals(mapper.nullNode(), rm1);
+        assertEquals(1, array2.size());
+        assertEquals(BooleanNode.getFalse(), array2.getElementValue(0));
+        assertFalse(result.equals(array2));
+
+        JsonNode rm2 = array2.removeElement(0);
+        assertEquals(BooleanNode.getFalse(), rm2);
+        assertEquals(0, array2.size());
     }
 
     /**

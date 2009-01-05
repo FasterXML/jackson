@@ -210,10 +210,10 @@ public class TreeMapper
 
     // public BooleanNode booleanNode(boolean v)
 
-    // public IntNode intNode(int v)
-    // public LongNode longNode(long v)
-    // public DoubleNode doubleNode(double v)
-    // public DecimalNode decimalNode(BigDecimal v)
+    //public NumericNode numberNode(int v)
+    //public NumericNode numberNode(long v)
+    //public NumericNode numberNode(double v)
+    //public NumericNode numberNode(BigDecimal v)
 
     /*
     ////////////////////////////////////////////////////
