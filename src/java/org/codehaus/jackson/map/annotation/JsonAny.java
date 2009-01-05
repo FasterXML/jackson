@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Marker annotation that can be used to define a specific property 
  * to be a "fallback" container of all unknown entries when
  * deserializing Java objects from Json content.
- * It is similar to {@link javax.xml.bind.annotation.XmlAny}
+ * It is similar to {@link javax.xml.bind.annotation.XmlAnyElement}
  * in behavior; and can only be used to denote a single property
  * per type. Also, type itself has to be either a {@link java.util.Map}
  * or a Bean type.

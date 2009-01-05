@@ -5,12 +5,12 @@ import java.io.IOException;
 import org.codehaus.jackson.*;
 
 /**
- * Abstract class that defines API used by {@link JavaTypeMapper} and
+ * Abstract class that defines API used by {@link ObjectMapper} and
  * {@link JsonSerializer}s to obtain serializers capable of serializing
  * instances of specific types.
  *<p>
  * Note about usage: for {@link JsonSerializer} instances, only accessors
- * for locating other (sub-)serializers are to be used. {@link JavaTypeMapper},
+ * for locating other (sub-)serializers are to be used. {@link ObjectMapper},
  * on the other hand, is to initialize recursive serialization process by
  * calling {@link #serializeValue}.
  */
@@ -18,12 +18,12 @@ public abstract class JsonSerializerProvider
 {
     /*
     //////////////////////////////////////////////////////
-    // Entry point for JavaTypeMapper
+    // Entry point for ObjectMapper
     //////////////////////////////////////////////////////
      */
 
     /**
-     * The method to be called by {@link JavaTypeMapper} to
+     * The method to be called by {@link ObjectMapper} to
      * execute recursive serialization, using serializers that
      * this provider has access to.
      *

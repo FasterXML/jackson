@@ -3,15 +3,9 @@ package org.codehaus.jackson.map;
 import org.codehaus.jackson.map.type.JavaType;
 
 /**
- * Abstract class that defines API used by {@link JavaTypeMapper} and
+ * Abstract class that defines API used by {@link ObjectMapper} and
  * {@link JsonDeserializer}s to obtain deserializers capable of
  * re-constructing instances of handled type from Json content.
- *<p>
- * Note about usage: for {@link JsonDeserializer} instances, only accessors
- * for locating other (sub-)deserializers are to be used.
- * {@link JavaTypeMapper},
- * on the other hand, is to initialize recursive serialization process by
- * calling {@link #deserializeValue}.
  */
 public abstract class JsonDeserializerProvider
 {

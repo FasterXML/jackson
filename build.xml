@@ -36,7 +36,7 @@
     <property name="JSON_VERSION" value="1.0" />
     <property name="JSON_VENDOR" value="http://www.ietf.org/rfc/rfc4627.txt" />
     <property name="IMPL_TITLE" value="Jackson JSON parser" />
-    <property name="IMPL_VERSION" value="0.9.5" />
+    <property name="IMPL_VERSION" value="0.9.6" />
     <property name="IMPL_VENDOR" value="http://www.cowtowncoder.com/" />
 
     <!-- jars needed for compilation? None as of yet -->
