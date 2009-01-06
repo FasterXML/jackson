@@ -8,6 +8,8 @@ import org.codehaus.jackson.JsonParser;
  */
 public abstract class JsonDeserializationContext
 {
+	public abstract JsonParser getParser();
+	
     // // Methods for constructing exceptions
 
     public abstract JsonMappingException mappingException(Class<?> targetClass);

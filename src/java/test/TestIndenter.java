@@ -16,7 +16,7 @@ public class TestIndenter
         }
         JsonFactory f = new JsonFactory();
         JsonParser jp = f.createJsonParser(new File(args[0]));
-        JsonNode jn = new JsonTypeMapper().read(jp);
+        JsonNode jn = new TreeMapper().readTree(jp);
 
         StringWriter sw = new StringWriter(200);
         JsonGenerator jg = f.createJsonGenerator(sw);

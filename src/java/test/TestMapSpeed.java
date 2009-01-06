@@ -28,7 +28,7 @@ public final class TestMapSpeed
     private final static int TEST_PER_GC = 17;
 
     final JsonFactory _factory;
-    final JavaTypeMapper _mapper;
+    final ObjectMapper _mapper;
 
     final Object _objectToMap;
 
@@ -36,9 +36,9 @@ public final class TestMapSpeed
         throws Exception
     {
         _factory = new JsonFactory();
-        _mapper = new JavaTypeMapper();
+        _mapper = new ObjectMapper();
         JsonParser jp = _factory.createJsonParser(data, 0, data.length);
-        _objectToMap = _mapper.read(jp);
+        _objectToMap = _mapper.readValue(jp, Object.class);
         jp.close();
 
         // Ok how should we guestimate speed... perhaps from data size?
@@ -127,7 +127,7 @@ public final class TestMapSpeed
         for (int i = 0; i < reps; ++i) {
             out.reset();
             JsonGenerator jg = _factory.createJsonGenerator(out, JsonEncoding.UTF8);
-            _mapper.writeAny(jg, _objectToMap);
+            _mapper.writeValue(jg, _objectToMap);
             jg.close();
             total = out.size();
         }

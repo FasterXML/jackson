@@ -93,8 +93,8 @@ public class TreeMapper
      * next event, if any. For structured tokens (objects, arrays),
      * will recursively handle and construct contained nodes.
      */
-    public JsonNode read(JsonParser jp)
-        throws IOException, JsonParseException
+    public JsonNode readTree(JsonParser jp)
+        throws IOException, JsonParseException, JsonMappingException
     {
         JsonToken curr = jp.getCurrentToken();
         if (curr == null) {
@@ -231,7 +231,7 @@ public class TreeMapper
         throws IOException, JsonParseException
     {
         try {
-            return read(jp);
+            return readTree(jp);
         } finally {
             try {
                 jp.close();
