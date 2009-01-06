@@ -43,14 +43,14 @@ public class MapDeserializer
     {
         // Ok: must point to START_OBJECT
         if (jp.getCurrentToken() != JsonToken.START_OBJECT) {
-            throw mappingException(jp, _mapClass);
+            throw ctxt.mappingException(_mapClass);
         }
 
         Map<Object,Object> result;
         try {
             result = _mapClass.newInstance();
         } catch (Exception e) {
-            throw instantiationException(jp, _mapClass, e);
+            throw ctxt.instantiationException(_mapClass, e);
         }
         @SuppressWarnings("unused")
             JsonToken t;

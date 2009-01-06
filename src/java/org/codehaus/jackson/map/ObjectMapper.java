@@ -396,8 +396,8 @@ public class ObjectMapper
     protected Object _readValue(JsonParser jp, JavaType valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        JsonDeserializationContext ctxt = _createDeserializationContext();
         _initForReading(jp);
+        JsonDeserializationContext ctxt = _createDeserializationContext(jp);
         // ok, let's get the value
         Object result = _findDeserializer(valueType).deserialize(jp, ctxt);
         // and then need to skip past the last event before returning
@@ -408,8 +408,8 @@ public class ObjectMapper
     protected Object _readMapAndClose(JsonParser jp, JavaType valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        JsonDeserializationContext ctxt = _createDeserializationContext();
         _initForReading(jp);
+        JsonDeserializationContext ctxt = _createDeserializationContext(jp);
         try {
             Object result = _findDeserializer(valueType).deserialize(jp, ctxt);
             // and then need to skip past the last event before returning
@@ -445,9 +445,9 @@ public class ObjectMapper
         return deser;
     }
 
-    protected JsonDeserializationContext _createDeserializationContext()
+    protected JsonDeserializationContext _createDeserializationContext(JsonParser jp)
     {
-        return new StdDeserializationContext();
+        return new StdDeserializationContext(jp);
     }
 
     /**

@@ -55,7 +55,7 @@ public final class UntypedObjectDeserializer
             break;
         }
 
-        throw mappingException(jp, Object.class);
+        throw ctxt.mappingException(Object.class);
     }
 
     protected List<Object> mapArray(JsonParser jp, JsonDeserializationContext ctxt)
