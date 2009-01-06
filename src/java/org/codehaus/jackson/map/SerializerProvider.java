@@ -14,7 +14,7 @@ import org.codehaus.jackson.*;
  * on the other hand, is to initialize recursive serialization process by
  * calling {@link #serializeValue}.
  */
-public abstract class JsonSerializerProvider
+public abstract class SerializerProvider
 {
     /*
     //////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ public abstract class JsonSerializerProvider
      *    as needed
      */
     public abstract void serializeValue(JsonGenerator jgen, Object value,
-                                        JsonSerializerFactory jsf)
+                                        SerializerFactory jsf)
         throws IOException, JsonGenerationException;
 
     /*
@@ -94,7 +94,7 @@ public abstract class JsonSerializerProvider
     /**
      * Method called to get the serializer to use if provider
      * can not determine an actual type-specific serializer
-     * to use; typically when none of {@link JsonSerializerFactory}
+     * to use; typically when none of {@link SerializerFactory}
      * instances are able to construct a serializer.
      *<p>
      * Typically, returned serializer will throw an exception,

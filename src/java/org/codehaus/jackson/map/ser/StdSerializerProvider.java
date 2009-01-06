@@ -6,14 +6,14 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.JsonSerializerFactory;
-import org.codehaus.jackson.map.JsonSerializerProvider;
+import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.ResolvableSerializer;
 
 /**
- * Default {@link JsonSerializerProvider} implementation. Handles
+ * Default {@link SerializerProvider} implementation. Handles
  * caching aspects of serializer handling; all construction details
- * are delegated to {@link JsonSerializerFactory} instance.
+ * are delegated to {@link SerializerFactory} instance.
  *<p>
  * One note about implementation: the main instance constructed will
  * be so-called "blueprint" object, and will NOT be used during actual
@@ -27,7 +27,7 @@ import org.codehaus.jackson.map.ResolvableSerializer;
  * Check is done to prevent weird bugs that would otherwise occur.
  */
 public class StdSerializerProvider
-    extends JsonSerializerProvider
+    extends SerializerProvider
 {
     /**
      * Setting for determining whether mappings for "unknown classes" should be
@@ -44,7 +44,7 @@ public class StdSerializerProvider
     public final static JsonSerializer<Object> DEFAULT_KEY_SERIALIZER = new StdKeySerializer();
 
     public final static JsonSerializer<Object> DEFAULT_UNKNOWN_SERIALIZER = new JsonSerializer<Object>() {
-        public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             throw new  JsonGenerationException("No serializer found for class "+value.getClass().getName());
@@ -57,7 +57,7 @@ public class StdSerializerProvider
     ////////////////////////////////////////////////////
      */
 
-    final protected JsonSerializerFactory _serializerFactory;
+    final protected SerializerFactory _serializerFactory;
 
     final protected SerializerCache _serializerCache;
 
@@ -134,7 +134,7 @@ public class StdSerializerProvider
      * sub-classes)
      */
     protected StdSerializerProvider(StdSerializerProvider src,
-                                    JsonSerializerFactory f)
+                                    SerializerFactory f)
     {
         _serializerFactory = f;
 
@@ -154,7 +154,7 @@ public class StdSerializerProvider
      * Overridable method, used to create a non-blueprint instances from the blueprint.
      * This is needed to retain state during serialization.
      */
-    protected StdSerializerProvider createInstance(JsonSerializerFactory jsf)
+    protected StdSerializerProvider createInstance(SerializerFactory jsf)
     {
         return new StdSerializerProvider(this, jsf);
     }
@@ -166,7 +166,7 @@ public class StdSerializerProvider
      */
 
     public final void serializeValue(JsonGenerator jgen, Object value,
-                                     JsonSerializerFactory jsf)
+                                     SerializerFactory jsf)
         throws IOException, JsonGenerationException
     {
         if (jsf == null) {

@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.JsonSerializerProvider;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Special bogus "serializer" that will throw
@@ -21,7 +21,7 @@ public final class FailingSerializer
     
     public FailingSerializer(String msg) { _msg = msg; }
     
-    public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
+    public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         throw new JsonGenerationException(_msg);

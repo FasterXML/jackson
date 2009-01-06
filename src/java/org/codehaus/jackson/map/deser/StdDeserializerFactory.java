@@ -3,8 +3,8 @@ package org.codehaus.jackson.map.deser;
 import java.util.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.JsonDeserializerFactory;
-import org.codehaus.jackson.map.JsonDeserializerProvider;
+import org.codehaus.jackson.map.DeserializerFactory;
+import org.codehaus.jackson.map.DeserializerProvider;
 import org.codehaus.jackson.map.type.*;
 
 /**
@@ -15,11 +15,11 @@ import org.codehaus.jackson.map.type.*;
  * Since all the deserializers are eagerly instantiated, and there is
  * no additional introspection or customazibility of these types,
  * this factory is stateless. This means that other delegating
- * factories (or {@link JsonDeserializerProvider}s) can just use the
+ * factories (or {@link DeserializerProvider}s) can just use the
  * shared singleton instance via static {@link #instance} field.
  */
 public class StdDeserializerFactory
-    extends JsonDeserializerFactory
+    extends DeserializerFactory
 {
     /*
     ////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ public class StdDeserializerFactory
      * Sub-classes can (and do) change this behavior to alter behavior.
      */
     @Override
-    public JsonDeserializer<Object> createDeserializer(JavaType type, JsonDeserializerProvider p)
+    public JsonDeserializer<Object> createDeserializer(JavaType type, DeserializerProvider p)
     {
         // First, fast lookup for exact type:
         JsonDeserializer<Object> ser = _concrete.get(type);
@@ -89,7 +89,7 @@ public class StdDeserializerFactory
     ////////////////////////////////////////////////////////////
      */
 
-    protected JsonDeserializer<Object> createArrayDeserializer(ArrayType type, JsonDeserializerProvider p)
+    protected JsonDeserializer<Object> createArrayDeserializer(ArrayType type, DeserializerProvider p)
     {
         Class<?> arrayClass = type.getRawClass();
 
@@ -103,19 +103,19 @@ public class StdDeserializerFactory
         return null;
     }
 
-    protected JsonDeserializer<Object> createMapDeserializer(MapType type, JsonDeserializerProvider p)
+    protected JsonDeserializer<Object> createMapDeserializer(MapType type, DeserializerProvider p)
     {
         // !!! TBI
         return null;
     }
 
-    protected JsonDeserializer<Object> createCollectionDeserializer(CollectionType type, JsonDeserializerProvider p)
+    protected JsonDeserializer<Object> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
     {
         // !!! TBI
         return null;
     }
 
-    protected JsonDeserializer<Object> createBeanDeserializer(JavaType type, JsonDeserializerProvider p)
+    protected JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
     {
         // !!! TBI
         return null;

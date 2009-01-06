@@ -4,7 +4,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.JsonSerializerFactory;
+import org.codehaus.jackson.map.SerializerFactory;
 
 /**
  * Serializer factory implementation that allows for defining static
@@ -17,7 +17,7 @@ import org.codehaus.jackson.map.JsonSerializerFactory;
  * if only static mappings are to be used.
  */
 public class CustomSerializerFactory
-    extends JsonSerializerFactory
+    extends SerializerFactory
 {
     /*
     ////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ public class CustomSerializerFactory
      * Factory to use if we do not have a registered serializer for
      * given type
      */
-    final JsonSerializerFactory _fallbackFactory;
+    final SerializerFactory _fallbackFactory;
 
     /**
      * First, direct mappings that are only used for exact class type
@@ -66,7 +66,7 @@ public class CustomSerializerFactory
      * Default constructor will use {@link BeanSerializerFactory}
      * as the fallback serializer factory.
      */
-    public CustomSerializerFactory(JsonSerializerFactory fallbackFactory) {
+    public CustomSerializerFactory(SerializerFactory fallbackFactory) {
         _fallbackFactory = fallbackFactory;
     }
 

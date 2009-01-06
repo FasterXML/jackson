@@ -4,10 +4,10 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.*;
 
 /**
- * Default implementation of {@link JsonDeserializationContext}.
+ * Default implementation of {@link DeserializationContext}.
  */
 public class StdDeserializationContext
-    extends JsonDeserializationContext
+    extends DeserializationContext
 {
     /**
      * Let's limit length of error messages, for cases where underlying data

@@ -6,7 +6,7 @@ import org.codehaus.jackson.JsonParser;
  * Context for deserialization process. Used to allow passing in configuration
  * settings and reusable temporary objects (scrap arrays, containers).
  */
-public abstract class JsonDeserializationContext
+public abstract class DeserializationContext
 {
 	public abstract JsonParser getParser();
 	

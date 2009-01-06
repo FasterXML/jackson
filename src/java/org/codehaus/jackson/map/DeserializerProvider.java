@@ -7,9 +7,9 @@ import org.codehaus.jackson.map.type.JavaType;
  * {@link JsonDeserializer}s to obtain deserializers capable of
  * re-constructing instances of handled type from Json content.
  */
-public abstract class JsonDeserializerProvider
+public abstract class DeserializerProvider
 {
-    protected JsonDeserializerProvider() { }
+    protected DeserializerProvider() { }
 
     /*
     //////////////////////////////////////////////////////
@@ -26,5 +26,5 @@ public abstract class JsonDeserializerProvider
      * Note: this method is only called for non-null values; not for keys
      * or null values. For these, check out other accessor methods.
      */
-    public abstract JsonDeserializer<Object> findValueDeserializer(JavaType type, JsonDeserializerFactory f);
+    public abstract JsonDeserializer<Object> findValueDeserializer(JavaType type, DeserializerFactory f);
 }

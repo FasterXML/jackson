@@ -36,12 +36,12 @@ public class ObjectMapper
      * It is configured with {@link #_serializerFactory} to allow
      * for constructing custom serializers.
      */
-    protected JsonSerializerProvider _serializerProvider;
+    protected SerializerProvider _serializerProvider;
 
     /**
      * Serializer factory used for constructing serializers.
      */
-    protected JsonSerializerFactory _serializerFactory;
+    protected SerializerFactory _serializerFactory;
 
     /**
      * Object that manages access to deserializers used for deserializing
@@ -50,12 +50,12 @@ public class ObjectMapper
      * It is configured with {@link #_deserializerFactory} to allow
      * for constructing custom deserializers.
      */
-    protected JsonDeserializerProvider _deserializerProvider;
+    protected DeserializerProvider _deserializerProvider;
 
     /**
      * Serializer factory used for constructing deserializers.
      */
-    protected JsonDeserializerFactory _deserializerFactory;
+    protected DeserializerFactory _deserializerFactory;
 
     /*
     ////////////////////////////////////////////////////
@@ -94,9 +94,9 @@ public class ObjectMapper
      * Default constructor, which will construct the default
      * {@link JsonFactory} as necessary, use
      * {@link StdSerializerProvider} as its
-     * {@link JsonSerializerProvider}, and
+     * {@link SerializerProvider}, and
      * {@link BeanSerializerFactory} as its
-     * {@link JsonSerializerFactory}.
+     * {@link SerializerFactory}.
      * This means that it
      * can serialize all standard JDK types, as well as regular
      * Java Beans (based on method names and Jackson-specific annotations),
@@ -112,8 +112,8 @@ public class ObjectMapper
         this(jf, null, null);
     }
 
-    public ObjectMapper(JsonFactory jf, JsonSerializerProvider sp,
-                          JsonDeserializerProvider dp)
+    public ObjectMapper(JsonFactory jf, SerializerProvider sp,
+                          DeserializerProvider dp)
     {
         super(jf);
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
@@ -126,17 +126,17 @@ public class ObjectMapper
         _deserializerFactory = StdDeserializerFactory.instance;
     }
 
-    public void setSerializerFactory(JsonSerializerFactory f) {
+    public void setSerializerFactory(SerializerFactory f) {
         _serializerFactory = f;
     }
-    public void setDeserializerFactory(JsonDeserializerFactory f) {
+    public void setDeserializerFactory(DeserializerFactory f) {
         _deserializerFactory = f;
     }
 
-    public void setSerializerProvider(JsonSerializerProvider p) {
+    public void setSerializerProvider(SerializerProvider p) {
         _serializerProvider = p;
     }
-    public void setDeserializerProvider(JsonDeserializerProvider p) {
+    public void setDeserializerProvider(DeserializerProvider p) {
         _deserializerProvider = p;
     }
 
@@ -397,7 +397,7 @@ public class ObjectMapper
         throws IOException, JsonParseException, JsonMappingException
     {
         _initForReading(jp);
-        JsonDeserializationContext ctxt = _createDeserializationContext(jp);
+        DeserializationContext ctxt = _createDeserializationContext(jp);
         // ok, let's get the value
         Object result = _findDeserializer(valueType).deserialize(jp, ctxt);
         // and then need to skip past the last event before returning
@@ -409,7 +409,7 @@ public class ObjectMapper
         throws IOException, JsonParseException, JsonMappingException
     {
         _initForReading(jp);
-        JsonDeserializationContext ctxt = _createDeserializationContext(jp);
+        DeserializationContext ctxt = _createDeserializationContext(jp);
         try {
             Object result = _findDeserializer(valueType).deserialize(jp, ctxt);
             // and then need to skip past the last event before returning
@@ -445,7 +445,7 @@ public class ObjectMapper
         return deser;
     }
 
-    protected JsonDeserializationContext _createDeserializationContext(JsonParser jp)
+    protected DeserializationContext _createDeserializationContext(JsonParser jp)
     {
         return new StdDeserializationContext(jp);
     }

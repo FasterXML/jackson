@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.JsonSerializerProvider;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Simple container class, used to store information about a single
@@ -71,7 +71,7 @@ public final class WritableBeanProperty
      * within given bean, and to serialize it as a Json Object field
      * using appropriate serializer.
      */
-    public void serializeAsField(Object bean, JsonGenerator jgen, JsonSerializerProvider prov)
+    public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
         throws IOException, JsonGenerationException,
                IllegalAccessException, InvocationTargetException
     {

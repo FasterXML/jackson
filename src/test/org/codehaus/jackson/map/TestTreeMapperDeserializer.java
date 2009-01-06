@@ -30,7 +30,7 @@ public class TestTreeMapperDeserializer
             JsonNode result;
 
             if (type == 0) {
-                result = mapper.read(jf.createJsonParser(new StringReader(JSON)));
+                result = mapper.readTree(jf.createJsonParser(new StringReader(JSON)));
             } else {
                 result = mapper.readTree(JSON);
             }
@@ -306,12 +306,12 @@ public class TestTreeMapperDeserializer
         JsonFactory jf = new JsonFactory();
         TreeMapper mapper = new TreeMapper();
         JsonParser jp = jf.createJsonParser(new StringReader(JSON));
-        JsonNode result = mapper.read(jp);
+        JsonNode result = mapper.readTree(jp);
 
         assertTrue(result.isObject());
         assertEquals(4, result.size());
 
-        assertNull(mapper.read(jp));
+        assertNull(mapper.readTree(jp));
     }
 
     public void testMultiple()
@@ -321,24 +321,24 @@ public class TestTreeMapperDeserializer
         JsonFactory jf = new JsonFactory();
         TreeMapper mapper = new TreeMapper();
         JsonParser jp = jf.createJsonParser(new StringReader(JSON));
-        JsonNode result = mapper.read(jp);
+        JsonNode result = mapper.readTree(jp);
 
         assertTrue(result.isIntegralNumber());
         assertTrue(result.isInt());
         assertFalse(result.isTextual());
         assertEquals(12, result.getIntValue());
 
-        result = mapper.read(jp);
+        result = mapper.readTree(jp);
         assertTrue(result.isTextual());
         assertFalse(result.isIntegralNumber());
         assertFalse(result.isInt());
         assertEquals("string", result.getTextValue());
 
-        result = mapper.read(jp);
+        result = mapper.readTree(jp);
         assertTrue(result.isArray());
         assertEquals(3, result.size());
 
-        assertNull(mapper.read(jp));
+        assertNull(mapper.readTree(jp));
     }
 
     /**

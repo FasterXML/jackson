@@ -3,19 +3,19 @@ package org.codehaus.jackson.map.deser;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.JsonDeserializerFactory;
-import org.codehaus.jackson.map.JsonDeserializerProvider;
+import org.codehaus.jackson.map.DeserializerFactory;
+import org.codehaus.jackson.map.DeserializerProvider;
 import org.codehaus.jackson.map.ResolvableDeserializer;
 import org.codehaus.jackson.map.type.JavaType;
 
 /**
- * Default {@link JsonDeserializerProvider} implementation.
+ * Default {@link DeserializerProvider} implementation.
  * Handles low-level caching (non-root) aspects of deserializer
  * handling; all construction details are delegated to given
- *  {@link JsonDeserializerFactory} instance.
+ *  {@link DeserializerFactory} instance.
  */
 public class StdDeserializerProvider
-    extends JsonDeserializerProvider
+    extends DeserializerProvider
 {
     /*
     ////////////////////////////////////////////////////
@@ -51,7 +51,7 @@ public class StdDeserializerProvider
 
     @Override
     public JsonDeserializer<Object> findValueDeserializer(JavaType type,
-                                                          JsonDeserializerFactory f)
+                                                          DeserializerFactory f)
     {
         // First: maybe we have already resolved this type?
         JsonDeserializer<Object> ser = _cachedDeserializers.get(type);
@@ -84,7 +84,7 @@ public class StdDeserializerProvider
     /* Refactored so we can isolate the cast that requires this
      * annotation...
      */
-    protected JsonDeserializer<Object> _createDeserializer(JsonDeserializerFactory f, JavaType type)
+    protected JsonDeserializer<Object> _createDeserializer(DeserializerFactory f, JavaType type)
     {
         return (JsonDeserializer<Object>)f.createDeserializer(type, this);
     }

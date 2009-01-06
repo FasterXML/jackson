@@ -6,7 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.JsonDeserializationContext;
+import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonMappingException;
 
 /**
@@ -19,7 +19,7 @@ public final class UntypedObjectDeserializer
 {
     public UntypedObjectDeserializer() { }
     
-    public Object deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+    public Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         switch (jp.getCurrentToken()) {
@@ -58,7 +58,7 @@ public final class UntypedObjectDeserializer
         throw ctxt.mappingException(Object.class);
     }
 
-    protected List<Object> mapArray(JsonParser jp, JsonDeserializationContext ctxt)
+    protected List<Object> mapArray(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         ArrayList<Object> result = new ArrayList<Object>();
@@ -68,7 +68,7 @@ public final class UntypedObjectDeserializer
         return result;
     }
 
-    protected Map<String,Object> mapObject(JsonParser jp, JsonDeserializationContext ctxt)
+    protected Map<String,Object> mapObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         LinkedHashMap<String, Object> result = new LinkedHashMap<String, Object>();

@@ -7,7 +7,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.JsonSerializerFactory;
+import org.codehaus.jackson.map.SerializerFactory;
 
 /**
  * Factory class that can provide serializers for any regular Java beans
@@ -29,11 +29,11 @@ import org.codehaus.jackson.map.JsonSerializerFactory;
  * we want to check if a type is a bean after some of "standard" JDK
  * types, but before the rest.
  * As a result, "mixed" delegation used, and calls are NOT done using
- * regular {@link JsonSerializerFactory} interface but rather via
+ * regular {@link SerializerFactory} interface but rather via
  * direct calls to {@link StdSerializerFactory}.
  */
 public class BeanSerializerFactory
-    extends JsonSerializerFactory
+    extends SerializerFactory
 {
     /**
      * Like {@link StdSerializerFactory}, this factory is stateless, and

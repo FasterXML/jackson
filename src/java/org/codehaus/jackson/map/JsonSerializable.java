@@ -7,7 +7,7 @@ import org.codehaus.jackson.*;
 /**
  * Interface that can be implemented by objects that know how to
  * serialize themselves to Json, using {@link JsonGenerator}
- * (and {@link JsonSerializerProvider} if necessary).
+ * (and {@link SerializerProvider} if necessary).
  *<p>
  * Note that implementing this interface binds implementing object
  * closely to Jackson API, and that it is often not necessary to do
@@ -16,6 +16,6 @@ import org.codehaus.jackson.*;
  */
 public interface JsonSerializable
 {
-    public void serialize(JsonGenerator jgen, JsonSerializerProvider provider)
+    public void serialize(JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException;
 }

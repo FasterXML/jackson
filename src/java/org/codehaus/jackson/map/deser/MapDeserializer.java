@@ -7,7 +7,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.JsonDeserializationContext;
+import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.type.*;
 
@@ -38,7 +38,7 @@ public class MapDeserializer
         _valueDeserializer = valueDeser;
     }
 
-    public Map<?,?> deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+    public Map<?,?> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_OBJECT

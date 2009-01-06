@@ -20,6 +20,6 @@ public abstract class JsonSerializer<T>
      * @param provider Provider that can be used to get serializers for
      *   serializing Objects value contains, if any.
      */
-    public abstract void serialize(T value, JsonGenerator jgen, JsonSerializerProvider provider)
+    public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException;
 }

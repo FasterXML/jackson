@@ -8,7 +8,7 @@ import java.util.Collection;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.JsonSerializerProvider;
+import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.ResolvableSerializer;
 
 /**
@@ -43,7 +43,7 @@ public final class BeanSerializer
         this(type, props.toArray(new WritableBeanProperty[props.size()]));
     }
 
-    public void serialize(Object bean, JsonGenerator jgen, JsonSerializerProvider provider)
+    public void serialize(Object bean, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         jgen.writeStartObject();
@@ -68,7 +68,7 @@ public final class BeanSerializer
     ////////////////////////////////////////////////////////
      */
 
-    public void resolve(JsonSerializerProvider provider)
+    public void resolve(SerializerProvider provider)
     {
         for (WritableBeanProperty prop : _props) {
             if (!prop.hasSerializer()) {

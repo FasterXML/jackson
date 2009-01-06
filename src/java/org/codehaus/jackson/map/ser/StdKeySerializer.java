@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.JsonSerializerProvider;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Specialized serializer that can be used as the generic key
@@ -17,7 +17,7 @@ public final class StdKeySerializer
 {
     final static StdKeySerializer instace = new StdKeySerializer();
     
-    public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
+    public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         String keyStr = (value.getClass() == String.class) ?

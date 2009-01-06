@@ -32,9 +32,9 @@ public class JavaTypeMapper
      * Default constructor, which will construct the default
      * {@link JsonFactory} as necessary, use
      * {@link StdSerializerProvider} as its
-     * {@link JsonSerializerProvider}, and
+     * {@link SerializerProvider}, and
      * {@link BeanSerializerFactory} as its
-     * {@link JsonSerializerFactory}.
+     * {@link SerializerFactory}.
      * This means that it
      * can serialize all standard JDK types, as well as regular
      * Java Beans (based on method names and Jackson-specific annotations),
@@ -50,8 +50,8 @@ public class JavaTypeMapper
         this(jf, null, null);
     }
 
-    public JavaTypeMapper(JsonFactory jf, JsonSerializerProvider sp,
-                          JsonDeserializerProvider dp)
+    public JavaTypeMapper(JsonFactory jf, SerializerProvider sp,
+                          DeserializerProvider dp)
     {
         super(jf, sp, dp);
     }

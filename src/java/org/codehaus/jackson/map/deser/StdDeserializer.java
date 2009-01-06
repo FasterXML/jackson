@@ -6,7 +6,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.JsonDeserializationContext;
+import org.codehaus.jackson.map.DeserializationContext;
 
 /**
  * Base class for simple standard deserializers
@@ -34,7 +34,7 @@ public abstract class StdDeserializer<T>
     {
         public StringDeserializer() { }
 
-        public String deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+        public String deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken curr = jp.getCurrentToken();
@@ -61,7 +61,7 @@ public abstract class StdDeserializer<T>
     {
         public BooleanDeserializer() { }
         
-        public Boolean deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+        public Boolean deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             // We accept couple of different types; obvious ones first:
@@ -99,7 +99,7 @@ public abstract class StdDeserializer<T>
     {
         public ByteDeserializer() { }
 
-        public Byte deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+        public Byte deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -135,7 +135,7 @@ public abstract class StdDeserializer<T>
     {
         public ShortDeserializer() { }
 
-        public Short deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+        public Short deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -171,7 +171,7 @@ public abstract class StdDeserializer<T>
     {
         public CharacterDeserializer() { }
 
-        public Character deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+        public Character deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -200,7 +200,7 @@ public abstract class StdDeserializer<T>
     {
         public IntegerDeserializer() { }
 
-        public Integer deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+        public Integer deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             // We accept couple of different types; obvious ones first:
@@ -236,7 +236,7 @@ public abstract class StdDeserializer<T>
     {
         public LongDeserializer() { }
 
-        public Long deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+        public Long deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             // We accept couple of different types; obvious ones first:
@@ -272,7 +272,7 @@ public abstract class StdDeserializer<T>
     {
         public FloatDeserializer() { }
 
-        public Float deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+        public Float deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             // We accept couple of different types; obvious ones first:
@@ -305,7 +305,7 @@ public abstract class StdDeserializer<T>
     {
         public DoubleDeserializer() { }
 
-        public Double deserialize(JsonParser jp, JsonDeserializationContext ctxt)
+        public Double deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             // We accept couple of different types; obvious ones first:

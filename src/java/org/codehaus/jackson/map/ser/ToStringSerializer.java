@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.JsonSerializerProvider;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Simple general purpose serializer, useful for any
@@ -22,7 +22,7 @@ public final class ToStringSerializer
 
     private ToStringSerializer() { } // no instantiation, use singleton
     
-    public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
+    public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         jgen.writeString(value.toString());

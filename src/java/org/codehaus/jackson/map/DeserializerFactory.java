@@ -3,7 +3,7 @@ package org.codehaus.jackson.map;
 import org.codehaus.jackson.map.type.JavaType;
 
 /**
- * Abstract class that defines API used by {@link JsonDeserializerProvider}
+ * Abstract class that defines API used by {@link DeserializerProvider}
  * to obtain actual
  * {@link JsonDeserializer} instances from multiple distinct factories.
  *<p>
@@ -25,7 +25,7 @@ import org.codehaus.jackson.map.type.JavaType;
  * All above methods take 2 type arguments, except for the first one
  * which takes just a single argument.
  */
-public abstract class JsonDeserializerFactory
+public abstract class DeserializerFactory
 {
     /**
      * Method called to create (or, for completely immutable deserializers,
@@ -36,5 +36,5 @@ public abstract class JsonDeserializerFactory
      * @param p Provider that can be called to create deserializers for
      *   contained member types
      */
-    public abstract JsonDeserializer<Object> createDeserializer(JavaType type, JsonDeserializerProvider p);
+    public abstract JsonDeserializer<Object> createDeserializer(JavaType type, DeserializerProvider p);
 }

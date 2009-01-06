@@ -9,8 +9,8 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializable;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.JsonSerializerFactory;
-import org.codehaus.jackson.map.JsonSerializerProvider;
+import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Factory class that can provide serializers for standard JDK classes,
@@ -20,11 +20,11 @@ import org.codehaus.jackson.map.JsonSerializerProvider;
  * Since all the serializers are eagerly instantiated, and there is
  * no additional introspection or customazibility of these types,
  * this factory is stateless. This means that other delegating
- * factories (or {@link JsonSerializerProvider}s) can just use the
+ * factories (or {@link SerializerProvider}s) can just use the
  * shared singleton instance via static {@link #instance} field.
  */
 public class StdSerializerFactory
-    extends JsonSerializerFactory
+    extends SerializerFactory
 {
     /*
     ////////////////////////////////////////////////////////////
@@ -300,7 +300,7 @@ public class StdSerializerFactory
     {
         final static BooleanSerializer instance = new BooleanSerializer();
 
-        public void serialize(Boolean value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Boolean value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeBoolean(value.booleanValue());
@@ -313,7 +313,7 @@ public class StdSerializerFactory
     public final static class StringSerializer
         extends JsonSerializer<String>
     {
-        public void serialize(String value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value);
@@ -330,7 +330,7 @@ public class StdSerializerFactory
     {
         public final static StringLikeSerializer instance = new StringLikeSerializer();
 
-        public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());
@@ -346,7 +346,7 @@ public class StdSerializerFactory
     public final static class IntegerSerializer
         extends JsonSerializer<Integer>
     {
-        public void serialize(Integer value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Integer value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.intValue());
@@ -363,7 +363,7 @@ public class StdSerializerFactory
     {
         final static IntLikeSerializer instance = new IntLikeSerializer();
 
-        public void serialize(Number value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.intValue());
@@ -375,7 +375,7 @@ public class StdSerializerFactory
     {
         final static LongSerializer instance = new LongSerializer();
 
-        public void serialize(Long value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Long value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.longValue());
@@ -387,7 +387,7 @@ public class StdSerializerFactory
     {
         final static FloatSerializer instance = new FloatSerializer();
 
-        public void serialize(Float value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Float value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.floatValue());
@@ -399,7 +399,7 @@ public class StdSerializerFactory
     {
         final static DoubleSerializer instance = new DoubleSerializer();
 
-        public void serialize(Double value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Double value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.doubleValue());
@@ -415,7 +415,7 @@ public class StdSerializerFactory
     {
         public final static NumberSerializer instance = new NumberSerializer();
 
-        public void serialize(Number value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             // We'll have to use fallback "untyped" number write method
@@ -439,7 +439,7 @@ public class StdSerializerFactory
     {
         public final static IndexedListSerializer instance = new IndexedListSerializer();
 
-        public void serialize(List<?> value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(List<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -485,7 +485,7 @@ public class StdSerializerFactory
     {
         public final static CollectionSerializer instance = new CollectionSerializer();
 
-        public void serialize(Collection<?> value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Collection<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -522,7 +522,7 @@ public class StdSerializerFactory
     public final static class IteratorSerializer
         extends JsonSerializer<Iterator<?>>
     {
-        public void serialize(Iterator<?> value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Iterator<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -555,7 +555,7 @@ public class StdSerializerFactory
     public final static class IterableSerializer
         extends JsonSerializer<Iterable<?>>
     {
-        public void serialize(Iterable<?> value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Iterable<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -591,7 +591,7 @@ public class StdSerializerFactory
     {
         public final static CollectionSerializer instance = new CollectionSerializer();
 
-        public void serialize(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -613,7 +613,7 @@ public class StdSerializerFactory
     {
         public final static MapSerializer instance = new MapSerializer();
 
-        public void serialize(Map<?,?> value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartObject();
@@ -660,7 +660,7 @@ public class StdSerializerFactory
     public final static class EnumMapSerializer
         extends JsonSerializer<EnumMap<? extends Enum<?>, ?>>
     {
-		public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, JsonSerializerProvider provider)
+		public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartObject();
@@ -705,7 +705,7 @@ public class StdSerializerFactory
     {
         public final static ObjectArraySerializer instance = new ObjectArraySerializer();
 
-        public void serialize(Object[] value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Object[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -739,7 +739,7 @@ public class StdSerializerFactory
     public final static class StringArraySerializer
         extends JsonSerializer<String[]>
     {
-        public void serialize(String[] value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(String[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -764,7 +764,7 @@ public class StdSerializerFactory
     public final static class BooleanArraySerializer
         extends JsonSerializer<boolean[]>
     {
-        public void serialize(boolean[] value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(boolean[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -783,7 +783,7 @@ public class StdSerializerFactory
     public final static class ByteArraySerializer
         extends JsonSerializer<byte[]>
     {
-        public void serialize(byte[] value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(byte[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeBinary(value);
@@ -793,7 +793,7 @@ public class StdSerializerFactory
     public final static class ShortArraySerializer
         extends JsonSerializer<short[]>
     {
-        public void serialize(short[] value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(short[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -812,7 +812,7 @@ public class StdSerializerFactory
     public final static class CharArraySerializer
         extends JsonSerializer<char[]>
     {
-        public void serialize(char[] value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(char[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value, 0, value.length);
@@ -822,7 +822,7 @@ public class StdSerializerFactory
     public final static class IntArraySerializer
         extends JsonSerializer<int[]>
     {
-        public void serialize(int[] value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(int[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -836,7 +836,7 @@ public class StdSerializerFactory
     public final static class LongArraySerializer
         extends JsonSerializer<long[]>
     {
-        public void serialize(long[] value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(long[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -850,7 +850,7 @@ public class StdSerializerFactory
     public final static class FloatArraySerializer
         extends JsonSerializer<float[]>
     {
-        public void serialize(float[] value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(float[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -864,7 +864,7 @@ public class StdSerializerFactory
     public final static class DoubleArraySerializer
         extends JsonSerializer<double[]>
     {
-        public void serialize(double[] value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(double[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -884,7 +884,7 @@ public class StdSerializerFactory
     public final static class EnumSerializer
         extends JsonSerializer<Enum<?>>
     {
-        public void serialize(Enum<?> value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Enum<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.name());
@@ -900,7 +900,7 @@ public class StdSerializerFactory
         extends JsonSerializer<Calendar>
     {
         public final static CalendarSerializer instance = new CalendarSerializer();
-        public void serialize(Calendar value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Calendar value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.getTimeInMillis());
@@ -911,7 +911,7 @@ public class StdSerializerFactory
         extends JsonSerializer<Date>
     {
         public final static DateSerializer instance = new DateSerializer();
-        public void serialize(Date value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Date value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.getTime());
@@ -930,7 +930,7 @@ public class StdSerializerFactory
 
         private NullSerializer() { }
 
-        public void serialize(Object value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNull();
@@ -944,7 +944,7 @@ public class StdSerializerFactory
 
         private SerializableSerializer() { }
 
-        public void serialize(JsonSerializable value, JsonGenerator jgen, JsonSerializerProvider provider)
+        public void serialize(JsonSerializable value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             value.serialize(jgen, provider);

@@ -11,6 +11,6 @@ import org.codehaus.jackson.*;
  */
 public abstract class KeyDeserializer
 {
-    public abstract Object deserializeKey(String key, JsonDeserializationContext ctxt)
+    public abstract Object deserializeKey(String key, DeserializationContext ctxt)
         throws IOException, JsonProcessingException;
 }
