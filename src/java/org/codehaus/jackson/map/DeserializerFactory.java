@@ -1,6 +1,6 @@
 package org.codehaus.jackson.map;
 
-import org.codehaus.jackson.map.type.JavaType;
+import org.codehaus.jackson.map.type.*;
 
 /**
  * Abstract class that defines API used by {@link DeserializerProvider}
@@ -30,11 +30,34 @@ public abstract class DeserializerFactory
     /**
      * Method called to create (or, for completely immutable deserializers,
      * reuse) a deserializer that can convert Json content into values of
+     * specified Java "bean" (POJO) type.
+     * At this point it is known that the type is not otherwise recognized
+     * as one of structured types (array, Collection, Map) or a well-known
+     * JDK type (enum, primitives/wrappers, String); this method only
+     * gets called if other options are exhausted. This also means that
+     * this method can be overridden to add support for custom types.
+     *
+     * @param type Type to be deserialized
+     * @param p Provider that can be called to create deserializers for
+     *   contained member types
+     */
+    public abstract JsonDeserializer<?> createBeanDeserializer(JavaType type, DeserializerProvider p);
+
+    /**
+     * Method called to create (or, for completely immutable deserializers,
+     * reuse) a deserializer that can convert Json content into values of
      * specified Java type.
      *
      * @param type Type to be deserialized
      * @param p Provider that can be called to create deserializers for
      *   contained member types
      */
-    public abstract JsonDeserializer<Object> createDeserializer(JavaType type, DeserializerProvider p);
+    public abstract JsonDeserializer<?> createArrayDeserializer(ArrayType type, DeserializerProvider p);
+
+    public abstract JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p);
+
+    public abstract JsonDeserializer<?> createEnumDeserializer(SimpleType type, DeserializerProvider p);
+
+    public abstract JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p);
+
 }

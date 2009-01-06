@@ -216,6 +216,20 @@ public class ObjectMapper
     } 
 
     @SuppressWarnings("unchecked")
+    public <T> T readValue(String content, Class<T> valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(content), TypeFactory.instance.fromClass(valueType));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(String content, TypeReference valueTypeRef)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(content), TypeFactory.instance.fromTypeReference(valueTypeRef));
+    } 
+
+    @SuppressWarnings("unchecked")
     public <T> T readValue(Reader src, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {

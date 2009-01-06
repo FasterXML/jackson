@@ -13,11 +13,18 @@ import org.codehaus.jackson.map.type.*;
 
 /**
  * Basic serializer that can take Json "Object" structure and
- * construct a {@link java.util.Map} instance
+ * construct a {@link java.util.Map} instance, with typed contents.
+ *<p>
+ * Note: for untyped content (one indicated by passing Object.class
+ * as the type), {@link UntypedObjectDeserializer} is used instead.
+ * It can also construct {@link java.util.Map}s, but not with specific
+ * POJO types, only other containers and primitives/wrappers.
  */
 public class MapDeserializer
     extends StdDeserializer<Map<?,?>>
 {
+    // // Configuration
+
     final Class<Map<Object,Object>> _mapClass;
 
     /**

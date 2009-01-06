@@ -92,6 +92,8 @@ public final class ArrayType
 
     public boolean isContainerType() { return true; }
 
+    public JavaType getComponentType() { return  _componentType; }
+
     /*
     //////////////////////////////////////////////////////////
     // Extended API

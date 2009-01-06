@@ -56,6 +56,10 @@ public abstract class JavaType
      */
     public abstract boolean isContainerType();
 
+    public final boolean isArrayType() { return _class.isArray(); }
+
+    public final boolean isEnumType() { return _class.isEnum(); }
+
     /*
     ///////////////////////////////////////////////////////////////
     // Standard methods; let's make them abstract to force override

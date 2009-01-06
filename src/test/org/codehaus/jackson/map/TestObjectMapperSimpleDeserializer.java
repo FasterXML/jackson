@@ -9,6 +9,10 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
+/**
+ * Unit tests for verifying handling of simple basic non-structured
+ * types; primitives (and/or their wrappers), Strings.
+ */
 public class TestObjectMapperSimpleDeserializer
     extends BaseTest
 {

@@ -27,4 +27,10 @@ public abstract class DeserializerProvider
      * or null values. For these, check out other accessor methods.
      */
     public abstract JsonDeserializer<Object> findValueDeserializer(JavaType type, DeserializerFactory f);
+
+    /**
+     * Method called to get hold of a deserializer to use for deserializing
+     * keys for {@link java.util.Map}.
+     */
+    public abstract KeyDeserializer findKeyDeserializer(JavaType type, DeserializerFactory f);
 }

@@ -2,9 +2,10 @@ package org.codehaus.jackson.map.deser;
 
 import java.util.*;
 
-import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializerFactory;
 import org.codehaus.jackson.map.DeserializerProvider;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.type.*;
 
 /**
@@ -21,18 +22,10 @@ import org.codehaus.jackson.map.type.*;
 public class StdDeserializerFactory
     extends DeserializerFactory
 {
-    /*
-    ////////////////////////////////////////////////////////////
-    // Configuration, lookup tables/maps
-    ////////////////////////////////////////////////////////////
-     */
+    // // Can cache some types
 
-    /**
-     * We will pre-create serializers for common non-structured
-     * (that is things other than Collection, Map or array)
-     * types.
-     */
-    final static HashMap<JavaType, JsonDeserializer<Object>> _concrete = StdDeserializers.constructAll();
+    final static JavaType _typeObject = TypeFactory.instance.fromClass(Object.class);
+    final static JavaType _typeString = TypeFactory.instance.fromClass(String.class);
 
     /*
     ////////////////////////////////////////////////////////////
@@ -55,67 +48,49 @@ public class StdDeserializerFactory
     ////////////////////////////////////////////////////////////
      */
 
-    /**
-     * Main serializer constructor method. The base implementation within
-     * this class first calls a fast lookup method that can find serializers
-     * for well-known JDK classes; and if that fails, a slower one that
-     * tries to check out which interfaces given Class implements.
-     * Sub-classes can (and do) change this behavior to alter behavior.
-     */
-    @Override
-    public JsonDeserializer<Object> createDeserializer(JavaType type, DeserializerProvider p)
-    {
-        // First, fast lookup for exact type:
-        JsonDeserializer<Object> ser = _concrete.get(type);
-        if (ser != null) {
-            return ser;
-        }
-        // And lacking that, divide by type
-        if (type instanceof ArrayType) {
-            return createArrayDeserializer((ArrayType) type, p);
-        }
-        if (type instanceof MapType) {
-            return createMapDeserializer((MapType) type, p);
-        }
-        if (type instanceof CollectionType) {
-            return createCollectionDeserializer((CollectionType) type, p);
-        }
-        return createBeanDeserializer(type, p);
-    }
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Specific type-specific factory methods
-    ////////////////////////////////////////////////////////////
-     */
-
-    protected JsonDeserializer<Object> createArrayDeserializer(ArrayType type, DeserializerProvider p)
+    public JsonDeserializer<Object> createArrayDeserializer(ArrayType type, DeserializerProvider p)
     {
         Class<?> arrayClass = type.getRawClass();
 
         // First, special type(s):
 
-        // EnumMap requires special handling
-        if (EnumMap.class.isAssignableFrom(arrayClass)) {
+        // !!! TBI
+        return null;
+    }
+
+    public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
+    {
+        JavaType keyType = type.getKeyType();
+        // Value handling is identical for all, so:
+        JavaType valueType = type.getValueType();
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, this);
+
+        Class<?> mapClass = type.getRawClass();
+        // But EnumMap requires special handling for keys
+        if (EnumMap.class.isAssignableFrom(mapClass)) {
+            return new EnumMapDeserializer(new EnumResolver(keyType.getRawClass()), valueDes);
         }
 
-        // !!! TBI
-        return null;
+        /* Otherwise, generic handler works ok; need a key deserializer (null 
+         * indicates 'default' here)
+         */
+        KeyDeserializer keyDes = (_typeString.equals(keyType)) ? null : p.findKeyDeserializer(keyType, this);
+        return new MapDeserializer(type, keyDes, valueDes);
     }
 
-    protected JsonDeserializer<Object> createMapDeserializer(MapType type, DeserializerProvider p)
+    public JsonDeserializer<Object> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
     {
         // !!! TBI
         return null;
     }
 
-    protected JsonDeserializer<Object> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
+    public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
     {
         // !!! TBI
         return null;
     }
 
-    protected JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
+    public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
     {
         // !!! TBI
         return null;
