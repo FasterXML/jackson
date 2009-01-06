@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.type;
 
+import java.lang.reflect.Modifier;
+
 /**
  * Base class for type token classes used both to contain information
  * and as keys for deserializers.
@@ -56,9 +58,15 @@ public abstract class JavaType
      */
     public abstract boolean isContainerType();
 
+    public final boolean isAbstract() {
+        return Modifier.isAbstract(_class.getModifiers());
+    }
+
     public final boolean isArrayType() { return _class.isArray(); }
 
     public final boolean isEnumType() { return _class.isEnum(); }
+
+    public final boolean isInterface() { return _class.isInterface(); }
 
     /*
     ///////////////////////////////////////////////////////////////

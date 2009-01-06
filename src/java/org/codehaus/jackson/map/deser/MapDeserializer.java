@@ -9,7 +9,6 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.KeyDeserializer;
-import org.codehaus.jackson.map.type.*;
 
 /**
  * Basic serializer that can take Json "Object" structure and
@@ -38,9 +37,10 @@ public class MapDeserializer
      */
     final JsonDeserializer<Object> _valueDeserializer;
 
-    public MapDeserializer(MapType mapType, KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser)
+    @SuppressWarnings("unchecked") 
+    public MapDeserializer(Class<?> mapClass, KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser)
     {
-        _mapClass = mapType.asMapClass();
+        _mapClass = (Class<Map<Object,Object>>) mapClass;
         _keyDeserializer = keyDeser;
         _valueDeserializer = valueDeser;
     }
@@ -59,12 +59,10 @@ public class MapDeserializer
         } catch (Exception e) {
             throw ctxt.instantiationException(_mapClass, e);
         }
-        @SuppressWarnings("unused")
-            JsonToken t;
         KeyDeserializer keyDes = _keyDeserializer;
         JsonDeserializer<Object> valueDes = _valueDeserializer;
 
-        while ((t = jp.nextToken()) != JsonToken.END_OBJECT) {
+        while ((jp.nextToken()) != JsonToken.END_OBJECT) {
             // Must point to field name
             String fieldName = jp.getCurrentName();
             Object key = (keyDes == null) ? fieldName : keyDes.deserializeKey(fieldName, ctxt);

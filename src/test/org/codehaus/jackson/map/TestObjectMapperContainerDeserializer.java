@@ -16,6 +16,22 @@ import org.codehaus.jackson.map.type.TypeReference;
 public class TestObjectMapperContainerDeserializer
     extends BaseTest
 {
+    /*
+    ///////////////////////////////////////////////////////
+    // Helper classes/enums
+    ///////////////////////////////////////////////////////
+     */
+
+    enum Key {
+        KEY1, KEY2, WHATEVER;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Map tests
+    ///////////////////////////////////////////////////////
+     */
+
     public void testUntypedMap() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -50,9 +66,36 @@ public class TestObjectMapperContainerDeserializer
         assertEquals(HashMap.class, result.getClass());
         assertEquals(3, result.size());
 
-        // !!! TBI
+        assertEquals(Integer.valueOf(13), result.get("foo"));
+        assertEquals(Integer.valueOf(-39), result.get("bar"));
+        assertEquals(Integer.valueOf(0), result.get(""));
+        assertNull(result.get("foobar"));
+        assertNull(result.get(" "));
     }
 
+    public void testExactStringStringMap() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // to get typing, must use type reference
+        String JSON = "{ \"a\" : \"b\" }";
+        Map<String,Integer> result = mapper.readValue
+            (JSON, new TypeReference<TreeMap<String,String>>() { });
+
+        assertNotNull(result);
+        assertEquals(TreeMap.class, result.getClass());
+        assertEquals(1, result.size());
+
+        assertEquals("b", result.get("a"));
+        assertNull(result.get("b"));
+    }
+
+    /**
+     * Unit test that verifies that it's ok to have incomplete
+     * information about Map class itself, as long as it's something
+     * we good guess about: for example, <code>Map.Class</code> will
+     * be replaced by something like <code>HashMap.class</code>,
+     * if given.
+     */
     public void testGenericStringIntMap() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -64,6 +107,40 @@ public class TestObjectMapperContainerDeserializer
         assertTrue(result instanceof Map);
         assertEquals(3, result.size());
 
-        // !!! TBI
+        assertEquals(Integer.valueOf(-99), result.get("c"));
+        assertEquals(Integer.valueOf(2), result.get("b"));
+        assertEquals(Integer.valueOf(1), result.get("a"));
+
+        assertNull(result.get(""));
     }
+
+    public void testEnumMap() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        String JSON = "{ \"KEY1\" : \"\", \"WHATEVER\" : null }";
+
+        // to get typing, must use type reference
+        EnumMap<Key,String> result = mapper.readValue
+            (JSON, new TypeReference<EnumMap<Key,String>>() { });
+
+        assertNotNull(result);
+        assertEquals(EnumMap.class, result.getClass());
+        assertEquals(2, result.size());
+
+        assertEquals("", result.get(Key.KEY1));
+        // null should be ok too...
+        assertTrue(result.containsKey(Key.WHATEVER));
+        assertNull(result.get(Key.WHATEVER));
+
+        // plus we have nothing for this key
+        assertFalse(result.containsKey(Key.KEY2));
+        assertNull(result.get(Key.KEY2));
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Collection tests
+    ///////////////////////////////////////////////////////
+     */
+
 }

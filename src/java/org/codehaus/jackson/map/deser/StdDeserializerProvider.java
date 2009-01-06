@@ -77,8 +77,12 @@ public class StdDeserializerProvider
         }
         // If not, need to construct.
         ser = _createDeserializer(f, type);
-        if (ser == null) { // can't? let caller deal with it
-            return null;
+        if (ser == null) {
+            /* Should we let caller handle it? But we do have recursive
+             * calls; that will get tricky if we do it. Plus, may not retain
+             * enough information to be useful.
+             */
+            throw new IllegalArgumentException("Can not find a deserializer for type "+type);
         }
         /* Finally: some deserializers want to do post-processing.
          * Those types also must be added to the lookup map, to prevent
