@@ -8,8 +8,8 @@ import java.lang.reflect.Type;
  * [http://gafter.blogspot.com/2006/12/super-type-tokens.html].
  */
 public abstract class TypeReference<T>
-/* And to further make things more robust, we'll use the suggestion
- * from comments, of ensuring that a Type argument is indeed given
+/* And to further make things more robust we'll use the suggestion
+ * from comments, to ensure that a Type argument is indeed given
  */
     implements Comparable<TypeReference<T>>
 {
@@ -39,7 +39,7 @@ public abstract class TypeReference<T>
      * reference without type information.
      */
     public int compareTo(TypeReference<T> o) {
-        // just need an implemented, not a good one... hence:
+        // just need an implementation, not a good one... hence:
         return 0;
     }
 }

@@ -61,15 +61,18 @@ public class TestObjectMapperSimpleDeserializer
      */
     public void testSequenceOfInts() throws Exception
     {
+        final int NR_OF_INTS = 100;
+
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 100; ++i) {
+        for (int i = 0; i < NR_OF_INTS; ++i) {
             sb.append(" ");
             sb.append(i);
         }
 
         ObjectMapper mapper = new ObjectMapper();
-        for (int i = 0; i < 100; ++i) {
-            Integer result = mapper.readValue(new StringReader(sb.toString()), Integer.class);
+        JsonParser jp = mapper.getJsonFactory().createJsonParser(sb.toString());
+        for (int i = 0; i < NR_OF_INTS; ++i) {
+            Integer result = mapper.readValue(jp, Integer.class);
             assertEquals(Integer.valueOf(i), result);
         }
     }
