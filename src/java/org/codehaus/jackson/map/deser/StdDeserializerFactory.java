@@ -32,11 +32,7 @@ public class StdDeserializerFactory
      * (that is things other than Collection, Map or array)
      * types.
      */
-    final static HashMap<JavaType, JsonDeserializer<Object>> _concrete = 
-        new HashMap<JavaType, JsonDeserializer<Object>>();
-    static {
-        // !!! TODO
-    }
+    final static HashMap<JavaType, JsonDeserializer<Object>> _concrete = StdDeserializers.constructAll();
 
     /*
     ////////////////////////////////////////////////////////////

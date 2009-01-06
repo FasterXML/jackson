@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import java.io.*;
+import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
@@ -142,7 +143,8 @@ public class ObjectMapper
     /*
     ////////////////////////////////////////////////////
     // Public API: deserialization
-    // (mapping from Json to Java types)
+    // (mapping from Json to Java types);
+    // main methods
     ////////////////////////////////////////////////////
      */
 
@@ -158,7 +160,7 @@ public class ObjectMapper
      */
     @SuppressWarnings("unchecked")
     public <T> T readValue(JsonParser jp, Class<T> valueType)
-        throws IOException, JsonParseException
+        throws IOException, JsonParseException, JsonMappingException
     {
         return (T) _readValue(jp, TypeFactory.instance.fromClass(valueType));
     } 
@@ -172,9 +174,73 @@ public class ObjectMapper
      */
     @SuppressWarnings("unchecked")
     public <T> T readValue(JsonParser jp, TypeReference valueTypeRef)
-        throws IOException, JsonParseException
+        throws IOException, JsonParseException, JsonMappingException
     {
         return (T) _readValue(jp, TypeFactory.instance.fromTypeReference(valueTypeRef));
+    } 
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API: deserialization
+    // (mapping from Json to Java types);
+    // additional convenience methods
+    ////////////////////////////////////////////////////
+     */
+
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(File src, Class<T> valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.instance.fromClass(valueType));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(File src, TypeReference valueTypeRef)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.instance.fromTypeReference(valueTypeRef));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(URL src, Class<T> valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.instance.fromClass(valueType));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(URL src, TypeReference valueTypeRef)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.instance.fromTypeReference(valueTypeRef));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(Reader src, Class<T> valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.instance.fromClass(valueType));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(Reader src, TypeReference valueTypeRef)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.instance.fromTypeReference(valueTypeRef));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(InputStream src, Class<T> valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.instance.fromClass(valueType));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(InputStream src, TypeReference valueTypeRef)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.instance.fromTypeReference(valueTypeRef));
     } 
 
     /*
@@ -189,7 +255,7 @@ public class ObjectMapper
      * Json output, using provided {@link JsonGenerator}.
      */
     public void writeValue(JsonGenerator jgen, Object value)
-        throws IOException, JsonGenerationException
+        throws IOException, JsonGenerationException, JsonMappingException
     {
         _serializerProvider.serializeValue(jgen, value, _serializerFactory);
         jgen.flush();
@@ -200,7 +266,7 @@ public class ObjectMapper
      * Json output, written to File provided.
      */
     public void writeValue(File resultFile, Object value)
-        throws IOException, JsonGenerationException
+        throws IOException, JsonGenerationException, JsonMappingException
     {
         JsonGenerator jgen = _jsonFactory.createJsonGenerator(resultFile, JsonEncoding.UTF8);
         boolean closed = false;
@@ -232,7 +298,7 @@ public class ObjectMapper
      * is closed).
      */
     public void writeValue(OutputStream out, Object value)
-        throws IOException, JsonGenerationException
+        throws IOException, JsonGenerationException, JsonMappingException
     {
         JsonGenerator jgen = _jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8);
         boolean closed = false;
@@ -258,7 +324,7 @@ public class ObjectMapper
      * is closed).
      */
     public void writeValue(Writer w, Object value)
-        throws IOException, JsonGenerationException
+        throws IOException, JsonGenerationException, JsonMappingException
     {
         JsonGenerator jgen = _jsonFactory.createJsonGenerator(w);
         boolean closed = false;
@@ -328,17 +394,45 @@ public class ObjectMapper
      */
 
     protected Object _readValue(JsonParser jp, JavaType valueType)
-        throws IOException, JsonParseException
+        throws IOException, JsonParseException, JsonMappingException
     {
         JsonDeserializationContext ctxt = _createDeserializationContext();
-        return _findDeserializer(valueType).deserialize(jp, ctxt);
+        _initForReading(jp);
+        // ok, let's get the value
+        Object result = _findDeserializer(valueType).deserialize(jp, ctxt);
+        // and then need to skip past the last event before returning
+        jp.nextToken();
+        return result;
     }
+
+    protected Object _readMapAndClose(JsonParser jp, JavaType valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        JsonDeserializationContext ctxt = _createDeserializationContext();
+        _initForReading(jp);
+        try {
+            Object result = _findDeserializer(valueType).deserialize(jp, ctxt);
+            // and then need to skip past the last event before returning
+            jp.nextToken();
+            return result;
+        } finally {
+            try {
+                jp.close();
+            } catch (IOException ioe) { }
+        }
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods, other
+    ////////////////////////////////////////////////////
+     */
 
     protected JsonDeserializer<Object> _findDeserializer(JavaType valueType)
     {
         // First: have we already seen it?
         JsonDeserializer<Object> deser = _rootDeserializers.get(valueType);
-        if (deser == null) {
+        if (deser != null) {
             return deser;
         }
 
@@ -354,5 +448,21 @@ public class ObjectMapper
     protected JsonDeserializationContext _createDeserializationContext()
     {
         return new StdDeserializationContext();
+    }
+
+    /**
+     * Method called to ensure that given parser is ready for reading content
+     * for data binding.
+     */
+    protected void _initForReading(JsonParser jp)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {
+        // First: must point to a token; if not point to one, advance
+        if (!jp.hasCurrentToken()) {
+            // and then we must get something...
+            if (jp.nextToken() == null) {
+                throw JsonMappingException.from(jp, "No content available via given JsonParser");
+            }
+        }
     }
 }

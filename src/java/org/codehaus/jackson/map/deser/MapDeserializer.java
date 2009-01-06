@@ -53,7 +53,7 @@ public class MapDeserializer
             throw instantiationException(jp, _mapClass, e);
         }
         @SuppressWarnings("unused")
-		JsonToken t;
+            JsonToken t;
         KeyDeserializer keyDes = _keyDeserializer;
         JsonDeserializer<Object> valueDes = _valueDeserializer;
 
@@ -73,4 +73,3 @@ public class MapDeserializer
         return result;
     }
 }
-

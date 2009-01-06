@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.JsonNode;
 import org.codehaus.jackson.map.BaseMapper;
-import org.codehaus.jackson.map.node.*;
 
 /**
  * This intermediate base class is needed to access non-public

@@ -10,6 +10,9 @@ import org.codehaus.jackson.map.*;
 
 /**
  * Unit tests for verifying "old" data binding from Json to JDK objects.
+ *<p>
+ * 05-Jan-2009, tatu: Note that this unit test exercise old legacy data
+ *   binding code, and will not be used for new full-featured deserializers.
  */
 public class TestToJavaType
     extends BaseTest
