@@ -25,6 +25,46 @@ public class TestObjectMapperSimpleDeserializer
         assertEquals(Boolean.FALSE, result);
     }
 
+    public void testByteWrapper() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Byte result = mapper.readValue(new StringReader("   -42\t"), Byte.class);
+        assertEquals(Byte.valueOf((byte)-42), result);
+
+        // Also: should be able to coerce floats, strings:
+        result = mapper.readValue(new StringReader(" \"-12\""), Byte.class);
+        assertEquals(Byte.valueOf((byte)-12), result);
+
+        result = mapper.readValue(new StringReader(" 39.07"), Byte.class);
+        assertEquals(Byte.valueOf((byte)39), result);
+    }
+
+    public void testShortWrapper() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Short result = mapper.readValue(new StringReader("37"), Short.class);
+        assertEquals(Short.valueOf((short)37), result);
+
+        // Also: should be able to coerce floats, strings:
+        result = mapper.readValue(new StringReader(" \"-1009\""), Short.class);
+        assertEquals(Short.valueOf((short)-1009), result);
+
+        result = mapper.readValue(new StringReader("-12.9"), Short.class);
+        assertEquals(Short.valueOf((short)-12), result);
+    }
+
+    public void testCharacterWrapper() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // First: canonical value is 1-char string
+        Character result = mapper.readValue(new StringReader("\"a\""), Character.class);
+        assertEquals(Character.valueOf('a'), result);
+
+        // But can also pass in ascii code
+        result = mapper.readValue(new StringReader(" "+((int) 'X')), Character.class);
+        assertEquals(Character.valueOf('X'), result);
+    }
+
     public void testIntWrapper() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -37,6 +77,21 @@ public class TestObjectMapperSimpleDeserializer
 
         result = mapper.readValue(new StringReader(" 39.07"), Integer.class);
         assertEquals(Integer.valueOf(39), result);
+    }
+
+
+    public void testLongWrapper() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Long result = mapper.readValue(new StringReader("12345678901"), Long.class);
+        assertEquals(Long.valueOf(12345678901L), result);
+
+        // Also: should be able to coerce floats, strings:
+        result = mapper.readValue(new StringReader(" \"-9876\""), Long.class);
+        assertEquals(Long.valueOf(-9876), result);
+
+        result = mapper.readValue(new StringReader("1918.3"), Long.class);
+        assertEquals(Long.valueOf(1918), result);
     }
 
     public void testSingleString() throws Exception

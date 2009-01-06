@@ -53,5 +53,4 @@ public final class NumberInput
         long val = parseInt(digitChars, offset, len1) * L_BILLION;
         return val + (long) parseInt(digitChars, offset+len1, 9);
     }
-
 }

@@ -22,7 +22,13 @@ class StdDeserializers
 
         // Then primitives/wrappers
         add(Boolean.class, new StdDeserializer.BooleanDeserializer());
+        add(Byte.class, new StdDeserializer.ByteDeserializer());
+        add(Short.class, new StdDeserializer.ShortDeserializer());
+        add(Character.class, new StdDeserializer.CharacterDeserializer());
         add(Integer.class, new StdDeserializer.IntegerDeserializer());
+        add(Long.class, new StdDeserializer.LongDeserializer());
+        add(Float.class, new StdDeserializer.FloatDeserializer());
+        add(Double.class, new StdDeserializer.DoubleDeserializer());
     }
 
     private HashMap<JavaType, JsonDeserializer<Object>> getDeserializers() {
