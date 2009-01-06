@@ -410,10 +410,15 @@ public class ObjectMapper
     protected Object _readValue(JsonParser jp, JavaType valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        _initForReading(jp);
-        DeserializationContext ctxt = _createDeserializationContext(jp);
-        // ok, let's get the value
-        Object result = _findDeserializer(valueType).deserialize(jp, ctxt);
+        Object result;
+
+        if (!_initForReading(jp)) { // we are pointing to a null
+            result = null;
+        } else { // pointing to event other than null
+            DeserializationContext ctxt = _createDeserializationContext(jp);
+            // ok, let's get the value
+            result = _findDeserializer(valueType).deserialize(jp, ctxt);
+        }
         // and then need to skip past the last event before returning
         jp.nextToken();
         return result;
@@ -422,12 +427,16 @@ public class ObjectMapper
     protected Object _readMapAndClose(JsonParser jp, JavaType valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        _initForReading(jp);
-        DeserializationContext ctxt = _createDeserializationContext(jp);
         try {
-            Object result = _findDeserializer(valueType).deserialize(jp, ctxt);
-            // and then need to skip past the last event before returning
-            jp.nextToken();
+            Object result;
+            if (!_initForReading(jp)) { // we are pointing to a null
+                result = null;
+            } else {
+                DeserializationContext ctxt = _createDeserializationContext(jp);
+                result = _findDeserializer(valueType).deserialize(jp, ctxt);
+                // and then need to skip past the last event before returning
+                jp.nextToken();
+            }
             return result;
         } finally {
             try {
@@ -467,16 +476,29 @@ public class ObjectMapper
     /**
      * Method called to ensure that given parser is ready for reading content
      * for data binding.
+     *
+     * @return False if parser points to {@link JsonToken#VALUE_NULL} event;
+     *   true otherwise
+     *
+     * @throws IOException if the underlying input source has problems during
+     *   parsing
+     * @throws JsonParseException if parser has problems parsing content
+     * @throws JsonMappingException if the parser does not have any more
+     *   content to map (note: Json "null" value is considered content;
+     *   enf-of-stream not)
      */
-    protected void _initForReading(JsonParser jp)
-        throws IOException, JsonGenerationException, JsonMappingException
+    protected boolean _initForReading(JsonParser jp)
+        throws IOException, JsonParseException, JsonMappingException
     {
         // First: must point to a token; if not point to one, advance
-        if (!jp.hasCurrentToken()) {
+        JsonToken t = jp.getCurrentToken();
+        if (t == null) {
             // and then we must get something...
-            if (jp.nextToken() == null) {
+            t = jp.nextToken();
+            if (t == null) {
                 throw JsonMappingException.from(jp, "No content available via given JsonParser");
             }
         }
+        return (t != JsonToken.VALUE_NULL);
     }
 }

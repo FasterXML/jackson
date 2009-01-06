@@ -68,7 +68,7 @@ public class StdDeserializerFactory
         Class<?> mapClass = type.getRawClass();
         // But EnumMap requires special handling for keys
         if (EnumMap.class.isAssignableFrom(mapClass)) {
-            return new EnumMapDeserializer(new EnumResolver(keyType.getRawClass()), valueDes);
+            return new EnumMapDeserializer(EnumResolver.constructFor(keyType.getRawClass()), valueDes);
         }
 
         /* Otherwise, generic handler works ok; need a key deserializer (null 
@@ -92,21 +92,13 @@ public class StdDeserializerFactory
 
     public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
     {
-        // !!! TBI
-        return null;
+        JsonDeserializer<?> des = new EnumDeserializer(EnumResolver.constructFor(type.getRawClass()));
+
+        @SuppressWarnings("unchecked") 
+        JsonDeserializer<Object> result = (JsonDeserializer<Object>) des;
+
+        return result;
     }
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////////////
-     */
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Concrete deserializers
-    ////////////////////////////////////////////////////////////
-     */
 }
 
 

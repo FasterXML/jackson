@@ -57,8 +57,23 @@ public class StdDeserializationContext
      */
     public JsonMappingException weirdStringException(Class<?> instClass, String msg)
     {
-        String text;
+        return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+" from String value '"+valueDesc()+"': "+msg);
+    }
 
+    public JsonMappingException weirdNumberException(Class<?> instClass, String msg)
+    {
+        return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+" from number value ("+valueDesc()+"): "+msg);
+    }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Internal methods
+    ///////////////////////////////////////////////////
+     */
+
+    protected String valueDesc()
+    {
+        String text;
         try {
             text = _parser.getText();
         } catch (Exception e) {
@@ -69,6 +84,6 @@ public class StdDeserializationContext
         if (text.length() > MAX_ERROR_STR_LEN) {
             text = text.substring(0, MAX_ERROR_STR_LEN) + "]...[" + text.substring(text.length() - MAX_ERROR_STR_LEN);
         }
-        return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+" from String value '"+text+"': "+msg);
+        return text;
     }
 }

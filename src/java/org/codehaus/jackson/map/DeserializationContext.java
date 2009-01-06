@@ -16,4 +16,5 @@ public abstract class DeserializationContext
     public abstract JsonMappingException instantiationException(Class<?> instClass, Exception e);
     
     public abstract JsonMappingException weirdStringException(Class<?> instClass, String msg);
+    public abstract JsonMappingException weirdNumberException(Class<?> instClass, String msg);
 }

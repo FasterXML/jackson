@@ -17,13 +17,6 @@ public abstract class StdDeserializer<T>
     protected StdDeserializer() { }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Helper methods for sub-classes to use; exception handling
-    ////////////////////////////////////////////////////////////
-    */
-
-
-    /*
     /////////////////////////////////////////////////////////////
     // First, generic (Object, String, String-like) deserializers
     /////////////////////////////////////////////////////////////
@@ -49,7 +42,7 @@ public abstract class StdDeserializer<T>
             throw ctxt.mappingException(String.class);
         }
     }
-    
+
     /*
     /////////////////////////////////////////////////////////////
     // Then primitive/wrapper types
@@ -72,10 +65,6 @@ public abstract class StdDeserializer<T>
             }
             if (t == JsonToken.VALUE_FALSE) {
                 return Boolean.FALSE;
-            }
-            // Hmmh. Is it to get or expect null...?
-            if (t == JsonToken.VALUE_NULL) {
-                return null;
             }
             // And finally, let's allow Strings to be converted too
             if (t == JsonToken.VALUE_STRING) {
@@ -109,8 +98,6 @@ public abstract class StdDeserializer<T>
                 value = jp.getIntValue();
             } else if (t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
                 value = jp.getIntValue();
-            } else if (t == JsonToken.VALUE_NULL) { // ok to get null?
-                return null;
             } else if (t == JsonToken.VALUE_STRING) { // let's do implicit re-parse
                 // !!! 05-Jan-2009, tatu: Should we try to limit value space, JDK is too lenient?
                 String text = jp.getText().trim();
@@ -145,8 +132,6 @@ public abstract class StdDeserializer<T>
                 value = jp.getIntValue();
             } else if (t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
                 value = jp.getIntValue();
-            } else if (t == JsonToken.VALUE_NULL) { // ok to get null?
-                return null;
             } else if (t == JsonToken.VALUE_STRING) { // let's do implicit re-parse
                 // !!! 05-Jan-2009, tatu: Should we try to limit value space, JDK is too lenient?
                 String text = jp.getText().trim();
@@ -182,8 +167,6 @@ public abstract class StdDeserializer<T>
                 if (value >= 0 && value <= 0xFFFF) {
                     return Character.valueOf((char) value);
                 }
-            } else if (t == JsonToken.VALUE_NULL) { // ok to get null?
-                return null;
             } else if (t == JsonToken.VALUE_STRING) { // this is the usual type
                 // But does it have to be exactly one char?
                 String text = jp.getText();
@@ -212,10 +195,6 @@ public abstract class StdDeserializer<T>
             // it should be ok to coerce (although may fail, too)
             if (t == JsonToken.VALUE_NUMBER_FLOAT) {
                 return jp.getIntValue();
-            }
-            // Hmmh. Is it to get or expect null...?
-            if (t == JsonToken.VALUE_NULL) {
-                return null;
             }
             // And finally, let's allow Strings to be converted too
             if (t == JsonToken.VALUE_STRING) {
@@ -249,10 +228,6 @@ public abstract class StdDeserializer<T>
             if (t == JsonToken.VALUE_NUMBER_FLOAT) {
                 return jp.getLongValue();
             }
-            // Hmmh. Is it to get or expect null...?
-            if (t == JsonToken.VALUE_NULL) {
-                return null;
-            }
             // And finally, let's allow Strings to be converted too
             if (t == JsonToken.VALUE_STRING) {
                 // !!! 05-Jan-2009, tatu: Should we try to limit value space, JDK is too lenient?
@@ -284,9 +259,6 @@ public abstract class StdDeserializer<T>
             if (t == JsonToken.VALUE_NUMBER_INT) {
                 return (float) jp.getDoubleValue();
             }
-            if (t == JsonToken.VALUE_NULL) { // null ok?
-                return null;
-            }
             // And finally, let's allow Strings to be converted too
             if (t == JsonToken.VALUE_STRING) {
                 String text = jp.getText().trim();
@@ -316,10 +288,6 @@ public abstract class StdDeserializer<T>
             }
             if (t == JsonToken.VALUE_NUMBER_INT) {
                 return jp.getDoubleValue();
-            }
-            // Hmmh. Is it to get or expect null...?
-            if (t == JsonToken.VALUE_NULL) {
-                return null;
             }
             // And finally, let's allow Strings to be converted too
             if (t == JsonToken.VALUE_STRING) {
