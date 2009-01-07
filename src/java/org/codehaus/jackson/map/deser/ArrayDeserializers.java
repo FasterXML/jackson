@@ -2,7 +2,6 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.*;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
@@ -32,7 +31,8 @@ public class ArrayDeserializers
         return instance._allDeserializers;
     }
 
-    private void add(Class<?> cls, JsonDeserializer<?> deser)
+    @SuppressWarnings("unchecked")
+	private void add(Class<?> cls, JsonDeserializer<?> deser)
     {
         _allDeserializers.put(TypeFactory.instance.fromClass(cls),
                               (JsonDeserializer<Object>) deser);

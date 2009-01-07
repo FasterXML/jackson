@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.deser;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.util.ObjectBuffer;
 
 /**
  * Default implementation of {@link DeserializationContext}.
@@ -20,6 +21,10 @@ public class StdDeserializationContext
 
     protected final JsonParser _parser;
 
+    // // // Helper object recycling
+
+    protected ObjectBuffer _objectBuffer;
+
     // // // Construction
 
     public StdDeserializationContext(JsonParser jp)
@@ -34,6 +39,34 @@ public class StdDeserializationContext
      */
 
     public JsonParser getParser() { return _parser; }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Public API, helper object recycling
+    ///////////////////////////////////////////////////
+     */
+
+    public final ObjectBuffer leaseObjectBuffer()
+    {
+        ObjectBuffer buf = _objectBuffer;
+        if (buf == null) {
+            buf = new ObjectBuffer();
+        } else {
+            _objectBuffer = null;
+        }
+        return buf;
+    }
+
+    public final void returnObjectBuffer(ObjectBuffer buf)
+    {
+        /* Already have a reusable buffer? Let's retain bigger one
+         * (or if equal, favor newer one, shorter life-cycle)
+         */
+        if (_objectBuffer == null
+            || buf.initialCapacity() >= _objectBuffer.initialCapacity()) {
+            _objectBuffer = buf;
+        }
+    }
 
     /*
     ///////////////////////////////////////////////////

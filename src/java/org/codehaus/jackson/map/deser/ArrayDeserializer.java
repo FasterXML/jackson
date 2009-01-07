@@ -9,7 +9,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.ArrayType;
-import org.codehaus.jackson.map.type.JavaType;
+import org.codehaus.jackson.util.ObjectBuffer;
 
 /**
  * Basic serializer that can serializer non-primitive arrays.
@@ -22,6 +22,12 @@ public class ArrayDeserializer
     final Class<?> _arrayClass;
 
     /**
+     * Flag that indicates whether the component type is Object or not.
+     * Used for minor optimization when constructing result.
+     */
+    final boolean _untyped;
+
+    /**
      * Type of contained elements: needed for constructing actual
      * result array
      */
@@ -32,11 +38,11 @@ public class ArrayDeserializer
      */
     final JsonDeserializer<Object> _elementDeserializer;
 
-    @SuppressWarnings("unchecked") 
-        public ArrayDeserializer(ArrayType arrayType, JsonDeserializer<Object> elemDeser)
+    public ArrayDeserializer(ArrayType arrayType, JsonDeserializer<Object> elemDeser)
     {
         _arrayClass = arrayType.getRawClass();
         _elementClass = arrayType.getComponentType().getRawClass();
+        _untyped = (_elementClass == Object.class);
         _elementDeserializer = elemDeser;
     }
 
@@ -48,25 +54,29 @@ public class ArrayDeserializer
             throw ctxt.mappingException(_arrayClass);
         }
 
-        // !!! TODO: optimize, reuse array or ArrayList
-        ArrayList<Object> elems = new ArrayList<Object>();
+        final ObjectBuffer buffer = ctxt.leaseObjectBuffer();
+        Object[] chunk = buffer.resetAndStart();
+        int ix = 0;
         JsonToken t;
+
         while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
             // Note: must handle null explicitly here; value deserializers won't
             Object value = (t == JsonToken.VALUE_NULL) ? null : _elementDeserializer.deserialize(jp, ctxt);
-            elems.add(value);
+            if (ix >= chunk.length) {
+                chunk = buffer.appendCompletedChunk(chunk);
+                ix = 0;
+            }
+            chunk[ix++] = value;
         }
 
-        // Done: must construct the array
-        int len = elems.size();
-        Object[] result = (Object[]) Array.newInstance(_elementClass, len);
+        Object[] result;
 
-        // !!! TBI
-        /*
-        if (len > 0) {
-            System.arra
+        if (_untyped) {
+            result = buffer.completeAndClearBuffer(chunk, ix);
+        } else {
+            result = buffer.completeAndClearBuffer(chunk, ix, _elementClass);
         }
-        */
+        ctxt.returnObjectBuffer(buffer);
         return result;
     }
 }
