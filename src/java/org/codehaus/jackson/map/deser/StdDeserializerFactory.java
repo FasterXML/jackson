@@ -26,7 +26,6 @@ public class StdDeserializerFactory
 {
     // // Can cache some types
 
-    final static JavaType _typeObject = TypeFactory.instance.fromClass(Object.class);
     final static JavaType _typeString = TypeFactory.instance.fromClass(String.class);
 
     /* We do some defaulting for abstract Map classes and
@@ -48,7 +47,7 @@ public class StdDeserializerFactory
      * interfaces, to avoid having to use exact types or annotations in
      * cases where the most common concrete Maps will do.
      */
-	final static HashMap<String, Class<? extends Collection>> _collectionFallbacks;
+    final static HashMap<String, Class<? extends Collection>> _collectionFallbacks;
     static {
         _collectionFallbacks = new HashMap<String, Class<? extends Collection>>();
 
@@ -59,6 +58,12 @@ public class StdDeserializerFactory
         _collectionFallbacks.put(Queue.class.getName(), LinkedList.class);
         _collectionFallbacks.put(Deque.class.getName(), LinkedList.class);
     }
+
+    /**
+     * And finally, we have special array deserializers for primitive
+     * array types
+     */
+    final static HashMap<JavaType,JsonDeserializer<Object>> _arrayDeserializers = ArrayDeserializers.getAll();
 
     /*
     ////////////////////////////////////////////////////////////
@@ -83,13 +88,18 @@ public class StdDeserializerFactory
 
     public JsonDeserializer<Object> createArrayDeserializer(ArrayType type, DeserializerProvider p)
     {
-        @SuppressWarnings("unused")
-		Class<?> arrayClass = type.getRawClass();
+        // Ok; first: do we have a primitive type?
+        JavaType elemType = type.getComponentType();
 
         // First, special type(s):
+        JsonDeserializer<Object> deser = _arrayDeserializers.get(elemType);
+        if (deser != null) {
+            return deser;
+        }
 
-        // !!! TBI
-        return null;
+        // If not, generic one:
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(elemType, this);
+        return new ArrayDeserializer(type, valueDes);
     }
 
     public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
