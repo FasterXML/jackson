@@ -32,5 +32,5 @@ public abstract class DeserializerProvider
      * Method called to get hold of a deserializer to use for deserializing
      * keys for {@link java.util.Map}.
      */
-    public abstract KeyDeserializer findKeyDeserializer(JavaType type, DeserializerFactory f);
+    public abstract KeyDeserializer findKeyDeserializer(JavaType type);
 }

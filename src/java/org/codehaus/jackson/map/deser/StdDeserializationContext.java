@@ -90,12 +90,17 @@ public class StdDeserializationContext
      */
     public JsonMappingException weirdStringException(Class<?> instClass, String msg)
     {
-        return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+" from String value '"+valueDesc()+"': "+msg);
+        return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+" from String value '"+_valueDesc()+"': "+msg);
     }
 
     public JsonMappingException weirdNumberException(Class<?> instClass, String msg)
     {
-        return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+" from number value ("+valueDesc()+"): "+msg);
+        return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+" from number value ("+_valueDesc()+"): "+msg);
+    }
+
+    public JsonMappingException weirdKeyException(Class<?> keyClass, String keyValue, String msg)
+    {
+        return JsonMappingException.from(_parser, "Can not construct Map key of type "+keyClass.getName()+" from String \""+_desc(keyValue)+"\": "+msg);
     }
 
     /*
@@ -104,19 +109,20 @@ public class StdDeserializationContext
     ///////////////////////////////////////////////////
      */
 
-    protected String valueDesc()
+    protected String _valueDesc()
     {
-        String text;
         try {
-            text = _parser.getText();
+            return _desc(_parser.getText());
         } catch (Exception e) {
-            text = "[N/A]";
+            return "[N/A]";
         }
-
-        // !!! should we quote it?
-        if (text.length() > MAX_ERROR_STR_LEN) {
-            text = text.substring(0, MAX_ERROR_STR_LEN) + "]...[" + text.substring(text.length() - MAX_ERROR_STR_LEN);
+    }
+    protected String _desc(String desc)
+    {
+        // !!! should we quote it? (in case there are control chars, linefeeds)
+        if (desc.length() > MAX_ERROR_STR_LEN) {
+            desc = desc.substring(0, MAX_ERROR_STR_LEN) + "]...[" + desc.substring(desc.length() - MAX_ERROR_STR_LEN);
         }
-        return text;
+        return desc;
     }
 }

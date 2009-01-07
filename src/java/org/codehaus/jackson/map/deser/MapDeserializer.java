@@ -40,6 +40,7 @@ public class MapDeserializer
     @SuppressWarnings("unchecked") 
     public MapDeserializer(Class<?> mapClass, KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser)
     {
+        super(Map.class);
         _mapClass = (Class<Map<Object,Object>>) mapClass;
         _keyDeserializer = keyDeser;
         _valueDeserializer = valueDeser;

@@ -19,6 +19,9 @@ import org.codehaus.jackson.map.type.*;
 public class StdDeserializerProvider
     extends DeserializerProvider
 {
+    final static JavaType _typeObject = TypeFactory.instance.fromClass(Object.class);
+    final static JavaType _typeString = TypeFactory.instance.fromClass(String.class);
+
     /*
     ////////////////////////////////////////////////////
     // Caching
@@ -31,6 +34,11 @@ public class StdDeserializerProvider
      * types. These need not go through factory.
      */
     final static HashMap<JavaType, JsonDeserializer<Object>> _simpleDeserializers = StdDeserializers.constructAll();
+
+    /**
+     * Similarly, key deserializers are only for simple types.
+     */
+    final static HashMap<JavaType, KeyDeserializer> _keyDeserializers = StdKeyDeserializers.constructAll();
 
     /**
      * We will also cache some dynamically constructed deserializers;
@@ -66,45 +74,57 @@ public class StdDeserializerProvider
         /* A simple type? (primitive/wrapper, other well-known fundamental
          * basic types
          */
-        JsonDeserializer<Object> ser = _findSimpleDeserializer(type);
-        if (ser != null) {
-            return ser;
+        JsonDeserializer<Object> deser = _findSimpleDeserializer(type);
+        if (deser != null) {
+            return deser;
         }
         // If not, maybe First: maybe we have already resolved this type?
-        ser = _findCachedDeserializer(type);
-        if (ser != null) {
-            return ser;
+        deser = _findCachedDeserializer(type);
+        if (deser != null) {
+            return deser;
         }
         // If not, need to construct.
-        ser = _createDeserializer(f, type);
-        if (ser == null) {
-            /* Should we let caller handle it? But we do have recursive
-             * calls; that will get tricky if we do it. Plus, may not retain
-             * enough information to be useful.
+        deser = _createDeserializer(f, type);
+        if (deser == null) {
+            /* Should we let caller handle it? Let's have a helper method
+             * decide it; can throw an exception, or return a valid
+             * deserializer
              */
-            throw new IllegalArgumentException("Can not find a deserializer for type "+type);
+            deser = _handleUnknownValueDeserializer(type, f);
         }
         /* Finally: some deserializers want to do post-processing.
          * Those types also must be added to the lookup map, to prevent
          * problems due to cyclic dependencies (which are completely
          * legal).
          */
-        if (ser instanceof ResolvableDeserializer) {
-            _cachedDeserializers.put(type, ser);
-            _resolveDeserializer((ResolvableDeserializer)ser);
+        if (deser instanceof ResolvableDeserializer) {
+            _cachedDeserializers.put(type, deser);
+            _resolveDeserializer((ResolvableDeserializer)deser);
         } else if (type.isEnumType()) {
             // Let's also cache enum type deserializers, they somewhat costly
-            _cachedDeserializers.put(type, ser);
+            _cachedDeserializers.put(type, deser);
         }
-        return ser;
+        return deser;
     }
 
     @Override
-    public KeyDeserializer findKeyDeserializer(JavaType type,
-                                               DeserializerFactory f)
+    public KeyDeserializer findKeyDeserializer(JavaType type)
     {
-        // !!! TBI
-        return null;
+        // No serializer needed if it's plain old String, or Object/untyped
+        if (_typeString.equals(type) || _typeObject.equals(type)) {
+            return null;
+        }
+        // Most other keys are of limited number of static types
+        KeyDeserializer kdes = _keyDeserializers.get(type);
+        if (kdes != null) {
+            return kdes;
+        }
+        // And then other one-offs; first, Enum:
+        if (type.isEnumType()) {
+            return StdKeyDeserializers.constructEnumKeyDeserializer(type);
+        }
+        // otherwise, will probably fail:
+        return _handleUnknownKeyDeserializer(type);
     }
 
     /*
@@ -116,7 +136,6 @@ public class StdDeserializerProvider
     protected JsonDeserializer<Object> _findSimpleDeserializer(JavaType type)
     {
         return _simpleDeserializers.get(type);
-
     }
 
     protected JsonDeserializer<Object> _findCachedDeserializer(JavaType type)
@@ -148,5 +167,21 @@ public class StdDeserializerProvider
     protected void _resolveDeserializer(ResolvableDeserializer ser)
     {
         ser.resolve(this);
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////////
+    // Overridable error reporting methods
+    ////////////////////////////////////////////////////////////////
+     */
+
+    protected JsonDeserializer<Object> _handleUnknownValueDeserializer(JavaType type, DeserializerFactory f)
+    {
+        throw new IllegalArgumentException("Can not find a Value deserializer for type "+type);
+    }
+
+    protected KeyDeserializer _handleUnknownKeyDeserializer(JavaType type)
+    {
+        throw new IllegalArgumentException("Can not find a (Map) Key deserializer for type "+type);
     }
 }

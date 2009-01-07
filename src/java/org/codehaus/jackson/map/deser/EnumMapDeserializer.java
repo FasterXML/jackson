@@ -26,6 +26,7 @@ public final class EnumMapDeserializer
 
     public EnumMapDeserializer(EnumResolver enumRes, JsonDeserializer<Object> valueDes)
     {
+        super(EnumMap.class);
         _enumResolver = enumRes;
         _valueDeserializer = valueDes;
     }

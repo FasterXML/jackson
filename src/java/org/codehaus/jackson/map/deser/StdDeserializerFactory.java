@@ -118,7 +118,7 @@ public class StdDeserializerFactory
         /* Otherwise, generic handler works ok; need a key deserializer (null 
          * indicates 'default' here)
          */
-        KeyDeserializer keyDes = (_typeString.equals(keyType)) ? null : p.findKeyDeserializer(keyType, this);
+        KeyDeserializer keyDes = (_typeString.equals(keyType)) ? null : p.findKeyDeserializer(keyType);
 
         /* But there is one more twist: if we are being asked to instantiate
          * an interface or abstract Map, we need to either find something

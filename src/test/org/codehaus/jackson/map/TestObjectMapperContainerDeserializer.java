@@ -73,6 +73,28 @@ public class TestObjectMapperContainerDeserializer
         assertNull(result.get(" "));
     }
 
+    /**
+     * Let's also check that it is possible to do type conversions
+     * to allow use of non-String Map keys.
+     */
+    public void testIntBooleanMap() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // to get typing, must use type reference
+        String JSON = "{ \"1\" : true, \"-1\" : false }";
+        Map<String,Integer> result = mapper.readValue
+            (JSON, new TypeReference<HashMap<Integer,Boolean>>() { });
+
+        assertNotNull(result);
+        assertEquals(HashMap.class, result.getClass());
+        assertEquals(2, result.size());
+
+        assertEquals(Boolean.TRUE, result.get(Integer.valueOf(1)));
+        assertEquals(Boolean.FALSE, result.get(Integer.valueOf(-1)));
+        assertNull(result.get("foobar"));
+        assertNull(result.get(0));
+    }
+
     public void testExactStringStringMap() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -135,6 +157,24 @@ public class TestObjectMapperContainerDeserializer
         // plus we have nothing for this key
         assertFalse(result.containsKey(Key.KEY2));
         assertNull(result.get(Key.KEY2));
+    }
+
+    public void testMapWithEnums() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        String JSON = "{ \"KEY2\" : \"WHATEVER\" }";
+
+        // to get typing, must use type reference
+        Map<Enum,Enum> result = mapper.readValue
+            (JSON, new TypeReference<Map<Key,Key>>() { });
+
+        assertNotNull(result);
+        assertTrue(result instanceof Map);
+        assertEquals(1, result.size());
+
+        assertEquals(Key.WHATEVER, result.get(Key.KEY2));
+        assertNull(result.get(Key.WHATEVER));
+        assertNull(result.get(Key.KEY1));
     }
 
     public void testMapError() throws Exception

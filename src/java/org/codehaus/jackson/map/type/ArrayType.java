@@ -92,37 +92,13 @@ public final class ArrayType
 
     public boolean isContainerType() { return true; }
 
-    public JavaType getComponentType() { return  _componentType; }
-
     /*
     //////////////////////////////////////////////////////////
     // Extended API
     //////////////////////////////////////////////////////////
      */
 
-    /**
-     * Factory method that will construct an array instance with
-     * specified length.
-     */
-    public Object newInstance(int length)
-    {
-        if (length == 0) {
-            return _emptyArray;
-        }
-        return Array.newInstance(_componentType.getRawClass(), length);
-    }
-
-    public Object instanceFrom(Object[] src)
-    {
-        int len = src.length;
-
-        if (len == 0) {
-            return _emptyArray;
-        }
-        Object result = newInstance(len);
-        System.arraycopy(src, 0, result, 0, len);
-        return result;
-    }
+    public JavaType getComponentType() { return  _componentType; }
 
     /*
     //////////////////////////////////////////////////////////

@@ -40,6 +40,7 @@ public class ArrayDeserializer
 
     public ArrayDeserializer(ArrayType arrayType, JsonDeserializer<Object> elemDeser)
     {
+        super(Object[].class);
         _arrayClass = arrayType.getRawClass();
         _elementClass = arrayType.getComponentType().getRawClass();
         _untyped = (_elementClass == Object.class);

@@ -33,6 +33,7 @@ public class CollectionDeserializer
     @SuppressWarnings("unchecked") 
     public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser)
     {
+        super(Collection.class);
         _collectionClass = (Class<Collection<Object>>) collectionClass;
         _valueDeserializer = valueDeser;
     }

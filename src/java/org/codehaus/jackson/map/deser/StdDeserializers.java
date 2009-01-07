@@ -6,7 +6,7 @@ import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.type.*;
 
 /**
- * Helper class used to contain simple/well-known serializers for JDK types
+ * Helper class used to contain simple/well-known deserializers for JDK types
  */
 class StdDeserializers
 {
@@ -15,20 +15,20 @@ class StdDeserializers
     private StdDeserializers()
     {
         // First, add the fall-back "untyped" deserializer:
-        add(Object.class, new UntypedObjectDeserializer());
+        add(new UntypedObjectDeserializer());
 
         // Then String and String-like converters:
-        add(String.class, new StdDeserializer.StringDeserializer());
+        add(new StdDeserializer.StringDeserializer());
 
         // Then primitives/wrappers
-        add(Boolean.class, new StdDeserializer.BooleanDeserializer());
-        add(Byte.class, new StdDeserializer.ByteDeserializer());
-        add(Short.class, new StdDeserializer.ShortDeserializer());
-        add(Character.class, new StdDeserializer.CharacterDeserializer());
-        add(Integer.class, new StdDeserializer.IntegerDeserializer());
-        add(Long.class, new StdDeserializer.LongDeserializer());
-        add(Float.class, new StdDeserializer.FloatDeserializer());
-        add(Double.class, new StdDeserializer.DoubleDeserializer());
+        add(new StdDeserializer.BooleanDeserializer());
+        add(new StdDeserializer.ByteDeserializer());
+        add(new StdDeserializer.ShortDeserializer());
+        add(new StdDeserializer.CharacterDeserializer());
+        add(new StdDeserializer.IntegerDeserializer());
+        add(new StdDeserializer.LongDeserializer());
+        add(new StdDeserializer.FloatDeserializer());
+        add(new StdDeserializer.DoubleDeserializer());
     }
 
     private HashMap<JavaType, JsonDeserializer<Object>> getDeserializers() {
@@ -40,11 +40,13 @@ class StdDeserializers
         return new StdDeserializers().getDeserializers();
     }
 
-    @SuppressWarnings("unchecked")
-	<T> void add(Class<T> clz, JsonDeserializer<T> typedDeser)
+    void add(StdDeserializer<?> stdDeser)
     {
         // must do some unfortunate casting here...
-        JsonDeserializer<Object> deser = (JsonDeserializer<Object>) typedDeser;
-        _deserializers.put(TypeFactory.instance.fromClass(clz), deser);
+        @SuppressWarnings("unchecked")
+        JsonDeserializer<Object> deser = (JsonDeserializer<Object>) stdDeser;
+
+        Class<?> valueClass = stdDeser.getValueClass();
+        _deserializers.put(TypeFactory.instance.fromClass(valueClass), deser);
     }
 }

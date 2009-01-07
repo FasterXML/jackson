@@ -27,6 +27,7 @@ public final class EnumSetDeserializer
     @SuppressWarnings("unchecked")
 	public EnumSetDeserializer(EnumResolver enumRes)
     {
+        super(EnumSet.class);
         _enumDeserializer = new EnumDeserializer(enumRes);
         // this is fugly, but not sure of a better way...
         _enumClass = (Class<Enum>) ((Class<?>) enumRes.getEnumClass());

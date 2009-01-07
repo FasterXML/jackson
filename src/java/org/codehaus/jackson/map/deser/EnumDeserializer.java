@@ -14,6 +14,7 @@ public class EnumDeserializer
     
     public EnumDeserializer(EnumResolver res)
     {
+        super(Enum.class);
         _resolver = res;
     }
     

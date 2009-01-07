@@ -17,7 +17,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 public final class UntypedObjectDeserializer
     extends StdDeserializer<Object>
 {
-    public UntypedObjectDeserializer() { }
+    public UntypedObjectDeserializer() { super(Object.class); }
     
     public Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
