@@ -67,8 +67,9 @@ public class MapDeserializer
             String fieldName = jp.getCurrentName();
             Object key = (keyDes == null) ? fieldName : keyDes.deserializeKey(fieldName, ctxt);
             // And then the value...
-            jp.nextToken();
-            Object value = valueDes.deserialize(jp, ctxt);
+            JsonToken t = jp.nextToken();
+            // Note: must handle null explicitly here; value deserializers won't
+            Object value = (t == JsonToken.VALUE_NULL) ? null : valueDes.deserialize(jp, ctxt);
             /* !!! 23-Dec-2008, tatu: should there be an option to verify
              *   that there are no duplicate field names? (and/or what
              *   to do, keep-first or keep-last)

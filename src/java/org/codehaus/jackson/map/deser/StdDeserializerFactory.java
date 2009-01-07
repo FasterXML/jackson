@@ -20,6 +20,7 @@ import org.codehaus.jackson.map.type.*;
  * factories (or {@link DeserializerProvider}s) can just use the
  * shared singleton instance via static {@link #instance} field.
  */
+@SuppressWarnings("unchecked")
 public class StdDeserializerFactory
     extends DeserializerFactory
 {
@@ -27,6 +28,37 @@ public class StdDeserializerFactory
 
     final static JavaType _typeObject = TypeFactory.instance.fromClass(Object.class);
     final static JavaType _typeString = TypeFactory.instance.fromClass(String.class);
+
+    /* We do some defaulting for abstract Map classes and
+     * interfaces, to avoid having to use exact types or annotations in
+     * cases where the most common concrete Maps will do.
+     */
+    final static HashMap<String, Class<? extends Map>> _mapFallbacks;
+    static {
+        _mapFallbacks = new HashMap<String, Class<? extends Map>>();
+
+        _mapFallbacks.put(Map.class.getName(), LinkedHashMap.class);
+        _mapFallbacks.put(ConcurrentMap.class.getName(), ConcurrentHashMap.class);
+        _mapFallbacks.put(SortedMap.class.getName(), TreeMap.class);
+        _mapFallbacks.put(NavigableMap.class.getName(), TreeMap.class);
+        _mapFallbacks.put(ConcurrentNavigableMap.class.getName(), ConcurrentSkipListMap.class);
+    }
+
+    /* We do some defaulting for abstract Map classes and
+     * interfaces, to avoid having to use exact types or annotations in
+     * cases where the most common concrete Maps will do.
+     */
+	final static HashMap<String, Class<? extends Collection>> _collectionFallbacks;
+    static {
+        _collectionFallbacks = new HashMap<String, Class<? extends Collection>>();
+
+        _collectionFallbacks.put(Collection.class.getName(), ArrayList.class);
+        _collectionFallbacks.put(List.class.getName(), ArrayList.class);
+        _collectionFallbacks.put(Set.class.getName(), HashSet.class);
+        _collectionFallbacks.put(SortedSet.class.getName(), TreeSet.class);
+        _collectionFallbacks.put(Queue.class.getName(), LinkedList.class);
+        _collectionFallbacks.put(Deque.class.getName(), LinkedList.class);
+    }
 
     /*
     ////////////////////////////////////////////////////////////
@@ -87,35 +119,47 @@ public class StdDeserializerFactory
          * fail later on (as the primary type is not the interface we'd
          * be implementing)
          */
-        if (type.isInterface()) {
-            /* Let's try to use the most commonly used sensible concrete
-             * implementation. May need to add new types in future.
-             */
-            if (mapClass == Map.class) {
-                mapClass = LinkedHashMap.class;
-            } else if (mapClass == ConcurrentMap.class) {
-                mapClass = ConcurrentHashMap.class;
-            } else if (mapClass == ConcurrentNavigableMap.class) {
-                mapClass = ConcurrentSkipListMap.class;
-            } else if (mapClass == SortedMap.class
-                       || mapClass == NavigableMap.class) {
-                mapClass = TreeMap.class;
-            } else {
-                throw new IllegalArgumentException("Can not find a deserializer for Map interface type "+type);
+        if (type.isInterface() || type.isAbstract()) {
+            Class<? extends Map> fallback = _mapFallbacks.get(mapClass.getName());
+            if (fallback == null) {
+                throw new IllegalArgumentException("Can not find a deserializer for non-concrete Map type "+type);
             }
-        } else if (type.isAbstract()) {
-            /* any abstract classes that make sense? (JDK AbstractMap
-             * is an impl detail, shouldn't really be used...)
-             */
-            throw new IllegalArgumentException("Can not find a deserializer for abstract Map type "+type);
+            mapClass = fallback;
         }
         return new MapDeserializer(mapClass, keyDes, valueDes);
     }
 
-    public JsonDeserializer<Object> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
+    public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
     {
-        // !!! TBI
-        return null;
+        JavaType valueType = type.getElementType();
+
+        Class<?> collectionClass = type.getRawClass();
+
+        // One special type: EnumSet:
+        if (EnumSet.class.isAssignableFrom(collectionClass)) {
+            return new EnumSetDeserializer(EnumResolver.constructFor(valueType.getRawClass()));
+        }
+
+        // But otherwise we can just use a generic value deserializer:
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, this);
+
+        /* One twist: if we are being asked to instantiate an interface or
+         * abstract Collection, we need to either find something that implements
+         * the thing, or give up.
+         *
+         * Note that we do NOT try to guess based on secondary interfaces
+         * here; that would probably not work correctly since casts would
+         * fail later on (as the primary type is not the interface we'd
+         * be implementing)
+         */
+        if (type.isInterface() || type.isAbstract()) {
+            Class<? extends Map> fallback = _mapFallbacks.get(collectionClass.getName());
+            if (fallback == null) {
+                throw new IllegalArgumentException("Can not find a deserializer for non-concrete Collection type "+type);
+            }
+            collectionClass = fallback;
+        }
+        return new CollectionDeserializer(collectionClass, valueDes);
     }
 
     public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
@@ -127,10 +171,7 @@ public class StdDeserializerFactory
     public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
     {
         JsonDeserializer<?> des = new EnumDeserializer(EnumResolver.constructFor(type.getRawClass()));
-
-        @SuppressWarnings("unchecked") 
         JsonDeserializer<Object> result = (JsonDeserializer<Object>) des;
-
         return result;
     }
 }

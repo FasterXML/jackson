@@ -18,7 +18,7 @@ import org.codehaus.jackson.map.DeserializationContext;
  * @author tsaloranta
  */
 public final class EnumMapDeserializer
-    extends StdDeserializer<EnumMap>
+    extends StdDeserializer<EnumMap<?,?>>
 {
     final EnumResolver _enumResolver;
 
@@ -30,8 +30,8 @@ public final class EnumMapDeserializer
         _valueDeserializer = valueDes;
     }
 
-    @SuppressWarnings("unchecked") 
-    public EnumMap deserialize(JsonParser jp, DeserializationContext ctxt)
+    @SuppressWarnings("unchecked")
+	public EnumMap<?,?> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_OBJECT
