@@ -75,11 +75,20 @@ public class StdSerializerFactory
         _concrete.put(BigInteger.class.getName(), ns);
         _concrete.put(BigDecimal.class.getName(), ns);
 
-        /* Other discrete non-container types
+        /* Other discrete non-container types:
+         * first, Date/Time zoo:
          */
         _concrete.put(Calendar.class.getName(), CalendarSerializer.instance);
-        _concrete.put(Date.class.getName(), DateSerializer.instance);
-        // URLs and URIs should be convertible too
+        _concrete.put(java.util.Date.class.getName(), UtilDateSerializer.instance);
+        _concrete.put(java.sql.Date.class.getName(), new SqlDateSerializer());
+        _concrete.put(java.sql.Time.class.getName(), new SqlTimeSerializer());
+        // note: timestamps are very similar to java.util.Date, thus serialized as such
+        _concrete.put(java.sql.Timestamp.class.getName(), UtilDateSerializer.instance);
+        // not sure if this is exactly right (should use toXMLFormat()?) but:
+        _concrete.put(javax.xml.datatype.XMLGregorianCalendar.class.getName(), StringLikeSerializer.instance);
+
+        /* Reference types, URLs, URIs
+         */
         _concrete.put(java.net.URL.class.getName(), StringLikeSerializer.instance);
         _concrete.put(java.net.URI.class.getName(), StringLikeSerializer.instance);
 
@@ -257,8 +266,8 @@ public class StdSerializerFactory
         if (Calendar.class.isAssignableFrom(type)) {
             return CalendarSerializer.instance;
         }
-        if (Date.class.isAssignableFrom(type)) {
-            return DateSerializer.instance;
+        if (java.util.Date.class.isAssignableFrom(type)) {
+            return UtilDateSerializer.instance;
         }
         if (Collection.class.isAssignableFrom(type)) {
             return CollectionSerializer.instance;
@@ -907,14 +916,43 @@ public class StdSerializerFactory
         }
     }
 
-    public final static class DateSerializer
-        extends JsonSerializer<Date>
+    /**
+     * For efficiency, we will serialize Dates as longs, instead of
+     * potentially more readable Strings.
+     */
+    public final static class UtilDateSerializer
+        extends JsonSerializer<java.util.Date>
     {
-        public final static DateSerializer instance = new DateSerializer();
-        public void serialize(Date value, JsonGenerator jgen, SerializerProvider provider)
+        public final static UtilDateSerializer instance = new UtilDateSerializer();
+        public void serialize(java.util.Date value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.getTime());
+        }
+    }
+
+    /**
+     * Compared to regular {@link UtilDateSerializer}, we do use String
+     * representation here. Why? Basically to truncate of time part, since
+     * that should not be used by plain 
+     */
+    public final static class SqlDateSerializer
+        extends JsonSerializer<java.sql.Date>
+    {
+        public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeString(value.toString());
+        }
+    }
+
+    public final static class SqlTimeSerializer
+        extends JsonSerializer<java.sql.Time>
+    {
+        public void serialize(java.sql.Time value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeString(value.toString());
         }
     }
 

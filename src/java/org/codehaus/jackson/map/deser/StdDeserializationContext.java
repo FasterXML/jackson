@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.deser;
 
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.codehaus.jackson.JsonParser;
@@ -138,13 +139,19 @@ public class StdDeserializationContext
     ///////////////////////////////////////////////////
      */
 
+    //final static DateFormat _stdDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    final static DateFormat _stdDateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL);
+
     /**
      * Method that can be overridden to provide specific DateFormat
      * when one is needed for parsing (during deserialization)
      */
     protected DateFormat _constructDateFormat()
     {
-        return DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL);
+        /* Should be bit more efficient to actually clone pre-parsed
+         * static instance...
+         */
+        return (DateFormat) _stdDateFormat.clone();
     }
 
     /*
