@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.net.URI;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -179,8 +180,12 @@ public class TestObjectMapperSimpleDeserializer
         // First from long
         assertEquals(value, new ObjectMapper().readValue(""+now, java.util.Date.class));
 
-        // then from String
-        String dateStr = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(value);
+        /* Then from String. This is bit tricky, since JDK does not really
+         * suggest a 'standard' format. So let's try using something...
+         */
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        String dateStr = df.format(value);
+
         java.util.Date result = new ObjectMapper().readValue("\""+dateStr+"\"", java.util.Date.class);
 
         assertEquals("Date: expect "+value+" ("+value.getTime()+"), got "+result+" ("+result.getTime()+")", value.getTime(), result.getTime());

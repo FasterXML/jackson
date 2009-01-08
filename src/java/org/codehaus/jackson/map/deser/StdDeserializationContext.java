@@ -139,8 +139,12 @@ public class StdDeserializationContext
     ///////////////////////////////////////////////////
      */
 
-    //final static DateFormat _stdDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    final static DateFormat _stdDateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL);
+    /* 07-Jan-2009, tatu: Let's first try parsing using what seems like
+     *   a good standard timestamp format. Chances are we need to improve
+     *   on this... but have to start somewhere.
+     */
+    final static DateFormat _stdDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    //final static DateFormat _stdDateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL);
 
     /**
      * Method that can be overridden to provide specific DateFormat
