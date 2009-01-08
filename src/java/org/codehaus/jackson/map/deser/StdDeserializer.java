@@ -356,4 +356,61 @@ public abstract class StdDeserializer<T>
             }
         }
     }
+
+    /*
+    /////////////////////////////////////////////////////////////
+    // Then trickier things: Date/Calendar types
+    /////////////////////////////////////////////////////////////
+    */
+
+    public final static class UtilDateDeserializer
+        extends StdDeserializer<java.util.Date>
+    {
+        public UtilDateDeserializer() { super(java.util.Date.class); }
+
+        public java.util.Date deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            JsonToken t = jp.getCurrentToken();
+            try {
+                if (t == JsonToken.VALUE_NUMBER_INT) {
+                    return new java.util.Date(jp.getLongValue());
+                }
+                if (t == JsonToken.VALUE_STRING) {
+                    return ctxt.parseDate(jp.getText());
+                }
+                throw ctxt.mappingException(_valueClass);
+            } catch (IllegalArgumentException iae) {
+                throw ctxt.weirdStringException(_valueClass, "not a valid representation");
+            }
+        }
+    }
+
+    /**
+     * Compared to plain old {@link java.util.Date}, SQL version is easier
+     * to deal with: mostly because it is more limited.
+     */
+    public final static class SqlDateDeserializer
+        extends StdDeserializer<java.sql.Date>
+    {
+        public SqlDateDeserializer() { super(java.sql.Date.class); }
+
+        public java.sql.Date deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            JsonToken t = jp.getCurrentToken();
+
+            try {
+                if (t == JsonToken.VALUE_NUMBER_INT) {
+                    return new java.sql.Date(jp.getLongValue());
+                }
+                if (t == JsonToken.VALUE_STRING) {
+                    return java.sql.Date.valueOf(jp.getText().trim());
+                }
+                throw ctxt.mappingException(_valueClass);
+            } catch (IllegalArgumentException iae) {
+                throw ctxt.weirdStringException(_valueClass, "not a valid representation");
+            }
+        }
+    }
 }

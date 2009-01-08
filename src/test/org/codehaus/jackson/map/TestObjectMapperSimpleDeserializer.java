@@ -5,6 +5,8 @@ import main.BaseTest;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URL;
+import java.net.URI;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -153,6 +155,42 @@ public class TestObjectMapperSimpleDeserializer
     {
         UUID value = UUID.fromString("76e6d183-5f68-4afa-b94a-922c1fdb83f8");
         assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", UUID.class));
+    }
+
+    public void testURL() throws Exception
+    {
+        URL value = new URL("http://foo.com");
+        assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", URL.class));
+    }
+
+    public void testURI() throws Exception
+    {
+        URI value = new URI("http://foo.com");
+        assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", URI.class));
+    }
+
+    public void testDateUtil() throws Exception
+    {
+        // not ideal, to use (ever-changing) current date, but...
+        long now = System.currentTimeMillis();
+        java.util.Date value = new java.util.Date(now);
+
+        // First from long
+        assertEquals(value, new ObjectMapper().readValue(""+now, java.util.Date.class));
+        // then from String
+        assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", java.util.Date.class));
+    }
+
+    public void testDateSql() throws Exception
+    {
+        // not ideal, to use (ever-changing) current date, but...
+        long now = System.currentTimeMillis();
+        java.sql.Date value = new java.sql.Date(now);
+
+        // First from long
+        assertEquals(value, new ObjectMapper().readValue(""+now, java.sql.Date.class));
+        // then from String
+        assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", java.sql.Date.class));
     }
 
     public void testEnum() throws Exception

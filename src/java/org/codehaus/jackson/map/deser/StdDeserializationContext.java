@@ -1,5 +1,9 @@
 package org.codehaus.jackson.map.deser;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Date;
+
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.util.ObjectBuffer;
@@ -24,6 +28,8 @@ public class StdDeserializationContext
     // // // Helper object recycling
 
     protected ObjectBuffer _objectBuffer;
+
+    protected DateFormat _dateFormat;
 
     // // // Construction
 
@@ -69,6 +75,29 @@ public class StdDeserializationContext
     }
 
     /*
+    //////////////////////////////////////////////////////////////
+    // Parsing methods that may use reusable/-cyclable objects
+    //////////////////////////////////////////////////////////////
+    */
+
+    public Date parseDate(String dateStr)
+        throws IllegalArgumentException
+    {
+        dateStr = dateStr.trim();
+        /* Although DateFormat is not thread-safe, serialization contexts
+         * are never shared, so we are safe to use it without locking
+         */
+        if (_dateFormat == null) {
+            _dateFormat = _constructDateFormat();
+        }
+        try {
+            return _dateFormat.parse(dateStr);
+        } catch (ParseException pex) {
+            throw new IllegalArgumentException(pex.getMessage(), pex);
+        }
+    }
+
+    /*
     ///////////////////////////////////////////////////
     // Public API, problem handling
     ///////////////////////////////////////////////////
@@ -101,6 +130,21 @@ public class StdDeserializationContext
     public JsonMappingException weirdKeyException(Class<?> keyClass, String keyValue, String msg)
     {
         return JsonMappingException.from(_parser, "Can not construct Map key of type "+keyClass.getName()+" from String \""+_desc(keyValue)+"\": "+msg);
+    }
+
+    /*
+    ///////////////////////////////////////////////////
+    // Overridable internal methods
+    ///////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be overridden to provide specific DateFormat
+     * when one is needed for parsing (during deserialization)
+     */
+    protected DateFormat _constructDateFormat()
+    {
+        return DateFormat.getDateInstance();
     }
 
     /*

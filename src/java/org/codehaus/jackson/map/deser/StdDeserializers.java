@@ -34,6 +34,9 @@ class StdDeserializers
         add(new StdDeserializer.BigDecimalDeserializer());
         add(new StdDeserializer.BigIntegerDeserializer());
 
+        add(new StdDeserializer.UtilDateDeserializer());
+        add(new StdDeserializer.SqlDateDeserializer());
+
         // Then other simple types:
         add(new FromStringDeserializer.UUIDDeserializer());
         add(new FromStringDeserializer.URLDeserializer());

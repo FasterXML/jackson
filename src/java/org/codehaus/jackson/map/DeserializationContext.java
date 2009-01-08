@@ -10,7 +10,7 @@ import org.codehaus.jackson.util.ObjectBuffer;
 public abstract class DeserializationContext
 {
     public abstract JsonParser getParser();
-	
+
     /*
     //////////////////////////////////////////////////////////////
     // Methods for accessing reusable/recyclable helper objects
@@ -23,6 +23,15 @@ public abstract class DeserializationContext
     public abstract ObjectBuffer leaseObjectBuffer();
 
     public abstract void returnObjectBuffer(ObjectBuffer buf);
+
+    /*
+    //////////////////////////////////////////////////////////////
+    // Parsing methods that may use reusable/-cyclable objects
+    //////////////////////////////////////////////////////////////
+    */
+
+    public abstract java.util.Date parseDate(String dateStr)
+        throws IllegalArgumentException;
 
     /*
     //////////////////////////////////////////////////////////////
