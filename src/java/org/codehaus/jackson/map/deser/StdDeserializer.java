@@ -381,7 +381,7 @@ public abstract class StdDeserializer<T>
                 }
                 throw ctxt.mappingException(_valueClass);
             } catch (IllegalArgumentException iae) {
-                throw ctxt.weirdStringException(_valueClass, "not a valid representation");
+                throw ctxt.weirdStringException(_valueClass, "not a valid representation (error: "+iae.getMessage()+")");
             }
         }
     }
@@ -409,7 +409,7 @@ public abstract class StdDeserializer<T>
                 }
                 throw ctxt.mappingException(_valueClass);
             } catch (IllegalArgumentException iae) {
-                throw ctxt.weirdStringException(_valueClass, "not a valid representation");
+                throw ctxt.weirdStringException(_valueClass, "not a valid representation (error: "+iae.getMessage()+")");
             }
         }
     }

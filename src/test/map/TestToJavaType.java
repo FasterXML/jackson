@@ -9,10 +9,8 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 /**
- * Unit tests for verifying "old" data binding from Json to JDK objects.
- *<p>
- * 05-Jan-2009, tatu: Note that this unit test exercise old legacy data
- *   binding code, and will not be used for new full-featured deserializers.
+ * Unit tests for verifying "old" data binding from Json to JDK objects;
+ * one that only uses core JDK types; wrappers, Maps and Lists.
  */
 public class TestToJavaType
     extends BaseTest
@@ -24,7 +22,11 @@ public class TestToJavaType
         final String JSON = SAMPLE_DOC_JSON_SPEC;
 
         JsonFactory jf = new JsonFactory();
-        Object root = new JavaTypeMapper().read(jf.createJsonParser(new StringReader(JSON)));
+
+        /* To get "untyped" Mapping (to Maps, Lists, instead of beans etc),
+         * we'll specify plain old Object.class as the target.
+         */
+        Object root = new ObjectMapper().readValue(jf.createJsonParser(new StringReader(JSON)), Object.class);
 
         assertType(root, Map.class);
         Map<?,?> rootMap = (Map<?,?>) root;

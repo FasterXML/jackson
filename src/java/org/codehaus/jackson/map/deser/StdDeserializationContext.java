@@ -144,7 +144,7 @@ public class StdDeserializationContext
      */
     protected DateFormat _constructDateFormat()
     {
-        return DateFormat.getDateInstance();
+        return DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL);
     }
 
     /*

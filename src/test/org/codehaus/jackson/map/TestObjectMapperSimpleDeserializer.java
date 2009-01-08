@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.net.URI;
+import java.text.DateFormat;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -177,8 +178,12 @@ public class TestObjectMapperSimpleDeserializer
 
         // First from long
         assertEquals(value, new ObjectMapper().readValue(""+now, java.util.Date.class));
+
         // then from String
-        assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", java.util.Date.class));
+        String dateStr = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(value);
+        java.util.Date result = new ObjectMapper().readValue("\""+dateStr+"\"", java.util.Date.class);
+
+        assertEquals("Date: expect "+value+" ("+value.getTime()+"), got "+result+" ("+result.getTime()+")", value.getTime(), result.getTime());
     }
 
     public void testDateSql() throws Exception
@@ -190,7 +195,19 @@ public class TestObjectMapperSimpleDeserializer
         // First from long
         assertEquals(value, new ObjectMapper().readValue(""+now, java.sql.Date.class));
         // then from String
-        assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", java.sql.Date.class));
+        
+        String expStr = value.toString();
+        java.sql.Date result = new ObjectMapper().readValue("\""+expStr+"\"", java.sql.Date.class);
+        String actStr = result.toString();
+
+        /* 07-Jan-2009, tatu: Ok; things get weird here: java.sql.Date
+         *   does NOT override equals() method. But that's just plain wrong,
+         *   as it should NOT compare time part, as it's not supposed to even
+         *   exist (essentially) for this type. So, let's compare String
+         *   representation, not timestamp
+         */
+
+        assertEquals(actStr, expStr);
     }
 
     public void testEnum() throws Exception
