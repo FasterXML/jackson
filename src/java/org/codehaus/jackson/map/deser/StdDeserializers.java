@@ -29,6 +29,15 @@ class StdDeserializers
         add(new StdDeserializer.LongDeserializer());
         add(new StdDeserializer.FloatDeserializer());
         add(new StdDeserializer.DoubleDeserializer());
+
+        // and related
+        add(new StdDeserializer.BigDecimalDeserializer());
+        add(new StdDeserializer.BigIntegerDeserializer());
+
+        // Then other simple types:
+        add(new FromStringDeserializer.UUIDDeserializer());
+        add(new FromStringDeserializer.URLDeserializer());
+        add(new FromStringDeserializer.URIDeserializer());
     }
 
     private HashMap<JavaType, JsonDeserializer<Object>> getDeserializers() {

@@ -4,6 +4,7 @@ import main.BaseTest;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -132,6 +133,26 @@ public class TestObjectMapperSimpleDeserializer
         // null doesn't really have a type, fake by assuming Object
         Object result = mapper.readValue(new StringReader("   null"), Object.class);
         assertNull(result);
+    }
+
+    public void testBigDecimal() throws Exception
+    {
+        BigDecimal value = new BigDecimal("0.001");
+        BigDecimal result = new ObjectMapper().readValue(new StringReader(value.toString()), BigDecimal.class);
+        assertEquals(value, result);
+    }
+
+    public void testBigInteger() throws Exception
+    {
+        BigInteger value = new BigInteger("-1234567890123456789012345567809");
+        BigInteger result = new ObjectMapper().readValue(new StringReader(value.toString()), BigInteger.class);
+        assertEquals(value, result);
+    }
+
+    public void testUUID() throws Exception
+    {
+        UUID value = UUID.fromString("76e6d183-5f68-4afa-b94a-922c1fdb83f8");
+        assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", UUID.class));
     }
 
     public void testEnum() throws Exception

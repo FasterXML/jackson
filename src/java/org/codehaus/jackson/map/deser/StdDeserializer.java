@@ -1,6 +1,9 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.UUID;
 
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
@@ -281,4 +284,76 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    /*
+    /////////////////////////////////////////////////////////////
+    // And then bit more complicated (but non-structured) number
+    // types
+    /////////////////////////////////////////////////////////////
+    */
+
+    public final static class BigDecimalDeserializer
+        extends StdDeserializer<BigDecimal>
+    {
+        public BigDecimalDeserializer() { super(BigDecimal.class); }
+
+        public BigDecimal deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            JsonToken t = jp.getCurrentToken();
+            if (t == JsonToken.VALUE_NUMBER_INT
+                || t == JsonToken.VALUE_NUMBER_FLOAT) {
+                return jp.getDecimalValue();
+            }
+            // String is ok too, can easily convert
+            if (t == JsonToken.VALUE_STRING) { // let's do implicit re-parse
+                String text = jp.getText().trim();
+                try {
+                    return new BigDecimal(text);
+                } catch (IllegalArgumentException iae) {
+                    throw ctxt.weirdStringException(_valueClass, "not a valid representation");
+                }
+            }
+            // Otherwise, no can do:
+            throw ctxt.mappingException(_valueClass);
+        }
+    }
+
+    /**
+     * This is bit trickier to implement efficiently, while avoiding
+     * overflow problems.
+     */
+    public final static class BigIntegerDeserializer
+        extends StdDeserializer<BigInteger>
+    {
+        public BigIntegerDeserializer() { super(BigInteger.class); }
+
+        public BigInteger deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            JsonToken t = jp.getCurrentToken();
+            String text;
+
+            if (t == JsonToken.VALUE_NUMBER_INT) {
+                switch (jp.getNumberType()) {
+                case INT:
+                case LONG:
+                    return BigInteger.valueOf(jp.getLongValue());
+                }
+            } else if (t == JsonToken.VALUE_NUMBER_FLOAT) {
+                /* Whether to fail if there's non-integer part?
+                 * Could do by calling BigDecimal.toBigIntegerExact()
+                 */
+                return jp.getDecimalValue().toBigInteger();
+            } else if (t != JsonToken.VALUE_STRING) { // let's do implicit re-parse
+                // String is ok too, can easily convert; otherwise, no can do:
+                throw ctxt.mappingException(_valueClass);
+            }
+            text = jp.getText().trim();
+            try {
+                return new BigInteger(text);
+            } catch (IllegalArgumentException iae) {
+                throw ctxt.weirdStringException(_valueClass, "not a valid representation");
+            }
+        }
+    }
 }

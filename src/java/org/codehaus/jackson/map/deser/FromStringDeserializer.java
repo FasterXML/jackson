@@ -1,0 +1,89 @@
+package org.codehaus.jackson.map.deser;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import java.util.UUID;
+
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.DeserializationContext;
+
+/**
+ * Base class for simple deserializer which only accept Json String
+ * values as the source
+ */
+public abstract class FromStringDeserializer<T>
+    extends StdDeserializer<T>
+{
+    protected FromStringDeserializer(Class<?> vc) {
+        super(vc);
+    }
+
+    public final T deserialize(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        if (jp.getCurrentToken() == JsonToken.VALUE_STRING) {
+            String text = jp.getText();
+            try {
+                T result = _deserialize(text, ctxt);
+                if (result != null) {
+                    return result;
+                }
+            } catch (IllegalArgumentException iae) {
+                // nothing to do here, yet? We'll fail anyway
+            }
+            throw ctxt.weirdStringException(_valueClass, "not a valid textual representation");
+        }
+        throw ctxt.mappingException(_valueClass);
+    }
+        
+    protected abstract T _deserialize(String value, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException;
+
+    /*
+    /////////////////////////////////////////////////////////////
+    // Then concrete implementations
+    /////////////////////////////////////////////////////////////
+    */
+
+    public static class UUIDDeserializer
+        extends FromStringDeserializer<UUID>
+    {
+        public UUIDDeserializer() { super(UUID.class); }
+        
+        protected UUID _deserialize(String value, DeserializationContext ctxt)
+        {
+            return UUID.fromString(value);
+        }
+    }
+
+    public static class URLDeserializer
+        extends FromStringDeserializer<URL>
+    {
+        public URLDeserializer() { super(URL.class); }
+        
+        protected URL _deserialize(String value, DeserializationContext ctxt)
+            throws IOException
+        {
+            return new URL(value);
+        }
+    }
+
+    public static class URIDeserializer
+        extends FromStringDeserializer<URI>
+    {
+        public URIDeserializer() { super(URI.class); }
+        
+        protected URI _deserialize(String value, DeserializationContext ctxt)
+        {
+            try {
+                return new URI(value);
+            } catch (java.net.URISyntaxException e) { // stupid; not based on IOException or IllegalArgumentException
+                throw new IllegalArgumentException(e.getMessage(), e);
+            }
+        }
+    }
+}
