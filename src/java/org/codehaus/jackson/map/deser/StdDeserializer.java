@@ -3,7 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.UUID;
+import java.util.*;
 
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
@@ -82,6 +82,23 @@ public abstract class StdDeserializer<T>
             }
             // Otherwise, no can do:
             throw ctxt.mappingException(_valueClass);
+    }
+
+    protected java.util.Date _parseDate(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        JsonToken t = jp.getCurrentToken();
+        try {
+            if (t == JsonToken.VALUE_NUMBER_INT) {
+                return new java.util.Date(jp.getLongValue());
+            }
+            if (t == JsonToken.VALUE_STRING) {
+                return ctxt.parseDate(jp.getText());
+            }
+            throw ctxt.mappingException(_valueClass);
+        } catch (IllegalArgumentException iae) {
+            throw ctxt.weirdStringException(_valueClass, "not a valid representation (error: "+iae.getMessage()+")");
+        }
     }
 
     /*
@@ -363,6 +380,18 @@ public abstract class StdDeserializer<T>
     /////////////////////////////////////////////////////////////
     */
 
+    public final static class CalendarDeserializer
+        extends StdDeserializer<Calendar>
+    {
+        public CalendarDeserializer() { super(Calendar.class); }
+
+        public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            return ctxt.constructCalendar(_parseDate(jp, ctxt));
+        }
+    }
+
     public final static class UtilDateDeserializer
         extends StdDeserializer<java.util.Date>
     {
@@ -371,18 +400,7 @@ public abstract class StdDeserializer<T>
         public java.util.Date deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            JsonToken t = jp.getCurrentToken();
-            try {
-                if (t == JsonToken.VALUE_NUMBER_INT) {
-                    return new java.util.Date(jp.getLongValue());
-                }
-                if (t == JsonToken.VALUE_STRING) {
-                    return ctxt.parseDate(jp.getText());
-                }
-                throw ctxt.mappingException(_valueClass);
-            } catch (IllegalArgumentException iae) {
-                throw ctxt.weirdStringException(_valueClass, "not a valid representation (error: "+iae.getMessage()+")");
-            }
+            return _parseDate(jp, ctxt);
         }
     }
 
@@ -413,4 +431,5 @@ public abstract class StdDeserializer<T>
             }
         }
     }
+
 }

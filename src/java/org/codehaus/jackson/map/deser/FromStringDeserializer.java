@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Currency;
 import java.util.UUID;
 
 import org.codehaus.jackson.JsonProcessingException;
@@ -13,7 +14,7 @@ import org.codehaus.jackson.map.DeserializationContext;
 
 /**
  * Base class for simple deserializer which only accept Json String
- * values as the source
+ * values as the source.
  */
 public abstract class FromStringDeserializer<T>
     extends StdDeserializer<T>
@@ -84,6 +85,19 @@ public abstract class FromStringDeserializer<T>
             } catch (java.net.URISyntaxException e) { // stupid; not based on IOException or IllegalArgumentException
                 throw new IllegalArgumentException(e.getMessage(), e);
             }
+        }
+    }
+
+    public static class CurrencyDeserializer
+        extends FromStringDeserializer<Currency>
+    {
+        public CurrencyDeserializer() { super(Currency.class); }
+        
+        protected Currency _deserialize(String value, DeserializationContext ctxt)
+            throws IllegalArgumentException
+        {
+            // will throw IAE if unknown:
+            return Currency.getInstance(value);
         }
     }
 }

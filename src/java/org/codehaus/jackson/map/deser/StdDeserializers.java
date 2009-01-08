@@ -36,6 +36,7 @@ class StdDeserializers
 
         add(new StdDeserializer.UtilDateDeserializer());
         add(new StdDeserializer.SqlDateDeserializer());
+        add(new StdDeserializer.CalendarDeserializer());
 
         // Then other simple types:
         add(new FromStringDeserializer.UUIDDeserializer());

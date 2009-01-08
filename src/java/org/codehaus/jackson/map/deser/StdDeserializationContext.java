@@ -3,7 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.*;
@@ -96,6 +96,16 @@ public class StdDeserializationContext
         } catch (ParseException pex) {
             throw new IllegalArgumentException(pex.getMessage(), pex);
         }
+    }
+
+    public Calendar constructCalendar(Date d)
+    {
+        /* 08-Jan-2008, tatu: not optimal, but should work for the
+         *   most part; let's revise as needed.
+         */
+        Calendar c = Calendar.getInstance();
+        c.setTime(d);
+        return c;
     }
 
     /*

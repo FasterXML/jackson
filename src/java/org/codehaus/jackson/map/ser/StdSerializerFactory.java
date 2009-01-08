@@ -40,14 +40,17 @@ public class StdSerializerFactory
     final static HashMap<String, JsonSerializer<?>> _concrete = 
         new HashMap<String, JsonSerializer<?>>();
     static {
-        // String and string-like types (note: date types explicitly
-        // not included -- can use either textual or numeric serialization)
+        /* String and string-like types (note: date types explicitly
+         * not included -- can use either textual or numeric serialization)
+         */
         _concrete.put(String.class.getName(), new StringSerializer());
         ToStringSerializer sls = ToStringSerializer.instance;
         _concrete.put(StringBuffer.class.getName(), sls);
         _concrete.put(StringBuilder.class.getName(), sls);
         _concrete.put(Character.class.getName(), sls);
         _concrete.put(Character.TYPE.getName(), sls);
+        // currency units best dealt with as strings too
+        _concrete.put(Currency.class.getName(), sls);
         // including things best serialized as Strings
         _concrete.put(UUID.class.getName(), sls);
         

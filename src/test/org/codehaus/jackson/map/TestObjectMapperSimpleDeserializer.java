@@ -174,18 +174,13 @@ public class TestObjectMapperSimpleDeserializer
     public void testDateUtil() throws Exception
     {
         // not ideal, to use (ever-changing) current date, but...
-        long now = System.currentTimeMillis();
-        java.util.Date value = new java.util.Date(now);
+        java.util.Date value = new java.util.Date();
+        long now = value.getTime();
 
         // First from long
         assertEquals(value, new ObjectMapper().readValue(""+now, java.util.Date.class));
 
-        /* Then from String. This is bit tricky, since JDK does not really
-         * suggest a 'standard' format. So let's try using something...
-         */
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-        String dateStr = df.format(value);
-
+        String dateStr = serializeDateAsString(value);
         java.util.Date result = new ObjectMapper().readValue("\""+dateStr+"\"", java.util.Date.class);
 
         assertEquals("Date: expect "+value+" ("+value.getTime()+"), got "+result+" ("+result.getTime()+")", value.getTime(), result.getTime());
@@ -213,6 +208,22 @@ public class TestObjectMapperSimpleDeserializer
          */
 
         assertEquals(actStr, expStr);
+    }
+
+    public void testCalendar() throws Exception
+    {
+        // not ideal, to use (ever-changing) current date, but...
+        java.util.Date now = new Date();
+        java.util.Calendar value = Calendar.getInstance();
+        value.setTime(now);
+
+        // First from long
+        assertEquals(value, new ObjectMapper().readValue(""+now.getTime(), Calendar.class));
+
+        String dateStr = serializeDateAsString(now);
+        Calendar result = new ObjectMapper().readValue("\""+dateStr+"\"", Calendar.class);
+
+        assertEquals(value, result);
     }
 
     public void testEnum() throws Exception
@@ -291,6 +302,21 @@ public class TestObjectMapperSimpleDeserializer
             Integer result = mapper.readValue(jp, Integer.class);
             assertEquals(Integer.valueOf(i), result);
         }
+    }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Helper methods
+    //////////////////////////////////////////////////////////
+     */
+
+    String serializeDateAsString(java.util.Date value)
+    {
+        /* Then from String. This is bit tricky, since JDK does not really
+         * suggest a 'standard' format. So let's try using something...
+         */
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        return df.format(value);
     }
 }
 

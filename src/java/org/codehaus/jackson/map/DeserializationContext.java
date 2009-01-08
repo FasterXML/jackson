@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map;
 
+import java.util.*;
+
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.util.ObjectBuffer;
 
@@ -32,6 +34,8 @@ public abstract class DeserializationContext
 
     public abstract java.util.Date parseDate(String dateStr)
         throws IllegalArgumentException;
+
+    public abstract Calendar constructCalendar(Date d);
 
     /*
     //////////////////////////////////////////////////////////////
