@@ -33,6 +33,19 @@ public class TestObjectMapperBeanDeserializer
         @Override public String toString() { return _desc; }
     }
 
+    final static class FactoryValueBean
+    {
+        final String _desc;
+
+        protected FactoryValueBean(String desc, int dummy) { _desc = desc; }
+
+        public static FactoryValueBean valueOf(String v) { return new FactoryValueBean(v, 0); }
+        public static FactoryValueBean valueOf(int v) { return new FactoryValueBean(String.valueOf(v), 0); }
+        public static FactoryValueBean valueOf(long v) { return new FactoryValueBean(String.valueOf(v), 0); }
+
+        @Override public String toString() { return _desc; }
+    }
+
     /*
     /////////////////////////////////////////////////
     // Deserialization from simple types (String, int)
@@ -41,23 +54,42 @@ public class TestObjectMapperBeanDeserializer
 
     public void testFromStringCtor() throws Exception
     {
-        assertEquals("abc", new ObjectMapper().readValue("\"abc\"", CtorValueBean.class));
+        CtorValueBean result = new ObjectMapper().readValue("\"abc\"", CtorValueBean.class);
+        assertEquals("abc", result.toString());
     }
 
     public void testFromIntCtor() throws Exception
     {
-        assertEquals("13", new ObjectMapper().readValue("13", CtorValueBean.class));
+        CtorValueBean result = new ObjectMapper().readValue("13", CtorValueBean.class);
+        assertEquals("13", result.toString());
     }
 
     public void testFromLongCtor() throws Exception
     {
         // Must use something that is forced as Long...
         long value = 12345678901244L;
-        assertEquals(""+value, new ObjectMapper().readValue(""+value, CtorValueBean.class));
+        CtorValueBean result = new ObjectMapper().readValue(""+value, CtorValueBean.class);
+        assertEquals(""+value, result.toString());
     }
 
     public void testFromStringFactory() throws Exception
     {
+        FactoryValueBean result = new ObjectMapper().readValue("\"abc\"", FactoryValueBean.class);
+        assertEquals("abc", result.toString());
+    }
+
+    public void testFromIntFactory() throws Exception
+    {
+        FactoryValueBean result = new ObjectMapper().readValue("13", FactoryValueBean.class);
+        assertEquals("13", result.toString());
+    }
+
+    public void testFromLongFactory() throws Exception
+    {
+        // Must use something that is forced as Long...
+        long value = 12345678901244L;
+        FactoryValueBean result = new ObjectMapper().readValue(""+value, FactoryValueBean.class);
+        assertEquals(""+value, result.toString());
     }
 
     /*

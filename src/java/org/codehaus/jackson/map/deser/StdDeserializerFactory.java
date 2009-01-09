@@ -191,7 +191,7 @@ public class StdDeserializerFactory
 
         // !!! TBI
 
-        return null;
+        return new BeanDeserializer(beanClass, null,null, sctor, nctor);
     }
 
     public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
@@ -246,6 +246,7 @@ public class StdDeserializerFactory
             Class<?>[] args = c.getParameterTypes();
             if (args.length == 1) {
                 if (args[0] == String.class) {
+                    checkAccess(c, beanClass);
                     sctor = c;
                     break;
                 }
@@ -262,6 +263,7 @@ public class StdDeserializerFactory
                 // must take String arg
                 Class<?> arg = m.getParameterTypes()[0];
                 if (arg == String.class) {
+                    checkAccess(m, beanClass);
                     factoryMethod = m;
                     break;
                 }
@@ -284,8 +286,10 @@ public class StdDeserializerFactory
             }
             Class<?> argType = args[0];
             if (argType == int.class || argType == Integer.class) {
+                checkAccess(c, beanClass);
                 intCtor = c;
             } else if (argType == long.class || argType == Long.class) {
+                checkAccess(c, beanClass);
                 longCtor = c;
             }
         }
@@ -301,12 +305,31 @@ public class StdDeserializerFactory
                 // must take String arg
                 Class<?> argType = m.getParameterTypes()[0];
                 if (argType == int.class || argType == Integer.class) {
+                    checkAccess(m, beanClass);
                     intFactoryMethod = m;
                 } else if (argType == long.class || argType == Long.class) {
+                    checkAccess(m, beanClass);
                     longFactoryMethod = m;
                 }
             }
         }
         return new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactoryMethod, longFactoryMethod);
+    }
+
+    /**
+     * Method called to check if we can use the passed method or constructor
+     * (wrt access restriction -- public methods can be called, others
+     * usually not); and if not, if there is a work-around for
+     * the problem.
+     */
+    protected void checkAccess(AccessibleObject obj, Class<?> declClass)
+    {
+        if (!obj.isAccessible()) {
+            try {
+                obj.setAccessible(true);
+            } catch (SecurityException se) {
+                throw new IllegalArgumentException("Can not access "+obj+" (from class "+declClass.getName()+"; failed to set access: "+se.getMessage());
+            }
+        }
     }
 }

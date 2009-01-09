@@ -182,7 +182,7 @@ public final class BeanDeserializer
                     return _ctor.newInstance(value);
                 }
                 if (_factoryMethod != null) {
-                    return _factoryMethod.invoke(_valueClass, _factoryMethod, value);
+                    return _factoryMethod.invoke(_valueClass, value);
                 }
             } catch (Exception e) {
                 _rethrow(e);
@@ -220,7 +220,7 @@ public final class BeanDeserializer
                     return _intCtor.newInstance(value);
                 }
                 if (_intFactoryMethod != null) {
-                    return _intFactoryMethod.invoke(_valueClass, _intFactoryMethod, Integer.valueOf(value));
+                    return _intFactoryMethod.invoke(_valueClass, Integer.valueOf(value));
                 }
             } catch (Exception e) {
                 _rethrow(e);
@@ -240,7 +240,7 @@ public final class BeanDeserializer
                     return _longCtor.newInstance(value);
                 }
                 if (_longFactoryMethod != null) {
-                    return _longFactoryMethod.invoke(_valueClass, _longFactoryMethod, Long.valueOf(value));
+                    return _longFactoryMethod.invoke(_valueClass, Long.valueOf(value));
                 }
             } catch (Exception e) {
                 _rethrow(e);
