@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.DeserializerProvider;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Factory class that can provide deserializers for standard JDK classes,
@@ -167,7 +168,7 @@ public class StdDeserializerFactory
          * be implementing)
          */
         if (type.isInterface() || type.isAbstract()) {
-            Class<? extends Map> fallback = _mapFallbacks.get(collectionClass.getName());
+            Class<? extends Collection> fallback = _collectionFallbacks.get(collectionClass.getName());
             if (fallback == null) {
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Collection type "+type);
             }
@@ -178,20 +179,29 @@ public class StdDeserializerFactory
 
     public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
     {
-        // First let's figure out scalar value - based construction aspects:
-
+        // Very first thing: do we even handle this type as a Bean?
         Class<?> beanClass = type.getRawClass();
+        if (!isPotentialBeanType(beanClass)) {
+            return null;
+        }
+
+        /* Ok then: let's figure out scalar value - based construction
+         * aspects.
+         *
+         * !!! 09-Jan-2009, tatu: Should we allow construction from Map
+         *   (which would then be assumed to be "untyped")?
+         *   Or maybe even from a List (ditto)?
+         */
+
         Constructor<?>[] ctors = beanClass.getDeclaredConstructors();
         List<Method> staticMethods = findStaticFactoryMethods(beanClass);
 
         BeanDeserializer.StringConstructor sctor = constructStringConstructor(beanClass, ctors, staticMethods);
         BeanDeserializer.NumberConstructor nctor = constructNumberConstructor(beanClass, ctors, staticMethods);
-
+        BeanDeserializer deser = new BeanDeserializer(beanClass, sctor, nctor);
         // And then things we need if we get Json Object:
-
-        // !!! TBI
-
-        return new BeanDeserializer(beanClass, null,null, sctor, nctor);
+        addBeanProps(deser);
+        return deser;
     }
 
     public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
@@ -203,7 +213,207 @@ public class StdDeserializerFactory
 
     /*
     ////////////////////////////////////////////////////////////
-    // Helper methods for Bean deserializer
+    // Helper methods for Bean deserializer: property handling
+    ////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method called to figure out settable properties for the
+     * deserializer.
+     */
+    protected void addBeanProps(BeanDeserializer deser)
+    {
+        /* Ok, now; we could try Class.getMethods(), but it has couple of
+         * problems:
+         *
+         * (a) Only returns public methods (which is ok for accessor checks,
+         *   but should allow annotations to indicate others too)
+         * (b) Ordering is arbitrary (may be a problem with other accessors
+         *   too?)
+         *
+         * So: let's instead gather methods ourself. One simplification is
+         * that we should always be getting concrete type; hence we need
+         * not worry about interfaces or such. Also, we can ignore everything
+         * from java.lang.Object, which is neat.
+         * 
+         * ... too bad that we still won't necessarily get properly
+         * ordered (by declaration order or name) List either way
+         */
+        LinkedHashMap<String,Method> methods = new LinkedHashMap<String,Method>();
+        Class<?> beanClass = deser.getBeanClass();
+        findCandidateMethods(beanClass, methods);
+
+        // Ok: potential candidates are more than actual mutators...
+        for (Method m : methods.values()) {
+            String name = okNameForMutator(m);
+            if (name == null) {
+                continue;
+            }
+            // need to ensure it is callable now:
+            ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
+            Class<?> valueClass = m.getParameterTypes()[0];
+            SettableBeanProperty prop = new SettableBeanProperty(name, valueClass, m);
+            SettableBeanProperty oldP = deser.addSetter(prop);
+            if (oldP != null) {
+                throw new IllegalArgumentException("Duplicate property '"+name+"' for class "+beanClass.getName());
+            }
+        }
+    }
+
+    /**
+     * Method for collecting list of all Methods that could conceivably
+     * be mutators. At this point we will only do preliminary checks,
+     * to weed out things that can not possibly be mutators (i.e. solely
+     * based on signature, but not on name or annotations)
+     */
+    protected void findCandidateMethods(Class<?> type, Map<String,Method> result)
+    {
+        /* we'll add base class methods first (for ordering purposes), but
+         * then override as necessary
+         */
+        Class<?> parent = type.getSuperclass();
+        if (parent != null && parent != Object.class) {
+            findCandidateMethods(parent, result);
+        }
+        for (Method m : type.getDeclaredMethods()) {
+            if (okSignatureForMutator(m)) {
+                result.put(m.getName(), m);
+            }
+        }
+    }
+
+    protected boolean okSignatureForMutator(Method m)
+    {
+        // First: we can't use static methods
+        if (Modifier.isStatic(m.getModifiers())) {
+            return false;
+        }
+        // Must take a single arg
+        Class<?>[] pts = m.getParameterTypes();
+        if ((pts == null) || pts.length != 1) {
+            return false;
+        }
+        // No checking for returning type; usually void, don't care
+
+        // Otherwise, potentially ok
+        return true;
+    }
+
+    protected String okNameForMutator(Method m)
+    {
+        String name = m.getName();
+
+        /* For mutators, let's not require it to be public. Just need
+         * to be able to call it, i.e. do need to 'fix' access if so
+         * (which is done at a later point as needed)
+         */
+        if (name.startsWith("set")) {
+            name = mangleName(m, name.substring(3));
+            if (name == null) { // plain old "set" is no good...
+                return null;
+            }
+            return name;
+        }
+        return null;
+    }
+
+    /**
+     * @return Null to indicate that method is not a valid mutator;
+     *   otherwise name of the property it is mutator for
+     */
+    protected String mangleName(Method method, String basename)
+    {
+        return ClassUtil.manglePropertyName(basename);
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Helper methods for Bean deserializer: factory methods
+    ////////////////////////////////////////////////////////////
+     */
+
+    BeanDeserializer.StringConstructor constructStringConstructor(Class<?> beanClass, Constructor<?>[] ctors, List<Method> staticMethods)
+    {
+        Constructor<?> sctor = null;
+
+        // must find 1-string-arg one
+        for (Constructor<?> c : ctors) {
+            Class<?>[] args = c.getParameterTypes();
+            if (args.length == 1) {
+                if (args[0] == String.class) {
+                    ClassUtil.checkAndFixAccess(c, beanClass);
+                    sctor = c;
+                    break;
+                }
+            }
+        }
+
+        // and/or one of "well-known" factory methods
+        Method factoryMethod = null;
+
+        for (Method m : staticMethods) {
+            /* must be named "valueOf", for now; other candidates?
+             */
+            if ("valueOf".equals(m.getName())) {
+                // must take String arg
+                Class<?> arg = m.getParameterTypes()[0];
+                if (arg == String.class) {
+                    ClassUtil.checkAndFixAccess(m, beanClass);
+                    factoryMethod = m;
+                    break;
+                }
+            }
+        }
+
+        return new BeanDeserializer.StringConstructor(beanClass, sctor, factoryMethod);
+    }
+
+    BeanDeserializer.NumberConstructor constructNumberConstructor(Class<?> beanClass, Constructor<?>[] ctors, List<Method> staticMethods)
+    {
+        Constructor<?> intCtor = null;
+        Constructor<?> longCtor = null;
+
+        // must find 1-int/long-arg one
+        for (Constructor<?> c : ctors) {
+            Class<?>[] args = c.getParameterTypes();
+            if (args.length != 1) {
+                continue;
+            }
+            Class<?> argType = args[0];
+            if (argType == int.class || argType == Integer.class) {
+                ClassUtil.checkAndFixAccess(c, beanClass);
+                intCtor = c;
+            } else if (argType == long.class || argType == Long.class) {
+                ClassUtil.checkAndFixAccess(c, beanClass);
+                longCtor = c;
+            }
+        }
+
+        // and/or one of "well-known" factory methods
+        Method intFactoryMethod = null;
+        Method longFactoryMethod = null;
+
+        for (Method m : staticMethods) {
+            /* must be named "valueOf", for now; other candidates?
+             */
+            if ("valueOf".equals(m.getName())) {
+                // must take String arg
+                Class<?> argType = m.getParameterTypes()[0];
+                if (argType == int.class || argType == Integer.class) {
+                    ClassUtil.checkAndFixAccess(m, beanClass);
+                    intFactoryMethod = m;
+                } else if (argType == long.class || argType == Long.class) {
+                    ClassUtil.checkAndFixAccess(m, beanClass);
+                    longFactoryMethod = m;
+                }
+            }
+        }
+        return new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactoryMethod, longFactoryMethod);
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Helper methods for Bean deserializer, other
     ////////////////////////////////////////////////////////////
      */
 
@@ -237,99 +447,28 @@ public class StdDeserializerFactory
         return result;
     }
 
-    BeanDeserializer.StringConstructor constructStringConstructor(Class<?> beanClass, Constructor<?>[] ctors, List<Method> staticMethods)
-    {
-        Constructor<?> sctor = null;
-
-        // must find 1-string-arg one
-        for (Constructor<?> c : ctors) {
-            Class<?>[] args = c.getParameterTypes();
-            if (args.length == 1) {
-                if (args[0] == String.class) {
-                    checkAccess(c, beanClass);
-                    sctor = c;
-                    break;
-                }
-            }
-        }
-
-        // and/or one of "well-known" factory methods
-        Method factoryMethod = null;
-
-        for (Method m : staticMethods) {
-            /* must be named "valueOf", for now; other candidates?
-             */
-            if ("valueOf".equals(m.getName())) {
-                // must take String arg
-                Class<?> arg = m.getParameterTypes()[0];
-                if (arg == String.class) {
-                    checkAccess(m, beanClass);
-                    factoryMethod = m;
-                    break;
-                }
-            }
-        }
-
-        return new BeanDeserializer.StringConstructor(beanClass, sctor, factoryMethod);
-    }
-
-    BeanDeserializer.NumberConstructor constructNumberConstructor(Class<?> beanClass, Constructor<?>[] ctors, List<Method> staticMethods)
-    {
-        Constructor<?> intCtor = null;
-        Constructor<?> longCtor = null;
-
-        // must find 1-int/long-arg one
-        for (Constructor<?> c : ctors) {
-            Class<?>[] args = c.getParameterTypes();
-            if (args.length != 1) {
-                continue;
-            }
-            Class<?> argType = args[0];
-            if (argType == int.class || argType == Integer.class) {
-                checkAccess(c, beanClass);
-                intCtor = c;
-            } else if (argType == long.class || argType == Long.class) {
-                checkAccess(c, beanClass);
-                longCtor = c;
-            }
-        }
-
-        // and/or one of "well-known" factory methods
-        Method intFactoryMethod = null;
-        Method longFactoryMethod = null;
-
-        for (Method m : staticMethods) {
-            /* must be named "valueOf", for now; other candidates?
-             */
-            if ("valueOf".equals(m.getName())) {
-                // must take String arg
-                Class<?> argType = m.getParameterTypes()[0];
-                if (argType == int.class || argType == Integer.class) {
-                    checkAccess(m, beanClass);
-                    intFactoryMethod = m;
-                } else if (argType == long.class || argType == Long.class) {
-                    checkAccess(m, beanClass);
-                    longFactoryMethod = m;
-                }
-            }
-        }
-        return new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactoryMethod, longFactoryMethod);
-    }
-
     /**
-     * Method called to check if we can use the passed method or constructor
-     * (wrt access restriction -- public methods can be called, others
-     * usually not); and if not, if there is a work-around for
-     * the problem.
+     * Helper method used to skip processing for types that we know
+     * can not be (i.e. are never consider to be) beans: 
+     * things like primitives, Arrays, Enums, and proxy types.
+     *<p>
+     * Note that usually we shouldn't really be getting these sort of
+     * types anyway; but better safe than sorry.
      */
-    protected void checkAccess(AccessibleObject obj, Class<?> declClass)
+    protected boolean isPotentialBeanType(Class<?> type)
     {
-        if (!obj.isAccessible()) {
-            try {
-                obj.setAccessible(true);
-            } catch (SecurityException se) {
-                throw new IllegalArgumentException("Can not access "+obj+" (from class "+declClass.getName()+"; failed to set access: "+se.getMessage());
-            }
+        String typeStr = ClassUtil.canBeABeanType(type);
+        if (typeStr != null) {
+            throw new IllegalArgumentException("Can not deserialize Class "+type.getName()+" (of type "+typeStr+") as a Bean");
         }
+        if (ClassUtil.isProxyType(type)) {
+            throw new IllegalArgumentException("Can not deserialize Proxy class "+type.getName()+" as a Bean");
+        }
+        // also: can't deserialize local (in-method, anonymous, non-static-enclosed) classes
+        typeStr = ClassUtil.isLocalType(type);
+        if (typeStr != null) {
+            throw new IllegalArgumentException("Can not deserialize Class "+type.getName()+" (of type "+typeStr+") as a Bean");
+        }
+    	return true;
     }
 }

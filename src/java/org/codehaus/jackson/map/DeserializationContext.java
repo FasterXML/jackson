@@ -50,4 +50,6 @@ public abstract class DeserializationContext
     public abstract JsonMappingException weirdNumberException(Class<?> instClass, String msg);
 
     public abstract JsonMappingException weirdKeyException(Class<?> keyClass, String keyValue, String msg);
+
+    public abstract JsonMappingException unknownFieldException(Object instance, String filedName);
 }

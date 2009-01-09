@@ -143,6 +143,11 @@ public class StdDeserializationContext
         return JsonMappingException.from(_parser, "Can not construct Map key of type "+keyClass.getName()+" from String \""+_desc(keyValue)+"\": "+msg);
     }
 
+    public JsonMappingException unknownFieldException(Object instance, String fieldName)
+    {
+        return JsonMappingException.from(_parser, "Unrecognized field \""+fieldName+"\" (Class "+instance.getClass().getName()+"), not marked as ignorable");
+    }
+
     /*
     ///////////////////////////////////////////////////
     // Overridable internal methods

@@ -4,10 +4,10 @@ import java.util.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
 
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Factory class that can provide serializers for any regular Java beans
@@ -113,7 +113,7 @@ public class BeanSerializerFactory
     public JsonSerializer<?> findBeanSerializer(Class<?> type)
     {
         // First things first: we know some types are not beans...
-        if (!canBeABeanType(type) || isProxyType(type)) {
+        if (!isPotentialBeanType(type)) {
             return null;
         }
 
@@ -135,40 +135,14 @@ public class BeanSerializerFactory
     /**
      * Helper method used to skip processing for types that we know
      * can not be (i.e. are never consider to be) beans: 
-     * things like primitives, Arrays, Enums.
+     * things like primitives, Arrays, Enums, and proxy types.
      *<p>
      * Note that usually we shouldn't really be getting these sort of
      * types anyway; but better safe than sorry.
      */
-    protected boolean canBeABeanType(Class<?> type)
+    protected boolean isPotentialBeanType(Class<?> type)
     {
-        // First: language constructs that ain't beans:
-        if (type.isAnnotation() || type.isArray() || type.isEnum()
-            || type.isPrimitive()) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Helper method used to weed out dynamic Proxy types; types that do
-     * not expose concrete method API that we could use to figure out
-     * automatic Bean (property) based serialization.
-     */
-    protected boolean isProxyType(Class<?> type)
-    {
-        // Then: well-known proxy (etc) classes
-        if (Proxy.isProxyClass(type)) {
-            return true;
-        }
-        String name = type.getName();
-        // Hibernate uses proxies heavily as well:
-        if (name.startsWith("net.sf.cglib.proxy.")
-            || name.startsWith("org.hibernate.proxy.")) {
-            return true;
-        }
-        // Not one of known proxies, nope:
-        return false;
+        return (ClassUtil.canBeABeanType(type) == null) && !ClassUtil.isProxyType(type);
     }
 
     /**
@@ -293,7 +267,7 @@ public class BeanSerializerFactory
             if ("getClass".equals(m.getName()) && m.getDeclaringClass() == Object.class) {
                 return null;
             }
-            return mangleName(name.substring(3));
+            return mangleName(m, name.substring(3));
         }
         if (name.startsWith("is")) {
             // plus, must return boolean...
@@ -301,41 +275,19 @@ public class BeanSerializerFactory
             if (rt != Boolean.class && rt != Boolean.TYPE) {
                 return null;
             }
-            return mangleName(name.substring(2));
+            return ClassUtil.manglePropertyName(name.substring(2));
         }
         // no, not a match by name
         return null;
     }
 
     /**
-     * Method called to figure out name of the property, given 
-     * corresponding suggested name based on method name.
-     *
-     * @param basename Name of accessor method, not including prefix
-     *  ("get" or "is")
+     * @return Null to indicate that method is not a valid accessor;
+     *   otherwise name of the property it is accessor for
      */
-    protected String mangleName(String basename)
+    protected String mangleName(Method method, String basename)
     {
-        int len = basename.length();
-
-        // First things first: empty basename ("is" or "get") is no good
-        if (len == 0) {
-            return null;
-        }
-        // otherwise, lower case initial chars
-        StringBuilder sb = null;
-        for (int i = 0; i < len; ++i) {
-            char upper = basename.charAt(i);
-            char lower = Character.toLowerCase(upper);
-            if (upper == lower) {
-                break;
-            }
-            if (sb == null) {
-                sb = new StringBuilder(basename);
-            }
-            sb.setCharAt(i, lower);
-        }
-        return (sb == null) ? basename : sb.toString();
+        return ClassUtil.manglePropertyName(basename);
     }
 
     /*
@@ -352,13 +304,8 @@ public class BeanSerializerFactory
      */
     protected Method checkAccess(Method m, String name)
     {
-        if (!m.isAccessible()) {
-            try {
-                m.setAccessible(true);
-            } catch (SecurityException se) {
-                throw new IllegalArgumentException("Can not access property '"+name+"' (via method "+m.getDeclaringClass()+"#"+m.getName()+"()); failed to set access: "+se.getMessage());
-            }
-        }
+        // this can only fail from exception: should we catch it?
+        ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
         return m;
     }
 }

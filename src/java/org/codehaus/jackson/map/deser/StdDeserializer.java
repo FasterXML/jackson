@@ -38,7 +38,6 @@ public abstract class StdDeserializer<T>
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.getCurrentToken();
-        int value;
         
         if (t == JsonToken.VALUE_NUMBER_INT) {
             return jp.getIntValue();

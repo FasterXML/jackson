@@ -99,7 +99,7 @@ public class StdDeserializerProvider
          */
         if (deser instanceof ResolvableDeserializer) {
             _cachedDeserializers.put(type, deser);
-            _resolveDeserializer((ResolvableDeserializer)deser);
+            _resolveDeserializer((ResolvableDeserializer)deser, f);
         } else if (type.isEnumType()) {
             // Let's also cache enum type deserializers, they somewhat costly
             _cachedDeserializers.put(type, deser);
@@ -164,9 +164,9 @@ public class StdDeserializerProvider
         return (JsonDeserializer<Object>)f.createBeanDeserializer(type, this);
     }
 
-    protected void _resolveDeserializer(ResolvableDeserializer ser)
+    protected void _resolveDeserializer(ResolvableDeserializer ser, DeserializerFactory f)
     {
-        ser.resolve(this);
+        ser.resolve(this, f);
     }
 
     /*

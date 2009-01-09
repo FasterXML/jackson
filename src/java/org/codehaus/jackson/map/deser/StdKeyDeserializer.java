@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.JavaType;
 
 /**
  * Base class for simple key deserializers.

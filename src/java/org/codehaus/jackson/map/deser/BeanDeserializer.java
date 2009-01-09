@@ -6,6 +6,8 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.JavaType;
+import org.codehaus.jackson.map.type.TypeFactory;
 
 /**
  * Deserializer class that can deserialize instances of
@@ -29,7 +31,7 @@ public final class BeanDeserializer
      * track of recognized but ignorable properties: these will
      * be skipped without errors or warnings.
      */
-    final HashSet<String> _ignorableProps;
+    HashSet<String> _ignorableProps;
 
     /**
      * If the "bean" class can be instantiated using just a single
@@ -53,16 +55,30 @@ public final class BeanDeserializer
      */
 
     public BeanDeserializer(Class<?> type, 
-                            HashMap<String, SettableBeanProperty> props,
-                            HashSet<String> ignorableProps,
                             StringConstructor sctor,
                             NumberConstructor nctor)
     {
         _beanClass = type;
-        _props = props;
-        _ignorableProps = ignorableProps;
         _stringConstructor = sctor;
         _numberConstructor = nctor;
+        _props = new HashMap<String, SettableBeanProperty>();
+        _ignorableProps = null;
+    }
+    
+    /**
+     * @return Previously set property, if one existed for name
+     */
+    protected SettableBeanProperty addSetter(SettableBeanProperty prop)
+    {
+        return _props.put(prop.getPropertyName(), prop);
+    }
+
+    protected void addIgnorable(String propName)
+    {
+        if (_ignorableProps == null) {
+            _ignorableProps = new HashSet<String>();
+        }
+        _ignorableProps.add(propName);
     }
 
     /**
@@ -70,9 +86,21 @@ public final class BeanDeserializer
      * after deserializer itself has been registered. This
      * is needed to handle recursive dependencies.
      */
-    public void resolve(DeserializerProvider provider)
+    public void resolve(DeserializerProvider provider, DeserializerFactory f)
     {
-        // !!! TBI
+        // let's reuse same instances, not all are cached by provider
+        HashMap<JavaType, JsonDeserializer<Object>> seen =  new HashMap<JavaType, JsonDeserializer<Object>>();
+
+        for (SettableBeanProperty prop : _props.values()) {
+            Class<?> valueType = prop.getValueClass();
+            JavaType type = TypeFactory.instance.fromClass(valueType);
+            JsonDeserializer<Object> deser = seen.get(type);
+            if (deser == null) {
+                deser = provider.findValueDeserializer(type, f);
+                seen.put(type, deser);
+            }
+            prop.setValueDeserializer(deser);
+        }
     }
 
     /*
@@ -122,15 +150,71 @@ public final class BeanDeserializer
     public final Object deserializeFromObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        // !!! TBI
-        return null;
+        // !!! TODO: alternative constructors (with annotated params)
+        Object result;
+        try {
+            result = _beanClass.newInstance();
+        } catch (Exception e) {
+            _rethrow(e);
+            return null; // never gets here
+        }
+
+        while (jp.nextToken() != JsonToken.END_OBJECT) { // otherwise field name
+            String propName = jp.getCurrentName();
+            JsonToken t = jp.nextToken();
+            SettableBeanProperty prop = _props.get(propName);
+
+            if (prop != null) { // normal case
+                JsonDeserializer<Object> valueDeser = prop.getValueDeserializer();
+                Object value = (t == JsonToken.VALUE_NULL) ? null : valueDeser.deserialize(jp, ctxt);
+                prop.set(result, value);
+                continue;
+            }
+
+            // otherwise, what to do with it? Ignore?
+            if (_ignorableProps != null && _ignorableProps.contains(propName)) {
+                ; // fine, ignore as is
+            } else {
+                // Hmmh. Problem...
+                reportUnknownField(jp, ctxt, result, propName);
+            }
+            // either way, need to skip now
+            jp.skipChildren();
+        }
+        return result;
     }
 
     /*
     /////////////////////////////////////////////////////////
-    // Internal helper methods
+    // Overridable helper methods
     /////////////////////////////////////////////////////////
      */
+
+    protected void reportUnknownField(JsonParser jp, DeserializationContext ctxt,
+                                      Object valueObject, String fieldName)
+        throws IOException, JsonProcessingException
+    {
+        ctxt.unknownFieldException(valueObject, fieldName);
+    }
+
+    /*
+    /////////////////////////////////////////////////////////
+    // Other helper methods
+    /////////////////////////////////////////////////////////
+     */
+
+    protected static void _rethrow(Exception e)
+        throws RuntimeException
+    {
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
+        }
+        Throwable t = e;
+        while (t.getCause() != null) {
+            t = t.getCause();
+        }
+        throw new IllegalArgumentException(t.getMessage(), t);
+    }
 
     /*
     /////////////////////////////////////////////////////////
@@ -145,19 +229,6 @@ public final class BeanDeserializer
         public ConstructorBase(Class<?> valueClass)
         {
             _valueClass = valueClass;
-        }
-
-        protected void _rethrow(Exception e)
-            throws RuntimeException
-        {
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            Throwable t = e;
-            while (t.getCause() != null) {
-                t = t.getCause();
-            }
-            throw new IllegalArgumentException(t.getMessage(), t);
         }
     }
 

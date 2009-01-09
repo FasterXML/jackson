@@ -46,6 +46,9 @@ public class CollectionDeserializer
             throw ctxt.mappingException(_collectionClass);
         }
 
+        /* !!! 09-Jan-2009, tatu: Use temp array from context, to create
+         *    list etc of suitable size?
+         */
         Collection<Object> result;
         try {
             result = _collectionClass.newInstance();

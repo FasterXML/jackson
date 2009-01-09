@@ -21,14 +21,14 @@ class StdDeserializers
         add(new StdDeserializer.StringDeserializer());
 
         // Then primitives/wrappers
-        add(new StdDeserializer.BooleanDeserializer());
-        add(new StdDeserializer.ByteDeserializer());
-        add(new StdDeserializer.ShortDeserializer());
-        add(new StdDeserializer.CharacterDeserializer());
-        add(new StdDeserializer.IntegerDeserializer());
-        add(new StdDeserializer.LongDeserializer());
-        add(new StdDeserializer.FloatDeserializer());
-        add(new StdDeserializer.DoubleDeserializer());
+        add(new StdDeserializer.BooleanDeserializer(), Boolean.class, Boolean.TYPE);
+        add(new StdDeserializer.ByteDeserializer(), Byte.class, Byte.TYPE);
+        add(new StdDeserializer.ShortDeserializer(), Short.class, Short.TYPE);
+        add(new StdDeserializer.CharacterDeserializer(), Character.class, Character.TYPE);
+        add(new StdDeserializer.IntegerDeserializer(), Integer.class, Integer.TYPE);
+        add(new StdDeserializer.LongDeserializer(), Long.class, Long.TYPE);
+        add(new StdDeserializer.FloatDeserializer(), Float.class, Float.TYPE);
+        add(new StdDeserializer.DoubleDeserializer(), Double.class, Double.TYPE);
 
         // and related
         add(new StdDeserializer.BigDecimalDeserializer());
@@ -55,11 +55,17 @@ class StdDeserializers
 
     void add(StdDeserializer<?> stdDeser)
     {
+        add(stdDeser, stdDeser.getValueClass());
+    }
+
+    void add(StdDeserializer<?> stdDeser, Class<?>... valueClasses)
+    {
         // must do some unfortunate casting here...
         @SuppressWarnings("unchecked")
         JsonDeserializer<Object> deser = (JsonDeserializer<Object>) stdDeser;
 
-        Class<?> valueClass = stdDeser.getValueClass();
-        _deserializers.put(TypeFactory.instance.fromClass(valueClass), deser);
+        for (Class<?> valueClass : valueClasses) {
+            _deserializers.put(TypeFactory.instance.fromClass(valueClass), deser);
+        }
     }
 }
