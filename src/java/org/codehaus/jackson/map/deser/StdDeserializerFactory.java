@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.deser;
 
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -93,6 +94,9 @@ public class StdDeserializerFactory
 
         // First, special type(s):
         JsonDeserializer<Object> deser = _arrayDeserializers.get(elemType);
+        /* !!! 08-Jan-2008, tatu: No primitive array deserializers yet,
+         *   need to complete
+         */
         if (deser != null) {
             return deser;
         }
@@ -174,7 +178,19 @@ public class StdDeserializerFactory
 
     public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
     {
+        // First let's figure out scalar value - based construction aspects:
+
+        Class<?> beanClass = type.getRawClass();
+        Constructor<?>[] ctors = beanClass.getDeclaredConstructors();
+        List<Method> staticMethods = findStaticFactoryMethods(beanClass);
+
+        BeanDeserializer.StringConstructor sctor = constructStringConstructor(beanClass, ctors, staticMethods);
+        BeanDeserializer.NumberConstructor nctor = constructNumberConstructor(beanClass, ctors, staticMethods);
+
+        // And then things we need if we get Json Object:
+
         // !!! TBI
+
         return null;
     }
 
@@ -184,6 +200,113 @@ public class StdDeserializerFactory
         JsonDeserializer<Object> result = (JsonDeserializer<Object>) des;
         return result;
     }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Helper methods for Bean deserializer
+    ////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that will find all single-arg static methods that given
+     * class declares, and that construct instance of the class (or
+     * one of its subclasses).
+     */
+    List<Method> findStaticFactoryMethods(Class<?> clz)
+    {
+        ArrayList<Method> result = new ArrayList<Method>();
+        for (Method m : clz.getDeclaredMethods()) {
+            // Needs to be static
+            if (!Modifier.isStatic(m.getModifiers())) {
+                continue;
+            }
+            /* And return something compatible with the class itself:
+             * for now class itself or one of its sub-classes
+             */
+            Class<?> resultType = m.getReturnType();
+            if (!clz.isAssignableFrom(resultType)) {
+                continue;
+            }
+            // And take 1 (and only one) arg:
+            if (m.getParameterTypes().length != 1) {
+                continue;
+            }
+            // If so, it might be a candidate
+            result.add(m);
+        }
+        return result;
+    }
+
+    BeanDeserializer.StringConstructor constructStringConstructor(Class<?> beanClass, Constructor<?>[] ctors, List<Method> staticMethods)
+    {
+        Constructor<?> sctor = null;
+
+        // must find 1-string-arg one
+        for (Constructor<?> c : ctors) {
+            Class<?>[] args = c.getParameterTypes();
+            if (args.length == 1) {
+                if (args[0] == String.class) {
+                    sctor = c;
+                    break;
+                }
+            }
+        }
+
+        // and/or one of "well-known" factory methods
+        Method factoryMethod = null;
+
+        for (Method m : staticMethods) {
+            /* must be named "valueOf", for now; other candidates?
+             */
+            if ("valueOf".equals(m.getName())) {
+                // must take String arg
+                Class<?> arg = m.getParameterTypes()[0];
+                if (arg == String.class) {
+                    factoryMethod = m;
+                    break;
+                }
+            }
+        }
+
+        return new BeanDeserializer.StringConstructor(beanClass, sctor, factoryMethod);
+    }
+
+    BeanDeserializer.NumberConstructor constructNumberConstructor(Class<?> beanClass, Constructor<?>[] ctors, List<Method> staticMethods)
+    {
+        Constructor<?> intCtor = null;
+        Constructor<?> longCtor = null;
+
+        // must find 1-int/long-arg one
+        for (Constructor<?> c : ctors) {
+            Class<?>[] args = c.getParameterTypes();
+            if (args.length != 1) {
+                continue;
+            }
+            Class<?> argType = args[0];
+            if (argType == int.class || argType == Integer.class) {
+                intCtor = c;
+            } else if (argType == long.class || argType == Long.class) {
+                longCtor = c;
+            }
+        }
+
+        // and/or one of "well-known" factory methods
+        Method intFactoryMethod = null;
+        Method longFactoryMethod = null;
+
+        for (Method m : staticMethods) {
+            /* must be named "valueOf", for now; other candidates?
+             */
+            if ("valueOf".equals(m.getName())) {
+                // must take String arg
+                Class<?> argType = m.getParameterTypes()[0];
+                if (argType == int.class || argType == Integer.class) {
+                    intFactoryMethod = m;
+                } else if (argType == long.class || argType == Long.class) {
+                    longFactoryMethod = m;
+                }
+            }
+        }
+        return new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactoryMethod, longFactoryMethod);
+    }
 }
-
-

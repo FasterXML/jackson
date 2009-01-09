@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.ResolvableSerializer;
 
 /**
- * Serializer class that can serializer arbitrary bean objects.
+ * Serializer class that can serialize arbitrary bean objects.
  *<p>
  * Implementation note: we will post-process resulting serializer,
  * to figure out actual serializers for final types. This must be
