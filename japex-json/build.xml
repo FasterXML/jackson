@@ -41,6 +41,9 @@
         </javac>
     </target>
 
+    <target name="set-all" depends="compile">
+      <property name="config" value="configs/all-drivers.xml"/>
+    </target>
     <target name="set-tiny" depends="compile">
       <property name="config" value="configs/tiny-docs.xml"/>
     </target>
@@ -53,6 +56,7 @@
     
     <target name="dist" depends="compile"/>
     
+    <target name="run-all" depends="set-all, run" />
     <target name="run-tiny" depends="set-tiny, run" />
     <target name="run-small" depends="set-small, run" />
     <target name="run-big" depends="set-big, run" />
