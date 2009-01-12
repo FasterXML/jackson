@@ -41,8 +41,19 @@ public class StdDeserializerFactory
         _mapFallbacks.put(Map.class.getName(), LinkedHashMap.class);
         _mapFallbacks.put(ConcurrentMap.class.getName(), ConcurrentHashMap.class);
         _mapFallbacks.put(SortedMap.class.getName(), TreeMap.class);
-        _mapFallbacks.put(NavigableMap.class.getName(), TreeMap.class);
-        _mapFallbacks.put(ConcurrentNavigableMap.class.getName(), ConcurrentSkipListMap.class);
+
+        /* 11-Jan-2009, tatu: Let's see if we can still add support for
+         *    JDK 1.6 interfaces, even if we run on 1.5. Just need to be
+         *    more careful with typos, since compiler won't notice any
+         *    problems...
+         */
+        _mapFallbacks.put("java.util.NavigableMap", TreeMap.class);
+        try {
+            Class<?> key = Class.forName("java.util.ConcurrentNavigableMap");
+            Class<?> value = Class.forName("java.util.ConcurrentSkipListMap");
+            _mapFallbacks.put(key.getName(), (Class<? extends Map>) value);
+        } catch (ClassNotFoundException cnfe) { // occurs on 1.5
+        }
     }
 
     /* We do some defaulting for abstract Map classes and
@@ -58,7 +69,14 @@ public class StdDeserializerFactory
         _collectionFallbacks.put(Set.class.getName(), HashSet.class);
         _collectionFallbacks.put(SortedSet.class.getName(), TreeSet.class);
         _collectionFallbacks.put(Queue.class.getName(), LinkedList.class);
-        _collectionFallbacks.put(Deque.class.getName(), LinkedList.class);
+
+        /* 11-Jan-2009, tatu: Let's see if we can still add support for
+         *    JDK 1.6 interfaces, even if we run on 1.5. Just need to be
+         *    more careful with typos, since compiler won't notice any
+         *    problems...
+         */
+        _collectionFallbacks.put("java.util.Deque", LinkedList.class);
+        _collectionFallbacks.put("java.util.NavigableSet", TreeSet.class);
     }
 
     /**

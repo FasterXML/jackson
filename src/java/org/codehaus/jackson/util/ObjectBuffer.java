@@ -133,7 +133,7 @@ public final class ObjectBuffer
      * {@link #completeAndClearBuffer(Object[], int)}, to allow
      * for constructing explicitly typed result array.
      *
-     * @param elementType Type of elements included in the buffer. Will be
+     * @param componentType Type of elements included in the buffer. Will be
      *   used for constructing the result array.
      */
  	public <T> T[] completeAndClearBuffer(Object[] lastChunk, int lastChunkEntries, Class<T> componentType)
