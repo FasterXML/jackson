@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<driver name="JsonSimpleDriver" xmlns="http://www.sun.com/japex/testSuite"
+>
+    <description>
+        <div xmlns=""><p>Driver for Json.simple parser</p></div>
+    </description>
+    
+    <param name="japex.driverClass" value="org.codehaus.jsonpex.JsonSimpleDriver"/>    
+    <param name="japex.classPath" value="dist/classes"/>
+    <param name="japex.classPath" value="lib/*.jar"/>
+</driver>

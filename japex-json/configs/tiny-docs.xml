@@ -32,6 +32,7 @@ sample JSON documents.
     <xi:include href="entities/StringTreeDriver.xml"/>    
     <xi:include href="entities/JsonToolsDriver.xml"/>    
 -->
+    <xi:include href="entities/JsonSimpleDriver.xml"/>  
 
     <testCase name="noggit-sample1">
         <param name="japex.inputFile" value="testcases2/doc1.json" />

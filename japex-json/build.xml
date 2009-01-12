@@ -10,7 +10,7 @@
 <!--
     <property name="japex-lib-dir" value="${env.JAPEX_HOME}/lib/"/>
 -->
-    <property name="japex-lib-dir" value="/opt2/src/japex/1.1/lib/"/>
+    <property name="japex-lib-dir" value="lib/japex" />
 
     <property name="lib" value="lib"/>
         
@@ -67,26 +67,6 @@
             <arg line="-last ${config}"/>
         </java>
     </target>
-    
-    <target name="run-prof" description="Target to use inside Netbeans IDE">
-        <fail unless="netbeans.home">This target can only run inside the NetBeans IDE.</fail>
-        
-        <nbprofiledirect>
-            <classpath refid="class.path"/>
-        </nbprofiledirect>
-        
-        <property environment="env"/>
-        
-        <java fork="true" classname="com.sun.japex.Japex" dir="${basedir}" 
-              jvm="${profiler.info.jvm}">
-            <jvmarg value="${profiler.info.jvmargs.agent}"/>
-            <jvmarg line="-Djava.endorsed.dirs=${basedir}/lib/jaxp"/>
-            <jvmarg line="${profiler.info.jvmargs}"/>
-            <env key="LD_LIBRARY_PATH" path="${profiler.info.agentpath}:${env.LD_LIBRARY_PATH}"/>
-            <classpath refid="class.path"/>
-            <arg line="-nohtml ${config}"/>
-        </java>
-    </target>    
     
     <target name="generate-trends">
         <java dir="." fork="true" classname="com.sun.japex.TrendReport">

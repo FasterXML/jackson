@@ -2,7 +2,7 @@ package org.codehaus.jsonpex;
 
 import java.io.*;
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.JavaTypeMapper;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import com.sun.japex.*;
 
@@ -22,13 +22,14 @@ public class JacksonJavaTypeDriver extends BaseJsonDriver
     
     @Override
     public void run(TestCase testCase) {
-        JavaTypeMapper mapper = new JavaTypeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         try {
             mInputStream.reset();            
             
             // Parser could be created in the prepare phase too
             JsonParser jp = mJsonFactory.createJsonParser(mInputStream);
-            Object ob = mapper.read(jp);
+            // By passing Object.class, we'll get Maps/Lists/wrappers:
+            Object ob = mapper.readValue(jp, Object.class);
             jp.close();
             mHashCode = ob.hashCode(); // just to get some non-optimizable number
         }

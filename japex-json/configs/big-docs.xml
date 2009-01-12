@@ -30,6 +30,7 @@ JSON documents.
     <xi:include href="entities/JsonOrgDriver.xml"/>    
     <xi:include href="entities/StringTreeDriver.xml"/>    
     <xi:include href="entities/JsonToolsDriver.xml"/>    
+    <xi:include href="entities/JsonSimpleDriver.xml"/>  
 
     <testCase name="numbers-int-64k">
         <param name="japex.inputFile" value="testcases/numbers-int-64k.jsn"/>

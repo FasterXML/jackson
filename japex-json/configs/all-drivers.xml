@@ -29,6 +29,7 @@
     <xi:include href="entities/JsonOrgDriver.xml"/>    
     <xi:include href="entities/StringTreeDriver.xml"/>    
     <xi:include href="entities/JsonToolsDriver.xml"/>    
+    <xi:include href="entities/JsonSimpleDriver.xml"/>    
 
     <testCase name="json-org-sample1">
         <param name="japex.inputFile" value="testcases/json-org-sample1.jsn"/>

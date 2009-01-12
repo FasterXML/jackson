@@ -10,26 +10,27 @@ sample JSON documents.
         </div>
     </description>
 
+<!--    
     <param name="japex.warmupTime" value="7"/>
     <param name="japex.runTime" value="25"/>
     <param name="japex.warmupsPerDriver" value="1"/>
     <param name="japex.runsPerDriver" value="3"/>    
+-->
 
 <!-- For quickie testing of correctness etc. of inputs: -->
-<!--    
     <param name="japex.warmupTime" value="3"/>
     <param name="japex.runTime" value="5"/>
     <param name="japex.warmupsPerDriver" value="1"/>
     <param name="japex.runsPerDriver" value="1"/>    
--->
 
     <param name="japex.reportsDirectory" value="reports"/>
     
     <xi:include href="entities/JacksonDriver.xml"/>    
+    <xi:include href="entities/JsonSimpleDriver.xml"/>
     <xi:include href="entities/NoggitDriver.xml"/>    
     <xi:include href="entities/JsonOrgDriver.xml"/>    
     <xi:include href="entities/StringTreeDriver.xml"/>    
-    <xi:include href="entities/JsonToolsDriver.xml"/>    
+    <xi:include href="entities/JsonToolsDriver.xml"/>
 
     <testCase name="json-org-sample1">
         <param name="japex.inputFile" value="testcases/json-org-sample1.jsn"/>
@@ -46,10 +47,13 @@ sample JSON documents.
     <testCase name="json-org-sample5">
         <param name="japex.inputFile" value="testcases/json-org-sample5.jsn"/>
     </testCase>
+<!--
     <testCase name="numbers-int-4k">
         <param name="japex.inputFile" value="testcases/numbers-int-4k.jsn"/>
     </testCase>
     <testCase name="numbers-float-4k">
         <param name="japex.inputFile" value="testcases/numbers-fp-4k.jsn"/>
     </testCase>
+-->
+
 </testSuite>
