@@ -24,6 +24,7 @@ public class TestObjectMapperBeanDeserializer
      */
 
     final static class CtorValueBean
+        implements JsonSerializable // so we can output as simple String
     {
         final String _desc;
 
@@ -31,7 +32,19 @@ public class TestObjectMapperBeanDeserializer
         public CtorValueBean(int value) { _desc = String.valueOf(value); }
         public CtorValueBean(long value) { _desc = String.valueOf(value); }
 
+        public void serialize(JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeString(_desc);
+        }
+
         @Override public String toString() { return _desc; }
+
+        @Override public boolean equals(Object o) {
+            if (!(o instanceof CtorValueBean)) return false;
+            CtorValueBean other = (CtorValueBean) o;
+            return _desc.equals(other._desc);
+        }
     }
 
     final static class FactoryValueBean
@@ -109,6 +122,59 @@ public class TestObjectMapperBeanDeserializer
         }
     }
 
+    /**
+     * Another test bean, this one containing a typed list. Needed to ensure
+     * that generics type information is properly accessed via mutator methods.
+     * Note: List elements must be something other than what 'untyped' mapper
+     * would produce from serialization.
+     */
+    public final static class BeanWithList
+    {
+        List<CtorValueBean> _beans;
+
+        public BeanWithList() { }
+        public BeanWithList(List<CtorValueBean> beans) { _beans = beans; }
+
+        public List<CtorValueBean> getBeans() { return _beans; }
+
+        public void setBeans(List<CtorValueBean> beans) {
+            _beans = beans;
+        }
+
+        @Override
+        public int hashCode() { return (_beans == null) ? -1 : _beans.size(); }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof BeanWithList)) return false;
+            BeanWithList other = BeanWithList.class.cast(o);
+            return _beans.equals(other._beans);
+        }
+
+        @Override
+            public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[Bean, list ");
+            if (_beans == null) {
+                sb.append("NULL");
+            } else {
+                sb.append('(').append(_beans.size()).append('/');
+                sb.append(_beans.getClass().getName()).append(") ");
+                boolean type = false;
+                for (CtorValueBean bean : _beans) {
+                    if (!type) {
+                        sb.append("(").append(bean.getClass().getSimpleName()).append(")");
+                        type = true;
+                    }
+                    sb.append(bean);
+                    sb.append(' ');
+                }
+            }
+            sb.append(']');
+            return sb.toString();
+        }
+    }
+
     /*
     /////////////////////////////////////////////////
     // Deserialization from simple types (String, int)
@@ -178,6 +244,23 @@ public class TestObjectMapperBeanDeserializer
         mapper.writeValue(sw, bean);
 
         TestBean result = new ObjectMapper().readValue(sw.toString(), TestBean.class);
+        assertEquals(bean, result);
+    }
+
+    public void testListBean() throws Exception
+    {
+        final int COUNT = 13;
+        ArrayList<CtorValueBean> beans = new ArrayList<CtorValueBean>();
+        for (int i = 0; i < COUNT; ++i) {
+            beans.add(new CtorValueBean(i));
+        }
+        BeanWithList bean = new BeanWithList(beans);
+
+        StringWriter sw = new StringWriter();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(sw, bean);
+
+        BeanWithList result = new ObjectMapper().readValue(sw.toString(), BeanWithList.class);
         assertEquals(bean, result);
     }
 

@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.lang.reflect.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.type.JavaType;
 
 /**
  * Value class used to set bean property values
@@ -13,17 +14,17 @@ public final class SettableBeanProperty
 
     final Method _setter;
 
-    final Class<?> _valueClass;
+    final JavaType _type;
 
     JsonDeserializer<Object> _valueDeserializer;
 
-    public SettableBeanProperty(String propName, Class<?> valueClass, Method setter)
+    public SettableBeanProperty(String propName, JavaType type, Method setter)
     {
         /* 09-Jan-2009, tatu: Intern()ing makes sense since Jackson parsed
          *   field names are interned too, hence lookups will be faster.
          */
         _propName = propName.intern();
-        _valueClass = valueClass;
+        _type = type;
         _setter = setter;
     }
 
@@ -36,7 +37,8 @@ public final class SettableBeanProperty
     }
 
     public String getPropertyName() { return _propName; }
-    public Class<?> getValueClass() { return _valueClass; }
+    public JavaType getType() { return _type; }
+
     public JsonDeserializer<Object> getValueDeserializer() { return _valueDeserializer; }
 
     public void set(Object instance, Object value)

@@ -92,8 +92,7 @@ public final class BeanDeserializer
         HashMap<JavaType, JsonDeserializer<Object>> seen =  new HashMap<JavaType, JsonDeserializer<Object>>();
 
         for (SettableBeanProperty prop : _props.values()) {
-            Class<?> valueType = prop.getValueClass();
-            JavaType type = TypeFactory.instance.fromClass(valueType);
+            JavaType type = prop.getType();
             JsonDeserializer<Object> deser = seen.get(type);
             if (deser == null) {
                 deser = provider.findValueDeserializer(type, f);

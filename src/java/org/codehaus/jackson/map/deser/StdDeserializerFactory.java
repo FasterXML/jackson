@@ -269,8 +269,11 @@ public class StdDeserializerFactory
             }
             // need to ensure it is callable now:
             ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
-            Class<?> valueClass = m.getParameterTypes()[0];
-            SettableBeanProperty prop = new SettableBeanProperty(name, valueClass, m);
+
+            Type rawType = m.getGenericParameterTypes()[0];
+            JavaType type = TypeFactory.instance.fromType(rawType);
+
+            SettableBeanProperty prop = new SettableBeanProperty(name, type, m);
             SettableBeanProperty oldP = deser.addSetter(prop);
             if (oldP != null) {
                 throw new IllegalArgumentException("Duplicate property '"+name+"' for class "+beanClass.getName());
