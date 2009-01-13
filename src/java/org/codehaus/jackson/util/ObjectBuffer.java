@@ -136,7 +136,7 @@ public final class ObjectBuffer
      * @param componentType Type of elements included in the buffer. Will be
      *   used for constructing the result array.
      */
- 	public <T> T[] completeAndClearBuffer(Object[] lastChunk, int lastChunkEntries, Class<T> componentType)
+    public <T> T[] completeAndClearBuffer(Object[] lastChunk, int lastChunkEntries, Class<T> componentType)
     {
        int totalSize = lastChunkEntries + _bufferedEntryCount;
  	   @SuppressWarnings("unchecked")

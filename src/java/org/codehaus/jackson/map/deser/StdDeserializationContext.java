@@ -28,6 +28,8 @@ public class StdDeserializationContext
 
     // // // Helper object recycling
 
+    protected ArrayBuilders _arrayBuilders;
+
     protected ObjectBuffer _objectBuffer;
 
     protected DateFormat _dateFormat;
@@ -73,6 +75,14 @@ public class StdDeserializationContext
             || buf.initialCapacity() >= _objectBuffer.initialCapacity()) {
             _objectBuffer = buf;
         }
+    }
+
+    public final ArrayBuilders getArrayBuilders()
+    {
+        if (_arrayBuilders == null) {
+            _arrayBuilders = new ArrayBuilders();
+        }
+        return _arrayBuilders;
     }
 
     /*
