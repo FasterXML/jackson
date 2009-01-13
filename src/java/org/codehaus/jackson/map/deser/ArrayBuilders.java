@@ -10,14 +10,14 @@ public final class ArrayBuilders
 
     // note: no need for char[] builder, assume they are Strings
 
-    PrimitiveArrayBuilder<byte[]> _booleanBuilder = null;
-    PrimitiveArrayBuilder<short[]> _booleanBuilder = null;
-    PrimitiveArrayBuilder<int[]> _booleanBuilder = null;
-    PrimitiveArrayBuilder<long[]> _booleanBuilder = null;
+    PrimitiveArrayBuilder<byte[]> _byteBuilder = null;
+    PrimitiveArrayBuilder<short[]> _shortBuilder = null;
+    PrimitiveArrayBuilder<int[]> _intBuilder = null;
+    PrimitiveArrayBuilder<long[]> _longBuilder = null;
 
-    PrimitiveArrayBuilder<float[]> _booleanBuilder = null;
-    PrimitiveArrayBuilder<double[]> _booleanBuilder = null;
+    PrimitiveArrayBuilder<float[]> _floatBuilder = null;
+    PrimitiveArrayBuilder<double[]> _doubleBuilder = null;
 
-    public ArrayBuilders();
+    public ArrayBuilders() { }
 }
 

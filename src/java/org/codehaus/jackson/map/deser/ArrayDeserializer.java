@@ -7,7 +7,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.ArrayType;
-import org.codehaus.jackson.util.ObjectBuffer;
+import org.codehaus.jackson.map.util.ObjectBuffer;
 
 /**
  * Basic serializer that can serializer non-primitive arrays.

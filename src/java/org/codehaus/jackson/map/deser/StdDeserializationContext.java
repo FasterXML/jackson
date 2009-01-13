@@ -7,7 +7,7 @@ import java.util.*;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.util.ObjectBuffer;
+import org.codehaus.jackson.map.util.ObjectBuffer;
 
 /**
  * Default implementation of {@link DeserializationContext}.

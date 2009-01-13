@@ -4,7 +4,7 @@ import main.BaseTest;
 
 import java.util.*;
 
-import org.codehaus.jackson.util.*;
+import org.codehaus.jackson.map.util.*;
 
 public class TestObjectBuffer
     extends BaseTest

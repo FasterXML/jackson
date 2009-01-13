@@ -1,4 +1,4 @@
-package org.codehaus.jackson.util;
+package org.codehaus.jackson.map.util;
 
 import java.lang.reflect.Array;
 

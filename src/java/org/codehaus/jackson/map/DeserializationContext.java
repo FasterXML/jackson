@@ -3,7 +3,7 @@ package org.codehaus.jackson.map;
 import java.util.*;
 
 import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.util.ObjectBuffer;
+import org.codehaus.jackson.map.util.ObjectBuffer;
 
 /**
  * Context for deserialization process. Used to allow passing in configuration
