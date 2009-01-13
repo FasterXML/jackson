@@ -101,7 +101,7 @@
         <echo message = "---------------------------------------------------" />
         <echo message = "1)  readme - Displays this information (default target)." />
         <echo message = "2)  clean - Remove any generated files/directories." />
-        <echo message = "3)  compile.core - Compile all non-test ${ant.project.name} code." />
+        <echo message = "3)  compile.core - Compile core ${ant.project.name} code." />
         <echo message = "4)  jars - Compile and create all jars for non-test ${ant.project.name} code (see below for specific ones)." />
         <echo message = "4b)  jar.asl - Compile and create jar for non-test ${ant.project.name} cod, under Apache (2.0) license." />
         <echo message = "5)  javadoc - Generate ${ant.project.name} code documentation." />
@@ -153,7 +153,7 @@
         <delete file="cobertura.ser" />
     </target>
 
-    <target name="compile" depends="compile.core, compile.test" />
+    <target name="compile" depends="compile.core, compile.mapper, compile.extra, compile.test" />
 
     <target name="compile.core" depends="prepare">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
@@ -161,7 +161,28 @@
             debug="true"
         >
             <compilerarg value="-Xlint:unchecked" />
+            <exclude name="org/codehaus/jackson/map/**/*.java" />
             <include name="org/codehaus/**/*.java" />
+            <classpath refid="compile-classpath" />
+        </javac>
+    </target>
+
+    <target name="compile.mapper" depends="compile.core">
+        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
+            source="1.5" target="1.5"
+            debug="true"
+        >
+            <compilerarg value="-Xlint:unchecked" />
+            <include name="org/codehaus/jackson/map/**/*.java" />
+            <classpath refid="compile-classpath" />
+        </javac>
+    </target>
+
+    <target name="compile.extra" depends="compile.core">
+        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
+            source="1.5" target="1.5" debug="true"
+        >
+            <compilerarg value="-Xlint:unchecked" />
             <include name="sample/**/*.java" />
             <include name="test/**/*.java" />
             <classpath refid="compile-classpath" />

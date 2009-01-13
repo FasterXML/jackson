@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import java.util.*;
 
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 
 /**
@@ -20,11 +21,18 @@ public abstract class DeserializationContext
     */
 
     /**
-     * Method that can be used to get access to a reusable 
+     * Method that can be used to get access to a reusable ObjectBuffer,
+     * useful for constructing Object arrays and Lists.
      */
     public abstract ObjectBuffer leaseObjectBuffer();
 
     public abstract void returnObjectBuffer(ObjectBuffer buf);
+
+    /**
+     * Method for accessing object useful for building arrays of
+     * primitive types (such as int[]).
+     */
+    public abstract ArrayBuilders getArrayBuilders();
 
     /*
     //////////////////////////////////////////////////////////////

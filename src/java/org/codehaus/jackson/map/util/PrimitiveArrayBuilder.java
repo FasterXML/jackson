@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.util;
 
 /**
  * Base class for specialized primitive array builders.
