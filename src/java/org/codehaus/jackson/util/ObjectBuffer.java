@@ -157,6 +157,12 @@ public final class ObjectBuffer
         return (_freeBuffer == null) ? 0 : _freeBuffer.length;
     }
 
+    /**
+     * Method that can be used to check how many Objects have been buffered
+     * within this buffer.
+     */
+    public int bufferedSize() { return _bufferedEntryCount; }
+
     /*
     ////////////////////////////////////////////////////////////////////////
     // Internal methods
