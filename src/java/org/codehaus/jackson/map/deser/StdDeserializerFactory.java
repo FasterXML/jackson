@@ -121,6 +121,9 @@ public class StdDeserializerFactory
         }
 
         // If not, generic one:
+        if (elemType.isPrimitive()) { // sanity check
+            throw new IllegalArgumentException("Internal error: primitive type ("+type+") passed, no array deserializer found");
+        }
         JsonDeserializer<Object> valueDes = p.findValueDeserializer(elemType, this);
         return new ArrayDeserializer(type, valueDes);
     }
@@ -216,7 +219,17 @@ public class StdDeserializerFactory
 
         BeanDeserializer.StringConstructor sctor = constructStringConstructor(beanClass, ctors, staticMethods);
         BeanDeserializer.NumberConstructor nctor = constructNumberConstructor(beanClass, ctors, staticMethods);
-        BeanDeserializer deser = new BeanDeserializer(beanClass, sctor, nctor);
+        Constructor<?> defaultCtor = findDefaultConstructor(ctors);
+
+        // sanity check: must have a constructor of one type or another
+        if ((sctor == null) && (nctor == null) && (defaultCtor == null)) {
+            throw new IllegalArgumentException("Can not create Bean deserializer for ("+type+"): neither default constructor nor factory methods found");
+        }
+        if (defaultCtor != null) {
+            ClassUtil.checkAndFixAccess(defaultCtor, beanClass);
+        }
+
+        BeanDeserializer deser = new BeanDeserializer(beanClass, defaultCtor, sctor, nctor);
         // And then things we need if we get Json Object:
         addBeanProps(deser);
         return deser;
@@ -430,6 +443,17 @@ public class StdDeserializerFactory
             }
         }
         return new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactoryMethod, longFactoryMethod);
+    }
+
+    protected Constructor<?> findDefaultConstructor(Constructor<?>[] ctors)
+    {
+        for (Constructor<?> ctor : ctors) {
+            // won't use varargs, no point
+            if (!ctor.isVarArgs() && ctor.getParameterTypes().length == 0) {
+                return ctor;
+            }
+        }
+        return null;
     }
 
     /*

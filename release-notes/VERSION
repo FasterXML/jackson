@@ -15,6 +15,11 @@ Description:
     long/java.lang.Long) was not working due to incorrectly mapped
     serializers.
 
+  New features:
+
+  * [JACKSON-31]: Complete rewrite of ObjectMapper's deserialization:
+    now supports Beans, typed Lists/Maps.
+
   Improvements:
 
   * [JACKSON-30]: Renamed "JavaTypeMapper" as "ObjectMapper", and

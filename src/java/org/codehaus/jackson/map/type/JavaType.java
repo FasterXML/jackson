@@ -68,6 +68,8 @@ public abstract class JavaType
 
     public final boolean isInterface() { return _class.isInterface(); }
 
+    public final boolean isPrimitive() { return _class.isPrimitive(); }
+
     /*
     ///////////////////////////////////////////////////////////////
     // Standard methods; let's make them abstract to force override

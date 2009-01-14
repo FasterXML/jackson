@@ -231,6 +231,20 @@ public abstract class JsonNumericParserBase
         return NumberType.DOUBLE;
     }
 
+    public byte getByteValue()
+        throws IOException, JsonParseException
+    {
+        int value = getIntValue();
+        return (byte) value;
+    }
+
+    public short getShortValue()
+        throws IOException, JsonParseException
+    {
+        int value = getIntValue();
+        return (short) value;
+    }
+
     public int getIntValue()
         throws IOException, JsonParseException
     {
@@ -257,6 +271,13 @@ public abstract class JsonNumericParserBase
             }
         }
         return mNumberLong;
+    }
+
+    public float getFloatValue()
+        throws IOException, JsonParseException
+    {
+        double value = getDoubleValue();
+        return (float) value;
     }
 
     public double getDoubleValue()

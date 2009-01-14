@@ -19,6 +19,8 @@ public final class BeanDeserializer
 {
     final Class<?> _beanClass;
 
+    final Constructor<?> _defaultConstructor;
+
     /**
      * Things set via setters (modifiers) are included in this
      * Map.
@@ -53,11 +55,12 @@ public final class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
-    public BeanDeserializer(Class<?> type, 
+    public BeanDeserializer(Class<?> type, Constructor<?> defaultCtor,
                             StringConstructor sctor,
                             NumberConstructor nctor)
     {
         _beanClass = type;
+        _defaultConstructor = defaultCtor;
         _stringConstructor = sctor;
         _numberConstructor = nctor;
         _props = new HashMap<String, SettableBeanProperty>();
@@ -149,9 +152,15 @@ public final class BeanDeserializer
         throws IOException, JsonProcessingException
     {
         // !!! TODO: alternative constructors (with annotated params)
+
+        // But for now, must have the default constructor:
+        if (_defaultConstructor == null) {
+            throw JsonMappingException.from(jp, "No default constructor found for class "+_beanClass.getName()+": can not instantiate from Json object");
+        }
+
         Object result;
         try {
-            result = _beanClass.newInstance();
+            result = _defaultConstructor.newInstance();
         } catch (Exception e) {
             _rethrow(e);
             return null; // never gets here

@@ -305,10 +305,46 @@ public abstract class JsonParser
     /**
      * Numeric accessor that can be called when the current
      * token is of type {@link JsonToken#VALUE_NUMBER_INT} and
-     * it can be expressed as a Java int primitive type.
+     * it can be expressed as a value of Java byte primitive type.
+     * It can also be called for {@link JsonToken#VALUE_NUMBER_FLOAT};
+     * if so, it is equivalent to calling {@link #getDoubleValue}
+     * and then casting; except for possible overflow/underflow
+     * exception.
      *<p>
-     * Note: if the token is an integer, but its value falls
-     * outside of range of Java int, a {@link JsonParseException}
+     * Note: if the resulting integer value falls outside range of
+     * Java byte, a {@link JsonParseException}
+     * will be thrown to indicate numeric overflow/underflow.
+     */
+    public abstract byte getByteValue()
+        throws IOException, JsonParseException;
+
+    /**
+     * Numeric accessor that can be called when the current
+     * token is of type {@link JsonToken#VALUE_NUMBER_INT} and
+     * it can be expressed as a value of Java short primitive type.
+     * It can also be called for {@link JsonToken#VALUE_NUMBER_FLOAT};
+     * if so, it is equivalent to calling {@link #getDoubleValue}
+     * and then casting; except for possible overflow/underflow
+     * exception.
+     *<p>
+     * Note: if the resulting integer value falls outside range of
+     * Java short, a {@link JsonParseException}
+     * will be thrown to indicate numeric overflow/underflow.
+     */
+    public abstract short getShortValue()
+        throws IOException, JsonParseException;
+
+    /**
+     * Numeric accessor that can be called when the current
+     * token is of type {@link JsonToken#VALUE_NUMBER_INT} and
+     * it can be expressed as a value of Java int primitive type.
+     * It can also be called for {@link JsonToken#VALUE_NUMBER_FLOAT};
+     * if so, it is equivalent to calling {@link #getDoubleValue}
+     * and then casting; except for possible overflow/underflow
+     * exception.
+     *<p>
+     * Note: if the resulting integer value falls outside range of
+     * Java int, a {@link JsonParseException}
      * will be thrown to indicate numeric overflow/underflow.
      */
     public abstract int getIntValue()
@@ -318,6 +354,10 @@ public abstract class JsonParser
      * Numeric accessor that can be called when the current
      * token is of type {@link JsonToken#VALUE_NUMBER_INT} and
      * it can be expressed as a Java long primitive type.
+     * It can also be called for {@link JsonToken#VALUE_NUMBER_FLOAT};
+     * if so, it is equivalent to calling {@link #getDoubleValue}
+     * and then casting to int; except for possible overflow/underflow
+     * exception.
      *<p>
      * Note: if the token is an integer, but its value falls
      * outside of range of Java long, a {@link JsonParseException}
@@ -326,6 +366,35 @@ public abstract class JsonParser
     public abstract long getLongValue()
         throws IOException, JsonParseException;
 
+    /**
+     * Numeric accessor that can be called when the current
+     * token is of type {@link JsonToken#VALUE_NUMBER_FLOAT} and
+     * it can be expressed as a Java float primitive type.
+     * It can also be called for {@link JsonToken#VALUE_NUMBER_INT};
+     * if so, it is equivalent to calling {@link #getLongValue}
+     * and then casting; except for possible overflow/underflow
+     * exception.
+     *<p>
+     * Note: if the value falls
+     * outside of range of Java float, a {@link JsonParseException}
+     * will be thrown to indicate numeric overflow/underflow.
+     */
+    public abstract float getFloatValue()
+        throws IOException, JsonParseException;
+
+    /**
+     * Numeric accessor that can be called when the current
+     * token is of type {@link JsonToken#VALUE_NUMBER_FLOAT} and
+     * it can be expressed as a Java double primitive type.
+     * It can also be called for {@link JsonToken#VALUE_NUMBER_INT};
+     * if so, it is equivalent to calling {@link #getLongValue}
+     * and then casting; except for possible overflow/underflow
+     * exception.
+     *<p>
+     * Note: if the value falls
+     * outside of range of Java double, a {@link JsonParseException}
+     * will be thrown to indicate numeric overflow/underflow.
+     */
     public abstract double getDoubleValue()
         throws IOException, JsonParseException;
 

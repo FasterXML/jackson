@@ -393,7 +393,7 @@
     <!-- Compiling and running test cases
       -->
 
-    <target name="compile.test" depends="compile.core">
+    <target name="compile.test" depends="compile.core, compile.mapper">
         <javac srcdir="${src.dir.test}" destdir="${dir.test.classes}"
             source="1.5" target="1.5"
             debug="true"
