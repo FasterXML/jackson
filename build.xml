@@ -48,16 +48,10 @@
        </fileset>
     </path>
 
-    <!-- Source files to include in source packages (tar, zip) -->
-    <patternset id="dist-src-files">
-          <include name="src/**/*.java" />
-          <include name="release-notes/*" />
+    <patternset id="dist-all-source-files">
           <include name="build.xml" />
-          <include name="project.xml" />
-    </patternset>
-
-    <patternset id="dist-misc-files">
-          <include name="src/test/**/*.java" />
+          <include name="release-notes/*" />
+          <include name="src/**/*.java" />
           <include name="src/java/**/*.html" />
           <include name="src/maven/*.pom" />
           <include name="release-notes/*" />
@@ -225,27 +219,36 @@
           -->
        <tar basedir="${basedir}" destfile="${dir.dist}/jackson-src-${IMPL_VERSION}.tar.gz"
          compression="gzip">
-          <patternset refid="dist-src-files" />
-          <patternset refid="dist-misc-files" />
+          <patternset refid="dist-all-source-files" />
        </tar>
 
        <!-- as well as zip -->
        <zip basedir="${basedir}" destfile="${dir.dist}/jackson-src-${IMPL_VERSION}.zip">
-          <patternset refid="dist-src-files" />
-          <patternset refid="dist-misc-files" />
+          <patternset refid="dist-all-source-files" />
        </zip>
 
-       <!-- And create source jars for IDE support -->
-       <jar jarfile="${dir.dist}/jackson-asl-${IMPL_VERSION}-sources.jar" filesonly="true" compress="true" >
-          <fileset dir="${basedir}">
-              <patternset refid="dist-src-files" />
-          </fileset>
-       </jar>
-       <jar jarfile="${dir.dist}/jackson-lgpl-${IMPL_VERSION}-sources.jar" filesonly="true" compress="true" >
-          <fileset dir="${basedir}">
-              <patternset refid="dist-src-files" />
-          </fileset>
-       </jar>
+       <!-- And create source jars for IDE support; separate for core, mapper
+            and both license types
+         -->
+       <jar destfile="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java}"
+          excludes="org/codehaus/jackson/map/**"
+          includes="org/codehaus/jackson/**"
+       />
+       <jar destfile="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java}"
+          includes="org/codehaus/jackson/map/**"
+       />
+
+       <jar destfile="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java}"
+          excludes="org/codehaus/jackson/map/**"
+          includes="org/codehaus/jackson/**"
+       />
+       <jar destfile="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java}"
+          includes="org/codehaus/jackson/map/**"
+       />
 
        <!-- Then copy javadocs -->
        <copy todir="${dir.dist}">
