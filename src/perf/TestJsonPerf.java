@@ -2,8 +2,8 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
-import org.codehaus.jackson.map.JavaTypeMapper;
-import org.codehaus.jackson.map.JsonTypeMapper;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.TreeMapper;
 import org.codehaus.jackson.util.BufferRecycler;
 
 // json.org's reference implementation
@@ -17,9 +17,9 @@ import com.sdicons.json.parser.JSONParser;
 
 public final class TestJsonPerf
 {
-    private final static int REPS = 2500;
+    private final int REPS;
 
-    private final static int TEST_PER_GC = 5;
+    private final static int TEST_PER_GC = 15;
 
     final JsonFactory mJsonFactory;
 
@@ -33,7 +33,10 @@ public final class TestJsonPerf
         mJsonFactory = new JsonFactory();
         mData = readData(f);
 
-        System.out.println("Read "+mData.length+" bytes from '"+f+"'");
+        // Let's try to guestimate suitable size... to get to 100 megs parsed
+        REPS = (int) ((double) (100 * 1000 * 1000) / (double) mData.length);
+
+        System.out.println("Read "+mData.length+" bytes from '"+f+"'; will do "+REPS+" reps");
         System.out.println();
     }
 
@@ -45,12 +48,12 @@ public final class TestJsonPerf
 
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            // Use 7 to test all...
-            int round = (i++ % 3);
+            // Use 9 to test all...
+            int round = (i++ % 7);
 
             long curr = System.currentTimeMillis();
             String msg;
-            boolean lf = false;
+            boolean lf = (round == 0);
 
             switch (round) {
             case 0:
@@ -62,29 +65,32 @@ public final class TestJsonPerf
                 sum += testJacksonStream(REPS, false);
                 break;
             case 2:
-                lf = true;
                 msg = "Noggit";
                 sum += testNoggit(REPS);
                 break;
-                /*
-            case 2:
+
+            case 3:
                 msg = "Jackson, Java types";
                 sum += testJacksonJavaTypes(REPS);
                 break;
-                */
-            case 3:
+
+            case 4:
                 msg = "Jackson, JSON types";
                 sum += testJacksonJavaTypes(REPS);
                 break;
-            case 4:
+            case 5:
                 msg = "Json.org";
                 sum += testJsonOrg(REPS);
                 break;
-            case 5:
+            case 6:
+                msg = "Json-simple";
+                sum += testJsonSimple(REPS);
+                break;
+            case 7:
                 msg = "JSONTools (berlios.de)";
                 sum += testJsonTools(REPS);
                 break;
-            case 6:
+            case 8:
                 msg = "StringTree";
                 sum += testStringTree(REPS);
                 break;
@@ -130,9 +136,9 @@ public final class TestJsonPerf
         throws Exception
     {
         Object ob = null;
+        // Json.org's code only accepts Strings:
+        String input = new String(mData, "UTF-8");
         for (int i = 0; i < reps; ++i) {
-            // Json.org's code only accepts Strings:
-            String input = new String(mData, "UTF-8");
             JSONTokener tok = new JSONTokener(input);
             ob = tok.nextValue();
         }
@@ -159,10 +165,22 @@ public final class TestJsonPerf
         throws Exception
     {
         Object ob = null;
+        String input = new String(mData, "UTF-8");
         for (int i = 0; i < reps; ++i) {
             // StringTree impl only accepts Strings:
-            String input = new String(mData, "UTF-8");
             ob = new JSONReader().read(input);
+        }
+        return ob.hashCode();
+    }
+
+    protected int testJsonSimple(int reps)
+        throws Exception
+    {
+        // Json.org's code only accepts Strings:
+        String input = new String(mData, "UTF-8");
+        Object ob = null;
+        for (int i = 0; i < reps; ++i) {
+            ob = org.json.simple.JSONValue.parse(input);
         }
         return ob.hashCode();
     }
@@ -184,6 +202,10 @@ public final class TestJsonPerf
             //char[] cbuf = new char[mData.length];
             //InputStreamReader r = new InputStreamReader(bin, "UTF-8");
             byte[] bbuf = ctxt.allocReadIOBuffer();
+            /* 13-Jan-2009, tatu: Note: Noggit doesn't use our turbo-charged
+             *   UTF8 codec by default. But let's make it as fast as we
+             *   possibly can...
+             */
             UTF8Reader r = new UTF8Reader(ctxt, bin, bbuf, 0, 0);
 
             bin.reset();
@@ -223,10 +245,11 @@ public final class TestJsonPerf
         throws Exception
     {
         Object ob = null;
-        JavaTypeMapper mapper = new JavaTypeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         for (int i = 0; i < reps; ++i) {
             JsonParser jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData));
-            ob = mapper.read(jp);
+            // This is "untyped"... Maps, Lists etc
+            ob = mapper.readValue(jp, Object.class);
             jp.close();
         }
         return ob.hashCode(); // just to get some non-optimizable number
@@ -236,10 +259,10 @@ public final class TestJsonPerf
         throws Exception
     {
         Object ob = null;
-        JsonTypeMapper mapper = new JsonTypeMapper();
+        TreeMapper mapper = new TreeMapper();
         for (int i = 0; i < reps; ++i) {
             JsonParser jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData));
-            ob = mapper.read(jp);
+            ob = mapper.readTree(jp);
             jp.close();
         }
         return ob.hashCode(); // just to get some non-optimizable number

@@ -101,7 +101,7 @@
         <echo message = "---------------------------------------------------" />
         <echo message = "1)  readme - Displays this information (default target)." />
         <echo message = "2)  clean - Remove any generated files/directories." />
-        <echo message = "3)  compile.core - Compile core ${ant.project.name} code." />
+        <echo message = "3)  compile.all - Compile all code for ${ant.project.name}." />
         <echo message = "4)  jars - Compile and create all jars for non-test ${ant.project.name} code (see below for specific ones)." />
         <echo message = "4b)  jar.asl - Compile and create jar for non-test ${ant.project.name} cod, under Apache (2.0) license." />
         <echo message = "5)  javadoc - Generate ${ant.project.name} code documentation." />
@@ -153,7 +153,9 @@
         <delete file="cobertura.ser" />
     </target>
 
-    <target name="compile" depends="compile.core, compile.mapper, compile.extra, compile.test" />
+    <target name="compile" depends="compile.all" />
+    <target name="compile.all" depends="compile.main, compile.extra, compile.test, compile.perf" />
+    <target name="compile.main" depends="compile.core, compile.mapper" />
 
     <target name="compile.core" depends="prepare">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
@@ -178,7 +180,7 @@
         </javac>
     </target>
 
-    <target name="compile.extra" depends="compile.core">
+    <target name="compile.extra" depends="compile.main">
         <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
             source="1.5" target="1.5" debug="true"
         >
@@ -189,7 +191,7 @@
         </javac>
     </target>
 
-    <target name="compile-perf" depends="compile">
+    <target name="compile.perf" depends="compile.main">
       <mkdir dir="${dir.perf.classes}" />
         <!-- Let's also compile micro-benchmarks... -->
         <javac srcdir="${dir.src}/perf" destdir="${dir.perf.classes}" debug="false"
@@ -216,7 +218,7 @@
     <!-- Jackson requires Java5 (enums, some generics) -->
     <property name="REQ_JDK_VERSION" value="J2SE-1.5" />
 
-    <target name="jar.asl" depends="compile.core">
+    <target name="jar.asl" depends="compile.all">
         <osgiJar
          outputdir="${dir.build}"
          bundleName="${IMPL_TITLE}"
@@ -269,7 +271,7 @@
       </bundle>
     </target> 
 
-    <target name="jar.lgpl" depends="compile.core">
+    <target name="jar.lgpl" depends="compile.all">
         <osgiJar
          outputdir="${dir.build}"
          bundleName="${IMPL_TITLE}"
@@ -318,7 +320,7 @@
         </javadoc>
     </target> 
  
-    <target name="dist" depends="compile,jars,javadoc"
+    <target name="dist" depends="compile.all ,jars, javadoc"
     >
        <!-- First, let's copy the binary jars to dist -->
        <copy todir="${dir.dist}">
@@ -393,7 +395,7 @@
     <!-- Compiling and running test cases
       -->
 
-    <target name="compile.test" depends="compile.core, compile.mapper">
+    <target name="compile.test" depends="compile.main">
         <javac srcdir="${src.dir.test}" destdir="${dir.test.classes}"
             source="1.5" target="1.5"
             debug="true"
