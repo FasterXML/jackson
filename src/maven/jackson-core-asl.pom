@@ -5,7 +5,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.codehaus.jackson</groupId>
-  <artifactId>jackson-asl</artifactId>
+  <artifactId>jackson-core-asl</artifactId>
   <packaging>jar</packaging>
   <name>Jackson</name>
   <version>@VERSION@</version>

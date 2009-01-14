@@ -31,21 +31,14 @@ public class TestFromJavaType
         doc.add(struct);
         doc.add(Boolean.FALSE);
 
-        /* 10-Dec-2008, tatu: For now, let's test both old (legacy) and
-         *    new mapping methods. Support for legacy one will be eventually
-         *    removed
-         */
-        JavaTypeMapper mapper = new JavaTypeMapper();
+        ObjectMapper mapper = new ObjectMapper();
 
+        // loop more than once, just to ensure caching works ok (during second round)
         for (int i = 0; i < 3; ++i) {
             StringWriter sw = new StringWriter();
             JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
 
-            if (i == 0) { // legacy
-                mapper.writeAny(gen, doc);
-            } else { // new one: we'll try it twice, to exercise caching
-                mapper.writeValue(gen, doc);
-            }
+            mapper.writeValue(gen, doc);
 
             gen.close();
             
@@ -86,20 +79,12 @@ public class TestFromJavaType
         doc.put("int", Integer.valueOf(137));
         doc.put("foo bar", Long.valueOf(1234567890L));
 
-        /* 10-Dec-2008, tatu: For now, let's test both old (legacy) and
-         *    new mapping methods. Support for legacy one will be eventually
-         *    removed
-         */
-        JavaTypeMapper mapper = new JavaTypeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         for (int i = 0; i < 3; ++i) {
 
             StringWriter sw = new StringWriter();
             JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-            if (i == 0) {
-                mapper.writeAny(gen, doc);
-            } else { // new one: we'll try it twice, to exercise caching
-                mapper.writeValue(gen, doc);
-            }
+            mapper.writeValue(gen, doc);
             gen.close();
 
             JsonParser jp = new JsonFactory().createJsonParser(new StringReader(sw.toString()));
@@ -139,7 +124,7 @@ public class TestFromJavaType
         Map<String, Object> map = new HashMap<String, Object>();
         String PI_STR = "3.14159265";
         map.put("pi", new BigDecimal(PI_STR));
-        new JavaTypeMapper().writeAny(gen, map);
+        new ObjectMapper().writeValue(gen, map);
         gen.close();
 
         assertEquals("{\"pi\":3.14159265}", sw.toString());

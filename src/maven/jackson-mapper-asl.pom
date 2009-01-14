@@ -5,11 +5,13 @@
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.codehaus.jackson</groupId>
-  <artifactId>jackson-lgpl</artifactId>
+  <artifactId>jackson-mapper-asl</artifactId>
   <packaging>jar</packaging>
-  <name>Jackson</name>
+  <name>Data Mapper for Jackson</name>
   <version>@VERSION@</version>
-  <description>Jackson is a high-performance JSON processor (parser, generator)</description>
+  <description>Data Mapper package is a high-performance data binding package
+built on Jackson JSON processor
+</description>
 
  <!-- Contact information -->
 
@@ -21,14 +23,19 @@
  <!-- Dependency information -->
  
   <dependencies>
-    <!-- no dependencies, for now -->
+    <!-- need the core Jackson parser/generator jar -->
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+      <version>@VERSION</version>
+    </dependency>
   </dependencies>
 
   <!-- Licensing (joy!) -->
   <licenses>
     <license>
-      <name>GNU Lesser General Public License (LGPL), Version 2.1</name>
-      <url>http://www.fsf.org/licensing/licenses/lgpl.txt</url>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -37,4 +44,5 @@
     <name>Codehaus</name>
     <url>http://www.codehaus.org/</url>
   </organization>
+
 </project>

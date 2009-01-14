@@ -12,7 +12,9 @@
     <property name="dir.lib" location="${basedir}/lib" />
     <!-- Build-related -->
     <property name="dir.build" location="${basedir}/build" />
-    <property name="dir.build.classes" location="${dir.build}/classes" />
+    <property name="dir.build.classes.core" location="${dir.build}/classes/core" />
+    <property name="dir.build.classes.mapper" location="${dir.build}/classes/mapper" />
+    <property name="dir.build.classes.extra" location="${dir.build}/classes/extra" />
 
     <!-- Test suite -->
     <property name="dir.test" location="${basedir}/test" />
@@ -35,13 +37,11 @@
     <property name="JSON_TITLE" value="Json - JavaScript Object Notation" />
     <property name="JSON_VERSION" value="1.0" />
     <property name="JSON_VENDOR" value="http://www.ietf.org/rfc/rfc4627.txt" />
-    <property name="IMPL_TITLE" value="Jackson JSON parser" />
+    <property name="IMPL_TITLE_CORE" value="Jackson JSON processor" />
+    <property name="IMPL_TITLE_MAPPER" value="Data mapper for Jackson JSON processor" />
     <property name="IMPL_VERSION" value="0.9.6" />
     <property name="IMPL_VENDOR" value="http://www.cowtowncoder.com/" />
 
-    <!-- jars needed for compilation? None as of yet -->
-    <path id="compile-classpath">
-    </path>
     <path id="junit-libs">
        <fileset dir="${dir.lib}">
             <include name="junit/junit*.jar" />
@@ -103,7 +103,9 @@
     <target name="prepare">
         <!-- make build directories -->
         <mkdir dir="${dir.build}" />
-        <mkdir dir="${dir.build.classes}" />
+        <mkdir dir="${dir.build.classes.core}" />
+        <mkdir dir="${dir.build.classes.mapper}" />
+        <mkdir dir="${dir.build.classes.extra}" />
 
         <!-- make docs directories -->
         <mkdir dir="${dir.doc}" />
@@ -141,36 +143,42 @@
     <target name="compile.main" depends="compile.core, compile.mapper" />
 
     <target name="compile.core" depends="prepare">
-        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
+        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.core}"
             source="1.5" target="1.5"
             debug="true"
         >
             <compilerarg value="-Xlint:unchecked" />
             <exclude name="org/codehaus/jackson/map/**/*.java" />
             <include name="org/codehaus/**/*.java" />
-            <classpath refid="compile-classpath" />
         </javac>
     </target>
 
     <target name="compile.mapper" depends="compile.core">
-        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
+        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.mapper}"
             source="1.5" target="1.5"
             debug="true"
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/jackson/map/**/*.java" />
-            <classpath refid="compile-classpath" />
+            <!-- mapper builds on core classes -->
+            <classpath>
+               <pathelement path="${dir.build.classes.core}"/>  
+            </classpath>
         </javac>
     </target>
 
     <target name="compile.extra" depends="compile.main">
-        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes}"
+        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.extra}"
             source="1.5" target="1.5" debug="true"
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="sample/**/*.java" />
             <include name="test/**/*.java" />
-            <classpath refid="compile-classpath" />
+            <!-- need core and mapper classes -->
+            <classpath>
+               <pathelement path="${dir.build.classes.core}"/>
+               <pathelement path="${dir.build.classes.mapper}"/>
+            </classpath>
         </javac>
     </target>
 
@@ -183,7 +191,8 @@
                <fileset dir="${dir.lib}/perf">
                     <include name="*.jar" />
                </fileset>
-               <pathelement path="${dir.build.classes}"/>  
+               <pathelement path="${dir.build.classes.core}"/>  
+               <pathelement path="${dir.build.classes.mapper}"/>  
             </classpath>
             <include name="**/*.java" />
         </javac>
@@ -191,7 +200,7 @@
 
     <!-- Dummy target that just includes all individual jars... --> 
     <target name="jars"
-       depends="jar.asl, jar.lgpl"
+       depends="jars.asl, jars.lgpl"
     />
 
     <target name="javadoc" depends="prepare">
@@ -203,7 +212,6 @@
             <packageset dir="${dir.src.java}" defaultexcludes="yes">
                 <include name="org/codehaus/**" />
             </packageset>
-            <classpath refid="compile-classpath" />
         </javadoc>
     </target> 
  
@@ -215,12 +223,11 @@
        </copy>
        <!-- Then let's create the source distribution tar package
           -->
-       <tar basedir="${basedir}" destfile="${dir.dist}/jackson-src-${IMPL_VERSION}.tar">
+       <tar basedir="${basedir}" destfile="${dir.dist}/jackson-src-${IMPL_VERSION}.tar.gz"
+         compression="gzip">
           <patternset refid="dist-src-files" />
           <patternset refid="dist-misc-files" />
        </tar>
-       <gzip zipfile="${dir.dist}/jackson-src-${IMPL_VERSION}.tar.gz" src="${dir.dist}/jackson-src-${IMPL_VERSION}.tar" />
-       <delete file="${dir.dist}/jackson-src-${IMPL_VERSION}.tar" />
 
        <!-- as well as zip -->
        <zip basedir="${basedir}" destfile="${dir.dist}/jackson-src-${IMPL_VERSION}.zip">
@@ -288,9 +295,9 @@
             debug="true"
         >
             <include name="**/*.java" />
-            <classpath refid="compile-classpath" />
             <classpath>
-                <pathelement path="${dir.build.classes}"/>  
+                <pathelement path="${dir.build.classes.core}"/>  
+                <pathelement path="${dir.build.classes.mapper}"/>  
                 <path refid="junit-libs"/>
             </classpath>
         </javac>
@@ -311,9 +318,9 @@
                 </fileset>
             </batchtest>
             <formatter type="xml" />
-            <classpath refid="compile-classpath" />
             <classpath>
-                <pathelement path="${dir.build.classes}" />
+                <pathelement path="${dir.build.classes.core}" />
+                <pathelement path="${dir.build.classes.mapper}" />
                 <pathelement location="${dir.test.classes}" /> 
                 <path refid="junit-libs"/>
             </classpath>     
