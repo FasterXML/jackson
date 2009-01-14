@@ -1,0 +1,99 @@
+<?xml version="1.0" standalone='yes'?>
+<!-- This Ant build file fragment contains targets needed to build
+     distributable OSGi-aware artifacts
+  -->
+
+<project name="OSGi export tasks for Jackson" basedir=".">
+
+  <!-- Need BND task for OSGi bundle/metadata creation -->
+  <taskdef name="osgiJar" classname="net.luminis.build.plugin.bnd.BuildTask">
+    <classpath>
+     <fileset dir="${dir.lib}/ant" includes="bndtask*.jar" />
+    </classpath>
+  </taskdef>
+
+    <!-- Let's build our JARs as OSGi bundles; then they work
+        both within and outside of OSGi containers
+     -->
+
+    <!-- Jackson requires Java5 (enums, some generics) -->
+    <property name="REQ_JDK_VERSION" value="J2SE-1.5" />
+
+    <target name="jar.asl" depends="compile.all">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-asl"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         exportpackage='org.codehaus.jackson;version=${IMPL_VERSION}
+,org.codehaus.jackson.io;version=${IMPL_VERSION}
+,org.codehaus.jackson.map;version=${IMPL_VERSION}
+,org.codehaus.jackson.map.node;version=${IMPL_VERSION}
+,org.codehaus.jackson.map.ser;version=${IMPL_VERSION}
+'
+         privatePackage="!test
+,!org.codehaus.jackson
+,!org.codehaus.jackson.io
+,!org.codehaus.jackson.map
+,!org.codehaus.jackson.map.node
+,!org.codehaus.jackson.map.ser
+,*"
+         includeResource="META-INF=release-notes/asl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath>
+              <pathelement path="${dir.build.classes}" />
+        </classpath>
+        <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
+            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+            <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
+            <attribute name="Specification-Version" value="${JSON_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
+          </manifest>
+        </osgiJar>
+    </target> 
+
+    <target name="jar.lgpl" depends="compile.all">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-lgpl"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         exportpackage='org.codehaus.jackson;version=${IMPL_VERSION}
+,org.codehaus.jackson.io;version=${IMPL_VERSION}
+,org.codehaus.jackson.map;version=${IMPL_VERSION}
+'
+         privatePackage="!test
+,!org.codehaus.jackson
+,!org.codehaus.jackson.io
+,!org.codehaus.jackson.map
+,*"
+         includeResource="META-INF=release-notes/lgpl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath>
+              <pathelement path="${dir.build.classes}" />
+        </classpath>
+        <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
+            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+            <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
+            <attribute name="Specification-Version" value="${JSON_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
+          </manifest>
+        </osgiJar>
+    </target> 
+
+
+</project>

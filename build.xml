@@ -70,27 +70,10 @@
           <include name="samples/**/*.jsn" />
     </patternset>
 
-  <!-- Need BND task for OSGi bundle/metadata creation -->
-  <taskdef name="osgiJar" classname="net.luminis.build.plugin.bnd.BuildTask">
-    <classpath>
-     <fileset dir="${dir.lib}/ant" includes="bndtask*.jar" />
-    </classpath>
-  </taskdef>
+    <!-- some build tasks are refactored out of the main task -->
+    <import file="build-osgi.xml" />
+    <import file="build-coverage.xml" />
 
-    <!-- Support for Cobertura code coverage tool -->
-    <property name="cobertura.coverage.dir" value="${dir.build}/coverage" />
-    <path id="cobertura.lib">
-      <fileset dir="${dir.lib}/cobertura" includes="*.jar" />
-    </path>
-    <taskdef classpathref="cobertura.lib" resource="tasks.properties" />
-
-
-    <!-- Need BND task for OSGi bundle/metadata creation -->
-    <taskdef name="bundle" classname="net.luminis.build.plugin.bnd.BuildTask">
-      <classpath>
-       <fileset dir="${dir.lib}/ant" includes="bndtask*.jar" />
-      </classpath>
-    </taskdef>
 
     <!--*********************************************************************-->
     <!-- The readme target shows a brief description of all targets          -->
@@ -210,102 +193,6 @@
     <target name="jars"
        depends="jar.asl, jar.lgpl"
     />
-
-    <!-- Let's build our JARs as OSGi bundles; then they work
-        both within and outside of OSGi containers
-     -->
-
-    <!-- Jackson requires Java5 (enums, some generics) -->
-    <property name="REQ_JDK_VERSION" value="J2SE-1.5" />
-
-    <target name="jar.asl" depends="compile.all">
-        <osgiJar
-         outputdir="${dir.build}"
-         bundleName="${IMPL_TITLE}"
-         bundleVendor="${IMPL_VENDOR}"
-         bundleSymbolicName="jackson-asl"
-         bundleVersion="${IMPL_VERSION}"
-         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
-         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
-         exportpackage='org.codehaus.jackson;version=${IMPL_VERSION}
-,org.codehaus.jackson.io;version=${IMPL_VERSION}
-,org.codehaus.jackson.map;version=${IMPL_VERSION}
-,org.codehaus.jackson.map.node;version=${IMPL_VERSION}
-,org.codehaus.jackson.map.ser;version=${IMPL_VERSION}
-'
-         privatePackage="!test
-,!org.codehaus.jackson
-,!org.codehaus.jackson.io
-,!org.codehaus.jackson.map
-,!org.codehaus.jackson.map.node
-,!org.codehaus.jackson.map.ser
-,*"
-         includeResource="META-INF=release-notes/asl"
-         includeIncludeResourceHeader="false"
-        >
-        <classpath>
-              <pathelement path="${dir.build.classes}" />
-        </classpath>
-        <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
-            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
-            <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
-            <attribute name="Specification-Version" value="${JSON_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
-          </manifest>
-        </osgiJar>
-    </target> 
-
-    <target name="osgi">
-      <bundle bundleName="jackson-asl"
-        exportPackage="com.ctc.wstx.stax, com.ctc.wstx.api"
-      >
-        <classpath>
-<!--
-          <pathelement path="${BuildClassesDir}"/>  
--->
-          <pathelement location="${BuildClassesDir}"/>  
-        </classpath>
-      </bundle>
-    </target> 
-
-    <target name="jar.lgpl" depends="compile.all">
-        <osgiJar
-         outputdir="${dir.build}"
-         bundleName="${IMPL_TITLE}"
-         bundleVendor="${IMPL_VENDOR}"
-         bundleSymbolicName="jackson-lgpl"
-         bundleVersion="${IMPL_VERSION}"
-         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
-         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
-         exportpackage='org.codehaus.jackson;version=${IMPL_VERSION}
-,org.codehaus.jackson.io;version=${IMPL_VERSION}
-,org.codehaus.jackson.map;version=${IMPL_VERSION}
-'
-         privatePackage="!test
-,!org.codehaus.jackson
-,!org.codehaus.jackson.io
-,!org.codehaus.jackson.map
-,*"
-         includeResource="META-INF=release-notes/lgpl"
-         includeIncludeResourceHeader="false"
-        >
-        <classpath>
-              <pathelement path="${dir.build.classes}" />
-        </classpath>
-        <manifest>
-            <attribute name="Built-By" value="${user.name}"/>
-            <attribute name="Implementation-Title"   value="${IMPL_TITLE}"/>
-            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
-            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
-            <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
-            <attribute name="Specification-Version" value="${JSON_VERSION}"/>
-            <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
-          </manifest>
-        </osgiJar>
-    </target> 
 
     <target name="javadoc" depends="prepare">
         <!-- Build a dirpath that contains just the "source" tree -->
@@ -438,82 +325,6 @@
             </fileset>
             <report todir="${dir.test.results}" />
         </junitreport>
-    </target>
-
-  <!-- Code coverage using Cobertura: -->
-
-  <target name="build.coverage" depends="compile.test">
-      <!-- First, need to instrument classes -->
-      <property name="cobertura.instr.dir" value="${dir.build}/cobertura-instr" />
-      <cobertura-instrument todir="${cobertura.instr.dir}">
-        <fileset dir="${dir.build.classes}">
-          <include name="org/codehaus/jackson/**/*.class"/>
-        </fileset>
-      </cobertura-instrument>
-
-      <junit fork="once" printsummary="yes" haltonfailure="no" showoutput="yes"
-        maxmemory="300M"
-      >
-        <sysproperty key="net.sourceforge.cobertura.datafile" file="${basedir}/cobertura.ser" />
-            <batchtest fork="no" todir="${dir.test.xmlresults}">
-                <fileset dir="${dir.test.classes}">
-                    <!-- Need to exclude inner classes... -->
-                    <exclude name="**/*$*.class"/>
-                    <exclude name="**/TestStringGeneration.class"/>
-                    <include name="**/Test*.class"/>
-                </fileset>
-            </batchtest>
-            <formatter type="xml" />
-            <!-- Order is important: must first have instrumented classes -->
-            <classpath location="${cobertura.instr.dir}" />
-
-            <classpath refid="compile-classpath" />
-            <!-- Actual tests: -->
-            <classpath path="${dir.test.classes}" />
-            <!-- Cobertura support: -->
-            <classpath refid="cobertura.lib" />
-            <classpath>
-                <!-- Note: while this may seem superfluous, it is actually
-                     needed because Cobertura does not instrument things
-                     like interfaces. So some of the class files are
-                     needed from non-instrumented location
-                  -->
-                <pathelement path="${dir.build.classes}" />
-                <path refid="junit-libs"/>
-            </classpath>     
-        </junit>
-        <!-- and then reporting -->
-        <cobertura-report format="html" destdir="${cobertura.coverage.dir}" >
-          <fileset dir="${dir.src.java}">
-            <include name="org/codehaus/**/*.java" />
-          </fileset>
-        </cobertura-report>
-
-        <!-- Let's also report junit results? (at least if they fail) -->
-<!--
-        <junitreport todir="${dir.test.results}">
-            <fileset dir="${dir.test.xmlresults}">
-                <include name="TEST-*.xml" />
-            </fileset>
-            <report todir="${dir.test.results}" />
-        </junitreport>
--->
-    </target>
-
-    <!-- Running a single Unit Test -->
-    <target name="test.single" depends="compile.test">
-         <fail unless="test" message="Must define -Dtest" />
-       <!-- showoutput 'yes' to allow outputting debug msgs... -->
-        <junit fork="no" maxmemory="128M" showoutput="no" printsummary="yes">
-          <formatter type="plain" usefile="no" />
-          <test name="${test}" />
-          <classpath refid="compile-classpath" />
-          <classpath>
-                <pathelement path="${dir.build.classes}" />
-                <pathelement location="${dir.test.classes}" /> 
-                <path refid="junit-libs"/>
-          </classpath>     
-        </junit>
     </target>
 
 </project>
