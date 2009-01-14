@@ -254,19 +254,18 @@ public final class JsonFactory
         return new ReaderBasedParser(_createContext(r, false), _parserFeatures, r, _charSymbols.makeChild());
     }
 
-    public JsonParser createJsonParser(byte[] data, int offset, int len)
-        throws IOException, JsonParseException
-    {
-        // !!! TODO: make efficient (see [JACKSON-24])
-        InputStream in = new ByteArrayInputStream(data, offset, len);
-        // true -> must be managed as caller didn't hand stream
-        return _createJsonParser(in,  _createContext(in, true));
-    }
-
     public final JsonParser createJsonParser(byte[] data)
         throws IOException, JsonParseException
     {
         return createJsonParser(data, 0, data.length);
+    }
+
+    public JsonParser createJsonParser(byte[] data, int offset, int len)
+        throws IOException, JsonParseException
+    {
+        // true -> managed (doesn't really matter; we have no stream!)
+        IOContext ctxt = _createContext(data, true);
+        return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures, _byteSymbols.makeChild(), _charSymbols.makeChild());
     }
 
     public final JsonParser createJsonParser(String content)
@@ -280,7 +279,7 @@ public final class JsonFactory
     private JsonParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _byteSymbols, _charSymbols);
+        return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _byteSymbols.makeChild(), _charSymbols.makeChild());
     }
 
     /*

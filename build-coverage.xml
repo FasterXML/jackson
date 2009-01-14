@@ -18,8 +18,11 @@
       <!-- First, need to instrument classes -->
       <property name="cobertura.instr.dir" value="${dir.build}/cobertura-instr" />
       <cobertura-instrument todir="${cobertura.instr.dir}">
-        <fileset dir="${dir.build.classes}">
+        <fileset dir="${dir.build.classes.core}">
           <include name="org/codehaus/jackson/**/*.class"/>
+        </fileset>
+        <fileset dir="${dir.build.classes.mapper}">
+          <include name="org/codehaus/jackson/map/**/*.class"/>
         </fileset>
       </cobertura-instrument>
 
@@ -39,7 +42,6 @@
             <!-- Order is important: must first have instrumented classes -->
             <classpath location="${cobertura.instr.dir}" />
 
-            <classpath refid="compile-classpath" />
             <!-- Actual tests: -->
             <classpath path="${dir.test.classes}" />
             <!-- Cobertura support: -->
@@ -50,7 +52,8 @@
                      like interfaces. So some of the class files are
                      needed from non-instrumented location
                   -->
-                <pathelement path="${dir.build.classes}" />
+                <pathelement path="${dir.build.classes.core}" />
+                <pathelement path="${dir.build.classes.mapper}" />
                 <path refid="junit-libs"/>
             </classpath>     
         </junit>
@@ -79,9 +82,9 @@
         <junit fork="no" maxmemory="128M" showoutput="no" printsummary="yes">
           <formatter type="plain" usefile="no" />
           <test name="${test}" />
-          <classpath refid="compile-classpath" />
           <classpath>
-                <pathelement path="${dir.build.classes}" />
+                <pathelement path="${dir.build.classes.core}" />
+                <pathelement path="${dir.build.classes.mapper}" />
                 <pathelement location="${dir.test.classes}" /> 
                 <path refid="junit-libs"/>
           </classpath>     

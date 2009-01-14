@@ -33,8 +33,8 @@ public final class TestJsonPerf
         mJsonFactory = new JsonFactory();
         mData = readData(f);
 
-        // Let's try to guestimate suitable size... to get to 100 megs parsed
-        REPS = (int) ((double) (100 * 1000 * 1000) / (double) mData.length);
+        // Let's try to guestimate suitable size... to get to 50 megs parsed
+        REPS = (int) ((double) (50 * 1000 * 1000) / (double) mData.length);
 
         System.out.println("Read "+mData.length+" bytes from '"+f+"'; will do "+REPS+" reps");
         System.out.println();
@@ -49,7 +49,7 @@ public final class TestJsonPerf
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
             // Use 9 to test all...
-            int round = (i++ % 7);
+            int round = (i++ % 2);
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -226,7 +226,13 @@ public final class TestJsonPerf
         int sum = 0;
         for (int i = 0; i < reps; ++i) {
             // note: fast is not used any more
-            JsonParser jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData));
+            JsonParser jp;
+
+            if (fast) {
+                jp = mJsonFactory.createJsonParser(mData, 0, mData.length);
+            } else {
+                jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData));
+            }
             JsonToken t;
             while ((t = jp.nextToken()) != null) {
                 // Field names are always constructed

@@ -320,6 +320,38 @@ for (int i = 0; i < act.length(); ++i) System.err.println("Char: "+((int) act.ch
         }
     }
 
+    /**
+     * Simple unit test that verifies that passing in a byte array
+     * as source works as expected.
+     */
+    public void testBytesAsSource() throws Exception
+    {
+        String JSON = "[ 1, 2, 3, 4 ]";
+        byte[] b = JSON.getBytes("UTF-8");
+        int offset = 50;
+        int len = b.length;
+        byte[] src = new byte[offset + len + offset];
+
+        System.arraycopy(b, 0, src, offset, len);
+
+        JsonFactory jf = new JsonFactory();
+        JsonParser jp = jf.createJsonParser(src, offset, len);
+
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(1, jp.getIntValue());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(2, jp.getIntValue());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(3, jp.getIntValue());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(4, jp.getIntValue());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        assertNull(jp.nextToken());
+
+        jp.close();
+    }
+
     /*
     /////////////////////////////////////////////
     // Helper methods

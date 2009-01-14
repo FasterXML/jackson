@@ -257,6 +257,22 @@ public class ObjectMapper
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.instance.fromTypeReference(valueTypeRef));
     } 
 
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(byte[] src, int offset, int len, 
+                               Class<T> valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), TypeFactory.instance.fromClass(valueType));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(byte[] src, int offset, int len,
+                           TypeReference valueTypeRef)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), TypeFactory.instance.fromTypeReference(valueTypeRef));
+    } 
+
     /*
     ////////////////////////////////////////////////////
     // Public API: serialization

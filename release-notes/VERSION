@@ -27,6 +27,9 @@ Description:
 
   Improvements:
 
+  * [JACKSON-24]: Add efficient byte-array - based parser factory
+    method to JsonFactory (has maybe 5% improvement over wrapping
+    in ByteArrayInputStream).
   * [JACKSON-29]: Split classes in 2 jars: core that has parser and
     generator APIs and implementations; and mapper jar that has object
     and tree mapper code.
