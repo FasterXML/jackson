@@ -13,19 +13,38 @@ public final class FileMunger
 {
     final static int MAX_REGEX_LEN = 500;
 
+    final static String UPPER_START_MARKER = "<(td|TD)\\s+[^>]*(rowspan|ROWSPAN)\\s*=\\s*['\"]?3['\"]?[^>]*>";
+    final static String UPPER_END_MARKER = "</(td|TD)\\s*>";
+
+    final static String LOWER_START_MARKER1 = "<[aA]\\s+(name|NAME)=['\"]navbar_bottom['\"]\\s*>";
+    final static String LOWER_START_MARKER2 = "<(tr|TR)\\s*>";
+
     String _encoding = "UTF-8";
 
     int _filesChecked;
     int _filesModified;
 
-    private FileMunger() { }
+    final Pattern _upperStartPattern;
+    final Pattern _upperEndPattern;
+
+    final Pattern _lowerStartPattern1;
+    final Pattern _lowerStartPattern2;
+
+    private FileMunger()
+    {
+        _upperStartPattern = Pattern.compile(UPPER_START_MARKER);
+        _upperEndPattern = Pattern.compile(UPPER_END_MARKER);
+
+        _lowerStartPattern1 = Pattern.compile(LOWER_START_MARKER1);
+        _lowerStartPattern2 = Pattern.compile(LOWER_START_MARKER2);
+    }
 
     public boolean munge(String[] args)
         throws Exception
     {
         _filesChecked = _filesModified = 0;
-        if (args.length != 4) {
-            System.err.println("Usage: java "+getClass()+" [input-dir] [start-marker-re-file] [end-marker-re-file] [inject-file]");
+        if (args.length != 3) {
+            System.err.println("Usage: java "+getClass()+" [input-dir] [inject-file1] [inject-file2");
             return false;
         }
         File dir = new File(args[0]);
@@ -33,8 +52,8 @@ public final class FileMunger
             System.err.println("Argument #1 not a directory");
             return false;
         }
-        File[] files = new File[3];
-        for (int i = 0; i < 3; ++i) {
+        File[] files = new File[2];
+        for (int i = 0; i < files.length; ++i) {
             String fstr = args[1+i];
             File f = new File(fstr);
             files[i] = f;
@@ -43,16 +62,16 @@ public final class FileMunger
                 return false;
             }
         }
-        Pattern startRE = getRegex(files[0]);
-        Pattern endRE = getRegex(files[1]);
-        String content = readFile(files[2]);
+        String content1 = readFile(files[0]);
+        // Need to surround second part within table cell marker
+        String content2 = "<td rowspan='3'>"+readFile(files[1])+"</td>";
 
-        mungeDir(dir, startRE, endRE, content);
+        mungeDir(dir, content1, content2);
         System.out.println("Complete: files checked: "+_filesChecked+"; modified: "+_filesModified);
         return true;
     }
 
-    private void mungeDir(File dir, Pattern startRE, Pattern endRE, String inclContent)
+    private void mungeDir(File dir, String content1, String content2)
         throws IOException
     {
         System.out.println("Checking directory '"+dir.getName()+"': ");
@@ -60,36 +79,39 @@ public final class FileMunger
         File[] files = dir.listFiles();
         for (File file : files) {
             if (file.isDirectory()) {
-                mungeDir(file, startRE, endRE, inclContent);
+                mungeDir(file, content1, content2);
                 continue;
             }
             ++_filesChecked;
-            mungeFile(file, startRE, endRE, inclContent);
+            mungeFile(file, content1, content2);
         }
         System.out.println("Finished directory '"+dir.getName()+"': ");
     }
 
-    private void mungeFile(File file, Pattern startRE, Pattern endRE, String inclContent)
+    private void mungeFile(File file, String inclContent1, String inclContent2)
         throws IOException
     {
         System.out.print("Checking file '"+file.getName()+"': ");
         String origContent = readFile(file);
-        Matcher m = startRE.matcher(origContent);
+        Matcher m = _upperStartPattern.matcher(origContent);
         if (m.find()) {
+
             int startStart = m.start();
             int startEnd = m.end();
 
-            Matcher m2 = endRE.matcher(origContent);
+            Matcher m2 = _upperEndPattern.matcher(origContent);
             if (m2.find(startEnd)) {
                 ++_filesModified;
                 int endStart = m2.start();
                 int endEnd = m2.end();
 
-                // Good: let's replace!
+                String upper = origContent.substring(0, startEnd) + inclContent1;
+                String lower = mungeBottom(origContent.substring(endStart), inclContent2);
+
+                // Good: let's output!
                 Writer w = new OutputStreamWriter(new FileOutputStream(file), _encoding);
-                w.write(origContent, 0, startEnd);
-                w.write(inclContent);
-                w.write(origContent.substring(endStart));
+                w.write(upper);
+                w.write(lower);
                 w.close();
                 System.out.println("MATCH: replaced content");
                 return;
@@ -98,6 +120,22 @@ public final class FileMunger
             return;
         }
         System.out.println("(no match)");
+    }
+
+    private String mungeBottom(String bottomStr, String incl)
+    {
+        Matcher m = _lowerStartPattern1.matcher(bottomStr);
+        if (m.find()) {
+            Matcher m2 = _lowerStartPattern2.matcher(bottomStr);
+            if (m2.find(m.end())) {
+                StringBuilder sb = new StringBuilder(bottomStr);
+                sb.insert(m2.end(), incl);
+                return sb.toString();
+            }
+        }
+        // nope, no match, return as is:
+        System.out.println(" (warn: secondary part didn't match)");
+        return bottomStr;
     }
 
     private Pattern getRegex(File input)

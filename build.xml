@@ -30,6 +30,7 @@
 
     <!-- Distribution -->
     <property name="dir.dist" location="${basedir}/dist" />
+    <property name="dir.dist.maven2" location="${basedir}/dist-maven2" />
 
     <!-- Version information -->
 
@@ -129,11 +130,12 @@
         <delete dir="${dir.doc}"/>
         <delete dir="${dir.test}"/>
         <delete dir="${dir.dist}"/>
+        <delete dir="${dir.dist.maven2}"/>
         <delete file="cobertura.ser" />
     </target>
 
     <target name="compile" depends="compile.all" />
-    <target name="compile.all" depends="compile.main, compile.extra, compile.test, compile.perf" />
+    <target name="compile.all" depends="compile.main, compile.extra, compile.test"  /> <!--, compile.perf" /> -->
     <target name="compile.main" depends="compile.core, compile.mapper" />
 
     <target name="compile.core" depends="prepare">
@@ -208,7 +210,10 @@
             </packageset>
         </javadoc>
     </target> 
- 
+
+    <!-- Generic distribution target builds the structure we copy over
+         to the website.
+      --> 
     <target name="dist" depends="compile.all ,jars, javadoc"
     >
        <!-- First, let's copy the binary jars to dist -->
@@ -277,6 +282,35 @@
         <!-- lenient: check only well-formedness, no dtd/schema (yet) -->
             <fileset dir="${dir.src}/maven" includes="*.pom" />
         </xmlvalidate>
+    </target>
+
+    <!-- And for Maven2 repo, we will construct set of different
+         directories
+      --> 
+
+    <target name="dist.maven" depends="dist">
+      <mkdir dir="${dir.dist.maven2}"/>
+
+      <mkdir dir="${dir.dist.maven2}/jackson-core-asl/${IMPL_VERSION}"/>
+      <copy todir="${dir.dist.maven2}/jackson-core-asl/${IMPL_VERSION}">
+        <fileset dir="${dir.dist}" includes="jackson-core-asl*" />
+      </copy>
+
+      <mkdir dir="${dir.dist.maven2}/jackson-mapper-asl/${IMPL_VERSION}"/>
+      <copy todir="${dir.dist.maven2}/jackson-mapper-asl/${IMPL_VERSION}">
+        <fileset dir="${dir.dist}" includes="jackson-mapper-asl*" />
+      </copy>
+
+      <mkdir dir="${dir.dist.maven2}/jackson-core-lgpl/${IMPL_VERSION}"/>
+      <copy todir="${dir.dist.maven2}/jackson-core-lgpl/${IMPL_VERSION}">
+        <fileset dir="${dir.dist}" includes="jackson-core-lgpl*" />
+      </copy>
+
+      <mkdir dir="${dir.dist.maven2}/jackson-mapper-lgpl/${IMPL_VERSION}"/>
+      <copy todir="${dir.dist.maven2}/jackson-mapper-lgpl/${IMPL_VERSION}">
+        <fileset dir="${dir.dist}" includes="jackson-mapper-lgpl*" />
+      </copy>
+
     </target>
 
     <target name="all" depends="clean,javadoc,test,dist">

@@ -1,3 +1,0 @@
-# Match TD...
-<(td|TD)\s+[^>]*(rowspan|ROWSPAN)\s*=\s*['"]?3['"]?[^>]*>
-

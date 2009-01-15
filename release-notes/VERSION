@@ -1,7 +1,7 @@
 Version: 0.9.6
 
 Release date: 
-  13-Jan-2008
+  14-Jan-2008
 
 Description:
   Another pre-1.0 release: this time with another big feature: ability
@@ -23,7 +23,7 @@ Description:
   New features:
 
   * [JACKSON-31]: Complete rewrite of ObjectMapper's deserialization:
-    now supports Beans, typed Lists/Maps.
+    now supports Beans, typed (generics-aware) Lists/Maps/arrays.
 
   Improvements:
 
