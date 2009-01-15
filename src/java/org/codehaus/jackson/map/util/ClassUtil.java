@@ -90,13 +90,17 @@ public final class ClassUtil
      */
     public static void checkAndFixAccess(AccessibleObject obj, Class<?> declClass)
     {
-        if (!obj.isAccessible()) {
+        /* 14-Jan-2009, tatu: It seems safe and potentially beneficial to
+         *   always to make it accessible (latter because it will force
+         *   skipping checks we have no use for...), so let's always call it.
+         */
+        //if (!obj.isAccessible()) {
             try {
                 obj.setAccessible(true);
             } catch (SecurityException se) {
                 throw new IllegalArgumentException("Can not access "+obj+" (from class "+declClass.getName()+"; failed to set access: "+se.getMessage());
             }
-        }
+            //}
     }
 
     /*

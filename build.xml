@@ -15,14 +15,14 @@
     <property name="dir.build.classes.core" location="${dir.build}/classes/core" />
     <property name="dir.build.classes.mapper" location="${dir.build}/classes/mapper" />
     <property name="dir.build.classes.extra" location="${dir.build}/classes/extra" />
+    <!-- some support for perf testing -->
+    <property name="dir.build.classes.perf" location="${dir.build}/classes/perf" />
 
     <!-- Test suite -->
     <property name="dir.test" location="${basedir}/test" />
     <property name="dir.test.classes" location="${dir.test}/classes" />
     <property name="dir.test.results" location="${dir.test}/results" />
     <property name="dir.test.xmlresults" location="${dir.test.results}/xml" />
-    <!-- some support for perf testing -->
-    <property name="dir.perf.classes" location="${dir.build}/perf-classes" />
 
     <!-- Documentation -->
     <property name="dir.doc" location="${basedir}/doc" />
@@ -177,9 +177,9 @@
     </target>
 
     <target name="compile.perf" depends="compile.main">
-      <mkdir dir="${dir.perf.classes}" />
+      <mkdir dir="${dir.build.classes.perf}" />
         <!-- Let's also compile micro-benchmarks... -->
-        <javac srcdir="${dir.src}/perf" destdir="${dir.perf.classes}" debug="false"
+        <javac srcdir="${dir.src}/perf" destdir="${dir.build.classes.perf}" debug="false"
         >
             <classpath>
                <fileset dir="${dir.lib}/perf">

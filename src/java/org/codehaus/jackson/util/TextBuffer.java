@@ -176,39 +176,6 @@ public final class TextBuffer
         append(buf, start, len);
     }
 
-    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
-     *   let's just delete it.
-     */
-    /*
-    public void resetWithString(String str)
-    {
-        // First things first, let's reset the buffer
-
-        _inputBuffer = null;
-        _inputStart = -1; // indicates shared buffer not used
-        _inputLen = 0;
-
-        _resultString = str;
-        _resultArray = null;
-
-        int len = str.length();
-
-        if (_hasSegments) {
-            _currentSegment = _segments.get(_segments.size() - 1);
-            _segments.clear();
-        } else if (_currentSegment == null) {
-            _currentSegment = allocBuffer(len);
-        }
-
-        // Ok, but does the String fit? If not, need to realloc
-        if (_currentSegment.length < len) {
-            _currentSegment = new char[len];
-        }
-        str.getChars(0, len, _currentSegment, 0);
-        _currentSize = len;
-    }
-    */
-
     private final char[] allocBuffer(int needed)
     {
         return _allocator.allocCharBuffer(BufferRecycler.CharBufferType.TEXT_BUFFER, needed);

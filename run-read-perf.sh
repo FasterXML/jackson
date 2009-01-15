@@ -1,5 +1,5 @@
 #!/bin/sh
 
 java -Xmx16m -server \
--cp build/perf-classes:perflib/\* \
+-cp build/classes/perf:perflib/\* \
 TestReadPerf $*
