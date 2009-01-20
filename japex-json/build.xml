@@ -53,6 +53,9 @@
     <target name="set-big" depends="compile">
       <property name="config" value="configs/big-docs.xml"/>
     </target>
+    <target name="set-twitter" depends="compile">
+      <property name="config" value="configs/twitter-test.xml"/>
+    </target>
     
     <target name="dist" depends="compile"/>
     
@@ -60,6 +63,7 @@
     <target name="run-tiny" depends="set-tiny, run" />
     <target name="run-small" depends="set-small, run" />
     <target name="run-big" depends="set-big, run" />
+    <target name="run-twitter" depends="set-twitter, run" />
 
     <target name="run" description="Run tests using ${config} file (use -Dconfig=...)">
         <java dir="." fork="true" maxmemory="128m"

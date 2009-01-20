@@ -5,7 +5,8 @@
     <!-- Source directories -->
     <property name="dir.src" location="${basedir}/src" />
     <property name="dir.src.java" location="${dir.src}/java" />
-    <property name="src.dir.test" location="${dir.src}/test" />
+    <property name="dir.src.test" location="${dir.src}/test" />
+    <property name="dir.src.sample" location="${dir.src}/sample" />
     <property name="dir.releasenotes" location="${basedir}/release-notes" />
 
     <!-- Libs -->
@@ -164,12 +165,13 @@
     </target>
 
     <target name="compile.extra" depends="compile.main">
-        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.extra}"
+        <javac destdir="${dir.build.classes.extra}"
             source="1.5" target="1.5" debug="true"
         >
             <compilerarg value="-Xlint:unchecked" />
-            <include name="sample/**/*.java" />
-            <include name="test/**/*.java" />
+            <src path="${dir.src.sample}" /> 
+            <src path="${dir.src.java}/test" />
+            <include name="**/*.java" />
             <!-- need core and mapper classes -->
             <classpath>
                <pathelement path="${dir.build.classes.core}"/>
@@ -327,7 +329,7 @@
       -->
 
     <target name="compile.test" depends="compile.main">
-        <javac srcdir="${src.dir.test}" destdir="${dir.test.classes}"
+        <javac srcdir="${dir.src.test}" destdir="${dir.test.classes}"
             source="1.5" target="1.5"
             debug="true"
         >

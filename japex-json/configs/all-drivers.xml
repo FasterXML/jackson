@@ -47,6 +47,9 @@
         <param name="japex.inputFile" value="testcases/json-org-sample5.jsn"/>
     </testCase>
 
+    <testCase name="twitter-search">
+        <param name="japex.inputFile" value="testcases/twitter-search.jsn"/>
+    </testCase>
     <testCase name="from-xml-ns-invoice">
         <param name="japex.inputFile" value="testcases/ns-invoice100.xml.jsn"/>
     </testCase>
