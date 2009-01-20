@@ -33,15 +33,15 @@
          bundleVersion="${IMPL_VERSION}"
          bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
-         exportpackage='
-org.codehaus.jackson;version=${IMPL_VERSION}
-,org.codehaus.jackson.io;version=${IMPL_VERSION}
-,org.codehaus.jackson.util;version=${IMPL_VERSION}
-'
-         privatePackage="!org.codehaus.jackson
-,!org.codehaus.jackson.io
-,!org.codehaus.jackson.util
-,*"
+         exportpackage="
+org.codehaus.jackson;version=${IMPL_VERSION},
+org.codehaus.jackson.io;version=${IMPL_VERSION},
+org.codehaus.jackson.util;version=${IMPL_VERSION}
+"
+         privatePackage="!org.codehaus.jackson,
+!org.codehaus.jackson.io,
+!org.codehaus.jackson.util,
+*"
          includeResource="META-INF=release-notes/asl"
          includeIncludeResourceHeader="false"
         >
@@ -68,20 +68,21 @@ org.codehaus.jackson;version=${IMPL_VERSION}
          bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          importPackage="
-org.codehaus.jackson.*;version='${IMPL_VERSION}'
-org.codehaus.jackson.util.*;version='${IMPL_VERSION}'
-,javax.xml.datatype"
-         exportpackage='
-org.codehaus.jackson.map;version=${IMPL_VERSION}
-,org.codehaus.jackson.map.node;version=${IMPL_VERSION}
-,org.codehaus.jackson.map.ser;version=${IMPL_VERSION}
-,org.codehaus.jackson.map.deser;version=${IMPL_VERSION}
-'
-         privatePackage="!org.codehaus.jackson.map
-,!org.codehaus.jackson.map.node
-,!org.codehaus.jackson.map.ser
-,!org.codehaus.jackson.map.deser
-,*"
+org.codehaus.jackson;version='${IMPL_VERSION}'
+,org.codehaus.jackson.io;version='${IMPL_VERSION}'
+,org.codehaus.jackson.util;version='${IMPL_VERSION}'
+"
+         exportpackage="
+org.codehaus.jackson.map;version=${IMPL_VERSION},
+org.codehaus.jackson.map.node;version=${IMPL_VERSION},
+org.codehaus.jackson.map.ser;version=${IMPL_VERSION},
+org.codehaus.jackson.map.deser;version=${IMPL_VERSION}
+"
+         privatePackage="!org.codehaus.jackson.map,
+!org.codehaus.jackson.map.node,
+!org.codehaus.jackson.map.ser,
+!org.codehaus.jackson.map.deser,
+*"
          includeResource="META-INF=release-notes/asl"
          includeIncludeResourceHeader="false"
         >
@@ -111,10 +112,10 @@ org.codehaus.jackson;version=${IMPL_VERSION}
 ,org.codehaus.jackson.io;version=${IMPL_VERSION}
 ,org.codehaus.jackson.util;version=${IMPL_VERSION}
 '
-         privatePackage=",!org.codehaus.jackson
-,!org.codehaus.jackson.io
-,!org.codehaus.jackson.util
-,*"
+         privatePackage="!org.codehaus.jackson,
+!org.codehaus.jackson.io,
+!org.codehaus.jackson.util,
+*"
          includeResource="META-INF=release-notes/lgpl"
          includeIncludeResourceHeader="false"
         >
@@ -143,20 +144,21 @@ org.codehaus.jackson;version=${IMPL_VERSION}
          bundleLicense="http://www.gnu.org/licenses/lgpl-2.1.html"
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          importPackage="
-org.codehaus.jackson.*;version='${IMPL_VERSION}'
-org.codehaus.jackson.util.*;version='${IMPL_VERSION}'
-,javax.xml.datatype"
-         exportpackage='
-org.codehaus.jackson.map;version=${IMPL_VERSION}
-,org.codehaus.jackson.map.node;version=${IMPL_VERSION}
-,org.codehaus.jackson.map.ser;version=${IMPL_VERSION}
-,org.codehaus.jackson.map.deser;version=${IMPL_VERSION}
-'
-         privatePackage="!org.codehaus.jackson.map
-,!org.codehaus.jackson.map.node
-,!org.codehaus.jackson.map.ser
-,!org.codehaus.jackson.map.deser
-,*"
+org.codehaus.jackson;version='${IMPL_VERSION}'
+,org.codehaus.jackson.io;version='${IMPL_VERSION}'
+,org.codehaus.jackson.util;version='${IMPL_VERSION}'
+"
+         exportpackage="
+org.codehaus.jackson.map;version=${IMPL_VERSION},
+org.codehaus.jackson.map.node;version=${IMPL_VERSION},
+org.codehaus.jackson.map.ser;version=${IMPL_VERSION},
+org.codehaus.jackson.map.deser;version=${IMPL_VERSION}
+"
+         privatePackage="!org.codehaus.jackson.map,
+!org.codehaus.jackson.map.node,
+!org.codehaus.jackson.map.ser,
+!org.codehaus.jackson.map.deser,
+*"
          includeResource="META-INF=release-notes/lgpl"
          includeIncludeResourceHeader="false"
         >
