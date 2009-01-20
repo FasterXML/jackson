@@ -88,7 +88,10 @@ public class StdSerializerFactory
         // note: timestamps are very similar to java.util.Date, thus serialized as such
         _concrete.put(java.sql.Timestamp.class.getName(), UtilDateSerializer.instance);
         // not sure if this is exactly right (should use toXMLFormat()?) but:
-        _concrete.put(javax.xml.datatype.XMLGregorianCalendar.class.getName(), StringLikeSerializer.instance);
+        /* 19-Jan-2009, tatu: [JACSKON-37]: This is something Android platform doesn't have
+         *    so need to hard-code name (it is available on standard JDK 1.5 and above)
+         */
+        _concrete.put("javax.xml.datatype.XMLGregorianCalendar", StringLikeSerializer.instance);
 
         /* Reference types, URLs, URIs
          */
