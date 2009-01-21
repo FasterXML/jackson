@@ -51,8 +51,10 @@
     </path>
 
     <patternset id="dist-all-source-files">
+          <include name="README.txt" />
           <include name="build.xml" />
           <include name="release-notes/*" />
+          <include name="DEV/contributor*" />
           <include name="src/**/*.java" />
           <include name="src/java/**/*.html" />
           <include name="src/maven/*.pom" />
@@ -230,7 +232,9 @@
           in current dir)
         -->
        <property name="DIST_FILENAME" value="jackson-src-${IMPL_VERSION}" />
-       <property name="DIST_DIR" value="woodstox-${IMPL_VERSION}" />
+       <property name="DIST_DIR" value="${DIST_FILENAME}" />
+
+       <!-- better always clean it up, if it exists... -->
        <delete dir="${dir.build}/${DIST_DIR}" />
        <mkdir dir="${dir.build}/${DIST_DIR}" />
 
