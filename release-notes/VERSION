@@ -1,18 +1,20 @@
-Version: 0.9.6
+Version: 0.9.7
 
 Release date: 
-  14-Jan-2008
+  Xx-Jan-2009
 
 Description:
-  Another pre-1.0 release: this time with another big feature: ability
-  to do automatic Bean-based ("any java object with getters") deserialization
-  using ObjectMapper (thing formerly known as "JavaTypeMapper").
-  This means that you can instantiate regular POJOs ("beans") from Json
-  content without any hand-written code.
+  Another pre-1.0 release.
 
-  Another significant change is refactoring so that Jackson now consists
-  of 2 jars: core jar that contains parser and generator, and optional
-  second jar for data binding support.
+  Improvements:
+
+  * [JACKSON-34]: Improved packaging by adding an intermediate directory
+    in source tarball, to not mess up the current directory (and to indicate
+    version number as well)
+
+== History: ==
+
+0.9.6 [14-Jan-2009]:
 
   Bug fixes:
 
@@ -37,8 +39,6 @@ Description:
     "JsonTypeMapper" as "TreeMapper"; new names should be more intuitive
     to indicate their purpose. Will leave simple implementations of
     old classes to allow for gradual migration of existing code.
-
-== History: ==
 
 0.9.5 [10-Dec-2008]:
 

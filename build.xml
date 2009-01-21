@@ -222,17 +222,34 @@
        <copy todir="${dir.dist}">
           <fileset dir="${dir.build}" includes="*.jar" />
        </copy>
-       <!-- Then let's create the source distribution tar package
-          -->
-       <tar basedir="${basedir}" destfile="${dir.dist}/jackson-src-${IMPL_VERSION}.tar.gz"
-         compression="gzip">
-          <patternset refid="dist-all-source-files" />
-       </tar>
 
-       <!-- as well as zip -->
-       <zip basedir="${basedir}" destfile="${dir.dist}/jackson-src-${IMPL_VERSION}.zip">
-          <patternset refid="dist-all-source-files" />
-       </zip>
+       <!-- Then let's create the source distribution tar packages
+          -->
+       <!-- Need to first copy to a tmp dir, to get the additional
+          directory (so tar/zip contents won't explode directly
+          in current dir)
+        -->
+       <property name="DIST_FILENAME" value="jackson-src-${IMPL_VERSION}" />
+       <property name="DIST_DIR" value="woodstox-${IMPL_VERSION}" />
+       <delete dir="${dir.build}/${DIST_DIR}" />
+       <mkdir dir="${dir.build}/${DIST_DIR}" />
+
+       <copy todir="${dir.build}/${DIST_DIR}">
+         <fileset dir="${basedir}">
+           <patternset refid="dist-all-source-files" />
+         </fileset>
+       </copy>
+
+       <!-- then create tarball, zip -->
+       <tar basedir="${dir.build}"
+        includes="${DIST_DIR}/**"
+        destfile="${dir.dist}/${DIST_FILENAME}.tar.gz"
+        compression="gzip"
+      />
+       <zip basedir="${dir.build}"
+        includes="${DIST_DIR}/**"
+        destfile="${dir.dist}/${DIST_FILENAME}.zip"
+      />
 
        <!-- And create source jars for IDE support; separate for core, mapper
             and both license types
