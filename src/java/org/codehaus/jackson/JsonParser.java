@@ -493,5 +493,4 @@ public abstract class JsonParser
      * @return Decoded binary data
      */
     //public abstract byte[] readBinaryValue(Base64Variant b64variant) throws IOException, JsonParseException;
-    //public abstract byte[] readBinaryValue() throws IOException, JsonParseException;
 }

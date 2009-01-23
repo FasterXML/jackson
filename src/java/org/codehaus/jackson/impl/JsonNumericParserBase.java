@@ -48,11 +48,17 @@ public abstract class JsonNumericParserBase
     // These are not very accurate, but have to do...
     // (note: non-final to prevent inlining)
 
-    static double MIN_LONG_D = (double) Long.MIN_VALUE;
-    static double MAX_LONG_D = (double) Long.MAX_VALUE;
+    final static double MIN_LONG_D = (double) Long.MIN_VALUE;
+    final static double MAX_LONG_D = (double) Long.MAX_VALUE;
 
-    static double MIN_INT_D = (double) Integer.MIN_VALUE;
-    static double MAX_INT_D = (double) Integer.MAX_VALUE;
+    final static double MIN_INT_D = (double) Integer.MIN_VALUE;
+    final static double MAX_INT_D = (double) Integer.MAX_VALUE;
+
+    final static int MIN_BYTE_I = (int) Byte.MIN_VALUE;
+    final static int MAX_BYTE_I = (int) Byte.MAX_VALUE;
+
+    final static int MIN_SHORT_I = (int) Short.MIN_VALUE;
+    final static int MAX_SHORT_I = (int) Short.MAX_VALUE;
 
     // Digits, numeric
     final protected static int INT_0 = '0';
@@ -235,6 +241,10 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         int value = getIntValue();
+        // So far so good: but does it fit?
+        if (value < MIN_BYTE_I || value > MAX_BYTE_I) {
+            _reportError("Numeric value ("+getText()+") out of range of Java byte");
+        }
         return (byte) value;
     }
 
@@ -242,6 +252,9 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         int value = getIntValue();
+        if (value < MIN_SHORT_I || value > MAX_SHORT_I) {
+            _reportError("Numeric value ("+getText()+") out of range of Java short");
+        }
         return (short) value;
     }
 
@@ -277,6 +290,14 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         double value = getDoubleValue();
+        /* 22-Jan-2009, tatu: Bounds/range checks would be tricky
+         *   here, so let's not bother even trying...
+         */
+        /*
+        if (value < -Float.MAX_VALUE || value > MAX_FLOAT_D) {
+            _reportError("Numeric value ("+getText()+") out of range of Java float");
+        }
+        */
         return (float) value;
     }
 

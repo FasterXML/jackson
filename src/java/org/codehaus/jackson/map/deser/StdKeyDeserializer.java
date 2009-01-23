@@ -11,9 +11,6 @@ import org.codehaus.jackson.map.*;
 public abstract class StdKeyDeserializer
     extends KeyDeserializer
 {
-    final static double MIN_FLOAT = (double) Float.MIN_VALUE;
-    final static double MAX_FLOAT = (double) Float.MAX_VALUE;
-
     final Class<?> _keyClass;
 
     protected StdKeyDeserializer(Class<?> cls) { _keyClass = cls; }
@@ -163,11 +160,10 @@ public abstract class StdKeyDeserializer
 
         public Float _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
-            double d = _parseDouble(key);
-            if (d < MIN_FLOAT || d > MAX_FLOAT) {
-                throw ctxt.weirdKeyException(_keyClass, key, "overflow/underflow, value can not be represented as a 32-bit float");
-            }
-            return Float.valueOf((float) d);
+            /* 22-Jan-2009, tatu: Bounds/range checks would be tricky
+             *   here, so let's not bother even trying...
+             */
+            return Float.valueOf((float) _parseDouble(key));
         }
     }
 
