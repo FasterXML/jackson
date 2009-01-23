@@ -134,6 +134,28 @@ public abstract class JsonParser
         throws IOException, JsonParseException;
 
     /**
+     * Iteration method that will advance stream enough
+     * to determine type of the next token that is a value type
+     * (including Json Array and Object start/end markers).
+     * Or put another way, nextToken() will be called once,
+     * and if {@link JsonToken#FIELD_NAME} is returned, another
+     * time to get the value for the field.
+     * Method is most useful for iterating over value entries
+     * of Json objects; field name will still be available
+     * by calling {@link #getCurrentName} when parser points to
+     * the value.
+     *
+     * @return Next non-field-name token from the stream, if any found,
+     *   or null to indicate end-of-input (or, for non-blocking
+     *   parsers, {@link JsonToken#NOT_AVAILABLE} if no tokens were
+     *   available yet)
+     *
+     * @since 0.9.7
+     */
+    public abstract JsonToken nextValue()
+        throws IOException, JsonParseException;
+
+    /**
      * Method that will skip all child tokens of an array or
      * object token that the parser currently points to,
      * iff stream points to 

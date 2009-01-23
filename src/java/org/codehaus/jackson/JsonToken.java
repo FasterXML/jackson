@@ -15,8 +15,21 @@ public enum JsonToken
      */
 
     /**
+     * NOT_AVAILABLE can be returned if {@link JsonParser}
+     * implementation can not currently return the requested
+     * token (usually next one), or even if any will be
+     * available, but that may be able to determine this in
+     * future. This is the case with non-blocking parsers --
+     * they can not block to wait for more data to parse and
+     * must return something.
+     *
+     * @since 0.9.7
+     */
+    NOT_AVAILABLE(null),
+
+    /**
      * START_OBJECT is returned when encountering '{'
-     * which signals starting of an Object value
+     * which signals starting of an Object value.
      */
     START_OBJECT("{"),
         
@@ -24,40 +37,40 @@ public enum JsonToken
      * START_OBJECT is returned when encountering '}'
      * which signals ending of an Object value
      */
-        END_OBJECT("}"),
+    END_OBJECT("}"),
         
     /**
      * START_OBJECT is returned when encountering '['
      * which signals starting of an Array value
      */
-        START_ARRAY("["),
+    START_ARRAY("["),
 
     /**
      * START_OBJECT is returned when encountering ']'
      * which signals ending of an Array value
      */
-        END_ARRAY("]"),
+    END_ARRAY("]"),
         
-     /**
-      * FIELD_NAME is returned when a String token is encountered
-      * as a field name (same lexical value, different function)
-      */
-        FIELD_NAME(null),
+    /**
+     * FIELD_NAME is returned when a String token is encountered
+     * as a field name (same lexical value, different function)
+     */
+    FIELD_NAME(null),
         
-     /**
-      * VALUE_STRING is returned when a String token is encountered
-      * in value context (array element, field value, or root-level
-      * stand-alone value)
-      */
-        VALUE_STRING(null),
+    /**
+     * VALUE_STRING is returned when a String token is encountered
+     * in value context (array element, field value, or root-level
+     * stand-alone value)
+     */
+    VALUE_STRING(null),
 
-     /**
-      * VALUE_NUMBER_INT is returned when an integer numeric token is
-      * encountered in value context: that is, a number that does
-      * not have floating point or exponent marker in it (consists
-      * only of an optional sign, followed by one or more digits)
-      */
-        VALUE_NUMBER_INT(null),
+    /**
+     * VALUE_NUMBER_INT is returned when an integer numeric token is
+     * encountered in value context: that is, a number that does
+     * not have floating point or exponent marker in it (consists
+     * only of an optional sign, followed by one or more digits)
+     */
+    VALUE_NUMBER_INT(null),
 
     /**
      * VALUE_NUMBER_INT is returned when a numeric token other
@@ -79,11 +92,12 @@ public enum JsonToken
      */
         VALUE_FALSE("false"),
 
-    /**
-     * VALUE_NULL is returned when encountering literal "null" in
-     * value context
-     */
-        VALUE_NULL("null");
+        /**
+         * VALUE_NULL is returned when encountering literal "null" in
+         * value context
+         */
+        VALUE_NULL("null")
+        ;
 
     final String mSerialized;
 
