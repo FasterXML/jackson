@@ -177,6 +177,7 @@ public final class Base64Variant
 
     public boolean usesPadding() { return _usesPadding; }
     public boolean usesPaddingChar(char c) { return c == _paddingChar; }
+    public boolean usesPaddingChar(int ch) { return ch == (int) _paddingChar; }
     public char getPaddingChar() { return _paddingChar; }
     public byte getPaddingByte() { return (byte)_paddingChar; }
 
@@ -194,6 +195,11 @@ public final class Base64Variant
     public int decodeBase64Char(char c)
     {
         int ch = (int) c;
+        return (ch <= 127) ? _asciiToBase64[ch] : BASE64_VALUE_INVALID;
+    }
+
+    public int decodeBase64Char(int ch)
+    {
         return (ch <= 127) ? _asciiToBase64[ch] : BASE64_VALUE_INVALID;
     }
 

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.codehaus.jackson;
 
 import java.io.*;
@@ -438,6 +439,40 @@ public abstract class JsonParser
      * and decoding result (except for decoding part),
      * but should be significantly more performant.
      *<p>
+     * Note that non-decoded textual contents of the current event
+     * are not guaranteed to be accessible after this method
+     * is called. Current implementation, for example, clears up
+     * textual content during decoding.
+     * Decoded binary content, however, will be retained until
+     * parser is advanced to the next event.
+     *
+     * @param b64variant Expected variant of base64 encoded
+     *   content (see {@link Base64Variants} for definitions
+     *   of "standard" variants).
+     *
+     * @return Decoded binary data
+     */
+    public abstract byte[] getBinaryValue(Base64Variant b64variant) throws IOException, JsonParseException;
+
+    /**
+     * Convenience alternative to {@link #getBinaryValue{Base64Variant}
+     * that defaults to using
+     * {@link Base64Variants#getDefaultVariant} as the default encoding
+     */
+    public byte[] getBinaryValue() throws IOException, JsonParseException
+    {
+        return getBinaryValue(Base64Variants.getDefaultVariant());
+    }
+
+    /**
+     * Method that can be used to read (and consume -- results
+     * may not be accessible using other methods after the call)
+     * base64-encoded binary data
+     * included in the current textual json value.
+     * It works similar to getting String value via {@link #getText}
+     * and decoding result (except for decoding part),
+     * but should be significantly more performant.
+     *<p>
      * Note that the contents may be consumed by this call, and thus
      * only first call to method will produce any output. Likewise,
      * calls to methods like {@link #getText} are not guaranteed
@@ -467,30 +502,4 @@ public abstract class JsonParser
     }
     */
 
-    /**
-     * Method that can be used to read (and consume -- results
-     * may not be accessible using other methods after the call)
-     * base64-encoded binary data
-     * included in the current textual json value.
-     * It works similar to getting String value via {@link #getText}
-     * and decoding result (except for decoding part),
-     * but should be significantly more performant.
-     *<p>
-     * Note that the contents may be consumed by this call so that
-     * the textual contents may not be visible via tohers calls
-     * such as {@link #getText}. However, contents will be retained
-     * as long as parser is not advanced, so that multiple calls
-     * to this method will return the same contents.
-     *<p>
-     * Compared to {@link #readBinaryValue(OutputStream)} the main
-     * difference is that this method will read and retain the whole
-     * decoded binary results in memory until parser is advanced.
-     *
-     * @param b64variant Expected variant of base64 encoded
-     *   content (see {@link Base64Variants} for definitions
-     *   of "standard" variants).
-     *
-     * @return Decoded binary data
-     */
-    //public abstract byte[] readBinaryValue(Base64Variant b64variant) throws IOException, JsonParseException;
 }

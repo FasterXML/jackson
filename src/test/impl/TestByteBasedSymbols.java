@@ -6,6 +6,8 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.sym.Name;
 import org.codehaus.jackson.sym.NameCanonicalizer;
 
+import static org.junit.Assert.*;
+
 import main.BaseTest;
 
 /**

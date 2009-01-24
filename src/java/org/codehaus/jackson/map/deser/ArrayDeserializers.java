@@ -162,6 +162,10 @@ public class ArrayDeserializers
         }
     }
 
+    /**
+     * When dealing with byte arrays we have one more alternative (compared
+     * to int/long/shorts): base64 encoded data.
+     */
     final static class ByteDeser
         extends StdDeserializer<byte[]>
     {
@@ -170,13 +174,19 @@ public class ArrayDeserializers
         public byte[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+            JsonToken t = jp.getCurrentToken();
+
+            // Most likely case: base64 encoded String?
+            if (t == JsonToken.VALUE_STRING) {
+                return jp.getBinaryValue(ctxt.getBase64Variant());
+            }
+
+            if (t != JsonToken.START_ARRAY) {
                 throw ctxt.mappingException(_valueClass);
             }
             ArrayBuilders.ByteBuilder builder = ctxt.getArrayBuilders().getByteBuilder();
             byte[] chunk = builder.resetAndStart();
             int ix = 0;
-            JsonToken t;
 
             while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
                 // whether we should allow truncating conversions?

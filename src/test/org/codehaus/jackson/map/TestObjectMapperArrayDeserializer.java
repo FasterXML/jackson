@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
+import static org.junit.Assert.*;
+
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeReference;
@@ -125,7 +127,7 @@ public class TestObjectMapperArrayDeserializer
         assertFalse(result[2]);
     }
 
-    public void testByteArray() throws Exception
+    public void testByteArrayAsNumbers() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         final int LEN = 37000;
@@ -144,6 +146,71 @@ public class TestObjectMapperArrayDeserializer
         for (int i = 0; i < LEN; ++i) {
             byte exp = (byte) (i & 0x7F);
             assertEquals(exp, result[i]);
+        }
+    }
+
+    public void testByteArrayAsBase64() throws Exception
+    {
+        /* Hmmh... let's use JsonGenerator here, to hopefully ensure we
+         * get proper base64 encoding. Plus, not always using that
+         * silly sample from Wikipedia.
+         */
+        JsonFactory jf = new JsonFactory();
+        StringWriter sw = new StringWriter();
+
+        int LEN = 9000;
+        byte[] TEST = new byte[LEN];
+        for (int i = 0; i < LEN; ++i) {
+            TEST[i] = (byte) i;
+        }
+
+        JsonGenerator jg = jf.createJsonGenerator(sw);
+        jg.writeBinary(TEST);
+        jg.close();
+        String inputData = sw.toString();
+
+        ObjectMapper mapper = new ObjectMapper();
+        byte[] result = mapper.readValue(inputData, byte[].class);
+        assertNotNull(result);
+        assertArrayEquals(TEST, result);
+    }
+
+    /**
+     * And then bit more challenging case; let's try decoding
+     * multiple byte arrays from an array...
+     */
+    public void testByteArraysAsBase64() throws Exception
+    {
+        JsonFactory jf = new JsonFactory();
+        StringWriter sw = new StringWriter(1000);
+
+        final int entryCount = 15;
+
+        JsonGenerator jg = jf.createJsonGenerator(sw);
+        jg.writeStartArray();
+
+        byte[][] entries = new byte[entryCount][];
+        for (int i = 0; i < entryCount; ++i) {
+            byte[] b = new byte[1000 - i * 20];
+            for (int x = 0; x < b.length; ++x) {
+                b[x] = (byte) (i + x);
+            }
+            entries[i] = b;
+            jg.writeBinary(b);
+        }
+        jg.writeEndArray();
+        jg.close();
+
+        String inputData = sw.toString();
+
+        ObjectMapper mapper = new ObjectMapper();
+        byte[][] result = mapper.readValue(inputData, byte[][].class);
+        assertNotNull(result);
+
+        assertEquals(entryCount, result.length);
+        for (int i = 0; i < entryCount; ++i) {
+            byte[] b = result[i];
+            assertArrayEquals("Comparing entry #"+i+"/"+entryCount,entries[i], b);
         }
     }
 

@@ -17,7 +17,7 @@ public final class ReaderBasedParser
 {
     /*
     ////////////////////////////////////////////////////
-    // Configuration
+    // Configuration, state
     ////////////////////////////////////////////////////
      */
 
@@ -70,6 +70,9 @@ public final class ReaderBasedParser
         _tokenInputTotal = _currInputProcessed + _inputPtr - 1;
         _tokenInputRow = _currInputRow;
         _tokenInputCol = _inputPtr - _currInputRowStart - 1;
+
+        // finally: clear any data retained so far
+        _binaryValue = null;
 
         // Closing scope?
         if (i == INT_RBRACKET) {
@@ -202,22 +205,6 @@ public final class ReaderBasedParser
 
     /*
     ////////////////////////////////////////////////////
-    // Public API, binary access
-    ////////////////////////////////////////////////////
-     */
-
-    /*
-    @Override
-    public InputStream readBinaryValue(Base64Variant b64v)
-        throws IOException, JsonParseException
-    {
-        // !!! TBI: implemented base64 decoding
-        return null;
-    }
-    */
-
-    /*
-    ////////////////////////////////////////////////////
     // Internal methods, secondary parsing
     ////////////////////////////////////////////////////
      */
@@ -318,7 +305,7 @@ public final class ReaderBasedParser
         }
     }
 
-    protected void finishString()
+    protected void _finishString()
         throws IOException, JsonParseException
     {
         /* First: let's try to see if we have simple String value: one
@@ -352,10 +339,10 @@ public final class ReaderBasedParser
          */
         _textBuffer.resetWithCopy(_inputBuffer, _inputPtr, (ptr-_inputPtr));
         _inputPtr = ptr;
-        finishString2();
+        _finishString2();
     }
 
-    protected void finishString2()
+    protected void _finishString2()
         throws IOException, JsonParseException
     {
         char[] outBuf = _textBuffer.getCurrentSegment();
@@ -698,5 +685,138 @@ public final class ReaderBasedParser
             value = (value << 4) | digit;
         }
         return (char) value;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Binary access
+    ////////////////////////////////////////////////////
+     */
+
+    protected byte[] _decodeBase64(Base64Variant b64variant)
+        throws IOException, JsonParseException
+    {
+        ByteArrayBuilder builder = _getByteArrayBuilder();
+
+        /* !!! 23-Jan-2009, tatu: There are some potential problems
+         *   with this:
+         *
+         * - Escaped chars are not handled. Should they?
+         */
+
+        main_loop:
+        while (true) {
+            // first, we'll skip preceding white space, if any
+            char ch;
+            do {
+                if (_inputPtr >= _inputEnd) {
+                    loadMoreGuaranteed();
+                }
+                ch = _inputBuffer[_inputPtr++];
+            } while (ch <= INT_SPACE);
+            int bits = b64variant.decodeBase64Char(ch);
+            if (bits < 0) { // reached the end, fair and square?
+                if (ch == '"') {
+                    return builder.toByteArray();
+                }
+                throw reportInvalidChar(b64variant, ch, 0);
+            }
+            int decodedData = bits;
+            
+            // then second base64 char; can't get padding yet, nor ws
+            
+            if (_inputPtr >= _inputEnd) {
+                loadMoreGuaranteed();
+            }
+            ch = _inputBuffer[_inputPtr++];
+            bits = b64variant.decodeBase64Char(ch);
+            if (bits < 0) {
+                throw reportInvalidChar(b64variant, ch, 1);
+            }
+            decodedData = (decodedData << 6) | bits;
+            
+            // third base64 char; can be padding, but not ws
+            if (_inputPtr >= _inputEnd) {
+                loadMoreGuaranteed();
+            }
+            ch = _inputBuffer[_inputPtr++];
+            bits = b64variant.decodeBase64Char(ch);
+
+            int bytesToOutput = 3; // default
+
+            // First branch: can get padding (-> 1 byte)
+            if (bits < 0) {
+                if (bits != Base64Variant.BASE64_VALUE_PADDING) {
+                    throw reportInvalidChar(b64variant, ch, 2);
+                }
+                // Ok, must get padding
+                if (_inputPtr >= _inputEnd) {
+                    loadMoreGuaranteed();
+                }
+                ch = _inputBuffer[_inputPtr++];
+                if (!b64variant.usesPaddingChar(ch)) {
+                    throw reportInvalidChar(b64variant, ch, 3, "expected padding character '"+b64variant.getPaddingChar()+"'");
+                }
+                // Got 12 bits, only need 8, need to shift
+                decodedData >>= 4;
+                builder.append(decodedData);
+                continue;
+            }
+            // Nope, 2 or 3 bytes
+            decodedData = (decodedData << 6) | bits;
+            // fourth and last base64 char; can be padding, but not ws
+            if (_inputPtr >= _inputEnd) {
+                loadMoreGuaranteed();
+            }
+            ch = _inputBuffer[_inputPtr++];
+            bits = b64variant.decodeBase64Char(ch);
+            if (bits < 0) {
+                if (bits != Base64Variant.BASE64_VALUE_PADDING) {
+                    throw reportInvalidChar(b64variant, ch, 3);
+                }
+                /* With padding we only get 2 bytes; but we have
+                 * to shift it a bit so it is identical to triplet
+                 * case with partial output.
+                 * 3 chars gives 3x6 == 18 bits, of which 2 are
+                 * dummies, need to discard:
+                 */
+                decodedData >>= 2;
+                builder.appendTwoBytes(decodedData);
+            } else {
+                // otherwise, our triple is now complete
+                decodedData = (decodedData << 6) | bits;
+                builder.appendThreeBytes(decodedData);
+            }
+        }
+    }
+
+    protected IllegalArgumentException reportInvalidChar(Base64Variant b64variant, char ch, int bindex)
+        throws IllegalArgumentException
+    {
+        return reportInvalidChar(b64variant, ch, bindex, null);
+    }
+
+    /**
+     * @param bindex Relative index within base64 character unit; between 0
+     *   and 3 (as unit has exactly 4 characters)
+     */
+    protected IllegalArgumentException reportInvalidChar(Base64Variant b64variant, char ch, int bindex, String msg)
+        throws IllegalArgumentException
+    {
+        String base;
+        if (ch <= INT_SPACE) {
+            base = "Illegal white space character (code 0x"+Integer.toHexString(ch)+") as character #"+(bindex+1)+" of 4-char base64 unit: can only used between units";
+        } else if (b64variant.usesPaddingChar(ch)) {
+            base = "Unexpected padding character ('"+b64variant.getPaddingChar()+"') as character #"+(bindex+1)+" of 4-char base64 unit: padding only legal as 3rd or 4th character";
+        } else if (!Character.isDefined(ch) || Character.isISOControl(ch)) {
+            // Not sure if we can really get here... ? (most illegal xml chars are caught at lower level)
+            base = "Illegal character (code 0x"+Integer.toHexString(ch)+") in base64 content";
+        } else {
+            base = "Illegal character '"+((char)ch)+"' (code 0x"+Integer.toHexString(ch)+") in base64 content";
+        }
+        if (msg != null) {
+            base = base + ": " + msg;
+        }
+        return new IllegalArgumentException(base);
     }
 }

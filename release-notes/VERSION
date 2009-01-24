@@ -16,6 +16,8 @@ Description:
 
   New features:
 
+  * [JACKSON-6]: Implement JsonParser.getBinaryValue() so that one can
+    now also read Base64-encoded binary, not just write.
   * [JACKSON-40]: Add JsonParser.nextValue() for more convenient
     iteration.
 

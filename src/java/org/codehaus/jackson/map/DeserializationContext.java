@@ -2,7 +2,7 @@ package org.codehaus.jackson.map;
 
 import java.util.*;
 
-import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 
@@ -13,6 +13,22 @@ import org.codehaus.jackson.map.util.ObjectBuffer;
 public abstract class DeserializationContext
 {
     public abstract JsonParser getParser();
+
+    /*
+    //////////////////////////////////////////////////////////////
+    // Config methods
+    //////////////////////////////////////////////////////////////
+    */
+
+    /**
+     * Method called during deserialization if Base64 encoded content
+     * needs to be decoded. Default version just returns default Jackson
+     * uses, which is modified-mime which does not add linefeeds (because
+     * those would have to be escaped in Json strings).
+     */
+    public Base64Variant getBase64Variant() {
+        return Base64Variants.getDefaultVariant();
+    }
 
     /*
     //////////////////////////////////////////////////////////////

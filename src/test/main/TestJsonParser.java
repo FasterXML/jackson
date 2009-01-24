@@ -226,10 +226,6 @@ public class TestJsonParser
             if (!expResult.equals(act)) {
                 String msg = "Failed for name #"+entry+"/"+NAME_MAP.size();
                 if (expResult.length() != act.length()) {
-                    /*
-System.err.println("DEBUG -> '"+act+"', jp = "+jp);
-for (int i = 0; i < act.length(); ++i) System.err.println("Char: "+((int) act.charAt(i)));
-                    */
                     fail(msg+": exp length "+expResult.length()+", actual "+act.length());
                 }
                 assertEquals(msg, expResult, act);

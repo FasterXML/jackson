@@ -24,17 +24,25 @@ import java.util.ArrayList;
 public final class TextBuffer
 {
     final static char[] NO_CHARS = new char[0];
-
-    // // // Configuration:
+    
+    /*
+    //////////////////////////////
+    // Configuration:
+    //////////////////////////////
+    */
 
     private final BufferRecycler _allocator;
 
-    // // // Shared read-only input buffer:
+    /*
+    //////////////////////////////
+    // Shared input buffers
+    //////////////////////////////
+    */
 
     /**
      * Shared input buffer; stored here in case some input can be returned
      * as is, without being copied to collector's own buffers. Note that
-     * this is read-only for this Objet.
+     * this is read-only for this Object.
      */
     private char[] _inputBuffer;
 
@@ -46,7 +54,11 @@ public final class TextBuffer
 
     private int _inputLen;
 
-    // // // Internal non-shared collector buffers:
+    /*
+    //////////////////////////////////////////////////
+    // Aggregation segments (when not using input buf)
+    //////////////////////////////////////////////////
+    */
 
     /**
      * List of segments prior to currently active segment.
@@ -72,7 +84,11 @@ public final class TextBuffer
      */
     private int _currentSize;
 
-    // // // Temporary caching for Objects to return
+    /*
+    //////////////////////////////////////////////////
+    // Caching of results
+    //////////////////////////////////////////////////
+    */
 
     /**
      * String that will be constructed when the whole contents are
@@ -194,7 +210,7 @@ public final class TextBuffer
 
     /*
     //////////////////////////////////////////////
-    // Accessors for implementing StAX interface:
+    // Accessors for implementing public interface
     //////////////////////////////////////////////
      */
 
@@ -234,7 +250,7 @@ public final class TextBuffer
 
     /*
     //////////////////////////////////////////////
-    // Accessors:
+    // Other accessors:
     //////////////////////////////////////////////
      */
 
@@ -347,51 +363,6 @@ public final class TextBuffer
             }
         }
         return totalAmount;
-    }
-    */
-
-    /**
-     * Method that will stream contents of this buffer into specified
-     * Writer.
-     */
-    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
-     *   let's just delete it.
-     */
-    /*
-    public int rawContentsTo(Writer w)
-        throws IOException
-    {
-        // Let's first see if we have created helper objects:
-        if (_resultArray != null) {
-            w.write(_resultArray);
-            return _resultArray.length;
-        }
-        if (_resultString != null) {
-            w.write(_resultString);
-            return _resultString.length();
-        }
-
-        // Do we use shared array?
-        if (_inputStart >= 0) {
-            if (_inputLen > 0) {
-                w.write(_inputBuffer, _inputStart, _inputLen);
-            }
-            return _inputLen;
-        }
-        // Nope, need to do full segmented output
-        int rlen = 0;
-        if (_segments != null) {
-            for (int i = 0, len = _segments.size(); i < len; ++i) {
-                char[] ch = _segments.get(i);
-                w.write(ch);
-                rlen += ch.length;
-            }
-        }
-        if (_currentSize > 0) {
-            w.write(_currentSegment, 0, _currentSize);
-            rlen += _currentSize;
-        }
-        return rlen;
     }
     */
 

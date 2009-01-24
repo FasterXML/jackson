@@ -127,7 +127,16 @@ public class StdDeserializationContext
 
     public JsonMappingException mappingException(Class<?> targetClass)
     {
-        return JsonMappingException.from(_parser, "Can not deserialize "+targetClass.getName()+" out of "+_parser.getCurrentToken()+" token");
+        String clsName = _calcName(targetClass);
+        return JsonMappingException.from(_parser, "Can not deserialize instance of "+clsName+" out of "+_parser.getCurrentToken()+" token");
+    }
+
+    protected String _calcName(Class<?> cls)
+    {
+        if (cls.isArray()) {
+            return _calcName(cls.getComponentType())+"[]";
+        }
+        return cls.getName();
     }
 
     public JsonMappingException instantiationException(Class<?> instClass, Exception e)

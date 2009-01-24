@@ -4,6 +4,7 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.util.ByteArrayBuilder;
 import org.codehaus.jackson.util.TextBuffer;
 
 /**
@@ -165,6 +166,7 @@ public abstract class JsonParserBase
     // Buffer(s) for local name(s) and text content
     ////////////////////////////////////////////////////
      */
+
     /**
      * Buffer that contains contents of String values, including
      * field names if necessary (name split across boundary,
@@ -185,6 +187,20 @@ public abstract class JsonParserBase
      * representation  being available via read context)
      */
     protected boolean _nameCopied = false;
+
+    /**
+     * ByteArrayBuilder is needed if 'getBinaryValue' is called. If so,
+     * we better reuse it for remainder of content.
+     */
+    ByteArrayBuilder _byteArrayBuilder = null;
+
+    /**
+     * We will hold on to decoded binary data, for duration of
+     * current event, so that multiple calls to
+     * {@link #getBinaryValue} will not need to decode data more
+     * than once.
+     */
+    protected byte[] _binaryValue;
 
     /*
     ////////////////////////////////////////////////////
@@ -232,9 +248,7 @@ public abstract class JsonParserBase
     ////////////////////////////////////////////////////
      */
 
-    //protected abstract void finishToken() throws IOException, JsonParseException;
-
-    protected abstract void finishString() throws IOException, JsonParseException;
+    protected abstract void _finishString() throws IOException, JsonParseException;
 
     /*
     ////////////////////////////////////////////////////
@@ -382,7 +396,7 @@ public abstract class JsonParserBase
             case VALUE_STRING:
                 if (_tokenIncomplete) {
                     _tokenIncomplete = false;
-                    finishString(); // only strings can be incomplete
+                    _finishString(); // only strings can be incomplete
                 }
                 // fall through
             case VALUE_NUMBER_INT:
@@ -419,7 +433,7 @@ public abstract class JsonParserBase
             case VALUE_STRING:
                 if (_tokenIncomplete) {
                     _tokenIncomplete = false;
-                    finishString(); // only strings can be incomplete
+                    _finishString(); // only strings can be incomplete
                 }
                 // fall through
             case VALUE_NUMBER_INT:
@@ -444,7 +458,7 @@ public abstract class JsonParserBase
             case VALUE_STRING:
                 if (_tokenIncomplete) {
                     _tokenIncomplete = false;
-                    finishString(); // only strings can be incomplete
+                    _finishString(); // only strings can be incomplete
                 }
                 // fall through
             case VALUE_NUMBER_INT:
@@ -469,7 +483,7 @@ public abstract class JsonParserBase
             case VALUE_STRING:
                 if (_tokenIncomplete) {
                     _tokenIncomplete = false;
-                    finishString(); // only strings can be incomplete
+                    _finishString(); // only strings can be incomplete
                 }
                 // fall through
             case VALUE_NUMBER_INT:
@@ -479,6 +493,38 @@ public abstract class JsonParserBase
         }
         return 0;
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, access to token information, binary
+    ////////////////////////////////////////////////////
+     */
+
+    public final byte[] getBinaryValue(Base64Variant b64variant)
+        throws IOException, JsonParseException
+    {
+        if (_currToken != JsonToken.VALUE_STRING) {
+            _reportError("Current token ("+_currToken+") not VALUE_STRING, can not access as binary");
+        }
+        /* To ensure that we won't see inconsistent data, better clear up
+         * state...
+         */
+        if (_tokenIncomplete) {
+            try {
+                _binaryValue = _decodeBase64(b64variant);
+            } catch (IllegalArgumentException iae) {
+                throw _constructError("Failed to decode VALUE_STRING as base64 ("+b64variant+"): "+iae.getMessage());
+            }
+            /* let's clear incomplete only now; allows for accessing other
+             * textual content in error cases
+             */
+            _tokenIncomplete = false;
+        }
+        return _binaryValue;
+    }
+
+    protected abstract byte[] _decodeBase64(Base64Variant b64variant)
+        throws IOException, JsonParseException;
 
     /*
     ////////////////////////////////////////////////////
@@ -616,7 +662,7 @@ public abstract class JsonParserBase
     protected final void _wrapError(String msg, Throwable t)
         throws JsonParseException
     {
-        throw new JsonParseException(msg, getCurrentLocation(), t);
+        throw _constructError(msg, t);
     }
 
     protected final void _throwInternal()
@@ -627,5 +673,26 @@ public abstract class JsonParserBase
     protected final JsonParseException _constructError(String msg)
     {
         return new JsonParseException(msg, getCurrentLocation());
+    }
+
+    protected final JsonParseException _constructError(String msg, Throwable t)
+    {
+        return new JsonParseException(msg, getCurrentLocation(), t);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Other helper methods for sub-classes
+    ////////////////////////////////////////////////////
+     */
+
+    public ByteArrayBuilder _getByteArrayBuilder()
+    {
+        if (_byteArrayBuilder == null) {
+            _byteArrayBuilder = new ByteArrayBuilder();
+        } else {
+            _byteArrayBuilder.reset();
+        }
+        return _byteArrayBuilder;
     }
 }

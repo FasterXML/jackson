@@ -6,6 +6,8 @@ import junit.framework.TestCase;
 
 import org.codehaus.jackson.*;
 
+import static org.junit.Assert.*;
+
 public class BaseTest
     extends TestCase
 {
