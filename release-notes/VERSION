@@ -13,6 +13,12 @@ Description:
   * [JACKSON-34]: Improved packaging by adding an intermediate directory
     in source tarball, to not mess up the current directory (and to indicate
     version number as well)
+  * [JACKSON-37]: Make Jackson run on Android, by ensuring that there are
+    no hard linkages to classes that Android SDK doesn't have (the only
+    reference that was there, to XMLGregorianCalendar, was changed to
+    soft linkage)
+  * [JACKSON-42]: Add new JsonNode sub-class, BinaryNode, to represent
+    base64 encoded binary content.
 
   New features:
 

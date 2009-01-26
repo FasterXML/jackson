@@ -7,7 +7,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.util.CharTypes;
 
 /**
- * Value node that contains text value
+ * Value node that contains a text value.
  */
 public final class TextNode
     extends ValueNode
@@ -18,6 +18,15 @@ public final class TextNode
 
     public TextNode(String v) { mValue = v; }
 
+    /**
+     * Factory method that should be used to construct instances.
+     * For some common cases, can reuse canonical instances: currently
+     * this is the case for empty Strings, in future possible for
+     * others as well. If null is passed, will return null.
+     *
+     * @return Resulting {@link TextNode} object, if <b>v</b>
+     *   is NOT null; null if it is.
+     */
     public static TextNode valueOf(String v)
     {
         if (v == null) {

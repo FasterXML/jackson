@@ -12,6 +12,8 @@ import org.codehaus.jackson.JsonParseException;
  * object ot be serialized.
  *
  * @author Stanislaw Osinski
+ *
+ * @deprecated Not used for anything any more: any code that refers to this class should be converted using the new serializer API
  */
 public class ClassDispatchingJavaTypeSerializer
     implements JavaTypeSerializer<Object>

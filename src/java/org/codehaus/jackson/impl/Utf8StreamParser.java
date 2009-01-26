@@ -1375,7 +1375,7 @@ public final class Utf8StreamParser
          * - Escaped chars are not handled. Should they?
          */
 
-        main_loop:
+        //main_loop:
         while (true) {
             // first, we'll skip preceding white space, if any
             int ch;
@@ -1412,8 +1412,6 @@ public final class Utf8StreamParser
             }
             ch = _inputBuffer[_inputPtr++] & 0xFF;
             bits = b64variant.decodeBase64Char(ch);
-
-            int bytesToOutput = 3; // default
 
             // First branch: can get padding (-> 1 byte)
             if (bits < 0) {

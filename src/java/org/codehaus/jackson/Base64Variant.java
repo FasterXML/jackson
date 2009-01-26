@@ -236,6 +236,14 @@ public final class Base64Variant
         return ptr;
     }
 
+    public void encodeBase64Chunk(StringBuilder sb, int b24)
+    {
+        sb.append(_base64ToAsciiC[(b24 >> 18) & 0x3F]);
+        sb.append(_base64ToAsciiC[(b24 >> 12) & 0x3F]);
+        sb.append(_base64ToAsciiC[(b24 >> 6) & 0x3F]);
+        sb.append(_base64ToAsciiC[b24 & 0x3F]);
+    }
+
     /**
      * Method that outputs partial chunk (which only encodes one
      * or two bytes of data). Data given is still aligned same as if
@@ -258,6 +266,21 @@ public final class Base64Variant
             }
         }
         return outPtr;
+    }
+
+    public void encodeBase64Partial(StringBuilder sb, int bits, int outputBytes)
+    {
+        sb.append(_base64ToAsciiC[(bits >> 18) & 0x3F]);
+        sb.append(_base64ToAsciiC[(bits >> 12) & 0x3F]);
+        if (_usesPadding) {
+            sb.append((outputBytes == 2) ?
+                      _base64ToAsciiC[(bits >> 6) & 0x3F] : _paddingChar);
+            sb.append(_paddingChar);
+        } else {
+            if (outputBytes == 2) {
+                sb.append(_base64ToAsciiC[(bits >> 6) & 0x3F]);
+            }
+        }
     }
 
     public byte encodeBase64BitsAsByte(int value)

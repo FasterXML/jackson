@@ -30,6 +30,11 @@ public abstract class TreeMapperBase
 
     public TextNode textNode(String text) { return TextNode.valueOf(text); }
 
+    public BinaryNode binaryNode(byte[] data) { return BinaryNode.valueOf(data); }
+    public BinaryNode binaryNode(byte[] data, int offset, int length) {
+        return BinaryNode.valueOf(data, offset, length);
+    }
+
     public BooleanNode booleanNode(boolean v) {
         return v ? BooleanNode.getTrue() : BooleanNode.getFalse();
     }

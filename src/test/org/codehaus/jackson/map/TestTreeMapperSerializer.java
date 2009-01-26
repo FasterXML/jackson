@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import main.BaseTest;
+import static org.junit.Assert.*;
 
 import java.io.*;
 
@@ -135,6 +136,25 @@ public class TestTreeMapperSerializer
         StringWriter sw = new StringWriter();
         mapper.writeTree(mapper.nullNode(), sw);
         assertEquals("null", sw.toString());
+    }
+
+    public void testBinary()
+        throws Exception
+    {
+        TreeMapper mapper = new TreeMapper();
+        final int LENGTH = 13045;
+        byte[] data = new byte[LENGTH];
+        for (int i = 0; i < LENGTH; ++i) {
+            data[i] = (byte) i;
+        }
+        StringWriter sw = new StringWriter();
+        mapper.writeTree(mapper.binaryNode(data), sw);
+
+        JsonParser jp = new JsonFactory().createJsonParser(sw.toString());
+        // note: can't determine it's binary from json alone:
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertArrayEquals(data, jp.getBinaryValue());
+        jp.close();
     }
 
     /*

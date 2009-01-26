@@ -704,7 +704,7 @@ public final class ReaderBasedParser
          * - Escaped chars are not handled. Should they?
          */
 
-        main_loop:
+        //main_loop:
         while (true) {
             // first, we'll skip preceding white space, if any
             char ch;
@@ -741,8 +741,6 @@ public final class ReaderBasedParser
             }
             ch = _inputBuffer[_inputPtr++];
             bits = b64variant.decodeBase64Char(ch);
-
-            int bytesToOutput = 3; // default
 
             // First branch: can get padding (-> 1 byte)
             if (bits < 0) {

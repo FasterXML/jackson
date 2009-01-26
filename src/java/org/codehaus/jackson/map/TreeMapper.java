@@ -207,6 +207,7 @@ public class TreeMapper
     // public NullNode nullNode()
 
     // public TextNode textNode(String text)
+    // public BinaryNode binaryNode(byte[] data)
 
     // public BooleanNode booleanNode(boolean v)
 

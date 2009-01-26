@@ -67,7 +67,10 @@ public abstract class BaseMapper
         _jsonFactory = (jf == null) ? new JsonFactory() : jf;
     }
 
+    @Deprecated
     public void setDupFieldHandling(DupFields mode) { _cfgDupFields = mode; }
+
+    @Deprecated
     public DupFields getDupFieldHandling() { return _cfgDupFields; }
 
     /**

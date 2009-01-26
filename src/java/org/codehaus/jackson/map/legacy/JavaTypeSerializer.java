@@ -18,6 +18,8 @@ import org.codehaus.jackson.*;
  * Note about <code>defaultSerializer</code> argument: this is meant to allow
  * specialized serializers to only handle immediate container objects,
  * but to dispatch contents to the default handler.
+ *
+ * @deprecated Not used for anything any more: any code that refers to this class should be converted using the new serializer API
  */
 public interface JavaTypeSerializer<T>
 {

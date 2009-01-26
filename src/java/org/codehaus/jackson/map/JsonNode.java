@@ -121,6 +121,16 @@ public abstract class JsonNode
      */
     public boolean isNull() { return false; }
 
+    /**
+     * Method that can be used to check if this node represents
+     * binary data (Base64 encoded). Although this will be externally
+     * written as Json String value, {@link #isTextual} will
+     * return false if this method returns true.
+     *
+     * @return True if this node represents base64 encoded binary data
+     */
+    public boolean isBinary() { return false; }
+
     /*
     ////////////////////////////////////////////////////
     // Public API, value access
@@ -130,7 +140,7 @@ public abstract class JsonNode
     /**
      * Method to use for accessing String values (list values, Object
      * field values, root-level values).
-     * Does <b>NOT</b> do any conversions;
+     * Does <b>NOT</b> do any conversions for non-String value nodes;
      * for non-String values (ones for which {@link #isTextual} returns
      * false) null will be returned.
      * For String values, null is never returned; empty Strings are returned
@@ -140,6 +150,16 @@ public abstract class JsonNode
      *   json node (comes from Json String value entry)
      */
     public String getTextValue() { return null; }
+
+    /**
+     * Method to use for accessing binary content of binary nodes (nodes
+     * for which {@link #isBinary} returns true).
+     * For non-binary nodes, returns null.
+     *
+     * @return Binary data this node contains, iff it is a binary
+     *   node; null otherwise
+     */
+    public byte[] getBinaryValue() { return null; }
 
     public boolean getBooleanValue() { return false; }
     public Number getNumberValue() { return Integer.valueOf(getIntValue()); }
