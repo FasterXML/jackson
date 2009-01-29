@@ -27,7 +27,7 @@ built on Jackson JSON processor
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
-      <version>@VERSION</version>
+      <version>@VERSION@</version>
     </dependency>
   </dependencies>
 
