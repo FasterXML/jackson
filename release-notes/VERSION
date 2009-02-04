@@ -4,7 +4,8 @@ Release date:
   Xx-Jan-2009
 
 Description:
-  Another pre-1.0 release.
+  Another pre-1.0 release: this time completing support for handling
+  base64-encoded binary data.
 
   Improvements:
 
@@ -26,6 +27,9 @@ Description:
     now also read Base64-encoded binary, not just write.
   * [JACKSON-40]: Add JsonParser.nextValue() for more convenient
     iteration.
+  * [JACKSON-46]: Allow disabling quoting of field names by disabling
+    feature 'JsonGenerator.feature.QUOTE_FIELD_NAMES'
+   (requested by Scott Anderson)
 
 == History: ==
 

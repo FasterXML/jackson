@@ -15,7 +15,7 @@ public abstract class JsonSerializer<T>
      * Method that can be called to ask implementation to serialize
      * values of type this serializer handles.
      *
-     * @param value Value to serialize
+     * @param value Value to serialize; can <b>not</b> be null.
      * @param jgen Generator used to output resulting Json content
      * @param provider Provider that can be used to get serializers for
      *   serializing Objects value contains, if any.

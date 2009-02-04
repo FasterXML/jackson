@@ -63,7 +63,7 @@ public abstract class JsonGeneratorBase
 
     //public final void setFeature(Feature f, boolean state) {
 
-    public boolean isFeatureEnabled(Feature f) {
+    public final boolean isFeatureEnabled(Feature f) {
         return (_features & f.getMask()) != 0;
     }
 
@@ -95,11 +95,11 @@ public abstract class JsonGeneratorBase
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeStartArray(this);
         } else {
-            doWriteStartArray();
+            _writeStartArray();
         }
     }
 
-    protected abstract void doWriteStartArray()
+    protected abstract void _writeStartArray()
         throws IOException, JsonGenerationException;
 
     public final void writeEndArray()
@@ -111,12 +111,12 @@ public abstract class JsonGeneratorBase
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
         } else {
-            doWriteEndArray();
+            _writeEndArray();
         }
         _writeContext = _writeContext.getParentImpl();
     }
 
-    protected abstract void doWriteEndArray()
+    protected abstract void _writeEndArray()
         throws IOException, JsonGenerationException;
 
     public final void writeStartObject()
@@ -127,11 +127,11 @@ public abstract class JsonGeneratorBase
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeStartObject(this);
         } else {
-            doWriteStartObject();
+            _writeStartObject();
         }
     }
 
-    protected abstract void doWriteStartObject()
+    protected abstract void _writeStartObject()
         throws IOException, JsonGenerationException;
 
     public final void writeEndObject()
@@ -144,11 +144,11 @@ public abstract class JsonGeneratorBase
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
         } else {
-            doWriteEndObject();
+            _writeEndObject();
         }
     }
 
-    protected abstract void doWriteEndObject()
+    protected abstract void _writeEndObject()
         throws IOException, JsonGenerationException;
 
     public final void writeFieldName(String name)
@@ -159,10 +159,10 @@ public abstract class JsonGeneratorBase
         if (status == JsonWriteContextImpl.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
-        doWriteFieldName(name, (status == JsonWriteContextImpl.STATUS_OK_AFTER_COMMA));
+        _writeFieldName(name, (status == JsonWriteContextImpl.STATUS_OK_AFTER_COMMA));
     }
 
-    public abstract void doWriteFieldName(String name, boolean commaBefore)
+    protected abstract void _writeFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException;
 
     /*

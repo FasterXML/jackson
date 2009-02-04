@@ -80,7 +80,7 @@ public final class WriterBasedGenerator
     ////////////////////////////////////////////////////
      */
 
-    protected void doWriteStartArray()
+    protected void _writeStartArray()
         throws IOException, JsonGenerationException
     {
         if (_outputTail >= _outputEnd) {
@@ -89,7 +89,7 @@ public final class WriterBasedGenerator
         _outputBuffer[_outputTail++] = '[';
     }
 
-    protected void doWriteEndArray()
+    protected void _writeEndArray()
         throws IOException, JsonGenerationException
     {
         if (_outputTail >= _outputEnd) {
@@ -98,7 +98,7 @@ public final class WriterBasedGenerator
         _outputBuffer[_outputTail++] = ']';
     }
 
-    protected void doWriteStartObject()
+    protected void _writeStartObject()
         throws IOException, JsonGenerationException
     {
         if (_outputTail >= _outputEnd) {
@@ -107,7 +107,7 @@ public final class WriterBasedGenerator
         _outputBuffer[_outputTail++] = '{';
     }
 
-    protected void doWriteEndObject()
+    protected void _writeEndObject()
         throws IOException, JsonGenerationException
     {
         if (_outputTail >= _outputEnd) {
@@ -116,35 +116,66 @@ public final class WriterBasedGenerator
         _outputBuffer[_outputTail++] = '}';
     }
 
-    public void doWriteFieldName(String name, boolean commaBefore)
+    protected void _writeFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
         if (_cfgPrettyPrinter != null) {
-            if (commaBefore) {
-                _cfgPrettyPrinter.writeObjectEntrySeparator(this);
-            } else {
-                _cfgPrettyPrinter.beforeObjectEntries(this);
-            }
-        } else {
-            if (commaBefore) {
-                if (_outputTail >= _outputEnd) {
-                    _flushBuffer();
-                }
-                _outputBuffer[_outputTail++] = ',';
-            }
+            _writePPFieldName(name, commaBefore);
+            return;
         }
-        // Starting quotes
-        if (_outputTail >= _outputEnd) {
+        // for fast+std case, need to output up to 2 chars, comma, dquote
+        if ((_outputTail + 1) >= _outputEnd) {
             _flushBuffer();
         }
+        if (commaBefore) {
+            _outputBuffer[_outputTail++] = ',';
+        }
+
+        /* To support [JACKSON-46], we'll do this:
+         * (Quostion: should quoting of spaces (etc) still be enabled?)
+         */
+        if (!isFeatureEnabled(Feature.QUOTE_FIELD_NAMES)) {
+            _writeString(name);
+            return;
+        }
+
+        // we know there's room for at least one more char
         _outputBuffer[_outputTail++] = '"';
         // The beef:
         _writeString(name);
-        // and closing quotes
+        // and closing quotes; need room for one more char:
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = '"';
+    }
+
+    /**
+     * Specialized version of <code>_writeFieldName</code>, off-lined
+     * to keep the "fast path" as simple (and hopefully fast) as possible.
+     */
+    protected final void _writePPFieldName(String name, boolean commaBefore)
+        throws IOException, JsonGenerationException
+    {
+        if (commaBefore) {
+            _cfgPrettyPrinter.writeObjectEntrySeparator(this);
+        } else {
+            _cfgPrettyPrinter.beforeObjectEntries(this);
+        }
+
+        if (isFeatureEnabled(Feature.QUOTE_FIELD_NAMES)) { // standard
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = '"';
+            _writeString(name);
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = '"';
+        } else { // non-standard, omit quotes
+            _writeString(name);
+        }
     }
 
     /*
