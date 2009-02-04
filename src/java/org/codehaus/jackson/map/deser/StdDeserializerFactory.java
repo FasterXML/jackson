@@ -111,11 +111,8 @@ public class StdDeserializerFactory
         // Ok; first: do we have a primitive type?
         JavaType elemType = type.getComponentType();
 
-        // First, special type(s):
+        // First, special type(s), such as "primitive" arrays (int[] etc)
         JsonDeserializer<Object> deser = _arrayDeserializers.get(elemType);
-        /* !!! 08-Jan-2008, tatu: No primitive array deserializers yet,
-         *   need to complete
-         */
         if (deser != null) {
             return deser;
         }
@@ -124,7 +121,8 @@ public class StdDeserializerFactory
         if (elemType.isPrimitive()) { // sanity check
             throw new IllegalArgumentException("Internal error: primitive type ("+type+") passed, no array deserializer found");
         }
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(elemType, this);
+        // 'null' -> arrays have no referring fields
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(elemType, this, type, null);
         return new ArrayDeserializer(type, valueDes);
     }
 
@@ -133,7 +131,8 @@ public class StdDeserializerFactory
         JavaType keyType = type.getKeyType();
         // Value handling is identical for all, so:
         JavaType valueType = type.getValueType();
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, this);
+        // 'null' -> maps have no referring fields
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, this, type, null);
 
         Class<?> mapClass = type.getRawClass();
         // But EnumMap requires special handling for keys
@@ -177,7 +176,8 @@ public class StdDeserializerFactory
         }
 
         // But otherwise we can just use a generic value deserializer:
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, this);
+        // 'null' -> collections have no referring fields
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, this, type, null);
 
         /* One twist: if we are being asked to instantiate an interface or
          * abstract Collection, we need to either find something that implements
@@ -229,7 +229,7 @@ public class StdDeserializerFactory
             ClassUtil.checkAndFixAccess(defaultCtor, beanClass);
         }
 
-        BeanDeserializer deser = new BeanDeserializer(beanClass, defaultCtor, sctor, nctor);
+        BeanDeserializer deser = new BeanDeserializer(type, defaultCtor, sctor, nctor);
         // And then things we need if we get Json Object:
         addBeanProps(deser);
         return deser;

@@ -23,10 +23,22 @@ public abstract class DeserializerProvider
      * may do a best-effort generic serialization or just simply
      * throw an exception when invoked).
      *<p>
-     * Note: this method is only called for non-null values; not for keys
-     * or null values. For these, check out other accessor methods.
+     * Note: this method is only called for value types; not for keys.
+     * Key deserializers can be accessed using {@link #findKeyDeserializer}.
+     *
+     * @param type Declared type of the value to deserializer (obtained using
+     *   'setter' method signature and/or type annotations
+     * @param f Factory that is to be used for constructing type, if provider
+     *   does not have a cached instance
+     * @param referrer Type that contains the value, if any: null for
+     *   root-level object.
+     * @param refPropName Logical name of the property within instance of
+     *   <code>referrer</code>, if through a property (field). Null for
+     *   Collection and Array types, where reference is not through a
+     *   field.
      */
-    public abstract JsonDeserializer<Object> findValueDeserializer(JavaType type, DeserializerFactory f);
+    public abstract JsonDeserializer<Object> findValueDeserializer(JavaType type, DeserializerFactory f,
+                                                                   JavaType referrer, String refPropName);
 
     /**
      * Method called to get hold of a deserializer to use for deserializing

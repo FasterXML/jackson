@@ -69,7 +69,8 @@ public class StdDeserializerProvider
 
     @Override
     public JsonDeserializer<Object> findValueDeserializer(JavaType type,
-                                                          DeserializerFactory f)
+                                                          DeserializerFactory f,
+                                                          JavaType referrer, String refPropName)
     {
         /* A simple type? (primitive/wrapper, other well-known fundamental
          * basic types

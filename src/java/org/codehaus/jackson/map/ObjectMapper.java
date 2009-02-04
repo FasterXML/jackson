@@ -433,7 +433,7 @@ public class ObjectMapper
         } else { // pointing to event other than null
             DeserializationContext ctxt = _createDeserializationContext(jp);
             // ok, let's get the value
-            result = _findDeserializer(valueType).deserialize(jp, ctxt);
+            result = _findRootDeserializer(valueType).deserialize(jp, ctxt);
         }
         // and then need to skip past the last event before returning
         jp.nextToken();
@@ -449,7 +449,7 @@ public class ObjectMapper
                 result = null;
             } else {
                 DeserializationContext ctxt = _createDeserializationContext(jp);
-                result = _findDeserializer(valueType).deserialize(jp, ctxt);
+                result = _findRootDeserializer(valueType).deserialize(jp, ctxt);
                 // and then need to skip past the last event before returning
                 jp.nextToken();
             }
@@ -467,7 +467,10 @@ public class ObjectMapper
     ////////////////////////////////////////////////////
      */
 
-    protected JsonDeserializer<Object> _findDeserializer(JavaType valueType)
+    /**
+     * Method called to locate deserializer for the passed root-level value.
+     */
+    protected JsonDeserializer<Object> _findRootDeserializer(JavaType valueType)
     {
         // First: have we already seen it?
         JsonDeserializer<Object> deser = _rootDeserializers.get(valueType);
@@ -476,7 +479,7 @@ public class ObjectMapper
         }
 
         // Nope: need to ask provider to resolve it
-        deser = _deserializerProvider.findValueDeserializer(valueType, _deserializerFactory);
+        deser = _deserializerProvider.findValueDeserializer(valueType, _deserializerFactory, null, null);
         if (deser == null) { // can this happen?
             throw new IllegalArgumentException("Can not find a deserializer for type "+valueType);
         }
