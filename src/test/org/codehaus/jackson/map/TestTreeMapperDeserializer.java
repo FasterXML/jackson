@@ -242,7 +242,7 @@ public class TestTreeMapperDeserializer
     public void testSimpleArray() throws Exception
     {
         TreeMapper mapper = new TreeMapper();
-        JsonNode result = mapper.arrayNode();
+        ArrayNode result = mapper.arrayNode();
 
         assertTrue(result.isArray());
         assertType(result, ArrayNode.class);
@@ -253,8 +253,8 @@ public class TestTreeMapperDeserializer
         assertFalse(result.isTextual());
 
         // and let's add stuff...
-        result.appendElement(mapper.booleanNode(false));
-        result.insertElement(0, mapper.nullNode());
+        result.add(mapper.booleanNode(false));
+        result.insert(0, mapper.nullNode());
 
         // should be equal to itself no matter what
         assertEquals(result, result);
@@ -274,19 +274,19 @@ public class TestTreeMapperDeserializer
         assertTrue(result.getPath(-100).isMissingNode());
 
         // then construct and compare
-        JsonNode array2 = mapper.arrayNode();
-        array2.appendElement(mapper.nullNode());
-        array2.appendElement(BooleanNode.getFalse());
+        ArrayNode array2 = mapper.arrayNode();
+        array2.add(mapper.nullNode());
+        array2.add(BooleanNode.getFalse());
         assertEquals(result, array2);
 
         // plus remove entries
-        JsonNode rm1 = array2.removeElement(0);
+        JsonNode rm1 = array2.remove(0);
         assertEquals(mapper.nullNode(), rm1);
         assertEquals(1, array2.size());
-        assertEquals(BooleanNode.getFalse(), array2.getElementValue(0));
+        assertEquals(BooleanNode.getFalse(), array2.get(0));
         assertFalse(result.equals(array2));
 
-        JsonNode rm2 = array2.removeElement(0);
+        JsonNode rm2 = array2.remove(0);
         assertEquals(BooleanNode.getFalse(), rm2);
         assertEquals(0, array2.size());
     }

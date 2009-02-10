@@ -11,6 +11,14 @@ import org.codehaus.jackson.JsonGenerator;
  * Base class for all JSON nodes, used with the "dynamic" (JSON type)
  * mapper. One way to think of these nodes is to think them as being
  * similar to DOM nodes in XML DOM trees.
+ *<p>
+ * As a general design rule, most accessors ("getters") are included
+ * in this base class, to allow for traversing structure without
+ * type casts. Most mutators, however, need to be accessed through
+ * specific sub-classes. This seems sensible because proper type
+ * information is generally available when building or modifying
+ * trees, but less often when reading a tree (newly built from
+ * parsed Json content).
  */
 public abstract class JsonNode
     implements Iterable<JsonNode>
@@ -177,19 +185,34 @@ public abstract class JsonNode
      *   if this node is an array and has specified element.
      *   Null otherwise.
      */
-    public JsonNode getElementValue(int index) { return null; }
+    public JsonNode get(int index) { return null; }
 
     /**
      * Method for accessing value of the specified field of
      * an object node. If this node is not an object (or it
-     * does not have a value for specified field name), null
-     * is returned.
+     * does not have a value for specified field name), or
+     * if there is no field with such name, null is returned.
      *
      * @return Node that represent value of the specified field,
      *   if this node is an object and has value for the specified
      *   field. Null otherwise.
      */
-    public JsonNode getFieldValue(String fieldName) { return null; }
+    public JsonNode get(String fieldName) { return null; }
+
+    /**
+     * Alias for {@link #get(String)}.
+     *
+     * @deprecated Use {@link #get(String)} instead.
+     */
+    public final JsonNode getFieldValue(String fieldName) { return get(fieldName); }
+
+    /**
+     * Alias for {@link #get(int)}.
+     *
+     * @deprecated Use {@link #get(int)} instead.
+     */
+    public final JsonNode getElementValue(int index) { return get(index); }
+
 
     /**
      * Method that will return valid String representation of
@@ -208,6 +231,10 @@ public abstract class JsonNode
      */
 
     /**
+     * Method that returns number of child nodes this node contains:
+     * for Array nodes, number of child elements, for Object nodes,
+     * number of fields, and for all other nodes 0.
+     *
      * @return For non-container nodes returns 0; for arrays number of
      *   contained elements, and for objects number of fields.
      */
@@ -215,10 +242,8 @@ public abstract class JsonNode
 
     /**
      * Method for accessing all value nodes of this Node, iff
-     * this node is a Json Object node.
-     * <b>NOTE:</b> does NOT allow iterating over field/value pairs of
-     * Json Object constructs (instead, need to call
-     * {@link #getFieldValues} to do that).
+     * this node is a Json Array or Object node. In case of Object node,
+     * field names (keys) are not included, only values.
      */
     public Iterator<JsonNode> getElements() { return NO_NODES.iterator(); }
 
@@ -236,7 +261,8 @@ public abstract class JsonNode
     public Iterator<String> getFieldNames() { return NO_STRINGS.iterator(); }
     /**
      * Method for accessing field value nodes , iff
-     * this node is a Json Object node.
+     * this node is a Json Object node. For all other node types, returns
+     * an empty Iterator.
      */
     public Iterator<JsonNode> getFieldValues() { return NO_NODES.iterator(); }
 
@@ -252,9 +278,7 @@ public abstract class JsonNode
      * nodes, i.e. nodes for which {@link #isArray} returns true;
      * for Arrays given node gets added as the last child element.
      */
-    public void appendElement(JsonNode node) {
-        throw _constructNoArrayMods();
-    }
+    //public void appendElement(JsonNode node) { throw _constructNoArrayMods(); }
 
     // !!! TODO: add convenience methods (appendElement(int x) etc)
 
@@ -263,46 +287,32 @@ public abstract class JsonNode
      * this Array node.
      * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
      */
-    public void insertElement(int index, JsonNode value) {
-        throw _constructNoArrayMods();
-    }
+    //public void insertElement(int index, JsonNode value) { throw _constructNoArrayMods(); }
 
     /**
      * Method for removing specified value of this Array node.
      * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
      */
-    public JsonNode removeElement(int index) {
-        throw _constructNoArrayMods();
-    }
+    //public JsonNode removeElement(int index) { throw _constructNoArrayMods(); }
 
     /**
      * Method for removing specified value of this Object node.
      * Only works for Object nodes, i.e. nodes for which {@link #isObject} returns true.
      */
-    public JsonNode removeElement(String fieldName) {
-        throw _constructNoObjectMods();
-    }
-
-    // TODO: add convenience methods (insertElement(int x) etc)
+    // public JsonNode removeElement(String fieldName) {  throw _constructNoObjectMods(); }
 
     /**
      * Method for setting specified value of this Array node.
      * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
      */
-    public JsonNode setElement(int index, JsonNode value) {
-        throw _constructNoArrayMods();
-    }
+    //public JsonNode setElement(int index, JsonNode value) { throw _constructNoArrayMods(); }
 
     /**
      * Method for setting value of specified field of this Object node.
      * Only works for Object nodes, i.e. nodes for which {@link #isObject}
      * returns true.
      */
-    public JsonNode setElement(String fieldName, JsonNode value) {
-        throw _constructNoObjectMods();
-    }
-
-    // TODO: add convenience methods (setElement(String, int) etc)
+    //public JsonNode setElement(String fieldName, JsonNode value) { throw _constructNoObjectMods(); }
 
     /*
     ////////////////////////////////////////////////////
@@ -311,7 +321,7 @@ public abstract class JsonNode
      */
 
     /**
-     * This method is similar to {@link #getFieldValue}, except
+     * This method is similar to {@link #get(String)}, except
      * that instead of returning null if no such value exists (due
      * to this node not being an object, or object not having value
      * for the specified field),
@@ -319,17 +329,31 @@ public abstract class JsonNode
      * {@link #isMissingNode}) will be returned. This allows for
      * convenient and safe chained access via path calls.
      */
-    public abstract JsonNode getPath(String fieldName);
+    public abstract JsonNode path(String fieldName);
 
     /**
-     * This method is similar to {@link #getElementValue}, except
+     * Alias of {@link #getPath(String)}.
+     *
+     * @deprecated Use {@link #getPath(String)} instead
+     */
+    public final JsonNode getPath(String fieldName) { return path(fieldName); }
+
+    /**
+     * This method is similar to {@link #get(int)}, except
      * that instead of returning null if no such element exists (due
      * to index being out of range, or this node not being an array),
      * a "missing node" (node that returns true for
      * {@link #isMissingNode}) will be returned. This allows for
      * convenient and safe chained access via path calls.
      */
-    public abstract JsonNode getPath(int index);
+    public abstract JsonNode path(int index);
+
+    /**
+     * Alias of {@link #getPath(int)}.
+     *
+     * @deprecated Use {@link #getPath(int)} instead
+     */
+    public final JsonNode getPath(int index) { return path(index); }
 
     /*
     ////////////////////////////////////////////////////
@@ -351,15 +375,17 @@ public abstract class JsonNode
      */
     
     /**
-     * Let's mark this standard method as abstract to ensure all
-     * implementation classes define it
+     *<p>
+     * Note: marked as abstract to ensure all implementation
+     * classes define it properly.
      */
     @Override
     public abstract String toString();
 
     /**
-     * Let's mark this standard method as abstract to ensure all
-     * implementation classes define it
+     *<p>
+     * Note: marked as abstract to ensure all implementation
+     * classes define it properly.
      */
     @Override
     public abstract boolean equals(Object o);

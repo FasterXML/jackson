@@ -16,11 +16,11 @@ import org.codehaus.jackson.map.JsonNode;
 public final class MissingNode
     extends JsonNode
 {
-    private final static MissingNode sInstance = new MissingNode();
+    private final static MissingNode instance = new MissingNode();
 
     private MissingNode() { }
 
-    public static MissingNode getInstance() { return sInstance; }
+    public static MissingNode getInstance() { return instance; }
 
     @Override
     public boolean isMissingNode() { return true; }
@@ -29,10 +29,10 @@ public final class MissingNode
     public String getValueAsText() { return null; }
 
     @Override
-    public JsonNode getPath(String fieldName) { return this; }
+    public JsonNode path(String fieldName) { return this; }
 
     @Override
-    public JsonNode getPath(int index) { return this; }
+    public JsonNode path(int index) { return this; }
 
     public void writeTo(JsonGenerator jg)
         throws IOException, JsonGenerationException

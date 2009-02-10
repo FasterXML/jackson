@@ -22,10 +22,10 @@ public abstract class ValueNode
      */
 
     @Override
-    public JsonNode getPath(String fieldName) { return MissingNode.getInstance(); }
+    public JsonNode path(String fieldName) { return MissingNode.getInstance(); }
 
     @Override
-    public JsonNode getPath(int index) { return MissingNode.getInstance(); }
+    public JsonNode path(int index) { return MissingNode.getInstance(); }
 
     /*
     ////////////////////////////////////////////////////

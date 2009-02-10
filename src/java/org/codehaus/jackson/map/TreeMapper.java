@@ -105,7 +105,7 @@ public class TreeMapper
             }
         }
 
-        JsonNode result = readAndMap(jp, curr);
+        JsonNode result = _readAndMap(jp, curr);
 
         /* Need to also advance the reader, if we get this far,
          * to allow handling of root level sequence of values

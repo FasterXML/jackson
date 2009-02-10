@@ -7,6 +7,8 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.node.ArrayNode;
+import org.codehaus.jackson.map.node.ObjectNode;
 
 /**
  * This unit test suite tries to verify that the "JSON type"
@@ -30,14 +32,13 @@ public class TestTreeMapperSerializer
     {
         TreeMapper mapper = new TreeMapper();
 
-        JsonNode root = mapper.arrayNode();
-        root.appendElement(mapper.textNode(TEXT1));
-        root.appendElement(mapper.numberNode(3));
-        JsonNode obj = mapper.objectNode();
-        root.appendElement(obj);
-        obj.setElement(FIELD1, mapper.booleanNode(true));
-        obj.setElement(FIELD2, mapper.arrayNode());
-        root.appendElement(mapper.booleanNode(false));
+        ArrayNode root = mapper.arrayNode();
+        root.add(mapper.textNode(TEXT1));
+        root.add(mapper.numberNode(3));
+        ObjectNode obj = root.addObject();
+        obj.put(FIELD1, mapper.booleanNode(true));
+        obj.put(FIELD2, mapper.arrayNode());
+        root.add(mapper.booleanNode(false));
 
         /* Ok, ready... let's serialize using one of two alternate
          * methods: first preferred (using generator)
@@ -64,11 +65,11 @@ public class TestTreeMapperSerializer
     {
         TreeMapper mapper = new TreeMapper();
 
-        JsonNode root = mapper.objectNode();
-        root.setElement(FIELD4, mapper.textNode(TEXT2));
-        root.setElement(FIELD3, mapper.numberNode(-1));
-        root.setElement(FIELD2, mapper.arrayNode());
-        root.setElement(FIELD1, mapper.numberNode(DOUBLE_VALUE));
+        ObjectNode root = mapper.objectNode();
+        root.put(FIELD4, mapper.textNode(TEXT2));
+        root.put(FIELD3, mapper.numberNode(-1));
+        root.put(FIELD2, mapper.arrayNode());
+        root.put(FIELD1, mapper.numberNode(DOUBLE_VALUE));
 
         /* Let's serialize using one of two alternate methods:
          * first preferred (using generator)
@@ -97,10 +98,10 @@ public class TestTreeMapperSerializer
         throws Exception
     {
         TreeMapper mapper = new TreeMapper();
-        JsonNode root = mapper.arrayNode();
+        ArrayNode root = mapper.arrayNode();
         for (int i = -20; i <= 20; ++i) {
             JsonNode n = mapper.numberNode(i);
-            root.appendElement(n);
+            root.add(n);
             // Hmmh. Not sure why toString() won't be triggered otherwise...
             assertEquals(String.valueOf(i), n.toString());
         }

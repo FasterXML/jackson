@@ -64,7 +64,7 @@ public final class TextNode
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
-        return ((TextNode) o).mValue == mValue;
+        return ((TextNode) o).mValue.equals(mValue);
     }
 
     @Override

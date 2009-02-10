@@ -1,4 +1,4 @@
-package map.type;
+package org.jackson.type;
 
 import java.util.*;
 
@@ -6,6 +6,10 @@ import main.BaseTest;
 
 import org.codehaus.jackson.map.type.*;
 
+/**
+ * Simple tests to verify that the {@link TypeFactory} constructs
+ * type information as expected.
+ */
 public class TestTypeFactory
     extends BaseTest
 {
