@@ -57,12 +57,6 @@ public final class ObjectNode
     }
 
     @Override
-    public Iterator<JsonNode> getFieldValues()
-    {
-        return (_children == null) ? NoNodesIterator.instance() : _children.values().iterator();
-    }
-
-    @Override
     public JsonNode path(int index)
     {
         return MissingNode.getInstance();

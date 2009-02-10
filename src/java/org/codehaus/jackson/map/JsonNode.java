@@ -178,8 +178,15 @@ public abstract class JsonNode
 
     /**
      * Method for accessing value of the specified element of
-     * an array node. If this node is not an array (or index is
-     * out of range), null will be returned.
+     * an array node. For other nodes, null is always returned.
+     *<p>
+     * For array nodes, index specifies
+     * exact location within array and allows for efficient iteration
+     * over child elements (underlying storage is guaranteed to
+     * be efficiently indexable, i.e. has random-access to elements).
+     * If index is less than 0, or equal-or-greater than
+     * <code>node.size()</code>, null is returned; no exception is
+     * thrown for any index.
      *
      * @return Node that represent value of the specified element,
      *   if this node is an array and has specified element.
@@ -241,13 +248,6 @@ public abstract class JsonNode
     public int size() { return 0; }
 
     /**
-     * Method for accessing all value nodes of this Node, iff
-     * this node is a Json Array or Object node. In case of Object node,
-     * field names (keys) are not included, only values.
-     */
-    public Iterator<JsonNode> getElements() { return NO_NODES.iterator(); }
-
-    /**
      * Same as calling {@link #getElements}; implemented so that
      * convenience "for-each" loop can be used for looping over elements
      * of Json Array constructs.
@@ -255,21 +255,38 @@ public abstract class JsonNode
     public final Iterator<JsonNode> iterator() { return getElements(); }
 
     /**
+     * Method for accessing all value nodes of this Node, iff
+     * this node is a Json Array or Object node. In case of Object node,
+     * field names (keys) are not included, only values.
+     * For other types of nodes, returns empty iterator.
+     */
+    public Iterator<JsonNode> getElements() { return NO_NODES.iterator(); }
+
+    /**
      * Method for accessing names of all fields for this Node, iff
      * this node is a Json Object node.
      */
     public Iterator<String> getFieldNames() { return NO_STRINGS.iterator(); }
-    /**
+
+    /* 10-Feb-2009, tatu: I don't think this is needed, given that
+     *  iterator() and getElements() return same information.
+     */
+
+    /*
      * Method for accessing field value nodes , iff
      * this node is a Json Object node. For all other node types, returns
      * an empty Iterator.
      */
-    public Iterator<JsonNode> getFieldValues() { return NO_NODES.iterator(); }
+    //    public Iterator<JsonNode> getFieldValues() { return NO_NODES.iterator(); }
 
     /*
     ////////////////////////////////////////////////////
     // Public API, container mutators
     ////////////////////////////////////////////////////
+     */
+
+    /* !!! 10-Feb-2009, tatu: Doesn't make sense to have these here,
+     *   let's move them to specific container classes.
      */
 
     /**
@@ -279,8 +296,6 @@ public abstract class JsonNode
      * for Arrays given node gets added as the last child element.
      */
     //public void appendElement(JsonNode node) { throw _constructNoArrayMods(); }
-
-    // !!! TODO: add convenience methods (appendElement(int x) etc)
 
     /**
      * Method for inserting specified node, at specified index, within
@@ -313,6 +328,18 @@ public abstract class JsonNode
      * returns true.
      */
     //public JsonNode setElement(String fieldName, JsonNode value) { throw _constructNoObjectMods(); }
+
+    /*
+    protected UnsupportedOperationException _constructNoArrayMods()
+    {
+        return new UnsupportedOperationException("Node of type "+getClass()+" does not support appendElement, insertElement or setElement(int, ...) operations (only ArrayNodes do)");
+    }
+
+    protected UnsupportedOperationException _constructNoObjectMods()
+    {
+        return new UnsupportedOperationException("Node of type "+getClass()+" does not support setElement(String, ...) operations (only ObjectNodes do)");
+    }
+    */
 
     /*
     ////////////////////////////////////////////////////
@@ -389,20 +416,4 @@ public abstract class JsonNode
      */
     @Override
     public abstract boolean equals(Object o);
-
-    /*
-    ////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////
-     */
-
-    protected UnsupportedOperationException _constructNoArrayMods()
-    {
-        return new UnsupportedOperationException("Node of type "+getClass()+" does not support appendElement, insertElement or setElement(int, ...) operations (only ArrayNodes do)");
-    }
-
-    protected UnsupportedOperationException _constructNoObjectMods()
-    {
-        return new UnsupportedOperationException("Node of type "+getClass()+" does not support setElement(String, ...) operations (only ObjectNodes do)");
-    }
 }

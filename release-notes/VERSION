@@ -1,7 +1,7 @@
 Version: 0.9.8
 
 Release date: 
-  xx-Mar-2009
+  xx-Feb-2009
 
 Description:
   Another pre-1.0 release.
@@ -13,6 +13,10 @@ Description:
     contextual mappings where a given type may be deserialized differently
     (by different deserializer, and possibly to a different java class)
     depending on where the reference is from.
+  * [JACKSON-50]: JsonNode.getElements() and .iterator() now work for
+    ObjectNodes too, not just ArrayNodes. Also added convenience factory
+    methods to allow constructing child nodes directly from container 
+    nodes.
 
   Fixes:
 

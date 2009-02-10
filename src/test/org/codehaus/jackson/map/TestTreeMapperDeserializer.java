@@ -41,7 +41,7 @@ public class TestTreeMapperDeserializer
             
             ObjectNode main = (ObjectNode) result;
             assertEquals("Image", main.getFieldNames().next());
-            JsonNode ob = main.getFieldValues().next();
+            JsonNode ob = main.getElements().next();
             assertType(ob, ObjectNode.class);
             ObjectNode imageMap = (ObjectNode) ob;
             
