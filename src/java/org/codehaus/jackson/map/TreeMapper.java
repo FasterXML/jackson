@@ -7,7 +7,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.node.TreeMapperBase;
 
 /**
- * This mapper (or, codec) provides mapping between JSON,
+ * This mapper (or, codec) provides mapping between Json,
  * and Tree-like structure that consists of child-linked 
  * nodes that can be traversed with simple path operations
  * (indexing arrays by element, objects by field name).

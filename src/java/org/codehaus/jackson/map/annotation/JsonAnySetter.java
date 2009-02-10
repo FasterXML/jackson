@@ -6,19 +6,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marker annotation that can be used to define a specific property 
- * to be a "fallback" container of all unknown entries when
- * deserializing Java objects from Json content.
+ * Marker annotation that can be used to define a non-static,
+ * single-argument method, to be used as a "fallback" handler
+ * for all otherwise unrecognized properties found from Json content.
  * It is similar to {@link javax.xml.bind.annotation.XmlAnyElement}
  * in behavior; and can only be used to denote a single property
- * per type. Also, type itself has to be either a {@link java.util.Map}
- * or a Bean type.
+ * per type.
  *<p>
  * If used, all otherwise unmapped key-value pairs from Json Object
  * structs are added to the property (of type Map or bean).
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface JsonAny
+public @interface JsonAnySetter
 {
 }

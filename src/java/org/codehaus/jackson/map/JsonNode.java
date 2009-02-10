@@ -213,11 +213,31 @@ public abstract class JsonNode
      */
     public int size() { return 0; }
 
+    /**
+     * Method for accessing all value nodes of this Node, iff
+     * this node is a Json Object node.
+     * <b>NOTE:</b> does NOT allow iterating over field/value pairs of
+     * Json Object constructs (instead, need to call
+     * {@link #getFieldValues} to do that).
+     */
     public Iterator<JsonNode> getElements() { return NO_NODES.iterator(); }
 
+    /**
+     * Same as calling {@link #getElements}; implemented so that
+     * convenience "for-each" loop can be used for looping over elements
+     * of Json Array constructs.
+     */
     public final Iterator<JsonNode> iterator() { return getElements(); }
 
+    /**
+     * Method for accessing names of all fields for this Node, iff
+     * this node is a Json Object node.
+     */
     public Iterator<String> getFieldNames() { return NO_STRINGS.iterator(); }
+    /**
+     * Method for accessing field value nodes , iff
+     * this node is a Json Object node.
+     */
     public Iterator<JsonNode> getFieldValues() { return NO_NODES.iterator(); }
 
     /*

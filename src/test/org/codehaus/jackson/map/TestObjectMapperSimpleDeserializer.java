@@ -102,7 +102,6 @@ public class TestObjectMapperSimpleDeserializer
         assertEquals(Integer.valueOf(39), result);
     }
 
-
     public void testLongWrapper() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -115,6 +114,53 @@ public class TestObjectMapperSimpleDeserializer
 
         result = mapper.readValue(new StringReader("1918.3"), Long.class);
         assertEquals(Long.valueOf(1918), result);
+    }
+
+    /* Note: dealing with floating-point values is tricky; not sure if
+     * we can really use equality tests here... JDK does have decent
+     * conversions though, to retain accuracy and round-trippability.
+     * But still...
+     */
+    public void testFloatWrapper() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Also: should be able to coerce floats, strings:
+        String[] STRS = new String[] {
+            "1.0", "0.0", "-0.3", "0.7", "42.012", "-999.0"
+        };
+
+        for (String str : STRS) {
+            // First, as regular floating point value
+            Float exp = Float.valueOf(str);
+            Float result = mapper.readValue(new StringReader(str), Float.class);
+            assertEquals(exp, result);
+
+            // and then as coerced String:
+            result = mapper.readValue(new StringReader(" \""+str+"\""), Float.class);
+            assertEquals(exp, result);
+        }
+    }
+
+    public void testDoubleWrapper() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Also: should be able to coerce doubles, strings:
+        String[] STRS = new String[] {
+            "1.0", "0.0", "-0.3", "0.7", "42.012", "-999.0"
+        };
+
+        for (String str : STRS) {
+            // First, as regular double value
+            Double exp = Double.valueOf(str);
+            Double result = mapper.readValue(new StringReader(str), Double.class);
+            assertEquals(exp, result);
+
+            // and then as coerced String:
+            result = mapper.readValue(new StringReader(" \""+str+"\""), Double.class);
+            assertEquals(exp, result);
+        }
     }
 
     /*
