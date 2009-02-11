@@ -49,7 +49,8 @@ public final class UTF32Reader
     ////////////////////////////////////////
     */
 
-    public int read(char[] cbuf, int start, int len)
+    @Override
+	public int read(char[] cbuf, int start, int len)
         throws IOException
     {
         // Already EOF?

@@ -49,7 +49,8 @@ public abstract class ReaderBasedNumericParser
      * deferred, since it is usually the most complicated and costliest
      * part of processing.
      */
-    protected final JsonToken parseNumberText(int ch)
+    @Override
+	protected final JsonToken parseNumberText(int ch)
         throws IOException, JsonParseException
     {
         /* Although we will always be complete with respect to textual

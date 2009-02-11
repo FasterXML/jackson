@@ -46,11 +46,13 @@ public final class TextNode
         return mValue;
     }
 
-    public String getValueAsText() {
+    @Override
+	public String getValueAsText() {
         return mValue;
     }
 
-    public void writeTo(JsonGenerator jg)
+    @Override
+	public void writeTo(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
         jg.writeString(mValue);

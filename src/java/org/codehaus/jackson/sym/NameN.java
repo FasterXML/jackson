@@ -24,12 +24,15 @@ public final class NameN
     }
 
     // Implies quad length == 1, never matches
-    public boolean equals(int quad) { return false; }
+    @Override
+	public boolean equals(int quad) { return false; }
 
     // Implies quad length == 2, never matches
-    public boolean equals(int quad1, int quad2) { return false; }
+    @Override
+	public boolean equals(int quad1, int quad2) { return false; }
 
-    public boolean equals(int[] quads, int qlen)
+    @Override
+	public boolean equals(int[] quads, int qlen)
     {
         if (qlen != mQuadLen) {
             return false;

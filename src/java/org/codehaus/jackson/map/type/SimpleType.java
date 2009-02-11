@@ -103,11 +103,13 @@ public final class SimpleType
      * placeholder types. Maintaining this constrain requires that
      * no instances are ever created for Collection/Map types.
      */
-    public boolean isFullyTyped() {
+    @Override
+	public boolean isFullyTyped() {
         return (this != TYPE_UNSPECIFIED && this != TYPE_WILDCARD);
     }
 
-    public boolean isContainerType() { return false; }
+    @Override
+	public boolean isContainerType() { return false; }
 
     /*
     //////////////////////////////////////////////////////////
@@ -121,7 +123,8 @@ public final class SimpleType
         return "[simple type, class "+_class.getName()+"]";
     }
 
-    public boolean equals(Object o)
+    @Override
+	public boolean equals(Object o)
     {
         if (o == this) return true;
         if (o == null) return false;

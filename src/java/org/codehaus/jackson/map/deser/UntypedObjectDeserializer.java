@@ -19,7 +19,8 @@ public final class UntypedObjectDeserializer
 {
     public UntypedObjectDeserializer() { super(Object.class); }
     
-    public Object deserialize(JsonParser jp, DeserializationContext ctxt)
+    @Override
+	public Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         switch (jp.getCurrentToken()) {

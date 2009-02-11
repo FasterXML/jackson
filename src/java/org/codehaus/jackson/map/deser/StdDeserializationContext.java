@@ -48,7 +48,8 @@ public class StdDeserializationContext
     ///////////////////////////////////////////////////
      */
 
-    public JsonParser getParser() { return _parser; }
+    @Override
+	public JsonParser getParser() { return _parser; }
 
     /*
     ///////////////////////////////////////////////////
@@ -56,7 +57,8 @@ public class StdDeserializationContext
     ///////////////////////////////////////////////////
      */
 
-    public final ObjectBuffer leaseObjectBuffer()
+    @Override
+	public final ObjectBuffer leaseObjectBuffer()
     {
         ObjectBuffer buf = _objectBuffer;
         if (buf == null) {
@@ -67,7 +69,8 @@ public class StdDeserializationContext
         return buf;
     }
 
-    public final void returnObjectBuffer(ObjectBuffer buf)
+    @Override
+	public final void returnObjectBuffer(ObjectBuffer buf)
     {
         /* Already have a reusable buffer? Let's retain bigger one
          * (or if equal, favor newer one, shorter life-cycle)
@@ -78,7 +81,8 @@ public class StdDeserializationContext
         }
     }
 
-    public final ArrayBuilders getArrayBuilders()
+    @Override
+	public final ArrayBuilders getArrayBuilders()
     {
         if (_arrayBuilders == null) {
             _arrayBuilders = new ArrayBuilders();
@@ -92,7 +96,8 @@ public class StdDeserializationContext
     //////////////////////////////////////////////////////////////
     */
 
-    public Date parseDate(String dateStr)
+    @Override
+	public Date parseDate(String dateStr)
         throws IllegalArgumentException
     {
         dateStr = dateStr.trim();
@@ -109,7 +114,8 @@ public class StdDeserializationContext
         }
     }
 
-    public Calendar constructCalendar(Date d)
+    @Override
+	public Calendar constructCalendar(Date d)
     {
         /* 08-Jan-2008, tatu: not optimal, but should work for the
          *   most part; let's revise as needed.
@@ -125,7 +131,8 @@ public class StdDeserializationContext
     ///////////////////////////////////////////////////
      */
 
-    public JsonMappingException mappingException(Class<?> targetClass)
+    @Override
+	public JsonMappingException mappingException(Class<?> targetClass)
     {
         String clsName = _calcName(targetClass);
         return JsonMappingException.from(_parser, "Can not deserialize instance of "+clsName+" out of "+_parser.getCurrentToken()+" token");
@@ -139,7 +146,8 @@ public class StdDeserializationContext
         return cls.getName();
     }
 
-    public JsonMappingException instantiationException(Class<?> instClass, Exception e)
+    @Override
+	public JsonMappingException instantiationException(Class<?> instClass, Exception e)
     {
         return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+", problem: "+e.getMessage());
     }
@@ -148,22 +156,26 @@ public class StdDeserializationContext
      * Method that will construct an exception suitable for throwing when
      * some String values are acceptable, but the one encountered is not
      */
-    public JsonMappingException weirdStringException(Class<?> instClass, String msg)
+    @Override
+	public JsonMappingException weirdStringException(Class<?> instClass, String msg)
     {
         return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+" from String value '"+_valueDesc()+"': "+msg);
     }
 
-    public JsonMappingException weirdNumberException(Class<?> instClass, String msg)
+    @Override
+	public JsonMappingException weirdNumberException(Class<?> instClass, String msg)
     {
         return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+" from number value ("+_valueDesc()+"): "+msg);
     }
 
-    public JsonMappingException weirdKeyException(Class<?> keyClass, String keyValue, String msg)
+    @Override
+	public JsonMappingException weirdKeyException(Class<?> keyClass, String keyValue, String msg)
     {
         return JsonMappingException.from(_parser, "Can not construct Map key of type "+keyClass.getName()+" from String \""+_desc(keyValue)+"\": "+msg);
     }
 
-    public JsonMappingException unknownFieldException(Object instance, String fieldName)
+    @Override
+	public JsonMappingException unknownFieldException(Object instance, String fieldName)
     {
         return JsonMappingException.from(_parser, "Unrecognized field \""+fieldName+"\" (Class "+instance.getClass().getName()+"), not marked as ignorable");
     }

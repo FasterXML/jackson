@@ -211,14 +211,16 @@ public abstract class JsonNode
      *
      * @deprecated Use {@link #get(String)} instead.
      */
-    public final JsonNode getFieldValue(String fieldName) { return get(fieldName); }
+    @Deprecated
+	public final JsonNode getFieldValue(String fieldName) { return get(fieldName); }
 
     /**
      * Alias for {@link #get(int)}.
      *
      * @deprecated Use {@link #get(int)} instead.
      */
-    public final JsonNode getElementValue(int index) { return get(index); }
+    @Deprecated
+	public final JsonNode getElementValue(int index) { return get(index); }
 
 
     /**
@@ -363,7 +365,8 @@ public abstract class JsonNode
      *
      * @deprecated Use {@link #getPath(String)} instead
      */
-    public final JsonNode getPath(String fieldName) { return path(fieldName); }
+    @Deprecated
+	public final JsonNode getPath(String fieldName) { return path(fieldName); }
 
     /**
      * This method is similar to {@link #get(int)}, except
@@ -380,7 +383,8 @@ public abstract class JsonNode
      *
      * @deprecated Use {@link #getPath(int)} instead
      */
-    public final JsonNode getPath(int index) { return path(index); }
+    @Deprecated
+	public final JsonNode getPath(int index) { return path(index); }
 
     /*
     ////////////////////////////////////////////////////

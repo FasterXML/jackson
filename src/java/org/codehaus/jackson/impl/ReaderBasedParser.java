@@ -45,7 +45,8 @@ public final class ReaderBasedParser
      * @return Next token from the stream, if any found, or null
      *   to indicate end-of-input
      */
-    public JsonToken nextToken()
+    @Override
+	public JsonToken nextToken()
         throws IOException, JsonParseException
     {
         /* First: field names are special -- we will always tokenize
@@ -305,7 +306,8 @@ public final class ReaderBasedParser
         }
     }
 
-    protected void _finishString()
+	@Override
+	protected void _finishString()
         throws IOException, JsonParseException
     {
         /* First: let's try to see if we have simple String value: one
@@ -693,7 +695,8 @@ public final class ReaderBasedParser
     ////////////////////////////////////////////////////
      */
 
-    protected byte[] _decodeBase64(Base64Variant b64variant)
+    @Override
+	protected byte[] _decodeBase64(Base64Variant b64variant)
         throws IOException, JsonParseException
     {
         ByteArrayBuilder builder = _getByteArrayBuilder();
@@ -810,7 +813,7 @@ public final class ReaderBasedParser
             // Not sure if we can really get here... ? (most illegal xml chars are caught at lower level)
             base = "Illegal character (code 0x"+Integer.toHexString(ch)+") in base64 content";
         } else {
-            base = "Illegal character '"+((char)ch)+"' (code 0x"+Integer.toHexString(ch)+") in base64 content";
+            base = "Illegal character '"+ch+"' (code 0x"+Integer.toHexString(ch)+") in base64 content";
         }
         if (msg != null) {
             base = base + ": " + msg;

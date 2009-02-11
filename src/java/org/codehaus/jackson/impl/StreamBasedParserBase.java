@@ -74,7 +74,8 @@ public abstract class StreamBasedParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected final boolean loadMore()
+    @Override
+	protected final boolean loadMore()
         throws IOException
     {
         _currInputProcessed += _inputEnd;

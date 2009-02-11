@@ -44,7 +44,8 @@ public class StdSerializerProvider
     public final static JsonSerializer<Object> DEFAULT_KEY_SERIALIZER = new StdKeySerializer();
 
     public final static JsonSerializer<Object> DEFAULT_UNKNOWN_SERIALIZER = new JsonSerializer<Object>() {
-        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+        @Override
+		public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             throw new  JsonGenerationException("No serializer found for class "+value.getClass().getName());
@@ -165,7 +166,8 @@ public class StdSerializerProvider
     ////////////////////////////////////////////////////
      */
 
-    public final void serializeValue(JsonGenerator jgen, Object value,
+    @Override
+	public final void serializeValue(JsonGenerator jgen, Object value,
                                      SerializerFactory jsf)
         throws IOException, JsonGenerationException
     {

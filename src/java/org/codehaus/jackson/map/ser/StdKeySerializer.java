@@ -17,7 +17,8 @@ public final class StdKeySerializer
 {
     final static StdKeySerializer instace = new StdKeySerializer();
     
-    public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+    @Override
+	public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         String keyStr = (value.getClass() == String.class) ?

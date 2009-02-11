@@ -106,7 +106,8 @@ public class StdDeserializerFactory
     ////////////////////////////////////////////////////////////
      */
 
-    public JsonDeserializer<Object> createArrayDeserializer(ArrayType type, DeserializerProvider p)
+    @Override
+	public JsonDeserializer<Object> createArrayDeserializer(ArrayType type, DeserializerProvider p)
     {
         // Ok; first: do we have a primitive type?
         JavaType elemType = type.getComponentType();
@@ -126,7 +127,8 @@ public class StdDeserializerFactory
         return new ArrayDeserializer(type, valueDes);
     }
 
-    public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
+    @Override
+	public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
     {
         JavaType keyType = type.getKeyType();
         // Value handling is identical for all, so:
@@ -164,7 +166,8 @@ public class StdDeserializerFactory
         return new MapDeserializer(mapClass, keyDes, valueDes);
     }
 
-    public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
+    @Override
+	public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
     {
         JavaType valueType = type.getElementType();
 
@@ -198,7 +201,8 @@ public class StdDeserializerFactory
         return new CollectionDeserializer(collectionClass, valueDes);
     }
 
-    public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
+    @Override
+	public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
     {
         // Very first thing: do we even handle this type as a Bean?
         Class<?> beanClass = type.getRawClass();
@@ -235,7 +239,8 @@ public class StdDeserializerFactory
         return deser;
     }
 
-    public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
+    @Override
+	public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
     {
         JsonDeserializer<?> des = new EnumDeserializer(EnumResolver.constructFor(type.getRawClass()));
         JsonDeserializer<Object> result = (JsonDeserializer<Object>) des;

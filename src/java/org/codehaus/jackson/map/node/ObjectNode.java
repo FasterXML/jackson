@@ -74,7 +74,8 @@ public final class ObjectNode
         return MissingNode.getInstance();
     }
 
-    public void writeTo(JsonGenerator jg)
+    @Override
+	public void writeTo(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
         jg.writeStartObject();
@@ -223,7 +224,8 @@ public final class ObjectNode
     ////////////////////////////////////////////////////////
      */
 
-    public boolean equals(Object o)
+    @Override
+	public boolean equals(Object o)
     {
         if (o == this) return true;
         if (o == null) return false;
