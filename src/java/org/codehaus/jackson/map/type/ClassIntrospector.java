@@ -3,7 +3,7 @@ package org.codehaus.jackson.map.type;
 import java.util.*;
 import java.lang.reflect.*;
 
-import org.codehaus.jackson.map.annotation.*;
+import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**

@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.annotation;
+package org.codehaus.jackson.annotate;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
