@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.*;
 
 /**
- * Abstract class that defines API used by {@link JavaTypeMapper} (and
+ * Abstract class that defines API used by {@link ObjectMapper} (and
  * other chained {@link JsonSerializer}s too) to serialize Objects of
  * arbitrary types into JSON, using provided {@link JsonGenerator}.
  */

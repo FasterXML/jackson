@@ -4,7 +4,8 @@ allows for converting between regular streaming json content and
 various tree/object-based alternatives.
 Currently 2 main flavors are supported: "Object Mapper" and
 "Tree Mapper": implementing classes are, respectively,
-{@link ObjectMapper} and {@link TreeMapper}
+{@link org.codehaus.jackson.map.ObjectMapper}
+and {@link org.codehaus.jackson.map.TreeMapper}
 <p>
 Object mapper will convert Json content to ant from
 basic Java wrapper types (Integer, Boolean, Double),
@@ -18,10 +19,10 @@ Main benefits over Object mapping are:
 <ul>
  <li>No null checks are needed (dummy
 nodes are created as necessary to represent "missing" Object fields
-and Array elements
+and Array elements)
   </li>
- <li>No type casts are needed: all public methods are defined in
-basic JsonNode class, and when "incompatible" method (such as Array
+ <li>No type casts are usually needed: all public access methods are defined
+in basic JsonNode class, and when "incompatible" method (such as Array
 element access on, say, Boolean node) is used, returned node is
 virtual "missing" node.
   </li>

@@ -42,14 +42,16 @@ public final class UTF8Writer
         mOutPtr = 0;
     }
 
-    public Writer append(char c)
+    @Override
+	public Writer append(char c)
         throws IOException
     {
         write(c);
         return this;
     }
 
-    public void close()
+    @Override
+	public void close()
         throws IOException
     {
         if (mOut != null) {

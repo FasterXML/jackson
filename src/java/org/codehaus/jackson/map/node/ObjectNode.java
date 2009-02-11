@@ -239,7 +239,7 @@ public final class ObjectNode
                 String key = en.getKey();
                 JsonNode value = en.getValue();
 
-                JsonNode otherValue = other.getFieldValue(key);
+                JsonNode otherValue = other.get(key);
 
                 if (otherValue == null || !otherValue.equals(value)) {
                     return false;

@@ -52,7 +52,8 @@ public abstract class Utf8NumericParser
      * deferred, since it is usually the most complicated and costliest
      * part of processing.
      */
-    protected final JsonToken parseNumberText(int c)
+    @Override
+	protected final JsonToken parseNumberText(int c)
         throws IOException, JsonParseException
     {
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();

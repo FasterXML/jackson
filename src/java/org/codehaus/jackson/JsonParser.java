@@ -455,9 +455,9 @@ public abstract class JsonParser
     public abstract byte[] getBinaryValue(Base64Variant b64variant) throws IOException, JsonParseException;
 
     /**
-     * Convenience alternative to {@link #getBinaryValue{Base64Variant}
+     * Convenience alternative to {@link #getBinaryValue(Base64Variant)}
      * that defaults to using
-     * {@link Base64Variants#getDefaultVariant} as the default encoding
+     * {@link Base64Variants#getDefaultVariant} as the default encoding.
      */
     public byte[] getBinaryValue() throws IOException, JsonParseException
     {

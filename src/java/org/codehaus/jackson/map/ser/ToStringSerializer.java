@@ -22,7 +22,8 @@ public final class ToStringSerializer
 
     private ToStringSerializer() { } // no instantiation, use singleton
     
-    public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+    @Override
+	public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         jgen.writeString(value.toString());

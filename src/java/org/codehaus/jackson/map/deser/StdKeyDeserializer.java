@@ -83,7 +83,8 @@ public abstract class StdKeyDeserializer
     {
         ByteKD() { super(Byte.class); }
 
-        public Byte _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Byte _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             int value = _parseInt(key);
             if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
@@ -97,7 +98,8 @@ public abstract class StdKeyDeserializer
     {
         ShortKD() { super(Integer.class); }
 
-        public Short _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Short _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             int value = _parseInt(key);
             if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
@@ -115,7 +117,8 @@ public abstract class StdKeyDeserializer
     {
         CharKD() { super(Character.class); }
 
-        public Character _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Character _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             if (key.length() == 1) {
                 return Character.valueOf(key.charAt(0));
@@ -128,7 +131,8 @@ public abstract class StdKeyDeserializer
     {
         IntKD() { super(Integer.class); }
 
-        public Integer _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Integer _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             return _parseInt(key);
         }
@@ -138,7 +142,8 @@ public abstract class StdKeyDeserializer
     {
         LongKD() { super(Long.class); }
 
-        public Long _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Long _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             return _parseLong(key);
         }
@@ -148,7 +153,8 @@ public abstract class StdKeyDeserializer
     {
         DoubleKD() { super(Double.class); }
 
-        public Double _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Double _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             return _parseDouble(key);
         }
