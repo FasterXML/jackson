@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
@@ -112,9 +113,9 @@ public class BeanSerializerFactory
      * Method that will try to construct a {@link BeanSerializer} for
      * given class. Returns null if no properties are found.
      */
-    public JsonSerializer<?> findBeanSerializer(Class<?> type)
+    public JsonSerializer<Object> findBeanSerializer(Class<?> type)
     {
-        JsonSerializer<?> ser = findSerializerByAnnotation(type);
+        JsonSerializer<Object> ser = findSerializerByAnnotation(type);
         if (ser != null) {
             return ser;
         }
@@ -145,22 +146,42 @@ public class BeanSerializerFactory
      * class to use for serialization.
      * Returns null if no such annotation found.
      */
-    protected JsonSerializer<?> findSerializerByAnnotation(Class<?> forClass)
+    protected JsonSerializer<Object> findSerializerByAnnotation(AnnotatedElement elem)
     {
-        JsonUseSerializer ann = forClass.getAnnotation(JsonUseSerializer.class);
+        JsonUseSerializer ann = elem.getAnnotation(JsonUseSerializer.class);
         if (ann != null) {
             Class<?> serClass = ann.value();
             // Must be of proper type, of course
             if (!JsonSerializer.class.isAssignableFrom(serClass)) {
-                throw new IllegalArgumentException("Invalid @JsonSerializer annotation, class "+forClass.getName()+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
+                throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+_descFor(elem)+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
             }
             try {
-                return (JsonSerializer<?>) serClass.newInstance();
+                Object ob = serClass.newInstance();
+                @SuppressWarnings("unchecked")
+                    JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
+                return ser;
             } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for class "+forClass.getName()+", problem: "+e.getMessage(), e);
+                throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+_descFor(elem)+", problem: "+e.getMessage(), e);
             }
         }
         return null;
+    }
+
+    /**
+     * Helper method used to describe an annotated element of type
+     * {@link Class} or {@link Method}.
+     */
+    protected String _descFor(AnnotatedElement elem)
+    {
+        if (elem instanceof Class) {
+            return "class "+((Class<?>) elem).getName();
+        }
+        if (elem instanceof Method) {
+            Method m = (Method) elem;
+            return "method "+m.getName()+" (from class "+m.getDeclaringClass().getName()+")";
+        }
+        // Constructor or such?
+        return "unknown type ["+elem.getClass()+"]";
     }
 
     /**
@@ -191,7 +212,16 @@ public class BeanSerializerFactory
         for (Map.Entry<String,Method> en : methodsByProp.entrySet()) {
             Method m = en.getValue();
             m = checkAccess(m);
-            props.add(new WritableBeanProperty(en.getKey(), m));
+            WritableBeanProperty wprop = new WritableBeanProperty(en.getKey(), m);
+            props.add(wprop);
+
+            /* One more thing: does Method specify a serializer?
+             * If so, let's use it.
+             */
+            JsonSerializer<Object> ser = findSerializerByAnnotation(m);
+            if (ser != null) {
+                wprop.assignSerializer(ser);
+            }
         }
         return props;
     }
