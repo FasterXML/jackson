@@ -19,5 +19,5 @@ public @interface JsonSetter
      * Optional default argument that defines logical property this
      * method is used to modify ("set").
      */
-    String value();
+    String value() default "";
 }

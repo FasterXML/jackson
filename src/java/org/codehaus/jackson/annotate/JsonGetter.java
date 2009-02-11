@@ -22,5 +22,5 @@ public @interface JsonGetter
      * Optional default argument that defines logical property this
      * method is used to access ("get").
      */
-    String value();
+    String value() default "";
 }
