@@ -7,6 +7,7 @@ import java.lang.reflect.Modifier;
 
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.type.ClassIntrospector;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
@@ -150,144 +151,19 @@ public class BeanSerializerFactory
      */
     protected Collection<WritableBeanProperty> findBeanProperties(Class<?> type)
     {
-        /* Ok, now; we could try Class.getMethods(), but it has couple of
-         * problems:
-         *
-         * (a) Only returns public methods (which is ok for accessor checks,
-         *   but should allow annotations to indicate others too)
-         * (b) Ordering is arbitrary (may be a problem with other accessors
-         *   too?)
-         *
-         * So: let's instead gather methods ourself. One simplification is
-         * that we should always be getting concrete type; hence we need
-         * not worry about interfaces or such. Also, we can ignore everything
-         * from java.lang.Object, which is neat.
-         */
-        LinkedHashMap<String,Method> methods = new LinkedHashMap<String,Method>();
-        findCandidateMethods(type, methods);
+        ClassIntrospector intr = new ClassIntrospector(type);
+        LinkedHashMap<String,Method> methodsByProp = intr.findGetters();
         // nothing? can't proceed
-        if (methods.isEmpty()) {
+        if (methodsByProp.isEmpty()) {
             return null;
         }
-        LinkedHashMap<String,WritableBeanProperty> props = new LinkedHashMap<String,WritableBeanProperty>();
-        for (Method m : methods.values()) {
-            WritableBeanProperty p = convertToProperty(m);
-            if (p != null) {
-                // Also: we don't want dups...
-                WritableBeanProperty prev = props.put(p.getName(), p);
-                if (prev != null) {
-                    throw new IllegalArgumentException("Duplicate property '"+p.getName()+"' for class "+type);
-                }
-            }
+        ArrayList<WritableBeanProperty> props = new ArrayList<WritableBeanProperty>(methodsByProp.size());
+        for (Map.Entry<String,Method> en : methodsByProp.entrySet()) {
+            Method m = en.getValue();
+            m = checkAccess(m);
+            props.add(new WritableBeanProperty(en.getKey(), m));
         }
-        return props.values();
-    }
-
-    /**
-     * Method for collecting list of all Methods that could conceivably
-     * be accessors. At this point we will only do preliminary checks,
-     * to weed out things that can not possibly be accessors (i.e. solely
-     * based on signature, but not on name or annotations)
-     */
-    protected void findCandidateMethods(Class<?> type, Map<String,Method> result)
-    {
-        /* we'll add base class methods first (for ordering purposes), but
-         * then override as necessary
-         */
-        Class<?> parent = type.getSuperclass();
-        if (parent != null && parent != Object.class) {
-            findCandidateMethods(parent, result);
-        }
-        for (Method m : type.getDeclaredMethods()) {
-            if (okSignatureForAccessor(m)) {
-                result.put(m.getName(), m);
-            }
-        }
-    }
-
-    protected boolean okSignatureForAccessor(Method m)
-    {
-        // First: we can't use static methods
-        if (Modifier.isStatic(m.getModifiers())) {
-            return false;
-        }
-        // Must take no args
-        Class<?>[] pts = m.getParameterTypes();
-        if ((pts != null) && (pts.length > 0)) {
-            return false;
-        }
-        // Can't be a void method
-        Class<?> rt = m.getReturnType();
-        if (rt == Void.TYPE) {
-            return false;
-        }
-        // Otherwise, potentially ok
-        return true;
-    }
-
-    /**
-     * Method called to determine if given method defines a writable
-     * property.
-     */
-    protected WritableBeanProperty convertToProperty(Method m)
-    {
-        /* Ok: at this point we already know that the signature is ok
-         * (no args, returns a value); so we need to check
-         * that name is ok. Sub-classes may also want to verify
-         * annotations.
-         */
-        String name = okNameForAccessor(m);
-        if (name != null) {
-            // and finally, we may need to deal with access restrictions
-            m = checkAccess(m, name);
-            if (m != null) {
-                return new WritableBeanProperty(name, m);
-            }
-        }
-        // nope, not good
-        return null;
-    }
-
-    protected String okNameForAccessor(Method m)
-    {
-        String name = m.getName();
-
-        /* Actually, for non-annotation based names, let's require that
-         * the method is public?
-         */
-        if (!Modifier.isPublic(m.getModifiers())) {
-            return null;
-        }
-
-        if (name.startsWith("get")) {
-            /* also, base definition (from java.lang.Object) of getClass()
-             * is not consider a bean accessor.
-             * (but is ok if overriden)
-             */
-            if ("getClass".equals(m.getName()) && m.getDeclaringClass() == Object.class) {
-                return null;
-            }
-            return mangleName(m, name.substring(3));
-        }
-        if (name.startsWith("is")) {
-            // plus, must return boolean...
-            Class<?> rt = m.getReturnType();
-            if (rt != Boolean.class && rt != Boolean.TYPE) {
-                return null;
-            }
-            return ClassUtil.manglePropertyName(name.substring(2));
-        }
-        // no, not a match by name
-        return null;
-    }
-
-    /**
-     * @return Null to indicate that method is not a valid accessor;
-     *   otherwise name of the property it is accessor for
-     */
-    protected String mangleName(Method method, String basename)
-    {
-        return ClassUtil.manglePropertyName(basename);
+        return props;
     }
 
     /*
@@ -302,7 +178,7 @@ public class BeanSerializerFactory
      * usually not); and if not, if there is a work-around for
      * the problem.
      */
-    protected Method checkAccess(Method m, String name)
+    protected Method checkAccess(Method m)
     {
         // this can only fail from exception: should we catch it?
         ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
