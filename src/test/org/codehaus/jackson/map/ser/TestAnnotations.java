@@ -39,6 +39,53 @@ public class TestAnnotations
         @JsonIgnore public int getY() { return 9; }
     }
 
+    /**
+     * Class for testing {@link JsonSerializer} annotation
+     * for class itself.
+     */
+    @JsonUseSerializer(BogusSerializer.class)
+    final static class ClassSerializer {
+    }
+
+    /**
+     * Class for testing {@link JsonSerializer} annotation
+     * for a method
+     */
+    final static class ClassMethodSerializer {
+        private int _x;
+
+        public ClassMethodSerializer(int x) { _x = x; }
+
+        @JsonUseSerializer(StringSerializer.class)
+            public int getX() { return _x; }
+    }
+
+    /*
+    //////////////////////////////////////////////
+    // Other helper classes
+    //////////////////////////////////////////////
+     */
+
+    final static class BogusSerializer extends JsonSerializer<Object>
+    {
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeBoolean(true);
+        }
+
+    }
+
+    final static class StringSerializer extends JsonSerializer<Object>
+    {
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeString("X"+value+"X");
+        }
+
+    }
+
     /*
     //////////////////////////////////////////////
     // Main tests
@@ -63,6 +110,33 @@ public class TestAnnotations
         assertEquals(1, result.size());
         assertEquals(Integer.valueOf(1), result.get("x"));
         assertNull(result.get("y"));
+    }
+
+    /**
+     * Unit test to verify that @JsonSerializer annotation works
+     * when applied to a class
+     */
+    public void testClassSerializer() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        StringWriter sw = new StringWriter();
+        m.writeValue(sw, new ClassSerializer());
+        assertEquals("true", sw.toString());
+    }
+
+    /**
+     * Unit test to verify that @JsonSerializer annotation works
+     * when applied to a Method
+     */
+    public void testMethodSerializer() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        StringWriter sw = new StringWriter();
+        m.writeValue(sw, new ClassMethodSerializer(13));
+        /* Here we will get wrapped as an object, since we have
+         * full object, just override a single property
+         */
+        assertEquals("{\"x\":\"X13X\"}", sw.toString());
     }
 
     /*

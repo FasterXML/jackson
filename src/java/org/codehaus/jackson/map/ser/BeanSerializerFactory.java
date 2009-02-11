@@ -5,6 +5,7 @@ import java.util.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerFactory;
 import org.codehaus.jackson.map.type.ClassIntrospector;
@@ -113,6 +114,11 @@ public class BeanSerializerFactory
      */
     public JsonSerializer<?> findBeanSerializer(Class<?> type)
     {
+        JsonSerializer<?> ser = findSerializerByAnnotation(type);
+        if (ser != null) {
+            return ser;
+        }
+
         // First things first: we know some types are not beans...
         if (!isPotentialBeanType(type)) {
             return null;
@@ -132,6 +138,30 @@ public class BeanSerializerFactory
     // Overridable internal methods
     ////////////////////////////////////////////////////////////
      */
+
+    /**
+     * Helper method called to check if the class in question
+     * has {@link JsonSerializer} annotation which tells the
+     * class to use for serialization.
+     * Returns null if no such annotation found.
+     */
+    protected JsonSerializer<?> findSerializerByAnnotation(Class<?> forClass)
+    {
+        JsonUseSerializer ann = forClass.getAnnotation(JsonUseSerializer.class);
+        if (ann != null) {
+            Class<?> serClass = ann.value();
+            // Must be of proper type, of course
+            if (!JsonSerializer.class.isAssignableFrom(serClass)) {
+                throw new IllegalArgumentException("Invalid @JsonSerializer annotation, class "+forClass.getName()+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
+            }
+            try {
+                return (JsonSerializer<?>) serClass.newInstance();
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for class "+forClass.getName()+", problem: "+e.getMessage(), e);
+            }
+        }
+        return null;
+    }
 
     /**
      * Helper method used to skip processing for types that we know
