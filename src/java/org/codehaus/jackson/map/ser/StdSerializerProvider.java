@@ -5,10 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.SerializerFactory;
-import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ResolvableSerializer;
+import org.codehaus.jackson.map.*;
 
 /**
  * Default {@link SerializerProvider} implementation. Handles
@@ -238,6 +235,7 @@ public class StdSerializerProvider
 
     @Override
     public JsonSerializer<Object> findValueSerializer(Class<?> type)
+        throws JsonMappingException
     {
         // Fast lookup from local lookup thingy works?
         JsonSerializer<Object> ser = _knownSerializers.get(type);
@@ -250,10 +248,15 @@ public class StdSerializerProvider
             return ser;
         }
 
-        /* If neither, must create. So far so good: creation should be
-         * safe...
-         */
-        ser = _createSerializer(type);
+        // If neither, must create
+        try {
+            ser = _createSerializer(type);
+        } catch (IllegalArgumentException iae) {
+            /* We better only expose checked exceptions, since those
+             * are what caller is expected to handle
+             */
+            throw new JsonMappingException(iae.getMessage(), null, iae);
+        }
 
         /* Couldn't create? Need to return the fallback serializer, which
          * most likely will report an error: but one question is whether
@@ -305,6 +308,7 @@ public class StdSerializerProvider
 
     @SuppressWarnings("unchecked")
     protected JsonSerializer<Object> _createSerializer(Class<?> type)
+        throws JsonMappingException
     {
         /* 10-Dec-2008, tatu: Is there a possibility of infinite loops
          *   here? Shouldn't be, given that we do not pass back-reference
@@ -316,6 +320,7 @@ public class StdSerializerProvider
     }
 
     protected void _resolveSerializer(ResolvableSerializer ser)
+        throws JsonMappingException
     {
         ser.resolve(this);
     }

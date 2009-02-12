@@ -48,8 +48,13 @@ public abstract class SerializerProvider
      *<p>
      * Note: this method is only called for non-null values; not for keys
      * or null values. For these, check out other accessor methods.
+     *
+     * @throws JsonMappingException if there are fatal problems with
+     *   accessing suitable serializer; including that of not
+     *   finding any serializer
      */
-    public abstract JsonSerializer<Object> findValueSerializer(Class<?> type);
+    public abstract JsonSerializer<Object> findValueSerializer(Class<?> type)
+        throws JsonMappingException;
 
     /*
     //////////////////////////////////////////////////////

@@ -4,10 +4,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import org.codehaus.jackson.map.DeserializerFactory;
-import org.codehaus.jackson.map.DeserializerProvider;
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.KeyDeserializer;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 
@@ -108,6 +105,7 @@ public class StdDeserializerFactory
 
     @Override
 	public JsonDeserializer<Object> createArrayDeserializer(ArrayType type, DeserializerProvider p)
+        throws JsonMappingException
     {
         // Ok; first: do we have a primitive type?
         JavaType elemType = type.getComponentType();
@@ -123,18 +121,19 @@ public class StdDeserializerFactory
             throw new IllegalArgumentException("Internal error: primitive type ("+type+") passed, no array deserializer found");
         }
         // 'null' -> arrays have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(elemType, this, type, null);
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(elemType, type, null);
         return new ArrayDeserializer(type, valueDes);
     }
 
     @Override
 	public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
+        throws JsonMappingException
     {
         JavaType keyType = type.getKeyType();
         // Value handling is identical for all, so:
         JavaType valueType = type.getValueType();
         // 'null' -> maps have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, this, type, null);
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, type, null);
 
         Class<?> mapClass = type.getRawClass();
         // But EnumMap requires special handling for keys
@@ -168,6 +167,7 @@ public class StdDeserializerFactory
 
     @Override
 	public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
+        throws JsonMappingException
     {
         JavaType valueType = type.getElementType();
 
@@ -180,7 +180,7 @@ public class StdDeserializerFactory
 
         // But otherwise we can just use a generic value deserializer:
         // 'null' -> collections have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, this, type, null);
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, type, null);
 
         /* One twist: if we are being asked to instantiate an interface or
          * abstract Collection, we need to either find something that implements
@@ -203,6 +203,7 @@ public class StdDeserializerFactory
 
     @Override
 	public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
+        throws JsonMappingException
     {
         // Very first thing: do we even handle this type as a Bean?
         Class<?> beanClass = type.getRawClass();
@@ -259,110 +260,35 @@ public class StdDeserializerFactory
      */
     protected void addBeanProps(BeanDeserializer deser)
     {
-        /* Ok, now; we could try Class.getMethods(), but it has couple of
-         * problems:
-         *
-         * (a) Only returns public methods (which is ok for accessor checks,
-         *   but should allow annotations to indicate others too)
-         * (b) Ordering is arbitrary (may be a problem with other accessors
-         *   too?)
-         *
-         * So: let's instead gather methods ourself. One simplification is
-         * that we should always be getting concrete type; hence we need
-         * not worry about interfaces or such. Also, we can ignore everything
-         * from java.lang.Object, which is neat.
-         * 
-         * ... too bad that we still won't necessarily get properly
-         * ordered (by declaration order or name) List either way
-         */
-        LinkedHashMap<String,Method> methods = new LinkedHashMap<String,Method>();
         Class<?> beanClass = deser.getBeanClass();
-        findCandidateMethods(beanClass, methods);
+        ClassIntrospector intr = new ClassIntrospector(beanClass);
 
-        // Ok: potential candidates are more than actual mutators...
-        for (Method m : methods.values()) {
-            String name = okNameForMutator(m);
-            if (name == null) {
-                continue;
-            }
+        LinkedHashMap<String,Method> methodsByProp = intr.findSetters();
+
+        /* No setters? Should we proceed here? It may well be ok, if
+         * there are factory methods or such.
+         */
+        //if (methodsByProp.isEmpty()) ...
+
+        ArrayList<SettableBeanProperty> props = new ArrayList<SettableBeanProperty>(methodsByProp.size());
+
+        // These are all valid setters, but we do need to introspect bit more
+        for (Map.Entry<String,Method> en : methodsByProp.entrySet()) {
+            String name = en.getKey();
+            Method m = en.getValue();
             // need to ensure it is callable now:
             ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
 
+            // note: this works since we know there's exactly one arg for methods
             Type rawType = m.getGenericParameterTypes()[0];
             JavaType type = TypeFactory.instance.fromType(rawType);
 
             SettableBeanProperty prop = new SettableBeanProperty(name, type, m);
             SettableBeanProperty oldP = deser.addSetter(prop);
-            if (oldP != null) {
+            if (oldP != null) { // can this ever occur?
                 throw new IllegalArgumentException("Duplicate property '"+name+"' for class "+beanClass.getName());
             }
         }
-    }
-
-    /**
-     * Method for collecting list of all Methods that could conceivably
-     * be mutators. At this point we will only do preliminary checks,
-     * to weed out things that can not possibly be mutators (i.e. solely
-     * based on signature, but not on name or annotations)
-     */
-    protected void findCandidateMethods(Class<?> type, Map<String,Method> result)
-    {
-        /* we'll add base class methods first (for ordering purposes), but
-         * then override as necessary
-         */
-        Class<?> parent = type.getSuperclass();
-        if (parent != null && parent != Object.class) {
-            findCandidateMethods(parent, result);
-        }
-        for (Method m : type.getDeclaredMethods()) {
-            if (okSignatureForMutator(m)) {
-                result.put(m.getName(), m);
-            }
-        }
-    }
-
-    protected boolean okSignatureForMutator(Method m)
-    {
-        // First: we can't use static methods
-        if (Modifier.isStatic(m.getModifiers())) {
-            return false;
-        }
-        // Must take a single arg
-        Class<?>[] pts = m.getParameterTypes();
-        if ((pts == null) || pts.length != 1) {
-            return false;
-        }
-        // No checking for returning type; usually void, don't care
-
-        // Otherwise, potentially ok
-        return true;
-    }
-
-    protected String okNameForMutator(Method m)
-    {
-        String name = m.getName();
-
-        /* For mutators, let's not require it to be public. Just need
-         * to be able to call it, i.e. do need to 'fix' access if so
-         * (which is done at a later point as needed)
-         */
-        if (name.startsWith("set")) {
-            name = mangleName(m, name.substring(3));
-            if (name == null) { // plain old "set" is no good...
-                return null;
-            }
-            return name;
-        }
-        return null;
-    }
-
-    /**
-     * @return Null to indicate that method is not a valid mutator;
-     *   otherwise name of the property it is mutator for
-     */
-    protected String mangleName(Method method, String basename)
-    {
-        return ClassUtil.manglePropertyName(basename);
     }
 
     /*

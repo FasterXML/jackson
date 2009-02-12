@@ -86,7 +86,79 @@ public class ClassIntrospector
             if (old != null) {
                 String oldDesc = old.getDeclaringClass().getName() + "#" + old.getName();
                 String newDesc = m.getDeclaringClass().getName() + "#" + m.getName();
-                throw new IllegalArgumentException("Overlapping getter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
+                throw new IllegalArgumentException("Conflicting getter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
+            }
+        }
+
+        return results;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Introspection for setters
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * @return Ordered Map with logical property name as key, and
+     *    matching setter method as value.
+     */
+    public LinkedHashMap<String,Method> findSetters()
+    {
+        LinkedHashMap<String,Method> results = new LinkedHashMap<String,Method>();
+
+        /* Also: need to keep track of Method masking: that is, super-class
+         * methods should not be visible if masked
+         */
+        HashSet<String> maskedMethods = new HashSet<String>();
+
+        DeclMethodIter it = new DeclMethodIter(_class);
+        Method m;
+
+        while ((m = it.next()) != null) {
+            // First, let's ignore anything that's not formally ok (fast check)
+            if (!okSignatureForSetter(m)) {
+                continue;
+            }
+            String name = m.getName();
+            // Then, can not be masked
+            if (!maskedMethods.add(name)) { // was already in there, skip
+                continue;
+            }
+            // Marked with @JsonIgnore?
+            if (m.isAnnotationPresent(JsonIgnore.class)) {
+                continue;
+            }
+
+            /* So far so good: final check, then; has to either
+             * (a) be marked with @JsonSetter OR
+             * (b) have suitable name (setXxx) (NOTE: need not be
+             *    public, unlike with getters)
+             */
+            JsonSetter ann = m.getAnnotation(JsonSetter.class);
+            String propName;
+
+            if (ann != null) {
+                propName = ann.value();
+                if (propName == null || propName.length() == 0) {
+                    // Defaults to method name
+                    propName = m.getName();
+                }
+            } else { // nope, but is public bean-setter name?
+                propName = okNameForSetter(m);
+                if (propName == null) { // null means 'not valid'
+                    continue;
+                }
+            }
+
+            /* Yup, it is a valid name. But now... do we have a conflict?
+             * If so, should throw an exception
+             */
+            Method old = results.put(propName, m);
+            if (old != null) {
+                String oldDesc = old.getDeclaringClass().getName() + "#" + old.getName();
+                String newDesc = m.getDeclaringClass().getName() + "#" + m.getName();
+                throw new IllegalArgumentException("Conflicting setter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
             }
         }
 
@@ -165,6 +237,61 @@ public class ClassIntrospector
      *   otherwise name of the property it is accessor for
      */
     protected String mangleGetterName(Method method, String basename)
+    {
+        return ClassUtil.manglePropertyName(basename);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Helper methods for setters
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that verifies that the given method's signature
+     * is compatible with method possibly being a setter method;
+     * that is, method is non-static, does return a value (not void)
+     * and does not take any arguments.
+     */
+    protected boolean okSignatureForSetter(Method m)
+    {
+        // First: we can't use static methods
+        if (Modifier.isStatic(m.getModifiers())) {
+            return false;
+        }
+        // Must take just one arg
+        Class<?>[] pts = m.getParameterTypes();
+        if ((pts == null) || (pts.length != 1)) {
+            return false;
+        }
+        // No checking for returning type; usually void, don't care
+        // Otherwise, potentially ok
+        return true;
+    }
+
+    protected String okNameForSetter(Method m)
+    {
+        String name = m.getName();
+
+        /* For mutators, let's not require it to be public. Just need
+         * to be able to call it, i.e. do need to 'fix' access if so
+         * (which is done at a later point as needed)
+         */
+        if (name.startsWith("set")) {
+            name = mangleSetterName(m, name.substring(3));
+            if (name == null) { // plain old "set" is no good...
+                return null;
+            }
+            return name;
+        }
+        return null;
+    }
+
+    /**
+     * @return Null to indicate that method is not a valid accessor;
+     *   otherwise name of the property it is accessor for
+     */
+    protected String mangleSetterName(Method method, String basename)
     {
         return ClassUtil.manglePropertyName(basename);
     }

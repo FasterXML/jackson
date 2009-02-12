@@ -200,9 +200,9 @@ public class BeanSerializerFactory
     /**
      * Method used to collect all actual serializable properties
      */
-    protected Collection<WritableBeanProperty> findBeanProperties(Class<?> type)
+    protected Collection<WritableBeanProperty> findBeanProperties(Class<?> forClass)
     {
-        ClassIntrospector intr = new ClassIntrospector(type);
+        ClassIntrospector intr = new ClassIntrospector(forClass);
         LinkedHashMap<String,Method> methodsByProp = intr.findGetters();
         // nothing? can't proceed
         if (methodsByProp.isEmpty()) {
@@ -211,7 +211,7 @@ public class BeanSerializerFactory
         ArrayList<WritableBeanProperty> props = new ArrayList<WritableBeanProperty>(methodsByProp.size());
         for (Map.Entry<String,Method> en : methodsByProp.entrySet()) {
             Method m = en.getValue();
-            m = checkAccess(m);
+            ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
             WritableBeanProperty wprop = new WritableBeanProperty(en.getKey(), m);
             props.add(wprop);
 
@@ -224,24 +224,5 @@ public class BeanSerializerFactory
             }
         }
         return props;
-    }
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Other internal methods
-    ////////////////////////////////////////////////////////////
-     */
-
-    /**
-     * Method called to check if we can use the passed method (wrt
-     * access restriction -- public methods can be called, others
-     * usually not); and if not, if there is a work-around for
-     * the problem.
-     */
-    protected Method checkAccess(Method m)
-    {
-        // this can only fail from exception: should we catch it?
-        ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
-        return m;
     }
 }

@@ -88,7 +88,8 @@ public final class BeanDeserializer
      * after deserializer itself has been registered. This
      * is needed to handle recursive dependencies.
      */
-    public void resolve(DeserializerProvider provider, DeserializerFactory f)
+    public void resolve(DeserializerProvider provider)
+        throws JsonMappingException
     {
         // let's reuse same instances, not all are cached by provider
         /* 04-Feb-2009, tatu: This is tricky now that we are to pass referrer
@@ -108,7 +109,7 @@ public final class BeanDeserializer
                 deser = seen.get(type);
             }
             if (deser == null) {
-                deser = provider.findValueDeserializer(type, f, _beanType, prop.getPropertyName());
+                deser = provider.findValueDeserializer(type, _beanType, prop.getPropertyName());
                 if (deser instanceof BeanDeserializer) {
                     if (seen == null) {
                         seen = new HashMap<JavaType, JsonDeserializer<Object>>();

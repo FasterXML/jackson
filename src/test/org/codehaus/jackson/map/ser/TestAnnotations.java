@@ -48,7 +48,7 @@ public class TestAnnotations
     }
 
     /**
-     * Class for testing {@link JsonSerializer} annotation
+     * Class for testing {@link JsonUseSerializer} annotation
      * for a method
      */
     final static class ClassMethodSerializer {
@@ -58,6 +58,24 @@ public class TestAnnotations
 
         @JsonUseSerializer(StringSerializer.class)
             public int getX() { return _x; }
+    }
+
+    /**
+     * Class for verifying that broken class-attached
+     * {@link JsonUseSerializer} annotation is handled properly
+     */
+    @JsonUseSerializer(String.class)
+    final static class BrokenUseSerClassAnnotation {
+        public int getX() { return 1; }
+    }
+
+    /**
+     * Class for verifying that broken class-attached
+     * {@link JsonUseSerializer} annotation is handled properly
+     */
+    final static class BrokenUseSerMethodAnnotation {
+        @JsonUseSerializer(String.class)
+        public int getX() { return 2; }
     }
 
     /*
@@ -113,7 +131,7 @@ public class TestAnnotations
     }
 
     /**
-     * Unit test to verify that @JsonSerializer annotation works
+     * Unit test to verify that @JsonUseSerializer annotation works
      * when applied to a class
      */
     public void testClassSerializer() throws Exception
@@ -137,6 +155,34 @@ public class TestAnnotations
          * full object, just override a single property
          */
         assertEquals("{\"x\":\"X13X\"}", sw.toString());
+    }
+
+    /**
+     * Unit test that verifies that a broken {@JsonUseSerializer}
+     * annotation is properly handled
+     */
+    public void testBrokenSerializerByClass() throws Exception
+    {
+        try {
+            new ObjectMapper().writeValue(new StringWriter(), new BrokenUseSerClassAnnotation());
+            fail("Expected an exception for invalid @JsonUseSerializer annotation");
+        } catch (JsonMappingException jex) {
+            ; // good
+        } catch (Exception jex) {
+            fail("Expected an exception of type JsonMappingException, got ("+jex.getClass()+": "+jex);
+        }
+    }
+
+    public void testBrokenSerializerByMethod() throws Exception
+    {
+        try {
+            new ObjectMapper().writeValue(new StringWriter(), new BrokenUseSerMethodAnnotation());
+            fail("Expected an exception for invalid @JsonUseSerializer annotation");
+        } catch (JsonMappingException jex) {
+            ; // good
+        } catch (Exception jex) {
+            fail("Expected an exception of type JsonMappingException, got ("+jex.getClass()+": "+jex);
+        }
     }
 
     /*

@@ -7,9 +7,7 @@ import java.util.Collection;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ResolvableSerializer;
+import org.codehaus.jackson.map.*;
 
 /**
  * Serializer class that can serialize arbitrary bean objects.
@@ -69,6 +67,7 @@ public final class BeanSerializer
      */
 
     public void resolve(SerializerProvider provider)
+        throws JsonMappingException
     {
         for (WritableBeanProperty prop : _props) {
             if (!prop.hasSerializer()) {

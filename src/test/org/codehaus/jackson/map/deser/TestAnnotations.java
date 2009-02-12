@@ -36,6 +36,7 @@ public class TestAnnotations
         @JsonSetter protected void other(int value) { _other = value; }
     }
 
+    /// Class for testing {@link JsonIgnore} annotations with setters
     final static class SizeClassIgnore
     {
         int _x = 0;
@@ -44,6 +45,58 @@ public class TestAnnotations
         public void setX(int value) { _x = value; }
         @JsonIgnore public void setY(int value) { _y = value; }
     }
+
+    /**
+     * Class for testing {@link JsonDeserializer} annotation
+     * for class itself.
+     */
+    /*
+    @JsonUseSerializer(ClassSerializer2.class)
+    final static class ClassSerializer {
+    }
+    */
+
+    /**
+     * Class for testing {@link JsonDeserializer} annotation
+     * for a method
+     */
+    /*
+    final static class ClassMethodSerializer {
+        private int _x;
+
+        public ClassMethodSerializer(int x) { _x = x; }
+
+        @JsonUseSerializer(StringSerializer.class)
+            public int getX() { return _x; }
+    }
+    */
+
+    /*
+    //////////////////////////////////////////////
+    // Other helper classes
+    //////////////////////////////////////////////
+     */
+
+    /*
+    final static class BogusSerializer extends JsonSerializer<Object>
+    {
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeBoolean(true);
+        }
+
+    }
+
+    final static class StringSerializer extends JsonSerializer<Object>
+    {
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeString("X"+value+"X");
+        }
+    }
+    */
 
     /*
     //////////////////////////////////////////////

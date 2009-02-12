@@ -52,11 +52,6 @@ public class ObjectMapper
      */
     protected DeserializerProvider _deserializerProvider;
 
-    /**
-     * Serializer factory used for constructing deserializers.
-     */
-    protected DeserializerFactory _deserializerFactory;
-
     /*
     ////////////////////////////////////////////////////
     // Caching
@@ -123,19 +118,16 @@ public class ObjectMapper
          * no need to create anything, no cost to re-set later on
          */
         _serializerFactory = BeanSerializerFactory.instance;
-        _deserializerFactory = StdDeserializerFactory.instance;
     }
 
     public void setSerializerFactory(SerializerFactory f) {
         _serializerFactory = f;
     }
-    public void setDeserializerFactory(DeserializerFactory f) {
-        _deserializerFactory = f;
-    }
 
     public void setSerializerProvider(SerializerProvider p) {
         _serializerProvider = p;
     }
+
     public void setDeserializerProvider(DeserializerProvider p) {
         _deserializerProvider = p;
     }
@@ -471,6 +463,7 @@ public class ObjectMapper
      * Method called to locate deserializer for the passed root-level value.
      */
     protected JsonDeserializer<Object> _findRootDeserializer(JavaType valueType)
+        throws JsonMappingException
     {
         // First: have we already seen it?
         JsonDeserializer<Object> deser = _rootDeserializers.get(valueType);
@@ -479,7 +472,7 @@ public class ObjectMapper
         }
 
         // Nope: need to ask provider to resolve it
-        deser = _deserializerProvider.findValueDeserializer(valueType, _deserializerFactory, null, null);
+        deser = _deserializerProvider.findValueDeserializer(valueType, null, null);
         if (deser == null) { // can this happen?
             throw new IllegalArgumentException("Can not find a deserializer for type "+valueType);
         }
