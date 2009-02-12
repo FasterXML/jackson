@@ -247,6 +247,21 @@ public abstract class BasicDeserializerFactory
                 throw new JsonMappingException("Failed to narrow type "+type+" with @JsonClass("+subclass.getName()+"): "+iae.getMessage(), null, iae);
             }
         }
+
+        // then key class
+        JsonKeyClass keyAnn = m.getAnnotation(JsonKeyClass.class);
+        if (keyAnn != null) {
+            // illegal to use on non-Maps
+            if (!(type instanceof MapType)) {
+                throw new JsonMappingException("Illegal @JsonKey annotation: type "+type+" is not a Map type");
+            }
+            Class<?> keyClass = keyAnn.value();
+            try {
+                type = ((MapType) type).narrowKey(keyClass);
+            } catch (IllegalArgumentException iae) {
+                throw new JsonMappingException("Failed to narrow key of "+type+" with @JsonKeyClass("+keyClass.getName()+"): "+iae.getMessage(), null, iae);
+            }
+        }
         return type;
     }
 }

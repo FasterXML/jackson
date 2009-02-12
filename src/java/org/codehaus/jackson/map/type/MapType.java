@@ -66,6 +66,16 @@ public final class MapType
 
     public boolean isContainerType() { return true; }
 
+    public JavaType narrowKey(Class<?> keySubclass)
+    {
+        // Can do a quick check first:
+        if (keySubclass == _keyType.getRawClass()) {
+            return this;
+        }
+        JavaType newKeyType = _keyType.narrowBy(keySubclass);
+        return new  MapType(_class, newKeyType, _valueType, _fullyTyped);
+    }
+
     /*
     //////////////////////////////////////////////////////////
     // Extended API

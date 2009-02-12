@@ -60,12 +60,11 @@ public class BeanDeserializerFactory
          *   (same with Collections too)
          */
 
-        Constructor<?>[] ctors = beanClass.getDeclaredConstructors();
-        List<Method> staticMethods = findStaticFactoryMethods(beanClass);
+        ClassIntrospector intr = new ClassIntrospector(beanClass);
 
-        BeanDeserializer.StringConstructor sctor = constructStringConstructor(beanClass, ctors, staticMethods);
-        BeanDeserializer.NumberConstructor nctor = constructNumberConstructor(beanClass, ctors, staticMethods);
-        Constructor<?> defaultCtor = findDefaultConstructor(ctors);
+        BeanDeserializer.StringConstructor sctor = getStringCreators(beanClass, intr);
+        BeanDeserializer.NumberConstructor nctor = getNumberCreators(beanClass, intr);
+        Constructor<?> defaultCtor = intr.findDefaultConstructor();
 
         // sanity check: must have a constructor of one type or another
         if ((sctor == null) && (nctor == null) && (defaultCtor == null)) {
@@ -77,7 +76,7 @@ public class BeanDeserializerFactory
 
         BeanDeserializer deser = new BeanDeserializer(type, defaultCtor, sctor, nctor);
         // And then things we need if we get Json Object:
-        addBeanProps(deser);
+        addBeanProps(intr, deser);
         return deser;
     }
 
@@ -91,11 +90,10 @@ public class BeanDeserializerFactory
      * Method called to figure out settable properties for the
      * deserializer.
      */
-    protected void addBeanProps(BeanDeserializer deser)
+    protected void addBeanProps(ClassIntrospector intr, BeanDeserializer deser)
         throws JsonMappingException
     {
         Class<?> beanClass = deser.getBeanClass();
-        ClassIntrospector intr = new ClassIntrospector(beanClass);
 
         LinkedHashMap<String,Method> methodsByProp = intr.findSetters();
 
@@ -173,103 +171,29 @@ public class BeanDeserializerFactory
     ////////////////////////////////////////////////////////////
      */
 
-    BeanDeserializer.StringConstructor constructStringConstructor(Class<?> beanClass, Constructor<?>[] ctors, List<Method> staticMethods)
+    BeanDeserializer.StringConstructor getStringCreators(Class<?> beanClass,
+                                                         ClassIntrospector intr)
     {
-        Constructor<?> sctor = null;
-
-        // must find 1-string-arg one
-        for (Constructor<?> c : ctors) {
-            if (c.isAnnotationPresent(JsonIgnore.class)) {
-                continue;
-            }
-            Class<?>[] args = c.getParameterTypes();
-            if (args.length == 1) {
-                if (args[0] == String.class) {
-                    ClassUtil.checkAndFixAccess(c, beanClass);
-                    sctor = c;
-                    break;
-                }
-            }
-        }
-
+        // Single-string ctor
+        Constructor<?> sctor = intr.findSingleArgConstructor(String.class);
         // and/or one of "well-known" factory methods
-        Method factoryMethod = null;
-
-        // note: @JsonIgnore handled earlier
-        for (Method m : staticMethods) {
-            // must be named "valueOf", for now; other candidates?
-            if ("valueOf".equals(m.getName())) {
-                // must take String arg
-                Class<?> arg = m.getParameterTypes()[0];
-                if (arg == String.class) {
-                    ClassUtil.checkAndFixAccess(m, beanClass);
-                    factoryMethod = m;
-                    break;
-                }
-            }
-        }
-
+        Method factoryMethod = intr.findFactoryMethod(String.class);
         return new BeanDeserializer.StringConstructor(beanClass, sctor, factoryMethod);
     }
 
-    BeanDeserializer.NumberConstructor constructNumberConstructor(Class<?> beanClass, Constructor<?>[] ctors, List<Method> staticMethods)
+    BeanDeserializer.NumberConstructor getNumberCreators(Class<?> beanClass,
+                                                         ClassIntrospector intr)
     {
-        Constructor<?> intCtor = null;
-        Constructor<?> longCtor = null;
+        // single-arg ctors 
+        Constructor<?> intCtor = intr.findSingleArgConstructor(int.class, Integer.class);
+        Constructor<?> longCtor = intr.findSingleArgConstructor(long.class, Long.class);
 
-        // must find 1-int/long-arg one
-        for (Constructor<?> c : ctors) {
-            if (c.isAnnotationPresent(JsonIgnore.class)) {
-                continue;
-            }
-            Class<?>[] args = c.getParameterTypes();
-            if (args.length != 1) {
-                continue;
-            }
-            Class<?> argType = args[0];
-            if (argType == int.class || argType == Integer.class) {
-                ClassUtil.checkAndFixAccess(c, beanClass);
-                intCtor = c;
-            } else if (argType == long.class || argType == Long.class) {
-                ClassUtil.checkAndFixAccess(c, beanClass);
-                longCtor = c;
-            }
-        }
 
         // and/or one of "well-known" factory methods
-        Method intFactoryMethod = null;
-        Method longFactoryMethod = null;
+        Method intFactoryMethod = intr.findFactoryMethod(int.class, Integer.class);
+        Method longFactoryMethod = intr.findFactoryMethod(long.class, Long.class);
 
-        // note: @JsonIgnore handled earlier
-        for (Method m : staticMethods) {
-            // must be named "valueOf", for now; other candidates?
-            if ("valueOf".equals(m.getName())) {
-                // must take String arg
-                Class<?> argType = m.getParameterTypes()[0];
-                if (argType == int.class || argType == Integer.class) {
-                    ClassUtil.checkAndFixAccess(m, beanClass);
-                    intFactoryMethod = m;
-                } else if (argType == long.class || argType == Long.class) {
-                    ClassUtil.checkAndFixAccess(m, beanClass);
-                    longFactoryMethod = m;
-                }
-            }
-        }
         return new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactoryMethod, longFactoryMethod);
-    }
-
-    protected Constructor<?> findDefaultConstructor(Constructor<?>[] ctors)
-    {
-        for (Constructor<?> ctor : ctors) {
-            // won't use varargs, no point
-            if (!ctor.isVarArgs() && ctor.getParameterTypes().length == 0) {
-                // 11-Feb-2009, tatu: Also, must ignore if instructed to:
-                if (!ctor.isAnnotationPresent(JsonIgnore.class)) {
-                    return ctor;
-                }
-            }
-        }
-        return null;
     }
 
     /*
@@ -277,40 +201,6 @@ public class BeanDeserializerFactory
     // Helper methods for Bean deserializer, other
     ////////////////////////////////////////////////////////////
      */
-
-    /**
-     * Method that will find all single-arg static methods that given
-     * class declares, and that construct instance of the class (or
-     * one of its subclasses).
-     */
-    List<Method> findStaticFactoryMethods(Class<?> clz)
-    {
-        ArrayList<Method> result = new ArrayList<Method>();
-        for (Method m : clz.getDeclaredMethods()) {
-            // Needs to be static
-            if (!Modifier.isStatic(m.getModifiers())) {
-                continue;
-            }
-            // and can't include things that must be ignored
-            if (m.isAnnotationPresent(JsonIgnore.class)) {
-                continue;
-            }
-            /* And return something compatible with the class itself:
-             * for now class itself or one of its sub-classes
-             */
-            Class<?> resultType = m.getReturnType();
-            if (!clz.isAssignableFrom(resultType)) {
-                continue;
-            }
-            // And take 1 (and only one) arg:
-            if (m.getParameterTypes().length != 1) {
-                continue;
-            }
-            // If so, it might be a candidate
-            result.add(m);
-        }
-        return result;
-    }
 
     /**
      * Helper method used to skip processing for types that we know

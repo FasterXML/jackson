@@ -12,6 +12,22 @@ import org.codehaus.jackson.map.util.ClassUtil;
  */
 public class ClassIntrospector
 {
+    /*
+    ///////////////////////////////////////////////////////
+    // Lazy-loaded reusable pieces of reflection info
+    ///////////////////////////////////////////////////////
+     */
+
+    transient Constructor<?>[] _ctors;
+
+    transient Method[] _directMethods;
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Life-cycle
+    ///////////////////////////////////////////////////////
+     */
+
     /**
      * Class that we are introspecting things about
      */
@@ -40,8 +56,7 @@ public class ClassIntrospector
          * methods should not be visible if masked
          */
         HashSet<String> maskedMethods = new HashSet<String>();
-
-        DeclMethodIter it = new DeclMethodIter(_class);
+        DeclMethodIter it = methodIterator();
         Method m;
 
         while ((m = it.next()) != null) {
@@ -112,7 +127,7 @@ public class ClassIntrospector
          */
         HashSet<String> maskedMethods = new HashSet<String>();
 
-        DeclMethodIter it = new DeclMethodIter(_class);
+        DeclMethodIter it = methodIterator();
         Method m;
 
         while ((m = it.next()) != null) {
@@ -163,6 +178,141 @@ public class ClassIntrospector
         }
 
         return results;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Introspection for constructors, factory methods
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that will locate the no-arg constructor for this class,
+     * if it has one, and that constructor has not been marked as
+     * ignorable.
+     * Method will also ensure that the constructor is accessible.
+     */
+    public Constructor<?> findDefaultConstructor()
+    {
+        for (Constructor<?> ctor : declaredConstructors()) {
+            // won't use varargs, no point
+            if (!ctor.isVarArgs() && ctor.getParameterTypes().length == 0) {
+                // 11-Feb-2009, tatu: Also, must ignore if instructed to:
+                if (!ctor.isAnnotationPresent(JsonIgnore.class)) {
+                    return ctor;
+                }
+                // only one such ctor anyway, so let's bail if that one's no good
+                break;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Method that can be called to locate a single-arg constructor that
+     * takes specified exact type (will not accept supertype constructors)
+     *
+     * @param argTypes Type(s) of the argument that we are looking for
+     */
+    public Constructor<?> findSingleArgConstructor(Class<?>... argTypes)
+    {
+        for (Constructor<?> c : declaredConstructors()) {
+            // First: must obey @JsonIgnore if present, and skip it
+            if (c.isAnnotationPresent(JsonIgnore.class)) {
+                continue;
+            }
+            Class<?>[] args = c.getParameterTypes();
+            // Otherwise must have just one arg of specific type
+            if (args.length == 1) {
+                Class<?> actArg = args[0];
+                for (Class<?> expArg : argTypes) {
+                    if (expArg == actArg) {
+                        ClassUtil.checkAndFixAccess(c, _class);
+                        return c;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Method for obtaining list of all static methods with given name,
+     * declared directly within instropected class
+     */
+    public List<Method> findStaticSingleArgMethods()
+    {
+        ArrayList<Method> result = null;
+        for (Method m : declaredMethods()) {
+            // only static methods will do
+            if (!Modifier.isStatic(m.getModifiers())) {
+                continue;
+            }
+            // can't be included if directed to be ignored
+            if (m.isAnnotationPresent(JsonIgnore.class)) {
+                continue;
+            }
+            // and must take exactly one argument
+            if (m.getParameterTypes().length != 1) {
+                continue;
+            }
+            // ok, need to add
+            if (result == null) {
+                result = new ArrayList<Method>();
+            }
+            result.add(m);
+        }
+        if (result == null) {
+            return Collections.emptyList();
+        }
+        return result;
+    }
+            
+
+    /**
+     * Method that can be called to find if introspected class declares
+     * a static "valueOf" factory method that returns an instance of
+     * introspected type, given one of acceptable types.
+     *
+     * @param expArgTypes Types that the matching single argument factory
+     *   method can take: will also accept super types of these types
+     *   (ie. arg just has to be assignable from expArgType)
+     * @param needsToBePublic If true, will only consider public methods;
+     *   if false, will accept any access type (and will also fix access
+     *   modifiers if so)
+     */
+    public Method findFactoryMethod(Class<?>... expArgTypes)
+    {
+        // So, of all single-arg static methods:
+        for (Method m : findStaticSingleArgMethods()) {
+            // First: return type must be the introspected class
+            if (m.getReturnType() != _class) {
+                continue;
+            }
+            /* Then: must be a recognized factory, meaning:
+             * (a) public "valueOf", OR
+             * (b) marked with @JsonCreator annotation
+             */
+            if (m.isAnnotationPresent(JsonCreator.class)) {
+                ;
+            } else if ("valueOf".equals(m.getName())
+                       && Modifier.isPublic(m.getModifiers())) {
+                ;
+            } else { // not recognized, skip
+                continue;
+            }
+
+            // And finally, must take one of expected arg types (or supertype)
+            Class<?> actualArgType = m.getParameterTypes()[0];
+            for (Class<?> expArgType : expArgTypes) {
+                // And one that matches what we would pass in
+                if (actualArgType.isAssignableFrom(expArgType)) {
+                    ClassUtil.checkAndFixAccess(m, _class);
+                    return m;
+                }
+            }
+        }
+        return null;
     }
 
     /*
@@ -298,6 +448,33 @@ public class ClassIntrospector
 
     /*
     ///////////////////////////////////////////////////////
+    // Low-level class info helper methods
+    ///////////////////////////////////////////////////////
+     */
+
+    protected Constructor<?>[] declaredConstructors()
+    {
+        if (_ctors == null) {
+            _ctors = _class.getDeclaredConstructors();
+        }
+        return _ctors;
+    }
+
+    protected Method[] declaredMethods()
+    {
+        if (_directMethods == null) {
+            _directMethods = _class.getDeclaredMethods();
+        }
+        return _directMethods;
+    }
+
+    protected DeclMethodIter methodIterator()
+    {
+        return new DeclMethodIter(_class, declaredMethods());
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
     // Helper classes
     ///////////////////////////////////////////////////////
      */
@@ -318,10 +495,10 @@ public class ClassIntrospector
 
         int _currIndex;
 
-        public DeclMethodIter(Class<?> c)
+        public DeclMethodIter(Class<?> c, Method[] declMethods)
         {
             _currClass = c;
-            _currMethods = c.getDeclaredMethods();
+            _currMethods = declMethods;
             _currIndex = 0;
         }
 

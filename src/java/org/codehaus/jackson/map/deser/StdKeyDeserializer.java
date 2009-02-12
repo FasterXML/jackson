@@ -1,6 +1,8 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
@@ -27,15 +29,15 @@ public abstract class StdKeyDeserializer
             if (result != null) {
                 return result;
             }
-        } catch (IllegalArgumentException iae) {
-            ;
+        } catch (Exception re) {
+            throw ctxt.weirdKeyException(_keyClass, key, "not a valid representation: "+re.getMessage());
         }
         throw ctxt.weirdKeyException(_keyClass, key, "not a valid representation");
     }
 
     public Class<?> getKeyClass() { return _keyClass; }
 
-    protected abstract Object _parse(String key, DeserializationContext ctxt) throws JsonMappingException;
+    protected abstract Object _parse(String key, DeserializationContext ctxt) throws Exception;
 
     /*
     ////////////////////////////////////////////////////////////////////////
@@ -193,13 +195,53 @@ public abstract class StdKeyDeserializer
         }
 
         @Override
-		public Enum<?> _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+            public Enum<?> _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             Enum<?> e = _resolver.findEnum(key);
             if (e == null) {
                 throw ctxt.weirdKeyException(_keyClass, key, "not one of values for Enum class");
             }
             return e;
+        }
+    }
+
+    /**
+     * Key deserializer that calls a single-string-arg constructor
+     * to instantiate desired key type.
+     */
+    final static class StringCtorKeyDeserializer extends StdKeyDeserializer
+    {
+        final Constructor<?> _ctor;
+
+        public StringCtorKeyDeserializer(Constructor<?> ctor) {
+            super(ctor.getDeclaringClass());
+            _ctor = ctor;
+        }
+
+        @Override
+        public Object _parse(String key, DeserializationContext ctxt) throws Exception
+        {
+            return _ctor.newInstance(key);
+        }
+    }
+
+    /**
+     * Key deserializer that calls a static no-args factory method
+     * to instantiate desired key type.
+     */
+    final static class StringFactoryKeyDeserializer extends StdKeyDeserializer
+    {
+        final Method _factoryMethod;
+
+        public StringFactoryKeyDeserializer(Method fm) {
+            super(fm.getDeclaringClass());
+            _factoryMethod = fm;
+        }
+
+        @Override
+        public Object _parse(String key, DeserializationContext ctxt) throws Exception
+        {
+            return _factoryMethod.invoke(null, key);
         }
     }
 }

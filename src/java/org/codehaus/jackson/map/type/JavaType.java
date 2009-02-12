@@ -48,9 +48,7 @@ public abstract class JavaType
             return this;
         }
         // Otherwise, ensure compatibility
-        if (!_class.isAssignableFrom(subclass)) {
-            throw new IllegalArgumentException("Class "+subclass.getName()+" is not assignable to "+_class.getName());
-        }
+        _assertSubclass(subclass, _class);
         return _narrow(subclass);
     }
 
@@ -99,6 +97,19 @@ public abstract class JavaType
     public final boolean isInterface() { return _class.isInterface(); }
 
     public final boolean isPrimitive() { return _class.isPrimitive(); }
+
+    /*
+    ///////////////////////////////////////////////////////////////
+    // Helper methods
+    ///////////////////////////////////////////////////////////////
+     */
+
+    protected void _assertSubclass(Class<?> subclass, Class<?> superClass)
+    {
+        if (!_class.isAssignableFrom(subclass)) {
+            throw new IllegalArgumentException("Class "+subclass.getName()+" is not assignable to "+_class.getName());
+        }
+    }
 
     /*
     ///////////////////////////////////////////////////////////////

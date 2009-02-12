@@ -19,7 +19,7 @@ public class TestValueAnnotations
 {
     /*
     //////////////////////////////////////////////
-    // Annotated helper classes
+    // Annotated helper classes for @JsonClass
     //////////////////////////////////////////////
      */
 
@@ -76,7 +76,46 @@ public class TestValueAnnotations
 
     /*
     //////////////////////////////////////////////
-    // Test methods
+    // Annotated helper classes for @JsonKeyClass
+    //////////////////////////////////////////////
+     */
+
+    final static class StringWrapper
+    {
+        final String _string;
+
+        public StringWrapper(String s) { _string = s; }
+    }
+
+    final static class MapKeyHolder
+    {
+        Map<Object, String> _map;
+
+        // Let's convert from long to Date
+        @JsonKeyClass(StringWrapper.class)
+        public void setMap(Map<Object,String> m)
+        {
+            // type should be ok, but no need to cast here (won't matter)
+            _map = m;
+        }
+    }
+
+    final static class BrokenMapKeyHolder
+    {
+        // Invalid: Integer not a sub-class of String
+        @JsonKeyClass(Integer.class)
+            public void setStrings(Map<String,String> m) { }
+    }
+
+    /*
+    //////////////////////////////////////////////
+    // Annotated helper classes for @JsonContentClass
+    //////////////////////////////////////////////
+     */
+
+    /*
+    //////////////////////////////////////////////
+    // Test methods for @JsonClass
     //////////////////////////////////////////////
      */
 
@@ -120,13 +159,51 @@ public class TestValueAnnotations
 
     public void testOverrideClassInvalid() throws Exception
     {
-        ObjectMapper m = new ObjectMapper();
-
         // should fail due to incompatible Annotation
         try {
-            BrokenCollectionHolder result = m.readValue
+            BrokenCollectionHolder result = new ObjectMapper().readValue
                 ("{ \"strings\" : [ ] }", BrokenCollectionHolder.class);
             fail("Expected a failure, but got results: "+result);
         } catch (JsonMappingException jme) { }
+    }
+
+    /*
+    //////////////////////////////////////////////
+    // Test methods for @JsonKeyClass
+    //////////////////////////////////////////////
+     */
+
+    public void testOverrideKeyClassValid() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        MapKeyHolder result = m.readValue("{ \"map\" : { \"xxx\" : \"yyy\" } }", MapKeyHolder.class);
+        Map<StringWrapper, String> map = (Map<StringWrapper,String>)(Map<?,?>)result._map;
+        assertEquals(1, map.size());
+        Map.Entry<StringWrapper, String> en = map.entrySet().iterator().next();
+
+        StringWrapper key = en.getKey();
+        assertEquals(StringWrapper.class, key.getClass());
+        assertEquals("xxx", key._string);
+        assertEquals("yyy", en.getValue());
+    }
+
+    public void testOverrideKeyClassInvalid() throws Exception
+    {
+        // should fail due to incompatible Annotation
+        try {
+            BrokenMapKeyHolder result = new ObjectMapper().readValue
+                ("{ \"123\" : \"xxx\" }", BrokenMapKeyHolder.class);
+            fail("Expected a failure, but got results: "+result);
+        } catch (JsonMappingException jme) { }
+    }
+
+    /*
+    //////////////////////////////////////////////
+    // Test methods for @JsonContentClass
+    //////////////////////////////////////////////
+     */
+
+    public void testOverrideContentClassValid() throws Exception
+    {
     }
 }

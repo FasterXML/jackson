@@ -152,6 +152,12 @@ public class StdDeserializerProvider
         if (type.isEnumType()) {
             return StdKeyDeserializers.constructEnumKeyDeserializer(type);
         }
+        // One more thing: can we find ctor(String) or valueOf(String)?
+        kdes = StdKeyDeserializers.findStringBasedKeyDeserializer(type);
+        if (kdes != null) {
+            return kdes;
+        }
+
         // otherwise, will probably fail:
         return _handleUnknownKeyDeserializer(type);
     }
