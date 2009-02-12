@@ -4,6 +4,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -211,6 +212,12 @@ public class StdDeserializerFactory
             return null;
         }
 
+        // And then: maybe it's explicitly defined by annotations?
+        JsonDeserializer<Object> ad = findDeserializerByAnnotation(beanClass);
+        if (ad != null) {
+            return ad;
+        }
+
         /* Ok then: let's figure out scalar value - based construction
          * aspects.
          *
@@ -288,7 +295,42 @@ public class StdDeserializerFactory
             if (oldP != null) { // can this ever occur?
                 throw new IllegalArgumentException("Duplicate property '"+name+"' for class "+beanClass.getName());
             }
+
+            /* One more thing: does Method specify a serializer?
+             * If so, let's use it.
+             */
+            JsonDeserializer<Object> propDeser = findDeserializerByAnnotation(m);
+            if (propDeser != null) {
+                prop.setValueDeserializer(propDeser);
+            }
         }
+    }
+
+    /**
+     * Helper method called to check if the class in question
+     * has {@link JsonUseDeserializer} annotation which tells the
+     * class to use for deserialization.
+     * Returns null if no such annotation found.
+     */
+    protected JsonDeserializer<Object> findDeserializerByAnnotation(AnnotatedElement elem)
+    {
+        JsonUseDeserializer ann = elem.getAnnotation(JsonUseDeserializer.class);
+        if (ann != null) {
+            Class<?> deserClass = ann.value();
+            // Must be of proper type, of course
+            if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
+                throw new IllegalArgumentException("Invalid @JsonDeserializer annotation for "+ClassUtil.descFor(elem)+": value ("+deserClass.getName()+") does not implement JsonDeserializer interface");
+            }
+            try {
+                Object ob = deserClass.newInstance();
+                @SuppressWarnings("unchecked")
+                    JsonDeserializer<Object> ser = (JsonDeserializer<Object>) ob;
+                return ser;
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);
+            }
+        }
+        return null;
     }
 
     /*
@@ -303,6 +345,9 @@ public class StdDeserializerFactory
 
         // must find 1-string-arg one
         for (Constructor<?> c : ctors) {
+            if (c.isAnnotationPresent(JsonIgnore.class)) {
+                continue;
+            }
             Class<?>[] args = c.getParameterTypes();
             if (args.length == 1) {
                 if (args[0] == String.class) {
@@ -316,9 +361,9 @@ public class StdDeserializerFactory
         // and/or one of "well-known" factory methods
         Method factoryMethod = null;
 
+        // note: @JsonIgnore handled earlier
         for (Method m : staticMethods) {
-            /* must be named "valueOf", for now; other candidates?
-             */
+            // must be named "valueOf", for now; other candidates?
             if ("valueOf".equals(m.getName())) {
                 // must take String arg
                 Class<?> arg = m.getParameterTypes()[0];
@@ -340,6 +385,9 @@ public class StdDeserializerFactory
 
         // must find 1-int/long-arg one
         for (Constructor<?> c : ctors) {
+            if (c.isAnnotationPresent(JsonIgnore.class)) {
+                continue;
+            }
             Class<?>[] args = c.getParameterTypes();
             if (args.length != 1) {
                 continue;
@@ -358,9 +406,9 @@ public class StdDeserializerFactory
         Method intFactoryMethod = null;
         Method longFactoryMethod = null;
 
+        // note: @JsonIgnore handled earlier
         for (Method m : staticMethods) {
-            /* must be named "valueOf", for now; other candidates?
-             */
+            // must be named "valueOf", for now; other candidates?
             if ("valueOf".equals(m.getName())) {
                 // must take String arg
                 Class<?> argType = m.getParameterTypes()[0];
@@ -381,7 +429,10 @@ public class StdDeserializerFactory
         for (Constructor<?> ctor : ctors) {
             // won't use varargs, no point
             if (!ctor.isVarArgs() && ctor.getParameterTypes().length == 0) {
-                return ctor;
+                // 11-Feb-2009, tatu: Also, must ignore if instructed to:
+                if (!ctor.isAnnotationPresent(JsonIgnore.class)) {
+                    return ctor;
+                }
             }
         }
         return null;
@@ -404,6 +455,10 @@ public class StdDeserializerFactory
         for (Method m : clz.getDeclaredMethods()) {
             // Needs to be static
             if (!Modifier.isStatic(m.getModifiers())) {
+                continue;
+            }
+            // and can't include things that must be ignored
+            if (m.isAnnotationPresent(JsonIgnore.class)) {
                 continue;
             }
             /* And return something compatible with the class itself:

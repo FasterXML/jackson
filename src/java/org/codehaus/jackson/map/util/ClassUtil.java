@@ -139,5 +139,23 @@ public final class ClassUtil
         }
         return (sb == null) ? basename : sb.toString();
     }
+
+    /**
+     * Helper method used to describe an annotated element of type
+     * {@link Class} or {@link Method}.
+     */
+    public static String descFor(AnnotatedElement elem)
+    {
+        if (elem instanceof Class) {
+            return "class "+((Class<?>) elem).getName();
+        }
+        if (elem instanceof Method) {
+            Method m = (Method) elem;
+            return "method "+m.getName()+" (from class "+m.getDeclaringClass().getName()+")";
+        }
+        // Constructor or such?
+        return "unknown type ["+elem.getClass()+"]";
+    }
+
 }
 

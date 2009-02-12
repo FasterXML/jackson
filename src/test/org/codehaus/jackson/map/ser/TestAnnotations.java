@@ -63,8 +63,10 @@ public class TestAnnotations
     /**
      * Class for verifying that broken class-attached
      * {@link JsonUseSerializer} annotation is handled properly
+     * (by throwing {@link JsonMappingException}).
      */
     @JsonUseSerializer(String.class)
+    // wrong: String is not a JsonSerializer
     final static class BrokenUseSerClassAnnotation {
         public int getX() { return 1; }
     }
@@ -72,9 +74,11 @@ public class TestAnnotations
     /**
      * Class for verifying that broken class-attached
      * {@link JsonUseSerializer} annotation is handled properly
+     * (by throwing {@link JsonMappingException}).
      */
     final static class BrokenUseSerMethodAnnotation {
-        @JsonUseSerializer(String.class)
+        // wrong: Integer is not a JsonSerializer
+        @JsonUseSerializer(Integer.class)
         public int getX() { return 2; }
     }
 

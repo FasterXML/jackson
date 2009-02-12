@@ -142,7 +142,7 @@ public class BeanSerializerFactory
 
     /**
      * Helper method called to check if the class in question
-     * has {@link JsonSerializer} annotation which tells the
+     * has {@link JsonUseSerializer} annotation which tells the
      * class to use for serialization.
      * Returns null if no such annotation found.
      */
@@ -153,7 +153,7 @@ public class BeanSerializerFactory
             Class<?> serClass = ann.value();
             // Must be of proper type, of course
             if (!JsonSerializer.class.isAssignableFrom(serClass)) {
-                throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+_descFor(elem)+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
+                throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+ClassUtil.descFor(elem)+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
             }
             try {
                 Object ob = serClass.newInstance();
@@ -161,27 +161,10 @@ public class BeanSerializerFactory
                     JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
                 return ser;
             } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+_descFor(elem)+", problem: "+e.getMessage(), e);
+                throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);
             }
         }
         return null;
-    }
-
-    /**
-     * Helper method used to describe an annotated element of type
-     * {@link Class} or {@link Method}.
-     */
-    protected String _descFor(AnnotatedElement elem)
-    {
-        if (elem instanceof Class) {
-            return "class "+((Class<?>) elem).getName();
-        }
-        if (elem instanceof Method) {
-            Method m = (Method) elem;
-            return "method "+m.getName()+" (from class "+m.getDeclaringClass().getName()+")";
-        }
-        // Constructor or such?
-        return "unknown type ["+elem.getClass()+"]";
     }
 
     /**

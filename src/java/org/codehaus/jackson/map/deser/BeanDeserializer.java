@@ -102,6 +102,11 @@ public final class BeanDeserializer
         HashMap<JavaType, JsonDeserializer<Object>> seen = null;
 
         for (SettableBeanProperty prop : _props.values()) {
+            // May already have deserializer from annotations, if so, skip:
+            if (prop.hasValueDeserializer()) {
+                continue;
+            }
+
             JavaType type = prop.getType();
             JsonDeserializer<Object> deser = null;
 
@@ -218,7 +223,7 @@ public final class BeanDeserializer
                                       Object valueObject, String fieldName)
         throws IOException, JsonProcessingException
     {
-        ctxt.unknownFieldException(valueObject, fieldName);
+        throw ctxt.unknownFieldException(valueObject, fieldName);
     }
 
     /*

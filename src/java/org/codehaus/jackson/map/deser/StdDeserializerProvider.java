@@ -92,7 +92,7 @@ public class StdDeserializerProvider
         if (deser != null) {
             return deser;
         }
-        // If not, maybe First: maybe we have already resolved this type?
+        // If not, maybe we have already resolved this type?
         deser = _findCachedDeserializer(type);
         if (deser != null) {
             return deser;

@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * Specifically, marking a "setter" candidate does not change handling
  * of matching "getter" method (or vice versa).
  */
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JsonIgnore
 {
