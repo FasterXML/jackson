@@ -67,7 +67,13 @@ public class StdDeserializerProvider
     ////////////////////////////////////////////////////
      */
 
-    public StdDeserializerProvider() { this(StdDeserializerFactory.instance); }
+    /**
+     * Default constructor. Equivalent to calling
+     *<pre>
+     *   new StdDeserializerProvider(BeanDeserializerFactory.instance);
+     *</pre>
+     */
+    public StdDeserializerProvider() { this(BeanDeserializerFactory.instance); }
 
     public StdDeserializerProvider(DeserializerFactory f)
     {

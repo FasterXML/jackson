@@ -1,0 +1,213 @@
+package org.codehaus.jackson.map.deser;
+
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.concurrent.*;
+
+import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.map.util.ClassUtil;
+
+/**
+ * Abstract factory base class that can provide deserializers for standard
+ * JDK classes, including collection classes and simple heuristics for
+ * "upcasting" commmon collection interface types
+ * (such as {@link java.util.Collection}).
+ *<p>
+ * Since all simple deserializers are eagerly instantiated, and there is
+ * no additional introspection or customazibility of these types,
+ * this factory is stateless.
+ */
+public abstract class BasicDeserializerFactory
+    extends DeserializerFactory
+{
+    // // Can cache some types
+
+    final static JavaType _typeString = TypeFactory.instance.fromClass(String.class);
+
+    /* We do some defaulting for abstract Map classes and
+     * interfaces, to avoid having to use exact types or annotations in
+     * cases where the most common concrete Maps will do.
+     */
+    final static HashMap<String, Class<? extends Map>> _mapFallbacks;
+    static {
+        _mapFallbacks = new HashMap<String, Class<? extends Map>>();
+
+        _mapFallbacks.put(Map.class.getName(), LinkedHashMap.class);
+        _mapFallbacks.put(ConcurrentMap.class.getName(), ConcurrentHashMap.class);
+        _mapFallbacks.put(SortedMap.class.getName(), TreeMap.class);
+
+        /* 11-Jan-2009, tatu: Let's see if we can still add support for
+         *    JDK 1.6 interfaces, even if we run on 1.5. Just need to be
+         *    more careful with typos, since compiler won't notice any
+         *    problems...
+         */
+        _mapFallbacks.put("java.util.NavigableMap", TreeMap.class);
+        try {
+            Class<?> key = Class.forName("java.util.ConcurrentNavigableMap");
+            Class<?> value = Class.forName("java.util.ConcurrentSkipListMap");
+            @SuppressWarnings("unchecked")
+                Class<? extends Map> mapValue = (Class<? extends Map>) value;
+            _mapFallbacks.put(key.getName(), mapValue);
+        } catch (ClassNotFoundException cnfe) { // occurs on 1.5
+        }
+    }
+
+    /* We do some defaulting for abstract Map classes and
+     * interfaces, to avoid having to use exact types or annotations in
+     * cases where the most common concrete Maps will do.
+     */
+    final static HashMap<String, Class<? extends Collection>> _collectionFallbacks;
+    static {
+        _collectionFallbacks = new HashMap<String, Class<? extends Collection>>();
+
+        _collectionFallbacks.put(Collection.class.getName(), ArrayList.class);
+        _collectionFallbacks.put(List.class.getName(), ArrayList.class);
+        _collectionFallbacks.put(Set.class.getName(), HashSet.class);
+        _collectionFallbacks.put(SortedSet.class.getName(), TreeSet.class);
+        _collectionFallbacks.put(Queue.class.getName(), LinkedList.class);
+
+        /* 11-Jan-2009, tatu: Let's see if we can still add support for
+         *    JDK 1.6 interfaces, even if we run on 1.5. Just need to be
+         *    more careful with typos, since compiler won't notice any
+         *    problems...
+         */
+        _collectionFallbacks.put("java.util.Deque", LinkedList.class);
+        _collectionFallbacks.put("java.util.NavigableSet", TreeSet.class);
+    }
+
+    /**
+     * And finally, we have special array deserializers for primitive
+     * array types
+     */
+    final static HashMap<JavaType,JsonDeserializer<Object>> _arrayDeserializers = ArrayDeserializers.getAll();
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Life cycle
+    ////////////////////////////////////////////////////////////
+     */
+
+    protected BasicDeserializerFactory() { }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // JsonDeserializerFactory impl
+    ////////////////////////////////////////////////////////////
+     */
+
+    @Override
+	public JsonDeserializer<Object> createArrayDeserializer(ArrayType type, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        // Ok; first: do we have a primitive type?
+        JavaType elemType = type.getComponentType();
+
+        // First, special type(s), such as "primitive" arrays (int[] etc)
+        JsonDeserializer<Object> deser = _arrayDeserializers.get(elemType);
+        if (deser != null) {
+            return deser;
+        }
+
+        // If not, generic one:
+        if (elemType.isPrimitive()) { // sanity check
+            throw new IllegalArgumentException("Internal error: primitive type ("+type+") passed, no array deserializer found");
+        }
+        // 'null' -> arrays have no referring fields
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(elemType, type, null);
+        return new ArrayDeserializer(type, valueDes);
+    }
+
+    @Override
+	public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        JavaType valueType = type.getElementType();
+
+        Class<?> collectionClass = type.getRawClass();
+
+        // One special type: EnumSet:
+        if (EnumSet.class.isAssignableFrom(collectionClass)) {
+            return new EnumSetDeserializer(EnumResolver.constructFor(valueType.getRawClass()));
+        }
+
+        // But otherwise we can just use a generic value deserializer:
+        // 'null' -> collections have no referring fields
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, type, null);
+
+        /* One twist: if we are being asked to instantiate an interface or
+         * abstract Collection, we need to either find something that implements
+         * the thing, or give up.
+         *
+         * Note that we do NOT try to guess based on secondary interfaces
+         * here; that would probably not work correctly since casts would
+         * fail later on (as the primary type is not the interface we'd
+         * be implementing)
+         */
+        if (type.isInterface() || type.isAbstract()) {
+            Class<? extends Collection> fallback = _collectionFallbacks.get(collectionClass.getName());
+            if (fallback == null) {
+                throw new IllegalArgumentException("Can not find a deserializer for non-concrete Collection type "+type);
+            }
+            collectionClass = fallback;
+        }
+        return new CollectionDeserializer(collectionClass, valueDes);
+    }
+
+    @Override
+	public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        JavaType keyType = type.getKeyType();
+        // Value handling is identical for all, so:
+        JavaType valueType = type.getValueType();
+        // 'null' -> maps have no referring fields
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, type, null);
+
+        Class<?> mapClass = type.getRawClass();
+        // But EnumMap requires special handling for keys
+        if (EnumMap.class.isAssignableFrom(mapClass)) {
+            return new EnumMapDeserializer(EnumResolver.constructFor(keyType.getRawClass()), valueDes);
+        }
+
+        /* Otherwise, generic handler works ok; need a key deserializer (null 
+         * indicates 'default' here)
+         */
+        KeyDeserializer keyDes = (_typeString.equals(keyType)) ? null : p.findKeyDeserializer(keyType);
+
+        /* But there is one more twist: if we are being asked to instantiate
+         * an interface or abstract Map, we need to either find something
+         * that implements the thing, or give up.
+         *
+         * Note that we do NOT try to guess based on secondary interfaces
+         * here; that would probably not work correctly since casts would
+         * fail later on (as the primary type is not the interface we'd
+         * be implementing)
+         */
+        if (type.isInterface() || type.isAbstract()) {
+            Class<? extends Map> fallback = _mapFallbacks.get(mapClass.getName());
+            if (fallback == null) {
+                throw new IllegalArgumentException("Can not find a deserializer for non-concrete Map type "+type);
+            }
+            mapClass = fallback;
+        }
+        return new MapDeserializer(mapClass, keyDes, valueDes);
+    }
+
+    /**
+     * Factory method for constructing serializers of {@link Enum} types.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+	public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
+    {
+        JsonDeserializer<?> des = new EnumDeserializer(EnumResolver.constructFor(type.getRawClass()));
+        JsonDeserializer<Object> result = (JsonDeserializer<Object>) des;
+        return result;
+    }
+
+    @Override
+	public abstract JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
+        throws JsonMappingException;
+}

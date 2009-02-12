@@ -10,10 +10,11 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
 /**
- * This unit test suite tests use of Annotations for
- * bean deserialization.
+ * This unit test suite tests use of basic Annotations for
+ * bean deserialization; ones that indicate (non-constructor)
+ * method types, explicit deserializer annotations.
  */
-public class TestAnnotations
+public class TestBasicAnnotations
     extends BaseTest
 {
     /*
@@ -114,7 +115,7 @@ public class TestAnnotations
 
     /*
     //////////////////////////////////////////////
-    // Main tests
+    // Test methods
     //////////////////////////////////////////////
      */
 
