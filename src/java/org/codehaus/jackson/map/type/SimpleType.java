@@ -34,6 +34,11 @@ public final class SimpleType
         super(cls);
     }
 
+    protected JavaType _narrow(Class<?> subclass)
+    {
+        return new SimpleType(subclass);
+    }
+
     public static SimpleType construct(Class<?> cls)
     {
         /* Let's add sanity checks, just to ensure no

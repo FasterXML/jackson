@@ -34,6 +34,26 @@ public final class ArrayType
         _fullyTyped = componentType.isFullyTyped();
     }
 
+    /**
+     * Handling of narrowing conversions for arrays is trickier: for now,
+     * it is not even allowed.
+     */
+    protected JavaType _narrow(Class<?> subclass)
+    {
+        /* Ok: need a bit of indirection here. First, must replace component
+         * type (and check that it is compatible), then re-construct.
+         */
+        if (!subclass.isArray()) { // sanity check, should never occur
+            throw new IllegalArgumentException("Incompatible narrowing operation: trying to narrow "+toString()+" to class "+subclass.getName());
+        }
+        /* Hmmh. This is an awkward back reference... but seems like the only
+         * simple way to do it.
+         */
+        Class<?> newCompClass = subclass.getComponentType();
+        JavaType newCompType = TypeFactory.instance.fromClass(newCompClass);
+        return construct(newCompType);
+    }
+
     public static ArrayType construct(JavaType componentType)
     {
         /* This is bit messy: there is apparently no other way to

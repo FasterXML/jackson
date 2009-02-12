@@ -54,9 +54,10 @@ public class BeanDeserializerFactory
         /* Ok then: let's figure out scalar value - based construction
          * aspects.
          *
-         * !!! 09-Jan-2009, tatu: Should we allow construction from Map
-         *   (which would then be assumed to be "untyped")?
-         *   Or maybe even from a List (ditto)?
+         * !!! 09-Jan-2009, tatu: Should allow construction from Map
+         *   (which would then be assumed to be "untyped"), iff it's
+         *   marked with @JsonCreator.
+         *   (same with Collections too)
          */
 
         Constructor<?>[] ctors = beanClass.getDeclaredConstructors();
@@ -91,6 +92,7 @@ public class BeanDeserializerFactory
      * deserializer.
      */
     protected void addBeanProps(BeanDeserializer deser)
+        throws JsonMappingException
     {
         Class<?> beanClass = deser.getBeanClass();
         ClassIntrospector intr = new ClassIntrospector(beanClass);
@@ -115,19 +117,26 @@ public class BeanDeserializerFactory
             Type rawType = m.getGenericParameterTypes()[0];
             JavaType type = TypeFactory.instance.fromType(rawType);
 
-            SettableBeanProperty prop = new SettableBeanProperty(name, type, m);
+            /* First: does the Method specify the deserializer to use?
+             * If so, let's use it.
+             */
+            SettableBeanProperty prop;
+            JsonDeserializer<Object> propDeser = findDeserializerByAnnotation(m);
+            if (propDeser != null) {
+                prop = new SettableBeanProperty(name, type, m);
+                prop.setValueDeserializer(propDeser);
+            } else {
+                /* Otherwise, method may specify more specific (sub-)class for
+                 * value (no need to check if explicit deser was specified):
+                 */
+                type = modifyTypeByAnnotation(m, type);
+                prop = new SettableBeanProperty(name, type, m);
+            }
             SettableBeanProperty oldP = deser.addSetter(prop);
             if (oldP != null) { // can this ever occur?
                 throw new IllegalArgumentException("Duplicate property '"+name+"' for class "+beanClass.getName());
             }
 
-            /* One more thing: does Method specify a serializer?
-             * If so, let's use it.
-             */
-            JsonDeserializer<Object> propDeser = findDeserializerByAnnotation(m);
-            if (propDeser != null) {
-                prop.setValueDeserializer(propDeser);
-            }
         }
     }
 

@@ -208,6 +208,45 @@ public abstract class BasicDeserializerFactory
     }
 
     @Override
-	public abstract JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
+    public abstract JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
         throws JsonMappingException;
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Helper methods, value/content/key type introspection
+    ////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method called to see if given method has annotations that indicate
+     * a more specific type than what the argument specifies.
+     * If annotations are present, they must specify compatible Class;
+     * instance of which can be assigned using the method. This means
+     * that the Class has to be raw class of type, or its sub-class
+     * (or, implementing class if original Class instance is an interface).
+     *
+     * @param m Setter method that the type is associated with
+     * @param type Type derived from the setter argument
+     *
+     * @return Original type if no annotations are present; or a more
+     *   specific type derived from it if type annotation(s) was found
+     *
+     * @throws JsonMappingException if invalid annotation is found
+     */
+    protected JavaType modifyTypeByAnnotation(Method m, JavaType type)
+        throws JsonMappingException
+    {
+        Class<?> rawClass = type.getRawClass();
+        // first: let's check class for the instance itself:
+        JsonClass mainAnn = m.getAnnotation(JsonClass.class);
+        if (mainAnn != null) {
+            Class<?> subclass = mainAnn.value();
+            try {
+                type = type.narrowBy(subclass);
+            } catch (IllegalArgumentException iae) {
+                throw new JsonMappingException("Failed to narrow type "+type+" with @JsonClass("+subclass.getName()+"): "+iae.getMessage(), null, iae);
+            }
+        }
+        return type;
+    }
 }
