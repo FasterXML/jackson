@@ -363,54 +363,6 @@ public class ObjectMapper
 
     /*
     ////////////////////////////////////////////////////
-    // Public API, exposing Java constructs as JSON
-    // event source via JSONParser
-    //
-    // NOT YET IMPLEMENTED -- will they even be added
-    // here, or somewhere else?
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Method that will take in a Java object that could have
-     * been created by mappers write methods, and construct
-     * a {@link JsonParser} that exposes contents as JSON
-     * tokens
-     */
-    /*
-    public JsonParser createParserFor(Object data)
-        throws JsonParseException
-    {
-        // !!! TBI: parser for reading from Object (array/map, primitives)
-        return null;
-    }
-    */
-
-    /**
-     * Method that will create a JSON generator that will build
-     * Java objects as members of the current list, appending
-     * them at the end of the list.
-     */
-    /*
-    public JsonGenerator createGeneratorFor(List<?> context)
-        throws JsonGenerationException
-    {
-        // !!! TBI: generator for writing (appending) to Json Arrays (Java lists)
-        return null;
-    }
-    */
-
-    /*
-    public JsonGenerator createGeneratorFor(Map<?,?> context)
-        throws JsonParseException
-    {
-        // !!! TBI: generator for writing (appending) to Json Objects (Java maps)
-        return null;
-    }
-    */
-
-    /*
-    ////////////////////////////////////////////////////
     // Internal methods, overridable
     ////////////////////////////////////////////////////
      */
@@ -474,7 +426,7 @@ public class ObjectMapper
         // Nope: need to ask provider to resolve it
         deser = _deserializerProvider.findValueDeserializer(valueType, null, null);
         if (deser == null) { // can this happen?
-            throw new IllegalArgumentException("Can not find a deserializer for type "+valueType);
+            throw new JsonMappingException("Can not find a deserializer for type "+valueType);
         }
         _rootDeserializers.put(valueType, deser);
         return deser;
