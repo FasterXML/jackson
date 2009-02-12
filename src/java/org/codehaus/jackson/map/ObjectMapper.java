@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.JavaType;
 import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.map.type.TypeReference;
+import org.codehaus.jackson.type.TypeReference;
 
 /**
  * This mapper (or, data binder, or codec) provides functionality for
