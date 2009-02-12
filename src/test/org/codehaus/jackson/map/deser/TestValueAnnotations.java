@@ -38,6 +38,22 @@ public class TestValueAnnotations
         }
     }
 
+    /// Another class for testing valid {@link JsonClass} annotation
+    final static class MapHolder
+    {
+        // Let's also coerce numbers into Strings here
+        Map<String,String> _data;
+
+        /* Default for 'Collection' would be HashMap,
+         * let's try to make it a TreeMap instead.
+         */
+        @JsonClass(TreeMap.class)
+        public void setStrings(Map<String,String> s)
+        {
+            _data = s;
+        }
+    }
+
     /// Another one for {@link JsonClass}, but for arrays
     final static class ArrayHolder
     {
@@ -74,6 +90,20 @@ public class TestValueAnnotations
         assertEquals(1, strs.size());
         assertEquals(TreeSet.class, strs.getClass());
         assertEquals("test", strs.iterator().next());
+    }
+
+    public void testOverrideMapValid() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        // note: expecting conversion from number to String, as well
+        MapHolder result = m.readValue
+            ("{ \"strings\" :  { \"a\" : 3 } }", MapHolder.class);
+
+        Map<String,String> strs = result._data;
+        assertEquals(1, strs.size());
+        assertEquals(TreeMap.class, strs.getClass());
+        String value = strs.get("a");
+        assertEquals("3", value);
     }
 
     public void testOverrideArrayClass() throws Exception
