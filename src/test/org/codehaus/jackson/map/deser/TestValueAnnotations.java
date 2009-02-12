@@ -91,7 +91,6 @@ public class TestValueAnnotations
     {
         Map<Object, String> _map;
 
-        // Let's convert from long to Date
         @JsonKeyClass(StringWrapper.class)
         public void setMap(Map<Object,String> m)
         {
@@ -112,6 +111,16 @@ public class TestValueAnnotations
     // Annotated helper classes for @JsonContentClass
     //////////////////////////////////////////////
      */
+
+    final static class ListContentHolder
+    {
+        List<?> _list;
+
+        @JsonContentClass(StringWrapper.class)
+        public void setList(List<?> l) {
+            _list = l;
+        }
+    }
 
     /*
     //////////////////////////////////////////////
@@ -164,7 +173,9 @@ public class TestValueAnnotations
             BrokenCollectionHolder result = new ObjectMapper().readValue
                 ("{ \"strings\" : [ ] }", BrokenCollectionHolder.class);
             fail("Expected a failure, but got results: "+result);
-        } catch (JsonMappingException jme) { }
+        } catch (JsonMappingException jme) {
+            verifyException(jme, "is not assignable to");
+        }
     }
 
     /*
@@ -194,7 +205,9 @@ public class TestValueAnnotations
             BrokenMapKeyHolder result = new ObjectMapper().readValue
                 ("{ \"123\" : \"xxx\" }", BrokenMapKeyHolder.class);
             fail("Expected a failure, but got results: "+result);
-        } catch (JsonMappingException jme) { }
+        } catch (JsonMappingException jme) {
+            verifyException(jme, "is not assignable to");
+        }
     }
 
     /*
@@ -205,5 +218,12 @@ public class TestValueAnnotations
 
     public void testOverrideContentClassValid() throws Exception
     {
+        ObjectMapper m = new ObjectMapper();
+        ListContentHolder result = m.readValue("{ \"list\" : [ \"abc\" ] }", ListContentHolder.class);
+        List<StringWrapper> list = (List<StringWrapper>)result._list;
+        assertEquals(1, list.size());
+        Object value = list.get(0);
+        assertEquals(StringWrapper.class, value.getClass());
+        assertEquals("abc", ((StringWrapper) value)._string);
     }
 }
