@@ -35,11 +35,6 @@ public final class MapType
         _fullyTyped = fullyTyped;
     }
 
-    protected JavaType _narrow(Class<?> subclass)
-    {
-        return new MapType(subclass, _keyType, _valueType, _fullyTyped);
-    }
-
     /**
      * Method called to construct a partially typed instance. Partial
      * means that we can not determine component types, due to type
@@ -54,6 +49,21 @@ public final class MapType
     public static MapType typed(Class<?> rawType, JavaType keyT, JavaType valueT)
     {
         return new MapType(rawType, keyT, valueT, keyT.isFullyTyped() & valueT.isFullyTyped());
+    }
+
+    protected JavaType _narrow(Class<?> subclass)
+    {
+        return new MapType(subclass, _keyType, _valueType, _fullyTyped);
+    }
+
+    public JavaType narrowContentsBy(Class<?> contentClass)
+    {
+        // Can do a quick check first:
+        if (contentClass == _valueType.getRawClass()) {
+            return this;
+        }
+        JavaType newValueType = _valueType.narrowBy(contentClass);
+        return new  MapType(_class, _keyType, newValueType, _fullyTyped);
     }
 
     /*

@@ -262,6 +262,20 @@ public abstract class BasicDeserializerFactory
                 throw new JsonMappingException("Failed to narrow key of "+type+" with @JsonKeyClass("+keyClass.getName()+"): "+iae.getMessage(), null, iae);
             }
         }
+
+        // and finally content class; only applicable to structured types
+        JsonContentClass contentAnn = m.getAnnotation(JsonContentClass.class);
+        if (contentAnn != null) {
+            if (!type.isContainerType()) {
+                throw new JsonMappingException("Illegal @JsonContentClass annotation on "+ClassUtil.descFor(m)+"; can only be used for container types (Collections, Maps, arrays");
+            }
+            Class<?> cc = contentAnn.value();
+            try {
+                type = type.narrowContentsBy(cc);
+            } catch (IllegalArgumentException iae) {
+                throw new JsonMappingException("Failed to narrow content type "+type+" with @JsonContentClass("+cc.getName()+"): "+iae.getMessage(), null, iae);
+            }
+        }
         return type;
     }
 }

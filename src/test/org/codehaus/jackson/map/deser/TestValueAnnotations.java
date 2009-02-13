@@ -122,6 +122,39 @@ public class TestValueAnnotations
         }
     }
 
+    final static class InvalidContentClass
+    {
+        /* Such annotation not allowed, since it makes no sense;
+         * non-container classes have no contents to annotate (but
+         * note that it is possible to first use @JsonClass to mark
+         * Object as, say, a List, and THEN use @JsonContentClass!)
+         */
+        @JsonContentClass(String.class)
+            public void setValue(Object x) { }
+    }
+
+    final static class ArrayContentHolder
+    {
+        Object[] _data;
+
+        @JsonContentClass(Long.class)
+        public void setData(Object[] o)
+        { // should have proper type, but no need to coerce here
+            _data = o;
+        }
+    }
+
+    final static class MapContentHolder
+    {
+        Map<Object,Object> _map;
+
+        @JsonContentClass(Integer.class)
+        public void setMap(Map<Object,Object> m)
+        {
+            _map = m;
+        }
+    }
+
     /*
     //////////////////////////////////////////////
     // Test methods for @JsonClass
@@ -225,5 +258,46 @@ public class TestValueAnnotations
         Object value = list.get(0);
         assertEquals(StringWrapper.class, value.getClass());
         assertEquals("abc", ((StringWrapper) value)._string);
+    }
+
+    /**
+     * This test checks that @JsonContentClass is not used for non-container
+     * types; those make no sense, and can be detected easily.
+     */
+    public void testContentClassValid() throws Exception
+    {
+        // should fail due to incompatible Annotation
+        try {
+            InvalidContentClass result = new ObjectMapper().readValue
+                ("{ \"value\" : \"x\" }", InvalidContentClass.class);
+            fail("Expected a failure, but got results: "+result);
+        } catch (JsonMappingException jme) {
+            verifyException(jme, "Illegal @JsonContentClass annotation");
+        }
+    }
+
+    public void testOverrideArrayContents() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        ArrayContentHolder result = m.readValue("{ \"data\" : [ 1, 2, 3 ] }",
+                                                ArrayContentHolder.class);
+        Object[] data = result._data;
+        assertEquals(3, data.length);
+        assertEquals(Long[].class, data.getClass());
+        assertEquals(1L, data[0]);
+        assertEquals(2L, data[1]);
+        assertEquals(3L, data[2]);
+    }
+
+    public void testOverrideMapContents() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        MapContentHolder result = m.readValue("{ \"map\" : { \"a\" : 9 } }",
+                                                MapContentHolder.class);
+        Map<Object,Object> map = result._map;
+        assertEquals(1, map.size());
+        Object ob = map.values().iterator().next();
+        assertEquals(Integer.class, ob.getClass());
+        assertEquals(Integer.valueOf(9), ob);
     }
 }

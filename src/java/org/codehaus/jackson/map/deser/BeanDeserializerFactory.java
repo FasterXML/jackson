@@ -70,10 +70,6 @@ public class BeanDeserializerFactory
         if ((sctor == null) && (nctor == null) && (defaultCtor == null)) {
             throw new IllegalArgumentException("Can not create Bean deserializer for ("+type+"): neither default constructor nor factory methods found");
         }
-        if (defaultCtor != null) {
-            ClassUtil.checkAndFixAccess(defaultCtor, beanClass);
-        }
-
         BeanDeserializer deser = new BeanDeserializer(type, defaultCtor, sctor, nctor);
         // And then things we need if we get Json Object:
         addBeanProps(intr, deser);

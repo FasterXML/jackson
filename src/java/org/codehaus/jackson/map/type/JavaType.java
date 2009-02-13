@@ -54,6 +54,8 @@ public abstract class JavaType
 
     protected abstract JavaType _narrow(Class<?> subclass);
 
+    public abstract JavaType narrowContentsBy(Class<?> contentClass);
+
     /*
     ///////////////////////////////////////////////////////////////
     // Public API

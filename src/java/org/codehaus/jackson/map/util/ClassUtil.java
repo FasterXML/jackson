@@ -153,7 +153,12 @@ public final class ClassUtil
             Method m = (Method) elem;
             return "method "+m.getName()+" (from class "+m.getDeclaringClass().getName()+")";
         }
-        // Constructor or such?
+        if (elem instanceof Constructor) {
+            Constructor ctor = (Constructor) elem;
+            // should indicate number of args?
+            return "constructor() (from class "+ctor.getDeclaringClass().getName()+")";
+        }
+        // what else?
         return "unknown type ["+elem.getClass()+"]";
     }
 

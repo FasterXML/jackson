@@ -39,6 +39,12 @@ public final class SimpleType
         return new SimpleType(subclass);
     }
 
+    public JavaType narrowContentsBy(Class<?> subclass)
+    {
+        // should never get called
+        throw new IllegalArgumentException("Internal error: SimpleType.narrowContentsBy() should never be called");
+    }
+
     public static SimpleType construct(Class<?> cls)
     {
         /* Let's add sanity checks, just to ensure no

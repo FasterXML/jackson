@@ -199,6 +199,7 @@ public class ClassIntrospector
             if (!ctor.isVarArgs() && ctor.getParameterTypes().length == 0) {
                 // 11-Feb-2009, tatu: Also, must ignore if instructed to:
                 if (!ctor.isAnnotationPresent(JsonIgnore.class)) {
+                    ClassUtil.checkAndFixAccess(ctor, _class);
                     return ctor;
                 }
                 // only one such ctor anyway, so let's bail if that one's no good
