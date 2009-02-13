@@ -18,7 +18,25 @@ public class ClassIntrospector
     ///////////////////////////////////////////////////////
      */
 
-    transient Constructor<?>[] _ctors;
+    /**
+     * Default no-argument constructor of this class, if it
+     * has one, and that constructor is NOT marked with
+     * @JsonIgnore
+     */
+    transient Constructor<?> _defaultConstructor;
+
+    /**
+     * Accessible non-default constructors of this class; accessible
+     * means constructors that are:
+     *<ul>
+     * <li>Do NOT have @JsonIgnore annotation
+     *  </li>
+     * <li>Either have 'public' access modified, or are marked
+     *   with @JsonCreator annotation.
+     *  </li>
+     *</ul>
+     */
+    transient List<Constructor<?>> _nonDefaultConstructors;
 
     transient Method[] _directMethods;
 
@@ -194,19 +212,10 @@ public class ClassIntrospector
      */
     public Constructor<?> findDefaultConstructor()
     {
-        for (Constructor<?> ctor : declaredConstructors()) {
-            // won't use varargs, no point
-            if (!ctor.isVarArgs() && ctor.getParameterTypes().length == 0) {
-                // 11-Feb-2009, tatu: Also, must ignore if instructed to:
-                if (!ctor.isAnnotationPresent(JsonIgnore.class)) {
-                    ClassUtil.checkAndFixAccess(ctor, _class);
-                    return ctor;
-                }
-                // only one such ctor anyway, so let's bail if that one's no good
-                break;
-            }
+        if (_nonDefaultConstructors == null) { // not yet initialized
+            _fetchConstructors();
         }
-        return null;
+        return _defaultConstructor;
     }
 
     /**
@@ -217,11 +226,11 @@ public class ClassIntrospector
      */
     public Constructor<?> findSingleArgConstructor(Class<?>... argTypes)
     {
-        for (Constructor<?> c : declaredConstructors()) {
-            // First: must obey @JsonIgnore if present, and skip it
-            if (c.isAnnotationPresent(JsonIgnore.class)) {
-                continue;
-            }
+        if (_nonDefaultConstructors == null) { // not yet initialized
+            _fetchConstructors();
+        }
+        for (Constructor<?> c : _nonDefaultConstructors) {
+            // This list is already filtered to only include accessible
             Class<?>[] args = c.getParameterTypes();
             // Otherwise must have just one arg of specific type
             if (args.length == 1) {
@@ -453,14 +462,6 @@ public class ClassIntrospector
     ///////////////////////////////////////////////////////
      */
 
-    protected Constructor<?>[] declaredConstructors()
-    {
-        if (_ctors == null) {
-            _ctors = _class.getDeclaredConstructors();
-        }
-        return _ctors;
-    }
-
     protected Method[] declaredMethods()
     {
         if (_directMethods == null) {
@@ -472,6 +473,51 @@ public class ClassIntrospector
     protected DeclMethodIter methodIterator()
     {
         return new DeclMethodIter(_class, declaredMethods());
+    }
+
+    /**
+     * Method that will 
+     */
+    protected void _fetchConstructors()
+    {
+        List<Constructor<?>> publicCtors = null;
+        for (Constructor<?> ctor : _class.getDeclaredConstructors()) {
+            // won't use varargs, no point
+            if (ctor.isVarArgs()) {
+                continue;
+            }
+            // also, have to respect @JsonIgnore
+            if (ctor.isAnnotationPresent(JsonIgnore.class)) {
+                continue;
+            }
+
+            /* Otherwise, handling of default ctor is different;
+             * we'll use it even if it's not public; other ctors
+             * only if public or marked with @JsonCreator
+             */
+            if (ctor.getParameterTypes().length == 0) {
+                ClassUtil.checkAndFixAccess(ctor, _class);
+                _defaultConstructor = ctor;
+                continue;
+            }
+            /* At this point, we will accept all ctors, not just single-arg
+             * But must be public, or marked with @JsonCreator
+             */
+            if (!Modifier.isPublic(ctor.getModifiers())
+                && !ctor.isAnnotationPresent(JsonCreator.class)) {
+                continue;
+            }
+            // if so, let's add:
+            if (publicCtors == null) {
+                publicCtors = new ArrayList<Constructor<?>>();
+            }
+            publicCtors.add(ctor);
+        }
+        if (publicCtors == null) {
+            _nonDefaultConstructors = Collections.emptyList();
+        } else {
+            _nonDefaultConstructors = publicCtors;
+        }
     }
 
     /*
