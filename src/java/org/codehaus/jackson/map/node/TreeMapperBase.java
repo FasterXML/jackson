@@ -5,17 +5,32 @@ import java.math.BigDecimal;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.JsonNode;
-import org.codehaus.jackson.map.BaseMapper;
 
 /**
  * This intermediate base class is needed to access non-public
  * (package) interface of node implementations during building.
  */
 public abstract class TreeMapperBase
-    extends BaseMapper
     implements NodeCreator
 {
-    protected TreeMapperBase(JsonFactory jf) { super(jf); }
+    /**
+     * Enumeration that defines strategies available for dealing with
+     * duplicate field names (when mapping JSON to Java types).
+     */
+    public enum DupFields {
+        ERROR /* default */
+            , USE_FIRST
+            , USE_LAST
+            ;
+    }
+
+    /**
+     * This option defines how duplicate field names (from JSON input)
+     * are to be handled. Default is to throw a {@link JsonParseException}.
+     */
+    protected DupFields _cfgDupFields = DupFields.ERROR;
+
+    protected TreeMapperBase() { }
 
     /*
     /////////////////////////////////////////////////////
@@ -132,5 +147,16 @@ public abstract class TreeMapperBase
             _throwInternal("Unrecognized event type: "+currToken);
             return null; // never gets this far
         }
+    }
+
+    protected void _throwInternal(String msg)
+    {
+        throw new RuntimeException("Internal error: "+msg);
+    }
+
+    protected void _reportProblem(JsonParser jp, String msg)
+        throws JsonParseException
+    {
+        throw new JsonParseException(msg, jp.getTokenLocation());
     }
 }

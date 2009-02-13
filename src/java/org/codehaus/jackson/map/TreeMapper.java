@@ -27,6 +27,12 @@ import org.codehaus.jackson.map.node.TreeMapperBase;
 public class TreeMapper
     extends TreeMapperBase
 {
+    /**
+     * Factory used to create {@link JsonParser} and {@link JsonGenerator}
+     * instances as necessary.
+     */
+    protected final JsonFactory _jsonFactory;
+
     /*
     ////////////////////////////////////////////////////
     // Life-cycle (construction, configuration)
@@ -40,8 +46,17 @@ public class TreeMapper
 
     public TreeMapper(JsonFactory jf)
     {
-        super(jf);
+        _jsonFactory = (jf == null) ? new JsonFactory() : jf;
     }
+
+    /**
+     * Method that can be used to get hold of Json factory that this
+     * mapper uses if it needs to construct Json parsers and/or generators.
+     *
+     * @return Json factory that this mapper uses when it needs to
+     *   construct Json parser and generators
+     */
+    public JsonFactory getJsonFactory() { return _jsonFactory; }
 
     /*
     ////////////////////////////////////////////////////
@@ -138,61 +153,6 @@ public class TreeMapper
     {
         _writeNodeAndClose(_jsonFactory.createJsonGenerator(dst, JsonEncoding.UTF8), rootNode);
     }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Public API, exposing JsonNode(s) via stream
-    // parsers/generators
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Method that will take in a Node object and construct
-     * a {@link JsonParser} that can be used to traverse json
-     * content as streaming events.
-     * Method is meant for interoperability use cases, in cases where
-     * some code expects a {@link JsonParser}, but you already
-     * have content parser into {@link JsonNode} structure.
-     * This is more efficient than writing intermediate textual
-     * JSON serialization and parsing it via regular json stream reader.
-     *<p>
-     * Note that this should (and can) <b>NOT</b> be used to parse
-     * textual json content: for that purpose you should 
-     * use {@link org.codehaus.jackson.JsonFactory#createJsonParser(java.io.InputStream)}
-     * instead.
-     */
-    /*
-    public JsonParser createParserFor(JsonNode node)
-        throws JsonParseException
-    {
-        // !!! TBI: parser for reading from JsonNode (array/map, primitives)
-        throw new UnsupportedOperationException();
-    }
-    */
-
-    /**
-     * Method that will construct a JSON generator that will build
-     * {@link JsonNode}s when generator's write methods are called.
-     * Method is meant for interoperability use cases, in cases where
-     * some code expects a {@link JsonGenerator} to use, but the output
-     * should be in {@link JsonNode} structure.
-     * This is more efficient than writing intermediate textual
-     * JSON serialization and parsing and mapping it to
-     * {@link JsonNode} based structure.
-     *<p>
-     * Note that this should (and can) <b>NOT</b> be used to output regular
-     * textual json content: for that purpose you should 
-     * use {@link org.codehaus.jackson.JsonFactory#createJsonGenerator(java.io.Writer)}
-     * instead.
-     */
-    /*
-    public JsonGenerator createGeneratorFor(JsonNode context)
-        throws JsonParseException
-    {
-        // !!! TBI: generator for writing (appending) to Objects (array/map, primitives)
-        throw new UnsupportedOperationException();
-    }
-    */
 
     /*
     ////////////////////////////////////////////////////

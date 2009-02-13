@@ -42,7 +42,7 @@
     <property name="IMPL_TITLE_CORE" value="Jackson JSON processor" />
     <property name="IMPL_TITLE_MAPPER" value="Data mapper for Jackson JSON processor" />
     <property name="IMPL_VERSION" value="0.9.8-SNAPSHOT" />
-    <property name="IMPL_VENDOR" value="http://www.cowtowncoder.com/" />
+    <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
     <path id="junit-libs">
        <fileset dir="${dir.lib}">

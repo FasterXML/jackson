@@ -21,13 +21,18 @@ import org.codehaus.jackson.type.TypeReference;
  * for implementing actual reading/writing of JSON.
  */
 public class ObjectMapper
-    extends BaseMapper
 {
     /*
     ////////////////////////////////////////////////////
     // Configuration settings
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * Factory used to create {@link JsonParser} and {@link JsonGenerator}
+     * instances as necessary.
+     */
+    protected final JsonFactory _jsonFactory;
 
     /**
      * Object that manages access to serializers used for serialization,
@@ -107,9 +112,9 @@ public class ObjectMapper
     }
 
     public ObjectMapper(JsonFactory jf, SerializerProvider sp,
-                          DeserializerProvider dp)
+                        DeserializerProvider dp)
     {
-        super(jf);
+        _jsonFactory = (jf == null) ? new JsonFactory() : jf;
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -130,6 +135,21 @@ public class ObjectMapper
     public void setDeserializerProvider(DeserializerProvider p) {
         _deserializerProvider = p;
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Simple accessors
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be used to get hold of Json factory that this
+     * mapper uses if it needs to construct Json parsers and/or generators.
+     *
+     * @return Json factory that this mapper uses when it needs to
+     *   construct Json parser and generators
+     */
+    public JsonFactory getJsonFactory() { return _jsonFactory; }
 
     /*
     ////////////////////////////////////////////////////
