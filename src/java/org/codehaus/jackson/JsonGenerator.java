@@ -644,7 +644,7 @@ public abstract class JsonGenerator
      * @return Context object that can give information about logical
      *   position within generated json content.
      */
-    public abstract JsonWriteContext getOutputContext();
+    public abstract JsonContext getOutputContext();
 
     /*
     ////////////////////////////////////////////////////

@@ -544,7 +544,7 @@ public final class WriterBasedGenerator
         if (_outputBuffer != null
             && isFeatureEnabled(Feature.AUTO_CLOSE_JSON_CONTENT)) {
             while (true) {
-                JsonWriteContext ctxt = getOutputContext();
+                JsonContext ctxt = getOutputContext();
                 if (ctxt.inArray()) {
                     writeEndArray();
                 } else if (ctxt.inObject()) {

@@ -78,7 +78,10 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
-    public final JsonWriteContext getOutputContext() { return _writeContext; }
+    /**
+     * Note: co-variant return type.
+     */
+    public final JsonWriteContextImpl getOutputContext() { return _writeContext; }
 
     /*
     ////////////////////////////////////////////////////

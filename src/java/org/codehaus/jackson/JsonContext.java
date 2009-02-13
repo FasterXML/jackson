@@ -16,8 +16,10 @@
 package org.codehaus.jackson;
 
 /**
- * Shared base class for read (input) and write (output) contexts.
- * Context object can be used by applications to get an idea of
+ * Shared base class for streaming processing contexts used during
+ * reading and writing of Json content using Streaming API.
+ * This context is also exposed to applications:
+ * context object can be used by applications to get an idea of
  * relative position of the parser/generator within json content
  * being processed. This allows for some contextual processing: for
  * example, output within Array context can differ from that of
