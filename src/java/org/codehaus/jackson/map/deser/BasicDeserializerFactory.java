@@ -30,9 +30,10 @@ public abstract class BasicDeserializerFactory
      * interfaces, to avoid having to use exact types or annotations in
      * cases where the most common concrete Maps will do.
      */
-    final static HashMap<String, Class<? extends Map>> _mapFallbacks;
+    @SuppressWarnings("unchecked")
+	final static HashMap<String, Class<? extends Map>> _mapFallbacks =
+        new HashMap<String, Class<? extends Map>>();
     static {
-        _mapFallbacks = new HashMap<String, Class<? extends Map>>();
 
         _mapFallbacks.put(Map.class.getName(), LinkedHashMap.class);
         _mapFallbacks.put(ConcurrentMap.class.getName(), ConcurrentHashMap.class);
@@ -58,10 +59,10 @@ public abstract class BasicDeserializerFactory
      * interfaces, to avoid having to use exact types or annotations in
      * cases where the most common concrete Maps will do.
      */
-    final static HashMap<String, Class<? extends Collection>> _collectionFallbacks;
+    @SuppressWarnings("unchecked")
+	final static HashMap<String, Class<? extends Collection>> _collectionFallbacks =
+        new HashMap<String, Class<? extends Collection>>();
     static {
-        _collectionFallbacks = new HashMap<String, Class<? extends Collection>>();
-
         _collectionFallbacks.put(Collection.class.getName(), ArrayList.class);
         _collectionFallbacks.put(List.class.getName(), ArrayList.class);
         _collectionFallbacks.put(Set.class.getName(), HashSet.class);
@@ -119,7 +120,7 @@ public abstract class BasicDeserializerFactory
         return new ArrayDeserializer(type, valueDes);
     }
 
-    @Override
+	@Override
 	public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
         throws JsonMappingException
     {
@@ -146,6 +147,7 @@ public abstract class BasicDeserializerFactory
          * be implementing)
          */
         if (type.isInterface() || type.isAbstract()) {
+            @SuppressWarnings("unchecked")
             Class<? extends Collection> fallback = _collectionFallbacks.get(collectionClass.getName());
             if (fallback == null) {
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Collection type "+type);
@@ -155,7 +157,7 @@ public abstract class BasicDeserializerFactory
         return new CollectionDeserializer(collectionClass, valueDes);
     }
 
-    @Override
+	@Override
 	public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
         throws JsonMappingException
     {
@@ -186,6 +188,7 @@ public abstract class BasicDeserializerFactory
          * be implementing)
          */
         if (type.isInterface() || type.isAbstract()) {
+            @SuppressWarnings("unchecked")
             Class<? extends Map> fallback = _mapFallbacks.get(mapClass.getName());
             if (fallback == null) {
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Map type "+type);
@@ -236,7 +239,6 @@ public abstract class BasicDeserializerFactory
     protected JavaType modifyTypeByAnnotation(Method m, JavaType type)
         throws JsonMappingException
     {
-        Class<?> rawClass = type.getRawClass();
         // first: let's check class for the instance itself:
         JsonClass mainAnn = m.getAnnotation(JsonClass.class);
         if (mainAnn != null) {

@@ -7,7 +7,7 @@ import java.math.BigDecimal;
  * Node instances -- either newly constructed, or shared, depending
  * on type.
  */
-public interface NodeCreator
+public interface JsonNodeFactory
 {
     public ArrayNode arrayNode();
     public ObjectNode objectNode();

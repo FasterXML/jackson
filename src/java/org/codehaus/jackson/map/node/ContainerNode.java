@@ -12,16 +12,16 @@ import org.codehaus.jackson.map.JsonNode;
  */
 public abstract class ContainerNode
     extends JsonNode
-    implements NodeCreator
+    implements JsonNodeFactory
 {
     /**
      * We will keep a reference to the Object (usually TreeMapper)
      * that can construct instances of nodes to add to this container
      * node.
      */
-    NodeCreator _nodeCreator;
+    JsonNodeFactory _nodeCreator;
 
-    protected ContainerNode(NodeCreator nc)
+    protected ContainerNode(JsonNodeFactory nc)
     {
         _nodeCreator = nc;
     }

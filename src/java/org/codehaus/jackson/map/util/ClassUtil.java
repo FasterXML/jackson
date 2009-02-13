@@ -154,7 +154,7 @@ public final class ClassUtil
             return "method "+m.getName()+" (from class "+m.getDeclaringClass().getName()+")";
         }
         if (elem instanceof Constructor) {
-            Constructor ctor = (Constructor) elem;
+            Constructor<?> ctor = (Constructor<?>) elem;
             // should indicate number of args?
             return "constructor() (from class "+ctor.getDeclaringClass().getName()+")";
         }

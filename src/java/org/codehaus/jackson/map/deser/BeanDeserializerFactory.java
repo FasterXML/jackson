@@ -98,8 +98,6 @@ public class BeanDeserializerFactory
          */
         //if (methodsByProp.isEmpty()) ...
 
-        ArrayList<SettableBeanProperty> props = new ArrayList<SettableBeanProperty>(methodsByProp.size());
-
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,Method> en : methodsByProp.entrySet()) {
             String name = en.getKey();
@@ -151,8 +149,7 @@ public class BeanDeserializerFactory
             }
             try {
                 Object ob = deserClass.newInstance();
-                @SuppressWarnings("unchecked")
-                    JsonDeserializer<Object> ser = (JsonDeserializer<Object>) ob;
+                JsonDeserializer<Object> ser = (JsonDeserializer<Object>) ob;
                 return ser;
             } catch (Exception e) {
                 throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);

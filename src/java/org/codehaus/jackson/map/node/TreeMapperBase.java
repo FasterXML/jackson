@@ -11,7 +11,7 @@ import org.codehaus.jackson.map.JsonNode;
  * (package) interface of node implementations during building.
  */
 public abstract class TreeMapperBase
-    implements NodeCreator
+    implements JsonNodeFactory
 {
     /**
      * Enumeration that defines strategies available for dealing with

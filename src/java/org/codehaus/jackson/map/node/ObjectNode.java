@@ -16,7 +16,7 @@ public final class ObjectNode
 {
     LinkedHashMap<String, JsonNode> _children = null;
 
-    public ObjectNode(NodeCreator nc) { super(nc); }
+    public ObjectNode(JsonNodeFactory nc) { super(nc); }
 
     /*
     ///////////////////////////////////////////////////////////

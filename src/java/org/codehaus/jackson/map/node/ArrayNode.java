@@ -16,7 +16,7 @@ public final class ArrayNode
 {
     ArrayList<JsonNode> _children;
 
-    public ArrayNode(NodeCreator nc) { super(nc); }
+    public ArrayNode(JsonNodeFactory nc) { super(nc); }
 
     /*
     ///////////////////////////////////////////////////////////
