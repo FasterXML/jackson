@@ -82,6 +82,20 @@ public class TestAnnotations
         public int getX() { return 2; }
     }
 
+    /**
+     * Class for verifying that getter information is inherited
+     * as expected via normal class inheritance
+     */
+    class BaseBean {
+        public int getX() { return 1; }
+        @JsonGetter("y")
+        private int getY() { return 2; }
+    }
+
+    class SubClassBean extends BaseBean {
+        public int getZ() { return 3; }
+    }
+
     /*
     //////////////////////////////////////////////
     // Other helper classes
@@ -132,6 +146,20 @@ public class TestAnnotations
         assertEquals(1, result.size());
         assertEquals(Integer.valueOf(1), result.get("x"));
         assertNull(result.get("y"));
+    }
+
+    /**
+     * Let's also verify that inherited super-class getters are used
+     * as expected
+     */
+    public void testGetterInheritance() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, new SubClassBean());
+        assertEquals(3, result.size());
+        assertEquals(Integer.valueOf(1), result.get("x"));
+        assertEquals(Integer.valueOf(2), result.get("y"));
+        assertEquals(Integer.valueOf(3), result.get("z"));
     }
 
     /**

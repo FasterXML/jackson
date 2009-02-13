@@ -54,6 +54,22 @@ public class TestBasicAnnotations
         }
     }
 
+    /// Classes for testing Setter discovery with inheritance
+    static class BaseBean
+    {
+        int _x = 0, _y = 0;
+
+        public void setX(int value) { _x = value; }
+        @JsonSetter("y") void foobar(int value) { _y = value; }
+    }
+
+    static class BeanSubClass extends BaseBean
+    {
+        int _z;
+
+        public void setZ(int value) { _z = value; }
+    }
+
     /**
      * Class for testing {@link JsonDeserializer} annotation
      * for class itself.
@@ -140,6 +156,21 @@ public class TestBasicAnnotations
         // x should be set, y not
         assertEquals(1, result._x);
         assertEquals(0, result._y);
+    }
+
+    /**
+     * Test for verifying that super-class setters are used as
+     * expected.
+     */
+    public void testSetterInheritance() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        BeanSubClass result = m.readValue
+            ("{ \"x\":1, \"z\" : 3, \"y\" : 2 }",
+             BeanSubClass.class);
+        assertEquals(1, result._x);
+        assertEquals(2, result._y);
+        assertEquals(3, result._z);
     }
 
     /**
