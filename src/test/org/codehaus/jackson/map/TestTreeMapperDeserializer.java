@@ -46,32 +46,32 @@ public class TestTreeMapperDeserializer
             ObjectNode imageMap = (ObjectNode) ob;
             
             assertEquals(5, imageMap.size());
-            ob = imageMap.getFieldValue("Width");
+            ob = imageMap.get("Width");
             assertTrue(ob.isIntegralNumber());
             assertFalse(ob.isFloatingPointNumber());
             assertEquals(SAMPLE_SPEC_VALUE_WIDTH, ob.getIntValue());
-            ob = imageMap.getFieldValue("Height");
+            ob = imageMap.get("Height");
             assertTrue(ob.isIntegralNumber());
             assertEquals(SAMPLE_SPEC_VALUE_HEIGHT, ob.getIntValue());
             
-            ob = imageMap.getFieldValue("Title");
+            ob = imageMap.get("Title");
             assertTrue(ob.isTextual());
             assertEquals(SAMPLE_SPEC_VALUE_TITLE, ob.getTextValue());
             
-            ob = imageMap.getFieldValue("Thumbnail");
+            ob = imageMap.get("Thumbnail");
             assertType(ob, ObjectNode.class);
             ObjectNode tn = (ObjectNode) ob;
-            ob = tn.getFieldValue("Url");
+            ob = tn.get("Url");
             assertTrue(ob.isTextual());
             assertEquals(SAMPLE_SPEC_VALUE_TN_URL, ob.getTextValue());
-            ob = tn.getFieldValue("Height");
+            ob = tn.get("Height");
             assertTrue(ob.isIntegralNumber());
             assertEquals(SAMPLE_SPEC_VALUE_TN_HEIGHT, ob.getIntValue());
-            ob = tn.getFieldValue("Width");
+            ob = tn.get("Width");
             assertTrue(ob.isTextual());
             assertEquals(SAMPLE_SPEC_VALUE_TN_WIDTH, ob.getTextValue());
             
-            ob = imageMap.getFieldValue("IDs");
+            ob = imageMap.get("IDs");
             assertTrue(ob.isArray());
             ArrayNode idList = (ArrayNode) ob;
             assertEquals(4, idList.size());
@@ -85,7 +85,7 @@ public class TestTreeMapperDeserializer
                     SAMPLE_SPEC_VALUE_TN_ID4
                 };
                 for (int i = 0; i < values.length; ++i) {
-                    assertEquals(values[i], idList.getElementValue(i).getIntValue());
+                    assertEquals(values[i], idList.get(i).getIntValue());
                 }
                 int i = 0;
                 for (JsonNode n : idList) {
@@ -261,17 +261,17 @@ public class TestTreeMapperDeserializer
         assertFalse(result.equals(null)); // but not to null
 
         // plus see that we can access stuff
-        assertEquals(mapper.nullNode(), result.getPath(0));
-        assertEquals(mapper.nullNode(), result.getElementValue(0));
-        assertEquals(BooleanNode.getFalse(), result.getPath(1));
-        assertEquals(BooleanNode.getFalse(), result.getElementValue(1));
+        assertEquals(mapper.nullNode(), result.path(0));
+        assertEquals(mapper.nullNode(), result.get(0));
+        assertEquals(BooleanNode.getFalse(), result.path(1));
+        assertEquals(BooleanNode.getFalse(), result.get(1));
         assertEquals(2, result.size());
 
-        assertNull(result.getElementValue(-1));
-        assertNull(result.getElementValue(2));
-        JsonNode missing = result.getPath(2);
+        assertNull(result.get(-1));
+        assertNull(result.get(2));
+        JsonNode missing = result.path(2);
         assertTrue(missing.isMissingNode());
-        assertTrue(result.getPath(-100).isMissingNode());
+        assertTrue(result.path(-100).isMissingNode());
 
         // then construct and compare
         ArrayNode array2 = mapper.arrayNode();
@@ -357,7 +357,7 @@ public class TestTreeMapperDeserializer
         assertEquals(2, result.size());
 
         int count = 0;
-        for (JsonNode n : result) {
+        for (@SuppressWarnings("unused") JsonNode n : result) {
             ++count;
         }
         assertEquals(2, count);
@@ -372,16 +372,16 @@ public class TestTreeMapperDeserializer
         assertNull(onode.getTextValue());
 
         // how about dereferencing?
-        assertNull(onode.getElementValue(0));
-        JsonNode dummyNode = onode.getPath(0);
+        assertNull(onode.get(0));
+        JsonNode dummyNode = onode.path(0);
         assertNotNull(dummyNode);
         assertTrue(dummyNode.isMissingNode());
-        assertNull(dummyNode.getElementValue(3));
-        assertNull(dummyNode.getFieldValue("whatever"));
-        JsonNode dummyNode2 = dummyNode.getPath(98);
+        assertNull(dummyNode.get(3));
+        assertNull(dummyNode.get("whatever"));
+        JsonNode dummyNode2 = dummyNode.path(98);
         assertNotNull(dummyNode2);
         assertTrue(dummyNode2.isMissingNode());
-        JsonNode dummyNode3 = dummyNode.getPath("field");
+        JsonNode dummyNode3 = dummyNode.path("field");
         assertNotNull(dummyNode3);
         assertTrue(dummyNode3.isMissingNode());
 
@@ -393,16 +393,16 @@ public class TestTreeMapperDeserializer
         assertFalse(anode.isMissingNode()); // real node
         assertEquals(0, anode.size());
 
-        assertNull(anode.getElementValue(0));
-        dummyNode = anode.getPath(0);
+        assertNull(anode.get(0));
+        dummyNode = anode.path(0);
         assertNotNull(dummyNode);
         assertTrue(dummyNode.isMissingNode());
-        assertNull(dummyNode.getElementValue(0));
-        assertNull(dummyNode.getFieldValue("myfield"));
-        dummyNode2 = dummyNode.getPath(98);
+        assertNull(dummyNode.get(0));
+        assertNull(dummyNode.get("myfield"));
+        dummyNode2 = dummyNode.path(98);
         assertNotNull(dummyNode2);
         assertTrue(dummyNode2.isMissingNode());
-        dummyNode3 = dummyNode.getPath("f");
+        dummyNode3 = dummyNode.path("f");
         assertNotNull(dummyNode3);
         assertTrue(dummyNode3.isMissingNode());
     }

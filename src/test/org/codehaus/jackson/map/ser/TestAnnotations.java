@@ -88,7 +88,8 @@ public class TestAnnotations
      */
     class BaseBean {
         public int getX() { return 1; }
-        @JsonGetter("y")
+        @SuppressWarnings("unused")
+		@JsonGetter("y")
         private int getY() { return 2; }
     }
 
@@ -223,7 +224,8 @@ public class TestAnnotations
     //////////////////////////////////////////////
      */
 
-    private Map<String,Object> writeAndMap(ObjectMapper m, Object value)
+    @SuppressWarnings("unchecked")
+	private Map<String,Object> writeAndMap(ObjectMapper m, Object value)
         throws IOException
     {
         StringWriter sw = new StringWriter();

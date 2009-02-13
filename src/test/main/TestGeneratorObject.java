@@ -18,7 +18,7 @@ public class TestGeneratorObject
         StringWriter sw = new StringWriter();
         JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
 
-        JsonContext ctxt = gen.getOutputContext();
+        JsonStreamContext ctxt = gen.getOutputContext();
         assertTrue(ctxt.inRoot());
         assertFalse(ctxt.inArray());
         assertFalse(ctxt.inObject());

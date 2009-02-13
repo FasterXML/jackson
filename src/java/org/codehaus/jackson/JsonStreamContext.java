@@ -25,7 +25,7 @@ package org.codehaus.jackson;
  * example, output within Array context can differ from that of
  * Object context.
  */
-public abstract class JsonContext
+public abstract class JsonStreamContext
 {
     // // // Type constants used internally
 
@@ -50,7 +50,7 @@ public abstract class JsonContext
     //////////////////////////////////////////////////
      */
 
-    public JsonContext(int type)
+    public JsonStreamContext(int type)
     {
         _type = type;
         _index = -1;
@@ -62,7 +62,7 @@ public abstract class JsonContext
     //////////////////////////////////////////////////
      */
 
-    public abstract JsonContext getParent();
+    public abstract JsonStreamContext getParent();
 
     /**
      * Method that returns true if this context is an Array context;

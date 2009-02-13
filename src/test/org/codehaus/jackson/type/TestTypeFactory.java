@@ -1,4 +1,4 @@
-package org.jackson.type;
+package org.codehaus.jackson.type;
 
 import java.util.*;
 

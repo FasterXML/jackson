@@ -12,7 +12,7 @@ import static org.junit.Assert.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.TypeReference;
+import org.codehaus.jackson.type.TypeReference;
 
 /**
  * This unit test suite tries to verify that the "Native" java type
@@ -385,7 +385,8 @@ public class TestObjectMapperArrayDeserializer
         List<Bean2> _beans;
 
         // Just for deserialization:
-        private Bean1() { }
+        @SuppressWarnings("unused")
+		private Bean1() { }
 
         public Bean1(int x, int y, List<Bean2> beans)
         {

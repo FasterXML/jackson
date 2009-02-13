@@ -7,7 +7,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.TypeReference;
+import org.codehaus.jackson.type.TypeReference;
 
 /**
  * Unit tests for verifying handling of simple structured
@@ -32,13 +32,14 @@ public class TestObjectMapperContainerDeserializer
     ///////////////////////////////////////////////////////
      */
 
-    public void testUntypedMap() throws Exception
+	public void testUntypedMap() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         // to get "untyped" default map-to-map, pass Object.class
         String JSON = "{ \"foo\" : \"bar\", \"crazy\" : true, \"null\" : null }";
 
         // Not a guaranteed cast theoretically, but will work:
+        @SuppressWarnings("unchecked")
         Map<String,Object> result = (Map<String,Object>)mapper.readValue(JSON, Object.class);
         assertNotNull(result);
         assertTrue(result instanceof Map);
@@ -165,7 +166,7 @@ public class TestObjectMapperContainerDeserializer
         String JSON = "{ \"KEY2\" : \"WHATEVER\" }";
 
         // to get typing, must use type reference
-        Map<Enum,Enum> result = mapper.readValue
+        Map<Enum<?>,Enum<?>> result = mapper.readValue
             (JSON, new TypeReference<Map<Key,Key>>() { });
 
         assertNotNull(result);
@@ -207,7 +208,7 @@ public class TestObjectMapperContainerDeserializer
         Object value = mapper.readValue(JSON, Object.class);
         assertNotNull(value);
         assertTrue(value instanceof ArrayList);
-        List result = (List) value;
+        List<?> result = (List<?>) value;
 
         assertEquals(4, result.size());
 

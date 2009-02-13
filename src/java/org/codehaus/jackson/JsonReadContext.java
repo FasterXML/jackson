@@ -27,7 +27,7 @@ import org.codehaus.jackson.util.CharTypes;
  * this allows for more aggeressive inlining by JVM.
  */
 public abstract class JsonReadContext
-    extends JsonContext
+    extends JsonStreamContext
 {
     // // // Location information (minus source reference)
 

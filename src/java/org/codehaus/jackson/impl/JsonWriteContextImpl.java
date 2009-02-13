@@ -7,7 +7,7 @@ import org.codehaus.jackson.*;
  * more complete API to the core implementation classes.
  */
 public abstract class JsonWriteContextImpl
-    extends JsonContext
+    extends JsonStreamContext
 {
     // // // Return values for writeValue()
 

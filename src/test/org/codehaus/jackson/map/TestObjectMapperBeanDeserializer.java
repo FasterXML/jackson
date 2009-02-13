@@ -229,8 +229,6 @@ public class TestObjectMapperBeanDeserializer
 
     public void testSimpleBean() throws Exception
     {
-        Class<?> type = TestBean.class;
-
         ArrayList<Object> misc = new ArrayList<Object>();
         misc.add("xyz");
         misc.add(42);

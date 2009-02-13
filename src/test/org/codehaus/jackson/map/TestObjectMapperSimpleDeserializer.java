@@ -245,7 +245,7 @@ public class TestObjectMapperSimpleDeserializer
         /* Then error case: unrecognized value
          */
         try {
-            Object result = mapper.readValue("\"NO-SUCH-VALUE\"", TestEnum.class);
+            /*Object result =*/ mapper.readValue("\"NO-SUCH-VALUE\"", TestEnum.class);
             fail("Expected an exception for bogus enum value...");
         } catch (JsonMappingException jex) {
             verifyException(jex, "value not one of declared");

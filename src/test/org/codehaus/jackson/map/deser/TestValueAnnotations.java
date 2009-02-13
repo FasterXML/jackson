@@ -217,7 +217,8 @@ public class TestValueAnnotations
     //////////////////////////////////////////////
      */
 
-    public void testOverrideKeyClassValid() throws Exception
+    @SuppressWarnings("unchecked")
+	public void testOverrideKeyClassValid() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
         MapKeyHolder result = m.readValue("{ \"map\" : { \"xxx\" : \"yyy\" } }", MapKeyHolder.class);
@@ -249,7 +250,8 @@ public class TestValueAnnotations
     //////////////////////////////////////////////
      */
 
-    public void testOverrideContentClassValid() throws Exception
+    @SuppressWarnings("unchecked")
+	public void testOverrideContentClassValid() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
         ListContentHolder result = m.readValue("{ \"list\" : [ \"abc\" ] }", ListContentHolder.class);
