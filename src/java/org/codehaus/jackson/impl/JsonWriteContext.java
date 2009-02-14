@@ -3,10 +3,11 @@ package org.codehaus.jackson.impl;
 import org.codehaus.jackson.*;
 
 /**
- * Implementation of {@link JsonWriteContext}, which also exposes
- * more complete API to the core implementation classes.
+ * Extension of {@link JsonStreamContext}, which implements
+ * core methods needed, and also exposes
+ * more complete API to generator implementation classes.
  */
-public abstract class JsonWriteContextImpl
+public abstract class JsonWriteContext
     extends JsonStreamContext
 {
     // // // Return values for writeValue()
@@ -18,7 +19,7 @@ public abstract class JsonWriteContextImpl
     public final static int STATUS_EXPECT_VALUE = 4;
     public final static int STATUS_EXPECT_NAME = 5;
 
-    protected final JsonWriteContextImpl _parent;
+    protected final JsonWriteContext _parent;
 
     /*
     //////////////////////////////////////////////////
@@ -28,9 +29,9 @@ public abstract class JsonWriteContextImpl
     //////////////////////////////////////////////////
      */
 
-    JsonWriteContextImpl _childArray = null;
+    JsonWriteContext _childArray = null;
 
-    JsonWriteContextImpl _childObject = null;
+    JsonWriteContext _childObject = null;
 
     /*
     //////////////////////////////////////////////////
@@ -38,7 +39,7 @@ public abstract class JsonWriteContextImpl
     //////////////////////////////////////////////////
      */
 
-    protected JsonWriteContextImpl(int type, JsonWriteContextImpl parent)
+    protected JsonWriteContext(int type, JsonWriteContext parent)
     {
         super(type);
         _parent = parent;
@@ -46,14 +47,14 @@ public abstract class JsonWriteContextImpl
 
     // // // Factory methods
 
-    public static JsonWriteContextImpl createRootContext()
+    public static JsonWriteContext createRootContext()
     {
         return new RootWContext();
     }
 
-    public final JsonWriteContextImpl createChildArrayContext()
+    public final JsonWriteContext createChildArrayContext()
     {
-        JsonWriteContextImpl ctxt = _childArray;
+        JsonWriteContext ctxt = _childArray;
         if (ctxt == null) {
             _childArray = ctxt = new ArrayWContext(this);
         } else { // need to reset settings; parent is already ok
@@ -62,9 +63,9 @@ public abstract class JsonWriteContextImpl
         return ctxt;
     }
 
-    public final JsonWriteContextImpl createChildObjectContext()
+    public final JsonWriteContext createChildObjectContext()
     {
-        JsonWriteContextImpl ctxt = _childObject;
+        JsonWriteContext ctxt = _childObject;
         if (ctxt == null) {
             _childObject = ctxt = new ObjectWContext(this);
         } else { // need to reset settings; parent is already ok
@@ -75,7 +76,7 @@ public abstract class JsonWriteContextImpl
 
     // // // Shared API
 
-    public final JsonWriteContextImpl getParent() { return _parent; }
+    public final JsonWriteContext getParent() { return _parent; }
 
     // // // API sub-classes are to implement
 
@@ -111,7 +112,7 @@ public abstract class JsonWriteContextImpl
  * the currently active entry.
  */
 final class RootWContext
-    extends JsonWriteContextImpl
+    extends JsonWriteContext
 {
     public RootWContext()
     {
@@ -139,9 +140,9 @@ final class RootWContext
 }
 
 final class ArrayWContext
-    extends JsonWriteContextImpl
+    extends JsonWriteContext
 {
-    public ArrayWContext(JsonWriteContextImpl parent)
+    public ArrayWContext(JsonWriteContext parent)
     {
         super(TYPE_ARRAY, parent);
     }
@@ -169,7 +170,7 @@ final class ArrayWContext
 }
 
 final class ObjectWContext
-    extends JsonWriteContextImpl
+    extends JsonWriteContext
 {
     /**
      * Name of the field of which value is to be parsed.
@@ -182,7 +183,7 @@ final class ObjectWContext
      */
     protected boolean _expectValue;
 
-    public ObjectWContext(JsonWriteContextImpl parent)
+    public ObjectWContext(JsonWriteContext parent)
     {
         super(TYPE_OBJECT, parent);
         _currentName = null;

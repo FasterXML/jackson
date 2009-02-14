@@ -145,7 +145,7 @@ public abstract class JsonParserBase
      * Information about parser context, context in which
      * the next token is to be parsed (root, array, object).
      */
-    protected JsonReadContextImpl _parsingContext;
+    protected JsonReadContext _parsingContext;
 
     /**
      * Secondary token related to the current token: used when
@@ -213,7 +213,7 @@ public abstract class JsonParserBase
         _ioContext = ctxt;
         _features = features;
         _textBuffer = ctxt.constructTextBuffer();
-        _parsingContext = JsonReadContextImpl.createRootContext(_tokenInputRow, _tokenInputCol);
+        _parsingContext = JsonReadContext.createRootContext(_tokenInputRow, _tokenInputCol);
     }
 
     /*
@@ -343,7 +343,7 @@ public abstract class JsonParserBase
         _releaseBuffers();
     }
 
-    public JsonReadContextImpl getParsingContext()
+    public JsonReadContext getParsingContext()
     {
         return _parsingContext;
     }

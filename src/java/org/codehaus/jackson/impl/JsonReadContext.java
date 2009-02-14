@@ -4,15 +4,16 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.util.CharTypes;
 
 /**
- * Implementation of {@link JsonStreamContext}, which also exposes
- * more complete API to the core implementation classes.
+ * Extension of {@link JsonStreamContext}, which implements
+ * core methods needed, and also exposes
+ * more complete API to parser implementation classes.
  */
-public final class JsonReadContextImpl
+public final class JsonReadContext
     extends JsonStreamContext
 {
     // // // Configuration
 
-    protected final JsonReadContextImpl _parent;
+    protected final JsonReadContext _parent;
 
     // // // Location information (minus source reference)
 
@@ -32,7 +33,7 @@ public final class JsonReadContextImpl
     //////////////////////////////////////////////////
      */
 
-    JsonReadContextImpl _child = null;
+    JsonReadContext _child = null;
 
     /*
     //////////////////////////////////////////////////
@@ -40,7 +41,7 @@ public final class JsonReadContextImpl
     //////////////////////////////////////////////////
      */
 
-    public JsonReadContextImpl(JsonReadContextImpl parent,
+    public JsonReadContext(JsonReadContext parent,
                                int type, int lineNr, int colNr)
     {
         super(type);
@@ -60,26 +61,26 @@ public final class JsonReadContextImpl
 
     // // // Factory methods
 
-    public static JsonReadContextImpl createRootContext(int lineNr, int colNr)
+    public static JsonReadContext createRootContext(int lineNr, int colNr)
     {
-        return new JsonReadContextImpl(null, TYPE_ROOT, lineNr, colNr);
+        return new JsonReadContext(null, TYPE_ROOT, lineNr, colNr);
     }
 
-    public final JsonReadContextImpl createChildArrayContext(int lineNr, int colNr)
+    public final JsonReadContext createChildArrayContext(int lineNr, int colNr)
     {
-        JsonReadContextImpl ctxt = _child;
+        JsonReadContext ctxt = _child;
         if (ctxt == null) {
-            return (_child = new JsonReadContextImpl(this, TYPE_ARRAY, lineNr, colNr));
+            return (_child = new JsonReadContext(this, TYPE_ARRAY, lineNr, colNr));
         }
         ctxt.reset(TYPE_ARRAY, lineNr, colNr);
         return ctxt;
     }
 
-    public final JsonReadContextImpl createChildObjectContext(int lineNr, int colNr)
+    public final JsonReadContext createChildObjectContext(int lineNr, int colNr)
     {
-        JsonReadContextImpl ctxt = _child;
+        JsonReadContext ctxt = _child;
         if (ctxt == null) {
-            return (_child = new JsonReadContextImpl(this, TYPE_OBJECT, lineNr, colNr));
+            return (_child = new JsonReadContext(this, TYPE_OBJECT, lineNr, colNr));
         }
         ctxt.reset(TYPE_OBJECT, lineNr, colNr);
         return ctxt;
@@ -93,7 +94,7 @@ public final class JsonReadContextImpl
 
     public final String getCurrentName() { return _currentName; }
 
-    public final JsonReadContextImpl getParent() { return _parent; }
+    public final JsonReadContext getParent() { return _parent; }
 
     /*
     //////////////////////////////////////////////////

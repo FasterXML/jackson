@@ -32,7 +32,7 @@ public abstract class JsonGeneratorBase
      * Object that keeps track of the current contextual state
      * of the generator.
      */
-    protected JsonWriteContextImpl _writeContext;
+    protected JsonWriteContext _writeContext;
 
     /*
     ////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ public abstract class JsonGeneratorBase
     {
         super();
         _features = features;
-        _writeContext = JsonWriteContextImpl.createRootContext();
+        _writeContext = JsonWriteContext.createRootContext();
     }
 
     /*
@@ -81,7 +81,7 @@ public abstract class JsonGeneratorBase
     /**
      * Note: co-variant return type.
      */
-    public final JsonWriteContextImpl getOutputContext() { return _writeContext; }
+    public final JsonWriteContext getOutputContext() { return _writeContext; }
 
     /*
     ////////////////////////////////////////////////////
@@ -159,10 +159,10 @@ public abstract class JsonGeneratorBase
     {
         // Object is a value, need to verify it's allowed
         int status = _writeContext.writeFieldName(name);
-        if (status == JsonWriteContextImpl.STATUS_EXPECT_VALUE) {
+        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
-        _writeFieldName(name, (status == JsonWriteContextImpl.STATUS_OK_AFTER_COMMA));
+        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
     }
 
     protected abstract void _writeFieldName(String name, boolean commaBefore)

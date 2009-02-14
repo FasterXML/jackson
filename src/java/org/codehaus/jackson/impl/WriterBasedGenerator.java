@@ -461,22 +461,22 @@ public final class WriterBasedGenerator
         throws IOException, JsonGenerationException
     {
         int status = _writeContext.writeValue();
-        if (status == JsonWriteContextImpl.STATUS_EXPECT_NAME) {
+        if (status == JsonWriteContext.STATUS_EXPECT_NAME) {
             _reportError("Can not "+typeMsg+", expecting field name");
         }
         if (_cfgPrettyPrinter == null) {
             char c;
             switch (status) {
-            case JsonWriteContextImpl.STATUS_OK_AFTER_COMMA:
+            case JsonWriteContext.STATUS_OK_AFTER_COMMA:
                 c = ',';
                 break;
-            case JsonWriteContextImpl.STATUS_OK_AFTER_COLON:
+            case JsonWriteContext.STATUS_OK_AFTER_COLON:
                 c = ':';
                 break;
-            case JsonWriteContextImpl.STATUS_OK_AFTER_SPACE:
+            case JsonWriteContext.STATUS_OK_AFTER_SPACE:
                 c = ' ';
                 break;
-            case JsonWriteContextImpl.STATUS_OK_AS_IS:
+            case JsonWriteContext.STATUS_OK_AS_IS:
             default:
                 return;
             }
@@ -496,16 +496,16 @@ public final class WriterBasedGenerator
     {
         // If we have a pretty printer, it knows what to do:
         switch (status) {
-        case JsonWriteContextImpl.STATUS_OK_AFTER_COMMA: // array
+        case JsonWriteContext.STATUS_OK_AFTER_COMMA: // array
             _cfgPrettyPrinter.writeArrayValueSeparator(this);
             break;
-        case JsonWriteContextImpl.STATUS_OK_AFTER_COLON:
+        case JsonWriteContext.STATUS_OK_AFTER_COLON:
             _cfgPrettyPrinter.writeObjectFieldValueSeparator(this);
             break;
-        case JsonWriteContextImpl.STATUS_OK_AFTER_SPACE:
+        case JsonWriteContext.STATUS_OK_AFTER_SPACE:
             _cfgPrettyPrinter.writeRootValueSeparator(this);
             break;
-        case JsonWriteContextImpl.STATUS_OK_AS_IS:
+        case JsonWriteContext.STATUS_OK_AS_IS:
             // First entry, but of which context?
             if (_writeContext.inArray()) {
                 _cfgPrettyPrinter.beforeArrayValues(this);
