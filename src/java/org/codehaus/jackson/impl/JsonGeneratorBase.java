@@ -116,7 +116,7 @@ public abstract class JsonGeneratorBase
         } else {
             _writeEndArray();
         }
-        _writeContext = _writeContext.getParentImpl();
+        _writeContext = _writeContext.getParent();
     }
 
     protected abstract void _writeEndArray()
@@ -143,7 +143,7 @@ public abstract class JsonGeneratorBase
         if (!_writeContext.inObject()) {
             _reportError("Current context not an object but "+_writeContext.getTypeDesc());
         }
-        _writeContext = _writeContext.getParentImpl();
+        _writeContext = _writeContext.getParent();
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
         } else {

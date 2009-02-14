@@ -90,14 +90,14 @@ public final class Utf8StreamParser
             if (!_parsingContext.inArray()) {
                 _reportMismatchedEndMarker(i, ']');
             }
-            _parsingContext = _parsingContext.getParentImpl();
+            _parsingContext = _parsingContext.getParent();
             return (_currToken = JsonToken.END_ARRAY);
         }
         if (i == INT_RCURLY) {
             if (!_parsingContext.inObject()) {
                 _reportMismatchedEndMarker(i, '}');
             }
-            _parsingContext = _parsingContext.getParentImpl();
+            _parsingContext = _parsingContext.getParent();
             return (_currToken = JsonToken.END_OBJECT);
         }
 

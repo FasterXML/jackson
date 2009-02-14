@@ -1,17 +1,27 @@
 package org.codehaus.jackson.impl;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.util.CharTypes;
 
 /**
- * Implementation of {@link JsonReadContext}, which also exposes
+ * Implementation of {@link JsonStreamContext}, which also exposes
  * more complete API to the core implementation classes.
  */
 public final class JsonReadContextImpl
-    extends JsonReadContext
+    extends JsonStreamContext
 {
     // // // Configuration
 
     protected final JsonReadContextImpl _parent;
+
+    // // // Location information (minus source reference)
+
+    //long mTotalChars;
+
+    protected int _lineNr;
+    protected int _columnNr;
+
+    protected String _currentName;
 
     /*
     //////////////////////////////////////////////////
@@ -33,8 +43,10 @@ public final class JsonReadContextImpl
     public JsonReadContextImpl(JsonReadContextImpl parent,
                                int type, int lineNr, int colNr)
     {
-        super(type, lineNr, colNr);
+        super(type);
         _parent = parent;
+        _lineNr = lineNr;
+        _columnNr = colNr;
     }
 
     protected final void reset(int type, int lineNr, int colNr)
@@ -79,8 +91,29 @@ public final class JsonReadContextImpl
     //////////////////////////////////////////////////
      */
 
+    public final String getCurrentName() { return _currentName; }
+
     public final JsonReadContextImpl getParent() { return _parent; }
-    public final JsonReadContextImpl getParentImpl() { return _parent; }
+
+    /*
+    //////////////////////////////////////////////////
+    // Extended API
+    //////////////////////////////////////////////////
+     */
+
+    /**
+     * @return Location pointing to the point where the context
+     *   start marker was found
+     */
+    public final JsonLocation getStartLocation(Object srcRef)
+    {
+        /* We don't keep track of offsets at this level (only
+         * reader does)
+         */
+        long totalChars = -1L;
+
+        return new JsonLocation(srcRef, totalChars, _lineNr, _columnNr);
+    }
 
     /*
     //////////////////////////////////////////////////
@@ -103,4 +136,40 @@ public final class JsonReadContextImpl
         _currentName = name;
     }
 
+    /*
+    //////////////////////////////////////////////////
+    // Overridden standard methods
+    //////////////////////////////////////////////////
+    */
+
+    /**
+     * Overridden to provide developer readable "JsonPath" representation
+     * of the context.
+     */
+    public final String toString()
+    {
+        StringBuilder sb = new StringBuilder(64);
+        switch (_type) {
+        case TYPE_ROOT:
+            sb.append("/");
+            break;
+        case TYPE_ARRAY:
+            sb.append('[');
+            sb.append(getCurrentIndex());
+            sb.append(']');
+            break;
+        case TYPE_OBJECT:
+            sb.append('{');
+            if (_currentName != null) {
+                sb.append('"');
+                CharTypes.appendQuoted(sb, _currentName);
+                sb.append('"');
+            } else {
+                sb.append('?');
+            }
+            sb.append(']');
+            break;
+        }
+        return sb.toString();
+    }
 }

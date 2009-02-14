@@ -343,7 +343,7 @@ public abstract class JsonParserBase
         _releaseBuffers();
     }
 
-    public JsonReadContext getParsingContext()
+    public JsonReadContextImpl getParsingContext()
     {
         return _parsingContext;
     }

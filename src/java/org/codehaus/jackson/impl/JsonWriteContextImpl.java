@@ -76,7 +76,6 @@ public abstract class JsonWriteContextImpl
     // // // Shared API
 
     public final JsonWriteContextImpl getParent() { return _parent; }
-    public final JsonWriteContextImpl getParentImpl() { return _parent; }
 
     // // // API sub-classes are to implement
 

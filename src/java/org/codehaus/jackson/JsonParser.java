@@ -227,7 +227,7 @@ public abstract class JsonParser
      * Contexts can also be used for simple xpath-like matching of
      * input, if so desired.
      */
-    public abstract JsonReadContext getParsingContext();
+    public abstract JsonStreamContext getParsingContext();
 
     /**
      * Method that return the <b>starting</b> location of the current

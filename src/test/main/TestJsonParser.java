@@ -51,7 +51,7 @@ public class TestJsonParser
 
         JsonParser jp = createParserUsingStream(DOC, "UTF-8");
 
-        JsonReadContext ctxt = jp.getParsingContext();
+        JsonStreamContext ctxt = jp.getParsingContext();
         assertTrue(ctxt.inRoot());
         assertFalse(ctxt.inArray());
         assertFalse(ctxt.inObject());
