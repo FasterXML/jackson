@@ -287,9 +287,6 @@ public class ClassIntrospector
      * @param expArgTypes Types that the matching single argument factory
      *   method can take: will also accept super types of these types
      *   (ie. arg just has to be assignable from expArgType)
-     * @param needsToBePublic If true, will only consider public methods;
-     *   if false, will accept any access type (and will also fix access
-     *   modifiers if so)
      */
     public Method findFactoryMethod(Class<?>... expArgTypes)
     {

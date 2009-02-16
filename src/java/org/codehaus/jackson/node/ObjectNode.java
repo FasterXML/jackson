@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.node;
+package org.codehaus.jackson.node;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -6,7 +6,7 @@ import java.util.*;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.JsonNode;
+import org.codehaus.jackson.JsonNode;
 
 /**
  * Note that maps to Json Object structures in Json content.

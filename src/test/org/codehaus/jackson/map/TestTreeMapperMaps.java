@@ -7,7 +7,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.node.*;
+import org.codehaus.jackson.node.ObjectNode;
 
 /**
  * Unit tests to verify that Json Objects map property to Map-like

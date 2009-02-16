@@ -1,11 +1,9 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
 
 /**
  * Base class for all JSON nodes, used with the "dynamic" (JSON type)
@@ -280,68 +278,6 @@ public abstract class JsonNode
      * an empty Iterator.
      */
     //    public Iterator<JsonNode> getFieldValues() { return NO_NODES.iterator(); }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Public API, container mutators
-    ////////////////////////////////////////////////////
-     */
-
-    /* !!! 10-Feb-2009, tatu: Doesn't make sense to have these here,
-     *   let's move them to specific container classes.
-     */
-
-    /**
-     * Method for appending a value Node as the list child of
-     * this node. Only works for Array
-     * nodes, i.e. nodes for which {@link #isArray} returns true;
-     * for Arrays given node gets added as the last child element.
-     */
-    //public void appendElement(JsonNode node) { throw _constructNoArrayMods(); }
-
-    /**
-     * Method for inserting specified node, at specified index, within
-     * this Array node.
-     * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
-     */
-    //public void insertElement(int index, JsonNode value) { throw _constructNoArrayMods(); }
-
-    /**
-     * Method for removing specified value of this Array node.
-     * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
-     */
-    //public JsonNode removeElement(int index) { throw _constructNoArrayMods(); }
-
-    /**
-     * Method for removing specified value of this Object node.
-     * Only works for Object nodes, i.e. nodes for which {@link #isObject} returns true.
-     */
-    // public JsonNode removeElement(String fieldName) {  throw _constructNoObjectMods(); }
-
-    /**
-     * Method for setting specified value of this Array node.
-     * Only works for Array nodes, i.e. nodes for which {@link #isArray} returns true.
-     */
-    //public JsonNode setElement(int index, JsonNode value) { throw _constructNoArrayMods(); }
-
-    /**
-     * Method for setting value of specified field of this Object node.
-     * Only works for Object nodes, i.e. nodes for which {@link #isObject}
-     * returns true.
-     */
-    //public JsonNode setElement(String fieldName, JsonNode value) { throw _constructNoObjectMods(); }
-
-    /*
-    protected UnsupportedOperationException _constructNoArrayMods()
-    {
-        return new UnsupportedOperationException("Node of type "+getClass()+" does not support appendElement, insertElement or setElement(int, ...) operations (only ArrayNodes do)");
-    }
-
-    protected UnsupportedOperationException _constructNoObjectMods()
-    {
-        return new UnsupportedOperationException("Node of type "+getClass()+" does not support setElement(String, ...) operations (only ObjectNodes do)");
-    }
-    */
 
     /*
     ////////////////////////////////////////////////////

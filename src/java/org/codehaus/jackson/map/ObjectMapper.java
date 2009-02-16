@@ -50,9 +50,8 @@ public class ObjectMapper
     /**
      * Object that manages access to deserializers used for deserializing
      * Json content into Java objects, including possible caching
-     * of the deserializers.
-     * It is configured with {@link #_deserializerFactory} to allow
-     * for constructing custom deserializers.
+     * of the deserializers. It contains a reference to
+     * {@link DeserializerFactory} to use for constructing acutal deserializers.
      */
     protected DeserializerProvider _deserializerProvider;
 

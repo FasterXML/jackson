@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.node;
+package org.codehaus.jackson.node;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -8,37 +8,36 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.io.NumberOutput;
 
 /**
- * Numeric node that contains 64-bit ("double precision")
- * floating point values simple 32-bit integer values.
+ * Numeric node that contains simple 32-bit integer values.
  */
-public final class DoubleNode
+public final class IntNode
     extends NumericNode
 {
-    final double mValue;
+    final int mValue;
 
-    public DoubleNode(double v) { mValue = v; }
+    public IntNode(int v) { mValue = v; }
 
-    public static DoubleNode valueOf(double v) { return new DoubleNode(v); }
-
-    @Override
-        public boolean isFloatingPointNumber() { return true; }
+    public static IntNode valueOf(int i) { return new IntNode(i); }
 
     @Override
-        public boolean isDouble() { return true; }
+    public boolean isIntegralNumber() { return true; }
+
+    @Override
+    public boolean isInt() { return true; }
 
     @Override
     public Number getNumberValue() {
-        return Double.valueOf(mValue);
+        return Integer.valueOf(mValue);
     }
 
     @Override
-        public int getIntValue() { return (int) mValue; }
+        public int getIntValue() { return mValue; }
 
     @Override
         public long getLongValue() { return (long) mValue; }
 
     @Override
-        public double getDoubleValue() { return mValue; }
+        public double getDoubleValue() { return (double) mValue; }
 
     @Override
         public BigDecimal getDecimalValue() { return BigDecimal.valueOf(mValue); }
@@ -61,15 +60,9 @@ public final class DoubleNode
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
-        return ((DoubleNode) o).mValue == mValue;
+        return ((IntNode) o).mValue == mValue;
     }
 
     @Override
-    public int hashCode()
-    {
-        // same as hashCode Double.class uses
-        long l = Double.doubleToLongBits(mValue);
-        return ((int) l) ^ (int) (l >> 32);
-
-    }
+        public int hashCode() { return mValue; }
 }

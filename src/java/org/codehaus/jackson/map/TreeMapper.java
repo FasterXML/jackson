@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.URL;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.node.TreeMapperBase;
+import org.codehaus.jackson.node.TreeMapperBase;
 
 /**
  * This mapper (or, codec) provides mapping between Json,

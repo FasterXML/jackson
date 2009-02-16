@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.node;
+package org.codehaus.jackson.node;
 
 import java.io.IOException;
 import java.util.Arrays;

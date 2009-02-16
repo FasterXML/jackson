@@ -7,6 +7,7 @@
     <property name="dir.src.java" location="${dir.src}/java" />
     <property name="dir.src.test" location="${dir.src}/test" />
     <property name="dir.src.sample" location="${dir.src}/sample" />
+    <property name="dir.src.tools" location="${dir.src}/tools" />
     <property name="dir.releasenotes" location="${basedir}/release-notes" />
 
     <!-- Libs -->
@@ -15,6 +16,7 @@
     <property name="dir.build" location="${basedir}/build" />
     <property name="dir.build.classes.core" location="${dir.build}/classes/core" />
     <property name="dir.build.classes.mapper" location="${dir.build}/classes/mapper" />
+    <!-- both "sample" and "tools" java code goes under "extra" -->
     <property name="dir.build.classes.extra" location="${dir.build}/classes/extra" />
     <!-- some support for perf testing -->
     <property name="dir.build.classes.perf" location="${dir.build}/classes/perf" />
@@ -138,7 +140,8 @@
     </target>
 
     <target name="compile" depends="compile.all" />
-    <target name="compile.all" depends="compile.main, compile.extra, compile.test"  /> <!--, compile.perf" /> -->
+    <target name="compile.all" depends="
+compile.main, compile.test, compile.extra, compile.perf" />
     <target name="compile.main" depends="compile.core, compile.mapper" />
 
     <target name="compile.core" depends="prepare">
@@ -172,7 +175,7 @@
         >
             <compilerarg value="-Xlint:unchecked" />
             <src path="${dir.src.sample}" /> 
-            <src path="${dir.src.java}/test" />
+            <src path="${dir.src.tools}" /> 
             <include name="**/*.java" />
             <!-- need core and mapper classes -->
             <classpath>

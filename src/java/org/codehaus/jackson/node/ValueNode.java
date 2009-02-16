@@ -1,6 +1,6 @@
-package org.codehaus.jackson.map.node;
+package org.codehaus.jackson.node;
 
-import org.codehaus.jackson.map.JsonNode;
+import org.codehaus.jackson.JsonNode;
 
 /**
  * This intermediate base class is used for all leaf nodes, that is,

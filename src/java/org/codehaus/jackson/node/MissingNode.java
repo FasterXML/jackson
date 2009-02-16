@@ -1,10 +1,10 @@
-package org.codehaus.jackson.map.node;
+package org.codehaus.jackson.node;
 
 import java.io.IOException;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.JsonNode;
+import org.codehaus.jackson.JsonNode;
 
 /**
  * This singleton node class is generated to denote "missing nodes"

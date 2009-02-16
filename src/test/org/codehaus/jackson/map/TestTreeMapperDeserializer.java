@@ -8,7 +8,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.node.*;
+import org.codehaus.jackson.node.*;
 
 /**
  * This unit test suite tries to verify that the "JSON" type
