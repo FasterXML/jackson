@@ -16,6 +16,8 @@ import org.codehaus.jackson.map.*;
  */
 public final class ContainerSerializers
 {
+    private ContainerSerializers() { }
+
     /*
     ////////////////////////////////////////////////////////////
     // Concrete serializers, Lists/collections
@@ -283,8 +285,8 @@ public final class ContainerSerializers
     public final static class EnumMapSerializer
         extends JsonSerializer<EnumMap<? extends Enum<?>, ?>>
     {
-		@Override
-		public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
+        @Override
+            public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartObject();
@@ -295,7 +297,7 @@ public final class ContainerSerializers
                 // First, serialize key
                 jgen.writeFieldName(entry.getKey().name());
                 // And then value
-                Object valueElem = entry.getKey();
+                Object valueElem = entry.getValue();
                 if (valueElem == null) {
                     provider.getNullValueSerializer().serialize(null, jgen, provider);
                 } else {
@@ -308,7 +310,12 @@ public final class ContainerSerializers
                         prevSerializer = currSerializer;
                         prevClass = cc;
                     }
-                    currSerializer.serialize(valueElem, jgen, provider);
+                    try {
+                        currSerializer.serialize(valueElem, jgen, provider);
+                    } catch (Exception e) {
+                        // [JACKSON-55] Need to add reference information
+                        throw JsonMappingException.wrapWithPath(e, value, entry.getKey().name());
+                    }
                 }
             }
             jgen.writeEndObject();

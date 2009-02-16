@@ -85,7 +85,16 @@ public class JsonMappingException
             StringBuilder sb = new StringBuilder();
             Class cls = (_from instanceof Class) ?
                 ((Class)_from) : _from.getClass();
-            sb.append(cls.getName());
+            /* Hmmh. Although Class.getName() is mostly ok, it does look
+             * butt-ugly for arrays. So let's use getSimpleName() instead;
+             * but have to prepend package name too.
+             */
+            Package pkg = cls.getPackage();
+            if (pkg != null) {
+                sb.append(pkg.getName());
+                sb.append('.');
+            }
+            sb.append(cls.getSimpleName());
             sb.append('[');
             if (_fieldName != null) {
                 sb.append('"');
