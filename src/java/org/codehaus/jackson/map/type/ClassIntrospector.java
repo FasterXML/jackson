@@ -83,7 +83,11 @@ public class ClassIntrospector
                 continue;
             }
             String name = m.getName();
-            // Then, can not be masked
+            /* Then, can not be masked (note: could theoretically have problems
+             * with method overloading -- can have multiple single-arg
+             * methods with same name -- but we will hopefully
+             * rewrite this piece of code before it ever really occurs)
+             */
             if (!maskedMethods.add(name)) { // was already in there, skip
                 continue;
             }
@@ -375,6 +379,20 @@ public class ClassIntrospector
                 return null;
             }
             */
+
+            /* 16-Feb-2009, tatus: To handle [JACKSON-53], need to block
+             *   CGLib-provided method "getCallbacks". Not sure of exact
+             *   safe critieria to get decent coverage without false matches;
+             *   but for now let's assume there's no reason to use any 
+             *   such getter from CGLib.
+             *   But let's try this approach...
+             */
+            if ("getCallbacks".equals(name)) {
+                if (isCglibGetCallbacks(m)) {
+                    return null;
+                }
+            }
+
             return mangleGetterName(m, name.substring(3));
         }
         if (name.startsWith("is")) {
@@ -396,6 +414,34 @@ public class ClassIntrospector
     protected String mangleGetterName(Method method, String basename)
     {
         return ClassUtil.manglePropertyName(basename);
+    }
+
+    /**
+     * This method was added to address [JACKSON-53]: need to weed out
+     * CGLib-injected "getCallbacks". 
+     * At this point caller has detected a potential getter method
+     * with name "getCallbacks" and we need to determine if it is
+     * indeed injectect by Cglib. We do this by verifying that the
+     * result type is "net.sf.cglib.proxy.Callback[]"
+     */
+    protected boolean isCglibGetCallbacks(Method m)
+    {
+        Class<?> rt = m.getReturnType();
+        // Ok, first: must return an array type
+        if (rt == null || !rt.isArray()) {
+            return false;
+        }
+        /* And that type needs to be "net.sf.cglib.proxy.Callback".
+         * Theoretically could just be a type that implements it, but
+         * for now let's keep things simple, fix if need be.
+         */
+        Class<?> compType = rt.getComponentType();
+        // Actually, let's just verify it's a "net.sf.cglib.*" class/interface
+        Package pkg = compType.getPackage();
+        if (pkg != null && pkg.getName().startsWith("net.sf.cglib")) {
+            return true;
+        }
+        return false;
     }
 
     /*

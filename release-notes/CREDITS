@@ -61,3 +61,9 @@ Scott Dixon:
   * Contributed unit test (TestComplexJavaType) for verifying functioning
     of object serialization
     [0.9.5]
+
+Justin Friedl:
+  * Reported [JACKSON-53]: problem serializing iBatis bean classes generated
+    (or wrapped) by CGLib. Probably would also have caused problems with
+    Hibernate and a few other frameworks.
+

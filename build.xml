@@ -46,9 +46,10 @@
     <property name="IMPL_VERSION" value="0.9.8-SNAPSHOT" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
-    <path id="junit-libs">
+    <path id="test-libs">
        <fileset dir="${dir.lib}">
-            <include name="junit/junit*.jar" />
+            <include name="junit/*.jar" />
+            <include name="cglib/*.jar" />
        </fileset>
     </path>
 
@@ -361,7 +362,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
             <classpath>
                 <pathelement path="${dir.build.classes.core}"/>  
                 <pathelement path="${dir.build.classes.mapper}"/>  
-                <path refid="junit-libs"/>
+                <path refid="test-libs"/>
             </classpath>
         </javac>
     </target>
@@ -385,7 +386,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
                 <pathelement path="${dir.build.classes.core}" />
                 <pathelement path="${dir.build.classes.mapper}" />
                 <pathelement location="${dir.test.classes}" /> 
-                <path refid="junit-libs"/>
+                <path refid="test-libs"/>
             </classpath>     
         </junit>
 

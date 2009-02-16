@@ -54,7 +54,7 @@
                   -->
                 <pathelement path="${dir.build.classes.core}" />
                 <pathelement path="${dir.build.classes.mapper}" />
-                <path refid="junit-libs"/>
+                <path refid="test-libs"/>
             </classpath>     
         </junit>
         <!-- and then reporting -->
@@ -86,7 +86,7 @@
                 <pathelement path="${dir.build.classes.core}" />
                 <pathelement path="${dir.build.classes.mapper}" />
                 <pathelement location="${dir.test.classes}" /> 
-                <path refid="junit-libs"/>
+                <path refid="test-libs"/>
           </classpath>     
         </junit>
     </target>
