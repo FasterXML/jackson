@@ -72,6 +72,10 @@ public final class BeanSerializer
         for (WritableBeanProperty prop : _props) {
             if (!prop.hasSerializer()) {
                 Class<?> rt = prop.getReturnType();
+                /* Note: we can only assign serializer statically if the
+                 * declared type is final -- if not, we don't really know
+                 * the actual type until we get the instance.
+                 */
                 if (Modifier.isFinal(rt.getModifiers())) {
                     JsonSerializer<Object> ser = provider.findValueSerializer(rt);
                     prop.assignSerializer(ser);
