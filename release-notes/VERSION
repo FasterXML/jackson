@@ -1,7 +1,7 @@
 Version: 0.9.8
 
 Release date: 
-  xx-Feb-2009
+  16-Feb-2009
 
 Description:
   Another pre-1.0 release.
@@ -23,6 +23,8 @@ Description:
   * [JACKSON-55]: Added support for reference-path-tracking in
     JsonMappingException, made serializers populate it: this to make
     it easier to trouble-shoot nested serialization problems
+  * [JACKSON-56]: Added support for RFC-1123 date format, along with
+    simpler "standard" format; and can add more as need be.
 
   Fixes:
 

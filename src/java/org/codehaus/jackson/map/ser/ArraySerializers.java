@@ -7,9 +7,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 /**
- * Dummy container class to group standard container serializers: serializers
- * that can serialize things like {@link java.util.List}s,
- * {@link java.util.Maps}s and such.
+ * Dummy container class to group standard array serializer implementations.
  *<p>
  * TODO: as per [JACKSON-55], should try to add path info for all serializers;
  * is still missing those for some container types.

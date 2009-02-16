@@ -33,7 +33,7 @@ public class StdDeserializationContext
 
     protected ObjectBuffer _objectBuffer;
 
-    protected DateFormat _dateFormat;
+    protected DateFormatHolder _dateFormats;
 
     // // // Construction
 
@@ -100,18 +100,7 @@ public class StdDeserializationContext
 	public Date parseDate(String dateStr)
         throws IllegalArgumentException
     {
-        dateStr = dateStr.trim();
-        /* Although DateFormat is not thread-safe, serialization contexts
-         * are never shared, so we are safe to use it without locking
-         */
-        if (_dateFormat == null) {
-            _dateFormat = _constructDateFormat();
-        }
-        try {
-            return _dateFormat.parse(dateStr);
-        } catch (ParseException pex) {
-            throw new IllegalArgumentException(pex.getMessage(), pex);
-        }
+        return getDateFormats().parse(dateStr);
     }
 
     @Override
@@ -180,29 +169,19 @@ public class StdDeserializationContext
         return JsonMappingException.from(_parser, "Unrecognized field \""+fieldName+"\" (Class "+instance.getClass().getName()+"), not marked as ignorable");
     }
 
+
     /*
     ///////////////////////////////////////////////////
     // Overridable internal methods
     ///////////////////////////////////////////////////
      */
 
-    /* 07-Jan-2009, tatu: Let's first try parsing using what seems like
-     *   a good standard timestamp format. Chances are we need to improve
-     *   on this... but have to start somewhere.
-     */
-    final static DateFormat _stdDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    //final static DateFormat _stdDateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL);
-
-    /**
-     * Method that can be overridden to provide specific DateFormat
-     * when one is needed for parsing (during deserialization)
-     */
-    protected DateFormat _constructDateFormat()
+    protected DateFormatHolder getDateFormats()
     {
-        /* Should be bit more efficient to actually clone pre-parsed
-         * static instance...
-         */
-        return (DateFormat) _stdDateFormat.clone();
+        if (_dateFormats == null) {
+            _dateFormats = new DateFormatHolder();
+        }
+        return _dateFormats;
     }
 
     /*

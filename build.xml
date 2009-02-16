@@ -152,6 +152,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
         >
             <compilerarg value="-Xlint:unchecked" />
             <exclude name="org/codehaus/jackson/map/**/*.java" />
+            <exclude name="org/codehaus/jackson/node/**/*.java" />
             <include name="org/codehaus/**/*.java" />
         </javac>
     </target>
