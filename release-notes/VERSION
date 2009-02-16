@@ -17,6 +17,9 @@ Description:
     ObjectNodes too, not just ArrayNodes. Also added convenience factory
     methods to allow constructing child nodes directly from container 
     nodes.
+  * [JACKSON-55]: Added support for reference-path-tracking in
+    JsonMappingException, made serializers populate it: this to make
+    it easier to trouble-shoot nested serialization problems
 
   Fixes:
 

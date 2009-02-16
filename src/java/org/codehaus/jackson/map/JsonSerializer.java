@@ -21,5 +21,5 @@ public abstract class JsonSerializer<T>
      *   serializing Objects value contains, if any.
      */
     public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
-        throws IOException, JsonGenerationException;
+        throws IOException, JsonProcessingException;
 }

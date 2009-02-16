@@ -1,19 +1,17 @@
-
-
 import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
-public class TestJavaMapper
+public class TestObjectMapper
 {
-    private TestJavaMapper() { }
+    private TestObjectMapper() { }
 
     public static void main(String[] args)
         throws Exception
     {
         if (args.length != 1) {
-            System.err.println("Usage: java test.TestJavaMapper <file>");
+            System.err.println("Usage: java test.TestObjectMapper <file>");
             System.exit(1);
         }
         FileInputStream in = new FileInputStream(new File(args[0]));

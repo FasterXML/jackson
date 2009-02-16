@@ -51,12 +51,10 @@ public final class BeanSerializer
             for (final int len = _props.length; i < len; ++i) {
                 _props[i].serializeAsField(bean, jgen, provider);
             }
-        } catch (IllegalAccessException e1) {
-            throw new JsonGenerationException("Failed to serialize "+_props[i]+": "+e1.getMessage(), e1);
-        } catch (InvocationTargetException e2) {
-            throw new JsonGenerationException("Failed to serialize "+_props[i]+": "+e2.getMessage(), e2);
+        } catch (Exception e) {
+            // [JACKSON-55] Need to add reference information
+            throw JsonMappingException.wrapWithPath(e, bean, _props[i].getName());
         }
-
         jgen.writeEndObject();
     }
 
