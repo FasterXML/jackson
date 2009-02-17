@@ -44,7 +44,7 @@ import org.codehaus.jackson.util.BufferRecycler;
  *
  * @author Tatu Saloranta
  */
-public final class JsonFactory
+public class JsonFactory
 {
     /**
      * Bitfield (set of flags) of all parser features that are enabled
@@ -93,6 +93,15 @@ public final class JsonFactory
     ///////////////////////////////////////////////////////
      */
 
+    /**
+     * Object that implements conversion functionality between
+     * Java objects and Json content. For base JsonFactory implementation
+     * usually not set by default, but can be explicitly set.
+     * Sub-classes (like @link org.codehaus.jackson.map.MappingJsonFactory}
+     * usually provide an implementation.
+     */
+    protected ObjectCodec _objectCodec;
+
     private int _parserFeatures = DEFAULT_PARSER_FEATURE_FLAGS;
 
     private int _generatorFeatures = DEFAULT_GENERATOR_FEATURE_FLAGS;
@@ -107,7 +116,9 @@ public final class JsonFactory
      * and this reuse only works within context of a single
      * factory instance.
      */
-    public JsonFactory() { }
+    public JsonFactory() { this(null); }
+
+    public JsonFactory(ObjectCodec oc) { _objectCodec = oc; }
 
     /*
     //////////////////////////////////////////////////////
@@ -170,6 +181,9 @@ public final class JsonFactory
     public boolean isGeneratorFeatureEnabled(JsonGenerator.Feature f) {
         return (_generatorFeatures & f.getMask()) != 0;
     }
+
+    public void setCodec(ObjectCodec oc) { _objectCodec = oc; }
+    public ObjectCodec getCodec() { return _objectCodec; }
 
     /*
     //////////////////////////////////////////////////////
