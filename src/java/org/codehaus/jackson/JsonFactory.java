@@ -265,7 +265,7 @@ public class JsonFactory
     public final JsonParser createJsonParser(Reader r)
         throws IOException, JsonParseException
     {
-        return new ReaderBasedParser(_createContext(r, false), _parserFeatures, r, _charSymbols.makeChild());
+        return new ReaderBasedParser(_createContext(r, false), _parserFeatures, r, _objectCodec, _charSymbols.makeChild());
     }
 
     public final JsonParser createJsonParser(byte[] data)
@@ -279,7 +279,7 @@ public class JsonFactory
     {
         // true -> managed (doesn't really matter; we have no stream!)
         IOContext ctxt = _createContext(data, true);
-        return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures, _byteSymbols.makeChild(), _charSymbols.makeChild());
+        return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures, _objectCodec, _byteSymbols.makeChild(), _charSymbols.makeChild());
     }
 
     public final JsonParser createJsonParser(String content)
@@ -287,13 +287,13 @@ public class JsonFactory
     {
         StringReader r = new StringReader(content);
         // true -> must be managed as caller didn't hand Reader
-        return new ReaderBasedParser(_createContext(r, true), _parserFeatures, r, _charSymbols.makeChild());
+        return new ReaderBasedParser(_createContext(r, true), _parserFeatures, r, _objectCodec,_charSymbols.makeChild());
     }
 
     private JsonParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _byteSymbols.makeChild(), _charSymbols.makeChild());
+        return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _objectCodec, _byteSymbols.makeChild(), _charSymbols.makeChild());
     }
 
     /*

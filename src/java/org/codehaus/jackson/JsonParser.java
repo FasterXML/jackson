@@ -18,6 +18,8 @@ package org.codehaus.jackson;
 import java.io.*;
 import java.math.BigDecimal;
 
+import org.codehaus.jackson.type.TypeReference;
+
 /**
  * Base class that defines public API for reading JSON content.
  * Instances are created using factory methods of
@@ -464,42 +466,52 @@ public abstract class JsonParser
         return getBinaryValue(Base64Variants.getDefaultVariant());
     }
 
-    /**
-     * Method that can be used to read (and consume -- results
-     * may not be accessible using other methods after the call)
-     * base64-encoded binary data
-     * included in the current textual json value.
-     * It works similar to getting String value via {@link #getText}
-     * and decoding result (except for decoding part),
-     * but should be significantly more performant.
-     *<p>
-     * Note that the contents may be consumed by this call, and thus
-     * only first call to method will produce any output. Likewise,
-     * calls to methods like {@link #getText} are not guaranteed
-     * to return anything, although they are not prevent from returning
-     * some subset of content. That is, results of those calls are
-     * undefined if done after call to this method.
-     *<p>
-     * Main benefit of this method compared to
-     * {@link #readBinaryValue()} is that this method does not hold
-     * the whole value contents in memory, and can be used to avoid
-     * excessive memory usage, if the base64 segment is long.
-     *
-     * @param b64variant Expected variant of base64 encoded
-     *   content (see {@link Base64Variants} for definitions
-     *   of "standard" variants).
-     *
-     * @return Input stream through which decoded contents can
-     *   be read
-     */
     /*
-    public abstract InputStream readBinaryValue(Base64Variant b64variant)
-        throws IOException, JsonParseException;
+    ////////////////////////////////////////////////////
+    // Public API, optional data binding functionality
+    ////////////////////////////////////////////////////
+     */
 
-    public final InputStream readBinaryValue() throws IOException, JsonParseException
-    {
-        return readBinaryValue(Base64Variants.getDefaultVariant());
-    }
-    */
+    /**
+     * Method to deserialize Json content into a non-container
+     * type (it can be an array type, however): typically a bean, array
+     * or a wrapper type (like {@link java.lang.Boolean}).
+     * <b>Note</b>: method can only be called if the parser has
+     * an object codec assigned; this is true for parsers constructed
+     * by {@link org.codehaus.jackson.map.MappingJsonFactory} but
+     * not for {@link JsonFactory} (unless its <code>setCodec</code>
+     * method has been explicitly called).
+     *<p>
+     * This method may advance the evens stream, for structured types
+     * the current event will be the closing end marker (END_ARRAY,
+     * END_OBJECT) of the bound structure. For non-structured Json types
+     * stream is not advanced.
+     *<p>
+     * Note: this method should NOT be used if the result type is a
+     * container ({@link java.util.Collection} or {@link java.util.Map}.
+     * The reason is that due to type erasure, key and value types
+     * can not be introspected when using this method.
+     */
+    public abstract <T> T readValueAs(Class<T> valueType)
+        throws IOException, JsonProcessingException;
 
+    /**
+     * Method to deserialize Json content into a Java type, reference
+     * to which is passed as argument. Type is passed using so-called
+     * "super type token"
+     * and specifically needs to be used if the root type is a 
+     * parameterized (generic) container type.
+     * <b>Note</b>: method can only be called if the parser has
+     * an object codec assigned; this is true for parsers constructed
+     * by {@link org.codehaus.jackson.map.MappingJsonFactory} but
+     * not for {@link JsonFactory} (unless its <code>setCodec</code>
+     * method has been explicitly called).
+     *<p>
+     * This method may advance the evens stream, for structured types
+     * the current event will be the closing end marker (END_ARRAY,
+     * END_OBJECT) of the bound structure. For non-structured Json types
+     * stream is not advanced.
+     */
+    public abstract <T> T readValueAs(TypeReference valueTypeRef)
+        throws IOException, JsonProcessingException;
 }

@@ -2,9 +2,7 @@ package org.codehaus.jackson.impl;
 
 import java.io.*;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.sym.NameCanonicalizer;
 import org.codehaus.jackson.sym.SymbolTable;
@@ -201,14 +199,14 @@ public final class ByteSourceBootstrapper
         throw new RuntimeException("Internal error"); // should never get here
     }
 
-    public JsonParser constructParser(int features, NameCanonicalizer byteSymbols, SymbolTable charSymbols)
+    public JsonParser constructParser(int features, ObjectCodec codec, NameCanonicalizer byteSymbols, SymbolTable charSymbols)
         throws IOException, JsonParseException
     {
         JsonEncoding enc = detectEncoding();
         if (enc == JsonEncoding.UTF8) {
-            return new Utf8StreamParser(_context, features, _in, byteSymbols.makeChild(), _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
+            return new Utf8StreamParser(_context, features, _in, codec, byteSymbols.makeChild(), _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
         }
-        return new ReaderBasedParser(_context, features, constructReader(), charSymbols.makeChild());
+        return new ReaderBasedParser(_context, features, constructReader(), codec, charSymbols.makeChild());
     }
 
     /*

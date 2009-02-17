@@ -5,6 +5,7 @@ import java.io.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.sym.SymbolTable;
+import org.codehaus.jackson.type.TypeReference;
 import org.codehaus.jackson.util.*;
 
 /**
@@ -21,6 +22,8 @@ public final class ReaderBasedParser
     ////////////////////////////////////////////////////
      */
 
+    final ObjectCodec _objectCodec;
+
     final protected SymbolTable _symbols;
 
     /*
@@ -29,9 +32,11 @@ public final class ReaderBasedParser
     ////////////////////////////////////////////////////
      */
 
-    public ReaderBasedParser(IOContext ioCtxt, int features, Reader r, SymbolTable st)
+    public ReaderBasedParser(IOContext ioCtxt, int features, Reader r,
+                             ObjectCodec codec, SymbolTable st)
     {
         super(ioCtxt, features, r);
+        _objectCodec = codec;
         _symbols = st;
     }
 
@@ -202,6 +207,36 @@ public final class ReaderBasedParser
     {
         super.close();
         _symbols.release();
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, data binding
+    ////////////////////////////////////////////////////
+     */
+
+    @Override
+    public final <T> T readValueAs(Class<T> valueType)
+        throws IOException, JsonProcessingException
+    {
+        if (_objectCodec == null) {
+            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize Json into regular Java objects");
+        }
+        return _objectCodec.readValue(this, valueType);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public final <T> T readValueAs(TypeReference valueTypeRef)
+        throws IOException, JsonProcessingException
+    {
+        if (_objectCodec == null) {
+            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize Json into regular Java objects");
+        }
+        /* Ugh. Stupid Java type erasure... can't just chain call,s
+         * must cast here also.
+         */
+        return (T) _objectCodec.readValue(this, valueTypeRef);
     }
 
     /*

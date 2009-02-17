@@ -3,16 +3,60 @@ package org.codehaus.jackson.main;
 import java.io.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.MappingJsonFactory;
 
 public class TestJsonParser
     extends main.BaseTest
 {
+    final static class Pojo
+    {
+        int _x;
+
+        public void setX(int x) { _x = x; }
+    }
+
     public void testNextValue()
         throws IOException
     {
         // Let's test both byte-backed and Reader-based one
         _testNextValue(false);
         _testNextValue(true);
+    }
+
+    public void testPojoReading()
+        throws IOException
+    {
+        JsonFactory jf = new MappingJsonFactory();
+        final String JSON = "{ \"x\" : 9 }";
+        JsonParser jp = jf.createJsonParser(new StringReader(JSON));
+
+        // let's try first by advancing:
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+        Pojo p = jp.readValueAs(Pojo.class);
+        assertEquals(9, p._x);
+        jp.close();
+
+        // and without
+        jp = jf.createJsonParser(new StringReader(JSON));
+        p = jp.readValueAs(Pojo.class);
+        assertEquals(9, p._x);
+        jp.close();
+    }
+
+    public void testPojoReadingFailing()
+        throws IOException
+    {
+        // regular factory can't do it, without a call to setCodec()
+        JsonFactory jf = new JsonFactory();
+        try {
+            StringWriter sw = new StringWriter();
+            final String JSON = "{ \"x\" : 9 }";
+            JsonParser jp = jf.createJsonParser(new StringReader(JSON));
+            Pojo p = jp.readValueAs(Pojo.class);
+            fail("Expected an exception: got "+p);
+        } catch (IllegalStateException e) {
+            verifyException(e, "No ObjectCodec defined");
+        }
     }
 
     /*

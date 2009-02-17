@@ -1,10 +1,16 @@
-Version: 0.9.8
+Version: 0.9.9
 
 Release date: 
-  16-Feb-2009
+  xx-Feb-2009
 
 Description:
   Another pre-1.0 release.
+
+  Improvements:
+
+== History: ==
+
+0.9.8 [16-Feb-2009]:
 
   Improvements:
 
@@ -33,8 +39,6 @@ Description:
 
   * [JACKSON-49]: Incorrect bounds check for Float values resulted in
     exception when trying to serializer 0.0f.
-
-== History: ==
 
 0.9.7 [04-Feb-2009]:
 
