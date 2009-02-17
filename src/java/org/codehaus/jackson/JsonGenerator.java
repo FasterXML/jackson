@@ -141,6 +141,20 @@ public abstract class JsonGenerator
      */
     public abstract boolean isFeatureEnabled(Feature f);
 
+    /**
+     * Method that can be called to set or reset the object to
+     * use for writing Java objects as JsonContent
+     * (using method {@link #writeObject}).
+     */
+    public abstract void setCodec(ObjectCodec oc);
+
+    /**
+     * Method for accessing the object used for writing Java
+     * object as Json content
+     * (using method {@link #writeObject}).
+     */
+    public abstract ObjectCodec getCodec();
+
     /*
     ////////////////////////////////////////////////////
     // Configuring generator
@@ -174,7 +188,7 @@ public abstract class JsonGenerator
      */
 
     /**
-     * Method for writing starting marker of an Array value
+     * Method for writing starting marker of a Json Array value
      * (character '['; plus possible white space decoration
      * if pretty-printing is enabled).
      *<p>
@@ -186,7 +200,7 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     /**
-     * Method for writing closing marker of an Array value
+     * Method for writing closing marker of a Json Array value
      * (character ']'; plus possible white space decoration
      * if pretty-printing is enabled).
      *<p>
@@ -197,7 +211,7 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     /**
-     * Method for writing starting marker of an Object value
+     * Method for writing starting marker of a Json Object value
      * (character '{'; plus possible white space decoration
      * if pretty-printing is enabled).
      *<p>
@@ -209,7 +223,7 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     /**
-     * Method for writing closing marker of an Object value
+     * Method for writing closing marker of a Json Object value
      * (character '}'; plus possible white space decoration
      * if pretty-printing is enabled).
      *<p>
@@ -417,6 +431,26 @@ public abstract class JsonGenerator
 
     /*
     ////////////////////////////////////////////////////
+    // Public API, write methods, serializing Java objects
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for writing given Java object (POJO) as Json.
+     * Exactly how the object gets written depends on object
+     * in question (ad on codec, its configuration); for most
+     * beans it will result in Json object, but for others Json
+     * array, or String or numeric value (and for nulls, Json
+     * null literal.
+     * <b>NOTE</b>: generator must have its <b>object codec</b>
+     * set to non-null value; for generators created by a mapping
+     * factory this is the case, for others not.
+     */
+    public abstract void writeObject(Object pojo)
+        throws IOException, JsonProcessingException;
+
+    /*
+    ////////////////////////////////////////////////////
     // Public API, convenience field write methods
     ////////////////////////////////////////////////////
      */
@@ -580,6 +614,22 @@ public abstract class JsonGenerator
     {
         writeFieldName(fieldName);
         writeStartObject();
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
+     * that has contents of specific Java object as its value.
+     * Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeObject(pojo);
+     *</pre>
+     */
+    public final void writeObjectField(String fieldName, Object pojo)
+        throws IOException, JsonProcessingException
+    {
+        writeFieldName(fieldName);
+        writeObject(pojo);
     }
 
     /*

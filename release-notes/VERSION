@@ -13,6 +13,9 @@ Description:
     contextual mappings where a given type may be deserialized differently
     (by different deserializer, and possibly to a different java class)
     depending on where the reference is from.
+  * [JACKSON-48]: Integrate ObjectMapper with JsonGenerator, JsonParser;
+    add MappingJsonFactory.
+    (suggested by Scott A)
   * [JACKSON-50]: JsonNode.getElements() and .iterator() now work for
     ObjectNodes too, not just ArrayNodes. Also added convenience factory
     methods to allow constructing child nodes directly from container 
