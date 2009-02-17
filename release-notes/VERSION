@@ -14,6 +14,9 @@ Description:
 
   New features:
 
+  * [JACKSON-32]: add annotations to configure serialization process
+    (@JsonClass/@JsonContentClass/@JsonKeyClass; @JsonUseSerializer,
+     @JsonUseDeserializer, @JsonIgnore)
   * [JACKSON-36]: add annotations to define property names that differ
     from bean naming convention (@JsonGetter/@JsonSetter)
 
