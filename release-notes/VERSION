@@ -12,6 +12,11 @@ Description:
 
 0.9.8 [16-Feb-2009]:
 
+  New features:
+
+  * [JACKSON-36]: add annotations to define property names that differ
+    from bean naming convention (@JsonGetter/@JsonSetter)
+
   Improvements:
 
   * [JACKSON-47]: Change DeserializerProvider.findValueDeserializer to
