@@ -199,14 +199,14 @@ public final class ByteSourceBootstrapper
         throw new RuntimeException("Internal error"); // should never get here
     }
 
-    public JsonParser constructParser(int features, ObjectCodec codec, NameCanonicalizer byteSymbols, SymbolTable charSymbols)
+    public JsonParser constructParser(int features, ObjectCodec codec, NameCanonicalizer rootByteSymbols, SymbolTable rootCharSymbols)
         throws IOException, JsonParseException
     {
         JsonEncoding enc = detectEncoding();
         if (enc == JsonEncoding.UTF8) {
-            return new Utf8StreamParser(_context, features, _in, codec, byteSymbols.makeChild(), _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
+            return new Utf8StreamParser(_context, features, _in, codec, rootByteSymbols.makeChild(), _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
         }
-        return new ReaderBasedParser(_context, features, constructReader(), codec, charSymbols.makeChild());
+        return new ReaderBasedParser(_context, features, constructReader(), codec, rootCharSymbols.makeChild());
     }
 
     /*

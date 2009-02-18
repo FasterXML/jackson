@@ -5,6 +5,7 @@
     <!-- Source directories -->
     <property name="dir.src" location="${basedir}/src" />
     <property name="dir.src.java" location="${dir.src}/java" />
+    <property name="dir.src.maven" location="${dir.src}/maven" />
     <property name="dir.src.test" location="${dir.src}/test" />
     <property name="dir.src.sample" location="${dir.src}/sample" />
     <property name="dir.src.tools" location="${dir.src}/tools" />
@@ -73,6 +74,7 @@
 
     <!-- some build tasks are refactored out of the main task -->
     <import file="build-osgi.xml" />
+    <import file="build-maven-deploy.xml" />
     <import file="build-coverage.xml" />
 
 

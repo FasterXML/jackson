@@ -214,8 +214,7 @@ public final class Utf8StreamParser
     }
 
     @Override
-    public void close()
-        throws IOException
+    public void close() throws IOException
     {
         super.close();
         // Merge found symbols, if any:

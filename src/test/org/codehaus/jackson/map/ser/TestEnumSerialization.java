@@ -97,7 +97,7 @@ public class TestEnumSerialization
         ObjectMapper mapper = new ObjectMapper();
         CustomSerializerFactory sf = new CustomSerializerFactory();
         Class<?> enumCls = Enum.class;
-        sf.addGenericMapping(enumCls, StdSerializerFactory.StringLikeSerializer.instance);
+        sf.addGenericMapping((Class<Object>) enumCls, StdSerializerFactory.StringLikeSerializer.instance);
         mapper.setSerializerFactory(sf);
         StringWriter sw = new StringWriter();
         mapper.writeValue(sw, TestEnum2.A2);
