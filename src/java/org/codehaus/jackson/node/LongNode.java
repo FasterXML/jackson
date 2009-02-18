@@ -3,9 +3,9 @@ package org.codehaus.jackson.node;
 import java.io.IOException;
 import java.math.BigDecimal;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.NumberOutput;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Numeric node that contains simple 64-bit integer values.
@@ -46,8 +46,9 @@ public final class LongNode
         return NumberOutput.toString(mValue);
     }
 
-    public void writeTo(JsonGenerator jg)
-        throws IOException, JsonGenerationException
+    @Override
+    public final void serialize(JsonGenerator jg, SerializerProvider provider)
+        throws IOException, JsonProcessingException
     {
         jg.writeNumber(mValue);
     }

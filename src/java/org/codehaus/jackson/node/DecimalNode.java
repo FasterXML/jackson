@@ -3,8 +3,8 @@ package org.codehaus.jackson.node;
 import java.io.IOException;
 import java.math.BigDecimal;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Numeric node that contains values that do not fit in simple
@@ -13,9 +13,9 @@ import org.codehaus.jackson.JsonGenerator;
 public final class DecimalNode
     extends NumericNode
 {
-    final BigDecimal mValue;
+    final BigDecimal _value;
 
-    public DecimalNode(BigDecimal v) { mValue = v; }
+    public DecimalNode(BigDecimal v) { _value = v; }
 
     public static DecimalNode valueOf(BigDecimal d) { return new DecimalNode(d); }
 
@@ -26,28 +26,29 @@ public final class DecimalNode
         public boolean isBigDecimal() { return true; }
     
     @Override
-        public Number getNumberValue() { return mValue; }
+        public Number getNumberValue() { return _value; }
 
     @Override
-        public int getIntValue() { return mValue.intValue(); }
+        public int getIntValue() { return _value.intValue(); }
 
     @Override
-        public long getLongValue() { return mValue.longValue(); }
+        public long getLongValue() { return _value.longValue(); }
 
     @Override
-        public double getDoubleValue() { return mValue.doubleValue(); }
+        public double getDoubleValue() { return _value.doubleValue(); }
 
     @Override
-        public BigDecimal getDecimalValue() { return mValue; }
+        public BigDecimal getDecimalValue() { return _value; }
 
     public String getValueAsText() {
-        return mValue.toString();
+        return _value.toString();
     }
 
-    public void writeTo(JsonGenerator jg)
-        throws IOException, JsonGenerationException
+    @Override
+    public final void serialize(JsonGenerator jg, SerializerProvider provider)
+        throws IOException, JsonProcessingException
     {
-        jg.writeNumber(mValue);
+        jg.writeNumber(_value);
     }
 
     @Override
@@ -58,9 +59,9 @@ public final class DecimalNode
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
-        return ((DecimalNode) o).mValue.equals(mValue);
+        return ((DecimalNode) o)._value.equals(_value);
     }
 
     @Override
-        public int hashCode() { return mValue.hashCode(); }
+        public int hashCode() { return _value.hashCode(); }
 }

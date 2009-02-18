@@ -56,6 +56,7 @@ public final class TestJsonPerf
             boolean lf = (round == 0);
 
             switch (round) {
+
             case 0:
                 msg = "Jackson, stream/byte";
                 sum += testJacksonStream(REPS, true);

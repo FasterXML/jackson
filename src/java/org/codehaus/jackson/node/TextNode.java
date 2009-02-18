@@ -2,8 +2,8 @@ package org.codehaus.jackson.node;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.util.CharTypes;
 
 /**
@@ -14,9 +14,9 @@ public final class TextNode
 {
     final static TextNode EMPTY_STRING_NODE = new TextNode("");
 
-    final String mValue;
+    final String _value;
 
-    public TextNode(String v) { mValue = v; }
+    public TextNode(String v) { _value = v; }
 
     /**
      * Factory method that should be used to construct instances.
@@ -43,19 +43,19 @@ public final class TextNode
 
     @Override
     public String getTextValue() {
-        return mValue;
+        return _value;
     }
 
     @Override
 	public String getValueAsText() {
-        return mValue;
+        return _value;
     }
 
     @Override
-	public void writeTo(JsonGenerator jg)
-        throws IOException, JsonGenerationException
+    public final void serialize(JsonGenerator jg, SerializerProvider provider)
+        throws IOException, JsonProcessingException
     {
-        jg.writeString(mValue);
+        jg.writeString(_value);
     }
 
     @Override
@@ -66,11 +66,11 @@ public final class TextNode
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
-        return ((TextNode) o).mValue.equals(mValue);
+        return ((TextNode) o)._value.equals(_value);
     }
 
     @Override
-        public int hashCode() { return mValue.hashCode(); }
+        public int hashCode() { return _value.hashCode(); }
 
     /**
      * Different from other values, Strings need quoting
@@ -78,10 +78,10 @@ public final class TextNode
     @Override
     public String toString()
     {
-        int len = mValue.length();
+        int len = _value.length();
         len = len + 2 + (len >> 4);
         StringBuilder sb = new StringBuilder(len);
-        appendQuoted(sb, mValue);
+        appendQuoted(sb, _value);
         return sb.toString();
     }
 

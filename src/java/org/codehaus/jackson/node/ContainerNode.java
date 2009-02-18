@@ -11,7 +11,7 @@ import org.codehaus.jackson.JsonNode;
  * specifically, array and object nodes.
  */
 public abstract class ContainerNode
-    extends JsonNode
+    extends BaseJsonNode
     implements JsonNodeFactory
 {
     /**

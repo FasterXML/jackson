@@ -3,10 +3,8 @@ package org.codehaus.jackson.node;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.codehaus.jackson.Base64Variant;
-import org.codehaus.jackson.Base64Variants;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Value node that contains Base64 encoded binary value, output and stored
@@ -74,8 +72,9 @@ public final class BinaryNode
         return _asBase64(false, _data);
     }
 
-    public void writeTo(JsonGenerator jg)
-        throws IOException, JsonGenerationException
+    @Override
+    public final void serialize(JsonGenerator jg, SerializerProvider provider)
+        throws IOException, JsonProcessingException
     {
         jg.writeBinary(_data);
     }

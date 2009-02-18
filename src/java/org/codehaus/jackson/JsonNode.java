@@ -17,6 +17,9 @@ import java.util.*;
  * information is generally available when building or modifying
  * trees, but less often when reading a tree (newly built from
  * parsed Json content).
+ *<p>
+ * Actual concrete sub-classes can be found from package
+ * {@link org.codehaus.jackson.node}.
  */
 public abstract class JsonNode
     implements Iterable<JsonNode>
@@ -267,17 +270,6 @@ public abstract class JsonNode
      * this node is a Json Object node.
      */
     public Iterator<String> getFieldNames() { return NO_STRINGS.iterator(); }
-
-    /* 10-Feb-2009, tatu: I don't think this is needed, given that
-     *  iterator() and getElements() return same information.
-     */
-
-    /*
-     * Method for accessing field value nodes , iff
-     * this node is a Json Object node. For all other node types, returns
-     * an empty Iterator.
-     */
-    //    public Iterator<JsonNode> getFieldValues() { return NO_NODES.iterator(); }
 
     /*
     ////////////////////////////////////////////////////

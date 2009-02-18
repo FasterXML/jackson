@@ -2,8 +2,8 @@ package org.codehaus.jackson.node;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * This singleton value class is used to contain explicit JSON null
@@ -12,13 +12,13 @@ import org.codehaus.jackson.JsonGenerator;
 public final class NullNode
     extends ValueNode
 {
-    // // Just need two instances...
+    // // Just need a fly-weight singleton
 
-    private final static NullNode sNull = new NullNode();
+    public final static NullNode instance = new NullNode();
 
     private NullNode() { }
 
-    public static NullNode getInstance() { return sNull; }
+    public static NullNode getInstance() { return instance; }
 
     @Override
     public boolean isNull() { return true; }
@@ -27,8 +27,9 @@ public final class NullNode
         return "null";
     }
 
-    public void writeTo(JsonGenerator jg)
-        throws IOException, JsonGenerationException
+    @Override
+    public final void serialize(JsonGenerator jg, SerializerProvider provider)
+        throws IOException, JsonProcessingException
     {
         jg.writeNull();
     }

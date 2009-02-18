@@ -2,8 +2,8 @@ package org.codehaus.jackson.node;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * This concrete value class is used to contain boolean (true / false)
@@ -15,32 +15,33 @@ public final class BooleanNode
 {
     // // Just need two instances...
 
-    private final static BooleanNode sTrue = new BooleanNode();
-    private final static BooleanNode sFalse = new BooleanNode();
+    private final static BooleanNode TRUE = new BooleanNode();
+    private final static BooleanNode FALSE = new BooleanNode();
 
     private BooleanNode() { }
 
-    public static BooleanNode getTrue() { return sTrue; }
-    public static BooleanNode getFalse() { return sFalse; }
+    public static BooleanNode getTrue() { return TRUE; }
+    public static BooleanNode getFalse() { return FALSE; }
 
-    public static BooleanNode valueOf(boolean b) { return b ? sTrue : sFalse; }
+    public static BooleanNode valueOf(boolean b) { return b ? TRUE : FALSE; }
 
     @Override
     public boolean isBoolean() { return true; }
 
     @Override
     public boolean getBooleanValue() {
-        return (this == sTrue);
+        return (this == TRUE);
     }
 
     public String getValueAsText() {
-        return (this == sTrue) ? "true" : "false";
+        return (this == TRUE) ? "true" : "false";
     }
 
-    public void writeTo(JsonGenerator jg)
-        throws IOException, JsonGenerationException
+    @Override
+    public final void serialize(JsonGenerator jg, SerializerProvider provider)
+        throws IOException, JsonProcessingException
     {
-        jg.writeBoolean(this == sTrue);
+        jg.writeBoolean(this == TRUE);
     }
 
     public boolean equals(Object o)

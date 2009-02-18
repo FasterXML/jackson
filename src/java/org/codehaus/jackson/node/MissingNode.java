@@ -2,9 +2,8 @@ package org.codehaus.jackson.node;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * This singleton node class is generated to denote "missing nodes"
@@ -14,7 +13,7 @@ import org.codehaus.jackson.JsonNode;
  * will be reference to this node.
  */
 public final class MissingNode
-    extends JsonNode
+    extends BaseJsonNode
 {
     private final static MissingNode instance = new MissingNode();
 
@@ -34,8 +33,9 @@ public final class MissingNode
     @Override
     public JsonNode path(int index) { return this; }
 
-    public void writeTo(JsonGenerator jg)
-        throws IOException, JsonGenerationException
+    @Override
+    public final void serialize(JsonGenerator jg, SerializerProvider provider)
+        throws IOException, JsonProcessingException
     {
         /* Nothing to output... should we signal an error tho?
          * Chances are, this is an erroneous call. For now, let's

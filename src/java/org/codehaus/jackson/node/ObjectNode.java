@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Note that maps to Json Object structures in Json content.
@@ -74,15 +73,30 @@ public final class ObjectNode
         return MissingNode.getInstance();
     }
 
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, serialization
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be called to serialize this node and
+     * all of its descendants using specified JSON generator.
+     */
     @Override
-	public void writeTo(JsonGenerator jg)
-        throws IOException, JsonGenerationException
+    public final void serialize(JsonGenerator jg, SerializerProvider provider)
+        throws IOException, JsonProcessingException
     {
         jg.writeStartObject();
         if (_children != null) {
             for (Map.Entry<String, JsonNode> en : _children.entrySet()) {
                 jg.writeFieldName(en.getKey());
-                en.getValue().writeTo(jg);
+                /* 17-Feb-2009, tatu: Can we trust that all nodes will always
+                 *   extend BaseJsonNode? Or if not, at least implement
+                 *   JsonSerializable? Let's start with former, change if
+                 *   we must.
+                 */
+                ((BaseJsonNode) en.getValue()).serialize(jg, provider);
             }
         }
         jg.writeEndObject();

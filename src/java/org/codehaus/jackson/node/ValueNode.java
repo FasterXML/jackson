@@ -8,7 +8,7 @@ import org.codehaus.jackson.JsonNode;
  * "missing node".
  */
 public abstract class ValueNode
-    extends JsonNode
+    extends BaseJsonNode
 {
     protected ValueNode() { }
 
