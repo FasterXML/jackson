@@ -17,8 +17,6 @@ import org.codehaus.jackson.map.*;
 public class TestObjectMapperSimpleSerializer
     extends BaseTest
 {
-    protected enum TestEnum { VALUE1, VALUE2, NONE; }
-
     public void testBoolean() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -62,14 +60,5 @@ public class TestObjectMapperSimpleSerializer
             mapper.writeValue(sw, Double.valueOf(d));
             assertEquals(String.valueOf(d), sw.toString());
         }
-    }
-
-    public void testEnum() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        StringWriter sw = new StringWriter();
-        mapper.writeValue(sw, TestEnum.VALUE2);
-        assertEquals("\"VALUE2\"", sw.toString());
-
     }
 }

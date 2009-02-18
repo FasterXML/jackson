@@ -326,7 +326,7 @@ public class StdSerializerFactory
         extends JsonSerializer<String>
     {
         @Override
-		public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
+            public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value);
@@ -338,13 +338,18 @@ public class StdSerializerFactory
      * type for which {@link Object#toString} returns the desired Json
      * value.
      */
-    public final static class StringLikeSerializer
-        extends JsonSerializer<Object>
+    public final static class StringLikeSerializer<T>
+        extends JsonSerializer<T>
     {
-        public final static StringLikeSerializer instance = new StringLikeSerializer();
+        public final static StringLikeSerializer<Object> instance = new StringLikeSerializer<Object>();
+
+        /* 17-Feb-2009, tatus: better ensure there is the no-arg constructor,
+         *   so it can be used via annotations
+         */
+        public StringLikeSerializer() { }
 
         @Override
-		public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+            public void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());
@@ -361,7 +366,7 @@ public class StdSerializerFactory
         extends JsonSerializer<Integer>
     {
         @Override
-		public void serialize(Integer value, JsonGenerator jgen, SerializerProvider provider)
+            public void serialize(Integer value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.intValue());
@@ -379,7 +384,7 @@ public class StdSerializerFactory
         final static IntLikeSerializer instance = new IntLikeSerializer();
 
         @Override
-		public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
+            public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.intValue());

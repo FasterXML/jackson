@@ -31,11 +31,30 @@ public class CustomSerializerFactory
      */
     final SerializerFactory _fallbackFactory;
 
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration, direct/special mappings
+    ////////////////////////////////////////////////////
+     */
+
     /**
-     * First, direct mappings that are only used for exact class type
-     *  matches, but not for sub-class checks.
+     * Direct mappings that are only used for exact class type
+     * matches, but not for sub-class checks.
      */
     HashMap<ClassKey,JsonSerializer<?>> _directClassMappings = null;
+
+    /**
+     * And for Enum handling we may specify a single default
+     * serializer to use, regardless of actual enumeration.
+     * Usually used to provide "toString - serializer".
+     */
+    JsonSerializer<?> _enumSerializerOverride;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration, generic (interface, super-class) mappings
+    ////////////////////////////////////////////////////
+     */
 
     /**
      * And then class-based mappings that are used both for exact and
@@ -136,6 +155,23 @@ public class CustomSerializerFactory
         _directClassMappings.put(key, ser);
     }
 
+    /**
+     * Method that can be used to force specified serializer to be used for
+     * serializing all Enum instances. This is most commonly used to specify
+     * serializers that call either <code>enum.toString()</code>, or modify
+     * value returned by <code>enum.name()</code> (such as upper- or
+     * lower-casing it).
+     *<p>
+     * Note: this serializer has lower precedence than that of specific
+     * types; so if a specific serializer is assigned to an Enum type,
+     * this serializer will NOT be used. It has higher precedence than
+     * generic mappings have however.
+     */
+    public void setEnumSerializer(JsonSerializer<?> enumSer)
+    {
+        _enumSerializerOverride = enumSer;
+    }
+
     /*
     ////////////////////////////////////////////////////
     // JsonSerializerFactory impl
@@ -152,33 +188,46 @@ public class CustomSerializerFactory
         // First: exact matches
         if (_directClassMappings != null) {
             ser = _directClassMappings.get(key);
+            if (ser != null) {
+                return (JsonSerializer<T>) ser;
+            }
+        }
+
+        // No match? Perhaps one special-purpose serializers?
+        if (type.isEnum()) {
+            if (_enumSerializerOverride != null) {
+                return (JsonSerializer<T>) _enumSerializerOverride;
+            }
         }
 
         // No match? How about more generic ones?
         // Mappings for super-classes?
-        if (ser == null && _transitiveClassMappings != null) {
-            for (Class<?> curr = type; (curr != null) && (ser == null); curr = curr.getSuperclass()) {
+        if (_transitiveClassMappings != null) {
+            for (Class<?> curr = type; (curr != null); curr = curr.getSuperclass()) {
                 key.reset(curr);
                 ser = _transitiveClassMappings.get(key);
+                if (ser != null) {
+                    return (JsonSerializer<T>) ser;
+                }
             }
         }
 
         // And if still no match, how about interfaces?
-        if (ser == null && _interfaceMappings != null) {
-            for (Class<?> curr = type; (curr != null) && (ser == null); curr = curr.getSuperclass()) {
+        if (_interfaceMappings != null) {
+            for (Class<?> curr = type; (curr != null); curr = curr.getSuperclass()) {
                 for (Class<?> iface : curr.getInterfaces()) {
                     key.reset(iface);
                     ser = _interfaceMappings.get(key);
                     if (ser != null) {
-                        break;
+                        return (JsonSerializer<T>) ser;
                     }
                 }
             }
         }
-        if (ser == null && _fallbackFactory != null) {
+        if (_fallbackFactory != null) {
             return _fallbackFactory.createSerializer(type);
         }
-        return (JsonSerializer<T>) ser;
+        return null;
     }
 }
 
