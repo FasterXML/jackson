@@ -7,7 +7,7 @@
 
   <!-- Need BND task for OSGi bundle/metadata creation -->
   <taskdef name="osgiJar" classname="net.luminis.build.plugin.bnd.BuildTask">
-  <classpath>
+    <classpath>
      <fileset dir="${dir.lib}/ant" includes="bndtask*.jar" />
     </classpath>
   </taskdef>
@@ -33,6 +33,7 @@
          bundleVersion="${IMPL_VERSION}"
          bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-core-asl-${IMPL_VERSION}"
          exportpackage="
 org.codehaus.jackson;version=${IMPL_VERSION},
 org.codehaus.jackson.annotate;version=${IMPL_VERSION},
@@ -71,6 +72,7 @@ org.codehaus.jackson.util;version=${IMPL_VERSION}
          bundleVersion="${IMPL_VERSION}"
          bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-mapper-asl-${IMPL_VERSION}"
          importPackage="
 org.codehaus.jackson;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.annotate;version='${IMPL_VERSION}'
@@ -114,6 +116,7 @@ org.codehaus.jackson.node;version=${IMPL_VERSION}
          bundleVersion="${IMPL_VERSION}"
          bundleLicense="http://www.gnu.org/licenses/lgpl-2.1.html"
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-core-lgpl-${IMPL_VERSION}"
          exportpackage='
 org.codehaus.jackson;version=${IMPL_VERSION}
 ,org.codehaus.jackson.annotate;version=${IMPL_VERSION}
@@ -154,6 +157,7 @@ org.codehaus.jackson;version=${IMPL_VERSION}
          bundleVersion="${IMPL_VERSION}"
          bundleLicense="http://www.gnu.org/licenses/lgpl-2.1.html"
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-mapper-lgpl-${IMPL_VERSION}"
          importPackage="
 org.codehaus.jackson;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.annotate;version='${IMPL_VERSION}'

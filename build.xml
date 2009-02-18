@@ -34,7 +34,6 @@
 
     <!-- Distribution -->
     <property name="dir.dist" location="${basedir}/dist" />
-    <property name="dir.dist.maven2" location="${basedir}/dist-maven2" />
 
     <!-- Version information -->
 
@@ -44,7 +43,7 @@
     <property name="JSON_VENDOR" value="http://www.ietf.org/rfc/rfc4627.txt" />
     <property name="IMPL_TITLE_CORE" value="Jackson JSON processor" />
     <property name="IMPL_TITLE_MAPPER" value="Data mapper for Jackson JSON processor" />
-    <property name="IMPL_VERSION" value="0.9.9-SNAPSHOT" />
+    <property name="IMPL_VERSION" value="0.9.8" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
     <path id="test-libs">
@@ -138,7 +137,6 @@
         <delete dir="${dir.doc}"/>
         <delete dir="${dir.test}"/>
         <delete dir="${dir.dist}"/>
-        <delete dir="${dir.dist.maven2}"/>
         <delete file="cobertura.ser" />
     </target>
 
@@ -312,35 +310,6 @@ compile.main, compile.test, compile.extra, compile.perf" />
         <!-- lenient: check only well-formedness, no dtd/schema (yet) -->
             <fileset dir="${dir.src}/maven" includes="*.pom" />
         </xmlvalidate>
-    </target>
-
-    <!-- And for Maven2 repo, we will construct set of different
-         directories
-      --> 
-
-    <target name="dist.maven" depends="dist">
-      <mkdir dir="${dir.dist.maven2}"/>
-
-      <mkdir dir="${dir.dist.maven2}/jackson-core-asl/${IMPL_VERSION}"/>
-      <copy todir="${dir.dist.maven2}/jackson-core-asl/${IMPL_VERSION}">
-        <fileset dir="${dir.dist}" includes="jackson-core-asl*" />
-      </copy>
-
-      <mkdir dir="${dir.dist.maven2}/jackson-mapper-asl/${IMPL_VERSION}"/>
-      <copy todir="${dir.dist.maven2}/jackson-mapper-asl/${IMPL_VERSION}">
-        <fileset dir="${dir.dist}" includes="jackson-mapper-asl*" />
-      </copy>
-
-      <mkdir dir="${dir.dist.maven2}/jackson-core-lgpl/${IMPL_VERSION}"/>
-      <copy todir="${dir.dist.maven2}/jackson-core-lgpl/${IMPL_VERSION}">
-        <fileset dir="${dir.dist}" includes="jackson-core-lgpl*" />
-      </copy>
-
-      <mkdir dir="${dir.dist.maven2}/jackson-mapper-lgpl/${IMPL_VERSION}"/>
-      <copy todir="${dir.dist.maven2}/jackson-mapper-lgpl/${IMPL_VERSION}">
-        <fileset dir="${dir.dist}" includes="jackson-mapper-lgpl*" />
-      </copy>
-
     </target>
 
     <target name="all" depends="clean,javadoc,test,dist">
