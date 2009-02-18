@@ -108,7 +108,8 @@ public abstract class StdDeserializer<T>
     {
         public StringDeserializer() { super(String.class); }
 
-        public String deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public String deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken curr = jp.getCurrentToken();
@@ -135,7 +136,8 @@ public abstract class StdDeserializer<T>
     {
         public BooleanDeserializer() { super(Boolean.class); }
         
-        public Boolean deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public Boolean deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             // We accept couple of different types; obvious ones first:
@@ -169,7 +171,8 @@ public abstract class StdDeserializer<T>
     {
         public ByteDeserializer() { super(Byte.class); }
 
-        public Byte deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public Byte deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             int value = _parseInt(jp, ctxt);
@@ -186,7 +189,8 @@ public abstract class StdDeserializer<T>
     {
         public ShortDeserializer() { super(Short.class); }
 
-        public Short deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public Short deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             int value = _parseInt(jp, ctxt);
@@ -203,7 +207,8 @@ public abstract class StdDeserializer<T>
     {
         public CharacterDeserializer() { super(Character.class); }
 
-        public Character deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public Character deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -230,7 +235,8 @@ public abstract class StdDeserializer<T>
     {
         public IntegerDeserializer() { super(Integer.class); }
 
-        public Integer deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public Integer deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             return _parseInt(jp, ctxt);
@@ -242,7 +248,8 @@ public abstract class StdDeserializer<T>
     {
         public LongDeserializer() { super(Long.class); }
 
-        public Long deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public Long deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             // We accept couple of different types; obvious ones first:
@@ -274,7 +281,8 @@ public abstract class StdDeserializer<T>
     {
         public FloatDeserializer() { super(Float.class); }
 
-        public Float deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public Float deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             /* 22-Jan-2009, tatu: Bounds/range checks would be tricky
@@ -289,7 +297,8 @@ public abstract class StdDeserializer<T>
     {
         public DoubleDeserializer() { super(Double.class); }
 
-        public Double deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public Double deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             return _parseDouble(jp, ctxt);
@@ -308,7 +317,8 @@ public abstract class StdDeserializer<T>
     {
         public BigDecimalDeserializer() { super(BigDecimal.class); }
 
-        public BigDecimal deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public BigDecimal deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -339,7 +349,8 @@ public abstract class StdDeserializer<T>
     {
         public BigIntegerDeserializer() { super(BigInteger.class); }
 
-        public BigInteger deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public BigInteger deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -380,7 +391,8 @@ public abstract class StdDeserializer<T>
     {
         public CalendarDeserializer() { super(Calendar.class); }
 
-        public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             return ctxt.constructCalendar(_parseDate(jp, ctxt));
@@ -392,7 +404,8 @@ public abstract class StdDeserializer<T>
     {
         public UtilDateDeserializer() { super(java.util.Date.class); }
 
-        public java.util.Date deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public java.util.Date deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             return _parseDate(jp, ctxt);
@@ -408,7 +421,8 @@ public abstract class StdDeserializer<T>
     {
         public SqlDateDeserializer() { super(java.sql.Date.class); }
 
-        public java.sql.Date deserialize(JsonParser jp, DeserializationContext ctxt)
+        @Override
+		public java.sql.Date deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();

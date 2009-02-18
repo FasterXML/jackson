@@ -3,6 +3,8 @@ package org.codehaus.jackson.map.type;
 import java.util.*;
 import java.lang.reflect.*;
 
+import org.codehaus.jackson.type.TypeReference;
+
 /**
  * Class that knows how construct {@link JavaType} instances,
  * given various inputs.

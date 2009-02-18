@@ -41,7 +41,8 @@ public abstract class DeserializerFactory
      * @param p Provider that can be called to create deserializers for
      *   contained member types
      */
-    public abstract JsonDeserializer<?> createBeanDeserializer(JavaType type, DeserializerProvider p);
+    public abstract JsonDeserializer<?> createBeanDeserializer(JavaType type, DeserializerProvider p)
+        throws JsonMappingException;
 
     /**
      * Method called to create (or, for completely immutable deserializers,
@@ -52,12 +53,15 @@ public abstract class DeserializerFactory
      * @param p Provider that can be called to create deserializers for
      *   contained member types
      */
-    public abstract JsonDeserializer<?> createArrayDeserializer(ArrayType type, DeserializerProvider p);
+    public abstract JsonDeserializer<?> createArrayDeserializer(ArrayType type, DeserializerProvider p)
+        throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p);
+    public abstract JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
+        throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createEnumDeserializer(SimpleType type, DeserializerProvider p);
+    public abstract JsonDeserializer<?> createEnumDeserializer(SimpleType type, DeserializerProvider p)
+        throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p);
-
+    public abstract JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
+        throws JsonMappingException;
 }

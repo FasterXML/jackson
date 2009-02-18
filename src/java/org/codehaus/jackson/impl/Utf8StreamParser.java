@@ -55,7 +55,8 @@ public final class Utf8StreamParser
      * @return Next token from the stream, if any found, or null
      *   to indicate end-of-input
      */
-    public JsonToken nextToken()
+    @Override
+	public JsonToken nextToken()
         throws IOException, JsonParseException
     {
         /* First: field names are special -- we will always tokenize
@@ -89,14 +90,14 @@ public final class Utf8StreamParser
             if (!_parsingContext.inArray()) {
                 _reportMismatchedEndMarker(i, ']');
             }
-            _parsingContext = _parsingContext.getParentImpl();
+            _parsingContext = _parsingContext.getParent();
             return (_currToken = JsonToken.END_ARRAY);
         }
         if (i == INT_RCURLY) {
             if (!_parsingContext.inObject()) {
                 _reportMismatchedEndMarker(i, '}');
             }
-            _parsingContext = _parsingContext.getParentImpl();
+            _parsingContext = _parsingContext.getParent();
             return (_currToken = JsonToken.END_OBJECT);
         }
 
@@ -683,7 +684,8 @@ public final class Utf8StreamParser
 
     }
 
-    protected void _finishString()
+    @Override
+	protected void _finishString()
         throws IOException, JsonParseException
     {
         int outPtr = 0;
@@ -1364,7 +1366,8 @@ public final class Utf8StreamParser
     ////////////////////////////////////////////////////
      */
 
-    protected byte[] _decodeBase64(Base64Variant b64variant)
+    @Override
+	protected byte[] _decodeBase64(Base64Variant b64variant)
         throws IOException, JsonParseException
     {
         ByteArrayBuilder builder = _getByteArrayBuilder();

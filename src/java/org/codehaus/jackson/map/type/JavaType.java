@@ -19,12 +19,42 @@ public abstract class JavaType
 
     protected int _hashCode;
 
+    /*
+    ///////////////////////////////////////////////////////////////
+    // Life-cycle
+    ///////////////////////////////////////////////////////////////
+     */
+
     protected JavaType(Class<?> clz)
     {
         _class = clz;
         String name = clz.getName();
         _hashCode = name.hashCode();
     }
+
+
+    /**
+     * Method that can be called to do a "narrowing" conversions; that is,
+     * to return a type with a raw class that is assignable to the raw
+     * class of this type. If this is not possible, an
+     * {@link IllegalArgumentException} is thrown.
+     * If class is same as the current raw class, instance itself is
+     * returned.
+     */
+    public final JavaType narrowBy(Class<?> subclass)
+    {
+        // First: if same raw class, just return this instance
+        if (subclass == _class) {
+            return this;
+        }
+        // Otherwise, ensure compatibility
+        _assertSubclass(subclass, _class);
+        return _narrow(subclass);
+    }
+
+    protected abstract JavaType _narrow(Class<?> subclass);
+
+    public abstract JavaType narrowContentsBy(Class<?> contentClass);
 
     /*
     ///////////////////////////////////////////////////////////////
@@ -69,6 +99,19 @@ public abstract class JavaType
     public final boolean isInterface() { return _class.isInterface(); }
 
     public final boolean isPrimitive() { return _class.isPrimitive(); }
+
+    /*
+    ///////////////////////////////////////////////////////////////
+    // Helper methods
+    ///////////////////////////////////////////////////////////////
+     */
+
+    protected void _assertSubclass(Class<?> subclass, Class<?> superClass)
+    {
+        if (!_class.isAssignableFrom(subclass)) {
+            throw new IllegalArgumentException("Class "+subclass.getName()+" is not assignable to "+_class.getName());
+        }
+    }
 
     /*
     ///////////////////////////////////////////////////////////////

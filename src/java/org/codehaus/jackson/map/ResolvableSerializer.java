@@ -18,5 +18,6 @@ public interface ResolvableSerializer
      * @param provider Provider that has constructed serializer this method
      *   is called on.
      */
-    public abstract void resolve(SerializerProvider provider);
+    public abstract void resolve(SerializerProvider provider)
+        throws JsonMappingException;
 }

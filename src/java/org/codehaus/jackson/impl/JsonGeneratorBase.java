@@ -32,7 +32,7 @@ public abstract class JsonGeneratorBase
      * Object that keeps track of the current contextual state
      * of the generator.
      */
-    protected JsonWriteContextImpl _writeContext;
+    protected JsonWriteContext _writeContext;
 
     /*
     ////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ public abstract class JsonGeneratorBase
     {
         super();
         _features = features;
-        _writeContext = JsonWriteContextImpl.createRootContext();
+        _writeContext = JsonWriteContext.createRootContext();
     }
 
     /*
@@ -63,7 +63,7 @@ public abstract class JsonGeneratorBase
 
     //public final void setFeature(Feature f, boolean state) {
 
-    public boolean isFeatureEnabled(Feature f) {
+    public final boolean isFeatureEnabled(Feature f) {
         return (_features & f.getMask()) != 0;
     }
 
@@ -78,6 +78,9 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Note: co-variant return type.
+     */
     public final JsonWriteContext getOutputContext() { return _writeContext; }
 
     /*
@@ -95,11 +98,11 @@ public abstract class JsonGeneratorBase
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeStartArray(this);
         } else {
-            doWriteStartArray();
+            _writeStartArray();
         }
     }
 
-    protected abstract void doWriteStartArray()
+    protected abstract void _writeStartArray()
         throws IOException, JsonGenerationException;
 
     public final void writeEndArray()
@@ -111,12 +114,12 @@ public abstract class JsonGeneratorBase
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
         } else {
-            doWriteEndArray();
+            _writeEndArray();
         }
-        _writeContext = _writeContext.getParentImpl();
+        _writeContext = _writeContext.getParent();
     }
 
-    protected abstract void doWriteEndArray()
+    protected abstract void _writeEndArray()
         throws IOException, JsonGenerationException;
 
     public final void writeStartObject()
@@ -127,11 +130,11 @@ public abstract class JsonGeneratorBase
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeStartObject(this);
         } else {
-            doWriteStartObject();
+            _writeStartObject();
         }
     }
 
-    protected abstract void doWriteStartObject()
+    protected abstract void _writeStartObject()
         throws IOException, JsonGenerationException;
 
     public final void writeEndObject()
@@ -140,15 +143,15 @@ public abstract class JsonGeneratorBase
         if (!_writeContext.inObject()) {
             _reportError("Current context not an object but "+_writeContext.getTypeDesc());
         }
-        _writeContext = _writeContext.getParentImpl();
+        _writeContext = _writeContext.getParent();
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
         } else {
-            doWriteEndObject();
+            _writeEndObject();
         }
     }
 
-    protected abstract void doWriteEndObject()
+    protected abstract void _writeEndObject()
         throws IOException, JsonGenerationException;
 
     public final void writeFieldName(String name)
@@ -156,13 +159,13 @@ public abstract class JsonGeneratorBase
     {
         // Object is a value, need to verify it's allowed
         int status = _writeContext.writeFieldName(name);
-        if (status == JsonWriteContextImpl.STATUS_EXPECT_VALUE) {
+        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
-        doWriteFieldName(name, (status == JsonWriteContextImpl.STATUS_OK_AFTER_COMMA));
+        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
     }
 
-    public abstract void doWriteFieldName(String name, boolean commaBefore)
+    protected abstract void _writeFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException;
 
     /*

@@ -46,11 +46,13 @@ public final class TextNode
         return mValue;
     }
 
-    public String getValueAsText() {
+    @Override
+	public String getValueAsText() {
         return mValue;
     }
 
-    public void writeTo(JsonGenerator jg)
+    @Override
+	public void writeTo(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
         jg.writeString(mValue);
@@ -64,7 +66,7 @@ public final class TextNode
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
-        return ((TextNode) o).mValue == mValue;
+        return ((TextNode) o).mValue.equals(mValue);
     }
 
     @Override

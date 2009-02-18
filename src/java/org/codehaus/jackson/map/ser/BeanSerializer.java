@@ -7,9 +7,7 @@ import java.util.Collection;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ResolvableSerializer;
+import org.codehaus.jackson.map.*;
 
 /**
  * Serializer class that can serialize arbitrary bean objects.
@@ -69,10 +67,15 @@ public final class BeanSerializer
      */
 
     public void resolve(SerializerProvider provider)
+        throws JsonMappingException
     {
         for (WritableBeanProperty prop : _props) {
             if (!prop.hasSerializer()) {
                 Class<?> rt = prop.getReturnType();
+                /* Note: we can only assign serializer statically if the
+                 * declared type is final -- if not, we don't really know
+                 * the actual type until we get the instance.
+                 */
                 if (Modifier.isFinal(rt.getModifiers())) {
                     JsonSerializer<Object> ser = provider.findValueSerializer(rt);
                     prop.assignSerializer(ser);

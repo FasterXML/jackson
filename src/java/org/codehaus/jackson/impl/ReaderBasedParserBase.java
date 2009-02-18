@@ -61,7 +61,8 @@ public abstract class ReaderBasedParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected final boolean loadMore()
+    @Override
+	protected final boolean loadMore()
         throws IOException
     {
         _currInputProcessed += _inputEnd;

@@ -1,6 +1,8 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
@@ -15,7 +17,8 @@ public abstract class StdKeyDeserializer
 
     protected StdKeyDeserializer(Class<?> cls) { _keyClass = cls; }
 
-    public final Object deserializeKey(String key, DeserializationContext ctxt)
+    @Override
+	public final Object deserializeKey(String key, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         if (key == null) { // is this even legal call?
@@ -26,15 +29,15 @@ public abstract class StdKeyDeserializer
             if (result != null) {
                 return result;
             }
-        } catch (IllegalArgumentException iae) {
-            ;
+        } catch (Exception re) {
+            throw ctxt.weirdKeyException(_keyClass, key, "not a valid representation: "+re.getMessage());
         }
         throw ctxt.weirdKeyException(_keyClass, key, "not a valid representation");
     }
 
     public Class<?> getKeyClass() { return _keyClass; }
 
-    protected abstract Object _parse(String key, DeserializationContext ctxt) throws JsonMappingException;
+    protected abstract Object _parse(String key, DeserializationContext ctxt) throws Exception;
 
     /*
     ////////////////////////////////////////////////////////////////////////
@@ -67,7 +70,8 @@ public abstract class StdKeyDeserializer
     {
         BoolKD() { super(Boolean.class); }
 
-        public Boolean _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Boolean _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             if ("true".equals(key)) {
                 return Boolean.TRUE;
@@ -83,7 +87,8 @@ public abstract class StdKeyDeserializer
     {
         ByteKD() { super(Byte.class); }
 
-        public Byte _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Byte _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             int value = _parseInt(key);
             if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
@@ -97,7 +102,8 @@ public abstract class StdKeyDeserializer
     {
         ShortKD() { super(Integer.class); }
 
-        public Short _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Short _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             int value = _parseInt(key);
             if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
@@ -115,7 +121,8 @@ public abstract class StdKeyDeserializer
     {
         CharKD() { super(Character.class); }
 
-        public Character _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Character _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             if (key.length() == 1) {
                 return Character.valueOf(key.charAt(0));
@@ -128,7 +135,8 @@ public abstract class StdKeyDeserializer
     {
         IntKD() { super(Integer.class); }
 
-        public Integer _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Integer _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             return _parseInt(key);
         }
@@ -138,7 +146,8 @@ public abstract class StdKeyDeserializer
     {
         LongKD() { super(Long.class); }
 
-        public Long _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Long _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             return _parseLong(key);
         }
@@ -148,7 +157,8 @@ public abstract class StdKeyDeserializer
     {
         DoubleKD() { super(Double.class); }
 
-        public Double _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Double _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             return _parseDouble(key);
         }
@@ -158,7 +168,8 @@ public abstract class StdKeyDeserializer
     {
         FloatKD() { super(Float.class); }
 
-        public Float _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+		public Float _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             /* 22-Jan-2009, tatu: Bounds/range checks would be tricky
              *   here, so let's not bother even trying...
@@ -183,13 +194,54 @@ public abstract class StdKeyDeserializer
             _resolver = er;
         }
 
-        public Enum<?> _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        @Override
+            public Enum<?> _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             Enum<?> e = _resolver.findEnum(key);
             if (e == null) {
                 throw ctxt.weirdKeyException(_keyClass, key, "not one of values for Enum class");
             }
             return e;
+        }
+    }
+
+    /**
+     * Key deserializer that calls a single-string-arg constructor
+     * to instantiate desired key type.
+     */
+    final static class StringCtorKeyDeserializer extends StdKeyDeserializer
+    {
+        final Constructor<?> _ctor;
+
+        public StringCtorKeyDeserializer(Constructor<?> ctor) {
+            super(ctor.getDeclaringClass());
+            _ctor = ctor;
+        }
+
+        @Override
+        public Object _parse(String key, DeserializationContext ctxt) throws Exception
+        {
+            return _ctor.newInstance(key);
+        }
+    }
+
+    /**
+     * Key deserializer that calls a static no-args factory method
+     * to instantiate desired key type.
+     */
+    final static class StringFactoryKeyDeserializer extends StdKeyDeserializer
+    {
+        final Method _factoryMethod;
+
+        public StringFactoryKeyDeserializer(Method fm) {
+            super(fm.getDeclaringClass());
+            _factoryMethod = fm;
+        }
+
+        @Override
+        public Object _parse(String key, DeserializationContext ctxt) throws Exception
+        {
+            return _factoryMethod.invoke(null, key);
         }
     }
 }

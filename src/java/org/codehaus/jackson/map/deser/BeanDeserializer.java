@@ -17,7 +17,7 @@ public final class BeanDeserializer
     extends JsonDeserializer<Object>
     implements ResolvableDeserializer
 {
-    final Class<?> _beanClass;
+    final JavaType _beanType;
 
     final Constructor<?> _defaultConstructor;
 
@@ -55,11 +55,11 @@ public final class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
-    public BeanDeserializer(Class<?> type, Constructor<?> defaultCtor,
+    public BeanDeserializer(JavaType type, Constructor<?> defaultCtor,
                             StringConstructor sctor,
                             NumberConstructor nctor)
     {
-        _beanClass = type;
+        _beanType = type;
         _defaultConstructor = defaultCtor;
         _stringConstructor = sctor;
         _numberConstructor = nctor;
@@ -88,17 +88,39 @@ public final class BeanDeserializer
      * after deserializer itself has been registered. This
      * is needed to handle recursive dependencies.
      */
-    public void resolve(DeserializerProvider provider, DeserializerFactory f)
+    public void resolve(DeserializerProvider provider)
+        throws JsonMappingException
     {
         // let's reuse same instances, not all are cached by provider
-        HashMap<JavaType, JsonDeserializer<Object>> seen =  new HashMap<JavaType, JsonDeserializer<Object>>();
+        /* 04-Feb-2009, tatu: This is tricky now that we are to pass referrer
+         *   information, as there is no easy+reliable+efficient way to do
+         *   it. But we can use a quick heuristic: only cache "expensive"
+         *   BeanDeserializers; for them it is unlikely that different
+         *   references should lead to different deserializers, and for other
+         *   types cost is much lower so we can drop caching
+         */
+        HashMap<JavaType, JsonDeserializer<Object>> seen = null;
 
         for (SettableBeanProperty prop : _props.values()) {
+            // May already have deserializer from annotations, if so, skip:
+            if (prop.hasValueDeserializer()) {
+                continue;
+            }
+
             JavaType type = prop.getType();
-            JsonDeserializer<Object> deser = seen.get(type);
+            JsonDeserializer<Object> deser = null;
+
+            if (seen != null) {
+                deser = seen.get(type);
+            }
             if (deser == null) {
-                deser = provider.findValueDeserializer(type, f);
-                seen.put(type, deser);
+                deser = provider.findValueDeserializer(type, _beanType, prop.getPropertyName());
+                if (deser instanceof BeanDeserializer) {
+                    if (seen == null) {
+                        seen = new HashMap<JavaType, JsonDeserializer<Object>>();
+                    }
+                    seen.put(type, deser);
+                }
             }
             prop.setValueDeserializer(deser);
         }
@@ -110,7 +132,7 @@ public final class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
-    public Class<?> getBeanClass() { return _beanClass; }
+    public Class<?> getBeanClass() { return _beanType.getRawClass(); }
 
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
@@ -139,7 +161,7 @@ public final class BeanDeserializer
                 return value;
             }
         }
-        throw ctxt.mappingException(_beanClass);
+        throw ctxt.mappingException(getBeanClass());
     }
 
     /*
@@ -155,7 +177,7 @@ public final class BeanDeserializer
 
         // But for now, must have the default constructor:
         if (_defaultConstructor == null) {
-            throw JsonMappingException.from(jp, "No default constructor found for class "+_beanClass.getName()+": can not instantiate from Json object");
+            throw JsonMappingException.from(jp, "No default constructor found for type "+_beanType+": can not instantiate from Json object");
         }
 
         Object result;
@@ -201,7 +223,7 @@ public final class BeanDeserializer
                                       Object valueObject, String fieldName)
         throws IOException, JsonProcessingException
     {
-        ctxt.unknownFieldException(valueObject, fieldName);
+        throw ctxt.unknownFieldException(valueObject, fieldName);
     }
 
     /*

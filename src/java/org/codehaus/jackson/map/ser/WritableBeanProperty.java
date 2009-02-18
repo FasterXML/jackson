@@ -82,6 +82,10 @@ public final class WritableBeanProperty
             ser = prov.getNullValueSerializer();
         } else {
             ser = _serializer;
+            /* We will only have serializer if the type is final, and
+             * hence known. Otherwise, we will have to dynamically detect
+             * it now that we have object instance.
+             */
             if (ser == null) {
                 ser = prov.findValueSerializer(value.getClass());
             }

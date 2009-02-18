@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.lang.reflect.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.type.JavaType;
 
 /**
@@ -28,10 +29,12 @@ public final class SettableBeanProperty
         _setter = setter;
     }
 
+    public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
+
     public void setValueDeserializer(JsonDeserializer<Object> deser)
     {
         if (_valueDeserializer != null) { // sanity check
-            throw new IllegalStateException("Alread had assigned deserializer for property '"+_propName+"' (class "+_setter.getDeclaringClass().getName()+")");
+            throw new IllegalStateException("Already had assigned deserializer for property '"+_propName+"' (class "+_setter.getDeclaringClass().getName()+")");
         }
         _valueDeserializer = deser;
     }
@@ -42,6 +45,7 @@ public final class SettableBeanProperty
     public JsonDeserializer<Object> getValueDeserializer() { return _valueDeserializer; }
 
     public void set(Object instance, Object value)
+        throws JsonMappingException
     {
         try {
             _setter.invoke(instance, value);
@@ -53,7 +57,7 @@ public final class SettableBeanProperty
             while (t.getCause() != null) {
                 t = t.getCause();
             }
-            throw new IllegalArgumentException(t.getMessage(), t);
+            throw new JsonMappingException(t.getMessage(), null, t);
         }
     }
 

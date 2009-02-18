@@ -532,7 +532,8 @@ public final class TextBuffer
      * {@link #contentsAsString}, since it's not guaranteed that resulting
      * String is cached.
      */
-    public String toString() {
+    @Override
+	public String toString() {
          return contentsAsString();
     }
 

@@ -229,8 +229,6 @@ public class TestObjectMapperBeanDeserializer
 
     public void testSimpleBean() throws Exception
     {
-        Class<?> type = TestBean.class;
-
         ArrayList<Object> misc = new ArrayList<Object>();
         misc.add("xyz");
         misc.add(42);
@@ -262,6 +260,21 @@ public class TestObjectMapperBeanDeserializer
 
         BeanWithList result = new ObjectMapper().readValue(sw.toString(), BeanWithList.class);
         assertEquals(bean, result);
+    }
+
+    /**
+     * Also, let's verify that unknown fields cause an exception with default
+     * settings.
+     */
+    public void testUnknownFields() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            TestBean bean = mapper.readValue("{ \"foobar\" : 3 }", TestBean.class);
+            fail("Expected an exception, got bean: "+bean);
+        } catch (JsonMappingException jse) {
+            ;
+        }
     }
 
     /*

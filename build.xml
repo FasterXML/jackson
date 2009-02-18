@@ -70,6 +70,7 @@
 
     <!-- some build tasks are refactored out of the main task -->
     <import file="build-osgi.xml" />
+    <import file="build-maven-deploy.xml" />
     <import file="build-coverage.xml" />
 
 

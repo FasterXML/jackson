@@ -190,10 +190,10 @@ public abstract class JsonParser
 
     /**
      * Method that can be called to get the name associated with
-     * the current event: for {@link JsonToken#FIELD_NAME} it will
-     * be the same as {@link #getText}, for field values Objects name
-     * of matching field name; and for others (array values, root-level
-     * values) null.
+     * the current event: for {@link JsonToken#FIELD_NAME}s it will
+     * be the same as what {@link #getText} returns;
+     * for field values it will be preceding field name;
+     * and for others (array values, root-level values) null.
      */
     public abstract String getCurrentName()
         throws IOException, JsonParseException;
@@ -227,7 +227,7 @@ public abstract class JsonParser
      * Contexts can also be used for simple xpath-like matching of
      * input, if so desired.
      */
-    public abstract JsonReadContext getParsingContext();
+    public abstract JsonStreamContext getParsingContext();
 
     /**
      * Method that return the <b>starting</b> location of the current
@@ -455,9 +455,9 @@ public abstract class JsonParser
     public abstract byte[] getBinaryValue(Base64Variant b64variant) throws IOException, JsonParseException;
 
     /**
-     * Convenience alternative to {@link #getBinaryValue{Base64Variant}
+     * Convenience alternative to {@link #getBinaryValue(Base64Variant)}
      * that defaults to using
-     * {@link Base64Variants#getDefaultVariant} as the default encoding
+     * {@link Base64Variants#getDefaultVariant} as the default encoding.
      */
     public byte[] getBinaryValue() throws IOException, JsonParseException
     {

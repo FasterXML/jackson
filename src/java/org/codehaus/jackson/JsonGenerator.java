@@ -43,7 +43,7 @@ public abstract class JsonGenerator
          *<p>
          * Feature is enabled by default.
          */
-        AUTO_CLOSE_TARGET(true),
+        AUTO_CLOSE_TARGET(true)
 
         /**
          * Feature that determines what happens when the generator is
@@ -55,7 +55,16 @@ public abstract class JsonGenerator
          *<p>
          * Feature is enabled by default.
          */
-        AUTO_CLOSE_JSON_CONTENT(true)
+        ,AUTO_CLOSE_JSON_CONTENT(true)
+
+        /**
+         * Feature that determines whether Json Object field names are
+         * quoted using double-quotes, as specified by Json specification
+         * or not. Ability to disable quoting was added to support use
+         * cases where they are not usually expected, which most commonly
+         * occurs when used straight from javascript.
+         */
+        ,QUOTE_FIELD_NAMES(true)
             ;
 
         final boolean _defaultState;
@@ -535,7 +544,7 @@ public abstract class JsonGenerator
 
     /**
      * Convenience method for outputting a field entry ("member")
-     * that contains an array value, and the START-ARRAY marker.
+     * (that will contain a Json Array value), and the START-ARRAY marker.
      * Equivalent to:
      *<pre>
      *  writeFieldName(fieldName);
@@ -555,7 +564,7 @@ public abstract class JsonGenerator
 
     /**
      * Convenience method for outputting a field entry ("member")
-     * that contains an array value, and the START-OBJECT marker.
+     * (that will contain a Json Object value), and the START-OBJECT marker.
      * Equivalent to:
      *<pre>
      *  writeFieldName(fieldName);
@@ -635,7 +644,7 @@ public abstract class JsonGenerator
      * @return Context object that can give information about logical
      *   position within generated json content.
      */
-    public abstract JsonWriteContext getOutputContext();
+    public abstract JsonStreamContext getOutputContext();
 
     /*
     ////////////////////////////////////////////////////

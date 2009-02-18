@@ -1,10 +1,31 @@
-Version: 0.9.7
+Version: 0.9.8
 
 Release date: 
-  Xx-Jan-2009
+  xx-Feb-2009
 
 Description:
   Another pre-1.0 release.
+
+  Improvements:
+
+  * [JACKSON-47]: Change DeserializerProvider.findValueDeserializer to
+    take "referrer" information. This is needed to be able to give
+    contextual mappings where a given type may be deserialized differently
+    (by different deserializer, and possibly to a different java class)
+    depending on where the reference is from.
+  * [JACKSON-50]: JsonNode.getElements() and .iterator() now work for
+    ObjectNodes too, not just ArrayNodes. Also added convenience factory
+    methods to allow constructing child nodes directly from container 
+    nodes.
+
+  Fixes:
+
+  * [JACKSON-49]: Incorrect bounds check for Float values resulted in
+    exception when trying to serializer 0.0f.
+
+== History: ==
+
+0.9.7 [04-Feb-2009]:
 
   Improvements:
 
@@ -26,8 +47,9 @@ Description:
     now also read Base64-encoded binary, not just write.
   * [JACKSON-40]: Add JsonParser.nextValue() for more convenient
     iteration.
-
-== History: ==
+  * [JACKSON-46]: Allow disabling quoting of field names by disabling
+    feature 'JsonGenerator.feature.QUOTE_FIELD_NAMES'
+   (requested by Scott Anderson)
 
 0.9.6 [14-Jan-2009]:
 

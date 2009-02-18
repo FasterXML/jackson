@@ -7,12 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
-import org.codehaus.jackson.map.deser.StdDeserializerFactory;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.JavaType;
 import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.map.type.TypeReference;
+import org.codehaus.jackson.type.TypeReference;
 
 /**
  * This mapper (or, data binder, or codec) provides functionality for
@@ -22,13 +21,18 @@ import org.codehaus.jackson.map.type.TypeReference;
  * for implementing actual reading/writing of JSON.
  */
 public class ObjectMapper
-    extends BaseMapper
 {
     /*
     ////////////////////////////////////////////////////
     // Configuration settings
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * Factory used to create {@link JsonParser} and {@link JsonGenerator}
+     * instances as necessary.
+     */
+    protected final JsonFactory _jsonFactory;
 
     /**
      * Object that manages access to serializers used for serialization,
@@ -51,11 +55,6 @@ public class ObjectMapper
      * for constructing custom deserializers.
      */
     protected DeserializerProvider _deserializerProvider;
-
-    /**
-     * Serializer factory used for constructing deserializers.
-     */
-    protected DeserializerFactory _deserializerFactory;
 
     /*
     ////////////////////////////////////////////////////
@@ -113,9 +112,9 @@ public class ObjectMapper
     }
 
     public ObjectMapper(JsonFactory jf, SerializerProvider sp,
-                          DeserializerProvider dp)
+                        DeserializerProvider dp)
     {
-        super(jf);
+        _jsonFactory = (jf == null) ? new JsonFactory() : jf;
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -123,22 +122,34 @@ public class ObjectMapper
          * no need to create anything, no cost to re-set later on
          */
         _serializerFactory = BeanSerializerFactory.instance;
-        _deserializerFactory = StdDeserializerFactory.instance;
     }
 
     public void setSerializerFactory(SerializerFactory f) {
         _serializerFactory = f;
     }
-    public void setDeserializerFactory(DeserializerFactory f) {
-        _deserializerFactory = f;
-    }
 
     public void setSerializerProvider(SerializerProvider p) {
         _serializerProvider = p;
     }
+
     public void setDeserializerProvider(DeserializerProvider p) {
         _deserializerProvider = p;
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Simple accessors
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be used to get hold of Json factory that this
+     * mapper uses if it needs to construct Json parsers and/or generators.
+     *
+     * @return Json factory that this mapper uses when it needs to
+     *   construct Json parser and generators
+     */
+    public JsonFactory getJsonFactory() { return _jsonFactory; }
 
     /*
     ////////////////////////////////////////////////////
@@ -371,54 +382,6 @@ public class ObjectMapper
 
     /*
     ////////////////////////////////////////////////////
-    // Public API, exposing Java constructs as JSON
-    // event source via JSONParser
-    //
-    // NOT YET IMPLEMENTED -- will they even be added
-    // here, or somewhere else?
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Method that will take in a Java object that could have
-     * been created by mappers write methods, and construct
-     * a {@link JsonParser} that exposes contents as JSON
-     * tokens
-     */
-    /*
-    public JsonParser createParserFor(Object data)
-        throws JsonParseException
-    {
-        // !!! TBI: parser for reading from Object (array/map, primitives)
-        return null;
-    }
-    */
-
-    /**
-     * Method that will create a JSON generator that will build
-     * Java objects as members of the current list, appending
-     * them at the end of the list.
-     */
-    /*
-    public JsonGenerator createGeneratorFor(List<?> context)
-        throws JsonGenerationException
-    {
-        // !!! TBI: generator for writing (appending) to Json Arrays (Java lists)
-        return null;
-    }
-    */
-
-    /*
-    public JsonGenerator createGeneratorFor(Map<?,?> context)
-        throws JsonParseException
-    {
-        // !!! TBI: generator for writing (appending) to Json Objects (Java maps)
-        return null;
-    }
-    */
-
-    /*
-    ////////////////////////////////////////////////////
     // Internal methods, overridable
     ////////////////////////////////////////////////////
      */
@@ -433,7 +396,7 @@ public class ObjectMapper
         } else { // pointing to event other than null
             DeserializationContext ctxt = _createDeserializationContext(jp);
             // ok, let's get the value
-            result = _findDeserializer(valueType).deserialize(jp, ctxt);
+            result = _findRootDeserializer(valueType).deserialize(jp, ctxt);
         }
         // and then need to skip past the last event before returning
         jp.nextToken();
@@ -449,7 +412,7 @@ public class ObjectMapper
                 result = null;
             } else {
                 DeserializationContext ctxt = _createDeserializationContext(jp);
-                result = _findDeserializer(valueType).deserialize(jp, ctxt);
+                result = _findRootDeserializer(valueType).deserialize(jp, ctxt);
                 // and then need to skip past the last event before returning
                 jp.nextToken();
             }
@@ -467,7 +430,11 @@ public class ObjectMapper
     ////////////////////////////////////////////////////
      */
 
-    protected JsonDeserializer<Object> _findDeserializer(JavaType valueType)
+    /**
+     * Method called to locate deserializer for the passed root-level value.
+     */
+    protected JsonDeserializer<Object> _findRootDeserializer(JavaType valueType)
+        throws JsonMappingException
     {
         // First: have we already seen it?
         JsonDeserializer<Object> deser = _rootDeserializers.get(valueType);
@@ -476,9 +443,9 @@ public class ObjectMapper
         }
 
         // Nope: need to ask provider to resolve it
-        deser = _deserializerProvider.findValueDeserializer(valueType, _deserializerFactory);
+        deser = _deserializerProvider.findValueDeserializer(valueType, null, null);
         if (deser == null) { // can this happen?
-            throw new IllegalArgumentException("Can not find a deserializer for type "+valueType);
+            throw new JsonMappingException("Can not find a deserializer for type "+valueType);
         }
         _rootDeserializers.put(valueType, deser);
         return deser;

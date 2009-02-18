@@ -19,13 +19,27 @@ public final class CollectionType
     //////////////////////////////////////////////////////////
      */
 
-    private CollectionType(Class<?> collT, JavaType elemT,
-                           boolean fullyTyped)
+    private CollectionType(Class<?> collT, JavaType elemT, boolean fullyTyped)
     {
         super(collT);
         _elementType = elemT;
         _hashCode += elemT.hashCode();
         _fullyTyped = fullyTyped;
+    }
+
+    protected JavaType _narrow(Class<?> subclass)
+    {
+        return new CollectionType(subclass, _elementType, _fullyTyped);
+    }
+
+    public JavaType narrowContentsBy(Class<?> contentClass)
+    {
+        // Can do a quick check first:
+        if (contentClass == _elementType.getRawClass()) {
+            return this;
+        }
+        JavaType newElementType = _elementType.narrowBy(contentClass);
+        return new CollectionType(_class, newElementType, _fullyTyped);
     }
 
     /**

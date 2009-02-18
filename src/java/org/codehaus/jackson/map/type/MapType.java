@@ -51,6 +51,21 @@ public final class MapType
         return new MapType(rawType, keyT, valueT, keyT.isFullyTyped() & valueT.isFullyTyped());
     }
 
+    protected JavaType _narrow(Class<?> subclass)
+    {
+        return new MapType(subclass, _keyType, _valueType, _fullyTyped);
+    }
+
+    public JavaType narrowContentsBy(Class<?> contentClass)
+    {
+        // Can do a quick check first:
+        if (contentClass == _valueType.getRawClass()) {
+            return this;
+        }
+        JavaType newValueType = _valueType.narrowBy(contentClass);
+        return new  MapType(_class, _keyType, newValueType, _fullyTyped);
+    }
+
     /*
     //////////////////////////////////////////////////////////
     // Public API
@@ -60,6 +75,16 @@ public final class MapType
     public boolean isFullyTyped() { return _fullyTyped; }
 
     public boolean isContainerType() { return true; }
+
+    public JavaType narrowKey(Class<?> keySubclass)
+    {
+        // Can do a quick check first:
+        if (keySubclass == _keyType.getRawClass()) {
+            return this;
+        }
+        JavaType newKeyType = _keyType.narrowBy(keySubclass);
+        return new  MapType(_class, newKeyType, _valueType, _fullyTyped);
+    }
 
     /*
     //////////////////////////////////////////////////////////
