@@ -3,15 +3,11 @@ package org.codehaus.jackson.map;
 import main.BaseTest;
 
 import java.io.*;
-import java.net.*;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.*;
 
 import static org.junit.Assert.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.type.TypeReference;
 
 /**

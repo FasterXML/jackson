@@ -14,8 +14,6 @@
  */
 package org.codehaus.jackson.map;
 
-import java.io.*;
-
 import org.codehaus.jackson.*;
 
 /**

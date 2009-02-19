@@ -3,12 +3,6 @@ package org.codehaus.jackson.map;
 import main.BaseTest;
 
 import java.io.*;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
 
 /**
  * Unit tests for verifying serialization of simple basic non-structured

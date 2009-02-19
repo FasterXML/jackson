@@ -7,12 +7,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.net.URI;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
 
 /**
  * Unit tests for verifying handling of simple basic non-structured

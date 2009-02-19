@@ -2,8 +2,6 @@ package main;
 
 import org.codehaus.jackson.*;
 
-import static org.junit.Assert.*;
-
 /**
  * Set of additional unit for verifying array parsing, specifically
  * edge cases.

@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 
@@ -23,9 +22,9 @@ public final class BeanSerializer
 {
     final String _className;
 
-    final WritableBeanProperty[] _props;
+    final BeanPropertyWriter[] _props;
 
-    public BeanSerializer(Class<?> type, WritableBeanProperty[] props)
+    public BeanSerializer(Class<?> type, BeanPropertyWriter[] props)
     {
         // sanity check
         if (props.length == 0) {
@@ -36,9 +35,9 @@ public final class BeanSerializer
         _className = type.getName();
     }
 
-    public BeanSerializer(Class<?> type, Collection<WritableBeanProperty> props)
+    public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props)
     {
-        this(type, props.toArray(new WritableBeanProperty[props.size()]));
+        this(type, props.toArray(new BeanPropertyWriter[props.size()]));
     }
 
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider provider)
@@ -67,7 +66,7 @@ public final class BeanSerializer
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {
-        for (WritableBeanProperty prop : _props) {
+        for (BeanPropertyWriter prop : _props) {
             if (!prop.hasSerializer()) {
                 Class<?> rt = prop.getReturnType();
                 /* Note: we can only assign serializer statically if the

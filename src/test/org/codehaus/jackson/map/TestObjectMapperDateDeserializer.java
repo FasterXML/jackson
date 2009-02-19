@@ -2,13 +2,9 @@ package org.codehaus.jackson.map;
 
 import main.BaseTest;
 
-import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
 
 /**
  * Unit tests for verifying handling of simple Date-related

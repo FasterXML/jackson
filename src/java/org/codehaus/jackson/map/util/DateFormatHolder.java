@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.util;
 
 import java.text.DateFormat;
 import java.text.ParseException;

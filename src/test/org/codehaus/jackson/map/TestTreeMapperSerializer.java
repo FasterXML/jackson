@@ -6,7 +6,6 @@ import static org.junit.Assert.*;
 import java.io.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 

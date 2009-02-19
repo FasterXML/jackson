@@ -4,12 +4,9 @@ import main.BaseTest;
 
 import java.io.*;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
 
 /**
  * Unit tests for verifying deserialization of Beans.

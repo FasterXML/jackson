@@ -4,7 +4,6 @@ import java.util.*;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
 import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.map.JsonSerializer;
@@ -126,7 +125,7 @@ public class BeanSerializerFactory
         }
 
         // First: what properties are to be serializable?
-        Collection<WritableBeanProperty> props = findBeanProperties(type);
+        Collection<BeanPropertyWriter> props = findBeanProperties(type);
         if (props == null || props.size() == 0) {
             // No properties, no serializer
             return null;
@@ -183,7 +182,7 @@ public class BeanSerializerFactory
     /**
      * Method used to collect all actual serializable properties
      */
-    protected Collection<WritableBeanProperty> findBeanProperties(Class<?> forClass)
+    protected Collection<BeanPropertyWriter> findBeanProperties(Class<?> forClass)
     {
         ClassIntrospector intr = new ClassIntrospector(forClass);
         LinkedHashMap<String,Method> methodsByProp = intr.findGetters();
@@ -191,11 +190,11 @@ public class BeanSerializerFactory
         if (methodsByProp.isEmpty()) {
             return null;
         }
-        ArrayList<WritableBeanProperty> props = new ArrayList<WritableBeanProperty>(methodsByProp.size());
+        ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
         for (Map.Entry<String,Method> en : methodsByProp.entrySet()) {
             Method m = en.getValue();
             ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
-            WritableBeanProperty wprop = new WritableBeanProperty(en.getKey(), m);
+            BeanPropertyWriter wprop = new BeanPropertyWriter(en.getKey(), m);
             props.add(wprop);
 
             /* One more thing: does Method specify a serializer?

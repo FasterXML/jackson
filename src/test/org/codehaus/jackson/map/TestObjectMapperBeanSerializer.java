@@ -6,10 +6,8 @@ import java.io.*;
 import java.net.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
 
 /**
  * This unit test suite tries to verify that the "Native" java type

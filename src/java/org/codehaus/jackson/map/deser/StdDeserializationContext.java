@@ -1,13 +1,11 @@
 package org.codehaus.jackson.map.deser;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
+import org.codehaus.jackson.map.util.DateFormatHolder;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 
 /**

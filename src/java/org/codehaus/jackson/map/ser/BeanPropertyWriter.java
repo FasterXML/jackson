@@ -14,7 +14,7 @@ import org.codehaus.jackson.map.SerializerProvider;
  * property, matching to a single accessor method, and to be serializer
  * as a field value in json output.
  */
-public final class WritableBeanProperty
+public final class BeanPropertyWriter
 {
     /**
      * Logical name of the property; will be used as the field name
@@ -34,7 +34,7 @@ public final class WritableBeanProperty
      */
     JsonSerializer<Object> _serializer = null;
 
-    public WritableBeanProperty(String name, Method acc)
+    public BeanPropertyWriter(String name, Method acc)
     {
         _name = name;
         _accessorMethod = acc;

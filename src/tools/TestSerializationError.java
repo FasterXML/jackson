@@ -1,7 +1,6 @@
 import java.io.*;
 import java.util.*;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 public class TestSerializationError

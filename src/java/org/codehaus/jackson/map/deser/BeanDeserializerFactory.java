@@ -2,7 +2,6 @@ package org.codehaus.jackson.map.deser;
 
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.concurrent.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;

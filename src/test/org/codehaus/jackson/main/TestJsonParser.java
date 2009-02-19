@@ -49,7 +49,6 @@ public class TestJsonParser
         // regular factory can't do it, without a call to setCodec()
         JsonFactory jf = new JsonFactory();
         try {
-            StringWriter sw = new StringWriter();
             final String JSON = "{ \"x\" : 9 }";
             JsonParser jp = jf.createJsonParser(new StringReader(JSON));
             Pojo p = jp.readValueAs(Pojo.class);

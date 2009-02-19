@@ -7,7 +7,6 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.ser.*;
 
 /**
  * Unit test for verifying that exceptions are properly handled (caught,
