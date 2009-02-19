@@ -131,32 +131,6 @@ public class BeanDeserializerFactory
         }
     }
 
-    /**
-     * Helper method called to check if the class in question
-     * has {@link JsonUseDeserializer} annotation which tells the
-     * class to use for deserialization.
-     * Returns null if no such annotation found.
-     */
-    protected JsonDeserializer<Object> findDeserializerByAnnotation(AnnotatedElement elem)
-    {
-        JsonUseDeserializer ann = elem.getAnnotation(JsonUseDeserializer.class);
-        if (ann != null) {
-            Class<?> deserClass = ann.value();
-            // Must be of proper type, of course
-            if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
-                throw new IllegalArgumentException("Invalid @JsonDeserializer annotation for "+ClassUtil.descFor(elem)+": value ("+deserClass.getName()+") does not implement JsonDeserializer interface");
-            }
-            try {
-                Object ob = deserClass.newInstance();
-                JsonDeserializer<Object> ser = (JsonDeserializer<Object>) ob;
-                return ser;
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);
-            }
-        }
-        return null;
-    }
-
     /*
     ////////////////////////////////////////////////////////////
     // Helper methods for Bean deserializer: factory methods

@@ -120,8 +120,8 @@ public abstract class BasicDeserializerFactory
         return new ArrayDeserializer(type, valueDes);
     }
 
-	@Override
-	public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
+    @Override
+    public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
         throws JsonMappingException
     {
         JavaType valueType = type.getElementType();
@@ -157,8 +157,8 @@ public abstract class BasicDeserializerFactory
         return new CollectionDeserializer(collectionClass, valueDes);
     }
 
-	@Override
-	public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
+    @Override
+   public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
         throws JsonMappingException
     {
         JavaType keyType = type.getKeyType();
@@ -203,11 +203,18 @@ public abstract class BasicDeserializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-	public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
+    public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
     {
-        JsonDeserializer<?> des = new EnumDeserializer(EnumResolver.constructFor(type.getRawClass()));
-        JsonDeserializer<Object> result = (JsonDeserializer<Object>) des;
-        return result;
+        /* 18-Feb-2009, tatu: Must first check if we have a class annotation
+         *    that should override default deserializer
+         */
+        Class<?> cls = type.getRawClass();
+        JsonDeserializer<Object> des = findDeserializerByAnnotation(cls);
+        if (des != null) {
+            return des;
+        }
+        JsonDeserializer<?> d2 = new EnumDeserializer(EnumResolver.constructFor(cls));
+        return (JsonDeserializer<Object>) d2;
     }
 
     @Override
@@ -219,6 +226,33 @@ public abstract class BasicDeserializerFactory
     // Helper methods, value/content/key type introspection
     ////////////////////////////////////////////////////////////
      */
+
+    /**
+     * Helper method called to check if the class in question
+     * has {@link JsonUseDeserializer} annotation which tells the
+     * class to use for deserialization.
+     * Returns null if no such annotation found.
+     */
+    protected JsonDeserializer<Object> findDeserializerByAnnotation(AnnotatedElement elem)
+    {
+        JsonUseDeserializer ann = elem.getAnnotation(JsonUseDeserializer.class);
+        if (ann != null) {
+            Class<?> deserClass = ann.value();
+            // Must be of proper type, of course
+            if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
+                throw new IllegalArgumentException("Invalid @JsonDeserializer annotation for "+ClassUtil.descFor(elem)+": value ("+deserClass.getName()+") does not implement JsonDeserializer interface");
+            }
+            try {
+                Object ob = deserClass.newInstance();
+                @SuppressWarnings("unchecked")
+                JsonDeserializer<Object> ser = (JsonDeserializer<Object>) ob;
+                return ser;
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);
+            }
+        }
+        return null;
+    }
 
     /**
      * Method called to see if given method has annotations that indicate
