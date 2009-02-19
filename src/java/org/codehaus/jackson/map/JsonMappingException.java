@@ -133,6 +133,11 @@ public class JsonMappingException
         super(msg);
     }
 
+    public JsonMappingException(String msg, Throwable rootCause)
+    {
+        super(msg, rootCause);
+    }
+
     public JsonMappingException(String msg, JsonLocation loc)
     {
         super(msg, loc);
@@ -255,7 +260,12 @@ public class JsonMappingException
             return msg;
         }
         StringBuilder sb = new StringBuilder(msg);
-        sb.append("\n (through reference chain: ");
+        /* 18-Feb-2009, tatu: initially there was a linefeed between
+         *    message and path reference; but unfortunately many systems
+         *   (loggers, junit) seem to assume linefeeds are only added to
+         *   separate stack trace.
+         */
+        sb.append(" (through reference chain: ");
         _appendPathDesc(sb);
         sb.append(')');
         return sb.toString();

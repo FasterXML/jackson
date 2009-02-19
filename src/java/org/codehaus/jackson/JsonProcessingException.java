@@ -7,12 +7,15 @@ package org.codehaus.jackson;
 public class JsonProcessingException
     extends java.io.IOException
 {
-	final static long serialVersionUID = 123; // Stupid eclipse...
+    final static long serialVersionUID = 123; // Stupid eclipse...
 	
     protected JsonLocation mLocation;
 
     protected JsonProcessingException(String msg, JsonLocation loc, Throwable rootCause)
     {
+        /* Argh. IOException(Throwable,String) is only available starting
+         * with JDK 1.6...
+         */
         super(msg);
         if (rootCause != null) {
             initCause(rootCause);

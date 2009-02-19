@@ -182,8 +182,8 @@ public class JsonFactory
         return (_generatorFeatures & f.getMask()) != 0;
     }
 
-    public final void setCodec(ObjectCodec oc) { _objectCodec = oc; }
-    public final ObjectCodec getCodec() { return _objectCodec; }
+    public void setCodec(ObjectCodec oc) { _objectCodec = oc; }
+    public ObjectCodec getCodec() { return _objectCodec; }
 
     /*
     //////////////////////////////////////////////////////

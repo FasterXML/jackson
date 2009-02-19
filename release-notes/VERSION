@@ -6,6 +6,13 @@ Release date:
 Description:
   Another pre-1.0 release.
 
+  Fixes:
+
+  * [JACKSON-49]: Incorrect bounds check for Float values resulted in
+    exception when trying to serializer 0.0f.
+  * [JACKSON-59]: NPE with String[] serializer
+    (reported by Kevin G)
+
   New features:
 
   * [JACKSON-32]: add annotations to configure serialization process
@@ -36,11 +43,6 @@ Description:
     it easier to trouble-shoot nested serialization problems
   * [JACKSON-56]: Added support for RFC-1123 date format, along with
     simpler "standard" format; and can add more as need be.
-
-  Fixes:
-
-  * [JACKSON-49]: Incorrect bounds check for Float values resulted in
-    exception when trying to serializer 0.0f.
 
 0.9.7 [04-Feb-2009]:
 

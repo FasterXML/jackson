@@ -34,11 +34,18 @@ public class MappingJsonFactory
         this(null);
     }
 
-    public MappingJsonFactory(ObjectCodec oc)
+    public MappingJsonFactory(ObjectMapper mapper)
     {
-        super(oc);
-        if (oc == null) {
+        super(mapper);
+        if (mapper == null) {
             setCodec(new ObjectMapper(this));
         }
     }
+
+    /**
+     * We'll override the method to return more specific type; co-variance
+     * helps here
+     */
+    @Override
+    public final ObjectMapper getCodec() { return (ObjectMapper) _objectCodec; }
 }

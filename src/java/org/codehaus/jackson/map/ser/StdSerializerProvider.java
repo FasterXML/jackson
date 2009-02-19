@@ -2,8 +2,7 @@ package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.*;
 
 import org.codehaus.jackson.map.*;
 
@@ -40,12 +39,16 @@ public class StdSerializerProvider
 
     public final static JsonSerializer<Object> DEFAULT_KEY_SERIALIZER = new StdKeySerializer();
 
-    public final static JsonSerializer<Object> DEFAULT_UNKNOWN_SERIALIZER = new JsonSerializer<Object>() {
+    public final static JsonSerializer<Object> DEFAULT_UNKNOWN_SERIALIZER = new JsonSerializer<Object>()
+    {
         @Override
-		public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+            throws JsonMappingException
         {
-            throw new  JsonGenerationException("No serializer found for class "+value.getClass().getName());
+            /* 18-Feb-2009, tatu: Let's suggest the most likely reason
+             *   for failure to find a serializer
+             */
+            throw new JsonMappingException("No serializer found for class "+value.getClass().getName()+" (and no bean properties discovered to create bean serializer)");
         }
     };
 
@@ -190,11 +193,19 @@ public class StdSerializerProvider
      * the serialization.
      */
     protected  void _serializeValue(JsonGenerator jgen, Object value)
-        throws IOException, JsonGenerationException
+        throws IOException, JsonProcessingException
     {
         JsonSerializer<Object> ser = (value == null) ?
             getNullValueSerializer() : findValueSerializer(value.getClass());
-        ser.serialize(value, jgen, this);
+        try {
+            ser.serialize(value, jgen, this);
+        } catch (JsonMappingException jme) {
+            // mapping exceptions are passed through as is
+            throw jme;
+        } catch (Exception e) {
+            // but others are wrapped
+            throw new JsonMappingException(e.getMessage(), e);
+        }
     }
 
     /*

@@ -83,11 +83,17 @@ public final class ArraySerializers
                  *  or something), we should find serializer  by provider.
                  *  But for now, that seems like an overkill: and caller can
                  *  add custom serializer if that is needed as well.
+                 * (ditto for null values)
                  */
                 //JsonSerializer<String> ser = (JsonSerializer<String>)provider.findValueSerializer(String.class);
                 for (int i = 0; i < len; ++i) {
-                    //ser.serialize(value[i], jgen, provider);
-                    jgen.writeString(value[i]);
+                    String str = value[i];
+                    if (str == null) {
+                        jgen.writeNull();
+                    } else {
+                        //ser.serialize(value[i], jgen, provider);
+                        jgen.writeString(value[i]);
+                    }
                 }
             }
             jgen.writeEndArray();
