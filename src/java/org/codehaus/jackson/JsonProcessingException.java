@@ -2,7 +2,10 @@ package org.codehaus.jackson;
 
 /**
  * Intermediate base class for all problems when processing
- * JSON input or output that are not pure I/O exceptions
+ * JSON input or output, or doing data mapping/binding,
+ * that are not pure I/O exceptions. Regular
+ * {@link java.io.IOException} can be thrown as is through
+ * processors.
  */
 public class JsonProcessingException
     extends java.io.IOException
@@ -55,6 +58,9 @@ public class JsonProcessingException
     public String getMessage()
     {
         String msg = super.getMessage();
+        if (msg == null) {
+            msg = "N/A";
+        }
         JsonLocation loc = getLocation();
         if (loc != null) {
             StringBuilder sb = new StringBuilder();

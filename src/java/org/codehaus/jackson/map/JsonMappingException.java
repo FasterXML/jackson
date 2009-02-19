@@ -198,7 +198,14 @@ public class JsonMappingException
         if (src instanceof JsonMappingException) {
             jme = (JsonMappingException) src;
         } else {
-            jme = new JsonMappingException(src.getMessage(), null, src);
+            String msg = src.getMessage();
+            /* Related to [JACKSON-62], let's use a more meaningful placeholder
+             * if all we have is null
+             */
+            if (msg == null || msg.length() == 0) {
+                msg = "(was "+src.getClass().getName()+")";
+            }
+            jme = new JsonMappingException(msg, null, src);
         }
         jme.prependPath(ref);
         return jme;
@@ -259,7 +266,11 @@ public class JsonMappingException
         if (_path == null) {
             return msg;
         }
-        StringBuilder sb = new StringBuilder(msg);
+        /* 19-Feb-2009, tatu: Null and empty messages are not very
+         *   useful (plus nulls would lead to NPEs), so let's
+         *   use something else
+         */
+        StringBuilder sb = (msg == null) ? new StringBuilder() : new StringBuilder(msg);
         /* 18-Feb-2009, tatu: initially there was a linefeed between
          *    message and path reference; but unfortunately many systems
          *   (loggers, junit) seem to assume linefeeds are only added to

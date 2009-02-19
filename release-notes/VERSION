@@ -7,6 +7,9 @@ Description:
 
   * [JACKSON-59]: NPE with String[] serializer
     (reported by Kevin G)
+  * [JACKSON-62]: NPE with JsonMappingException if source exception used
+    null message.
+    (reported by Justin F)
 
   New features:
 

@@ -2,8 +2,7 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.TreeMapper;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.util.BufferRecycler;
 
 // json.org's reference implementation
