@@ -2,10 +2,8 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 
-import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerFactory;
 import org.codehaus.jackson.map.type.ClassIntrospector;
@@ -16,29 +14,29 @@ import org.codehaus.jackson.map.util.ClassUtil;
  * (as defined by "having at least one get method recognizable as bean
  * accessor" -- where {@link Object#getClass} does not count);
  * as well as for "standard" JDK types. Latter is achieved
- * by delegating calls to {@link StdSerializerFactory} 
+ * by delegating calls to {@link BasicSerializerFactory} 
  * to find serializers both for "standard" JDK types (and in some cases,
  * sub-classes as is the case for collection classes like
  * {@link java.util.List}s and {@link java.util.Map}s) and bean (value)
  * classes.
  *<p>
- * Note about delegating calls to {@link StdSerializerFactory}:
+ * Note about delegating calls to {@link BasicSerializerFactory}:
  * although it would be nicer to use linear delegation
  * for construction (to essentially dispatch all calls first to the
- * underlying {@link StdSerializerFactory}; or alternatively after
+ * underlying {@link BasicSerializerFactory}; or alternatively after
  * failing to provide bean-based serializer}, there is a problem:
  * priority levels for detecting standard types are mixed. That is,
  * we want to check if a type is a bean after some of "standard" JDK
  * types, but before the rest.
  * As a result, "mixed" delegation used, and calls are NOT done using
  * regular {@link SerializerFactory} interface but rather via
- * direct calls to {@link StdSerializerFactory}.
+ * direct calls to {@link BasicSerializerFactory}.
  */
 public class BeanSerializerFactory
-    extends StdSerializerFactory
+    extends BasicSerializerFactory
 {
     /**
-     * Like {@link StdSerializerFactory}, this factory is stateless, and
+     * Like {@link BasicSerializerFactory}, this factory is stateless, and
      * thus a single shared global (== singleton) instance can be used
      * without thread-safety issues.
      */

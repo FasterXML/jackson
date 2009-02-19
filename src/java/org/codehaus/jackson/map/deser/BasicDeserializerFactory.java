@@ -8,6 +8,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Abstract factory base class that can provide deserializers for standard

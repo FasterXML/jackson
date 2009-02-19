@@ -6,6 +6,7 @@ import java.io.*;
 
 import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.ser.ToStringSerializer;
 
 /**
  * Unit tests for verifying serialization of simple basic non-structured
@@ -33,7 +34,7 @@ public class TestEnumSerialization
     /**
      * Alternative version that forces use of "toString-serializer".
      */
-    @JsonUseSerializer(StdSerializerFactory.StringLikeSerializer.class)
+    @JsonUseSerializer(ToStringSerializer.class)
     protected enum AnnotatedTestEnum {
         A2, B2, C2;
         private AnnotatedTestEnum() { }
@@ -77,7 +78,7 @@ public class TestEnumSerialization
     {
         ObjectMapper mapper = new ObjectMapper();
         CustomSerializerFactory sf = new CustomSerializerFactory();
-        sf.setEnumSerializer(StdSerializerFactory.StringLikeSerializer.instance);
+        sf.setEnumSerializer(ToStringSerializer.instance);
         mapper.setSerializerFactory(sf);
         StringWriter sw = new StringWriter();
         mapper.writeValue(sw, TestEnum.B);
@@ -89,12 +90,13 @@ public class TestEnumSerialization
      * can be overridden by using custom serializer factory
      * to specify generic serializer for enum base class
      */
-    public void testEnumUsingCSFGenericMapping() throws Exception
+    @SuppressWarnings("unchecked")
+	public void testEnumUsingCSFGenericMapping() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         CustomSerializerFactory sf = new CustomSerializerFactory();
         Class<?> enumCls = Enum.class;
-        sf.addGenericMapping((Class<Object>) enumCls, StdSerializerFactory.StringLikeSerializer.instance);
+        sf.addGenericMapping((Class<Object>) enumCls, ToStringSerializer.instance);
         mapper.setSerializerFactory(sf);
         StringWriter sw = new StringWriter();
         mapper.writeValue(sw, TestEnum.A);

@@ -3,6 +3,8 @@ package org.codehaus.jackson.map.type;
 import java.lang.reflect.Array;
 import java.util.*;
 
+import org.codehaus.jackson.type.JavaType;
+
 /**
  * Array types represent Java arrays, both primitive and object valued.
  * Further, Object-valued arrays can have element type of any other

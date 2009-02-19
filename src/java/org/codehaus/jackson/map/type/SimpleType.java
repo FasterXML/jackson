@@ -2,6 +2,8 @@ package org.codehaus.jackson.map.type;
 
 import java.util.*;
 
+import org.codehaus.jackson.type.JavaType;
+
 /**
  * Simple types are defined as anything other than one of recognized
  * container types (arrays, Collections, Maps). For our needs we

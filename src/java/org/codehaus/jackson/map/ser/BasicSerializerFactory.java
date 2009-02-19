@@ -22,7 +22,7 @@ import org.codehaus.jackson.map.util.ClassUtil;
  * factories (or {@link SerializerProvider}s) can just use the
  * shared singleton instance via static {@link #instance} field.
  */
-public class StdSerializerFactory
+public class BasicSerializerFactory
     extends SerializerFactory
 {
     /*
@@ -90,12 +90,12 @@ public class StdSerializerFactory
         /* 19-Jan-2009, tatu: [JACSKON-37]: This is something Android platform doesn't have
          *    so need to hard-code name (it is available on standard JDK 1.5 and above)
          */
-        _concrete.put("javax.xml.datatype.XMLGregorianCalendar", StringLikeSerializer.instance);
+        _concrete.put("javax.xml.datatype.XMLGregorianCalendar", ToStringSerializer.instance);
 
         /* Reference types, URLs, URIs
          */
-        _concrete.put(java.net.URL.class.getName(), StringLikeSerializer.instance);
-        _concrete.put(java.net.URI.class.getName(), StringLikeSerializer.instance);
+        _concrete.put(java.net.URL.class.getName(), ToStringSerializer.instance);
+        _concrete.put(java.net.URI.class.getName(), ToStringSerializer.instance);
 
         // Arrays of various types (including common object types)
         _concrete.put(boolean[].class.getName(), new ArraySerializers.BooleanArraySerializer());
@@ -153,7 +153,7 @@ public class StdSerializerFactory
      * for factories that want to use delegation to access
      * standard serializers.
      */
-    public final static StdSerializerFactory instance = new StdSerializerFactory();
+    public final static BasicSerializerFactory instance = new BasicSerializerFactory();
 
     /*
     ////////////////////////////////////////////////////////////
@@ -166,7 +166,7 @@ public class StdSerializerFactory
      * but make it protected so that no non-singleton instances of
      * the class will be instantiated.
      */
-    protected StdSerializerFactory() { }
+    protected BasicSerializerFactory() { }
 
     /*
     ////////////////////////////////////////////////////////////
@@ -306,7 +306,7 @@ public class StdSerializerFactory
             return ContainerSerializers.IterableSerializer.instance;
         }
         if (CharSequence.class.isAssignableFrom(type)) {
-            return StringLikeSerializer.instance;
+            return ToStringSerializer.instance;
         }
         return null;
     }
@@ -372,10 +372,12 @@ public class StdSerializerFactory
     }
 
     /**
-     * This is an interesting general purpose serializer, useful for any
-     * type for which {@link Object#toString} returns the desired Json
-     * value.
+     * Deprecated serializer, identical to {@link ToStringSerializer}.
+     *
+     * @deprecated Use {@link ToStringSerializer} instead (stand-along class,
+     *   more accurate name)
      */
+    @Deprecated
     public final static class StringLikeSerializer<T>
         extends JsonSerializer<T>
     {

@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.type;
+package org.codehaus.jackson.type;
 
 import java.lang.reflect.Modifier;
 
@@ -15,7 +15,7 @@ public abstract class JavaType
      * May be an interface or abstract class, so instantiation
      * may not be possible.
      */
-    final Class<?> _class;
+    protected final Class<?> _class;
 
     protected int _hashCode;
 

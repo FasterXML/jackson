@@ -512,6 +512,6 @@ public abstract class JsonParser
      * END_OBJECT) of the bound structure. For non-structured Json types
      * stream is not advanced.
      */
-    public abstract <T> T readValueAs(TypeReference valueTypeRef)
+    public abstract <T> T readValueAs(TypeReference<?> valueTypeRef)
         throws IOException, JsonProcessingException;
 }

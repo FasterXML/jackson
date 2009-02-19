@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Helper class used to contain simple/well-known key deserializers.

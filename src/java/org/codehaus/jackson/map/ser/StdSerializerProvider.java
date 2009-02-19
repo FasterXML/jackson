@@ -88,7 +88,7 @@ public class StdSerializerProvider
      * Serializer used to output a null value. Default implementation
      * writes nulls using {@link JsonGenerator#writeNull}.
      */
-    protected JsonSerializer<Object> _nullValueSerializer = StdSerializerFactory.NullSerializer.instance;
+    protected JsonSerializer<Object> _nullValueSerializer = BasicSerializerFactory.NullSerializer.instance;
 
     /**
      * Serializer used to (try to) output a null key, due to an entry of

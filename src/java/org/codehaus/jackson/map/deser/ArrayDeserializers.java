@@ -8,6 +8,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ObjectBuffer;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Container for deserializers used for instantiating "primitive arrays",

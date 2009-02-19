@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.type;
 
+import org.codehaus.jackson.type.JavaType;
+
 /**
  * Type that represents Java Collection types (Lists, Sets).
  */

@@ -4,7 +4,7 @@ import java.lang.reflect.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.type.JavaType;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Value class used to set bean property values

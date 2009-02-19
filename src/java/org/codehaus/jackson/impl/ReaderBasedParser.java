@@ -227,7 +227,7 @@ public final class ReaderBasedParser
 
     @Override
     @SuppressWarnings("unchecked")
-    public final <T> T readValueAs(TypeReference valueTypeRef)
+    public final <T> T readValueAs(TypeReference<?> valueTypeRef)
         throws IOException, JsonProcessingException
     {
         if (_objectCodec == null) {

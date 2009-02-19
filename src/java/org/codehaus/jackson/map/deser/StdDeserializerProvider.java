@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Default {@link DeserializerProvider} implementation.

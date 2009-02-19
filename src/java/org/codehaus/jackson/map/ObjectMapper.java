@@ -9,8 +9,8 @@ import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
-import org.codehaus.jackson.map.type.JavaType;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
@@ -190,7 +190,7 @@ public class ObjectMapper
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T readValue(JsonParser jp, TypeReference valueTypeRef)
+    public <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
         return (T) _readValue(jp, TypeFactory.instance.fromTypeReference(valueTypeRef));

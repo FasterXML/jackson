@@ -3,10 +3,10 @@ package org.codehaus.jackson.map.deser;
 import java.lang.reflect.*;
 import java.util.*;
 
-import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Concrete deserializer factory class that adds full Bean deserializer
@@ -16,7 +16,6 @@ import org.codehaus.jackson.map.util.ClassUtil;
  * shared singleton instance ({@link #instance}) can be  used by
  * {@link DeserializerProvider}s).
  */
-@SuppressWarnings("unchecked")
 public class BeanDeserializerFactory
     extends BasicDeserializerFactory
 {

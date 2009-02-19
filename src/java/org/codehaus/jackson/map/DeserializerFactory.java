@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Abstract class that defines API used by {@link DeserializerProvider}
