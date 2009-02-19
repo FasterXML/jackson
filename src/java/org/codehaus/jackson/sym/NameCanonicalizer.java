@@ -34,7 +34,7 @@ public final class NameCanonicalizer
     /////////////////////////////////////////////////////    
      */
 
-    final NameCanonicalizer mParent;
+    final NameCanonicalizer _parent;
 
     /*
     /////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ public final class NameCanonicalizer
     /**
      * Total number of Names in the symbol table
      */
-    private int mCount;
+    private int _count;
 
     // // // Then information regarding primary hash array and its
     // // // matching Name array
@@ -57,7 +57,7 @@ public final class NameCanonicalizer
      * size; essentially, hash array size - 1 (since hash array sizes
      * are 2^N).
      */
-    private int mMainHashMask;
+    private int _mainHashMask;
 
     /**
      * Array of 2^N size, which contains combination
@@ -65,27 +65,27 @@ public final class NameCanonicalizer
      * and 8-bit collision bucket index (0 to indicate empty
      * collision bucket chain; otherwise subtract one from index)
      */
-    private int[] mMainHash;
+    private int[] _mainHash;
 
     /**
      * Array that contains <code>Name</code> instances matching
-     * entries in <code>mMainHash</code>. Contains nulls for unused
+     * entries in <code>_mainHash</code>. Contains nulls for unused
      * entries.
      */
-    private Name[] mMainNames;
+    private Name[] _mainNames;
 
     // // // Then the collision/spill-over area info
 
     /**
      * Array of heads of collision bucket chains; size dynamically
      */
-    private Bucket[] mCollList;
+    private Bucket[] _collList;
 
     /**
      * Total number of Names in collision buckets (included in
-     * <code>mCount</code> along with primary entries)
+     * <code>_count</code> along with primary entries)
      */
-    private int mCollCount;
+    private int _collCount;
 
     /**
      * Index of the first unused collision bucket entry (== size of
@@ -93,7 +93,7 @@ public final class NameCanonicalizer
      * or equal to 0xFF (255), since max number of entries is 255
      * (8-bit, minus 0 used as 'empty' marker)
      */
-    private int mCollEnd;
+    private int _collEnd;
 
     // // // Info regarding pending rehashing...
 
@@ -101,7 +101,7 @@ public final class NameCanonicalizer
      * This flag is set if, after adding a new entry, it is deemed
      * that a rehash is warranted if any more entries are to be added.
      */
-    private transient boolean mNeedRehash;
+    private transient boolean _needRehash;
 
     /*
     /////////////////////////////////////////////////////
@@ -122,9 +122,9 @@ public final class NameCanonicalizer
      * and when adding new collision list queues (i.e. creating a new
      * collision list head entry)
      */
-    private boolean mMainHashShared;
+    private boolean _mainHashShared;
 
-    private boolean mMainNamesShared;
+    private boolean _mainNamesShared;
 
     /**
      * Flag that indicates whether underlying data structures for
@@ -135,7 +135,7 @@ public final class NameCanonicalizer
      *<p>
      * This flag needs to be checked when adding new collision entries.
      */
-    private boolean mCollListShared;
+    private boolean _collListShared;
 
     /*
     /////////////////////////////////////////////////////
@@ -150,7 +150,7 @@ public final class NameCanonicalizer
 
     public synchronized NameCanonicalizer makeChild()
     {
-//System.err.print("[makeChild w "+System.identityHashCode(this)+", "+mCount+"]");
+//System.err.print("[makeChild w "+System.identityHashCode(this)+", "+_count+"]");
 
         return new NameCanonicalizer(this);
     }
@@ -164,8 +164,8 @@ public final class NameCanonicalizer
      */
     public void release()
     {
-        if (maybeDirty() && mParent != null) {
-            mParent.mergeChild(this);
+        if (maybeDirty() && _parent != null) {
+            _parent.mergeChild(this);
             /* Let's also mark this instance as dirty, so that just in
              * case release was too early, there's no corruption
              * of possibly shared data.
@@ -176,7 +176,7 @@ public final class NameCanonicalizer
 
     private NameCanonicalizer(int hashSize)
     {
-        mParent = null;
+        _parent = null;
         /* Sanity check: let's now allow hash sizes below certain
          * min. value
          */
@@ -202,44 +202,44 @@ public final class NameCanonicalizer
      */
     private NameCanonicalizer(NameCanonicalizer parent)
     {
-        mParent = parent;
+        _parent = parent;
 
         // First, let's copy the state as is:
-        mCount = parent.mCount;
-        mMainHashMask = parent.mMainHashMask;
-        mMainHash = parent.mMainHash;
-        mMainNames = parent.mMainNames;
-        mCollList = parent.mCollList;
-        mCollCount = parent.mCollCount;
-        mCollEnd = parent.mCollEnd;
-        mNeedRehash = false;
+        _count = parent._count;
+        _mainHashMask = parent._mainHashMask;
+        _mainHash = parent._mainHash;
+        _mainNames = parent._mainNames;
+        _collList = parent._collList;
+        _collCount = parent._collCount;
+        _collEnd = parent._collEnd;
+        _needRehash = false;
         // And consider all shared, so far:
-        mMainHashShared = true;
-        mMainNamesShared = true;
-        mCollListShared = true;
+        _mainHashShared = true;
+        _mainNamesShared = true;
+        _collListShared = true;
     }
 
     private void initTables(int hashSize)
     {
-        mCount = 0;
-        mMainHash = new int[hashSize];
-        mMainNames = new Name[hashSize];
-        mMainHashShared = false;
-        mMainNamesShared = false;
-        mMainHashMask = hashSize - 1;
+        _count = 0;
+        _mainHash = new int[hashSize];
+        _mainNames = new Name[hashSize];
+        _mainHashShared = false;
+        _mainNamesShared = false;
+        _mainHashMask = hashSize - 1;
 
-        mCollListShared = true; // just since it'll need to be allocated
-        mCollList = null;
-        mCollEnd = 0;
+        _collListShared = true; // just since it'll need to be allocated
+        _collList = null;
+        _collEnd = 0;
 
-        mNeedRehash = false;
+        _needRehash = false;
     }
 
     private synchronized void mergeChild(NameCanonicalizer child)
     {
         // Only makes sense if child has more entries
-        int childCount = child.mCount;
-        if (childCount <= mCount) {
+        int childCount = child._count;
+        if (childCount <= _count) {
             return;
         }
 
@@ -257,23 +257,23 @@ public final class NameCanonicalizer
             // At any rate, need to clean up the tables, then:
             initTables(DEFAULT_TABLE_SIZE);
         } else {
-            mCount = child.mCount;
-            mMainHash = child.mMainHash;
-            mMainNames = child.mMainNames;
-            mMainHashShared = true; // shouldn't matter for parent
-            mMainNamesShared = true; // - "" -
-            mMainHashMask = child.mMainHashMask;
-            mCollList = child.mCollList;
-            mCollCount = child.mCollCount;
-            mCollEnd = child.mCollEnd;
+            _count = child._count;
+            _mainHash = child._mainHash;
+            _mainNames = child._mainNames;
+            _mainHashShared = true; // shouldn't matter for parent
+            _mainNamesShared = true; // - "" -
+            _mainHashMask = child._mainHashMask;
+            _collList = child._collList;
+            _collCount = child._collCount;
+            _collEnd = child._collEnd;
         }
     }
 
     private void markAsShared()
     {
-        mMainHashShared = true;
-        mMainNamesShared = true;
-        mCollListShared = true;
+        _mainHashShared = true;
+        _mainNamesShared = true;
+        _collListShared = true;
     }
 
     /**
@@ -281,9 +281,9 @@ public final class NameCanonicalizer
      */
     /*
     public void nuke() {
-        mMainHash = null;
-        mMainNames = null;
-        mCollList = null;
+        _mainHash = null;
+        _mainNames = null;
+        _collList = null;
     }
 
     */
@@ -293,7 +293,7 @@ public final class NameCanonicalizer
     /////////////////////////////////////////////////////
      */
 
-    public int size() { return mCount; }
+    public int size() { return _count; }
 
     /**
      * Method called to check to quickly see if a child symbol table
@@ -302,7 +302,7 @@ public final class NameCanonicalizer
      */
     public boolean maybeDirty()
     {
-        return !mMainHashShared;
+        return !_mainHashShared;
     }
 
     public static Name getEmptyName()
@@ -328,15 +328,15 @@ public final class NameCanonicalizer
     public Name findName(int firstQuad)
     {
         int hash = calcHash(firstQuad);
-        int ix = (hash & mMainHashMask);
-        int val = mMainHash[ix];
+        int ix = (hash & _mainHashMask);
+        int val = _mainHash[ix];
         
         /* High 24 bits of the value are low 24 bits of hash (low 8 bits
          * are bucket index)... match?
          */
         if ((((val >> 8) ^ hash) << 8) == 0) { // match
             // Ok, but do we have an actual match?
-            Name name = mMainNames[ix];
+            Name name = _mainNames[ix];
             if (name == null) { // main slot empty; can't find
                 return null;
             }
@@ -350,7 +350,7 @@ public final class NameCanonicalizer
         val &= 0xFF;
         if (val > 0) { // 0 means 'empty'
             val -= 1; // to convert from 1-based to 0...
-            Bucket bucket = mCollList[val];
+            Bucket bucket = _collList[val];
             if (bucket != null) {
                 return bucket.find(hash, firstQuad, 0);
             }
@@ -378,15 +378,15 @@ public final class NameCanonicalizer
     public Name findName(int firstQuad, int secondQuad)
     {
         int hash = calcHash(firstQuad, secondQuad);
-        int ix = (hash & mMainHashMask);
-        int val = mMainHash[ix];
+        int ix = (hash & _mainHashMask);
+        int val = _mainHash[ix];
         
         /* High 24 bits of the value are low 24 bits of hash (low 8 bits
          * are bucket index)... match?
          */
         if ((((val >> 8) ^ hash) << 8) == 0) { // match
             // Ok, but do we have an actual match?
-            Name name = mMainNames[ix];
+            Name name = _mainNames[ix];
             if (name == null) { // main slot empty; can't find
                 return null;
             }
@@ -400,7 +400,7 @@ public final class NameCanonicalizer
         val &= 0xFF;
         if (val > 0) { // 0 means 'empty'
             val -= 1; // to convert from 1-based to 0...
-            Bucket bucket = mCollList[val];
+            Bucket bucket = _collList[val];
             if (bucket != null) {
                 return bucket.find(hash, firstQuad, secondQuad);
             }
@@ -436,10 +436,10 @@ public final class NameCanonicalizer
         */
         int hash = calcHash(quads, qlen);
         // (for rest of comments regarding logic, see method above)
-        int ix = (hash & mMainHashMask);
-        int val = mMainHash[ix];
+        int ix = (hash & _mainHashMask);
+        int val = _mainHash[ix];
         if ((((val >> 8) ^ hash) << 8) == 0) {
-            Name name = mMainNames[ix];
+            Name name = _mainNames[ix];
             if (name == null // main slot empty; no collision list then either
                 || name.equals(quads, qlen)) { // should be match, let's verify
                 return name;
@@ -450,7 +450,7 @@ public final class NameCanonicalizer
         val &= 0xFF;
         if (val > 0) { // 0 means 'empty'
             val -= 1; // to convert from 1-based to 0...
-            Bucket bucket = mCollList[val];
+            Bucket bucket = _collList[val];
             if (bucket != null) {
                 return bucket.find(hash, quads, qlen);
             }
@@ -549,30 +549,30 @@ public final class NameCanonicalizer
     {
         StringBuilder sb = new StringBuilder();
         sb.append("[NameCanonicalizer, size: ");
-        sb.append(mCount);
+        sb.append(_count);
         sb.append('/');
-        sb.append(mMainHash.length);
+        sb.append(_mainHash.length);
         sb.append(", ");
-        sb.append(mCollCount);
+        sb.append(_collCount);
         sb.append(" coll; avg length: ");
 
         /* Average length: minimum of 1 for all (1 == primary hit);
          * and then 1 per each traversal for collisions/buckets
          */
         //int maxDist = 1;
-        int pathCount = mCount;
-        for (int i = 0; i < mCollEnd; ++i) {
-            int spillLen = mCollList[i].length();
+        int pathCount = _count;
+        for (int i = 0; i < _collEnd; ++i) {
+            int spillLen = _collList[i].length();
             for (int j = 1; j <= spillLen; ++j) {
                 pathCount += j;
             }
         }
         double avgLength;
 
-        if (mCount == 0) {
+        if (_count == 0) {
             avgLength = 0.0;
         } else {
-            avgLength = (double) pathCount / (double) mCount;
+            avgLength = (double) pathCount / (double) _count;
         }
         // let's round up a bit (two 2 decimal places)
         //avgLength -= (avgLength % 0.01);
@@ -590,72 +590,72 @@ public final class NameCanonicalizer
 
     private void _addSymbol(int hash, Name symbol)
     {
-        if (mMainHashShared) { // always have to modify main entry
+        if (_mainHashShared) { // always have to modify main entry
             unshareMain();
         }
         // First, do we need to rehash?
-        if (mNeedRehash) {
+        if (_needRehash) {
             rehash();
         }
 
-        ++mCount;
+        ++_count;
 
         /* Ok, enough about set up: now we need to find the slot to add
          * symbol in:
          */
-        int ix = (hash & mMainHashMask);
-        if (mMainNames[ix] == null) { // primary empty?
-            mMainHash[ix] = (hash << 8);
-            if (mMainNamesShared) {
+        int ix = (hash & _mainHashMask);
+        if (_mainNames[ix] == null) { // primary empty?
+            _mainHash[ix] = (hash << 8);
+            if (_mainNamesShared) {
                 unshareNames();
             }
-            mMainNames[ix] = symbol;
+            _mainNames[ix] = symbol;
         } else { // nope, it's a collision, need to spill over
             /* How about spill-over area... do we already know the bucket
              * (is the case if it's not the first collision)
              */
-            if (mCollListShared) {
+            if (_collListShared) {
                 unshareCollision(); // also allocates if list was null
             }
 
-            ++mCollCount;
-            int entryValue = mMainHash[ix];
+            ++_collCount;
+            int entryValue = _mainHash[ix];
             int bucket = entryValue & 0xFF;
             if (bucket == 0) { // first spill over?
-                if (mCollEnd <= LAST_VALID_BUCKET) { // yup, still unshared bucket
-                    bucket = mCollEnd;
-                    ++mCollEnd;
+                if (_collEnd <= LAST_VALID_BUCKET) { // yup, still unshared bucket
+                    bucket = _collEnd;
+                    ++_collEnd;
                     // need to expand?
-                    if (bucket >= mCollList.length) {
+                    if (bucket >= _collList.length) {
                         expandCollision();
                     }
                 } else { // nope, have to share... let's find shortest?
                     bucket = findBestBucket();
                 }
                 // Need to mark the entry... and the spill index is 1-based
-                mMainHash[ix] = (entryValue & ~0xFF) | (bucket + 1);
+                _mainHash[ix] = (entryValue & ~0xFF) | (bucket + 1);
             } else {
                 --bucket; // 1-based index in value
             }
             
             // And then just need to link the new bucket entry in
-            mCollList[bucket] = new Bucket(symbol, mCollList[bucket]);
+            _collList[bucket] = new Bucket(symbol, _collList[bucket]);
         }
 
         /* Ok. Now, do we need a rehash next time? Need to have at least
          * 50% fill rate no matter what:
          */
         {
-            int hashSize = mMainHash.length;
-            if (mCount > (hashSize >> 1)) {
+            int hashSize = _mainHash.length;
+            if (_count > (hashSize >> 1)) {
                 int hashQuarter = (hashSize >> 2);
                 /* And either strictly above 75% (the usual) or
                  * just 50%, and collision count >= 25% of total hash size
                  */
-                if (mCount > (hashSize - hashQuarter)) {
-                    mNeedRehash = true;
-                } else if (mCollCount >= hashQuarter) {
-                    mNeedRehash = true;
+                if (_count > (hashSize - hashQuarter)) {
+                    _needRehash = true;
+                } else if (_collCount >= hashQuarter) {
+                    _needRehash = true;
                 }
             }
         }
@@ -663,29 +663,29 @@ public final class NameCanonicalizer
 
     private void rehash()
     {
-        mNeedRehash = false;
+        _needRehash = false;
         // Note: since we'll make copies, no need to unshare, can just mark as such:
-        mMainNamesShared = false;
+        _mainNamesShared = false;
 
         /* And then we can first deal with the main hash area. Since we
          * are expanding linearly (double up), we know there'll be no
          * collisions during this phase.
          */
         int symbolsSeen = 0; // let's do a sanity check
-        int[] oldMainHash = mMainHash;
+        int[] oldMainHash = _mainHash;
         int len = oldMainHash.length;
-        mMainHash = new int[len + len];
-        mMainHashMask = (len + len - 1);
-        Name[] oldNames = mMainNames;
-        mMainNames = new Name[len + len];
+        _mainHash = new int[len + len];
+        _mainHashMask = (len + len - 1);
+        Name[] oldNames = _mainNames;
+        _mainNames = new Name[len + len];
         for (int i = 0; i < len; ++i) {
             Name symbol = oldNames[i];
             if (symbol != null) {
                 ++symbolsSeen;
                 int hash = symbol.hashCode();
-                int ix = (hash & mMainHashMask);
-                mMainNames[ix] = symbol;
-                mMainHash[ix] = hash << 8; // will clear spill index
+                int ix = (hash & _mainHashMask);
+                _mainNames[ix] = symbol;
+                _mainHash[ix] = hash << 8; // will clear spill index
             }
         }
 
@@ -693,54 +693,54 @@ public final class NameCanonicalizer
          * not necessarily as many as there were earlier. Let's allocate
          * same amount of space, however
          */
-        int oldEnd = mCollEnd;
+        int oldEnd = _collEnd;
         if (oldEnd == 0) { // no prior collisions...
             return;
         }
 
-        mCollCount = 0;
-        mCollEnd = 0;
-        mCollListShared = false;
+        _collCount = 0;
+        _collEnd = 0;
+        _collListShared = false;
 
-        Bucket[] oldBuckets = mCollList;
-        mCollList = new Bucket[oldBuckets.length];
+        Bucket[] oldBuckets = _collList;
+        _collList = new Bucket[oldBuckets.length];
         for (int i = 0; i < oldEnd; ++i) {
             for (Bucket curr = oldBuckets[i]; curr != null; curr = curr.mNext) {
                 ++symbolsSeen;
                 Name symbol = curr.mName;
                 int hash = symbol.hashCode();
-                int ix = (hash & mMainHashMask);
-                int val = mMainHash[ix];
-                if (mMainNames[ix] == null) { // no primary entry?
-                    mMainHash[ix] = (hash << 8);
-                    mMainNames[ix] = symbol;
+                int ix = (hash & _mainHashMask);
+                int val = _mainHash[ix];
+                if (_mainNames[ix] == null) { // no primary entry?
+                    _mainHash[ix] = (hash << 8);
+                    _mainNames[ix] = symbol;
                 } else { // nope, it's a collision, need to spill over
-                    ++mCollCount;
+                    ++_collCount;
                     int bucket = val & 0xFF;
                     if (bucket == 0) { // first spill over?
-                        if (mCollEnd <= LAST_VALID_BUCKET) { // yup, still unshared bucket
-                            bucket = mCollEnd;
-                            ++mCollEnd;
+                        if (_collEnd <= LAST_VALID_BUCKET) { // yup, still unshared bucket
+                            bucket = _collEnd;
+                            ++_collEnd;
                             // need to expand?
-                            if (bucket >= mCollList.length) {
+                            if (bucket >= _collList.length) {
                                 expandCollision();
                             }
                         } else { // nope, have to share... let's find shortest?
                             bucket = findBestBucket();
                         }
                         // Need to mark the entry... and the spill index is 1-based
-                        mMainHash[ix] = (val & ~0xFF) | (bucket + 1);
+                        _mainHash[ix] = (val & ~0xFF) | (bucket + 1);
                     } else {
                         --bucket; // 1-based index in value
                     }
                     // And then just need to link the new bucket entry in
-                    mCollList[bucket] = new Bucket(symbol, mCollList[bucket]);
+                    _collList[bucket] = new Bucket(symbol, _collList[bucket]);
                 }
             } // for (... buckets in the chain ...)
         } // for (... list of bucket heads ... )
 
-        if (symbolsSeen != mCount) { // sanity check
-            throw new RuntimeException("Internal error: count after rehash "+symbolsSeen+"; should be "+mCount);
+        if (symbolsSeen != _count) { // sanity check
+            throw new RuntimeException("Internal error: count after rehash "+symbolsSeen+"; should be "+_count);
         }
     }
 
@@ -751,11 +751,11 @@ public final class NameCanonicalizer
      */
     private int findBestBucket()
     {
-        Bucket[] buckets = mCollList;
+        Bucket[] buckets = _collList;
         int bestCount = Integer.MAX_VALUE;
         int bestIx = -1;
 
-        for (int i = 0, len = mCollEnd; i < len; ++i) {
+        for (int i = 0, len = _collEnd; i < len; ++i) {
             int count = buckets[i].length();
             if (count < bestCount) {
                 if (count == 1) { // best possible
@@ -776,42 +776,42 @@ public final class NameCanonicalizer
      */
     private void unshareMain()
     {
-        int[] old = mMainHash;
-        int len = mMainHash.length;
+        int[] old = _mainHash;
+        int len = _mainHash.length;
 
-        mMainHash = new int[len];
-        System.arraycopy(old, 0, mMainHash, 0, len);
-        mMainHashShared = false;
+        _mainHash = new int[len];
+        System.arraycopy(old, 0, _mainHash, 0, len);
+        _mainHashShared = false;
     }
 
     private void unshareCollision()
     {
-        Bucket[] old = mCollList;
+        Bucket[] old = _collList;
         if (old == null) {
-            mCollList = new Bucket[INITIAL_COLLISION_LEN];
+            _collList = new Bucket[INITIAL_COLLISION_LEN];
         } else {
             int len = old.length;
-            mCollList = new Bucket[len];
-            System.arraycopy(old, 0, mCollList, 0, len);
+            _collList = new Bucket[len];
+            System.arraycopy(old, 0, _collList, 0, len);
         }
-        mCollListShared = false;
+        _collListShared = false;
     }
 
     private void unshareNames()
     {
-        Name[] old = mMainNames;
+        Name[] old = _mainNames;
         int len = old.length;
-        mMainNames = new Name[len];
-        System.arraycopy(old, 0, mMainNames, 0, len);
-        mMainNamesShared = false;
+        _mainNames = new Name[len];
+        System.arraycopy(old, 0, _mainNames, 0, len);
+        _mainNamesShared = false;
     }
 
     private void expandCollision()
     {
-        Bucket[] old = mCollList;
+        Bucket[] old = _collList;
         int len = old.length;
-        mCollList = new Bucket[len+len];
-        System.arraycopy(old, 0, mCollList, 0, len);
+        _collList = new Bucket[len+len];
+        System.arraycopy(old, 0, _collList, 0, len);
     }
 
 

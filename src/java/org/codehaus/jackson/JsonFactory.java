@@ -76,7 +76,7 @@ public class JsonFactory
      * It should not be linked back to the original blueprint, to
      * avoid contents from leaking between factories.
      */
-    private SymbolTable _rootCharSymbols = SymbolTable.createRoot();
+    protected SymbolTable _rootCharSymbols = SymbolTable.createRoot();
 
     /**
      * Alternative to the basic symbol table, some stream-based
@@ -85,7 +85,7 @@ public class JsonFactory
      * TODO: should clean up this; looks messy having 2 alternatives
      * with not very clear differences.
      */
-    private NameCanonicalizer _rootByteSymbols = NameCanonicalizer.createRoot();
+    protected NameCanonicalizer _rootByteSymbols = NameCanonicalizer.createRoot();
 
     /*
     ///////////////////////////////////////////////////////
