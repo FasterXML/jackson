@@ -34,9 +34,9 @@ public class TestEnumSerialization
      * Alternative version that forces use of "toString-serializer".
      */
     @JsonUseSerializer(StdSerializerFactory.StringLikeSerializer.class)
-    protected enum TestEnum2 {
+    protected enum AnnotatedTestEnum {
         A2, B2, C2;
-        private TestEnum2() { }
+        private AnnotatedTestEnum() { }
 
         @Override public String toString() { return name().toLowerCase(); }
     }
@@ -64,7 +64,7 @@ public class TestEnumSerialization
     {
         ObjectMapper mapper = new ObjectMapper();
         StringWriter sw = new StringWriter();
-        mapper.writeValue(sw, TestEnum2.C2);
+        mapper.writeValue(sw, AnnotatedTestEnum.C2);
         assertEquals("\"c2\"", sw.toString());
     }
 
@@ -80,8 +80,8 @@ public class TestEnumSerialization
         sf.setEnumSerializer(StdSerializerFactory.StringLikeSerializer.instance);
         mapper.setSerializerFactory(sf);
         StringWriter sw = new StringWriter();
-        mapper.writeValue(sw, TestEnum2.B2);
-        assertEquals("\"b2\"", sw.toString());
+        mapper.writeValue(sw, TestEnum.B);
+        assertEquals("\"b\"", sw.toString());
     }
 
     /**
@@ -97,7 +97,7 @@ public class TestEnumSerialization
         sf.addGenericMapping((Class<Object>) enumCls, StdSerializerFactory.StringLikeSerializer.instance);
         mapper.setSerializerFactory(sf);
         StringWriter sw = new StringWriter();
-        mapper.writeValue(sw, TestEnum2.A2);
-        assertEquals("\"a2\"", sw.toString());
+        mapper.writeValue(sw, TestEnum.A);
+        assertEquals("\"a\"", sw.toString());
     }
 }

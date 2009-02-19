@@ -1,17 +1,29 @@
-Version: 0.9.8
-
-Release date: 
-  16-Feb-2009
+Version: 0.9.9
 
 Description:
   Another pre-1.0 release.
 
   Fixes:
 
-  * [JACKSON-49]: Incorrect bounds check for Float values resulted in
-    exception when trying to serializer 0.0f.
   * [JACKSON-59]: NPE with String[] serializer
     (reported by Kevin G)
+
+  New features:
+
+  * [JACKSON-58]: Allow defining custom global Enum serializer
+    (to, for example, make Enums be serialized using Enum.toString(),
+     or lower-case name or such)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+0.9.8 [18-Feb-2009]:
+
+  Fixes:
+
+  * [JACKSON-49]: Incorrect bounds check for Float values resulted in
+    exception when trying to serializer 0.0f.
 
   New features:
 

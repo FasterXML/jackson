@@ -35,7 +35,7 @@ import org.codehaus.jackson.map.util.ClassUtil;
  * direct calls to {@link StdSerializerFactory}.
  */
 public class BeanSerializerFactory
-    extends SerializerFactory
+    extends StdSerializerFactory
 {
     /**
      * Like {@link StdSerializerFactory}, this factory is stateless, and
@@ -78,11 +78,10 @@ public class BeanSerializerFactory
     public <T> JsonSerializer<T> createSerializer(Class<T> type)
     {
         // First, fast lookup for exact type:
-        StdSerializerFactory stdF = StdSerializerFactory.instance;
-        JsonSerializer<?> ser = stdF.findSerializerByLookup(type);
+        JsonSerializer<?> ser = super.findSerializerByLookup(type);
         if (ser == null) {
             // and then introspect for some safe (?) JDK types
-            ser = stdF.findSerializerByPrimaryType(type);
+            ser = super.findSerializerByPrimaryType(type);
             if (ser == null) {
                 /* And this is where this class comes in: if type is
                  * not a known "primary JDK type", perhaps it's a bean?
@@ -94,7 +93,7 @@ public class BeanSerializerFactory
                  * implementation of some basic JDK interface?
                  */
                 if (ser == null) {
-                    ser = stdF.findSerializerByAddonType(type);
+                    ser = super.findSerializerByAddonType(type);
                 }
             }
         }
@@ -138,33 +137,6 @@ public class BeanSerializerFactory
     // Overridable internal methods
     ////////////////////////////////////////////////////////////
      */
-
-    /**
-     * Helper method called to check if the class in question
-     * has {@link JsonUseSerializer} annotation which tells the
-     * class to use for serialization.
-     * Returns null if no such annotation found.
-     */
-    protected JsonSerializer<Object> findSerializerByAnnotation(AnnotatedElement elem)
-    {
-        JsonUseSerializer ann = elem.getAnnotation(JsonUseSerializer.class);
-        if (ann != null) {
-            Class<?> serClass = ann.value();
-            // Must be of proper type, of course
-            if (!JsonSerializer.class.isAssignableFrom(serClass)) {
-                throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+ClassUtil.descFor(elem)+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
-            }
-            try {
-                Object ob = serClass.newInstance();
-                @SuppressWarnings("unchecked")
-                    JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
-                return ser;
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);
-            }
-        }
-        return null;
-    }
 
     /**
      * Helper method used to skip processing for types that we know

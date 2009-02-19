@@ -1,12 +1,15 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
+import java.lang.reflect.AnnotatedElement;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Factory class that can provide serializers for standard JDK classes,
@@ -263,6 +266,14 @@ public class StdSerializerFactory
             return NumberSerializer.instance;
         }
         if (Enum.class.isAssignableFrom(type)) {
+            /* 18-Feb-2009, tatu: Sort of related to [JACKSON-58], it
+             *   was found out that annotations do not work with
+             *   Enum classes.
+             */
+            JsonSerializer<Object> ser = findSerializerByAnnotation(type);
+            if (ser != null) {
+                return ser;
+            }
             return new EnumSerializer();
         }
         if (Calendar.class.isAssignableFrom(type)) {
@@ -296,6 +307,33 @@ public class StdSerializerFactory
         }
         if (CharSequence.class.isAssignableFrom(type)) {
             return StringLikeSerializer.instance;
+        }
+        return null;
+    }
+
+    /**
+     * Helper method called to check if the class in question
+     * has {@link JsonUseSerializer} annotation which tells the
+     * class to use for serialization.
+     * Returns null if no such annotation found.
+     */
+    protected JsonSerializer<Object> findSerializerByAnnotation(AnnotatedElement elem)
+    {
+        JsonUseSerializer ann = elem.getAnnotation(JsonUseSerializer.class);
+        if (ann != null) {
+            Class<?> serClass = ann.value();
+            // Must be of proper type, of course
+            if (!JsonSerializer.class.isAssignableFrom(serClass)) {
+                throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+ClassUtil.descFor(elem)+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
+            }
+            try {
+                Object ob = serClass.newInstance();
+                @SuppressWarnings("unchecked")
+                    JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
+                return ser;
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);
+            }
         }
         return null;
     }
@@ -349,7 +387,7 @@ public class StdSerializerFactory
         public StringLikeSerializer() { }
 
         @Override
-            public void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());
@@ -459,7 +497,7 @@ public class StdSerializerFactory
         extends JsonSerializer<Enum<?>>
     {
         @Override
-		public void serialize(Enum<?> value, JsonGenerator jgen, SerializerProvider provider)
+            public void serialize(Enum<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.name());
