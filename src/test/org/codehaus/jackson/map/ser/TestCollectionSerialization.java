@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.ser;
 
 import main.BaseTest;
 
@@ -8,7 +8,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
-public class TestObjectMapperArraySerializer
+public class TestCollectionSerialization
     extends BaseTest
 {
     public void testCollections()

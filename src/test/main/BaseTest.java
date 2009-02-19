@@ -103,7 +103,7 @@ public class BaseTest
         }
     }
 
-    protected void verifyException(Exception e, String match)
+    protected void verifyException(Throwable e, String match)
     {
         String msg = e.getMessage();
         String lmsg = msg.toLowerCase();

@@ -63,12 +63,18 @@ Scott Dixon:
     [0.9.5]
 
 Justin Friedl:
-  * Reported [JACKSON-53]: problem serializing iBatis bean classes generated
-    (or wrapped) by CGLib. Probably would also have caused problems with
-    Hibernate and a few other frameworks.
+  * Reported [JACKSON-53] (and suggested way to fix it): problem serializing
+    iBatis bean classes generated (or wrapped) by CGLib. Probably would also
+    have caused problems with Hibernate and other frameworks.
    [0.9.8]
 
 Scott Anderson:
   * Suggested [JACKSON-48]: Integrate ObjectMapper with JsonGenerator,
     JsonParser; add MappingJsonFactory.
+   [0.9.9]
+
+Kevin Grained:
+  * Reported [JACKSON-58] (and suggested a fix): NPE with String[]
+    serialization
+   [0.9.9]
 
