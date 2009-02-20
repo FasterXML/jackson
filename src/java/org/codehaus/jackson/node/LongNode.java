@@ -13,9 +13,9 @@ import org.codehaus.jackson.map.SerializerProvider;
 public final class LongNode
     extends NumericNode
 {
-    final long mValue;
+    final long _value;
 
-    public LongNode(long v) { mValue = v; }
+    public LongNode(long v) { _value = v; }
 
     public static LongNode valueOf(long l) { return new LongNode(l); }
 
@@ -27,30 +27,30 @@ public final class LongNode
 
     @Override
     public Number getNumberValue() {
-        return Long.valueOf(mValue);
+        return Long.valueOf(_value);
     }
 
     @Override
-        public int getIntValue() { return (int) mValue; }
+        public int getIntValue() { return (int) _value; }
 
     @Override
-        public long getLongValue() { return mValue; }
+        public long getLongValue() { return _value; }
 
     @Override
-        public double getDoubleValue() { return (double) mValue; }
+        public double getDoubleValue() { return (double) _value; }
 
     @Override
-        public BigDecimal getDecimalValue() { return BigDecimal.valueOf(mValue); }
+        public BigDecimal getDecimalValue() { return BigDecimal.valueOf(_value); }
 
     public String getValueAsText() {
-        return NumberOutput.toString(mValue);
+        return NumberOutput.toString(_value);
     }
 
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
         throws IOException, JsonProcessingException
     {
-        jg.writeNumber(mValue);
+        jg.writeNumber(_value);
     }
 
     @Override
@@ -61,11 +61,11 @@ public final class LongNode
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
-        return ((LongNode) o).mValue == mValue;
+        return ((LongNode) o)._value == _value;
     }
 
     @Override
     public int hashCode() {
-        return ((int) mValue) ^ (int) (mValue >> 32);
+        return ((int) _value) ^ (int) (_value >> 32);
     }
 }

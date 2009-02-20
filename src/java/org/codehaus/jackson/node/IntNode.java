@@ -13,9 +13,9 @@ import org.codehaus.jackson.map.SerializerProvider;
 public final class IntNode
     extends NumericNode
 {
-    final int mValue;
+    final int _value;
 
-    public IntNode(int v) { mValue = v; }
+    public IntNode(int v) { _value = v; }
 
     public static IntNode valueOf(int i) { return new IntNode(i); }
 
@@ -27,30 +27,30 @@ public final class IntNode
 
     @Override
     public Number getNumberValue() {
-        return Integer.valueOf(mValue);
+        return Integer.valueOf(_value);
     }
 
     @Override
-        public int getIntValue() { return mValue; }
+        public int getIntValue() { return _value; }
 
     @Override
-        public long getLongValue() { return (long) mValue; }
+        public long getLongValue() { return (long) _value; }
 
     @Override
-        public double getDoubleValue() { return (double) mValue; }
+        public double getDoubleValue() { return (double) _value; }
 
     @Override
-        public BigDecimal getDecimalValue() { return BigDecimal.valueOf(mValue); }
+        public BigDecimal getDecimalValue() { return BigDecimal.valueOf(_value); }
 
     public String getValueAsText() {
-        return NumberOutput.toString(mValue);
+        return NumberOutput.toString(_value);
     }
 
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
         throws IOException, JsonProcessingException
     {
-        jg.writeNumber(mValue);
+        jg.writeNumber(_value);
     }
 
     @Override
@@ -61,9 +61,9 @@ public final class IntNode
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
-        return ((IntNode) o).mValue == mValue;
+        return ((IntNode) o)._value == _value;
     }
 
     @Override
-        public int hashCode() { return mValue; }
+        public int hashCode() { return _value; }
 }

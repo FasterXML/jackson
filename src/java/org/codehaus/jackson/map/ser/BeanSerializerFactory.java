@@ -169,13 +169,7 @@ public class BeanSerializerFactory
              * If so, let's use it.
              */
             JsonSerializer<Object> ser = findSerializerByAnnotation(m);
-            String name = en.getKey();
-            if (ser != null) {
-                wprop = new StaticBeanPropertyWriter(name, m, ser);
-            } else {
-                wprop = new DynamicBeanPropertyWriter(name, m);
-            }
-            props.add(wprop);
+            props.add(new BeanPropertyWriter(en.getKey(), m, ser));
 
         }
         return props;

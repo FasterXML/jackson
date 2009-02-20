@@ -55,7 +55,11 @@ public final class TextNode
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
         throws IOException, JsonProcessingException
     {
-        jg.writeString(_value);
+        if (_value == null) {
+            jg.writeNull();
+        } else {
+            jg.writeString(_value);
+        }
     }
 
     @Override

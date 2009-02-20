@@ -83,6 +83,16 @@ public abstract class JsonNode
     public boolean isObject() { return false; }
 
     /**
+     * Method that can be used to check if the node is a wrapper
+     * for a POJO ("Plain Old Java Object" aka "bean".
+     * Returns true only for
+     * instances of {@link org.codehaus.jackson.node.POJONode}.
+     *
+     * @return True if this node wraps a POJO
+     */
+    public boolean isPojo() { return false; }
+
+    /**
      * @return True if this node represents a numeric Json
      *   value
      */

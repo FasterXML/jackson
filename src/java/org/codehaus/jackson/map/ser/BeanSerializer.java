@@ -75,8 +75,7 @@ public final class BeanSerializer
                  * the actual type until we get the instance.
                  */
                 if (Modifier.isFinal(rt.getModifiers())) {
-                    JsonSerializer<Object> ser = provider.findValueSerializer(rt);
-                    _props[i] = new StaticBeanPropertyWriter(prop, ser);
+                    _props[i] = prop.withSerializer(provider.findValueSerializer(rt));
                 }
             }
         }

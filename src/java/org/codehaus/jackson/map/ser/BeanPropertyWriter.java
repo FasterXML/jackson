@@ -14,7 +14,7 @@ import org.codehaus.jackson.map.SerializerProvider;
  * reflection-based functionality for accessing a property value
  * and serializing it.
  */
-public abstract class BeanPropertyWriter
+public final class BeanPropertyWriter
 {
     /**
      * Logical name of the property; will be used as the field name
@@ -27,13 +27,26 @@ public abstract class BeanPropertyWriter
      */
     final Method _accessorMethod;
 
-    protected BeanPropertyWriter(String name, Method acc)
+    /**
+     * Serializer to use for writing out the value: null if it can not
+     * be known statically; non-null if it can.
+     */
+    final JsonSerializer<Object> _serializer;
+
+    public BeanPropertyWriter(String name, Method acc,
+                              JsonSerializer<Object> ser)
     {
         _name = name;
         _accessorMethod = acc;
+        _serializer = ser;
     }
 
-    public abstract boolean hasSerializer();
+    public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
+    {
+        return new BeanPropertyWriter(_name, _accessorMethod, ser);
+    }
+
+    public boolean hasSerializer() { return _serializer != null; }
 
     public final Class<?> getReturnType() {
         return _accessorMethod.getReturnType();
@@ -51,7 +64,22 @@ public abstract class BeanPropertyWriter
      * within given bean, and to serialize it as a Json Object field
      * using appropriate serializer.
      */
-    public abstract void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
-        throws Exception;
+    public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
+        throws Exception
+    {
+        Object value = _accessorMethod.invoke(bean);
+        JsonSerializer<Object> ser;
+
+        if (value == null) {
+            ser = prov.getNullValueSerializer();
+        } else {
+            ser = _serializer;
+            if (ser == null) {
+                ser = prov.findValueSerializer(value.getClass());
+            }
+        }
+        jgen.writeFieldName(_name);
+        ser.serialize(value, jgen, prov);
+    }
 }
 
