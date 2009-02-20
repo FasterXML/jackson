@@ -20,14 +20,6 @@ public class TestObjectMapperSimpleDeserializer
 {
     /*
     //////////////////////////////////////////////////////////
-    // Helper classes, enums
-    //////////////////////////////////////////////////////////
-     */
-
-    protected enum TestEnum { JACKSON, RULES, OK; }
-
-    /*
-    //////////////////////////////////////////////////////////
     // Then tests for primitives, wrappers
     //////////////////////////////////////////////////////////
      */
@@ -212,41 +204,6 @@ public class TestObjectMapperSimpleDeserializer
     {
         URI value = new URI("http://foo.com");
         assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", URI.class));
-    }
-
-    public void testEnum() throws Exception
-    {
-        /* First, "good" case with Strings
-         */
-
-        ObjectMapper mapper = new ObjectMapper();
-        String JSON = "\"OK\" \"RULES\"  null";
-        // multiple main-level mappings, need explicit parser:
-        JsonParser jp = mapper.getJsonFactory().createJsonParser(JSON);
-
-        assertEquals(TestEnum.OK, mapper.readValue(jp, TestEnum.class));
-        assertEquals(TestEnum.RULES, mapper.readValue(jp, TestEnum.class));
-
-        /* should be ok; nulls are typeless; handled by mapper, not by
-         * deserializer
-         */
-        assertNull(mapper.readValue(jp, TestEnum.class));
-
-        // and no more content beyond that...
-        assertFalse(jp.hasCurrentToken());
-
-        /* Then alternative with index (0 means first entry)
-         */
-        assertEquals(TestEnum.JACKSON, mapper.readValue(" 0 ", TestEnum.class));
-
-        /* Then error case: unrecognized value
-         */
-        try {
-            /*Object result =*/ mapper.readValue("\"NO-SUCH-VALUE\"", TestEnum.class);
-            fail("Expected an exception for bogus enum value...");
-        } catch (JsonMappingException jex) {
-            verifyException(jex, "value not one of declared");
-        }
     }
 
     /**
