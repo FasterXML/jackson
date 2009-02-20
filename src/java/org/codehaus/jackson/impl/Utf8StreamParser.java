@@ -25,7 +25,7 @@ public final class Utf8StreamParser
 
     final ObjectCodec _objectCodec;
 
-    final protected NameCanonicalizer _symbols;
+    final protected BytesToNameCanonicalizer _symbols;
 
     /**
      * This buffer is used for name parsing.
@@ -40,7 +40,7 @@ public final class Utf8StreamParser
 
     public Utf8StreamParser(IOContext ctxt, int features, InputStream in,
                             ObjectCodec codec,
-                            NameCanonicalizer sym,
+                            BytesToNameCanonicalizer sym,
                             byte[] inputBuffer, int start, int end,
                             boolean bufferRecyclable)
     {
@@ -76,6 +76,10 @@ public final class Utf8StreamParser
 
         int i = _skipWSOrEnd();
         if (i < 0) { // end-of-input
+            /* 19-Feb-2009, tatu: Should actually close/release things
+             *    like input source, symbol table and recyclable buffers now.
+             */
+            close();
             return (_currToken = null);
         }
 
@@ -279,7 +283,7 @@ public final class Utf8StreamParser
         int q = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[q] != 0) {
             if (q == INT_QUOTE) { // special case, ""
-                return NameCanonicalizer.getEmptyName();
+                return BytesToNameCanonicalizer.getEmptyName();
             }
             return parseFieldName(0, q, 0); // quoting or invalid char
         }
@@ -437,7 +441,7 @@ public final class Utf8StreamParser
         }
         int i = _inputBuffer[_inputPtr++] & 0xFF;
         if (i == INT_QUOTE) { // special case, ""
-            return NameCanonicalizer.getEmptyName();
+            return BytesToNameCanonicalizer.getEmptyName();
         }
         return parseEscapedFieldName(_quadBuffer, 0, 0, i, 0);
     }

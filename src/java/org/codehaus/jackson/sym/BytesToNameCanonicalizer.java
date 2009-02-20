@@ -7,7 +7,7 @@ package org.codehaus.jackson.sym;
  *
  * @author Tatu Saloranta
  */
-public final class NameCanonicalizer
+public final class BytesToNameCanonicalizer
 {
     protected static final int DEFAULT_TABLE_SIZE = 64;
 
@@ -34,7 +34,7 @@ public final class NameCanonicalizer
     /////////////////////////////////////////////////////    
      */
 
-    final NameCanonicalizer _parent;
+    final BytesToNameCanonicalizer _parent;
 
     /*
     /////////////////////////////////////////////////////
@@ -143,16 +143,16 @@ public final class NameCanonicalizer
     /////////////////////////////////////////////////////
      */
 
-    public static NameCanonicalizer createRoot()
+    public static BytesToNameCanonicalizer createRoot()
     {
-        return new NameCanonicalizer(DEFAULT_TABLE_SIZE);
+        return new BytesToNameCanonicalizer(DEFAULT_TABLE_SIZE);
     }
 
-    public synchronized NameCanonicalizer makeChild()
+    public synchronized BytesToNameCanonicalizer makeChild()
     {
 //System.err.print("[makeChild w "+System.identityHashCode(this)+", "+_count+"]");
 
-        return new NameCanonicalizer(this);
+        return new BytesToNameCanonicalizer(this);
     }
 
     /**
@@ -174,7 +174,7 @@ public final class NameCanonicalizer
         }
     }
 
-    private NameCanonicalizer(int hashSize)
+    private BytesToNameCanonicalizer(int hashSize)
     {
         _parent = null;
         /* Sanity check: let's now allow hash sizes below certain
@@ -200,7 +200,7 @@ public final class NameCanonicalizer
     /**
      * Constructor used when creating a child instance
      */
-    private NameCanonicalizer(NameCanonicalizer parent)
+    private BytesToNameCanonicalizer(BytesToNameCanonicalizer parent)
     {
         _parent = parent;
 
@@ -235,7 +235,7 @@ public final class NameCanonicalizer
         _needRehash = false;
     }
 
-    private synchronized void mergeChild(NameCanonicalizer child)
+    private synchronized void mergeChild(BytesToNameCanonicalizer child)
     {
         // Only makes sense if child has more entries
         int childCount = child._count;

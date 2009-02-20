@@ -1,6 +1,6 @@
 package org.codehaus.jackson.main;
 
-import java.io.*;
+import java.io.IOException;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.*;
@@ -22,9 +22,7 @@ public class TestJsonParserSymbols
     public void testByteSymbolsWithEOF() throws Exception
     {
         MyJsonFactory f = new MyJsonFactory();
-        assertEquals(0, f.byteSymbolCount());
-        JsonParser jp = f.createJsonParser(JSON.getBytes("UTF-8"));
-        assertEquals(Utf8StreamParser.class, jp.getClass());
+        JsonParser jp = _getParser(f, JSON, true);
         while (jp.nextToken() != null) {
             // shouldn't update before hitting end
             assertEquals(0, f.byteSymbolCount());
@@ -43,9 +41,7 @@ public class TestJsonParserSymbols
     public void testCharSymbolsWithEOF() throws Exception
     {
         MyJsonFactory f = new MyJsonFactory();
-        assertEquals(0, f.charSymbolCount());
-        JsonParser jp = f.createJsonParser(JSON);
-        assertEquals(ReaderBasedParser.class, jp.getClass());
+        JsonParser jp = _getParser(f, JSON, false);
         while (jp.nextToken() != null) {
             // shouldn't update before hitting end
             assertEquals(0, f.charSymbolCount());
@@ -62,16 +58,10 @@ public class TestJsonParserSymbols
     ////////////////////////////////////
      */
 
-    private void _testWithClose(boolean useBytes) throws Exception
+    private void _testWithClose(boolean useBytes) throws IOException
     {
         MyJsonFactory f = new MyJsonFactory();
-        assertEquals(0, useBytes ? f.byteSymbolCount() : f.charSymbolCount());
-
-        JsonParser jp = useBytes
-            ? f.createJsonParser(JSON.getBytes("UTF-8"))
-            : f.createJsonParser(JSON);
-        assertEquals(Utf8StreamParser.class, jp.getClass());
-
+        JsonParser jp = _getParser(f, JSON, useBytes);
         // Let's check 2 names
         assertToken(JsonToken.START_OBJECT, jp.nextToken());
         assertToken(JsonToken.FIELD_NAME, jp.nextToken());
@@ -83,6 +73,21 @@ public class TestJsonParserSymbols
         jp.close();
         // but should after close
         assertEquals(2, useBytes ? f.byteSymbolCount() : f.charSymbolCount());
+    }
+
+    private JsonParser _getParser(MyJsonFactory f, String doc, boolean useBytes) throws IOException
+    {
+        JsonParser jp;
+        if (useBytes) {
+            jp = f.createJsonParser(doc.getBytes("UTF-8"));
+            assertEquals(Utf8StreamParser.class, jp.getClass());
+            assertEquals(0, f.byteSymbolCount());
+        } else {
+            jp = f.createJsonParser(doc);
+            assertEquals(ReaderBasedParser.class, jp.getClass());
+            assertEquals(0, f.charSymbolCount());
+        }
+        return jp;
     }
 
     /*

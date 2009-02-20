@@ -4,7 +4,7 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
-import org.codehaus.jackson.sym.SymbolTable;
+import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
 import org.codehaus.jackson.type.TypeReference;
 import org.codehaus.jackson.util.*;
 
@@ -24,7 +24,7 @@ public final class ReaderBasedParser
 
     final ObjectCodec _objectCodec;
 
-    final protected SymbolTable _symbols;
+    final protected CharsToNameCanonicalizer _symbols;
 
     /*
     ////////////////////////////////////////////////////
@@ -33,7 +33,7 @@ public final class ReaderBasedParser
      */
 
     public ReaderBasedParser(IOContext ioCtxt, int features, Reader r,
-                             ObjectCodec codec, SymbolTable st)
+                             ObjectCodec codec, CharsToNameCanonicalizer st)
     {
         super(ioCtxt, features, r);
         _objectCodec = codec;
@@ -67,6 +67,10 @@ public final class ReaderBasedParser
 
         int i = _skipWSOrEnd();
         if (i < 0) { // end-of-input
+            /* 19-Feb-2009, tatu: Should actually close/release things
+             *    like input source, symbol table and recyclable buffers now.
+             */
+            close();
             return (_currToken = null);
         }
 

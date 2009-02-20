@@ -36,7 +36,7 @@ package org.codehaus.jackson.sym;
  * access to master instance is read-only (ie. no modifications done).
  */
 
-public final class SymbolTable
+public final class CharsToNameCanonicalizer
 {
     /**
      * Default initial table size. Shouldn't be miniscule (as there's
@@ -65,9 +65,9 @@ public final class SymbolTable
      */
     final static int MAX_SYMBOL_TABLE_SIZE = 6000;
 
-    final static SymbolTable sBootstrapSymbolTable;
+    final static CharsToNameCanonicalizer sBootstrapSymbolTable;
     static {
-        sBootstrapSymbolTable = new SymbolTable(DEFAULT_TABLE_SIZE);
+        sBootstrapSymbolTable = new CharsToNameCanonicalizer(DEFAULT_TABLE_SIZE);
     }
 
     /*
@@ -82,7 +82,7 @@ public final class SymbolTable
      * defined, and child instance is released (call to <code>release</code>),
      * parent's shared tables may be updated from the child instance.
      */
-    protected SymbolTable mParent;
+    protected CharsToNameCanonicalizer mParent;
 
     /*
     ////////////////////////////////////////
@@ -145,7 +145,7 @@ public final class SymbolTable
     ////////////////////////////////////////
      */
 
-    public static SymbolTable createRoot()
+    public static CharsToNameCanonicalizer createRoot()
     {
         return sBootstrapSymbolTable.makeOrphan();
     }
@@ -157,7 +157,7 @@ public final class SymbolTable
      * @param initialSize Minimum initial size for bucket array; internally
      *   will always use a power of two equal to or bigger than this value.
      */
-    public SymbolTable(int initialSize)
+    public CharsToNameCanonicalizer(int initialSize)
     {
         // And we'll also set flags so no copying of buckets is needed:
         mDirty = true;
@@ -194,7 +194,7 @@ public final class SymbolTable
     /**
      * Internal constructor used when creating child instances.
      */
-    private SymbolTable(SymbolTable parent,
+    private CharsToNameCanonicalizer(CharsToNameCanonicalizer parent,
                         String[] symbols, Bucket[] buckets, int size)
     {
         mParent = parent;
@@ -223,14 +223,14 @@ public final class SymbolTable
      * on which only makeChild/mergeChild are called, but instance itself
      * is not used as a symbol table.
      */
-    public synchronized SymbolTable makeChild()
+    public synchronized CharsToNameCanonicalizer makeChild()
     {
-        return new SymbolTable(this, mSymbols, mBuckets, mSize);
+        return new CharsToNameCanonicalizer(this, mSymbols, mBuckets, mSize);
     }
 
-    private SymbolTable makeOrphan()
+    private CharsToNameCanonicalizer makeOrphan()
     {
-        return new SymbolTable(null, mSymbols, mBuckets, mSize);
+        return new CharsToNameCanonicalizer(null, mSymbols, mBuckets, mSize);
     }
 
     /**
@@ -240,7 +240,7 @@ public final class SymbolTable
      * Note that caller has to make sure symbol table passed in is
      * really a child or sibling of this symbol table.
      */
-    private synchronized void mergeChild(SymbolTable child)
+    private synchronized void mergeChild(CharsToNameCanonicalizer child)
     {
         /* One caveat: let's try to avoid problems with
          * degenerate cases of documents with generated "random"

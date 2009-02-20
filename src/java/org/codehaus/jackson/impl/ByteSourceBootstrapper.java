@@ -4,8 +4,8 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.*;
-import org.codehaus.jackson.sym.NameCanonicalizer;
-import org.codehaus.jackson.sym.SymbolTable;
+import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
+import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
 
 /**
  * This class is used to determine the encoding of byte stream
@@ -199,7 +199,7 @@ public final class ByteSourceBootstrapper
         throw new RuntimeException("Internal error"); // should never get here
     }
 
-    public JsonParser constructParser(int features, ObjectCodec codec, NameCanonicalizer rootByteSymbols, SymbolTable rootCharSymbols)
+    public JsonParser constructParser(int features, ObjectCodec codec, BytesToNameCanonicalizer rootByteSymbols, CharsToNameCanonicalizer rootCharSymbols)
         throws IOException, JsonParseException
     {
         JsonEncoding enc = detectEncoding();

@@ -335,8 +335,7 @@ public abstract class JsonParserBase
         return _parsingContext.getCurrentName();
     }
 
-    public void close()
-        throws IOException
+    public void close() throws IOException
     {
         _closeInput();
         // Also, internal buffer(s) can now be released as well

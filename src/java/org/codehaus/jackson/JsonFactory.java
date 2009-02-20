@@ -22,8 +22,8 @@ import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.impl.ByteSourceBootstrapper;
 import org.codehaus.jackson.impl.ReaderBasedParser;
 import org.codehaus.jackson.impl.WriterBasedGenerator;
-import org.codehaus.jackson.sym.NameCanonicalizer;
-import org.codehaus.jackson.sym.SymbolTable;
+import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
+import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
 import org.codehaus.jackson.util.BufferRecycler;
 
 /**
@@ -76,7 +76,7 @@ public class JsonFactory
      * It should not be linked back to the original blueprint, to
      * avoid contents from leaking between factories.
      */
-    protected SymbolTable _rootCharSymbols = SymbolTable.createRoot();
+    protected CharsToNameCanonicalizer _rootCharSymbols = CharsToNameCanonicalizer.createRoot();
 
     /**
      * Alternative to the basic symbol table, some stream-based
@@ -85,7 +85,7 @@ public class JsonFactory
      * TODO: should clean up this; looks messy having 2 alternatives
      * with not very clear differences.
      */
-    protected NameCanonicalizer _rootByteSymbols = NameCanonicalizer.createRoot();
+    protected BytesToNameCanonicalizer _rootByteSymbols = BytesToNameCanonicalizer.createRoot();
 
     /*
     ///////////////////////////////////////////////////////
