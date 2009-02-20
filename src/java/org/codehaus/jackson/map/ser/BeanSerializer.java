@@ -66,7 +66,8 @@ public final class BeanSerializer
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {
-        for (BeanPropertyWriter prop : _props) {
+        for (int i = 0, len = _props.length; i < len; ++i) {
+            BeanPropertyWriter prop = _props[i];
             if (!prop.hasSerializer()) {
                 Class<?> rt = prop.getReturnType();
                 /* Note: we can only assign serializer statically if the
@@ -75,8 +76,7 @@ public final class BeanSerializer
                  */
                 if (Modifier.isFinal(rt.getModifiers())) {
                     JsonSerializer<Object> ser = provider.findValueSerializer(rt);
-                    prop.assignSerializer(ser);
-                    continue;
+                    _props[i] = new StaticBeanPropertyWriter(prop, ser);
                 }
             }
         }

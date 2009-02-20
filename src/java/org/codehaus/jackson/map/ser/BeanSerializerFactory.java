@@ -164,16 +164,19 @@ public class BeanSerializerFactory
         for (Map.Entry<String,Method> en : methodsByProp.entrySet()) {
             Method m = en.getValue();
             ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
-            BeanPropertyWriter wprop = new BeanPropertyWriter(en.getKey(), m);
-            props.add(wprop);
-
+            BeanPropertyWriter wprop;
             /* One more thing: does Method specify a serializer?
              * If so, let's use it.
              */
             JsonSerializer<Object> ser = findSerializerByAnnotation(m);
+            String name = en.getKey();
             if (ser != null) {
-                wprop.assignSerializer(ser);
+                wprop = new StaticBeanPropertyWriter(name, m, ser);
+            } else {
+                wprop = new DynamicBeanPropertyWriter(name, m);
             }
+            props.add(wprop);
+
         }
         return props;
     }

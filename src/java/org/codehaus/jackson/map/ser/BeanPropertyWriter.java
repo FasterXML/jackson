@@ -10,11 +10,11 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 
 /**
- * Simple container class, used to store information about a single
- * property, matching to a single accessor method, and to be serializer
- * as a field value in json output.
+ * Base bean property handler class, which implements commong parts of
+ * reflection-based functionality for accessing a property value
+ * and serializing it.
  */
-public final class BeanPropertyWriter
+public abstract class BeanPropertyWriter
 {
     /**
      * Logical name of the property; will be used as the field name
@@ -27,39 +27,19 @@ public final class BeanPropertyWriter
      */
     final Method _accessorMethod;
 
-    /**
-     * Serializer to use for writing out the value; if known statically.
-     * Will be null when property's static type is non-final, since
-     * then the dynamic type may be different.
-     */
-    JsonSerializer<Object> _serializer = null;
-
-    public BeanPropertyWriter(String name, Method acc)
+    protected BeanPropertyWriter(String name, Method acc)
     {
         _name = name;
         _accessorMethod = acc;
     }
 
-    /**
-     * Method that be called to assign serializer to use for this
-     * property, if it one can be reliable detected only given static
-     * information: usually this is possible for final types.
-     */
-    public void assignSerializer(JsonSerializer<Object> ser)
-    {
-        if (_serializer != null) {
-            throw new IllegalStateException("Already had a serializer assigned");
-        }
-        _serializer = ser;
-    }
+    public abstract boolean hasSerializer();
 
-    public boolean hasSerializer() { return _serializer != null; }
-
-    public Class<?> getReturnType() {
+    public final Class<?> getReturnType() {
         return _accessorMethod.getReturnType();
     }
 
-    public String getName() { return _name; }
+    public final String getName() { return _name; }
 
     @Override
         public String toString() {
@@ -71,27 +51,7 @@ public final class BeanPropertyWriter
      * within given bean, and to serialize it as a Json Object field
      * using appropriate serializer.
      */
-    public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
-        throws IOException, JsonGenerationException,
-               IllegalAccessException, InvocationTargetException
-    {
-        Object value = _accessorMethod.invoke(bean);
-        JsonSerializer<Object> ser;
-
-        if (value == null) {
-            ser = prov.getNullValueSerializer();
-        } else {
-            ser = _serializer;
-            /* We will only have serializer if the type is final, and
-             * hence known. Otherwise, we will have to dynamically detect
-             * it now that we have object instance.
-             */
-            if (ser == null) {
-                ser = prov.findValueSerializer(value.getClass());
-            }
-        }
-        jgen.writeFieldName(_name);
-        ser.serialize(value, jgen, prov);
-    }
+    public abstract void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
+        throws Exception;
 }
 
