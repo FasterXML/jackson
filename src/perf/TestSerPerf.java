@@ -35,7 +35,10 @@ public final class TestSerPerf
         public FinalBean2 getBean4() { return _bean; }
     }
 
-    final class FinalBean2 extends NonFinalBean2 { }
+    final class FinalBean2 {
+        public int getX() { return 3; }
+        public String getName() { return "foobar"; }
+    }
 
     private final int REPS;
 
