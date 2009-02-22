@@ -31,12 +31,20 @@ public class TestAnnotations
         @JsonGetter protected int value() { return 0; }
     }
 
-    /// Class for testing {@link JsonIgnore} annotation
-    final static class SizeClassIgnore
+    /// Class for testing enabled {@link JsonIgnore} annotation
+    final static class SizeClassEnabledIgnore
     {
         // note: must be public to be seen
         public int getX() { return 1; }
         @JsonIgnore public int getY() { return 9; }
+    }
+
+    /// Class for testing enabled {@link JsonIgnore} annotation
+    final static class SizeClassDisabledIgnore
+    {
+        // note: must be public to be seen
+        public int getX() { return 3; }
+        @JsonIgnore(false) public int getY() { return 4; }
     }
 
     /**
@@ -48,7 +56,7 @@ public class TestAnnotations
     }
 
     /**
-     * Class for testing {@link JsonUseSerializer} annotation
+     * Class for testing an active {@link JsonUseSerializer} annotation
      * for a method
      */
     final static class ClassMethodSerializer {
@@ -57,6 +65,20 @@ public class TestAnnotations
         public ClassMethodSerializer(int x) { _x = x; }
 
         @JsonUseSerializer(StringSerializer.class)
+            public int getX() { return _x; }
+    }
+
+    /**
+     * Class for testing an inactive (one that will not have any effect)
+     * {@link JsonUseSerializer} annotation for a method
+     */
+    final static class InactiveClassMethodSerializer {
+        private int _x;
+
+        public InactiveClassMethodSerializer(int x) { _x = x; }
+
+        // Basically, has no effect, hence gets serialized as number
+        @JsonUseSerializer(NoClass.class)
             public int getX() { return _x; }
     }
 
@@ -143,10 +165,20 @@ public class TestAnnotations
     {
         ObjectMapper m = new ObjectMapper();
         // Should see "x", not "y"
-        Map<String,Object> result = writeAndMap(m, new SizeClassIgnore());
+        Map<String,Object> result = writeAndMap(m, new SizeClassEnabledIgnore());
         assertEquals(1, result.size());
         assertEquals(Integer.valueOf(1), result.get("x"));
         assertNull(result.get("y"));
+    }
+
+    public void testDisabledIgnore() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        // Should see "x" and "y"
+        Map<String,Object> result = writeAndMap(m, new SizeClassDisabledIgnore());
+        assertEquals(2, result.size());
+        assertEquals(Integer.valueOf(3), result.get("x"));
+        assertEquals(Integer.valueOf(4), result.get("y"));
     }
 
     /**
@@ -179,7 +211,7 @@ public class TestAnnotations
      * Unit test to verify that @JsonSerializer annotation works
      * when applied to a Method
      */
-    public void testMethodSerializer() throws Exception
+    public void testActiveMethodSerializer() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
         StringWriter sw = new StringWriter();
@@ -188,6 +220,17 @@ public class TestAnnotations
          * full object, just override a single property
          */
         assertEquals("{\"x\":\"X13X\"}", sw.toString());
+    }
+
+    public void testInactiveMethodSerializer() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        StringWriter sw = new StringWriter();
+        m.writeValue(sw, new InactiveClassMethodSerializer(8));
+        /* Here we will get wrapped as an object, since we have
+         * full object, just override a single property
+         */
+        assertEquals("{\"x\":8}", sw.toString());
     }
 
     /**

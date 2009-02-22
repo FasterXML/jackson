@@ -83,6 +83,7 @@ public class TestBasicAnnotations
         public TestDeserializerAnnotationClass(int a, int b) {
             _a = a;
         }
+
     }
 
     /**

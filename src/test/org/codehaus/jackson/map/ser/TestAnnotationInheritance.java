@@ -28,6 +28,12 @@ public class TestAnnotationInheritance
         @JsonGetter public int length() { return 7; }
     }
 
+    interface PojoInterface
+    {
+        @JsonGetter int width();
+        @JsonGetter int length();
+    }
+
     /**
      * Sub-class for testing that inheritance is handled properly
      * wrt annotations.
@@ -39,6 +45,16 @@ public class TestAnnotationInheritance
          */
         @Override
         public int width() { return 9; }
+    }
+
+    static class PojoImpl implements PojoInterface
+    {
+        // Both should be recognized as getters here
+
+        @Override public int width() { return 1; }
+        @Override public int length() { return 2; }
+
+        public int getFoobar() { return 5; }
     }
 
     /*
@@ -54,6 +70,17 @@ public class TestAnnotationInheritance
         assertEquals(2, result.size());
         assertEquals(Integer.valueOf(7), result.get("length"));
         assertEquals(Integer.valueOf(9), result.get("width"));
+    }
+
+    public void testSimpleGetterInterfaceImpl() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, new PojoImpl());
+        // should get 2 from interface, and one more from impl itself
+        assertEquals(3, result.size());
+        assertEquals(Integer.valueOf(5), result.get("foobar"));
+        assertEquals(Integer.valueOf(1), result.get("width"));
+        assertEquals(Integer.valueOf(2), result.get("length"));
     }
 
     /*

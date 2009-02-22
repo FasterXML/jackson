@@ -8,6 +8,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonUseSerializer;
+import org.codehaus.jackson.annotate.NoClass;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 
@@ -320,22 +321,31 @@ public class BasicSerializerFactory
     protected JsonSerializer<Object> findSerializerByAnnotation(AnnotatedElement elem)
     {
         JsonUseSerializer ann = elem.getAnnotation(JsonUseSerializer.class);
-        if (ann != null) {
-            Class<?> serClass = ann.value();
-            // Must be of proper type, of course
-            if (!JsonSerializer.class.isAssignableFrom(serClass)) {
-                throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+ClassUtil.descFor(elem)+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
-            }
-            try {
-                Object ob = serClass.newInstance();
-                @SuppressWarnings("unchecked")
-                    JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
-                return ser;
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);
-            }
+        if (ann == null) {
+            return null;
         }
-        return null;
+
+        Class<?> serClass = ann.value();
+        /* 21-Feb-2009, tatu: There is now a way to indicate "no class"
+         *   (to essentially denote a 'dummy' annotation, needed for
+         *   overriding in some cases), need to check:
+         */
+        if (serClass == NoClass.class) {
+            return null;
+        }
+
+        // Must be of proper type, of course
+        if (!JsonSerializer.class.isAssignableFrom(serClass)) {
+            throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+ClassUtil.descFor(elem)+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
+        }
+        try {
+            Object ob = serClass.newInstance();
+            @SuppressWarnings("unchecked")
+                JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
+            return ser;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);
+        }
     }
 
     /*

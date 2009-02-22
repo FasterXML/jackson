@@ -11,6 +11,11 @@ import java.lang.annotation.Target;
  * instances of the class annotated, or the value of property
  * that is accessed using (getter) method annotated.
  *<p>
+ * There is a special marker Class ({@link NoClass}) that can be used to
+ * indicate that no explicit serializer is to be used -- such a 
+ * work-around is needed because 'null' can not be used with
+ * annotations (either as default or explicit value)
+ *<p>
  * Note that although type serializers do have generic type information,
  * that information is not available during processing. As a result,
  * only thing that can be checked during annotation processing
@@ -33,6 +38,9 @@ public @interface JsonUseSerializer
      * value is either an instance of annotated class (used globablly
      * anywhere where class serializer is needed); or only used for
      * serializing property access via a getter method.
+     *<p>
+     * Note: default value, <code>NoClass.class</code> can be used
+     * to denote that no explicit serializer is to be used.
      */
-    public Class<?> value();
+    public Class<?> value() default NoClass.class;
 }

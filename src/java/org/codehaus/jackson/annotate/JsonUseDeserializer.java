@@ -11,6 +11,11 @@ import java.lang.annotation.Target;
  * instances of the class annotated, or the value of property
  * that is modifier using (setter) method annotated.
  *<p>
+ * There is a special marker Class ({@link NoClass}) that can be used to
+ * indicate that no explicit deserializer is to be used -- such a 
+ * work-around is needed because 'null' can not be used with
+ * annotations (either as default or explicit value)
+ *<p>
  * Note that although type deserializers do have generic type information,
  * that information is not available during processing. As a result,
  * only thing that can be checked during annotation processing
@@ -34,5 +39,5 @@ public @interface JsonUseDeserializer
      * anywhere where class serializer is needed); or only used for
      * serializing property access via a getter method.
      */
-    public Class<?> value();
+    public Class<?> value() default NoClass.class;
 }

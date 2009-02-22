@@ -92,7 +92,7 @@ public class ClassIntrospector
                 continue;
             }
             // Marked with @JsonIgnore?
-            if (m.isAnnotationPresent(JsonIgnore.class)) {
+            if (isIgnored(m)) {
                 continue;
             }
 
@@ -163,7 +163,7 @@ public class ClassIntrospector
                 continue;
             }
             // Marked with @JsonIgnore?
-            if (m.isAnnotationPresent(JsonIgnore.class)) {
+            if (isIgnored(m)) {
                 continue;
             }
 
@@ -263,7 +263,7 @@ public class ClassIntrospector
                 continue;
             }
             // can't be included if directed to be ignored
-            if (m.isAnnotationPresent(JsonIgnore.class)) {
+            if (isIgnored(m)) {
                 continue;
             }
             // and must take exactly one argument
@@ -505,6 +505,17 @@ public class ClassIntrospector
     ///////////////////////////////////////////////////////
      */
 
+    /**
+     * Helper method used to check whether given element
+     * (method, constructor, class) has enabled (active)
+     * instance of {@link JsonIgnore} annotation.
+     */
+    protected boolean isIgnored(AnnotatedElement elem)
+    {
+        JsonIgnore ann = elem.getAnnotation(JsonIgnore.class);
+        return (ann != null && ann.value());
+    }
+
     protected Method[] declaredMethods()
     {
         if (_directMethods == null) {
@@ -530,7 +541,7 @@ public class ClassIntrospector
                 continue;
             }
             // also, have to respect @JsonIgnore
-            if (ctor.isAnnotationPresent(JsonIgnore.class)) {
+            if (isIgnored(ctor)) {
                 continue;
             }
 
