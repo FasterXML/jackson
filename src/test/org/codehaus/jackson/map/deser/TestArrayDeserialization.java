@@ -1,6 +1,6 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.deser;
 
-import main.BaseTest;
+import org.codehaus.jackson.map.BaseMapTest;
 
 import java.io.*;
 import java.util.*;
@@ -8,14 +8,15 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
  * This unit test suite tries to verify that the "Native" java type
  * mapper can properly re-construct Java array objects from Json arrays.
  */
-public class TestObjectMapperArrayDeserializer
-    extends BaseTest
+public class TestArrayDeserialization
+    extends BaseMapTest
 {
     /*
     //////////////////////////////////////////
