@@ -18,7 +18,7 @@ public final class AnnotatedClass
      * Combined list of Jackson annotations that the class has,
      * including inheritable ones from super classes and interfaces
      */
-    final AnnotationMap _classAnnotations = new AnnotationMap();
+    AnnotationMap _classAnnotations;
 
     /**
      * Default constructor of the annotated class, if it has one.
@@ -40,7 +40,7 @@ public final class AnnotatedClass
      * Member methods of interest; for now ones with 0 or 1 arguments
      * (just optimization, since others won't be used now)
      */
-    AnnotatedMethodMap  _memberMethods = new AnnotatedMethodMap();
+    AnnotatedMethodMap  _memberMethods;
 
     /*
     ///////////////////////////////////////////////////////
@@ -49,24 +49,81 @@ public final class AnnotatedClass
      */
 
     /**
-     * During construction we can figure out baseline settings
-     * for all annotated things (direct class annotations,
-     * constructors, potential static factory methods and
-     * other methods)
-     * But we will not do any checking for
-     * inheritance (or interface implementation), nor annotation
-     * overrides ("mix-in annotations"); those need to be handled
-     * by the caller.
+     * Constructor will not do any initializations, to allow for
+     * configuring instances differently depending on use cases
      */
-    public AnnotatedClass(Class<?> cls)
+    private AnnotatedClass(Class<?> cls)
     {
         _class = cls;
-        // First let's find annotations we already have
-        for (Annotation a : cls.getDeclaredAnnotations()) {
-            _classAnnotations.add(a);
-        }
+    }
+
+    public static AnnotatedClass constructFull(Class<?> cls)
+    {
+        AnnotatedClass ac = new AnnotatedClass(cls);
+        ac.resolveClassAnnotations();
+        ac.resolveCreators();
+        ac.resolveMemberMethods();
+        return ac;
+    }
+
+    /**
+     * Alternate factory method that will only resolve class
+     * annotations. Used when caller doesn't care about method
+     * and creator annotations.
+     */
+    public static AnnotationMap findClassAnnotations(Class<?> cls)
+    {
+        AnnotatedClass ac = new AnnotatedClass(cls);
+        ac.resolveClassAnnotations();
+        return ac._classAnnotations;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Init methods
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * Initialization method that will recursively collect Jackson
+     * annotations for this class and all super classes and
+     * interfaces.
+     */
+    private void resolveClassAnnotations()
+    {
+        // And then what super-classes and interfaces have
+        HashSet<Class<?>> handledInterfaces = new HashSet<Class<?>>();
+        Class<?> curr = _class;
+
+        _classAnnotations = new AnnotationMap();
+        do {
+            // First direct annotations for the current class
+            for (Annotation a : curr.getDeclaredAnnotations()) {
+                _classAnnotations.add(a);
+            }
+            // then interfaces current class directly implements
+            for (Class intCls : curr.getInterfaces()) {
+                // no need to process interfaces multiple times
+                if (handledInterfaces.add(intCls)) {
+                    for (Annotation a : intCls.getDeclaredAnnotations()) {
+                        _classAnnotations.addIfNotPresent(a);
+                    }
+                }
+            }
+            // and then super-class (up until but not include Object)
+            curr = curr.getSuperclass();
+        } while (curr != null && curr != Object.class);
+    }
+
+    /**
+     * Initialization method that will find out all constructors
+     * and potential static factory methods the class has.
+     */
+    private void resolveCreators()
+    {
         // Then see which constructors we have
-        for (Constructor ctor : cls.getDeclaredConstructors()) {
+        _singleArgConstructors = null;
+        for (Constructor ctor : _class.getDeclaredConstructors()) {
             switch (ctor.getParameterTypes().length) {
             case 0:
                 _defaultConstructor = new AnnotatedConstructor(ctor);
@@ -80,34 +137,39 @@ public final class AnnotatedClass
             }
         }
 
+        _singleArgStaticMethods = null;
         /* Then methods: single-arg static methods (potential factory
          * methods), and 0/1-arg member methods (getters, setters)
          */
-        for (Method m : cls.getDeclaredMethods()) {
-            int argCount = m.getParameterTypes().length;
+        for (Method m : _class.getDeclaredMethods()) {
             if (Modifier.isStatic(m.getModifiers())) {
+                int argCount = m.getParameterTypes().length;
                 if (argCount == 1) {
                     if (_singleArgStaticMethods == null) {
                         _singleArgStaticMethods = new ArrayList<AnnotatedMethod>();
                     }
                     _singleArgStaticMethods.add(new AnnotatedMethod(m));
                 }
-            } else { // non-static
-                if (argCount == 0 || argCount == 1) {
-                    _memberMethods.add(new AnnotatedMethod(m));
-                }
             }
         }
     }
 
-    /**
-     * Method called to add relevant annotation information from
-     * interfaces implemented by this class as well as all of its
-     * super-classes; all in expected order.
-     */
-    public void addAnnotationsFromSupers()
+    private void resolveMemberMethods()
     {
-        // Let's try to avoid extra work...
+        // Ok, first, 0/1-arg member methods class itself has:
+        _memberMethods = new AnnotatedMethodMap();
+        for (Method m : _class.getDeclaredMethods()) {
+            if (Modifier.isStatic(m.getModifiers())) { // skip static ones
+                continue;
+            }
+            int argCount = m.getParameterTypes().length;
+            if (argCount == 0 || argCount == 1) {
+                _memberMethods.add(new AnnotatedMethod(m));
+            }
+        }
+        /* and then augment these with annotations from
+         * super-classes/interfaces
+         */
         HashSet<Class<?>> handledInterfaces = new HashSet<Class<?>>();
         Class<?> curr = _class;
 
@@ -116,7 +178,7 @@ public final class AnnotatedClass
             for (Class intCls : curr.getInterfaces()) {
                 // no need to process interfaces multiple times
                 if (handledInterfaces.add(intCls)) {
-                    addAnnotationsFromSuper(intCls);
+                    _addMethodAnnotationsFromSuper(intCls);
                 }
             }
             // and then super-class (up until but not include Object)
@@ -124,36 +186,28 @@ public final class AnnotatedClass
             if (curr == null || curr == Object.class) {
                 break;
             }
-            addAnnotationsFromSuper(curr);
+            _addMethodAnnotationsFromSuper(curr);
         }
     }
 
     /**
-     * Method that will add missing class and member method annotations
-     * from specified class or interface. Other things (static methods,
-     * constructors) are not included since they are not inheritable.
+     * Method that will add "missing" member methods and annotations
+     * from specified class or interface. That is, methods and
+     * annotations that are not masked by classes higher up the chain.
+     * The main reason to do this is to implement simple "inheritance"
+     * for annotations; method annotations are not inherited
+     * with regular JDK functionality.
      */
-    public void addAnnotationsFromSuper(Class<?> superClassOrInterface)
+    private void _addMethodAnnotationsFromSuper(Class<?> superClassOrInterface)
     {
-        // First, class annotations:
-        for (Annotation a : superClassOrInterface.getDeclaredAnnotations()) {
-            _classAnnotations.addIfNotPresent(a);
-        }
-
-        // And then annotations for member methods:
         for (Method m : superClassOrInterface.getDeclaredMethods()) {
-            // static methods won't inherit, so skip
+            // static methods won't inherit, skip
             if (Modifier.isStatic(m.getModifiers())) {
                 continue;
             }
             int argCount = m.getParameterTypes().length;
             if (argCount == 0 || argCount == 1) {
                 AnnotatedMethod am = _memberMethods.find(m);
-                /* 23-Feb-2009, tatu: This may get tricky with interfaces
-                 *  wrt. whether to add method for interfaces. For now
-                 *  let's allow that -- assumption is that someone
-                 *  somewhere is still bound to implement them.
-                 */
                 if (am == null) {
                     am = new AnnotatedMethod(m);
                     _memberMethods.add(am);
@@ -173,6 +227,14 @@ public final class AnnotatedClass
     public Class<?> getAnnotated() { return _class; }
 
     public AnnotatedConstructor getDefaultConstructor() { return _defaultConstructor; }
+
+    public <A extends Annotation> A getClassAnnotation(Class<A> acls)
+    {
+        if (_classAnnotations == null) {
+            return null;
+        }
+        return _classAnnotations.get(acls);
+    }
 
     public Collection<AnnotatedConstructor> getSingleArgConstructors()
     {

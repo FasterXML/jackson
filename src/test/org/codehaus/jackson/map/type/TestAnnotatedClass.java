@@ -45,15 +45,11 @@ public class TestAnnotatedClass
 
     public void testSimple()
     {
-        AnnotatedClass ac = new AnnotatedClass(SubClass.class);
-        // This only gets info on class itself, not super classes. So:
+        AnnotatedClass ac = AnnotatedClass.constructFull(SubClass.class);
+
         assertNotNull(ac.getDefaultConstructor());
         assertEquals(1, ac.getSingleArgConstructors().size());
-        assertEquals(1, ac.getMemberMethods().size());
         assertEquals(0, ac.getSingleArgStaticMethods().size());
-
-        // and then let's get stuff from super class
-        ac.addAnnotationsFromSupers();
         assertEquals(2, ac.getMemberMethods().size());
         for (AnnotatedMethod am : ac.getMemberMethods()) {
             String name = am.getName();

@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.type;
 
+import java.lang.annotation.Annotation;
 import java.util.*;
 import java.lang.reflect.*;
 
@@ -31,9 +32,18 @@ public class ClassIntrospector
     public ClassIntrospector(Class<?> c)
     {
         _class = c;
-        _classInfo = new AnnotatedClass(c);
-        // important: also need methods from sub-classes:
-        _classInfo.addAnnotationsFromSupers();
+        _classInfo = AnnotatedClass.constructFull(c);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Generic introspection
+    ///////////////////////////////////////////////////////
+     */
+
+    public <A extends Annotation> A getClassAnnotation(Class<A> acls)
+    {
+        return _classInfo.getClassAnnotation(acls);
     }
 
     /*

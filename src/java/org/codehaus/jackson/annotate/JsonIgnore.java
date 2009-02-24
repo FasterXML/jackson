@@ -35,12 +35,6 @@ import org.codehaus.jackson.annotate.meta.Inheritance;
  */
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)
-/* Also: this annotation is never inherited; it makes no sense
- * to do that. Hence, a new overriding method declaration, for example,
- * will not be ignored just because super classes method overridden
- * did have this annotation
- */
-@Inheritance(Inherit.NEVER)
 public @interface JsonIgnore
 {
     /**
