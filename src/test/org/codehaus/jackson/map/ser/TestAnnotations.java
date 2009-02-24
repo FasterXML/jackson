@@ -1,6 +1,6 @@
 package org.codehaus.jackson.map.ser;
 
-import main.BaseTest;
+import org.codehaus.jackson.map.BaseMapTest;
 
 import java.io.*;
 import java.util.*;
@@ -14,7 +14,7 @@ import org.codehaus.jackson.map.*;
  * bean serialization.
  */
 public class TestAnnotations
-    extends BaseTest
+    extends BaseMapTest
 {
     /*
     //////////////////////////////////////////////
@@ -259,20 +259,5 @@ public class TestAnnotations
         } catch (Exception jex) {
             fail("Expected an exception of type JsonMappingException, got ("+jex.getClass()+": "+jex);
         }
-    }
-
-    /*
-    //////////////////////////////////////////////
-    // Helper methods
-    //////////////////////////////////////////////
-     */
-
-    @SuppressWarnings("unchecked")
-	private Map<String,Object> writeAndMap(ObjectMapper m, Object value)
-        throws IOException
-    {
-        StringWriter sw = new StringWriter();
-        m.writeValue(sw, value);
-        return (Map<String,Object>) m.readValue(sw.toString(), Object.class);
     }
 }

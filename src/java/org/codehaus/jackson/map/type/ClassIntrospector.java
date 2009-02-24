@@ -12,33 +12,15 @@ import org.codehaus.jackson.map.util.ClassUtil;
  */
 public class ClassIntrospector
 {
-    /*
-    ///////////////////////////////////////////////////////
-    // Lazy-loaded reusable pieces of reflection info
-    ///////////////////////////////////////////////////////
+    /**
+     * Class being introspected
      */
+    final Class _class;
 
     /**
-     * Default no-argument constructor of this class, if it
-     * has one, and that constructor is NOT marked with
-     * @JsonIgnore
+     * Information collected about the class introspected.
      */
-    transient Constructor<?> _defaultConstructor;
-
-    /**
-     * Accessible non-default constructors of this class; accessible
-     * means constructors that are:
-     *<ul>
-     * <li>Do NOT have @JsonIgnore annotation
-     *  </li>
-     * <li>Either have 'public' access modified, or are marked
-     *   with @JsonCreator annotation.
-     *  </li>
-     *</ul>
-     */
-    transient List<Constructor<?>> _nonDefaultConstructors;
-
-    transient Method[] _directMethods;
+    final AnnotatedClass _classInfo;
 
     /*
     ///////////////////////////////////////////////////////
@@ -46,14 +28,12 @@ public class ClassIntrospector
     ///////////////////////////////////////////////////////
      */
 
-    /**
-     * Class that we are introspecting things about
-     */
-    protected final Class<?> _class;
-
     public ClassIntrospector(Class<?> c)
     {
         _class = c;
+        _classInfo = new AnnotatedClass(c);
+        // important: also need methods from sub-classes:
+        _classInfo.addAnnotationsFromSupers();
     }
 
     /*
@@ -69,30 +49,14 @@ public class ClassIntrospector
     public LinkedHashMap<String,Method> findGetters()
     {
         LinkedHashMap<String,Method> results = new LinkedHashMap<String,Method>();
-
-        /* Also: need to keep track of Method masking: that is, super-class
-         * methods should not be visible if masked
-         */
-        HashSet<String> maskedMethods = new HashSet<String>();
-        DeclMethodIter it = methodIterator();
-        Method m;
-
-        while ((m = it.next()) != null) {
+        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             // First, let's ignore anything that's not formally ok (fast check)
-            if (!okSignatureForGetter(m)) {
+            if (!okSignatureForGetter(am)) {
                 continue;
             }
-            String name = m.getName();
-            /* Then, can not be masked (note: could theoretically have problems
-             * with method overloading -- can have multiple single-arg
-             * methods with same name -- but we will hopefully
-             * rewrite this piece of code before it ever really occurs)
-             */
-            if (!maskedMethods.add(name)) { // was already in there, skip
-                continue;
-            }
+            String name = am.getName();
             // Marked with @JsonIgnore?
-            if (isIgnored(m)) {
+            if (isIgnored(am)) {
                 continue;
             }
 
@@ -100,17 +64,17 @@ public class ClassIntrospector
              * (a) be marked with @JsonGetter OR
              * (b) be public AND have suitable name (getXxx or isXxx)
              */
-            JsonGetter ann = m.getAnnotation(JsonGetter.class);
+            JsonGetter ann = am.getAnnotation(JsonGetter.class);
             String propName;
 
             if (ann != null) {
                 propName = ann.value();
                 if (propName == null || propName.length() == 0) {
                     // Defaults to method name
-                    propName = m.getName();
+                    propName = am.getName();
                 }
             } else { // nope, but is public bean-getter name?
-                propName = okNameForGetter(m);
+                propName = okNameForGetter(am);
                 if (propName == null) { // null means 'not valid'
                     continue;
                 }
@@ -119,6 +83,8 @@ public class ClassIntrospector
             /* Yup, it is a valid name. But now... do we have a conflict?
              * If so, should throw an exception
              */
+            Method m = am.getAnnotated();
+            ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
             Method old = results.put(propName, m);
             if (old != null) {
                 String oldDesc = old.getDeclaringClass().getName() + "#" + old.getName();
@@ -126,7 +92,6 @@ public class ClassIntrospector
                 throw new IllegalArgumentException("Conflicting getter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
             }
         }
-
         return results;
     }
 
@@ -143,27 +108,13 @@ public class ClassIntrospector
     public LinkedHashMap<String,Method> findSetters()
     {
         LinkedHashMap<String,Method> results = new LinkedHashMap<String,Method>();
-
-        /* Also: need to keep track of Method masking: that is, super-class
-         * methods should not be visible if masked
-         */
-        HashSet<String> maskedMethods = new HashSet<String>();
-
-        DeclMethodIter it = methodIterator();
-        Method m;
-
-        while ((m = it.next()) != null) {
+        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             // First, let's ignore anything that's not formally ok (fast check)
-            if (!okSignatureForSetter(m)) {
-                continue;
-            }
-            String name = m.getName();
-            // Then, can not be masked
-            if (!maskedMethods.add(name)) { // was already in there, skip
+            if (!okSignatureForSetter(am)) {
                 continue;
             }
             // Marked with @JsonIgnore?
-            if (isIgnored(m)) {
+            if (isIgnored(am)) {
                 continue;
             }
 
@@ -172,17 +123,17 @@ public class ClassIntrospector
              * (b) have suitable name (setXxx) (NOTE: need not be
              *    public, unlike with getters)
              */
-            JsonSetter ann = m.getAnnotation(JsonSetter.class);
+            JsonSetter ann = am.getAnnotation(JsonSetter.class);
             String propName;
 
             if (ann != null) {
                 propName = ann.value();
                 if (propName == null || propName.length() == 0) {
                     // Defaults to method name
-                    propName = m.getName();
+                    propName = am.getName();
                 }
             } else { // nope, but is public bean-setter name?
-                propName = okNameForSetter(m);
+                propName = okNameForSetter(am);
                 if (propName == null) { // null means 'not valid'
                     continue;
                 }
@@ -191,6 +142,8 @@ public class ClassIntrospector
             /* Yup, it is a valid name. But now... do we have a conflict?
              * If so, should throw an exception
              */
+            Method m = am.getAnnotated();
+            ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
             Method old = results.put(propName, m);
             if (old != null) {
                 String oldDesc = old.getDeclaringClass().getName() + "#" + old.getName();
@@ -216,10 +169,13 @@ public class ClassIntrospector
      */
     public Constructor<?> findDefaultConstructor()
     {
-        if (_nonDefaultConstructors == null) { // not yet initialized
-            _fetchConstructors();
+        AnnotatedConstructor ac = _classInfo.getDefaultConstructor();
+        if (ac == null) {
+            return null;
         }
-        return _defaultConstructor;
+        Constructor<?> c = ac.getAnnotated();
+        ClassUtil.checkAndFixAccess(c, c.getDeclaringClass());
+        return c;
     }
 
     /**
@@ -230,18 +186,18 @@ public class ClassIntrospector
      */
     public Constructor<?> findSingleArgConstructor(Class<?>... argTypes)
     {
-        if (_nonDefaultConstructors == null) { // not yet initialized
-            _fetchConstructors();
-        }
-        for (Constructor<?> c : _nonDefaultConstructors) {
+        for (AnnotatedConstructor ac : _classInfo.getSingleArgConstructors()) {
             // This list is already filtered to only include accessible
-            Class<?>[] args = c.getParameterTypes();
-            // Otherwise must have just one arg of specific type
+            Class<?>[] args = ac.getParameterTypes();
+            /* (note: for now this is a redundant check; but in future
+             * that'll change; thus leaving here for now)
+             */
             if (args.length == 1) {
                 Class<?> actArg = args[0];
                 for (Class<?> expArg : argTypes) {
                     if (expArg == actArg) {
-                        ClassUtil.checkAndFixAccess(c, _class);
+                        Constructor<?> c = ac.getAnnotated();
+                        ClassUtil.checkAndFixAccess(c, c.getDeclaringClass());
                         return c;
                     }
                 }
@@ -249,39 +205,6 @@ public class ClassIntrospector
         }
         return null;
     }
-
-    /**
-     * Method for obtaining list of all static methods with given name,
-     * declared directly within instropected class
-     */
-    public List<Method> findStaticSingleArgMethods()
-    {
-        ArrayList<Method> result = null;
-        for (Method m : declaredMethods()) {
-            // only static methods will do
-            if (!Modifier.isStatic(m.getModifiers())) {
-                continue;
-            }
-            // can't be included if directed to be ignored
-            if (isIgnored(m)) {
-                continue;
-            }
-            // and must take exactly one argument
-            if (m.getParameterTypes().length != 1) {
-                continue;
-            }
-            // ok, need to add
-            if (result == null) {
-                result = new ArrayList<Method>();
-            }
-            result.add(m);
-        }
-        if (result == null) {
-            return Collections.emptyList();
-        }
-        return result;
-    }
-            
 
     /**
      * Method that can be called to find if introspected class declares
@@ -295,30 +218,30 @@ public class ClassIntrospector
     public Method findFactoryMethod(Class<?>... expArgTypes)
     {
         // So, of all single-arg static methods:
-        for (Method m : findStaticSingleArgMethods()) {
+        for (AnnotatedMethod am : _classInfo.getSingleArgStaticMethods()) {
             // First: return type must be the introspected class
-            if (m.getReturnType() != _class) {
+            if (am.getReturnType() != _class) {
                 continue;
             }
             /* Then: must be a recognized factory, meaning:
              * (a) public "valueOf", OR
              * (b) marked with @JsonCreator annotation
              */
-            if (m.isAnnotationPresent(JsonCreator.class)) {
+            if (am.hasAnnotation(JsonCreator.class)) {
                 ;
-            } else if ("valueOf".equals(m.getName())
-                       && Modifier.isPublic(m.getModifiers())) {
+            } else if ("valueOf".equals(am.getName())) {
                 ;
             } else { // not recognized, skip
                 continue;
             }
 
             // And finally, must take one of expected arg types (or supertype)
-            Class<?> actualArgType = m.getParameterTypes()[0];
+            Class<?> actualArgType = am.getParameterTypes()[0];
+            Method m = am.getAnnotated();
             for (Class<?> expArgType : expArgTypes) {
                 // And one that matches what we would pass in
                 if (actualArgType.isAssignableFrom(expArgType)) {
-                    ClassUtil.checkAndFixAccess(m, _class);
+                    ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
                     return m;
                 }
             }
@@ -338,8 +261,9 @@ public class ClassIntrospector
      * that is, method is non-static, does return a value (not void)
      * and does not take any arguments.
      */
-    protected boolean okSignatureForGetter(Method m)
+    protected boolean okSignatureForGetter(AnnotatedMethod am)
     {
+        Method m = am.getAnnotated();
         // First: we can't use static methods
         if (Modifier.isStatic(m.getModifiers())) {
             return false;
@@ -358,9 +282,10 @@ public class ClassIntrospector
         return true;
     }
 
-    protected String okNameForGetter(Method m)
+    protected String okNameForGetter(AnnotatedMethod am)
     {
-        String name = m.getName();
+        String name = am.getName();
+        Method m = am.getAnnotated();
 
         /* Actually, for non-annotation based names, let's require that
          * the method is public?
@@ -456,8 +381,9 @@ public class ClassIntrospector
      * that is, method is non-static, does return a value (not void)
      * and does not take any arguments.
      */
-    protected boolean okSignatureForSetter(Method m)
+    protected boolean okSignatureForSetter(AnnotatedMethod am)
     {
+        Method m = am.getAnnotated();
         // First: we can't use static methods
         if (Modifier.isStatic(m.getModifiers())) {
             return false;
@@ -472,9 +398,10 @@ public class ClassIntrospector
         return true;
     }
 
-    protected String okNameForSetter(Method m)
+    protected String okNameForSetter(AnnotatedMethod am)
     {
-        String name = m.getName();
+        String name = am.getName();
+        Method m = am.getAnnotated();
 
         /* For mutators, let's not require it to be public. Just need
          * to be able to call it, i.e. do need to 'fix' access if so
@@ -510,114 +437,10 @@ public class ClassIntrospector
      * (method, constructor, class) has enabled (active)
      * instance of {@link JsonIgnore} annotation.
      */
-    protected boolean isIgnored(AnnotatedElement elem)
+    protected boolean isIgnored(AnnotatedMethod am)
     {
-        JsonIgnore ann = elem.getAnnotation(JsonIgnore.class);
+        JsonIgnore ann = am.getAnnotation(JsonIgnore.class);
         return (ann != null && ann.value());
-    }
-
-    protected Method[] declaredMethods()
-    {
-        if (_directMethods == null) {
-            _directMethods = _class.getDeclaredMethods();
-        }
-        return _directMethods;
-    }
-
-    protected DeclMethodIter methodIterator()
-    {
-        return new DeclMethodIter(_class, declaredMethods());
-    }
-
-    /**
-     * Method that will 
-     */
-    protected void _fetchConstructors()
-    {
-        List<Constructor<?>> publicCtors = null;
-        for (Constructor<?> ctor : _class.getDeclaredConstructors()) {
-            // won't use varargs, no point
-            if (ctor.isVarArgs()) {
-                continue;
-            }
-            // also, have to respect @JsonIgnore
-            if (isIgnored(ctor)) {
-                continue;
-            }
-
-            /* Otherwise, handling of default ctor is different;
-             * we'll use it even if it's not public; other ctors
-             * only if public or marked with @JsonCreator
-             */
-            if (ctor.getParameterTypes().length == 0) {
-                ClassUtil.checkAndFixAccess(ctor, _class);
-                _defaultConstructor = ctor;
-                continue;
-            }
-            /* At this point, we will accept all ctors, not just single-arg
-             * But must be public, or marked with @JsonCreator
-             */
-            if (!Modifier.isPublic(ctor.getModifiers())
-                && !ctor.isAnnotationPresent(JsonCreator.class)) {
-                continue;
-            }
-            // if so, let's add:
-            if (publicCtors == null) {
-                publicCtors = new ArrayList<Constructor<?>>();
-            }
-            publicCtors.add(ctor);
-        }
-        if (publicCtors == null) {
-            _nonDefaultConstructors = Collections.emptyList();
-        } else {
-            _nonDefaultConstructors = publicCtors;
-        }
-    }
-
-    /*
-    ///////////////////////////////////////////////////////
-    // Helper classes
-    ///////////////////////////////////////////////////////
-     */
-
-    /**
-     * Let's abstract out details of iterating over all declared
-     * methods of a class, in decreasing order (starting with sub-class,
-     * following super-type chain)
-     */
-    static class DeclMethodIter
-    {
-        Class<?> _currClass;
-
-        /**
-         * Methods of the current class
-         */
-        Method[] _currMethods;
-
-        int _currIndex;
-
-        public DeclMethodIter(Class<?> c, Method[] declMethods)
-        {
-            _currClass = c;
-            _currMethods = declMethods;
-            _currIndex = 0;
-        }
-
-        public Method next()
-        {
-            while (_currIndex >= _currMethods.length) { // need more
-                if (_currClass == null) {
-                    return null;
-                }
-                _currClass = _currClass.getSuperclass();
-                if (_currClass == null || _currClass == Object.class) {
-                    return null;
-                }
-                _currIndex = 0;
-                _currMethods = _currClass.getDeclaredMethods();
-            }
-            return _currMethods[_currIndex++];
-        }
     }
 }
 
