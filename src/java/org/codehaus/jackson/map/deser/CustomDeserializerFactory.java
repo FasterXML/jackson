@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.deser;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.ser.ClassKey;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 

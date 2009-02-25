@@ -5,7 +5,6 @@ import org.codehaus.jackson.map.BaseMapTest;
 import java.io.IOException;
 import java.util.*;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 

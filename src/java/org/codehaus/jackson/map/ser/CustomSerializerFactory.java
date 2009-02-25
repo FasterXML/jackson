@@ -5,6 +5,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.type.ClassKey;
 
 /**
  * Serializer factory implementation that allows for configuring

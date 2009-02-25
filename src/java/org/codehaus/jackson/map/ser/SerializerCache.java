@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.ser;
 import java.util.*;
 
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.type.ClassKey;
 
 /**
  * Simple cache object that allows for doing 2-level lookups: first level is

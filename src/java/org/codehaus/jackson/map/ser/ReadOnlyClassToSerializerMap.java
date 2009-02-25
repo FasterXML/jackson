@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.ser;
 import java.util.*;
 
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.type.ClassKey;
 
 /**
  * Optimized lookup table for accessing {@link JsonSerializer} instances

@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.type;
 
 /**
  * Key class, used as an efficient and accurate key
@@ -43,7 +43,7 @@ public final class ClassKey
         _hashCode = _className.hashCode();
     }
 
-    protected void reset(Class<?> clz)
+    public void reset(Class<?> clz)
     {
         _class = clz;
         _className = clz.getName();
