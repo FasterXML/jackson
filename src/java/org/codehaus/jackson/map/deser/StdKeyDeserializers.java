@@ -61,7 +61,10 @@ class StdKeyDeserializers
 
     public static KeyDeserializer findStringBasedKeyDeserializer(JavaType type)
     {
-        ClassIntrospector intr = new ClassIntrospector(type.getRawClass());
+        /* We don't need full deserialization information, just need to
+         * know creators.
+         */
+        ClassIntrospector intr = ClassIntrospector.forCreation(type.getRawClass());
         // Ok, so: can we find T(String) constructor?
         Constructor<?> ctor = intr.findSingleArgConstructor(String.class);
         if (ctor != null) {

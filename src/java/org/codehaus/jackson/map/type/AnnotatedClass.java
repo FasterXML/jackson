@@ -8,6 +8,52 @@ import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedClass
 {
+    /*
+    ///////////////////////////////////////////////////////
+    // Helper classes
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * Filter used to only include methods that have signature that is
+     * compatible with "factory" methods: are static, take a single
+     * argument, and returns something.
+     *<p>
+     * <b>NOTE</b>: in future we will probably allow more than one
+     * argument, when multi-arg constructors and factory methods
+     * are supported (with accompanying annotations to bind args
+     * to properties).
+     */
+    public final static class FactoryMethodFilter
+        implements MethodFilter
+    {
+        public final static FactoryMethodFilter instance = new FactoryMethodFilter();
+
+        public boolean includeMethod(Method m)
+        {
+            if (!Modifier.isStatic(m.getModifiers())) {
+                return false;
+            }
+            int argCount = m.getParameterTypes().length;
+            if (argCount != 1) {
+                return false;
+            }
+            // Can't be a void method
+            Class<?> rt = m.getReturnType();
+            if (rt == Void.TYPE) {
+                return false;
+            }
+            // Otherwise, potentially ok
+            return true;
+        }
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Configuration
+    ///////////////////////////////////////////////////////
+     */
+
     /**
      * Class for which annotations apply, and that owns other
      * components (constructors, methods)
@@ -19,6 +65,19 @@ public final class AnnotatedClass
      * class itself: included in order of precedence
      */
     final Collection<Class<?>> _superTypes;
+
+    /**
+     * Filter used to determine which annotations to gather; used
+     * to optimize things so that unnecessary annotations are
+     * ignored.
+     */
+    final AnnotationFilter _annotationFilter;
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Gathered information
+    ///////////////////////////////////////////////////////
+     */
 
     /**
      * Combined list of Jackson annotations that the class has,
@@ -58,19 +117,36 @@ public final class AnnotatedClass
      * Constructor will not do any initializations, to allow for
      * configuring instances differently depending on use cases
      */
-    private AnnotatedClass(Class<?> cls, List<Class<?>> superTypes)
+    private AnnotatedClass(Class<?> cls, List<Class<?>> superTypes,
+                           AnnotationFilter af)
     {
         _class = cls;
         _superTypes = superTypes;
+        _annotationFilter = af;
     }
 
-    public static AnnotatedClass constructFull(Class<?> cls)
+    /**
+     * @param annotationFilter Filter used to define which annotations to
+     *    include (for class and member annotations). Can not be null.
+     * @param includeCreators Whether to include information about
+     *   potential creators (constructors and static factory methods)
+     * @param memberFilter Optional filter that defines which member methods
+     *   to include; if null, no member method information is to be included.
+     */
+    public static AnnotatedClass constructFull(Class<?> cls,
+                                               AnnotationFilter annotationFilter,
+                                               boolean includeCreators,
+                                               MethodFilter memberFilter)
     {
         List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
-        AnnotatedClass ac = new AnnotatedClass(cls, st);
+        AnnotatedClass ac = new AnnotatedClass(cls, st, annotationFilter);
         ac.resolveClassAnnotations();
-        ac.resolveCreators();
-        ac.resolveMemberMethods();
+        if (includeCreators) {
+            ac.resolveCreators();
+        }
+        if (memberFilter != null) {
+            ac.resolveMemberMethods(memberFilter);
+        }
         return ac;
     }
 
@@ -78,11 +154,15 @@ public final class AnnotatedClass
      * Alternate factory method that will only resolve class
      * annotations. Used when caller doesn't care about method
      * and creator annotations.
+     *
+     * @param annotationFilter Filter used to define which annotations to
+     *    include (for class and member annotations). Can not be null.
      */
-    public static AnnotationMap findClassAnnotations(Class<?> cls)
+    public static AnnotationMap findClassAnnotations(Class<?> cls,
+                                                     AnnotationFilter annotationFilter)
     {
         List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
-        AnnotatedClass ac = new AnnotatedClass(cls, st);
+        AnnotatedClass ac = new AnnotatedClass(cls, st, annotationFilter);
         ac.resolveClassAnnotations();
         return ac._classAnnotations;
     }
@@ -152,16 +232,11 @@ public final class AnnotatedClass
         }
     }
 
-    private void resolveMemberMethods()
+    private void resolveMemberMethods(MethodFilter methodFilter)
     {
-        // Ok, first, 0/1-arg member methods class itself has:
         _memberMethods = new AnnotatedMethodMap();
         for (Method m : _class.getDeclaredMethods()) {
-            if (Modifier.isStatic(m.getModifiers())) { // skip static ones
-                continue;
-            }
-            int argCount = m.getParameterTypes().length;
-            if (argCount == 0 || argCount == 1) {
+            if (methodFilter.includeMethod(m)) {
                 _memberMethods.add(new AnnotatedMethod(m));
             }
         }
@@ -170,12 +245,7 @@ public final class AnnotatedClass
          */
         for (Class<?> cls : _superTypes) {
             for (Method m : cls.getDeclaredMethods()) {
-                // static methods won't inherit, skip
-                if (Modifier.isStatic(m.getModifiers())) {
-                    continue;
-                }
-                int argCount = m.getParameterTypes().length;
-                if (argCount == 0 || argCount == 1) {
+                if (methodFilter.includeMethod(m)) {
                     AnnotatedMethod am = _memberMethods.find(m);
                     if (am == null) {
                         am = new AnnotatedMethod(m);

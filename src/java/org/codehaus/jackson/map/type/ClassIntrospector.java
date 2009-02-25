@@ -13,6 +13,78 @@ import org.codehaus.jackson.map.util.ClassUtil;
  */
 public class ClassIntrospector
 {
+    /*
+    ///////////////////////////////////////////////////////
+    // Helper classes
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * Filter used to only include methods that have signature that is
+     * compatible with "getters": take no arguments, are non-static,
+     * and return something.
+     */
+    public final static class GetterMethodFilter
+        implements MethodFilter
+    {
+        public final static GetterMethodFilter instance = new GetterMethodFilter();
+
+        private GetterMethodFilter() { }
+    
+        public boolean includeMethod(Method m)
+        {
+            // First: we can't use static methods
+            if (Modifier.isStatic(m.getModifiers())) {
+                return false;
+            }
+            // Must take no args
+            Class<?>[] pts = m.getParameterTypes();
+            if ((pts != null) && (pts.length > 0)) {
+                return false;
+            }
+            // Can't be a void method
+            Class<?> rt = m.getReturnType();
+            if (rt == Void.TYPE) {
+                return false;
+            }
+            // Otherwise, potentially ok
+            return true;
+        }
+    }
+
+    /**
+     * Filter used to only include methods that have signature that is
+     * compatible with "setters": take one and only argument and
+     * are non-static.
+     */
+    public final static class SetterMethodFilter
+        implements MethodFilter
+    {
+        public final static SetterMethodFilter instance = new SetterMethodFilter();
+
+        public boolean includeMethod(Method m)
+        {
+            // First: we can't use static methods
+            if (Modifier.isStatic(m.getModifiers())) {
+                return false;
+            }
+            // Must take just one arg
+            Class<?>[] pts = m.getParameterTypes();
+            if ((pts == null) || (pts.length != 1)) {
+                return false;
+            }
+            // No checking for returning type; usually void, don't care
+            // Otherwise, potentially ok
+            return true;
+        }
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Configuration
+    ///////////////////////////////////////////////////////
+     */
+
     /**
      * Class being introspected
      */
@@ -29,10 +101,54 @@ public class ClassIntrospector
     ///////////////////////////////////////////////////////
      */
 
-    public ClassIntrospector(Class<?> c)
+    public ClassIntrospector(Class<?> c, AnnotatedClass ac)
     {
         _class = c;
-        _classInfo = AnnotatedClass.constructFull(c);
+        _classInfo = ac;
+    }
+
+    /**
+     * Factory method that constructs an introspector that has all
+     * information needed for serialization purposes.
+     */
+    public static ClassIntrospector forSerialization(Class<?> c)
+    {
+        /* Simpler for serialization; just need class annotations
+         * and setters, not creators.
+         */
+        AnnotatedClass ac = AnnotatedClass.constructFull
+            (c, JacksonAnnotationFilter.instance, false, GetterMethodFilter.instance);
+        return new ClassIntrospector(c, ac);
+    }
+
+    /**
+     * Factory method that constructs an introspector that has all
+     * information needed for deserialization purposes.
+     */
+    public static ClassIntrospector forDeserialization(Class<?> c)
+    {
+        /* More infor for serialization, also need creator
+         * info
+         */
+        AnnotatedClass ac = AnnotatedClass.constructFull
+            (c, JacksonAnnotationFilter.instance, true, SetterMethodFilter.instance);
+        return new ClassIntrospector(c, ac);
+    }
+
+    /**
+     * Factory method that constructs an introspector that has
+     * information necessary for creating instances of given
+     * class ("creator"), as well as class annotations, but
+     * no information on member methods
+     */
+    public static ClassIntrospector forCreation(Class<?> c)
+    {
+        /* More infor for serialization, also need creator
+         * info
+         */
+        AnnotatedClass ac = AnnotatedClass.constructFull
+            (c, JacksonAnnotationFilter.instance, true, null);
+        return new ClassIntrospector(c, ac);
     }
 
     /*
@@ -60,10 +176,7 @@ public class ClassIntrospector
     {
         LinkedHashMap<String,Method> results = new LinkedHashMap<String,Method>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
-            // First, let's ignore anything that's not formally ok (fast check)
-            if (!okSignatureForGetter(am)) {
-                continue;
-            }
+            // note: signature has already been checked via filters
             String name = am.getName();
             // Marked with @JsonIgnore?
             if (isIgnored(am)) {
@@ -119,10 +232,7 @@ public class ClassIntrospector
     {
         LinkedHashMap<String,Method> results = new LinkedHashMap<String,Method>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
-            // First, let's ignore anything that's not formally ok (fast check)
-            if (!okSignatureForSetter(am)) {
-                continue;
-            }
+            // note: signature has already been checked via filters
             // Marked with @JsonIgnore?
             if (isIgnored(am)) {
                 continue;
@@ -265,33 +375,6 @@ public class ClassIntrospector
     ///////////////////////////////////////////////////////
      */
 
-    /**
-     * Method that verifies that the given method's signature
-     * is compatible with method possibly being a getter method;
-     * that is, method is non-static, does return a value (not void)
-     * and does not take any arguments.
-     */
-    protected boolean okSignatureForGetter(AnnotatedMethod am)
-    {
-        Method m = am.getAnnotated();
-        // First: we can't use static methods
-        if (Modifier.isStatic(m.getModifiers())) {
-            return false;
-        }
-        // Must take no args
-        Class<?>[] pts = m.getParameterTypes();
-        if ((pts != null) && (pts.length > 0)) {
-            return false;
-        }
-        // Can't be a void method
-        Class<?> rt = m.getReturnType();
-        if (rt == Void.TYPE) {
-            return false;
-        }
-        // Otherwise, potentially ok
-        return true;
-    }
-
     protected String okNameForGetter(AnnotatedMethod am)
     {
         String name = am.getName();
@@ -384,29 +467,6 @@ public class ClassIntrospector
     // Helper methods for setters
     ///////////////////////////////////////////////////////
      */
-
-    /**
-     * Method that verifies that the given method's signature
-     * is compatible with method possibly being a setter method;
-     * that is, method is non-static, does return a value (not void)
-     * and does not take any arguments.
-     */
-    protected boolean okSignatureForSetter(AnnotatedMethod am)
-    {
-        Method m = am.getAnnotated();
-        // First: we can't use static methods
-        if (Modifier.isStatic(m.getModifiers())) {
-            return false;
-        }
-        // Must take just one arg
-        Class<?>[] pts = m.getParameterTypes();
-        if ((pts == null) || (pts.length != 1)) {
-            return false;
-        }
-        // No checking for returning type; usually void, don't care
-        // Otherwise, potentially ok
-        return true;
-    }
 
     protected String okNameForSetter(AnnotatedMethod am)
     {

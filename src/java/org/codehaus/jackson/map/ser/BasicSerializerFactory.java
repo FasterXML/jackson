@@ -12,6 +12,7 @@ import org.codehaus.jackson.annotate.NoClass;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.AnnotatedClass;
 import org.codehaus.jackson.map.type.AnnotationMap;
+import org.codehaus.jackson.map.type.JacksonAnnotationFilter;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
@@ -273,7 +274,7 @@ public class BasicSerializerFactory
              *   was found out that annotations do not work with
              *   Enum classes.
              */
-            AnnotationMap anns = AnnotatedClass.findClassAnnotations(type);
+            AnnotationMap anns = AnnotatedClass.findClassAnnotations(type, JacksonAnnotationFilter.instance);
             JsonSerializer<Object> ser = findSerializerByAnnotation(type, anns.get(JsonUseSerializer.class));
             if (ser != null) {
                 return ser;

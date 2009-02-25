@@ -45,7 +45,8 @@ public class TestAnnotatedClass
 
     public void testSimple()
     {
-        AnnotatedClass ac = AnnotatedClass.constructFull(SubClass.class);
+        AnnotatedClass ac = AnnotatedClass.constructFull
+            (SubClass.class, JacksonAnnotationFilter.instance, true, ClassIntrospector.GetterMethodFilter.instance);
 
         assertNotNull(ac.getDefaultConstructor());
         assertEquals(1, ac.getSingleArgConstructors().size());

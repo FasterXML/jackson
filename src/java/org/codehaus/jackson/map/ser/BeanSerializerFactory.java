@@ -116,7 +116,7 @@ public class BeanSerializerFactory
         if (!isPotentialBeanType(type)) {
             return null;
         }
-        ClassIntrospector intr = new ClassIntrospector(type);
+        ClassIntrospector intr = ClassIntrospector.forSerialization(type);
         JsonSerializer<Object> ser = findSerializerByAnnotation(type, intr.getClassAnnotation(JsonUseSerializer.class));
         if (ser != null) {
             return ser;

@@ -58,7 +58,7 @@ public class BeanDeserializerFactory
          *   (same with Collections too)
          */
 
-        ClassIntrospector intr = new ClassIntrospector(beanClass);
+        ClassIntrospector intr = ClassIntrospector.forDeserialization(beanClass);
 
         BeanDeserializer.StringConstructor sctor = getStringCreators(beanClass, intr);
         BeanDeserializer.NumberConstructor nctor = getNumberCreators(beanClass, intr);
