@@ -22,6 +22,11 @@ Description:
     (to, for example, make Enums be serialized using Enum.toString(),
      or lower-case name or such)
 
+  Other:
+
+  * [JACKSON-22]: all contributors now have submitted contributor
+    agreement, stored under 'DEV/agreements-received' in svn trunk.
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
