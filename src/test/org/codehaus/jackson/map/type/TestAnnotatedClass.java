@@ -1,6 +1,10 @@
 package org.codehaus.jackson.map.type;
 
 import org.codehaus.jackson.map.BaseMapTest;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.introspect.ClassIntrospector;
+import org.codehaus.jackson.map.introspect.JacksonAnnotationFilter;
 
 import org.codehaus.jackson.annotate.*;
 

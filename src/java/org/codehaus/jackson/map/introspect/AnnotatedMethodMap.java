@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.type;
+package org.codehaus.jackson.map.introspect;
 
 import java.lang.reflect.Method;
 import java.util.*;

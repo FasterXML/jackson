@@ -10,9 +10,9 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.annotate.NoClass;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.AnnotatedClass;
-import org.codehaus.jackson.map.type.AnnotationMap;
-import org.codehaus.jackson.map.type.JacksonAnnotationFilter;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotationMap;
+import org.codehaus.jackson.map.introspect.JacksonAnnotationFilter;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**

@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerFactory;
-import org.codehaus.jackson.map.type.ClassIntrospector;
+import org.codehaus.jackson.map.introspect.ClassIntrospector;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**

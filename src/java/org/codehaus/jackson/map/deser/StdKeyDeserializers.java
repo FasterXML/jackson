@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 import org.codehaus.jackson.map.KeyDeserializer;
+import org.codehaus.jackson.map.introspect.ClassIntrospector;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 
