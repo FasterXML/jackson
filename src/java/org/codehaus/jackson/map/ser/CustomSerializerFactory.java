@@ -42,19 +42,19 @@ import org.codehaus.jackson.map.SerializerFactory;
  *</ul>
  */
 public class CustomSerializerFactory
-    extends SerializerFactory
+    extends BeanSerializerFactory
 {
     /*
     ////////////////////////////////////////////////////
-    // Configuration
+    // Configuration, basic
     ////////////////////////////////////////////////////
      */
 
     /**
-     * Factory to use if we do not have a registered serializer for
-     * given type
+     * Features (of type {@link SerializerFactory.Feature} that are
+     * enabled
      */
-    final SerializerFactory _fallbackFactory;
+    private int _features = DEFAULT_FEATURE_FLAGS;
 
     /*
     ////////////////////////////////////////////////////
@@ -94,7 +94,7 @@ public class CustomSerializerFactory
 
     /*
     //////////////////////////////////////////////////////////
-    // Configuration: mappings that define "mix-in annotations"
+    // Configuration: "mix-in annotation" mappings
     //////////////////////////////////////////////////////////
      */
 
@@ -111,25 +111,50 @@ public class CustomSerializerFactory
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * Default constructor will use {@link BeanSerializerFactory}
-     * as the fallback serializer factory.
-     */
     public CustomSerializerFactory() {
-        this(BeanSerializerFactory.instance);
-    }
-
-    /**
-     * Default constructor will use {@link BeanSerializerFactory}
-     * as the fallback serializer factory.
-     */
-    public CustomSerializerFactory(SerializerFactory fallbackFactory) {
-        _fallbackFactory = fallbackFactory;
+        super();
     }
 
     /*
     ////////////////////////////////////////////////////
-    // Life-cycle, configuration
+    // Configuration: on/off features
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for enabling specified  features
+     * (check {@link SerializerFactory.Feature} for list of features)
+     */
+    public void enableFeature(SerializerFactory.Feature f) {
+        _features |= f.getMask();
+    }
+
+    /**
+     * Method for disabling specified  features
+     * (check {@link SerializerFactory.Feature} for list of features)
+     */
+    public void disableFeature(SerializerFactory.Feature f) {
+        _features &= ~f.getMask();
+    }
+
+    public void setFeature(SerializerFactory.Feature f, boolean state)
+    {
+        if (state) {
+            enableFeature(f);
+        } else {
+            disableFeature(f);
+        }
+    }
+
+    /**
+     * To make features configurable, need to override this method.
+     */
+    @Override
+    protected int _getFeatures() { return _features; }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration: type-to-serializer mappings
     ////////////////////////////////////////////////////
      */
 
@@ -284,10 +309,10 @@ public class CustomSerializerFactory
                 }
             }
         }
-        if (_fallbackFactory != null) {
-            return _fallbackFactory.createSerializer(type);
-        }
-        return null;
+        /* And barring any other complications, let's just let
+         * bean (or basic) serializer factory handle construction.
+         */
+        return super.createSerializer(type);
     }
 }
 

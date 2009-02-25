@@ -7,12 +7,17 @@ Description:
 
   * [JACKSON-59]: NPE with String[] serializer
     (reported by Kevin G)
+  * [JACKSON-60]: Method annotations did not follow intuitive expectations
+    of inheritability; now do.
   * [JACKSON-62]: NPE with JsonMappingException if source exception used
     null message.
     (reported by Justin F)
 
   New features:
 
+  * [JACKSON-52]: Allow disabling name-based auto-detection of
+    getter methods
+    (requested by Justin F)
   * [JACKSON-58]: Allow defining custom global Enum serializer
     (to, for example, make Enums be serialized using Enum.toString(),
      or lower-case name or such)

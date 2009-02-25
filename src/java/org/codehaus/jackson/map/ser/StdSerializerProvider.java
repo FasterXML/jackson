@@ -168,7 +168,7 @@ public class StdSerializerProvider
 
     @Override
 	public final void serializeValue(JsonGenerator jgen, Object value,
-                                     SerializerFactory jsf)
+                                         SerializerFactory jsf)
         throws IOException, JsonGenerationException
     {
         if (jsf == null) {

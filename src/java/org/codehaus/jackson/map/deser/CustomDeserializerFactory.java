@@ -37,15 +37,15 @@ public class CustomDeserializerFactory
 {
     /*
     ////////////////////////////////////////////////////
-    // Configuration
+    // Configuration, basic
     ////////////////////////////////////////////////////
      */
 
     /**
-     * Factory to use if we do not have a registered deserializer for
-     * given type
+     * Features (of type {@link DeserializerFactory.Feature} that are
+     * enabled
      */
-    final DeserializerFactory _fallbackFactory;
+    private int _features = DEFAULT_FEATURE_FLAGS;
 
     /*
     //////////////////////////////////////////////////////////
@@ -66,21 +66,44 @@ public class CustomDeserializerFactory
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * Default constructor will use {@link BeanSerializerFactory}
-     * as the fallback serializer factory.
+    public CustomDeserializerFactory() { super(); }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration: on/off features
+    ////////////////////////////////////////////////////
      */
-    public CustomDeserializerFactory() {
-        this(BeanDeserializerFactory.instance);
+
+    /**
+     * Method for enabling specified  features
+     * (check {@link SerializerFactory.Feature} for list of features)
+     */
+    public void enableFeature(Feature f) {
+        _features |= f.getMask();
     }
 
     /**
-     * Default constructor will use {@link BeanSerializerFactory}
-     * as the fallback serializer factory.
+     * Method for disabling specified  features
+     * (check {@link SerializerFactory.Feature} for list of features)
      */
-    public CustomDeserializerFactory(DeserializerFactory fallbackFactory) {
-        _fallbackFactory = fallbackFactory;
+    public void disableFeature(Feature f) {
+        _features &= ~f.getMask();
     }
+
+    public void setFeature(Feature f, boolean state)
+    {
+        if (state) {
+            enableFeature(f);
+        } else {
+            disableFeature(f);
+        }
+    }
+
+    /**
+     * To make features configurable, need to override this method.
+     */
+    @Override
+    protected int _getFeatures() { return _features; }
 
     /*
     ////////////////////////////////////////////////////
@@ -91,7 +114,7 @@ public class CustomDeserializerFactory
     public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        return _fallbackFactory.createBeanDeserializer(type, p);
+        return super.createBeanDeserializer(type, p);
     }
 
     /**
@@ -106,25 +129,25 @@ public class CustomDeserializerFactory
     public JsonDeserializer<?> createArrayDeserializer(ArrayType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        return _fallbackFactory.createArrayDeserializer(type, p);
+        return super.createArrayDeserializer(type, p);
     }
 
     public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        return _fallbackFactory.createCollectionDeserializer(type, p);
+        return super.createCollectionDeserializer(type, p);
     }
 
     public JsonDeserializer<?> createEnumDeserializer(SimpleType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        return _fallbackFactory.createEnumDeserializer(type, p);
+        return super.createEnumDeserializer(type, p);
     }
 
     public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        return _fallbackFactory.createMapDeserializer(type, p);
+        return super.createMapDeserializer(type, p);
     }
 
     /*

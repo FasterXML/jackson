@@ -159,7 +159,8 @@ public class BeanSerializerFactory
      */
     protected Collection<BeanPropertyWriter> findBeanProperties(ClassIntrospector intr)
     {
-        LinkedHashMap<String,Method> methodsByProp = intr.findGetters();
+        boolean autodetect = isFeatureEnabled(Feature.AUTO_DETECT_GETTERS);
+        LinkedHashMap<String,Method> methodsByProp = intr.findGetters(autodetect);
         // nothing? can't proceed
         if (methodsByProp.isEmpty()) {
             return null;

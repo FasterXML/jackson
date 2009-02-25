@@ -107,12 +107,18 @@ public class ObjectMapper
      */
     public ObjectMapper()
     {
-        this(null);
+        this(null, null, null);
     }
 
     public ObjectMapper(JsonFactory jf)
     {
         this(jf, null, null);
+    }
+
+    public ObjectMapper(SerializerFactory sf)
+    {
+        this(null, null, null);
+        setSerializerFactory(sf);
     }
 
     public ObjectMapper(JsonFactory jf, SerializerProvider sp,

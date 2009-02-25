@@ -169,11 +169,33 @@ public class ClassIntrospector
      */
 
     /**
+     * @param autodetect Whether to use Bean naming convention to
+     *   automatically detect bean properties; if true will do that,
+     *   if false will require explicit annotations.
+     *
      * @return Ordered Map with logical property name as key, and
      *    matching getter method as value.
      */
-    public LinkedHashMap<String,Method> findGetters()
+    public LinkedHashMap<String,Method> findGetters(boolean autodetect)
     {
+        /* As part of [JACKSON-52] we'll use baseline settings for
+         * auto-detection, but also see if the class might override
+         * that setting.
+         */
+        JsonAutoDetect cann = _classInfo.getClassAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                autodetect = false;
+                for (JsonMethod jm : methods) {
+                    if (jm.getterEnabled()) {
+                        autodetect = true;
+                        break;
+                    }
+                }
+            }
+        }
+
         LinkedHashMap<String,Method> results = new LinkedHashMap<String,Method>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             // note: signature has already been checked via filters
@@ -196,6 +218,9 @@ public class ClassIntrospector
                     propName = am.getName();
                 }
             } else { // nope, but is public bean-getter name?
+                if (!autodetect) {
+                    continue;
+                }
                 propName = okNameForGetter(am);
                 if (propName == null) { // null means 'not valid'
                     continue;

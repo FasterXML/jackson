@@ -36,4 +36,14 @@ public enum JsonMethod {
          */
         ALL
         ;
+
+    private JsonMethod() { }
+
+    public boolean getterEnabled() {
+        return (this == GETTER) || (this == ALL);
+    }
+
+    public boolean setterEnabled() {
+        return (this == SETTER) || (this == ALL);
+    }
 }
