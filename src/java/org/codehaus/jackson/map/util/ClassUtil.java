@@ -1,10 +1,56 @@
 package org.codehaus.jackson.map.util;
 
 import java.lang.reflect.*;
+import java.util.*;
 
 public final class ClassUtil
 {
     private ClassUtil() { }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Methods that deal with inheritance
+    //////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that will find all sub-classes and implemented interfaces
+     * of a given class or interface. Classes are listed in order of
+     * precedence, starting with the immediate super-class, followed by
+     * interfaces class directly declares to implemented, and then recursively
+     * followed by parent of super-class and so forth.
+     * Note that <code>Object.class</code> is not included in the list
+     * regardless of whether <code>endBefore</code> argument is defined
+     *
+     * @param endBefore Super-type to NOT include in results, if any; when
+     *    encountered, will be ignored (and no super types are checked).
+     */
+    public static List<Class<?>> findSuperTypes(Class<?> cls, Class<?> endBefore)
+    {
+        /* We don't expect to get huge collections, thus overhead of a
+         * Set seems unnecessary.
+         */
+        ArrayList<Class<?>> result = new ArrayList<Class<?>>();
+        _addSuperTypes(cls, endBefore, result, false);
+        return result;
+    }
+
+    private static void _addSuperTypes(Class<?> cls, Class<?> endBefore, ArrayList<Class<?>> result, boolean addClassItself)
+    {
+        if (cls == endBefore || cls == null || cls == Object.class) {
+            return;
+        }
+        if (addClassItself) {
+            if (result.contains(cls)) { // already added, no need to check supers
+                return;
+            }
+            result.add(cls);
+        }
+        for (Class intCls : cls.getInterfaces()) {
+            _addSuperTypes(intCls, endBefore, result, true);
+        }
+        _addSuperTypes(cls.getSuperclass(), endBefore, result, true);
+    }
 
     /*
     //////////////////////////////////////////////////////////

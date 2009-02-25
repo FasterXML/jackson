@@ -12,7 +12,13 @@ public final class AnnotatedClass
      * Class for which annotations apply, and that owns other
      * components (constructors, methods)
      */
-    Class<?> _class;
+    final Class<?> _class;
+
+    /**
+     * Ordered set of super classes and interfaces of the
+     * class itself: included in order of precedence
+     */
+    final Collection<Class<?>> _superTypes;
 
     /**
      * Combined list of Jackson annotations that the class has,
@@ -52,14 +58,16 @@ public final class AnnotatedClass
      * Constructor will not do any initializations, to allow for
      * configuring instances differently depending on use cases
      */
-    private AnnotatedClass(Class<?> cls)
+    private AnnotatedClass(Class<?> cls, List<Class<?>> superTypes)
     {
         _class = cls;
+        _superTypes = superTypes;
     }
 
     public static AnnotatedClass constructFull(Class<?> cls)
     {
-        AnnotatedClass ac = new AnnotatedClass(cls);
+        List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
+        AnnotatedClass ac = new AnnotatedClass(cls, st);
         ac.resolveClassAnnotations();
         ac.resolveCreators();
         ac.resolveMemberMethods();
@@ -73,7 +81,8 @@ public final class AnnotatedClass
      */
     public static AnnotationMap findClassAnnotations(Class<?> cls)
     {
-        AnnotatedClass ac = new AnnotatedClass(cls);
+        List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
+        AnnotatedClass ac = new AnnotatedClass(cls, st);
         ac.resolveClassAnnotations();
         return ac._classAnnotations;
     }
@@ -91,28 +100,17 @@ public final class AnnotatedClass
      */
     private void resolveClassAnnotations()
     {
-        // And then what super-classes and interfaces have
-        HashSet<Class<?>> handledInterfaces = new HashSet<Class<?>>();
-        Class<?> curr = _class;
-
         _classAnnotations = new AnnotationMap();
-        do {
-            // First direct annotations for the current class
-            for (Annotation a : curr.getDeclaredAnnotations()) {
-                _classAnnotations.add(a);
+        // first, annotations from the class itself:
+        for (Annotation a : _class.getDeclaredAnnotations()) {
+            _classAnnotations.add(a);
+        }
+        // and then from super types
+        for (Class<?> cls : _superTypes) {
+            for (Annotation a : cls.getDeclaredAnnotations()) {
+                _classAnnotations.addIfNotPresent(a);
             }
-            // then interfaces current class directly implements
-            for (Class intCls : curr.getInterfaces()) {
-                // no need to process interfaces multiple times
-                if (handledInterfaces.add(intCls)) {
-                    for (Annotation a : intCls.getDeclaredAnnotations()) {
-                        _classAnnotations.addIfNotPresent(a);
-                    }
-                }
-            }
-            // and then super-class (up until but not include Object)
-            curr = curr.getSuperclass();
-        } while (curr != null && curr != Object.class);
+        }
     }
 
     /**
@@ -168,51 +166,23 @@ public final class AnnotatedClass
             }
         }
         /* and then augment these with annotations from
-         * super-classes/interfaces
+         * super-types:
          */
-        HashSet<Class<?>> handledInterfaces = new HashSet<Class<?>>();
-        Class<?> curr = _class;
-
-        while (true) {
-            // first, interfaces current class directly implements
-            for (Class intCls : curr.getInterfaces()) {
-                // no need to process interfaces multiple times
-                if (handledInterfaces.add(intCls)) {
-                    _addMethodAnnotationsFromSuper(intCls);
+        for (Class<?> cls : _superTypes) {
+            for (Method m : cls.getDeclaredMethods()) {
+                // static methods won't inherit, skip
+                if (Modifier.isStatic(m.getModifiers())) {
+                    continue;
                 }
-            }
-            // and then super-class (up until but not include Object)
-            curr = curr.getSuperclass();
-            if (curr == null || curr == Object.class) {
-                break;
-            }
-            _addMethodAnnotationsFromSuper(curr);
-        }
-    }
-
-    /**
-     * Method that will add "missing" member methods and annotations
-     * from specified class or interface. That is, methods and
-     * annotations that are not masked by classes higher up the chain.
-     * The main reason to do this is to implement simple "inheritance"
-     * for annotations; method annotations are not inherited
-     * with regular JDK functionality.
-     */
-    private void _addMethodAnnotationsFromSuper(Class<?> superClassOrInterface)
-    {
-        for (Method m : superClassOrInterface.getDeclaredMethods()) {
-            // static methods won't inherit, skip
-            if (Modifier.isStatic(m.getModifiers())) {
-                continue;
-            }
-            int argCount = m.getParameterTypes().length;
-            if (argCount == 0 || argCount == 1) {
-                AnnotatedMethod am = _memberMethods.find(m);
-                if (am == null) {
-                    am = new AnnotatedMethod(m);
-                    _memberMethods.add(am);
-                } else {
-                    am.addAnnotationsNotPresent(m);
+                int argCount = m.getParameterTypes().length;
+                if (argCount == 0 || argCount == 1) {
+                    AnnotatedMethod am = _memberMethods.find(m);
+                    if (am == null) {
+                        am = new AnnotatedMethod(m);
+                        _memberMethods.add(am);
+                    } else {
+                        am.addAnnotationsNotPresent(m);
+                    }
                 }
             }
         }

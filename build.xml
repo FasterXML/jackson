@@ -370,4 +370,21 @@ compile.main, compile.test, compile.extra, compile.perf" />
         </junitreport>
     </target>
 
+    <!-- Running a single Unit Test -->
+    <target name="test.single" depends="compile.test">
+         <fail unless="test" message="Must define -Dtest" />
+       <!-- showoutput 'yes' to allow outputting debug msgs... -->
+        <junit fork="no" maxmemory="128M" showoutput="yes" printsummary="yes">
+          <formatter type="plain" usefile="no" />
+          <test name="${test}" />
+          <classpath>
+                <pathelement path="${dir.build.classes.core}" />
+                <pathelement path="${dir.build.classes.mapper}" />
+                <pathelement location="${dir.test.classes}" /> 
+                <path refid="test-libs"/>
+          </classpath>     
+        </junit>
+    </target>
+
+
 </project>
