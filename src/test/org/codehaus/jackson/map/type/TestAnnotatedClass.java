@@ -2,12 +2,7 @@ package org.codehaus.jackson.map.type;
 
 import org.codehaus.jackson.map.BaseMapTest;
 
-import java.lang.reflect.*;
-import java.util.*;
-
 import org.codehaus.jackson.annotate.*;
-import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.*;
 
 /**
  * Unit test for verifying that {@link AnnotatedClass}

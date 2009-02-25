@@ -28,8 +28,8 @@ public class TestClassUtil
     public void testSimple()
     {
         Collection<Class<?>> result = ClassUtil.findSuperTypes(SubClass.class, null);
-        Class[] classes = result.toArray(new Class[result.size()]);
-        Class[] exp = new Class[] {
+        Class<?>[] classes = result.toArray(new Class<?>[result.size()]);
+        Class<?>[] exp = new Class[] {
             SubInt.class, BaseInt.class,
             BaseClass.class,
             Comparable.class

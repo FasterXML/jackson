@@ -5,9 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.codehaus.jackson.annotate.meta.Inherit;
-import org.codehaus.jackson.annotate.meta.Inheritance;
-
 /**
  * Marker annotation similar to
  * {@link javax.xml.bind.annotation.XmlTransient} that indicates that

@@ -7,14 +7,39 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerFactory;
 
 /**
- * Serializer factory implementation that allows for defining static
- * mappings between set of classes and/or interfaces, and corresponding
- * serializers. These mappings are checked first; but if no match
- * is found, factory can delegate to configured fallback factory for
- * further lookups. Typically fallback factory used is
- * {@link BeanSerializerFactory} or one of its sub-classes; but can
- * be any other serializer factory or left undefined (set to null)
- * if only static mappings are to be used.
+ * Serializer factory implementation that allows for configuring
+ * mapping between types (classes) and serializers to use, by using
+ * multiple types of overrides. Existing mappings established by
+ * {@link BeanSerializerFactory} (and its super class,
+ * {@link BasicSerializerFactory}) are used if no overrides are
+ * defined.
+ *<p>
+ * Unlike base serializer factories ({@link BasicSerializerFactory},
+ * {@link BeanSerializerFactory}), this factory is stateful because
+ * of configuration settings. It is thread-safe, however, as long as
+ * all configuration as done before using the factory -- a single
+ * instance can be shared between providers and mappers.
+ *<p>
+ * Configurations currently available are:
+ *<ul>
+ * <li>Ability to define explicit mappings between classes and interfaces
+ *  and serializers to use. These can be either specific ones (class must
+ *  match exactly) or generic ones (any sub-class or class implementing
+ *  the interface); specific ones have precedence over generic ones (and
+ *  precedence between generic ones is not defined).
+ *  </li>
+ * <li>Ability to define a single generic base serializer for all Enum
+ *   types (precedence below specific serializer mapping)
+ *  </li>
+ * <li>Ability to define "mix-in annotations": associations between types
+ *   (classes, interfaces) to serialize, and a "mix-in" type which will
+ *   be used so that all of its annotations are added to the serialized
+ *   type. Mixed-in annotations have priority over annotations that the
+ *   serialized type has. In effect this allows for overriding annotations
+ *   types have; this is useful when type definition itself can not be
+ *   modified
+ *  </li>
+ *</ul>
  */
 public class CustomSerializerFactory
     extends SerializerFactory
@@ -66,6 +91,19 @@ public class CustomSerializerFactory
      * And finally interface-based matches.
      */
     HashMap<ClassKey,JsonSerializer<?>> _interfaceMappings = null;
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Configuration: mappings that define "mix-in annotations"
+    //////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Mapping that defines how to apply mix-in annotations: key is
+     * the type to received additional annotations, and value is the
+     * type that has annotations to "mix in".
+     */
+    HashMap<ClassKey,Class<?>> _mixInAnnotations;
 
     /*
     ////////////////////////////////////////////////////
@@ -170,6 +208,28 @@ public class CustomSerializerFactory
     public void setEnumSerializer(JsonSerializer<?> enumSer)
     {
         _enumSerializerOverride = enumSer;
+    }
+
+    /**
+     * Method to use for adding mix-in annotations that Class
+     * <code>classWithMixIns</code> contains into class
+     * <code>destinationClass</code>. Mixing in is done when introspecting
+     * class annotations and properties.
+     * Annotations from <code>classWithMixIns</code> (and its supertypes)
+     * will <b>override</b>
+     * anything <code>destinationClass</code> (and its super-types)
+     * has already.
+     *
+     * @param destinationClass Type to modify by adding annotations
+     * @param classWithMixIns Type that contains annotations to add
+     */
+    public void addMixInAnnotationMapping(Class<?> destinationClass,
+                                          Class<?> classWithMixIns)
+    {
+        if (_mixInAnnotations == null) {
+            _mixInAnnotations = new HashMap<ClassKey,Class<?>>();
+        }
+        _mixInAnnotations.put(new ClassKey(destinationClass), classWithMixIns);
     }
 
     /*

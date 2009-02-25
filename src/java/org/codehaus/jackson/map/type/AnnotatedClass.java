@@ -201,7 +201,7 @@ public final class AnnotatedClass
     {
         // Then see which constructors we have
         _singleArgConstructors = null;
-        for (Constructor ctor : _class.getDeclaredConstructors()) {
+        for (Constructor<?> ctor : _class.getDeclaredConstructors()) {
             switch (ctor.getParameterTypes().length) {
             case 0:
                 _defaultConstructor = new AnnotatedConstructor(ctor);

@@ -1,6 +1,6 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.deser;
 
-import org.codehaus.jackson.map.BaseMapTest;
+import org.codehaus.jackson.map.*;
 
 import java.util.*;
 
@@ -40,13 +40,14 @@ public class TestMapDeserialization
      * Let's also try another way to express "gimme a Map" deserialization;
      * this time by specifying a Map class, to reduce need to cast
      */
-    public void testUntypedMap2() throws Exception
+	public void testUntypedMap2() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         // to get "untyped" default map-to-map, pass Object.class
         String JSON = "{ \"a\" : \"x\" }";
 
-        HashMap<String,Object> result = mapper.readValue(JSON, HashMap.class);
+        @SuppressWarnings("unchecked")
+        HashMap<String,Object> result = /*(HashMap<String,Object>)*/ mapper.readValue(JSON, HashMap.class);
         assertNotNull(result);
         assertTrue(result instanceof Map);
 

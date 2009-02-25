@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map.type;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 /**
@@ -10,7 +9,7 @@ import java.lang.reflect.Method;
 public final class MethodKey
 {
     final String _name;
-    final Class[] _argTypes;
+    final Class<?>[] _argTypes;
 
     public MethodKey(Method m)
     {
@@ -41,7 +40,7 @@ public final class MethodKey
         if (!_name.equals(other._name)) {
             return false;
         }
-        Class[] otherArgs = other._argTypes;
+        Class<?>[] otherArgs = other._argTypes;
         int len = _argTypes.length;
         if (otherArgs.length != len) {
             return false;

@@ -46,7 +46,7 @@ public final class ClassUtil
             }
             result.add(cls);
         }
-        for (Class intCls : cls.getInterfaces()) {
+        for (Class<?> intCls : cls.getInterfaces()) {
             _addSuperTypes(intCls, endBefore, result, true);
         }
         _addSuperTypes(cls.getSuperclass(), endBefore, result, true);

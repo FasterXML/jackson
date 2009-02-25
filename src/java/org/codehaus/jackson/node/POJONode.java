@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.util.CharTypes;
 
 /**
  * Value node that contains a wrapped POJO, to be serialized as

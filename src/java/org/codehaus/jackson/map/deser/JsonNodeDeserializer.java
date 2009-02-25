@@ -2,7 +2,6 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -65,8 +64,7 @@ public class JsonNodeDeserializer
         case START_OBJECT:
             {
                 ObjectNode node = objectNode();
-                JsonToken currToken;
-                while ((currToken = jp.nextToken()) != JsonToken.END_OBJECT) {
+                while (jp.nextToken() != JsonToken.END_OBJECT) {
                     String fieldName = jp.getCurrentName();
                     jp.nextToken();
                     JsonNode value = deserialize(jp, ctxt);
@@ -81,8 +79,7 @@ public class JsonNodeDeserializer
         case START_ARRAY:
             {
                 ArrayNode node = arrayNode();
-                JsonToken currToken;
-                while ((currToken = jp.nextToken()) != JsonToken.END_ARRAY) {
+                while (jp.nextToken() != JsonToken.END_ARRAY) {
                     node.add(deserialize(jp, ctxt));
                 }
                 return node;

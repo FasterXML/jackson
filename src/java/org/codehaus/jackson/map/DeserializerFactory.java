@@ -42,7 +42,7 @@ public abstract class DeserializerFactory
      * @param p Provider that can be called to create deserializers for
      *   contained member types
      */
-    public abstract JsonDeserializer<?> createBeanDeserializer(JavaType type, DeserializerProvider p)
+    public abstract JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
         throws JsonMappingException;
 
     /**

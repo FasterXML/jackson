@@ -100,7 +100,7 @@ public abstract class BasicDeserializerFactory
      */
 
     @Override
-	public JsonDeserializer<Object> createArrayDeserializer(ArrayType type, DeserializerProvider p)
+	public JsonDeserializer<?> createArrayDeserializer(ArrayType type, DeserializerProvider p)
         throws JsonMappingException
     {
         // Ok; first: do we have a primitive type?
@@ -204,7 +204,8 @@ public abstract class BasicDeserializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public JsonDeserializer<Object> createEnumDeserializer(SimpleType type, DeserializerProvider p)
+    public JsonDeserializer<?> createEnumDeserializer(SimpleType type, DeserializerProvider p)
+        throws JsonMappingException
     {
         /* 18-Feb-2009, tatu: Must first check if we have a class annotation
          *    that should override default deserializer

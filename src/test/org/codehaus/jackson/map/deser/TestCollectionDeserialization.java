@@ -1,6 +1,6 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.deser;
 
-import org.codehaus.jackson.map.BaseMapTest;
+import org.codehaus.jackson.map.*;
 
 import java.util.*;
 

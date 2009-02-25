@@ -88,7 +88,7 @@ public class ClassIntrospector
     /**
      * Class being introspected
      */
-    final Class _class;
+    final Class<?> _class;
 
     /**
      * Information collected about the class introspected.
@@ -177,7 +177,6 @@ public class ClassIntrospector
         LinkedHashMap<String,Method> results = new LinkedHashMap<String,Method>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             // note: signature has already been checked via filters
-            String name = am.getName();
             // Marked with @JsonIgnore?
             if (isIgnored(am)) {
                 continue;

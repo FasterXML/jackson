@@ -5,7 +5,6 @@ import org.codehaus.jackson.map.BaseMapTest;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.ser.ToStringSerializer;
 
 /**
  * Unit tests for verifying that simple exceptions can be serialized.

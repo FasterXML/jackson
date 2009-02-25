@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 
 import main.BaseTest;
-import org.codehaus.jackson.map.*;
 
 public abstract class BaseMapTest
     extends BaseTest

@@ -32,6 +32,11 @@ import org.codehaus.jackson.map.util.ClassUtil;
  * As a result, "mixed" delegation used, and calls are NOT done using
  * regular {@link SerializerFactory} interface but rather via
  * direct calls to {@link BasicSerializerFactory}.
+ *<p>
+ * Finally, since all caching is handled by the serializer provider
+ * (not factory), and since there is no configurability, this
+ * factory is stateless. And thus a global singleton instance can
+ * be used.
  */
 public class BeanSerializerFactory
     extends BasicSerializerFactory
@@ -163,7 +168,6 @@ public class BeanSerializerFactory
         for (Map.Entry<String,Method> en : methodsByProp.entrySet()) {
             Method m = en.getValue();
             ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
-            BeanPropertyWriter wprop;
             /* One more thing: does Method specify a serializer?
              * If so, let's use it.
              */
