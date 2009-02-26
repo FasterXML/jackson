@@ -449,6 +449,17 @@ public abstract class JsonGenerator
     public abstract void writeObject(Object pojo)
         throws IOException, JsonProcessingException;
 
+    /**
+     * Method for writing given Json tree (expressed as a tree
+     * where given JsonNode is the root) using this generator.
+     * This will generally just call
+     * {@link #writeObject} with given node, but is added
+     * for convenience and to make code more explicit in cases
+     * where it deals specifically with trees.
+     */
+    public abstract void writeTree(JsonNode rootNode)
+        throws IOException, JsonProcessingException;
+
     /*
     ////////////////////////////////////////////////////
     // Public API, convenience field write methods

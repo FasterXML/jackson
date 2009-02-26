@@ -456,9 +456,19 @@ public final class WriterBasedGenerator
     {
         _verifyValueWrite("write Java object");
         if (_objectCodec == null) {
-            throw new IllegalStateException("No ObjectCodec defined for the generator, can not serializer regular Java objects");
+            throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize regular Java objects");
         }
         _objectCodec.writeValue(this, value);
+    }
+
+    public final void writeTree(JsonNode rootNode)
+        throws IOException, JsonProcessingException
+    {
+        _verifyValueWrite("write Java object");
+        if (_objectCodec == null) {
+            throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize JsonNode-based trees");
+        }
+        _objectCodec.writeTree(this, rootNode);
     }
 
     /*

@@ -176,7 +176,7 @@ public class ClassIntrospector
      * @return Ordered Map with logical property name as key, and
      *    matching getter method as value.
      */
-    public LinkedHashMap<String,Method> findGetters(boolean autodetect)
+    public LinkedHashMap<String,AnnotatedMethod> findGetters(boolean autodetect)
     {
         /* As part of [JACKSON-52] we'll use baseline settings for
          * auto-detection, but also see if the class might override
@@ -196,7 +196,7 @@ public class ClassIntrospector
             }
         }
 
-        LinkedHashMap<String,Method> results = new LinkedHashMap<String,Method>();
+        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             // note: signature has already been checked via filters
             // Marked with @JsonIgnore?
@@ -230,11 +230,10 @@ public class ClassIntrospector
             /* Yup, it is a valid name. But now... do we have a conflict?
              * If so, should throw an exception
              */
-            Method m = am.getAnnotated();
-            ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
-            Method old = results.put(propName, m);
+            AnnotatedMethod old = results.put(propName, am);
             if (old != null) {
-                String oldDesc = old.getDeclaringClass().getName() + "#" + old.getName();
+                Method m = am.getAnnotated();
+                String oldDesc = old.getAnnotated().getDeclaringClass().getName() + "#" + old.getName();
                 String newDesc = m.getDeclaringClass().getName() + "#" + m.getName();
                 throw new IllegalArgumentException("Conflicting getter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
             }
@@ -252,9 +251,9 @@ public class ClassIntrospector
      * @return Ordered Map with logical property name as key, and
      *    matching setter method as value.
      */
-    public LinkedHashMap<String,Method> findSetters()
+    public LinkedHashMap<String,AnnotatedMethod> findSetters()
     {
-        LinkedHashMap<String,Method> results = new LinkedHashMap<String,Method>();
+        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             // note: signature has already been checked via filters
             // Marked with @JsonIgnore?
@@ -286,11 +285,10 @@ public class ClassIntrospector
             /* Yup, it is a valid name. But now... do we have a conflict?
              * If so, should throw an exception
              */
-            Method m = am.getAnnotated();
-            ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
-            Method old = results.put(propName, m);
+            AnnotatedMethod old = results.put(propName, am);
             if (old != null) {
-                String oldDesc = old.getDeclaringClass().getName() + "#" + old.getName();
+                Method m = am.getAnnotated();
+                String oldDesc = old.getAnnotated().getDeclaringClass().getName() + "#" + old.getName();
                 String newDesc = m.getDeclaringClass().getName() + "#" + m.getName();
                 throw new IllegalArgumentException("Conflicting setter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
             }

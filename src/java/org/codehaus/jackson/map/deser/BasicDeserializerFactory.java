@@ -6,6 +6,9 @@ import java.util.concurrent.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotationMap;
+import org.codehaus.jackson.map.introspect.JacksonAnnotationFilter;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
@@ -211,7 +214,8 @@ public abstract class BasicDeserializerFactory
          *    that should override default deserializer
          */
         Class<?> cls = type.getRawClass();
-        JsonDeserializer<Object> des = findDeserializerByAnnotation(cls);
+        AnnotationMap am = AnnotatedClass.findClassAnnotations(cls, JacksonAnnotationFilter.instance);
+        JsonDeserializer<Object> des = findDeserializerFromAnnotation(cls, am.get(JsonUseDeserializer.class));
         if (des != null) {
             return des;
         }
@@ -230,18 +234,16 @@ public abstract class BasicDeserializerFactory
      */
 
     /**
-     * Helper method called to check if the class in question
+     * Helper method called to check if a class or method
      * has {@link JsonUseDeserializer} annotation which tells the
      * class to use for deserialization.
      * Returns null if no such annotation found.
      */
-    protected JsonDeserializer<Object> findDeserializerByAnnotation(AnnotatedElement elem)
+    protected JsonDeserializer<Object> findDeserializerFromAnnotation(AnnotatedElement elem, JsonUseDeserializer ann)
     {
-        JsonUseDeserializer ann = elem.getAnnotation(JsonUseDeserializer.class);
         if (ann == null) {
             return null;
         }
-
         Class<?> deserClass = ann.value();
         /* 21-Feb-2009, tatu: There is now a way to indicate "no class"
          *   (to essentially denote a 'dummy' annotation, needed for

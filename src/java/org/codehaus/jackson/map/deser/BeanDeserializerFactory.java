@@ -3,7 +3,9 @@ package org.codehaus.jackson.map.deser;
 import java.lang.reflect.*;
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonUseDeserializer;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.ClassIntrospector;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -44,12 +46,6 @@ public class BeanDeserializerFactory
             return null;
         }
 
-        // And then: maybe it's explicitly defined by annotations?
-        JsonDeserializer<Object> ad = findDeserializerByAnnotation(beanClass);
-        if (ad != null) {
-            return ad;
-        }
-
         /* Ok then: let's figure out scalar value - based construction
          * aspects.
          *
@@ -60,6 +56,11 @@ public class BeanDeserializerFactory
          */
 
         ClassIntrospector intr = ClassIntrospector.forDeserialization(beanClass);
+        // maybe it's explicitly defined by annotations?
+        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(beanClass, intr.getClassAnnotation(JsonUseDeserializer.class));
+        if (ad != null) {
+            return ad;
+        }
 
         BeanDeserializer.StringConstructor sctor = getStringCreators(beanClass, intr);
         BeanDeserializer.NumberConstructor nctor = getNumberCreators(beanClass, intr);
@@ -90,7 +91,7 @@ public class BeanDeserializerFactory
     {
         Class<?> beanClass = deser.getBeanClass();
 
-        LinkedHashMap<String,Method> methodsByProp = intr.findSetters();
+        LinkedHashMap<String,AnnotatedMethod> methodsByProp = intr.findSetters();
 
         /* No setters? Should we proceed here? It may well be ok, if
          * there are factory methods or such.
@@ -98,9 +99,10 @@ public class BeanDeserializerFactory
         //if (methodsByProp.isEmpty()) ...
 
         // These are all valid setters, but we do need to introspect bit more
-        for (Map.Entry<String,Method> en : methodsByProp.entrySet()) {
+        for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
             String name = en.getKey();
-            Method m = en.getValue();
+            AnnotatedMethod am = en.getValue();
+            Method m = am.getAnnotated();
             // need to ensure it is callable now:
             ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
 
@@ -112,7 +114,11 @@ public class BeanDeserializerFactory
              * If so, let's use it.
              */
             SettableBeanProperty prop;
-            JsonDeserializer<Object> propDeser = findDeserializerByAnnotation(m);
+            /* !!! 25-Feb-2009, tatu: Should probably go through the
+             *   introspector; but for now, let's access annotation
+             *   directly
+             */
+            JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(m, am.getAnnotation(JsonUseDeserializer.class));
             if (propDeser != null) {
                 prop = new SettableBeanProperty(name, type, m);
                 prop.setValueDeserializer(propDeser);

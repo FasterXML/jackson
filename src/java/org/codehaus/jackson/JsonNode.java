@@ -333,6 +333,10 @@ public abstract class JsonNode
     /**
      * Method that can be called to serialize this node and
      * all of its descendants using specified JSON generator.
+     *
+     * @deprecated Use methods that are part of {@link JsonGenerator}
+     *   or {@link org.codehaus.jackson.map.ObjectMapper}
+     *   instead.
      */
     public abstract void writeTo(JsonGenerator jg)
         throws IOException, JsonGenerationException;

@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.ClassIntrospector;
 import org.codehaus.jackson.map.util.ClassUtil;
 
@@ -122,7 +123,7 @@ public class BeanSerializerFactory
             return null;
         }
         ClassIntrospector intr = ClassIntrospector.forSerialization(type);
-        JsonSerializer<Object> ser = findSerializerByAnnotation(type, intr.getClassAnnotation(JsonUseSerializer.class));
+        JsonSerializer<Object> ser = findSerializerFromAnnotation(type, intr.getClassAnnotation(JsonUseSerializer.class));
         if (ser != null) {
             return ser;
         }
@@ -160,14 +161,15 @@ public class BeanSerializerFactory
     protected Collection<BeanPropertyWriter> findBeanProperties(ClassIntrospector intr)
     {
         boolean autodetect = isFeatureEnabled(Feature.AUTO_DETECT_GETTERS);
-        LinkedHashMap<String,Method> methodsByProp = intr.findGetters(autodetect);
+        LinkedHashMap<String,AnnotatedMethod> methodsByProp = intr.findGetters(autodetect);
         // nothing? can't proceed
         if (methodsByProp.isEmpty()) {
             return null;
         }
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
-        for (Map.Entry<String,Method> en : methodsByProp.entrySet()) {
-            Method m = en.getValue();
+        for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
+            AnnotatedMethod am = en.getValue();
+            Method m = am.getAnnotated();
             ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
             /* One more thing: does Method specify a serializer?
              * If so, let's use it.
@@ -175,7 +177,7 @@ public class BeanSerializerFactory
             /* !!! 23-Feb-2009, tatu: This is not exactly right; should
              *   use AnnotatedClass/ClassIntrospector.
              */
-            JsonSerializer<Object> ser = findSerializerByAnnotation(m, m.getAnnotation(JsonUseSerializer.class));
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(m, am.getAnnotation(JsonUseSerializer.class));
             props.add(new BeanPropertyWriter(en.getKey(), m, ser));
 
         }

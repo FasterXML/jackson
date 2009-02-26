@@ -44,6 +44,16 @@ public abstract class ObjectCodec
      */
     public abstract <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef)
         throws IOException, JsonProcessingException;
+
+    /**
+     * Method to deserialize Json content as tree expressed
+     * using set of {@link JsonNode} instances. Returns
+     * root of the resulting tree (where root can consist
+     * of just a single node if the current event is a
+     * value event, not container).
+     */
+    public abstract JsonNode readTree(JsonParser jp)
+        throws IOException, JsonProcessingException;
     
     /*
     /////////////////////////////////////////////////
@@ -56,5 +66,12 @@ public abstract class ObjectCodec
      * provided.
      */
     public abstract void writeValue(JsonGenerator jgen, Object value)
+        throws IOException, JsonProcessingException;
+
+    /**
+     * Method to serialize given Json Tree, using generator
+     * provided.
+     */
+    public abstract void writeTree(JsonGenerator jgen, JsonNode rootNode)
         throws IOException, JsonProcessingException;
 }

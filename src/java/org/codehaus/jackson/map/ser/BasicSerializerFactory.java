@@ -275,7 +275,7 @@ public class BasicSerializerFactory
              *   Enum classes.
              */
             AnnotationMap anns = AnnotatedClass.findClassAnnotations(type, JacksonAnnotationFilter.instance);
-            JsonSerializer<Object> ser = findSerializerByAnnotation(type, anns.get(JsonUseSerializer.class));
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(type, anns.get(JsonUseSerializer.class));
             if (ser != null) {
                 return ser;
             }
@@ -317,12 +317,12 @@ public class BasicSerializerFactory
     }
 
     /**
-     * Helper method called to check if the class in question
+     * Helper method called to check if a class or method
      * has {@link JsonUseSerializer} annotation which tells the
      * class to use for serialization.
      * Returns null if no such annotation found.
      */
-    protected JsonSerializer<Object> findSerializerByAnnotation(AnnotatedElement elem, JsonUseSerializer ann)
+    protected JsonSerializer<Object> findSerializerFromAnnotation(AnnotatedElement elem, JsonUseSerializer ann)
     {
         if (ann == null) {
             return null;

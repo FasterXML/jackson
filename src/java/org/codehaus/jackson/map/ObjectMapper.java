@@ -27,6 +27,8 @@ import org.codehaus.jackson.type.TypeReference;
 public class ObjectMapper
     extends ObjectCodec
 {
+    final static JavaType JSON_NODE_TYPE = TypeFactory.instance.fromClass(JsonNode.class);
+
     /*
     ////////////////////////////////////////////////////
     // Configuration settings
@@ -202,6 +204,21 @@ public class ObjectMapper
         return (T) _readValue(jp, TypeFactory.instance.fromTypeReference(valueTypeRef));
     } 
 
+    /**
+     * Method to deserialize Json content as tree expressed
+     * using set of {@link JsonNode} instances. Returns
+     * root of the resulting tree (where root can consist
+     * of just a single node if the current event is a
+     * value event, not container).
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public JsonNode readTree(JsonParser jp)
+        throws IOException, JsonProcessingException
+    {
+        return (JsonNode) _readValue(jp, JSON_NODE_TYPE);
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Public API (from ObjectCodec): serialization
@@ -218,6 +235,17 @@ public class ObjectMapper
         throws IOException, JsonGenerationException, JsonMappingException
     {
         _serializerProvider.serializeValue(jgen, value, _serializerFactory);
+        jgen.flush();
+    }
+
+    /**
+     * Method to serialize given Json Tree, using generator
+     * provided.
+     */
+    public void writeTree(JsonGenerator jgen, JsonNode rootNode)
+        throws IOException, JsonProcessingException
+    {
+        _serializerProvider.serializeValue(jgen, rootNode, _serializerFactory);
         jgen.flush();
     }
 

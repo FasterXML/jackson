@@ -220,11 +220,14 @@ public abstract class JsonGeneratorBase
 
     /*
     ////////////////////////////////////////////////////
-    // Public API, write methods, POJOs
+    // Public API, write methods, POJOs, trees
     ////////////////////////////////////////////////////
      */
 
     public abstract void writeObject(Object value)
+        throws IOException, JsonProcessingException;
+
+    public abstract void writeTree(JsonNode rootNode)
         throws IOException, JsonProcessingException;
 
     /*
