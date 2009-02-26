@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 
 public final class AnnotatedConstructor
+	extends Annotated
 {
     Constructor<?> _constructor;
 
@@ -20,7 +21,7 @@ public final class AnnotatedConstructor
 
     public Constructor<?> getAnnotated() { return _constructor; }
 
-    public Annotation getAnnotation(Class<Annotation> acls)
+    public <A extends Annotation> A getAnnotation(Class<A> acls)
     {
         return _annotations.get(acls);
     }

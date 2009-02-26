@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 public final class AnnotatedMethod
+	extends Annotated
 {
     Method _method;
 
@@ -22,17 +23,17 @@ public final class AnnotatedMethod
 
     public Method getAnnotated() { return _method; }
 
+    public <A extends Annotation> A getAnnotation(Class<A> acls)
+    {
+        return _annotations.get(acls);
+    }
+    
     public Class<?>[] getParameterTypes() { return _method.getParameterTypes(); }
     public Class<?> getReturnType() { return _method.getReturnType(); }
 
     public <A extends Annotation> boolean hasAnnotation(Class<A> acls)
     {
         return _annotations.get(acls) != null;
-    }
-
-    public <A extends Annotation> A getAnnotation(Class<A> acls)
-    {
-        return _annotations.get(acls);
     }
 
     public int getAnnotationCount() { return _annotations.size(); }

@@ -201,11 +201,4 @@ public class TestBasicAnnotations
         assertEquals(1, ints.length);
         assertEquals(3, ints[0]);
     }
-
-    /*
-    //////////////////////////////////////////////
-    // Helper methods
-    //////////////////////////////////////////////
-     */
-
 }

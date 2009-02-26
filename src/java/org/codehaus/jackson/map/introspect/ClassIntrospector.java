@@ -127,7 +127,7 @@ public class ClassIntrospector
      */
     public static ClassIntrospector forDeserialization(Class<?> c)
     {
-        /* More infor for serialization, also need creator
+        /* More info needed than with serialization, also need creator
          * info
          */
         AnnotatedClass ac = AnnotatedClass.constructFull
@@ -143,11 +143,26 @@ public class ClassIntrospector
      */
     public static ClassIntrospector forCreation(Class<?> c)
     {
+        /* Just need constructors and factory methods, but no
+         * member methods
+         */
+        AnnotatedClass ac = AnnotatedClass.constructFull
+            (c, JacksonAnnotationFilter.instance, true, null);
+        return new ClassIntrospector(c, ac);
+    }
+
+    /**
+     * Factory method that constructs an introspector that only has
+     * information regarding annotations class itself has, but nothing
+     * on methods or constructors.
+     */
+    public static ClassIntrospector forClassAnnotations(Class<?> c)
+    {
         /* More infor for serialization, also need creator
          * info
          */
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, true, null);
+            (c, JacksonAnnotationFilter.instance, false, null);
         return new ClassIntrospector(c, ac);
     }
 
@@ -157,9 +172,11 @@ public class ClassIntrospector
     ///////////////////////////////////////////////////////
      */
 
+    public AnnotatedClass getClassInfo() { return _classInfo; }
+
     public <A extends Annotation> A getClassAnnotation(Class<A> acls)
     {
-        return _classInfo.getClassAnnotation(acls);
+        return _classInfo.getAnnotation(acls);
     }
 
     /*
@@ -182,7 +199,7 @@ public class ClassIntrospector
          * auto-detection, but also see if the class might override
          * that setting.
          */
-        JsonAutoDetect cann = _classInfo.getClassAnnotation(JsonAutoDetect.class);
+        JsonAutoDetect cann = _classInfo.getAnnotation(JsonAutoDetect.class);
         if (cann != null) {
             JsonMethod[] methods = cann.value();
             if (methods != null) {

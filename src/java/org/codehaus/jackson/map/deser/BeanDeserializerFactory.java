@@ -57,7 +57,7 @@ public class BeanDeserializerFactory
 
         ClassIntrospector intr = ClassIntrospector.forDeserialization(beanClass);
         // maybe it's explicitly defined by annotations?
-        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(beanClass, intr.getClassAnnotation(JsonUseDeserializer.class));
+        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(intr.getClassInfo());
         if (ad != null) {
             return ad;
         }
@@ -114,11 +114,8 @@ public class BeanDeserializerFactory
              * If so, let's use it.
              */
             SettableBeanProperty prop;
-            /* !!! 25-Feb-2009, tatu: Should probably go through the
-             *   introspector; but for now, let's access annotation
-             *   directly
-             */
-            JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(m, am.getAnnotation(JsonUseDeserializer.class));
+            JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(am);
+
             if (propDeser != null) {
                 prop = new SettableBeanProperty(name, type, m);
                 prop.setValueDeserializer(propDeser);

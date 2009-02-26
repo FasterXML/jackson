@@ -10,9 +10,8 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.annotate.NoClass;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.introspect.AnnotatedClass;
-import org.codehaus.jackson.map.introspect.AnnotationMap;
-import org.codehaus.jackson.map.introspect.JacksonAnnotationFilter;
+import org.codehaus.jackson.map.introspect.Annotated;
+import org.codehaus.jackson.map.introspect.ClassIntrospector;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
@@ -274,8 +273,8 @@ public class BasicSerializerFactory
              *   was found out that annotations do not work with
              *   Enum classes.
              */
-            AnnotationMap anns = AnnotatedClass.findClassAnnotations(type, JacksonAnnotationFilter.instance);
-            JsonSerializer<Object> ser = findSerializerFromAnnotation(type, anns.get(JsonUseSerializer.class));
+            ClassIntrospector intr = ClassIntrospector.forClassAnnotations(type);
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(intr.getClassInfo());
             if (ser != null) {
                 return ser;
             }
@@ -322,8 +321,9 @@ public class BasicSerializerFactory
      * class to use for serialization.
      * Returns null if no such annotation found.
      */
-    protected JsonSerializer<Object> findSerializerFromAnnotation(AnnotatedElement elem, JsonUseSerializer ann)
+    protected JsonSerializer<Object> findSerializerFromAnnotation(Annotated a)
     {
+        JsonUseSerializer ann = a.getAnnotation(JsonUseSerializer.class);
         if (ann == null) {
             return null;
         }
@@ -339,7 +339,7 @@ public class BasicSerializerFactory
 
         // Must be of proper type, of course
         if (!JsonSerializer.class.isAssignableFrom(serClass)) {
-            throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+ClassUtil.descFor(elem)+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
+            throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+ClassUtil.descFor(a.getAnnotated())+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
         }
         try {
             Object ob = serClass.newInstance();
@@ -347,7 +347,7 @@ public class BasicSerializerFactory
                 JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
             return ser;
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);
+            throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+ClassUtil.descFor(a.getAnnotated())+", problem: "+e.getMessage(), e);
         }
     }
 

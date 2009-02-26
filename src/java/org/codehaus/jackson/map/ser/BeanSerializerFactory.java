@@ -123,7 +123,7 @@ public class BeanSerializerFactory
             return null;
         }
         ClassIntrospector intr = ClassIntrospector.forSerialization(type);
-        JsonSerializer<Object> ser = findSerializerFromAnnotation(type, intr.getClassAnnotation(JsonUseSerializer.class));
+        JsonSerializer<Object> ser = findSerializerFromAnnotation(intr.getClassInfo());
         if (ser != null) {
             return ser;
         }
@@ -174,10 +174,7 @@ public class BeanSerializerFactory
             /* One more thing: does Method specify a serializer?
              * If so, let's use it.
              */
-            /* !!! 23-Feb-2009, tatu: This is not exactly right; should
-             *   use AnnotatedClass/ClassIntrospector.
-             */
-            JsonSerializer<Object> ser = findSerializerFromAnnotation(m, am.getAnnotation(JsonUseSerializer.class));
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(am);
             props.add(new BeanPropertyWriter(en.getKey(), m, ser));
 
         }

@@ -6,9 +6,8 @@ import java.util.concurrent.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.introspect.AnnotatedClass;
-import org.codehaus.jackson.map.introspect.AnnotationMap;
-import org.codehaus.jackson.map.introspect.JacksonAnnotationFilter;
+import org.codehaus.jackson.map.introspect.Annotated;
+import org.codehaus.jackson.map.introspect.ClassIntrospector;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
@@ -214,8 +213,8 @@ public abstract class BasicDeserializerFactory
          *    that should override default deserializer
          */
         Class<?> cls = type.getRawClass();
-        AnnotationMap am = AnnotatedClass.findClassAnnotations(cls, JacksonAnnotationFilter.instance);
-        JsonDeserializer<Object> des = findDeserializerFromAnnotation(cls, am.get(JsonUseDeserializer.class));
+        ClassIntrospector intr = ClassIntrospector.forClassAnnotations(cls);
+        JsonDeserializer<Object> des = findDeserializerFromAnnotation(intr.getClassInfo());
         if (des != null) {
             return des;
         }
@@ -239,8 +238,9 @@ public abstract class BasicDeserializerFactory
      * class to use for deserialization.
      * Returns null if no such annotation found.
      */
-    protected JsonDeserializer<Object> findDeserializerFromAnnotation(AnnotatedElement elem, JsonUseDeserializer ann)
+    protected JsonDeserializer<Object> findDeserializerFromAnnotation(Annotated a)
     {
+        JsonUseDeserializer ann = a.getAnnotation(JsonUseDeserializer.class);
         if (ann == null) {
             return null;
         }
@@ -254,7 +254,7 @@ public abstract class BasicDeserializerFactory
         }
         // Must be of proper type, of course
         if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
-            throw new IllegalArgumentException("Invalid @JsonDeserializer annotation for "+ClassUtil.descFor(elem)+": value ("+deserClass.getName()+") does not implement JsonDeserializer interface");
+            throw new IllegalArgumentException("Invalid @JsonDeserializer annotation for "+ClassUtil.descFor(a.getAnnotated())+": value ("+deserClass.getName()+") does not implement JsonDeserializer interface");
         }
         try {
             Object ob = deserClass.newInstance();
@@ -262,7 +262,7 @@ public abstract class BasicDeserializerFactory
                 JsonDeserializer<Object> ser = (JsonDeserializer<Object>) ob;
             return ser;
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+ClassUtil.descFor(elem)+", problem: "+e.getMessage(), e);
+            throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+ClassUtil.descFor(a.getAnnotated())+", problem: "+e.getMessage(), e);
         }
     }
 

@@ -7,6 +7,7 @@ import java.util.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedClass
+    extends Annotated
 {
     /*
     ///////////////////////////////////////////////////////
@@ -150,23 +151,6 @@ public final class AnnotatedClass
         return ac;
     }
 
-    /**
-     * Alternate factory method that will only resolve class
-     * annotations. Used when caller doesn't care about method
-     * and creator annotations.
-     *
-     * @param annotationFilter Filter used to define which annotations to
-     *    include (for class and member annotations). Can not be null.
-     */
-    public static AnnotationMap findClassAnnotations(Class<?> cls,
-                                                     AnnotationFilter annotationFilter)
-    {
-        List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
-        AnnotatedClass ac = new AnnotatedClass(cls, st, annotationFilter);
-        ac.resolveClassAnnotations();
-        return ac._classAnnotations;
-    }
-
     /*
     ///////////////////////////////////////////////////////
     // Init methods
@@ -260,21 +244,27 @@ public final class AnnotatedClass
 
     /*
     ///////////////////////////////////////////////////////
-    // Public API
+    // Annotated impl 
     ///////////////////////////////////////////////////////
      */
 
     public Class<?> getAnnotated() { return _class; }
 
-    public AnnotatedConstructor getDefaultConstructor() { return _defaultConstructor; }
-
-    public <A extends Annotation> A getClassAnnotation(Class<A> acls)
+    public <A extends Annotation> A getAnnotation(Class<A> acls)
     {
         if (_classAnnotations == null) {
             return null;
         }
         return _classAnnotations.get(acls);
     }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Public API
+    ///////////////////////////////////////////////////////
+     */
+
+    public AnnotatedConstructor getDefaultConstructor() { return _defaultConstructor; }
 
     public Collection<AnnotatedConstructor> getSingleArgConstructors()
     {

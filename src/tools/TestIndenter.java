@@ -7,7 +7,8 @@ import org.codehaus.jackson.map.*;
 
 public class TestIndenter
 {
-    public static void main(String[] args)
+    @SuppressWarnings("deprecation")
+	public static void main(String[] args)
         throws IOException
     {
         if (args.length != 1) {
