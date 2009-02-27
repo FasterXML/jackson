@@ -12,6 +12,9 @@ Description:
   * [JACKSON-62]: NPE with JsonMappingException if source exception used
     null message.
     (reported by Justin F)
+  * [JACKSON-64]: Handling of property name (with @JsonGetter, @JsonSetter)
+    made bit more intuitive; uses bean naming convention if no explicit
+    name given.
 
   New features:
 

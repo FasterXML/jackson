@@ -231,11 +231,23 @@ public class ClassIntrospector
             if (ann != null) {
                 propName = ann.value();
                 if (propName == null || propName.length() == 0) {
-                    // Defaults to method name
-                    propName = am.getName();
+                    /* As per [JACKSON-64], let's still use mangled
+                     * name if possible; and only if not use unmodified
+                     * method name
+                     */
+                    propName = okNameForGetter(am);
+                    if (propName == null) {
+                        propName = am.getName();
+                    }
                 }
             } else { // nope, but is public bean-getter name?
                 if (!autodetect) {
+                    continue;
+                }
+                /* For getters (but not for setters), auto-detection requires
+                 * method to be public:
+                 */
+                if (!am.isPublic()) {
                     continue;
                 }
                 propName = okNameForGetter(am);
@@ -289,8 +301,14 @@ public class ClassIntrospector
             if (ann != null) {
                 propName = ann.value();
                 if (propName == null || propName.length() == 0) {
-                    // Defaults to method name
-                    propName = am.getName();
+                    /* As per [JACKSON-64], let's still use mangled
+                     * name if possible; and only if not use unmodified
+                     * method name
+                     */
+                    propName = okNameForSetter(am);
+                    if (propName == null) {
+                        propName = am.getName();
+                    }
                 }
             } else { // nope, but is public bean-setter name?
                 propName = okNameForSetter(am);
@@ -419,24 +437,7 @@ public class ClassIntrospector
         String name = am.getName();
         Method m = am.getAnnotated();
 
-        /* Actually, for non-annotation based names, let's require that
-         * the method is public?
-         */
-        if (!Modifier.isPublic(m.getModifiers())) {
-            return null;
-        }
-
         if (name.startsWith("get")) {
-            /* also, base definition (from java.lang.Object) of getClass()
-             * is not considered a bean accessor.
-             * (but is ok if overriden)
-             */
-            // 10-Feb-2009, tatus: Should never occur, actually
-            /*if ("getClass".equals(m.getName()) && m.getDeclaringClass() == Object.class) {
-                return null;
-            }
-            */
-
             /* 16-Feb-2009, tatus: To handle [JACKSON-53], need to block
              *   CGLib-provided method "getCallbacks". Not sure of exact
              *   safe critieria to get decent coverage without false matches;
@@ -449,7 +450,6 @@ public class ClassIntrospector
                     return null;
                 }
             }
-
             return mangleGetterName(m, name.substring(3));
         }
         if (name.startsWith("is")) {

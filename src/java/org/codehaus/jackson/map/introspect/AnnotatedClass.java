@@ -250,6 +250,10 @@ public final class AnnotatedClass
 
     public Class<?> getAnnotated() { return _class; }
 
+    public int getModifiers() { return _class.getModifiers(); }
+
+    public String getName() { return _class.getName(); }
+
     public <A extends Annotation> A getAnnotation(Class<A> acls)
     {
         if (_classAnnotations == null) {

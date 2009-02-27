@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone='yes'?>
-<!-- This Ant build file fragment contains targets needed to build
-     distributable OSGi-aware artifacts
+<!-- This Ant build file fragment contains targets for
+     deploying artifacts to Maven repositories
   -->
 
 <project name="Tasks for Maven deployment" basedir="."

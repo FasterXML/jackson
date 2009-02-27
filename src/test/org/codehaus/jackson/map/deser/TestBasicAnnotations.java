@@ -36,6 +36,13 @@ public class TestBasicAnnotations
         @JsonSetter protected void other(int value) { _other = value; }
     }
 
+    final static class SizeClassSetter2
+    {
+        int _x;
+
+        @JsonSetter public void setX(int value) { _x = value; }
+    }
+
     /// Class for testing {@link JsonIgnore} annotations with setters
     final static class SizeClassIgnore
     {
@@ -145,6 +152,16 @@ public class TestBasicAnnotations
         assertEquals(3, result._other);
         assertEquals(2, result._size);
         assertEquals(-999, result._length);
+    }
+
+    // Test for checking [JACKSON-64]
+    public void testSimpleSetter2() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        SizeClassSetter2 result = m.readValue
+            ("{ \"x\": -3 }",
+             SizeClassSetter2.class);
+        assertEquals(-3, result._x);
     }
 
     public void testSimpleIgnore() throws Exception

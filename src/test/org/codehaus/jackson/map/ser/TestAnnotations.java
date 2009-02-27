@@ -31,6 +31,13 @@ public class TestAnnotations
         @JsonGetter protected int value() { return 0; }
     }
 
+    // And additional testing to cover [JACKSON-64]
+    final static class SizeClassGetter2
+    {
+        // Should still be considered property "x"
+        @JsonGetter protected int getX() { return 3; }
+    }
+
     /// Class for testing enabled {@link JsonIgnore} annotation
     final static class SizeClassEnabledIgnore
     {
@@ -159,6 +166,14 @@ public class TestAnnotations
         assertEquals(Integer.valueOf(3), result.get("size"));
         assertEquals(Integer.valueOf(-17), result.get("length"));
         assertEquals(Integer.valueOf(0), result.get("value"));
+    }
+
+    public void testSimpleGetter2() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, new SizeClassGetter2());
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(3), result.get("x"));
     }
 
     public void testSimpleIgnore() throws Exception

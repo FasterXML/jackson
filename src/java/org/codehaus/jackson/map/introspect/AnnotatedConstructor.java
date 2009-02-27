@@ -21,6 +21,10 @@ public final class AnnotatedConstructor
 
     public Constructor<?> getAnnotated() { return _constructor; }
 
+    public int getModifiers() { return _constructor.getModifiers(); }
+
+    public String getName() { return _constructor.getName(); }
+
     public <A extends Annotation> A getAnnotation(Class<A> acls)
     {
         return _annotations.get(acls);

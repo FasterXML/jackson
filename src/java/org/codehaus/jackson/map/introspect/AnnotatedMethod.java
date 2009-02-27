@@ -19,9 +19,11 @@ public final class AnnotatedMethod
         }
     }
 
-    public String getName() { return _method.getName(); }
-
     public Method getAnnotated() { return _method; }
+
+    public int getModifiers() { return _method.getModifiers(); }
+
+    public String getName() { return _method.getName(); }
 
     public <A extends Annotation> A getAnnotation(Class<A> acls)
     {
