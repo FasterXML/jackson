@@ -36,7 +36,7 @@ public class TypeFactory
     //////////////////////////////////////////////////
      */
 
-    public TypeFactory()
+    protected TypeFactory()
     {
         _commonTypeCache = new HashMap<String, JavaType>();
         SimpleType.addCommonTypes(_commonTypeCache);
@@ -63,7 +63,39 @@ public class TypeFactory
      * And for other types (primitives/wrappers, beans), this
      * is all that is needed.
      */
-    public JavaType fromClass(Class<?> clz)
+    public static JavaType fromClass(Class<?> clz)
+    {
+        return instance._fromClass(clz);
+    }
+
+    /**
+     * Factory method that can be used if the full generic type has
+     * been passed using {@link TypeReference}. This only needs to be
+     * done if the root type to bind to is generic; but if so,
+     * it must be done to get proper typing.
+     */
+    public static JavaType fromTypeReference(TypeReference<?> ref)
+    {
+        return fromType(ref.getType());
+    }
+
+    /**
+     * Factory method that can be used if type information is passed
+     * as Java typing returned from <code>getGenericXxx</code> methods
+     * (usually for a return or argument type).
+     */
+    public static JavaType fromType(Type type)
+    {
+        return instance._fromType(type);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Internal methods
+    ///////////////////////////////////////////////////////
+     */
+
+    protected JavaType _fromClass(Class<?> clz)
     {
         // First things first: we may be able to find it from cache
         String clzName = clz.getName();
@@ -95,39 +127,28 @@ public class TypeFactory
     }
 
     /**
-     * Factory method that can be used if the full generic type has
-     * been passed using {@link TypeReference}. This only needs to be
-     * done if the root type to bind to is generic; but if so,
-     * it must be done to get proper typing.
-     */
-    public JavaType fromTypeReference(TypeReference<?> ref)
-    {
-        return fromType(ref.getType());
-    }
-
-    /**
      * Factory method that can be used if type information is passed
      * as Java typing returned from <code>getGenericXxx</code> methods
      * (usually for a return or argument type).
      */
-    public JavaType fromType(Type type)
+    public JavaType _fromType(Type type)
     {
         // may still be a simple type...
         if (type instanceof Class) {
-            return fromClass((Class<?>) type);
+            return _fromClass((Class<?>) type);
         }
         // But if not, need to start resolving.
         if (type instanceof ParameterizedType) {
-            return fromParamType((ParameterizedType) type);
+            return _fromParamType((ParameterizedType) type);
         }
         if (type instanceof GenericArrayType) {
-            return fromArrayType((GenericArrayType) type);
+            return _fromArrayType((GenericArrayType) type);
         }
         if (type instanceof TypeVariable) {
-            return fromVariable((TypeVariable<?>) type);
+            return _fromVariable((TypeVariable<?>) type);
         }
         if (type instanceof WildcardType) {
-            return fromWildcard((WildcardType) type);
+            return _fromWildcard((WildcardType) type);
         }
 
         // sanity check
@@ -144,7 +165,7 @@ public class TypeFactory
      * fashion. For other types we will then just fall back
      * to using "raw" class information.
      */
-    protected JavaType fromParamType(ParameterizedType type)
+    protected JavaType _fromParamType(ParameterizedType type)
     {
         /* First: what is the actual base type? One odd thing
          * is that 'getRawType' returns Type, not Class<?> as
@@ -166,16 +187,16 @@ public class TypeFactory
         /* Neither: well, let's just consider it a bean or such;
          * may or not may not be a problem.
          */
-        return fromClass(rawType);
+        return _fromClass(rawType);
     }
 
-    protected JavaType fromArrayType(GenericArrayType type)
+    protected JavaType _fromArrayType(GenericArrayType type)
     {
-        JavaType compType = fromType(type.getGenericComponentType());
+        JavaType compType = _fromType(type.getGenericComponentType());
         return ArrayType.construct(compType);
     }
 
-    protected JavaType fromVariable(TypeVariable<?> type)
+    protected JavaType _fromVariable(TypeVariable<?> type)
     {
         /* With type variables we must use bound information.
          * Theoretically this gets tricky, as there may be multiple
@@ -186,10 +207,10 @@ public class TypeFactory
          * Either way let's just use the first bound, for now, and
          * worry about better match later on if there is need.
          */
-        return fromType(type.getBounds()[0]);
+        return _fromType(type.getBounds()[0]);
     }
 
-    protected JavaType fromWildcard(WildcardType type)
+    protected JavaType _fromWildcard(WildcardType type)
     {
         /* Similar to challenges with TypeVariable, we may have
          * multiple upper bounds. But it is also possible that if
@@ -199,6 +220,6 @@ public class TypeFactory
          * For now, we won't try anything more advanced; above is
          * just for future reference.
          */
-        return fromType(type.getUpperBounds()[0]);
+        return _fromType(type.getUpperBounds()[0]);
     }
 }

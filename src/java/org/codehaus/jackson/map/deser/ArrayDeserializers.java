@@ -53,7 +53,7 @@ public class ArrayDeserializers
     @SuppressWarnings("unchecked")
 	private void add(Class<?> cls, JsonDeserializer<?> deser)
     {
-        _allDeserializers.put(TypeFactory.instance.fromClass(cls),
+        _allDeserializers.put(TypeFactory.fromClass(cls),
                               (JsonDeserializer<Object>) deser);
     }
 

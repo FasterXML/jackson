@@ -15,8 +15,6 @@ public class TestTypeFactory
 {
     public void testSimpleTypes()
     {
-        TypeFactory tf = TypeFactory.instance;
-
         Class<?>[] classes = new Class<?>[] {
             boolean.class, byte.class, char.class,
                 short.class, int.class, long.class,
@@ -34,24 +32,20 @@ public class TestTypeFactory
         };
 
         for (Class<?> clz : classes) {
-            assertSame(clz, tf.fromClass(clz).getRawClass());
-            assertSame(clz, tf.fromType(clz).getRawClass());
+            assertSame(clz, TypeFactory.fromClass(clz).getRawClass());
+            assertSame(clz, TypeFactory.fromType(clz).getRawClass());
         }
     }
 
     public void testSimpleTypeRefs()
     {
-        TypeFactory tf = TypeFactory.instance;
-
         // And then via type reference...
-        assertSame(tf.fromClass(Integer.class), tf.fromTypeReference(new TypeReference<Integer>() { }));
-        assertSame(tf.fromClass(String.class), tf.fromTypeReference(new TypeReference<String>() { }));
+        assertSame(TypeFactory.fromClass(Integer.class), TypeFactory.fromTypeReference(new TypeReference<Integer>() { }));
+        assertSame(TypeFactory.fromClass(String.class), TypeFactory.fromTypeReference(new TypeReference<String>() { }));
     }
 
     public void testArrays()
     {
-        TypeFactory tf = TypeFactory.instance;
-
         Class<?>[] classes = new Class<?>[] {
             boolean[].class, byte[].class, char[].class,
                 short[].class, int[].class, long[].class,
@@ -62,23 +56,21 @@ public class TestTypeFactory
         };
 
         for (Class<?> clz : classes) {
-            assertSame(clz, tf.fromClass(clz).getRawClass());
-            assertSame(clz, tf.fromType(clz).getRawClass());
+            assertSame(clz, TypeFactory.fromClass(clz).getRawClass());
+            assertSame(clz, TypeFactory.fromType(clz).getRawClass());
         }
     }
 
     public void testCollections()
     {
-        TypeFactory tf = TypeFactory.instance;
-
         // Ok, first: let's test what happens when we pass 'raw' Collection:
-        JavaType t = tf.fromClass(ArrayList.class);
+        JavaType t = TypeFactory.fromClass(ArrayList.class);
         assertEquals(CollectionType.class, t.getClass());
         assertSame(ArrayList.class, t.getRawClass());
         assertFalse(t.isFullyTyped());
 
         // And then the proper way
-        t = tf.fromTypeReference(new TypeReference<ArrayList<String>>() { });
+        t = TypeFactory.fromTypeReference(new TypeReference<ArrayList<String>>() { });
         assertEquals(CollectionType.class, t.getClass());
         assertSame(ArrayList.class, t.getRawClass());
         assertTrue(t.isFullyTyped());
@@ -90,21 +82,19 @@ public class TestTypeFactory
 
     public void testMaps()
     {
-        TypeFactory tf = TypeFactory.instance;
-
         // Ok, first: let's test what happens when we pass 'raw' Map:
-        JavaType t = tf.fromClass(HashMap.class);
+        JavaType t = TypeFactory.fromClass(HashMap.class);
         assertEquals(MapType.class, t.getClass());
         assertSame(HashMap.class, t.getRawClass());
         assertFalse(t.isFullyTyped());
 
         // And then the proper way
-        t = tf.fromTypeReference(new TypeReference<HashMap<String,Integer>>() { });
+        t = TypeFactory.fromTypeReference(new TypeReference<HashMap<String,Integer>>() { });
         assertEquals(MapType.class, t.getClass());
         assertSame(HashMap.class, t.getRawClass());
         assertTrue(t.isFullyTyped());
         MapType mt = (MapType) t;
-        assertEquals(tf.fromClass(String.class), mt.getKeyType());
-        assertEquals(tf.fromClass(Integer.class), mt.getValueType());
+        assertEquals(TypeFactory.fromClass(String.class), mt.getKeyType());
+        assertEquals(TypeFactory.fromClass(Integer.class), mt.getValueType());
     }
 }

@@ -66,7 +66,7 @@ class StdDeserializers
         JsonDeserializer<Object> deser = (JsonDeserializer<Object>) stdDeser;
 
         for (Class<?> valueClass : valueClasses) {
-            _deserializers.put(TypeFactory.instance.fromClass(valueClass), deser);
+            _deserializers.put(TypeFactory.fromClass(valueClass), deser);
         }
     }
 }

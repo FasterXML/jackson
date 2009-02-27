@@ -2,6 +2,7 @@ package org.codehaus.jackson;
 
 import java.io.IOException;
 
+import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
@@ -43,6 +44,16 @@ public abstract class ObjectCodec
      * parameterized (generic) container type.
      */
     public abstract <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef)
+        throws IOException, JsonProcessingException;
+
+    /**
+     * Method to deserialize Json content as tree expressed
+     * using set of {@link JsonNode} instances. Returns
+     * root of the resulting tree (where root can consist
+     * of just a single node if the current event is a
+     * value event, not container).
+     */
+    public abstract <T> T readValue(JsonParser jp, JavaType valueType)
         throws IOException, JsonProcessingException;
 
     /**

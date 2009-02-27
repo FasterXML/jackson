@@ -4,7 +4,6 @@ import java.util.*;
 
 import java.lang.reflect.Method;
 
-import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerFactory;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;

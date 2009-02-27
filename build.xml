@@ -43,7 +43,7 @@
     <property name="JSON_VENDOR" value="http://www.ietf.org/rfc/rfc4627.txt" />
     <property name="IMPL_TITLE_CORE" value="Jackson JSON processor" />
     <property name="IMPL_TITLE_MAPPER" value="Data mapper for Jackson JSON processor" />
-    <property name="IMPL_VERSION" value="0.9.8" />
+    <property name="IMPL_VERSION" value="0.9.9-SNAPSHOT" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
     <path id="test-libs">

@@ -1,5 +1,8 @@
 Version: 0.9.9
 
+Release date:
+  27-Feb-2009
+
 Description:
   Another pre-1.0 release.
 
@@ -7,14 +10,19 @@ Description:
 
   * [JACKSON-59]: NPE with String[] serializer
     (reported by Kevin G)
-  * [JACKSON-60]: Method annotations did not follow intuitive expectations
-    of inheritability; now do.
   * [JACKSON-62]: NPE with JsonMappingException if source exception used
     null message.
     (reported by Justin F)
   * [JACKSON-64]: Handling of property name (with @JsonGetter, @JsonSetter)
     made bit more intuitive; uses bean naming convention if no explicit
     name given.
+
+  Improvements:
+
+  * [JACKSON-60]: Method annotations did not follow intuitive expectations
+    of inheritability; now do.
+  * [JACKSON-65]: Need to support typing using "java.lang.reflect.Type", to
+    help integration with frameworks.
 
   New features:
 

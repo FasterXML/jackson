@@ -28,7 +28,7 @@ public abstract class BasicDeserializerFactory
 {
     // // Can cache some types
 
-    final static JavaType _typeString = TypeFactory.instance.fromClass(String.class);
+    final static JavaType _typeString = TypeFactory.fromClass(String.class);
 
     /* We do some defaulting for abstract Map classes and
      * interfaces, to avoid having to use exact types or annotations in

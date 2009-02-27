@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.deser;
 import java.lang.reflect.*;
 import java.util.*;
 
-import org.codehaus.jackson.annotate.JsonUseDeserializer;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.ClassIntrospector;
@@ -108,7 +107,7 @@ public class BeanDeserializerFactory
             // note: this works since we know there's exactly one arg for methods
             Method m = am.getAnnotated();
             Type rawType = m.getGenericParameterTypes()[0];
-            JavaType type = TypeFactory.instance.fromType(rawType);
+            JavaType type = TypeFactory.fromType(rawType);
 
             /* First: does the Method specify the deserializer to use?
              * If so, let's use it.

@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
-import java.lang.reflect.AnnotatedElement;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
