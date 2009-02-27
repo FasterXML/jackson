@@ -169,12 +169,12 @@ public class BeanSerializerFactory
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
             AnnotatedMethod am = en.getValue();
-            Method m = am.getAnnotated();
-            ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
+            am.fixAccess();
             /* One more thing: does Method specify a serializer?
              * If so, let's use it.
              */
             JsonSerializer<Object> ser = findSerializerFromAnnotation(am);
+            Method m = am.getAnnotated();
             props.add(new BeanPropertyWriter(en.getKey(), m, ser));
 
         }

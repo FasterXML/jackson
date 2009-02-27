@@ -339,7 +339,7 @@ public class BasicSerializerFactory
 
         // Must be of proper type, of course
         if (!JsonSerializer.class.isAssignableFrom(serClass)) {
-            throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+ClassUtil.descFor(a.getAnnotated())+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
+            throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+a.getName()+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
         }
         try {
             Object ob = serClass.newInstance();
@@ -347,7 +347,7 @@ public class BasicSerializerFactory
                 JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
             return ser;
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+ClassUtil.descFor(a.getAnnotated())+", problem: "+e.getMessage(), e);
+            throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+a.getName()+", problem: "+e.getMessage(), e);
         }
     }
 

@@ -3,12 +3,20 @@ package org.codehaus.jackson.map.introspect;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 
+import org.codehaus.jackson.map.util.ClassUtil;
+
 public final class AnnotatedConstructor
 	extends Annotated
 {
     Constructor<?> _constructor;
 
     final AnnotationMap _annotations = new AnnotationMap();
+
+    /*
+    //////////////////////////////////////////////////////
+    // Life-cycle
+    //////////////////////////////////////////////////////
+     */
 
     public AnnotatedConstructor(Constructor<?> constructor)
     {
@@ -18,6 +26,23 @@ public final class AnnotatedConstructor
             _annotations.add(a);
         }
     }
+
+    /**
+     * Constructor called to add annotations that have not yet been
+     * added to this instance/
+     */
+    public void addAnnotationsNotPresent(Constructor<?> constructor)
+    {
+        for (Annotation a : constructor.getDeclaredAnnotations()) {
+            _annotations.addIfNotPresent(a);
+        }
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Annotated impl
+    //////////////////////////////////////////////////////
+     */
 
     public Constructor<?> getAnnotated() { return _constructor; }
 
@@ -30,19 +55,19 @@ public final class AnnotatedConstructor
         return _annotations.get(acls);
     }
 
+    /*
+    //////////////////////////////////////////////////////
+    // Extended API
+    //////////////////////////////////////////////////////
+     */
+
     public Class<?>[] getParameterTypes() {
         return _constructor.getParameterTypes();
     }
 
-    /**
-     * Constructor called to add annotations that have not yet been
-     * added to this instance/
-     */
-    public void addAnnotationsNotPresent(Constructor<?> constructor)
+    public void fixAccess()
     {
-        for (Annotation a : constructor.getDeclaredAnnotations()) {
-            _annotations.addIfNotPresent(a);
-        }
+        ClassUtil.checkAndFixAccess(_constructor);
     }
 }
 

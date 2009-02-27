@@ -261,9 +261,8 @@ public class ClassIntrospector
              */
             AnnotatedMethod old = results.put(propName, am);
             if (old != null) {
-                Method m = am.getAnnotated();
-                String oldDesc = old.getAnnotated().getDeclaringClass().getName() + "#" + old.getName();
-                String newDesc = m.getDeclaringClass().getName() + "#" + m.getName();
+                String oldDesc = old.getFullName();
+                String newDesc = am.getFullName();
                 throw new IllegalArgumentException("Conflicting getter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
             }
         }
@@ -322,9 +321,8 @@ public class ClassIntrospector
              */
             AnnotatedMethod old = results.put(propName, am);
             if (old != null) {
-                Method m = am.getAnnotated();
-                String oldDesc = old.getAnnotated().getDeclaringClass().getName() + "#" + old.getName();
-                String newDesc = m.getDeclaringClass().getName() + "#" + m.getName();
+                String oldDesc = old.getFullName();
+                String newDesc = am.getFullName();
                 throw new IllegalArgumentException("Conflicting setter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
             }
         }
@@ -350,9 +348,8 @@ public class ClassIntrospector
         if (ac == null) {
             return null;
         }
-        Constructor<?> c = ac.getAnnotated();
-        ClassUtil.checkAndFixAccess(c, c.getDeclaringClass());
-        return c;
+        ac.fixAccess();
+        return ac.getAnnotated();
     }
 
     /**
@@ -373,9 +370,8 @@ public class ClassIntrospector
                 Class<?> actArg = args[0];
                 for (Class<?> expArg : argTypes) {
                     if (expArg == actArg) {
-                        Constructor<?> c = ac.getAnnotated();
-                        ClassUtil.checkAndFixAccess(c, c.getDeclaringClass());
-                        return c;
+                        ac.fixAccess();
+                        return ac.getAnnotated();
                     }
                 }
             }
@@ -414,12 +410,11 @@ public class ClassIntrospector
 
             // And finally, must take one of expected arg types (or supertype)
             Class<?> actualArgType = am.getParameterTypes()[0];
-            Method m = am.getAnnotated();
             for (Class<?> expArgType : expArgTypes) {
                 // And one that matches what we would pass in
                 if (actualArgType.isAssignableFrom(expArgType)) {
-                    ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
-                    return m;
+                    am.fixAccess();
+                    return am.getAnnotated();
                 }
             }
         }
@@ -435,8 +430,6 @@ public class ClassIntrospector
     protected String okNameForGetter(AnnotatedMethod am)
     {
         String name = am.getName();
-        Method m = am.getAnnotated();
-
         if (name.startsWith("get")) {
             /* 16-Feb-2009, tatus: To handle [JACKSON-53], need to block
              *   CGLib-provided method "getCallbacks". Not sure of exact
@@ -446,19 +439,19 @@ public class ClassIntrospector
              *   But let's try this approach...
              */
             if ("getCallbacks".equals(name)) {
-                if (isCglibGetCallbacks(m)) {
+                if (isCglibGetCallbacks(am)) {
                     return null;
                 }
             }
-            return mangleGetterName(m, name.substring(3));
+            return mangleGetterName(am, name.substring(3));
         }
         if (name.startsWith("is")) {
             // plus, must return boolean...
-            Class<?> rt = m.getReturnType();
+            Class<?> rt = am.getReturnType();
             if (rt != Boolean.class && rt != Boolean.TYPE) {
                 return null;
             }
-            return mangleGetterName(m, name.substring(2));
+            return mangleGetterName(am, name.substring(2));
         }
         // no, not a match by name
         return null;
@@ -468,9 +461,9 @@ public class ClassIntrospector
      * @return Null to indicate that method is not a valid accessor;
      *   otherwise name of the property it is accessor for
      */
-    protected String mangleGetterName(Method method, String basename)
+    protected String mangleGetterName(Annotated a, String basename)
     {
-        return ClassUtil.manglePropertyName(basename);
+        return manglePropertyName(basename);
     }
 
     /**
@@ -481,9 +474,9 @@ public class ClassIntrospector
      * indeed injectect by Cglib. We do this by verifying that the
      * result type is "net.sf.cglib.proxy.Callback[]"
      */
-    protected boolean isCglibGetCallbacks(Method m)
+    protected boolean isCglibGetCallbacks(AnnotatedMethod am)
     {
-        Class<?> rt = m.getReturnType();
+        Class<?> rt = am.getReturnType();
         // Ok, first: must return an array type
         if (rt == null || !rt.isArray()) {
             return false;
@@ -510,14 +503,13 @@ public class ClassIntrospector
     protected String okNameForSetter(AnnotatedMethod am)
     {
         String name = am.getName();
-        Method m = am.getAnnotated();
 
         /* For mutators, let's not require it to be public. Just need
          * to be able to call it, i.e. do need to 'fix' access if so
          * (which is done at a later point as needed)
          */
         if (name.startsWith("set")) {
-            name = mangleSetterName(m, name.substring(3));
+            name = mangleSetterName(am, name.substring(3));
             if (name == null) { // plain old "set" is no good...
                 return null;
             }
@@ -530,9 +522,9 @@ public class ClassIntrospector
      * @return Null to indicate that method is not a valid accessor;
      *   otherwise name of the property it is accessor for
      */
-    protected String mangleSetterName(Method method, String basename)
+    protected String mangleSetterName(Annotated a, String basename)
     {
-        return ClassUtil.manglePropertyName(basename);
+        return manglePropertyName(basename);
     }
 
     /*
@@ -551,5 +543,66 @@ public class ClassIntrospector
         JsonIgnore ann = am.getAnnotation(JsonIgnore.class);
         return (ann != null && ann.value());
     }
+
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Property name manging (getFoo -> foo)
+    //////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method called to figure out name of the property, given 
+     * corresponding suggested name based on a method or field name.
+     *
+     * @param basename Name of accessor/mutator method, not including prefix
+     *  ("get"/"is"/"set")
+     */
+    public static String manglePropertyName(String basename)
+    {
+        int len = basename.length();
+
+        // First things first: empty basename is no good
+        if (len == 0) {
+            return null;
+        }
+        // otherwise, lower case initial chars
+        StringBuilder sb = null;
+        for (int i = 0; i < len; ++i) {
+            char upper = basename.charAt(i);
+            char lower = Character.toLowerCase(upper);
+            if (upper == lower) {
+                break;
+            }
+            if (sb == null) {
+                sb = new StringBuilder(basename);
+            }
+            sb.setCharAt(i, lower);
+        }
+        return (sb == null) ? basename : sb.toString();
+    }
+
+    /**
+     * Helper method used to describe an annotated element of type
+     * {@link Class} or {@link Method}.
+     */
+    public static String descFor(AnnotatedElement elem)
+    {
+        if (elem instanceof Class) {
+            return "class "+((Class<?>) elem).getName();
+        }
+        if (elem instanceof Method) {
+            Method m = (Method) elem;
+            return "method "+m.getName()+" (from class "+m.getDeclaringClass().getName()+")";
+        }
+        if (elem instanceof Constructor) {
+            Constructor<?> ctor = (Constructor<?>) elem;
+            // should indicate number of args?
+            return "constructor() (from class "+ctor.getDeclaringClass().getName()+")";
+        }
+        // what else?
+        return "unknown type ["+elem.getClass()+"]";
+    }
+
 }
 

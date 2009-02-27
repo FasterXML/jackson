@@ -2,6 +2,9 @@ package org.codehaus.jackson.map.introspect;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+
+import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedMethod
 	extends Annotated
@@ -9,6 +12,12 @@ public final class AnnotatedMethod
     Method _method;
 
     final AnnotationMap _annotations = new AnnotationMap();
+
+    /*
+    //////////////////////////////////////////////////////
+    // Life-cycle
+    //////////////////////////////////////////////////////
+     */
 
     public AnnotatedMethod(Method method)
     {
@@ -18,6 +27,23 @@ public final class AnnotatedMethod
             _annotations.add(a);
         }
     }
+
+    /**
+     * Method called to add annotations that have not yet been
+     * added to this instance/
+     */
+    public void addAnnotationsNotPresent(Method method)
+    {
+        for (Annotation a : method.getDeclaredAnnotations()) {
+            _annotations.addIfNotPresent(a);
+        }
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Annotated impl
+    //////////////////////////////////////////////////////
+     */
 
     public Method getAnnotated() { return _method; }
 
@@ -30,8 +56,21 @@ public final class AnnotatedMethod
         return _annotations.get(acls);
     }
     
+    /*
+    //////////////////////////////////////////////////////
+    // Extended API
+    //////////////////////////////////////////////////////
+     */
+
+    public Type[] getGenericParameterTypes() { return _method.getGenericParameterTypes(); }
     public Class<?>[] getParameterTypes() { return _method.getParameterTypes(); }
     public Class<?> getReturnType() { return _method.getReturnType(); }
+
+    public Class<?> getDeclaringClass() { return _method.getDeclaringClass(); }
+
+    public String getFullName() {
+        return getDeclaringClass().getName() + "#" + getName();
+    }
 
     public <A extends Annotation> boolean hasAnnotation(Class<A> acls)
     {
@@ -40,15 +79,9 @@ public final class AnnotatedMethod
 
     public int getAnnotationCount() { return _annotations.size(); }
 
-    /**
-     * Method called to add annotations that have not yet been
-     * added to this instance/
-     */
-    public void addAnnotationsNotPresent(Method method)
+    public void fixAccess()
     {
-        for (Annotation a : method.getDeclaredAnnotations()) {
-            _annotations.addIfNotPresent(a);
-        }
+        ClassUtil.checkAndFixAccess(_method);
     }
 
     @Override

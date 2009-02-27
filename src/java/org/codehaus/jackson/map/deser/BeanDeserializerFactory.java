@@ -102,11 +102,11 @@ public class BeanDeserializerFactory
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
             String name = en.getKey();
             AnnotatedMethod am = en.getValue();
-            Method m = am.getAnnotated();
             // need to ensure it is callable now:
-            ClassUtil.checkAndFixAccess(m, m.getDeclaringClass());
+            am.fixAccess();
 
             // note: this works since we know there's exactly one arg for methods
+            Method m = am.getAnnotated();
             Type rawType = m.getGenericParameterTypes()[0];
             JavaType type = TypeFactory.instance.fromType(rawType);
 
@@ -123,7 +123,7 @@ public class BeanDeserializerFactory
                 /* Otherwise, method may specify more specific (sub-)class for
                  * value (no need to check if explicit deser was specified):
                  */
-                type = modifyTypeByAnnotation(m, type);
+                type = modifyTypeByAnnotation(am, type);
                 prop = new SettableBeanProperty(name, type, m);
             }
             SettableBeanProperty oldP = deser.addSetter(prop);

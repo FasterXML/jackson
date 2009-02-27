@@ -7,6 +7,7 @@ import java.util.concurrent.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
+import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.ClassIntrospector;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -254,7 +255,7 @@ public abstract class BasicDeserializerFactory
         }
         // Must be of proper type, of course
         if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
-            throw new IllegalArgumentException("Invalid @JsonDeserializer annotation for "+ClassUtil.descFor(a.getAnnotated())+": value ("+deserClass.getName()+") does not implement JsonDeserializer interface");
+            throw new IllegalArgumentException("Invalid @JsonDeserializer annotation for "+a.getName()+": value ("+deserClass.getName()+") does not implement JsonDeserializer interface");
         }
         try {
             Object ob = deserClass.newInstance();
@@ -262,7 +263,7 @@ public abstract class BasicDeserializerFactory
                 JsonDeserializer<Object> ser = (JsonDeserializer<Object>) ob;
             return ser;
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+ClassUtil.descFor(a.getAnnotated())+", problem: "+e.getMessage(), e);
+            throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+a.getName()+", problem: "+e.getMessage(), e);
         }
     }
 
@@ -274,7 +275,7 @@ public abstract class BasicDeserializerFactory
      * that the Class has to be raw class of type, or its sub-class
      * (or, implementing class if original Class instance is an interface).
      *
-     * @param m Setter method that the type is associated with
+     * @param am Setter method that the type is associated with
      * @param type Type derived from the setter argument
      *
      * @return Original type if no annotations are present; or a more
@@ -282,11 +283,11 @@ public abstract class BasicDeserializerFactory
      *
      * @throws JsonMappingException if invalid annotation is found
      */
-    protected JavaType modifyTypeByAnnotation(Method m, JavaType type)
+    protected JavaType modifyTypeByAnnotation(AnnotatedMethod am, JavaType type)
         throws JsonMappingException
     {
         // first: let's check class for the instance itself:
-        JsonClass mainAnn = m.getAnnotation(JsonClass.class);
+        JsonClass mainAnn = am.getAnnotation(JsonClass.class);
         if (mainAnn != null) {
             Class<?> subclass = mainAnn.value();
             try {
@@ -297,7 +298,7 @@ public abstract class BasicDeserializerFactory
         }
 
         // then key class
-        JsonKeyClass keyAnn = m.getAnnotation(JsonKeyClass.class);
+        JsonKeyClass keyAnn = am.getAnnotation(JsonKeyClass.class);
         if (keyAnn != null) {
             // illegal to use on non-Maps
             if (!(type instanceof MapType)) {
@@ -312,10 +313,10 @@ public abstract class BasicDeserializerFactory
         }
 
         // and finally content class; only applicable to structured types
-        JsonContentClass contentAnn = m.getAnnotation(JsonContentClass.class);
+        JsonContentClass contentAnn = am.getAnnotation(JsonContentClass.class);
         if (contentAnn != null) {
             if (!type.isContainerType()) {
-                throw new JsonMappingException("Illegal @JsonContentClass annotation on "+ClassUtil.descFor(m)+"; can only be used for container types (Collections, Maps, arrays");
+                throw new JsonMappingException("Illegal @JsonContentClass annotation on "+am.getName()+"; can only be used for container types (Collections, Maps, arrays");
             }
             Class<?> cc = contentAnn.value();
             try {

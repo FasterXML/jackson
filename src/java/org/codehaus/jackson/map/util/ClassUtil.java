@@ -134,79 +134,23 @@ public final class ClassUtil
      * usually not); and if not, if there is a work-around for
      * the problem.
      */
-    public static void checkAndFixAccess(AccessibleObject obj, Class<?> declClass)
+    public static void checkAndFixAccess(Member member)
     {
+        // We know all members are also accessible objects...
+        AccessibleObject ao = (AccessibleObject) member;
+
         /* 14-Jan-2009, tatu: It seems safe and potentially beneficial to
          *   always to make it accessible (latter because it will force
          *   skipping checks we have no use for...), so let's always call it.
          */
         //if (!obj.isAccessible()) {
             try {
-                obj.setAccessible(true);
+                ao.setAccessible(true);
             } catch (SecurityException se) {
-                throw new IllegalArgumentException("Can not access "+obj+" (from class "+declClass.getName()+"; failed to set access: "+se.getMessage());
+                Class<?> declClass = member.getDeclaringClass();
+                throw new IllegalArgumentException("Can not access "+member+" (from class "+declClass.getName()+"; failed to set access: "+se.getMessage());
             }
             //}
     }
-
-    /*
-    //////////////////////////////////////////////////////////
-    // Property name manging (getFoo -> foo)
-    //////////////////////////////////////////////////////////
-     */
-
-    /**
-     * Method called to figure out name of the property, given 
-     * corresponding suggested name based on a method or field name.
-     *
-     * @param basename Name of accessor/mutator method, not including prefix
-     *  ("get"/"is"/"set")
-     */
-    public static String manglePropertyName(String basename)
-    {
-        int len = basename.length();
-
-        // First things first: empty basename is no good
-        if (len == 0) {
-            return null;
-        }
-        // otherwise, lower case initial chars
-        StringBuilder sb = null;
-        for (int i = 0; i < len; ++i) {
-            char upper = basename.charAt(i);
-            char lower = Character.toLowerCase(upper);
-            if (upper == lower) {
-                break;
-            }
-            if (sb == null) {
-                sb = new StringBuilder(basename);
-            }
-            sb.setCharAt(i, lower);
-        }
-        return (sb == null) ? basename : sb.toString();
-    }
-
-    /**
-     * Helper method used to describe an annotated element of type
-     * {@link Class} or {@link Method}.
-     */
-    public static String descFor(AnnotatedElement elem)
-    {
-        if (elem instanceof Class) {
-            return "class "+((Class<?>) elem).getName();
-        }
-        if (elem instanceof Method) {
-            Method m = (Method) elem;
-            return "method "+m.getName()+" (from class "+m.getDeclaringClass().getName()+")";
-        }
-        if (elem instanceof Constructor) {
-            Constructor<?> ctor = (Constructor<?>) elem;
-            // should indicate number of args?
-            return "constructor() (from class "+ctor.getDeclaringClass().getName()+")";
-        }
-        // what else?
-        return "unknown type ["+elem.getClass()+"]";
-    }
-
 }
 
