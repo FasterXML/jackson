@@ -162,7 +162,7 @@ public class StdSerializerProvider
 
     /*
     ////////////////////////////////////////////////////
-    // Main entry method to be called by JavaTypeMapper
+    // Methods to be called by JavaTypeMapper
     ////////////////////////////////////////////////////
      */
 
@@ -188,9 +188,14 @@ public class StdSerializerProvider
         inst._serializeValue(jgen, value);
     }
 
+    public boolean hasSerializerFor(Class<?> cls, SerializerFactory jsf)
+    {
+        return createInstance(jsf)._findExplicitSerializer(cls) != null;
+    }
+
     /**
-     * Method called on the actual non-blueprint provider instance object, to kick off
-     * the serialization.
+     * Method called on the actual non-blueprint provider instance object,
+     * to kick off the serialization.
      */
     protected  void _serializeValue(JsonGenerator jgen, Object value)
         throws IOException, JsonProcessingException
@@ -260,15 +265,8 @@ public class StdSerializerProvider
         }
 
         // If neither, must create
-        try {
-            ser = _createSerializer(type);
-        } catch (IllegalArgumentException iae) {
-            /* We better only expose checked exceptions, since those
-             * are what caller is expected to handle
-             */
-            throw new JsonMappingException(iae.getMessage(), null, iae);
-        }
-
+        ser = _createAndCacheSerializer(type);
+        // Not found? Must use the unknown type serializer
         /* Couldn't create? Need to return the fallback serializer, which
          * most likely will report an error: but one question is whether
          * we should cache it?
@@ -276,16 +274,9 @@ public class StdSerializerProvider
         if (ser == null) {
             ser = getUnknownTypeSerializer(type);
             // Should this be added to lookups?
-            if (!CACHE_UNKNOWN_MAPPINGS) {
-                return ser;
+            if (CACHE_UNKNOWN_MAPPINGS) {
+                _serializerCache.addSerializer(type, ser);
             }
-        }
-        _serializerCache.addSerializer(type, ser);
-        /* Finally: some serializers want to do post-processing, after
-         * getting registered (to handle cyclic deps).
-         */
-        if (ser instanceof ResolvableSerializer) {
-            _resolveSerializer((ResolvableSerializer)ser);
         }
         return ser;
     }
@@ -316,6 +307,59 @@ public class StdSerializerProvider
     // Helper methods: can be overridden by sub-classes
     ////////////////////////////////////////////////////////////////
      */
+
+    /**
+     * Method that will try to find a serializer, either from cache
+     * or by constructing one; but will not return an "unknown" serializer
+     * if this can not be done.
+     */
+    protected JsonSerializer<Object> _findExplicitSerializer(Class<?> type)
+    {        
+        // Fast lookup from local lookup thingy works?
+        JsonSerializer<Object> ser = _knownSerializers.get(type);
+        if (ser != null) {
+            return ser;
+        }
+        // If not, maybe shared map already has it?
+        ser = _serializerCache.findSerializer(type);
+        if (ser != null) {
+            return ser;
+        }
+        try {
+            return _createAndCacheSerializer(type);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Method that will try to construct a value aerializer; and if
+     * one is succesfully created, cache it for reuse.
+     */
+    protected JsonSerializer<Object> _createAndCacheSerializer(Class<?> type)
+        throws JsonMappingException
+    {        
+        JsonSerializer<Object> ser;
+        try {
+            ser = _createSerializer(type);
+        } catch (IllegalArgumentException iae) {
+            /* We better only expose checked exceptions, since those
+             * are what caller is expected to handle
+             */
+            throw new JsonMappingException(iae.getMessage(), null, iae);
+        }
+
+        if (ser != null) {
+            _serializerCache.addSerializer(type, ser);
+            /* Finally: some serializers want to do post-processing, after
+             * getting registered (to handle cyclic deps).
+             */
+            if (ser instanceof ResolvableSerializer) {
+                _resolveSerializer((ResolvableSerializer)ser);
+            }
+        }
+        return ser;
+    }
 
     @SuppressWarnings("unchecked")
     protected JsonSerializer<Object> _createSerializer(Class<?> type)

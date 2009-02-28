@@ -23,6 +23,8 @@ Description:
     of inheritability; now do.
   * [JACKSON-65]: Need to support typing using "java.lang.reflect.Type", to
     help integration with frameworks.
+  * [JACKSON-66]: ObjectMapper now has "canSerialize" and "canDeserialize"
+    methods to help frameworks figure out what is supported.
 
   New features:
 

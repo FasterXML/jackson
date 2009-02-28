@@ -105,34 +105,13 @@ public class StdDeserializerProvider
             return deser;
         }
         // If not, need to construct.
-        try {
-            deser = _createDeserializer(type);
-        } catch (IllegalArgumentException iae) {
-            /* We better only expose checked exceptions, since those
-             * are what caller is expected to handle
-             */
-            throw new JsonMappingException(iae.getMessage(), null, iae);
-        }
+        deser = _createAndCacheValueDeserializer(type, referrer, refPropName);
         if (deser == null) {
             /* Should we let caller handle it? Let's have a helper method
              * decide it; can throw an exception, or return a valid
              * deserializer
              */
             deser = _handleUnknownValueDeserializer(type);
-        }
-        /* Finally: some deserializers want to do post-processing.
-         * Those types also must be added to the lookup map, to prevent
-         * problems due to cyclic dependencies (which are completely
-         * legal).
-         */
-        if (deser instanceof ResolvableDeserializer) {
-            _cachedDeserializers.put(type, deser);
-            _resolveDeserializer((ResolvableDeserializer)deser);
-        } else if (type.isEnumType()) {
-            /* Let's also cache enum type deserializers,
-             * they are somewhat costly as well.
-             */
-            _cachedDeserializers.put(type, deser);
         }
         return deser;
     }
@@ -163,6 +142,26 @@ public class StdDeserializerProvider
         return _handleUnknownKeyDeserializer(type);
     }
 
+    public boolean hasValueDeserializerFor(JavaType type)
+    {
+        /* Note: mostly copied from findValueDeserializer, except for
+         * handling of unknown types
+         */
+        JsonDeserializer<Object> deser = _findSimpleDeserializer(type);
+        if (deser == null) {
+            // If not, maybe we have already resolved this type?
+            deser = _findCachedDeserializer(type);
+            if (deser == null) {
+                try {
+                    deser = _createAndCacheValueDeserializer(type, null, null);
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+        }
+        return (deser != null);
+    }
+
     /*
     ////////////////////////////////////////////////////////////////
     // Overridable helper methods
@@ -179,11 +178,48 @@ public class StdDeserializerProvider
         return _cachedDeserializers.get(type);
     }
 
+    /**
+     * Method that will try to create a deserializer for given type,
+     * and resolve and cache it if necessary
+     */
+    protected JsonDeserializer<Object>_createAndCacheValueDeserializer(JavaType type,
+                                                                       JavaType referrer, String refPropName)
+        throws JsonMappingException
+    {
+        JsonDeserializer<Object> deser;
+        try {
+            deser = _createDeserializer(type, referrer, refPropName);
+        } catch (IllegalArgumentException iae) {
+            /* We better only expose checked exceptions, since those
+             * are what caller is expected to handle
+             */
+            throw new JsonMappingException(iae.getMessage(), null, iae);
+        }
+        /* Finally: some deserializers want to do post-processing.
+         * Those types also must be added to the lookup map, to prevent
+         * problems due to cyclic dependencies (which are completely
+         * legal).
+         */
+        if (deser != null) {
+            if (deser instanceof ResolvableDeserializer) {
+                _cachedDeserializers.put(type, deser);
+                _resolveDeserializer((ResolvableDeserializer)deser);
+            } else if (type.isEnumType()) {
+                /* Let's also cache enum type deserializers,
+                 * they are somewhat costly as well.
+                 */
+                _cachedDeserializers.put(type, deser);
+            }
+        }
+        return deser;
+    }
+
     /* Refactored so we can isolate the casts that require suppression
      * of type-safety warnings.
      */
     @SuppressWarnings("unchecked")
-	protected JsonDeserializer<Object> _createDeserializer(JavaType type)
+    protected JsonDeserializer<Object> _createDeserializer(JavaType type,
+                                                               JavaType referrer, String refPropName)
         throws JsonMappingException
     {
         if (type.isEnumType()) {

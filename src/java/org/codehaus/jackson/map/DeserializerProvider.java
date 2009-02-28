@@ -53,4 +53,11 @@ public abstract class DeserializerProvider
      */
     public abstract KeyDeserializer findKeyDeserializer(JavaType type)
         throws JsonMappingException;
+
+    /**
+     * Method called to find out whether provider would be able to find
+     * a deserializer for given type, using a root reference (i.e. not
+     * through fields or membership in an array or collection)
+     */
+    public abstract boolean hasValueDeserializerFor(JavaType type);
 }

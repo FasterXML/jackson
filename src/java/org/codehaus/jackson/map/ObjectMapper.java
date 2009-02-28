@@ -264,6 +264,42 @@ public class ObjectMapper
 
     /*
     ////////////////////////////////////////////////////
+    // Extended Public API, accessors
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be called to check whether mapper thinks
+     * it could serialize an instance of given Class.
+     * Check is done
+     * by checking whether a serializer can be found for the type.
+     *
+     * @return True if mapper can find a serializer for instances of
+     *  given class (potentially serializable), false otherwise (not
+     *  serializable)
+     */
+    public boolean canSerialize(Class<?> type)
+    {
+        return _serializerProvider.hasSerializerFor(type, _serializerFactory);
+    }
+
+    /**
+     * Method that can be called to check whether mapper thinks
+     * it could deserialize an Object of given type.
+     * Check is done
+     * by checking whether a deserializer can be found for the type.
+     *
+     * @return True if mapper can find a serializer for instances of
+     *  given class (potentially serializable), false otherwise (not
+     *  serializable)
+     */
+    public boolean canDeserialize(JavaType type)
+    {
+        return _deserializerProvider.hasValueDeserializerFor(type);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
     // Extended Public API, deserialization,
     // convenience methods
     ////////////////////////////////////////////////////

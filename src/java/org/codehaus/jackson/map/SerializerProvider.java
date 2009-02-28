@@ -18,7 +18,7 @@ public abstract class SerializerProvider
 {
     /*
     //////////////////////////////////////////////////////
-    // Entry point for ObjectMapper
+    // Methods ObjectMapper calls
     //////////////////////////////////////////////////////
      */
 
@@ -33,6 +33,15 @@ public abstract class SerializerProvider
     public abstract void serializeValue(JsonGenerator jgen, Object value,
                                         SerializerFactory jsf)
         throws IOException, JsonGenerationException;
+
+    /**
+     * Method that can be called to see if this serializer provider
+     * can find a serializer for an instance of given class.
+     *<p>
+     * Note that no Exceptions are thrown, including unchecked ones:
+     * implementations are to swallow exceptions if necessary.
+     */
+    public abstract boolean hasSerializerFor(Class<?> cls, SerializerFactory jsf);
 
     /*
     //////////////////////////////////////////////////////
