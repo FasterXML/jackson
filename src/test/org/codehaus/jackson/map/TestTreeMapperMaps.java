@@ -5,7 +5,7 @@ import main.BaseTest;
 import java.util.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.node.*;
 
 /**
  * Unit tests to verify that Json Objects map property to Map-like
@@ -33,12 +33,12 @@ public class TestTreeMapperMaps
         assertTrue(it.hasNext());
         JsonNode n = it.next();
         assertNotNull(n);
-        assertEquals(mapper.numberNode(1), n);
+        assertEquals(IntNode.valueOf(1), n);
 
         assertTrue(it.hasNext());
         n = it.next();
         assertNotNull(n);
-        assertEquals(mapper.textNode("x"), n);
+        assertEquals(TextNode.valueOf("x"), n);
 
         assertFalse(it.hasNext());
 
@@ -49,17 +49,17 @@ public class TestTreeMapperMaps
         assertTrue(fit.hasNext());
         Map.Entry<String,JsonNode> en = fit.next();
         assertEquals("key", en.getKey());
-        assertEquals(mapper.numberNode(1), en.getValue());
+        assertEquals(IntNode.valueOf(1), en.getValue());
 
         assertTrue(fit.hasNext());
         en = fit.next();
         assertEquals("b", en.getKey());
-        assertEquals(mapper.textNode("x"), en.getValue());
+        assertEquals(TextNode.valueOf("x"), en.getValue());
 
         // Plus: we should be able to modify the node via iterator too:
         fit.remove();
         assertEquals(1, obNode.size());
-        assertEquals(mapper.numberNode(1), root.get("key"));
+        assertEquals(IntNode.valueOf(1), root.get("key"));
         assertNull(root.get("b"));
     }
 }

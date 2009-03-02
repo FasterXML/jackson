@@ -70,6 +70,7 @@ public abstract class ContainerNode
     public final BinaryNode binaryNode(byte[] data) { return _nodeCreator.binaryNode(data); }
     public final BinaryNode binaryNode(byte[] data, int offset, int length) { return _nodeCreator.binaryNode(data, offset, length); }
 
+    public final POJONode POJONode(Object pojo) { return _nodeCreator.POJONode(pojo); }
 
     /*
     ////////////////////////////////////////////////////

@@ -138,7 +138,7 @@ public class TestTreeMapperDeserializer
         assertEquals(String.valueOf(value), result.getValueAsText());
 
         // also, equality should work ok
-        assertEquals(result, mapper.numberNode(value));
+        assertEquals(result, DoubleNode.valueOf(value));
     }
 
     public void testInt()
@@ -165,7 +165,7 @@ public class TestTreeMapperDeserializer
         assertEquals((long) value, result.getLongValue());
 
         // also, equality should work ok
-        assertEquals(result, mapper.numberNode(value));
+        assertEquals(result, IntNode.valueOf(value));
     }
 
     public void testLong()
@@ -192,7 +192,7 @@ public class TestTreeMapperDeserializer
         assertEquals((double) value, result.getDoubleValue());
 
         // also, equality should work ok
-        assertEquals(result, mapper.numberNode(value));
+        assertEquals(result, LongNode.valueOf(value));
     }
 
     public void testNull()
@@ -206,7 +206,7 @@ public class TestTreeMapperDeserializer
         assertEquals("null", result.getValueAsText());
 
         // also, equality should work ok
-        assertEquals(result, mapper.nullNode());
+        assertEquals(result, NullNode.instance);
     }
 
     public void testDecimalNode()
@@ -215,7 +215,7 @@ public class TestTreeMapperDeserializer
         // no "natural" way to get it, must construct
         TreeMapper mapper = new TreeMapper();
         BigDecimal value = new BigDecimal("0.1");
-        JsonNode result = mapper.numberNode(value);
+        JsonNode result = DecimalNode.valueOf(value);
 
         assertFalse(result.isArray());
         assertFalse(result.isObject());
@@ -235,7 +235,7 @@ public class TestTreeMapperDeserializer
         assertEquals(value.toString(), result.getValueAsText());
 
         // also, equality should work ok
-        assertEquals(result, mapper.numberNode(value));
+        assertEquals(result, DecimalNode.valueOf(value));
     }
 
     public void testSimpleArray() throws Exception
@@ -252,18 +252,18 @@ public class TestTreeMapperDeserializer
         assertFalse(result.isTextual());
 
         // and let's add stuff...
-        result.add(mapper.booleanNode(false));
-        result.insert(0, mapper.nullNode());
+        result.add(false);
+        result.insertNull(0);
 
         // should be equal to itself no matter what
         assertEquals(result, result);
         assertFalse(result.equals(null)); // but not to null
 
         // plus see that we can access stuff
-        assertEquals(mapper.nullNode(), result.path(0));
-        assertEquals(mapper.nullNode(), result.get(0));
-        assertEquals(BooleanNode.getFalse(), result.path(1));
-        assertEquals(BooleanNode.getFalse(), result.get(1));
+        assertEquals(NullNode.instance, result.path(0));
+        assertEquals(NullNode.instance, result.get(0));
+        assertEquals(BooleanNode.FALSE, result.path(1));
+        assertEquals(BooleanNode.FALSE, result.get(1));
         assertEquals(2, result.size());
 
         assertNull(result.get(-1));
@@ -274,19 +274,19 @@ public class TestTreeMapperDeserializer
 
         // then construct and compare
         ArrayNode array2 = mapper.arrayNode();
-        array2.add(mapper.nullNode());
-        array2.add(BooleanNode.getFalse());
+        array2.addNull();
+        array2.add(false);
         assertEquals(result, array2);
 
         // plus remove entries
         JsonNode rm1 = array2.remove(0);
-        assertEquals(mapper.nullNode(), rm1);
+        assertEquals(NullNode.instance, rm1);
         assertEquals(1, array2.size());
-        assertEquals(BooleanNode.getFalse(), array2.get(0));
+        assertEquals(BooleanNode.FALSE, array2.get(0));
         assertFalse(result.equals(array2));
 
         JsonNode rm2 = array2.remove(0);
-        assertEquals(BooleanNode.getFalse(), rm2);
+        assertEquals(BooleanNode.FALSE, rm2);
         assertEquals(0, array2.size());
     }
 

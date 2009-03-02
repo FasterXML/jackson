@@ -128,19 +128,10 @@ public final class ArrayNode
      */
     public void insert(int index, JsonNode value)
     {
-        if (_children == null) {
-            _children = new ArrayList<JsonNode>();
-            _children.add(value);
-            return;
+        if (value == null) {
+            value = nullNode();
         }
-
-        if (index < 0) {
-            _children.add(0, value);
-        } else if (index >= _children.size()) {
-            _children.add(value);
-        } else {
-            _children.add(index, value);
-        }
+        _insert(index, value);
     }
 
     /**
@@ -166,8 +157,7 @@ public final class ArrayNode
      * Method that will construct an ArrayNode and add it as a
      * field of this ObjectNode, replacing old value, if any.
      *
-     * @return Newly constructed ArrayNode (NOT the old value,
-     *   which could be of any type)
+     * @return Newly constructed ArrayNode
      */
     public ArrayNode addArray()
     {
@@ -177,11 +167,10 @@ public final class ArrayNode
     }
 
     /**
-     * Method that will construct an ArrayNode and add it as a
-     * field of this ObjectNode, replacing old value, if any.
+     * Method that will construct an ObjectNode and add it at the end
+     * of this array node.
      *
-     * @return Newly constructed ArrayNode (NOT the old value,
-     *   which could be of any type)
+     * @return Newly constructed ObjectNode
      */
     public ObjectNode addObject()
     {
@@ -191,44 +180,132 @@ public final class ArrayNode
     }
 
     /**
-     * Method for setting value of a field to specified numeric value.
+     * Method that will construct a POJONode and add it at the end
+     * of this array node.
      */
-    public void add(String fieldName, int v) { _add(numberNode(v)); }
+    public void addPOJO(Object value)
+    {
+        _add(POJONode(value));
+    }
+
+    public void addNull()
+    {
+        _add(nullNode());
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void add(String fieldName, long v) { _add(numberNode(v)); }
+    public void add(int v) { _add(numberNode(v)); }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void add(String fieldName, float v) { _add(numberNode(v)); }
+    public void add(long v) { _add(numberNode(v)); }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void add(String fieldName, double v) { _add(numberNode(v)); }
+    public void add(float v) { _add(numberNode(v)); }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void add(String fieldName, BigDecimal v) { _add(numberNode(v)); }
+    public void add(double v) { _add(numberNode(v)); }
+
+    /**
+     * Method for setting value of a field to specified numeric value.
+     */
+    public void add(BigDecimal v) { _add(numberNode(v)); }
 
     /**
      * Method for setting value of a field to specified String value.
      */
-    public void add(String fieldName, String v) { _add(textNode(v)); }
+    public void add(String v) { _add(textNode(v)); }
 
     /**
      * Method for setting value of a field to specified String value.
      */
-    public void add(String fieldName, boolean v) { _add(booleanNode(v)); }
+    public void add(boolean v) { _add(booleanNode(v)); }
 
     /**
      * Method for setting value of a field to specified binary value
      */
-    public void add(String fieldName, byte[] v) { _add(binaryNode(v)); }
+    public void add(byte[] v) { _add(binaryNode(v)); }
+
+    public ArrayNode insertArray(int index)
+    {
+        ArrayNode n  = arrayNode();
+        _insert(index, n);
+        return n;
+    }
+
+    /**
+     * Method that will construct an ObjectNode and add it at the end
+     * of this array node.
+     *
+     * @return Newly constructed ObjectNode
+     */
+    public ObjectNode insertObject(int index)
+    {
+        ObjectNode n  = objectNode();
+        _insert(index, n);
+        return n;
+    }
+
+    /**
+     * Method that will construct a POJONode and add it at the end
+     * of this array node.
+     */
+    public void insertPOJO(int index, Object value)
+    {
+        _insert(index, POJONode(value));
+    }
+
+    public void insertNull(int index)
+    {
+        _insert(index, nullNode());
+    }
+
+    /**
+     * Method for setting value of a field to specified numeric value.
+     */
+    public void insert(int index, int v) { _insert(index, numberNode(v)); }
+
+    /**
+     * Method for setting value of a field to specified numeric value.
+     */
+    public void insert(int index, long v) { _insert(index, numberNode(v)); }
+
+    /**
+     * Method for setting value of a field to specified numeric value.
+     */
+    public void insert(int index, float v) { _insert(index, numberNode(v)); }
+
+    /**
+     * Method for setting value of a field to specified numeric value.
+     */
+    public void insert(int index, double v) { _insert(index, numberNode(v)); }
+
+    /**
+     * Method for setting value of a field to specified numeric value.
+     */
+    public void insert(int index, BigDecimal v) { _insert(index, numberNode(v)); }
+
+    /**
+     * Method for setting value of a field to specified String value.
+     */
+    public void insert(int index, String v) { _insert(index, textNode(v)); }
+
+    /**
+     * Method for setting value of a field to specified String value.
+     */
+    public void insert(int index, boolean v) { _insert(index, booleanNode(v)); }
+
+    /**
+     * Method for setting value of a field to specified binary value
+     */
+    public void insert(int index, byte[] v) { _insert(index, binaryNode(v)); }
 
     /*
     ////////////////////////////////////////////////////////
@@ -306,6 +383,22 @@ public final class ArrayNode
             _children = new ArrayList<JsonNode>();
         }
         _children.add(node);
+    }
+
+    private void _insert(int index, JsonNode node)
+    {
+        if (_children == null) {
+            _children = new ArrayList<JsonNode>();
+            _children.add(node);
+            return;
+        }
+        if (index < 0) {
+            _children.add(0, node);
+        } else if (index >= _children.size()) {
+            _children.add(node);
+        } else {
+            _children.add(index, node);
+        }
     }
 
     private boolean _sameChildren(ArrayList<JsonNode> otherChildren)

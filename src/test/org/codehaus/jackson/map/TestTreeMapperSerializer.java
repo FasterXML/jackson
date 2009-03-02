@@ -6,8 +6,7 @@ import static org.junit.Assert.*;
 import java.io.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.node.*;
 
 /**
  * This unit test suite tries to verify that the "JSON type"
@@ -32,12 +31,12 @@ public class TestTreeMapperSerializer
         TreeMapper mapper = new TreeMapper();
 
         ArrayNode root = mapper.arrayNode();
-        root.add(mapper.textNode(TEXT1));
-        root.add(mapper.numberNode(3));
+        root.add(TEXT1);
+        root.add(3);
         ObjectNode obj = root.addObject();
-        obj.put(FIELD1, mapper.booleanNode(true));
-        obj.put(FIELD2, mapper.arrayNode());
-        root.add(mapper.booleanNode(false));
+        obj.put(FIELD1, true);
+        obj.putArray(FIELD2);
+        root.add(false);
 
         /* Ok, ready... let's serialize using one of two alternate
          * methods: first preferred (using generator)
@@ -65,10 +64,10 @@ public class TestTreeMapperSerializer
         TreeMapper mapper = new TreeMapper();
 
         ObjectNode root = mapper.objectNode();
-        root.put(FIELD4, mapper.textNode(TEXT2));
-        root.put(FIELD3, mapper.numberNode(-1));
-        root.put(FIELD2, mapper.arrayNode());
-        root.put(FIELD1, mapper.numberNode(DOUBLE_VALUE));
+        root.put(FIELD4, TEXT2);
+        root.put(FIELD3, -1);
+        root.putArray(FIELD2);
+        root.put(FIELD1, DOUBLE_VALUE);
 
         /* Let's serialize using one of two alternate methods:
          * first preferred (using generator)
@@ -99,7 +98,7 @@ public class TestTreeMapperSerializer
         TreeMapper mapper = new TreeMapper();
         ArrayNode root = mapper.arrayNode();
         for (int i = -20; i <= 20; ++i) {
-            JsonNode n = mapper.numberNode(i);
+            JsonNode n = root.numberNode(i);
             root.add(n);
             // Hmmh. Not sure why toString() won't be triggered otherwise...
             assertEquals(String.valueOf(i), n.toString());
@@ -134,7 +133,7 @@ public class TestTreeMapperSerializer
     {
         TreeMapper mapper = new TreeMapper();
         StringWriter sw = new StringWriter();
-        mapper.writeTree(mapper.nullNode(), sw);
+        mapper.writeTree(NullNode.instance, sw);
         assertEquals("null", sw.toString());
     }
 
@@ -148,7 +147,7 @@ public class TestTreeMapperSerializer
             data[i] = (byte) i;
         }
         StringWriter sw = new StringWriter();
-        mapper.writeTree(mapper.binaryNode(data), sw);
+        mapper.writeTree(BinaryNode.valueOf(data), sw);
 
         JsonParser jp = new JsonFactory().createJsonParser(sw.toString());
         // note: can't determine it's binary from json alone:

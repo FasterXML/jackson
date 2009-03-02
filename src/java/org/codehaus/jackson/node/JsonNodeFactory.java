@@ -123,6 +123,6 @@ public interface JsonNodeFactory
      * using data binding, usually as Json Objects, but in some
      * cases as Json Strings or other node types.
      */
-    //public POJONode objectNode();
+    public POJONode POJONode(Object pojo);
 }
 

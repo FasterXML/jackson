@@ -179,10 +179,10 @@ public final class ObjectNode
     }
 
     /**
-     * Method that will construct an ArrayNode and add it as a
+     * Method that will construct an ObjectNode and add it as a
      * field of this ObjectNode, replacing old value, if any.
      *
-     * @return Newly constructed ArrayNode (NOT the old value,
+     * @return Newly constructed ObjectNode (NOT the old value,
      *   which could be of any type)
      */
     public ObjectNode putObject(String fieldName)
@@ -190,6 +190,16 @@ public final class ObjectNode
         ObjectNode n  = objectNode();
         _put(fieldName, n);
         return n;
+    }
+
+    public void putPOJO(String fieldName, Object pojo)
+    {
+        _put(fieldName, POJONode(pojo));
+    }
+
+    public void putNull(String fieldName)
+    {
+        _put(fieldName, nullNode());
     }
 
     /**

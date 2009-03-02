@@ -30,6 +30,7 @@ public class JsonNodeDeserializer
 
     public ArrayNode arrayNode() { return new ArrayNode(this); }
     public ObjectNode objectNode() { return new ObjectNode(this); }
+    public POJONode POJONode(Object pojo) { return new POJONode(pojo); }
     public NullNode nullNode() { return NullNode.getInstance(); }
 
     public TextNode textNode(String text) { return TextNode.valueOf(text); }
