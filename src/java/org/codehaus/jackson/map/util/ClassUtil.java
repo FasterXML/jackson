@@ -122,6 +122,16 @@ public final class ClassUtil
         return false;
     }
 
+    /**
+     * Helper method that checks if given class is a concrete one;
+     * that is, not an interface or abstract class.
+     */
+    public static boolean isConcrete(Class<?> type)
+    {
+        int mod = type.getModifiers();
+        return (mod & (Modifier.INTERFACE | Modifier.ABSTRACT)) == 0;
+    }
+
     /*
     //////////////////////////////////////////////////////////
     // Access checking/handling methods

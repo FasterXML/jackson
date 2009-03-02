@@ -1,4 +1,4 @@
-package org.codeahus.jackson.jaxrs;
+package org.codehaus.jackson.jaxrs;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
@@ -12,21 +12,28 @@ import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 /**
- * This is a basic implementation of JAX-RS abstractions
- * that are needed for straight-forward and efficient binding of
+ * Basic implementation of JAX-RS abstractions ({@link MessageBodyReader},
+ * {@link MessageBodyWriter}) needed for binding
  * JSON ("application/json") content to and from POJOs.
+ *<p>
+ * Currently most configurability is via caller configuring
+ * {@link ObjectMapper} it uses to construct this provider.
+ * Additionally it is possible to enable detection of which types
+ * can be serialized/deserialized, which is not enabled by default
+ * (since it is usually not needed).
  */
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public class JsonProvider
+@Produces(MediaType.APPLICATION_JSON)
+public class JacksonJsonProvider
     implements
-        MessageBodyReader<Object>, MessageBodyWriter<Object>
+        MessageBodyReader<Object>,
+        MessageBodyWriter<Object>
 {
     /*
     ///////////////////////////////////////////////////////
@@ -34,15 +41,37 @@ import org.codehaus.jackson.map.type.TypeFactory;
     ///////////////////////////////////////////////////////
      */
 
+    /**
+     * Factory used to construct underlying JSON parsers and generators
+     */
     JsonFactory _jsonFactory;
 
+    /**
+     * Mapper that is responsible for data binding.
+     */
     ObjectMapper _objectMapper;
 
     /*
     ///////////////////////////////////////////////////////
-    // Provider objects we use
+    // Configuration
     ///////////////////////////////////////////////////////
      */
+
+    /**
+     * Whether we want to actually check that Jackson has
+     * a serializer for given type. Since this should generally
+     * be the case (due to auto-discovery) and since the call
+     * to check this is not free, defaults to false.
+     */
+    protected boolean _cfgCheckCanSerialize = false;
+
+    /**
+     * Whether we want to actually check that Jackson has
+     * a deserializer for given type. Since this should generally
+     * be the case (due to auto-discovery) and since the call
+     * to check this is not free, defaults to false.
+     */
+    protected boolean _cfgCheckCanDeserialize = false;
 
     /*
     ///////////////////////////////////////////////////////
@@ -80,6 +109,9 @@ import org.codehaus.jackson.map.type.TypeFactory;
     public ObjectMapper getObjectMapper() { return _objectMapper; }
     public void setObjectMapper(ObjectMapper m) { _objectMapper = m; }
 
+    public void checkCanDeserialize(boolean state) { _cfgCheckCanDeserialize = state; }
+    public void checkCanSerialize(boolean state) { _cfgCheckCanSerialize = state; }
+
     /*
     ////////////////////////////////////////////////////
     // MessageBodyReader impl
@@ -88,18 +120,24 @@ import org.codehaus.jackson.map.type.TypeFactory;
 
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
-        /* To know for sure we'd need to find a deserializer; for now,
-         * let's claim we can handle anything.
-         */
-        return (MediaType.APPLICATION_JSON_TYPE.equals(mediaType));
+        // Do we have to verify this here? Just to be safe:
+        if (!MediaType.APPLICATION_JSON_TYPE.equals(mediaType)) {
+            return false;
+        }
+        // Also: if we really want to verify that we can serialize, we'll check:
+        if (_cfgCheckCanSerialize) {
+            if (!_objectMapper.canDeserialize(_convertType(type))) {
+                return false;
+            }
+        }
+        return true;
     }
     
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String,String> httpHeaders, InputStream entityStream) 
         throws IOException
     {
-        JavaType jtype = TypeFactory.fromType(genericType);
         JsonParser jp = _jsonFactory.createJsonParser(entityStream);
-        return _objectMapper.readValue(jp, jtype);
+        return _objectMapper.readValue(jp, _convertType(genericType));
     }
 
     /*
@@ -110,11 +148,24 @@ import org.codehaus.jackson.map.type.TypeFactory;
 
     public long getSize(Object value, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
+        /* In general figuring output size requires actual writing; usually not
+         * worth it to write everything twice.
+         */
         return -1;
     }
 
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
+        // Do we have to verify this here? Just to be safe:
+        if (!MediaType.APPLICATION_JSON_TYPE.equals(mediaType)) {
+            return false;
+        }
+        // Also: if we really want to verify that we can deserialize, we'll check:
+        if (_cfgCheckCanSerialize) {
+            if (!_objectMapper.canSerialize(type)) {
+                return false;
+            }
+        }
         /* To know for sure we'd need to find a serializer; for now,
          * let's claim we can handle anything.
          */
@@ -129,5 +180,20 @@ import org.codehaus.jackson.map.type.TypeFactory;
          */
         JsonGenerator jg = _jsonFactory.createJsonGenerator(entityStream, JsonEncoding.UTF8);
         _objectMapper.writeValue(jg, value);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Helper methods
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method used to construct a JDK generic type into type definition
+     * Jackson understands.
+     */
+    protected JavaType _convertType(Type jdkType)
+    {
+        return TypeFactory.fromType(jdkType);
     }
 }

@@ -1,7 +1,7 @@
 Version: 0.9.9
 
 Release date:
-  28-Feb-2009
+  02-Mar-2009
 
 Description:
   Another pre-1.0 release.
@@ -34,6 +34,8 @@ Description:
   * [JACKSON-58]: Allow defining custom global Enum serializer
     (to, for example, make Enums be serialized using Enum.toString(),
      or lower-case name or such)
+  * [JACKSON-67]: Add JAX-RS provider based on Jackson that can handle
+    JSON content type; initially as a separate jar.
 
   Other:
 

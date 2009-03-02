@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.DeserializerFactory;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 
@@ -41,8 +42,8 @@ public class CustomDeserializerFactory
      */
 
     /**
-     * Features (of type {@link DeserializerFactory.Feature} that are
-     * enabled
+     * Features (of type {@link DeserializerFactory.Feature})
+     * that are enabled
      */
     private int _features = DEFAULT_FEATURE_FLAGS;
 
@@ -75,7 +76,9 @@ public class CustomDeserializerFactory
 
     /**
      * Method for enabling specified  features
-     * (check {@link SerializerFactory.Feature} for list of features)
+     * (check
+     * {@link org.codehaus.jackson.map.DeserializerFactory.Feature}
+     * for list of features)
      */
     public void enableFeature(Feature f) {
         _features |= f.getMask();
@@ -83,7 +86,9 @@ public class CustomDeserializerFactory
 
     /**
      * Method for disabling specified  features
-     * (check {@link SerializerFactory.Feature} for list of features)
+     * (check
+     * {@link org.codehaus.jackson.map.DeserializerFactory.Feature}
+     * for list of features)
      */
     public void disableFeature(Feature f) {
         _features &= ~f.getMask();

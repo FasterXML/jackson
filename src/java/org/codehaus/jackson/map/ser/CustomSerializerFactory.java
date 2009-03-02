@@ -124,7 +124,9 @@ public class CustomSerializerFactory
 
     /**
      * Method for enabling specified  features
-     * (check {@link SerializerFactory.Feature} for list of features)
+     * (check
+     * {@link org.codehaus.jackson.map.SerializerFactory.Feature}
+     * for list of features)
      */
     public void enableFeature(SerializerFactory.Feature f) {
         _features |= f.getMask();
@@ -132,7 +134,9 @@ public class CustomSerializerFactory
 
     /**
      * Method for disabling specified  features
-     * (check {@link SerializerFactory.Feature} for list of features)
+     * (check
+     * {@link org.codehaus.jackson.map.SerializerFactory.Feature}
+     * for list of features)
      */
     public void disableFeature(SerializerFactory.Feature f) {
         _features &= ~f.getMask();

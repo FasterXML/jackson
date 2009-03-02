@@ -29,7 +29,7 @@ public class TestTreeMapperDeserializer
             JsonNode result;
 
             if (type == 0) {
-                result = mapper.readTree(jf.createJsonParser(new StringReader(JSON)));
+                result = mapper.readTree(new StringReader(JSON));
             } else {
                 result = mapper.readTree(JSON);
             }

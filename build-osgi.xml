@@ -14,17 +14,18 @@
 
   <target name="jars.asl" depends="jar.core.asl, jar.mapper.asl" />
   <target name="jars.lgpl" depends="jar.core.lgpl, jar.mapper.lgpl" />
+  <target name="jars.other" depends="jar.jaxrs" />
 
-    <!-- Let's build our JARs as OSGi bundles; then they work
+  <!-- Let's build our JARs as OSGi bundles; then they work
         both within and outside of OSGi containers
-     -->
+   -->
 
-    <!-- Jackson requires Java5 (enums, some generics) -->
-    <property name="REQ_JDK_VERSION" value="J2SE-1.5" />
+  <!-- Jackson requires Java5 (enums, some generics) -->
+  <property name="REQ_JDK_VERSION" value="J2SE-1.5" />
 
-    <!-- ASL-licensed: core, mapper jars -->
+  <!-- ASL-licensed: core, mapper jars -->
 
-    <target name="jar.core.asl" depends="compile.all">
+    <target name="jar.core.asl" depends="compile.core">
         <osgiJar
          outputdir="${dir.build}"
          bundleName="${IMPL_TITLE_CORE}"
@@ -65,7 +66,7 @@ org.codehaus.jackson.util;version=${IMPL_VERSION}
       </osgiJar>
     </target> 
 
-    <target name="jar.mapper.asl" depends="compile.all">
+    <target name="jar.mapper.asl" depends="compile.mapper">
         <osgiJar
          outputdir="${dir.build}"
          bundleName="${IMPL_TITLE_MAPPER}"
@@ -109,7 +110,7 @@ org.codehaus.jackson.node;version=${IMPL_VERSION}
 
     <!-- LGPL-licensed: core, mapper jars -->
 
-    <target name="jar.core.lgpl" depends="compile.all">
+    <target name="jar.core.lgpl" depends="compile.core">
         <osgiJar
          outputdir="${dir.build}"
          bundleName="${IMPL_TITLE_CORE}"
@@ -152,7 +153,7 @@ org.codehaus.jackson;version=${IMPL_VERSION}
         </osgiJar>
     </target> 
 
-    <target name="jar.mapper.lgpl" depends="compile.all">
+    <target name="jar.mapper.lgpl" depends="compile.mapper">
         <osgiJar
          outputdir="${dir.build}"
          bundleName="${IMPL_TITLE_MAPPER}"
@@ -187,6 +188,45 @@ org.codehaus.jackson.node;version=${IMPL_VERSION}
         <manifest>
           <attribute name="Built-By" value="${user.name}"/>
           <attribute name="Implementation-Title"   value="${IMPL_TITLE_MAPPER}"/>
+          <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+          <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+        </manifest>
+      </osgiJar>
+    </target> 
+
+    <!-- Others, ASL+LGPL licensed, just a single jar
+        (OSGi nominally just lists ASL, not sure if/how to
+        add multiple?)
+      -->
+    <target name="jar.jaxrs" depends="compile.jaxrs">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE_JAXRS}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-jaxrs"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-jaxrs-${IMPL_VERSION}"
+         importPackage="
+javax.ws.rs
+,javax.ws.rs.core
+,javax.ws.rs.ext
+,org.codehaus.jackson;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.type;version='${IMPL_VERSION}'
+,org.codehaus.jackson.type;version='${IMPL_VERSION}'
+"
+         exportpackage="
+org.codehaus.jackson.jaxrs;version=${IMPL_VERSION},
+"
+         privatePackage="!org.codehaus.jackson.jaxrs,*"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath><pathelement path="${dir.build.classes.jaxrs}" /></classpath>
+        <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Implementation-Title"   value="${IMPL_TITLE_JAXRS}"/>
           <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
           <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
         </manifest>

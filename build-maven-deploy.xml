@@ -22,6 +22,7 @@
     <artifact:pom id="pom.asl.mapper" file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.lgpl.core" file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.lgpl.mapper" file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.jaxrs" file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.pom" />
   </target>
 
   <target name="maven.repos" depends="maven.init">
@@ -64,6 +65,10 @@
      file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}.jar">
       <attach file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
     </artifact:install>
+    <artifact:install pomRefId="pom.jaxrs"
+     file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+    </artifact:install>
   </target>
 
   <!-- target for deploying SNAPSHOT versions in "real" Maven
@@ -102,6 +107,13 @@
       <remoteRepository refid="repo.snapshot" />
       <attach file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.jaxrs" uniqueVersion="true"
+     file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.snapshot" />
+      <attach file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
   </target>
 
   <!-- target for deploying release versions in "real" Maven
@@ -136,6 +148,13 @@
    >
       <remoteRepository refid="repo.release" />
       <attach file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.jaxrs" uniqueVersion="false"
+     file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
 
   </target>

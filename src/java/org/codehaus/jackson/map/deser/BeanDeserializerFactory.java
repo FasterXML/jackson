@@ -49,9 +49,9 @@ public class BeanDeserializerFactory
          * aspects.
          *
          * !!! 09-Jan-2009, tatu: Should allow construction from Map
-         *   (which would then be assumed to be "untyped"), iff it's
-         *   marked with @JsonCreator.
-         *   (same with Collections too)
+         *   (which would then be assumed to be "untyped") factory method,
+         *   iff it's marked with @JsonCreator.
+         *   (same with Collections?)
          */
 
         ClassIntrospector intr = ClassIntrospector.forDeserialization(beanClass);
@@ -59,6 +59,13 @@ public class BeanDeserializerFactory
         JsonDeserializer<Object> ad = findDeserializerFromAnnotation(intr.getClassInfo());
         if (ad != null) {
             return ad;
+        }
+
+        /* 02-Mar-2009, tatu: Can't instantiate abstract classes or interfaces
+         *   so now might be a good time to catch that problem...
+         */
+        if (!ClassUtil.isConcrete(beanClass)) {
+            throw new IllegalArgumentException("Can not create Bean deserializer for abstract type "+type);
         }
 
         BeanDeserializer.StringConstructor sctor = getStringCreators(beanClass, intr);

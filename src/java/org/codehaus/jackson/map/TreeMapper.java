@@ -12,26 +12,25 @@ import org.codehaus.jackson.node.TreeMapperBase;
  * nodes that can be traversed with simple path operations
  * (indexing arrays by element, objects by field name).
  *<p>
- * The main difference to {@link ObjectMapper} is that
- * no casting should ever be necessary, and as such
- * access is more convenient if expected structure is
- * known in advance. Typing in general is simple, 
- * since only the base node type is needed for
- * all operations.
- *<p>
- * Thing to note about serializing (writing) json types:
- * mapper does not add specific support, since
- * {@link JsonNode} instances already have
- * {@link JsonNode#writeTo} method.
+ * As of version 0.9.9 of Jackson, this class is basically
+ * deprecate, since all of its functionality is implemented
+ * by {@link ObjectMapper}, and accessible through either
+ * {@link ObjectMapper} or {@link JsonParser} and
+ * {@link JsonGenerator}.
+ *
+ * @deprecated Use {@link JsonNode} functionality offered by
+ * {@link ObjectMapper}, {@link JsonParser} and {@link JsonGenerator}
+ * instead
+ *
  */
+@Deprecated
 public class TreeMapper
     extends TreeMapperBase
 {
     /**
-     * Factory used to create {@link JsonParser} and {@link JsonGenerator}
-     * instances as necessary.
+     * Mapper that handles actual serialization/deserialization
      */
-    protected final JsonFactory _jsonFactory;
+    protected final ObjectMapper _objectMapper;
 
     /*
     ////////////////////////////////////////////////////
@@ -41,12 +40,12 @@ public class TreeMapper
 
     public TreeMapper()
     {
-        this(null);
+        this(new ObjectMapper());
     }
 
-    public TreeMapper(JsonFactory jf)
+    public TreeMapper(ObjectMapper m)
     {
-        _jsonFactory = (jf == null) ? new JsonFactory() : jf;
+        _objectMapper = m;
     }
 
     /**
@@ -56,7 +55,7 @@ public class TreeMapper
      * @return Json factory that this mapper uses when it needs to
      *   construct Json parser and generators
      */
-    public JsonFactory getJsonFactory() { return _jsonFactory; }
+    public JsonFactory getJsonFactory() { return _objectMapper.getJsonFactory(); }
 
     /*
     ////////////////////////////////////////////////////
@@ -65,68 +64,46 @@ public class TreeMapper
     ////////////////////////////////////////////////////
      */
 
+    public JsonNode readTree(JsonParser jp)
+        throws IOException, JsonParseException
+    {
+        return _objectMapper.readValue(jp, JsonNode.class);
+    }
+
     public JsonNode readTree(File src)
         throws IOException, JsonParseException
     {
-        return _readMapAndClose(_jsonFactory.createJsonParser(src));
+        return _objectMapper.readValue(src, JsonNode.class);
     }
 
     public JsonNode readTree(URL src)
         throws IOException, JsonParseException
     {
-        return _readMapAndClose(_jsonFactory.createJsonParser(src));
+        return _objectMapper.readValue(src, JsonNode.class);
     }
 
     public JsonNode readTree(InputStream src)
         throws IOException, JsonParseException
     {
-        return _readMapAndClose(_jsonFactory.createJsonParser(src));
+        return _objectMapper.readValue(src, JsonNode.class);
     }
 
     public JsonNode readTree(Reader src)
         throws IOException, JsonParseException
     {
-        return _readMapAndClose(_jsonFactory.createJsonParser(src));
+        return _objectMapper.readValue(src, JsonNode.class);
     }
 
     public JsonNode readTree(String jsonContent)
         throws IOException, JsonParseException
     {
-        return _readMapAndClose(_jsonFactory.createJsonParser(jsonContent));
+        return _objectMapper.readValue(jsonContent, JsonNode.class);
     }
 
     public JsonNode readTree(byte[] jsonContent)
         throws IOException, JsonParseException
     {
-        return _readMapAndClose(_jsonFactory.createJsonParser(jsonContent));
-    }
-
-    /**
-     * Method that will use the current event of the underlying parser
-     * (and if there's no event yet, tries to advance to an event)
-     * to construct a node, and advance the parser to point to the
-     * next event, if any. For structured tokens (objects, arrays),
-     * will recursively handle and construct contained nodes.
-     */
-    public JsonNode readTree(JsonParser jp)
-        throws IOException, JsonParseException, JsonMappingException
-    {
-        JsonToken curr = jp.getCurrentToken();
-        if (curr == null) {
-            curr  = jp.nextToken();
-            // We hit EOF? Nothing more to do, if so:
-            if (curr == null) {
-                return null;
-            }
-        }
-
-        JsonNode result = _readAndMap(jp, curr);
-
-        /* Need to also advance the reader, if we get this far,
-         * to allow handling of root level sequence of values
-         */
-        jp.nextToken();
-        return result;
+        return _objectMapper.readValue(jsonContent, 0, jsonContent.length, JsonNode.class);
     }
 
     /*
@@ -139,80 +116,18 @@ public class TreeMapper
     public void writeTree(JsonNode rootNode, File dst)
         throws IOException, JsonParseException
     {
-        _writeNodeAndClose(_jsonFactory.createJsonGenerator(dst, JsonEncoding.UTF8), rootNode);
+        _objectMapper.writeValue(dst, rootNode);
     }
 
     public void writeTree(JsonNode rootNode, Writer dst)
         throws IOException, JsonParseException
     {
-        _writeNodeAndClose(_jsonFactory.createJsonGenerator(dst), rootNode);
+        _objectMapper.writeValue(dst, rootNode);
     }
 
     public void writeTree(JsonNode rootNode, OutputStream dst)
         throws IOException, JsonParseException
     {
-        _writeNodeAndClose(_jsonFactory.createJsonGenerator(dst, JsonEncoding.UTF8), rootNode);
-    }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Factory methods
-    ////////////////////////////////////////////////////
-     */
-
-    // Note: these come straight from the base class:
-
-    // public ArrayNode arrayNode()
-    // public ObjectNode objectNode()
-    // public NullNode nullNode()
-
-    // public TextNode textNode(String text)
-    // public BinaryNode binaryNode(byte[] data)
-
-    // public BooleanNode booleanNode(boolean v)
-
-    //public NumericNode numberNode(int v)
-    //public NumericNode numberNode(long v)
-    //public NumericNode numberNode(double v)
-    //public NumericNode numberNode(BigDecimal v)
-
-    /*
-    ////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Method used to read and map Json content read from passed-in
-     * parser, and then close the parser. This is done when caller
-     * passed as a source instead of a parser; in which case mapper
-     * is responsible for closing resources.
-     */
-    protected JsonNode _readMapAndClose(JsonParser jp)
-        throws IOException, JsonParseException
-    {
-        try {
-            return readTree(jp);
-        } finally {
-            try {
-                jp.close();
-            } catch (IOException ioe) { }
-        }
-    }
-
-    /**
-     * Method called to serialize a Json content tree (identified
-     * by the given root node) using given {@link JsonGenerator}.
-     */
-    protected void _writeNodeAndClose(JsonGenerator jg, JsonNode rootNode)
-        throws IOException, JsonParseException
-    {
-        try {
-            rootNode.writeTo(jg);
-        } finally {
-            try {
-                jg.close();
-            } catch (IOException ioe) { }
-        }
+        _objectMapper.writeValue(dst, rootNode);
     }
 }
