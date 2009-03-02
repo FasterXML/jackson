@@ -114,15 +114,36 @@ public class TreeMapper
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method that will try to read a sub-tree using given parser,
+     * map it to a tree (represented by a root JsonNode) and return
+     * it, if possible. Alternatively, if no content is available,
+     * null is returned to signal end-of-content.
+     */
     public JsonNode readTree(JsonParser jp)
         throws IOException, JsonParseException
     {
+        /* 02-Mar-2009, tatu: Behavior here is bit different from that
+         *   of ObjectMapper, since we can actually return null to
+         *   indicate end-of-content. Because of this we do need to
+         *   check for EOF here and not let ObjectMapper encounter
+         *   it (since that would throw an exception)
+         */
+        JsonToken t = jp.getCurrentToken();
+        if (t == null) {
+            t = jp.nextToken();
+            if (t == null) {
+                return null;
+            }
+        }
+        // note: called method converts null to NullNode:
         return _objectMapper.readTree(jp);
     }
 
     public JsonNode readTree(File src)
         throws IOException, JsonParseException
     {
+
         JsonNode n = _objectMapper.readValue(src, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }

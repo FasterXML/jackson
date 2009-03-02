@@ -454,7 +454,11 @@ public final class WriterBasedGenerator
     public final void writeObject(Object value)
         throws IOException, JsonProcessingException
     {
-        _verifyValueWrite("write Java object");
+        /* 02-Mar-2009, tatu: we are NOT to call _verifyValueWrite here,
+         *   because that will be done when codec actually serializes
+         *   contained POJO. If we did call it it would advance state
+         *   causing exception later on
+         */
         if (_objectCodec == null) {
             throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize regular Java objects");
         }
@@ -464,7 +468,7 @@ public final class WriterBasedGenerator
     public final void writeTree(JsonNode rootNode)
         throws IOException, JsonProcessingException
     {
-        _verifyValueWrite("write Java object");
+        // As with 'writeObject()', we are not check if write would work
         if (_objectCodec == null) {
             throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize JsonNode-based trees");
         }

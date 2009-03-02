@@ -127,7 +127,11 @@ public class ObjectMapper
     public ObjectMapper(JsonFactory jf, SerializerProvider sp,
                         DeserializerProvider dp)
     {
-        _jsonFactory = (jf == null) ? new JsonFactory() : jf;
+        /* 02-Mar-2009, tatu: Important: we MUST default to using
+         *   the mapping factory, otherwise tree serialization will
+         *   have problems with POJONodes.
+         */
+        _jsonFactory = (jf == null) ? new MappingJsonFactory() : jf;
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
