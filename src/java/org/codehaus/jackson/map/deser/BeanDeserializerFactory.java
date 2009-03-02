@@ -65,7 +65,7 @@ public class BeanDeserializerFactory
          *   so now might be a good time to catch that problem...
          */
         if (!ClassUtil.isConcrete(beanClass)) {
-            throw new IllegalArgumentException("Can not create Bean deserializer for abstract type "+type);
+            return null;
         }
 
         BeanDeserializer.StringConstructor sctor = getStringCreators(beanClass, intr);

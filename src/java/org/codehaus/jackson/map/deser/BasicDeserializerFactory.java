@@ -4,6 +4,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
@@ -11,6 +12,8 @@ import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.ClassIntrospector;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -207,20 +210,36 @@ public abstract class BasicDeserializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public JsonDeserializer<?> createEnumDeserializer(SimpleType type, DeserializerProvider p)
+    public JsonDeserializer<?> createEnumDeserializer(Class<?> enumClass, DeserializerProvider p)
         throws JsonMappingException
     {
         /* 18-Feb-2009, tatu: Must first check if we have a class annotation
          *    that should override default deserializer
          */
-        Class<?> cls = type.getRawClass();
-        ClassIntrospector intr = ClassIntrospector.forClassAnnotations(cls);
+        ClassIntrospector intr = ClassIntrospector.forClassAnnotations(enumClass);
         JsonDeserializer<Object> des = findDeserializerFromAnnotation(intr.getClassInfo());
         if (des != null) {
             return des;
         }
-        JsonDeserializer<?> d2 = new EnumDeserializer(EnumResolver.constructFor(cls));
+        JsonDeserializer<?> d2 = new EnumDeserializer(EnumResolver.constructFor(enumClass));
         return (JsonDeserializer<Object>) d2;
+    }
+
+    @Override
+    public JsonDeserializer<?> createTreeDeserializer(Class<? extends JsonNode> nodeClass, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        /* !!! 02-Mar-2009, tatu: Should probably allow specifying more
+         *   accurate nodes too...
+         */
+        if (ArrayNode.class.isAssignableFrom(nodeClass)) {
+            // !!! TBI
+        }
+        if (ObjectNode.class.isAssignableFrom(nodeClass)) {
+            // !!! TBI
+        }
+        // For plain old JsonNode, we'll return basic deserializer:
+        return JsonNodeDeserializer.instance;
     }
 
     @Override

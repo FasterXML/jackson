@@ -3,8 +3,10 @@ package org.codehaus.jackson.map.deser;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -142,6 +144,10 @@ public class StdDeserializerProvider
         return _handleUnknownKeyDeserializer(type);
     }
 
+    /**
+     * Method that can be called to find out whether a deserializer can
+     * be found for given type
+     */
     public boolean hasValueDeserializerFor(JavaType type)
     {
         /* Note: mostly copied from findValueDeserializer, except for
@@ -219,11 +225,11 @@ public class StdDeserializerProvider
      */
     @SuppressWarnings("unchecked")
     protected JsonDeserializer<Object> _createDeserializer(JavaType type,
-                                                               JavaType referrer, String refPropName)
+                                                           JavaType referrer, String refPropName)
         throws JsonMappingException
     {
         if (type.isEnumType()) {
-            return (JsonDeserializer<Object>) _factory.createEnumDeserializer((SimpleType) type, this);
+            return (JsonDeserializer<Object>) _factory.createEnumDeserializer(type.getRawClass(), this);
         }
         if (type instanceof ArrayType) {
             return (JsonDeserializer<Object>)_factory.createArrayDeserializer((ArrayType) type, this);
@@ -233,6 +239,14 @@ public class StdDeserializerProvider
         }
         if (type instanceof CollectionType) {
             return (JsonDeserializer<Object>)_factory.createCollectionDeserializer((CollectionType) type, this);
+        }
+        /* 02-Mar-2009, tatu: Let's consider JsonNode to be a type of its
+         *   own
+         */
+        Class<?> rawClass = type.getRawClass();
+        if (JsonNode.class.isAssignableFrom(rawClass)) {
+            Class<? extends JsonNode> nodeClass = (Class<? extends JsonNode>) rawClass;
+            return (JsonDeserializer<Object>)_factory.createTreeDeserializer(nodeClass, this);
         }
         return (JsonDeserializer<Object>)_factory.createBeanDeserializer(type, this);
     }
@@ -251,6 +265,13 @@ public class StdDeserializerProvider
 
     protected JsonDeserializer<Object> _handleUnknownValueDeserializer(JavaType type)
     {
+        /* Let's try to figure out the reason, to give better error
+         * messages
+         */
+        Class<?> rawClass = type.getRawClass();
+        if (!ClassUtil.isConcrete(rawClass)) {
+            throw new IllegalArgumentException("Can not find a Value deserializer for abstract type "+type);
+        }
         throw new IllegalArgumentException("Can not find a Value deserializer for type "+type);
     }
 

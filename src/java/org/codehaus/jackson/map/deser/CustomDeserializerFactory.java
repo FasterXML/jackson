@@ -115,44 +115,17 @@ public class CustomDeserializerFactory
     ////////////////////////////////////////////////////
      */
 
-    public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return super.createBeanDeserializer(type, p);
-    }
+    //public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p) throws JsonMappingException;
 
-    /**
-     * Method called to create (or, for completely immutable deserializers,
-     * reuse) a deserializer that can convert Json content into values of
-     * specified Java type.
-     *
-     * @param type Type to be deserialized
-     * @param p Provider that can be called to create deserializers for
-     *   contained member types
-     */
-    public JsonDeserializer<?> createArrayDeserializer(ArrayType type, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return super.createArrayDeserializer(type, p);
-    }
+    //public JsonDeserializer<?> createArrayDeserializer(ArrayType type, DeserializerProvider p) throws JsonMappingException
 
-    public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return super.createCollectionDeserializer(type, p);
-    }
+    //public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p) throws JsonMappingException
 
-    public JsonDeserializer<?> createEnumDeserializer(SimpleType type, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return super.createEnumDeserializer(type, p);
-    }
+    //public JsonDeserializer<?> createEnumDeserializer(Class<?> enumClass, DeserializerProvider p) throws JsonMappingException
 
-    public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return super.createMapDeserializer(type, p);
-    }
+    //public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p) throws JsonMappingException
+
+    //public JsonDeserializer<?> createTreeDeserializer(Class<? extends JsonNode> nodeClass, DeserializerProvider p) throws JsonMappingException
 
     /*
     ////////////////////////////////////////////////////
