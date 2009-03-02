@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.node.NullNode;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -229,7 +230,12 @@ public class ObjectMapper
     public JsonNode readTree(JsonParser jp)
         throws IOException, JsonProcessingException
     {
-        return (JsonNode) _readValue(jp, JSON_NODE_TYPE);
+        /* 02-Mar-2009, tatu: One twist; deserialization provider
+         *   will map Json null straight into Java null. But what
+         *   we want to return is the "null node" instead.
+         */
+        JsonNode n = (JsonNode) _readValue(jp, JSON_NODE_TYPE);
+        return (n == null) ? NullNode.instance : n;
     }
 
     /*

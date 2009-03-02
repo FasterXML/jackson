@@ -200,6 +200,8 @@ public class TestTreeMapperDeserializer
     {
         TreeMapper mapper = new TreeMapper();
         JsonNode result = mapper.readTree("   null ");
+        // should not get java null, but NullNode...
+        assertNotNull(result);
         assertTrue(result.isNull());
         assertFalse(result.isNumber());
         assertFalse(result.isTextual());

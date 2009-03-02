@@ -117,43 +117,49 @@ public class TreeMapper
     public JsonNode readTree(JsonParser jp)
         throws IOException, JsonParseException
     {
-        return _objectMapper.readValue(jp, JsonNode.class);
+        return _objectMapper.readTree(jp);
     }
 
     public JsonNode readTree(File src)
         throws IOException, JsonParseException
     {
-        return _objectMapper.readValue(src, JsonNode.class);
+        JsonNode n = _objectMapper.readValue(src, JsonNode.class);
+        return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(URL src)
         throws IOException, JsonParseException
     {
-        return _objectMapper.readValue(src, JsonNode.class);
+        JsonNode n = _objectMapper.readValue(src, JsonNode.class);
+        return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(InputStream src)
         throws IOException, JsonParseException
     {
-        return _objectMapper.readValue(src, JsonNode.class);
+        JsonNode n = _objectMapper.readValue(src, JsonNode.class);
+        return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(Reader src)
         throws IOException, JsonParseException
     {
-        return _objectMapper.readValue(src, JsonNode.class);
+        JsonNode n = _objectMapper.readValue(src, JsonNode.class);
+        return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(String jsonContent)
         throws IOException, JsonParseException
     {
-        return _objectMapper.readValue(jsonContent, JsonNode.class);
+        JsonNode n = _objectMapper.readValue(jsonContent, JsonNode.class);
+        return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(byte[] jsonContent)
         throws IOException, JsonParseException
     {
-        return _objectMapper.readValue(jsonContent, 0, jsonContent.length, JsonNode.class);
+        JsonNode n = _objectMapper.readValue(jsonContent, 0, jsonContent.length, JsonNode.class);
+        return (n == null) ? NullNode.instance : n;
     }
 
     /*
