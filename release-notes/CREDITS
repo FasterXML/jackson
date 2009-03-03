@@ -82,3 +82,6 @@ Kevin Grained:
     serialization
     [0.9.9]
 
+Ryan Heaton:
+  * Helped with [JACKSON-67]: Json content type provider for JAX-RS
+    [0.9.9]
