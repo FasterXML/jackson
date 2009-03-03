@@ -11,7 +11,6 @@ import org.codehaus.jackson.annotate.NoClass;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.ClassIntrospector;
-import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Factory class that can provide serializers for standard JDK classes,

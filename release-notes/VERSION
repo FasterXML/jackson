@@ -88,8 +88,6 @@ Description:
 
   Improvements:
 
-  * [JACKSON-22]: Added the Contributor Agreement document, to be signed by
-    all contributors
   * [JACKSON-34]: Improved packaging by adding an intermediate directory
     in source tarball, to not mess up the current directory (and to indicate
     version number as well)

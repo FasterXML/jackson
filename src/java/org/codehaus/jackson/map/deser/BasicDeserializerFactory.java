@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map.deser;
 
-import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -11,7 +10,6 @@ import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.ClassIntrospector;
 import org.codehaus.jackson.map.type.*;
-import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.type.JavaType;

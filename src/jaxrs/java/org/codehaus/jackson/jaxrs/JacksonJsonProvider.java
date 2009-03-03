@@ -78,9 +78,23 @@ public class JacksonJsonProvider
      */
     public JacksonJsonProvider()
     {
-        this(null);
+        this(new ObjectMapper());
     }
 
+    /**
+     * Constructor to use when a custom mapper (usually components
+     * like serializer/deserializer factories that have been configured)
+     * is to be used.
+     */
+    public JacksonJsonProvider(ObjectMapper mapper)
+    {
+        _resolver = new SingleContextResolver<ObjectMapper>(mapper);
+    }
+
+    /**
+     * Constructor usually used when configured and wired by
+     * IoC system or auto-detection by the JAX-RS implementation.
+     */
     public JacksonJsonProvider(@Context Providers providers)
     {
         ContextResolver<ObjectMapper> resolver;

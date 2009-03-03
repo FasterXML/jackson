@@ -218,9 +218,7 @@ javax.ws.rs
 ,org.codehaus.jackson.type;version='${IMPL_VERSION}'
 "
          exportpackage="
-org.codehaus.jackson.jaxrs;version=${IMPL_VERSION},
-"
-         privatePackage="!org.codehaus.jackson.jaxrs,*"
+org.codehaus.jackson.jaxrs;version=${IMPL_VERSION}"
          includeIncludeResourceHeader="false"
         >
         <classpath><pathelement path="${dir.build.classes.jaxrs}" /></classpath>

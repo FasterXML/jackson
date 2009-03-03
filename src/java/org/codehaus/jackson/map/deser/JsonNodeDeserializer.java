@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -13,44 +12,19 @@ import org.codehaus.jackson.node.*;
  */
 public class JsonNodeDeserializer
     extends StdDeserializer<JsonNode>
-    implements JsonNodeFactory
 {
     public final static JsonNodeDeserializer instance = new JsonNodeDeserializer();
 
-    public JsonNodeDeserializer() { super(JsonNode.class); }
+    protected JsonNodeFactory _nodeFactory;
 
-    /*
-    /////////////////////////////////////////////////////
-    // Factory methods for JsonNodeFactory, exposed and used
-    // by the mapper
-    // (can also be overridden by sub-classes for extra
-    // functionality)
-    /////////////////////////////////////////////////////
-     */
-
-    public ArrayNode arrayNode() { return new ArrayNode(this); }
-    public ObjectNode objectNode() { return new ObjectNode(this); }
-    public POJONode POJONode(Object pojo) { return new POJONode(pojo); }
-    public NullNode nullNode() { return NullNode.getInstance(); }
-
-    public TextNode textNode(String text) { return TextNode.valueOf(text); }
-
-    public BinaryNode binaryNode(byte[] data) { return BinaryNode.valueOf(data); }
-    public BinaryNode binaryNode(byte[] data, int offset, int length) {
-        return BinaryNode.valueOf(data, offset, length);
+    public JsonNodeDeserializer()
+    {
+        super(JsonNode.class);
+        _nodeFactory = JsonNodeFactory.instance;
     }
 
-    public BooleanNode booleanNode(boolean v) {
-        return v ? BooleanNode.getTrue() : BooleanNode.getFalse();
-    }
-
-    public NumericNode numberNode(byte v) { return IntNode.valueOf(v); }
-    public NumericNode numberNode(short v) { return IntNode.valueOf(v); }
-    public NumericNode numberNode(int v) { return IntNode.valueOf(v); }
-    public NumericNode numberNode(long v) { return LongNode.valueOf(v); }
-    public NumericNode numberNode(float v) { return DoubleNode.valueOf((double) v); }
-    public NumericNode numberNode(double v) { return DoubleNode.valueOf(v); }
-    public NumericNode numberNode(BigDecimal v) { return DecimalNode.valueOf(v); }
+    public JsonNodeFactory getNodeFactory() { return _nodeFactory; }
+    public void setNodeFactory(JsonNodeFactory nf) { _nodeFactory = nf; }
 
     /*
     /////////////////////////////////////////////////////
@@ -64,7 +38,7 @@ public class JsonNodeDeserializer
         switch (jp.getCurrentToken()) {
         case START_OBJECT:
             {
-                ObjectNode node = objectNode();
+                ObjectNode node = _nodeFactory.objectNode();
                 while (jp.nextToken() != JsonToken.END_OBJECT) {
                     String fieldName = jp.getCurrentName();
                     jp.nextToken();
@@ -79,7 +53,7 @@ public class JsonNodeDeserializer
 
         case START_ARRAY:
             {
-                ArrayNode node = arrayNode();
+                ArrayNode node = _nodeFactory.arrayNode();
                 while (jp.nextToken() != JsonToken.END_ARRAY) {
                     node.add(deserialize(jp, ctxt));
                 }
@@ -87,28 +61,28 @@ public class JsonNodeDeserializer
             }
 
         case VALUE_STRING:
-            return textNode(jp.getText());
+            return _nodeFactory.textNode(jp.getText());
 
         case VALUE_NUMBER_INT:
             if (jp.getNumberType() == JsonParser.NumberType.INT) {
-                return numberNode(jp.getIntValue());
+                return _nodeFactory.numberNode(jp.getIntValue());
             }
-            return numberNode(jp.getLongValue());
+            return _nodeFactory.numberNode(jp.getLongValue());
 
         case VALUE_NUMBER_FLOAT:
             if (jp.getNumberType() == JsonParser.NumberType.BIG_DECIMAL) {
-                return numberNode(jp.getDecimalValue());
+                return _nodeFactory.numberNode(jp.getDecimalValue());
             }
-            return numberNode(jp.getDoubleValue());
+            return _nodeFactory.numberNode(jp.getDoubleValue());
 
         case VALUE_TRUE:
-            return booleanNode(true);
+            return _nodeFactory.booleanNode(true);
 
         case VALUE_FALSE:
-            return booleanNode(false);
+            return _nodeFactory.booleanNode(false);
 
         case VALUE_NULL:
-            return nullNode();
+            return _nodeFactory.nullNode();
 
             // These states can not be mapped; input stream is
             // off by an event or two

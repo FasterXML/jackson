@@ -2,10 +2,8 @@ package org.codehaus.jackson.map.deser;
 
 import java.util.*;
 
-import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.DeserializerFactory;
 import org.codehaus.jackson.map.type.*;
-import org.codehaus.jackson.type.JavaType;
 
 /**
  * Deserializer factory implementation that allows for configuring

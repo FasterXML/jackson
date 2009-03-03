@@ -49,7 +49,7 @@
     <property name="IMPL_TITLE_MAPPER" value="Data mapper for Jackson JSON processor" />
     <property name="IMPL_TITLE_JAXRS" value="JAX-RS provider for Json content type, using Jackson data binding" />
 
-    <property name="IMPL_VERSION" value="0.9.9-SNAPSHOT" />
+    <property name="IMPL_VERSION" value="0.9.9" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
     <path id="test-libs">
@@ -307,6 +307,10 @@ compile.main, compile.test, compile.extra, compile.perf" />
        <jar destfile="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar"
           filesonly="true" compress="true" basedir="${dir.src.java}"
           includes="org/codehaus/jackson/map/**"
+       />
+       <jar destfile="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java.jaxrs}"
+          includes="org/codehaus/jackson/jaxrs/**"
        />
 
        <!-- Then copy javadocs -->

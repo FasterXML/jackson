@@ -22,7 +22,6 @@ public class TestTreeMapperDeserializer
     {
         final String JSON = SAMPLE_DOC_JSON_SPEC;
 
-        JsonFactory jf = new JsonFactory();
         TreeMapper mapper = new TreeMapper();
 
         for (int type = 0; type < 2; ++type) {
@@ -215,7 +214,6 @@ public class TestTreeMapperDeserializer
         throws Exception
     {
         // no "natural" way to get it, must construct
-        TreeMapper mapper = new TreeMapper();
         BigDecimal value = new BigDecimal("0.1");
         JsonNode result = DecimalNode.valueOf(value);
 
