@@ -12,18 +12,17 @@ import org.codehaus.jackson.JsonNode;
  */
 public abstract class ContainerNode
     extends BaseJsonNode
-    implements JsonNodeFactory
 {
     /**
      * We will keep a reference to the Object (usually TreeMapper)
      * that can construct instances of nodes to add to this container
      * node.
      */
-    JsonNodeFactory _nodeCreator;
+    JsonNodeFactory _nodeFactory;
 
     protected ContainerNode(JsonNodeFactory nc)
     {
-        _nodeCreator = nc;
+        _nodeFactory = nc;
     }
 
     @Override
@@ -51,26 +50,26 @@ public abstract class ContainerNode
     ////////////////////////////////////////////////////
      */
 
-    public final ArrayNode arrayNode() { return _nodeCreator.arrayNode(); }
-    public final ObjectNode objectNode() { return _nodeCreator.objectNode(); }
-    public final NullNode nullNode() { return _nodeCreator.nullNode(); }
+    public final ArrayNode arrayNode() { return _nodeFactory.arrayNode(); }
+    public final ObjectNode objectNode() { return _nodeFactory.objectNode(); }
+    public final NullNode nullNode() { return _nodeFactory.nullNode(); }
 
-    public final BooleanNode booleanNode(boolean v) { return _nodeCreator.booleanNode(v); }
+    public final BooleanNode booleanNode(boolean v) { return _nodeFactory.booleanNode(v); }
 
-    public final NumericNode numberNode(byte v) { return _nodeCreator.numberNode(v); }
-    public final NumericNode numberNode(short v) { return _nodeCreator.numberNode(v); }
-    public final NumericNode numberNode(int v) { return _nodeCreator.numberNode(v); }
-    public final NumericNode numberNode(long v) { return _nodeCreator.numberNode(v); }
-    public final NumericNode numberNode(float v) { return _nodeCreator.numberNode(v); }
-    public final NumericNode numberNode(double v) { return _nodeCreator.numberNode(v); }
-    public final NumericNode numberNode(BigDecimal v) { return _nodeCreator.numberNode(v); }
+    public final NumericNode numberNode(byte v) { return _nodeFactory.numberNode(v); }
+    public final NumericNode numberNode(short v) { return _nodeFactory.numberNode(v); }
+    public final NumericNode numberNode(int v) { return _nodeFactory.numberNode(v); }
+    public final NumericNode numberNode(long v) { return _nodeFactory.numberNode(v); }
+    public final NumericNode numberNode(float v) { return _nodeFactory.numberNode(v); }
+    public final NumericNode numberNode(double v) { return _nodeFactory.numberNode(v); }
+    public final NumericNode numberNode(BigDecimal v) { return _nodeFactory.numberNode(v); }
 
-    public final TextNode textNode(String text) { return _nodeCreator.textNode(text); }
+    public final TextNode textNode(String text) { return _nodeFactory.textNode(text); }
 
-    public final BinaryNode binaryNode(byte[] data) { return _nodeCreator.binaryNode(data); }
-    public final BinaryNode binaryNode(byte[] data, int offset, int length) { return _nodeCreator.binaryNode(data, offset, length); }
+    public final BinaryNode binaryNode(byte[] data) { return _nodeFactory.binaryNode(data); }
+    public final BinaryNode binaryNode(byte[] data, int offset, int length) { return _nodeFactory.binaryNode(data, offset, length); }
 
-    public final POJONode POJONode(Object pojo) { return _nodeCreator.POJONode(pojo); }
+    public final POJONode POJONode(Object pojo) { return _nodeFactory.POJONode(pojo); }
 
     /*
     ////////////////////////////////////////////////////

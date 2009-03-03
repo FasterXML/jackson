@@ -3,12 +3,20 @@ package org.codehaus.jackson.node;
 import java.math.BigDecimal;
 
 /**
- * Interface that specifies methods for getting access to
- * Node instances -- either newly constructed, or shared, depending
- * on type.
+ * Abstract that specifies methods for getting access to
+ * Node instances (newly constructed, or shared, depending
+ * on type), as well as basic implementation of the methods. 
  */
-public interface JsonNodeFactory
+public class JsonNodeFactory
 {
+    /**
+     * Singleton instance: given that this class is stateless,
+     * a globally shared singleton can be used
+     */
+    public final static JsonNodeFactory instance = new JsonNodeFactory();
+
+    protected JsonNodeFactory() { }
+
     /*
     ////////////////////////////////////////////////////////
     // Factory methods for literal values
@@ -19,13 +27,15 @@ public interface JsonNodeFactory
      * Factory method for getting an instance of Json boolean value
      * (either literal 'true' or 'false')
      */
-    public BooleanNode booleanNode(boolean v);
+    public BooleanNode booleanNode(boolean v) {
+        return v ? BooleanNode.getTrue() : BooleanNode.getFalse();
+    }
 
     /**
      * Factory method for getting an instance of Json null node (which
      * represents literal null value)
      */
-    public NullNode nullNode();
+    public NullNode nullNode() { return NullNode.getInstance(); }
 
     /*
     ////////////////////////////////////////////////////////
@@ -37,43 +47,43 @@ public interface JsonNodeFactory
      * Factory method for getting an instance of Json numeric value
      * that expresses given 8-bit value
      */
-    public NumericNode numberNode(byte v);
+    public NumericNode numberNode(byte v) { return IntNode.valueOf(v); }
 
     /**
      * Factory method for getting an instance of Json numeric value
      * that expresses given 16-bit integer value
      */
-    public NumericNode numberNode(short v);
+    public NumericNode numberNode(short v) { return IntNode.valueOf(v); }
 
     /**
      * Factory method for getting an instance of Json numeric value
      * that expresses given 32-bit integer value
      */
-    public NumericNode numberNode(int v);
+    public NumericNode numberNode(int v) { return IntNode.valueOf(v); }
 
     /**
      * Factory method for getting an instance of Json numeric value
      * that expresses given 64-bit integer value
      */
-    public NumericNode numberNode(long v);
+    public NumericNode numberNode(long v) { return LongNode.valueOf(v); }
 
     /**
      * Factory method for getting an instance of Json numeric value
      * that expresses given 32-bit floating point value
      */
-    public NumericNode numberNode(float v);
+    public NumericNode numberNode(float v) { return DoubleNode.valueOf((double) v); }
 
     /**
      * Factory method for getting an instance of Json numeric value
      * that expresses given 64-bit floating point value
      */
-    public NumericNode numberNode(double v);
+    public NumericNode numberNode(double v) { return DoubleNode.valueOf(v); }
 
     /**
      * Factory method for getting an instance of Json numeric value
      * that expresses given unlimited precision floating point value
      */
-    public NumericNode numberNode(BigDecimal v);
+    public NumericNode numberNode(BigDecimal v) { return DecimalNode.valueOf(v); }
 
     /*
     ////////////////////////////////////////////////////////
@@ -85,21 +95,23 @@ public interface JsonNodeFactory
      * Factory method for constructing a node that represents Json
      * String value
      */
-    public TextNode textNode(String text);
+    public TextNode textNode(String text) { return TextNode.valueOf(text); }
 
     /**
      * Factory method for constructing a node that represents given
      * binary data, and will get serialized as equivalent base64-encoded
      * String value
      */
-    public BinaryNode binaryNode(byte[] data);
+    public BinaryNode binaryNode(byte[] data) { return BinaryNode.valueOf(data); }
 
     /**
      * Factory method for constructing a node that represents given
      * binary data, and will get serialized as equivalent base64-encoded
      * String value
      */
-    public BinaryNode binaryNode(byte[] data, int offset, int length);
+    public BinaryNode binaryNode(byte[] data, int offset, int length) {
+        return BinaryNode.valueOf(data, offset, length);
+    }
 
     /*
     ////////////////////////////////////////////////////////
@@ -110,12 +122,12 @@ public interface JsonNodeFactory
     /**
      * Factory method for constructing an empty Json Array node
      */
-    public ArrayNode arrayNode();
+    public ArrayNode arrayNode() { return new ArrayNode(this); }
 
     /**
      * Factory method for constructing an empty Json Object ("struct") node
      */
-    public ObjectNode objectNode();
+    public ObjectNode objectNode() { return new ObjectNode(this); }
 
     /**
      * Factory method for constructing a wrapper for POJO
@@ -123,6 +135,6 @@ public interface JsonNodeFactory
      * using data binding, usually as Json Objects, but in some
      * cases as Json Strings or other node types.
      */
-    public POJONode POJONode(Object pojo);
+    public POJONode POJONode(Object pojo) { return new POJONode(pojo); }
 }
 

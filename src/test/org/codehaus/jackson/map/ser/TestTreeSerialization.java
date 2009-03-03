@@ -21,7 +21,8 @@ public class TestTreeSerialization
         public int getY() { return 13; }
     }
 
-    public void testSimpleViaObjectMapper()
+    @SuppressWarnings("unchecked")
+	public void testSimpleViaObjectMapper()
         throws IOException
     {
         ObjectMapper om = new ObjectMapper();
@@ -51,7 +52,8 @@ public class TestTreeSerialization
      * Simple test to verify that POJONodes (JsonNode wrapper around
      * any old Java object) work with serialization
      */
-    public void testPOJOString()
+    @SuppressWarnings("unchecked")
+	public void testPOJOString()
         throws Exception
     {
         ObjectMapper om = new ObjectMapper();
@@ -67,6 +69,7 @@ public class TestTreeSerialization
         assertEquals("abc", result.get("pojo"));
     }
 
+    @SuppressWarnings("unchecked")
     public void testPOJOIntArray()
         throws IOException
     {
@@ -89,6 +92,7 @@ public class TestTreeSerialization
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void testPOJOBean()
         throws IOException
     {

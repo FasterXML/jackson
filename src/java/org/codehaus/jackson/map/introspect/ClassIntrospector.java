@@ -5,7 +5,6 @@ import java.util.*;
 import java.lang.reflect.*;
 
 import org.codehaus.jackson.annotate.*;
-import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Helper class used to introspect methods (getters, setters, creators)

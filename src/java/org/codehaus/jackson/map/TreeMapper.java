@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map;
 
 import java.io.*;
-import java.math.BigDecimal;
 import java.net.URL;
 
 import org.codehaus.jackson.*;
@@ -22,7 +21,7 @@ import org.codehaus.jackson.node.*;
  * typed {@link JsonNode} instances.
  */
 public class TreeMapper
-    implements JsonNodeFactory
+    extends JsonNodeFactory
 {
     /**
      * Enumeration that defines strategies available for dealing with
@@ -70,36 +69,6 @@ public class TreeMapper
      *   construct Json parser and generators
      */
     public JsonFactory getJsonFactory() { return _objectMapper.getJsonFactory(); }
-
-    /*
-    ////////////////////////////////////////////////////
-    // JsonNodeFactory implementation
-    ////////////////////////////////////////////////////
-     */
-
-    public ArrayNode arrayNode() { return new ArrayNode(this); }
-    public ObjectNode objectNode() { return new ObjectNode(this); }
-    public POJONode POJONode(Object pojo) { return new POJONode(pojo); }
-    public NullNode nullNode() { return NullNode.getInstance(); }
-
-    public TextNode textNode(String text) { return TextNode.valueOf(text); }
-
-    public BinaryNode binaryNode(byte[] data) { return BinaryNode.valueOf(data); }
-    public BinaryNode binaryNode(byte[] data, int offset, int length) {
-        return BinaryNode.valueOf(data, offset, length);
-    }
-
-    public BooleanNode booleanNode(boolean v) {
-        return v ? BooleanNode.getTrue() : BooleanNode.getFalse();
-    }
-
-    public NumericNode numberNode(byte v) { return IntNode.valueOf(v); }
-    public NumericNode numberNode(short v) { return IntNode.valueOf(v); }
-    public NumericNode numberNode(int v) { return IntNode.valueOf(v); }
-    public NumericNode numberNode(long v) { return LongNode.valueOf(v); }
-    public NumericNode numberNode(float v) { return DoubleNode.valueOf((double) v); }
-    public NumericNode numberNode(double v) { return DoubleNode.valueOf(v); }
-    public NumericNode numberNode(BigDecimal v) { return DecimalNode.valueOf(v); }
 
     /*
     ////////////////////////////////////////////////////

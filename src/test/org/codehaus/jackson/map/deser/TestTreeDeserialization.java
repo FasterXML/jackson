@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.deser;
 import org.codehaus.jackson.map.BaseMapTest;
 
 import java.io.*;
-import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -39,6 +38,6 @@ public class TestTreeDeserialization
         assertNotNull(n);
         assertEquals(1, n.size());
         ObjectNode on = (ObjectNode) n;
-        assertEquals(3, n.get("a").getIntValue());
+        assertEquals(3, on.get("a").getIntValue());
     }
 }
