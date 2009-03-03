@@ -5,11 +5,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
+import javax.ws.rs.ext.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -37,19 +36,11 @@ public class JacksonJsonProvider
 {
     /*
     ///////////////////////////////////////////////////////
-    // Provider objects we use
+    // Context configuration
     ///////////////////////////////////////////////////////
      */
 
-    /**
-     * Factory used to construct underlying JSON parsers and generators
-     */
-    JsonFactory _jsonFactory;
-
-    /**
-     * Mapper that is responsible for data binding.
-     */
-    ObjectMapper _objectMapper;
+    protected final ContextResolver<ObjectMapper> _resolver;
 
     /*
     ///////////////////////////////////////////////////////
@@ -80,24 +71,34 @@ public class JacksonJsonProvider
      */
 
     /**
-     * Default constructor that is usually used when instances are to
-     * be constructed from given class. If so, an instance of
-     * {@link ObjectMapper} is constructed with default settings.
+     * Default constructor that shouldn't be needed when used it
+     * with actul JAX-RS implementation. But it may be needed from
+     * tests or such; if so, it will construct appropriate
+     * set up to still work as expected.
      */
     public JacksonJsonProvider()
     {
-        this(new ObjectMapper());
+        this(null);
     }
 
-    public JacksonJsonProvider(ObjectMapper m)
+    public JacksonJsonProvider(@Context Providers providers)
     {
-        _objectMapper = m;
-        _jsonFactory = m.getJsonFactory();
-        /* note: we have to prevent underlying parser/generator from
-         * closing the stream we deal with, so:
-         */
-        _jsonFactory.disableParserFeature(JsonParser.Feature.AUTO_CLOSE_SOURCE);
-        _jsonFactory.disableGeneratorFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+        ContextResolver<ObjectMapper> resolver;
+
+        if (providers == null) {
+            resolver = null;
+        } else {
+            // null -> no filtering by MediaType
+            resolver = providers.getContextResolver(ObjectMapper.class, null);
+        }
+        ObjectMapper mapper;
+
+        if (resolver == null) {
+            mapper = new ObjectMapper();
+            // If not accessible via injection, let's still create one
+            resolver = new SingleContextResolver<ObjectMapper>(mapper);
+        }
+        _resolver = resolver;
     }
 
     /*
@@ -105,9 +106,6 @@ public class JacksonJsonProvider
     // Configuring
     ///////////////////////////////////////////////////////
      */
-
-    public ObjectMapper getObjectMapper() { return _objectMapper; }
-    public void setObjectMapper(ObjectMapper m) { _objectMapper = m; }
 
     public void checkCanDeserialize(boolean state) { _cfgCheckCanDeserialize = state; }
     public void checkCanSerialize(boolean state) { _cfgCheckCanSerialize = state; }
@@ -126,7 +124,8 @@ public class JacksonJsonProvider
         }
         // Also: if we really want to verify that we can serialize, we'll check:
         if (_cfgCheckCanSerialize) {
-            if (!_objectMapper.canDeserialize(_convertType(type))) {
+            ObjectMapper mapper = _resolver.getContext(type);
+            if (!mapper.canDeserialize(_convertType(type))) {
                 return false;
             }
         }
@@ -136,8 +135,13 @@ public class JacksonJsonProvider
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String,String> httpHeaders, InputStream entityStream) 
         throws IOException
     {
-        JsonParser jp = _jsonFactory.createJsonParser(entityStream);
-        return _objectMapper.readValue(jp, _convertType(genericType));
+        ObjectMapper mapper = _resolver.getContext(type);
+        JsonParser jp = mapper.getJsonFactory().createJsonParser(entityStream);
+        /* Important: we are NOT to close the underlying stream after
+         * mapping, so we need to instruct parser:
+         */
+        jp.disableFeature(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+        return mapper.readValue(jp, _convertType(genericType));
     }
 
     /*
@@ -162,14 +166,12 @@ public class JacksonJsonProvider
         }
         // Also: if we really want to verify that we can deserialize, we'll check:
         if (_cfgCheckCanSerialize) {
-            if (!_objectMapper.canSerialize(type)) {
+            ObjectMapper mapper = _resolver.getContext(type);
+            if (!mapper.canSerialize(type)) {
                 return false;
             }
         }
-        /* To know for sure we'd need to find a serializer; for now,
-         * let's claim we can handle anything.
-         */
-        return (MediaType.APPLICATION_JSON_TYPE.equals(mediaType));
+        return true;
     }
 
     public void writeTo(Object value, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String,Object> httpHeaders, OutputStream entityStream) 
@@ -178,8 +180,10 @@ public class JacksonJsonProvider
         /* 27-Feb-2009, tatu: Where can we find desired encoding? Within
          *   http headers?
          */
-        JsonGenerator jg = _jsonFactory.createJsonGenerator(entityStream, JsonEncoding.UTF8);
-        _objectMapper.writeValue(jg, value);
+        ObjectMapper mapper = _resolver.getContext(type);
+        JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(entityStream, JsonEncoding.UTF8);
+        jg.disableFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+        mapper.writeValue(jg, value);
     }
 
     /*
@@ -196,4 +200,28 @@ public class JacksonJsonProvider
     {
         return TypeFactory.fromType(jdkType);
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Helper classes
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * We need a simple container to use for feeding our ObjectMapper,
+     * in case it's not injected from outside.
+     */
+  final static class SingleContextResolver<T>
+      implements ContextResolver<T>
+  {
+      private final T _singleton;
+
+      public SingleContextResolver(T s) { _singleton = s; }
+
+      public T getContext(Class<?> cls)
+      {
+          // should we use 'cls' somehow? Shouldn't need to?
+          return _singleton;
+      }
+  }
 }
