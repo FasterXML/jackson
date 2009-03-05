@@ -13,7 +13,7 @@ import org.codehaus.jackson.type.JavaType;
  * arbitrary bean objects, usually from Json Object structs,
  * but possibly also from simple types like String values.
  */
-public final class BeanDeserializer
+public class BeanDeserializer
     extends JsonDeserializer<Object>
     implements ResolvableDeserializer
 {
@@ -70,12 +70,15 @@ public final class BeanDeserializer
     /**
      * @return Previously set property, if one existed for name
      */
-    protected SettableBeanProperty addSetter(SettableBeanProperty prop)
+    public SettableBeanProperty addSetter(SettableBeanProperty prop)
     {
         return _props.put(prop.getPropertyName(), prop);
     }
 
-    protected void addIgnorable(String propName)
+    /**
+     *
+     */
+    public void addIgnorable(String propName)
     {
         if (_ignorableProps == null) {
             _ignorableProps = new HashSet<String>();
@@ -132,7 +135,7 @@ public final class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
-    public Class<?> getBeanClass() { return _beanType.getRawClass(); }
+    public final Class<?> getBeanClass() { return _beanType.getRawClass(); }
 
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
@@ -199,16 +202,8 @@ public final class BeanDeserializer
                 prop.set(result, value);
                 continue;
             }
-
-            // otherwise, what to do with it? Ignore?
-            if (_ignorableProps != null && _ignorableProps.contains(propName)) {
-                ; // fine, ignore as is
-            } else {
-                // Hmmh. Problem...
-                reportUnknownField(jp, ctxt, result, propName);
-            }
-            // either way, need to skip now
-            jp.skipChildren();
+            // Unknown: let's call handler method
+            handleUnknownProperty(ctxt, result, propName);
         }
         return result;
     }
@@ -219,11 +214,38 @@ public final class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
-    protected void reportUnknownField(JsonParser jp, DeserializationContext ctxt,
-                                      Object valueObject, String fieldName)
+    /**
+     * Method called to deal with a property that did not map to a known
+     * Bean property. Method can deal with the problem as it sees fit (ignore,
+     * throw exception); but if it does return, it has to skip the matching
+     * Json content parser has.
+     *
+     * @param ctxt Context for deserialization; allows access to the parser,
+     *    error reporting functionality
+     * @param resultBean Bean that is being populated by this deserializer
+     * @param propName Name of the property that can not be mapped
+     */
+    protected void handleUnknownProperty(DeserializationContext ctxt, Object resultBean, String propName)
         throws IOException, JsonProcessingException
     {
-        throw ctxt.unknownFieldException(valueObject, fieldName);
+        // otherwise, what to do with it? Ignore?
+        if (_ignorableProps != null && _ignorableProps.contains(propName)) {
+            ; // fine, ignore as is
+        } else {
+            // Hmmh. Problem...
+            reportUnknownField(ctxt, resultBean, propName);
+        }
+        /* either way, need to skip now; we point to first token of value
+         * (START_xxx for structured, or the value token for others)
+         */
+        ctxt.getParser().skipChildren();
+    }
+        
+    protected void reportUnknownField(DeserializationContext ctxt,
+                                      Object resultBean, String fieldName)
+        throws IOException, JsonProcessingException
+    {
+        throw ctxt.unknownFieldException(resultBean, fieldName);
     }
 
     /*
