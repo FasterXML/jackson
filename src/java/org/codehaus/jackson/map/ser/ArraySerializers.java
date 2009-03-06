@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -58,7 +59,18 @@ public final class ArraySerializers
                             currSerializer.serialize(elem, jgen, provider);
                         } catch (Exception e) {
                             // [JACKSON-55] Need to add reference information
-                            throw JsonMappingException.wrapWithPath(e, value, i);
+                            /* 05-Mar-2009, tatu: But one nasty edge is when we get
+                             *   StackOverflow: usually due to infinite loop. But that gets
+                             *   hidden within an InvocationTargetException...
+                             */
+                            Throwable t = e;
+                            while (t instanceof InvocationTargetException && t.getCause() != null) {
+                                t = t.getCause();
+                            }
+                            if (t instanceof Error) {
+                                throw (Error) t;
+                            }
+                            throw JsonMappingException.wrapWithPath(t, elem, i);
                         }
                     }
                 }

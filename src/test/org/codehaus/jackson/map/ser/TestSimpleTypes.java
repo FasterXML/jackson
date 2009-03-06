@@ -1,25 +1,23 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.ser;
 
-import main.BaseTest;
+import org.codehaus.jackson.map.BaseMapTest;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Unit tests for verifying serialization of simple basic non-structured
  * types; primitives (and/or their wrappers), Strings.
  */
-public class TestObjectMapperSimpleSerializer
-    extends BaseTest
+public class TestSimpleTypes
+    extends BaseMapTest
 {
     public void testBoolean() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        StringWriter sw = new StringWriter();
-        mapper.writeValue(sw, Boolean.TRUE);
-        assertEquals("true", sw.toString());
-        sw = new StringWriter();
-        mapper.writeValue(sw, Boolean.FALSE);
-        assertEquals("false", sw.toString());
+        assertEquals("true", serializeAsString(mapper, Boolean.TRUE));
+        assertEquals("false", serializeAsString(mapper, Boolean.FALSE));
     }
 
     /* Note: dealing with floating-point values is tricky; not sure if
@@ -35,10 +33,8 @@ public class TestObjectMapperSimpleSerializer
         ObjectMapper mapper = new ObjectMapper();
 
         for (double d : values) {
-            StringWriter sw = new StringWriter();
             float f = (float) d;
-            mapper.writeValue(sw, Float.valueOf(f));
-            assertEquals(String.valueOf(f), sw.toString());
+            assertEquals(String.valueOf(f),serializeAsString(mapper, Float.valueOf(f)));
         }
     }
 
@@ -50,9 +46,13 @@ public class TestObjectMapperSimpleSerializer
         ObjectMapper mapper = new ObjectMapper();
 
         for (double d : values) {
-            StringWriter sw = new StringWriter();
-            mapper.writeValue(sw, Double.valueOf(d));
-            assertEquals(String.valueOf(d), sw.toString());
+            assertEquals(String.valueOf(d),serializeAsString(mapper, Double.valueOf(d)));
         }
+    }
+
+    public void testClass() throws Exception
+    {
+        Map<String,Object> result = writeAndMap(Object.class);
+        assertEquals(1, result.size());
     }
 }
