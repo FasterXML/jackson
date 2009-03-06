@@ -98,6 +98,9 @@ public class BasicSerializerFactory
         _concrete.put(java.net.URL.class.getName(), ToStringSerializer.instance);
         _concrete.put(java.net.URI.class.getName(), ToStringSerializer.instance);
 
+        // Class.class
+        _concrete.put(Class.class.getName(), new ClassSerializer());
+
         // Arrays of various types (including common object types)
         _concrete.put(boolean[].class.getName(), new ArraySerializers.BooleanArraySerializer());
         _concrete.put(byte[].class.getName(), new ArraySerializers.ByteArraySerializer());
@@ -350,9 +353,9 @@ public class BasicSerializerFactory
     }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Concrete serializers, non-numeric primitives, Strings
-    ////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    // Concrete serializers, non-numeric primitives, Strings, Classes
+    /////////////////////////////////////////////////////////////////
      */
 
     public final static class BooleanSerializer
@@ -404,6 +407,21 @@ public class BasicSerializerFactory
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());
+        }
+    }
+
+    /**
+     * Also: default bean access will not do much good with Class.class. But
+     * we can just store the name.
+     */
+    public final static class ClassSerializer
+        extends JsonSerializer<Class<?>>
+    {
+        @Override
+        public void serialize(Class<?> value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeString(value.getName());
         }
     }
 

@@ -99,7 +99,7 @@ public abstract class StdDeserializer<T>
 
     /*
     /////////////////////////////////////////////////////////////
-    // First, generic (Object, String, String-like) deserializers
+    // First, generic (Object, String, String-like, Class) deserializers
     /////////////////////////////////////////////////////////////
     */
 
@@ -109,7 +109,7 @@ public abstract class StdDeserializer<T>
         public StringDeserializer() { super(String.class); }
 
         @Override
-		public String deserialize(JsonParser jp, DeserializationContext ctxt)
+            public String deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken curr = jp.getCurrentToken();
@@ -120,6 +120,28 @@ public abstract class StdDeserializer<T>
             // Can deserialize any scaler value, but not markers
             if (curr.isScalarValue()) {
                 return jp.getText();
+            }
+            throw ctxt.mappingException(_valueClass);
+        }
+    }
+
+    public final static class ClassDeserializer
+        extends StdDeserializer<Class<?>>
+    {
+        public ClassDeserializer() { super(Class.class); }
+
+        @Override
+            public Class<?> deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            JsonToken curr = jp.getCurrentToken();
+            // Currently will only accept if given simple class name
+            if (curr == JsonToken.VALUE_STRING) {
+                try {
+                    return Class.forName(jp.getText());
+                } catch (ClassNotFoundException e) {
+                    throw ctxt.instantiationException(_valueClass, e);
+                }
             }
             throw ctxt.mappingException(_valueClass);
         }

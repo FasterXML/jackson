@@ -20,6 +20,7 @@ class StdDeserializers
 
         // Then String and String-like converters:
         add(new StdDeserializer.StringDeserializer());
+        add(new StdDeserializer.ClassDeserializer());
 
         // Then primitives/wrappers
         add(new StdDeserializer.BooleanDeserializer(), Boolean.class, Boolean.TYPE);

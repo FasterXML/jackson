@@ -52,7 +52,7 @@ public class TestSimpleTypes
 
     public void testClass() throws Exception
     {
-        Map<String,Object> result = writeAndMap(Object.class);
-        assertEquals(1, result.size());
+        String result = serializeAsString(java.util.List.class);
+        assertEquals("\"java.util.List\"", result);
     }
 }

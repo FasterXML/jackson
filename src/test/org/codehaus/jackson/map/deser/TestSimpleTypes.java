@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.deser;
 
 import main.BaseTest;
 
@@ -10,13 +10,14 @@ import java.net.URI;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.*;
 
 /**
  * Unit tests for verifying handling of simple basic non-structured
  * types; primitives (and/or their wrappers), Strings.
  */
-public class TestObjectMapperSimpleDeserializer
-    extends BaseTest
+public class TestSimpleTypes
+    extends BaseMapTest
 {
     /*
     //////////////////////////////////////////////////////////
@@ -170,8 +171,15 @@ public class TestObjectMapperSimpleDeserializer
     {
         ObjectMapper mapper = new ObjectMapper();
         // null doesn't really have a type, fake by assuming Object
-        Object result = mapper.readValue(new StringReader("   null"), Object.class);
+        Object result = mapper.readValue("   null", Object.class);
         assertNull(result);
+    }
+
+    public void testClass() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Class<?> result = mapper.readValue("\"java.lang.String\"", Class.class);
+        assertEquals(String.class, result);
     }
 
     public void testBigDecimal() throws Exception

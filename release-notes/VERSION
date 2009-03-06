@@ -1,10 +1,22 @@
-Version: 0.9.9
+Version: 0.9.9-2
 
 Release date:
-  02-Mar-2009
+  XX-Mar-2009
 
 Description:
   Another pre-1.0 release.
+
+  Fixes:
+
+  Improvements:
+
+  * [JACKSON-71]: Add support ser/deser of Class.class.
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+0.9.8 [02-Mar-2009]:
 
   Fixes:
 
@@ -41,10 +53,6 @@ Description:
 
   * [JACKSON-22]: all contributors now have submitted contributor
     agreement, stored under 'DEV/agreements-received' in svn trunk.
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 0.9.8 [18-Feb-2009]:
 
