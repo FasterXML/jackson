@@ -38,6 +38,11 @@ public final class BeanPropertyWriter
         _serializer = ser;
     }
 
+    /**
+     * Method that will construct and return a new writer that has
+     * same properties as this writer, but uses specified serializer
+     * instead of currently configured one (if any).
+     */
     public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
     {
         return new BeanPropertyWriter(_name, _accessorMethod, ser);
@@ -52,7 +57,7 @@ public final class BeanPropertyWriter
     public final String getName() { return _name; }
 
     @Override
-        public String toString() {
+    public String toString() {
         return "property '"+getName()+"' (via method "+_accessorMethod.getDeclaringClass()+"#"+_accessorMethod.getName()+"))";
     }
 

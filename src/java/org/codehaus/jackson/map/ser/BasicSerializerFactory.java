@@ -588,7 +588,7 @@ public class BasicSerializerFactory
         extends JsonSerializer<java.sql.Time>
     {
         @Override
-		public void serialize(java.sql.Time value, JsonGenerator jgen, SerializerProvider provider)
+            public void serialize(java.sql.Time value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());
@@ -608,7 +608,7 @@ public class BasicSerializerFactory
         private NullSerializer() { }
 
         @Override
-		public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+            public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNull();

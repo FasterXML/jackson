@@ -12,6 +12,12 @@ Description:
 
   * [JACKSON-71]: Add support ser/deser of Class.class.
 
+  New features:
+
+  * [JACKSON-45]: Add convenience methods to help writing custom
+    serializers
+    (requested by Scott A)
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

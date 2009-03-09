@@ -18,7 +18,7 @@ public abstract class SerializerProvider
 {
     /*
     //////////////////////////////////////////////////////
-    // Methods ObjectMapper calls
+    // Methods that ObjectMapper will call
     //////////////////////////////////////////////////////
      */
 
@@ -118,4 +118,44 @@ public abstract class SerializerProvider
      * @param unknownType Type for which no serializer is found
      */
     public abstract JsonSerializer<Object> getUnknownTypeSerializer(Class<?> unknownType);
+
+    /*
+    //////////////////////////////////////////////////////
+    // Convenience methods
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     * Convenience method that will serialize given value (which can be
+     * null) using standard serializer locating functionality. It can
+     * be called for all values including field and Map values, but usually
+     * field values are best handled calling
+     * {@link #defaultSerializeFeidl} instead.
+     */
+    public final void defaultSerializeValue(Object value, JsonGenerator jgen)
+        throws IOException, JsonProcessingException
+    {
+        if (value == null) {
+            getNullValueSerializer().serialize(null, jgen, this);
+        } else {
+            findValueSerializer(value.getClass()).serialize(value, jgen, this);
+        }
+    }
+
+    /**
+     * Convenience method that will serialize given field with specified
+     * value. Value may be null. Serializer is done using the usual
+     * null) using standard serializer locating functionality.
+     */
+    public final void defaultSerializeField(String fieldName, Object value, JsonGenerator jgen)
+        throws IOException, JsonProcessingException
+    {
+        // !!! TODO: [JACKSON-61] omit call for null field, if so specified?
+        jgen.writeFieldName(fieldName);
+        if (value == null) {
+            getNullValueSerializer().serialize(null, jgen, this);
+        } else {
+            findValueSerializer(value.getClass()).serialize(value, jgen, this);
+        }
+    }
 }

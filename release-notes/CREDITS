@@ -61,6 +61,9 @@ Scott Dixon:
   * Contributed unit test (TestComplexJavaType) for verifying functioning
     of object serialization
     [0.9.5]
+  * Suggested [JACKSON-45]: adding convenience methods to simplify writing
+    custom serializers
+    [1.0.0]
 
 Justin Friedl:
   * Requested [JACKSON-52]: ability to disable getter method auto-detection
