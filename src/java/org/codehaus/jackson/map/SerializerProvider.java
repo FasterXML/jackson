@@ -16,6 +16,13 @@ import org.codehaus.jackson.*;
  */
 public abstract class SerializerProvider
 {
+    protected final SerializationConfig _config;
+
+    protected SerializerProvider(SerializationConfig config)
+    {
+        _config = config;
+    }
+
     /*
     //////////////////////////////////////////////////////
     // Methods that ObjectMapper will call
@@ -30,7 +37,8 @@ public abstract class SerializerProvider
      * @param jsf Underlying factory object used for creating serializers
      *    as needed
      */
-    public abstract void serializeValue(JsonGenerator jgen, Object value,
+    public abstract void serializeValue(SerializationConfig cfg,
+                                        JsonGenerator jgen, Object value,
                                         SerializerFactory jsf)
         throws IOException, JsonGenerationException;
 
@@ -41,7 +49,20 @@ public abstract class SerializerProvider
      * Note that no Exceptions are thrown, including unchecked ones:
      * implementations are to swallow exceptions if necessary.
      */
-    public abstract boolean hasSerializerFor(Class<?> cls, SerializerFactory jsf);
+    public abstract boolean hasSerializerFor(SerializationConfig cfg,
+                                             Class<?> cls, SerializerFactory jsf);
+
+    /*
+    //////////////////////////////////////////////////////
+    // Access to configuration
+    //////////////////////////////////////////////////////
+     */
+
+    public final SerializationConfig getConfig() { return _config; }
+
+    public final boolean isEnabled(SerializationConfig.Feature f) {
+        return _config.isEnabled(f);
+    }
 
     /*
     //////////////////////////////////////////////////////

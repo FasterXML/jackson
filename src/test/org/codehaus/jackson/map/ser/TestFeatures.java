@@ -55,9 +55,7 @@ public class TestFeatures
         assertEquals(Integer.valueOf(1), result.get("y"));
 
         // Then auto-detection disabled:
-        CustomSerializerFactory sf = new CustomSerializerFactory();
-        sf.setFeature(SerializerFactory.Feature.AUTO_DETECT_GETTERS, false);
-        m = new ObjectMapper(sf);
+        m.configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
         result = writeAndMap(m, new GetterClass());
         assertEquals(1, result.size());
         assertTrue(result.containsKey("x"));
@@ -72,9 +70,7 @@ public class TestFeatures
         assertTrue(result.containsKey("x"));
 
         // And then class-level auto-detection enabling, should override defaults
-        CustomSerializerFactory sf = new CustomSerializerFactory();
-        sf.setFeature(SerializerFactory.Feature.AUTO_DETECT_GETTERS, false);
-        m = new ObjectMapper(sf);
+        m.configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
         result = writeAndMap(m, new EnabledGetterClass());
         assertEquals(2, result.size());
         assertTrue(result.containsKey("x"));

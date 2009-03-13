@@ -3,8 +3,7 @@ package org.codehaus.jackson.map.ser;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.ClassKey;
 
 /**
@@ -45,17 +44,6 @@ import org.codehaus.jackson.map.type.ClassKey;
 public class CustomSerializerFactory
     extends BeanSerializerFactory
 {
-    /*
-    ////////////////////////////////////////////////////
-    // Configuration, basic
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Features (of type {@link SerializerFactory.Feature} that are
-     * enabled
-     */
-    private int _features = DEFAULT_FEATURE_FLAGS;
 
     /*
     ////////////////////////////////////////////////////
@@ -115,47 +103,6 @@ public class CustomSerializerFactory
     public CustomSerializerFactory() {
         super();
     }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Configuration: on/off features
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Method for enabling specified  features
-     * (check
-     * {@link org.codehaus.jackson.map.SerializerFactory.Feature}
-     * for list of features)
-     */
-    public void enableFeature(SerializerFactory.Feature f) {
-        _features |= f.getMask();
-    }
-
-    /**
-     * Method for disabling specified  features
-     * (check
-     * {@link org.codehaus.jackson.map.SerializerFactory.Feature}
-     * for list of features)
-     */
-    public void disableFeature(SerializerFactory.Feature f) {
-        _features &= ~f.getMask();
-    }
-
-    public void setFeature(SerializerFactory.Feature f, boolean state)
-    {
-        if (state) {
-            enableFeature(f);
-        } else {
-            disableFeature(f);
-        }
-    }
-
-    /**
-     * To make features configurable, need to override this method.
-     */
-    @Override
-    protected int _getFeatures() { return _features; }
 
     /*
     ////////////////////////////////////////////////////
@@ -270,7 +217,7 @@ public class CustomSerializerFactory
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> JsonSerializer<T> createSerializer(Class<T> type)
+    public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
     {
         JsonSerializer<?> ser = null;
         ClassKey key = new ClassKey(type);
@@ -317,7 +264,7 @@ public class CustomSerializerFactory
         /* And barring any other complications, let's just let
          * bean (or basic) serializer factory handle construction.
          */
-        return super.createSerializer(type);
+        return super.createSerializer(type, config);
     }
 }
 

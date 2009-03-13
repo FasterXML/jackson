@@ -32,7 +32,7 @@ public class ObjectMapper
 
     /*
     ////////////////////////////////////////////////////
-    // Configuration settings
+    // Configuration settings, shared
     ////////////////////////////////////////////////////
      */
 
@@ -41,6 +41,14 @@ public class ObjectMapper
      * instances as necessary.
      */
     protected final JsonFactory _jsonFactory;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration settings, serialization
+    ////////////////////////////////////////////////////
+     */
+
+    protected SerializationConfig _serializationConfig;
 
     /**
      * Object that manages access to serializers used for serialization,
@@ -54,6 +62,12 @@ public class ObjectMapper
      * Serializer factory used for constructing serializers.
      */
     protected SerializerFactory _serializerFactory;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration settings, deserialization
+    ////////////////////////////////////////////////////
+     */
 
     /**
      * Object that manages access to deserializers used for deserializing
@@ -132,6 +146,7 @@ public class ObjectMapper
          *   have problems with POJONodes.
          */
         _jsonFactory = (jf == null) ? new MappingJsonFactory() : jf;
+        _serializationConfig = new SerializationConfig();
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -155,9 +170,21 @@ public class ObjectMapper
 
     /*
     ////////////////////////////////////////////////////
-    // Simple accessors
+    // Access to config
     ////////////////////////////////////////////////////
      */
+
+    public SerializationConfig getSerializationConfig() {
+        return _serializationConfig;
+    }
+
+    public void setSerializationConfig(SerializationConfig cfg) {
+        _serializationConfig = cfg;
+    }
+
+    public void configure(SerializationConfig.Feature f, boolean state) {
+        _serializationConfig.set(f, state);
+    }
 
     /**
      * Method that can be used to get hold of Json factory that this
@@ -257,7 +284,7 @@ public class ObjectMapper
     public void writeValue(JsonGenerator jgen, Object value)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        _serializerProvider.serializeValue(jgen, value, _serializerFactory);
+        _serializerProvider.serializeValue(_serializationConfig, jgen, value, _serializerFactory);
         jgen.flush();
     }
 
@@ -268,7 +295,7 @@ public class ObjectMapper
     public void writeTree(JsonGenerator jgen, JsonNode rootNode)
         throws IOException, JsonProcessingException
     {
-        _serializerProvider.serializeValue(jgen, rootNode, _serializerFactory);
+        _serializerProvider.serializeValue(_serializationConfig, jgen, rootNode, _serializerFactory);
         jgen.flush();
     }
 
@@ -290,7 +317,7 @@ public class ObjectMapper
      */
     public boolean canSerialize(Class<?> type)
     {
-        return _serializerProvider.hasSerializerFor(type, _serializerFactory);
+        return _serializerProvider.hasSerializerFor(_serializationConfig, type, _serializerFactory);
     }
 
     /**

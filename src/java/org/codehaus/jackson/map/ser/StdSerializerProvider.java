@@ -124,6 +124,7 @@ public class StdSerializerProvider
      */
     public StdSerializerProvider()
     {
+        super(null);
         _serializerFactory = null;
         _serializerCache = new SerializerCache();
         // Blueprints doesn't have access to any serializers...
@@ -133,10 +134,14 @@ public class StdSerializerProvider
     /**
      * "Copy-constructor", used from {@link #createInstance} (or by
      * sub-classes)
+     *
+     * @param src Blueprint object used as the baseline for this instance
      */
-    protected StdSerializerProvider(StdSerializerProvider src,
+    protected StdSerializerProvider(SerializationConfig config,
+                                    StdSerializerProvider src,
                                     SerializerFactory f)
     {
+        super(config);
         _serializerFactory = f;
 
         _serializerCache = src._serializerCache;
@@ -145,8 +150,8 @@ public class StdSerializerProvider
         _nullValueSerializer = src._nullValueSerializer;
         _nullKeySerializer = src._nullKeySerializer;
 
-        /* Non-blueprint instances do have a read-only map; one that doesn't need
-         * synchronization for lookups.
+        /* Non-blueprint instances do have a read-only map; one that doesn't
+         * need synchronization for lookups.
          */
         _knownSerializers = _serializerCache.getReadOnlyLookupMap();
     }
@@ -157,7 +162,7 @@ public class StdSerializerProvider
      */
     protected StdSerializerProvider createInstance(SerializerFactory jsf)
     {
-        return new StdSerializerProvider(this, jsf);
+        return new StdSerializerProvider(_config, this, jsf);
     }
 
     /*
@@ -167,8 +172,9 @@ public class StdSerializerProvider
      */
 
     @Override
-	public final void serializeValue(JsonGenerator jgen, Object value,
-                                         SerializerFactory jsf)
+    public final void serializeValue(SerializationConfig cfg,
+                                     JsonGenerator jgen, Object value,
+                                     SerializerFactory jsf)
         throws IOException, JsonGenerationException
     {
         if (jsf == null) {
@@ -188,7 +194,8 @@ public class StdSerializerProvider
         inst._serializeValue(jgen, value);
     }
 
-    public boolean hasSerializerFor(Class<?> cls, SerializerFactory jsf)
+    public boolean hasSerializerFor(SerializationConfig config,
+                                    Class<?> cls, SerializerFactory jsf)
     {
         return createInstance(jsf)._findExplicitSerializer(cls) != null;
     }
@@ -371,7 +378,7 @@ public class StdSerializerProvider
          *   and keep track of creation chain to look for loops -- fairly
          *   easy to do, but won't add yet since it seems unnecessary.
          */
-        return (JsonSerializer<Object>)_serializerFactory.createSerializer(type);
+        return (JsonSerializer<Object>)_serializerFactory.createSerializer(type, _config);
     }
 
     protected void _resolveSerializer(ResolvableSerializer ser)

@@ -5,6 +5,7 @@ import java.util.*;
 import java.lang.reflect.Method;
 
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.ClassIntrospector;
@@ -79,7 +80,7 @@ public class BeanSerializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> JsonSerializer<T> createSerializer(Class<T> type)
+        public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
     {
         // First, fast lookup for exact type:
         JsonSerializer<?> ser = super.findSerializerByLookup(type);
@@ -92,7 +93,7 @@ public class BeanSerializerFactory
                  * We can still get a null, if we can't find a single
                  * suitable bean property.
                  */
-                ser = this.findBeanSerializer(type);
+                ser = this.findBeanSerializer(type, config);
                 /* Finally: maybe we can still deal with it as an
                  * implementation of some basic JDK interface?
                  */
@@ -115,7 +116,7 @@ public class BeanSerializerFactory
      * Method that will try to construct a {@link BeanSerializer} for
      * given class. Returns null if no properties are found.
      */
-    public JsonSerializer<Object> findBeanSerializer(Class<?> type)
+    public JsonSerializer<Object> findBeanSerializer(Class<?> type, SerializationConfig config)
     {
         // First things first: we know some types are not beans...
         if (!isPotentialBeanType(type)) {
@@ -127,7 +128,7 @@ public class BeanSerializerFactory
             return ser;
         }
         // First: what properties are to be serializable?
-        Collection<BeanPropertyWriter> props = findBeanProperties(intr);
+        Collection<BeanPropertyWriter> props = findBeanProperties(config, intr);
         if (props == null || props.size() == 0) {
             // No properties, no serializer
             return null;
@@ -157,9 +158,9 @@ public class BeanSerializerFactory
     /**
      * Method used to collect all actual serializable properties
      */
-    protected Collection<BeanPropertyWriter> findBeanProperties(ClassIntrospector intr)
+    protected Collection<BeanPropertyWriter> findBeanProperties(SerializationConfig config, ClassIntrospector intr)
     {
-        boolean autodetect = isFeatureEnabled(Feature.AUTO_DETECT_GETTERS);
+        boolean autodetect = config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS);
         LinkedHashMap<String,AnnotatedMethod> methodsByProp = intr.findGetters(autodetect);
         // nothing? can't proceed
         if (methodsByProp.isEmpty()) {
