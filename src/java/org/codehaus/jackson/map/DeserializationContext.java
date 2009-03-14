@@ -12,12 +12,12 @@ import org.codehaus.jackson.map.util.ObjectBuffer;
  */
 public abstract class DeserializationContext
 {
-	protected final DeserializationConfig _config;
-
-	protected DeserializationContext(DeserializationConfig config)
-	{
-		_config = config;
-	}
+    protected final DeserializationConfig _config;
+    
+    protected DeserializationContext(DeserializationConfig config)
+    {
+        _config = config;
+    }
 
     /*
     //////////////////////////////////////////////////////////////

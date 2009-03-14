@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.map.util.LinkedNode;
 
 /**
  * Object that contains baseline configuration for deserialization
@@ -97,7 +98,23 @@ public class DeserializationConfig
      */
     protected final static int DEFAULT_FEATURE_FLAGS = Feature.collectDefaults();
 
+    /*
+    ///////////////////////////////////////////////////////////
+    // Configured settings
+    ///////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Bitset that contains all enabled features
+     */
     protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
+
+    /**
+     * Linked list that contains all registered problem handlers.
+     * Implementation as front-added linked list allows for sharing
+     * of the list (tail) without copying the list.
+     */
+    protected LinkedNode<DeserializationProblemHandler> _problemHandlers;
 
     /*
     ///////////////////////////////////////////////////////////
@@ -107,7 +124,11 @@ public class DeserializationConfig
 
     public DeserializationConfig()  { }
 
-    private DeserializationConfig(int f)  { _featureFlags = f; }
+    private DeserializationConfig(int f, LinkedNode<DeserializationProblemHandler> ph)
+    {
+        _featureFlags = f;
+        _problemHandlers = ph;
+    }
 
     /**
      * Method that is called to create a non-shared copy of the configuration
@@ -115,7 +136,7 @@ public class DeserializationConfig
      */
     public DeserializationConfig createUnshared()
     {
-    	return new DeserializationConfig(_featureFlags);
+    	return new DeserializationConfig(_featureFlags, _problemHandlers);
     }
 
     /**
@@ -155,6 +176,21 @@ public class DeserializationConfig
     		set(Feature.AUTO_DETECT_CREATORS, creators);
     	}
     }
+
+    /**
+     * Method that can be used to add a handler that can (try to)
+     * resolve non-fatal deserialization problems.
+     */
+    public void addHandler(DeserializationProblemHandler h)
+    {
+        /* Sanity check: let's prevent adding same handler multiple
+         * times
+         */
+        if (!LinkedNode.contains(_problemHandlers, h)) {
+            _problemHandlers = new LinkedNode<DeserializationProblemHandler>(h, _problemHandlers);
+        }
+    }
+        
     
     /*
     ///////////////////////////////////////////////////////////
@@ -177,6 +213,15 @@ public class DeserializationConfig
      */
     public Base64Variant getBase64Variant() {
         return Base64Variants.getDefaultVariant();
+    }
+
+    /**
+     * Method for getting head of the problem handler chain. May be null,
+     * if no handlers have been added.
+     */
+    public LinkedNode<DeserializationProblemHandler> getProblemHandlers()
+    {
+        return _problemHandlers;
     }
 
     /*

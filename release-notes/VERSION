@@ -11,6 +11,8 @@ Description:
   Improvements:
 
   * [JACKSON-71]: Add support ser/deser of Class.class.
+  * [JACKSON-73]: Refactored ser/deser configuration settings into
+    separate configuration classes.
 
   New features:
 

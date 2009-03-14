@@ -142,6 +142,9 @@ public class StdSerializerProvider
                                     SerializerFactory f)
     {
         super(config);
+        if (config == null) {
+            throw new NullPointerException();
+        }
         _serializerFactory = f;
 
         _serializerCache = src._serializerCache;
@@ -160,9 +163,9 @@ public class StdSerializerProvider
      * Overridable method, used to create a non-blueprint instances from the blueprint.
      * This is needed to retain state during serialization.
      */
-    protected StdSerializerProvider createInstance(SerializerFactory jsf)
+    protected StdSerializerProvider createInstance(SerializationConfig config, SerializerFactory jsf)
     {
-        return new StdSerializerProvider(_config, this, jsf);
+        return new StdSerializerProvider(config, this, jsf);
     }
 
     /*
@@ -172,7 +175,7 @@ public class StdSerializerProvider
      */
 
     @Override
-    public final void serializeValue(SerializationConfig cfg,
+    public final void serializeValue(SerializationConfig config,
                                      JsonGenerator jgen, Object value,
                                      SerializerFactory jsf)
         throws IOException, JsonGenerationException
@@ -185,7 +188,7 @@ public class StdSerializerProvider
          * non-shared ("local") read-only lookup Map for fast
          * class-to-serializer lookup
          */
-        StdSerializerProvider inst = createInstance(jsf);
+        StdSerializerProvider inst = createInstance(config, jsf);
         // sanity check to avoid weird errors; to ensure sub-classes do override createInstance
         if (inst.getClass() != getClass()) {
             throw new IllegalStateException("Broken serializer provider: createInstance returned instance of type "+inst.getClass()+"; blueprint of type "+getClass());
@@ -197,7 +200,7 @@ public class StdSerializerProvider
     public boolean hasSerializerFor(SerializationConfig config,
                                     Class<?> cls, SerializerFactory jsf)
     {
-        return createInstance(jsf)._findExplicitSerializer(cls) != null;
+        return createInstance(config, jsf)._findExplicitSerializer(cls) != null;
     }
 
     /**

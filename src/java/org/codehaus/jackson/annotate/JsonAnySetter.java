@@ -15,6 +15,9 @@ import java.lang.annotation.Target;
  *<p>
  * If used, all otherwise unmapped key-value pairs from Json Object
  * structs are added to the property (of type Map or bean).
+ *<p>
+ * !!! 13-Mar-2009, tatu: NOTE: Support for this annotation
+ * Not Yet Implemented!
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

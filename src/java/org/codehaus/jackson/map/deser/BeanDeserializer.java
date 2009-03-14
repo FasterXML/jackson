@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -232,7 +233,14 @@ public class BeanDeserializer
         if (_ignorableProps != null && _ignorableProps.contains(propName)) {
             ; // fine, ignore as is
         } else {
-            // Hmmh. Problem...
+            LinkedNode<DeserializationProblemHandler> h = ctxt.getConfig().getProblemHandlers();
+            while (h != null) {
+                // Can bail out if it's handled
+                if (h.value().handleUnknownProperty(ctxt, this, resultBean, propName)) {
+                    return;
+                }
+            }
+            // Nope, not handled. Still a problem:
             reportUnknownField(ctxt, resultBean, propName);
         }
         /* either way, need to skip now; we point to first token of value
