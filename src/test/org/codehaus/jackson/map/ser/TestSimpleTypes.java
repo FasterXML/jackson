@@ -3,9 +3,6 @@ package org.codehaus.jackson.map.ser;
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import java.io.*;
-import java.util.*;
-
 /**
  * Unit tests for verifying serialization of simple basic non-structured
  * types; primitives (and/or their wrappers), Strings.

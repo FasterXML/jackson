@@ -12,7 +12,12 @@ import org.codehaus.jackson.map.util.ObjectBuffer;
  */
 public abstract class DeserializationContext
 {
-    public abstract JsonParser getParser();
+	protected final DeserializationConfig _config;
+
+	protected DeserializationContext(DeserializationConfig config)
+	{
+		_config = config;
+	}
 
     /*
     //////////////////////////////////////////////////////////////
@@ -20,15 +25,17 @@ public abstract class DeserializationContext
     //////////////////////////////////////////////////////////////
     */
 
-    /**
-     * Method called during deserialization if Base64 encoded content
-     * needs to be decoded. Default version just returns default Jackson
-     * uses, which is modified-mime which does not add linefeeds (because
-     * those would have to be escaped in Json strings).
-     */
-    public Base64Variant getBase64Variant() {
-        return Base64Variants.getDefaultVariant();
+    public DeserializationConfig getConfig() { return _config; }
+
+    public boolean isEnabled(DeserializationConfig.Feature feat) {
+    	return _config.isEnabled(feat);
     }
+
+    public Base64Variant getBase64Variant() {
+        return _config.getBase64Variant();
+    }
+
+    public abstract JsonParser getParser();
 
     /*
     //////////////////////////////////////////////////////////////

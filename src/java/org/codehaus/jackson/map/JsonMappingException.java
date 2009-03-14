@@ -148,12 +148,6 @@ public class JsonMappingException
         super(msg, loc, rootCause);
     }
 
-    private JsonMappingException(String message, LinkedList<Reference> path)
-    {
-        super(message);
-        _path = path;
-    }
-
     public static JsonMappingException from(JsonParser jp, String msg)
     {
         return new JsonMappingException(msg, jp.getTokenLocation());

@@ -35,8 +35,9 @@ public class StdDeserializationContext
 
     // // // Construction
 
-    public StdDeserializationContext(JsonParser jp)
+    public StdDeserializationContext(DeserializationConfig config, JsonParser jp)
     {
+    	super(config);
         _parser = jp;
     }
 

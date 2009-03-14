@@ -34,9 +34,7 @@ public abstract class BaseMapTest
         throws IOException
     {
         String str = serializeAsString(m, value);
-        StringWriter sw = new StringWriter();
-        m.writeValue(sw, value);
-        return (Map<String,Object>) m.readValue(sw.toString(), Object.class);
+        return (Map<String,Object>) m.readValue(str, Object.class);
     }
 
     protected Map<String,Object> writeAndMap(Object value)

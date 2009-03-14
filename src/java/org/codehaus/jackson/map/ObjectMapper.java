@@ -48,6 +48,10 @@ public class ObjectMapper
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Configuration object that defines basic global
+     * settings for the serialization process
+     */
     protected SerializationConfig _serializationConfig;
 
     /**
@@ -68,6 +72,12 @@ public class ObjectMapper
     // Configuration settings, deserialization
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * Configuration object that defines basic global
+     * settings for the serialization process
+     */
+    protected DeserializationConfig _deserializationConfig;
 
     /**
      * Object that manages access to deserializers used for deserializing
@@ -138,21 +148,37 @@ public class ObjectMapper
         setSerializerFactory(sf);
     }
 
-    public ObjectMapper(JsonFactory jf, SerializerProvider sp,
-                        DeserializerProvider dp)
+    public ObjectMapper(JsonFactory jf,
+    		SerializerProvider sp, DeserializerProvider dp)
+    {
+    	this(jf, sp, dp, null, null);
+    }
+
+    /**
+     * 
+     * @param jf JsonFactory to use: if null, a new {@link MappingJsonFactory} will be constructed
+     * @param sp SerializerProvider to use: if null, a {@link StdSerializerProvider} will be constructed
+     * @param dp DeserializerProvider to use: if null, a {@link StdDeserializerProvider} will be constructed
+     * @param sconfig Serialization configuration to use; if null, basic {@link SerializationConfig}
+     * 	will be constructed
+     * @param dconfig Deserialization configuration to use; if null, basic {@link DeserializationConfig}
+     * 	will be constructed
+     */
+	public ObjectMapper(JsonFactory jf,
+  		SerializerProvider sp, DeserializerProvider dp,
+    	SerializationConfig sconfig, DeserializationConfig dconfig)
     {
         /* 02-Mar-2009, tatu: Important: we MUST default to using
          *   the mapping factory, otherwise tree serialization will
          *   have problems with POJONodes.
          */
         _jsonFactory = (jf == null) ? new MappingJsonFactory() : jf;
-        _serializationConfig = new SerializationConfig();
+        _serializationConfig = (sconfig == null) ? new SerializationConfig() : sconfig;
+        _deserializationConfig = (dconfig == null) ? new DeserializationConfig() : dconfig;
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
-        /* Let's just initialize ser/deser factories: they are stateless,
-         * no need to create anything, no cost to re-set later on
-         */
+        // Default serializer factory is stateless, can just assign
         _serializerFactory = BeanSerializerFactory.instance;
     }
 
@@ -170,7 +196,7 @@ public class ObjectMapper
 
     /*
     ////////////////////////////////////////////////////
-    // Access to config
+    // Access to configuration settings
     ////////////////////////////////////////////////////
      */
 
@@ -184,6 +210,18 @@ public class ObjectMapper
 
     public void configure(SerializationConfig.Feature f, boolean state) {
         _serializationConfig.set(f, state);
+    }
+
+    public DeserializationConfig getDeserializationConfig() {
+        return _deserializationConfig;
+    }
+
+    public void setDeserializationConfig(DeserializationConfig cfg) {
+        _deserializationConfig = cfg;
+    }
+
+    public void configure(DeserializationConfig.Feature f, boolean state) {
+        _deserializationConfig.set(f, state);
     }
 
     /**
@@ -284,7 +322,7 @@ public class ObjectMapper
     public void writeValue(JsonGenerator jgen, Object value)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        _serializerProvider.serializeValue(_serializationConfig, jgen, value, _serializerFactory);
+        _serializerProvider.serializeValue(_getUnsharedSConfig(), jgen, value, _serializerFactory);
         jgen.flush();
     }
 
@@ -295,7 +333,7 @@ public class ObjectMapper
     public void writeTree(JsonGenerator jgen, JsonNode rootNode)
         throws IOException, JsonProcessingException
     {
-        _serializerProvider.serializeValue(_serializationConfig, jgen, rootNode, _serializerFactory);
+        _serializerProvider.serializeValue(_getUnsharedSConfig(), jgen, rootNode, _serializerFactory);
         jgen.flush();
     }
 
@@ -607,6 +645,20 @@ public class ObjectMapper
      */
 
     /**
+     * Method that creates a non-shared copy of the serialization configuration
+     * object owned by this mapper
+     */
+    private SerializationConfig _getUnsharedSConfig()
+    {
+    	return _serializationConfig.createUnshared();
+    }
+
+    private DeserializationConfig _getUnsharedDConfig()
+    {
+    	return _deserializationConfig.createUnshared();
+    }
+
+    /**
      * Method called to locate deserializer for the passed root-level value.
      */
     protected JsonDeserializer<Object> _findRootDeserializer(JavaType valueType)
@@ -629,7 +681,7 @@ public class ObjectMapper
 
     protected DeserializationContext _createDeserializationContext(JsonParser jp)
     {
-        return new StdDeserializationContext(jp);
+        return new StdDeserializationContext(_getUnsharedDConfig(), jp);
     }
 
     /**

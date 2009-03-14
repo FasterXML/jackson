@@ -1,14 +1,16 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.Base64Variant;
+import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
 
 /**
- * Object that contains baseline configuration for serialization
+ * Object that contains baseline configuration for deserialization
  * process. An instance is owned by {@link ObjectMapper}, which makes
  * a copy that is passed during serialization process to
- * {@link SerializerProvider} and {@link SerializerFactory}.
+ * {@link DeserializerProvider} and {@link DeserializerFactory}.
  */
-public class SerializationConfig
+public class DeserializationConfig
 {
     /**
      * Enumeration that defines togglable features that guide
@@ -16,12 +18,12 @@ public class SerializationConfig
      */
     public enum Feature {
         /**
-         * Feature that determines whether "getter" methods are
+         * Feature that determines whether "setter" methods are
          * automatically detected based on standard Bean naming convention
-         * or not. If yes, then all public zero-argument methods that
-         * start with prefix "get" (or, "is" if return type is boolean)
-         * are considered as getters. If disabled, only methods explicitly
-         * annotated are considered getters.
+         * or not. If yes, then all public one-argument methods that
+         * start with prefix "set"
+         * are considered setters. If disabled, only methods explicitly
+         * annotated are considered setters.
          *<p>
          * Note that this feature has lower precedence than per-class
          * annotations, and is only used if there isn't more granular
@@ -29,10 +31,39 @@ public class SerializationConfig
          *<P>
          * Feature is enabled by default.
          */
-        AUTO_DETECT_GETTERS(true),
+        AUTO_DETECT_SETTERS(true),
+        /**
+         * Feature that determines whether "creator" methods are
+         * automatically detected by consider public constructors,
+         * and static single argument methods with name "valueOf".
+         * If disabled, only methods explicitly annotated are considered
+         * creator methods (except for the no-arg default constructor which
+         * is always considered a factory method).
+         *<p>
+         * Note that this feature has lower precedence than per-class
+         * annotations, and is only used if there isn't more granular
+         * configuration available.
+         *<P>
+         * Feature is enabled by default.
+         */
+        AUTO_DETECT_CREATORS(true),
 
-            OUTPUT_NULL_PROPERTIES(true)
-            ;
+        /**
+         * Feature that determines whether Json floating point numbers
+         * are to be deserialized into {@link java.math.BigDecimal}s
+         * if only generic type description (either {@link Object} or
+         * {@link Number}, or within untyped {@link java.util.Map}
+         * or {@link java.util.Colleciton} context) is available.
+         * If enabled such values will be deserialized as {@link BigDecimal}s;
+         * if disabled, will be deserialized as {@link Double}s.
+         * <p>
+         * Feature is disabled by default, meaning that "untyped" floating
+         * point numbers will by default be deserialized as {@link Double}s
+         * (choice is for performance reason -- BigDecimals are slower than
+         * Doubles)
+         */
+        USE_BIG_DECIMAL_FOR_FLOATS(false)
+	            ;
 
         final boolean _defaultState;
 
@@ -50,11 +81,11 @@ public class SerializationConfig
             }
             return flags;
         }
-        
+	        
         private Feature(boolean defaultState) {
             _defaultState = defaultState;
         }
-        
+	        
         public boolean enabledByDefault() { return _defaultState; }
     
         public int getMask() { return (1 << ordinal()); }
@@ -74,17 +105,17 @@ public class SerializationConfig
     ///////////////////////////////////////////////////////////
      */
 
-    public SerializationConfig()  { }
+    public DeserializationConfig()  { }
 
-    private SerializationConfig(int f)  { _featureFlags = f; }
+    private DeserializationConfig(int f)  { _featureFlags = f; }
 
     /**
      * Method that is called to create a non-shared copy of the configuration
      * to be used for a serialization operation.
      */
-    public SerializationConfig createUnshared()
+    public DeserializationConfig createUnshared()
     {
-    	return new SerializationConfig(_featureFlags);
+    	return new DeserializationConfig(_featureFlags);
     }
 
     /**
@@ -106,20 +137,22 @@ public class SerializationConfig
      */
     public void fromAnnotations(Class<?> annotatedClass)
     {
-    	JsonWriteNullProperties nullProps = annotatedClass.getAnnotation(JsonWriteNullProperties.class);
-    	if (nullProps != null) {
-    		set(Feature.OUTPUT_NULL_PROPERTIES, nullProps.value());
-    	}
+    	// no annotation for USE_BIG_DECIMAL_FOR_FLOATS...
+
     	JsonAutoDetect autoDetect = annotatedClass.getAnnotation(JsonAutoDetect.class);
     	if (autoDetect != null) {
-    		boolean set = false;
+    		boolean setters = false;
+    		boolean creators = false;
     		for (JsonMethod m : autoDetect.value()) {
-    			if (m == JsonMethod.GETTER || m == JsonMethod.ALL) {
-    				set = true;
-    				break;
+    			if (m == JsonMethod.SETTER || m == JsonMethod.ALL) {
+    				setters = true;
+    			}
+    			if (m == JsonMethod.CREATOR || m == JsonMethod.ALL) {
+    				creators = true;
     			}
     		}
-    		set(Feature.AUTO_DETECT_GETTERS, set); 		
+    		set(Feature.AUTO_DETECT_SETTERS, setters); 		
+    		set(Feature.AUTO_DETECT_CREATORS, creators);
     	}
     }
     
@@ -134,6 +167,16 @@ public class SerializationConfig
      */
     public final boolean isEnabled(Feature f) {
         return (_featureFlags & f.getMask()) != 0;
+    }
+
+    /**
+     * Method called during deserialization if Base64 encoded content
+     * needs to be decoded. Default version just returns default Jackson
+     * uses, which is modified-mime which does not add linefeeds (because
+     * those would have to be escaped in Json strings).
+     */
+    public Base64Variant getBase64Variant() {
+        return Base64Variants.getDefaultVariant();
     }
 
     /*

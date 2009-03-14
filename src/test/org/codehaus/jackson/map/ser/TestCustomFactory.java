@@ -1,13 +1,10 @@
 package org.codehaus.jackson.map.ser;
 
-import main.BaseTest;
-
 import java.io.*;
 import java.util.Date;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.ser.*;
 
 public class TestCustomFactory
     extends BaseMapTest
