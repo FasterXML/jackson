@@ -54,7 +54,10 @@ public class TestFeatures
         assertEquals(Integer.valueOf(-2), result.get("x"));
         assertEquals(Integer.valueOf(1), result.get("y"));
 
-        // Then auto-detection disabled:
+        /* Then auto-detection disabled. But note: we MUST create a new
+         * mapper, since old version of serializer may be cached by now
+         */
+        m = new ObjectMapper();
         m.configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
         result = writeAndMap(m, new GetterClass());
         assertEquals(1, result.size());
