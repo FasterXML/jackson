@@ -12,6 +12,8 @@ Description:
 
   Improvements:
 
+  * [JACKSON-68]: Add DeserializationProblemListener, and
+    DeserializationConfig.addHandler to add instances to ObjectMapper.
   * [JACKSON-71]: Add support ser/deser of Class.class.
   * [JACKSON-73]: Refactored ser/deser configuration settings into
     separate configuration classes.

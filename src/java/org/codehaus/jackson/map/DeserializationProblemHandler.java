@@ -29,6 +29,10 @@ public abstract class DeserializationProblemHandler
      * parser that can be obtained from the content.
      * Handler can also choose to skip the content; if so, it MUST return
      * true to indicate it did handle property succesfully.
+     * Skipping is usually done like so:
+     *<pre>
+     *  ctxt.getParser().skipChildren();
+     *</pre>
      * 
      * @return True if the problem was succesfully resolved (and content available
      *    used or skipped); false if listen
