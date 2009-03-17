@@ -8,6 +8,8 @@ Description:
 
   Fixes:
 
+  * [JACKSON-75]: Didn't have Deserializer for Number.class
+
   Improvements:
 
   * [JACKSON-71]: Add support ser/deser of Class.class.

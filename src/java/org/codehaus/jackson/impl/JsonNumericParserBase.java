@@ -92,21 +92,21 @@ public abstract class JsonNumericParserBase
      * Bitfield that indicates which numeric representations
      * have been calculated for the current type
      */
-    protected int mNumTypesValid = NR_UNKNOWN;
+    protected int _numTypesValid = NR_UNKNOWN;
 
     // First primitives
 
-    protected int mNumberInt;
+    protected int _numberInt;
 
-    protected long mNumberLong;
+    protected long _numberLong;
 
-    protected double mNumberDouble;
+    protected double _numberDouble;
 
     // And then object types
 
-    protected BigInteger mNumberBigInt;
+    protected BigInteger _numberBigInt;
 
-    protected BigDecimal mNumberBigDecimal;
+    protected BigDecimal _numberBigDecimal;
 
     // And then other information about value itself
 
@@ -115,7 +115,7 @@ public abstract class JsonNumericParserBase
      * value. That is, whether its textual representation starts
      * with minus character.
      */
-    protected boolean mNumberNegative;
+    protected boolean _numberNegative;
 
     /**
      * Length of integer part of the number, in characters
@@ -149,11 +149,11 @@ public abstract class JsonNumericParserBase
 
     protected final JsonToken reset(boolean negative, int intLen, int fractLen, int expLen)
     {
-        mNumberNegative = negative;
+        _numberNegative = negative;
         mIntLength = intLen;
         mFractLength = fractLen;
         mExpLength = expLen;
-        mNumTypesValid = NR_UNKNOWN; // to force parsing
+        _numTypesValid = NR_UNKNOWN; // to force parsing
         if (fractLen < 1 && expLen < 1) { // integer
             return JsonToken.VALUE_NUMBER_INT;
         }
@@ -179,47 +179,47 @@ public abstract class JsonNumericParserBase
     public Number getNumberValue()
         throws IOException, JsonParseException
     {
-        if (mNumTypesValid == NR_UNKNOWN) {
+        if (_numTypesValid == NR_UNKNOWN) {
             parseNumericValue(NR_UNKNOWN); // will also check event type
         }
         // Separate types for int types
         if (_currToken == JsonToken.VALUE_NUMBER_INT) {
-            if ((mNumTypesValid & NR_INT) != 0) {
-                return Integer.valueOf(mNumberInt);
+            if ((_numTypesValid & NR_INT) != 0) {
+                return Integer.valueOf(_numberInt);
             }
-            if ((mNumTypesValid & NR_LONG) != 0) {
-                return Long.valueOf(mNumberLong);
+            if ((_numTypesValid & NR_LONG) != 0) {
+                return Long.valueOf(_numberLong);
             }
-            if ((mNumTypesValid & NR_BIGINT) != 0) {
-                return mNumberBigInt;
+            if ((_numTypesValid & NR_BIGINT) != 0) {
+                return _numberBigInt;
             }
             // Shouldn't get this far but if we do
-            return mNumberBigDecimal;
+            return _numberBigDecimal;
         }
 
         /* And then floating point types. But here optimal type
          * needs to be big decimal, to avoid losing any data?
          */
-        if ((mNumTypesValid & NR_BIGDECIMAL) != 0) {
-            return mNumberBigDecimal;
+        if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
+            return _numberBigDecimal;
         }
-        if ((mNumTypesValid & NR_DOUBLE) == 0) { // sanity check
+        if ((_numTypesValid & NR_DOUBLE) == 0) { // sanity check
             _throwInternal();
         }
-        return Double.valueOf(mNumberDouble);
+        return Double.valueOf(_numberDouble);
     }
 
     public NumberType getNumberType()
         throws IOException, JsonParseException
     {
-        if (mNumTypesValid == NR_UNKNOWN) {
+        if (_numTypesValid == NR_UNKNOWN) {
             parseNumericValue(NR_UNKNOWN); // will also check event type
         }
         if (_currToken == JsonToken.VALUE_NUMBER_INT) {
-            if ((mNumTypesValid & NR_INT) != 0) {
+            if ((_numTypesValid & NR_INT) != 0) {
                 return NumberType.INT;
             }
-            if ((mNumTypesValid & NR_LONG) != 0) {
+            if ((_numTypesValid & NR_LONG) != 0) {
                 return NumberType.LONG;
             }
             return NumberType.BIG_INTEGER;
@@ -231,7 +231,7 @@ public abstract class JsonNumericParserBase
          * double as type if no explicit call has been made to access
          * data as BD?
          */
-        if ((mNumTypesValid & NR_BIGDECIMAL) != 0) {
+        if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
             return NumberType.BIG_DECIMAL;
         }
         return NumberType.DOUBLE;
@@ -261,29 +261,29 @@ public abstract class JsonNumericParserBase
     public int getIntValue()
         throws IOException, JsonParseException
     {
-        if ((mNumTypesValid & NR_INT) == 0) {
-            if (mNumTypesValid == NR_UNKNOWN) { // not parsed at all
+        if ((_numTypesValid & NR_INT) == 0) {
+            if (_numTypesValid == NR_UNKNOWN) { // not parsed at all
                 parseNumericValue(NR_INT); // will also check event type
             }
-            if ((mNumTypesValid & NR_INT) == 0) { // wasn't an int natively?
+            if ((_numTypesValid & NR_INT) == 0) { // wasn't an int natively?
                 convertNumberToInt(); // let's make it so, if possible
             }
         }
-        return mNumberInt;
+        return _numberInt;
     }
 
     public long getLongValue()
         throws IOException, JsonParseException
     {
-        if ((mNumTypesValid & NR_LONG) == 0) {
-            if (mNumTypesValid == NR_UNKNOWN) {
+        if ((_numTypesValid & NR_LONG) == 0) {
+            if (_numTypesValid == NR_UNKNOWN) {
                 parseNumericValue(NR_LONG);
             }
-            if ((mNumTypesValid & NR_LONG) == 0) {
+            if ((_numTypesValid & NR_LONG) == 0) {
                 convertNumberToLong();
             }
         }
-        return mNumberLong;
+        return _numberLong;
     }
 
     public float getFloatValue()
@@ -304,29 +304,29 @@ public abstract class JsonNumericParserBase
     public double getDoubleValue()
         throws IOException, JsonParseException
     {
-        if ((mNumTypesValid & NR_DOUBLE) == 0) {
-            if (mNumTypesValid == NR_UNKNOWN) {
+        if ((_numTypesValid & NR_DOUBLE) == 0) {
+            if (_numTypesValid == NR_UNKNOWN) {
                 parseNumericValue(NR_DOUBLE);
             }
-            if ((mNumTypesValid & NR_DOUBLE) == 0) {
+            if ((_numTypesValid & NR_DOUBLE) == 0) {
                 convertNumberToDouble();
             }
         }
-        return mNumberDouble;
+        return _numberDouble;
     }
 
     public BigDecimal getDecimalValue()
         throws IOException, JsonParseException
     {
-        if ((mNumTypesValid & NR_BIGDECIMAL) == 0) {
-            if (mNumTypesValid == NR_UNKNOWN) {
+        if ((_numTypesValid & NR_BIGDECIMAL) == 0) {
+            if (_numTypesValid == NR_UNKNOWN) {
                 parseNumericValue(NR_BIGDECIMAL);
             }
-            if ((mNumTypesValid & NR_BIGDECIMAL) == 0) {
+            if ((_numTypesValid & NR_BIGDECIMAL) == 0) {
                 convertNumberToBigDecimal();
             }
         }
-        return mNumberBigDecimal;
+        return _numberBigDecimal;
     }
 
 
@@ -357,25 +357,25 @@ public abstract class JsonNumericParserBase
             if (_currToken == JsonToken.VALUE_NUMBER_INT) {
                 char[] buf = _textBuffer.getTextBuffer();
                 int offset = _textBuffer.getTextOffset();
-                if (mNumberNegative) {
+                if (_numberNegative) {
                     ++offset;
                 }
                 if (mIntLength <= 9) { // definitely fits in int
                     int i = NumberInput.parseInt(buf, offset, mIntLength);
-                    mNumberInt = mNumberNegative ? -i : i;
-                    mNumTypesValid = NR_INT;
+                    _numberInt = _numberNegative ? -i : i;
+                    _numTypesValid = NR_INT;
                     return;
                 }
                 if (mIntLength <= 18) { // definitely fits AND is easy to parse using 2 int parse calls
                     long l = NumberInput.parseLong(buf, offset, mIntLength);
-                    mNumberLong = mNumberNegative ? -l : l;
-                    mNumTypesValid = NR_LONG;
+                    _numberLong = _numberNegative ? -l : l;
+                    _numTypesValid = NR_LONG;
                     return;
                 }
                 // nope, need the heavy guns... (rare case)
                 BigInteger bi = new BigInteger(_textBuffer.contentsAsString());
-                mNumberBigDecimal = new BigDecimal(bi);
-                mNumTypesValid = NR_BIGDECIMAL;
+                _numberBigDecimal = new BigDecimal(bi);
+                _numTypesValid = NR_BIGDECIMAL;
                 return;
             }
 
@@ -387,12 +387,12 @@ public abstract class JsonNumericParserBase
              * retain textual representation
              */
             if (expType == NR_BIGDECIMAL) {
-                mNumberBigDecimal = _textBuffer.contentsAsDecimal();
-                mNumTypesValid = NR_BIGDECIMAL;
+                _numberBigDecimal = _textBuffer.contentsAsDecimal();
+                _numTypesValid = NR_BIGDECIMAL;
             } else {
                 // Otherwise double has to do
-                mNumberDouble = _textBuffer.contentsAsDouble();
-                mNumTypesValid = NR_DOUBLE;
+                _numberDouble = _textBuffer.contentsAsDouble();
+                _numTypesValid = NR_DOUBLE;
             }
         } catch (NumberFormatException nex) {
             // Can this ever occur? Due to overflow, maybe?
@@ -410,54 +410,54 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         // First, converting from long ought to be easy
-        if ((mNumTypesValid & NR_LONG) != 0) {
+        if ((_numTypesValid & NR_LONG) != 0) {
             // Let's verify it's lossless conversion by simple roundtrip
-            int result = (int) mNumberLong;
-            if (((long) result) != mNumberLong) {
+            int result = (int) _numberLong;
+            if (((long) result) != _numberLong) {
                 _reportError("Numeric value ("+getText()+") out of range of int");
             }
-            mNumberInt = result;
-        } else if ((mNumTypesValid & NR_DOUBLE) != 0) {
+            _numberInt = result;
+        } else if ((_numTypesValid & NR_DOUBLE) != 0) {
             // Need to check boundaries
-            if (mNumberDouble < MIN_INT_D || mNumberDouble > MAX_INT_D) {
+            if (_numberDouble < MIN_INT_D || _numberDouble > MAX_INT_D) {
                 reportOverflowInt();
             }
-            mNumberInt = (int) mNumberDouble;
-        } else if ((mNumTypesValid & NR_BIGDECIMAL) != 0) {
-            if (BD_MIN_INT.compareTo(mNumberBigDecimal) > 0 
-                || BD_MAX_INT.compareTo(mNumberBigDecimal) < 0) {
+            _numberInt = (int) _numberDouble;
+        } else if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
+            if (BD_MIN_INT.compareTo(_numberBigDecimal) > 0 
+                || BD_MAX_INT.compareTo(_numberBigDecimal) < 0) {
                 reportOverflowInt();
             }
-            mNumberInt = mNumberBigDecimal.intValue();
+            _numberInt = _numberBigDecimal.intValue();
         } else {
             _throwInternal(); // should never get here
         }
 
-        mNumTypesValid |= NR_INT;
+        _numTypesValid |= NR_INT;
     }
 
     protected void convertNumberToLong()
         throws IOException, JsonParseException
     {
-        if ((mNumTypesValid & NR_INT) != 0) {
-            mNumberLong = (long) mNumberInt;
-        } else if ((mNumTypesValid & NR_DOUBLE) != 0) {
+        if ((_numTypesValid & NR_INT) != 0) {
+            _numberLong = (long) _numberInt;
+        } else if ((_numTypesValid & NR_DOUBLE) != 0) {
             // Need to check boundaries
-            if (mNumberDouble < MIN_LONG_D || mNumberDouble > MAX_LONG_D) {
+            if (_numberDouble < MIN_LONG_D || _numberDouble > MAX_LONG_D) {
                 reportOverflowLong();
             }
-            mNumberLong = (long) mNumberDouble;
-        } else if ((mNumTypesValid & NR_BIGDECIMAL) != 0) {
-            if (BD_MIN_LONG.compareTo(mNumberBigDecimal) > 0 
-                || BD_MAX_LONG.compareTo(mNumberBigDecimal) < 0) {
+            _numberLong = (long) _numberDouble;
+        } else if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
+            if (BD_MIN_LONG.compareTo(_numberBigDecimal) > 0 
+                || BD_MAX_LONG.compareTo(_numberBigDecimal) < 0) {
                 reportOverflowLong();
             }
-            mNumberLong = mNumberBigDecimal.longValue();
+            _numberLong = _numberBigDecimal.longValue();
         } else {
             _throwInternal(); // should never get here
         }
 
-        mNumTypesValid |= NR_LONG;
+        _numTypesValid |= NR_LONG;
     }
 
     protected void convertNumberToDouble()
@@ -469,17 +469,17 @@ public abstract class JsonNumericParserBase
          *   requested)
          */
 
-        if ((mNumTypesValid & NR_BIGDECIMAL) != 0) {
-            mNumberDouble = mNumberBigDecimal.doubleValue();
-        } else if ((mNumTypesValid & NR_LONG) != 0) {
-            mNumberDouble = (double) mNumberLong;
-        } else if ((mNumTypesValid & NR_INT) != 0) {
-            mNumberDouble = (double) mNumberInt;
+        if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
+            _numberDouble = _numberBigDecimal.doubleValue();
+        } else if ((_numTypesValid & NR_LONG) != 0) {
+            _numberDouble = (double) _numberLong;
+        } else if ((_numTypesValid & NR_INT) != 0) {
+            _numberDouble = (double) _numberInt;
         } else {
             _throwInternal(); // should never get here
         }
 
-        mNumTypesValid |= NR_DOUBLE;
+        _numTypesValid |= NR_DOUBLE;
     }
 
     protected void convertNumberToBigDecimal()
@@ -491,20 +491,20 @@ public abstract class JsonNumericParserBase
          *   requested)
          */
 
-        if ((mNumTypesValid & NR_DOUBLE) != 0) {
+        if ((_numTypesValid & NR_DOUBLE) != 0) {
             /* Let's actually parse from String representation,
              * to avoid rounding errors that non-decimal floating operations
              * would incur
              */
-            mNumberBigDecimal = new BigDecimal(getText());
-        } else if ((mNumTypesValid & NR_LONG) != 0) {
-            mNumberBigDecimal = BigDecimal.valueOf(mNumberLong);
-        } else if ((mNumTypesValid & NR_INT) != 0) {
-            mNumberBigDecimal = BigDecimal.valueOf((long) mNumberInt);
+            _numberBigDecimal = new BigDecimal(getText());
+        } else if ((_numTypesValid & NR_LONG) != 0) {
+            _numberBigDecimal = BigDecimal.valueOf(_numberLong);
+        } else if ((_numTypesValid & NR_INT) != 0) {
+            _numberBigDecimal = BigDecimal.valueOf((long) _numberInt);
         } else {
             _throwInternal(); // should never get here
         }
-        mNumTypesValid |= NR_BIGDECIMAL;
+        _numTypesValid |= NR_BIGDECIMAL;
     }
 
     /*

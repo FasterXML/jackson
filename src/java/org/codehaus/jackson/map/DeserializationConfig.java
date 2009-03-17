@@ -10,6 +10,12 @@ import org.codehaus.jackson.map.util.LinkedNode;
  * process. An instance is owned by {@link ObjectMapper}, which makes
  * a copy that is passed during serialization process to
  * {@link DeserializerProvider} and {@link DeserializerFactory}.
+ *<p>
+ * Note: although configuration settings can be changed at any time
+ * (for factories and instances), they are not guaranteed to have
+ * effect if called after constructing relevant mapper or deserializer
+ * instance. This because some objects may be configured, constructed and
+ * cached first time they are needed.
  */
 public class DeserializationConfig
 {

@@ -423,6 +423,12 @@ public abstract class JsonParser
     public abstract double getDoubleValue()
         throws IOException, JsonParseException;
 
+    /**
+     * Numeric accessor that can be called when the current
+     * token is of type {@link JsonToken#VALUE_NUMBER_FLOAT} or
+     * {@link JsonToken#VALUE_NUMBER_INT}. No under/overflow exceptions
+     * are ever thrown.
+     */
     public abstract BigDecimal getDecimalValue()
         throws IOException, JsonParseException;
 

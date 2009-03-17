@@ -327,6 +327,46 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    /**
+     * For type <code>Number.class</code>, we can just rely on type
+     * mappings that plain {@link JsonParser#getNumberValue} returns.
+     */
+    public final static class NumberDeserializer
+        extends StdDeserializer<Number>
+    {
+        public NumberDeserializer() { super(Number.class); }
+
+        @Override
+        public Number deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            JsonToken t = jp.getCurrentToken();
+            if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
+                return jp.getNumberValue();
+            }
+            /* Textual values are more difficult... not parsing itself, but figuring
+             * out 'minimal' type to use 
+             */
+            if (t == JsonToken.VALUE_STRING) { // let's do implicit re-parse
+                String text = jp.getText().trim();
+                try {
+                    if (text.indexOf('.') >= 0) { // floating point
+                        return new Double(text);
+                    }
+                    long value = Long.parseLong(text);
+                    if (value <= Integer.MAX_VALUE && value >= Integer.MIN_VALUE) {
+                        return Integer.valueOf((int) value);
+                    }
+                    return Long.valueOf(value);
+                } catch (IllegalArgumentException iae) {
+                    throw ctxt.weirdStringException(_valueClass, "not a valid number");
+                }
+            }
+            // Otherwise, no can do:
+            throw ctxt.mappingException(_valueClass);
+        }
+    }
+
     /*
     /////////////////////////////////////////////////////////////
     // And then bit more complicated (but non-structured) number

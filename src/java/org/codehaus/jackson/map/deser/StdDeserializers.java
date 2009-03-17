@@ -33,6 +33,7 @@ class StdDeserializers
         add(new StdDeserializer.DoubleDeserializer(), Double.class, Double.TYPE);
 
         // and related
+        add(new StdDeserializer.NumberDeserializer());
         add(new StdDeserializer.BigDecimalDeserializer());
         add(new StdDeserializer.BigIntegerDeserializer());
 

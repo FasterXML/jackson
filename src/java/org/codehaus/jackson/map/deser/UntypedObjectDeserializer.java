@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonMappingException;
 
@@ -14,13 +15,13 @@ import org.codehaus.jackson.map.JsonMappingException;
  * unknown type (or without regular structure) into generic Java container
  * types; Lists, Maps, wrappers, nulls and so on.
  */
-public final class UntypedObjectDeserializer
+public class UntypedObjectDeserializer
     extends StdDeserializer<Object>
 {
     public UntypedObjectDeserializer() { super(Object.class); }
     
     @Override
-	public Object deserialize(JsonParser jp, DeserializationContext ctxt)
+    public Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         switch (jp.getCurrentToken()) {
@@ -30,8 +31,16 @@ public final class UntypedObjectDeserializer
             return jp.getText();
 
         case VALUE_NUMBER_INT:
-        case VALUE_NUMBER_FLOAT:
             return jp.getNumberValue(); // should be optimal, whatever it is
+
+        case VALUE_NUMBER_FLOAT:
+            /* [JACKSON-72]: need to allow overriding the behavior regarding
+             *   which type to use
+             */
+            if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
+                return jp.getDecimalValue();
+            }
+            return jp.getDoubleValue();
 
         case VALUE_TRUE:
             return Boolean.TRUE;

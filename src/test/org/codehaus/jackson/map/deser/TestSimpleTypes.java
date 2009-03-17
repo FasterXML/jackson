@@ -194,6 +194,26 @@ public class TestSimpleTypes
         assertEquals(value, result);
     }
 
+    public void testIntAsNumber() throws Exception
+    {
+        /* Even if declared as 'generic' type, should return using most
+         * efficient type... here, Integer
+         */
+        Number result = new ObjectMapper().readValue(new StringReader(" 123 "), Number.class);
+        assertEquals(Integer.valueOf(123), result);
+    }
+
+    /**
+     * Related to [JACKSON-72]: by default should wrap floating-point
+     * Number as Double
+     */
+    public void testDoubleAsNumber() throws Exception
+    {
+        Number result = new ObjectMapper().readValue(new StringReader(" 1.0 "), Number.class);
+        assertEquals(Double.valueOf(1.0), result);
+    }
+
+
     public void testUUID() throws Exception
     {
         UUID value = UUID.fromString("76e6d183-5f68-4afa-b94a-922c1fdb83f8");
