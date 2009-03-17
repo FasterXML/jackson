@@ -38,7 +38,7 @@ public class TestGenericNumber
     /**
      * Test for verifying [JACKSON-72].
      */
-    public void testFpTypeOverride() throws Exception
+    public void testFpTypeOverrideSimple() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
         m.getDeserializationConfig().enable(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS);
@@ -49,7 +49,20 @@ public class TestGenericNumber
         assertEquals(BigDecimal.class, result.getClass());
         assertEquals(dec, result);
 
-        // Then a List
+        // Then plain old Object
+        Object value = m.readValue(dec.toString(), Object.class);
+        assertEquals(BigDecimal.class, result.getClass());
+        assertEquals(dec, value);
+    }
+
+    public void testFpTypeOverrideStructured() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        BigDecimal dec = new BigDecimal("-19.37");
+
+        m.getDeserializationConfig().enable(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS);
+
+        // List element types
         List<Object> list = m.readValue("[ "+dec.toString()+" ]", List.class);
         assertEquals(1, list.size());
         Object val = list.get(0);

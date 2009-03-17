@@ -36,7 +36,7 @@ public abstract class BasicDeserializerFactory
      * cases where the most common concrete Maps will do.
      */
     @SuppressWarnings("unchecked")
-	final static HashMap<String, Class<? extends Map>> _mapFallbacks =
+    final static HashMap<String, Class<? extends Map>> _mapFallbacks =
         new HashMap<String, Class<? extends Map>>();
     static {
 
@@ -65,7 +65,7 @@ public abstract class BasicDeserializerFactory
      * cases where the most common concrete Maps will do.
      */
     @SuppressWarnings("unchecked")
-	final static HashMap<String, Class<? extends Collection>> _collectionFallbacks =
+    final static HashMap<String, Class<? extends Collection>> _collectionFallbacks =
         new HashMap<String, Class<? extends Collection>>();
     static {
         _collectionFallbacks.put(Collection.class.getName(), ArrayList.class);

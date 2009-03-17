@@ -9,6 +9,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
 
 /**
@@ -341,9 +342,18 @@ public abstract class StdDeserializer<T>
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
-            if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
+            if (t == JsonToken.VALUE_NUMBER_INT) {
                 return jp.getNumberValue();
+            } else if (t == JsonToken.VALUE_NUMBER_FLOAT) {
+                /* [JACKSON-72]: need to allow overriding the behavior regarding
+                 *   which type to use
+                 */
+                if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
+                    return jp.getDecimalValue();
+                }
+                return Double.valueOf(jp.getDoubleValue());
             }
+
             /* Textual values are more difficult... not parsing itself, but figuring
              * out 'minimal' type to use 
              */

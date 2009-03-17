@@ -40,7 +40,7 @@ public class UntypedObjectDeserializer
             if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
                 return jp.getDecimalValue();
             }
-            return jp.getDoubleValue();
+            return Double.valueOf(jp.getDoubleValue());
 
         case VALUE_TRUE:
             return Boolean.TRUE;
