@@ -49,6 +49,17 @@ public final class SettableBeanProperty
     {
         try {
             _setter.invoke(instance, value);
+        } catch (IllegalArgumentException iae) {
+            String actType = (value == null) ? "[NULL]" : value.getClass().getName();
+            StringBuilder msg = new StringBuilder("Problem deserializing property '").append(getPropertyName());
+            msg.append("' (expected type: ").append(getType());
+            msg.append("; actual type: ").append(actType).append(")");
+            String origMsg = iae.getMessage();
+            if (origMsg != null) {
+                msg.append(", problem: ").append(origMsg);
+            } else {
+                msg.append(" (no error message provided)");
+            }
         } catch (RuntimeException re) {
             throw re;
         } catch (Exception e) {
