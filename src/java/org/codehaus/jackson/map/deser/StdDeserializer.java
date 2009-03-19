@@ -201,7 +201,7 @@ public abstract class StdDeserializer<T>
         public ByteDeserializer() { super(Byte.class); }
 
         @Override
-		public Byte deserialize(JsonParser jp, DeserializationContext ctxt)
+        public Byte deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             int value = _parseInt(jp, ctxt);
@@ -265,7 +265,7 @@ public abstract class StdDeserializer<T>
         public IntegerDeserializer() { super(Integer.class); }
 
         @Override
-		public Integer deserialize(JsonParser jp, DeserializationContext ctxt)
+        public Integer deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             return _parseInt(jp, ctxt);
@@ -278,7 +278,7 @@ public abstract class StdDeserializer<T>
         public LongDeserializer() { super(Long.class); }
 
         @Override
-		public Long deserialize(JsonParser jp, DeserializationContext ctxt)
+        public Long deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             // We accept couple of different types; obvious ones first:

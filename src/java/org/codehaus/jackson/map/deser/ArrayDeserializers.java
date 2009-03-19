@@ -148,7 +148,9 @@ public class ArrayDeserializers
                 boolean value;
                 if (t == JsonToken.VALUE_TRUE) {
                     value = true;
-                } else if (t == JsonToken.VALUE_FALSE) {
+                    // [JACKSON-79]: should probably accept nulls as 'false'
+                } else if (t == JsonToken.VALUE_FALSE
+                           || t == JsonToken.VALUE_NULL) {
                     value = false;
                 } else {
                     throw ctxt.mappingException(_valueClass.getComponentType());
@@ -191,11 +193,17 @@ public class ArrayDeserializers
 
             while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
                 // whether we should allow truncating conversions?
-                if (t != JsonToken.VALUE_NUMBER_INT && t != JsonToken.VALUE_NUMBER_FLOAT) {
-                    throw ctxt.mappingException(_valueClass.getComponentType());
+                byte value;
+                if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) {
+                    // should we catch overflow exceptions?
+                    value = jp.getByteValue();
+                } else {
+                    // [JACKSON-79]: should probably accept nulls as 'false'
+                    if (t != JsonToken.VALUE_NULL) {
+                        throw ctxt.mappingException(_valueClass.getComponentType());
+                    }
+                    value = (byte) 0;
                 }
-                // should we catch overflow exceptions?
-                byte value = jp.getByteValue();
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;
@@ -223,12 +231,18 @@ public class ArrayDeserializers
             JsonToken t;
 
             while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
+                short value;
                 // whether we should allow truncating conversions?
                 if (t != JsonToken.VALUE_NUMBER_INT && t != JsonToken.VALUE_NUMBER_FLOAT) {
-                    throw ctxt.mappingException(_valueClass.getComponentType());
+                    // [JACKSON-79]: should probably accept nulls as 'false'
+                    if (t != JsonToken.VALUE_NULL) {
+                        throw ctxt.mappingException(_valueClass.getComponentType());
+                    }
+                    value = (short) 0;
+                } else {
+                    // should we catch overflow exceptions?
+                    value = jp.getShortValue();
                 }
-                // should we catch overflow exceptions?
-                short value = jp.getShortValue();
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;
@@ -257,11 +271,17 @@ public class ArrayDeserializers
 
             while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
                 // whether we should allow truncating conversions?
+                int value;
                 if (t != JsonToken.VALUE_NUMBER_INT && t != JsonToken.VALUE_NUMBER_FLOAT) {
-                    throw ctxt.mappingException(_valueClass.getComponentType());
+                    // [JACKSON-79]: should probably accept nulls as 'false'
+                    if (t != JsonToken.VALUE_NULL) {
+                        throw ctxt.mappingException(_valueClass.getComponentType());
+                    }
+                    value = 0;
+                } else {
+                    // should we catch overflow exceptions?
+                    value = jp.getIntValue();
                 }
-                // should we catch overflow exceptions?
-                int value = jp.getIntValue();
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;
@@ -289,12 +309,18 @@ public class ArrayDeserializers
             JsonToken t;
 
             while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
+                long value;
                 // whether we should allow truncating conversions?
                 if (t != JsonToken.VALUE_NUMBER_INT && t != JsonToken.VALUE_NUMBER_FLOAT) {
-                    throw ctxt.mappingException(_valueClass.getComponentType());
+                    // [JACKSON-79]: should probably accept nulls as 'false'
+                    if (t != JsonToken.VALUE_NULL) {
+                        throw ctxt.mappingException(_valueClass.getComponentType());
+                    }
+                    value = 0L;
+                } else {
+                    // should we catch overflow exceptions?
+                    value = jp.getLongValue();
                 }
-                // should we catch overflow exceptions?
-                long value = jp.getLongValue();
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;
@@ -323,11 +349,17 @@ public class ArrayDeserializers
 
             while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
                 // whether we should allow truncating conversions?
+                float value;
                 if (t != JsonToken.VALUE_NUMBER_FLOAT && t != JsonToken.VALUE_NUMBER_INT) {
-                    throw ctxt.mappingException(_valueClass.getComponentType());
+                    // [JACKSON-79]: should probably accept nulls as 'false'
+                    if (t != JsonToken.VALUE_NULL) {
+                        throw ctxt.mappingException(_valueClass.getComponentType());
+                    }
+                    value = 0.0f;
+                } else {
+                    // should we catch overflow exceptions?
+                    value = jp.getFloatValue();
                 }
-                // should we catch overflow exceptions?
-                float value = jp.getFloatValue();
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;
@@ -355,12 +387,18 @@ public class ArrayDeserializers
             JsonToken t;
 
             while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
+                double value;
                 // whether we should allow truncating conversions?
                 if (t != JsonToken.VALUE_NUMBER_FLOAT && t != JsonToken.VALUE_NUMBER_INT) {
-                    throw ctxt.mappingException(_valueClass.getComponentType());
+                    // [JACKSON-79]: should probably accept nulls as 'false'
+                    if (t != JsonToken.VALUE_NULL) {
+                        throw ctxt.mappingException(_valueClass.getComponentType());
+                    }
+                    value = 0.0;
+                } else {
+                    // should we catch overflow exceptions?
+                    value = jp.getDoubleValue();
                 }
-                // should we catch overflow exceptions?
-                double value = jp.getDoubleValue();
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;

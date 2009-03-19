@@ -17,9 +17,86 @@ import org.codehaus.jackson.map.*;
 public class TestSimpleTypes
     extends BaseMapTest
 {
+    final static class BooleanBean {
+        boolean _v;
+        void setV(boolean v) { _v = v; }
+    }
+
+    final static class IntBean {
+        int _v;
+        void setV(int v) { _v = v; }
+    }
+
+    final static class DoubleBean {
+        double _v;
+        void setV(double v) { _v = v; }
+    }
+
     /*
     //////////////////////////////////////////////////////////
-    // Then tests for primitives, wrappers
+    // Then tests for primitives
+    //////////////////////////////////////////////////////////
+     */
+
+    public void testBooleanPrimitive() throws Exception
+    {
+        // first, simple case:
+        ObjectMapper mapper = new ObjectMapper();
+        BooleanBean result = mapper.readValue(new StringReader("{\"v\":true}"), BooleanBean.class);
+        assertTrue(result._v);
+        // then [JACKSON-79]:
+        result = mapper.readValue(new StringReader("{\"v\":null}"), BooleanBean.class);
+        assertNotNull(result);
+        assertFalse(result._v);
+
+        // should work with arrays too..
+        boolean[] array = mapper.readValue(new StringReader("[ null ]"), boolean[].class);
+        assertNotNull(array);
+        assertEquals(1, array.length);
+        assertFalse(array[0]);
+    }
+
+    public void testIntPrimitive() throws Exception
+    {
+        // first, simple case:
+        ObjectMapper mapper = new ObjectMapper();
+        IntBean result = mapper.readValue(new StringReader("{\"v\":3}"), IntBean.class);
+        assertEquals(3, result._v);
+        // then [JACKSON-79]:
+        result = mapper.readValue(new StringReader("{\"v\":null}"), IntBean.class);
+        assertNotNull(result);
+        assertEquals(0, result._v);
+
+        // should work with arrays too..
+        int[] array = mapper.readValue(new StringReader("[ null ]"), int[].class);
+        assertNotNull(array);
+        assertEquals(1, array.length);
+        assertEquals(0, array[0]);
+    }
+
+    public void testDoublePrimitive() throws Exception
+    {
+        // first, simple case:
+        ObjectMapper mapper = new ObjectMapper();
+        // bit tricky with binary fps but...
+        double value = 0.016;
+        DoubleBean result = mapper.readValue(new StringReader("{\"v\":"+value+"}"), DoubleBean.class);
+        assertEquals(value, result._v);
+        // then [JACKSON-79]:
+        result = mapper.readValue(new StringReader("{\"v\":null}"), DoubleBean.class);
+        assertNotNull(result);
+        assertEquals(0.0, result._v);
+
+        // should work with arrays too..
+        double[] array = mapper.readValue(new StringReader("[ null ]"), double[].class);
+        assertNotNull(array);
+        assertEquals(1, array.length);
+        assertEquals(0.0, array[0]);
+    }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Then tests for wrappers
     //////////////////////////////////////////////////////////
      */
 
@@ -41,15 +118,6 @@ public class TestSimpleTypes
         assertEquals(Boolean.FALSE, result);
         result = mapper.readValue(new StringReader("1"), Boolean.class);
         assertEquals(Boolean.TRUE, result);
-    }
-
-    public void testBooleanPrimitive() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        Boolean result = mapper.readValue(new StringReader("true"), Boolean.class);
-        assertEquals(Boolean.TRUE, result);
-        result = mapper.readValue(new StringReader("false"), Boolean.class);
-        assertEquals(Boolean.FALSE, result);
     }
 
     public void testByteWrapper() throws Exception
