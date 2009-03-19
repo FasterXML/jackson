@@ -34,6 +34,22 @@ public class TestSimpleTypes
         assertEquals(Boolean.TRUE, result);
         result = mapper.readValue(new StringReader("false"), Boolean.class);
         assertEquals(Boolean.FALSE, result);
+
+        /* [JACKSON-78]: should accept ints too, (0 == false, otherwise true)
+         */
+        result = mapper.readValue(new StringReader("0"), Boolean.class);
+        assertEquals(Boolean.FALSE, result);
+        result = mapper.readValue(new StringReader("1"), Boolean.class);
+        assertEquals(Boolean.TRUE, result);
+    }
+
+    public void testBooleanPrimitive() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Boolean result = mapper.readValue(new StringReader("true"), Boolean.class);
+        assertEquals(Boolean.TRUE, result);
+        result = mapper.readValue(new StringReader("false"), Boolean.class);
+        assertEquals(Boolean.FALSE, result);
     }
 
     public void testByteWrapper() throws Exception

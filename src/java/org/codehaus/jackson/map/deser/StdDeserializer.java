@@ -172,6 +172,12 @@ public abstract class StdDeserializer<T>
             if (t == JsonToken.VALUE_FALSE) {
                 return Boolean.FALSE;
             }
+            
+            // [JACKSON-78]: should accept ints too, (0 == false, otherwise true)
+            if (t == JsonToken.VALUE_NUMBER_INT) {
+                return (jp.getIntValue() == 0) ? Boolean.FALSE : Boolean.TRUE; 
+            }
+
             // And finally, let's allow Strings to be converted too
             if (t == JsonToken.VALUE_STRING) {
                 String text = jp.getText();
