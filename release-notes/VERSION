@@ -1,14 +1,14 @@
 Version: 0.9.9-2
 
 Release date:
-  XX-Mar-2009
+  19-Mar-2009
 
 Description:
   Another pre-1.0 release.
 
   Fixes:
 
-  * [JACKSON-75]: Didn't have Deserializer for Number.class
+  * [JACKSON-75]: Didn't have Deserializer for Number.class.
 
   Improvements:
 

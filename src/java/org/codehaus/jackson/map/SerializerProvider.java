@@ -151,7 +151,7 @@ public abstract class SerializerProvider
      * null) using standard serializer locating functionality. It can
      * be called for all values including field and Map values, but usually
      * field values are best handled calling
-     * {@link #defaultSerializeFeidl} instead.
+     * {@link #defaultSerializeField} instead.
      */
     public final void defaultSerializeValue(Object value, JsonGenerator jgen)
         throws IOException, JsonProcessingException

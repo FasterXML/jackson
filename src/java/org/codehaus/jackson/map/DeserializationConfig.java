@@ -60,8 +60,8 @@ public class DeserializationConfig
          * are to be deserialized into {@link java.math.BigDecimal}s
          * if only generic type description (either {@link Object} or
          * {@link Number}, or within untyped {@link java.util.Map}
-         * or {@link java.util.Colleciton} context) is available.
-         * If enabled such values will be deserialized as {@link BigDecimal}s;
+         * or {@link java.util.Collection} context) is available.
+         * If enabled such values will be deserialized as {@link java.math.BigDecimal}s;
          * if disabled, will be deserialized as {@link Double}s.
          * <p>
          * Feature is disabled by default, meaning that "untyped" floating
@@ -159,7 +159,7 @@ public class DeserializationConfig
      * <li>{@link JsonAutoDetect}</li>
      *</ul>
      * 
-     * @param annotatiedClass Class of which class annotations to use
+     * @param annotatedClass Class of which class annotations to use
      *   for changing configuration settings
      */
     public void fromAnnotations(Class<?> annotatedClass)
@@ -237,25 +237,22 @@ public class DeserializationConfig
      */
 
     /**
-     * Method for enabling specified  features
-     * (check
-     * {@link org.codehaus.jackson.map.SerializerFactory.Feature}
-     * for list of features)
+     * Method for enabling specified  feature.
      */
     public void enable(Feature f) {
         _featureFlags |= f.getMask();
     }
 
     /**
-     * Method for disabling specified  features
-     * (check
-     * {@link org.codehaus.jackson.map.SerializerFactory.Feature}
-     * for list of features)
+     * Method for disabling specified feature.
      */
     public void disable(Feature f) {
         _featureFlags &= ~f.getMask();
     }
 
+    /**
+     * Method for enabling or disabling specified feature.
+     */
     public void set(Feature f, boolean state)
     {
         if (state) {
@@ -266,10 +263,4 @@ public class DeserializationConfig
     }
 
     //protected int getFeatures() { return _features; }
-
-    /*
-    ///////////////////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////////////////
-     */
 }
