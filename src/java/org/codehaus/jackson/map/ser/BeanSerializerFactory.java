@@ -160,12 +160,17 @@ public class BeanSerializerFactory
      */
     protected Collection<BeanPropertyWriter> findBeanProperties(SerializationConfig config, ClassIntrospector intr)
     {
+        // are getters auto-detected?
         boolean autodetect = config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS);
         LinkedHashMap<String,AnnotatedMethod> methodsByProp = intr.findGetters(autodetect);
         // nothing? can't proceed
         if (methodsByProp.isEmpty()) {
             return null;
         }
+
+        // are null properties to be written?
+        boolean writeNulls = intr.willWriteNullProperties(config.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
+
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
             AnnotatedMethod am = en.getValue();
@@ -175,7 +180,7 @@ public class BeanSerializerFactory
              */
             JsonSerializer<Object> ser = findSerializerFromAnnotation(am);
             Method m = am.getAnnotated();
-            props.add(new BeanPropertyWriter(en.getKey(), m, ser));
+            props.add(new BeanPropertyWriter(en.getKey(), m, ser, writeNulls));
 
         }
         return props;

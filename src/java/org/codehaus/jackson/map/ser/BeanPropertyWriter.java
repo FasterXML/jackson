@@ -25,17 +25,26 @@ public final class BeanPropertyWriter
     final Method _accessorMethod;
 
     /**
+     * Whether this property will be written out if its value is null
+     * or not: if true, property is always written; if false, only
+     * if its value is not null.
+     */
+    final boolean _cfgWriteIfNull;
+
+    /**
      * Serializer to use for writing out the value: null if it can not
      * be known statically; non-null if it can.
      */
     final JsonSerializer<Object> _serializer;
 
     public BeanPropertyWriter(String name, Method acc,
-                              JsonSerializer<Object> ser)
+                              JsonSerializer<Object> ser,
+                              boolean writeIfNull)
     {
         _name = name;
         _accessorMethod = acc;
         _serializer = ser;
+        _cfgWriteIfNull = writeIfNull;
     }
 
     /**
@@ -45,7 +54,7 @@ public final class BeanPropertyWriter
      */
     public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
     {
-        return new BeanPropertyWriter(_name, _accessorMethod, ser);
+        return new BeanPropertyWriter(_name, _accessorMethod, ser, _cfgWriteIfNull);
     }
 
     public boolean hasSerializer() { return _serializer != null; }
@@ -73,6 +82,9 @@ public final class BeanPropertyWriter
         JsonSerializer<Object> ser;
 
         if (value == null) {
+            if (!_cfgWriteIfNull) {
+                return;
+            }
             ser = prov.getNullValueSerializer();
         } else {
             ser = _serializer;

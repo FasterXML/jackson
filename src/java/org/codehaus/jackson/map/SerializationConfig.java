@@ -37,7 +37,13 @@ public class SerializationConfig
          */
         AUTO_DETECT_GETTERS(true),
 
-            OUTPUT_NULL_PROPERTIES(true)
+            /**
+             * Feature that determines the default settings of whether Bean
+             * properties with null values are to be written out.
+             *<P>
+             * Feature is enabled by default (null properties written).
+             */
+            WRITE_NULL_PROPERTIES(true)
             ;
 
         final boolean _defaultState;
@@ -114,18 +120,18 @@ public class SerializationConfig
     {
     	JsonWriteNullProperties nullProps = annotatedClass.getAnnotation(JsonWriteNullProperties.class);
     	if (nullProps != null) {
-    		set(Feature.OUTPUT_NULL_PROPERTIES, nullProps.value());
+            set(Feature.WRITE_NULL_PROPERTIES, nullProps.value());
     	}
     	JsonAutoDetect autoDetect = annotatedClass.getAnnotation(JsonAutoDetect.class);
     	if (autoDetect != null) {
-    		boolean set = false;
-    		for (JsonMethod m : autoDetect.value()) {
-    			if (m == JsonMethod.GETTER || m == JsonMethod.ALL) {
-    				set = true;
-    				break;
-    			}
-    		}
-    		set(Feature.AUTO_DETECT_GETTERS, set); 		
+            boolean set = false;
+            for (JsonMethod m : autoDetect.value()) {
+                if (m == JsonMethod.GETTER || m == JsonMethod.ALL) {
+                    set = true;
+                    break;
+                }
+            }
+            set(Feature.AUTO_DETECT_GETTERS, set); 		
     	}
     }
     

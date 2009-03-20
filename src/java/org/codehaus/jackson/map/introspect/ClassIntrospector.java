@@ -180,7 +180,7 @@ public class ClassIntrospector
 
     /*
     ///////////////////////////////////////////////////////
-    // Introspection for getters
+    // Introspection for deserialization (read Json)
     ///////////////////////////////////////////////////////
      */
 
@@ -270,68 +270,7 @@ public class ClassIntrospector
 
     /*
     ///////////////////////////////////////////////////////
-    // Introspection for setters
-    ///////////////////////////////////////////////////////
-     */
-
-    /**
-     * @return Ordered Map with logical property name as key, and
-     *    matching setter method as value.
-     */
-    public LinkedHashMap<String,AnnotatedMethod> findSetters()
-    {
-        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
-        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
-            // note: signature has already been checked via filters
-            // Marked with @JsonIgnore?
-            if (isIgnored(am)) {
-                continue;
-            }
-
-            /* So far so good: final check, then; has to either
-             * (a) be marked with @JsonSetter OR
-             * (b) have suitable name (setXxx) (NOTE: need not be
-             *    public, unlike with getters)
-             */
-            JsonSetter ann = am.getAnnotation(JsonSetter.class);
-            String propName;
-
-            if (ann != null) {
-                propName = ann.value();
-                if (propName == null || propName.length() == 0) {
-                    /* As per [JACKSON-64], let's still use mangled
-                     * name if possible; and only if not use unmodified
-                     * method name
-                     */
-                    propName = okNameForSetter(am);
-                    if (propName == null) {
-                        propName = am.getName();
-                    }
-                }
-            } else { // nope, but is public bean-setter name?
-                propName = okNameForSetter(am);
-                if (propName == null) { // null means 'not valid'
-                    continue;
-                }
-            }
-
-            /* Yup, it is a valid name. But now... do we have a conflict?
-             * If so, should throw an exception
-             */
-            AnnotatedMethod old = results.put(propName, am);
-            if (old != null) {
-                String oldDesc = old.getFullName();
-                String newDesc = am.getFullName();
-                throw new IllegalArgumentException("Conflicting setter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
-            }
-        }
-
-        return results;
-    }
-
-    /*
-    ///////////////////////////////////////////////////////
-    // Introspection for constructors, factory methods
+    // Introspection for serialization (write Json), factories
     ///////////////////////////////////////////////////////
      */
 
@@ -418,6 +357,85 @@ public class ClassIntrospector
             }
         }
         return null;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Introspection for serialization, getters:
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * @return Ordered Map with logical property name as key, and
+     *    matching setter method as value.
+     */
+    public LinkedHashMap<String,AnnotatedMethod> findSetters()
+    {
+        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
+        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
+            // note: signature has already been checked via filters
+            // Marked with @JsonIgnore?
+            if (isIgnored(am)) {
+                continue;
+            }
+
+            /* So far so good: final check, then; has to either
+             * (a) be marked with @JsonSetter OR
+             * (b) have suitable name (setXxx) (NOTE: need not be
+             *    public, unlike with getters)
+             */
+            JsonSetter ann = am.getAnnotation(JsonSetter.class);
+            String propName;
+
+            if (ann != null) {
+                propName = ann.value();
+                if (propName == null || propName.length() == 0) {
+                    /* As per [JACKSON-64], let's still use mangled
+                     * name if possible; and only if not use unmodified
+                     * method name
+                     */
+                    propName = okNameForSetter(am);
+                    if (propName == null) {
+                        propName = am.getName();
+                    }
+                }
+            } else { // nope, but is public bean-setter name?
+                propName = okNameForSetter(am);
+                if (propName == null) { // null means 'not valid'
+                    continue;
+                }
+            }
+
+            /* Yup, it is a valid name. But now... do we have a conflict?
+             * If so, should throw an exception
+             */
+            AnnotatedMethod old = results.put(propName, am);
+            if (old != null) {
+                String oldDesc = old.getFullName();
+                String newDesc = am.getFullName();
+                throw new IllegalArgumentException("Conflicting setter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
+            }
+        }
+
+        return results;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Introspection for serialization, on/off features:
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for determining whether null properties should be written
+     * out for a Bean of introspected type. This is based on global
+     * feature (lowest priority, passed as argument)
+     * and per-class annotation (highest priority).
+     */
+    public boolean willWriteNullProperties(boolean defValue)
+    {
+        JsonWriteNullProperties ann = getClassAnnotation(JsonWriteNullProperties.class);
+        return (ann == null) ? defValue : ann.value();
     }
 
     /*

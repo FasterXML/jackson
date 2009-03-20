@@ -72,6 +72,9 @@ Justin Friedl:
     iBatis bean classes generated (or wrapped) by CGLib. Probably would also
     have caused problems with Hibernate and other frameworks.
     [0.9.8]
+  * Requested [JACKSON-61]: Allow suppressing writing of bean properties
+    with null values
+    [0.9.9-3]
   * Reported [JACKSON-62]: NPE with JsonMappingException
     [0.9.9]
 

@@ -10,20 +10,19 @@ import java.lang.annotation.Target;
  * that have null values are to be written out when serializing
  * content as Json. This affects Bean and Map serialization.
  *<p>
- * !!! 13-Mar-2009, tatus:
- * Note: can currently only be used with Classes (all instances of
- * given class), but could conceivably add support for Method
- * annotations as well
+ * Annotation can be used with Classes (all instances of
+ * given class) and Methods.
  *<p>
  * Default value for this property is 'true', meaning that null
  * properties are written.
  */
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JsonWriteNullProperties
 {
     /**
-     * We
+     * Whether properties for beans of annotated type will always be
+     * written (true), or only if not null (false).
      */
     boolean value() default true;
 }

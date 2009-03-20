@@ -8,6 +8,19 @@ Description:
 
   Fixes:
 
+  New features:
+
+  * [JACKSON-61]: Allow suppressing writing of bean properties with null values
+   (requested by Justin F)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+0.9.9-2 [19-Mar-2009]:
+
+  Fixes:
+
   * [JACKSON-75]: Didn't have Deserializer for Number.class.
 
   Improvements:
@@ -28,11 +41,7 @@ Description:
     serializers
     (requested by Scott A)
 
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
-
-0.9.8 [02-Mar-2009]:
+0.9.9 [02-Mar-2009]:
 
   Fixes:
 
