@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
+import org.codehaus.jackson.annotate.JsonWriteNullProperties;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedMethod
@@ -58,7 +59,7 @@ public final class AnnotatedMethod
     
     /*
     //////////////////////////////////////////////////////
-    // Extended API
+    // Extended API, generic
     //////////////////////////////////////////////////////
      */
 
@@ -84,8 +85,19 @@ public final class AnnotatedMethod
         ClassUtil.checkAndFixAccess(_method);
     }
 
-    @Override
-        public String toString()
+    /*
+    //////////////////////////////////////////////////////
+    // Extended API, specific annotations
+    //////////////////////////////////////////////////////
+     */
+
+   public boolean willWriteNullProperties(boolean defValue)
+    {
+        JsonWriteNullProperties ann = getAnnotation(JsonWriteNullProperties.class);
+        return (ann == null) ? defValue : ann.value();
+    }
+
+    public String toString()
     {
         return "[method "+getName()+", annotations: "+_annotations+"]";
     }

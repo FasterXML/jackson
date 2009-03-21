@@ -168,7 +168,9 @@ public class BeanSerializerFactory
             return null;
         }
 
-        // are null properties to be written?
+        /* are null properties to be written for properties of
+         * this class?
+         */
         boolean writeNulls = intr.willWriteNullProperties(config.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
@@ -180,8 +182,9 @@ public class BeanSerializerFactory
              */
             JsonSerializer<Object> ser = findSerializerFromAnnotation(am);
             Method m = am.getAnnotated();
-            props.add(new BeanPropertyWriter(en.getKey(), m, ser, writeNulls));
-
+            // and finally, there may be per-method overrides:
+            boolean methodNulls = am.willWriteNullProperties(writeNulls);
+            props.add(new BeanPropertyWriter(en.getKey(), m, ser, methodNulls));
         }
         return props;
     }
