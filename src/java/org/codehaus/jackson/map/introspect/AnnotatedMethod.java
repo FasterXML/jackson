@@ -73,11 +73,6 @@ public final class AnnotatedMethod
         return getDeclaringClass().getName() + "#" + getName();
     }
 
-    public <A extends Annotation> boolean hasAnnotation(Class<A> acls)
-    {
-        return _annotations.get(acls) != null;
-    }
-
     public int getAnnotationCount() { return _annotations.size(); }
 
     public void fixAccess()

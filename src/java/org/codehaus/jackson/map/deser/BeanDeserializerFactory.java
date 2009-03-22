@@ -98,11 +98,13 @@ public class BeanDeserializerFactory
         Class<?> beanClass = deser.getBeanClass();
 
         LinkedHashMap<String,AnnotatedMethod> methodsByProp = intr.findSetters();
+        // fallback "any" setter? If so, need to bind
+        AnnotatedMethod anySetter = intr.findAnySetter();
 
         /* No setters? Should we proceed here? It may well be ok, if
          * there are factory methods or such.
          */
-        //if (methodsByProp.isEmpty()) ...
+        //if (methodsByProp.isEmpty() && anySetter == null) ...
 
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {

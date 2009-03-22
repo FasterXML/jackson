@@ -268,6 +268,43 @@ public class ClassIntrospector
         return results;
     }
 
+    /**
+     * Method used to locate the method of introspected class that
+     * implements {@link JsonAnySetter}. If no such method exists
+     * null is returned. If more than one are found, an exception
+     * is thrown.
+     * Additional checks are also made to see that method signature
+     * is acceptable: needs to take 2 arguments, first one String or
+     * Object; second any can be any type.
+     */
+    public AnnotatedMethod findAnySetter()
+        throws IllegalArgumentException
+    {
+        AnnotatedMethod result = null;
+
+        for (AnnotatedMethod m : _classInfo.getMemberMethods()) {
+            if (!m.hasAnnotation(JsonAnySetter.class)) {
+                continue;
+            }
+            if (result != null) {
+                throw new IllegalArgumentException("Multiple methods with @JsonAnySetter annotation ("+result.getName()+"(), "+m.getName()+")");
+            }
+            // proper signature?
+            Class<?>[] paramTypes = m.getParameterTypes();
+            if (paramTypes.length != 2) {
+                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+m.getName()+"(): takes "+paramTypes.length+" parameters, should take 2");
+            }
+            Class<?> type = paramTypes[0];
+            if (type != String.class && type != Object.class) {
+                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+m.getName()+"(): first argument not of type String or Object, but "+type.getName());
+            }
+            result = m;
+        }
+
+        return result;
+    }
+
+
     /*
     ///////////////////////////////////////////////////////
     // Introspection for serialization (write Json), factories

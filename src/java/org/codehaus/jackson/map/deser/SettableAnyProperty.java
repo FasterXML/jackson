@@ -7,25 +7,23 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.type.JavaType;
 
 /**
- * Class that represents a single settable property of a bean: contains
- * both type and name definitions, and reflection-based set functionality
+ * Class that represents a "wildcard" set method which can be used
+ * to generically set values of otherwise unmapped (aka "unknown")
+ * properties read from Json content.
+ *<p>
+ * !!! Note: might make sense to refactor to share some code
+ * with {@link SettableBeanProperty}?
  */
-public final class SettableBeanProperty
+public final class SettableAnyProperty
 {
-    final String _propName;
-
     final Method _setter;
 
     final JavaType _type;
 
     JsonDeserializer<Object> _valueDeserializer;
 
-    public SettableBeanProperty(String propName, JavaType type, Method setter)
+    public SettableAnyProperty(JavaType type, Method setter)
     {
-        /* 09-Jan-2009, tatu: Intern()ing makes sense since Jackson parsed
-         *   field names are interned too, hence lookups will be faster.
-         */
-        _propName = propName.intern();
         _type = type;
         _setter = setter;
     }
@@ -35,25 +33,27 @@ public final class SettableBeanProperty
     public void setValueDeserializer(JsonDeserializer<Object> deser)
     {
         if (_valueDeserializer != null) { // sanity check
-            throw new IllegalStateException("Already had assigned deserializer for property '"+_propName+"' (class "+_setter.getDeclaringClass().getName()+")");
+            throw new IllegalStateException("Already had assigned deserializer for SettableAnyProperty");
         }
         _valueDeserializer = deser;
     }
 
-    public String getPropertyName() { return _propName; }
-    public JavaType getType() { return _type; }
-
     public JsonDeserializer<Object> getValueDeserializer() { return _valueDeserializer; }
 
-    public void set(Object instance, Object value)
+    /**
+     * @param propName Name of property (from Json input) to set
+     * @param instance Bean to set property on
+     * @param value Value of the property
+     */
+    public void set(String propName, Object instance, Object value)
         throws JsonMappingException
     {
         try {
             _setter.invoke(instance, value);
         } catch (IllegalArgumentException iae) {
             String actType = (value == null) ? "[NULL]" : value.getClass().getName();
-            StringBuilder msg = new StringBuilder("Problem deserializing property '").append(getPropertyName());
-            msg.append("' (expected type: ").append(getType());
+            StringBuilder msg = new StringBuilder("Problem deserializing \"any\" property '").append(propName);
+            msg.append("' of class "+getClassName()+" (expected type: ").append(_type);
             msg.append("; actual type: ").append(actType).append(")");
             String origMsg = iae.getMessage();
             if (origMsg != null) {
@@ -73,5 +73,7 @@ public final class SettableBeanProperty
         }
     }
 
-    @Override public String toString() { return "[property '"+_propName+"]"; }
+    @Override public String toString() { return "[any property on class "+getClassName()+"]"; }
+
+    String getClassName() { return _setter.getDeclaringClass().getName(); }
 }
