@@ -38,6 +38,8 @@ public final class SettableAnyProperty
         _valueDeserializer = deser;
     }
 
+    public JavaType getType() { return _type; }
+
     public JsonDeserializer<Object> getValueDeserializer() { return _valueDeserializer; }
 
     /**

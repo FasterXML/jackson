@@ -18,22 +18,21 @@ public class BeanDeserializer
     extends JsonDeserializer<Object>
     implements ResolvableDeserializer
 {
+    /*
+    ///////////////////////////////////////////////
+    // Information regarding type being deserialized
+    ///////////////////////////////////////////////
+     */
+
     final JavaType _beanType;
 
+    /*
+    ///////////////////////////////////////////////
+    // Construction configuration
+    ///////////////////////////////////////////////
+     */
+
     final Constructor<?> _defaultConstructor;
-
-    /**
-     * Things set via setters (modifiers) are included in this
-     * Map.
-     */
-    final HashMap<String, SettableBeanProperty> _props;
-
-    /**
-     * In addition to properties that are set, we will also keep
-     * track of recognized but ignorable properties: these will
-     * be skipped without errors or warnings.
-     */
-    HashSet<String> _ignorableProps;
 
     /**
      * If the "bean" class can be instantiated using just a single
@@ -49,6 +48,32 @@ public class BeanDeserializer
      * knows how to invoke method/constructor in question.
      */
     final NumberConstructor _numberConstructor;
+
+    /*
+    ///////////////////////////////////////////////
+    // Property information, setters
+    ///////////////////////////////////////////////
+     */
+
+    /**
+     * Things set via setters (modifiers) are included in this
+     * Map.
+     */
+    final HashMap<String, SettableBeanProperty> _props;
+
+    /**
+     * Fallback setter used for handling any properties that are not
+     * mapped to regular setters. If setter is not null, it will be
+     * called once for each such property.
+     */
+    SettableAnyProperty _anySetter;
+
+    /**
+     * In addition to properties that are set, we will also keep
+     * track of recognized but ignorable properties: these will
+     * be skipped without errors or warnings.
+     */
+    HashSet<String> _ignorableProps;
 
     /*
     /////////////////////////////////////////////////////////
@@ -74,6 +99,14 @@ public class BeanDeserializer
     public SettableBeanProperty addSetter(SettableBeanProperty prop)
     {
         return _props.put(prop.getPropertyName(), prop);
+    }
+
+    public void setAnySetter(SettableAnyProperty s)
+    {
+        if (_anySetter != null && s != null) {
+            throw new IllegalStateException("_anySetter already set to non-null");
+        }
+        _anySetter = s;
     }
 
     /**
@@ -127,6 +160,19 @@ public class BeanDeserializer
                 }
             }
             prop.setValueDeserializer(deser);
+        }
+
+        // Finally, "any setter" may also need to be resolved now
+        if (_anySetter != null & !_anySetter.hasValueDeserializer()) {
+            JavaType type = _anySetter.getType();
+            JsonDeserializer<Object> deser = null;
+            if (seen != null) {
+                deser = seen.get(type);
+            }
+            if (deser == null) {
+                deser = provider.findValueDeserializer(type, _beanType, null);
+            }
+            _anySetter.setValueDeserializer(deser);
         }
     }
 

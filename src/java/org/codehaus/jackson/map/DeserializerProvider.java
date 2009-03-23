@@ -33,7 +33,7 @@ public abstract class DeserializerProvider
      * @param refPropName Logical name of the property within instance of
      *   <code>referrer</code>, if through a property (field). Null for
      *   Collection and Array types, where reference is not through a
-     *   field.
+     *   field, as well as for "any property" fallback references
      *
      * @throws JsonMappingException if there are fatal problems with
      *   accessing suitable deserializer; including that of not

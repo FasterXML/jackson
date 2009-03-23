@@ -99,7 +99,12 @@ public class BeanDeserializerFactory
 
         LinkedHashMap<String,AnnotatedMethod> methodsByProp = intr.findSetters();
         // fallback "any" setter? If so, need to bind
-        AnnotatedMethod anySetter = intr.findAnySetter();
+        {
+            AnnotatedMethod anyM = intr.findAnySetter();
+            if (anyM != null) {
+                deser.setAnySetter(constructAnySetter(anyM));
+            }
+        }
 
         /* No setters? Should we proceed here? It may well be ok, if
          * there are factory methods or such.
@@ -114,8 +119,7 @@ public class BeanDeserializerFactory
             am.fixAccess();
 
             // note: this works since we know there's exactly one arg for methods
-            Method m = am.getAnnotated();
-            Type rawType = m.getGenericParameterTypes()[0];
+            Type rawType = am.getGenericParameterTypes()[0];
             JavaType type = TypeFactory.fromType(rawType);
 
             /* First: does the Method specify the deserializer to use?
@@ -124,6 +128,7 @@ public class BeanDeserializerFactory
             SettableBeanProperty prop;
             JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(am);
 
+            Method m = am.getAnnotated();
             if (propDeser != null) {
                 prop = new SettableBeanProperty(name, type, m);
                 prop.setValueDeserializer(propDeser);
@@ -140,6 +145,37 @@ public class BeanDeserializerFactory
             }
 
         }
+    }
+
+    /**
+     * Method called to construct fallback {@link SettableAnyProperty}
+     * for handling unknown bean properties, given a method that
+     * has been designated as such setter.
+     */
+    protected SettableAnyProperty constructAnySetter(AnnotatedMethod am)
+        throws JsonMappingException
+    {
+        am.fixAccess(); // to ensure we can call it
+        /* AnySetter can be annotated with @JsonClass (etc) just like a
+         * regular setter... so let's see if those are used.
+         * Returns null if no annotations, in which case binding will
+         * be done at a later point.
+         */
+        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(am);
+        // we know it's a 2-arg method, second arg is the vlaue
+        Type rawType = am.getGenericParameterTypes()[1];
+        JavaType type = TypeFactory.fromType(rawType);
+        Method m = am.getAnnotated();
+        if (deser != null) {
+            SettableAnyProperty prop = new SettableAnyProperty(type, m);
+            prop.setValueDeserializer(deser);
+            return prop;
+        }
+        /* Otherwise, method may specify more specific (sub-)class for
+         * value (no need to check if explicit deser was specified):
+         */
+        type = modifyTypeByAnnotation(am, type);
+        return new SettableAnyProperty(type, m);
     }
 
     /*

@@ -7,8 +7,11 @@ import java.lang.reflect.*;
 import org.codehaus.jackson.annotate.*;
 
 /**
- * Helper class used to introspect methods (getters, setters, creators)
- * that can be used handle POJOs.
+ * Helper class used to introspect features of POJO value classes
+ * used with Jackson. The main use is for finding out
+ * POJO construction (creator) and value access (getters, setters)
+ * methods and annotations that define configuration of using
+ * those methods.
  */
 public class ClassIntrospector
 {
