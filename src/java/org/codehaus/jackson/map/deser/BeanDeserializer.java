@@ -163,7 +163,7 @@ public class BeanDeserializer
         }
 
         // Finally, "any setter" may also need to be resolved now
-        if (_anySetter != null & !_anySetter.hasValueDeserializer()) {
+        if (_anySetter != null && !_anySetter.hasValueDeserializer()) {
             JavaType type = _anySetter.getType();
             JsonDeserializer<Object> deser = null;
             if (seen != null) {
