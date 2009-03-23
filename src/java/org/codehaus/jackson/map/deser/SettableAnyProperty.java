@@ -51,7 +51,7 @@ public final class SettableAnyProperty
         throws JsonMappingException
     {
         try {
-            _setter.invoke(instance, value);
+            _setter.invoke(instance, propName, value);
         } catch (IllegalArgumentException iae) {
             String actType = (value == null) ? "[NULL]" : value.getClass().getName();
             StringBuilder msg = new StringBuilder("Problem deserializing \"any\" property '").append(propName);
@@ -63,6 +63,7 @@ public final class SettableAnyProperty
             } else {
                 msg.append(" (no error message provided)");
             }
+            throw new JsonMappingException(msg.toString(), null, iae);
         } catch (RuntimeException re) {
             throw re;
         } catch (Exception e) {

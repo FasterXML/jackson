@@ -34,6 +34,9 @@ public class TestBasicAnnotations
 
         // note: need not be public if annotated
         @JsonSetter protected void other(int value) { _other = value; }
+
+        // finally: let's add a red herring that should be avoided...
+        public void errorOut(int value) { throw new Error(); }
     }
 
     final static class SizeClassSetter2

@@ -61,6 +61,7 @@ public final class SettableBeanProperty
             } else {
                 msg.append(" (no error message provided)");
             }
+            throw new JsonMappingException(msg.toString(), null, iae);
         } catch (RuntimeException re) {
             throw re;
         } catch (Exception e) {

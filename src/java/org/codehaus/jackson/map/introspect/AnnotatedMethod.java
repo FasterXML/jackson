@@ -14,6 +14,10 @@ public final class AnnotatedMethod
 
     final AnnotationMap _annotations = new AnnotationMap();
 
+    // // Simple lazy-caching:
+
+    public Class<?>[] _paramTypes;
+
     /*
     //////////////////////////////////////////////////////
     // Life-cycle
@@ -63,8 +67,22 @@ public final class AnnotatedMethod
     //////////////////////////////////////////////////////
      */
 
-    public Type[] getGenericParameterTypes() { return _method.getGenericParameterTypes(); }
-    public Class<?>[] getParameterTypes() { return _method.getParameterTypes(); }
+    public Type[] getGenericParameterTypes() {
+        return _method.getGenericParameterTypes();
+    }
+
+    public Class<?>[] getParameterTypes()
+    {
+        if (_paramTypes == null) {
+            _paramTypes = _method.getParameterTypes();
+        }
+        return _paramTypes;
+    }
+
+    public int getParameterCount() {
+        return getParameterTypes().length;
+    }
+
     public Class<?> getReturnType() { return _method.getReturnType(); }
 
     public Class<?> getDeclaringClass() { return _method.getDeclaringClass(); }

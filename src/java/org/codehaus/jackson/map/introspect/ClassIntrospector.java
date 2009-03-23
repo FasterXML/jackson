@@ -58,6 +58,9 @@ public class ClassIntrospector
      * Filter used to only include methods that have signature that is
      * compatible with "setters": take one and only argument and
      * are non-static.
+     *<p>
+     * 23-Mar-2009, tsaloranta: Actually, also need to include 2-arg
+     *    methods to support "any setters"...
      */
     public final static class SetterMethodFilter
         implements MethodFilter
@@ -70,10 +73,15 @@ public class ClassIntrospector
             if (Modifier.isStatic(m.getModifiers())) {
                 return false;
             }
-            // Must take just one arg
-            Class<?>[] pts = m.getParameterTypes();
-            if ((pts == null) || (pts.length != 1)) {
+            // Must take just one arg, or be an AnySetter with 2 args:
+            int pcount = m.getParameterTypes().length;
+            if (pcount == 0 || pcount > 2) {
                 return false;
+            }
+            if (pcount == 2) {
+                if (m.getAnnotation(JsonAnySetter.class) == null) {
+                    return false;
+                }
             }
             // No checking for returning type; usually void, don't care
             // Otherwise, potentially ok
@@ -217,7 +225,9 @@ public class ClassIntrospector
 
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
-            // note: signature has already been checked via filters
+            /* note: signature has already been checked to some degree
+             * via filters; however, no
+             */
             // Marked with @JsonIgnore?
             if (isIgnored(am)) {
                 continue;
@@ -284,24 +294,23 @@ public class ClassIntrospector
         throws IllegalArgumentException
     {
         AnnotatedMethod result = null;
-
-        for (AnnotatedMethod m : _classInfo.getMemberMethods()) {
-            if (!m.hasAnnotation(JsonAnySetter.class)) {
+        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
+            if (!am.hasAnnotation(JsonAnySetter.class)) {
                 continue;
             }
             if (result != null) {
-                throw new IllegalArgumentException("Multiple methods with @JsonAnySetter annotation ("+result.getName()+"(), "+m.getName()+")");
+                throw new IllegalArgumentException("Multiple methods with @JsonAnySetter annotation ("+result.getName()+"(), "+am.getName()+")");
             }
             // proper signature?
-            Class<?>[] paramTypes = m.getParameterTypes();
-            if (paramTypes.length != 2) {
-                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+m.getName()+"(): takes "+paramTypes.length+" parameters, should take 2");
+            int pcount = am.getParameterCount();
+            if (pcount != 2) {
+                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+am.getName()+"(): takes "+pcount+" parameters, should take 2");
             }
-            Class<?> type = paramTypes[0];
+            Class<?> type = am.getParameterTypes()[0];
             if (type != String.class && type != Object.class) {
-                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+m.getName()+"(): first argument not of type String or Object, but "+type.getName());
+                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+am.getName()+"(): first argument not of type String or Object, but "+type.getName());
             }
-            result = m;
+            result = am;
         }
 
         return result;

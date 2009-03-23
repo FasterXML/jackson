@@ -2,12 +2,8 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.net.URL;
-import java.net.URI;
 import java.util.*;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -55,7 +51,7 @@ public class TestGenericNumber
         assertEquals(dec, value);
     }
 
-    public void testFpTypeOverrideStructured() throws Exception
+	public void testFpTypeOverrideStructured() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
         BigDecimal dec = new BigDecimal("-19.37");
@@ -63,7 +59,8 @@ public class TestGenericNumber
         m.getDeserializationConfig().enable(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS);
 
         // List element types
-        List<Object> list = m.readValue("[ "+dec.toString()+" ]", List.class);
+        @SuppressWarnings("unchecked")
+        List<Object> list = (List<Object>)m.readValue("[ "+dec.toString()+" ]", List.class);
         assertEquals(1, list.size());
         Object val = list.get(0);
         assertEquals(BigDecimal.class, val.getClass());

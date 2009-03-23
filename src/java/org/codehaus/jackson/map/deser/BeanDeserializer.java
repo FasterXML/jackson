@@ -249,6 +249,12 @@ public class BeanDeserializer
                 prop.set(result, value);
                 continue;
             }
+            if (_anySetter != null) {
+                JsonDeserializer<Object> valueDeser = _anySetter.getValueDeserializer();
+                Object value = (t == JsonToken.VALUE_NULL) ? null : valueDeser.deserialize(jp, ctxt);
+                _anySetter.set(propName, result, value);
+                continue;
+            }
             // Unknown: let's call handler method
             handleUnknownProperty(ctxt, result, propName);
         }
