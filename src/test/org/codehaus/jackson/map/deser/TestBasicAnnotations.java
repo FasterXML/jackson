@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map.deser;
 
-import main.BaseTest;
-
 import java.io.*;
 
 import org.codehaus.jackson.*;
@@ -14,7 +12,7 @@ import org.codehaus.jackson.map.*;
  * method types, explicit deserializer annotations.
  */
 public class TestBasicAnnotations
-    extends BaseTest
+    extends BaseMapTest
 {
     /*
     //////////////////////////////////////////////
@@ -44,6 +42,9 @@ public class TestBasicAnnotations
         int _x;
 
         @JsonSetter public void setX(int value) { _x = value; }
+
+        // another red herring, which shouldn't be included
+        public void setXandY(int x, int y) { throw new Error(); }
     }
 
     /// Class for testing {@link JsonIgnore} annotations with setters

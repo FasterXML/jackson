@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map.deser;
 
-import main.BaseTest;
-
 import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
@@ -12,7 +10,7 @@ import org.codehaus.jackson.map.*;
  * works as expected.
  */
 public class TestAnyProperties
-    extends BaseTest
+    extends BaseMapTest
 {
     /*
     //////////////////////////////////////////////
@@ -35,6 +33,34 @@ public class TestAnyProperties
         }
     }
 
+    /**
+     * Let's also verify that it is possible to define different
+     * value: not often useful, but possible.
+     */
+    static class MapImitatorWithValue
+    {
+        HashMap<String,int[]> _map;
+
+        public MapImitatorWithValue() {
+            _map = new HashMap<String,int[]>();
+        }
+
+        @JsonAnySetter
+        void addEntry(String key, int[] value)
+        {
+            _map.put(key, value);
+        }
+    }
+
+    // Bad; 2 "any setters"
+    static class Broken
+    {
+        @JsonAnySetter
+            void addEntry1(String key, Object value) { }
+        @JsonAnySetter
+            void addEntry2(String key, Object value) { }
+    }
+
     /*
     //////////////////////////////////////////////
     // Test methods
@@ -52,9 +78,25 @@ public class TestAnyProperties
         assertEquals(Boolean.TRUE, result.get("b"));
     }
 
-    /*
-    //////////////////////////////////////////////
-    // Private methods
-    //////////////////////////////////////////////
-     */
+    public void testSimpleTyped() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        MapImitatorWithValue mapHolder = m.readValue
+            ("{ \"a\" : [ 3, -1 ], \"b\" : [ ] }", MapImitatorWithValue.class);
+        Map<String,int[]> result = mapHolder._map;
+        assertEquals(2, result.size());
+        assertEquals(new int[] { 3, -1 }, result.get("a"));
+        assertEquals(new int[0], result.get("b"));
+    }
+
+    public void testBrokenWithDoubleAnnotations() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        try {
+            Broken b = m.readValue("{ \"a\" : 3 }", Broken.class);
+            fail("Should have gotten an exception");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Multiple methods with @JsonAnySetter annotation");
+        }
+    }
 }

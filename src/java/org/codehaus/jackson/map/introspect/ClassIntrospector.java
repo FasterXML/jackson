@@ -226,10 +226,10 @@ public class ClassIntrospector
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             /* note: signature has already been checked to some degree
-             * via filters; however, no
+             * via filters; however, no checks were done for arg count
              */
-            // Marked with @JsonIgnore?
-            if (isIgnored(am)) {
+            // Marked with @JsonIgnore, or doesn't have single arg?
+            if (isIgnored(am) || am.getParameterCount() != 0) {
                 continue;
             }
 
@@ -280,42 +280,6 @@ public class ClassIntrospector
         }
         return results;
     }
-
-    /**
-     * Method used to locate the method of introspected class that
-     * implements {@link JsonAnySetter}. If no such method exists
-     * null is returned. If more than one are found, an exception
-     * is thrown.
-     * Additional checks are also made to see that method signature
-     * is acceptable: needs to take 2 arguments, first one String or
-     * Object; second any can be any type.
-     */
-    public AnnotatedMethod findAnySetter()
-        throws IllegalArgumentException
-    {
-        AnnotatedMethod result = null;
-        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
-            if (!am.hasAnnotation(JsonAnySetter.class)) {
-                continue;
-            }
-            if (result != null) {
-                throw new IllegalArgumentException("Multiple methods with @JsonAnySetter annotation ("+result.getName()+"(), "+am.getName()+")");
-            }
-            // proper signature?
-            int pcount = am.getParameterCount();
-            if (pcount != 2) {
-                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+am.getName()+"(): takes "+pcount+" parameters, should take 2");
-            }
-            Class<?> type = am.getParameterTypes()[0];
-            if (type != String.class && type != Object.class) {
-                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+am.getName()+"(): first argument not of type String or Object, but "+type.getName());
-            }
-            result = am;
-        }
-
-        return result;
-    }
-
 
     /*
     ///////////////////////////////////////////////////////
@@ -410,7 +374,7 @@ public class ClassIntrospector
 
     /*
     ///////////////////////////////////////////////////////
-    // Introspection for serialization, getters:
+    // Introspection for deserialization, setters:
     ///////////////////////////////////////////////////////
      */
 
@@ -423,8 +387,9 @@ public class ClassIntrospector
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             // note: signature has already been checked via filters
-            // Marked with @JsonIgnore?
-            if (isIgnored(am)) {
+
+            // Marked with @JsonIgnore? Or arg count != 1
+            if (isIgnored(am) || am.getParameterCount() != 1) {
                 continue;
             }
 
@@ -468,6 +433,43 @@ public class ClassIntrospector
 
         return results;
     }
+
+
+    /**
+     * Method used to locate the method of introspected class that
+     * implements {@link JsonAnySetter}. If no such method exists
+     * null is returned. If more than one are found, an exception
+     * is thrown.
+     * Additional checks are also made to see that method signature
+     * is acceptable: needs to take 2 arguments, first one String or
+     * Object; second any can be any type.
+     */
+    public AnnotatedMethod findAnySetter()
+        throws IllegalArgumentException
+    {
+        AnnotatedMethod result = null;
+        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
+            if (!am.hasAnnotation(JsonAnySetter.class)) {
+                continue;
+            }
+            if (result != null) {
+                throw new IllegalArgumentException("Multiple methods with @JsonAnySetter annotation ("+result.getName()+"(), "+am.getName()+")");
+            }
+            // proper signature?
+            int pcount = am.getParameterCount();
+            if (pcount != 2) {
+                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+am.getName()+"(): takes "+pcount+" parameters, should take 2");
+            }
+            Class<?> type = am.getParameterTypes()[0];
+            if (type != String.class && type != Object.class) {
+                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+am.getName()+"(): first argument not of type String or Object, but "+type.getName());
+            }
+            result = am;
+        }
+
+        return result;
+    }
+
 
     /*
     ///////////////////////////////////////////////////////
