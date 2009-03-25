@@ -82,6 +82,8 @@ Scott Anderson:
   * Suggested [JACKSON-48]: Integrate ObjectMapper with JsonGenerator,
     JsonParser; add MappingJsonFactory.
     [0.9.9]
+  * Requested [JACKSON-84]: Add JsonGenerator.writeRawValue method(s).
+    [0.9.9-3]
 
 Kevin Grained:
   * Reported [JACKSON-58] (and suggested a fix): NPE with String[]

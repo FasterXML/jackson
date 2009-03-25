@@ -224,8 +224,14 @@ public final class WriterBasedGenerator
         _outputBuffer[_outputTail++] = '"';
     }
 
+    /*
+    ////////////////////////////////////////////////////
+    // Output method implementations, unprocessed ("raw")
+    ////////////////////////////////////////////////////
+     */
+
     @Override
-	public void writeRaw(String text)
+    public void writeRaw(String text)
         throws IOException, JsonGenerationException
     {
         // Nothing to check, can just output as is
@@ -246,7 +252,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	public void writeRaw(String text, int start, int len)
+    public void writeRaw(String text, int start, int len)
         throws IOException, JsonGenerationException
     {
         // Nothing to check, can just output as is
@@ -266,7 +272,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	public void writeRaw(char[] text, int offset, int len)
+    public void writeRaw(char[] text, int offset, int len)
         throws IOException, JsonGenerationException
     {
         // Only worth buffering if it's a short write?
@@ -295,21 +301,27 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len)
+    public void writeRawValue(String text)
         throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write binary value");
-        // Starting quotes
-        if (_outputTail >= _outputEnd) {
-            _flushBuffer();
-        }
-        _outputBuffer[_outputTail++] = '"';
-        _writeBinary(b64variant, data, offset, offset+len);
-        // and closing quotes
-        if (_outputTail >= _outputEnd) {
-            _flushBuffer();
-        }
-        _outputBuffer[_outputTail++] = '"';
+        _verifyValueWrite("write raw value");
+        writeRaw(text);
+    }
+
+    @Override
+    public void writeRawValue(String text, int offset, int len)
+        throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write raw value");
+        writeRaw(text, offset, len);
+    }
+
+    @Override
+    public void writeRawValue(char[] text, int offset, int len)
+        throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write raw value");
+        writeRaw(text, offset, len);
     }
 
     private void writeRawLong(String text)
@@ -336,6 +348,30 @@ public final class WriterBasedGenerator
         text.getChars(offset, offset+len, _outputBuffer, 0);
         _outputHead = 0;
         _outputTail = len;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Output method implementations, base64-encoded binary
+    ////////////////////////////////////////////////////
+     */
+
+    @Override
+    public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len)
+        throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write binary value");
+        // Starting quotes
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = '"';
+        _writeBinary(b64variant, data, offset, offset+len);
+        // and closing quotes
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = '"';
     }
 
     /*
@@ -390,7 +426,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	public void writeNumber(BigDecimal dec)
+    public void writeNumber(BigDecimal dec)
         throws IOException, JsonGenerationException
     {
         // Don't really know max length for big decimal, no point checking
@@ -398,11 +434,8 @@ public final class WriterBasedGenerator
         writeRaw(dec.toString());
     }
 
-    /**
-     *
-     */
     @Override
-	public void writeNumber(String encodedValue)
+    public void writeNumber(String encodedValue)
         throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write number");

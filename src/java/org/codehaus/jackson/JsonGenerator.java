@@ -270,7 +270,9 @@ public abstract class JsonGenerator
      * Fallback method which can be used to make generator copy
      * input text verbatim with <b>no</b> modifications (including
      * that no quoting is done and no separators are added even
-     * if context [array, object] would otherwise require such)
+     * if context [array, object] would otherwise require such).
+     * If such separators are desired, use
+     * {@link #writeRawValue(String)} instead.
      */
     public abstract void writeRaw(String text)
         throws IOException, JsonGenerationException;
@@ -282,6 +284,23 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     public abstract void writeRaw(char c)
+        throws IOException, JsonGenerationException;
+
+    /**
+     * Fallback method which can be used to make generator copy
+     * input text verbatim without any modifications, but assuming
+     * it must constitute a single legal Json value (number, string,
+     * boolean, null, Array or List). Assuming this, proper separators
+     * are added if and as needed (comma or colon), and generator
+     * state updated to reflect this.
+     */
+    public abstract void writeRawValue(String text)
+        throws IOException, JsonGenerationException;
+
+    public abstract void writeRawValue(String text, int offset, int len)
+        throws IOException, JsonGenerationException;
+
+    public abstract void writeRawValue(char[] text, int offset, int len)
         throws IOException, JsonGenerationException;
 
     /**

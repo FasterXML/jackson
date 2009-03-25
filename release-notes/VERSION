@@ -14,6 +14,9 @@ Description:
    (requested by Justin F)
   * [JACKSON-75]: Add "any setter" method; ability to catch otherwise
     unknown (unmapped) properties and call a method with name+value.
+  * [JACKSON-84]: Added JsonGenerator.writeRawValue methods to augment
+    existing JsonGenerator.writeRaw() method
+    (requested by Scott A)
 
 ------------------------------------------------------------------------
 == History: ==
