@@ -8,6 +8,11 @@ Description:
 
   Fixes:
 
+  * [JACKSON-79]: Primitive value deserialization fragile wrt nulls
+  * [JACKSON-81]: Data binding code could lead to unnecessary blocking
+    because it tried to advance parser (and stream) after binding
+    (reported by Eldar A)
+
   New features:
 
   * [JACKSON-61]: Allow suppressing writing of bean properties with null values
@@ -38,7 +43,6 @@ Description:
   * [JACKSON-73]: Refactored ser/deser configuration settings into
     separate configuration classes.
   * [JACKSON-78]: Should be able to deserialize ints into Booleans (0 == false)
-  * [JACKSON-79]: Primitive value deserialization fragile wrt nulls
 
   New features:
 

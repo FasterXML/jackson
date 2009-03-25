@@ -55,20 +55,11 @@ public abstract class JsonParserBase
      */
     final protected IOContext _ioContext;
 
-    /**
-     * Bit flag composed of bits that indicate which
-     * {@link org.codehaus.jackson.JsonParser.Feature}s
-     * are enabled.
-     */
-    protected int _features;
-
     /*
     ////////////////////////////////////////////////////
     // Current input data
     ////////////////////////////////////////////////////
      */
-
-    protected JsonToken _currToken;
 
     // Note: type of actual buffer depends on sub-class, can't include
 
@@ -218,29 +209,16 @@ public abstract class JsonParserBase
 
     /*
     ////////////////////////////////////////////////////
-    // Configuration
+    // Configuration overrides if any
     ////////////////////////////////////////////////////
      */
 
-    public void enableFeature(Feature f) {
-        _features |= f.getMask();
-    }
+    // from base class:
 
-    public void disableFeature(Feature f) {
-        _features &= ~f.getMask();
-    }
-
-    public void setFeature(Feature f, boolean state) {
-        if (state) {
-            enableFeature(f);
-        } else {
-            disableFeature(f);
-        }
-    }
-
-    public boolean isFeatureEnabled(Feature f) {
-        return (_features & f.getMask()) != 0;
-    }
+    //public void enableFeature(Feature f)
+    //public void disableFeature(Feature f)
+    //public void setFeature(Feature f, boolean state)
+    //public boolean isFeatureEnabled(Feature f)
 
     /*
     ////////////////////////////////////////////////////
@@ -310,20 +288,9 @@ public abstract class JsonParserBase
         }
     }
 
-    /**
-     * @return Type of the token this parser currently points to,
-     *   if any: null both before any tokens have been read, and
-     *   after end-of-input has been encountered.
-     */
-    public JsonToken getCurrentToken()
-    {
-        return _currToken;
-    }
+    //public JsonToken getCurrentToken()
 
-    public boolean hasCurrentToken()
-    {
-        return _currToken != null;
-    }
+    //public boolean hasCurrentToken()
 
     /**
      * Method that can be called to get the name associated with

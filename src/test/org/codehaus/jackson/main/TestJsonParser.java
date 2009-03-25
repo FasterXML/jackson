@@ -43,6 +43,42 @@ public class TestJsonParser
         jp.close();
     }
 
+    /**
+     * Test similar to above, but instead reads a sequence of values
+     */
+    public void testIncrementalPojoReading()
+        throws IOException
+    {
+        JsonFactory jf = new MappingJsonFactory();
+        final String JSON = "[ 1, true, null, \"abc\" ]";
+        JsonParser jp = jf.createJsonParser(new StringReader(JSON));
+
+        // let's advance past array start to prevent full binding
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(Integer.valueOf(1), jp.readValueAs(Integer.class));
+        assertEquals(Boolean.TRUE, jp.readValueAs(Boolean.class));
+        /* note: null can be returned both when there is no more
+         * data in current scope, AND when Json null literal is
+         * bound!
+         */
+        assertNull(jp.readValueAs(Object.class));
+        // but we can verify that it was Json null by:
+        assertEquals(JsonToken.VALUE_NULL, jp.getLastClearedToken());
+
+        assertEquals("abc", jp.readValueAs(String.class));
+
+        // this null is for actually hitting the END_ARRAY
+        assertNull(jp.readValueAs(Object.class));
+        assertEquals(JsonToken.END_ARRAY, jp.getLastClearedToken());
+
+        // afrer which there should be nothing to advance to:
+        assertNull(jp.nextToken());
+
+        jp.close();
+    }
+
     public void testPojoReadingFailing()
         throws IOException
     {

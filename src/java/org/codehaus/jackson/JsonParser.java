@@ -94,6 +94,45 @@ public abstract class JsonParser
         public int getMask() { return (1 << ordinal()); }
     };
 
+    /*
+    ////////////////////////////////////////////////////
+    // Minimal configuration state
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Bit flag composed of bits that indicate which
+     * {@link org.codehaus.jackson.JsonParser.Feature}s
+     * are enabled.
+     */
+    protected int _features;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Minimal generic state
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Last token retrieved via {@link #nextToken}, if any.
+     * Null before the first call to <code>nextToken()</code>,
+     * as well as if token has been explicitly cleared
+     * (by call to {@link #clearCurrentToken})
+     */
+    protected JsonToken _currToken;
+
+    /**
+     * Last cleared token, if any: that is, value that was in
+     * effect when {@link #clearCurrentToken} was called.
+     */
+    protected JsonToken _lastClearedToken;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Construction, init
+    ////////////////////////////////////////////////////
+     */
+
     protected JsonParser() { }
 
     /*
@@ -103,20 +142,40 @@ public abstract class JsonParser
      */
 
     /**
-     * Method for enabling specified parser features
+     * Method for enabling specified parser feature
      * (check {@link Feature} for list of features)
      */
-    public abstract void enableFeature(Feature f);
+    public void enableFeature(Feature f) {
+        _features |= f.getMask();
+    }
 
     /**
-     * Method for disabling specified  features
+     * Method for disabling specified  feature
      * (check {@link Feature} for list of features)
      */
-    public abstract void disableFeature(Feature f);
+    public void disableFeature(Feature f) {
+        _features &= ~f.getMask();
+    }
 
-    public abstract void setFeature(Feature f, boolean state);
+    /**
+     * Method for enabled or disabling specified feature
+     * (check {@link Feature} for list of features)
+     */
+    public void setFeature(Feature f, boolean state) {
+        if (state) {
+            enableFeature(f);
+        } else {
+            disableFeature(f);
+        }
+    }
 
-    public abstract boolean isFeatureEnabled(Feature f);
+    /**
+     * Method for checking whether specified {@link Feature}
+     * is enabled.
+     */
+    public final boolean isFeatureEnabled(Feature f) {
+        return (_features & f.getMask()) != 0;
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -176,33 +235,8 @@ public abstract class JsonParser
         throws IOException, JsonParseException;
 
     /**
-     * @return Type of the token this parser currently points to,
-     *   if any: null both before any tokens have been read, and
-     *   after end-of-input has been encountered.
-     */
-    public abstract JsonToken getCurrentToken();
-
-    /**
-     * @return True if the parser just returned a valid
-     *   token via {@link #nextToken}; false otherwise (parser
-     *   was just constructed, or encountered end-of-input
-     *   and returned null from {@link #nextToken}.
-     */
-    public abstract boolean hasCurrentToken();
-
-    /**
-     * Method that can be called to get the name associated with
-     * the current event: for {@link JsonToken#FIELD_NAME}s it will
-     * be the same as what {@link #getText} returns;
-     * for field values it will be preceding field name;
-     * and for others (array values, root-level values) null.
-     */
-    public abstract String getCurrentName()
-        throws IOException, JsonParseException;
-
-    /**
-     * Closes the parser so that no iteration or access methods
-     * can be called.
+     * Closes the parser so that no further iteration or data access
+     * can be made.
      *<p>
      * Method will also close the underlying input source,
      * if parser either <b>owns</b> the input source, or feature
@@ -218,6 +252,63 @@ public abstract class JsonParser
      * stream or reader it does own them.
      */
     public abstract void close() throws IOException;
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API, token accessors
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * @return Type of the token this parser currently points to,
+     *   if any: null before any tokens have been read, and
+     *   after end-of-input has been encountered, as well as
+     *   if the current token has been explicitly cleared.
+     */
+    public final JsonToken getCurrentToken()
+    {
+        return _currToken;
+    }
+
+    /**
+     * @return True if the parser just returned a valid
+     *   token via {@link #nextToken}; false otherwise (parser
+     *   was just constructed, encountered end-of-input
+     *   and returned null from {@link #nextToken}, or the event
+     *   has been consumed)
+     */
+    public final boolean hasCurrentToken()
+    {
+        return _currToken != null;
+    }
+
+
+    /**
+     * Method called to "consume" the current token by effectively
+     * removing it so that {@link #hasCurrentToken} returns false, and
+     * {@link #getCurrentToken} null).
+     * Cleared token value can still be accessed by calling
+     * {@link #getLastClearedToken} (if absolutely needed), but
+     * usually isn't.
+     *<p>
+     * Method was added to be used by the optional data binder, since
+     * it has to be able to consume last token used for binding (so that
+     * it will not be used again).
+     */
+    public final void clearCurrentToken() {
+        _lastClearedToken = _currToken;
+        _currToken = null;
+    }
+
+    /**
+     * Method that can be called to get the name associated with
+     * the current event: for {@link JsonToken#FIELD_NAME}s it will
+     * be the same as what {@link #getText} returns;
+     * for field values it will be preceding field name;
+     * and for others (array values, root-level values) null.
+     */
+    public abstract String getCurrentName()
+        throws IOException, JsonParseException;
 
     /**
      * Method that can be used to access current parsing context reader
@@ -243,6 +334,17 @@ public abstract class JsonParser
      * usually for error reporting purposes.
      */
     public abstract JsonLocation getCurrentLocation();
+
+    /**
+     * Method that can be called to get the last token that was
+     * cleared using {@link #clearCurrentToken}. This is not necessarily
+     * the latest token read.
+     * Will return null if no tokens have been cleared,
+     * or if parser has been closed.
+     */
+    public JsonToken getLastClearedToken() {
+        return _lastClearedToken;
+    }
 
     /*
     ////////////////////////////////////////////////////

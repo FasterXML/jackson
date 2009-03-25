@@ -93,3 +93,7 @@ Kevin Grained:
 Ryan Heaton:
   * Helped with [JACKSON-67]: Json content type provider for JAX-RS
     [0.9.9]
+
+Eldar Abusalimov:
+  * Reported [JACKSON-81]: Data binding code could lead to unnecessary
+    blocking because it tried to advance parser (and stream) after binding
