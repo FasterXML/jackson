@@ -60,7 +60,7 @@ public final class Utf8StreamParser
      *   to indicate end-of-input
      */
     @Override
-	public JsonToken nextToken()
+    public JsonToken nextToken()
         throws IOException, JsonParseException
     {
         /* First: field names are special -- we will always tokenize

@@ -22,25 +22,37 @@ class StdDeserializers
         add(new StdDeserializer.StringDeserializer());
         add(new StdDeserializer.ClassDeserializer());
 
-        // Then primitives/wrappers
-        add(new StdDeserializer.BooleanDeserializer(), Boolean.class, Boolean.TYPE);
-        add(new StdDeserializer.ByteDeserializer(), Byte.class, Byte.TYPE);
-        add(new StdDeserializer.ShortDeserializer(), Short.class, Short.TYPE);
-        add(new StdDeserializer.CharacterDeserializer(), Character.class, Character.TYPE);
-        add(new StdDeserializer.IntegerDeserializer(), Integer.class, Integer.TYPE);
-        add(new StdDeserializer.LongDeserializer(), Long.class, Long.TYPE);
-        add(new StdDeserializer.FloatDeserializer(), Float.class, Float.TYPE);
-        add(new StdDeserializer.DoubleDeserializer(), Double.class, Double.TYPE);
-
+        // Then primitive-wrappers (simple):
+        add(new StdDeserializer.BooleanDeserializer(Boolean.class, null));
+        add(new StdDeserializer.ByteDeserializer(Byte.class, null));
+        add(new StdDeserializer.ShortDeserializer(Short.class, null));
+        add(new StdDeserializer.CharacterDeserializer(Character.class, null));
+        add(new StdDeserializer.IntegerDeserializer(Integer.class, null));
+        add(new StdDeserializer.LongDeserializer(Long.class, null));
+        add(new StdDeserializer.FloatDeserializer(Float.class, null));
+        add(new StdDeserializer.DoubleDeserializer(Double.class, null));
+        
+        /* And actual primitives: difference is the way nulls are to be
+         * handled...
+         */
+        add(new StdDeserializer.BooleanDeserializer(Boolean.TYPE, Boolean.FALSE));
+        add(new StdDeserializer.ByteDeserializer(Byte.TYPE, Byte.valueOf((byte)(0))));
+        add(new StdDeserializer.ShortDeserializer(Short.TYPE, Short.valueOf((short)0)));
+        add(new StdDeserializer.CharacterDeserializer(Character.TYPE, Character.valueOf('\0')));
+        add(new StdDeserializer.IntegerDeserializer(Integer.TYPE, Integer.valueOf(0)));
+        add(new StdDeserializer.LongDeserializer(Long.TYPE, Long.valueOf(0L)));
+        add(new StdDeserializer.FloatDeserializer(Float.TYPE, Float.valueOf(0.0f)));
+        add(new StdDeserializer.DoubleDeserializer(Double.TYPE, Double.valueOf(0.0)));
+        
         // and related
         add(new StdDeserializer.NumberDeserializer());
         add(new StdDeserializer.BigDecimalDeserializer());
         add(new StdDeserializer.BigIntegerDeserializer());
-
+        
         add(new StdDeserializer.UtilDateDeserializer());
         add(new StdDeserializer.SqlDateDeserializer());
         add(new StdDeserializer.CalendarDeserializer());
-
+        
         // Then other simple types:
         add(new FromStringDeserializer.UUIDDeserializer());
         add(new FromStringDeserializer.URLDeserializer());

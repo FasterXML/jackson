@@ -1,9 +1,10 @@
 package org.codehaus.jackson.map.deser;
 
+import java.io.IOException;
 import java.lang.reflect.*;
 
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -18,7 +19,20 @@ public final class SettableBeanProperty
 
     final JavaType _type;
 
-    JsonDeserializer<Object> _valueDeserializer;
+    protected JsonDeserializer<Object> _valueDeserializer;
+
+    /**
+     * Value to be used when 'null' literal is encountered in Json.
+     * For most types simply Java null, but for primitive types must
+     * be a non-null value (like Integer.valueOf(0) for int).
+     */
+    protected Object _nullValue;
+
+    /*
+    ////////////////////////////////////////////////////////
+    // Life-cycle (construct & configure)
+    ////////////////////////////////////////////////////////
+     */
 
     public SettableBeanProperty(String propName, JavaType type, Method setter)
     {
@@ -30,24 +44,45 @@ public final class SettableBeanProperty
         _setter = setter;
     }
 
-    public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
-
     public void setValueDeserializer(JsonDeserializer<Object> deser)
     {
         if (_valueDeserializer != null) { // sanity check
             throw new IllegalStateException("Already had assigned deserializer for property '"+_propName+"' (class "+_setter.getDeclaringClass().getName()+")");
         }
         _valueDeserializer = deser;
+        _nullValue = _valueDeserializer.getNullValue();
     }
+
+    /*
+    ////////////////////////////////////////////////////////
+    // Accessors
+    ////////////////////////////////////////////////////////
+     */
 
     public String getPropertyName() { return _propName; }
     public JavaType getType() { return _type; }
 
-    public JsonDeserializer<Object> getValueDeserializer() { return _valueDeserializer; }
+    public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
 
-    public void set(Object instance, Object value)
-        throws JsonMappingException
+    /*
+    ////////////////////////////////////////////////////////
+    // Public API
+    ////////////////////////////////////////////////////////
+     */
+
+    public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
+                                  Object instance)
+        throws IOException, JsonProcessingException
     {
+        JsonToken t = jp.nextToken();
+        Object value;
+
+        if (t == JsonToken.VALUE_NULL) {
+            value = _nullValue;
+        } else {
+            value = _valueDeserializer.deserialize(jp, ctxt);
+        }
+
         try {
             _setter.invoke(instance, value);
         } catch (IllegalArgumentException iae) {
@@ -66,11 +101,11 @@ public final class SettableBeanProperty
             throw re;
         } catch (Exception e) {
             // let's wrap the innermost problem
-            Throwable t = e;
-            while (t.getCause() != null) {
-                t = t.getCause();
+            Throwable th = e;
+            while (th.getCause() != null) {
+                th = th.getCause();
             }
-            throw new JsonMappingException(t.getMessage(), null, t);
+            throw new JsonMappingException(th.getMessage(), null, th);
         }
     }
 

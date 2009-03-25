@@ -230,9 +230,9 @@ public class BeanDeserializer
             throw JsonMappingException.from(jp, "No default constructor found for type "+_beanType+": can not instantiate from Json object");
         }
 
-        Object result;
+        Object bean;
         try {
-            result = _defaultConstructor.newInstance();
+            bean = _defaultConstructor.newInstance();
         } catch (Exception e) {
             _rethrow(e);
             return null; // never gets here
@@ -240,25 +240,23 @@ public class BeanDeserializer
 
         while (jp.nextToken() != JsonToken.END_OBJECT) { // otherwise field name
             String propName = jp.getCurrentName();
-            JsonToken t = jp.nextToken();
             SettableBeanProperty prop = _props.get(propName);
 
             if (prop != null) { // normal case
-                JsonDeserializer<Object> valueDeser = prop.getValueDeserializer();
-                Object value = (t == JsonToken.VALUE_NULL) ? null : valueDeser.deserialize(jp, ctxt);
-                prop.set(result, value);
+                prop.deserializeAndSet(jp, ctxt, bean);
                 continue;
             }
+            JsonToken t = jp.nextToken();
             if (_anySetter != null) {
                 JsonDeserializer<Object> valueDeser = _anySetter.getValueDeserializer();
                 Object value = (t == JsonToken.VALUE_NULL) ? null : valueDeser.deserialize(jp, ctxt);
-                _anySetter.set(propName, result, value);
+                _anySetter.set(propName, bean, value);
                 continue;
             }
             // Unknown: let's call handler method
-            handleUnknownProperty(ctxt, result, propName);
+            handleUnknownProperty(ctxt, bean, propName);
         }
-        return result;
+        return bean;
     }
 
     /*

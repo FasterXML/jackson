@@ -32,4 +32,19 @@ public abstract class JsonDeserializer<T>
      */
     public abstract T deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException;
+
+    /**
+     * Method that can be called to determine value to be used for
+     * representing null values (values deserialized when Json token
+     * is {@link JsonToken#VALUE_NULL}). Usually this is simply
+     * Java null, but for some types (primitives) it may be
+     * necessary to use actual values.
+     *<p>
+     * Note that deserializers are allowed to call this just once and
+     * then reuse returned value; that is, method is not guaranteed to
+     * be called once for each conversion.
+     *<p>
+     * Default implementation simply returns null.
+     */
+    public T getNullValue() { return null; }
 }

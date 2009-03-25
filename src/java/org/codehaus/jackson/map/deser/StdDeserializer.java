@@ -100,6 +100,27 @@ public abstract class StdDeserializer<T>
 
     /*
     /////////////////////////////////////////////////////////////
+    // Then one intermediate base class for things that have
+    // both primitive and wrapper types
+    /////////////////////////////////////////////////////////////
+    */
+
+    protected abstract static class PrimitiveOrWrapperDeserializer<T>
+        extends StdDeserializer<T>
+    {
+        final T _nullValue;
+        
+        protected PrimitiveOrWrapperDeserializer(Class<T> vc, T nvl)
+        {
+            super(vc);
+            _nullValue = nvl;
+        }
+        
+        public final T getNullValue() { return _nullValue; }
+    }
+
+    /*
+    /////////////////////////////////////////////////////////////
     // First, generic (Object, String, String-like, Class) deserializers
     /////////////////////////////////////////////////////////////
     */
@@ -155,17 +176,19 @@ public abstract class StdDeserializer<T>
     */
 
     public final static class BooleanDeserializer
-        extends StdDeserializer<Boolean>
+        extends PrimitiveOrWrapperDeserializer<Boolean>
     {
-        public BooleanDeserializer() { super(Boolean.class); }
+        public BooleanDeserializer(Class<Boolean> cls, Boolean nvl)
+        {
+            super(cls, nvl);
+        }
         
         @Override
-		public Boolean deserialize(JsonParser jp, DeserializationContext ctxt)
+	public Boolean deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             // We accept couple of different types; obvious ones first:
             JsonToken t = jp.getCurrentToken();
-
             if (t == JsonToken.VALUE_TRUE) {
                 return Boolean.TRUE;
             }
@@ -196,9 +219,12 @@ public abstract class StdDeserializer<T>
     }
 
     public final static class ByteDeserializer
-        extends StdDeserializer<Byte>
+        extends PrimitiveOrWrapperDeserializer<Byte>
     {
-        public ByteDeserializer() { super(Byte.class); }
+        public ByteDeserializer(Class<Byte> cls, Byte nvl)
+        {
+            super(cls, nvl);
+        }
 
         @Override
         public Byte deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -214,12 +240,15 @@ public abstract class StdDeserializer<T>
     }
 
     public final static class ShortDeserializer
-        extends StdDeserializer<Short>
+        extends PrimitiveOrWrapperDeserializer<Short>
     {
-        public ShortDeserializer() { super(Short.class); }
+        public ShortDeserializer(Class<Short> cls, Short nvl)
+        {
+            super(cls, nvl);
+        }
 
         @Override
-		public Short deserialize(JsonParser jp, DeserializationContext ctxt)
+        public Short deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             int value = _parseInt(jp, ctxt);
@@ -232,9 +261,12 @@ public abstract class StdDeserializer<T>
     }
 
     public final static class CharacterDeserializer
-        extends StdDeserializer<Character>
+        extends PrimitiveOrWrapperDeserializer<Character>
     {
-        public CharacterDeserializer() { super(Character.class); }
+        public CharacterDeserializer(Class<Character> cls, Character nvl)
+        {
+            super(cls, nvl);
+        }
 
         @Override
 		public Character deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -260,9 +292,12 @@ public abstract class StdDeserializer<T>
     }
 
     public final static class IntegerDeserializer
-        extends StdDeserializer<Integer>
+        extends PrimitiveOrWrapperDeserializer<Integer>
     {
-        public IntegerDeserializer() { super(Integer.class); }
+        public IntegerDeserializer(Class<Integer> cls, Integer nvl)
+        {
+            super(cls, nvl);
+        }
 
         @Override
         public Integer deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -273,9 +308,12 @@ public abstract class StdDeserializer<T>
     }
 
     public final static class LongDeserializer
-        extends StdDeserializer<Long>
+        extends PrimitiveOrWrapperDeserializer<Long>
     {
-        public LongDeserializer() { super(Long.class); }
+        public LongDeserializer(Class<Long> cls, Long nvl)
+        {
+            super(cls, nvl);
+        }
 
         @Override
         public Long deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -306,9 +344,12 @@ public abstract class StdDeserializer<T>
     }
 
     public final static class FloatDeserializer
-        extends StdDeserializer<Float>
+        extends PrimitiveOrWrapperDeserializer<Float>
     {
-        public FloatDeserializer() { super(Float.class); }
+        public FloatDeserializer(Class<Float> cls, Float nvl)
+        {
+            super(cls, nvl);
+        }
 
         @Override
 		public Float deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -322,9 +363,12 @@ public abstract class StdDeserializer<T>
     }
 
     public final static class DoubleDeserializer
-        extends StdDeserializer<Double>
+        extends PrimitiveOrWrapperDeserializer<Double>
     {
-        public DoubleDeserializer() { super(Double.class); }
+        public DoubleDeserializer(Class<Double> cls, Double nvl)
+        {
+            super(cls, nvl);
+        }
 
         @Override
 		public Double deserialize(JsonParser jp, DeserializationContext ctxt)
