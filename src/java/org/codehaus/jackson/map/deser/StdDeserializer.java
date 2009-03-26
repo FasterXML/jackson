@@ -514,23 +514,10 @@ public abstract class StdDeserializer<T>
         public CalendarDeserializer() { super(Calendar.class); }
 
         @Override
-		public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
+            public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             return ctxt.constructCalendar(_parseDate(jp, ctxt));
-        }
-    }
-
-    public final static class UtilDateDeserializer
-        extends StdDeserializer<java.util.Date>
-    {
-        public UtilDateDeserializer() { super(java.util.Date.class); }
-
-        @Override
-		public java.util.Date deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
-            return _parseDate(jp, ctxt);
         }
     }
 

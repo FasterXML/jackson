@@ -49,7 +49,7 @@ class StdDeserializers
         add(new StdDeserializer.BigDecimalDeserializer());
         add(new StdDeserializer.BigIntegerDeserializer());
         
-        add(new StdDeserializer.UtilDateDeserializer());
+        add(new DateDeserializer());
         add(new StdDeserializer.SqlDateDeserializer());
         add(new StdDeserializer.CalendarDeserializer());
         
