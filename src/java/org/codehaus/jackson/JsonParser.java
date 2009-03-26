@@ -253,6 +253,16 @@ public abstract class JsonParser
      */
     public abstract void close() throws IOException;
 
+    /**
+     * Method that can be called to determine whether this parser
+     * is closed or not. If it is closed, no new events can be
+     * retrieved by calling {@link #nextToken} (and the underlying
+     * stream may be closed). Closing may be due to an explicit
+     * call to {@link #close} or because parser has encountered
+     * end of input.
+     */
+    public abstract boolean isClosed();
+
     /*
     ////////////////////////////////////////////////////
     // Public API, token accessors

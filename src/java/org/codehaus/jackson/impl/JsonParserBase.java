@@ -45,7 +45,7 @@ public abstract class JsonParserBase
 
     /*
     ////////////////////////////////////////////////////
-    // Configuration
+    // Generic I/O state
     ////////////////////////////////////////////////////
      */
 
@@ -54,6 +54,13 @@ public abstract class JsonParserBase
      * for the reader.
      */
     final protected IOContext _ioContext;
+
+    /**
+     * Flag that indicates whether parser is closed or not. Gets
+     * set when parser is either closed by explicit call
+     * ({@link #close}) or when end-of-input is reached.
+     */
+    protected boolean _closed;
 
     /*
     ////////////////////////////////////////////////////
@@ -304,10 +311,13 @@ public abstract class JsonParserBase
 
     public void close() throws IOException
     {
+        _closed = true;
         _closeInput();
         // Also, internal buffer(s) can now be released as well
         _releaseBuffers();
     }
+
+    public boolean isClosed() { return _closed; }
 
     public JsonReadContext getParsingContext()
     {

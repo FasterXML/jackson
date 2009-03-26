@@ -15,6 +15,12 @@ public class TestJsonParser
         public void setX(int x) { _x = x; }
     }
 
+    /*
+    //////////////////////////////////////////////////////
+    // Test for simple traversal
+    //////////////////////////////////////////////////////
+     */
+
     public void testNextValue()
         throws IOException
     {
@@ -42,6 +48,43 @@ public class TestJsonParser
         assertEquals(9, p._x);
         jp.close();
     }
+
+    public void testIsClosed()
+        throws IOException
+    {
+        JsonFactory jf = new JsonFactory();
+        for (int i = 0; i < 4; ++i) {
+            String JSON = "[ 1, 2, 3 ]";
+            boolean stream = ((i & 1) == 0);
+            JsonParser jp = stream ?
+                createParserUsingStream(JSON, "UTF-8")
+                : createParserUsingReader(JSON);
+            boolean partial = ((i & 2) == 0);
+
+            assertFalse(jp.isClosed());
+            assertToken(JsonToken.START_ARRAY, jp.nextToken());
+
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertFalse(jp.isClosed());
+
+            if (partial) {
+                jp.close();
+                assertTrue(jp.isClosed());
+            } else {
+                assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+                assertToken(JsonToken.END_ARRAY, jp.nextToken());
+                assertNull(jp.nextToken());
+                assertTrue(jp.isClosed());
+            }
+        }
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Tests for data binding
+    //////////////////////////////////////////////////////
+     */
 
     /**
      * Test similar to above, but instead reads a sequence of values
@@ -96,7 +139,7 @@ public class TestJsonParser
 
     /*
     //////////////////////////////////////////////
-    // Actual test methods
+    // Supporting methods
     //////////////////////////////////////////////
      */
 
