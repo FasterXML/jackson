@@ -36,6 +36,13 @@ public abstract class JsonGeneratorBase
      */
     protected JsonWriteContext _writeContext;
 
+    /**
+     * Flag that indicates whether generator is closed or not. Gets
+     * set when it is closed by an explicit call
+     * ({@link #close}).
+     */
+    protected boolean _closed;
+
     /*
     ////////////////////////////////////////////////////
     // Life-cycle
@@ -232,13 +239,18 @@ public abstract class JsonGeneratorBase
 
     /*
     ////////////////////////////////////////////////////
-    // Public API, buffer handling
+    // Public API, low-level output handling
     ////////////////////////////////////////////////////
      */
 
     public abstract void flush() throws IOException;
 
-    public abstract void close() throws IOException;
+    public void close() throws IOException
+    {
+        _closed = true;
+    }
+
+    public boolean isClosed() { return _closed; }
 
     /*
     ////////////////////////////////////////////////////

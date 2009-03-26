@@ -260,6 +260,8 @@ public abstract class JsonParser
      * stream may be closed). Closing may be due to an explicit
      * call to {@link #close} or because parser has encountered
      * end of input.
+     *
+     * @since 0.9.9-3
      */
     public abstract boolean isClosed();
 

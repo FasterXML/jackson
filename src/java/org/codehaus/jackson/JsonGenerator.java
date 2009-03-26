@@ -754,4 +754,12 @@ public abstract class JsonGenerator
      */
     public abstract void close()
         throws IOException;
+
+    /**
+     * Method that can be called to determine whether this generator
+     * is closed or not. If it is closed, no more output can be done.
+     *
+     * @since 0.9.9-3
+     */
+    public abstract boolean isClosed();
 }

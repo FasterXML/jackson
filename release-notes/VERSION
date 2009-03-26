@@ -1,7 +1,7 @@
-Version: 0.9.9-2
+Version: 0.9.9-3
 
 Release date:
-  19-Mar-2009
+  xx-Mar-2009
 
 Description:
   Another pre-1.0 release.
@@ -22,6 +22,8 @@ Description:
   * [JACKSON-84]: Added JsonGenerator.writeRawValue methods to augment
     existing JsonGenerator.writeRaw() method
     (requested by Scott A)
+  * [JACKSON-86]: Added JsonParser.isClosed() and JsonGenerator.isClosed()
+    methods.
 
 ------------------------------------------------------------------------
 == History: ==

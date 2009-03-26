@@ -595,6 +595,8 @@ public final class WriterBasedGenerator
     public void close()
         throws IOException
     {
+        super.close();
+
         /* 05-Dec-2008, tatu: To add [JACKSON-27], need to close open
          *   scopes.
          */

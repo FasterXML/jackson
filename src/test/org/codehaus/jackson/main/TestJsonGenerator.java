@@ -19,6 +19,34 @@ public class TestJsonGenerator
 
     /*
     ///////////////////////////////////////////////
+    // Tests for closing, status
+    ///////////////////////////////////////////////
+     */
+
+    public void testIsClosed()
+        throws IOException
+    {
+        JsonFactory jf = new JsonFactory();
+        for (int i = 0; i < 2; ++i) {
+            boolean stream = ((i & 1) == 0);
+            JsonGenerator jg = stream ?
+                jf.createJsonGenerator(new StringWriter())
+                : jf.createJsonGenerator(new ByteArrayOutputStream(), JsonEncoding.UTF8)
+                ;
+            assertFalse(jg.isClosed());
+            jg.writeStartArray();
+            jg.writeNumber(-1);
+            jg.writeEndArray();
+            assertFalse(jg.isClosed());
+            jg.close();
+            assertTrue(jg.isClosed());
+            jg.close();
+            assertTrue(jg.isClosed());
+        }
+    }
+
+    /*
+    ///////////////////////////////////////////////
     // Tests for data binding integration
     ///////////////////////////////////////////////
      */
