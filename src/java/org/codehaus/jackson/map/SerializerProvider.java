@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import java.io.IOException;
+import java.util.Date;
 
 import org.codehaus.jackson.*;
 
@@ -179,4 +180,21 @@ public abstract class SerializerProvider
             findValueSerializer(value.getClass()).serialize(value, jgen, this);
         }
     }
+
+    /**
+     * Method that will handle serialization of Date(-like) values, using
+     * {@link SerializationConfig} settings to determine expected serialization
+     * behavior.
+     */
+    public abstract void defaultSerializeDateValue(long timestamp, JsonGenerator jgen)
+        throws IOException, JsonProcessingException;
+
+    /**
+     * Method that will handle serialization of Date(-like) values, using
+     * {@link SerializationConfig} settings to determine expected serialization
+     * behavior.
+     */
+    public abstract void defaultSerializeDateValue(Date date, JsonGenerator jgen)
+        throws IOException, JsonProcessingException;
 }
+

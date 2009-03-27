@@ -1,6 +1,8 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 
 import org.codehaus.jackson.*;
 
@@ -30,7 +32,7 @@ public class StdSerializerProvider
      * cached for faster resolution. Usually this isn't needed, but maybe it
      * is in some cases?
      *<p>
-     * TODO: make configurable
+     * TODO: make configurable?
      */
     final static boolean CACHE_UNKNOWN_MAPPINGS = false;
 
@@ -110,6 +112,13 @@ public class StdSerializerProvider
      * map that contains serializers previously fetched.
      */
     protected final ReadOnlyClassToSerializerMap _knownSerializers;
+
+    /**
+     * Lazily acquired and instantiated formatter object: initialized
+     * first time it is needed, reused afterwards. Used via instances
+     * (not blueprints), so that access need not be thread-safe.
+     */
+    protected DateFormat _dateFormat;
 
     /*
     ////////////////////////////////////////////////////
@@ -255,7 +264,7 @@ public class StdSerializerProvider
 
     /*
     ////////////////////////////////////////////////////
-    // Abstract methods impls
+    // Abstract method impls, locating serializers
     ////////////////////////////////////////////////////
      */
 
@@ -310,6 +319,49 @@ public class StdSerializerProvider
     @Override
     public JsonSerializer<Object> getUnknownTypeSerializer(Class<?> unknownType) {
         return _unknownTypeSerializer;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Abstract method impls, convenience methods
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * @param timestamp Millisecond timestamp that defines date, if available;
+     */
+    @Override
+    public final void defaultSerializeDateValue(long timestamp, JsonGenerator jgen)
+        throws IOException, JsonProcessingException
+    {
+        // [JACKSON-87]: Support both numeric timestamps and textual
+        if (isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS)) {
+            jgen.writeNumber(timestamp);
+        } else {
+            if (_dateFormat == null) {
+                DateFormat blueprint = _config.getDateFormat();
+                // must create a clone since Formats are not thread-safe:
+                _dateFormat = (DateFormat)_dateFormat.clone();
+            }
+            jgen.writeString(_dateFormat.format(new Date(timestamp)));
+        }
+    }
+
+    @Override
+    public final void defaultSerializeDateValue(Date date, JsonGenerator jgen)
+        throws IOException, JsonProcessingException
+    {
+        // [JACKSON-87]: Support both numeric timestamps and textual
+        if (isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS)) {
+            jgen.writeNumber(date.getTime());
+        } else {
+            if (_dateFormat == null) {
+                DateFormat blueprint = _config.getDateFormat();
+                // must create a clone since Formats are not thread-safe:
+                _dateFormat = (DateFormat)_dateFormat.clone();
+            }
+            jgen.writeString(_dateFormat.format(date));
+        }
     }
 
     /*

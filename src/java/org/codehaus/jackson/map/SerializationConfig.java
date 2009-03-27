@@ -1,6 +1,9 @@
 package org.codehaus.jackson.map;
 
+import java.text.DateFormat;
+
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.map.util.DateFormatHolder;
 
 /**
  * Object that contains baseline configuration for serialization
@@ -21,6 +24,8 @@ public class SerializationConfig
      * the serialization feature.
      */
     public enum Feature {
+        // // // Features for annotation handling
+
         /**
          * Feature that determines whether "getter" methods are
          * automatically detected based on standard Bean naming convention
@@ -37,13 +42,28 @@ public class SerializationConfig
          */
         AUTO_DETECT_GETTERS(true),
 
+        // // // Generic output features
+
             /**
              * Feature that determines the default settings of whether Bean
              * properties with null values are to be written out.
              *<P>
              * Feature is enabled by default (null properties written).
              */
-            WRITE_NULL_PROPERTIES(true)
+            WRITE_NULL_PROPERTIES(true),
+
+        // // // Features for datatype-specific serialization
+
+            /**
+             * Feature that determines whether {@link java.util.Date}s
+             * (and Date-based things like {@link Calendar}s) are to be
+             * serialized as numeric timestamps (true; the default),
+             * or as textual representation (false).
+             * If textual representation is used, the actual format is
+             * one returned by a call to {@link #getDateFormat}.
+             */
+            WRITE_DATES_AS_TIMESTAMPS(true)
+
             ;
 
         final boolean _defaultState;
@@ -78,7 +98,24 @@ public class SerializationConfig
      */
     protected final static int DEFAULT_FEATURE_FLAGS = Feature.collectDefaults();
 
+    /*
+    ///////////////////////////////////////////////////////////
+    // Configuration settings
+    ///////////////////////////////////////////////////////////
+     */
+
     protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
+
+    /**
+     * Textual data format to use for serialization (if enabled by
+     * {@link Feature#WRITE_DATES_AS_TIMESTAMPS} being set to false).
+     * Defaults to a ISO-8601 compliant format accessed from
+     * {@link DateFormatHolder}.
+     * Note that format object is <b>not to be used as is</b> by caller:
+     * since date format objects are not thread-safe, caller has to
+     * create a clone first.
+     */
+    protected DateFormat _dateFormat = DateFormatHolder.getBlueprintISO8601Format();
 
     /*
     ///////////////////////////////////////////////////////////
@@ -148,6 +185,8 @@ public class SerializationConfig
         return (_featureFlags & f.getMask()) != 0;
     }
 
+    public DateFormat getDateFormat() { return _dateFormat; }
+
     /*
     ////////////////////////////////////////////////////
     // Configuration: on/off features
@@ -181,6 +220,26 @@ public class SerializationConfig
     }
 
     //protected int getFeatures() { return _features; }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration: other
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that will set the textual serialization to use for
+     * serializing Dates (and Calendars); or if null passed, simply
+     * disable textual serialization and use timestamp.
+     * Also, will enable/disable feature
+     * {@link Feature#WRITE_DATES_AS_TIMESTAMPS}: enable, if argument
+     * is null; disable if non-null.
+     */
+    public void setDateFormat(DateFormat df) {
+        _dateFormat = df;
+        // Also: enable/disable usage of 
+        set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
+    }
 
     /*
     ///////////////////////////////////////////////////////////

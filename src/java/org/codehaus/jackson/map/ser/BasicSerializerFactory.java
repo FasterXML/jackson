@@ -548,7 +548,7 @@ public class BasicSerializerFactory
 		public void serialize(Calendar value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeNumber(value.getTimeInMillis());
+            provider.defaultSerializeDateValue(value.getTimeInMillis(), jgen);
         }
     }
 
@@ -561,17 +561,17 @@ public class BasicSerializerFactory
     {
         public final static UtilDateSerializer instance = new UtilDateSerializer();
         @Override
-		public void serialize(java.util.Date value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(java.util.Date value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeNumber(value.getTime());
+            provider.defaultSerializeDateValue(value, jgen);
         }
     }
 
     /**
      * Compared to regular {@link UtilDateSerializer}, we do use String
      * representation here. Why? Basically to truncate of time part, since
-     * that should not be used by plain 
+     * that should not be used by plain SQL date.
      */
     public final static class SqlDateSerializer
         extends JsonSerializer<java.sql.Date>
