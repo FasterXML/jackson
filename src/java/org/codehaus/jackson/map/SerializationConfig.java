@@ -125,7 +125,11 @@ public class SerializationConfig
 
     public SerializationConfig()  { }
 
-    private SerializationConfig(int f)  { _featureFlags = f; }
+    private SerializationConfig(int f, DateFormat df)
+    {
+        _featureFlags = f;
+        _dateFormat = df;
+    }
 
     /**
      * Method that is called to create a non-shared copy of the configuration
@@ -133,7 +137,7 @@ public class SerializationConfig
      */
     public SerializationConfig createUnshared()
     {
-    	return new SerializationConfig(_featureFlags);
+    	return new SerializationConfig(_featureFlags, _dateFormat);
     }
 
     /**

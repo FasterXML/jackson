@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map.ser;
 
-import main.BaseTest;
-
 import java.io.*;
 
 import org.codehaus.jackson.annotate.JsonUseSerializer;
@@ -13,7 +11,7 @@ import org.codehaus.jackson.map.ser.ToStringSerializer;
  * types; primitives (and/or their wrappers), Strings.
  */
 public class TestEnumSerialization
-    extends BaseTest
+    extends BaseMapTest
 {
     /*
     ///////////////////////////////////////////////////

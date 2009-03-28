@@ -228,7 +228,11 @@ public class StdSerializerProvider
             throw jme;
         } catch (Exception e) {
             // but others are wrapped
-            throw new JsonMappingException(e.getMessage(), e);
+            String msg = e.getMessage();
+            if (msg == null) {
+                msg = "[no message for "+e.getClass().getName()+"]";
+            }
+            throw new JsonMappingException(msg, e);
         }
     }
 
@@ -358,7 +362,7 @@ public class StdSerializerProvider
             if (_dateFormat == null) {
                 DateFormat blueprint = _config.getDateFormat();
                 // must create a clone since Formats are not thread-safe:
-                _dateFormat = (DateFormat)_dateFormat.clone();
+                _dateFormat = (DateFormat)blueprint.clone();
             }
             jgen.writeString(_dateFormat.format(date));
         }

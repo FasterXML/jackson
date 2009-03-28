@@ -13,6 +13,8 @@ import java.util.*;
  * each mapping operation (or at least one per thread); such that
  * access is always single-threaded. If so, we can lazily instantiate
  * each DateFormat instance first time it is needed.
+ *<p>
+ * Note: all DateFormats are initialized to use GMT.
  */
 public class DateFormatHolder
 {
@@ -36,8 +38,14 @@ public class DateFormatHolder
      * actual instances more cheaply (avoids re-parsing).
      */
     static {
+        /* Another important thing: let's force use of GMT for
+         * baseline DataFormat objects
+         */
+        TimeZone gmt = TimeZone.getTimeZone("GMT");
         DATE_FORMAT_ISO8601 = new SimpleDateFormat(DATE_FORMAT_STR_ISO8601);
+        DATE_FORMAT_ISO8601.setTimeZone(gmt);
         DATE_FORMAT_RFC1123 = new SimpleDateFormat(DATE_FORMAT_STR_RFC1123);
+        DATE_FORMAT_RFC1123.setTimeZone(gmt);
     }
 
     DateFormat _formatISO8601;
@@ -51,12 +59,45 @@ public class DateFormatHolder
 
     public DateFormatHolder() { }
 
+    /**
+     * Method for getting the globally shared DateFormat instance
+     * that uses GMT timezone and can handle simple ISO-8601
+     * compliant date format.
+     */
     public static DateFormat getBlueprintISO8601Format() {
         return DATE_FORMAT_ISO8601;
     }
 
+    /**
+     * Method for getting a non-shared DateFormat instance
+     * that uses specified timezone and can handle simple ISO-8601
+     * compliant date format.
+     */
+    public static DateFormat getISO8601Format(TimeZone tz) {
+        DateFormat df = (DateFormat) DATE_FORMAT_ISO8601.clone();
+        df.setTimeZone(tz);
+        return df;
+    }
+
+    /**
+     * Method for getting the globally shared DateFormat instance
+     * that uses GMT timezone and can handle RFC-1123
+     * compliant date format.
+     */
     public static DateFormat getBlueprintRFC1123Format() {
         return DATE_FORMAT_RFC1123;
+    }
+
+    /**
+     * Method for getting a non-shared DateFormat instance
+     * that uses specific timezone and can handle RFC-1123
+     * compliant date format.
+     */
+    public static DateFormat getRFC1123Format(TimeZone tz)
+    {
+        DateFormat df = (DateFormat) DATE_FORMAT_RFC1123.clone();
+        df.setTimeZone(tz);
+        return df;
     }
 
     /*

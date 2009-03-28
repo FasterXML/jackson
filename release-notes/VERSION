@@ -24,6 +24,9 @@ Description:
     (requested by Scott A)
   * [JACKSON-86]: Added JsonParser.isClosed() and JsonGenerator.isClosed()
     methods.
+  * [JACKSON-87]: Added ability to customized Date/Calendar serialization,
+    both by toggling between timestamp (number) and textual (ISO-8601),
+    and by specifying alternate DateFormat to use.
 
 ------------------------------------------------------------------------
 == History: ==
