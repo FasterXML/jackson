@@ -31,6 +31,10 @@ import org.codehaus.jackson.map.type.ClassKey;
  * <li>Ability to define a single generic base serializer for all Enum
  *   types (precedence below specific serializer mapping)
  *  </li>
+ *</ul>
+ *<p>
+ * In near future, following features are planned to be added:
+ *<ul>
  * <li>Ability to define "mix-in annotations": associations between types
  *   (classes, interfaces) to serialize, and a "mix-in" type which will
  *   be used so that all of its annotations are added to the serialized
@@ -44,7 +48,6 @@ import org.codehaus.jackson.map.type.ClassKey;
 public class CustomSerializerFactory
     extends BeanSerializerFactory
 {
-
     /*
     ////////////////////////////////////////////////////
     // Configuration, direct/special mappings
