@@ -125,19 +125,23 @@ public class SerializationConfig
 
     public SerializationConfig()  { }
 
-    private SerializationConfig(int f, DateFormat df)
+    protected SerializationConfig(SerializationConfig src)
     {
-        _featureFlags = f;
-        _dateFormat = df;
+        _featureFlags = src._featureFlags;
+        _dateFormat = src._dateFormat;
     }
 
     /**
      * Method that is called to create a non-shared copy of the configuration
      * to be used for a serialization operation.
+     * Note that if sub-classing
+     * and sub-class has additional instance methods,
+     * this method <b>must</b> be overridden to produce proper sub-class
+     * instance.
      */
     public SerializationConfig createUnshared()
     {
-    	return new SerializationConfig(_featureFlags, _dateFormat);
+    	return new SerializationConfig(this);
     }
 
     /**

@@ -39,12 +39,6 @@ public class CustomDeserializerFactory
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * Features (of type {@link DeserializerFactory.Feature})
-     * that are enabled
-     */
-    private int _features = DEFAULT_FEATURE_FLAGS;
-
     /*
     //////////////////////////////////////////////////////////
     // Configuration: mappings that define "mix-in annotations"
@@ -65,47 +59,6 @@ public class CustomDeserializerFactory
      */
 
     public CustomDeserializerFactory() { super(); }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Configuration: on/off features
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * Method for enabling specified  features
-     * (check
-     * {@link org.codehaus.jackson.map.DeserializerFactory.Feature}
-     * for list of features)
-     */
-    public void enableFeature(Feature f) {
-        _features |= f.getMask();
-    }
-
-    /**
-     * Method for disabling specified  features
-     * (check
-     * {@link org.codehaus.jackson.map.DeserializerFactory.Feature}
-     * for list of features)
-     */
-    public void disableFeature(Feature f) {
-        _features &= ~f.getMask();
-    }
-
-    public void setFeature(Feature f, boolean state)
-    {
-        if (state) {
-            enableFeature(f);
-        } else {
-            disableFeature(f);
-        }
-    }
-
-    /**
-     * To make features configurable, need to override this method.
-     */
-    @Override
-    protected int _getFeatures() { return _features; }
 
     /*
     ////////////////////////////////////////////////////

@@ -130,19 +130,23 @@ public class DeserializationConfig
 
     public DeserializationConfig()  { }
 
-    private DeserializationConfig(int f, LinkedNode<DeserializationProblemHandler> ph)
+    protected DeserializationConfig(DeserializationConfig src)
     {
-        _featureFlags = f;
-        _problemHandlers = ph;
+        _featureFlags = src._featureFlags;
+        _problemHandlers = src._problemHandlers;
     }
 
     /**
      * Method that is called to create a non-shared copy of the configuration
-     * to be used for a serialization operation.
+     * to be used for a deserialization operation.
+     * Note that if sub-classing
+     * and sub-class has additional instance methods,
+     * this method <b>must</b> be overridden to produce proper sub-class
+     * instance.
      */
     public DeserializationConfig createUnshared()
     {
-    	return new DeserializationConfig(_featureFlags, _problemHandlers);
+    	return new DeserializationConfig(this);
     }
 
     /**

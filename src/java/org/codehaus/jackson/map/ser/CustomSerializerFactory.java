@@ -91,6 +91,8 @@ public class CustomSerializerFactory
      * Mapping that defines how to apply mix-in annotations: key is
      * the type to received additional annotations, and value is the
      * type that has annotations to "mix in".
+     *<p>
+     * !!! 30-Mar-2009, tatu: Not used as of yet
      */
     HashMap<ClassKey,Class<?>> _mixInAnnotations;
 
@@ -230,14 +232,14 @@ public class CustomSerializerFactory
             }
         }
 
-        // No match? Perhaps one special-purpose serializers?
+        // No match? Perhaps we can use the enum serializer?
         if (type.isEnum()) {
             if (_enumSerializerOverride != null) {
                 return (JsonSerializer<T>) _enumSerializerOverride;
             }
         }
 
-        // No match? How about more generic ones?
+        // Still no match? How about more generic ones?
         // Mappings for super-classes?
         if (_transitiveClassMappings != null) {
             for (Class<?> curr = type; (curr != null); curr = curr.getSuperclass()) {

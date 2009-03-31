@@ -29,47 +29,6 @@ import org.codehaus.jackson.type.JavaType;
  */
 public abstract class DeserializerFactory
 {
-    /**
-     * Enumeration that defines all togglable features for configurable
-     * serializer factories (most notably,
-     * {@link org.codehaus.jackson.map.ser.CustomSerializerFactory}).
-     */
-    public enum Feature {
-        BOGUS(false) // just need a placeholder first
-            ;
-
-        final boolean _defaultState;
-
-        /**
-         * Method that calculates bit set (flags) of all features that
-         * are enabled by default.
-         */
-        public static int collectDefaults()
-        {
-            int flags = 0;
-            for (Feature f : values()) {
-                if (f.enabledByDefault()) {
-                    flags |= f.getMask();
-                }
-            }
-            return flags;
-        }
-        
-        private Feature(boolean defaultState) {
-            _defaultState = defaultState;
-        }
-        
-        public boolean enabledByDefault() { return _defaultState; }
-    
-        public int getMask() { return (1 << ordinal()); }
-    }
-
-    /**
-     * Bitfield (set of flags) of all Features that are enabled
-     * by default.
-     */
-    protected final static int DEFAULT_FEATURE_FLAGS = Feature.collectDefaults();
-
     /*
     /////////////////////////////////////////////////////////
     // Basic DeserializerFactory API:
@@ -120,23 +79,4 @@ public abstract class DeserializerFactory
      */
     public abstract JsonDeserializer<?> createTreeDeserializer(Class<? extends JsonNode> nodeClass, DeserializerProvider p)
         throws JsonMappingException;
-
-    /**
-     * Method for checking whether given feature is enabled or not
-     */
-    public final boolean isFeatureEnabled(Feature f) {
-        return (_getFeatures() & f.getMask()) != 0;
-    }
-
-    /*
-    /////////////////////////////////////////////////////////
-    // Methods for sub-classes to override
-    /////////////////////////////////////////////////////////
-     */
-
-    /**
-     * Default implementation only returns default settings for
-     * features: configurable sub-classes need to override this method.
-     */
-    protected int _getFeatures() { return DEFAULT_FEATURE_FLAGS; }
 }
