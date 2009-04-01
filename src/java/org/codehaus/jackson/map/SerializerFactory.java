@@ -7,7 +7,6 @@ package org.codehaus.jackson.map;
  */
 public abstract class SerializerFactory
 {
-
     /*
     /////////////////////////////////////////////////////////
     // Basic SerializerFactory API:

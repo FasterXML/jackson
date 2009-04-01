@@ -21,6 +21,9 @@ Description:
     custom deserializers for non-structured/generic types.
   * [JACKSON-75]: Add "any setter" method; ability to catch otherwise
     unknown (unmapped) properties and call a method with name+value.
+  * [JACKSON-80]: Add @JsonValue annotation, to specify that a Bean value
+    is to be serialized as value returned by annotated method: can for
+    example annotate "toString()" method.
   * [JACKSON-84]: Added JsonGenerator.writeRawValue methods to augment
     existing JsonGenerator.writeRaw() method
     (requested by Scott A)

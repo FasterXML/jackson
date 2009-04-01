@@ -127,6 +127,19 @@ public class BeanSerializerFactory
         if (ser != null) {
             return ser;
         }
+
+        /* [JACKSON-80]: Should support @JsonValue, which is alternative to
+         *   actual bean method introspection.
+         */
+        AnnotatedMethod valueMethod = intr.findJsonValue();
+        if (valueMethod != null) {
+            /* Further, method itself may also be annotated to indicate
+             * exact JsonSerializer to use for whatever value is returned...
+             */
+            ser = findSerializerFromAnnotation(valueMethod);
+            return new JsonValueSerializer(valueMethod.getAnnotated(), ser);
+        }
+
         // First: what properties are to be serializable?
         Collection<BeanPropertyWriter> props = findBeanProperties(config, intr);
         if (props == null || props.size() == 0) {

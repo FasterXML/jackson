@@ -279,15 +279,15 @@ public class ClassIntrospector
         AnnotatedMethod found = null;
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             JsonValue ann = am.getAnnotation(JsonValue.class);
-            if (ann == null || !ann.value()) { // false if disabled
+            if (ann == null || !ann.value()) { // ignore if disabled
                 continue;
             }
             if (found != null) {
                 throw new IllegalArgumentException("Multiple methods with active @JsonValue annotation ("+found.getName()+"(), "+am.getName()+")");
             }
             // Also, must have getter signature
-            if (!found.hasGetterSignature()) {
-                throw new IllegalArgumentException("Method "+found.getName()+"() marked with @JsonValue, but does not have valid getter signature (non-static, takes no args, returns a value)");
+            if (!am.hasGetterSignature()) {
+                throw new IllegalArgumentException("Method "+am.getName()+"() marked with @JsonValue, but does not have valid getter signature (non-static, takes no args, returns a value)");
             }
             found = am;
         }
