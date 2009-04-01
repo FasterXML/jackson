@@ -172,18 +172,18 @@ public class DeserializationConfig
 
     	JsonAutoDetect autoDetect = annotatedClass.getAnnotation(JsonAutoDetect.class);
     	if (autoDetect != null) {
-    		boolean setters = false;
-    		boolean creators = false;
-    		for (JsonMethod m : autoDetect.value()) {
-    			if (m == JsonMethod.SETTER || m == JsonMethod.ALL) {
-    				setters = true;
-    			}
-    			if (m == JsonMethod.CREATOR || m == JsonMethod.ALL) {
-    				creators = true;
-    			}
-    		}
-    		set(Feature.AUTO_DETECT_SETTERS, setters); 		
-    		set(Feature.AUTO_DETECT_CREATORS, creators);
+            boolean setters = false;
+            boolean creators = false;
+            for (JsonMethod m : autoDetect.value()) {
+                if (m == JsonMethod.SETTER || m == JsonMethod.ALL) {
+                    setters = true;
+                }
+                if (m == JsonMethod.CREATOR || m == JsonMethod.ALL) {
+                    creators = true;
+                }
+            }
+            set(Feature.AUTO_DETECT_SETTERS, setters); 		
+            set(Feature.AUTO_DETECT_CREATORS, creators);
     	}
     }
 
