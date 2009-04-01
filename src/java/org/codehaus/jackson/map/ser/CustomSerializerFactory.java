@@ -128,8 +128,12 @@ public class CustomSerializerFactory
      * Note that adding generic mappings may lead to problems with
      * sub-classing: if sub-classes add new properties, these may not
      * get properly serialized.
+     *
+     * @param forClass Class for which specified serializer is to be
+     *   used. May be more specific type than what serializer indicates,
+     *   but must be compatible (same or sub-class)
      */
-    public <T> void addGenericMapping(Class<T> type, JsonSerializer<T> ser)
+    public <T> void addGenericMapping(Class<? extends T> type, JsonSerializer<T> ser)
     {
         // Interface to match?
         ClassKey key = new ClassKey(type);
@@ -153,8 +157,12 @@ public class CustomSerializerFactory
      * be defined for abstract classes or interfaces: and if an attempt
      * is made, {@link IllegalArgumentException} will be thrown to
      * indicate caller error.
+     *
+     * @param forClass Class for which specified serializer is to be
+     *   used. May be more specific type than what serializer indicates,
+     *   but must be compatible (same or sub-class)
      */
-    public <T> void addSpecificMapping(Class<T> forClass, JsonSerializer<T> ser)
+    public <T> void addSpecificMapping(Class<? extends T> forClass, JsonSerializer<T> ser)
     {
         ClassKey key = new ClassKey(forClass);
 

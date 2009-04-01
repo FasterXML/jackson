@@ -22,12 +22,9 @@ import org.codehaus.jackson.map.type.*;
  * Configurations currently available are:
  *<ul>
  * <li>Ability to define explicit mappings between simple non-generic
- *   classes and interfaces and deserializers to use for deserializing
- *   instance of these classes.. These can be either specific ones
- *   (class/interface and declaration must match exactly)
- *   or generic ones (any sub-class or class implementing the interface);
- *   specific ones have precedence over generic ones (and
- *    precedence between generic ones is not defined).
+ *   classes/interfaces and deserializers to use for deserializing
+ *   instance of these classes. Mappings are one-to-one (i.e. there is
+ *   no "generic" variant for handling sub- or super-classes/interfaces).
  *  </li>
  *</ul>
  *<p>
@@ -52,27 +49,10 @@ public class CustomDeserializerFactory
      */
 
     /**
-     * Direct mappings that are only used for exact class type
-     * matches, but not for sub-class checks.
+     * Direct mappings that are used for exact class and interface type
+     * matches.
      */
     HashMap<ClassKey,JsonDeserializer<Object>> _directClassMappings = null;
-
-    /*
-    ////////////////////////////////////////////////////
-    // Configuration, generic (interface, super-class) mappings
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * And then class-based mappings that are used both for exact and
-     * sub-class matches.
-     */
-    HashMap<ClassKey,JsonDeserializer<Object>> _transitiveClassMappings = null;
-
-    /**
-     * And finally interface-based matches.
-     */
-    HashMap<ClassKey,JsonDeserializer<Object>> _interfaceMappings = null;
 
     /*
     //////////////////////////////////////////////////////////
@@ -104,49 +84,23 @@ public class CustomDeserializerFactory
      */
 
     /**
-     * Method used to add a generic (transitive) mapping from specified
-     * class or its sub-classes into a deserializer.
-     * When resolving a type into a deserializer, explicit class is checked
-     * first, then immediate super-class, and so forth along inheritance
-     * chain. But if this fails, implemented interfaces are checked;
-     * ordering is done such that first interfaces implemented by
-     * the exact type are checked (in order returned by
-     * {@link Class#getInterfaces}), then super-type's and so forth.
-     *<p>
-     * Note that adding generic mappings may lead to problems with
-     * sub-classing: if sub-classes add new properties, these may not
-     * get properly deserialized.
-     */
-    @SuppressWarnings("unchecked")
-    public <T> void addGenericMapping(Class<T> type, JsonDeserializer<T> deser)
-    {
-        // Interface to match?
-        ClassKey key = new ClassKey(type);
-        if (type.isInterface()) {
-            if (_interfaceMappings == null) {
-                _interfaceMappings = new HashMap<ClassKey,JsonDeserializer<Object>>();
-            }
-            _interfaceMappings.put(key, (JsonDeserializer<Object>)deser);
-        } else { // nope, class:
-            if (_transitiveClassMappings == null) {
-                _transitiveClassMappings = new HashMap<ClassKey,JsonDeserializer<Object>>();
-            }
-            _transitiveClassMappings.put(key, (JsonDeserializer<Object>)deser);
-        }
-    }
-
-    /**
      * Method used to add a mapping for specific type -- and only that
      * type -- to use specified deserializer.
      * This means that binding is not used for sub-types.
      *<p>
-     * Note that whereas abstract classes and interface can not be used
-     * with specific (direct) mappings for serialization, it is fine to
-     * use them for deserialization. This because declared type can be
-     * an abstract type or interface
+     * Note that both class and interfaces can be mapped, since the type
+     * is derived from method declarations; and hence may be abstract types
+     * and interfaces. This is different from custom serialization where
+     * only class types can be directly mapped.
+     *
+     * @param forClass Class to deserialize using specific deserializer.
+     * @param deser Deserializer to use for the class. Declared type for
+     *   deserializer may be more specific (sub-class) than declared class
+     *   to map, since that will still be compatible (deserializer produces
+     *   sub-class which is assignable to field/method)
      */
     @SuppressWarnings("unchecked")
-    public <T> void addSpecificMapping(Class<T> forClass, JsonDeserializer<T> deser)
+    public <T> void addSpecificMapping(Class<T> forClass, JsonDeserializer<? extends T> deser)
     {
         ClassKey key = new ClassKey(forClass);
         if (_directClassMappings == null) {
@@ -184,48 +138,21 @@ public class CustomDeserializerFactory
     ////////////////////////////////////////////////////
      */
 
+    @Override
     public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
         throws JsonMappingException
     {
         Class<?> cls = type.getRawClass();
-        JsonDeserializer<Object> deser = null;
         ClassKey key = new ClassKey(cls);
 
-        // First: exact matches
+        // Do we have a match?
         if (_directClassMappings != null) {
-            deser = _directClassMappings.get(key);
+            JsonDeserializer<Object> deser = _directClassMappings.get(key);
             if (deser != null) {
                 return deser;
             }
         }
-
-        // Still no match? How about more generic ones?
-        // Mappings for super-classes?
-        if (_transitiveClassMappings != null) {
-            for (Class<?> curr = cls; (curr != null); curr = curr.getSuperclass()) {
-                key.reset(curr);
-                deser = _transitiveClassMappings.get(key);
-                if (deser != null) {
-                    return deser;
-                }
-            }
-        }
-
-        // And if still no match, how about interfaces?
-        if (_interfaceMappings != null) {
-            for (Class<?> curr = cls; (curr != null); curr = curr.getSuperclass()) {
-                for (Class<?> iface : curr.getInterfaces()) {
-                    key.reset(iface);
-                    deser = _interfaceMappings.get(key);
-                    if (deser != null) {
-                        return deser;
-                    }
-                }
-            }
-        }
-        /* And barring any other complications, let's just let
-         * bean (or basic) serializer factory handle construction.
-         */
+        // If not, let super class do its job
         return super.createBeanDeserializer(type, p);
     }
 
@@ -233,6 +160,7 @@ public class CustomDeserializerFactory
 
     //public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p) throws JsonMappingException
 
+    @Override
     public JsonDeserializer<?> createEnumDeserializer(Class<?> enumClass, DeserializerProvider p) throws JsonMappingException
     {
         /* Enums can't extend anything (or implement); must be a direct

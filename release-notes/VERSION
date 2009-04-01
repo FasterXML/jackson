@@ -17,6 +17,8 @@ Description:
 
   * [JACKSON-61]: Allow suppressing writing of bean properties with null values
    (requested by Justin F)
+  * [JACKSON-63]: Create CustomDeserializerFactory to allow for adding
+    custom deserializers for non-structured/generic types.
   * [JACKSON-75]: Add "any setter" method; ability to catch otherwise
     unknown (unmapped) properties and call a method with name+value.
   * [JACKSON-84]: Added JsonGenerator.writeRawValue methods to augment

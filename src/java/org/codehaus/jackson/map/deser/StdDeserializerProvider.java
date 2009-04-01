@@ -28,13 +28,6 @@ public class StdDeserializerProvider
      */
 
     /**
-     * We will pre-create serializers for common non-structured
-     * (that is things other than Collection, Map or array)
-     * types. These need not go through factory.
-     */
-    final static HashMap<JavaType, JsonDeserializer<Object>> _simpleDeserializers = StdDeserializers.constructAll();
-
-    /**
      * Similarly, key deserializers are only for simple types.
      */
     final static HashMap<JavaType, KeyDeserializer> _keyDeserializers = StdKeyDeserializers.constructAll();
@@ -94,19 +87,14 @@ public class StdDeserializerProvider
                                                           JavaType referrer, String refPropName)
         throws JsonMappingException
     {
-        /* A simple type? (primitive/wrapper, other well-known fundamental
-         * basic types
+        /* Maybe we have already resolved and cached this type?
+         * (not true for simple(st) types actually, just beans)
          */
-        JsonDeserializer<Object> deser = _findSimpleDeserializer(type);
+        JsonDeserializer<Object> deser = _findCachedDeserializer(type);
         if (deser != null) {
             return deser;
         }
-        // If not, maybe we have already resolved this type?
-        deser = _findCachedDeserializer(type);
-        if (deser != null) {
-            return deser;
-        }
-        // If not, need to construct.
+        // If not, need to request factory to construct (or recycle)
         deser = _createAndCacheValueDeserializer(type, referrer, refPropName);
         if (deser == null) {
             /* Should we let caller handle it? Let's have a helper method
@@ -153,16 +141,12 @@ public class StdDeserializerProvider
         /* Note: mostly copied from findValueDeserializer, except for
          * handling of unknown types
          */
-        JsonDeserializer<Object> deser = _findSimpleDeserializer(type);
+        JsonDeserializer<Object> deser = _findCachedDeserializer(type);
         if (deser == null) {
-            // If not, maybe we have already resolved this type?
-            deser = _findCachedDeserializer(type);
-            if (deser == null) {
-                try {
-                    deser = _createAndCacheValueDeserializer(type, null, null);
-                } catch (Exception e) {
-                    return false;
-                }
+            try {
+                deser = _createAndCacheValueDeserializer(type, null, null);
+            } catch (Exception e) {
+                return false;
             }
         }
         return (deser != null);
@@ -173,11 +157,6 @@ public class StdDeserializerProvider
     // Overridable helper methods
     ////////////////////////////////////////////////////////////////
      */
-
-    protected JsonDeserializer<Object> _findSimpleDeserializer(JavaType type)
-    {
-        return _simpleDeserializers.get(type);
-    }
 
     protected JsonDeserializer<Object> _findCachedDeserializer(JavaType type)
     {

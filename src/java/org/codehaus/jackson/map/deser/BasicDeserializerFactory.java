@@ -29,7 +29,15 @@ public abstract class BasicDeserializerFactory
 {
     // // Can cache some types
 
-    final static JavaType _typeString = TypeFactory.fromClass(String.class);
+    final static JavaType TYPE_STRING = TypeFactory.fromClass(String.class);
+
+    /**
+     * We will pre-create serializers for common non-structured
+     * (that is things other than Collection, Map or array)
+     * types. These need not go through factory.
+     */
+    final static HashMap<JavaType, JsonDeserializer<Object>> _simpleDeserializers = StdDeserializers.constructAll();
+
 
     /* We do some defaulting for abstract Map classes and
      * interfaces, to avoid having to use exact types or annotations in
@@ -181,7 +189,7 @@ public abstract class BasicDeserializerFactory
         /* Otherwise, generic handler works ok; need a key deserializer (null 
          * indicates 'default' here)
          */
-        KeyDeserializer keyDes = (_typeString.equals(keyType)) ? null : p.findKeyDeserializer(keyType);
+        KeyDeserializer keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(keyType);
 
         /* But there is one more twist: if we are being asked to instantiate
          * an interface or abstract Map, we need to either find something
@@ -241,8 +249,11 @@ public abstract class BasicDeserializerFactory
     }
 
     @Override
-    public abstract JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
-        throws JsonMappingException;
+    public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        return _simpleDeserializers.get(type);
+    }
 
     /*
     ////////////////////////////////////////////////////////////

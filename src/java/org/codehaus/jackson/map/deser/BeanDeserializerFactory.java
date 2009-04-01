@@ -36,10 +36,19 @@ public class BeanDeserializerFactory
     ///////////////////////////////////////////////////////////
      */
 
+    @Override
     public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        // Very first thing: do we even handle this type as a Bean?
+        /* Let's call super class first: it knows simple types for
+         * which we have default deserializers
+         */
+        JsonDeserializer<Object> deser = super.createBeanDeserializer(type, p);
+        if (deser != null) {
+            return deser;
+        }
+
+        // Otherwise: could the class be a Bean class?
         Class<?> beanClass = type.getRawClass();
         if (!isPotentialBeanType(beanClass)) {
             return null;
@@ -76,10 +85,10 @@ public class BeanDeserializerFactory
         if ((sctor == null) && (nctor == null) && (defaultCtor == null)) {
             throw new IllegalArgumentException("Can not create Bean deserializer for ("+type+"): neither default constructor nor factory methods found");
         }
-        BeanDeserializer deser = new BeanDeserializer(type, defaultCtor, sctor, nctor);
+        BeanDeserializer bd = new BeanDeserializer(type, defaultCtor, sctor, nctor);
         // And then things we need if we get Json Object:
-        addBeanProps(intr, deser);
-        return deser;
+        addBeanProps(intr, bd);
+        return bd;
     }
 
     /*
