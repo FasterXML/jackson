@@ -35,22 +35,7 @@ public class ClassIntrospector
     
         public boolean includeMethod(Method m)
         {
-            // First: we can't use static methods
-            if (Modifier.isStatic(m.getModifiers())) {
-                return false;
-            }
-            // Must take no args
-            Class<?>[] pts = m.getParameterTypes();
-            if ((pts != null) && (pts.length > 0)) {
-                return false;
-            }
-            // Can't be a void method
-            Class<?> rt = m.getReturnType();
-            if (rt == Void.TYPE) {
-                return false;
-            }
-            // Otherwise, potentially ok
-            return true;
+            return AnnotatedMethod.hasGetterSignature(m);
         }
     }
 
@@ -228,7 +213,7 @@ public class ClassIntrospector
             /* note: signature has already been checked to some degree
              * via filters; however, no checks were done for arg count
              */
-            // Marked with @JsonIgnore, or doesn't have single arg?
+            // Marked with @JsonIgnore, or takes arguments
             if (isIgnored(am) || am.getParameterCount() != 0) {
                 continue;
             }
@@ -279,6 +264,34 @@ public class ClassIntrospector
             }
         }
         return results;
+    }
+
+    /**
+     * Method for locating the getter method that is annotated with
+     * {@link JsonValue} annotation, if any. If multiple ones are found,
+     * an error is reported by throwing {@link IllegalArgumentException}
+     */
+    public AnnotatedMethod findJsonValue()
+    {
+        /* Can't use "findUniqueMethodWith" because annotation can be
+         * disabled...
+         */
+        AnnotatedMethod found = null;
+        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
+            JsonValue ann = am.getAnnotation(JsonValue.class);
+            if (ann == null || !ann.value()) { // false if disabled
+                continue;
+            }
+            if (found != null) {
+                throw new IllegalArgumentException("Multiple methods with active @JsonValue annotation ("+found.getName()+"(), "+am.getName()+")");
+            }
+            // Also, must have getter signature
+            if (!found.hasGetterSignature()) {
+                throw new IllegalArgumentException("Method "+found.getName()+"() marked with @JsonValue, but does not have valid getter signature (non-static, takes no args, returns a value)");
+            }
+            found = am;
+        }
+        return found;
     }
 
     /*
@@ -444,29 +457,22 @@ public class ClassIntrospector
      * is acceptable: needs to take 2 arguments, first one String or
      * Object; second any can be any type.
      */
+
     public AnnotatedMethod findAnySetter()
         throws IllegalArgumentException
     {
-        AnnotatedMethod result = null;
-        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
-            if (!am.hasAnnotation(JsonAnySetter.class)) {
-                continue;
-            }
-            if (result != null) {
-                throw new IllegalArgumentException("Multiple methods with @JsonAnySetter annotation ("+result.getName()+"(), "+am.getName()+")");
-            }
-            // proper signature?
-            int pcount = am.getParameterCount();
+        AnnotatedMethod result = findUniqueMethodWith(JsonAnySetter.class);
+        // proper signature?
+        if (result != null) {
+            int pcount = result.getParameterCount();
             if (pcount != 2) {
-                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+am.getName()+"(): takes "+pcount+" parameters, should take 2");
+                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+result.getName()+"(): takes "+pcount+" parameters, should take 2");
             }
-            Class<?> type = am.getParameterTypes()[0];
+            Class<?> type = result.getParameterTypes()[0];
             if (type != String.class && type != Object.class) {
-                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+am.getName()+"(): first argument not of type String or Object, but "+type.getName());
+                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+result.getName()+"(): first argument not of type String or Object, but "+type.getName());
             }
-            result = am;
         }
-
         return result;
     }
 
@@ -600,6 +606,26 @@ public class ClassIntrospector
     // Low-level class info helper methods
     ///////////////////////////////////////////////////////
      */
+
+    /**
+     * Method for locating the member method that has given "unique"
+     * annotation. If more than one method is found to have the annotation,
+     * error is reported.
+     */
+    protected <A extends Annotation> AnnotatedMethod findUniqueMethodWith(Class<A> acls)
+    {
+        AnnotatedMethod result = null;
+        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
+            if (!am.hasAnnotation(acls)) {
+                continue;
+            }
+            if (result != null) {
+                throw new IllegalArgumentException("Multiple methods with @"+acls.getName()+" annotation ("+result.getName()+"(), "+am.getName()+")");
+            }
+            result = am;
+        }
+        return result;
+    }
 
     /**
      * Helper method used to check whether given element

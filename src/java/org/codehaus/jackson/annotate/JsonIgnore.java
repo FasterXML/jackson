@@ -37,9 +37,7 @@ public @interface JsonIgnore
     /**
      * Optional argument that defines whether this annotation is active
      * or not. The only use for value 'false' if for overriding purposes
-     * (which is not needed often, since this is one of annotations that
-     * is "not inheritable", i.e. overriding methods do not inherit it
-     * from overridden method). However, it may be necessary when used
+     * (which is not needed often); most likely it is needed for use
      * with "mix-in annotations" (aka "annotation overrides").
      * For most cases, however, default value of "true" is just fine
      * and should be omitted.

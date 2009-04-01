@@ -2,13 +2,14 @@ package org.codehaus.jackson.map.introspect;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
 import org.codehaus.jackson.annotate.JsonWriteNullProperties;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedMethod
-	extends Annotated
+    extends Annotated
 {
     Method _method;
 
@@ -96,6 +97,36 @@ public final class AnnotatedMethod
     public void fixAccess()
     {
         ClassUtil.checkAndFixAccess(_method);
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Extended API, signature checks
+    //////////////////////////////////////////////////////
+     */
+
+    public boolean hasGetterSignature()
+    {
+        return hasGetterSignature(_method);
+    }
+
+    public static boolean hasGetterSignature(Method m)
+    {
+        // First: static methods can't be getters
+        if (Modifier.isStatic(m.getModifiers())) {
+            return false;
+        }
+        // Must take no args
+        Class<?>[] pts = m.getParameterTypes();
+        if (pts != null && pts.length != 0) {
+            return false;
+        }
+        // Can't be a void method
+        if (Void.TYPE == m.getReturnType()) {
+            return false;
+        }
+        // Otherwise looks ok:
+        return true;
     }
 
     /*

@@ -96,7 +96,7 @@ public class TestAnyProperties
             Broken b = m.readValue("{ \"a\" : 3 }", Broken.class);
             fail("Should have gotten an exception");
         } catch (JsonMappingException e) {
-            verifyException(e, "Multiple methods with @JsonAnySetter annotation");
+            verifyException(e, "Multiple methods with @org.codehaus.jackson.annotate.JsonAnySetter annotation");
         }
     }
 }
