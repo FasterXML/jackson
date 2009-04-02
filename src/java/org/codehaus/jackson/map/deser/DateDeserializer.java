@@ -5,8 +5,6 @@ import java.util.Date;
 
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
 
 /**

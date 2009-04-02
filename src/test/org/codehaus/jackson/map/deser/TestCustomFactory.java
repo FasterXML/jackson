@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 import org.codehaus.jackson.*;

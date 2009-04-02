@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map.ser;
 
-import main.BaseTest;
-
 import java.io.*;
 import java.util.*;
 

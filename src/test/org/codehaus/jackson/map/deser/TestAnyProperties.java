@@ -93,7 +93,8 @@ public class TestAnyProperties
     {
         ObjectMapper m = new ObjectMapper();
         try {
-            Broken b = m.readValue("{ \"a\" : 3 }", Broken.class);
+            @SuppressWarnings("unused")
+			Broken b = m.readValue("{ \"a\" : 3 }", Broken.class);
             fail("Should have gotten an exception");
         } catch (JsonMappingException e) {
             verifyException(e, "Multiple methods with @org.codehaus.jackson.annotate.JsonAnySetter annotation");

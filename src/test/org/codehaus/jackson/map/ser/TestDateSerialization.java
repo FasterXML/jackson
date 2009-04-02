@@ -1,13 +1,10 @@
 package org.codehaus.jackson.map.ser;
 
-import main.BaseTest;
-
 import java.io.*;
 import java.text.*;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 public class TestDateSerialization

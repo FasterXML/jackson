@@ -52,7 +52,6 @@ public class TestJsonParser
     public void testIsClosed()
         throws IOException
     {
-        JsonFactory jf = new JsonFactory();
         for (int i = 0; i < 4; ++i) {
             String JSON = "[ 1, 2, 3 ]";
             boolean stream = ((i & 1) == 0);
