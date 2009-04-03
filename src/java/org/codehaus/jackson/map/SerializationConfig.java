@@ -56,7 +56,7 @@ public class SerializationConfig
 
             /**
              * Feature that determines whether {@link java.util.Date}s
-             * (and Date-based things like {@link Calendar}s) are to be
+             * (and Date-based things like {@link java.util.Calendar}s) are to be
              * serialized as numeric timestamps (true; the default),
              * or as textual representation (false).
              * If textual representation is used, the actual format is

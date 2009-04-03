@@ -11,7 +11,7 @@ import org.codehaus.jackson.map.DeserializationContext;
  * Simple deserializer for handling {@link java.util.Date} values.
  *<p>
  * One way to customize Date formats accepted is to override method
- * {@lik DeserializationContext#parseDate} that this basic
+ * {@link DeserializationContext#parseDate} that this basic
  * deserializer calls.
  */
 public class DateDeserializer

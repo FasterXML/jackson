@@ -129,7 +129,7 @@ public class CustomSerializerFactory
      * sub-classing: if sub-classes add new properties, these may not
      * get properly serialized.
      *
-     * @param forClass Class for which specified serializer is to be
+     * @param type Class for which specified serializer is to be
      *   used. May be more specific type than what serializer indicates,
      *   but must be compatible (same or sub-class)
      */
