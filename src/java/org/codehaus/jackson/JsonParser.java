@@ -627,11 +627,21 @@ public abstract class JsonParser
      * not for {@link JsonFactory} (unless its <code>setCodec</code>
      * method has been explicitly called).
      *<p>
-     * This method may advance the evens stream, for structured types
+     * This method may advance the event stream, for structured types
      * the current event will be the closing end marker (END_ARRAY,
      * END_OBJECT) of the bound structure. For non-structured Json types
      * stream is not advanced.
      */
     public abstract <T> T readValueAs(TypeReference<?> valueTypeRef)
+        throws IOException, JsonProcessingException;
+
+    /**
+     * Method to deserialize Json content into equivalent "tree model",
+     * represented by root {@link JsonNode} of resulting model.
+     * For Json Arrays it will an array node (with child nodes),
+     * for objects object node (with child nodes), and for other types
+     * matching leaf node type
+     */
+    public abstract JsonNode readValueAsTree()
         throws IOException, JsonProcessingException;
 }

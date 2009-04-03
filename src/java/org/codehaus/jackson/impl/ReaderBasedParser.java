@@ -243,6 +243,16 @@ public final class ReaderBasedParser
         return (T) _objectCodec.readValue(this, valueTypeRef);
     }
 
+    @Override
+    public final JsonNode readValueAsTree()
+        throws IOException, JsonProcessingException
+    {
+        if (_objectCodec == null) {
+            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize Json into JsonNode tree");
+        }
+        return _objectCodec.readTree(this);
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Internal methods, secondary parsing

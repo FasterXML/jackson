@@ -49,6 +49,28 @@ public class TestJsonParser
         jp.close();
     }
 
+    public void testReadingArrayAsTree()
+        throws IOException
+    {
+        JsonFactory jf = new MappingJsonFactory();
+        final String JSON = "[ 1, 2, false ]";
+
+        for (int i = 0; i < 2; ++i) {
+            JsonParser jp = jf.createJsonParser(new StringReader(JSON));
+            // whether to try advancing first or not? Try both
+            if (i == 0) {
+                assertToken(JsonToken.START_ARRAY, jp.nextToken());
+            }
+            JsonNode root = jp.readValueAsTree();
+            jp.close();
+            assertTrue(root.isArray());
+            assertEquals(3, root.size());
+            assertEquals(1, root.get(0).getIntValue());
+            assertEquals(2, root.get(1).getIntValue());
+            assertFalse(root.get(2).getBooleanValue());
+        }
+    }
+
     public void testIsClosed()
         throws IOException
     {

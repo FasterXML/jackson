@@ -6,6 +6,11 @@ Release date:
 Description:
   Another pre-1.0 release.
 
+  Fixes:
+
+  * [JACKSON-94] Added missing "JsonParser.readValueAsTree()" method.
+
+  New features:
 
 ------------------------------------------------------------------------
 == History: ==
