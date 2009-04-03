@@ -1,10 +1,17 @@
-Version: 0.9.9-3
+Version: 0.9.9-4
 
 Release date:
-  03-Apr-2009
+  xx-Apr-2009
 
 Description:
   Another pre-1.0 release.
+
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+0.9.9-3 [03-Apr-2009]
 
   Fixes:
 
@@ -32,10 +39,6 @@ Description:
   * [JACKSON-87]: Added ability to customized Date/Calendar serialization,
     both by toggling between timestamp (number) and textual (ISO-8601),
     and by specifying alternate DateFormat to use.
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 0.9.9-2 [19-Mar-2009]:
 
