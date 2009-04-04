@@ -1,91 +1,31 @@
 package org.codehaus.jackson.map.introspect;
 
 import java.lang.annotation.Annotation;
-import java.util.*;
-import java.lang.reflect.*;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
 
-import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.annotate.JsonAnySetter;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonGetter;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonMethod;
+import org.codehaus.jackson.annotate.JsonSetter;
+import org.codehaus.jackson.annotate.JsonValue;
+import org.codehaus.jackson.annotate.JsonWriteNullProperties;
+import org.codehaus.jackson.map.BeanDescription;
 
-/**
- * Helper class used to introspect features of POJO value classes
- * used with Jackson. The main use is for finding out
- * POJO construction (creator) and value access (getters, setters)
- * methods and annotations that define configuration of using
- * those methods.
- */
-public class ClassIntrospector
+public class BasicBeanDescription extends BeanDescription
 {
-    /*
-    ///////////////////////////////////////////////////////
-    // Helper classes
-    ///////////////////////////////////////////////////////
-     */
-
-    /**
-     * Filter used to only include methods that have signature that is
-     * compatible with "getters": take no arguments, are non-static,
-     * and return something.
-     */
-    public final static class GetterMethodFilter
-        implements MethodFilter
-    {
-        public final static GetterMethodFilter instance = new GetterMethodFilter();
-
-        private GetterMethodFilter() { }
-    
-        public boolean includeMethod(Method m)
-        {
-            return AnnotatedMethod.hasGetterSignature(m);
-        }
-    }
-
-    /**
-     * Filter used to only include methods that have signature that is
-     * compatible with "setters": take one and only argument and
-     * are non-static.
-     *<p>
-     * 23-Mar-2009, tsaloranta: Actually, also need to include 2-arg
-     *    methods to support "any setters"...
-     */
-    public final static class SetterMethodFilter
-        implements MethodFilter
-    {
-        public final static SetterMethodFilter instance = new SetterMethodFilter();
-
-        public boolean includeMethod(Method m)
-        {
-            // First: we can't use static methods
-            if (Modifier.isStatic(m.getModifiers())) {
-                return false;
-            }
-            // Must take just one arg, or be an AnySetter with 2 args:
-            int pcount = m.getParameterTypes().length;
-            if (pcount == 0 || pcount > 2) {
-                return false;
-            }
-            if (pcount == 2) {
-                if (m.getAnnotation(JsonAnySetter.class) == null) {
-                    return false;
-                }
-            }
-            // No checking for returning type; usually void, don't care
-            // Otherwise, potentially ok
-            return true;
-        }
-    }
-
     /*
     ///////////////////////////////////////////////////////
     // Configuration
     ///////////////////////////////////////////////////////
      */
 
-    /**
-     * Class being introspected
-     */
-    final Class<?> _class;
-
-    /**
+	/**
      * Information collected about the class introspected.
      */
     final AnnotatedClass _classInfo;
@@ -96,74 +36,16 @@ public class ClassIntrospector
     ///////////////////////////////////////////////////////
      */
 
-    public ClassIntrospector(Class<?> c, AnnotatedClass ac)
-    {
-        _class = c;
-        _classInfo = ac;
-    }
+    public BasicBeanDescription(Class<?> forClass, AnnotatedClass ac)
 
-    /**
-     * Factory method that constructs an introspector that has all
-     * information needed for serialization purposes.
-     */
-    public static ClassIntrospector forSerialization(Class<?> c)
     {
-        /* Simpler for serialization; just need class annotations
-         * and setters, not creators.
-         */
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, false, GetterMethodFilter.instance);
-        return new ClassIntrospector(c, ac);
-    }
-
-    /**
-     * Factory method that constructs an introspector that has all
-     * information needed for deserialization purposes.
-     */
-    public static ClassIntrospector forDeserialization(Class<?> c)
-    {
-        /* More info needed than with serialization, also need creator
-         * info
-         */
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, true, SetterMethodFilter.instance);
-        return new ClassIntrospector(c, ac);
-    }
-
-    /**
-     * Factory method that constructs an introspector that has
-     * information necessary for creating instances of given
-     * class ("creator"), as well as class annotations, but
-     * no information on member methods
-     */
-    public static ClassIntrospector forCreation(Class<?> c)
-    {
-        /* Just need constructors and factory methods, but no
-         * member methods
-         */
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, true, null);
-        return new ClassIntrospector(c, ac);
-    }
-
-    /**
-     * Factory method that constructs an introspector that only has
-     * information regarding annotations class itself has, but nothing
-     * on methods or constructors.
-     */
-    public static ClassIntrospector forClassAnnotations(Class<?> c)
-    {
-        /* More infor for serialization, also need creator
-         * info
-         */
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, false, null);
-        return new ClassIntrospector(c, ac);
+    	super(forClass);
+    	_classInfo = ac;
     }
 
     /*
     ///////////////////////////////////////////////////////
-    // Generic introspection
+    // Simple accessors
     ///////////////////////////////////////////////////////
      */
 
@@ -176,10 +58,10 @@ public class ClassIntrospector
 
     /*
     ///////////////////////////////////////////////////////
-    // Introspection for deserialization (read Json)
+    // Basic API
     ///////////////////////////////////////////////////////
      */
-
+    
     /**
      * @param autodetect Whether to use Bean naming convention to
      *   automatically detect bean properties; if true will do that,
@@ -392,6 +274,7 @@ public class ClassIntrospector
      */
 
     /**
+     * 
      * @return Ordered Map with logical property name as key, and
      *    matching setter method as value.
      */
@@ -475,7 +358,6 @@ public class ClassIntrospector
         }
         return result;
     }
-
 
     /*
     ///////////////////////////////////////////////////////
@@ -697,6 +579,4 @@ public class ClassIntrospector
         // what else?
         return "unknown type ["+elem.getClass()+"]";
     }
-
 }
-

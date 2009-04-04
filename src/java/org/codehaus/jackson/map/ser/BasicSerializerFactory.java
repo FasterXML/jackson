@@ -10,7 +10,7 @@ import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.annotate.NoClass;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
-import org.codehaus.jackson.map.introspect.ClassIntrospector;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 
 /**
  * Factory class that can provide serializers for standard JDK classes,
@@ -195,7 +195,7 @@ public class BasicSerializerFactory
             /* and should that fail, slower introspection methods; first
              * one that deals with "primary" types
              */
-            ser = findSerializerByPrimaryType(type);
+            ser = findSerializerByPrimaryType(type, config);
             if (ser == null) {
                 // And if that fails, one with "secondary" traits:
                 ser = findSerializerByAddonType(type);
@@ -236,7 +236,7 @@ public class BasicSerializerFactory
      * a "primary" interface. Primary here is defined as the main function
      * of the Object; as opposed to "add-on" functionality.
      */
-    public final JsonSerializer<?> findSerializerByPrimaryType(Class<?> type)
+    public final JsonSerializer<?> findSerializerByPrimaryType(Class<?> type, SerializationConfig config)
     {
         /* Some types are final, and hence not checked here (will
          * have been handled by fast method above):
@@ -274,8 +274,8 @@ public class BasicSerializerFactory
              *   was found out that annotations do not work with
              *   Enum classes.
              */
-            ClassIntrospector intr = ClassIntrospector.forClassAnnotations(type);
-            JsonSerializer<Object> ser = findSerializerFromAnnotation(intr.getClassInfo());
+            BasicBeanDescription desc = config.introspectClassAnnotations(type);
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(desc.getClassInfo());
             if (ser != null) {
                 return ser;
             }

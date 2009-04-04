@@ -139,7 +139,7 @@ public class CustomDeserializerFactory
      */
 
     @Override
-    public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
+    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
         throws JsonMappingException
     {
         Class<?> cls = type.getRawClass();
@@ -153,15 +153,15 @@ public class CustomDeserializerFactory
             }
         }
         // If not, let super class do its job
-        return super.createBeanDeserializer(type, p);
+        return super.createBeanDeserializer(config, type, p);
     }
 
-    //public JsonDeserializer<?> createArrayDeserializer(ArrayType type, DeserializerProvider p) throws JsonMappingException
+    //public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p) throws JsonMappingException
 
-    //public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p) throws JsonMappingException
+    //public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p) throws JsonMappingException
 
     @Override
-    public JsonDeserializer<?> createEnumDeserializer(Class<?> enumClass, DeserializerProvider p) throws JsonMappingException
+    public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p) throws JsonMappingException
     {
         /* Enums can't extend anything (or implement); must be a direct
          * match, if anything:
@@ -173,10 +173,10 @@ public class CustomDeserializerFactory
                 return deser;
             }
         }
-        return super.createEnumDeserializer(enumClass, p);
+        return super.createEnumDeserializer(config, enumClass, p);
     }
 
-    //public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p) throws JsonMappingException
+    //public JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, MapType type, DeserializerProvider p) throws JsonMappingException
 
-    //public JsonDeserializer<?> createTreeDeserializer(Class<? extends JsonNode> nodeClass, DeserializerProvider p) throws JsonMappingException
+    //public JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p) throws JsonMappingException
 }

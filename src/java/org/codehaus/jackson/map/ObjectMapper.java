@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
+import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -29,6 +30,11 @@ public class ObjectMapper
     extends ObjectCodec
 {
     final static JavaType JSON_NODE_TYPE = TypeFactory.fromClass(JsonNode.class);
+
+    /* !!! 03-Apr-2009, tatu: Should try to avoid direct reference... but not
+     *   sure what'd be simple and elegant way. So until then:
+     */
+    protected final ClassIntrospector<? extends BeanDescription> DEFAULT_INTROSPECTOR = BasicClassIntrospector.instance;
 
     /*
     ////////////////////////////////////////////////////
@@ -149,7 +155,7 @@ public class ObjectMapper
     }
 
     public ObjectMapper(JsonFactory jf,
-    		SerializerProvider sp, DeserializerProvider dp)
+                        SerializerProvider sp, DeserializerProvider dp)
     {
     	this(jf, sp, dp, null, null);
     }
@@ -164,17 +170,17 @@ public class ObjectMapper
      * @param dconfig Deserialization configuration to use; if null, basic {@link DeserializationConfig}
      * 	will be constructed
      */
-	public ObjectMapper(JsonFactory jf,
-  		SerializerProvider sp, DeserializerProvider dp,
-    	SerializationConfig sconfig, DeserializationConfig dconfig)
+    public ObjectMapper(JsonFactory jf,
+                        SerializerProvider sp, DeserializerProvider dp,
+                        SerializationConfig sconfig, DeserializationConfig dconfig)
     {
         /* 02-Mar-2009, tatu: Important: we MUST default to using
          *   the mapping factory, otherwise tree serialization will
          *   have problems with POJONodes.
          */
         _jsonFactory = (jf == null) ? new MappingJsonFactory() : jf;
-        _serializationConfig = (sconfig == null) ? new SerializationConfig() : sconfig;
-        _deserializationConfig = (dconfig == null) ? new DeserializationConfig() : dconfig;
+        _serializationConfig = (sconfig == null) ? new SerializationConfig(DEFAULT_INTROSPECTOR) : sconfig;
+        _deserializationConfig = (dconfig == null) ? new DeserializationConfig(DEFAULT_INTROSPECTOR) : dconfig;
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -370,7 +376,7 @@ public class ObjectMapper
      */
     public boolean canDeserialize(JavaType type)
     {
-        return _deserializerProvider.hasValueDeserializerFor(type);
+        return _deserializerProvider.hasValueDeserializerFor(_deserializationConfig, type);
     }
 
     /*
@@ -716,7 +722,7 @@ public class ObjectMapper
         }
 
         // Nope: need to ask provider to resolve it
-        deser = _deserializerProvider.findValueDeserializer(valueType, null, null);
+        deser = _deserializerProvider.findValueDeserializer(_deserializationConfig, valueType, null, null);
         if (deser == null) { // can this happen?
             throw new JsonMappingException("Can not find a deserializer for type "+valueType);
         }

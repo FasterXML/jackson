@@ -4,9 +4,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.KeyDeserializer;
-import org.codehaus.jackson.map.introspect.ClassIntrospector;
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -60,21 +61,21 @@ class StdKeyDeserializers
         return new StdKeyDeserializer.EnumKD(er);
     }
 
-    public static KeyDeserializer findStringBasedKeyDeserializer(JavaType type)
+    public static KeyDeserializer findStringBasedKeyDeserializer(DeserializationConfig config, JavaType type)
     {
         /* We don't need full deserialization information, just need to
          * know creators.
          */
-        ClassIntrospector intr = ClassIntrospector.forCreation(type.getRawClass());
+    	BasicBeanDescription beanDesc = config.introspect(type.getRawClass());
         // Ok, so: can we find T(String) constructor?
-        Constructor<?> ctor = intr.findSingleArgConstructor(String.class);
+        Constructor<?> ctor = beanDesc.findSingleArgConstructor(String.class);
         if (ctor != null) {
             return new StdKeyDeserializer.StringCtorKeyDeserializer(ctor);
         }
         /* or if not, "static T valueOf(String)" (or equivalent marked
          * with @JsonCreator annotation?)
          */
-        Method m = intr.findFactoryMethod(String.class);
+        Method m = beanDesc.findFactoryMethod(String.class);
         if (m != null){
             return new StdKeyDeserializer.StringFactoryKeyDeserializer(m);
         }

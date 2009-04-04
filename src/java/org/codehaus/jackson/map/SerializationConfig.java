@@ -104,6 +104,14 @@ public class SerializationConfig
     ///////////////////////////////////////////////////////////
      */
 
+
+    /**
+     * Introspector used to figure out Bean properties needed for bean serialization
+     * and deserialization. Overridable so that it is possible to change low-level
+     * details of introspection, like adding new annotation types.
+     */
+    protected ClassIntrospector<? extends BeanDescription> _classIntrospector;
+
     protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
 
     /**
@@ -123,10 +131,13 @@ public class SerializationConfig
     ///////////////////////////////////////////////////////////
      */
 
-    public SerializationConfig()  { }
+    public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr) {
+        _classIntrospector = intr;
+    }
 
     protected SerializationConfig(SerializationConfig src)
     {
+        _classIntrospector = src._classIntrospector;
         _featureFlags = src._featureFlags;
         _dateFormat = src._dateFormat;
     }
@@ -195,6 +206,25 @@ public class SerializationConfig
 
     public DateFormat getDateFormat() { return _dateFormat; }
 
+    @SuppressWarnings("unchecked")
+	public <T extends BeanDescription> ClassIntrospector<T> getIntrospector() {
+        return (ClassIntrospector<T>) _classIntrospector;
+    }
+
+    @SuppressWarnings("unchecked")
+	public <T extends BeanDescription> T introspect(Class<?> cls) {
+        return (T) getIntrospector().forSerialization(cls);
+    }
+
+    /**
+     * Accessor for getting bean description that only contains class
+     * annotations: useful if no getter/setter/creator information is needed.
+     */
+    @SuppressWarnings("unchecked")
+	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
+        return (T) getIntrospector().forClassAnnotations(cls);
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Configuration: on/off features
@@ -247,6 +277,10 @@ public class SerializationConfig
         _dateFormat = df;
         // Also: enable/disable usage of 
         set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
+    }
+
+    public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
+        _classIntrospector = i;
     }
 
     /*

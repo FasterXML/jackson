@@ -8,7 +8,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.ClassIntrospector;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
@@ -86,7 +86,7 @@ public class BeanSerializerFactory
         JsonSerializer<?> ser = super.findSerializerByLookup(type);
         if (ser == null) {
             // and then introspect for some safe (?) JDK types
-            ser = super.findSerializerByPrimaryType(type);
+            ser = super.findSerializerByPrimaryType(type, config);
             if (ser == null) {
                 /* And this is where this class comes in: if type is
                  * not a known "primary JDK type", perhaps it's a bean?
@@ -122,8 +122,8 @@ public class BeanSerializerFactory
         if (!isPotentialBeanType(type)) {
             return null;
         }
-        ClassIntrospector intr = ClassIntrospector.forSerialization(type);
-        JsonSerializer<Object> ser = findSerializerFromAnnotation(intr.getClassInfo());
+        BasicBeanDescription beanDesc = config.introspect(type);
+        JsonSerializer<Object> ser = findSerializerFromAnnotation(beanDesc.getClassInfo());
         if (ser != null) {
             return ser;
         }
@@ -131,7 +131,7 @@ public class BeanSerializerFactory
         /* [JACKSON-80]: Should support @JsonValue, which is alternative to
          *   actual bean method introspection.
          */
-        AnnotatedMethod valueMethod = intr.findJsonValue();
+        AnnotatedMethod valueMethod = beanDesc.findJsonValue();
         if (valueMethod != null) {
             /* Further, method itself may also be annotated to indicate
              * exact JsonSerializer to use for whatever value is returned...
@@ -141,7 +141,7 @@ public class BeanSerializerFactory
         }
 
         // First: what properties are to be serializable?
-        Collection<BeanPropertyWriter> props = findBeanProperties(config, intr);
+        Collection<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
         if (props == null || props.size() == 0) {
             // No properties, no serializer
             return null;
@@ -171,11 +171,11 @@ public class BeanSerializerFactory
     /**
      * Method used to collect all actual serializable properties
      */
-    protected Collection<BeanPropertyWriter> findBeanProperties(SerializationConfig config, ClassIntrospector intr)
+    protected Collection<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
     {
         // are getters auto-detected?
         boolean autodetect = config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS);
-        LinkedHashMap<String,AnnotatedMethod> methodsByProp = intr.findGetters(autodetect);
+        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(autodetect);
         // nothing? can't proceed
         if (methodsByProp.isEmpty()) {
             return null;
@@ -184,7 +184,7 @@ public class BeanSerializerFactory
         /* are null properties to be written for properties of
          * this class?
          */
-        boolean writeNulls = intr.willWriteNullProperties(config.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
+        boolean writeNulls = beanDesc.willWriteNullProperties(config.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {

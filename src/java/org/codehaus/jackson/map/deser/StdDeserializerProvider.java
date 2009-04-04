@@ -83,7 +83,8 @@ public class StdDeserializerProvider
      */
 
     @Override
-    public JsonDeserializer<Object> findValueDeserializer(JavaType type,
+    public JsonDeserializer<Object> findValueDeserializer(DeserializationConfig config,
+                                                          JavaType type,
                                                           JavaType referrer, String refPropName)
         throws JsonMappingException
     {
@@ -95,7 +96,7 @@ public class StdDeserializerProvider
             return deser;
         }
         // If not, need to request factory to construct (or recycle)
-        deser = _createAndCacheValueDeserializer(type, referrer, refPropName);
+        deser = _createAndCacheValueDeserializer(config, type, referrer, refPropName);
         if (deser == null) {
             /* Should we let caller handle it? Let's have a helper method
              * decide it; can throw an exception, or return a valid
@@ -107,7 +108,8 @@ public class StdDeserializerProvider
     }
 
     @Override
-    public KeyDeserializer findKeyDeserializer(JavaType type)
+    public KeyDeserializer findKeyDeserializer(DeserializationConfig config,
+                                               JavaType type)
     {
         // No serializer needed if it's plain old String, or Object/untyped
         if (_typeString.equals(type) || _typeObject.equals(type)) {
@@ -123,7 +125,7 @@ public class StdDeserializerProvider
             return StdKeyDeserializers.constructEnumKeyDeserializer(type);
         }
         // One more thing: can we find ctor(String) or valueOf(String)?
-        kdes = StdKeyDeserializers.findStringBasedKeyDeserializer(type);
+        kdes = StdKeyDeserializers.findStringBasedKeyDeserializer(config, type);
         if (kdes != null) {
             return kdes;
         }
@@ -136,7 +138,8 @@ public class StdDeserializerProvider
      * Method that can be called to find out whether a deserializer can
      * be found for given type
      */
-    public boolean hasValueDeserializerFor(JavaType type)
+    public boolean hasValueDeserializerFor(DeserializationConfig config,
+                                           JavaType type)
     {
         /* Note: mostly copied from findValueDeserializer, except for
          * handling of unknown types
@@ -144,7 +147,7 @@ public class StdDeserializerProvider
         JsonDeserializer<Object> deser = _findCachedDeserializer(type);
         if (deser == null) {
             try {
-                deser = _createAndCacheValueDeserializer(type, null, null);
+                deser = _createAndCacheValueDeserializer(config, type, null, null);
             } catch (Exception e) {
                 return false;
             }
@@ -167,13 +170,13 @@ public class StdDeserializerProvider
      * Method that will try to create a deserializer for given type,
      * and resolve and cache it if necessary
      */
-    protected JsonDeserializer<Object>_createAndCacheValueDeserializer(JavaType type,
+    protected JsonDeserializer<Object>_createAndCacheValueDeserializer(DeserializationConfig config, JavaType type,
                                                                        JavaType referrer, String refPropName)
         throws JsonMappingException
     {
         JsonDeserializer<Object> deser;
         try {
-            deser = _createDeserializer(type, referrer, refPropName);
+            deser = _createDeserializer(config, type, referrer, refPropName);
         } catch (IllegalArgumentException iae) {
             /* We better only expose checked exceptions, since those
              * are what caller is expected to handle
@@ -188,7 +191,7 @@ public class StdDeserializerProvider
         if (deser != null) {
             if (deser instanceof ResolvableDeserializer) {
                 _cachedDeserializers.put(type, deser);
-                _resolveDeserializer((ResolvableDeserializer)deser);
+                _resolveDeserializer(config, (ResolvableDeserializer)deser);
             } else if (type.isEnumType()) {
                 /* Let's also cache enum type deserializers,
                  * they are somewhat costly as well.
@@ -203,21 +206,22 @@ public class StdDeserializerProvider
      * of type-safety warnings.
      */
     @SuppressWarnings("unchecked")
-    protected JsonDeserializer<Object> _createDeserializer(JavaType type,
+    protected JsonDeserializer<Object> _createDeserializer(DeserializationConfig config, 
+    			JavaType type,
                                                            JavaType referrer, String refPropName)
         throws JsonMappingException
     {
         if (type.isEnumType()) {
-            return (JsonDeserializer<Object>) _factory.createEnumDeserializer(type.getRawClass(), this);
+            return (JsonDeserializer<Object>) _factory.createEnumDeserializer(config, type.getRawClass(), this);
         }
         if (type instanceof ArrayType) {
-            return (JsonDeserializer<Object>)_factory.createArrayDeserializer((ArrayType) type, this);
+            return (JsonDeserializer<Object>)_factory.createArrayDeserializer(config, (ArrayType) type, this);
         }
         if (type instanceof MapType) {
-            return (JsonDeserializer<Object>)_factory.createMapDeserializer((MapType) type, this);
+            return (JsonDeserializer<Object>)_factory.createMapDeserializer(config, (MapType) type, this);
         }
         if (type instanceof CollectionType) {
-            return (JsonDeserializer<Object>)_factory.createCollectionDeserializer((CollectionType) type, this);
+            return (JsonDeserializer<Object>)_factory.createCollectionDeserializer(config, (CollectionType) type, this);
         }
         /* 02-Mar-2009, tatu: Let's consider JsonNode to be a type of its
          *   own
@@ -225,15 +229,15 @@ public class StdDeserializerProvider
         Class<?> rawClass = type.getRawClass();
         if (JsonNode.class.isAssignableFrom(rawClass)) {
             Class<? extends JsonNode> nodeClass = (Class<? extends JsonNode>) rawClass;
-            return (JsonDeserializer<Object>)_factory.createTreeDeserializer(nodeClass, this);
+            return (JsonDeserializer<Object>)_factory.createTreeDeserializer(config, nodeClass, this);
         }
-        return (JsonDeserializer<Object>)_factory.createBeanDeserializer(type, this);
+        return (JsonDeserializer<Object>)_factory.createBeanDeserializer(config, type, this);
     }
 
-    protected void _resolveDeserializer(ResolvableDeserializer ser)
+    protected void _resolveDeserializer(DeserializationConfig config, ResolvableDeserializer ser)
         throws JsonMappingException
     {
-        ser.resolve(this);
+        ser.resolve(config, this);
     }
 
     /*

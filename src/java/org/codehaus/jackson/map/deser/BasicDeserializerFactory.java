@@ -8,7 +8,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.ClassIntrospector;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
@@ -112,7 +112,7 @@ public abstract class BasicDeserializerFactory
      */
 
     @Override
-	public JsonDeserializer<?> createArrayDeserializer(ArrayType type, DeserializerProvider p)
+	public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p)
         throws JsonMappingException
     {
         // Ok; first: do we have a primitive type?
@@ -129,12 +129,12 @@ public abstract class BasicDeserializerFactory
             throw new IllegalArgumentException("Internal error: primitive type ("+type+") passed, no array deserializer found");
         }
         // 'null' -> arrays have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(elemType, type, null);
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(config, elemType, type, null);
         return new ArrayDeserializer(type, valueDes);
     }
 
     @Override
-    public JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
+    public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p)
         throws JsonMappingException
     {
         JavaType valueType = type.getElementType();
@@ -148,7 +148,7 @@ public abstract class BasicDeserializerFactory
 
         // But otherwise we can just use a generic value deserializer:
         // 'null' -> collections have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, type, null);
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(config, valueType, type, null);
 
         /* One twist: if we are being asked to instantiate an interface or
          * abstract Collection, we need to either find something that implements
@@ -171,14 +171,14 @@ public abstract class BasicDeserializerFactory
     }
 
     @Override
-   public JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
+   public JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, MapType type, DeserializerProvider p)
         throws JsonMappingException
     {
         JavaType keyType = type.getKeyType();
         // Value handling is identical for all, so:
         JavaType valueType = type.getValueType();
         // 'null' -> maps have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(valueType, type, null);
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(config, valueType, type, null);
 
         Class<?> mapClass = type.getRawClass();
         // But EnumMap requires special handling for keys
@@ -189,7 +189,7 @@ public abstract class BasicDeserializerFactory
         /* Otherwise, generic handler works ok; need a key deserializer (null 
          * indicates 'default' here)
          */
-        KeyDeserializer keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(keyType);
+        KeyDeserializer keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(config, keyType);
 
         /* But there is one more twist: if we are being asked to instantiate
          * an interface or abstract Map, we need to either find something
@@ -216,14 +216,14 @@ public abstract class BasicDeserializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public JsonDeserializer<?> createEnumDeserializer(Class<?> enumClass, DeserializerProvider p)
+    public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p)
         throws JsonMappingException
     {
         /* 18-Feb-2009, tatu: Must first check if we have a class annotation
          *    that should override default deserializer
          */
-        ClassIntrospector intr = ClassIntrospector.forClassAnnotations(enumClass);
-        JsonDeserializer<Object> des = findDeserializerFromAnnotation(intr.getClassInfo());
+        BasicBeanDescription beanDesc = config.introspectClassAnnotations(enumClass);
+        JsonDeserializer<Object> des = findDeserializerFromAnnotation(beanDesc.getClassInfo());
         if (des != null) {
             return des;
         }
@@ -232,7 +232,7 @@ public abstract class BasicDeserializerFactory
     }
 
     @Override
-    public JsonDeserializer<?> createTreeDeserializer(Class<? extends JsonNode> nodeClass, DeserializerProvider p)
+    public JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p)
         throws JsonMappingException
     {
         /* !!! 02-Mar-2009, tatu: Should probably allow specifying more
@@ -249,7 +249,7 @@ public abstract class BasicDeserializerFactory
     }
 
     @Override
-    public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
+    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
         throws JsonMappingException
     {
         return _simpleDeserializers.get(type);

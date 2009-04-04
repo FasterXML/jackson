@@ -3,7 +3,7 @@ package org.codehaus.jackson.map.type;
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.ClassIntrospector;
+import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationFilter;
 
 import org.codehaus.jackson.annotate.*;
@@ -45,7 +45,7 @@ public class TestAnnotatedClass
     public void testSimple()
     {
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (SubClass.class, JacksonAnnotationFilter.instance, true, ClassIntrospector.GetterMethodFilter.instance);
+            (SubClass.class, JacksonAnnotationFilter.instance, true, BasicClassIntrospector.GetterMethodFilter.instance);
 
         assertNotNull(ac.getDefaultConstructor());
         assertEquals(1, ac.getSingleArgConstructors().size());

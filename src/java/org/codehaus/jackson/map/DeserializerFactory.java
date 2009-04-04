@@ -49,7 +49,7 @@ public abstract class DeserializerFactory
      * @param p Provider that can be called to create deserializers for
      *   contained member types
      */
-    public abstract JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
+    public abstract JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
         throws JsonMappingException;
 
     /**
@@ -61,22 +61,22 @@ public abstract class DeserializerFactory
      * @param p Provider that can be called to create deserializers for
      *   contained member types
      */
-    public abstract JsonDeserializer<?> createArrayDeserializer(ArrayType type, DeserializerProvider p)
+    public abstract JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p)
         throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createCollectionDeserializer(CollectionType type, DeserializerProvider p)
+    public abstract JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p)
         throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createEnumDeserializer(Class<?> enumClass, DeserializerProvider p)
+    public abstract JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p)
         throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createMapDeserializer(MapType type, DeserializerProvider p)
+    public abstract JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, MapType type, DeserializerProvider p)
         throws JsonMappingException;
 
     /**
      * Method called to create and return a deserializer that can construct
      * JsonNode(s) from Json content.
      */
-    public abstract JsonDeserializer<?> createTreeDeserializer(Class<? extends JsonNode> nodeClass, DeserializerProvider p)
+    public abstract JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p)
         throws JsonMappingException;
 }

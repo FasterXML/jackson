@@ -18,6 +18,6 @@ public interface ResolvableDeserializer
      * @param provider Provider that has constructed deserializer this method
      *   is called on.
      */
-    public abstract void resolve(DeserializerProvider provider)
+    public abstract void resolve(DeserializationConfig config, DeserializerProvider provider)
         throws JsonMappingException;
 }

@@ -111,6 +111,13 @@ public class DeserializationConfig
      */
 
     /**
+     * Introspector used to figure out Bean properties needed for bean serialization
+     * and deserialization. Overridable so that it is possible to change low-level
+     * details of introspection, like adding new annotation types.
+     */
+    protected ClassIntrospector<? extends BeanDescription> _classIntrospector;
+
+    /**
      * Bitset that contains all enabled features
      */
     protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
@@ -128,10 +135,13 @@ public class DeserializationConfig
     ///////////////////////////////////////////////////////////
      */
 
-    public DeserializationConfig()  { }
+    public DeserializationConfig(ClassIntrospector<? extends BeanDescription> intr) {
+        _classIntrospector = intr;
+    }
 
     protected DeserializationConfig(DeserializationConfig src)
     {
+        _classIntrospector = src._classIntrospector;
         _featureFlags = src._featureFlags;
         _problemHandlers = src._problemHandlers;
     }
@@ -234,6 +244,30 @@ public class DeserializationConfig
         return _problemHandlers;
     }
 
+    @SuppressWarnings("unchecked")
+	public <T extends BeanDescription> ClassIntrospector<T> getIntrospector() {
+        return (ClassIntrospector<T>) _classIntrospector;
+    }
+
+    @SuppressWarnings("unchecked")
+	public <T extends BeanDescription> T introspect(Class<?> cls) {
+        return (T) getIntrospector().forDeserialization(cls);
+    }
+
+    @SuppressWarnings("unchecked")
+	public <T extends BeanDescription> T introspectForCreation(Class<?> cls) {
+        return (T) getIntrospector().forCreation(cls);
+    }
+
+    /**
+     * Accessor for getting bean description that only contains class
+     * annotations: useful if no getter/setter/creator information is needed.
+     */
+    @SuppressWarnings("unchecked")
+	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
+        return (T) getIntrospector().forClassAnnotations(cls);
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Configuration: on/off features
@@ -267,4 +301,14 @@ public class DeserializationConfig
     }
 
     //protected int getFeatures() { return _features; }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Configuration: other
+    ////////////////////////////////////////////////////
+     */
+
+    public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
+        _classIntrospector = i;
+    }
 }

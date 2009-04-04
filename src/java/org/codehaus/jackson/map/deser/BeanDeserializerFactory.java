@@ -5,7 +5,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.ClassIntrospector;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
@@ -37,13 +37,13 @@ public class BeanDeserializerFactory
      */
 
     @Override
-    public JsonDeserializer<Object> createBeanDeserializer(JavaType type, DeserializerProvider p)
+    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
         throws JsonMappingException
     {
         /* Let's call super class first: it knows simple types for
          * which we have default deserializers
          */
-        JsonDeserializer<Object> deser = super.createBeanDeserializer(type, p);
+        JsonDeserializer<Object> deser = super.createBeanDeserializer(config, type, p);
         if (deser != null) {
             return deser;
         }
@@ -63,9 +63,9 @@ public class BeanDeserializerFactory
          *   (same with Collections?)
          */
 
-        ClassIntrospector intr = ClassIntrospector.forDeserialization(beanClass);
+        BasicBeanDescription beanDesc = config.introspect(beanClass);
         // maybe it's explicitly defined by annotations?
-        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(intr.getClassInfo());
+        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(beanDesc.getClassInfo());
         if (ad != null) {
             return ad;
         }
@@ -77,9 +77,9 @@ public class BeanDeserializerFactory
             return null;
         }
 
-        BeanDeserializer.StringConstructor sctor = getStringCreators(beanClass, intr);
-        BeanDeserializer.NumberConstructor nctor = getNumberCreators(beanClass, intr);
-        Constructor<?> defaultCtor = intr.findDefaultConstructor();
+        BeanDeserializer.StringConstructor sctor = getStringCreators(beanClass, beanDesc);
+        BeanDeserializer.NumberConstructor nctor = getNumberCreators(beanClass, beanDesc);
+        Constructor<?> defaultCtor = beanDesc.findDefaultConstructor();
 
         // sanity check: must have a constructor of one type or another
         if ((sctor == null) && (nctor == null) && (defaultCtor == null)) {
@@ -87,7 +87,7 @@ public class BeanDeserializerFactory
         }
         BeanDeserializer bd = new BeanDeserializer(type, defaultCtor, sctor, nctor);
         // And then things we need if we get Json Object:
-        addBeanProps(intr, bd);
+        addBeanProps(beanDesc, bd);
         return bd;
     }
 
@@ -101,15 +101,15 @@ public class BeanDeserializerFactory
      * Method called to figure out settable properties for the
      * deserializer.
      */
-    protected void addBeanProps(ClassIntrospector intr, BeanDeserializer deser)
+    protected void addBeanProps(BasicBeanDescription beanDesc, BeanDeserializer deser)
         throws JsonMappingException
     {
         Class<?> beanClass = deser.getBeanClass();
 
-        LinkedHashMap<String,AnnotatedMethod> methodsByProp = intr.findSetters();
+        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findSetters();
         // fallback "any" setter? If so, need to bind
         {
-            AnnotatedMethod anyM = intr.findAnySetter();
+            AnnotatedMethod anyM = beanDesc.findAnySetter();
             if (anyM != null) {
                 deser.setAnySetter(constructAnySetter(anyM));
             }
@@ -194,26 +194,26 @@ public class BeanDeserializerFactory
      */
 
     BeanDeserializer.StringConstructor getStringCreators(Class<?> beanClass,
-                                                         ClassIntrospector intr)
+                                                         BasicBeanDescription beanDesc)
     {
         // Single-string ctor
-        Constructor<?> sctor = intr.findSingleArgConstructor(String.class);
+        Constructor<?> sctor = beanDesc.findSingleArgConstructor(String.class);
         // and/or one of "well-known" factory methods
-        Method factoryMethod = intr.findFactoryMethod(String.class);
+        Method factoryMethod = beanDesc.findFactoryMethod(String.class);
         return new BeanDeserializer.StringConstructor(beanClass, sctor, factoryMethod);
     }
 
     BeanDeserializer.NumberConstructor getNumberCreators(Class<?> beanClass,
-                                                         ClassIntrospector intr)
+                                                         BasicBeanDescription beanDesc)
     {
         // single-arg ctors 
-        Constructor<?> intCtor = intr.findSingleArgConstructor(int.class, Integer.class);
-        Constructor<?> longCtor = intr.findSingleArgConstructor(long.class, Long.class);
+        Constructor<?> intCtor = beanDesc.findSingleArgConstructor(int.class, Integer.class);
+        Constructor<?> longCtor = beanDesc.findSingleArgConstructor(long.class, Long.class);
 
 
         // and/or one of "well-known" factory methods
-        Method intFactoryMethod = intr.findFactoryMethod(int.class, Integer.class);
-        Method longFactoryMethod = intr.findFactoryMethod(long.class, Long.class);
+        Method intFactoryMethod = beanDesc.findFactoryMethod(int.class, Integer.class);
+        Method longFactoryMethod = beanDesc.findFactoryMethod(long.class, Long.class);
 
         return new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactoryMethod, longFactoryMethod);
     }

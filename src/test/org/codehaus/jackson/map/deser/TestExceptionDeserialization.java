@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.deser;
 import org.codehaus.jackson.map.BaseMapTest;
 
 import java.io.IOException;
-import java.util.*;
 
 import org.codehaus.jackson.map.*;
 

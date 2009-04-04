@@ -39,7 +39,8 @@ public abstract class DeserializerProvider
      *   accessing suitable deserializer; including that of not
      *   finding any serializer
      */
-    public abstract JsonDeserializer<Object> findValueDeserializer(JavaType type,
+    public abstract JsonDeserializer<Object> findValueDeserializer(DeserializationConfig config,
+                                                                   JavaType type,
                                                                    JavaType referrer, String refPropName)
         throws JsonMappingException;
 
@@ -51,7 +52,7 @@ public abstract class DeserializerProvider
      *   accessing suitable key deserializer; including that of not
      *   finding any serializer
      */
-    public abstract KeyDeserializer findKeyDeserializer(JavaType type)
+    public abstract KeyDeserializer findKeyDeserializer(DeserializationConfig config, JavaType type)
         throws JsonMappingException;
 
     /**
@@ -59,5 +60,5 @@ public abstract class DeserializerProvider
      * a deserializer for given type, using a root reference (i.e. not
      * through fields or membership in an array or collection)
      */
-    public abstract boolean hasValueDeserializerFor(JavaType type);
+    public abstract boolean hasValueDeserializerFor(DeserializationConfig config, JavaType type);
 }
