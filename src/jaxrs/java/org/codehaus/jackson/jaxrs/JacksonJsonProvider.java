@@ -133,7 +133,7 @@ public class JacksonJsonProvider
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
         // Do we have to verify this here? Just to be safe:
-        if (!MediaType.APPLICATION_JSON_TYPE.equals(mediaType)) {
+        if (!mediaType.isCompatible(MediaType.APPLICATION_JSON_TYPE)) {
             return false;
         }
         // Also: if we really want to verify that we can serialize, we'll check:

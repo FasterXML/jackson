@@ -1,9 +1,12 @@
 package org.codehaus.jackson.map;
 
+import java.text.DateFormat;
+
 import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.util.LinkedNode;
+import org.codehaus.jackson.map.util.StdDateFormat;
 
 /**
  * Object that contains baseline configuration for deserialization
@@ -104,9 +107,11 @@ public class DeserializationConfig
      */
     protected final static int DEFAULT_FEATURE_FLAGS = Feature.collectDefaults();
 
+    protected final static DateFormat DEFAULT_DATE_FORMAT = StdDateFormat.instance;
+
     /*
     ///////////////////////////////////////////////////////////
-    // Configured settings
+    // Configuration settings
     ///////////////////////////////////////////////////////////
      */
 
@@ -129,6 +134,15 @@ public class DeserializationConfig
      */
     protected LinkedNode<DeserializationProblemHandler> _problemHandlers;
 
+    /**
+     * Custom date format to use for de-serialization. If specified, will be
+     * used instead of {@link org.codehaus.jackson.map.util.StdDateFormat}.
+     *<p>
+     * Note that the configured format object will be cloned once per
+     * deserialization process (first time it is needed)
+     */
+    protected DateFormat _dateFormat = DEFAULT_DATE_FORMAT;
+
     /*
     ///////////////////////////////////////////////////////////
     // Life-cycle
@@ -144,6 +158,7 @@ public class DeserializationConfig
         _classIntrospector = src._classIntrospector;
         _featureFlags = src._featureFlags;
         _problemHandlers = src._problemHandlers;
+        _dateFormat = src._dateFormat;
     }
 
     /**
@@ -244,6 +259,8 @@ public class DeserializationConfig
         return _problemHandlers;
     }
 
+    public DateFormat getDateFormat() { return _dateFormat; }
+
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> ClassIntrospector<T> getIntrospector() {
         return (ClassIntrospector<T>) _classIntrospector;
@@ -307,6 +324,15 @@ public class DeserializationConfig
     // Configuration: other
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * Method that will set the textual deserialization to use for
+     * deserializing Dates (and Calendars). If null is passed, will
+     * use {@link StdDateFormat}.
+     */
+    public void setDateFormat(DateFormat df) {
+        _dateFormat = (df == null) ? StdDateFormat.instance : df;
+    }
 
     public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
         _classIntrospector = i;

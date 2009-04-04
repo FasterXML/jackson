@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.deser;
 
 import main.BaseTest;
 
@@ -6,18 +6,17 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-/**
- * Unit tests for verifying handling of simple Date-related
- * types.
- */
-public class TestObjectMapperDateDeserializer
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonUseDeserializer;
+import org.codehaus.jackson.map.*;
+
+public class TestDateDeserialization
     extends BaseTest
 {
     public void testDateUtil() throws Exception
     {
-        // not ideal, to use (ever-changing) current date, but...
-        java.util.Date value = new java.util.Date();
-        long now = value.getTime();
+        long now = 123456789L;
+        java.util.Date value = new java.util.Date(now);
 
         // First from long
         assertEquals(value, new ObjectMapper().readValue(""+now, java.util.Date.class));
@@ -44,7 +43,7 @@ public class TestObjectMapperDateDeserializer
     public void testDateSql() throws Exception
     {
         // not ideal, to use (ever-changing) current date, but...
-        long now = System.currentTimeMillis();
+        long now = 1112223334445L;
         java.sql.Date value = new java.sql.Date(now);
 
         // First from long
@@ -79,6 +78,19 @@ public class TestObjectMapperDateDeserializer
         Calendar result = new ObjectMapper().readValue("\""+dateStr+"\"", Calendar.class);
 
         assertEquals(value, result);
+    }
+
+    public void testCustom() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'X'HH:mm:ss");
+        df.setTimeZone(TimeZone.getTimeZone("PST"));
+        mapper.getDeserializationConfig().setDateFormat(df);
+
+        String dateStr = "1972-12-28X15:45:00";
+        java.util.Date exp = df.parse(dateStr);
+        java.util.Date result = mapper.readValue("\""+dateStr+"\"", java.util.Date.class);
+        assertEquals(exp, result);
     }
 
     /*

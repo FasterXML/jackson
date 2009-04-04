@@ -1,11 +1,13 @@
 package org.codehaus.jackson.map.deser;
 
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.*;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
-import org.codehaus.jackson.map.util.DateFormatHolder;
+import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 
 /**
@@ -31,7 +33,7 @@ public class StdDeserializationContext
 
     protected ObjectBuffer _objectBuffer;
 
-    protected DateFormatHolder _dateFormats;
+    protected DateFormat _dateFormat;
 
     // // // Construction
 
@@ -99,7 +101,11 @@ public class StdDeserializationContext
     public Date parseDate(String dateStr)
         throws IllegalArgumentException
     {
-        return getDateFormats().parse(dateStr);
+        try {
+            return getDateFormat().parse(dateStr);
+        } catch (ParseException pex) {
+            throw new IllegalArgumentException(pex.getMessage());
+        }
     }
 
     @Override
@@ -175,12 +181,13 @@ public class StdDeserializationContext
     ///////////////////////////////////////////////////
      */
 
-    protected DateFormatHolder getDateFormats()
+    protected DateFormat getDateFormat()
     {
-        if (_dateFormats == null) {
-            _dateFormats = new DateFormatHolder();
+        if (_dateFormat == null) {
+            // must create a clone since Formats are not thread-safe:
+            _dateFormat = (DateFormat)_config.getDateFormat().clone();
         }
-        return _dateFormats;
+        return _dateFormat;
     }
 
     /*

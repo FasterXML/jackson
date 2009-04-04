@@ -1,22 +1,20 @@
 package org.codehaus.jackson.map.util;
 
 import java.text.DateFormat;
+import java.text.FieldPosition;
 import java.text.ParseException;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * Simple container class, used to encapsulate most details of
- * Date parsing, so that other classes don't have to.
- * It will also handle simple form of reuse, based
- * on usage pattern where a distinct instance is constructed for
- * each mapping operation (or at least one per thread); such that
- * access is always single-threaded. If so, we can lazily instantiate
- * each DateFormat instance first time it is needed.
- *<p>
- * Note: all DateFormats are initialized to use GMT.
+ * Default {@link DateFormat} implementation used by standard Date
+ * serializers and deserializers. For serialization defaults to using
+ * an ISO-8601 compliant format (format String "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+ * and for deserialization, both ISO-8601 and RFC-1123.
  */
-public class DateFormatHolder
+public class StdDateFormat
+    extends DateFormat
 {
     /**
      * This constant defines a commonly used date format that conforms
@@ -48,16 +46,29 @@ public class DateFormatHolder
         DATE_FORMAT_RFC1123.setTimeZone(gmt);
     }
 
-    DateFormat _formatISO8601;
-    DateFormat _formatRFC1123;
+    /**
+     * A singleton instance can be used for cloning purposes.
+     */
+    public final static StdDateFormat instance = new StdDateFormat();
+
+    transient DateFormat _formatISO8601;
+    transient DateFormat _formatRFC1123;
 
     /*
     /////////////////////////////////////////////////////
-    // Life cycle, instance access
+    // Life cycle, accessing singleton "standard" formats
     /////////////////////////////////////////////////////
      */
 
-    public DateFormatHolder() { }
+    public StdDateFormat() { }
+
+    public StdDateFormat clone() {
+        /* Since we always delegate all work to child DateFormat instances,
+         * let's NOT call super.clone(); this is bit unusual, but makes
+         * sense here to avoid unnecessary work.
+         */
+        return new StdDateFormat();
+    }
 
     /**
      * Method for getting the globally shared DateFormat instance
@@ -88,6 +99,7 @@ public class DateFormatHolder
         return DATE_FORMAT_RFC1123;
     }
 
+
     /**
      * Method for getting a non-shared DateFormat instance
      * that uses specific timezone and can handle RFC-1123
@@ -107,26 +119,35 @@ public class DateFormatHolder
      */
 
     public Date parse(String dateStr)
-        throws IllegalArgumentException
+        throws ParseException
     {
         dateStr = dateStr.trim();
-
-        /* 16-Feb-2009, tatu: Since we now have multiple date formats to
-         *   considers, let's try to determine which one String could
-         *   possibly be compatible with.
-         */
-        // First, "standard" one, "yyyy-MM-dd'T'HH:mm:ss.SSSZ"?
-        DateFormat fmt = findLikeliestFormat(dateStr);
-        try {
-            return fmt.parse(dateStr);
-        } catch (ParseException pex) {
-            throw new IllegalArgumentException
+        ParsePosition pos = new ParsePosition(0);
+        Date result = parse(dateStr, pos);
+        if (result == null) {
+            throw new ParseException
                 (String.format("Can not parse date \"%s\": not compatible with any of standard forms (\"%s\" or \"%s\")",
                                dateStr,
                                DATE_FORMAT_STR_ISO8601,
                                DATE_FORMAT_STR_RFC1123
-                               ), pex);
+                               ), pos.getErrorIndex());
         }
+        return result;
+    }
+
+    public Date parse(String dateStr, ParsePosition pos)
+    {
+
+        return findLikeliestFormat(dateStr).parse(dateStr, pos);
+    }
+
+    public StringBuffer format(Date date, StringBuffer toAppendTo,
+                               FieldPosition fieldPosition)
+    {
+        if (_formatISO8601 == null) {
+            _formatISO8601 = (DateFormat) DATE_FORMAT_ISO8601.clone();
+        }
+        return _formatISO8601.format(date, toAppendTo, fieldPosition);
     }
 
     /*
@@ -136,7 +157,8 @@ public class DateFormatHolder
      */
 
     /**
-     * Overridable helper method 
+     * Overridable helper method used to figure out which of supported
+     * formats is the likeliest match.
      */
     protected DateFormat findLikeliestFormat(String dateStr)
     {

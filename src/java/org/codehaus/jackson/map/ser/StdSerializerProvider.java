@@ -343,9 +343,8 @@ public class StdSerializerProvider
             jgen.writeNumber(timestamp);
         } else {
             if (_dateFormat == null) {
-                DateFormat blueprint = _config.getDateFormat();
                 // must create a clone since Formats are not thread-safe:
-                _dateFormat = (DateFormat)blueprint.clone();
+                _dateFormat = (DateFormat)_config.getDateFormat().clone();
             }
             jgen.writeString(_dateFormat.format(new Date(timestamp)));
         }

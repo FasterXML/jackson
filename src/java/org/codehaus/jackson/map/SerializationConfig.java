@@ -3,7 +3,7 @@ package org.codehaus.jackson.map;
 import java.text.DateFormat;
 
 import org.codehaus.jackson.annotate.*;
-import org.codehaus.jackson.map.util.DateFormatHolder;
+import org.codehaus.jackson.map.util.StdDateFormat;
 
 /**
  * Object that contains baseline configuration for serialization
@@ -115,15 +115,16 @@ public class SerializationConfig
     protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
 
     /**
-     * Textual data format to use for serialization (if enabled by
+     * Textual date format to use for serialization (if enabled by
      * {@link Feature#WRITE_DATES_AS_TIMESTAMPS} being set to false).
-     * Defaults to a ISO-8601 compliant format accessed from
-     * {@link DateFormatHolder}.
+     * Defaults to a ISO-8601 compliant format used by
+     * {@link StdDateFormat}.
+     *<p>
      * Note that format object is <b>not to be used as is</b> by caller:
      * since date format objects are not thread-safe, caller has to
      * create a clone first.
      */
-    protected DateFormat _dateFormat = DateFormatHolder.getBlueprintISO8601Format();
+    protected DateFormat _dateFormat = StdDateFormat.instance;
 
     /*
     ///////////////////////////////////////////////////////////
