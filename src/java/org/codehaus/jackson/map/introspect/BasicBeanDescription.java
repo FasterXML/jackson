@@ -25,7 +25,7 @@ public class BasicBeanDescription extends BeanDescription
     ///////////////////////////////////////////////////////
      */
 
-	/**
+    /**
      * Information collected about the class introspected.
      */
     final AnnotatedClass _classInfo;
@@ -54,6 +54,11 @@ public class BasicBeanDescription extends BeanDescription
     public <A extends Annotation> A getClassAnnotation(Class<A> acls)
     {
         return _classInfo.getAnnotation(acls);
+    }
+
+    public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
+    {
+        return _classInfo.findMethod(name, paramTypes);
     }
 
     /*

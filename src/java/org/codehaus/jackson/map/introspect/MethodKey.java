@@ -8,13 +8,20 @@ import java.lang.reflect.Method;
  */
 public final class MethodKey
 {
+    final static Class<?>[] NO_CLASSES = new Class<?>[0];
+
     final String _name;
     final Class<?>[] _argTypes;
 
     public MethodKey(Method m)
     {
-        _name = m.getName();
-        _argTypes = m.getParameterTypes();
+        this(m.getName(), m.getParameterTypes());
+    }
+
+    public MethodKey(String name, Class<?>[] argTypes)
+    {
+        _name = name;
+        _argTypes = (argTypes == null) ? NO_CLASSES : argTypes;
     }
 
     @Override

@@ -25,6 +25,14 @@ public final class AnnotatedMethodMap
         _methods.put(new MethodKey(am.getAnnotated()), am);
     }
 
+    public AnnotatedMethod find(String name, Class<?>[] paramTypes)
+    {
+        if (_methods == null) {
+            return null;
+        }
+        return _methods.get(new MethodKey(name, paramTypes));
+    }
+
     public AnnotatedMethod find(Method m)
     {
         if (_methods == null) {

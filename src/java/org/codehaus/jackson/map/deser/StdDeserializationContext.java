@@ -171,9 +171,19 @@ public class StdDeserializationContext
     @Override
 	public JsonMappingException unknownFieldException(Object instance, String fieldName)
     {
-        return JsonMappingException.from(_parser, "Unrecognized field \""+fieldName+"\" (Class "+instance.getClass().getName()+"), not marked as ignorable");
+        String clsName = determineClassName(instance);
+        return JsonMappingException.from(_parser, "Unrecognized field \""+fieldName+"\" (Class "+clsName+"), not marked as ignorable");
     }
 
+    protected String determineClassName(Object instance)
+    {
+        if (instance == null) {
+            return "unknown";
+        }
+        Class<?> cls = (instance instanceof Class) ?
+            (Class<?>) instance : instance.getClass();
+        return cls.getName();
+    }
 
     /*
     ///////////////////////////////////////////////////

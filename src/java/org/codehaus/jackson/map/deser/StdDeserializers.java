@@ -57,6 +57,11 @@ class StdDeserializers
         add(new FromStringDeserializer.UUIDDeserializer());
         add(new FromStringDeserializer.URLDeserializer());
         add(new FromStringDeserializer.URIDeserializer());
+
+        // And finally some odds and ends
+
+        // to deserialize Throwable, need stack trace elements:
+        add(new StdDeserializer.StackTraceElementDeserializer());
     }
 
     private HashMap<JavaType, JsonDeserializer<Object>> getDeserializers() {

@@ -264,7 +264,7 @@ public final class AnnotatedClass
 
     /*
     ///////////////////////////////////////////////////////
-    // Public API
+    // Public API, generic accessors
     ///////////////////////////////////////////////////////
      */
 
@@ -291,10 +291,9 @@ public final class AnnotatedClass
         return _memberMethods.getMethods();
     }
 
-    /*
-    ///////////////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////////////
-     */
+    public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
+    {
+        return _memberMethods.find(name, paramTypes);
+    }
 }
 

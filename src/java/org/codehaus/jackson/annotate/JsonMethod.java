@@ -27,6 +27,13 @@ public enum JsonMethod {
         CREATOR,
 
         /**
+         * Indicates method that returns a Collection or Map type that is to be
+         * used for "setting" value like JAXB does. It means that no set method
+         * will be used.
+         */
+        GETTER_AS_SETTER,
+
+        /**
          * This pseudo-type indicates that none of real types is included
          */
         NONE,

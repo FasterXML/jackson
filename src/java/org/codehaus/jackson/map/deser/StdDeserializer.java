@@ -8,9 +8,10 @@ import java.util.*;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.JsonMappingException;
 
 /**
  * Base class for simple standard deserializers
@@ -434,7 +435,7 @@ public abstract class StdDeserializer<T>
     /////////////////////////////////////////////////////////////
     */
 
-    public final static class BigDecimalDeserializer
+    public static class BigDecimalDeserializer
         extends StdDeserializer<BigDecimal>
     {
         public BigDecimalDeserializer() { super(BigDecimal.class); }
@@ -466,7 +467,7 @@ public abstract class StdDeserializer<T>
      * This is bit trickier to implement efficiently, while avoiding
      * overflow problems.
      */
-    public final static class BigIntegerDeserializer
+    public static class BigIntegerDeserializer
         extends StdDeserializer<BigInteger>
     {
         public BigIntegerDeserializer() { super(BigInteger.class); }
@@ -508,7 +509,7 @@ public abstract class StdDeserializer<T>
     /////////////////////////////////////////////////////////////
     */
 
-    public final static class CalendarDeserializer
+    public static class CalendarDeserializer
         extends StdDeserializer<Calendar>
     {
         public CalendarDeserializer() { super(Calendar.class); }
@@ -525,13 +526,13 @@ public abstract class StdDeserializer<T>
      * Compared to plain old {@link java.util.Date}, SQL version is easier
      * to deal with: mostly because it is more limited.
      */
-    public final static class SqlDateDeserializer
+    public static class SqlDateDeserializer
         extends StdDeserializer<java.sql.Date>
     {
         public SqlDateDeserializer() { super(java.sql.Date.class); }
 
         @Override
-		public java.sql.Date deserialize(JsonParser jp, DeserializationContext ctxt)
+            public java.sql.Date deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -550,4 +551,50 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    /*
+    /////////////////////////////////////////////////////////////
+    // And other oddities
+    /////////////////////////////////////////////////////////////
+    */
+
+    public static class StackTraceElementDeserializer
+        extends StdDeserializer<StackTraceElement>
+    {
+        public StackTraceElementDeserializer() { super(StackTraceElement.class); }
+
+        @Override
+            public StackTraceElement deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            JsonToken t = jp.getCurrentToken();
+            // Must get an Object
+            if (t == JsonToken.START_OBJECT) {
+                String className = "", methodName = "", fileName = "";
+                int lineNumber = -1;
+
+                while ((t = jp.nextValue()) != JsonToken.END_OBJECT) {
+                    String propName = jp.getCurrentName();
+                    if ("className".equals(propName)) {
+                        className = jp.getText();
+                    } else if ("fileName".equals(propName)) {
+                        fileName = jp.getText();
+                    } else if ("lineNumber".equals(propName)) {
+                        if (t.isNumeric()) {
+                            lineNumber = jp.getIntValue();
+                        } else {
+                            throw JsonMappingException.from(jp, "Non-numeric token ("+t+") for property 'lineNumber'");
+                        }
+                    } else if ("methodName".equals(propName)) {
+                        methodName = jp.getText();
+                    } else if ("nativeMethod".equals(propName)) {
+                        // no setter, not passed via constructor: ignore
+                    } else {
+                        ctxt.unknownFieldException(_valueClass, propName);
+                    }
+                }
+                return new StackTraceElement(className, methodName, fileName, lineNumber);
+            }
+            throw ctxt.mappingException(_valueClass);
+        }
+    }
 }

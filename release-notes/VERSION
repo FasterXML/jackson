@@ -12,6 +12,9 @@ Description:
 
   New features:
 
+  * [JACKSON-85]: Make Date deserialization (more) configurable (add
+    DeserializationConfig.setDateFormat())
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
@@ -39,8 +42,6 @@ Description:
   * [JACKSON-84]: Added JsonGenerator.writeRawValue methods to augment
     existing JsonGenerator.writeRaw() method
     (requested by Scott A)
-  * [JACKSON-85]: Make Date deserialization (more) configurable (add
-    DeserializationConfig.setDateFormat())
   * [JACKSON-86]: Added JsonParser.isClosed() and JsonGenerator.isClosed()
     methods.
   * [JACKSON-87]: Added ability to customized Date/Calendar serialization,

@@ -21,6 +21,8 @@ import org.codehaus.jackson.type.JavaType;
 public class BeanDeserializerFactory
     extends BasicDeserializerFactory
 {
+    final static Class<?>[] INIT_CAUSE_PARAMS = new Class<?>[] { Throwable.class };
+
     public final static BeanDeserializerFactory instance = new BeanDeserializerFactory();
 
     /**
@@ -104,10 +106,13 @@ public class BeanDeserializerFactory
     protected void addBeanProps(BasicBeanDescription beanDesc, BeanDeserializer deser)
         throws JsonMappingException
     {
-        Class<?> beanClass = deser.getBeanClass();
+        Class<?> beanClass = beanDesc.getBeanClass();
 
-        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findSetters();
-        // fallback "any" setter? If so, need to bind
+        Map<String,AnnotatedMethod> methodsByProp = beanDesc.findSetters();
+        // May need to add other "non-traditional" setters?
+        addCustomSetters(beanDesc, methodsByProp);
+
+        // Also, do we have a fallback "any" setter? If so, need to bind
         {
             AnnotatedMethod anyM = beanDesc.findAnySetter();
             if (anyM != null) {
@@ -152,7 +157,41 @@ public class BeanDeserializerFactory
             if (oldP != null) { // can this ever occur?
                 throw new IllegalArgumentException("Duplicate property '"+name+"' for class "+beanClass.getName());
             }
+        }
 
+        // and we may also want to do some other post-processing?
+        addIgnorableProperties(beanDesc, deser);
+    }
+
+    /**
+     * Method called to allow adding other custom setters beyond ones
+     * that were introspected using naming convention or annotations.
+     */
+    protected void addCustomSetters(BasicBeanDescription beanDesc, Map<String, AnnotatedMethod> methods)
+    {
+        Class<?> cls = beanDesc.getBeanClass();
+
+        /* To resolve [JACKSON-95], need to add "initCause" as setter
+         * for exceptions (sub-classes of Throwable).
+         */
+        if (Throwable.class.isAssignableFrom(cls)) {
+            AnnotatedMethod m = beanDesc.findMethod("initCause", INIT_CAUSE_PARAMS);
+            if (m != null) {
+                methods.put("cause", m);
+            }
+        }
+    }
+
+    protected void addIgnorableProperties(BasicBeanDescription beanDesc, BeanDeserializer deser)
+    {
+        Class<?> cls = beanDesc.getBeanClass();
+        /* To resolve [JACKSON-95], need to mark property "localizedMessage"
+         * as ignorable; there's no way to inject that in
+         */
+        if (Throwable.class.isAssignableFrom(cls)) {
+            deser.addIgnorable("localizedMessage");
+            // !!! TEST: also ignore "message", for now
+            deser.addIgnorable("message");
         }
     }
 
