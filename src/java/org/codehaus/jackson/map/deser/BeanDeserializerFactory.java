@@ -34,10 +34,15 @@ public class BeanDeserializerFactory
 
     /*
     ///////////////////////////////////////////////////////////
-    // Implementations of remaining DeserializerFactory API
+    // DeserializerFactory API implementation
     ///////////////////////////////////////////////////////////
      */
 
+    /**
+     * Method that {@link DeserializerProvider}s call to create a new
+     * deserializer for types other than Collections, Maps, arrays and
+     * enums.
+     */
     @Override
     public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
         throws JsonMappingException
@@ -49,12 +54,83 @@ public class BeanDeserializerFactory
         if (deser != null) {
             return deser;
         }
-
         // Otherwise: could the class be a Bean class?
         Class<?> beanClass = type.getRawClass();
         if (!isPotentialBeanType(beanClass)) {
             return null;
         }
+        BasicBeanDescription beanDesc = config.introspect(beanClass);
+        // maybe it's explicitly defined by annotations?
+        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(beanDesc.getClassInfo());
+        if (ad != null) {
+            return ad;
+        }
+        /* 02-Mar-2009, tatu: Can't instantiate abstract classes or interfaces
+         *   so now might be a good time to catch that problem...
+         */
+        if (!ClassUtil.isConcrete(beanClass)) {
+            return null;
+        }
+
+        // Good enough: should be able to actually construct it:
+        return buildBeanDeserializer(config, type, beanDesc);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////////
+    // Public construction method beyond DeserializerFactory API:
+    // can be called from outside as well as overridden by
+    // sub-classes
+    ///////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that is to actually build a bean deserializer instance.
+     * All basic sanity checks have been done to know that what we have
+     * may be a valid bean type, and that there are no default simple
+     * deserializers.
+     */
+    public JsonDeserializer<Object> buildBeanDeserializer(DeserializationConfig config,
+                                                          JavaType type,
+                                                          BasicBeanDescription beanDesc)
+        throws JsonMappingException
+    {
+        BeanDeserializer deser = construtBeanDeserializerInstance(config, type, beanDesc);
+
+        // First: add constructors
+        addDeserializerConstructors(config, beanDesc, deser);
+        // and check that there are enough
+        deser.validateConstructors();
+
+         // And then setters for deserializing from Json Object
+        addBeanProps(config, beanDesc, deser);
+
+        return deser;
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Helper methods for Bean deserializer construction,
+    // overridable by sub-classes
+    ////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for construcing "empty" deserializer: overridable to allow
+     * sub-classing of {@link BeanDeserializer}.
+     */
+    protected BeanDeserializer construtBeanDeserializerInstance(DeserializationConfig config,
+                                                                JavaType type,
+                                                                BasicBeanDescription beanDesc)
+    {
+        return new BeanDeserializer(type);
+    }
+
+    protected void addDeserializerConstructors(DeserializationConfig config,
+                                               BasicBeanDescription beanDesc,
+                                               BeanDeserializer deser)
+    {
+        Class<?> beanClass = beanDesc.getBeanClass();
 
         /* Ok then: let's figure out scalar value - based construction
          * aspects.
@@ -64,46 +140,26 @@ public class BeanDeserializerFactory
          *   iff it's marked with @JsonCreator.
          *   (same with Collections?)
          */
-
-        BasicBeanDescription beanDesc = config.introspect(beanClass);
-        // maybe it's explicitly defined by annotations?
-        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(beanDesc.getClassInfo());
-        if (ad != null) {
-            return ad;
-        }
-
-        /* 02-Mar-2009, tatu: Can't instantiate abstract classes or interfaces
-         *   so now might be a good time to catch that problem...
-         */
-        if (!ClassUtil.isConcrete(beanClass)) {
-            return null;
-        }
-
-        BeanDeserializer.StringConstructor sctor = getStringCreators(beanClass, beanDesc);
-        BeanDeserializer.NumberConstructor nctor = getNumberCreators(beanClass, beanDesc);
         Constructor<?> defaultCtor = beanDesc.findDefaultConstructor();
-
-        // sanity check: must have a constructor of one type or another
-        if ((sctor == null) && (nctor == null) && (defaultCtor == null)) {
-            throw new IllegalArgumentException("Can not create Bean deserializer for ("+type+"): neither default constructor nor factory methods found");
+        if (defaultCtor != null) {
+            deser.setDefaultConstructor(defaultCtor);
         }
-        BeanDeserializer bd = new BeanDeserializer(type, defaultCtor, sctor, nctor);
-        // And then things we need if we get Json Object:
-        addBeanProps(beanDesc, bd);
-        return bd;
+        BeanDeserializer.StringConstructor sctor = getStringCreators(beanClass, beanDesc);
+        if (sctor != null) {
+            deser.setConstructor(sctor);
+        }
+        BeanDeserializer.NumberConstructor nctor = getNumberCreators(beanClass, beanDesc);
+        if (nctor != null) {
+            deser.setConstructor(nctor);
+        }
     }
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Helper methods for Bean deserializer: property handling
-    ////////////////////////////////////////////////////////////
-     */
-
+    
     /**
      * Method called to figure out settable properties for the
      * deserializer.
      */
-    protected void addBeanProps(BasicBeanDescription beanDesc, BeanDeserializer deser)
+    protected void addBeanProps(DeserializationConfig config,
+                                BasicBeanDescription beanDesc, BeanDeserializer deser)
         throws JsonMappingException
     {
         Class<?> beanClass = beanDesc.getBeanClass();
@@ -153,7 +209,7 @@ public class BeanDeserializerFactory
                 type = modifyTypeByAnnotation(am, type);
                 prop = new SettableBeanProperty(name, type, m);
             }
-            SettableBeanProperty oldP = deser.addSetter(prop);
+            SettableBeanProperty oldP = deser.addProperty(prop);
             if (oldP != null) { // can this ever occur?
                 throw new IllegalArgumentException("Duplicate property '"+name+"' for class "+beanClass.getName());
             }

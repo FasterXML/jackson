@@ -32,14 +32,14 @@ public class BeanDeserializer
     ///////////////////////////////////////////////
      */
 
-    final Constructor<?> _defaultConstructor;
+    Constructor<?> _defaultConstructor;
 
     /**
      * If the "bean" class can be instantiated using just a single
      * String (via constructor, static method etc), this object
      * knows how to invoke method/constructor in question.
      */
-    final StringConstructor _stringConstructor;
+    StringConstructor _stringConstructor;
 
     /**
      * If the "bean" class can be instantiated using just a single
@@ -47,7 +47,7 @@ public class BeanDeserializer
      * this object
      * knows how to invoke method/constructor in question.
      */
-    final NumberConstructor _numberConstructor;
+    NumberConstructor _numberConstructor;
 
     /*
     ///////////////////////////////////////////////
@@ -77,28 +77,41 @@ public class BeanDeserializer
 
     /*
     /////////////////////////////////////////////////////////
-    // Life-cycle
+    // Life-cycle, construction, initialization
     /////////////////////////////////////////////////////////
      */
 
-    public BeanDeserializer(JavaType type, Constructor<?> defaultCtor,
-                            StringConstructor sctor,
-                            NumberConstructor nctor)
+    public BeanDeserializer(JavaType type) 
     {
         _beanType = type;
-        _defaultConstructor = defaultCtor;
-        _stringConstructor = sctor;
-        _numberConstructor = nctor;
         _props = new HashMap<String, SettableBeanProperty>();
         _ignorableProps = null;
     }
+
+    public void setDefaultConstructor(Constructor<?> ctor) {
+        _defaultConstructor = ctor;
+    }
+
+    public void setConstructor(StringConstructor ctor) {
+        _stringConstructor = ctor;
+    }
+
+    public void setConstructor(NumberConstructor ctor) {
+        _numberConstructor = ctor;
+    }
     
     /**
-     * @return Previously set property, if one existed for name
+     * @return Previous property instance for the name, if one existed
+     *   (usually does not -- can be used for sanity checks)
      */
-    public SettableBeanProperty addSetter(SettableBeanProperty prop)
+    public SettableBeanProperty addProperty(SettableBeanProperty prop)
     {
         return _props.put(prop.getPropertyName(), prop);
+    }
+
+    public SettableBeanProperty removeProperty(String name)
+    {
+        return _props.remove(name);
     }
 
     public void setAnySetter(SettableAnyProperty s)
@@ -110,7 +123,8 @@ public class BeanDeserializer
     }
 
     /**
-     *
+     * Method that will add property name as one of properties that can
+     * be ignored if not recognized.
      */
     public void addIgnorable(String propName)
     {
@@ -118,6 +132,25 @@ public class BeanDeserializer
             _ignorableProps = new HashSet<String>();
         }
         _ignorableProps.add(propName);
+    }
+
+    /*
+    /////////////////////////////////////////////////////////
+    // Validation, post-processing
+    /////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method called to ensure that there is at least one constructor
+     * that could be used to construct an instance.
+     */
+    public void validateConstructors()
+    {
+        // sanity check: must have a constructor of one type or another
+        if ((_defaultConstructor == null) && (_numberConstructor == null)
+            && (_stringConstructor == null)) {
+            throw new IllegalArgumentException("Can not create Bean deserializer for ("+_beanType+"): neither default constructor nor factory methods found");
+        }
     }
 
     /**
@@ -178,11 +211,9 @@ public class BeanDeserializer
 
     /*
     /////////////////////////////////////////////////////////
-    // Public API
+    // JsonDeserializer implementation
     /////////////////////////////////////////////////////////
      */
-
-    public final Class<?> getBeanClass() { return _beanType.getRawClass(); }
 
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
@@ -213,6 +244,14 @@ public class BeanDeserializer
         }
         throw ctxt.mappingException(getBeanClass());
     }
+
+    /*
+    /////////////////////////////////////////////////////////
+    // Other public accessors
+    /////////////////////////////////////////////////////////
+     */
+
+    public final Class<?> getBeanClass() { return _beanType.getRawClass(); }
 
     /*
     /////////////////////////////////////////////////////////
