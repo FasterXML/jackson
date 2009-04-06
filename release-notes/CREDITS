@@ -97,3 +97,8 @@ Ryan Heaton:
 Eldar Abusalimov:
   * Reported [JACKSON-81]: Data binding code could lead to unnecessary
     blocking because it tried to advance parser (and stream) after binding
+
+Stephen Duncan jr
+  * Pointed out problem with JacksonJsonProvider where strict equality
+    comparison was used instead of using MediaType.isCompatible().
+

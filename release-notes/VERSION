@@ -9,6 +9,8 @@ Description:
   Fixes:
 
   * [JACKSON-94] Added missing "JsonParser.readValueAsTree()" method.
+  * JacksonJsonProvider was using strict equality comparison against
+    JSON type; instead needs to use "isCompatible"
 
   New features:
 
