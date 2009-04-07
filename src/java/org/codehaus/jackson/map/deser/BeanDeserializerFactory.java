@@ -138,7 +138,7 @@ public class BeanDeserializerFactory
          */
         AnnotatedMethod am = beanDesc.findMethod("initCause", INIT_CAUSE_PARAMS);
         if (am != null) { // should never be null
-            SettableBeanProperty prop = constructSettableProperty("cause", am);
+            deser.addProperty(constructSettableProperty("cause", am));
         }
 
         // And also need to ignore "localizedMessage"
