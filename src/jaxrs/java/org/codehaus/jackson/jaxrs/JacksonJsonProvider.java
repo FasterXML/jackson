@@ -14,7 +14,9 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.ext.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -167,6 +169,24 @@ public class JacksonJsonProvider
     ///////////////////////////////////////////////////////
      */
 
+    /**
+     * Generic pass-through method for enabling or disabling stantadard
+     * deserialization features.
+     */
+    public void configure(DeserializationConfig.Feature feature, boolean state)
+    {
+        getMapper(Object.class).configure(feature, state);
+    }
+
+    /**
+     * Generic pass-through method for enabling or disabling stantadard
+     * serialization features.
+     */
+    public void configure(SerializationConfig.Feature feature, boolean state)
+    {
+        getMapper(Object.class).configure(feature, state);
+    }
+
     public void checkCanDeserialize(boolean state) { _cfgCheckCanDeserialize = state; }
     public void checkCanSerialize(boolean state) { _cfgCheckCanSerialize = state; }
 
@@ -186,7 +206,7 @@ public class JacksonJsonProvider
 
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
-        if (!isJsonType(mediaType)) {
+        if (!_isJsonType(mediaType)) {
             return false;
         }
 
@@ -205,8 +225,7 @@ public class JacksonJsonProvider
 
         // Finally: if we really want to verify that we can serialize, we'll check:
         if (_cfgCheckCanSerialize) {
-            ObjectMapper mapper = _resolver.getContext(type);
-            if (!mapper.canDeserialize(_convertType(type))) {
+            if (!getMapper(type).canDeserialize(_convertType(type))) {
                 return false;
             }
         }
@@ -216,7 +235,7 @@ public class JacksonJsonProvider
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String,String> httpHeaders, InputStream entityStream) 
         throws IOException
     {
-        ObjectMapper mapper = _resolver.getContext(type);
+        ObjectMapper mapper = getMapper(type);
         JsonParser jp = mapper.getJsonFactory().createJsonParser(entityStream);
         /* Important: we are NOT to close the underlying stream after
          * mapping, so we need to instruct parser:
@@ -241,7 +260,7 @@ public class JacksonJsonProvider
 
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
-        if (!isJsonType(mediaType)) {
+        if (!_isJsonType(mediaType)) {
             return false;
         }
 
@@ -260,8 +279,7 @@ public class JacksonJsonProvider
 
         // Also: if we really want to verify that we can deserialize, we'll check:
         if (_cfgCheckCanSerialize) {
-            ObjectMapper mapper = _resolver.getContext(type);
-            if (!mapper.canSerialize(type)) {
+            if (!getMapper(type).canSerialize(type)) {
                 return false;
             }
         }
@@ -274,9 +292,14 @@ public class JacksonJsonProvider
         /* 27-Feb-2009, tatu: Where can we find desired encoding? Within
          *   http headers?
          */
-        ObjectMapper mapper = _resolver.getContext(type);
+        ObjectMapper mapper = getMapper(type);
         JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(entityStream, JsonEncoding.UTF8);
         jg.disableFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+
+        // Want indentation?
+        if (mapper.getSerializationConfig().isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
+            jg.useDefaultPrettyPrinter();
+        }
         mapper.writeValue(jg, value);
     }
 
@@ -286,7 +309,12 @@ public class JacksonJsonProvider
     ////////////////////////////////////////////////////
      */
 
-    protected boolean isJsonType(MediaType mediaType)
+    protected ObjectMapper getMapper(Class<?> type)
+    {
+        return _resolver.getContext(type);
+    }
+
+    protected boolean _isJsonType(MediaType mediaType)
     {
         /* As suggested by Stephen D, there are 2 ways to check: either
          * being as inclusive as possible (if subtype is "json"), or
