@@ -89,7 +89,8 @@ public final class AnnotatedMethod
     public Class<?> getDeclaringClass() { return _method.getDeclaringClass(); }
 
     public String getFullName() {
-        return getDeclaringClass().getName() + "#" + getName();
+        return getDeclaringClass().getName() + "#" + getName() + "("
+            +getParameterCount()+" params)";
     }
 
     public int getAnnotationCount() { return _annotations.size(); }

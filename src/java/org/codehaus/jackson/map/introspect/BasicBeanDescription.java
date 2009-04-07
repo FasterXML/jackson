@@ -147,7 +147,7 @@ public class BasicBeanDescription extends BeanDescription
             if (old != null) {
                 String oldDesc = old.getFullName();
                 String newDesc = am.getFullName();
-                throw new IllegalArgumentException("Conflicting getter definitions for property \""+propName+"\": "+oldDesc+"() vs "+newDesc+"()");
+                throw new IllegalArgumentException("Conflicting getter definitions for property \""+propName+"\": "+oldDesc+" vs "+newDesc);
             }
         }
         return results;
