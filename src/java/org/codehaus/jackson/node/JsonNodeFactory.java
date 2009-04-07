@@ -3,9 +3,11 @@ package org.codehaus.jackson.node;
 import java.math.BigDecimal;
 
 /**
- * Abstract that specifies methods for getting access to
+ * Base class that specifies methods for getting access to
  * Node instances (newly constructed, or shared, depending
  * on type), as well as basic implementation of the methods. 
+ * Designed to be sub-classed if extended functionality (additions
+ * to behavior of node types, mostly) is needed.
  */
 public class JsonNodeFactory
 {

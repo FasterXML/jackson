@@ -101,12 +101,16 @@ public class BeanDeserializer
     }
     
     /**
-     * @return Previous property instance for the name, if one existed
-     *   (usually does not -- can be used for sanity checks)
+     * Method to add a property setter. Will ensure that there is no
+     * unexpected override; if one is found will throw a
+     * {@link IllegalArgumentExeption}.
      */
-    public SettableBeanProperty addProperty(SettableBeanProperty prop)
+    public void addProperty(SettableBeanProperty prop)
     {
-        return _props.put(prop.getPropertyName(), prop);
+        SettableBeanProperty old =  _props.put(prop.getPropertyName(), prop);
+        if (old != null && old != prop) { // should never occur...
+            throw new IllegalArgumentException("Duplicate property '"+prop.getPropertyName()+"' for "+_beanType);
+        }
     }
 
     public SettableBeanProperty removeProperty(String name)

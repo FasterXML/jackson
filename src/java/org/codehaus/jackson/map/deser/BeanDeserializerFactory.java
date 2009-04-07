@@ -72,7 +72,17 @@ public class BeanDeserializerFactory
             return null;
         }
 
-        // Good enough: should be able to actually construct it:
+        /* One more thing to check: do we have an exception type
+         * (Throwable or its sub-classes)? If so, need slightly
+         * different handling.
+         */
+        if (Throwable.class.isAssignableFrom(beanClass)) {
+            return buildThrowableDeserializer(config, type, beanDesc);
+        }
+
+        /* Otherwise we'll just use generic bean introspection
+         * to build deserializer
+         */
         return buildBeanDeserializer(config, type, beanDesc);
     }
 
@@ -104,6 +114,39 @@ public class BeanDeserializerFactory
 
          // And then setters for deserializing from Json Object
         addBeanProps(config, beanDesc, deser);
+
+        return deser;
+    }
+
+    public JsonDeserializer<Object> buildThrowableDeserializer(DeserializationConfig config,
+                                                              JavaType type,
+                                                              BasicBeanDescription beanDesc)
+        throws JsonMappingException
+    {
+        /* First, construct plain old bean deserializer and add
+         * basic stuff
+         */
+        BeanDeserializer deser = construtBeanDeserializerInstance(config, type, beanDesc);
+        addDeserializerConstructors(config, beanDesc, deser);
+        deser.validateConstructors(); // not 100% necessary but...
+        addBeanProps(config, beanDesc, deser);
+
+        /* But then let's decorate things a bit
+         */
+        /* To resolve [JACKSON-95], need to add "initCause" as setter
+         * for exceptions (sub-classes of Throwable).
+         */
+        AnnotatedMethod am = beanDesc.findMethod("initCause", INIT_CAUSE_PARAMS);
+        if (am != null) { // should never be null
+            SettableBeanProperty prop = constructSettableProperty("cause", am);
+        }
+
+        // And also need to ignore "localizedMessage"
+        deser.addIgnorable("localizedMessage");
+        // !!! TEST: also ignore "message", for now
+        deser.addIgnorable("message");
+
+        // And finally: make String constructor the thing we need...?
 
         return deser;
     }
@@ -158,6 +201,7 @@ public class BeanDeserializerFactory
      * Method called to figure out settable properties for the
      * deserializer.
      */
+
     protected void addBeanProps(DeserializationConfig config,
                                 BasicBeanDescription beanDesc, BeanDeserializer deser)
         throws JsonMappingException
@@ -165,9 +209,6 @@ public class BeanDeserializerFactory
         Class<?> beanClass = beanDesc.getBeanClass();
 
         Map<String,AnnotatedMethod> methodsByProp = beanDesc.findSetters();
-        // May need to add other "non-traditional" setters?
-        addCustomSetters(beanDesc, methodsByProp);
-
         // Also, do we have a fallback "any" setter? If so, need to bind
         {
             AnnotatedMethod anyM = beanDesc.findAnySetter();
@@ -183,71 +224,7 @@ public class BeanDeserializerFactory
 
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
-            String name = en.getKey();
-            AnnotatedMethod am = en.getValue();
-            // need to ensure it is callable now:
-            am.fixAccess();
-
-            // note: this works since we know there's exactly one arg for methods
-            Type rawType = am.getGenericParameterTypes()[0];
-            JavaType type = TypeFactory.fromType(rawType);
-
-            /* First: does the Method specify the deserializer to use?
-             * If so, let's use it.
-             */
-            SettableBeanProperty prop;
-            JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(am);
-
-            Method m = am.getAnnotated();
-            if (propDeser != null) {
-                prop = new SettableBeanProperty(name, type, m);
-                prop.setValueDeserializer(propDeser);
-            } else {
-                /* Otherwise, method may specify more specific (sub-)class for
-                 * value (no need to check if explicit deser was specified):
-                 */
-                type = modifyTypeByAnnotation(am, type);
-                prop = new SettableBeanProperty(name, type, m);
-            }
-            SettableBeanProperty oldP = deser.addProperty(prop);
-            if (oldP != null) { // can this ever occur?
-                throw new IllegalArgumentException("Duplicate property '"+name+"' for class "+beanClass.getName());
-            }
-        }
-
-        // and we may also want to do some other post-processing?
-        addIgnorableProperties(beanDesc, deser);
-    }
-
-    /**
-     * Method called to allow adding other custom setters beyond ones
-     * that were introspected using naming convention or annotations.
-     */
-    protected void addCustomSetters(BasicBeanDescription beanDesc, Map<String, AnnotatedMethod> methods)
-    {
-        Class<?> cls = beanDesc.getBeanClass();
-
-        /* To resolve [JACKSON-95], need to add "initCause" as setter
-         * for exceptions (sub-classes of Throwable).
-         */
-        if (Throwable.class.isAssignableFrom(cls)) {
-            AnnotatedMethod m = beanDesc.findMethod("initCause", INIT_CAUSE_PARAMS);
-            if (m != null) {
-                methods.put("cause", m);
-            }
-        }
-    }
-
-    protected void addIgnorableProperties(BasicBeanDescription beanDesc, BeanDeserializer deser)
-    {
-        Class<?> cls = beanDesc.getBeanClass();
-        /* To resolve [JACKSON-95], need to mark property "localizedMessage"
-         * as ignorable; there's no way to inject that in
-         */
-        if (Throwable.class.isAssignableFrom(cls)) {
-            deser.addIgnorable("localizedMessage");
-            // !!! TEST: also ignore "message", for now
-            deser.addIgnorable("message");
+            deser.addProperty(constructSettableProperty(en.getKey(), en.getValue()));
         }
     }
 
@@ -280,6 +257,38 @@ public class BeanDeserializerFactory
          */
         type = modifyTypeByAnnotation(am, type);
         return new SettableAnyProperty(type, m);
+    }
+
+    /**
+     * Method that will construct a bean property setter using
+     * the given setter method.
+     */
+    protected SettableBeanProperty constructSettableProperty(String name, AnnotatedMethod am) 
+        throws JsonMappingException
+    {
+        // need to ensure it is callable now:
+        am.fixAccess();
+
+        // note: this works since we know there's exactly one arg for methods
+        Type rawType = am.getGenericParameterTypes()[0];
+        JavaType type = TypeFactory.fromType(rawType);
+        
+        /* First: does the Method specify the deserializer to use?
+         * If so, let's use it.
+         */
+        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(am);
+        
+        Method m = am.getAnnotated();
+        if (propDeser != null) {
+            SettableBeanProperty prop = new SettableBeanProperty(name, type, m);
+            prop.setValueDeserializer(propDeser);
+            return prop;
+        }
+        /* Otherwise, method may specify more specific (sub-)class for
+         * value (no need to check if explicit deser was specified):
+         */
+        type = modifyTypeByAnnotation(am, type);
+        return new SettableBeanProperty(name, type, m);
     }
 
     /*
