@@ -53,13 +53,23 @@ public final class MethodKey
             return false;
         }
         for (int i = 0; i < len; ++i) {
+            Class<?> type1 = otherArgs[i];
+            Class<?> type2 = _argTypes[i];
+            if (type1 == type2) {
+                continue;
+            }
             /* 23-Feb-2009, tatu: Are there any cases where we would have to
              *   consider some narrowing conversions or such? For now let's
              *   assume exact type match is enough
              */
-            if (otherArgs[i] != _argTypes[i]) {
-                return false;
+            /* 07-Apr-2009, tatu: Indeed there are (see [JACKSON-???]).
+             *    This happens with generics when a bound is specified.
+             *    I hope this works; check here must be transitive
+             */
+            if (type1.isAssignableFrom(type2) || type2.isAssignableFrom(type1)) {
+                continue;
             }
+            return false;
         }
         return true;
     }

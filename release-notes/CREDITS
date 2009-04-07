@@ -101,4 +101,5 @@ Eldar Abusalimov:
 Stephen Duncan jr
   * Pointed out problem with JacksonJsonProvider where strict equality
     comparison was used instead of using MediaType.isCompatible().
+    [0.9.9-4]
 

@@ -10,7 +10,12 @@ Description:
 
   * [JACKSON-94] Added missing "JsonParser.readValueAsTree()" method.
   * JacksonJsonProvider was using strict equality comparison against
-    JSON type; instead needs to use "isCompatible"
+    JSON type; instead needs to use "isCompatible". There were other
+    similar problems
+    (reported by Stephen D)
+  * [JACKSON-??] Generic types (with bound wildcards) caused problems
+    when Class introspector could not figure out that a concrete method
+    was overriding/implementing generic method.
 
   New features:
 
