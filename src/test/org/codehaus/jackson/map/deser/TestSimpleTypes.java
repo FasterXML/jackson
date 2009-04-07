@@ -22,7 +22,7 @@ public class TestSimpleTypes
         void setV(boolean v) { _v = v; }
     }
 
-    final static class IntBean {
+    static class IntBean {
         int _v;
         void setV(int v) { _v = v; }
     }
@@ -30,6 +30,15 @@ public class TestSimpleTypes
     final static class DoubleBean {
         double _v;
         void setV(double v) { _v = v; }
+    }
+
+    /**
+     * Also, let's ensure that it's ok to override methods.
+     */
+    static class IntBean2
+        extends IntBean
+    {
+        void setV(int v2) { super.setV(v2+1); }
     }
 
     /*
@@ -92,6 +101,19 @@ public class TestSimpleTypes
         assertNotNull(array);
         assertEquals(1, array.length);
         assertEquals(0.0, array[0]);
+    }
+
+    /**
+     * Beyond simple case, let's also ensure that method overriding works as
+     * expected.
+     */
+    public void testIntWithOverride() throws Exception
+    {
+        // first, simple case:
+        ObjectMapper mapper = new ObjectMapper();
+        IntBean2 result = mapper.readValue(new StringReader("{\"v\":8}"), IntBean2.class);
+        assertEquals(9, result._v);
+
     }
 
     /*

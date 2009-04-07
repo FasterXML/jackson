@@ -3,15 +3,19 @@ package org.codehaus.jackson.jaxrs;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.ext.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
@@ -34,6 +38,41 @@ public class JacksonJsonProvider
         MessageBodyReader<Object>,
         MessageBodyWriter<Object>
 {
+    /**
+     * 06-Apr-2009, tatu: Looks like we need to worry about accidental
+     *   data binding for types we shouldn't be handling. This is
+     *   probably not a very good way to do it, but let's start by
+     *   blacklisting things we are not to handle.
+     *
+     *  (why ClassKey? since plain old Class has no hashCode() defined,
+     *  lookups are painfully slow)
+     */
+    public final static HashSet<ClassKey> _untouchables = new HashSet<ClassKey>();
+    static {
+        // First, I/O things (direct matches)
+        _untouchables.add(new ClassKey(java.io.InputStream.class));
+        _untouchables.add(new ClassKey(java.io.Reader.class));
+        _untouchables.add(new ClassKey(java.io.OutputStream.class));
+        _untouchables.add(new ClassKey(java.io.Writer.class));
+
+        // then some primitive types
+        _untouchables.add(new ClassKey(byte[].class));
+        _untouchables.add(new ClassKey(char[].class));
+
+        // Then core JAX-RS things
+        _untouchables.add(new ClassKey(StreamingOutput.class));
+        _untouchables.add(new ClassKey(Response.class));
+    }
+
+    public final static Class<?>[] _unreadableClasses = new Class<?>[] {
+        InputStream.class, Reader.class
+            };
+
+    public final static Class<?>[] _unwritableClasses = new Class<?>[] {
+        OutputStream.class, Writer.class,
+            StreamingOutput.class, Response.class
+            };
+
     /*
     ///////////////////////////////////////////////////////
     // Context configuration
@@ -47,6 +86,13 @@ public class JacksonJsonProvider
     // Configuration
     ///////////////////////////////////////////////////////
      */
+
+    /**
+     * Whether return type of type String is to be output
+     * as JSON strings (double-quoted) or not. Default to "false",
+     * as most often this is not wanted
+     */
+    protected boolean _cfgSerializeStringAsJSON = false;
 
     /**
      * Whether we want to actually check that Jackson has
@@ -124,6 +170,14 @@ public class JacksonJsonProvider
     public void checkCanDeserialize(boolean state) { _cfgCheckCanDeserialize = state; }
     public void checkCanSerialize(boolean state) { _cfgCheckCanSerialize = state; }
 
+    /**
+     * Method for enabling/disabling providers conversion of plain old Strings
+     * to JSON Strings; affects both input and output data binding.
+     */
+    public void serializeStringsAsJSON(boolean state) {
+        _cfgSerializeStringAsJSON = state;
+    }
+
     /*
     ////////////////////////////////////////////////////
     // MessageBodyReader impl
@@ -132,11 +186,24 @@ public class JacksonJsonProvider
 
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
-        // Do we have to verify this here? Just to be safe:
-        if (!MediaType.APPLICATION_JSON_TYPE.isCompatible(mediaType)) {
+        if (!isJsonType(mediaType)) {
             return false;
         }
-        // Also: if we really want to verify that we can serialize, we'll check:
+
+        /* Ok: looks like we must weed out some core types here; ones that
+         * make no sense to try to bind from JSON:
+         */
+        if (_untouchables.contains(new ClassKey(type))) {
+            return false;
+        }
+        // but some are interface/abstract classes, so
+        for (Class<?> cls : _unreadableClasses) {
+            if (cls.isAssignableFrom(type)) {
+                return false;
+            }
+        }
+
+        // Finally: if we really want to verify that we can serialize, we'll check:
         if (_cfgCheckCanSerialize) {
             ObjectMapper mapper = _resolver.getContext(type);
             if (!mapper.canDeserialize(_convertType(type))) {
@@ -174,10 +241,23 @@ public class JacksonJsonProvider
 
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
-        // Do we have to verify this here? Just to be safe:
-        if (!MediaType.APPLICATION_JSON_TYPE.isCompatible(mediaType)) {
+        if (!isJsonType(mediaType)) {
             return false;
         }
+
+        /* Ok: looks like we must weed out some core types here; ones that
+         * make no sense to try to bind from JSON:
+         */
+        if (_untouchables.contains(new ClassKey(type))) {
+            return false;
+        }
+        // but some are interface/abstract classes, so
+        for (Class<?> cls : _unwritableClasses) {
+            if (cls.isAssignableFrom(type)) {
+                return false;
+            }
+        }
+
         // Also: if we really want to verify that we can deserialize, we'll check:
         if (_cfgCheckCanSerialize) {
             ObjectMapper mapper = _resolver.getContext(type);
@@ -205,6 +285,17 @@ public class JacksonJsonProvider
     // Helper methods
     ////////////////////////////////////////////////////
      */
+
+    protected boolean isJsonType(MediaType mediaType)
+    {
+        /* As suggested by Stephen D, there are 2 ways to check: either
+         * being as inclusive as possible (if subtype is "json"), or
+         * exclusive (major type "application", minor type "json").
+         * Let's start with inclusive one, hard to know which major
+         * types we should cover aside from "application".
+         */
+        return (mediaType != null) && "json".equals(mediaType.getSubtype());
+    }
 
     /**
      * Method used to construct a JDK generic type into type definition
