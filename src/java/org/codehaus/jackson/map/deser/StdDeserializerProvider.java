@@ -110,6 +110,7 @@ public class StdDeserializerProvider
     @Override
     public KeyDeserializer findKeyDeserializer(DeserializationConfig config,
                                                JavaType type)
+        throws JsonMappingException
     {
         // No serializer needed if it's plain old String, or Object/untyped
         if (_typeString.equals(type) || _typeObject.equals(type)) {
@@ -247,19 +248,21 @@ public class StdDeserializerProvider
      */
 
     protected JsonDeserializer<Object> _handleUnknownValueDeserializer(JavaType type)
+        throws JsonMappingException
     {
         /* Let's try to figure out the reason, to give better error
          * messages
          */
         Class<?> rawClass = type.getRawClass();
         if (!ClassUtil.isConcrete(rawClass)) {
-            throw new IllegalArgumentException("Can not find a Value deserializer for abstract type "+type);
+            throw new JsonMappingException("Can not find a Value deserializer for abstract type "+type);
         }
-        throw new IllegalArgumentException("Can not find a Value deserializer for type "+type);
+        throw new JsonMappingException("Can not find a Value deserializer for type "+type);
     }
 
     protected KeyDeserializer _handleUnknownKeyDeserializer(JavaType type)
+        throws JsonMappingException
     {
-        throw new IllegalArgumentException("Can not find a (Map) Key deserializer for type "+type);
+        throw new JsonMappingException("Can not find a (Map) Key deserializer for type "+type);
     }
 }

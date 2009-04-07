@@ -1,5 +1,8 @@
 package org.codehaus.jackson.map.type;
 
+import java.lang.reflect.*;
+import java.util.*;
+
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
@@ -36,6 +39,19 @@ public class TestAnnotatedClass
         public int y() { return 3; }
     }
 
+    static abstract class GenericBase<T extends Number>
+    {
+        public abstract void setX(T value);
+    }
+
+
+    static class NumberBean
+        extends GenericBase<Integer>
+    {
+        @Override
+        public void setX(Integer value) { }
+    }
+
     /*
     //////////////////////////////////////////////
     // Test methods
@@ -64,4 +80,23 @@ public class TestAnnotatedClass
         }
     }
 
+    /**
+     * Another simple test to verify that the (concrete) type information
+     * from a sub-class is used instead of abstract one from superclass.
+     */
+    public void testGenericsWithSetter()
+    {
+        AnnotatedClass ac = AnnotatedClass.constructFull
+            (NumberBean.class, JacksonAnnotationFilter.instance, true, BasicClassIntrospector.SetterMethodFilter.instance);
+        Collection<AnnotatedMethod> methods = ac.getMemberMethods();
+        assertEquals(1, methods.size());
+
+        AnnotatedMethod am = methods.iterator().next();
+
+        assertEquals("setX", am.getName());
+        // should be one from sub-class
+        assertEquals(NumberBean.class, am.getDeclaringClass());
+        Type[] types = am.getGenericParameterTypes();
+        assertEquals(Integer.class, types[0]);
+    }
 }
