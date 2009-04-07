@@ -62,7 +62,28 @@ public class SerializationConfig
              * If textual representation is used, the actual format is
              * one returned by a call to {@link #getDateFormat}.
              */
-            WRITE_DATES_AS_TIMESTAMPS(true)
+            WRITE_DATES_AS_TIMESTAMPS(true),
+
+            // // // Output fine tuning
+
+            /**
+             * Feature that allows enabling (or disabling) indentation
+             * for the underlying generator, using the default pretty
+             * printer (see
+             * {@link org.codehaus.jackson.JsonGenerator#useDefaultPrettyPrinter}
+             * for details).
+             *<p>
+             * Note that this only affects cases where
+             * {@link org.codehaus.jackson.JsonGenerator}
+             * is constructed implicitly by ObjectMapper: if explicit
+             * generator is passed, its configuration is not changed.
+             *<p>
+             * Also note that if you want to configure details of indentation,
+             * you need to directly configure the generator: there is a
+             * method to use any <code>PrettyPrinter</code> instance.
+             * This feature will only allow using the default implementation.
+             */
+            INDENT_OUTPUT(false)
 
             ;
 

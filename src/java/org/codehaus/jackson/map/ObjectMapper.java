@@ -529,22 +529,7 @@ public class ObjectMapper
     public void writeValue(File resultFile, Object value)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        JsonGenerator jgen = _jsonFactory.createJsonGenerator(resultFile, JsonEncoding.UTF8);
-        boolean closed = false;
-        try {
-            writeValue(jgen, value);
-            closed = true;
-            jgen.close();
-        } finally {
-            /* won't try to close twice; also, must catch exception (to it 
-             * will not mask exception that is pending)
-            */
-            if (!closed) {
-                try {
-                    jgen.close();
-                } catch (IOException ioe) { }
-            }
-        }
+        _configAndWriteValue(_jsonFactory.createJsonGenerator(resultFile, JsonEncoding.UTF8), value);
     }
 
     /**
@@ -561,17 +546,7 @@ public class ObjectMapper
     public void writeValue(OutputStream out, Object value)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        JsonGenerator jgen = _jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8);
-        boolean closed = false;
-        try {
-            writeValue(jgen, value);
-            closed = true;
-            jgen.close();
-        } finally {
-            if (!closed) {
-                jgen.close();
-            }
-        }
+        _configAndWriteValue(_jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8), value);
     }
 
     /**
@@ -587,15 +562,34 @@ public class ObjectMapper
     public void writeValue(Writer w, Object value)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        JsonGenerator jgen = _jsonFactory.createJsonGenerator(w);
+        _configAndWriteValue(_jsonFactory.createJsonGenerator(w), value);
+    }
+
+    /**
+     * Method called to configure the generator as necessary and then
+     * call write functionality
+     */
+    protected final void _configAndWriteValue(JsonGenerator jgen, Object value)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {
+        SerializationConfig cfg = _getUnsharedSConfig();
+        // [JACKSON-96]: allow enabling pretty printing for ObjectMapper directly
+        if (cfg.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
+            jgen.useDefaultPrettyPrinter();
+        }
         boolean closed = false;
         try {
-            writeValue(jgen, value);
+            _serializerProvider.serializeValue(cfg, jgen, value, _serializerFactory);
             closed = true;
             jgen.close();
         } finally {
+            /* won't try to close twice; also, must catch exception (so it 
+             * will not mask exception that is pending)
+             */
             if (!closed) {
-                jgen.close();
+                try {
+                    jgen.close();
+                } catch (IOException ioe) { }
             }
         }
     }

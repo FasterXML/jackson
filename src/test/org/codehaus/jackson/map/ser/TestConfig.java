@@ -1,6 +1,6 @@
 package org.codehaus.jackson.map.ser;
 
-import org.codehaus.jackson.map.BaseMapTest;
+import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
@@ -24,6 +24,8 @@ public class TestConfig
         assertTrue(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
         assertTrue(cfg.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
         assertTrue(cfg.isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS));
+
+        assertFalse(cfg.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT));
     }
 
     public void testFromAnnotations()
@@ -37,5 +39,15 @@ public class TestConfig
         cfg.fromAnnotations(Dummy.class);
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
+    }
+
+    public void testIndentation() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+        Map<String,Integer> map = new HashMap<String,Integer>();
+        map.put("a", Integer.valueOf(2));
+        String result = serializeAsString(m, map).trim();
+        assertEquals("{\n  \"a\" : 2\n}", result);
     }
 }

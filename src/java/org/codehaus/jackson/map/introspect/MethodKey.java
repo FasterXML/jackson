@@ -62,7 +62,7 @@ public final class MethodKey
              *   consider some narrowing conversions or such? For now let's
              *   assume exact type match is enough
              */
-            /* 07-Apr-2009, tatu: Indeed there are (see [JACKSON-???]).
+            /* 07-Apr-2009, tatu: Indeed there are (see [JACKSON-97]).
              *    This happens with generics when a bound is specified.
              *    I hope this works; check here must be transitive
              */

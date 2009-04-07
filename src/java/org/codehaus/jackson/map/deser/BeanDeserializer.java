@@ -103,7 +103,7 @@ public class BeanDeserializer
     /**
      * Method to add a property setter. Will ensure that there is no
      * unexpected override; if one is found will throw a
-     * {@link IllegalArgumentExeption}.
+     * {@link IllegalArgumentException}.
      */
     public void addProperty(SettableBeanProperty prop)
     {

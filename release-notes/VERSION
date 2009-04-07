@@ -13,14 +13,17 @@ Description:
     JSON type; instead needs to use "isCompatible". There were other
     similar problems
     (reported by Stephen D)
-  * [JACKSON-??] Generic types (with bound wildcards) caused problems
+  * [JACKSON-97] Generic types (with bound wildcards) caused problems
     when Class introspector could not figure out that a concrete method
-    was overriding/implementing generic method.
+    was overriding/implementing generic method; as well as having
+    problems with synthetic bridge methods.
 
   New features:
 
   * [JACKSON-85]: Make Date deserialization (more) configurable (add
     DeserializationConfig.setDateFormat())
+  * [JACKSON-96]: Allow enabling pretty-printing with data binding,
+    through SerializationConfig object.
 
 ------------------------------------------------------------------------
 == History: ==
