@@ -105,7 +105,7 @@ public class BeanDeserializerFactory
                                                           BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
-        BeanDeserializer deser = construtBeanDeserializerInstance(config, type, beanDesc);
+        BeanDeserializer deser = constructBeanDeserializerInstance(config, type, beanDesc);
 
         // First: add constructors
         addDeserializerConstructors(config, beanDesc, deser);
@@ -126,7 +126,7 @@ public class BeanDeserializerFactory
         /* First, construct plain old bean deserializer and add
          * basic stuff
          */
-        BeanDeserializer deser = construtBeanDeserializerInstance(config, type, beanDesc);
+        BeanDeserializer deser = constructThrowableDeserializerInstance(config, type, beanDesc);
         addDeserializerConstructors(config, beanDesc, deser);
         deser.validateConstructors(); // not 100% necessary but...
         addBeanProps(config, beanDesc, deser);
@@ -162,11 +162,18 @@ public class BeanDeserializerFactory
      * Method for construcing "empty" deserializer: overridable to allow
      * sub-classing of {@link BeanDeserializer}.
      */
-    protected BeanDeserializer construtBeanDeserializerInstance(DeserializationConfig config,
+    protected BeanDeserializer constructBeanDeserializerInstance(DeserializationConfig config,
                                                                 JavaType type,
                                                                 BasicBeanDescription beanDesc)
     {
         return new BeanDeserializer(type);
+    }
+
+    protected ThrowableDeserializer constructThrowableDeserializerInstance(DeserializationConfig config,
+                                                                           JavaType type,
+                                                                           BasicBeanDescription beanDesc)
+    {
+        return new ThrowableDeserializer(type);
     }
 
     protected void addDeserializerConstructors(DeserializationConfig config,

@@ -70,19 +70,33 @@ public final class SettableBeanProperty
     ////////////////////////////////////////////////////////
      */
 
-    public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
-                                  Object instance)
+    /**
+     * Method called to deserialize appropriate value, given parser (and
+     * context), and set it using appropriate method (a setter method).
+     */
+    public final void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
+                                        Object instance)
+        throws IOException, JsonProcessingException
+    {
+        Object value = deserialize(jp, ctxt);
+        set(instance, value);
+    }
+
+    public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.nextToken();
         Object value;
 
         if (t == JsonToken.VALUE_NULL) {
-            value = _nullValue;
-        } else {
-            value = _valueDeserializer.deserialize(jp, ctxt);
+            return _nullValue;
         }
+        return _valueDeserializer.deserialize(jp, ctxt);
+    }
 
+    public final void set(Object instance, Object value)
+        throws JsonProcessingException
+    {
         try {
             _setter.invoke(instance, value);
         } catch (IllegalArgumentException iae) {

@@ -24,7 +24,7 @@ public class BeanDeserializer
     ///////////////////////////////////////////////
      */
 
-    final JavaType _beanType;
+    final protected JavaType _beanType;
 
     /*
     ///////////////////////////////////////////////
@@ -32,14 +32,14 @@ public class BeanDeserializer
     ///////////////////////////////////////////////
      */
 
-    Constructor<?> _defaultConstructor;
+    protected Constructor<?> _defaultConstructor;
 
     /**
      * If the "bean" class can be instantiated using just a single
      * String (via constructor, static method etc), this object
      * knows how to invoke method/constructor in question.
      */
-    StringConstructor _stringConstructor;
+    protected StringConstructor _stringConstructor;
 
     /**
      * If the "bean" class can be instantiated using just a single
@@ -47,7 +47,7 @@ public class BeanDeserializer
      * this object
      * knows how to invoke method/constructor in question.
      */
-    NumberConstructor _numberConstructor;
+    protected NumberConstructor _numberConstructor;
 
     /*
     ///////////////////////////////////////////////
@@ -59,21 +59,21 @@ public class BeanDeserializer
      * Things set via setters (modifiers) are included in this
      * Map.
      */
-    final HashMap<String, SettableBeanProperty> _props;
+    final protected HashMap<String, SettableBeanProperty> _props;
 
     /**
      * Fallback setter used for handling any properties that are not
      * mapped to regular setters. If setter is not null, it will be
      * called once for each such property.
      */
-    SettableAnyProperty _anySetter;
+    protected SettableAnyProperty _anySetter;
 
     /**
      * In addition to properties that are set, we will also keep
      * track of recognized but ignorable properties: these will
      * be skipped without errors or warnings.
      */
-    HashSet<String> _ignorableProps;
+    protected HashSet<String> _ignorableProps;
 
     /*
     /////////////////////////////////////////////////////////
@@ -263,7 +263,7 @@ public class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
-    public final Object deserializeFromObject(JsonParser jp, DeserializationContext ctxt)
+    public Object deserializeFromObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // !!! TODO: alternative constructors (with annotated params)
@@ -384,6 +384,10 @@ public class BeanDeserializer
         }
     }
 
+    /**
+     * Helper class that can handle simple deserialization from
+     * Json String values.
+     */
     final static class StringConstructor
         extends ConstructorBase
     {
