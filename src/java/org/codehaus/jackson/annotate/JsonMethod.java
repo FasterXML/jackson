@@ -16,7 +16,7 @@ public enum JsonMethod {
     GETTER,
 
     /**
-     * Getters are methods used to set a POJO value for deserialization
+     * Setters are methods used to set a POJO value for deserialization
      */
         SETTER,
 
@@ -27,12 +27,16 @@ public enum JsonMethod {
         CREATOR,
 
         /**
-         * Indicates method that returns a Collection or Map type that is
-         * to be used instead of a newly constructed instance, and assumed
-         * to be modifiable without having to be set back via setter.
-         * This is what JAXB framework does.
+         * Getter-as-setter methods are otherwise regular methods that
+         * return Collection or Map types, and are used instead of
+         * creators and setter methods. Returned Map/Collection
+         * is expected to be modifiable and a shared instance member so
+         * that modifying it will change the underlying Map/Collection
+         * property and remove need to call a setter method.
+         * This is the method some libraries (most notably, JAXB) handle
+         * deserializing Collection fields.
          */
-        GETTER_AS_CREATOR_AND_SETTER,
+        GETTER_AS_SETTER,
 
         /**
          * This pseudo-type indicates that none of real types is included

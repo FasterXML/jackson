@@ -235,7 +235,7 @@ public class SerializationConfig
 
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspect(Class<?> cls) {
-        return (T) getIntrospector().forSerialization(cls);
+        return (T) getIntrospector().forSerialization(this, cls);
     }
 
     /**

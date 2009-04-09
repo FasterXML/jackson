@@ -2,12 +2,15 @@ package org.codehaus.jackson.map.introspect;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonAnySetter;
 import org.codehaus.jackson.map.ClassIntrospector;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.SerializationConfig;
 
 public class BasicClassIntrospector
-	extends ClassIntrospector<BasicBeanDescription>
+    extends ClassIntrospector<BasicBeanDescription>
 {
     /**
      * Filter used to only include methods that have signature that is
@@ -32,8 +35,9 @@ public class BasicClassIntrospector
      * compatible with "setters": take one and only argument and
      * are non-static.
      *<p>
-     * 23-Mar-2009, tsaloranta: Actually, also need to include 2-arg
-     *    methods to support "any setters"...
+     * Actually, also need to include 2-arg  methods to support
+     * "any setters"; as well as 0-arg getters as long as they
+     * return Collection or Map type.
      */
     public final static class SetterMethodFilter
         implements MethodFilter
@@ -46,19 +50,30 @@ public class BasicClassIntrospector
             if (Modifier.isStatic(m.getModifiers())) {
                 return false;
             }
-            // Must take just one arg, or be an AnySetter with 2 args:
             int pcount = m.getParameterTypes().length;
-            if (pcount == 0 || pcount > 2) {
-                return false;
-            }
-            if (pcount == 2) {
-                if (m.getAnnotation(JsonAnySetter.class) == null) {
-                    return false;
+            // Ok; multiple acceptable parameter counts:
+            switch (pcount) {
+            case 0:
+                /* Getters (no args and) that return Map or Collection may
+                 * act as getter-as-setters.
+                 */
+                Class<?> rt = m.getReturnType();
+                if (Collection.class.isAssignableFrom(rt)
+                    || Map.class.isAssignableFrom(rt)) {
+                    return true; 
                 }
+                break;
+            case 1:
+                // Regular setters take just one param, so include:
+                return true;
+            case 2:
+                // AnySetters take 2 args...
+                if (m.getAnnotation(JsonAnySetter.class) != null) {
+                    return true;
+                }
+                break;
             }
-            // No checking for returning type; usually void, don't care
-            // Otherwise, potentially ok
-            return true;
+            return false;
         }
     }
 
@@ -78,31 +93,34 @@ public class BasicClassIntrospector
     ///////////////////////////////////////////////////////
      */
 
-    public BasicBeanDescription forSerialization(Class<?> c)
+    public BasicBeanDescription forSerialization(SerializationConfig cfg,
+                                                 Class<?> c)
     {
         /* Simpler for serialization; just need class annotations
          * and setters, not creators.
          */
-    	MethodFilter mf = getGetterMethodFilter();
+    	MethodFilter mf = getGetterMethodFilter(cfg);
         AnnotatedClass ac = AnnotatedClass.constructFull
             (c, JacksonAnnotationFilter.instance, false, mf);
         return new BasicBeanDescription(c, ac);
     }
 
     @Override
-    public BasicBeanDescription forDeserialization(Class<?> c)
+    public BasicBeanDescription forDeserialization(DeserializationConfig cfg,
+                                                   Class<?> c)
     {
         /* More info needed than with serialization, also need creator
          * info
          */
-    	MethodFilter mf = getSetterMethodFilter();
+    	MethodFilter mf = getSetterMethodFilter(cfg);
         AnnotatedClass ac = AnnotatedClass.constructFull
             (c, JacksonAnnotationFilter.instance, true, mf);
         return new BasicBeanDescription(c, ac);
     }
 
     @Override
-    public BasicBeanDescription forCreation(Class<?> c)
+    public BasicBeanDescription forCreation(DeserializationConfig cfg,
+                                            Class<?> c)
     {
         /* Just need constructors and factory methods, but no
          * member methods
@@ -129,12 +147,12 @@ public class BasicClassIntrospector
     ///////////////////////////////////////////////////////
      */
     
-    protected MethodFilter getGetterMethodFilter()
+    protected MethodFilter getGetterMethodFilter(SerializationConfig cfg)
     {
     	return GetterMethodFilter.instance;
     }
 
-    protected MethodFilter getSetterMethodFilter()
+    protected MethodFilter getSetterMethodFilter(DeserializationConfig cfg)
     {
     	return SetterMethodFilter.instance;
     }

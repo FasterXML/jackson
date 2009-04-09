@@ -16,18 +16,18 @@ public abstract class ClassIntrospector<T extends BeanDescription>
     // Factory methods
     ///////////////////////////////////////////////////////
      */
-
-	/**
+    
+    /**
      * Factory method that constructs an introspector that has all
      * information needed for serialization purposes.
      */
-    public abstract T forSerialization(Class<?> c);
+    public abstract T forSerialization(SerializationConfig cfg, Class<?> c);
 
     /**
      * Factory method that constructs an introspector that has all
      * information needed for deserialization purposes.
      */
-    public abstract T forDeserialization(Class<?> c);
+    public abstract T forDeserialization(DeserializationConfig cfg, Class<?> c);
 
     /**
      * Factory method that constructs an introspector that has
@@ -35,7 +35,7 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      * class ("creator"), as well as class annotations, but
      * no information on member methods
      */
-    public abstract T forCreation(Class<?> c);
+    public abstract T forCreation(DeserializationConfig cfg, Class<?> c);
 
     /**
      * Factory method that constructs an introspector that only has

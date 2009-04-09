@@ -9,9 +9,10 @@ import java.lang.annotation.Target;
  * Class annotation that can be used to define which kinds of Methods
  * are to be detected by auto-detection.
  * Auto-detection means using name conventions
- * and/or signature templates to find methods to use for data binding. For example,
- * so-called "getters" can be auto-detected by looking for public member methods
- * that return a value, do not take argument, and have prefix "get" in their name.
+ * and/or signature templates to find methods to use for data binding.
+ * For example, so-called "getters" can be auto-detected by looking for
+ * public member methods that return a value, do not take argument,
+ * and have prefix "get" in their name.
  *<p>
  * Pseudo-value <code>NONE</code> means that all auto-detection is disabled
  * for the <b>specific</b> class that annotation is applied to (including

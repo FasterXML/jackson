@@ -57,6 +57,20 @@ public class DeserializationConfig
          * Feature is enabled by default.
          */
         AUTO_DETECT_CREATORS(true),
+            /**
+             * Feature that determines whether otherwise regular "getter"
+             * methods (but only ones that handle Collections and Maps,
+             * not getters of other type)
+             * are to be recognized and used for the purpose
+             * that creators and getters usually: that is, to get an
+             * initialized Collection or Map instance to be modified
+             * directly. If so, no creator or setter methods are used.
+             *<p>
+             * Note that such getters-as-setters methods have lower
+             * precedence than setters, so they are only used if no
+             * setter is found for the Map/Collection property.
+             */
+        AUTO_DETECT_GETTER_AS_SETTERS(true),
 
         /**
          * Feature that determines whether Json floating point numbers
@@ -268,12 +282,12 @@ public class DeserializationConfig
 
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspect(Class<?> cls) {
-        return (T) getIntrospector().forDeserialization(cls);
+        return (T) getIntrospector().forDeserialization(this, cls);
     }
 
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspectForCreation(Class<?> cls) {
-        return (T) getIntrospector().forCreation(cls);
+        return (T) getIntrospector().forCreation(this, cls);
     }
 
     /**
