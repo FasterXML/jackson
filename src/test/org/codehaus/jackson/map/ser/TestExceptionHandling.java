@@ -77,13 +77,36 @@ public class TestExceptionHandling
      * Unit test for verifying that regular IOExceptions are not wrapped
      * but are passed through as is.
      */
-    public void testParsingException()
+    public void testParsingExceptionWithMapper()
         throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         try {
             BrokenStringWriter sw = new BrokenStringWriter("TEST");
             mapper.writeValue(sw, "xyz");
+            fail("Should have gotten an exception");
+        } catch (JsonMappingException e1) {
+            fail("Expected plain old IOException, got "+e1.getClass().getName());
+        } catch (JsonProcessingException e2) {
+            fail("Expected plain old IOException, got "+e2.getClass().getName());
+        } catch (IOException ioe) {
+            assertEquals(IOException.class, ioe.getClass());
+            assertEquals("TEST", ioe.getMessage());
+        }
+    }
+
+    public void testParsingExceptionWithGenerator()
+        throws Exception
+    {
+        JsonFactory f = new MappingJsonFactory();
+        JsonGenerator jg = f.createJsonGenerator(new BrokenStringWriter("TEST"));
+        try {
+            jg.writeObject(Integer.valueOf(4));
+            fail("Should have gotten an exception");
+        } catch (JsonMappingException e1) {
+            fail("Expected plain old IOException, got "+e1.getClass().getName());
+        } catch (JsonProcessingException e2) {
+            fail("Expected plain old IOException, got "+e2.getClass().getName());
         } catch (IOException ioe) {
             assertEquals(IOException.class, ioe.getClass());
             assertEquals("TEST", ioe.getMessage());
