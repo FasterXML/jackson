@@ -10,7 +10,7 @@ import org.codehaus.jackson.map.*;
 
 /**
  * Unit test for verifying that exceptions are properly handled (caught,
- * re-thrown or wrapped)
+ * re-thrown or wrapped, depending)
  */
 public class TestExceptionHandling
     extends BaseTest
@@ -70,6 +70,23 @@ public class TestExceptionHandling
                 fail("Wrapped exception not IAE, but "+root.getClass());
             }
             verifyException(root, "test string");
+        }
+    }
+
+    /**
+     * Unit test for verifying that regular IOExceptions are not wrapped
+     * but are passed through as is.
+     */
+    public void testParsingException()
+        throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            BrokenStringWriter sw = new BrokenStringWriter("TEST");
+            mapper.writeValue(sw, "xyz");
+        } catch (IOException ioe) {
+            assertEquals(IOException.class, ioe.getClass());
+            assertEquals("TEST", ioe.getMessage());
         }
     }
 }
