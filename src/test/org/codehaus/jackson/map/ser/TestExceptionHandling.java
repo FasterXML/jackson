@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.*;
 /**
  * Unit test for verifying that exceptions are properly handled (caught,
  * re-thrown or wrapped, depending)
+ * with Object serialization.
  */
 public class TestExceptionHandling
     extends BaseTest
@@ -61,15 +62,15 @@ public class TestExceptionHandling
             l.add(b);
             mapper.writeValue(sw, l);
             fail("Should have gotten an exception");
-        } catch (JsonMappingException e) {
+        } catch (IOException e) {
             // should contain original message somewhere
             verifyException(e, "test string");
             Throwable root = e.getCause();
             assertNotNull(root);
+
             if (!(root instanceof IllegalArgumentException)) {
                 fail("Wrapped exception not IAE, but "+root.getClass());
             }
-            verifyException(root, "test string");
         }
     }
 
@@ -77,40 +78,76 @@ public class TestExceptionHandling
      * Unit test for verifying that regular IOExceptions are not wrapped
      * but are passed through as is.
      */
-    public void testParsingExceptionWithMapper()
+    public void testExceptionWithSimpleMapper()
         throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         try {
             BrokenStringWriter sw = new BrokenStringWriter("TEST");
-            mapper.writeValue(sw, "xyz");
+            mapper.writeValue(sw, createLongObject());
             fail("Should have gotten an exception");
-        } catch (JsonMappingException e1) {
-            fail("Expected plain old IOException, got "+e1.getClass().getName());
-        } catch (JsonProcessingException e2) {
-            fail("Expected plain old IOException, got "+e2.getClass().getName());
-        } catch (IOException ioe) {
-            assertEquals(IOException.class, ioe.getClass());
-            assertEquals("TEST", ioe.getMessage());
+        } catch (IOException e) {
+            verifyException(e, IOException.class, "TEST");
         }
     }
 
-    public void testParsingExceptionWithGenerator()
+    public void testExceptionWithMapperAndGenerator()
+        throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonFactory f = new MappingJsonFactory();
+        BrokenStringWriter sw = new BrokenStringWriter("TEST");
+        JsonGenerator jg = f.createJsonGenerator(sw);
+
+        try {
+            mapper.writeValue(jg, createLongObject());
+            fail("Should have gotten an exception");
+        } catch (IOException e) {
+            verifyException(e, IOException.class, "TEST");
+        }
+    }
+
+    public void testExceptionWithGeneratorMapping()
         throws Exception
     {
         JsonFactory f = new MappingJsonFactory();
         JsonGenerator jg = f.createJsonGenerator(new BrokenStringWriter("TEST"));
         try {
-            jg.writeObject(Integer.valueOf(4));
+            jg.writeObject(createLongObject());
             fail("Should have gotten an exception");
-        } catch (JsonMappingException e1) {
-            fail("Expected plain old IOException, got "+e1.getClass().getName());
-        } catch (JsonProcessingException e2) {
-            fail("Expected plain old IOException, got "+e2.getClass().getName());
-        } catch (IOException ioe) {
-            assertEquals(IOException.class, ioe.getClass());
-            assertEquals("TEST", ioe.getMessage());
+        } catch (Exception e) {
+            verifyException(e, IOException.class, "TEST");
         }
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Helper methods
+    ////////////////////////////////////////////////////
+     */
+
+    void verifyException(Exception e, Class<?> expType, String expMsg)
+        throws Exception
+    {
+        if (e.getClass() != expType) {
+            fail("Expected exception of type "+expType.getName()+", got "+e.getClass().getName());
+        }
+        if (expMsg != null) {
+            verifyException(e, expMsg);
+        }
+    }
+
+    Object createLongObject()
+    {
+        List<Object> leaf = new ArrayList<Object>();
+        for (int i = 0; i < 256; ++i) {
+            leaf.add(Integer.valueOf(i));
+        }
+        List<Object> root = new ArrayList<Object>(256);
+        for (int i = 0; i < 256; ++i) {
+            root.add(leaf);
+        }
+        return root;
     }
 }
 

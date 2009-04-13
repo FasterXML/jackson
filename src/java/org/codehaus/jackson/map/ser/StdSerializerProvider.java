@@ -223,9 +223,11 @@ public class StdSerializerProvider
             getNullValueSerializer() : findValueSerializer(value.getClass());
         try {
             ser.serialize(value, jgen, this);
-        } catch (JsonMappingException jme) {
-            // mapping exceptions are passed through as is
-            throw jme;
+        } catch (IOException ioe) {
+            /* As per [JACKSON-??], should not wrap IOException or its
+             * sub-classes (like JsonProcessingException, JsonMappingException)
+             */
+            throw ioe;
         } catch (Exception e) {
             // but others are wrapped
             String msg = e.getMessage();
@@ -376,7 +378,9 @@ public class StdSerializerProvider
     /**
      * Method that will try to find a serializer, either from cache
      * or by constructing one; but will not return an "unknown" serializer
-     * if this can not be done.
+     * if this can not be done but rather returns null.
+     *
+     * @return Serializer if one can be found, null if not.
      */
     protected JsonSerializer<Object> _findExplicitSerializer(Class<?> type)
     {        

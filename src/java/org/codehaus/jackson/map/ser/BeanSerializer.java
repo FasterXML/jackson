@@ -52,6 +52,9 @@ public final class BeanSerializer
                 _props[i].serializeAsField(bean, jgen, provider);
             }
             jgen.writeEndObject();
+        } catch (IOException ioe) {
+            // first: IOExceptions (and sub-classes) to be passed as is
+            throw ioe;
         } catch (Exception e) {
             // [JACKSON-55] Need to add reference information
             /* 05-Mar-2009, tatu: But one nasty edge is when we get

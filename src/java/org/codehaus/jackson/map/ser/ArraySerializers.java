@@ -57,6 +57,8 @@ public final class ArraySerializers
                         }
                         try {
                             currSerializer.serialize(elem, jgen, provider);
+                        } catch (IOException ioe) {
+                            throw ioe;
                         } catch (Exception e) {
                             // [JACKSON-55] Need to add reference information
                             /* 05-Mar-2009, tatu: But one nasty edge is when we get

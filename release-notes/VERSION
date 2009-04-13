@@ -23,6 +23,9 @@ Description:
   * [JACKSON-95] Added support for deserializing simple exceptions
     (Throwable and its sub-classes): anything with a String constructor
     (assumed to take "message") should work to some degree.
+  * [JACKSON-xx] IOExceptions should not be wrapped during object
+    mapping.
+    (reported by Eldar A)
 
   New features:
 

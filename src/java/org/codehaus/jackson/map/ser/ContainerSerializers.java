@@ -66,6 +66,8 @@ public final class ContainerSerializers
                             currSerializer.serialize(elem, jgen, provider);
                         }
                     }
+                } catch (IOException ioe) {
+                    throw ioe;
                 } catch (Exception e) {
                     // [JACKSON-55] Need to add reference information
                     throw JsonMappingException.wrapWithPath(e, value, i);
@@ -121,6 +123,8 @@ public final class ContainerSerializers
                         }
                         ++i;
                     } while (it.hasNext());
+                } catch (IOException ioe) {
+                    throw ioe;
                 } catch (Exception e) {
                     // [JACKSON-55] Need to add reference information
                     throw JsonMappingException.wrapWithPath(e, value, i);
@@ -269,6 +273,8 @@ public final class ContainerSerializers
                         }
                         try {
                             currSerializer.serialize(valueElem, jgen, provider);
+                        } catch (IOException ioe) {
+                            throw ioe;
                         } catch (Exception e) {
                             // [JACKSON-55] Need to add reference information
                             String keyDesc = ""+keyElem;
@@ -312,6 +318,8 @@ public final class ContainerSerializers
                     }
                     try {
                         currSerializer.serialize(valueElem, jgen, provider);
+                    } catch (IOException ioe) {
+                        throw ioe;
                     } catch (Exception e) {
                         // [JACKSON-55] Need to add reference information
                         throw JsonMappingException.wrapWithPath(e, value, entry.getKey().name());

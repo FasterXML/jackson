@@ -57,6 +57,8 @@ public final class JsonValueSerializer
                 }
             }
             ser.serialize(value, jgen, prov);
+        } catch (IOException ioe) {
+            throw ioe;
         } catch (Exception e) {
             Throwable t = e;
             // Need to unwrap this specific type, to see infinite recursion...

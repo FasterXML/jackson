@@ -97,6 +97,10 @@ Ryan Heaton:
 Eldar Abusalimov:
   * Reported [JACKSON-81]: Data binding code could lead to unnecessary
     blocking because it tried to advance parser (and stream) after binding
+    [0.9.9-3]
+  * [JACKSON-xx] IOExceptions should not be wrapped during object
+    mapping.
+    [0.9.9-4]
 
 Stephen Duncan jr
   * Pointed out problem with JacksonJsonProvider where strict equality
