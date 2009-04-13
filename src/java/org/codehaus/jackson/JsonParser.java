@@ -306,10 +306,15 @@ public abstract class JsonParser
      * Method was added to be used by the optional data binder, since
      * it has to be able to consume last token used for binding (so that
      * it will not be used again).
+     *
+     * @since 0.9.9-3
      */
-    public final void clearCurrentToken() {
-        _lastClearedToken = _currToken;
-        _currToken = null;
+    public final void clearCurrentToken()
+    {
+        if (_currToken != null) {
+            _lastClearedToken = _currToken;
+            _currToken = null;
+        }
     }
 
     /**
