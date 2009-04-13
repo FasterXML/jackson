@@ -25,6 +25,16 @@ import org.codehaus.jackson.type.TypeReference;
  * The main conversion API is defined in {@link ObjectCodec}, so that
  * implementation details of this class need not be exposed to
  * streaming parser and generator classes.
+ *<p>
+ * Note on caching: root-level deserializers are always cached, and accessed
+ * using full (generics-aware) type information. This is different from
+ * caching of referenced types, which is more limited and is done only
+ * for a subset of all deserializer types. The main reason for difference
+ * is that at root-level there is no incoming reference (and hence no
+ * referencing property, no referral information or annotations to
+ * produce differing deserializers), and that the performance impact
+ * greatest at root level (since it'll essentially cache the full
+ * graph of deserializers involved).
  */
 public class ObjectMapper
     extends ObjectCodec

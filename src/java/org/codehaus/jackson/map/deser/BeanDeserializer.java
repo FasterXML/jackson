@@ -219,6 +219,15 @@ public class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
+    /**
+     * Because of costs associated with constructing bean deserializers,
+     * they usually should be cached unlike other deserializer types.
+     * Additionally it is important to be able to cache bean serializers
+     * to handle cyclic references.
+     */
+    @Override
+    public boolean shouldBeCached() { return true; }
+
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {

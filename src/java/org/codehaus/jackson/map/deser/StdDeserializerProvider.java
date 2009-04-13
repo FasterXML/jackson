@@ -190,14 +190,16 @@ public class StdDeserializerProvider
          * legal).
          */
         if (deser != null) {
+            // Caching? (yes for bean and enum deserializers)
+            if (deser.shouldBeCached()) {
+                _cachedDeserializers.put(type, deser);
+            }
+            /* Need to resolve? Mostly done for bean deserializers; allows
+             * resolving of cyclic types, which can not yet be done during
+             * construction:
+             */
             if (deser instanceof ResolvableDeserializer) {
-                _cachedDeserializers.put(type, deser);
                 _resolveDeserializer(config, (ResolvableDeserializer)deser);
-            } else if (type.isEnumType()) {
-                /* Let's also cache enum type deserializers,
-                 * they are somewhat costly as well.
-                 */
-                _cachedDeserializers.put(type, deser);
             }
         }
         return deser;

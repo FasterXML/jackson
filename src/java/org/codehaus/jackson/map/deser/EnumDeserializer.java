@@ -17,6 +17,19 @@ public class EnumDeserializer
         super(Enum.class);
         _resolver = res;
     }
+
+    /*
+    /////////////////////////////////////////////////////////
+    // JsonDeserializer implementation
+    /////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Construction of these deserializers is bit costly, plus it's
+     * absolutely safe to cache them as well (no variations).
+     */
+    @Override
+    public boolean shouldBeCached() { return true; }
     
     public Enum<?> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException

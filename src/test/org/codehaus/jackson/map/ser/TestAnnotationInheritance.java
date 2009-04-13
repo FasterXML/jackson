@@ -28,6 +28,15 @@ public class TestAnnotationInheritance
         @JsonGetter public int length() { return 7; }
     }
 
+    /**
+     * It should also be possible to specify annotations on interfaces,
+     * to be implemented by classes. This should not only work when interface
+     * is used (which may be the case for de-serialization) but also
+     * when implementing class is used and overrides methods. In latter
+     * case overriding methods should still "inherit" annotations -- this
+     * is not something JVM runtime provides, but Jackson class
+     * instrospector does.
+     */
     interface PojoInterface
     {
         @JsonGetter int width();

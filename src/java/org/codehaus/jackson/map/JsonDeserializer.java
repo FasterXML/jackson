@@ -47,4 +47,29 @@ public abstract class JsonDeserializer<T>
      * Default implementation simply returns null.
      */
     public T getNullValue() { return null; }
+
+    /**
+     * Method called to determine if this deserializer can and should be
+     * cached by deserializer provider. This means that
+     * deserializer must be reusable for
+     * deserializing other instances of the type it was created to
+     * deserialize, as well as that it is somewhat costly to construct.
+     * Usually this only applies to bean type deserializers.
+     *<p>
+     * Default implementation returns false, which means that no
+     * caching will be done by deserializer provider. Without caching
+     * deserializer factory will be called every time a property of
+     * matching type is encountered during construction of root-level
+     * deserializers.
+     *<p>
+     * NOTE: this method will NOT be called when accessing "root"
+     * deserializers (type passed to {@link ObjectMapper}), but
+     * only when resolving dependant deserializers. As such it
+     * is acceptable to return false without worrying about
+     * performance impacts. Root-level caching should usually be
+     * enough for all non-bean types.
+     *
+     * @since 0.9.9-4
+     */
+    public boolean shouldBeCached() { return false; }
 }
