@@ -20,7 +20,7 @@ import org.codehaus.jackson.map.KeyDeserializer;
  * POJO types, only other containers and primitives/wrappers.
  */
 public class MapDeserializer
-    extends StdDeserializer<Map<?,?>>
+    extends StdDeserializer<Map<Object,Object>>
 {
     // // Configuration
 
@@ -47,7 +47,21 @@ public class MapDeserializer
     }
 
     @Override
-    public Map<?,?> deserialize(JsonParser jp, DeserializationContext ctxt)
+    public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        Map<Object,Object> result;
+        try {
+            result = _mapClass.newInstance();
+        } catch (Exception e) {
+            throw ctxt.instantiationException(_mapClass, e);
+        }
+        return deserialize(jp, ctxt, result);
+    }
+
+    @Override
+    public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt,
+                                Map<Object,Object> result)
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_OBJECT
@@ -55,12 +69,6 @@ public class MapDeserializer
             throw ctxt.mappingException(_mapClass);
         }
 
-        Map<Object,Object> result;
-        try {
-            result = _mapClass.newInstance();
-        } catch (Exception e) {
-            throw ctxt.instantiationException(_mapClass, e);
-        }
         KeyDeserializer keyDes = _keyDeserializer;
         JsonDeserializer<Object> valueDes = _valueDeserializer;
 
@@ -81,3 +89,4 @@ public class MapDeserializer
         return result;
     }
 }
+

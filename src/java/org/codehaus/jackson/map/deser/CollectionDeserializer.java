@@ -38,7 +38,22 @@ public class CollectionDeserializer
         _valueDeserializer = valueDeser;
     }
 
+    @Override
     public Collection<Object> deserialize(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        Collection<Object> result;
+        try {
+            result = _collectionClass.newInstance();
+        } catch (Exception e) {
+            throw ctxt.instantiationException(_collectionClass, e);
+        }
+        return deserialize(jp, ctxt, result);
+    }
+
+    @Override
+    public Collection<Object> deserialize(JsonParser jp, DeserializationContext ctxt,
+                                          Collection<Object> result)
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_ARRAY
@@ -46,15 +61,6 @@ public class CollectionDeserializer
             throw ctxt.mappingException(_collectionClass);
         }
 
-        /* !!! 09-Jan-2009, tatu: Use temp array from context, to create
-         *    list etc of suitable size?
-         */
-        Collection<Object> result;
-        try {
-            result = _collectionClass.newInstance();
-        } catch (Exception e) {
-            throw ctxt.instantiationException(_collectionClass, e);
-        }
         JsonDeserializer<Object> valueDes = _valueDeserializer;
         JsonToken t;
 
