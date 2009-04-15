@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
-import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -73,7 +72,8 @@ public class ThrowableDeserializer
                 continue;
             }
 
-            JsonToken t = jp.nextToken();
+            @SuppressWarnings("unused")
+			JsonToken t = jp.nextToken();
 
             // Maybe it's "message"?
             if (PROP_NAME_MESSAGE.equals(propName)) {

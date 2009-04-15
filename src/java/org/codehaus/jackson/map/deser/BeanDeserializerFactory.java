@@ -213,8 +213,6 @@ public class BeanDeserializerFactory
                                 BasicBeanDescription beanDesc, BeanDeserializer deser)
         throws JsonMappingException
     {
-        Class<?> beanClass = beanDesc.getBeanClass();
-
         Map<String,AnnotatedMethod> methodsByProp = beanDesc.findSetters();
         // Also, do we have a fallback "any" setter? If so, need to bind
         {

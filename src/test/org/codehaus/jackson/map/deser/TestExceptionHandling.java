@@ -2,7 +2,6 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.*;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -21,6 +20,7 @@ public class TestExceptionHandling
         JsonParser jp = f.createJsonParser(r);
         ObjectMapper mapper = new ObjectMapper();
         try {
+            @SuppressWarnings("unused")
             Object ob = mapper.readValue(jp, Object.class);
             fail("Should have gotten an exception");
         } catch (IOException e) {

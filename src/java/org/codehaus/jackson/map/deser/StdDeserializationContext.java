@@ -7,7 +7,6 @@ import java.util.*;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
-import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 
 /**

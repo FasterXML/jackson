@@ -86,8 +86,6 @@ public final class SettableBeanProperty
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.nextToken();
-        Object value;
-
         if (t == JsonToken.VALUE_NULL) {
             return _nullValue;
         }
