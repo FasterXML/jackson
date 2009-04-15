@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.*;
 
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -12,6 +13,21 @@ import org.codehaus.jackson.map.*;
 public class TestExceptionHandling
     extends BaseMapTest
 {
+    /**
+     * Simple test to check behavior when end-of-stream is encountered
+     * without content. Should throw EOFException.
+     */
+    public void testExceptionWithEmpty() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            Object result = mapper.readValue("    ", Object.class);
+            fail("Expected an exception, but got result value: "+result);
+        } catch (Exception e) {
+            verifyException(e, EOFException.class, "No content");
+        }
+    }
+
     public void testExceptionWithIncomplete()
         throws Exception
     {
@@ -24,11 +40,11 @@ public class TestExceptionHandling
             Object ob = mapper.readValue(jp, Object.class);
             fail("Should have gotten an exception");
         } catch (IOException e) {
+            /* For "bona fide" IO problems (due to low-level problem,
+             * thrown by reader/stream), IOException must be thrown
+             */
             verifyException(e, IOException.class, "TEST");
         }
-        /* Would be good to test state, but since IOException occurs
-         * at the end of content, parser is not to clear the state
-         */
     }
 
     public void testExceptionWithEOF()
@@ -47,7 +63,7 @@ public class TestExceptionHandling
             I = mapper.readValue(jp, Integer.class);
             fail("Should have gotten an exception");
         } catch (IOException e) {
-            verifyException(e, JsonMappingException.class, "No content available");
+            verifyException(e, EOFException.class, "No content");
         }
         // also: should have no current token after end-of-input
         JsonToken t = jp.getCurrentToken();

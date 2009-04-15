@@ -318,21 +318,6 @@ public class TestSimpleTypes
         assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", URI.class));
     }
 
-    /**
-     * Simple test to check behavior when end-of-stream is encountered
-     * without content. Should throw an exception.
-     */
-    public void testEOF() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            Object result = mapper.readValue("    ", Object.class);
-            fail("Expected an exception, but got result value: "+result);
-        } catch (JsonMappingException jex) {
-            verifyException(jex, "No content available");
-        }
-    }
-
     /*
     //////////////////////////////////////////////////////////
     // Sequence tests

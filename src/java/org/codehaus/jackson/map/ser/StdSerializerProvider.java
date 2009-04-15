@@ -224,7 +224,7 @@ public class StdSerializerProvider
         try {
             ser.serialize(value, jgen, this);
         } catch (IOException ioe) {
-            /* As per [JACKSON-??], should not wrap IOException or its
+            /* As per [JACKSON-99], should not wrap IOException or its
              * sub-classes (like JsonProcessingException, JsonMappingException)
              */
             throw ioe;
