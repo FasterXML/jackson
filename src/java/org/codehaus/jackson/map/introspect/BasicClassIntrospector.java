@@ -17,7 +17,7 @@ public class BasicClassIntrospector
      * compatible with "getters": take no arguments, are non-static,
      * and return something.
      */
-    public final static class GetterMethodFilter
+    public static class GetterMethodFilter
         implements MethodFilter
     {
         public final static GetterMethodFilter instance = new GetterMethodFilter();
@@ -39,7 +39,7 @@ public class BasicClassIntrospector
      * "any setters"; as well as 0-arg getters as long as they
      * return Collection or Map type.
      */
-    public final static class SetterMethodFilter
+    public static class SetterMethodFilter
         implements MethodFilter
     {
         public final static SetterMethodFilter instance = new SetterMethodFilter();
@@ -77,6 +77,24 @@ public class BasicClassIntrospector
         }
     }
 
+    /**
+     * Filter used if some getters (namely, once needed for "setterless
+     * collection injection") are also needed, not just setters.
+     */
+    public final static class SetterAndGetterMethodFilter
+        extends SetterMethodFilter
+    {
+        public final static SetterAndGetterMethodFilter instance = new SetterAndGetterMethodFilter();
+
+        public boolean includeMethod(Method m)
+        {
+            if (super.includeMethod(m)) {
+                return true;
+            }
+            return AnnotatedMethod.hasGetterSignature(m);
+        }
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Life cycle
@@ -99,7 +117,7 @@ public class BasicClassIntrospector
         /* Simpler for serialization; just need class annotations
          * and setters, not creators.
          */
-    	MethodFilter mf = getGetterMethodFilter(cfg);
+    	MethodFilter mf = getSerializationMethodFilter(cfg);
         AnnotatedClass ac = AnnotatedClass.constructFull
             (c, JacksonAnnotationFilter.instance, false, mf);
         return new BasicBeanDescription(c, ac);
@@ -112,7 +130,7 @@ public class BasicClassIntrospector
         /* More info needed than with serialization, also need creator
          * info
          */
-    	MethodFilter mf = getSetterMethodFilter(cfg);
+    	MethodFilter mf = getDeserializationMethodFilter(cfg);
         AnnotatedClass ac = AnnotatedClass.constructFull
             (c, JacksonAnnotationFilter.instance, true, mf);
         return new BasicBeanDescription(c, ac);
@@ -147,13 +165,28 @@ public class BasicClassIntrospector
     ///////////////////////////////////////////////////////
      */
     
-    protected MethodFilter getGetterMethodFilter(SerializationConfig cfg)
+    /**
+     * Helper method for getting access to filter that only guarantees
+     * that methods used for serialization are to be included.
+     */
+    protected MethodFilter getSerializationMethodFilter(SerializationConfig cfg)
     {
     	return GetterMethodFilter.instance;
     }
 
-    protected MethodFilter getSetterMethodFilter(DeserializationConfig cfg)
+    /**
+     * Helper method for getting access to filter that only guarantees
+     * that methods used for deserialization are to be included.
+     */
+    protected MethodFilter getDeserializationMethodFilter(DeserializationConfig cfg)
     {
+        /* [JACKSON-88]: may also need to include getters (at least for
+         * Collection and Map types)
+         */
+        if (cfg.isEnabled(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS)) {
+            return SetterAndGetterMethodFilter.instance;
+            
+        }
     	return SetterMethodFilter.instance;
     }
 }

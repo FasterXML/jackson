@@ -1,6 +1,6 @@
 package org.codehaus.jackson.map;
 
-import java.util.LinkedHashMap;
+import java.util.*;
 
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 
@@ -47,6 +47,12 @@ public abstract class BeanDescription
     // Basic API
     ///////////////////////////////////////////////////////
      */
-    
-    public abstract LinkedHashMap<String,AnnotatedMethod> findGetters(boolean autodetect);
+
+    /**
+     * @param ignoredProperties (optional, may be null) Names of properties
+     *   to ignore; getters for these properties are not to be returned.
+     */
+    public abstract LinkedHashMap<String,AnnotatedMethod> findGetters(boolean autodetect, Collection<String> ignoredProperties);
+
+    public abstract LinkedHashMap<String,AnnotatedMethod> findSetters(boolean autodetect);
 }

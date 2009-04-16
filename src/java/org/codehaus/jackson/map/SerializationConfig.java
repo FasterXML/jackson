@@ -204,7 +204,7 @@ public class SerializationConfig
     	if (autoDetect != null) {
             boolean set = false;
             for (JsonMethod m : autoDetect.value()) {
-                if (m == JsonMethod.GETTER || m == JsonMethod.ALL) {
+                if (m.setterEnabled()) {
                     set = true;
                     break;
                 }
@@ -228,14 +228,13 @@ public class SerializationConfig
 
     public DateFormat getDateFormat() { return _dateFormat; }
 
-    @SuppressWarnings("unchecked")
-	public <T extends BeanDescription> ClassIntrospector<T> getIntrospector() {
-        return (ClassIntrospector<T>) _classIntrospector;
-    }
-
+   /**
+     * Method that will introspect full bean properties for the purpose
+     * of building a bean serializer
+     */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspect(Class<?> cls) {
-        return (T) getIntrospector().forSerialization(this, cls);
+        return (T) _classIntrospector.forSerialization(this, cls);
     }
 
     /**
@@ -244,7 +243,7 @@ public class SerializationConfig
      */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) getIntrospector().forClassAnnotations(cls);
+        return (T) _classIntrospector.forClassAnnotations(cls);
     }
 
     /*

@@ -4,7 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonAnySetter;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
@@ -75,7 +75,8 @@ public class BasicBeanDescription extends BeanDescription
      * @return Ordered Map with logical property name as key, and
      *    matching getter method as value.
      */
-    public LinkedHashMap<String,AnnotatedMethod> findGetters(boolean autodetect)
+    public LinkedHashMap<String,AnnotatedMethod> findGetters(boolean autodetect,
+                                                             Collection<String> ignoredProperties)
     {
         /* As part of [JACKSON-52] we'll use baseline settings for
          * auto-detection, but also see if the class might override
@@ -136,6 +137,12 @@ public class BasicBeanDescription extends BeanDescription
                 }
                 propName = okNameForGetter(am);
                 if (propName == null) { // null means 'not valid'
+                    continue;
+                }
+            }
+
+            if (ignoredProperties != null) {
+                if (ignoredProperties.contains(propName)) {
                     continue;
                 }
             }
@@ -283,8 +290,26 @@ public class BasicBeanDescription extends BeanDescription
      * @return Ordered Map with logical property name as key, and
      *    matching setter method as value.
      */
-    public LinkedHashMap<String,AnnotatedMethod> findSetters()
+    public LinkedHashMap<String,AnnotatedMethod> findSetters(boolean autodetect)
     {
+        /* As part of [JACKSON-52] we'll use baseline settings for
+         * auto-detection, but also see if the class might override
+         * that setting.
+         */
+        JsonAutoDetect cann = _classInfo.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                autodetect = false;
+                for (JsonMethod jm : methods) {
+                    if (jm.setterEnabled()) {
+                        autodetect = true;
+                        break;
+                    }
+                }
+            }
+        }
+
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             // note: signature has already been checked via filters
@@ -315,6 +340,9 @@ public class BasicBeanDescription extends BeanDescription
                     }
                 }
             } else { // nope, but is public bean-setter name?
+                if (!autodetect) {
+                    continue;
+                }
                 propName = okNameForSetter(am);
                 if (propName == null) { // null means 'not valid'
                     continue;

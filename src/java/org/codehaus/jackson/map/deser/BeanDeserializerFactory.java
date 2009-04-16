@@ -213,7 +213,8 @@ public class BeanDeserializerFactory
                                 BasicBeanDescription beanDesc, BeanDeserializer deser)
         throws JsonMappingException
     {
-        Map<String,AnnotatedMethod> methodsByProp = beanDesc.findSetters();
+        boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS);
+        Map<String,AnnotatedMethod> setters = beanDesc.findSetters(autodetect);
         // Also, do we have a fallback "any" setter? If so, need to bind
         {
             AnnotatedMethod anyM = beanDesc.findAnySetter();
@@ -225,12 +226,31 @@ public class BeanDeserializerFactory
         /* No setters? Should we proceed here? It may well be ok, if
          * there are factory methods or such.
          */
-        //if (methodsByProp.isEmpty() && anySetter == null) ...
+        //if (setters.isEmpty() && anySetter == null) ...
 
         // These are all valid setters, but we do need to introspect bit more
-        for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
+        for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
             deser.addProperty(constructSettableProperty(en.getKey(), en.getValue()));
         }
+
+        /* As per [JACKSON-88], may also need to consider getters
+         * for Map/Collection properties
+         */
+        if (config.isEnabled(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS)) {
+            /* Hmmh. We have to assume that 'use getters as setters' also
+             * implies 'yes, do auto-detect these getters'? (if not, we'd
+             * need to add AUTO_DETECT_GETTERS to deser config too, not
+             * just ser config)
+             */
+            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(true, setters.keySet());
+            for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
+                String propName = en.getKey();
+                AnnotatedMethod getter = en.getValue();
+
+                // !!! TBI: add the 'getter-as-setter' bean property
+            }
+        }
+
     }
 
     /**

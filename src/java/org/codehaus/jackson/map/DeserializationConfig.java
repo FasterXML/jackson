@@ -57,20 +57,24 @@ public class DeserializationConfig
          * Feature is enabled by default.
          */
         AUTO_DETECT_CREATORS(true),
-            /**
-             * Feature that determines whether otherwise regular "getter"
-             * methods (but only ones that handle Collections and Maps,
-             * not getters of other type)
-             * are to be recognized and used for the purpose
-             * that creators and getters usually: that is, to get an
-             * initialized Collection or Map instance to be modified
-             * directly. If so, no creator or setter methods are used.
-             *<p>
-             * Note that such getters-as-setters methods have lower
-             * precedence than setters, so they are only used if no
-             * setter is found for the Map/Collection property.
-             */
-        AUTO_DETECT_GETTER_AS_SETTERS(true),
+
+        /**
+         * Feature that determines whether otherwise regular "getter"
+         * methods (but only ones that handle Collections and Maps,
+         * not getters of other type)
+         * can be used for purpose of getting a reference to a Collection
+         * and Map to modify the property, without requiring a setter
+         * method.
+         * This is similar to how JAXB framework sets Collections and
+         * Maps: no setter is involved, just setter.
+         *<p>
+         * Note that such getters-as-setters methods have lower
+         * precedence than setters, so they are only used if no
+         * setter is found for the Map/Collection property.
+         *<p>
+         * Feature is enabled by default.
+         */
+        USE_GETTERS_AS_SETTERS(true),
 
         /**
          * Feature that determines whether Json floating point numbers
@@ -214,10 +218,10 @@ public class DeserializationConfig
             boolean setters = false;
             boolean creators = false;
             for (JsonMethod m : autoDetect.value()) {
-                if (m == JsonMethod.SETTER || m == JsonMethod.ALL) {
+                if (m.setterEnabled()) {
                     setters = true;
                 }
-                if (m == JsonMethod.CREATOR || m == JsonMethod.ALL) {
+                if (m.creatorEnabled()) {
                     creators = true;
                 }
             }
@@ -275,19 +279,22 @@ public class DeserializationConfig
 
     public DateFormat getDateFormat() { return _dateFormat; }
 
-    @SuppressWarnings("unchecked")
-	public <T extends BeanDescription> ClassIntrospector<T> getIntrospector() {
-        return (ClassIntrospector<T>) _classIntrospector;
-    }
-
+    /**
+     * Method that will introspect full bean properties for the purpose
+     * of building a bean deserializer
+     */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspect(Class<?> cls) {
-        return (T) getIntrospector().forDeserialization(this, cls);
+        return (T) _classIntrospector.forDeserialization(this, cls);
     }
 
+    /**
+     * Method that will introspect subset of bean properties needed to
+     * construct bean instance.
+     */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspectForCreation(Class<?> cls) {
-        return (T) getIntrospector().forCreation(this, cls);
+        return (T) _classIntrospector.forCreation(this, cls);
     }
 
     /**
@@ -296,7 +303,7 @@ public class DeserializationConfig
      */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) getIntrospector().forClassAnnotations(cls);
+        return (T) _classIntrospector.forClassAnnotations(cls);
     }
 
     /*

@@ -11,32 +11,24 @@ package org.codehaus.jackson.annotate;
  */
 public enum JsonMethod {
     /**
-     * Getters are methods used to get a POJO field value for serialization
+     * Getters are methods used to get a POJO field value for serialization,
+     * or, under certain conditions also for de-serialization. Latter
+     * can be used for effectively setting Collection or Map values
+     * in absence of setters, iff returned value is not a copy but
+     * actual value of the logical property.
      */
     GETTER,
 
     /**
      * Setters are methods used to set a POJO value for deserialization
      */
-        SETTER,
+    SETTER,
 
         /**
-         * Creators are constructors and (static) factory methods used to construct
-         * POJO instances for deserialization
+         * Creators are constructors and (static) factory methods used to
+         * construct POJO instances for deserialization
          */
         CREATOR,
-
-        /**
-         * Getter-as-setter methods are otherwise regular methods that
-         * return Collection or Map types, and are used instead of
-         * creators and setter methods. Returned Map/Collection
-         * is expected to be modifiable and a shared instance member so
-         * that modifying it will change the underlying Map/Collection
-         * property and remove need to call a setter method.
-         * This is the method some libraries (most notably, JAXB) handle
-         * deserializing Collection fields.
-         */
-        GETTER_AS_SETTER,
 
         /**
          * This pseudo-type indicates that none of real types is included
@@ -50,6 +42,10 @@ public enum JsonMethod {
         ;
 
     private JsonMethod() { }
+
+    public boolean creatorEnabled() {
+        return (this == CREATOR) || (this == ALL);
+    }
 
     public boolean getterEnabled() {
         return (this == GETTER) || (this == ALL);

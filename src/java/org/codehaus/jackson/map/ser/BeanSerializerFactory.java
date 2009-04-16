@@ -175,7 +175,7 @@ public class BeanSerializerFactory
     {
         // are getters auto-detected?
         boolean autodetect = config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS);
-        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(autodetect);
+        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(autodetect, null);
         // nothing? can't proceed
         if (methodsByProp.isEmpty()) {
             return null;
