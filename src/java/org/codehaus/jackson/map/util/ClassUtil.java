@@ -153,14 +153,20 @@ public final class ClassUtil
          *   always to make it accessible (latter because it will force
          *   skipping checks we have no use for...), so let's always call it.
          */
-        //if (!obj.isAccessible()) {
-            try {
-                ao.setAccessible(true);
-            } catch (SecurityException se) {
+        //if (!ao.isAccessible()) {
+        try {
+            ao.setAccessible(true);
+        } catch (SecurityException se) {
+            /* 17-Apr-2009, tatu: Related to [JACKSON-101]: this can fail on
+             *    platforms like EJB and Google App Engine); so let's
+             *    only fail if we really needed it...
+             */
+            if (!ao.isAccessible()) {
                 Class<?> declClass = member.getDeclaringClass();
                 throw new IllegalArgumentException("Can not access "+member+" (from class "+declClass.getName()+"; failed to set access: "+se.getMessage());
             }
-            //}
+        }
+        //}
     }
 }
 

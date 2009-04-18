@@ -185,11 +185,14 @@ public class BeanSerializerFactory
          * this class?
          */
         boolean writeNulls = beanDesc.willWriteNullProperties(config.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
+        boolean fixAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
             AnnotatedMethod am = en.getValue();
-            am.fixAccess();
+            if (fixAccess) {
+                am.fixAccess();
+            }
             /* One more thing: does Method specify a serializer?
              * If so, let's use it.
              */

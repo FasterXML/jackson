@@ -65,6 +65,11 @@ public final class AnnotatedConstructor
         return _constructor.getParameterTypes();
     }
 
+    /**
+     * Method that can be called to modify access rights, by calling
+     * {@link java.lang.reflect.AccessibleObject#setACcessible} on
+     * the underlying annotated element.
+     */
     public void fixAccess()
     {
         ClassUtil.checkAndFixAccess(_constructor);

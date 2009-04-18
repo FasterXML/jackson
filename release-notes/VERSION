@@ -6,6 +6,18 @@ Release date:
 Description:
   Another pre-1.0 release.
 
+  Improvements:
+
+  * [JACKSON-101]: Allow disabling of access modifier overrides
+    (SerializationgConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)
+    to support more security-constrainted running environments.
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+0.9.9-4 [14-Apr-2009]
+
   Fixes:
 
   * [JACKSON-94] Added missing "JsonParser.readValueAsTree()" method.
@@ -34,10 +46,6 @@ Description:
   * [JACKSON-93]: Allow overriding the default ClassIntrospector.
   * [JACKSON-96]: Allow enabling pretty-printing with data binding,
     through SerializationConfig object.
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 0.9.9-3 [03-Apr-2009]
 

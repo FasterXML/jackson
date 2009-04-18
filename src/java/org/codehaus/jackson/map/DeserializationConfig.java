@@ -27,6 +27,8 @@ public class DeserializationConfig
      * the serialization feature.
      */
     public enum Feature {
+        // // // Class introspection configuration
+
         /**
          * Feature that determines whether "setter" methods are
          * automatically detected based on standard Bean naming convention
@@ -77,6 +79,18 @@ public class DeserializationConfig
         USE_GETTERS_AS_SETTERS(true),
 
         /**
+         * Feature that determines whether method and field access
+         * modifier settings can be overridden when accessing
+         * properties. If enabled, method
+         * {@link java.lang.reflect.AccessibleObject#setAccessible}
+         * may be called to enable access to otherwise unaccessible
+         * objects.
+         */
+        CAN_OVERRIDE_ACCESS_MODIFIERS(true),
+
+        // // // Type conversion configuration
+
+        /**
          * Feature that determines whether Json floating point numbers
          * are to be deserialized into {@link java.math.BigDecimal}s
          * if only generic type description (either {@link Object} or
@@ -90,7 +104,25 @@ public class DeserializationConfig
          * (choice is for performance reason -- BigDecimals are slower than
          * Doubles)
          */
-        USE_BIG_DECIMAL_FOR_FLOATS(false)
+        USE_BIG_DECIMAL_FOR_FLOATS(false),
+
+        /**
+         * Feature that determines whether Json integral (non-floating-point)
+         * numbers are to be deserialized into {@link java.math.BigInteger}s
+         * if only generic type description (either {@link Object} or
+         * {@link Number}, or within untyped {@link java.util.Map}
+         * or {@link java.util.Collection} context) is available.
+         * If enabled such values will be deserialized as
+         * {@link java.math.BigInteger}s;
+         * if disabled, will be deserialized as "smallest" available type,
+         * which is either {@link Integer}, {@link Long} or
+         * {@link BigInteger}, depending on number of digits.
+         * <p>
+         * Feature is disabled by default, meaning that "untyped" floating
+         * point numbers will by default be deserialized using whatever
+         * is the most compact integral type, to optimize efficiency.
+         */
+        USE_BIG_INTEGER_FOR_INTS(false)
 	            ;
 
         final boolean _defaultState;

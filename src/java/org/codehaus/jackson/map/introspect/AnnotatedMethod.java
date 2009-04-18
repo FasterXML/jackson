@@ -61,7 +61,7 @@ public final class AnnotatedMethod
     {
         return _annotations.get(acls);
     }
-    
+
     /*
     //////////////////////////////////////////////////////
     // Extended API, generic
@@ -95,10 +95,16 @@ public final class AnnotatedMethod
 
     public int getAnnotationCount() { return _annotations.size(); }
 
+    /**
+     * Method that can be called to modify access rights, by calling
+     * {@link java.lang.reflect.AccessibleObject#setACcessible} on
+     * the underlying annotated element.
+     */
     public void fixAccess()
     {
         ClassUtil.checkAndFixAccess(_method);
     }
+    
 
     /*
     //////////////////////////////////////////////////////

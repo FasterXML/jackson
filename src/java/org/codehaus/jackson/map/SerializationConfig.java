@@ -24,8 +24,8 @@ public class SerializationConfig
      * the serialization feature.
      */
     public enum Feature {
-        // // // Features for annotation handling
-
+        // // // Class introspection configuration
+        
         /**
          * Feature that determines whether "getter" methods are
          * automatically detected based on standard Bean naming convention
@@ -41,6 +41,16 @@ public class SerializationConfig
          * Feature is enabled by default.
          */
         AUTO_DETECT_GETTERS(true),
+
+        /**
+         * Feature that determines whether method and field access
+         * modifier settings can be overridden when accessing
+         * properties. If enabled, method
+         * {@link java.lang.reflect.AccessibleObject#setAccessible}
+         * may be called to enable access to otherwise unaccessible
+         * objects.
+         */
+        CAN_OVERRIDE_ACCESS_MODIFIERS(true),
 
         // // // Generic output features
 

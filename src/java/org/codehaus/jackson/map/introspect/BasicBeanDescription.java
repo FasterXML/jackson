@@ -206,7 +206,6 @@ public class BasicBeanDescription extends BeanDescription
         if (ac == null) {
             return null;
         }
-        ac.fixAccess();
         return ac.getAnnotated();
     }
 
@@ -228,7 +227,6 @@ public class BasicBeanDescription extends BeanDescription
                 Class<?> actArg = args[0];
                 for (Class<?> expArg : argTypes) {
                     if (expArg == actArg) {
-                        ac.fixAccess();
                         return ac.getAnnotated();
                     }
                 }
@@ -271,7 +269,6 @@ public class BasicBeanDescription extends BeanDescription
             for (Class<?> expArgType : expArgTypes) {
                 // And one that matches what we would pass in
                 if (actualArgType.isAssignableFrom(expArgType)) {
-                    am.fixAccess();
                     return am.getAnnotated();
                 }
             }

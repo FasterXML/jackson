@@ -138,7 +138,7 @@ public class BeanDeserializerFactory
          */
         AnnotatedMethod am = beanDesc.findMethod("initCause", INIT_CAUSE_PARAMS);
         if (am != null) { // should never be null
-            deser.addProperty(constructSettableProperty("cause", am));
+            deser.addProperty(constructSettableProperty(config, "cause", am));
         }
 
         // And also need to ignore "localizedMessage"
@@ -192,13 +192,17 @@ public class BeanDeserializerFactory
          */
         Constructor<?> defaultCtor = beanDesc.findDefaultConstructor();
         if (defaultCtor != null) {
+            if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+                ClassUtil.checkAndFixAccess(defaultCtor);
+            }
+
             deser.setDefaultConstructor(defaultCtor);
         }
-        BeanDeserializer.StringConstructor sctor = getStringCreators(beanClass, beanDesc);
+        BeanDeserializer.StringConstructor sctor = getStringCreators(config, beanClass, beanDesc);
         if (sctor != null) {
             deser.setConstructor(sctor);
         }
-        BeanDeserializer.NumberConstructor nctor = getNumberCreators(beanClass, beanDesc);
+        BeanDeserializer.NumberConstructor nctor = getNumberCreators(config, beanClass, beanDesc);
         if (nctor != null) {
             deser.setConstructor(nctor);
         }
@@ -219,7 +223,7 @@ public class BeanDeserializerFactory
         {
             AnnotatedMethod anyM = beanDesc.findAnySetter();
             if (anyM != null) {
-                deser.setAnySetter(constructAnySetter(anyM));
+                deser.setAnySetter(constructAnySetter(config, anyM));
             }
         }
 
@@ -230,7 +234,7 @@ public class BeanDeserializerFactory
 
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
-            deser.addProperty(constructSettableProperty(en.getKey(), en.getValue()));
+            deser.addProperty(constructSettableProperty(config, en.getKey(), en.getValue()));
         }
 
         /* As per [JACKSON-88], may also need to consider getters
@@ -258,10 +262,13 @@ public class BeanDeserializerFactory
      * for handling unknown bean properties, given a method that
      * has been designated as such setter.
      */
-    protected SettableAnyProperty constructAnySetter(AnnotatedMethod am)
+    protected SettableAnyProperty constructAnySetter(DeserializationConfig config,
+                                                     AnnotatedMethod am)
         throws JsonMappingException
     {
-        am.fixAccess(); // to ensure we can call it
+        if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+            am.fixAccess(); // to ensure we can call it
+        }
         /* AnySetter can be annotated with @JsonClass (etc) just like a
          * regular setter... so let's see if those are used.
          * Returns null if no annotations, in which case binding will
@@ -288,11 +295,14 @@ public class BeanDeserializerFactory
      * Method that will construct a bean property setter using
      * the given setter method.
      */
-    protected SettableBeanProperty constructSettableProperty(String name, AnnotatedMethod am) 
+    protected SettableBeanProperty constructSettableProperty(DeserializationConfig config,
+                                                             String name, AnnotatedMethod am) 
         throws JsonMappingException
     {
         // need to ensure it is callable now:
-        am.fixAccess();
+        if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+            am.fixAccess();
+        }
 
         // note: this works since we know there's exactly one arg for methods
         Type rawType = am.getGenericParameterTypes()[0];
@@ -322,28 +332,50 @@ public class BeanDeserializerFactory
     ////////////////////////////////////////////////////////////
      */
 
-    BeanDeserializer.StringConstructor getStringCreators(Class<?> beanClass,
+    BeanDeserializer.StringConstructor getStringCreators(DeserializationConfig config,
+                                                         Class<?> beanClass,
                                                          BasicBeanDescription beanDesc)
     {
+        boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+
         // Single-string ctor
         Constructor<?> sctor = beanDesc.findSingleArgConstructor(String.class);
+        if (sctor != null && fixAccess) {
+            ClassUtil.checkAndFixAccess(sctor);
+        }
         // and/or one of "well-known" factory methods
         Method factoryMethod = beanDesc.findFactoryMethod(String.class);
+        if (factoryMethod != null) {
+            ClassUtil.checkAndFixAccess(factoryMethod);
+        }
         return new BeanDeserializer.StringConstructor(beanClass, sctor, factoryMethod);
     }
 
-    BeanDeserializer.NumberConstructor getNumberCreators(Class<?> beanClass,
+    BeanDeserializer.NumberConstructor getNumberCreators(DeserializationConfig config,
+                                                         Class<?> beanClass,
                                                          BasicBeanDescription beanDesc)
     {
+        boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+
         // single-arg ctors 
         Constructor<?> intCtor = beanDesc.findSingleArgConstructor(int.class, Integer.class);
+        if (intCtor != null && fixAccess) {
+            ClassUtil.checkAndFixAccess(intCtor);
+        }
         Constructor<?> longCtor = beanDesc.findSingleArgConstructor(long.class, Long.class);
-
+        if (longCtor != null && fixAccess) {
+            ClassUtil.checkAndFixAccess(longCtor);
+        }
 
         // and/or one of "well-known" factory methods
         Method intFactoryMethod = beanDesc.findFactoryMethod(int.class, Integer.class);
+        if (intFactoryMethod != null && fixAccess) {
+            ClassUtil.checkAndFixAccess(intFactoryMethod);
+        }
         Method longFactoryMethod = beanDesc.findFactoryMethod(long.class, Long.class);
-
+        if (longFactoryMethod != null && fixAccess) {
+            ClassUtil.checkAndFixAccess(longFactoryMethod);
+        }
         return new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactoryMethod, longFactoryMethod);
     }
 
