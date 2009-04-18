@@ -2,6 +2,7 @@ package org.codehaus.jackson;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 
@@ -125,6 +126,7 @@ public abstract class JsonNode
 
     public boolean isDouble() { return false; }
     public boolean isBigDecimal() { return false; }
+    public boolean isBigInteger() { return false; }
 
     public boolean isTextual() { return false; }
 
@@ -186,6 +188,7 @@ public abstract class JsonNode
     public long getLongValue() { return 0L; }
     public double getDoubleValue() { return 0.0; }
     public BigDecimal getDecimalValue() { return BigDecimal.ZERO; }
+    public BigInteger getBigIntegerValue() { return BigInteger.ZERO; }
 
     /**
      * Method for accessing value of the specified element of

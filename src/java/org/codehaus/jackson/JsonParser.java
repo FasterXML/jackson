@@ -17,6 +17,7 @@ package org.codehaus.jackson;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.codehaus.jackson.type.TypeReference;
 
@@ -489,7 +490,7 @@ public abstract class JsonParser
      *<p>
      * Note: if the resulting integer value falls outside range of
      * Java int, a {@link JsonParseException}
-     * will be thrown to indicate numeric overflow/underflow.
+     * may be thrown to indicate numeric overflow/underflow.
      */
     public abstract int getIntValue()
         throws IOException, JsonParseException;
@@ -505,9 +506,21 @@ public abstract class JsonParser
      *<p>
      * Note: if the token is an integer, but its value falls
      * outside of range of Java long, a {@link JsonParseException}
-     * will be thrown to indicate numeric overflow/underflow.
+     * may be thrown to indicate numeric overflow/underflow.
      */
     public abstract long getLongValue()
+        throws IOException, JsonParseException;
+
+    /**
+     * Numeric accessor that can be called when the current
+     * token is of type {@link JsonToken#VALUE_NUMBER_INT} and
+     * it can not be used as a Java long primitive type due to its
+     * magnitude.
+     * It can also be called for {@link JsonToken#VALUE_NUMBER_FLOAT};
+     * if so, it is equivalent to calling {@link #getDecimalValue}
+     * and then constructing a {@link BigInteger} from that value.
+     */
+    public abstract BigInteger getBigIntegerValue()
         throws IOException, JsonParseException;
 
     /**

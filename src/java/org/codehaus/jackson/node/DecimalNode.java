@@ -2,6 +2,7 @@ package org.codehaus.jackson.node;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.SerializerProvider;
@@ -33,6 +34,10 @@ public final class DecimalNode
 
     @Override
         public long getLongValue() { return _value.longValue(); }
+
+
+    @Override
+        public BigInteger getBigIntegerValue() { return _value.toBigInteger(); }
 
     @Override
         public double getDoubleValue() { return _value.doubleValue(); }

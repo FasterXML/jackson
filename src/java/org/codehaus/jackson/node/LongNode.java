@@ -2,6 +2,7 @@ package org.codehaus.jackson.node;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.NumberOutput;
@@ -41,6 +42,9 @@ public final class LongNode
 
     @Override
         public BigDecimal getDecimalValue() { return BigDecimal.valueOf(_value); }
+
+    @Override
+        public BigInteger getBigIntegerValue() { return BigInteger.valueOf(_value); }
 
     public String getValueAsText() {
         return NumberOutput.toString(_value);

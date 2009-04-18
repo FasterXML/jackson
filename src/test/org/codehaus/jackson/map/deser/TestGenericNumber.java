@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
@@ -19,6 +20,43 @@ public class TestGenericNumber
          */
         Number result = new ObjectMapper().readValue(new StringReader(" 123 "), Number.class);
         assertEquals(Integer.valueOf(123), result);
+    }
+
+    public void testLongAsNumber() throws Exception
+    {
+        // And beyond int range, should get long
+        long exp = 1234567890123L;
+        Number result = new ObjectMapper().readValue(String.valueOf(exp), Number.class);
+        assertEquals(Long.valueOf(exp), result);
+    }
+
+    public void testBigIntAsNumber() throws Exception
+    {
+        // and after long, BigInteger
+        BigInteger biggie = new BigInteger("1234567890123456789012345678901234567890");
+        Number result = new ObjectMapper().readValue(biggie.toString(), Number.class);
+        assertEquals(BigInteger.class, biggie.getClass());
+        assertEquals(biggie, result);
+    }
+
+    public void testIntTypeOverride() throws Exception
+    {
+        /* Slight twist; as per [JACKSON-100], can also request binding
+         * to BigInteger even if value would fit in Integer
+         */
+        ObjectMapper m = new ObjectMapper();
+        m.getDeserializationConfig().enable(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS);
+        BigInteger exp = BigInteger.valueOf(123L);
+
+        // first test as any Number
+        Number result = m.readValue(new StringReader(" 123 "), Number.class);
+        assertEquals(BigInteger.class, result.getClass());
+        assertEquals(exp, result);
+
+        // then as any Object
+        Object value = m.readValue(new StringReader("123"), Object.class);
+        assertEquals(BigInteger.class, result.getClass());
+        assertEquals(exp, result);
     }
 
     /**

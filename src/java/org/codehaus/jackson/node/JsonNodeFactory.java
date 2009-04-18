@@ -1,6 +1,7 @@
 package org.codehaus.jackson.node;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * Base class that specifies methods for getting access to
@@ -68,6 +69,12 @@ public class JsonNodeFactory
      * that expresses given 64-bit integer value
      */
     public NumericNode numberNode(long v) { return LongNode.valueOf(v); }
+
+    /**
+     * Factory method for getting an instance of Json numeric value
+     * that expresses given unlimited range integer value
+     */
+    public NumericNode numberNode(BigInteger v) { return BigIntegerNode.valueOf(v); }
 
     /**
      * Factory method for getting an instance of Json numeric value

@@ -243,7 +243,12 @@ public class DeserializationConfig
      */
     public void fromAnnotations(Class<?> annotatedClass)
     {
-    	// no annotation for USE_BIG_DECIMAL_FOR_FLOATS...
+    	/* no class annotation for:
+         *
+         * - USE_BIG_DECIMAL_FOR_FLOATS
+         * - USE_BIG_INTEGER_FOR_INTS
+         * - CAN_OVERRIDE_ACCESS_MODIFIERS
+         */
 
     	JsonAutoDetect autoDetect = annotatedClass.getAnnotation(JsonAutoDetect.class);
     	if (autoDetect != null) {

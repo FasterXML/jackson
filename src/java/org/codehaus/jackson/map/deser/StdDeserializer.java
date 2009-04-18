@@ -394,10 +394,13 @@ public abstract class StdDeserializer<T>
         {
             JsonToken t = jp.getCurrentToken();
             if (t == JsonToken.VALUE_NUMBER_INT) {
+                if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS)) {
+                    return jp.getBigIntegerValue();
+                }
                 return jp.getNumberValue();
             } else if (t == JsonToken.VALUE_NUMBER_FLOAT) {
-                /* [JACKSON-72]: need to allow overriding the behavior regarding
-                 *   which type to use
+                /* [JACKSON-72]: need to allow overriding the behavior
+                 * regarding which type to use
                  */
                 if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
                     return jp.getDecimalValue();
@@ -412,7 +415,15 @@ public abstract class StdDeserializer<T>
                 String text = jp.getText().trim();
                 try {
                     if (text.indexOf('.') >= 0) { // floating point
+                        // as per [JACKSON-72]:
+                        if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
+                            return new BigDecimal(text);
+                        }
                         return new Double(text);
+                    }
+                    // as per [JACKSON-100]:
+                    if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS)) {
+                        return new BigInteger(text);
                     }
                     long value = Long.parseLong(text);
                     if (value <= Integer.MAX_VALUE && value >= Integer.MIN_VALUE) {

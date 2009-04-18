@@ -1,6 +1,7 @@
 package org.codehaus.jackson.node;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * Intermediate value node used for numeric nodes.
@@ -20,6 +21,7 @@ public abstract class NumericNode
     public abstract long getLongValue();
     public abstract double getDoubleValue();
     public abstract BigDecimal getDecimalValue();
+    public abstract BigInteger getBigIntegerValue();
 
     public abstract String getValueAsText();
 }

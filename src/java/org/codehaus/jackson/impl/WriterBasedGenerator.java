@@ -2,6 +2,7 @@ package org.codehaus.jackson.impl;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.*;
@@ -404,8 +405,16 @@ public final class WriterBasedGenerator
         _outputTail = NumberOutput.outputLong(l, _outputBuffer, _outputTail);
     }
 
-    /* !!! 05-Aug-2008, tatus: Any ways to optimize these?
-     */
+    // !!! 05-Aug-2008, tatus: Any ways to optimize these?
+
+    @Override
+    public void writeNumber(BigInteger v)
+        throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write number");
+        writeRaw(v.toString());
+    }
+
 
     @Override
 	public void writeNumber(double d)

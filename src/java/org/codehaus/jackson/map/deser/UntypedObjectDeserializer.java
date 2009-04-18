@@ -31,6 +31,12 @@ public class UntypedObjectDeserializer
             return jp.getText();
 
         case VALUE_NUMBER_INT:
+            /* [JACKSON-100]: caller may want to get all integral values
+             * returned as BigInteger, for consistency
+             */
+            if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS)) {
+                return jp.getBigIntegerValue(); // should be optimal, whatever it is
+            }
             return jp.getNumberValue(); // should be optimal, whatever it is
 
         case VALUE_NUMBER_FLOAT:

@@ -64,16 +64,27 @@ public class JsonNodeDeserializer
             return _nodeFactory.textNode(jp.getText());
 
         case VALUE_NUMBER_INT:
-            if (jp.getNumberType() == JsonParser.NumberType.INT) {
-                return _nodeFactory.numberNode(jp.getIntValue());
+            {
+                JsonParser.NumberType nt = jp.getNumberType();
+                if (nt == JsonParser.NumberType.BIG_INTEGER
+                    || ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS)) {
+                    return _nodeFactory.numberNode(jp.getIntValue());
+                }
+                if (nt == JsonParser.NumberType.INT) {
+                    return _nodeFactory.numberNode(jp.getIntValue());
+                }
+                return _nodeFactory.numberNode(jp.getLongValue());
             }
-            return _nodeFactory.numberNode(jp.getLongValue());
 
         case VALUE_NUMBER_FLOAT:
-            if (jp.getNumberType() == JsonParser.NumberType.BIG_DECIMAL) {
-                return _nodeFactory.numberNode(jp.getDecimalValue());
+            {
+                JsonParser.NumberType nt = jp.getNumberType();
+                if (nt == JsonParser.NumberType.BIG_DECIMAL
+                    || ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
+                    return _nodeFactory.numberNode(jp.getDecimalValue());
+                }
+                return _nodeFactory.numberNode(jp.getDoubleValue());
             }
-            return _nodeFactory.numberNode(jp.getDoubleValue());
 
         case VALUE_TRUE:
             return _nodeFactory.booleanNode(true);

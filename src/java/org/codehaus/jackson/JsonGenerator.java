@@ -16,6 +16,7 @@ package org.codehaus.jackson;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * Base class that defines public API for writing Json content.
@@ -358,23 +359,33 @@ public abstract class JsonGenerator
      */
 
     /**
-     * Method for outputting indicate Json numeric value.
+     * Method for outputting given value as Json number.
      * Can be called in any context where a value is expected
      * (Array value, Object field value, root-level value).
      * Additional white space may be added around the value
      * if pretty-printing is enabled.
      */
-    public abstract void writeNumber(int i)
+    public abstract void writeNumber(int v)
         throws IOException, JsonGenerationException;
 
     /**
-     * Method for outputting indicate Json numeric value.
+     * Method for outputting given value as Json number.
      * Can be called in any context where a value is expected
      * (Array value, Object field value, root-level value).
      * Additional white space may be added around the value
      * if pretty-printing is enabled.
      */
-    public abstract void writeNumber(long l)
+    public abstract void writeNumber(long v)
+        throws IOException, JsonGenerationException;
+
+    /**
+     * Method for outputting given value as Json number.
+     * Can be called in any context where a value is expected
+     * (Array value, Object field value, root-level value).
+     * Additional white space may be added around the value
+     * if pretty-printing is enabled.
+     */
+    public abstract void writeNumber(BigInteger v)
         throws IOException, JsonGenerationException;
 
     /**

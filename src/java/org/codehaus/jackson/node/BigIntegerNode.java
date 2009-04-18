@@ -9,45 +9,45 @@ import org.codehaus.jackson.io.NumberOutput;
 import org.codehaus.jackson.map.SerializerProvider;
 
 /**
- * Numeric node that contains simple 32-bit integer values.
+ * Numeric node that contains simple 64-bit integer values.
  */
-public final class IntNode
+public final class BigIntegerNode
     extends NumericNode
 {
-    final int _value;
+    final BigInteger _value;
 
-    public IntNode(int v) { _value = v; }
+    public BigIntegerNode(BigInteger v) { _value = v; }
 
-    public static IntNode valueOf(int i) { return new IntNode(i); }
+    public static BigIntegerNode valueOf(BigInteger v) { return new BigIntegerNode(v); }
 
     @Override
     public boolean isIntegralNumber() { return true; }
 
     @Override
-    public boolean isInt() { return true; }
+    public boolean isBigInteger() { return true; }
 
     @Override
     public Number getNumberValue() {
-        return Integer.valueOf(_value);
+        return _value;
     }
 
     @Override
-        public int getIntValue() { return _value; }
+        public int getIntValue() { return _value.intValue(); }
 
     @Override
-        public long getLongValue() { return (long) _value; }
+        public long getLongValue() { return _value.longValue(); }
 
     @Override
-        public double getDoubleValue() { return (double) _value; }
+        public BigInteger getBigIntegerValue() { return _value; }
 
     @Override
-        public BigDecimal getDecimalValue() { return BigDecimal.valueOf(_value); }
+        public double getDoubleValue() { return _value.doubleValue(); }
 
     @Override
-        public BigInteger getBigIntegerValue() { return BigInteger.valueOf(_value); }
+        public BigDecimal getDecimalValue() { return new BigDecimal(_value); }
 
     public String getValueAsText() {
-        return NumberOutput.toString(_value);
+        return _value.toString();
     }
 
     @Override
@@ -65,9 +65,11 @@ public final class IntNode
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
-        return ((IntNode) o)._value == _value;
+        return ((BigIntegerNode) o)._value == _value;
     }
 
     @Override
-        public int hashCode() { return _value; }
+    public int hashCode() {
+        return _value.hashCode();
+    }
 }

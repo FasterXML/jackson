@@ -286,6 +286,20 @@ public abstract class JsonNumericParserBase
         return _numberLong;
     }
 
+    public BigInteger getBigIntegerValue()
+        throws IOException, JsonParseException
+    {
+        if ((_numTypesValid & NR_BIGINT) == 0) {
+            if (_numTypesValid == NR_UNKNOWN) {
+                parseNumericValue(NR_BIGINT);
+            }
+            if ((_numTypesValid & NR_BIGINT) == 0) {
+                convertNumberToBigInteger();
+            }
+        }
+        return _numberBigInt;
+    }
+
     public float getFloatValue()
         throws IOException, JsonParseException
     {
@@ -373,9 +387,8 @@ public abstract class JsonNumericParserBase
                     return;
                 }
                 // nope, need the heavy guns... (rare case)
-                BigInteger bi = new BigInteger(_textBuffer.contentsAsString());
-                _numberBigDecimal = new BigDecimal(bi);
-                _numTypesValid = NR_BIGDECIMAL;
+                _numberBigInt = new BigInteger(_textBuffer.contentsAsString());
+                _numTypesValid = NR_BIGINT;
                 return;
             }
 
@@ -417,6 +430,9 @@ public abstract class JsonNumericParserBase
                 _reportError("Numeric value ("+getText()+") out of range of int");
             }
             _numberInt = result;
+        } else if ((_numTypesValid & NR_BIGINT) != 0) {
+            // !!! Should check for range...
+            _numberInt = _numberBigInt.intValue();
         } else if ((_numTypesValid & NR_DOUBLE) != 0) {
             // Need to check boundaries
             if (_numberDouble < MIN_INT_D || _numberDouble > MAX_INT_D) {
@@ -441,6 +457,9 @@ public abstract class JsonNumericParserBase
     {
         if ((_numTypesValid & NR_INT) != 0) {
             _numberLong = (long) _numberInt;
+        } else if ((_numTypesValid & NR_BIGINT) != 0) {
+            // !!! Should check for range...
+            _numberLong = _numberBigInt.longValue();
         } else if ((_numTypesValid & NR_DOUBLE) != 0) {
             // Need to check boundaries
             if (_numberDouble < MIN_LONG_D || _numberDouble > MAX_LONG_D) {
@@ -460,6 +479,24 @@ public abstract class JsonNumericParserBase
         _numTypesValid |= NR_LONG;
     }
 
+    protected void convertNumberToBigInteger()
+        throws IOException, JsonParseException
+    {
+        if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
+            // here it'll just get truncated, no exceptions thrown
+            _numberBigInt = _numberBigDecimal.toBigInteger();
+        } else if ((_numTypesValid & NR_LONG) != 0) {
+            _numberBigInt = BigInteger.valueOf(_numberLong);
+        } else if ((_numTypesValid & NR_INT) != 0) {
+            _numberBigInt = BigInteger.valueOf(_numberInt);
+        } else if ((_numTypesValid & NR_DOUBLE) != 0) {
+            _numberBigInt = BigDecimal.valueOf(_numberDouble).toBigInteger();
+        } else {
+            _throwInternal(); // should never get here
+        }
+        _numTypesValid |= NR_BIGINT;
+    }
+
     protected void convertNumberToDouble()
         throws IOException, JsonParseException
     {
@@ -471,6 +508,8 @@ public abstract class JsonNumericParserBase
 
         if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
             _numberDouble = _numberBigDecimal.doubleValue();
+        } else if ((_numTypesValid & NR_BIGINT) != 0) {
+            _numberDouble = _numberBigInt.doubleValue();
         } else if ((_numTypesValid & NR_LONG) != 0) {
             _numberDouble = (double) _numberLong;
         } else if ((_numTypesValid & NR_INT) != 0) {
@@ -497,6 +536,8 @@ public abstract class JsonNumericParserBase
              * would incur
              */
             _numberBigDecimal = new BigDecimal(getText());
+        } else if ((_numTypesValid & NR_BIGINT) != 0) {
+            _numberBigDecimal = new BigDecimal(_numberBigInt);
         } else if ((_numTypesValid & NR_LONG) != 0) {
             _numberBigDecimal = BigDecimal.valueOf(_numberLong);
         } else if ((_numTypesValid & NR_INT) != 0) {

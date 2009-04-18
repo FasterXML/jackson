@@ -2,6 +2,7 @@ package org.codehaus.jackson.node;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.NumberOutput;
@@ -14,9 +15,9 @@ import org.codehaus.jackson.map.SerializerProvider;
 public final class DoubleNode
     extends NumericNode
 {
-    final double mValue;
+    final double _value;
 
-    public DoubleNode(double v) { mValue = v; }
+    public DoubleNode(double v) { _value = v; }
 
     public static DoubleNode valueOf(double v) { return new DoubleNode(v); }
 
@@ -28,30 +29,35 @@ public final class DoubleNode
 
     @Override
     public Number getNumberValue() {
-        return Double.valueOf(mValue);
+        return Double.valueOf(_value);
     }
 
     @Override
-        public int getIntValue() { return (int) mValue; }
+        public int getIntValue() { return (int) _value; }
 
     @Override
-        public long getLongValue() { return (long) mValue; }
+        public long getLongValue() { return (long) _value; }
 
     @Override
-        public double getDoubleValue() { return mValue; }
+        public double getDoubleValue() { return _value; }
 
     @Override
-        public BigDecimal getDecimalValue() { return BigDecimal.valueOf(mValue); }
+        public BigDecimal getDecimalValue() { return BigDecimal.valueOf(_value); }
+
+    @Override
+    public BigInteger getBigIntegerValue() {
+        return getDecimalValue().toBigInteger();
+    }
 
     public String getValueAsText() {
-        return NumberOutput.toString(mValue);
+        return NumberOutput.toString(_value);
     }
 
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
         throws IOException, JsonProcessingException
     {
-        jg.writeNumber(mValue);
+        jg.writeNumber(_value);
     }
 
     @Override
@@ -62,14 +68,14 @@ public final class DoubleNode
         if (o.getClass() != getClass()) { // final class, can do this
             return false;
         }
-        return ((DoubleNode) o).mValue == mValue;
+        return ((DoubleNode) o)._value == _value;
     }
 
     @Override
     public int hashCode()
     {
         // same as hashCode Double.class uses
-        long l = Double.doubleToLongBits(mValue);
+        long l = Double.doubleToLongBits(_value);
         return ((int) l) ^ (int) (l >> 32);
 
     }
