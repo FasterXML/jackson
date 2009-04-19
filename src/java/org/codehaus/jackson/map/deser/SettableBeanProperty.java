@@ -13,9 +13,23 @@ import org.codehaus.jackson.type.JavaType;
  */
 public final class SettableBeanProperty
 {
+    /**
+     * Logical name of the property (often but not always derived
+     * from the setter method name)
+     */
     final String _propName;
 
+    /**
+     * Setter method for modifying property value; used for
+     * properties other than "setterless" ones.
+     */
     final Method _setter;
+
+    /**
+     * Get method for accessing property value; only used for
+     * "setterless" properties.
+     */
+    final Method _getter;
 
     final JavaType _type;
 
@@ -34,7 +48,8 @@ public final class SettableBeanProperty
     ////////////////////////////////////////////////////////
      */
 
-    public SettableBeanProperty(String propName, JavaType type, Method setter)
+    public SettableBeanProperty(String propName, JavaType type, Method setter,
+                                Method getter)
     {
         /* 09-Jan-2009, tatu: Intern()ing makes sense since Jackson parsed
          *   field names are interned too, hence lookups will be faster.
@@ -42,6 +57,7 @@ public final class SettableBeanProperty
         _propName = propName.intern();
         _type = type;
         _setter = setter;
+        _getter = getter;
     }
 
     public void setValueDeserializer(JsonDeserializer<Object> deser)
@@ -78,8 +94,14 @@ public final class SettableBeanProperty
                                         Object instance)
         throws IOException, JsonProcessingException
     {
-        Object value = deserialize(jp, ctxt);
-        set(instance, value);
+        /* As per [JACKSON-88], we now have 2 ways to instantiate the
+         * value...
+         */
+        if (_getter == null) { // regular, with-setter property
+            set(instance, deserialize(jp, ctxt));
+        } else { // setterless
+            _deserializeSetterless(jp, ctxt, _getSetterless(instance));
+        }
     }
 
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -93,13 +115,55 @@ public final class SettableBeanProperty
     }
 
     public final void set(Object instance, Object value)
-        throws IOException, JsonProcessingException
+        throws IOException
     {
         try {
             _setter.invoke(instance, value);
         } catch (Exception e) {
             _throwAsIOE(e, value);
         }
+    }
+
+    /*
+    ////////////////////////////////////////////////////////
+    // Helper methods
+    ////////////////////////////////////////////////////////
+     */
+
+    private final Object _deserializeSetterless(JsonParser jp, DeserializationContext ctxt,
+                                    Object withValue)
+        throws IOException, JsonProcessingException
+    {
+        JsonToken t = jp.nextToken();
+        /* Hmmh. Is this a problem? We won't be setting anyting, so it's
+         * equivalent of empty Collection/Map in this case
+         */
+        if (t == JsonToken.VALUE_NULL) {
+            return _nullValue;
+        }
+        return _valueDeserializer.deserialize(jp, ctxt, withValue);
+    }
+
+
+    private final Object _getSetterless(Object instance)
+        throws IOException
+    {
+        Object value;
+        try {
+            value = _getter.invoke(instance);
+        } catch (Exception e) {
+            _throwAsIOE(e);
+            return null;
+        }
+        /* Note: null won't work, since we can't then inject anything
+         * in. At least that's not good in common case. However,
+         * theoretically the case where we get Json null might
+         * be compatible. If so, implementation could be changed.
+         */
+        if (value == null) {
+            throw new JsonMappingException("Problem deserializing 'setterless' property '"+getPropertyName()+"': get method returned null");
+        }
+        return value;
     }
 
     /**
@@ -122,6 +186,12 @@ public final class SettableBeanProperty
             }
             throw new JsonMappingException(msg.toString(), null, e);
         }
+        _throwAsIOE(e);
+    }
+
+    protected IOException _throwAsIOE(Exception e)
+        throws IOException
+    {
         if (e instanceof IOException) {
             throw (IOException) e;
         }

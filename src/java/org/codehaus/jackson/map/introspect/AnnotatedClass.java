@@ -306,5 +306,17 @@ public final class AnnotatedClass
     {
         return _memberMethods.find(name, paramTypes);
     }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Other methods
+    ///////////////////////////////////////////////////////
+     */
+
+    @Override
+    public String toString()
+    {
+        return "[AnnotedClass "+_class.getName()+"]";
+    }
 }
 

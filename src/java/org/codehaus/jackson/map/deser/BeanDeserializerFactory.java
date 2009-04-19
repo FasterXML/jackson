@@ -234,7 +234,8 @@ public class BeanDeserializerFactory
 
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
-            deser.addProperty(constructSettableProperty(config, en.getKey(), en.getValue()));
+            AnnotatedMethod setter = en.getValue();
+            deser.addProperty(constructSettableProperty(config, en.getKey(), setter));
         }
 
         /* As per [JACKSON-88], may also need to consider getters
@@ -247,14 +248,16 @@ public class BeanDeserializerFactory
              * just ser config)
              */
             Map<String,AnnotatedMethod> getters = beanDesc.findGetters(true, setters.keySet());
-            for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
-                String propName = en.getKey();
+            for (Map.Entry<String,AnnotatedMethod> en : getters.entrySet()) {
                 AnnotatedMethod getter = en.getValue();
-
-                // !!! TBI: add the 'getter-as-setter' bean property
+                // should only consider Collections and Maps, for now?
+                Class<?> rt = getter.getReturnType();
+                if (Collection.class.isAssignableFrom(rt)
+                    || Map.class.isAssignableFrom(rt)) {
+                    deser.addProperty(constructSetterlessProperty(config, en.getKey(), getter));
+                }
             }
         }
-
     }
 
     /**
@@ -292,38 +295,85 @@ public class BeanDeserializerFactory
     }
 
     /**
-     * Method that will construct a bean property setter using
+     * Method that will construct a regular bean property setter using
      * the given setter method.
+     *
+     * @param setter Method to use to set property value; or null if none.
+     *    Null only for "setterless" properties
      */
     protected SettableBeanProperty constructSettableProperty(DeserializationConfig config,
-                                                             String name, AnnotatedMethod am) 
+                                                             String name,
+                                                             AnnotatedMethod setter)
         throws JsonMappingException
     {
         // need to ensure it is callable now:
         if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
-            am.fixAccess();
+            if (setter != null) {
+                setter.fixAccess();
+            }
         }
 
         // note: this works since we know there's exactly one arg for methods
-        Type rawType = am.getGenericParameterTypes()[0];
+        Type rawType = setter.getGenericParameterTypes()[0];
         JavaType type = TypeFactory.fromType(rawType);
         
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */
-        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(am);
+        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(setter);
         
-        Method m = am.getAnnotated();
+        Method m = setter.getAnnotated();
         if (propDeser != null) {
-            SettableBeanProperty prop = new SettableBeanProperty(name, type, m);
+            SettableBeanProperty prop = new SettableBeanProperty(name, type, m, null);
             prop.setValueDeserializer(propDeser);
             return prop;
         }
         /* Otherwise, method may specify more specific (sub-)class for
          * value (no need to check if explicit deser was specified):
          */
-        type = modifyTypeByAnnotation(am, type);
-        return new SettableBeanProperty(name, type, m);
+        type = modifyTypeByAnnotation(setter, type);
+        return new SettableBeanProperty(name, type, m, null);
+    }
+
+    /**
+     * Method that will construct a regular bean property setter using
+     * the given setter method.
+     *
+     * @param getter Method to use to get property value to modify, null if
+     *    none. Non-null for "setterless" properties.
+     */
+    protected SettableBeanProperty constructSetterlessProperty(DeserializationConfig config,
+                                                               String name,
+                                                               AnnotatedMethod getter)
+        throws JsonMappingException
+    {
+        // need to ensure it is callable now:
+        if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+            if (getter != null) {
+                getter.fixAccess();
+            }
+        }
+
+        // note: this works since we know there's exactly one arg for methods
+        Type rawType = getter.getGenericReturnType();
+        JavaType type = TypeFactory.fromType(rawType);
+        
+        /* First: does the Method specify the deserializer to use?
+         * If so, let's use it.
+         */
+        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(getter);
+        
+        Method m = getter.getAnnotated();
+        if (propDeser != null) {
+            SettableBeanProperty prop = new SettableBeanProperty(name, type, null, m);
+            prop.setValueDeserializer(propDeser);
+            return prop;
+        }
+        /* Otherwise, method may specify more specific (sub-)class for
+         * value (no need to check if explicit deser was specified):
+         */
+        type = modifyTypeByAnnotation(getter, type);
+        return new SettableBeanProperty(name, type, null, m);
     }
 
     /*

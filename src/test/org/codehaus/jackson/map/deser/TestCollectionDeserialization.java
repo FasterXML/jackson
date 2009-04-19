@@ -1,8 +1,8 @@
 package org.codehaus.jackson.map.deser;
 
-import org.codehaus.jackson.map.*;
-
 import java.util.*;
+
+import org.codehaus.jackson.map.*;
 
 import org.codehaus.jackson.type.TypeReference;
 

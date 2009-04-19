@@ -53,16 +53,6 @@ public class BasicClassIntrospector
             int pcount = m.getParameterTypes().length;
             // Ok; multiple acceptable parameter counts:
             switch (pcount) {
-            case 0:
-                /* Getters (no args and) that return Map or Collection may
-                 * act as getter-as-setters.
-                 */
-                Class<?> rt = m.getReturnType();
-                if (Collection.class.isAssignableFrom(rt)
-                    || Map.class.isAssignableFrom(rt)) {
-                    return true; 
-                }
-                break;
             case 1:
                 // Regular setters take just one param, so include:
                 return true;
@@ -91,7 +81,16 @@ public class BasicClassIntrospector
             if (super.includeMethod(m)) {
                 return true;
             }
-            return AnnotatedMethod.hasGetterSignature(m);
+            if (!AnnotatedMethod.hasGetterSignature(m)) {
+                return false;
+            }
+            // but furthermore, only accept Collections & Maps, for now
+            Class<?> rt = m.getReturnType();
+            if (Collection.class.isAssignableFrom(rt)
+                || Map.class.isAssignableFrom(rt)) {
+                return true; 
+            }
+            return false;
         }
     }
 

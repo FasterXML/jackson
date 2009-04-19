@@ -84,6 +84,8 @@ public final class AnnotatedMethod
         return getParameterTypes().length;
     }
 
+    public Type getGenericReturnType() { return _method.getGenericReturnType(); }
+
     public Class<?> getReturnType() { return _method.getReturnType(); }
 
     public Class<?> getDeclaringClass() { return _method.getDeclaringClass(); }

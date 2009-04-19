@@ -32,12 +32,17 @@ public class BeanDeserializer
     ///////////////////////////////////////////////
      */
 
+    /**
+     * Default constructor used to instantiate the bean when mapping
+     * from Json object.
+     */
     protected Constructor<?> _defaultConstructor;
 
     /**
      * If the "bean" class can be instantiated using just a single
      * String (via constructor, static method etc), this object
      * knows how to invoke method/constructor in question.
+     * If so, no setters will be used.
      */
     protected StringConstructor _stringConstructor;
 
@@ -46,6 +51,7 @@ public class BeanDeserializer
      * numeric (int, long) value  (via constructor, static method etc),
      * this object
      * knows how to invoke method/constructor in question.
+     * If so, no setters will be used.
      */
     protected NumberConstructor _numberConstructor;
 
@@ -298,13 +304,12 @@ public class BeanDeserializer
                 prop.deserializeAndSet(jp, ctxt, bean);
                 continue;
             }
-            JsonToken t = jp.nextToken();
             if (_anySetter != null) {
-                JsonDeserializer<Object> valueDeser = _anySetter.getValueDeserializer();
-                Object value = (t == JsonToken.VALUE_NULL) ? null : valueDeser.deserialize(jp, ctxt);
-                _anySetter.set(propName, bean, value);
+                _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
                 continue;
             }
+            // need to process or skip the following token
+            JsonToken t = jp.nextToken();
             // Unknown: let's call handler method
             handleUnknownProperty(ctxt, bean, propName);
         }

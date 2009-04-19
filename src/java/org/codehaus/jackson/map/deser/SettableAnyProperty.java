@@ -1,7 +1,10 @@
 package org.codehaus.jackson.map.deser;
 
+import java.io.IOException;
 import java.lang.reflect.*;
 
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.type.JavaType;
@@ -28,6 +31,12 @@ public final class SettableAnyProperty
         _setter = setter;
     }
 
+    /*
+    /////////////////////////////////////////////////////////
+    // Public API
+    /////////////////////////////////////////////////////////
+     */
+
     public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
 
     public void setValueDeserializer(JsonDeserializer<Object> deser)
@@ -40,43 +49,65 @@ public final class SettableAnyProperty
 
     public JavaType getType() { return _type; }
 
-    public JsonDeserializer<Object> getValueDeserializer() { return _valueDeserializer; }
+    /**
+     * Method called to deserialize appropriate value, given parser (and
+     * context), and set it using appropriate method (a setter method).
+     */
+    public final void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
+                                        Object instance, String propName)
+        throws IOException, JsonProcessingException
+    {
+        JsonToken t = jp.nextToken();
+        Object value = (t == JsonToken.VALUE_NULL) ? null : _valueDeserializer.deserialize(jp, ctxt);
+        try {
+            _setter.invoke(instance, propName, value);
+        } catch (Exception e) {
+            _throwAsIOE(e, propName, value);
+        }
+    }
+
+    /*
+    /////////////////////////////////////////////////////////
+    // Helper methods
+    /////////////////////////////////////////////////////////
+     */
 
     /**
      * @param propName Name of property (from Json input) to set
      * @param instance Bean to set property on
      * @param value Value of the property
      */
-    public void set(String propName, Object instance, Object value)
-        throws JsonMappingException
+    protected void _throwAsIOE(Exception e, String propName, Object value)
+        throws IOException
     {
-        try {
-            _setter.invoke(instance, propName, value);
-        } catch (IllegalArgumentException iae) {
+        if (e instanceof IllegalArgumentException) {
             String actType = (value == null) ? "[NULL]" : value.getClass().getName();
             StringBuilder msg = new StringBuilder("Problem deserializing \"any\" property '").append(propName);
             msg.append("' of class "+getClassName()+" (expected type: ").append(_type);
             msg.append("; actual type: ").append(actType).append(")");
-            String origMsg = iae.getMessage();
+            String origMsg = e.getMessage();
             if (origMsg != null) {
                 msg.append(", problem: ").append(origMsg);
             } else {
                 msg.append(" (no error message provided)");
             }
-            throw new JsonMappingException(msg.toString(), null, iae);
-        } catch (RuntimeException re) {
-            throw re;
-        } catch (Exception e) {
-            // let's wrap the innermost problem
-            Throwable t = e;
-            while (t.getCause() != null) {
-                t = t.getCause();
-            }
-            throw new JsonMappingException(t.getMessage(), null, t);
+            throw new JsonMappingException(msg.toString(), null, e);
         }
+        if (e instanceof IOException) {
+            throw (IOException) e;
+        }
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
+        }
+        // let's wrap the innermost problem
+        Throwable t = e;
+        while (t.getCause() != null) {
+            t = t.getCause();
+        }
+        throw new JsonMappingException(t.getMessage(), null, t);
     }
 
-    @Override public String toString() { return "[any property on class "+getClassName()+"]"; }
+    private String getClassName() { return _setter.getDeclaringClass().getName(); }
 
-    String getClassName() { return _setter.getDeclaringClass().getName(); }
+    @Override public String toString() { return "[any property on class "+getClassName()+"]"; }
 }

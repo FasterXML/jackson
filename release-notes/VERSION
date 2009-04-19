@@ -6,6 +6,10 @@ Release date:
 Description:
   Another pre-1.0 release.
 
+  New features:
+
+  * [JACKSON-88]: Support for "Setter-less" collection (and Map) types
+
   Improvements:
 
   * [JACKSON-100]: Allow specifying that BigInteger should be used instead
