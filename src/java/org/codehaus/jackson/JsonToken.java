@@ -1,7 +1,7 @@
 package org.codehaus.jackson;
 
 /**
- * This enumeration defines basic token types used for returning results
+ * Enumeration for basic token types used for returning results
  * of parsing JSON content.
  */
 public enum JsonToken

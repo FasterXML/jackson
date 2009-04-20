@@ -99,7 +99,7 @@ public final class AnnotatedMethod
 
     /**
      * Method that can be called to modify access rights, by calling
-     * {@link java.lang.reflect.AccessibleObject#setACcessible} on
+     * {@link java.lang.reflect.AccessibleObject#setAccessible} on
      * the underlying annotated element.
      */
     public void fixAccess()

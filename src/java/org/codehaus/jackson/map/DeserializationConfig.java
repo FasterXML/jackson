@@ -116,7 +116,7 @@ public class DeserializationConfig
          * {@link java.math.BigInteger}s;
          * if disabled, will be deserialized as "smallest" available type,
          * which is either {@link Integer}, {@link Long} or
-         * {@link BigInteger}, depending on number of digits.
+         * {@link java.math.BigInteger}, depending on number of digits.
          * <p>
          * Feature is disabled by default, meaning that "untyped" floating
          * point numbers will by default be deserialized using whatever

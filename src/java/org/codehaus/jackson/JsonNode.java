@@ -7,8 +7,9 @@ import java.util.*;
 
 
 /**
- * Base class for all JSON nodes, used with the "dynamic" (JSON type)
- * mapper. One way to think of these nodes is to think them as being
+ * Base class for all JSON nodes, which form the basis of JSON
+ * Tree Model that Jackson implements.
+ * One way to think of these nodes is to considere them
  * similar to DOM nodes in XML DOM trees.
  *<p>
  * As a general design rule, most accessors ("getters") are included

@@ -1,5 +1,5 @@
-<body>
-This package contains basic mapper (conversion) functionality that
+/**
+ * Contains basic mapper (conversion) functionality that
 allows for converting between regular streaming json content and
 various tree/object-based alternatives.
 Currently 2 main flavors are supported: "Object Mapper" and
@@ -12,7 +12,7 @@ basic Java wrapper types (Integer, Boolean, Double),
 Collection types (List, Map), Java Beans,
 Strings and nulls.
 <p>
-Tree mapper builds dynamically typed tree of <code>JsonNode</node>s
+Tree mapper builds dynamically typed tree of <code>JsonNode</code>s
 from Json content (and writes such trees as Json),
 similar to how DOM model works with xml.
 Main benefits over Object mapping are:
@@ -30,5 +30,6 @@ virtual "missing" node.
 Because of its dynamic nature, Tree mapping is often convenient
 for basic path access and tree navigation, where structure of
 the resulting tree is known in advance.
+*/
 
-</body>
+package org.codehaus.jackson.map;

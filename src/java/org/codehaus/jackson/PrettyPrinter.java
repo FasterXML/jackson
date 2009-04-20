@@ -3,9 +3,10 @@ package org.codehaus.jackson;
 import java.io.IOException;
 
 /**
- * Interface for pretty printer instances. Pretty printers are used
- * to add white space in output JSON content, to make results
- * more human readable. Usually this means things like adding
+ * Interface for objects that implement pretty printer functionality, such
+ * as indentation.
+ * Pretty printers are used to add white space in output JSON content,
+ * to make results more human readable. Usually this means things like adding
  * linefeeds and indentation.
  */
 public interface PrettyPrinter

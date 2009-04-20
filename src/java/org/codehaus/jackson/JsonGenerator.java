@@ -28,7 +28,7 @@ import java.math.BigInteger;
 public abstract class JsonGenerator
 {
     /**
-     * Enumeration that defines all togglable features for parsers.
+     * Enumeration that defines all togglable features for generators.
      */
     public enum Feature {
         /**

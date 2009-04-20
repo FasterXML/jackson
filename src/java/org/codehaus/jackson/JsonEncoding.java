@@ -1,13 +1,15 @@
 package org.codehaus.jackson;
 
 /**
- * Legal JSON content always uses an Unicode encoding from this
- * short list of allowed (as per RFC) encoding.
- * As such we can just enumerate all legal types here
+ * Enumeration that defines legal encodings that can be used
+ * for JSON content, based on list of allowed encodings from
+ * <a href="http://www.ietf.org/rfc/rfc4627.txt">JSON specification</a>.
  *<p>
- * Note: if using apps want to explicitly disregarding Encoding
- * limitations, they can use Reader/Writer instances as input
- * output sources.
+ * Note: if application want to explicitly disregard Encoding
+ * limitations (to read in JSON encoded using an encoding not
+ * listed as allowed), they can use {@link java.io.Reader} /
+ * {@link java.io.Writer} instances as input
+ * source (or output target).
  */
 public enum JsonEncoding {
     UTF8("UTF-8", false), // N/A for big-endian, really

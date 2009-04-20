@@ -1,11 +1,11 @@
 package org.codehaus.jackson;
 
 /**
- * Intermediate base class for all problems when processing
- * JSON input or output, or doing data mapping/binding,
- * that are not pure I/O exceptions. Regular
- * {@link java.io.IOException} can be thrown as is through
- * processors.
+ * Intermediate base class for all problems encountered when
+ * processing (parsing, generating) JSON content
+ * that are not pure I/O problems.
+ * Regular {@link java.io.IOException}s will be passed through as is.
+ * Sub-class of {@link java.io.IOException} for convenience.
  */
 public class JsonProcessingException
     extends java.io.IOException

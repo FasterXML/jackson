@@ -15,7 +15,7 @@
 package org.codehaus.jackson;
 
 /**
- * This class is used as a container for commonly used Base64 variants.
+ * Container for commonly used Base64 variants.
  * 
  * @author Tatu Saloranta
  *

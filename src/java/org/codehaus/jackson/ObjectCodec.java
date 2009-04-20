@@ -7,8 +7,8 @@ import org.codehaus.jackson.type.TypeReference;
 
 /**
  * Abstract class that defines the interface that {@link JsonParser} and
- * {@link JsonGenerator} use to serializer and/or deserialize regular
- * Java objects (POJOs).
+ * {@link JsonGenerator} use to serialize and deserialize regular
+ * Java objects (POJOs aka Beans).
  *<p>
  * The standard implementation of this class is
  * {@link org.codehaus.jackson.map.ObjectMapper}.

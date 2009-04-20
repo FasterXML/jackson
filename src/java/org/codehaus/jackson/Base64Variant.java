@@ -17,7 +17,7 @@ package org.codehaus.jackson;
 import java.util.Arrays;
 
 /**
- * This abstract base class is used to define specific details of which
+ * Abstract base class used to define specific details of which
  * variant of Base64 encoding/decoding is to be used. Although there is
  * somewhat standard basic version (so-called "MIME Base64"), other variants
  * exists, see <a href="http://en.wikipedia.org/wiki/Base64">Base64 Wikipedia entry</a> for details.

@@ -27,14 +27,16 @@ import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
 import org.codehaus.jackson.util.BufferRecycler;
 
 /**
- * JsonFactory is the main factory class of Jackson package.
- * It is used for constructing streaming parser
- * (aka readers, deserializers) and generators (aka writers, serializers).
+ * The main factory class of Jackson package, used to configure and
+ * construct reader (aka parser, {link JsonParser})
+ * and writer (aka generator, {@link JsonGenerator})
+ * instances.
  *<p>
  * Factory instances are thread-safe and reusable after configuration
  * (if any). Typically applications and services use only a single
  * globally shared factory instance, unless they need differently
- * configured factories.
+ * configured factories. Factory reuse is important if efficiency matters;
+ * most recycling of expensive construct is done on per-factory basis.
  *<p>
  * Creation of a factory instance is a light-weight operation,
  * and since there is no need for pluggable alternative implementations

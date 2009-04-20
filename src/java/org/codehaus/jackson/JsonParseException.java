@@ -1,8 +1,9 @@
 package org.codehaus.jackson;
 
 /**
- * Class for parsing exceptions, to indicate non-well-formed document
- * content
+ * Exception type for parsing problems, used when non-well-formed content
+ * (content that does not conform to JSON syntax as per specification)
+ * is encountered.
  */
 public class JsonParseException
     extends JsonProcessingException

@@ -73,8 +73,8 @@ public final class SettableAnyProperty
      */
 
     /**
+     * @param e Exception to re-throw or wrap
      * @param propName Name of property (from Json input) to set
-     * @param instance Bean to set property on
      * @param value Value of the property
      */
     protected void _throwAsIOE(Exception e, String propName, Object value)

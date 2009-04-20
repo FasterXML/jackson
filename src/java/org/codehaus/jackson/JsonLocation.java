@@ -1,9 +1,9 @@
 package org.codehaus.jackson;
 
 /**
- * Object that encapsulates Location information used to report
- * parsing or generation errors, as well as current location
- * within input or output streams.
+ * Object that encapsulates Location information used for reporting
+ * parsing (or potentially generation) errors, as well as current location
+ * within input streams.
  */
 public class JsonLocation
 {
