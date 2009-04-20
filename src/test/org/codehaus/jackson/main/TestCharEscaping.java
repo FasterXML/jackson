@@ -1,4 +1,4 @@
-package main;
+package org.codehaus.jackson.main;
 
 import org.codehaus.jackson.*;
 
@@ -7,7 +7,7 @@ import org.codehaus.jackson.*;
  * functionality works as expected.
  */
 public class TestCharEscaping
-    extends BaseTest
+    extends main.BaseTest
 {
     public void testMissingEscaping()
         throws Exception

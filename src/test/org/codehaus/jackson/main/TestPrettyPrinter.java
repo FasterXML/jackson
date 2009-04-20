@@ -1,4 +1,4 @@
-package main;
+package org.codehaus.jackson.main;
 
 import org.codehaus.jackson.*;
 
@@ -9,7 +9,7 @@ import java.io.*;
  * option of generator works correctly
  */
 public class TestPrettyPrinter
-    extends BaseTest
+    extends main.BaseTest
 {
     public void testSimpleDoc()
         throws Exception

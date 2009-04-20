@@ -1,4 +1,4 @@
-package main;
+package org.codehaus.jackson.main;
 
 import org.codehaus.jackson.*;
 
@@ -7,7 +7,7 @@ import org.codehaus.jackson.*;
  * edge cases.
  */
 public class TestArrayParsing
-    extends BaseTest
+    extends main.BaseTest
 {
     public void testValidEmpty()
         throws Exception

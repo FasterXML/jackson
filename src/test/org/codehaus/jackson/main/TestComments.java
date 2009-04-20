@@ -1,4 +1,4 @@
-package main;
+package org.codehaus.jackson.main;
 
 import java.io.*;
 
@@ -9,7 +9,7 @@ import org.codehaus.jackson.*;
  * works as expected.
  */
 public class TestComments
-    extends BaseTest
+    extends main.BaseTest
 {
     final static String DOC_WITH_SLASHSTAR_COMMENT =
         "[ /* comment:\n ends here */ 1 /* one more ok to have \"unquoted\"  */ ]"

@@ -1,4 +1,4 @@
-package main;
+package org.codehaus.jackson.main;
 
 import org.codehaus.jackson.io.NumberInput;
 
@@ -7,7 +7,7 @@ import org.codehaus.jackson.io.NumberInput;
  * handling methods work as expected.
  */
 public class TestNumberParsing
-    extends BaseTest
+    extends main.BaseTest
 {
     public void testIntParsing()
         throws Exception
