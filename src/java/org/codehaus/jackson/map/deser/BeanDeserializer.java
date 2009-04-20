@@ -309,7 +309,7 @@ public class BeanDeserializer
                 continue;
             }
             // need to process or skip the following token
-            JsonToken t = jp.nextToken();
+            /*JsonToken t =*/ jp.nextToken();
             // Unknown: let's call handler method
             handleUnknownProperty(ctxt, bean, propName);
         }

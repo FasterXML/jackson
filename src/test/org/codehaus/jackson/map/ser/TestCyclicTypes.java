@@ -4,7 +4,6 @@ import java.util.*;
 
 import org.codehaus.jackson.map.BaseMapTest;
 
-import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -42,7 +41,7 @@ public class TestCyclicTypes
     //////////////////////////////////////////////
      */
 
-    public void testLinked() throws Exception
+	public void testLinked() throws Exception
     {
         Bean last = new Bean(null, "last");
         Bean first = new Bean(last, "first");
@@ -51,6 +50,7 @@ public class TestCyclicTypes
         assertEquals(2, map.size());
         assertEquals("first", map.get("name"));
 
+        @SuppressWarnings("unchecked")
         Map<String,Object> map2 = (Map<String,Object>) map.get("next");
         assertNotNull(map2);
         assertEquals(2, map2.size());

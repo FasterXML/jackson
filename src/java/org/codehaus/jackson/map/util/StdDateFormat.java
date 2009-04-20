@@ -13,6 +13,7 @@ import java.util.*;
  * an ISO-8601 compliant format (format String "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
  * and for deserialization, both ISO-8601 and RFC-1123.
  */
+@SuppressWarnings("serial")
 public class StdDateFormat
     extends DateFormat
 {

@@ -1,10 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
-import java.util.*;
-
 import org.codehaus.jackson.map.BaseMapTest;
 
-import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
 /**

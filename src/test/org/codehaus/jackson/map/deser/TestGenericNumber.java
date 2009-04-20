@@ -54,7 +54,7 @@ public class TestGenericNumber
         assertEquals(exp, result);
 
         // then as any Object
-        Object value = m.readValue(new StringReader("123"), Object.class);
+        /*Object value =*/ m.readValue(new StringReader("123"), Object.class);
         assertEquals(BigInteger.class, result.getClass());
         assertEquals(exp, result);
     }

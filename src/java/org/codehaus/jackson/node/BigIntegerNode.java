@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.io.NumberOutput;
 import org.codehaus.jackson.map.SerializerProvider;
 
 /**
