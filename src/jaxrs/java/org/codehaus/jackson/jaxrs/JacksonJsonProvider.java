@@ -302,18 +302,17 @@ public class JacksonJsonProvider
 
         // If not, maybe we can get one configured via context?
         ContextResolver<ObjectMapper> resolver = _providers.getContextResolver(ObjectMapper.class, mediaType);
+        // Not registered with media type, how about without?
+        if (resolver == null) {
+            resolver = _providers.getContextResolver(ObjectMapper.class, null);
+        }
         if (resolver != null) {
             ObjectMapper mapper = resolver.getContext(ObjectMapper.class);
             if (mapper != null) {
                 return mapper;
             }
-            // !!! TEST
-throw new RuntimeException("Problem: resolver does not find ObjectMapper!");
         }
         // nope: must use globally shared instance
-            // !!! TEST
-        if (true)
-throw new RuntimeException("Problem: no resolver, no ObjectMapper!");
         return _defaultMapper;
     }
 
@@ -341,28 +340,4 @@ throw new RuntimeException("Problem: no resolver, no ObjectMapper!");
     {
         return TypeFactory.fromType(jdkType);
     }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Helper classes
-    ////////////////////////////////////////////////////
-     */
-
-    /**
-     * We need a simple container to use for feeding our ObjectMapper,
-     * in case it's not injected from outside.
-     */
-  final static class SingleContextResolver<T>
-      implements ContextResolver<T>
-  {
-      private final T _singleton;
-
-      public SingleContextResolver(T s) { _singleton = s; }
-
-      public T getContext(Class<?> cls)
-      {
-          // should we use 'cls' somehow? Shouldn't need to?
-          return _singleton;
-      }
-  }
 }
