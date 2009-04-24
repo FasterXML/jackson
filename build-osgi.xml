@@ -215,6 +215,7 @@ javax.ws.rs
 "
          exportpackage="
 org.codehaus.jackson.jaxrs;version=${IMPL_VERSION}"
+         includeResource="META-INF/services=${dir.src.resource.jaxrs}, META-INF=release-notes/asl"
          includeIncludeResourceHeader="false"
         >
         <classpath><pathelement path="${dir.build.classes.jaxrs}" /></classpath>

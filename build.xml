@@ -8,6 +8,7 @@
     <property name="dir.src.java.core" location="${dir.src.java}" />
     <property name="dir.src.java.mapper" location="${dir.src.java}" />
     <property name="dir.src.java.jaxrs" location="${dir.src}/jaxrs/java" />
+    <property name="dir.src.resource.jaxrs" location="${dir.src}/jaxrs/resources" />
     <property name="dir.src.maven" location="${dir.src}/maven" />
     <property name="dir.src.test" location="${dir.src}/test" />
     <property name="dir.src.sample" location="${dir.src}/sample" />

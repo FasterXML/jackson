@@ -31,6 +31,8 @@ import org.codehaus.jackson.type.JavaType;
  * Additionally it is possible to enable detection of which types
  * can be serialized/deserialized, which is not enabled by default
  * (since it is usually not needed).
+ *
+ * @author Tatu Saloranta
  */
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
@@ -60,6 +62,8 @@ public class JacksonJsonProvider
         // then some primitive types
         _untouchables.add(new ClassKey(byte[].class));
         _untouchables.add(new ClassKey(char[].class));
+        // 24-Apr-2009, tatu: String is an edge case... let's leave it out
+        _untouchables.add(new ClassKey(String.class));
 
         // Then core JAX-RS things
         _untouchables.add(new ClassKey(StreamingOutput.class));
@@ -75,13 +79,32 @@ public class JacksonJsonProvider
             StreamingOutput.class, Response.class
             };
 
+    /**
+     * Default ObjectMapper to use if none is configured for provider
+     * to use.
+     */
+    protected final static ObjectMapper _defaultMapper = new ObjectMapper();
+
     /*
     ///////////////////////////////////////////////////////
     // Context configuration
     ///////////////////////////////////////////////////////
      */
 
-    protected final ContextResolver<ObjectMapper> _resolver;
+    /**
+     * Injectable context object used to locate configured
+     * instance of {@link ObjectMapper} to use for actual
+     * serialization.
+     */
+    @Context
+    protected Providers _providers;
+
+    /**
+     * Mapper provider was constructed with if any; if null, provider
+     * is dynamically located; and if that fails, default instance
+     * will be used.
+     */
+    protected ObjectMapper _configuredMapper;
 
     /*
     ///////////////////////////////////////////////////////
@@ -90,7 +113,7 @@ public class JacksonJsonProvider
      */
 
     /**
-     * Whether return type of type String is to be output
+    * Whether return type of type String is to be output
      * as JSON strings (double-quoted) or not. Default to "false",
      * as most often this is not wanted
      */
@@ -119,14 +142,12 @@ public class JacksonJsonProvider
      */
 
     /**
-     * Default constructor that shouldn't be needed when used it
-     * with actul JAX-RS implementation. But it may be needed from
-     * tests or such; if so, it will construct appropriate
-     * set up to still work as expected.
+     * Default constructor, usually used when provider is automatically
+     * configured to be used with JAX-RS implementation.
      */
     public JacksonJsonProvider()
     {
-        this(new ObjectMapper());
+        this(null);
     }
 
     /**
@@ -136,31 +157,7 @@ public class JacksonJsonProvider
      */
     public JacksonJsonProvider(ObjectMapper mapper)
     {
-        _resolver = new SingleContextResolver<ObjectMapper>(mapper);
-    }
-
-    /**
-     * Constructor usually used when configured and wired by
-     * IoC system or auto-detection by the JAX-RS implementation.
-     */
-    public JacksonJsonProvider(@Context Providers providers)
-    {
-        ContextResolver<ObjectMapper> resolver;
-
-        if (providers == null) {
-            resolver = null;
-        } else {
-            // null -> no filtering by MediaType
-            resolver = providers.getContextResolver(ObjectMapper.class, null);
-        }
-        ObjectMapper mapper;
-
-        if (resolver == null) {
-            mapper = new ObjectMapper();
-            // If not accessible via injection, let's still create one
-            resolver = new SingleContextResolver<ObjectMapper>(mapper);
-        }
-        _resolver = resolver;
+        _configuredMapper = mapper;
     }
 
     /*
@@ -168,24 +165,6 @@ public class JacksonJsonProvider
     // Configuring
     ///////////////////////////////////////////////////////
      */
-
-    /**
-     * Generic pass-through method for enabling or disabling stantadard
-     * deserialization features.
-     */
-    public void configure(DeserializationConfig.Feature feature, boolean state)
-    {
-        getMapper(Object.class).configure(feature, state);
-    }
-
-    /**
-     * Generic pass-through method for enabling or disabling stantadard
-     * serialization features.
-     */
-    public void configure(SerializationConfig.Feature feature, boolean state)
-    {
-        getMapper(Object.class).configure(feature, state);
-    }
 
     public void checkCanDeserialize(boolean state) { _cfgCheckCanDeserialize = state; }
     public void checkCanSerialize(boolean state) { _cfgCheckCanSerialize = state; }
@@ -225,7 +204,7 @@ public class JacksonJsonProvider
 
         // Finally: if we really want to verify that we can serialize, we'll check:
         if (_cfgCheckCanSerialize) {
-            if (!getMapper(type).canDeserialize(_convertType(type))) {
+            if (!_getMapper(type, mediaType).canDeserialize(_convertType(type))) {
                 return false;
             }
         }
@@ -235,7 +214,7 @@ public class JacksonJsonProvider
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String,String> httpHeaders, InputStream entityStream) 
         throws IOException
     {
-        ObjectMapper mapper = getMapper(type);
+        ObjectMapper mapper = _getMapper(type, mediaType);
         JsonParser jp = mapper.getJsonFactory().createJsonParser(entityStream);
         /* Important: we are NOT to close the underlying stream after
          * mapping, so we need to instruct parser:
@@ -279,7 +258,7 @@ public class JacksonJsonProvider
 
         // Also: if we really want to verify that we can deserialize, we'll check:
         if (_cfgCheckCanSerialize) {
-            if (!getMapper(type).canSerialize(type)) {
+            if (!_getMapper(type, mediaType).canSerialize(type)) {
                 return false;
             }
         }
@@ -292,7 +271,7 @@ public class JacksonJsonProvider
         /* 27-Feb-2009, tatu: Where can we find desired encoding? Within
          *   http headers?
          */
-        ObjectMapper mapper = getMapper(type);
+        ObjectMapper mapper = _getMapper(type, mediaType);
         JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(entityStream, JsonEncoding.UTF8);
         jg.disableFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
 
@@ -309,9 +288,33 @@ public class JacksonJsonProvider
     ////////////////////////////////////////////////////
      */
 
-    protected ObjectMapper getMapper(Class<?> type)
+    /**
+     * @param type Class of object being serialized or deserialized;
+     *   not used at this point, since it is assumed that unprocessable
+     *   classes have been already weeded out
+     */
+    protected ObjectMapper _getMapper(Class<?> type, MediaType mediaType)
     {
-        return _resolver.getContext(type);
+        // First: were we configured with an instance?
+        if (_configuredMapper != null) {
+            return _configuredMapper;
+        }
+
+        // If not, maybe we can get one configured via context?
+        ContextResolver<ObjectMapper> resolver = _providers.getContextResolver(ObjectMapper.class, mediaType);
+        if (resolver != null) {
+            ObjectMapper mapper = resolver.getContext(ObjectMapper.class);
+            if (mapper != null) {
+                return mapper;
+            }
+            // !!! TEST
+throw new RuntimeException("Problem: resolver does not find ObjectMapper!");
+        }
+        // nope: must use globally shared instance
+            // !!! TEST
+        if (true)
+throw new RuntimeException("Problem: no resolver, no ObjectMapper!");
+        return _defaultMapper;
     }
 
     protected boolean _isJsonType(MediaType mediaType)
@@ -322,7 +325,12 @@ public class JacksonJsonProvider
          * Let's start with inclusive one, hard to know which major
          * types we should cover aside from "application".
          */
-        return (mediaType != null) && "json".equals(mediaType.getSubtype());
+        if (mediaType != null) {
+            // Ok: there are also "xxx+json" subtypes, which count as well
+            String subtype = mediaType.getSubtype();
+            return "json".equals(subtype) || subtype.endsWith("+json");
+        }
+        return false;
     }
 
     /**
