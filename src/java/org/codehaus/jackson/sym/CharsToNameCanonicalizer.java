@@ -1,5 +1,7 @@
 package org.codehaus.jackson.sym;
 
+import org.codehaus.jackson.util.InternCache;
+
 /**
  * This class is a kind of specialized type-safe Map, from char array to
  * String value. Specialization means that in addition to type-safety
@@ -82,7 +84,7 @@ public final class CharsToNameCanonicalizer
      * defined, and child instance is released (call to <code>release</code>),
      * parent's shared tables may be updated from the child instance.
      */
-    protected CharsToNameCanonicalizer mParent;
+    protected CharsToNameCanonicalizer _parent;
 
     /*
     ////////////////////////////////////////
@@ -94,7 +96,7 @@ public final class CharsToNameCanonicalizer
      * Primary matching symbols; it's expected most match occur from
      * here.
      */
-    protected String[] mSymbols;
+    protected String[] _symbols;
 
     /**
      * Overflow buckets; if primary doesn't match, lookup is done
@@ -103,27 +105,27 @@ public final class CharsToNameCanonicalizer
      * Note: Number of buckets is half of number of symbol entries, on
      * assumption there's less need for buckets.
      */
-    protected Bucket[] mBuckets;
+    protected Bucket[] _buckets;
 
     /**
      * Current size (number of entries); needed to know if and when
      * rehash.
      */
-    protected int mSize;
+    protected int _size;
 
     /**
      * Limit that indicates maximum size this instance can hold before
      * it needs to be expanded and rehashed. Calculated using fill
      * factor passed in to constructor.
      */
-    protected int mSizeThreshold;
+    protected int _sizeThreshold;
 
     /**
      * Mask used to get index from hash values; equal to
-     * <code>mBuckets.length - 1</code>, when mBuckets.length is
+     * <code>_buckets.length - 1</code>, when _buckets.length is
      * a power of two.
      */
-    protected int mIndexMask;
+    protected int _indexMask;
 
     /*
     ////////////////////////////////////////
@@ -137,7 +139,7 @@ public final class CharsToNameCanonicalizer
      * (first) change is made, and potentially if updated bucket list
      * is to be resync'ed back to master instance.
      */
-    protected boolean mDirty;
+    protected boolean _dirty;
 
     /*
     ////////////////////////////////////////
@@ -160,7 +162,7 @@ public final class CharsToNameCanonicalizer
     public CharsToNameCanonicalizer(int initialSize)
     {
         // And we'll also set flags so no copying of buckets is needed:
-        mDirty = true;
+        _dirty = true;
 
         // No point in requesting funny initial sizes...
         if (initialSize < 1) {
@@ -182,13 +184,13 @@ public final class CharsToNameCanonicalizer
 
     private void initTables(int initialSize)
     {
-        mSymbols = new String[initialSize];
-        mBuckets = new Bucket[initialSize >> 1];
+        _symbols = new String[initialSize];
+        _buckets = new Bucket[initialSize >> 1];
         // Mask is easy to calc for powers of two.
-        mIndexMask = initialSize - 1;
-        mSize = 0;
+        _indexMask = initialSize - 1;
+        _size = 0;
         // Hard-coded fill factor is 75%
-        mSizeThreshold = (initialSize - (initialSize >> 2));
+        _sizeThreshold = (initialSize - (initialSize >> 2));
     }
 
     /**
@@ -197,18 +199,18 @@ public final class CharsToNameCanonicalizer
     private CharsToNameCanonicalizer(CharsToNameCanonicalizer parent,
                         String[] symbols, Bucket[] buckets, int size)
     {
-        mParent = parent;
+        _parent = parent;
 
-        mSymbols = symbols;
-        mBuckets = buckets;
-        mSize = size;
+        _symbols = symbols;
+        _buckets = buckets;
+        _size = size;
         // Hard-coded fill factor, 75%
         int arrayLen = (symbols.length);
-        mSizeThreshold = arrayLen - (arrayLen >> 2);
-        mIndexMask =  (arrayLen - 1);
+        _sizeThreshold = arrayLen - (arrayLen >> 2);
+        _indexMask =  (arrayLen - 1);
 
         // Need to make copies of arrays, if/when adding new entries
-        mDirty = false;
+        _dirty = false;
     }
 
     /**
@@ -225,12 +227,12 @@ public final class CharsToNameCanonicalizer
      */
     public synchronized CharsToNameCanonicalizer makeChild()
     {
-        return new CharsToNameCanonicalizer(this, mSymbols, mBuckets, mSize);
+        return new CharsToNameCanonicalizer(this, _symbols, _buckets, _size);
     }
 
     private CharsToNameCanonicalizer makeOrphan()
     {
-        return new CharsToNameCanonicalizer(null, mSymbols, mBuckets, mSize);
+        return new CharsToNameCanonicalizer(null, _symbols, _buckets, _size);
     }
 
     /**
@@ -264,17 +266,17 @@ public final class CharsToNameCanonicalizer
                 return;
             }
             // Okie dokie, let's get the data in!
-            mSymbols = child.mSymbols;
-            mBuckets = child.mBuckets;
-            mSize = child.mSize;
-            mSizeThreshold = child.mSizeThreshold;
-            mIndexMask = child.mIndexMask;
+            _symbols = child._symbols;
+            _buckets = child._buckets;
+            _size = child._size;
+            _sizeThreshold = child._sizeThreshold;
+            _indexMask = child._indexMask;
         }
         /* Dirty flag... well, let's just clear it, to force copying just
          * in case. Shouldn't really matter, for master tables.
          * (which this is, given something is merged to it etc)
          */
-        mDirty = false;
+        _dirty = false;
     }
 
     public void release()
@@ -283,13 +285,13 @@ public final class CharsToNameCanonicalizer
         if (!maybeDirty()) {
             return;
         }
-        if (mParent != null) {
-            mParent.mergeChild(this);
+        if (_parent != null) {
+            _parent.mergeChild(this);
             /* Let's also mark this instance as dirty, so that just in
              * case release was too early, there's no corruption
              * of possibly shared data.
              */
-            mDirty = false;
+            _dirty = false;
         }
     }
 
@@ -299,9 +301,9 @@ public final class CharsToNameCanonicalizer
     ////////////////////////////////////////////////////
      */
 
-    public int size() { return mSize; }
+    public int size() { return _size; }
 
-    public boolean maybeDirty() { return mDirty; }
+    public boolean maybeDirty() { return _dirty; }
 
     /*
     ////////////////////////////////////////////////////
@@ -315,9 +317,9 @@ public final class CharsToNameCanonicalizer
             return "";
         }
 
-        hash &= mIndexMask;
+        hash &= _indexMask;
 
-        String sym = mSymbols[hash];
+        String sym = _symbols[hash];
 
         // Optimal case; checking existing primary symbol for hash index:
         if (sym != null) {
@@ -335,7 +337,7 @@ public final class CharsToNameCanonicalizer
                 }
             }
             // How about collision bucket?
-            Bucket b = mBuckets[hash >> 1];
+            Bucket b = _buckets[hash >> 1];
             if (b != null) {
                 sym = b.find(buffer, start, len);
                 if (sym != null) {
@@ -344,28 +346,28 @@ public final class CharsToNameCanonicalizer
             }
         }
 
-        if (!mDirty) { //need to do copy-on-write?
+        if (!_dirty) { //need to do copy-on-write?
             copyArrays();
-            mDirty = true;
-        } else if (mSize >= mSizeThreshold) { // Need to expand?
+            _dirty = true;
+        } else if (_size >= _sizeThreshold) { // Need to expand?
            rehash();
             /* Need to recalc hash; rare occurence (index mask has been
              * recalculated as part of rehash)
              */
-            hash = calcHash(buffer, start, len) & mIndexMask;
+            hash = calcHash(buffer, start, len) & _indexMask;
         }
-        ++mSize;
+        ++_size;
 
         String newSymbol = new String(buffer, start, len);
         if (INTERN_STRINGS) {
-            newSymbol = newSymbol.intern();
+            newSymbol = InternCache.instance.intern(newSymbol);
         }
         // Ok; do we need to add primary entry, or a bucket?
-        if (mSymbols[hash] == null) {
-            mSymbols[hash] = newSymbol;
+        if (_symbols[hash] == null) {
+            _symbols[hash] = newSymbol;
         } else {
             int bix = hash >> 1;
-            mBuckets[bix] = new Bucket(newSymbol, mBuckets[bix]);
+            _buckets[bix] = new Bucket(newSymbol, _buckets[bix]);
         }
 
         return newSymbol;
@@ -388,8 +390,8 @@ public final class CharsToNameCanonicalizer
             return "";
         }
 
-        int index = calcHash(str) & mIndexMask;
-        String sym = mSymbols[index];
+        int index = calcHash(str) & _indexMask;
+        String sym = _symbols[index];
 
         // Optimal case; checking existing primary symbol for hash index:
         if (sym != null) {
@@ -407,7 +409,7 @@ public final class CharsToNameCanonicalizer
                 }
             }
             // How about collision bucket?
-            Bucket b = mBuckets[index >> 1];
+            Bucket b = _buckets[index >> 1];
             if (b != null) {
                 sym = b.find(str);
                 if (sym != null) {
@@ -417,27 +419,27 @@ public final class CharsToNameCanonicalizer
         }
 
         // Need to expand?
-        if (mSize >= mSizeThreshold) {
+        if (_size >= _sizeThreshold) {
             rehash();
             // Need to recalc hash; rare occurence (index mask has been
             // recalculated as part of rehash)
-            index = calcHash(str) & mIndexMask;
-        } else if (!mDirty) {
+            index = calcHash(str) & _indexMask;
+        } else if (!_dirty) {
             // Or perhaps we need to do copy-on-write?
             copyArrays();
-            mDirty = true;
+            _dirty = true;
         }
-        ++mSize;
+        ++_size;
 
         if (INTERN_STRINGS) {
-            str = str.intern();
+            str = InternCache.instance.intern(str);
         }
         // Ok; do we need to add primary entry, or a bucket?
-        if (mSymbols[index] == null) {
-            mSymbols[index] = str;
+        if (_symbols[index] == null) {
+            _symbols[index] = str;
         } else {
             int bix = index >> 1;
-            mBuckets[bix] = new Bucket(str, mBuckets[bix]);
+            _buckets[bix] = new Bucket(str, _buckets[bix]);
         }
 
         return str;
@@ -481,14 +483,14 @@ public final class CharsToNameCanonicalizer
      * change is made to a derived symbol table.
      */
     private void copyArrays() {
-        String[] oldSyms = mSymbols;
+        String[] oldSyms = _symbols;
         int size = oldSyms.length;
-        mSymbols = new String[size];
-        System.arraycopy(oldSyms, 0, mSymbols, 0, size);
-        Bucket[] oldBuckets = mBuckets;
+        _symbols = new String[size];
+        System.arraycopy(oldSyms, 0, _symbols, 0, size);
+        Bucket[] oldBuckets = _buckets;
         size = oldBuckets.length;
-        mBuckets = new Bucket[size];
-        System.arraycopy(oldBuckets, 0, mBuckets, 0, size);
+        _buckets = new Bucket[size];
+        System.arraycopy(oldBuckets, 0, _buckets, 0, size);
     }
 
     /**
@@ -500,15 +502,15 @@ public final class CharsToNameCanonicalizer
      */
     private void rehash()
     {
-        int size = mSymbols.length;
+        int size = _symbols.length;
         int newSize = size + size;
-        String[] oldSyms = mSymbols;
-        Bucket[] oldBuckets = mBuckets;
-        mSymbols = new String[newSize];
-        mBuckets = new Bucket[newSize >> 1];
+        String[] oldSyms = _symbols;
+        Bucket[] oldBuckets = _buckets;
+        _symbols = new String[newSize];
+        _buckets = new Bucket[newSize >> 1];
         // Let's update index mask, threshold, now (needed for rehashing)
-        mIndexMask = newSize - 1;
-        mSizeThreshold += mSizeThreshold;
+        _indexMask = newSize - 1;
+        _sizeThreshold += _sizeThreshold;
         
         int count = 0; // let's do sanity check
 
@@ -519,12 +521,12 @@ public final class CharsToNameCanonicalizer
             String symbol = oldSyms[i];
             if (symbol != null) {
                 ++count;
-                int index = calcHash(symbol) & mIndexMask;
-                if (mSymbols[index] == null) {
-                    mSymbols[index] = symbol;
+                int index = calcHash(symbol) & _indexMask;
+                if (_symbols[index] == null) {
+                    _symbols[index] = symbol;
                 } else {
                     int bix = index >> 1;
-                    mBuckets[bix] = new Bucket(symbol, mBuckets[bix]);
+                    _buckets[bix] = new Bucket(symbol, _buckets[bix]);
                 }
             }
         }
@@ -535,19 +537,19 @@ public final class CharsToNameCanonicalizer
             while (b != null) {
                 ++count;
                 String symbol = b.getSymbol();
-                int index = calcHash(symbol) & mIndexMask;
-                if (mSymbols[index] == null) {
-                    mSymbols[index] = symbol;
+                int index = calcHash(symbol) & _indexMask;
+                if (_symbols[index] == null) {
+                    _symbols[index] = symbol;
                 } else {
                     int bix = index >> 1;
-                    mBuckets[bix] = new Bucket(symbol, mBuckets[bix]);
+                    _buckets[bix] = new Bucket(symbol, _buckets[bix]);
                 }
                 b = b.getNext();
             }
         }
 
-        if (count != mSize) {
-            throw new Error("Internal error on SymbolTable.rehash(): had "+mSize+" entries; now have "+count+".");
+        if (count != _size) {
+            throw new Error("Internal error on SymbolTable.rehash(): had "+_size+" entries; now have "+count+".");
         }
     }
 
@@ -562,19 +564,19 @@ public final class CharsToNameCanonicalizer
      * in a linked list.
      */
     static final class Bucket {
-        private final String mSymbol;
+        private final String _symbol;
         private final Bucket mNext;
 
         public Bucket(String symbol, Bucket next) {
-            mSymbol = symbol;
+            _symbol = symbol;
             mNext = next;
         }
 
-        public String getSymbol() { return mSymbol; }
+        public String getSymbol() { return _symbol; }
         public Bucket getNext() { return mNext; }
 
         public String find(char[] buf, int start, int len) {
-            String sym = mSymbol;
+            String sym = _symbol;
             Bucket b = mNext;
 
             while (true) { // Inlined equality comparison:
@@ -603,7 +605,7 @@ public final class CharsToNameCanonicalizer
      */
         /*
         public String find(String str) {
-            String sym = mSymbol;
+            String sym = _symbol;
             Bucket b = mNext;
 
             while (true) {

@@ -1,5 +1,7 @@
 package org.codehaus.jackson.sym;
 
+import org.codehaus.jackson.util.InternCache;
+
 /**
  * This class is basically a caching symbol table implementation used for
  * canonicalizing {@link Name}s, constructed directly from a byte-based
@@ -823,7 +825,7 @@ public final class BytesToNameCanonicalizer
 
     public static Name constructName(int hash, String name, int q1, int q2)
     {
-        name = name.intern();
+        name = InternCache.instance.intern(name);
         if (q2 == 0) { // one quad only?
             return new Name1(name, hash, q1);
         }
@@ -832,7 +834,7 @@ public final class BytesToNameCanonicalizer
 
     public static Name constructName(int hash, String name, int[] quads, int qlen)
     {
-        name = name.intern();
+        name = InternCache.instance.intern(name);
         if (qlen < 4) { // Need to check for 3 quad one, can do others too
             switch (qlen) {
             case 1:

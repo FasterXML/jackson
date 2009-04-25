@@ -1,10 +1,11 @@
-Version: 0.9.9-4
+Version: 0.9.9-5
 
 Release date:
-  14-Apr-2009
+  20-Apr-2009
 
 Description:
-  Another pre-1.0 release.
+  First release candidate for 1.0. If no bugs are found within a week
+  or so, will become official version 1.0.
 
   New features:
 

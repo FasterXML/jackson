@@ -6,6 +6,7 @@ import java.lang.reflect.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.util.InternCache;
 
 /**
  * Class that represents a single settable property of a bean: contains
@@ -54,7 +55,7 @@ public final class SettableBeanProperty
         /* 09-Jan-2009, tatu: Intern()ing makes sense since Jackson parsed
          *   field names are interned too, hence lookups will be faster.
          */
-        _propName = propName.intern();
+        _propName = InternCache.instance.intern(propName);
         _type = type;
         _setter = setter;
         _getter = getter;
