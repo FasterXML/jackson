@@ -35,8 +35,8 @@ import org.codehaus.jackson.type.JavaType;
  * @author Tatu Saloranta
  */
 @Provider
-@Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, "text/json"})
+    @Produces({MediaType.APPLICATION_JSON, "text/json"})
 public class JacksonJsonProvider
     implements
         MessageBodyReader<Object>,
@@ -329,7 +329,10 @@ public class JacksonJsonProvider
             String subtype = mediaType.getSubtype();
             return "json".equals(subtype) || subtype.endsWith("+json");
         }
-        return false;
+        /* Not sure if this can happen; but it seems reasonable
+         * that we can at least produce json without media type?
+         */
+        return true;
     }
 
     /**
