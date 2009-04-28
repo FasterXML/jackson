@@ -50,7 +50,7 @@
     <property name="IMPL_TITLE_MAPPER" value="Data mapper for Jackson JSON processor" />
     <property name="IMPL_TITLE_JAXRS" value="JAX-RS provider for Json content type, using Jackson data binding" />
 
-    <property name="IMPL_VERSION" value="0.9.9-5" />
+    <property name="IMPL_VERSION" value="0.9.9-6" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
     <path id="test-libs">

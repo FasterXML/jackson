@@ -307,7 +307,7 @@ public class JacksonJsonProvider
             resolver = _providers.getContextResolver(ObjectMapper.class, null);
         }
         if (resolver != null) {
-            ObjectMapper mapper = resolver.getContext(ObjectMapper.class);
+            ObjectMapper mapper = resolver.getContext(type);
             if (mapper != null) {
                 return mapper;
             }
