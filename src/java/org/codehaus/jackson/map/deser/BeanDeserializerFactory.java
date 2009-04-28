@@ -138,7 +138,10 @@ public class BeanDeserializerFactory
          */
         AnnotatedMethod am = beanDesc.findMethod("initCause", INIT_CAUSE_PARAMS);
         if (am != null) { // should never be null
-            deser.addProperty(constructSettableProperty(config, "cause", am));
+            SettableBeanProperty prop = constructSettableProperty(config, "cause", am);
+            if (prop != null) {
+                deser.addProperty(prop);
+            }
         }
 
         // And also need to ignore "localizedMessage"
@@ -235,7 +238,10 @@ public class BeanDeserializerFactory
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
             AnnotatedMethod setter = en.getValue();
-            deser.addProperty(constructSettableProperty(config, en.getKey(), setter));
+            SettableBeanProperty prop = constructSettableProperty(config, en.getKey(), setter);
+            if (prop != null) {
+                deser.addProperty(prop);
+            }
         }
 
         /* As per [JACKSON-88], may also need to consider getters
@@ -300,6 +306,9 @@ public class BeanDeserializerFactory
      *
      * @param setter Method to use to set property value; or null if none.
      *    Null only for "setterless" properties
+     *
+     * @return Property constructed, if any; or null to indicate that
+     *   there should be no property based on given definitions.
      */
     protected SettableBeanProperty constructSettableProperty(DeserializationConfig config,
                                                              String name,

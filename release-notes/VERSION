@@ -1,11 +1,24 @@
-Version: 0.9.9-5
+Version: 0.9.9-6
 
 Release date:
-  20-Apr-2009
+  27-Apr-2009
 
 Description:
-  First release candidate for 1.0. If no bugs are found within a week
-  or so, will become official version 1.0.
+  Second release candidate for 1.0: the only real different to previous
+  version are fixed to JAX-RS resource provider.
+  If no bugs are found within a week or so, will become official version 1.0.
+
+  Improvements:
+
+  * Improved jax-rs provider integration with jersey; now properly
+    auto-registers as handler for json media type(s), and allows
+    for defining custom ObjectMapper to be injected.
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+0.9.9-5 [20-Apr-2009]
 
   New features:
 
@@ -19,10 +32,6 @@ Description:
   * [JACKSON-101]: Allow disabling of access modifier overrides
     (SerializationgConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)
     to support more security-constrainted running environments.
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 0.9.9-4 [14-Apr-2009]
 
