@@ -417,7 +417,7 @@ public class BasicBeanDescription extends BeanDescription
     {
         String name = am.getName();
         if (name.startsWith("get")) {
-            /* 16-Feb-2009, tatus: To handle [JACKSON-53], need to block
+            /* 16-Feb-2009, tatu: To handle [JACKSON-53], need to block
              *   CGLib-provided method "getCallbacks". Not sure of exact
              *   safe critieria to get decent coverage without false matches;
              *   but for now let's assume there's no reason to use any 
@@ -426,6 +426,13 @@ public class BasicBeanDescription extends BeanDescription
              */
             if ("getCallbacks".equals(name)) {
                 if (isCglibGetCallbacks(am)) {
+                    return null;
+                }
+            } else if ("getMetaClass".equals(name)) {
+                /* 30-Apr-2009, tatu: [JACKSON-103], need to suppress
+                 *    serialization of a cyclic (and useless) reference
+                 */
+                if (isGroovyMeta(am)) {
                     return null;
                 }
             }
@@ -480,6 +487,23 @@ public class BasicBeanDescription extends BeanDescription
         return false;
     }
 
+    /**
+     * Similar to {@link #isCglibGetCallbacks}, need to suppress
+     * a cyclic reference to resolve [JACKSON-103]
+     */
+    protected boolean isGroovyMeta(AnnotatedMethod am)
+    {
+        Class<?> rt = am.getReturnType();
+        if (rt == null || rt.isArray()) {
+            return false;
+        }
+        Package pkg = rt.getPackage();
+        if (pkg != null && pkg.getName().startsWith("groovy.lang")) {
+            return true;
+        }
+        return false;
+    }
+ 
     /*
     ///////////////////////////////////////////////////////
     // Helper methods for setters

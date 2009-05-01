@@ -92,18 +92,26 @@ Kevin Grained:
 
 Ryan Heaton:
   * Helped with [JACKSON-67]: Json content type provider for JAX-RS
-    [0.9.9]
+   [0.9.9]
 
 Eldar Abusalimov:
   * Reported [JACKSON-81]: Data binding code could lead to unnecessary
     blocking because it tried to advance parser (and stream) after binding
-    [0.9.9-3]
+   [0.9.9-3]
   * Reported [JACKSON-99]: IOExceptions should not be wrapped during object
     mapping.
-    [0.9.9-4]
+   [0.9.9-4]
 
-Stephen Duncan jr
+Stephen Duncan jr:
   * Pointed out problem with JacksonJsonProvider where strict equality
     comparison was used instead of using MediaType.isCompatible().
-    [0.9.9-4]
+   [0.9.9-4]
 
+Ray Tsang:
+  * Reported [JACKSON-103] (problem with Groovy class serialization),
+    submitted fix
+   [0.9.9-7]
+
+Oleksandr Alesinskyy:
+  * Reported [JACKSON-104], problems with packaging, build.
+   [0.9.9-7]

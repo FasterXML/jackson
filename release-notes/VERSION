@@ -1,22 +1,33 @@
-Version: 0.9.9-6
+Version: 0.9.9-7
 
 Release date:
-  27-Apr-2009
+  -Apr-2009
 
 Description:
-  Second release candidate for 1.0: the only real different to previous
+  Third release candidate for 1.0: the only real different to previous
   version are fixed to JAX-RS resource provider.
   If no bugs are found within a week or so, will become official version 1.0.
+
+  Fixes:
+
+  * [JACKSON-103] Serializing Groovy objects; need to exclude getter method
+    "getMetaClass" from serialization to prevent infinite recursion
+   (reported by Ray T)
+  * [JACKSON-104] Build, source packaging broken for 0.9.9-6
+   (reported by Oleksander A)
+
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+0.9.9-5 [27-Apr-2009]
 
   Improvements:
 
   * Improved jax-rs provider integration with jersey; now properly
     auto-registers as handler for json media type(s), and allows
     for defining custom ObjectMapper to be injected.
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 0.9.9-5 [20-Apr-2009]
 
