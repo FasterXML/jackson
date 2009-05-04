@@ -302,7 +302,11 @@ public class JacksonJsonProvider
 
         // If not, maybe we can get one configured via context?
         ContextResolver<ObjectMapper> resolver = _providers.getContextResolver(ObjectMapper.class, mediaType);
-        // Not registered with media type, how about without?
+        /* Above should work as is, but due to this bug
+         *   [https://jersey.dev.java.net/issues/show_bug.cgi?id=288]
+         * in Jersey, it doesn't. But this works until resolution of
+         * the issue:
+         */
         if (resolver == null) {
             resolver = _providers.getContextResolver(ObjectMapper.class, null);
         }
