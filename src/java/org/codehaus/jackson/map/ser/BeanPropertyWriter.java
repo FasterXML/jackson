@@ -17,7 +17,7 @@ public final class BeanPropertyWriter
      * Logical name of the property; will be used as the field name
      * under which value for the property is written.
      */
-    protected final String _name;
+    private final String _name;
 
     /**
      * Accessor method used to get property value
@@ -65,11 +65,6 @@ public final class BeanPropertyWriter
 
     public final String getName() { return _name; }
 
-    @Override
-    public String toString() {
-        return "property '"+getName()+"' (via method "+_accessorMethod.getDeclaringClass()+"#"+_accessorMethod.getName()+"))";
-    }
-
     /**
      * Method called to access property that this bean stands for, from
      * within given bean, and to serialize it as a Json Object field
@@ -78,9 +73,9 @@ public final class BeanPropertyWriter
     public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
         throws Exception
     {
-        Object value = _accessorMethod.invoke(bean);
-        JsonSerializer<Object> ser;
+        Object value = get(bean);
 
+        JsonSerializer<Object> ser;
         if (value == null) {
             if (!_cfgWriteIfNull) {
                 return;
@@ -94,6 +89,25 @@ public final class BeanPropertyWriter
         }
         jgen.writeFieldName(_name);
         ser.serialize(value, jgen, prov);
+    }
+
+    /**
+     * Method that can be used to access value of the property this
+     * Object describes, from given bean instance.
+     *<p>
+     * Note: method is final as it should not need to be overridden -- rather,
+     * calling method(s) ({@link #serializeAsField}) should be overridden
+     * to change the behavior
+     */
+    public final Object get(Object bean)
+        throws Exception
+    {
+        return _accessorMethod.invoke(bean);
+    }
+
+    @Override
+    public String toString() {
+        return "property '"+getName()+"' (via method "+_accessorMethod.getDeclaringClass()+"#"+_accessorMethod.getName()+"))";
     }
 }
 

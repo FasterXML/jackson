@@ -21,9 +21,9 @@ public final class BeanSerializer
     extends JsonSerializer<Object>
     implements ResolvableSerializer
 {
-    final String _className;
+    final protected String _className;
 
-    final BeanPropertyWriter[] _props;
+    final protected BeanPropertyWriter[] _props;
 
     public BeanSerializer(Class<?> type, BeanPropertyWriter[] props)
     {
