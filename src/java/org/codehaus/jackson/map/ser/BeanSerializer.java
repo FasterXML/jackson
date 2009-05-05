@@ -17,7 +17,7 @@ import org.codehaus.jackson.map.*;
  * done from {@link #resolve} method, and NOT from constructor;
  * otherwise we could end up with an infinite loop.
  */
-public final class BeanSerializer
+public class BeanSerializer
     extends JsonSerializer<Object>
     implements ResolvableSerializer
 {
