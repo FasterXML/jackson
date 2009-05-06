@@ -8,6 +8,12 @@ Description:
   version are fixed to JAX-RS resource provider.
   If no bugs are found within a week or so, will become official version 1.0.
 
+  Improvements:
+
+  * Removed JAX-RS META-INF/services - based auto-registration for
+    JAX-RS MessageBodyReader/MessageBodyWriter, because it could
+    conflict with other application/json content handlers.
+
   Fixes:
 
   * [JACKSON-103] Serializing Groovy objects; need to exclude getter method

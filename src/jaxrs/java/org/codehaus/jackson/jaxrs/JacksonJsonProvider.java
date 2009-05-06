@@ -79,11 +79,7 @@ public class JacksonJsonProvider
             StreamingOutput.class, Response.class
             };
 
-    /**
-     * Default ObjectMapper to use if none is configured for provider
-     * to use.
-     */
-    protected final static ObjectMapper _defaultMapper = new ObjectMapper();
+    protected ObjectMapper _defaultMapper;
 
     /*
     ///////////////////////////////////////////////////////
@@ -111,13 +107,6 @@ public class JacksonJsonProvider
     // Configuration
     ///////////////////////////////////////////////////////
      */
-
-    /**
-    * Whether return type of type String is to be output
-     * as JSON strings (double-quoted) or not. Default to "false",
-     * as most often this is not wanted
-     */
-    protected boolean _cfgSerializeStringAsJSON = false;
 
     /**
      * Whether we want to actually check that Jackson has
@@ -170,11 +159,12 @@ public class JacksonJsonProvider
     public void checkCanSerialize(boolean state) { _cfgCheckCanSerialize = state; }
 
     /**
-     * Method for enabling/disabling providers conversion of plain old Strings
-     * to JSON Strings; affects both input and output data binding.
+     * Method that can be used to directly define {@link ObjectMapper} to use
+     * for serialization and deserialization; if null, will use the standard
+     * provider discovery from context instead. Default setting is null.
      */
-    public void serializeStringsAsJSON(boolean state) {
-        _cfgSerializeStringAsJSON = state;
+    public void setMapper(ObjectMapper m) {
+        _configuredMapper = m;
     }
 
     /*
@@ -185,7 +175,7 @@ public class JacksonJsonProvider
 
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
-        if (!_isJsonType(mediaType)) {
+        if (!isJsonType(mediaType)) {
             return false;
         }
 
@@ -204,7 +194,7 @@ public class JacksonJsonProvider
 
         // Finally: if we really want to verify that we can serialize, we'll check:
         if (_cfgCheckCanSerialize) {
-            if (!_getMapper(type, mediaType).canDeserialize(_convertType(type))) {
+            if (!locateMapper(type, mediaType).canDeserialize(_convertType(type))) {
                 return false;
             }
         }
@@ -214,7 +204,7 @@ public class JacksonJsonProvider
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String,String> httpHeaders, InputStream entityStream) 
         throws IOException
     {
-        ObjectMapper mapper = _getMapper(type, mediaType);
+        ObjectMapper mapper = locateMapper(type, mediaType);
         JsonParser jp = mapper.getJsonFactory().createJsonParser(entityStream);
         /* Important: we are NOT to close the underlying stream after
          * mapping, so we need to instruct parser:
@@ -239,7 +229,7 @@ public class JacksonJsonProvider
 
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
-        if (!_isJsonType(mediaType)) {
+        if (!isJsonType(mediaType)) {
             return false;
         }
 
@@ -258,7 +248,7 @@ public class JacksonJsonProvider
 
         // Also: if we really want to verify that we can deserialize, we'll check:
         if (_cfgCheckCanSerialize) {
-            if (!_getMapper(type, mediaType).canSerialize(type)) {
+            if (!locateMapper(type, mediaType).canSerialize(type)) {
                 return false;
             }
         }
@@ -271,7 +261,7 @@ public class JacksonJsonProvider
         /* 27-Feb-2009, tatu: Where can we find desired encoding? Within
          *   http headers?
          */
-        ObjectMapper mapper = _getMapper(type, mediaType);
+        ObjectMapper mapper = locateMapper(type, mediaType);
         JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(entityStream, JsonEncoding.UTF8);
         jg.disableFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
 
@@ -284,16 +274,31 @@ public class JacksonJsonProvider
 
     /*
     ////////////////////////////////////////////////////
-    // Helper methods
+    // Public helper methods
     ////////////////////////////////////////////////////
      */
 
     /**
+     * Method called to locate {@link ObjectMapper} to use for serialization
+     * and deserialization. If an instance has been explicitly defined by
+     * {@link #setMapper} (or non-null instance passed in constructor), that
+     * will be used. 
+     * If not, will try to locate it using standard JAX-RS
+     * {@link ContextResolver} mechanism, if it has been properly configured
+     * to access it (by JAX-RS runtime).
+     * Finally, if no mapper is found, will return a default unconfigured
+     * {link ObjectMapper} instance (one constructed with default constructor
+     * and not modified in any way)
+     *
      * @param type Class of object being serialized or deserialized;
-     *   not used at this point, since it is assumed that unprocessable
-     *   classes have been already weeded out
+     *   not checked at this point, since it is assumed that unprocessable
+     *   classes have been already weeded out,
+     *   but will be passed to {@link ContextResolver} as is.
+     * @param mediaType Declared media type for the instance to process:
+     *   not used by this method,
+     *   but will be passed to {@link ContextResolver} as is.
      */
-    protected ObjectMapper _getMapper(Class<?> type, MediaType mediaType)
+    protected ObjectMapper locateMapper(Class<?> type, MediaType mediaType)
     {
         // First: were we configured with an instance?
         if (_configuredMapper != null) {
@@ -316,11 +321,18 @@ public class JacksonJsonProvider
                 return mapper;
             }
         }
-        // nope: must use globally shared instance
-        return _defaultMapper;
+        /* nope: must use an unconfigured default instance
+         * (ideally we'd log a warning if this happens...)
+         */
+        synchronized (this) {
+            if (_defaultMapper == null) {
+                _defaultMapper = new ObjectMapper();
+            }
+            return _defaultMapper;
+        }
     }
 
-    protected boolean _isJsonType(MediaType mediaType)
+    public boolean isJsonType(MediaType mediaType)
     {
         /* As suggested by Stephen D, there are 2 ways to check: either
          * being as inclusive as possible (if subtype is "json"), or
@@ -338,6 +350,12 @@ public class JacksonJsonProvider
          */
         return true;
     }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Private/sub-class helper methods
+    ////////////////////////////////////////////////////
+     */
 
     /**
      * Method used to construct a JDK generic type into type definition

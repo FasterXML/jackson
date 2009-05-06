@@ -194,6 +194,13 @@ org.codehaus.jackson.node;version=${IMPL_VERSION}
         (OSGi nominally just lists ASL, not sure if/how to
         add multiple?)
       -->
+    <!-- 06-May-2009, tatu: Removed META-INF/services
+       registration as it could conflict with other
+       JAX-RS json providers.
+
+       includeResource="META-INF/services=${dir.src.resource.jaxrs}"
+
+      -->
     <target name="jar.jaxrs" depends="compile.jaxrs">
         <osgiJar
          outputdir="${dir.build}"
@@ -215,7 +222,7 @@ javax.ws.rs
 "
          exportpackage="
 org.codehaus.jackson.jaxrs;version=${IMPL_VERSION}"
-         includeResource="META-INF/services=${dir.src.resource.jaxrs}, META-INF=release-notes/asl"
+         includeResource="META-INF=release-notes/asl"
          includeIncludeResourceHeader="false"
         >
         <classpath><pathelement path="${dir.build.classes.jaxrs}" /></classpath>
