@@ -1,11 +1,10 @@
 /**
- * Contains basic mapper (conversion) functionality that
+Contains basic mapper (conversion) functionality that
 allows for converting between regular streaming json content and
-various tree/object-based alternatives.
-Currently 2 main flavors are supported: "Object Mapper" and
-"Tree Mapper": implementing classes are, respectively,
-{@link org.codehaus.jackson.map.ObjectMapper}
-and {@link org.codehaus.jackson.map.TreeMapper}
+Java objects (beans or Tree Model: support for both is via
+{@link org.codehaus.jackson.map.ObjectMapper} class, as well
+as convenience methods included in
+{@link org.codehaus.jackson.JsonParser}
 <p>
 Object mapper will convert Json content to ant from
 basic Java wrapper types (Integer, Boolean, Double),
