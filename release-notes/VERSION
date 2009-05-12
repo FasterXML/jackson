@@ -1,18 +1,16 @@
-Version: 0.9.9-7
+Version: 1.0.0
 
 Release date:
-  -Apr-2009
+  09-May-2009
 
 Description:
-  Third release candidate for 1.0: the only real different to previous
-  version are fixed to JAX-RS resource provider.
-  If no bugs are found within a week or so, will become official version 1.0.
+  The official Jackson 1.0 release.
 
-  Improvements:
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
 
-  * Removed JAX-RS META-INF/services - based auto-registration for
-    JAX-RS MessageBodyReader/MessageBodyWriter, because it could
-    conflict with other application/json content handlers.
+1.0.0 [09-May-2009]
 
   Fixes:
 
@@ -22,12 +20,13 @@ Description:
   * [JACKSON-104] Build, source packaging broken for 0.9.9-6
    (reported by Oleksander A)
 
+  Improvements:
 
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
+  * Removed JAX-RS META-INF/services - based auto-registration for
+    JAX-RS MessageBodyReader/MessageBodyWriter, because it could
+    conflict with other application/json content handlers.
 
-0.9.9-5 [27-Apr-2009]
+0.9.9-6 [27-Apr-2009]
 
   Improvements:
 
