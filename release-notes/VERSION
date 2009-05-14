@@ -1,10 +1,15 @@
-Version: 1.0.0
+Version: 1.0.1
 
 Release date:
-  09-May-2009
+  xx-May-2009
 
 Description:
-  The official Jackson 1.0 release.
+  First patch release from 1.0 branch.
+
+  Fixes:
+
+  * [JACKSON-104] Build fails on JDK 1.5
+   (reported by Oleksander A)
 
 ------------------------------------------------------------------------
 == History: ==
@@ -17,8 +22,6 @@ Description:
   * [JACKSON-103] Serializing Groovy objects; need to exclude getter method
     "getMetaClass" from serialization to prevent infinite recursion
    (reported by Ray T)
-  * [JACKSON-104] Build, source packaging broken for 0.9.9-6
-   (reported by Oleksander A)
 
   Improvements:
 

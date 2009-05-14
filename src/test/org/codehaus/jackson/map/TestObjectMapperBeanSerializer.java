@@ -91,30 +91,30 @@ public class TestObjectMapperBeanSerializer
                 assertToken(JsonToken.START_OBJECT, t);
 
                 //getTestError->Exception::getCause
-                assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
-                assertEquals("cause", getAndVerifyText(jp));
-                assertEquals(JsonToken.VALUE_NULL, jp.nextToken());
-                //getTestError->Exception::getMessage
-                assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
-                assertEquals("message", getAndVerifyText(jp));
-                assertEquals(JsonToken.VALUE_STRING, jp.nextToken());
-                assertEquals(FixtureObject.VALUE_ERRTXT, getAndVerifyText(jp));
-                //getTestError->Exception::getLocalizedMessage
-                assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
-                assertEquals("localizedMessage", getAndVerifyText(jp));
-                assertEquals(JsonToken.VALUE_STRING, jp.nextToken());
-                //getTestError->Exception::getStackTrace
-                assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
-                assertEquals("stackTrace", getAndVerifyText(jp));
-                assertEquals(JsonToken.START_ARRAY,jp.nextToken());
-                int i = 0;
-                while(jp.nextToken() != JsonToken.END_ARRAY) {
-                    if(i >= 100000) {
-                        assertTrue("Probably run away loop in test. StackTrack Array was not properly closed.",false);
+                
+                while (jp.nextToken() == JsonToken.FIELD_NAME) {
+                    name = jp.getCurrentName();
+                    if (name.equals("cause")) {
+                        assertEquals(JsonToken.VALUE_NULL, jp.nextToken());
+                    } else if (name.equals("message")) {
+                        assertEquals(JsonToken.VALUE_STRING, jp.nextToken());
+                        assertEquals(FixtureObject.VALUE_ERRTXT, getAndVerifyText(jp));
+                    } else if (name.equals("localizedMessage")) {
+                        assertEquals(JsonToken.VALUE_STRING, jp.nextToken());
+                    } else if (name.equals("stackTrace")) {
+                        assertEquals(JsonToken.START_ARRAY,jp.nextToken());
+                        int i = 0;
+                        while(jp.nextToken() != JsonToken.END_ARRAY) {
+                            if(i >= 100000) {
+                                assertTrue("Probably run away loop in test. StackTrack Array was not properly closed.",false);
+                            }
+                        }
+                    } else {
+                        fail("Unexpected field name '"+name+"'");
                     }
                 }
                 //CLOSE OF THE EXCEPTION
-                assertEquals(JsonToken.END_OBJECT,jp.nextToken());
+                assertEquals(JsonToken.END_OBJECT, jp.getCurrentToken());
             } else {
                 fail("Unexpected field, name '"+name+"'");
             }
