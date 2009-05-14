@@ -5,6 +5,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationFilter;
@@ -26,6 +27,8 @@ public class TestAnnotatedClass
 
     static class BaseClass
     {
+        public int foo;
+
         public BaseClass(int x, int y) { }
 
         @JsonGetter public int x() { return 3; }
@@ -44,12 +47,27 @@ public class TestAnnotatedClass
         public abstract void setX(T value);
     }
 
-
     static class NumberBean
         extends GenericBase<Integer>
     {
         @Override
         public void setX(Integer value) { }
+    }
+
+    /**
+     * Test class for checking that field introspection
+     * works as expected
+     */
+    static class FieldBean
+    {
+        // static, not to be included:
+        public static boolean DUMMY;
+
+        // not public, no annotations, shouldn't be included
+        private long bar;
+
+        @JsonProperty
+            private String props;
     }
 
     /*
@@ -61,7 +79,7 @@ public class TestAnnotatedClass
     public void testSimple()
     {
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (SubClass.class, JacksonAnnotationFilter.instance, true, BasicClassIntrospector.GetterMethodFilter.instance);
+            (SubClass.class, JacksonAnnotationFilter.instance, true, BasicClassIntrospector.GetterMethodFilter.instance, true);
 
         assertNotNull(ac.getDefaultConstructor());
         assertEquals(1, ac.getSingleArgConstructors().size());
@@ -78,6 +96,10 @@ public class TestAnnotatedClass
                 fail("Unexpected method: "+name);
             }
         }
+
+        List<AnnotatedField> fields = ac.getFields();
+        assertEquals(1, fields.size());
+        assertEquals("foo", fields.get(0).getName());
     }
 
     /**
@@ -87,7 +109,7 @@ public class TestAnnotatedClass
     public void testGenericsWithSetter()
     {
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (NumberBean.class, JacksonAnnotationFilter.instance, true, BasicClassIntrospector.SetterMethodFilter.instance);
+            (NumberBean.class, JacksonAnnotationFilter.instance, true, BasicClassIntrospector.SetterMethodFilter.instance, false);
         Collection<AnnotatedMethod> methods = ac.getMemberMethods();
         assertEquals(1, methods.size());
 
@@ -98,5 +120,16 @@ public class TestAnnotatedClass
         assertEquals(NumberBean.class, am.getDeclaringClass());
         Type[] types = am.getGenericParameterTypes();
         assertEquals(Integer.class, types[0]);
+    }
+
+    public void testFieldIntrospection()
+    {
+        AnnotatedClass ac = AnnotatedClass.constructFull
+            (FieldBean.class, JacksonAnnotationFilter.instance, false, BasicClassIntrospector.GetterMethodFilter.instance, true);
+
+        List<AnnotatedField> fields = ac.getFields();
+        // only one discoverable property...
+        assertEquals(1, fields.size());
+        assertEquals("props", fields.get(0).getName());
     }
 }

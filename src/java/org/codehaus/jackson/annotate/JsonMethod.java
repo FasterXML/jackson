@@ -4,7 +4,8 @@ package org.codehaus.jackson.annotate;
  * Enumeration used to define kinds of methods that annotations like
  * {@link JsonAutoDetect} apply to.
  *<p>
- * In addition to actual method types (GETTER, SETTER, CREATOR), 2 pseudo-types
+ * In addition to actual method types (GETTER, SETTER, CREATOR; and
+ * sort-of-method, FIELD), 2 pseudo-types
  * are defined for convenience: <code>ALL</code> and <code>NONE</code>. These
  * can be used to indicate, all or none of available method types (respectively),
  * for use by annotations that takes <code>JsonMethod</code> argument.
@@ -20,7 +21,7 @@ public enum JsonMethod {
     GETTER,
 
     /**
-     * Setters are methods used to set a POJO value for deserialization
+     * Setters are methods used to set a POJO value for deserialization.
      */
     SETTER,
 
@@ -29,6 +30,16 @@ public enum JsonMethod {
          * construct POJO instances for deserialization
          */
         CREATOR,
+
+        /**
+         * Field refers to fields of regular Java objects. Although
+         * they are not really methods, addition of optional field-discovery
+         * in version 1.1 meant that there was need to enable/disable
+         * their auto-detection, and this is the place to add it in.
+         *
+         * @since 1.1
+         */
+        FIELD,
 
         /**
          * This pseudo-type indicates that none of real types is included
@@ -53,5 +64,9 @@ public enum JsonMethod {
 
     public boolean setterEnabled() {
         return (this == SETTER) || (this == ALL);
+    }
+
+    public boolean fieldEnabled() {
+        return (this == FIELD) || (this == ALL);
     }
 }

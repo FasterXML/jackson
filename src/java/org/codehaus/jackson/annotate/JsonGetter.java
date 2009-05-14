@@ -19,8 +19,10 @@ import java.lang.annotation.Target;
 public @interface JsonGetter
 {
     /**
-     * Optional default argument that defines logical property this
-     * method is used to access ("get").
+     * Defines name of the logical property this
+     * method is used to access ("get"); empty String means that
+     * name should be derived from the underlying method (using
+     * standard Bean name detection rules)
      */
     String value() default "";
 }

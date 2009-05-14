@@ -108,6 +108,12 @@ public final class AnnotatedClass
      */
     AnnotatedMethodMap  _memberMethods;
 
+    /**
+     * Member fields of interest: ones that are either public,
+     * or have at least one annotation.
+     */
+    List<AnnotatedField> _fields;
+
     /*
     ///////////////////////////////////////////////////////
     // Life-cycle
@@ -133,11 +139,14 @@ public final class AnnotatedClass
      *   potential creators (constructors and static factory methods)
      * @param memberFilter Optional filter that defines which member methods
      *   to include; if null, no member method information is to be included.
+     * @param includeFields Whether to include non-static fields that are
+     *   either public, or have at least a single annotation
      */
     public static AnnotatedClass constructFull(Class<?> cls,
                                                AnnotationFilter annotationFilter,
                                                boolean includeCreators,
-                                               MethodFilter memberFilter)
+                                               MethodFilter memberFilter,
+                                               boolean includeFields)
     {
         List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
         AnnotatedClass ac = new AnnotatedClass(cls, st, annotationFilter);
@@ -147,6 +156,9 @@ public final class AnnotatedClass
         }
         if (memberFilter != null) {
             ac.resolveMemberMethods(memberFilter);
+        }
+        if (includeFields) {
+            ac.resolveFields();
         }
         return ac;
     }
@@ -253,6 +265,55 @@ public final class AnnotatedClass
         }
     }
 
+    /**
+     * Method that will collect all member (non-static) fields
+     * that are either public, or have at least a single annotation
+     * associated with them.
+     */
+    private void resolveFields()
+    {
+        _fields = new ArrayList<AnnotatedField>();
+        _addFields(_fields, _class);
+    }
+
+    private static void _addFields(List<AnnotatedField> fields, Class<?> c)
+    {
+        /* First, a quick test: we only care for regular classes (not
+         * interfaces, primitive types etc), except for Object.class.
+         * A simple check to rule out other cases is to see if there
+         * is a super class or not.
+         */
+        Class<?> parent = c.getSuperclass();
+        if (parent != null) {
+            /* Let's add super-class' fields first, then ours.
+             * Also: we won't be checking for masking (by name); it
+             * can happen, if very rarely, but will be handled later
+             * on when resolving masking between methods and fields
+             */
+            _addFields(fields, parent);
+            for (Field f : c.getDeclaredFields()) {
+                /* I'm pretty sure synthetic fields are to be skipped...
+                 * (methods definitely are)
+                 */
+                if (f.isSynthetic()) {
+                    continue;
+                }
+                // First: static fields are never included
+                int mods = f.getModifiers();
+                if (Modifier.isStatic(mods)) {
+                    continue;
+                }
+                /* Need to be public, or have an annotation
+                 * (these are required, but not sufficient checks)
+                 */
+                Annotation[] anns = f.getAnnotations();
+                if (anns.length > 0 || Modifier.isPublic(mods)) {
+                    fields.add(new AnnotatedField(f, anns));
+                }
+            }
+        }
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Annotated impl 
@@ -281,20 +342,20 @@ public final class AnnotatedClass
 
     public AnnotatedConstructor getDefaultConstructor() { return _defaultConstructor; }
 
-    public Collection<AnnotatedConstructor> getSingleArgConstructors()
+    public List<AnnotatedConstructor> getSingleArgConstructors()
     {
-        if (_singleArgConstructors != null) {
-            return _singleArgConstructors;
+        if (_singleArgConstructors == null) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+        return _singleArgConstructors;
     }
 
-    public Collection<AnnotatedMethod> getSingleArgStaticMethods()
+    public List<AnnotatedMethod> getSingleArgStaticMethods()
     {
-        if (_singleArgStaticMethods != null) {
-            return _singleArgStaticMethods;
+        if (_singleArgStaticMethods == null) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+        return _singleArgStaticMethods;
     }
 
     public Collection<AnnotatedMethod> getMemberMethods()
@@ -305,6 +366,14 @@ public final class AnnotatedClass
     public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
     {
         return _memberMethods.find(name, paramTypes);
+    }
+
+    public List<AnnotatedField> getFields()
+    {
+        if (_fields == null) {
+            return Collections.emptyList();
+        }
+        return _fields;
     }
 
     /*

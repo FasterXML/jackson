@@ -118,7 +118,7 @@ public class BasicClassIntrospector
          */
     	MethodFilter mf = getSerializationMethodFilter(cfg);
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, false, mf);
+            (c, JacksonAnnotationFilter.instance, false, mf, true);
         return new BasicBeanDescription(c, ac);
     }
 
@@ -131,7 +131,7 @@ public class BasicClassIntrospector
          */
     	MethodFilter mf = getDeserializationMethodFilter(cfg);
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, true, mf);
+            (c, JacksonAnnotationFilter.instance, true, mf, true);
         return new BasicBeanDescription(c, ac);
     }
 
@@ -140,10 +140,10 @@ public class BasicClassIntrospector
                                             Class<?> c)
     {
         /* Just need constructors and factory methods, but no
-         * member methods
+         * member methods or fields
          */
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, true, null);
+            (c, JacksonAnnotationFilter.instance, true, null, false);
         return new BasicBeanDescription(c, ac);
     }
 
@@ -154,7 +154,7 @@ public class BasicClassIntrospector
          * info
          */
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, false, null);
+            (c, JacksonAnnotationFilter.instance, false, null, false);
         return new BasicBeanDescription(c, ac);
     }
 
