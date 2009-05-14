@@ -1,5 +1,0 @@
-Testing:
-
-- Test deserialization problem listener (unknown property)
-- Test mapping of numbers -> Double or BigDecimal
-
