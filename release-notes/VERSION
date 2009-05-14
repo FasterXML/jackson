@@ -1,10 +1,10 @@
-Version: 1.0.0
+Version: 1.1.0-SNAPSHOT
 
 Release date:
-  09-May-2009
+  xx-xxx-2009
 
 Description:
-  The official Jackson 1.0 release.
+  Development snapshot from trunk, for eventual 1.1 release
 
 ------------------------------------------------------------------------
 == History: ==

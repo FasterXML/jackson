@@ -344,6 +344,7 @@ public class TestTreeMapperDeserializer
      * Let's also verify behavior of "MissingNode" -- one needs to be able
      * to traverse such bogus nodes with appropriate methods.
      */
+    @SuppressWarnings("unused")
     public void testMissingNode()
         throws Exception
     {
@@ -356,7 +357,7 @@ public class TestTreeMapperDeserializer
         assertEquals(2, result.size());
 
         int count = 0;
-        for (@SuppressWarnings("unused") JsonNode n : result) {
+        for (JsonNode node : result) {
             ++count;
         }
         assertEquals(2, count);
