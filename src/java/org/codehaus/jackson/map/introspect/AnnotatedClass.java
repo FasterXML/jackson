@@ -237,15 +237,11 @@ public final class AnnotatedClass
     {
         _memberMethods = new AnnotatedMethodMap();
         for (Method m : _class.getDeclaredMethods()) {
-            /* 07-Apr-2009, tatu: Looks like generics can introduce hidden
-             *   bridge and/or synthetic methods. I don't think we want to
-             *   consider those...
-             */
-            if (m.isSynthetic() || m.isBridge()) {
-                continue;
-            }
-            if (methodFilter.includeMethod(m)) {
-                _memberMethods.add(new AnnotatedMethod(m, _annotationIntrospector));
+            if (_isIncludableMethod(m, methodFilter)) {
+                AnnotatedMethod am = new AnnotatedMethod(m, _annotationIntrospector);
+                if (!_annotationIntrospector.isIgnorableMethod(am)) {
+                    _memberMethods.add(am);
+                }
             }
         }
         /* and then augment these with annotations from
@@ -253,21 +249,31 @@ public final class AnnotatedClass
          */
         for (Class<?> cls : _superTypes) {
             for (Method m : cls.getDeclaredMethods()) {
-                // as with above, these are bogus methods, to be ignored:
-                if (m.isSynthetic() || m.isBridge()) {
-                    continue;
-                }
-                if (methodFilter.includeMethod(m)) {
-                    AnnotatedMethod am = _memberMethods.find(m);
-                    if (am == null) {
-                        am = new AnnotatedMethod(m, _annotationIntrospector);
-                        _memberMethods.add(am);
-                    } else {
-                        am.addAnnotationsNotPresent(m);
+                if (_isIncludableMethod(m, methodFilter)) {
+                    AnnotatedMethod am = new AnnotatedMethod(m, _annotationIntrospector);
+                    if (!_annotationIntrospector.isIgnorableMethod(am)) {
+                        AnnotatedMethod old = _memberMethods.find(m);
+                        if (old == null) {
+                            _memberMethods.add(am);
+                        } else {
+                            old.addAnnotationsNotPresent(m);
+                        }
                     }
                 }
             }
         }
+    }
+        
+    private boolean _isIncludableMethod(Method m, MethodFilter methodFilter)
+    {
+        /* 07-Apr-2009, tatu: Looks like generics can introduce hidden
+         *   bridge and/or synthetic methods. I don't think we want to
+         *   consider those...
+         */
+        if (m.isSynthetic() || m.isBridge()) {
+            return false;
+        }
+        return methodFilter.includeMethod(m);
     }
 
     /**

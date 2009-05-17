@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonAnySetter;
+import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ClassIntrospector;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -113,56 +114,56 @@ public class BasicClassIntrospector
     public BasicBeanDescription forSerialization(SerializationConfig cfg,
                                                  Class<?> c)
     {
+        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         /* Simpler for serialization; just need class annotations
          * and setters, not creators.
          */
     	MethodFilter mf = getSerializationMethodFilter(cfg);
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, cfg.getAnnotationIntrospector(), false, mf, true);
-        return new BasicBeanDescription(c, ac);
+        AnnotatedClass ac = AnnotatedClass.constructFull(c, ai, false, mf, true);
+        return new BasicBeanDescription(c, ac, ai);
     }
 
     @Override
     public BasicBeanDescription forDeserialization(DeserializationConfig cfg,
                                                    Class<?> c)
     {
+        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         /* More info needed than with serialization, also need creator
          * info
          */
     	MethodFilter mf = getDeserializationMethodFilter(cfg);
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, cfg.getAnnotationIntrospector(), true, mf, true);
-        return new BasicBeanDescription(c, ac);
+        AnnotatedClass ac = AnnotatedClass.constructFull(c, ai, true, mf, true);
+        return new BasicBeanDescription(c, ac, ai);
     }
 
     @Override
     public BasicBeanDescription forCreation(DeserializationConfig cfg,
                                             Class<?> c)
     {
+        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         /* Just need constructors and factory methods, but no
          * member methods or fields
          */
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, cfg.getAnnotationIntrospector(), true, null, false);
-        return new BasicBeanDescription(c, ac);
+        AnnotatedClass ac = AnnotatedClass.constructFull(c, ai, true, null, false);
+        return new BasicBeanDescription(c, ac, ai);
     }
 
     @Override
     public BasicBeanDescription forClassAnnotations(DeserializationConfig cfg,
                                                     Class<?> c)
     {
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, cfg.getAnnotationIntrospector(), false, null, false);
-        return new BasicBeanDescription(c, ac);
+        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.constructFull(c, ai, false, null, false);
+        return new BasicBeanDescription(c, ac, ai);
     }
 
     @Override
     public BasicBeanDescription forClassAnnotations(SerializationConfig cfg,
                                                     Class<?> c)
     {
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, cfg.getAnnotationIntrospector(), false, null, false);
-        return new BasicBeanDescription(c, ac);
+        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.constructFull(c, ai, false, null, false);
+        return new BasicBeanDescription(c, ac, ai);
     }
 
     /*

@@ -10,11 +10,11 @@ import org.codehaus.jackson.annotate.JsonAnySetter;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonGetter;
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.annotate.JsonSetter;
 import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.annotate.JsonWriteNullProperties;
+import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanDescription;
 
 public class BasicBeanDescription extends BeanDescription
@@ -30,17 +30,21 @@ public class BasicBeanDescription extends BeanDescription
      */
     final AnnotatedClass _classInfo;
 
+    final AnnotationIntrospector _annotationIntrospector;
+
     /*
     ///////////////////////////////////////////////////////
     // Life-cycle
     ///////////////////////////////////////////////////////
      */
 
-    public BasicBeanDescription(Class<?> forClass, AnnotatedClass ac)
+    public BasicBeanDescription(Class<?> forClass, AnnotatedClass ac,
+                                AnnotationIntrospector ai)
 
     {
     	super(forClass);
     	_classInfo = ac;
+        _annotationIntrospector = ai;
     }
 
     /*
@@ -82,18 +86,9 @@ public class BasicBeanDescription extends BeanDescription
          * auto-detection, but also see if the class might override
          * that setting.
          */
-        JsonAutoDetect cann = _classInfo.getAnnotation(JsonAutoDetect.class);
-        if (cann != null) {
-            JsonMethod[] methods = cann.value();
-            if (methods != null) {
-                autodetect = false;
-                for (JsonMethod jm : methods) {
-                    if (jm.getterEnabled()) {
-                        autodetect = true;
-                        break;
-                    }
-                }
-            }
+        Boolean classAD = _annotationIntrospector.findGetterAutoDetection(_classInfo);
+        if (classAD != null) {
+            autodetect = classAD.booleanValue();
         }
 
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
@@ -101,8 +96,8 @@ public class BasicBeanDescription extends BeanDescription
             /* note: signature has already been checked to some degree
              * via filters; however, no checks were done for arg count
              */
-            // Marked with @JsonIgnore, or takes arguments
-            if (isIgnored(am) || am.getParameterCount() != 0) {
+            // 16-May-2009, tatu: JsonIgnore processed earlier already
+            if (am.getParameterCount() != 0) {
                 continue;
             }
 
@@ -293,26 +288,17 @@ public class BasicBeanDescription extends BeanDescription
          * auto-detection, but also see if the class might override
          * that setting.
          */
-        JsonAutoDetect cann = _classInfo.getAnnotation(JsonAutoDetect.class);
-        if (cann != null) {
-            JsonMethod[] methods = cann.value();
-            if (methods != null) {
-                autodetect = false;
-                for (JsonMethod jm : methods) {
-                    if (jm.setterEnabled()) {
-                        autodetect = true;
-                        break;
-                    }
-                }
-            }
+        Boolean classAD = _annotationIntrospector.findSetterAutoDetection(_classInfo);
+        if (classAD != null) {
+            autodetect = classAD.booleanValue();
         }
 
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
         for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
             // note: signature has already been checked via filters
 
-            // Marked with @JsonIgnore? Or arg count != 1
-            if (isIgnored(am) || am.getParameterCount() != 1) {
+            // Arg count != 1 (JsonIgnore checked earlier)
+            if (am.getParameterCount() != 1) {
                 continue;
             }
 
@@ -562,18 +548,6 @@ public class BasicBeanDescription extends BeanDescription
         }
         return result;
     }
-
-    /**
-     * Helper method used to check whether given element
-     * (method, constructor, class) has enabled (active)
-     * instance of {@link JsonIgnore} annotation.
-     */
-    protected boolean isIgnored(AnnotatedMethod am)
-    {
-        JsonIgnore ann = am.getAnnotation(JsonIgnore.class);
-        return (ann != null && ann.value());
-    }
-
 
     /*
     //////////////////////////////////////////////////////////

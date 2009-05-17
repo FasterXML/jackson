@@ -14,6 +14,12 @@ public class JacksonAnnotationIntrospector
 {
     public JacksonAnnotationIntrospector() { }
 
+    /*
+    ////////////////////////////////////////////////////
+    // General annotation properties
+    ////////////////////////////////////////////////////
+     */
+
     public boolean isHandled(Annotation ann)
     {
         Class<? extends Annotation> acls = ann.annotationType();
@@ -27,5 +33,63 @@ public class JacksonAnnotationIntrospector
 
         // but this is more reliable, now that we have tag annotation:
         return acls.getAnnotation(JacksonAnnotation.class) != null;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Class annotations: general
+    ////////////////////////////////////////////////////
+     */
+
+    public boolean isIgnorableMethod(AnnotatedMethod m)
+    {
+        JsonIgnore ann = m.getAnnotation(JsonIgnore.class);
+        return (ann != null && ann.value());
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Serialization, class annotations
+    ////////////////////////////////////////////////////
+     */
+
+    public Boolean findGetterAutoDetection(AnnotatedClass ac)
+    {
+        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                for (JsonMethod jm : methods) {
+                    if (jm.getterEnabled()) {
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Deserialization, class annotations
+    ////////////////////////////////////////////////////
+     */
+
+    public Boolean findSetterAutoDetection(AnnotatedClass ac)
+    {
+        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                for (JsonMethod jm : methods) {
+                    if (jm.setterEnabled()) {
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+        return null;
     }
 }
