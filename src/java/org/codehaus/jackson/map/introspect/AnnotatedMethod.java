@@ -6,12 +6,15 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
 import org.codehaus.jackson.annotate.JsonWriteNullProperties;
+import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedMethod
     extends Annotated
 {
-    Method _method;
+    final Method _method;
+
+    final AnnotationIntrospector _annotationIntrospector;
 
     final AnnotationMap _annotations = new AnnotationMap();
 
@@ -25,23 +28,28 @@ public final class AnnotatedMethod
     //////////////////////////////////////////////////////
      */
 
-    public AnnotatedMethod(Method method)
+    public AnnotatedMethod(Method method, AnnotationIntrospector intr)
     {
         _method = method;
+        _annotationIntrospector = intr;
         // Also, let's find annotations we already have
         for (Annotation a : method.getDeclaredAnnotations()) {
-            _annotations.add(a);
+            if (_annotationIntrospector.isHandled(a)) {
+                _annotations.add(a);
+            }
         }
     }
 
     /**
      * Method called to add annotations that have not yet been
-     * added to this instance/
+     * added to this instance.
      */
     public void addAnnotationsNotPresent(Method method)
     {
         for (Annotation a : method.getDeclaredAnnotations()) {
-            _annotations.addIfNotPresent(a);
+            if (_annotationIntrospector.isHandled(a)) {
+                _annotations.addIfNotPresent(a);
+            }
         }
     }
 

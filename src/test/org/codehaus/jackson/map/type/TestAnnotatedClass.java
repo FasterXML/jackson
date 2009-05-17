@@ -8,7 +8,7 @@ import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
-import org.codehaus.jackson.map.introspect.JacksonAnnotationFilter;
+import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 
 import org.codehaus.jackson.annotate.*;
 
@@ -79,7 +79,8 @@ public class TestAnnotatedClass
     public void testSimple()
     {
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (SubClass.class, JacksonAnnotationFilter.instance, true, BasicClassIntrospector.GetterMethodFilter.instance, true);
+            (SubClass.class, new JacksonAnnotationIntrospector(),
+             true, BasicClassIntrospector.GetterMethodFilter.instance, true);
 
         assertNotNull(ac.getDefaultConstructor());
         assertEquals(1, ac.getSingleArgConstructors().size());
@@ -109,7 +110,8 @@ public class TestAnnotatedClass
     public void testGenericsWithSetter()
     {
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (NumberBean.class, JacksonAnnotationFilter.instance, true, BasicClassIntrospector.SetterMethodFilter.instance, false);
+            (NumberBean.class, new JacksonAnnotationIntrospector(),
+             true, BasicClassIntrospector.SetterMethodFilter.instance, false);
         Collection<AnnotatedMethod> methods = ac.getMemberMethods();
         assertEquals(1, methods.size());
 
@@ -125,7 +127,8 @@ public class TestAnnotatedClass
     public void testFieldIntrospection()
     {
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (FieldBean.class, JacksonAnnotationFilter.instance, false, BasicClassIntrospector.GetterMethodFilter.instance, true);
+            (FieldBean.class, new JacksonAnnotationIntrospector(),
+             false, BasicClassIntrospector.GetterMethodFilter.instance, true);
 
         List<AnnotatedField> fields = ac.getFields();
         // only one discoverable property...

@@ -173,6 +173,11 @@ public class DeserializationConfig
     protected ClassIntrospector<? extends BeanDescription> _classIntrospector;
 
     /**
+     * Introspector used for accessing annotation value based configuration.
+     */
+    protected AnnotationIntrospector _annotationIntrospector;
+
+    /**
      * Bitset that contains all enabled features
      */
     protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
@@ -199,13 +204,17 @@ public class DeserializationConfig
     ///////////////////////////////////////////////////////////
      */
 
-    public DeserializationConfig(ClassIntrospector<? extends BeanDescription> intr) {
+    public DeserializationConfig(ClassIntrospector<? extends BeanDescription> intr,
+                               AnnotationIntrospector annIntr)
+    {
         _classIntrospector = intr;
+        _annotationIntrospector = annIntr;
     }
 
     protected DeserializationConfig(DeserializationConfig src)
     {
         _classIntrospector = src._classIntrospector;
+        _annotationIntrospector = src._annotationIntrospector;
         _featureFlags = src._featureFlags;
         _problemHandlers = src._problemHandlers;
         _dateFormat = src._dateFormat;
@@ -317,6 +326,14 @@ public class DeserializationConfig
     public DateFormat getDateFormat() { return _dateFormat; }
 
     /**
+     * Method for getting {@link AnnotationIntrospector} configured
+     * to introspect annotation values used for configuration.
+     */
+    public AnnotationIntrospector getAnnotationIntrospector() {
+        return _annotationIntrospector;
+    }
+
+    /**
      * Method that will introspect full bean properties for the purpose
      * of building a bean deserializer
      */
@@ -340,7 +357,7 @@ public class DeserializationConfig
      */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forClassAnnotations(cls);
+        return (T) _classIntrospector.forClassAnnotations(this, cls);
     }
 
     /*

@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 
+import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedClass
@@ -72,7 +73,7 @@ public final class AnnotatedClass
      * to optimize things so that unnecessary annotations are
      * ignored.
      */
-    final AnnotationFilter _annotationFilter;
+    final AnnotationIntrospector _annotationIntrospector;
 
     /*
     ///////////////////////////////////////////////////////
@@ -125,11 +126,11 @@ public final class AnnotatedClass
      * configuring instances differently depending on use cases
      */
     private AnnotatedClass(Class<?> cls, List<Class<?>> superTypes,
-                           AnnotationFilter af)
+                           AnnotationIntrospector aintr)
     {
         _class = cls;
         _superTypes = superTypes;
-        _annotationFilter = af;
+        _annotationIntrospector = aintr;
     }
 
     /**
@@ -143,13 +144,13 @@ public final class AnnotatedClass
      *   either public, or have at least a single annotation
      */
     public static AnnotatedClass constructFull(Class<?> cls,
-                                               AnnotationFilter annotationFilter,
+                                               AnnotationIntrospector aintr,
                                                boolean includeCreators,
                                                MethodFilter memberFilter,
                                                boolean includeFields)
     {
         List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
-        AnnotatedClass ac = new AnnotatedClass(cls, st, annotationFilter);
+        AnnotatedClass ac = new AnnotatedClass(cls, st, aintr);
         ac.resolveClassAnnotations();
         if (includeCreators) {
             ac.resolveCreators();
@@ -179,12 +180,16 @@ public final class AnnotatedClass
         _classAnnotations = new AnnotationMap();
         // first, annotations from the class itself:
         for (Annotation a : _class.getDeclaredAnnotations()) {
-            _classAnnotations.add(a);
+            if (_annotationIntrospector.isHandled(a)) {
+                _classAnnotations.add(a);
+            }
         }
         // and then from super types
         for (Class<?> cls : _superTypes) {
             for (Annotation a : cls.getDeclaredAnnotations()) {
-                _classAnnotations.addIfNotPresent(a);
+                if (_annotationIntrospector.isHandled(a)) {
+                    _classAnnotations.addIfNotPresent(a);
+                }
             }
         }
     }
@@ -200,13 +205,13 @@ public final class AnnotatedClass
         for (Constructor<?> ctor : _class.getDeclaredConstructors()) {
             switch (ctor.getParameterTypes().length) {
             case 0:
-                _defaultConstructor = new AnnotatedConstructor(ctor);
+                _defaultConstructor = new AnnotatedConstructor(ctor, _annotationIntrospector);
                 break;
             case 1:
                 if (_singleArgConstructors == null) {
                     _singleArgConstructors = new ArrayList<AnnotatedConstructor>();
                 }
-                _singleArgConstructors.add(new AnnotatedConstructor(ctor));
+                _singleArgConstructors.add(new AnnotatedConstructor(ctor, _annotationIntrospector));
                 break;
             }
         }
@@ -222,7 +227,7 @@ public final class AnnotatedClass
                     if (_singleArgStaticMethods == null) {
                         _singleArgStaticMethods = new ArrayList<AnnotatedMethod>();
                     }
-                    _singleArgStaticMethods.add(new AnnotatedMethod(m));
+                    _singleArgStaticMethods.add(new AnnotatedMethod(m, _annotationIntrospector));
                 }
             }
         }
@@ -240,7 +245,7 @@ public final class AnnotatedClass
                 continue;
             }
             if (methodFilter.includeMethod(m)) {
-                _memberMethods.add(new AnnotatedMethod(m));
+                _memberMethods.add(new AnnotatedMethod(m, _annotationIntrospector));
             }
         }
         /* and then augment these with annotations from
@@ -255,7 +260,7 @@ public final class AnnotatedClass
                 if (methodFilter.includeMethod(m)) {
                     AnnotatedMethod am = _memberMethods.find(m);
                     if (am == null) {
-                        am = new AnnotatedMethod(m);
+                        am = new AnnotatedMethod(m, _annotationIntrospector);
                         _memberMethods.add(am);
                     } else {
                         am.addAnnotationsNotPresent(m);
@@ -276,7 +281,7 @@ public final class AnnotatedClass
         _addFields(_fields, _class);
     }
 
-    private static void _addFields(List<AnnotatedField> fields, Class<?> c)
+    private void _addFields(List<AnnotatedField> fields, Class<?> c)
     {
         /* First, a quick test: we only care for regular classes (not
          * interfaces, primitive types etc), except for Object.class.
@@ -308,7 +313,7 @@ public final class AnnotatedClass
                  */
                 Annotation[] anns = f.getAnnotations();
                 if (anns.length > 0 || Modifier.isPublic(mods)) {
-                    fields.add(new AnnotatedField(f, anns));
+                    fields.add(new AnnotatedField(f, _annotationIntrospector, anns));
                 }
             }
         }

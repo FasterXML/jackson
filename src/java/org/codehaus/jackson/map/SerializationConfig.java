@@ -143,6 +143,11 @@ public class SerializationConfig
      */
     protected ClassIntrospector<? extends BeanDescription> _classIntrospector;
 
+    /**
+     * Introspector used for accessing annotation value based configuration.
+     */
+    protected AnnotationIntrospector _annotationIntrospector;
+
     protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
 
     /**
@@ -163,13 +168,17 @@ public class SerializationConfig
     ///////////////////////////////////////////////////////////
      */
 
-    public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr) {
+    public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr,
+                               AnnotationIntrospector annIntr)
+    {
         _classIntrospector = intr;
+        _annotationIntrospector = annIntr;
     }
 
     protected SerializationConfig(SerializationConfig src)
     {
         _classIntrospector = src._classIntrospector;
+        _annotationIntrospector = src._annotationIntrospector;
         _featureFlags = src._featureFlags;
         _dateFormat = src._dateFormat;
     }
@@ -238,6 +247,14 @@ public class SerializationConfig
 
     public DateFormat getDateFormat() { return _dateFormat; }
 
+    /**
+     * Method for getting {@link AnnotationIntrospector} configured
+     * to introspect annotation values used for configuration.
+     */
+    public AnnotationIntrospector getAnnotationIntrospector() {
+        return _annotationIntrospector;
+    }
+
    /**
      * Method that will introspect full bean properties for the purpose
      * of building a bean serializer
@@ -253,7 +270,7 @@ public class SerializationConfig
      */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forClassAnnotations(cls);
+        return (T) _classIntrospector.forClassAnnotations(this, cls);
     }
 
     /*
@@ -312,6 +329,10 @@ public class SerializationConfig
 
     public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
         _classIntrospector = i;
+    }
+
+    public void setAnnotationIntrospector(AnnotationIntrospector ai) {
+        _annotationIntrospector = ai;
     }
 
     /*

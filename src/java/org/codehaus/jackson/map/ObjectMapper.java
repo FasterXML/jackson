@@ -8,6 +8,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
+import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -44,7 +45,10 @@ public class ObjectMapper
     /* !!! 03-Apr-2009, tatu: Should try to avoid direct reference... but not
      *   sure what'd be simple and elegant way. So until then:
      */
-    protected final ClassIntrospector<? extends BeanDescription> DEFAULT_INTROSPECTOR = BasicClassIntrospector.instance;
+    protected final static ClassIntrospector<? extends BeanDescription> DEFAULT_INTROSPECTOR = BasicClassIntrospector.instance;
+
+    // 16-May-2009, tatu: Ditto ^^^
+    protected final static AnnotationIntrospector DEFAULT_ANNOTATION_INTROSPECTOR = new JacksonAnnotationIntrospector();
 
     /*
     ////////////////////////////////////////////////////
@@ -189,8 +193,8 @@ public class ObjectMapper
          *   have problems with POJONodes.
          */
         _jsonFactory = (jf == null) ? new MappingJsonFactory() : jf;
-        _serializationConfig = (sconfig == null) ? new SerializationConfig(DEFAULT_INTROSPECTOR) : sconfig;
-        _deserializationConfig = (dconfig == null) ? new DeserializationConfig(DEFAULT_INTROSPECTOR) : dconfig;
+        _serializationConfig = (sconfig == null) ? new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR) : sconfig;
+        _deserializationConfig = (dconfig == null) ? new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR) : dconfig;
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 

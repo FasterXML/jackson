@@ -3,12 +3,15 @@ package org.codehaus.jackson.map.introspect;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 
+import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedField
     extends Annotated
 {
-    Field _field;
+    final Field _field;
+
+    final AnnotationIntrospector _annotationIntrospector;
 
     final AnnotationMap _annotations = new AnnotationMap();
 
@@ -18,12 +21,16 @@ public final class AnnotatedField
     //////////////////////////////////////////////////////
      */
 
-    public AnnotatedField(Field field, Annotation[] anns)
+    public AnnotatedField(Field field, AnnotationIntrospector intr,
+                          Annotation[] anns)
     {
         _field = field;
-        // Also, let's find annotations we already have
+        _annotationIntrospector = intr;
+        // Also, let's index annotations we care about
         for (Annotation a : anns) {
-            _annotations.add(a);
+            if (_annotationIntrospector.isHandled(a)) {
+                _annotations.add(a);
+            }
         }
     }
 

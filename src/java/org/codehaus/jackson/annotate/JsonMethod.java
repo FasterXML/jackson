@@ -10,7 +10,8 @@ package org.codehaus.jackson.annotate;
  * can be used to indicate, all or none of available method types (respectively),
  * for use by annotations that takes <code>JsonMethod</code> argument.
  */
-public enum JsonMethod {
+public enum JsonMethod
+{
     /**
      * Getters are methods used to get a POJO field value for serialization,
      * or, under certain conditions also for de-serialization. Latter

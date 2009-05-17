@@ -118,7 +118,7 @@ public class BasicClassIntrospector
          */
     	MethodFilter mf = getSerializationMethodFilter(cfg);
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, false, mf, true);
+            (c, cfg.getAnnotationIntrospector(), false, mf, true);
         return new BasicBeanDescription(c, ac);
     }
 
@@ -131,7 +131,7 @@ public class BasicClassIntrospector
          */
     	MethodFilter mf = getDeserializationMethodFilter(cfg);
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, true, mf, true);
+            (c, cfg.getAnnotationIntrospector(), true, mf, true);
         return new BasicBeanDescription(c, ac);
     }
 
@@ -143,18 +143,25 @@ public class BasicClassIntrospector
          * member methods or fields
          */
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, true, null, false);
+            (c, cfg.getAnnotationIntrospector(), true, null, false);
         return new BasicBeanDescription(c, ac);
     }
 
     @Override
-    public BasicBeanDescription forClassAnnotations(Class<?> c)
+    public BasicBeanDescription forClassAnnotations(DeserializationConfig cfg,
+                                                    Class<?> c)
     {
-        /* More infor for serialization, also need creator
-         * info
-         */
         AnnotatedClass ac = AnnotatedClass.constructFull
-            (c, JacksonAnnotationFilter.instance, false, null, false);
+            (c, cfg.getAnnotationIntrospector(), false, null, false);
+        return new BasicBeanDescription(c, ac);
+    }
+
+    @Override
+    public BasicBeanDescription forClassAnnotations(SerializationConfig cfg,
+                                                    Class<?> c)
+    {
+        AnnotatedClass ac = AnnotatedClass.constructFull
+            (c, cfg.getAnnotationIntrospector(), false, null, false);
         return new BasicBeanDescription(c, ac);
     }
 

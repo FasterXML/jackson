@@ -11,7 +11,6 @@ import java.util.*;
  */
 public final class AnnotationMap
 {
-
     HashMap<Class<? extends Annotation>,Annotation> _annotations;
 
     public AnnotationMap() { }
