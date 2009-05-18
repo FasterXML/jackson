@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ClassIntrospector;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.util.ClassUtil;
 
 public class BasicClassIntrospector
     extends ClassIntrospector<BasicBeanDescription>
@@ -27,7 +28,7 @@ public class BasicClassIntrospector
     
         public boolean includeMethod(Method m)
         {
-            return AnnotatedMethod.hasGetterSignature(m);
+            return ClassUtil.hasGetterSignature(m);
         }
     }
 
@@ -82,7 +83,7 @@ public class BasicClassIntrospector
             if (super.includeMethod(m)) {
                 return true;
             }
-            if (!AnnotatedMethod.hasGetterSignature(m)) {
+            if (!ClassUtil.hasGetterSignature(m)) {
                 return false;
             }
             // but furthermore, only accept Collections & Maps, for now

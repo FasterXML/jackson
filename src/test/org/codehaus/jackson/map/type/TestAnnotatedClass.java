@@ -85,8 +85,8 @@ public class TestAnnotatedClass
         assertNotNull(ac.getDefaultConstructor());
         assertEquals(1, ac.getSingleArgConstructors().size());
         assertEquals(0, ac.getSingleArgStaticMethods().size());
-        assertEquals(2, ac.getMemberMethods().size());
-        for (AnnotatedMethod am : ac.getMemberMethods()) {
+        assertEquals(2, ac.getMemberMethodCount());
+        for (AnnotatedMethod am : ac.memberMethods()) {
             String name = am.getName();
             if ("y".equals(name)) {
                 assertEquals(0, am.getAnnotationCount());
@@ -112,10 +112,10 @@ public class TestAnnotatedClass
         AnnotatedClass ac = AnnotatedClass.constructFull
             (NumberBean.class, new JacksonAnnotationIntrospector(),
              true, BasicClassIntrospector.SetterMethodFilter.instance, false);
-        Collection<AnnotatedMethod> methods = ac.getMemberMethods();
-        assertEquals(1, methods.size());
+        assertEquals(1, ac.getMemberMethodCount());
 
-        AnnotatedMethod am = methods.iterator().next();
+        Iterator<AnnotatedMethod> it = ac.memberMethods().iterator();
+        AnnotatedMethod am = it.next();
 
         assertEquals("setX", am.getName());
         // should be one from sub-class

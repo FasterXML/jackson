@@ -54,7 +54,7 @@ public final class ClassUtil
 
     /*
     //////////////////////////////////////////////////////////
-    // Type detection methods
+    // Class type detection methods
     //////////////////////////////////////////////////////////
      */
 
@@ -130,6 +130,31 @@ public final class ClassUtil
     {
         int mod = type.getModifiers();
         return (mod & (Modifier.INTERFACE | Modifier.ABSTRACT)) == 0;
+    }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Method type detection methods
+    //////////////////////////////////////////////////////////
+     */
+
+    public static boolean hasGetterSignature(Method m)
+    {
+        // First: static methods can't be getters
+        if (Modifier.isStatic(m.getModifiers())) {
+            return false;
+        }
+        // Must take no args
+        Class<?>[] pts = m.getParameterTypes();
+        if (pts != null && pts.length != 0) {
+            return false;
+        }
+        // Can't be a void method
+        if (Void.TYPE == m.getReturnType()) {
+            return false;
+        }
+        // Otherwise looks ok:
+        return true;
     }
 
     /*

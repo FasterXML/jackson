@@ -237,11 +237,8 @@ public final class AnnotatedClass
     {
         _memberMethods = new AnnotatedMethodMap();
         for (Method m : _class.getDeclaredMethods()) {
-            if (_isIncludableMethod(m, methodFilter)) {
-                AnnotatedMethod am = new AnnotatedMethod(m, _annotationIntrospector);
-                if (!_annotationIntrospector.isIgnorableMethod(am)) {
-                    _memberMethods.add(am);
-                }
+            if (_isIncludableMethod(m)) {
+                _memberMethods.add(new AnnotatedMethod(m, _annotationIntrospector));
             }
         }
         /* and then augment these with annotations from
@@ -249,22 +246,32 @@ public final class AnnotatedClass
          */
         for (Class<?> cls : _superTypes) {
             for (Method m : cls.getDeclaredMethods()) {
-                if (_isIncludableMethod(m, methodFilter)) {
-                    AnnotatedMethod am = new AnnotatedMethod(m, _annotationIntrospector);
-                    if (!_annotationIntrospector.isIgnorableMethod(am)) {
-                        AnnotatedMethod old = _memberMethods.find(m);
-                        if (old == null) {
-                            _memberMethods.add(am);
-                        } else {
-                            old.addAnnotationsNotPresent(m);
-                        }
-                    }
+                if (!_isIncludableMethod(m)) {
+                    continue;
                 }
+                AnnotatedMethod old = _memberMethods.find(m);
+                if (old == null) {
+                    _memberMethods.add(new AnnotatedMethod(m, _annotationIntrospector));
+                } else {
+                    old.addAnnotationsNotPresent(m);
+                }
+            }
+        }
+
+        /* And last but not least: let's remove all methods that are
+         * deemed to be ignorable after all annotations has been
+         * properly collapsed.
+         */
+        Iterator<AnnotatedMethod> it = _memberMethods.iterator();
+        while (it.hasNext()) {
+            AnnotatedMethod am = it.next();
+            if (_annotationIntrospector.isIgnorableMethod(am)) {
+                it.remove();
             }
         }
     }
         
-    private boolean _isIncludableMethod(Method m, MethodFilter methodFilter)
+    private boolean _isIncludableMethod(Method m)
     {
         /* 07-Apr-2009, tatu: Looks like generics can introduce hidden
          *   bridge and/or synthetic methods. I don't think we want to
@@ -273,7 +280,7 @@ public final class AnnotatedClass
         if (m.isSynthetic() || m.isBridge()) {
             return false;
         }
-        return methodFilter.includeMethod(m);
+        return true;
     }
 
     /**
@@ -369,9 +376,14 @@ public final class AnnotatedClass
         return _singleArgStaticMethods;
     }
 
-    public Collection<AnnotatedMethod> getMemberMethods()
+    public Iterable<AnnotatedMethod> memberMethods()
     {
-        return _memberMethods.getMethods();
+        return _memberMethods;
+    }
+
+    public int getMemberMethodCount()
+    {
+        return _memberMethods.size();
     }
 
     public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)

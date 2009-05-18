@@ -25,9 +25,13 @@ public class TestAnnotationIgnore
     /// Class for testing enabled {@link JsonIgnore} annotation
     final static class SizeClassEnabledIgnore
     {
+        @JsonIgnore public int getY() { return 9; }
+
         // note: must be public to be seen
         public int getX() { return 1; }
-        @JsonIgnore public int getY() { return 9; }
+
+        @JsonIgnore public int getY2() { return 1; }
+        @JsonIgnore public int getY3() { return 2; }
     }
 
     /// Class for testing disabled {@link JsonIgnore} annotation

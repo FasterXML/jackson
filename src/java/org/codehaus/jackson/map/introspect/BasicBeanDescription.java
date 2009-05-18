@@ -16,6 +16,7 @@ import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.annotate.JsonWriteNullProperties;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanDescription;
+import org.codehaus.jackson.map.util.ClassUtil;
 
 public class BasicBeanDescription extends BeanDescription
 {
@@ -92,7 +93,7 @@ public class BasicBeanDescription extends BeanDescription
         }
 
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
-        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
+        for (AnnotatedMethod am : _classInfo.memberMethods()) {
             /* note: signature has already been checked to some degree
              * via filters; however, no checks were done for arg count
              */
@@ -166,7 +167,7 @@ public class BasicBeanDescription extends BeanDescription
          * disabled...
          */
         AnnotatedMethod found = null;
-        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
+        for (AnnotatedMethod am : _classInfo.memberMethods()) {
             JsonValue ann = am.getAnnotation(JsonValue.class);
             if (ann == null || !ann.value()) { // ignore if disabled
                 continue;
@@ -175,7 +176,7 @@ public class BasicBeanDescription extends BeanDescription
                 throw new IllegalArgumentException("Multiple methods with active @JsonValue annotation ("+found.getName()+"(), "+am.getName()+")");
             }
             // Also, must have getter signature
-            if (!am.hasGetterSignature()) {
+            if (!ClassUtil.hasGetterSignature(am.getAnnotated())) {
                 throw new IllegalArgumentException("Method "+am.getName()+"() marked with @JsonValue, but does not have valid getter signature (non-static, takes no args, returns a value)");
             }
             found = am;
@@ -294,7 +295,7 @@ public class BasicBeanDescription extends BeanDescription
         }
 
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
-        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
+        for (AnnotatedMethod am : _classInfo.memberMethods()) {
             // note: signature has already been checked via filters
 
             // Arg count != 1 (JsonIgnore checked earlier)
@@ -537,7 +538,7 @@ public class BasicBeanDescription extends BeanDescription
     protected <A extends Annotation> AnnotatedMethod findUniqueMethodWith(Class<A> acls)
     {
         AnnotatedMethod result = null;
-        for (AnnotatedMethod am : _classInfo.getMemberMethods()) {
+        for (AnnotatedMethod am : _classInfo.memberMethods()) {
             if (!am.hasAnnotation(acls)) {
                 continue;
             }
