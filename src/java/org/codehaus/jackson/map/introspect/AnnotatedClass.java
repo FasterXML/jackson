@@ -271,7 +271,7 @@ public final class AnnotatedClass
         }
     }
         
-    private boolean _isIncludableMethod(Method m)
+    protected boolean _isIncludableMethod(Method m)
     {
         /* 07-Apr-2009, tatu: Looks like generics can introduce hidden
          *   bridge and/or synthetic methods. I don't think we want to
@@ -288,7 +288,7 @@ public final class AnnotatedClass
      * that are either public, or have at least a single annotation
      * associated with them.
      */
-    private void resolveFields()
+    protected void resolveFields()
     {
         _fields = new ArrayList<AnnotatedField>();
         _addFields(_fields, _class);
@@ -310,26 +310,40 @@ public final class AnnotatedClass
              */
             _addFields(fields, parent);
             for (Field f : c.getDeclaredFields()) {
-                /* I'm pretty sure synthetic fields are to be skipped...
-                 * (methods definitely are)
-                 */
-                if (f.isSynthetic()) {
-                    continue;
-                }
-                // First: static fields are never included
-                int mods = f.getModifiers();
-                if (Modifier.isStatic(mods)) {
+                if (!_isIncludableField(f)) {
                     continue;
                 }
                 /* Need to be public, or have an annotation
-                 * (these are required, but not sufficient checks)
+                 * (these are required, but not sufficient checks).
+                 * Note: can also check for exclusion here, since fields
+                 * are not overridable.
                  */
                 Annotation[] anns = f.getAnnotations();
-                if (anns.length > 0 || Modifier.isPublic(mods)) {
-                    fields.add(new AnnotatedField(f, _annotationIntrospector, anns));
+                int mods = f.getModifiers();
+                if (Modifier.isPublic(mods) || anns.length > 0) {
+                    AnnotatedField af = new AnnotatedField(f, _annotationIntrospector, anns);
+                    if (!_annotationIntrospector.isIgnorableField(af)) {
+                        fields.add(af);
+                    }
                 }
             }
         }
+    }
+
+    private boolean _isIncludableField(Field f)
+    {
+        /* I'm pretty sure synthetic fields are to be skipped...
+         * (methods definitely are)
+         */
+        if (f.isSynthetic()) {
+            return false;
+        }
+        // Static fields are never included
+        int mods = f.getModifiers();
+        if (Modifier.isStatic(mods)) {
+            return false;
+        }
+        return true;
     }
 
     /*
@@ -391,10 +405,15 @@ public final class AnnotatedClass
         return _memberMethods.find(name, paramTypes);
     }
 
-    public List<AnnotatedField> getFields()
+    public int getFieldCount() {
+        return (_fields == null) ? 0 : _fields.size();
+    }
+
+    public Iterable<AnnotatedField> getFields()
     {
         if (_fields == null) {
-            return Collections.emptyList();
+            List<AnnotatedField> l = Collections.emptyList();
+            return l;
         }
         return _fields;
     }

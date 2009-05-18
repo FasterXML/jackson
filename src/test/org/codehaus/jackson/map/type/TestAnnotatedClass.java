@@ -97,10 +97,8 @@ public class TestAnnotatedClass
                 fail("Unexpected method: "+name);
             }
         }
-
-        List<AnnotatedField> fields = ac.getFields();
-        assertEquals(1, fields.size());
-        assertEquals("foo", fields.get(0).getName());
+        assertEquals(1, ac.getFieldCount());
+        assertEquals("foo", ac.getFields().iterator().next().getName());
     }
 
     /**
@@ -129,10 +127,8 @@ public class TestAnnotatedClass
         AnnotatedClass ac = AnnotatedClass.constructFull
             (FieldBean.class, new JacksonAnnotationIntrospector(),
              false, BasicClassIntrospector.GetterMethodFilter.instance, true);
-
-        List<AnnotatedField> fields = ac.getFields();
-        // only one discoverable property...
-        assertEquals(1, fields.size());
-        assertEquals("props", fields.get(0).getName());
+        assertEquals(1, ac.getFieldCount());
+        // only one discoverable field property...
+        assertEquals("props", ac.getFields().iterator().next().getName());
     }
 }

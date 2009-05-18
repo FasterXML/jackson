@@ -6,13 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import org.codehaus.jackson.annotate.JsonAnySetter;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonGetter;
-import org.codehaus.jackson.annotate.JsonMethod;
-import org.codehaus.jackson.annotate.JsonSetter;
-import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.annotate.JsonWriteNullProperties;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanDescription;
@@ -250,7 +244,7 @@ public class BasicBeanDescription extends BeanDescription
              * (a) public "valueOf", OR
              * (b) marked with @JsonCreator annotation
              */
-            if (am.hasAnnotation(JsonCreator.class)) {
+            if (_annotationIntrospector.hasCreatorAnnotation(am)) {
                 ;
             } else if ("valueOf".equals(am.getName())) {
                 ;
@@ -259,6 +253,9 @@ public class BasicBeanDescription extends BeanDescription
             }
 
             // And finally, must take one of expected arg types (or supertype)
+            /* !!! 18-May-2009, tatu: should it complain for explicitly
+             *   marked method that has incompatible signature?
+             */
             Class<?> actualArgType = am.getParameterTypes()[0];
             for (Class<?> expArgType : expArgTypes) {
                 // And one that matches what we would pass in

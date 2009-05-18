@@ -49,7 +49,7 @@ public class JacksonAnnotationIntrospector
 
     /*
     ////////////////////////////////////////////////////
-    // Serialization, class annotations
+    // Class annotations: Serialization
     ////////////////////////////////////////////////////
      */
 
@@ -72,7 +72,7 @@ public class JacksonAnnotationIntrospector
 
     /*
     ////////////////////////////////////////////////////
-    // Deserialization, class annotations
+    // Class annotations: Deserialization
     ////////////////////////////////////////////////////
      */
 
@@ -147,5 +147,26 @@ public class JacksonAnnotationIntrospector
          * to this method getting called)
          */
         return am.hasAnnotation(JsonAnySetter.class);
+    }
+
+    public boolean hasCreatorAnnotation(AnnotatedMethod am)
+    {
+        /* No dedicated disabling; regular @JsonIgnore used
+         * if needs to be ignored (and if so, is handled prior
+         * to this method getting called)
+         */
+        return am.hasAnnotation(JsonCreator.class);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Field annotations: general
+    ////////////////////////////////////////////////////
+     */
+
+    public boolean isIgnorableField(AnnotatedField f)
+    {
+        JsonIgnore ann = f.getAnnotation(JsonIgnore.class);
+        return (ann != null && ann.value());
     }
 }

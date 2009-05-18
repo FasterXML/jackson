@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import java.lang.annotation.Annotation;
 
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 
 /**
@@ -26,16 +27,6 @@ public abstract class AnnotationIntrospector
     // Class annotations, general
     ///////////////////////////////////////////////////////
     */
-
-    /**
-     * Method for checking whether there is a class annotation that
-     * indicates that given method should be ignored for all
-     * operations (serialization, deserialization).
-     *
-     * @return True, if an annotation is found to indicate that the
-     *    method should be ignored; false if not.
-     */
-    public abstract boolean isIgnorableMethod(AnnotatedMethod m);
 
     /*
     ///////////////////////////////////////////////////////
@@ -66,6 +57,22 @@ public abstract class AnnotationIntrospector
      *   if enabling annotation found, Boolean.FALSE if disabling annotation
      */
     public abstract Boolean findSetterAutoDetection(AnnotatedClass ac);
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Method annotations, general
+    ///////////////////////////////////////////////////////
+    */
+
+    /**
+     * Method for checking whether there is an annotation that
+     * indicates that given method should be ignored for all
+     * operations (serialization, deserialization).
+     *
+     * @return True, if an annotation is found to indicate that the
+     *    method should be ignored; false if not.
+     */
+    public abstract boolean isIgnorableMethod(AnnotatedMethod m);
 
     /*
     ///////////////////////////////////////////////////////
@@ -124,4 +131,31 @@ public abstract class AnnotationIntrospector
      *   false otherwise
      */
     public abstract boolean hasAnySetterAnnotation(AnnotatedMethod am);
+
+    /**
+     * Method for checking whether given method has an annotation
+     * that suggests that the method is a "creator" (aka factory)
+     * method to be used for construct new instances of deserialized
+     * values.
+     *
+     * @return True if such annotation is found (and is not disabled),
+     *   false otherwise
+     */
+    public abstract boolean hasCreatorAnnotation(AnnotatedMethod am);
+
+    /*
+    ////////////////////////////////////////////////////
+    // Field annotations: general
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for checking whether there is an annotation that
+     * indicates that given field should be ignored for all
+     * operations (serialization, deserialization).
+     *
+     * @return True, if an annotation is found to indicate that the
+     *    field should be ignored; false if not.
+     */
+    public abstract boolean isIgnorableField(AnnotatedField f);
 }
