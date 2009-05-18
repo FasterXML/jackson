@@ -47,23 +47,6 @@ public class TestBasicAnnotations
         public void setXandY(int x, int y) { throw new Error(); }
     }
 
-    /// Class for testing {@link JsonIgnore} annotations with setters
-    final static class SizeClassIgnore
-    {
-        int _x = 0;
-        int _y = 0;
-
-        public void setX(int value) { _x = value; }
-        @JsonIgnore public void setY(int value) { _y = value; }
-
-        /* Just igoring won't help a lot here; let's define a replacement
-         * so that we won't get an exception for "unknown field"
-         */
-        @JsonSetter("y") void foobar(int value) {
-            ; // nop
-        }
-    }
-
     /// Classes for testing Setter discovery with inheritance
     static class BaseBean
     {
@@ -166,17 +149,6 @@ public class TestBasicAnnotations
             ("{ \"x\": -3 }",
              SizeClassSetter2.class);
         assertEquals(-3, result._x);
-    }
-
-    public void testSimpleIgnore() throws Exception
-    {
-        ObjectMapper m = new ObjectMapper();
-        SizeClassIgnore result = m.readValue
-            ("{ \"x\":1, \"y\" : 2 }",
-             SizeClassIgnore.class);
-        // x should be set, y not
-        assertEquals(1, result._x);
-        assertEquals(0, result._y);
     }
 
     /**

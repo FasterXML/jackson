@@ -29,6 +29,9 @@ public class TestAnnotations
         @JsonGetter("length") public int foobar() { return -17; }
         // note: need not be public since there's annotation
         @JsonGetter protected int value() { return 0; }
+
+        // dummy method; not a getter signature
+        protected int getNotReally(int arg) { return 0; }
     }
 
     // And additional testing to cover [JACKSON-64]

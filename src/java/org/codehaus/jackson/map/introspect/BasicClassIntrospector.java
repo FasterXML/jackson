@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import org.codehaus.jackson.annotate.JsonAnySetter;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ClassIntrospector;
 import org.codehaus.jackson.map.DeserializationConfig;
@@ -59,11 +58,15 @@ public class BasicClassIntrospector
                 // Regular setters take just one param, so include:
                 return true;
             case 2:
-                // AnySetters take 2 args...
-                if (m.getAnnotation(JsonAnySetter.class) != null) {
-                    return true;
-                }
-                break;
+                /* 2-arg version only for "AnySetters"; they are not
+                 * auto-detected, and need to have an annotation.
+                 * However, due to annotation inheritance we do, we
+                 * don't yet know if sub-classes might have annotations...
+                 * so shouldn't leave out any methods quite yet.
+                 */
+                //if (m.getAnnotation(JsonAnySetter.class) != null) { ... }
+
+                return true;
             }
             return false;
         }
