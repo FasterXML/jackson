@@ -21,7 +21,11 @@ public abstract class AnnotationIntrospector
      */
     public abstract boolean isHandled(Annotation ann);
 
-    // // // Class annotations, general
+    /*
+    ///////////////////////////////////////////////////////
+    // Class annotations, general
+    ///////////////////////////////////////////////////////
+    */
 
     /**
      * Method for checking whether there is a class annotation that
@@ -33,7 +37,11 @@ public abstract class AnnotationIntrospector
      */
     public abstract boolean isIgnorableMethod(AnnotatedMethod m);
 
-    // // // Class annotations: serialization
+    /*
+    ///////////////////////////////////////////////////////
+    // Class annotations: serialization
+    ///////////////////////////////////////////////////////
+    */
 
     /**
      * Method for checking whether there is a class annotation that
@@ -44,7 +52,11 @@ public abstract class AnnotationIntrospector
      */
     public abstract Boolean findGetterAutoDetection(AnnotatedClass ac);
 
-    // // // Class annotations: deserialization
+    /*
+    ///////////////////////////////////////////////////////
+    // Class annotations: deserialization
+    ///////////////////////////////////////////////////////
+    */
 
     /**
      * Method for checking whether there is a class annotation that
@@ -54,4 +66,40 @@ public abstract class AnnotationIntrospector
      *   if enabling annotation found, Boolean.FALSE if disabling annotation
      */
     public abstract Boolean findSetterAutoDetection(AnnotatedClass ac);
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Method annotations: serialization
+    ///////////////////////////////////////////////////////
+    */
+
+    /**
+     * Method for checking whether given method has an annotation
+     * that suggests property name associated with method that
+     * may be a "getter". Should return null if no annotation
+     * is found; otherwise a non-null String.
+     * If non-null value is returned, it is used as the property
+     * name, except for empty String ("") which is taken to mean
+     * "use standard bean name detection if applicable;
+     * method name if not".
+     */
+    public abstract String findGettablePropertyName(AnnotatedMethod am);
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Method annotations: deserialization
+    ///////////////////////////////////////////////////////
+    */
+
+    /**
+     * Method for checking whether given method has an annotation
+     * that suggests property name associated with method that
+     * may be a "setter". Should return null if no annotation
+     * is found; otherwise a non-null String.
+     * If non-null value is returned, it is used as the property
+     * name, except for empty String ("") which is taken to mean
+     * "use standard bean name detection if applicable;
+     * method name if not".
+     */
+    public abstract String findSettablePropertyName(AnnotatedMethod am);
 }

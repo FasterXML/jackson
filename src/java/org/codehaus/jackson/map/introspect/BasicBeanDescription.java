@@ -106,16 +106,13 @@ public class BasicBeanDescription extends BeanDescription
              * (a) be marked with @JsonGetter OR
              * (b) be public AND have suitable name (getXxx or isXxx)
              */
-            JsonGetter ann = am.getAnnotation(JsonGetter.class);
-            String propName;
-
-            if (ann != null) {
-                propName = ann.value();
-                if (propName == null || propName.length() == 0) {
-                    /* As per [JACKSON-64], let's still use mangled
-                     * name if possible; and only if not use unmodified
-                     * method name
-                     */
+            String propName = _annotationIntrospector.findGettablePropertyName(am);
+            if (propName != null) {
+                /* As per [JACKSON-64], let's still use mangled
+                 * name if possible; and only if not use unmodified
+                 * method name
+                 */
+                if (propName.length() == 0) { 
                     propName = okNameForGetter(am);
                     if (propName == null) {
                         propName = am.getName();
@@ -125,8 +122,8 @@ public class BasicBeanDescription extends BeanDescription
                 if (!autodetect) {
                     continue;
                 }
-                /* For getters (but not for setters), auto-detection requires
-                 * method to be public:
+                /* For getters (but not for setters), auto-detection
+                 * requires method to be public:
                  */
                 if (!am.isPublic()) {
                     continue;
@@ -308,17 +305,15 @@ public class BasicBeanDescription extends BeanDescription
              * (b) have suitable name (setXxx) (NOTE: need not be
              *    public, unlike with getters)
              */
-            JsonSetter ann = am.getAnnotation(JsonSetter.class);
-            String propName;
-
-            if (ann != null) {
-                propName = ann.value();
-                if (propName == null || propName.length() == 0) {
-                    /* As per [JACKSON-64], let's still use mangled
-                     * name if possible; and only if not use unmodified
-                     * method name
-                     */
+            String propName = _annotationIntrospector.findSettablePropertyName(am);
+            if (propName != null) { // annotation was found
+                /* As per [JACKSON-64], let's still use mangled
+                 * name if possible; and only if not use unmodified
+                 * method name
+                 */
+                if (propName.length() == 0) { 
                     propName = okNameForSetter(am);
+                    // null means it's not named as a Bean getter; fine, use as is
                     if (propName == null) {
                         propName = am.getName();
                     }

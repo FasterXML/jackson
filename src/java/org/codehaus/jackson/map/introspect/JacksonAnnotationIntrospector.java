@@ -92,4 +92,44 @@ public class JacksonAnnotationIntrospector
         }
         return null;
     }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Method annotations: serialization
+    ///////////////////////////////////////////////////////
+    */
+
+    public String findGettablePropertyName(AnnotatedMethod am)
+    {
+        JsonGetter ann = am.getAnnotation(JsonGetter.class);
+        if (ann == null) {
+            return null;
+        }
+        String propName = ann.value();
+        // can it ever be null? I don't think so, but just in case:
+        if (propName == null) {
+            propName = "";
+        }
+        return propName;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Method annotations: deserialization
+    ///////////////////////////////////////////////////////
+    */
+
+    public String findSettablePropertyName(AnnotatedMethod am)
+    {
+        JsonSetter ann = am.getAnnotation(JsonSetter.class);
+        if (ann == null) {
+            return null;
+        }
+        String propName = ann.value();
+        // can it ever be null? I don't think so, but just in case:
+        if (propName == null) {
+            propName = "";
+        }
+        return propName;
+    }
 }
