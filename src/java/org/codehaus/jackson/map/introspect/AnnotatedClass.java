@@ -205,13 +205,13 @@ public final class AnnotatedClass
         for (Constructor<?> ctor : _class.getDeclaredConstructors()) {
             switch (ctor.getParameterTypes().length) {
             case 0:
-                _defaultConstructor = new AnnotatedConstructor(ctor, _annotationIntrospector);
+                _defaultConstructor = _constructConstructor(ctor);
                 break;
             case 1:
                 if (_singleArgConstructors == null) {
                     _singleArgConstructors = new ArrayList<AnnotatedConstructor>();
                 }
-                _singleArgConstructors.add(new AnnotatedConstructor(ctor, _annotationIntrospector));
+                _singleArgConstructors.add(_constructConstructor(ctor));
                 break;
             }
         }
@@ -292,22 +292,44 @@ public final class AnnotatedClass
 
     /*
     ///////////////////////////////////////////////////////
-    // Helper methods
+    // Helper methods, constructing value types
     ///////////////////////////////////////////////////////
      */
 
     protected AnnotatedMethod _constructMethod(Method m)
     {
+        return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()));
+    }
+
+    protected AnnotatedConstructor _constructConstructor(Constructor ctor)
+    {
+        return new AnnotatedConstructor(ctor, _collectRelevantAnnotations(ctor.getDeclaredAnnotations()));
+    }
+
+    protected AnnotatedField _constructField(Field f)
+    {
+        return new AnnotatedField(f, _collectRelevantAnnotations(f.getDeclaredAnnotations()));
+    }
+
+    protected AnnotationMap _collectRelevantAnnotations(Annotation[] anns)
+    {
         AnnotationMap annMap = new AnnotationMap();
-        // Also, let's find annotations we already have
-        for (Annotation a : m.getDeclaredAnnotations()) {
-            if (_annotationIntrospector.isHandled(a)) {
-                annMap.add(a);
+        if (anns != null) {
+            for (Annotation a : anns) {
+                if (_annotationIntrospector.isHandled(a)) {
+                    annMap.add(a);
+                }
             }
         }
-        return new AnnotatedMethod(m, annMap);
+        return annMap;
     }
-        
+ 
+    /*
+    ///////////////////////////////////////////////////////
+    // Helper methods, other
+    ///////////////////////////////////////////////////////
+     */
+
     protected boolean _isIncludableMethod(Method m)
     {
         /* 07-Apr-2009, tatu: Looks like generics can introduce hidden
@@ -315,6 +337,22 @@ public final class AnnotatedClass
          *   consider those...
          */
         if (m.isSynthetic() || m.isBridge()) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean _isIncludableField(Field f)
+    {
+        /* I'm pretty sure synthetic fields are to be skipped...
+         * (methods definitely are)
+         */
+        if (f.isSynthetic()) {
+            return false;
+        }
+        // Static fields are never included
+        int mods = f.getModifiers();
+        if (Modifier.isStatic(mods)) {
             return false;
         }
         return true;
@@ -347,29 +385,13 @@ public final class AnnotatedClass
                 Annotation[] anns = f.getAnnotations();
                 int mods = f.getModifiers();
                 if (Modifier.isPublic(mods) || anns.length > 0) {
-                    AnnotatedField af = new AnnotatedField(f, _annotationIntrospector, anns);
+                    AnnotatedField af = _constructField(f);
                     if (!_annotationIntrospector.isIgnorableField(af)) {
                         fields.add(af);
                     }
                 }
             }
         }
-    }
-
-    private boolean _isIncludableField(Field f)
-    {
-        /* I'm pretty sure synthetic fields are to be skipped...
-         * (methods definitely are)
-         */
-        if (f.isSynthetic()) {
-            return false;
-        }
-        // Static fields are never included
-        int mods = f.getModifiers();
-        if (Modifier.isStatic(mods)) {
-            return false;
-        }
-        return true;
     }
 
     /*

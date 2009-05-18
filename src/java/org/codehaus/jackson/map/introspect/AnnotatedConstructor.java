@@ -3,17 +3,14 @@ package org.codehaus.jackson.map.introspect;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 
-import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedConstructor
 	extends Annotated
 {
-    final AnnotationIntrospector _annotationIntrospector;
-
     final Constructor<?> _constructor;
 
-    final AnnotationMap _annotations = new AnnotationMap();
+    final AnnotationMap _annotations;
 
     /*
     //////////////////////////////////////////////////////
@@ -21,29 +18,10 @@ public final class AnnotatedConstructor
     //////////////////////////////////////////////////////
      */
 
-    public AnnotatedConstructor(Constructor<?> constructor, AnnotationIntrospector intr)
+    public AnnotatedConstructor(Constructor<?> constructor, AnnotationMap annMap)
     {
         _constructor = constructor;
-        _annotationIntrospector = intr;
-        // Also, let's find annotations we already have
-        for (Annotation a : constructor.getDeclaredAnnotations()) {
-            if (_annotationIntrospector.isHandled(a)) {
-                _annotations.add(a);
-            }
-        }
-    }
-
-    /**
-     * Constructor called to add annotations that have not yet been
-     * added to this instance/
-     */
-    public void addAnnotationsNotPresent(Constructor<?> constructor)
-    {
-        for (Annotation a : constructor.getDeclaredAnnotations()) {
-            if (_annotationIntrospector.isHandled(a)) {
-                _annotations.addIfNotPresent(a);
-            }
-        }
+        _annotations = annMap;
     }
 
     /*
