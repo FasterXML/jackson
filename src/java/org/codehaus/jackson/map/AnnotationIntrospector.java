@@ -85,6 +85,17 @@ public abstract class AnnotationIntrospector
      */
     public abstract String findGettablePropertyName(AnnotatedMethod am);
 
+    /**
+     * Method for checking whether given method has an annotation
+     * that suggests that the return value of annotated method
+     * should be used as "the value" of the object instance; usually
+     * serialized as a primitive value such as String or number.
+     *
+     * @return True if such annotation is found (and is not disabled);
+     *   false if no enabled annotation is found
+     */
+    public abstract boolean hasAsValueAnnotation(AnnotatedMethod am);
+
     /*
     ///////////////////////////////////////////////////////
     // Method annotations: deserialization
@@ -102,4 +113,15 @@ public abstract class AnnotationIntrospector
      * method name if not".
      */
     public abstract String findSettablePropertyName(AnnotatedMethod am);
+
+    /**
+     * Method for checking whether given method has an annotation
+     * that suggests that the method is to serve as "any setter";
+     * method to be used for setting values of any properties for
+     * which no dedicated setter method is found.
+     *
+     * @return True if such annotation is found (and is not disabled),
+     *   false otherwise
+     */
+    public abstract boolean hasAnySetterAnnotation(AnnotatedMethod am);
 }

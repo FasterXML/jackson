@@ -113,6 +113,13 @@ public class JacksonAnnotationIntrospector
         return propName;
     }
 
+    public boolean hasAsValueAnnotation(AnnotatedMethod am)
+    {
+        JsonValue ann = am.getAnnotation(JsonValue.class);
+        // value of 'false' means disabled...
+        return (ann != null && ann.value());
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Method annotations: deserialization
@@ -131,5 +138,14 @@ public class JacksonAnnotationIntrospector
             propName = "";
         }
         return propName;
+    }
+
+    public boolean hasAnySetterAnnotation(AnnotatedMethod am)
+    {
+        /* No dedicated disabling; regular @JsonIgnore used
+         * if needs to be ignored (and if so, is handled prior
+         * to this method getting called)
+         */
+        return am.hasAnnotation(JsonAnySetter.class);
     }
 }

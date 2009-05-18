@@ -160,21 +160,22 @@ public class BasicBeanDescription extends BeanDescription
      */
     public AnnotatedMethod findJsonValue()
     {
-        /* Can't use "findUniqueMethodWith" because annotation can be
-         * disabled...
-         */
         AnnotatedMethod found = null;
         for (AnnotatedMethod am : _classInfo.memberMethods()) {
-            JsonValue ann = am.getAnnotation(JsonValue.class);
-            if (ann == null || !ann.value()) { // ignore if disabled
+            // must be marked with "JsonValue" (or similar)
+            if (!_annotationIntrospector.hasAsValueAnnotation(am)) {
                 continue;
             }
             if (found != null) {
-                throw new IllegalArgumentException("Multiple methods with active @JsonValue annotation ("+found.getName()+"(), "+am.getName()+")");
+                throw new IllegalArgumentException("Multiple methods with active 'as-value' annotation ("+found.getName()+"(), "+am.getName()+")");
             }
             // Also, must have getter signature
+            /* 18-May-2009, tatu: Should this be moved to annotation
+             *  introspector, to give better error message(s)? For now
+             *  will leave here, may want to reconsider in future.
+             */
             if (!ClassUtil.hasGetterSignature(am.getAnnotated())) {
-                throw new IllegalArgumentException("Method "+am.getName()+"() marked with @JsonValue, but does not have valid getter signature (non-static, takes no args, returns a value)");
+                throw new IllegalArgumentException("Method "+am.getName()+"() marked with an 'as-value' annotation, but does not have valid getter signature (non-static, takes no args, returns a value)");
             }
             found = am;
         }
@@ -356,19 +357,33 @@ public class BasicBeanDescription extends BeanDescription
     public AnnotatedMethod findAnySetter()
         throws IllegalArgumentException
     {
-        AnnotatedMethod result = findUniqueMethodWith(JsonAnySetter.class);
-        // proper signature?
-        if (result != null) {
-            int pcount = result.getParameterCount();
+        AnnotatedMethod found = null;
+        for (AnnotatedMethod am : _classInfo.memberMethods()) {
+            if (!_annotationIntrospector.hasAnySetterAnnotation(am)) {
+                continue;
+            }
+            if (found != null) {
+                throw new IllegalArgumentException("Multiple methods with 'any-setter' annotation ("+found.getName()+"(), "+am.getName()+")");
+            }
+            int pcount = am.getParameterCount();
             if (pcount != 2) {
-                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+result.getName()+"(): takes "+pcount+" parameters, should take 2");
+                throw new IllegalArgumentException("Invalid 'any-setter' annotation on method "+am.getName()+"(): takes "+pcount+" parameters, should take 2");
             }
-            Class<?> type = result.getParameterTypes()[0];
+            /* Also, let's be somewhat strict on how field name is to be
+             * passed; String, Object make sense, others not
+             * so much.
+             */
+            /* !!! 18-May-2009, tatu: how about enums? Can add support if
+             *  requested; easy enough for devs to add support within
+             *  method.
+             */
+            Class<?> type = am.getParameterTypes()[0];
             if (type != String.class && type != Object.class) {
-                throw new IllegalArgumentException("Invalid annotation @JsonAnySetter on method "+result.getName()+"(): first argument not of type String or Object, but "+type.getName());
+                throw new IllegalArgumentException("Invalid 'any-setter' annotation on method "+am.getName()+"(): first argument not of type String or Object, but "+type.getName());
             }
+            found = am;
         }
-        return result;
+        return found;
     }
 
     /*
@@ -517,32 +532,6 @@ public class BasicBeanDescription extends BeanDescription
     protected String mangleSetterName(Annotated a, String basename)
     {
         return manglePropertyName(basename);
-    }
-
-    /*
-    ///////////////////////////////////////////////////////
-    // Low-level class info helper methods
-    ///////////////////////////////////////////////////////
-     */
-
-    /**
-     * Method for locating the member method that has given "unique"
-     * annotation. If more than one method is found to have the annotation,
-     * error is reported.
-     */
-    protected <A extends Annotation> AnnotatedMethod findUniqueMethodWith(Class<A> acls)
-    {
-        AnnotatedMethod result = null;
-        for (AnnotatedMethod am : _classInfo.memberMethods()) {
-            if (!am.hasAnnotation(acls)) {
-                continue;
-            }
-            if (result != null) {
-                throw new IllegalArgumentException("Multiple methods with @"+acls.getName()+" annotation ("+result.getName()+"(), "+am.getName()+")");
-            }
-            result = am;
-        }
-        return result;
     }
 
     /*
