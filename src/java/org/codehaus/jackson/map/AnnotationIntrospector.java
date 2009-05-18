@@ -67,6 +67,15 @@ public abstract class AnnotationIntrospector
      */
     public abstract Boolean findSetterAutoDetection(AnnotatedClass ac);
 
+    /**
+     * Method for checking whether there is a class annotation that
+     * indicates whether creator-method auto detection should be enabled.
+     *
+     * @return null if no relevant annotation is located; Boolean.TRUE
+     *   if enabling annotation found, Boolean.FALSE if disabling annotation
+     */
+    public abstract Boolean findCreatorAutoDetection(AnnotatedClass ac);
+
     /*
     ///////////////////////////////////////////////////////
     // Method annotations, general

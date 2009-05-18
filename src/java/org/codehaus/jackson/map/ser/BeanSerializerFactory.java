@@ -2,8 +2,6 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
-import java.lang.reflect.Method;
-
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;

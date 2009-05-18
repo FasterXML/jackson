@@ -5,7 +5,6 @@ import java.util.*;
 
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
-import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
@@ -64,9 +63,11 @@ public class TestAnnotatedClass
         public static boolean DUMMY;
 
         // not public, no annotations, shouldn't be included
-        private long bar;
+        @SuppressWarnings("unused")
+		private long bar;
 
-        @JsonProperty
+        @SuppressWarnings("unused")
+		@JsonProperty
             private String props;
     }
 

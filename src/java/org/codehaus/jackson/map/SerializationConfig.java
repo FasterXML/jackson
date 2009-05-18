@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import java.text.DateFormat;
 
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.util.StdDateFormat;
 
 /**
@@ -210,25 +211,24 @@ public class SerializationConfig
      * <li>{@link JsonAutoDetect}</li>
      *</ul>
      * 
-     * @param annotatedClass Class of which class annotations to use
+     * @param cls Class of which class annotations to use
      *   for changing configuration settings
      */
-    public void fromAnnotations(Class<?> annotatedClass)
+    public void fromAnnotations(Class<?> cls)
     {
-    	JsonWriteNullProperties nullProps = annotatedClass.getAnnotation(JsonWriteNullProperties.class);
-    	if (nullProps != null) {
-            set(Feature.WRITE_NULL_PROPERTIES, nullProps.value());
+        AnnotatedClass ac = AnnotatedClass.constructFull(cls, _annotationIntrospector, false, null, false);
+
+        // Should we enable/disable setter auto-detection?
+        Boolean ad = _annotationIntrospector.findGetterAutoDetection(ac);
+        if (ad != null) {
+            set(Feature.AUTO_DETECT_GETTERS, ad.booleanValue());
     	}
-    	JsonAutoDetect autoDetect = annotatedClass.getAnnotation(JsonAutoDetect.class);
-    	if (autoDetect != null) {
-            boolean set = false;
-            for (JsonMethod m : autoDetect.value()) {
-                if (m.setterEnabled()) {
-                    set = true;
-                    break;
-                }
-            }
-            set(Feature.AUTO_DETECT_GETTERS, set); 		
+
+        // How about writing null property values?
+        boolean curr = isEnabled(Feature.WRITE_NULL_PROPERTIES);
+        boolean newValue = _annotationIntrospector.willWriteNullProperties(ac, curr);
+        if (newValue != curr) {
+            set(Feature.WRITE_NULL_PROPERTIES, newValue);
     	}
     }
     

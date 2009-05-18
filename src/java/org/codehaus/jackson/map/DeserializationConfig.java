@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.StdDateFormat;
 
@@ -247,32 +248,29 @@ public class DeserializationConfig
      * <li>{@link JsonAutoDetect}</li>
      *</ul>
      * 
-     * @param annotatedClass Class of which class annotations to use
+     * @param cls Class of which class annotations to use
      *   for changing configuration settings
      */
-    public void fromAnnotations(Class<?> annotatedClass)
+    public void fromAnnotations(Class<?> cls)
     {
     	/* no class annotation for:
          *
+         * - CAN_OVERRIDE_ACCESS_MODIFIERS
          * - USE_BIG_DECIMAL_FOR_FLOATS
          * - USE_BIG_INTEGER_FOR_INTS
-         * - CAN_OVERRIDE_ACCESS_MODIFIERS
+         * - USE_GETTERS_AS_SETTERS
          */
 
-    	JsonAutoDetect autoDetect = annotatedClass.getAnnotation(JsonAutoDetect.class);
-    	if (autoDetect != null) {
-            boolean setters = false;
-            boolean creators = false;
-            for (JsonMethod m : autoDetect.value()) {
-                if (m.setterEnabled()) {
-                    setters = true;
-                }
-                if (m.creatorEnabled()) {
-                    creators = true;
-                }
-            }
-            set(Feature.AUTO_DETECT_SETTERS, setters); 		
-            set(Feature.AUTO_DETECT_CREATORS, creators);
+        AnnotatedClass ac = AnnotatedClass.constructFull(cls, _annotationIntrospector, false, null, false);
+
+        // Auto-detect setters, creators?
+        Boolean ad = _annotationIntrospector.findSetterAutoDetection(ac);
+        if (ad != null) {
+            set(Feature.AUTO_DETECT_SETTERS, ad.booleanValue());
+    	}
+        ad = _annotationIntrospector.findCreatorAutoDetection(ac);
+        if (ad != null) {
+            set(Feature.AUTO_DETECT_CREATORS, ad.booleanValue());
     	}
     }
 

@@ -99,6 +99,23 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
+    public Boolean findCreatorAutoDetection(AnnotatedClass ac)
+    {
+        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                for (JsonMethod jm : methods) {
+                    if (jm.creatorEnabled()) {
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Method annotations: serialization

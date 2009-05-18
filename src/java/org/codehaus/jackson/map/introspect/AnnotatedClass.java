@@ -301,7 +301,7 @@ public final class AnnotatedClass
         return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()));
     }
 
-    protected AnnotatedConstructor _constructConstructor(Constructor ctor)
+    protected AnnotatedConstructor _constructConstructor(Constructor<?> ctor)
     {
         return new AnnotatedConstructor(ctor, _collectRelevantAnnotations(ctor.getDeclaredAnnotations()));
     }
