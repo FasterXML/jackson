@@ -6,7 +6,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonWriteNullProperties;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanDescription;
@@ -397,8 +396,12 @@ public class BasicBeanDescription extends BeanDescription
      */
     public boolean willWriteNullProperties(boolean defValue)
     {
-        JsonWriteNullProperties ann = getClassAnnotation(JsonWriteNullProperties.class);
-        return (ann == null) ? defValue : ann.value();
+        return _annotationIntrospector.willWriteNullProperties(_classInfo, defValue);
+    }
+
+    public boolean willWriteNullProperties(AnnotatedMethod am, boolean defValue)
+    {
+        return _annotationIntrospector.willWriteNullProperties(am, defValue);
     }
 
     /*

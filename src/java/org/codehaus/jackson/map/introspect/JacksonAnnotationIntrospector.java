@@ -70,6 +70,12 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
+    public boolean willWriteNullProperties(AnnotatedClass am, boolean defValue)
+    {
+        JsonWriteNullProperties ann = am.getAnnotation(JsonWriteNullProperties.class);
+        return (ann == null) ? defValue : ann.value();
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Class annotations: Deserialization
@@ -118,6 +124,12 @@ public class JacksonAnnotationIntrospector
         JsonValue ann = am.getAnnotation(JsonValue.class);
         // value of 'false' means disabled...
         return (ann != null && ann.value());
+    }
+
+    public boolean willWriteNullProperties(AnnotatedMethod am, boolean defValue)
+    {
+        JsonWriteNullProperties ann = am.getAnnotation(JsonWriteNullProperties.class);
+        return (ann == null) ? defValue : ann.value();
     }
 
     /*

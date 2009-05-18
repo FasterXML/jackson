@@ -5,8 +5,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
-import org.codehaus.jackson.annotate.JsonWriteNullProperties;
-import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedMethod
@@ -14,9 +12,7 @@ public final class AnnotatedMethod
 {
     final Method _method;
 
-    final AnnotationIntrospector _annotationIntrospector;
-
-    final AnnotationMap _annotations = new AnnotationMap();
+    final AnnotationMap _annotations;
 
     // // Simple lazy-caching:
 
@@ -28,29 +24,20 @@ public final class AnnotatedMethod
     //////////////////////////////////////////////////////
      */
 
-    public AnnotatedMethod(Method method, AnnotationIntrospector intr)
+    public AnnotatedMethod(Method method, AnnotationMap annMap)
     {
         _method = method;
-        _annotationIntrospector = intr;
-        // Also, let's find annotations we already have
-        for (Annotation a : method.getDeclaredAnnotations()) {
-            if (_annotationIntrospector.isHandled(a)) {
-                _annotations.add(a);
-            }
-        }
+        _annotations = annMap;
     }
 
     /**
-     * Method called to add annotations that have not yet been
-     * added to this instance.
+     * Method called to augment annotations, by adding specified
+     * annotation if and only if it is not yet present in the
+     * annotation map we have.
      */
-    public void addAnnotationsNotPresent(Method method)
+    public void addIfNotPresent(Annotation a)
     {
-        for (Annotation a : method.getDeclaredAnnotations()) {
-            if (_annotationIntrospector.isHandled(a)) {
-                _annotations.addIfNotPresent(a);
-            }
-        }
+        _annotations.addIfNotPresent(a);
     }
 
     /*
@@ -120,12 +107,6 @@ public final class AnnotatedMethod
     // Extended API, specific annotations
     //////////////////////////////////////////////////////
      */
-
-   public boolean willWriteNullProperties(boolean defValue)
-    {
-        JsonWriteNullProperties ann = getAnnotation(JsonWriteNullProperties.class);
-        return (ann == null) ? defValue : ann.value();
-    }
 
     public String toString()
     {

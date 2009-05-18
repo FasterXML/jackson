@@ -227,7 +227,7 @@ public final class AnnotatedClass
                     if (_singleArgStaticMethods == null) {
                         _singleArgStaticMethods = new ArrayList<AnnotatedMethod>();
                     }
-                    _singleArgStaticMethods.add(new AnnotatedMethod(m, _annotationIntrospector));
+                    _singleArgStaticMethods.add(_constructMethod(m));
                 }
             }
         }
@@ -238,7 +238,7 @@ public final class AnnotatedClass
         _memberMethods = new AnnotatedMethodMap();
         for (Method m : _class.getDeclaredMethods()) {
             if (_isIncludableMethod(m)) {
-                _memberMethods.add(new AnnotatedMethod(m, _annotationIntrospector));
+                _memberMethods.add(_constructMethod(m));
             }
         }
         /* and then augment these with annotations from
@@ -251,9 +251,17 @@ public final class AnnotatedClass
                 }
                 AnnotatedMethod old = _memberMethods.find(m);
                 if (old == null) {
-                    _memberMethods.add(new AnnotatedMethod(m, _annotationIntrospector));
+                    _memberMethods.add(_constructMethod(m));
                 } else {
-                    old.addAnnotationsNotPresent(m);
+                    /* If sub-class already has the method, we only want
+                     * to augment annotations with entries that are not
+                     * masked by sub-class:
+                     */
+                    for (Annotation a : m.getDeclaredAnnotations()) {
+                        if (_annotationIntrospector.isHandled(a)) {
+                            old.addIfNotPresent(a);
+                        }
+                    }
                 }
             }
         }
@@ -270,6 +278,35 @@ public final class AnnotatedClass
             }
         }
     }
+
+    /**
+     * Method that will collect all member (non-static) fields
+     * that are either public, or have at least a single annotation
+     * associated with them.
+     */
+    protected void resolveFields()
+    {
+        _fields = new ArrayList<AnnotatedField>();
+        _addFields(_fields, _class);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Helper methods
+    ///////////////////////////////////////////////////////
+     */
+
+    protected AnnotatedMethod _constructMethod(Method m)
+    {
+        AnnotationMap annMap = new AnnotationMap();
+        // Also, let's find annotations we already have
+        for (Annotation a : m.getDeclaredAnnotations()) {
+            if (_annotationIntrospector.isHandled(a)) {
+                annMap.add(a);
+            }
+        }
+        return new AnnotatedMethod(m, annMap);
+    }
         
     protected boolean _isIncludableMethod(Method m)
     {
@@ -281,17 +318,6 @@ public final class AnnotatedClass
             return false;
         }
         return true;
-    }
-
-    /**
-     * Method that will collect all member (non-static) fields
-     * that are either public, or have at least a single annotation
-     * associated with them.
-     */
-    protected void resolveFields()
-    {
-        _fields = new ArrayList<AnnotatedField>();
-        _addFields(_fields, _class);
     }
 
     private void _addFields(List<AnnotatedField> fields, Class<?> c)

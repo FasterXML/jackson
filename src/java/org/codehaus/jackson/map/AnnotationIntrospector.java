@@ -43,6 +43,15 @@ public abstract class AnnotationIntrospector
      */
     public abstract Boolean findGetterAutoDetection(AnnotatedClass ac);
 
+    /**
+     * Method for checking whether methods of given class should
+     * output null values; given default value for behavior (true
+     * meaning do output nulls, false not).
+     *
+     * @return True if nulls are to be output; false if not.
+     */
+    public abstract boolean willWriteNullProperties(AnnotatedClass am, boolean defValue);
+
     /*
     ///////////////////////////////////////////////////////
     // Class annotations: deserialization
@@ -102,6 +111,15 @@ public abstract class AnnotationIntrospector
      *   false if no enabled annotation is found
      */
     public abstract boolean hasAsValueAnnotation(AnnotatedMethod am);
+
+    /**
+     * Method for checking whether property associated with given method
+     * should output null values; given default value for behavior (true
+     * meaning do output nulls, false not).
+     *
+     * @return True if nulls are to be output; false if not.
+     */
+    public abstract boolean willWriteNullProperties(AnnotatedMethod am, boolean defValue);
 
     /*
     ///////////////////////////////////////////////////////

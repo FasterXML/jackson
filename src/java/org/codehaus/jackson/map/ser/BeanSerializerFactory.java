@@ -197,10 +197,9 @@ public class BeanSerializerFactory
              * If so, let's use it.
              */
             JsonSerializer<Object> ser = findSerializerFromAnnotation(am);
-            Method m = am.getAnnotated();
             // and finally, there may be per-method overrides:
-            boolean methodNulls = am.willWriteNullProperties(writeNulls);
-            props.add(new BeanPropertyWriter(en.getKey(), m, ser, methodNulls));
+            boolean methodNulls = beanDesc.willWriteNullProperties(am, writeNulls);
+            props.add(new BeanPropertyWriter(en.getKey(), am.getAnnotated(), ser, methodNulls));
         }
         return props;
     }
