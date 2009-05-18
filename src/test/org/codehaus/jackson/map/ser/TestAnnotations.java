@@ -38,21 +38,6 @@ public class TestAnnotations
         @JsonGetter protected int getX() { return 3; }
     }
 
-    /// Class for testing enabled {@link JsonIgnore} annotation
-    final static class SizeClassEnabledIgnore
-    {
-        // note: must be public to be seen
-        public int getX() { return 1; }
-        @JsonIgnore public int getY() { return 9; }
-    }
-
-    /// Class for testing enabled {@link JsonIgnore} annotation
-    final static class SizeClassDisabledIgnore
-    {
-        // note: must be public to be seen
-        public int getX() { return 3; }
-        @JsonIgnore(false) public int getY() { return 4; }
-    }
 
     /**
      * Class for testing {@link JsonSerializer} annotation
@@ -174,26 +159,6 @@ public class TestAnnotations
         Map<String,Object> result = writeAndMap(m, new SizeClassGetter2());
         assertEquals(1, result.size());
         assertEquals(Integer.valueOf(3), result.get("x"));
-    }
-
-    public void testSimpleIgnore() throws Exception
-    {
-        ObjectMapper m = new ObjectMapper();
-        // Should see "x", not "y"
-        Map<String,Object> result = writeAndMap(m, new SizeClassEnabledIgnore());
-        assertEquals(1, result.size());
-        assertEquals(Integer.valueOf(1), result.get("x"));
-        assertNull(result.get("y"));
-    }
-
-    public void testDisabledIgnore() throws Exception
-    {
-        ObjectMapper m = new ObjectMapper();
-        // Should see "x" and "y"
-        Map<String,Object> result = writeAndMap(m, new SizeClassDisabledIgnore());
-        assertEquals(2, result.size());
-        assertEquals(Integer.valueOf(3), result.get("x"));
-        assertEquals(Integer.valueOf(4), result.get("y"));
     }
 
     /**
