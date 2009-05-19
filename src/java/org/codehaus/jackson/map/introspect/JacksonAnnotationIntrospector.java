@@ -37,7 +37,8 @@ public class JacksonAnnotationIntrospector
         return acls.getAnnotation(JacksonAnnotation.class) != null;
     }
 
-    public Class<JsonSerializer> findSerializerClass(Annotated a)
+    @SuppressWarnings("unchecked")
+	public Class<JsonSerializer<?>> findSerializerClass(Annotated a)
     {
         JsonUseSerializer ann = a.getAnnotation(JsonUseSerializer.class);
         if (ann == null) {
@@ -54,23 +55,24 @@ public class JacksonAnnotationIntrospector
         if (!JsonSerializer.class.isAssignableFrom(serClass)) {
             throw new IllegalArgumentException("Invalid @JsonUseSerializer annotation: Class "+serClass.getName()+" not a JsonSerializer");
         }
-        return (Class<JsonSerializer>)serClass;
+        return (Class<JsonSerializer<?>>)serClass;
     }
 
-    public Class<JsonDeserializer> findDeserializerClass(Annotated a)
+    @SuppressWarnings("unchecked")
+	public Class<JsonDeserializer<?>> findDeserializerClass(Annotated a)
     {
         JsonUseDeserializer ann = a.getAnnotation(JsonUseDeserializer.class);
         if (ann == null) {
             return null;
         }
-        Class<?> serClass = ann.value();
-        if (serClass == NoClass.class) {
+        Class<?> deserClass = ann.value();
+        if (deserClass == NoClass.class) {
             return null;
         }
-        if (!JsonDeserializer.class.isAssignableFrom(serClass)) {
-            throw new IllegalArgumentException("Invalid @JsonUseDeserializer annotation: Class "+serClass.getName()+" not a JsonDeserializer");
+        if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
+            throw new IllegalArgumentException("Invalid @JsonUseDeserializer annotation: Class "+deserClass.getName()+" not a JsonDeserializer");
         }
-        return (Class<JsonDeserializer>)serClass;
+        return (Class<JsonDeserializer<?>>)deserClass;
     }
 
     /*
@@ -223,6 +225,42 @@ public class JacksonAnnotationIntrospector
          * to this method getting called)
          */
         return am.hasAnnotation(JsonCreator.class);
+    }
+
+    public Class<?> findConcreteType(AnnotatedMethod am)
+    {
+        JsonClass ann = am.getAnnotation(JsonClass.class);
+        if (ann != null) {
+            Class<?> cls = ann.value();
+            if(cls != NoClass.class) {
+                return cls;
+            }
+        }
+        return null;
+    }
+
+    public Class<?> findKeyType(AnnotatedMethod am)
+    {
+        JsonKeyClass ann = am.getAnnotation(JsonKeyClass.class);
+        if (ann != null) {
+            Class<?> cls = ann.value();
+            if(cls != NoClass.class) {
+                return cls;
+            }
+        }
+        return null;
+    }
+
+    public Class<?> findContentType(AnnotatedMethod am)
+    {
+        JsonContentClass ann = am.getAnnotation(JsonContentClass.class);
+        if (ann != null) {
+            Class<?> cls = ann.value();
+            if(cls != NoClass.class) {
+                return cls;
+            }
+        }
+        return null;
     }
 
     /*

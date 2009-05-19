@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that can be used to mark "setter" methods to indicate the
+ * Annotation that can be used with "setter" methods to indicate the
  * actual type of the logical property associated with the method.
  * This is usually done if the declared type is abstract or too generic;
  * annotation can denote actual concrete type to instantiate when

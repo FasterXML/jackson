@@ -223,7 +223,7 @@ public abstract class BasicDeserializerFactory
          *    that should override default deserializer
          */
         BasicBeanDescription beanDesc = config.introspectClassAnnotations(enumClass);
-        JsonDeserializer<Object> des = findDeserializerFromAnnotation(beanDesc.getClassInfo());
+        JsonDeserializer<Object> des = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
         if (des != null) {
             return des;
         }
@@ -238,12 +238,14 @@ public abstract class BasicDeserializerFactory
         /* !!! 02-Mar-2009, tatu: Should probably allow specifying more
          *   accurate nodes too...
          */
+        /*
         if (ArrayNode.class.isAssignableFrom(nodeClass)) {
             // !!! TBI
         }
         if (ObjectNode.class.isAssignableFrom(nodeClass)) {
             // !!! TBI
         }
+        */
         // For plain old JsonNode, we'll return basic deserializer:
         return JsonNodeDeserializer.instance;
     }
@@ -267,23 +269,11 @@ public abstract class BasicDeserializerFactory
      * class to use for deserialization.
      * Returns null if no such annotation found.
      */
-    protected JsonDeserializer<Object> findDeserializerFromAnnotation(Annotated a)
+    protected JsonDeserializer<Object> findDeserializerFromAnnotation(DeserializationConfig config, Annotated a)
     {
-        JsonUseDeserializer ann = a.getAnnotation(JsonUseDeserializer.class);
-        if (ann == null) {
+        Class<JsonDeserializer<?>> deserClass = config.getAnnotationIntrospector().findDeserializerClass(a);
+        if (deserClass == null) {
             return null;
-        }
-        Class<?> deserClass = ann.value();
-        /* 21-Feb-2009, tatu: There is now a way to indicate "no class"
-         *   (to essentially denote a 'dummy' annotation, needed for
-         *   overriding in some cases), need to check:
-         */
-        if (deserClass == NoClass.class) {
-            return null;
-        }
-        // Must be of proper type, of course
-        if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
-            throw new IllegalArgumentException("Invalid @JsonDeserializer annotation for "+a.getName()+": value ("+deserClass.getName()+") does not implement JsonDeserializer interface");
         }
         try {
             Object ob = deserClass.newInstance();
@@ -311,46 +301,45 @@ public abstract class BasicDeserializerFactory
      *
      * @throws JsonMappingException if invalid annotation is found
      */
-    protected JavaType modifyTypeByAnnotation(AnnotatedMethod am, JavaType type)
+    protected JavaType modifyTypeByAnnotation(DeserializationConfig config,
+                                              AnnotatedMethod am, JavaType type)
         throws JsonMappingException
     {
         // first: let's check class for the instance itself:
-        JsonClass mainAnn = am.getAnnotation(JsonClass.class);
-        if (mainAnn != null) {
-            Class<?> subclass = mainAnn.value();
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        Class<?> subclass = intr.findConcreteType(am);
+        if (subclass != null) {
             try {
                 type = type.narrowBy(subclass);
             } catch (IllegalArgumentException iae) {
-                throw new JsonMappingException("Failed to narrow type "+type+" with @JsonClass("+subclass.getName()+"): "+iae.getMessage(), null, iae);
+                throw new JsonMappingException("Failed to narrow type "+type+" with concrete-type annotation (value "+subclass.getName()+"): "+iae.getMessage(), null, iae);
             }
         }
 
         // then key class
-        JsonKeyClass keyAnn = am.getAnnotation(JsonKeyClass.class);
-        if (keyAnn != null) {
+        Class<?> keyClass = intr.findKeyType(am);
+        if (keyClass != null) {
             // illegal to use on non-Maps
             if (!(type instanceof MapType)) {
-                throw new JsonMappingException("Illegal @JsonKey annotation: type "+type+" is not a Map type");
+                throw new JsonMappingException("Illegal key-type annotation: type "+type+" is not a Map type");
             }
-            Class<?> keyClass = keyAnn.value();
             try {
                 type = ((MapType) type).narrowKey(keyClass);
             } catch (IllegalArgumentException iae) {
-                throw new JsonMappingException("Failed to narrow key of "+type+" with @JsonKeyClass("+keyClass.getName()+"): "+iae.getMessage(), null, iae);
+                throw new JsonMappingException("Failed to narrow key type "+type+" with key-type annotation ("+keyClass.getName()+"): "+iae.getMessage(), null, iae);
             }
         }
 
         // and finally content class; only applicable to structured types
-        JsonContentClass contentAnn = am.getAnnotation(JsonContentClass.class);
-        if (contentAnn != null) {
+        Class<?> cc = intr.findContentType(am);
+        if (cc != null) {
             if (!type.isContainerType()) {
-                throw new JsonMappingException("Illegal @JsonContentClass annotation on "+am.getName()+"; can only be used for container types (Collections, Maps, arrays");
+                throw new JsonMappingException("Illegal content-type annotation on "+am.getName()+"; can only be used for container types (Collections, Maps, arrays");
             }
-            Class<?> cc = contentAnn.value();
             try {
                 type = type.narrowContentsBy(cc);
             } catch (IllegalArgumentException iae) {
-                throw new JsonMappingException("Failed to narrow content type "+type+" with @JsonContentClass("+cc.getName()+"): "+iae.getMessage(), null, iae);
+                throw new JsonMappingException("Failed to narrow content type "+type+" with content-type annotation ("+cc.getName()+"): "+iae.getMessage(), null, iae);
             }
         }
         return type;

@@ -61,7 +61,7 @@ public class BeanDeserializerFactory
         }
         BasicBeanDescription beanDesc = config.introspect(beanClass);
         // maybe it's explicitly defined by annotations?
-        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(beanDesc.getClassInfo());
+        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ad != null) {
             return ad;
         }
@@ -283,7 +283,7 @@ public class BeanDeserializerFactory
          * Returns null if no annotations, in which case binding will
          * be done at a later point.
          */
-        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(am);
+        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, am);
         // we know it's a 2-arg method, second arg is the vlaue
         Type rawType = am.getGenericParameterTypes()[1];
         JavaType type = TypeFactory.fromType(rawType);
@@ -296,7 +296,7 @@ public class BeanDeserializerFactory
         /* Otherwise, method may specify more specific (sub-)class for
          * value (no need to check if explicit deser was specified):
          */
-        type = modifyTypeByAnnotation(am, type);
+        type = modifyTypeByAnnotation(config, am, type);
         return new SettableAnyProperty(type, m);
     }
 
@@ -329,7 +329,7 @@ public class BeanDeserializerFactory
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */
-        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(setter);
+        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, setter);
         
         Method m = setter.getAnnotated();
         if (propDeser != null) {
@@ -340,7 +340,7 @@ public class BeanDeserializerFactory
         /* Otherwise, method may specify more specific (sub-)class for
          * value (no need to check if explicit deser was specified):
          */
-        type = modifyTypeByAnnotation(setter, type);
+        type = modifyTypeByAnnotation(config, setter, type);
         return new SettableBeanProperty(name, type, m, null);
     }
 
@@ -370,7 +370,7 @@ public class BeanDeserializerFactory
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */
-        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(getter);
+        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, getter);
         
         Method m = getter.getAnnotated();
         if (propDeser != null) {
@@ -381,7 +381,7 @@ public class BeanDeserializerFactory
         /* Otherwise, method may specify more specific (sub-)class for
          * value (no need to check if explicit deser was specified):
          */
-        type = modifyTypeByAnnotation(getter, type);
+        type = modifyTypeByAnnotation(config, getter, type);
         return new SettableBeanProperty(name, type, null, m);
     }
 

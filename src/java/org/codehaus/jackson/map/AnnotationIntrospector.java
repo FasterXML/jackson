@@ -33,13 +33,13 @@ public abstract class AnnotationIntrospector
      * Method for checking whether given annotated object (method,
      * class etc) specifies {@link JsonSerializer} class to use.
      */
-    public abstract Class<JsonSerializer> findSerializerClass(Annotated am);
+    public abstract Class<JsonSerializer<?>> findSerializerClass(Annotated am);
 
     /**
      * Method for checking whether given annotated object (method,
      * class etc) specifies {@link JsonDeserializer} class to use.
      */
-    public abstract Class<JsonDeserializer> findDeserializerClass(Annotated am);
+    public abstract Class<JsonDeserializer<?>> findDeserializerClass(Annotated am);
 
     /*
     ///////////////////////////////////////////////////////
@@ -188,6 +188,38 @@ public abstract class AnnotationIntrospector
      *   false otherwise
      */
     public abstract boolean hasCreatorAnnotation(AnnotatedMethod am);
+
+    /**
+     * Method for accessing additional narrowing type definition that a
+     * method can have, to define more specific type to use. This is
+     * used when declared type is abstract or a base class, but the
+     * actual type can be added via annotation
+     *
+     * @return Class specifying more specific type to use instead of
+     *   declared type, if annotation found; null if not
+     */
+    public abstract Class<?> findConcreteType(AnnotatedMethod am);
+
+    /**
+     * Method for accessing additional narrowing type definition that a
+     * method can have, to define more specific key type to use.
+     * It should be only be used with {@link java.util.Map} types.
+     *
+     * @return Class specifying more specific type to use instead of
+     *   declared type, if annotation found; null if not
+     */
+    public abstract Class<?> findKeyType(AnnotatedMethod am);
+
+    /**
+     * Method for accessing additional narrowing type definition that a
+     * method can have, to define more specific content type to use;
+     * content refers to Map values and Collection/array elements.
+     * It should be only be used with Map, Collection and array types.
+     *
+     * @return Class specifying more specific type to use instead of
+     *   declared type, if annotation found; null if not
+     */
+    public abstract Class<?> findContentType(AnnotatedMethod am);
 
     /*
     ////////////////////////////////////////////////////

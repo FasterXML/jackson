@@ -7,7 +7,6 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonUseSerializer;
-import org.codehaus.jackson.annotate.NoClass;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -324,9 +323,9 @@ public class BasicSerializerFactory
      */
     protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a)
     {
-        // Must be of proper type, of course
-        if (!JsonSerializer.class.isAssignableFrom(serClass)) {
-            throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+a.getName()+": value ("+serClass.getName()+") does not implement JsonSerializer interface");
+        Class<JsonSerializer<?>> serClass = config.getAnnotationIntrospector().findSerializerClass(a);
+        if (serClass == null) {
+            return null;
         }
         try {
             Object ob = serClass.newInstance();

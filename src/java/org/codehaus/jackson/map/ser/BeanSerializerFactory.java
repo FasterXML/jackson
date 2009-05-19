@@ -129,7 +129,7 @@ public class BeanSerializerFactory
         /* [JACKSON-80]: Should support @JsonValue, which is alternative to
          *   actual bean method introspection.
          */
-        AnnotatedMethod valueMethod = beanDesc.findJsonValue();
+        AnnotatedMethod valueMethod = beanDesc.findJsonValueMethod();
         if (valueMethod != null) {
             /* Further, method itself may also be annotated to indicate
              * exact JsonSerializer to use for whatever value is returned...

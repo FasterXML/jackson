@@ -272,7 +272,7 @@ public class TestValueAnnotations
                 ("{ \"value\" : \"x\" }", InvalidContentClass.class);
             fail("Expected a failure, but got results: "+result);
         } catch (JsonMappingException jme) {
-            verifyException(jme, "Illegal @JsonContentClass annotation");
+            verifyException(jme, "Illegal content-type annotation");
         }
     }
 

@@ -48,11 +48,6 @@ public class BasicBeanDescription extends BeanDescription
 
     public AnnotatedClass getClassInfo() { return _classInfo; }
 
-    public <A extends Annotation> A getClassAnnotation(Class<A> acls)
-    {
-        return _classInfo.getAnnotation(acls);
-    }
-
     public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
     {
         return _classInfo.findMethod(name, paramTypes);
@@ -150,7 +145,7 @@ public class BasicBeanDescription extends BeanDescription
      * {@link JsonValue} annotation, if any. If multiple ones are found,
      * an error is reported by throwing {@link IllegalArgumentException}
      */
-    public AnnotatedMethod findJsonValue()
+    public AnnotatedMethod findJsonValueMethod()
     {
         AnnotatedMethod found = null;
         for (AnnotatedMethod am : _classInfo.memberMethods()) {
