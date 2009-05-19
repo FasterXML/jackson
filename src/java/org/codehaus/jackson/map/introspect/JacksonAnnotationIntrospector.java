@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.JsonSerializer;
 
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
@@ -33,6 +35,42 @@ public class JacksonAnnotationIntrospector
 
         // but this is more reliable, now that we have tag annotation:
         return acls.getAnnotation(JacksonAnnotation.class) != null;
+    }
+
+    public Class<JsonSerializer> findSerializerClass(Annotated a)
+    {
+        JsonUseSerializer ann = a.getAnnotation(JsonUseSerializer.class);
+        if (ann == null) {
+            return null;
+        }
+        Class<?> serClass = ann.value();
+        /* 21-Feb-2009, tatu: There is now a way to indicate "no class"
+         *   (to essentially denote a 'dummy' annotation, needed for
+         *   overriding in some cases), need to check:
+         */
+        if (serClass == NoClass.class) {
+            return null;
+        }
+        if (!JsonSerializer.class.isAssignableFrom(serClass)) {
+            throw new IllegalArgumentException("Invalid @JsonUseSerializer annotation: Class "+serClass.getName()+" not a JsonSerializer");
+        }
+        return (Class<JsonSerializer>)serClass;
+    }
+
+    public Class<JsonDeserializer> findDeserializerClass(Annotated a)
+    {
+        JsonUseDeserializer ann = a.getAnnotation(JsonUseDeserializer.class);
+        if (ann == null) {
+            return null;
+        }
+        Class<?> serClass = ann.value();
+        if (serClass == NoClass.class) {
+            return null;
+        }
+        if (!JsonDeserializer.class.isAssignableFrom(serClass)) {
+            throw new IllegalArgumentException("Invalid @JsonUseDeserializer annotation: Class "+serClass.getName()+" not a JsonDeserializer");
+        }
+        return (Class<JsonDeserializer>)serClass;
     }
 
     /*

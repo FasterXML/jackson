@@ -275,7 +275,7 @@ public class BasicSerializerFactory
              *   Enum classes.
              */
             BasicBeanDescription desc = config.introspectClassAnnotations(type);
-            JsonSerializer<Object> ser = findSerializerFromAnnotation(desc.getClassInfo());
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, desc.getClassInfo());
             if (ser != null) {
                 return ser;
             }
@@ -322,22 +322,8 @@ public class BasicSerializerFactory
      * class to use for serialization.
      * Returns null if no such annotation found.
      */
-    protected JsonSerializer<Object> findSerializerFromAnnotation(Annotated a)
+    protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a)
     {
-        JsonUseSerializer ann = a.getAnnotation(JsonUseSerializer.class);
-        if (ann == null) {
-            return null;
-        }
-
-        Class<?> serClass = ann.value();
-        /* 21-Feb-2009, tatu: There is now a way to indicate "no class"
-         *   (to essentially denote a 'dummy' annotation, needed for
-         *   overriding in some cases), need to check:
-         */
-        if (serClass == NoClass.class) {
-            return null;
-        }
-
         // Must be of proper type, of course
         if (!JsonSerializer.class.isAssignableFrom(serClass)) {
             throw new IllegalArgumentException("Invalid @JsonSerializer annotation for "+a.getName()+": value ("+serClass.getName()+") does not implement JsonSerializer interface");

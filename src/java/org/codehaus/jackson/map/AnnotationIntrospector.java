@@ -2,6 +2,9 @@ package org.codehaus.jackson.map;
 
 import java.lang.annotation.Annotation;
 
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
@@ -14,13 +17,29 @@ import org.codehaus.jackson.map.introspect.AnnotatedMethod;
  */
 public abstract class AnnotationIntrospector
 {
-    // // // Generic annotation properties
+    /*
+    ///////////////////////////////////////////////////////
+    // Generic annotation properties, lookup
+    ///////////////////////////////////////////////////////
+    */
 
     /**
      * Method called by framework to determine whether given annotation
      * is handled by this introspector.
      */
     public abstract boolean isHandled(Annotation ann);
+
+    /**
+     * Method for checking whether given annotated object (method,
+     * class etc) specifies {@link JsonSerializer} class to use.
+     */
+    public abstract Class<JsonSerializer> findSerializerClass(Annotated am);
+
+    /**
+     * Method for checking whether given annotated object (method,
+     * class etc) specifies {@link JsonDeserializer} class to use.
+     */
+    public abstract Class<JsonDeserializer> findDeserializerClass(Annotated am);
 
     /*
     ///////////////////////////////////////////////////////

@@ -121,7 +121,7 @@ public class BeanSerializerFactory
             return null;
         }
         BasicBeanDescription beanDesc = config.introspect(type);
-        JsonSerializer<Object> ser = findSerializerFromAnnotation(beanDesc.getClassInfo());
+        JsonSerializer<Object> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ser != null) {
             return ser;
         }
@@ -134,7 +134,7 @@ public class BeanSerializerFactory
             /* Further, method itself may also be annotated to indicate
              * exact JsonSerializer to use for whatever value is returned...
              */
-            ser = findSerializerFromAnnotation(valueMethod);
+            ser = findSerializerFromAnnotation(config, valueMethod);
             return new JsonValueSerializer(valueMethod.getAnnotated(), ser);
         }
 
@@ -194,7 +194,7 @@ public class BeanSerializerFactory
             /* One more thing: does Method specify a serializer?
              * If so, let's use it.
              */
-            JsonSerializer<Object> ser = findSerializerFromAnnotation(am);
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, am);
             // and finally, there may be per-method overrides:
             boolean methodNulls = beanDesc.willWriteNullProperties(am, writeNulls);
             props.add(new BeanPropertyWriter(en.getKey(), am.getAnnotated(), ser, methodNulls));
