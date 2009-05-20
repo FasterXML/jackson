@@ -312,7 +312,7 @@ public abstract class BasicDeserializerFactory
             try {
                 type = type.narrowBy(subclass);
             } catch (IllegalArgumentException iae) {
-                throw new JsonMappingException("Failed to narrow type "+type+" with concrete-type annotation (value "+subclass.getName()+"): "+iae.getMessage(), null, iae);
+                throw new JsonMappingException("Failed to narrow type "+type+" with concrete-type annotation (value "+subclass.getName()+"), method '"+am.getName()+"': "+iae.getMessage(), null, iae);
             }
         }
 

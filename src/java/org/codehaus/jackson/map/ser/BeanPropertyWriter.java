@@ -7,11 +7,11 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 
 /**
- * Base bean property handler class, which implements commong parts of
+ * Base bean property handler class, which implements common parts of
  * reflection-based functionality for accessing a property value
  * and serializing it.
  */
-public final class BeanPropertyWriter
+public class BeanPropertyWriter
 {
     /**
      * Logical name of the property; will be used as the field name
@@ -32,6 +32,12 @@ public final class BeanPropertyWriter
     protected final boolean _cfgWriteIfNull;
 
     /**
+     * Type to use for locating serializer; normally same as return
+     * type of the accessor method, but may be overridden by annotations.
+     */
+    protected final Class<?> _cfgSerializationType;
+
+    /**
      * Serializer to use for writing out the value: null if it can not
      * be known statically; non-null if it can.
      */
@@ -39,12 +45,14 @@ public final class BeanPropertyWriter
 
     public BeanPropertyWriter(String name, Method acc,
                               JsonSerializer<Object> ser,
-                              boolean writeIfNull)
+                              boolean writeIfNull,
+                              Class<?> serType)
     {
         _name = name;
         _accessorMethod = acc;
         _serializer = ser;
         _cfgWriteIfNull = writeIfNull;
+        _cfgSerializationType = serType;
     }
 
     /**
@@ -54,10 +62,14 @@ public final class BeanPropertyWriter
      */
     public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
     {
-        return new BeanPropertyWriter(_name, _accessorMethod, ser, _cfgWriteIfNull);
+        return new BeanPropertyWriter(_name, _accessorMethod, ser, _cfgWriteIfNull, _cfgSerializationType);
     }
 
     public boolean hasSerializer() { return _serializer != null; }
+
+    public final Class<?> getSerializationType() {
+        return _cfgSerializationType;
+    }
 
     public final Class<?> getReturnType() {
         return _accessorMethod.getReturnType();

@@ -8,8 +8,8 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
 /**
- * This unit test suite tests use of Annotations for
- * bean serialization.
+ * This unit test suite tests use of @JsonIgnore annotations
+ * with  bean serialization.
  */
 public class TestAnnotationIgnore
     extends BaseMapTest

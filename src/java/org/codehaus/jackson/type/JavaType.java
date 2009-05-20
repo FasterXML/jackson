@@ -35,7 +35,6 @@ public abstract class JavaType
         _hashCode = name.hashCode();
     }
 
-
     /**
      * Method that can be called to do a "narrowing" conversions; that is,
      * to return a type with a raw class that is assignable to the raw
@@ -55,7 +54,36 @@ public abstract class JavaType
         return _narrow(subclass);
     }
 
+    /**
+     * Method that can be called to do a "widening" conversions; that is,
+     * to return a type with a raw class that could be assigned from this
+     * type.
+     * If such conversion is not possible, an
+     * {@link IllegalArgumentException} is thrown.
+     * If class is same as the current raw class, instance itself is
+     * returned.
+     */
+    public final JavaType widenBy(Class<?> superclass)
+    {
+        // First: if same raw class, just return this instance
+        if (superclass == _class) {
+            return this;
+        }
+        // Otherwise, ensure compatibility
+        _assertSubclass(_class, superclass);
+        return _widen(superclass);
+    }
+
     protected abstract JavaType _narrow(Class<?> subclass);
+
+    /**
+     *<p>
+     * Default implementation is just to call {@link #_narrow}, since
+     * underlying type construction is usually identical
+     */
+    protected JavaType _widen(Class<?> superclass) {
+        return _narrow(superclass);
+    }
 
     public abstract JavaType narrowContentsBy(Class<?> contentClass);
 

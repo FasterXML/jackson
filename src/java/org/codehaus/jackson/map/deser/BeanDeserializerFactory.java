@@ -146,7 +146,9 @@ public class BeanDeserializerFactory
 
         // And also need to ignore "localizedMessage"
         deser.addIgnorable("localizedMessage");
-        // !!! TEST: also ignore "message", for now
+        /* As well as "message": it will be passed via constructor,
+         * as there's no 'setMessage()' method
+        */
         deser.addIgnorable("message");
 
         // And finally: make String constructor the thing we need...?

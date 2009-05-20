@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
+import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
@@ -137,14 +138,7 @@ public class BeanSerializerFactory
             ser = findSerializerFromAnnotation(config, valueMethod);
             return new JsonValueSerializer(valueMethod.getAnnotated(), ser);
         }
-
-        // First: what properties are to be serializable?
-        Collection<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
-        if (props == null || props.size() == 0) {
-            // No properties, no serializer
-            return null;
-        }
-        return new BeanSerializer(type, props);
+        return constructBeanSerializer(type, config, beanDesc);
     }
 
     /*
@@ -166,11 +160,24 @@ public class BeanSerializerFactory
         return (ClassUtil.canBeABeanType(type) == null) && !ClassUtil.isProxyType(type);
     }
 
+    protected JsonSerializer<Object> constructBeanSerializer(Class<?> type, SerializationConfig config,
+                                                             BasicBeanDescription beanDesc)
+    {
+        // First: what properties are to be serializable?
+        Collection<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
+        if (props == null || props.size() == 0) {
+            // No properties, no serializer
+            return null;
+        }
+        return new BeanSerializer(type, props);
+    }
+
     /**
      * Method used to collect all actual serializable properties
      */
     protected Collection<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
     {
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
         // are getters auto-detected?
         boolean autodetect = config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS);
         LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(autodetect, null);
@@ -191,14 +198,32 @@ public class BeanSerializerFactory
             if (fixAccess) {
                 am.fixAccess();
             }
-            /* One more thing: does Method specify a serializer?
-             * If so, let's use it.
-             */
+            // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> ser = findSerializerFromAnnotation(config, am);
+            // [JACKSON-115]: Check @JsonClass to see if serialization type is fixed
+            Class<?> serializationType = intr.findConcreteType(am);
+            if (serializationType != null) {
+                // Must be a super type...
+                Class<?> rt = am.getReturnType();
+                if (!serializationType.isAssignableFrom(rt)) {
+                    throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+am.getName()+"': class "+serializationType.getName()+" not a super-type of (declared) class "+rt.getName());
+                }
+            }
+
             // and finally, there may be per-method overrides:
             boolean methodNulls = beanDesc.willWriteNullProperties(am, writeNulls);
-            props.add(new BeanPropertyWriter(en.getKey(), am.getAnnotated(), ser, methodNulls));
+            props.add(constructGettableProperty(config, en.getKey(), am, ser, methodNulls, serializationType));
         }
         return props;
+    }
+
+    protected  BeanPropertyWriter constructGettableProperty(SerializationConfig config,
+                                                            String name,
+                                                            AnnotatedMethod am,
+                                                            JsonSerializer<Object> ser,
+                                                            boolean writeNulls,
+                                                            Class<?> serializationType)
+    {
+        return new BeanPropertyWriter(name, am.getAnnotated(), ser, writeNulls, serializationType);
     }
 }

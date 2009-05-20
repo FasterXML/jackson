@@ -190,13 +190,16 @@ public abstract class AnnotationIntrospector
     public abstract boolean hasCreatorAnnotation(AnnotatedMethod am);
 
     /**
-     * Method for accessing additional narrowing type definition that a
-     * method can have, to define more specific type to use. This is
-     * used when declared type is abstract or a base class, but the
-     * actual type can be added via annotation
+     * Method for accessing additional type definition that a
+     * method can have, to define more type to use, instead of
+     * type otherwise used.
+     * For deserialization type must be used for narrowing conversion
+     * (i.e. type has to be a subtype of declared type); but for
+     * serialization it needs to be widening conversion (super-type).
+     * In both cases defining type that would be used anyway is
+     * allowed.
      *
-     * @return Class specifying more specific type to use instead of
-     *   declared type, if annotation found; null if not
+     * @return Class to use instead of declared type
      */
     public abstract Class<?> findConcreteType(AnnotatedMethod am);
 

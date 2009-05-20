@@ -81,18 +81,26 @@ public class BeanSerializer
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {
+        AnnotationIntrospector ai = provider.getConfig().getAnnotationIntrospector();
         for (int i = 0, len = _props.length; i < len; ++i) {
             BeanPropertyWriter prop = _props[i];
-            if (!prop.hasSerializer()) {
-                Class<?> rt = prop.getReturnType();
-                /* Note: we can only assign serializer statically if the
-                 * declared type is final -- if not, we don't really know
-                 * the actual type until we get the instance.
-                 */
-                if (Modifier.isFinal(rt.getModifiers())) {
-                    _props[i] = prop.withSerializer(provider.findValueSerializer(rt));
-                }
+            if (prop.hasSerializer()) {
+                continue;
             }
+            // Was the serialization type hard-coded? If so, use it
+            Class<?> type = prop.getSerializationType();
+            /* It not, we can use declared return type if and only if
+             * declared type is final -- if not, we don't really know
+             * the actual type until we get the instance.
+             */
+            if (type == null) {
+                Class<?> rt = prop.getReturnType();
+                if (!Modifier.isFinal(rt.getModifiers())) {
+                    continue;
+                }
+                type = rt;
+            }
+            _props[i] = prop.withSerializer(provider.findValueSerializer(type));
         }
     }
 
