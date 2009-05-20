@@ -85,4 +85,26 @@ public abstract class ObjectCodec
      */
     public abstract void writeTree(JsonGenerator jgen, JsonNode rootNode)
         throws IOException, JsonProcessingException;
+
+    /**
+     * Method to serialize given Java Object, using generator
+     * provided, using <b>declared</b> types for serialization, instead
+     * of actual runtime types. Passed type argument is used as
+     * declared type for value itself; transitive dependencies use
+     * declarations of accessor methods.
+     *
+     * @param jgen Generator to use for writing JSON
+     * @param value Value to write
+     * @param valueType Declared type of the value, used for locating
+     *   serializer to use; must be a super-type of real runtime type
+     *   of value, otherwise {@link IllegalArgumentExeption} will
+     *   be thrown
+     *
+     * @since 1.1
+     */
+    /*
+    public abstract void writeValue(JsonGenerator jgen, Object value,
+                                    Class<?> valueType)
+        throws IOException, JsonProcessingException;
+    */
 }
