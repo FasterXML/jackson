@@ -58,8 +58,13 @@ public class SerializationConfig
             /**
              * Feature that determines the default settings of whether Bean
              * properties with null values are to be written out.
-             *<P>
+             *<p>
              * Feature is enabled by default (null properties written).
+             *<p>
+             * Note too that there is annotation
+             * {@link org.codehaus.jackson.annotate.JsonWriteNullProperties}
+             * that can be used for more granular control (annotates bean
+             * classes or individual property access methods).
              */
             WRITE_NULL_PROPERTIES(true),
 
