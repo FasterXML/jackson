@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
@@ -190,8 +191,11 @@ public class StdDeserializerProvider
          * legal).
          */
         if (deser != null) {
+            AnnotationIntrospector aintr = config.getAnnotationIntrospector();
+            AnnotatedClass ac = AnnotatedClass.constructOnlyClassInfo(deser.getClass(), aintr);
             // Caching? (yes for bean and enum deserializers)
-            if (deser.shouldBeCached()) {
+            Boolean b = aintr.findCachability(ac);
+            if (b != null && b.booleanValue()) {
                 _cachedDeserializers.put(type, deser);
             }
             /* Need to resolve? Mostly done for bean deserializers; allows

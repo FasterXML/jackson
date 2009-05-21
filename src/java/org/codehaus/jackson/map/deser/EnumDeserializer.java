@@ -6,7 +6,17 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.annotate.JsonCachable;
 
+/**
+ * Deserializer class that can deserialize instances of
+ * specified Enum class from Strings and Integers.
+ */
+@JsonCachable
+/**
+ * Construction of these deserializers is bit costly, plus it's
+ * absolutely safe to cache them as well (no generic variations etc).
+ */
 public class EnumDeserializer
     extends StdDeserializer<Enum<?>>
 {
@@ -24,13 +34,6 @@ public class EnumDeserializer
     /////////////////////////////////////////////////////////
      */
 
-    /**
-     * Construction of these deserializers is bit costly, plus it's
-     * absolutely safe to cache them as well (no variations).
-     */
-    @Override
-    public boolean shouldBeCached() { return true; }
-    
     public Enum<?> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {

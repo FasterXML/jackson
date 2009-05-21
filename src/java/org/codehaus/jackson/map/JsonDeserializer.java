@@ -74,27 +74,21 @@ public abstract class JsonDeserializer<T>
 
     /**
      * Method called to determine if this deserializer can and should be
-     * cached by deserializer provider. This means that
-     * deserializer must be reusable for
-     * deserializing other instances of the type it was created to
-     * deserialize, as well as that it is somewhat costly to construct.
-     * Usually this only applies to bean type deserializers.
+     * cached by deserializer provider.
      *<p>
-     * Default implementation returns false, which means that no
-     * caching will be done by deserializer provider. Without caching
-     * deserializer factory will be called every time a property of
-     * matching type is encountered during construction of root-level
-     * deserializers.
-     *<p>
-     * NOTE: this method will NOT be called when accessing "root"
-     * deserializers (type passed to {@link ObjectMapper}), but
-     * only when resolving dependant deserializers. As such it
-     * is acceptable to return false without worrying about
-     * performance impacts. Root-level caching should usually be
-     * enough for all non-bean types.
+     * NOTE: As of Jackson 1.1, this method will NOT be called any more;
+     * instead, annotation 
+     * {@link org.codehaus.jackson.map.annotate.JsonCachable} is
+     * introspected.
+     * Expectation is that no class outside of Jackson mapper
+     * has used this facility.
      *
      * @since 0.9.9-4
+     *
+     * @deprecated Should be implemented using
+     *   {@link org.codehaus.jackson.map.annotate.JsonCachable} instead
      */
+    @Deprecated
     public boolean shouldBeCached() { return false; }
 
     /*

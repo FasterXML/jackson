@@ -6,6 +6,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.annotate.JsonCachable;
 
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
@@ -76,15 +77,18 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Class annotations: general
-    ////////////////////////////////////////////////////
-     */
+    ///////////////////////////////////////////////////////
+    // Class annotations, general
+    ///////////////////////////////////////////////////////
+    */
 
-    public boolean isIgnorableMethod(AnnotatedMethod m)
+    public Boolean findCachability(AnnotatedClass ac)
     {
-        JsonIgnore ann = m.getAnnotation(JsonIgnore.class);
-        return (ann != null && ann.value());
+        JsonCachable ann = ac.getAnnotation(JsonCachable.class);
+        if (ann == null) {
+            return null;
+        }
+        return ann.value() ? Boolean.TRUE : Boolean.FALSE;
     }
 
     /*
@@ -154,6 +158,18 @@ public class JacksonAnnotationIntrospector
             return Boolean.FALSE;
         }
         return null;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Method annotations: general
+    ////////////////////////////////////////////////////
+     */
+
+    public boolean isIgnorableMethod(AnnotatedMethod m)
+    {
+        JsonIgnore ann = m.getAnnotation(JsonIgnore.class);
+        return (ann != null && ann.value());
     }
 
     /*

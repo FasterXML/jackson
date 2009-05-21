@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.type.JavaType;
 
@@ -13,6 +14,12 @@ import org.codehaus.jackson.type.JavaType;
  * Deserializer class that can deserialize instances of
  * arbitrary bean objects, usually from Json Object structs,
  * but possibly also from simple types like String values.
+ */
+@JsonCachable
+/* Because of costs associated with constructing bean deserializers,
+ * they usually should be cached unlike other deserializer types.
+ * Additionally it is important to be able to cache bean serializers
+ * to handle cyclic references.
  */
 public class BeanDeserializer
     extends JsonDeserializer<Object>
@@ -224,15 +231,6 @@ public class BeanDeserializer
     // JsonDeserializer implementation
     /////////////////////////////////////////////////////////
      */
-
-    /**
-     * Because of costs associated with constructing bean deserializers,
-     * they usually should be cached unlike other deserializer types.
-     * Additionally it is important to be able to cache bean serializers
-     * to handle cyclic references.
-     */
-    @Override
-    public boolean shouldBeCached() { return true; }
 
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException

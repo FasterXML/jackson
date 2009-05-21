@@ -134,6 +134,17 @@ public final class AnnotatedClass
     }
 
     /**
+     * Alternative factory method that only collects information
+     * regarding class itself (mostly annotations), but nothing
+     * regarding methods class has.
+     */
+    public static AnnotatedClass constructOnlyClassInfo(Class<?> cls,
+                                                        AnnotationIntrospector aintr)
+    {
+        return constructFull(cls, aintr, false, null, false);
+    }
+
+    /**
      * @param annotationFilter Filter used to define which annotations to
      *    include (for class and member annotations). Can not be null.
      * @param includeCreators Whether to include information about

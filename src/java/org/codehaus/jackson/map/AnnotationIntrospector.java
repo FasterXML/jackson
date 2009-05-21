@@ -47,6 +47,19 @@ public abstract class AnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
+    /**
+     * Method that checks whether specified class has annotations
+     * that indicate that it is (or is not) cachable. Exact
+     * semantics depend on type of class annotated and using
+     * class (factory or provider).
+     *<p>
+     * Currently only used
+     * with deserializers, to determine whether provider
+     * should cache instances, and if no annotations are found,
+     * assumes non-cachable instances.
+     */
+    public abstract Boolean findCachability(AnnotatedClass ac);
+
     /*
     ///////////////////////////////////////////////////////
     // Class annotations: serialization
