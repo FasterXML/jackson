@@ -176,6 +176,13 @@ public class JacksonAnnotationIntrospector
         return propName;
     }
 
+    public Class<?> findConcreteSerializationType(AnnotatedMethod am)
+    {
+        // !!! TBI for [JACKSON-120]
+        return null;
+    }
+
+
     public boolean hasAsValueAnnotation(AnnotatedMethod am)
     {
         JsonValue ann = am.getAnnotation(JsonValue.class);
@@ -227,7 +234,7 @@ public class JacksonAnnotationIntrospector
         return am.hasAnnotation(JsonCreator.class);
     }
 
-    public Class<?> findConcreteType(AnnotatedMethod am)
+    public Class<?> findConcreteDeserializationType(AnnotatedMethod am)
     {
         JsonClass ann = am.getAnnotation(JsonClass.class);
         if (ann != null) {

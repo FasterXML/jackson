@@ -6,10 +6,9 @@ Release date:
 Description:
   Development snapshot from trunk, for eventual 1.1 release
 
+  Fixes:
   Improvements:
-
-  * [JACKSON-115] Improve handling of @JsonClass so that it can be
-    used with serialization too
+  New features:
 
 ------------------------------------------------------------------------
 == History: ==

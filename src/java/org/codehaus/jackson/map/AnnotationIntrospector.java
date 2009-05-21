@@ -130,6 +130,17 @@ public abstract class AnnotationIntrospector
     public abstract String findGettablePropertyName(AnnotatedMethod am);
 
     /**
+     * Method for accessing annotated type definition that a
+     * method can have, to be used as the type for serialization
+     * instead of the runtime type.
+     * Type returned (if any) needs to be widening conversion (super-type).
+     * Declared return type of the method is also considered acceptable.
+     *
+     * @return Class to use instead of runtime type
+     */
+    public abstract Class<?> findConcreteSerializationType(AnnotatedMethod am);
+
+    /**
      * Method for checking whether given method has an annotation
      * that suggests that the return value of annotated method
      * should be used as "the value" of the object instance; usually
@@ -190,18 +201,16 @@ public abstract class AnnotationIntrospector
     public abstract boolean hasCreatorAnnotation(AnnotatedMethod am);
 
     /**
-     * Method for accessing additional type definition that a
-     * method can have, to define more type to use, instead of
-     * type otherwise used.
-     * For deserialization type must be used for narrowing conversion
-     * (i.e. type has to be a subtype of declared type); but for
-     * serialization it needs to be widening conversion (super-type).
-     * In both cases defining type that would be used anyway is
-     * allowed.
+     * Method for accessing annotated type definition that a
+     * method can have, to be used as the type for serialization
+     * instead of the runtime type.
+     * Type must be a narrowing conversion
+     * (i.e.subtype of declared type).
+     * Declared return type of the method is also considered acceptable.
      *
-     * @return Class to use instead of declared type
+     * @return Class to use for deserialization instead of declared type
      */
-    public abstract Class<?> findConcreteType(AnnotatedMethod am);
+    public abstract Class<?> findConcreteDeserializationType(AnnotatedMethod am);
 
     /**
      * Method for accessing additional narrowing type definition that a

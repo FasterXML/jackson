@@ -96,4 +96,16 @@ public abstract class JsonDeserializer<T>
      * @since 0.9.9-4
      */
     public boolean shouldBeCached() { return false; }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Helper class(es)
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     * This marker class is only to be used with annotations, to
+     * indicate that <b>no deserializer is configured</b>.
+     */
+    public abstract static class None { }
 }

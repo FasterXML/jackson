@@ -200,8 +200,8 @@ public class BeanSerializerFactory
             }
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> ser = findSerializerFromAnnotation(config, am);
-            // [JACKSON-115]: Check @JsonClass to see if serialization type is fixed
-            Class<?> serializationType = intr.findConcreteType(am);
+            // [JACKSON-120]: Check to see if serialization type is fixed
+            Class<?> serializationType = intr.findConcreteSerializationType(am);
             if (serializationType != null) {
                 // Must be a super type...
                 Class<?> rt = am.getReturnType();

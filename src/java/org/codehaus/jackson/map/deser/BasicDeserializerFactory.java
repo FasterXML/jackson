@@ -307,7 +307,7 @@ public abstract class BasicDeserializerFactory
     {
         // first: let's check class for the instance itself:
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        Class<?> subclass = intr.findConcreteType(am);
+        Class<?> subclass = intr.findConcreteDeserializationType(am);
         if (subclass != null) {
             try {
                 type = type.narrowBy(subclass);
