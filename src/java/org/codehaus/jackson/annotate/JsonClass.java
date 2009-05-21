@@ -24,6 +24,8 @@ import java.lang.annotation.Target;
  * indicates the type of container itself; for contained Objects, use
  * {@link JsonContentClass} instead (or for Map keys,
  * {@link JsonKeyClass}).
+ *
+ * @deprecated As of version 1.1, use {@link JsonDeserialize} instead
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

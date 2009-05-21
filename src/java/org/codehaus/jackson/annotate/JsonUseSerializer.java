@@ -27,6 +27,8 @@ import java.lang.annotation.Target;
  * method (when applied to one) is implicitly a getter:
  * rather, it must be recognized as one either due to its naming,
  * or by associated {@link JsonGetter} annotation.
+ *
+ * @deprecated As of version 1.1, use {@link org.codehaus.jackson.map.annotate.JsonSerialize} instead
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

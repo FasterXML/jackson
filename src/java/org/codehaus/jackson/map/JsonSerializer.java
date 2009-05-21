@@ -22,4 +22,22 @@ public abstract class JsonSerializer<T>
      */
     public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonProcessingException;
+
+    /*
+    //////////////////////////////////////////////////////
+    // Helper class(es)
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     * This marker class is only to be used with annotations, to
+     * indicate that <b>no serializer is configured</b>.
+     *<p>
+     * Specifically, this class is to be used as the marker for
+     * annotation {@link org.codehaus.jackson.annotate.map.JsonSerialize}
+     * (and deprecated
+     * {@link org.codehaus.jackson.annotate.JsonUseSerializer}).
+     */
+    public abstract static class None
+        extends JsonSerializer<Object> { }
 }

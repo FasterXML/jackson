@@ -49,7 +49,7 @@ public class JacksonAnnotationIntrospector
          *   (to essentially denote a 'dummy' annotation, needed for
          *   overriding in some cases), need to check:
          */
-        if (serClass == NoClass.class) {
+        if (serClass == NoClass.class || serClass == JsonSerializer.None.class) {
             return null;
         }
         if (!JsonSerializer.class.isAssignableFrom(serClass)) {
@@ -66,7 +66,7 @@ public class JacksonAnnotationIntrospector
             return null;
         }
         Class<?> deserClass = ann.value();
-        if (deserClass == NoClass.class) {
+        if (deserClass == NoClass.class || deserClass == JsonDeserializer.None.class) {
             return null;
         }
         if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
