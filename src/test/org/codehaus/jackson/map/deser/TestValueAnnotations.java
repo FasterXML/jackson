@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 /**
  * This unit test suite tests use of "value" Annotations;
@@ -21,7 +22,9 @@ public class TestValueAnnotations
     //////////////////////////////////////////////
      */
 
-    /// Class for testing valid {@link JsonClass} annotation
+    /* Class for testing valid {@link JsonDeserialize} annotation
+     * with 'as' parameter to define concrete class to deserialize to
+     */
     final static class CollectionHolder
     {
         Collection<String> _strings;
@@ -29,14 +32,16 @@ public class TestValueAnnotations
         /* Default for 'Collection' would probably be ArrayList or so;
          * let's try to make it a TreeSet instead.
          */
-        @JsonClass(TreeSet.class)
+        @JsonDeserialize(as=TreeSet.class)
         public void setStrings(Collection<String> s)
         {
             _strings = s;
         }
     }
 
-    /// Another class for testing valid {@link JsonClass} annotation
+    /* Another class for testing valid {@link JsonDeserialize} annotation
+     * with 'as' parameter to define concrete class to deserialize to
+     */
     final static class MapHolder
     {
         // Let's also coerce numbers into Strings here
@@ -45,19 +50,21 @@ public class TestValueAnnotations
         /* Default for 'Collection' would be HashMap,
          * let's try to make it a TreeMap instead.
          */
-        @JsonClass(TreeMap.class)
+        @JsonDeserialize(as=TreeMap.class)
         public void setStrings(Map<String,String> s)
         {
             _data = s;
         }
     }
 
-    /// Another one for {@link JsonClass}, but for arrays
+    /* Another class for testing valid {@link JsonDeserialize} annotation
+     * with 'as' parameter, but with array
+     */
     final static class ArrayHolder
     {
         String[] _strings;
 
-        @JsonClass(String[].class)
+        @JsonDeserialize(as=String[].class)
         public void setStrings(Object[] o)
         {
             // should be passed instances of proper type, as per annotation
@@ -65,11 +72,13 @@ public class TestValueAnnotations
         }
     }
 
-    /// Class for testing invalid {@link JsonClass} annotation
+    /* Another class for testing broken {@link JsonDeserialize} annotation
+     * with 'as' parameter; one with incompatible type
+     */
     final static class BrokenCollectionHolder
     {
-        @JsonClass(String.class) // not assignable to Collection
-            public void setStrings(Collection<String> s) { }
+        @JsonDeserialize(as=String.class) // not assignable to Collection
+        public void setStrings(Collection<String> s) { }
     }
 
     /*

@@ -7,6 +7,8 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonCachable;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
@@ -194,7 +196,14 @@ public class JacksonAnnotationIntrospector
 
     public Class<?> findConcreteSerializationType(AnnotatedMethod am)
     {
-        // !!! TBI for [JACKSON-120]
+        // Primary annotation, JsonSerialize
+        JsonSerialize ann = am.getAnnotation(JsonSerialize.class);
+        if (ann != null) {
+            Class<?> cls = ann.as();
+            if (cls != NoClass.class) {
+                return cls;
+            }
+        }
         return null;
     }
 
@@ -252,9 +261,21 @@ public class JacksonAnnotationIntrospector
 
     public Class<?> findConcreteDeserializationType(AnnotatedMethod am)
     {
-        JsonClass ann = am.getAnnotation(JsonClass.class);
+        // Primary annotation, JsonDeserialize
+        JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
         if (ann != null) {
-            Class<?> cls = ann.value();
+            Class<?> cls = ann.as();
+            if (cls != NoClass.class) {
+                return cls;
+            }
+        }
+
+        /* !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
+         *    drop support at a later point (for 2.0?)
+         */
+        JsonClass oldAnn = am.getAnnotation(JsonClass.class);
+        if (oldAnn != null) {
+            Class<?> cls = oldAnn.value();
             if(cls != NoClass.class) {
                 return cls;
             }

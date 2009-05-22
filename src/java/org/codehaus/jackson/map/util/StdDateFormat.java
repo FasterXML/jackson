@@ -195,19 +195,18 @@ public class StdDateFormat
         return false;
     }
 
-    protected Date parseAsISO8601(String dateStr, FieldPosition pos)
+    protected Date parseAsISO8601(String dateStr, ParsePosition pos)
     {
         /* 21-May-2009, tatu: SimpleDateFormat has very strict handling of timezone
          *  modifiers for ISO-8601. So we need to do some scrubbing.
          */
-            if (_formatISO8601 == null) {
-                _formatISO8601 = (SimpleDateFormat) DATE_FORMAT_ISO8601.clone();
-            }
-            return _formatISO8601;
+        if (_formatISO8601 == null) {
+            _formatISO8601 = (SimpleDateFormat) DATE_FORMAT_ISO8601.clone();
         }
+        return _formatISO8601.parse(dateStr, pos);
     }
 
-    protected Date parseAsRFC1123(String dateStr, FieldPosition pos)
+    protected Date parseAsRFC1123(String dateStr, ParsePosition pos)
     {
         if (_formatRFC1123 == null) {
             _formatRFC1123 = (SimpleDateFormat) DATE_FORMAT_RFC1123.clone();

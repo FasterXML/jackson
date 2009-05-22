@@ -6,12 +6,13 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
  * This unit test suite tests use of @JsonClass Annotation
  * with bean serialization.
  */
-public class TestAnnotationJsonClass
+public class TestAnnotationJsonSerialize
     extends BaseMapTest
 {
     /*
@@ -33,7 +34,7 @@ public class TestAnnotationJsonClass
 
     static class WrapperClass
     {
-        @JsonClass(ValueInterface.class)
+        @JsonSerialize(as=ValueInterface.class)
         public ValueClass getValue() {
             return new ValueClass();
         }
@@ -45,7 +46,7 @@ public class TestAnnotationJsonClass
     static class BrokenClass
     {
         // invalid annotation: String not a supertype of Long
-        @JsonClass(String.class)
+        @JsonSerialize(as=String.class)
         public Long getValue() {
             return Long.valueOf(4L);
         }
