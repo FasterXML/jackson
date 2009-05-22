@@ -33,13 +33,13 @@ public abstract class AnnotationIntrospector
      * Method for checking whether given annotated object (method,
      * class etc) specifies {@link JsonSerializer} class to use.
      */
-    public abstract Class<JsonSerializer<?>> findSerializerClass(Annotated am);
+    public abstract Class<? extends JsonSerializer<?>> findSerializerClass(Annotated am);
 
     /**
      * Method for checking whether given annotated object (method,
      * class etc) specifies {@link JsonDeserializer} class to use.
      */
-    public abstract Class<JsonDeserializer<?>> findDeserializerClass(Annotated am);
+    public abstract Class<? extends JsonDeserializer<?>> findDeserializerClass(Annotated am);
 
     /*
     ///////////////////////////////////////////////////////

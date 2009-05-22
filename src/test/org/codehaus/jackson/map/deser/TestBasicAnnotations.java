@@ -5,6 +5,7 @@ import java.io.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 /**
  * This unit test suite tests use of basic Annotations for
@@ -67,7 +68,7 @@ public class TestBasicAnnotations
      * Class for testing {@link JsonDeserializer} annotation
      * for class itself.
      */
-    @JsonUseDeserializer(ClassDeserializer.class)
+    @JsonDeserialize(using=ClassDeserializer.class)
     final static class TestDeserializerAnnotationClass {
         int _a;
         
@@ -92,7 +93,7 @@ public class TestBasicAnnotations
          * is of type VALUE_NUMBER_INT, not an Array: array would
          * work by default, but scalar not
          */
-        @JsonUseDeserializer(IntsDeserializer.class)
+        @JsonDeserialize(using=IntsDeserializer.class)
         public void setInts(int[] i) {
             _ints = i;
         }
@@ -167,7 +168,7 @@ public class TestBasicAnnotations
     }
 
     /**
-     * Unit test to verify that @JsonUseSerializer annotation works
+     * Unit test to verify that {@link JsonDeserialize#using} annotation works
      * when applied to a class
      */
     public void testClassDeserializer() throws Exception
@@ -179,7 +180,7 @@ public class TestBasicAnnotations
     }
 
     /**
-     * Unit test to verify that @JsonSerializer annotation works
+     * Unit test to verify that {@link JsonDeserialize#using} annotation works
      * when applied to a Method
      */
     public void testMethodDeserializer() throws Exception

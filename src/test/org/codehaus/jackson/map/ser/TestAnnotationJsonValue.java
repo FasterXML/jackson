@@ -4,6 +4,7 @@ import org.codehaus.jackson.map.BaseMapTest;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
  * This unit test suite tests functioning of {@link JsonValue}
@@ -42,7 +43,8 @@ public class TestAnnotationJsonValue
     {
         public ToStringValueClass(T value) { super(value); }
 
-        @JsonUseSerializer(ToStringSerializer.class)
+        // Also, need to use this annotation to help
+        @JsonSerialize(using=ToStringSerializer.class)
             @JsonValue T value() { return super.value(); }
     }
 

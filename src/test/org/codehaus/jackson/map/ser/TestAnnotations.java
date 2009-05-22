@@ -8,6 +8,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
  * This unit test suite tests use of Annotations for
@@ -46,12 +47,12 @@ public class TestAnnotations
      * Class for testing {@link JsonSerializer} annotation
      * for class itself.
      */
-    @JsonUseSerializer(BogusSerializer.class)
+    @JsonSerialize(using=BogusSerializer.class)
     final static class ClassSerializer {
     }
 
     /**
-     * Class for testing an active {@link JsonUseSerializer} annotation
+     * Class for testing an active {@link JsonSerialize#using} annotation
      * for a method
      */
     final static class ClassMethodSerializer {
@@ -59,13 +60,13 @@ public class TestAnnotations
 
         public ClassMethodSerializer(int x) { _x = x; }
 
-        @JsonUseSerializer(StringSerializer.class)
+        @JsonSerialize(using=StringSerializer.class)
             public int getX() { return _x; }
     }
 
     /**
      * Class for testing an inactive (one that will not have any effect)
-     * {@link JsonUseSerializer} annotation for a method
+     * {@link JsonSerialize} annotation for a method
      */
     final static class InactiveClassMethodSerializer {
         private int _x;
@@ -73,30 +74,8 @@ public class TestAnnotations
         public InactiveClassMethodSerializer(int x) { _x = x; }
 
         // Basically, has no effect, hence gets serialized as number
-        @JsonUseSerializer(NoClass.class)
+        @JsonSerialize(using=JsonSerializer.None.class)
             public int getX() { return _x; }
-    }
-
-    /**
-     * Class for verifying that broken class-attached
-     * {@link JsonUseSerializer} annotation is handled properly
-     * (by throwing {@link JsonMappingException}).
-     */
-    @JsonUseSerializer(String.class)
-    // wrong: String is not a JsonSerializer
-    final static class BrokenUseSerClassAnnotation {
-        public int getX() { return 1; }
-    }
-
-    /**
-     * Class for verifying that broken class-attached
-     * {@link JsonUseSerializer} annotation is handled properly
-     * (by throwing {@link JsonMappingException}).
-     */
-    final static class BrokenUseSerMethodAnnotation {
-        // wrong: Integer is not a JsonSerializer
-        @JsonUseSerializer(Integer.class)
-        public int getX() { return 2; }
     }
 
     /**
@@ -179,7 +158,7 @@ public class TestAnnotations
     }
 
     /**
-     * Unit test to verify that @JsonUseSerializer annotation works
+     * Unit test to verify that {@JsonSerialize#using} annotation works
      * when applied to a class
      */
     public void testClassSerializer() throws Exception
@@ -214,33 +193,5 @@ public class TestAnnotations
          * full object, just override a single property
          */
         assertEquals("{\"x\":8}", sw.toString());
-    }
-
-    /**
-     * Unit test that verifies that a broken {@JsonUseSerializer}
-     * annotation is properly handled
-     */
-    public void testBrokenSerializerByClass() throws Exception
-    {
-        try {
-            new ObjectMapper().writeValue(new StringWriter(), new BrokenUseSerClassAnnotation());
-            fail("Expected an exception for invalid @JsonUseSerializer annotation");
-        } catch (JsonMappingException jex) {
-            ; // good
-        } catch (Exception jex) {
-            fail("Expected an exception of type JsonMappingException, got ("+jex.getClass()+": "+jex);
-        }
-    }
-
-    public void testBrokenSerializerByMethod() throws Exception
-    {
-        try {
-            new ObjectMapper().writeValue(new StringWriter(), new BrokenUseSerMethodAnnotation());
-            fail("Expected an exception for invalid @JsonUseSerializer annotation");
-        } catch (JsonMappingException jex) {
-            ; // good
-        } catch (Exception jex) {
-            fail("Expected an exception of type JsonMappingException, got ("+jex.getClass()+": "+jex);
-        }
     }
 }

@@ -6,7 +6,6 @@ import java.math.BigInteger;
 import java.util.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -317,13 +316,14 @@ public class BasicSerializerFactory
 
     /**
      * Helper method called to check if a class or method
-     * has {@link JsonUseSerializer} annotation which tells the
-     * class to use for serialization.
+     * has an annotation
+     * (@link org.codehaus.jackson.map.ser.JsonSerialize#using)
+     * that tells the class to use for serialization.
      * Returns null if no such annotation found.
      */
     protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a)
     {
-        Class<JsonSerializer<?>> serClass = config.getAnnotationIntrospector().findSerializerClass(a);
+        Class<? extends JsonSerializer<?>> serClass = config.getAnnotationIntrospector().findSerializerClass(a);
         if (serClass == null) {
             return null;
         }

@@ -2,8 +2,8 @@ package org.codehaus.jackson.map.ser;
 
 import java.io.*;
 
-import org.codehaus.jackson.annotate.JsonUseSerializer;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.ser.ToStringSerializer;
 
 /**
@@ -32,7 +32,7 @@ public class TestEnumSerialization
     /**
      * Alternative version that forces use of "toString-serializer".
      */
-    @JsonUseSerializer(ToStringSerializer.class)
+    @JsonSerialize(using=ToStringSerializer.class)
     protected enum AnnotatedTestEnum {
         A2, B2, C2;
         private AnnotatedTestEnum() { }

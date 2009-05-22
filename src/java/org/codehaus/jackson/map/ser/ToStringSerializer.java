@@ -24,8 +24,9 @@ public final class ToStringSerializer
      *<p>
      * Note: usually you should NOT create new instances, but instead use
      * {@link #instance} which is stateless and fully thread-safe. However,
-     * there are cases where constructor is needed; for example, when using
-     * explicit serializer annotations like {@link org.codehaus.jackson.annotate.JsonUseSerializer}.
+     * there are cases where constructor is needed; for example,
+     * when using explicit serializer annotations like
+     * {@link org.codehaus.jackson.annotate.JsonSerialize#using}.
      */
     public ToStringSerializer() { }
     

@@ -3,8 +3,8 @@ package org.codehaus.jackson.map.deser;
 import main.BaseTest;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.annotate.JsonUseDeserializer;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 public class TestEnumDeserialization
     extends BaseTest
@@ -18,9 +18,9 @@ public class TestEnumDeserialization
     enum TestEnum { JACKSON, RULES, OK; }
 
     /**
-     * Alternative version that annotates deserializer to use
+     * Alternative version that annotates which deserializer to use
      */
-    @JsonUseDeserializer(DummySerializer.class)
+    @JsonDeserialize(using=DummySerializer.class)
     enum AnnotatedTestEnum {
         JACKSON, RULES, OK;
     }

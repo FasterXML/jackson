@@ -24,14 +24,15 @@ import org.codehaus.jackson.map.JsonDeserializer;
 public @interface JsonDeserialize
 {
     /**
-     * Deserializer class to use for
-     * deserializing associated value. Depending on what is annotated,
+     * Deserializer class to use for deserializing associated value.
+     * Depending on what is annotated,
      * value is either an instance of annotated class (used globablly
      * anywhere where class deserializer is needed); or only used for
      * deserializing property access via a setter method.
      */
     public Class<? extends JsonDeserializer<?>> using()
         default JsonDeserializer.None.class;
+
 
     /**
      * Concrete type to deserialize values as, instead of type otherwise

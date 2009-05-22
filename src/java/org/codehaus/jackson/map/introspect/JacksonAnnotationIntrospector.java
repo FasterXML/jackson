@@ -41,13 +41,23 @@ public class JacksonAnnotationIntrospector
     }
 
     @SuppressWarnings("unchecked")
-	public Class<JsonSerializer<?>> findSerializerClass(Annotated a)
+    public Class<? extends JsonSerializer<?>> findSerializerClass(Annotated a)
     {
-        JsonUseSerializer ann = a.getAnnotation(JsonUseSerializer.class);
-        if (ann == null) {
+        /* 21-May-2009, tatu: Slight change; primary annotation is now
+         *    @JsonSerialize; @JsonUseSerializer is deprecated
+         */
+        JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
+        if (ann != null) {
+            Class<? extends JsonSerializer<?>> serClass = ann.using();
+            if (serClass != JsonSerializer.None.class) {
+                return serClass;
+            }
+        }
+        JsonUseSerializer oldAnn = a.getAnnotation(JsonUseSerializer.class);
+        if (oldAnn == null) {
             return null;
         }
-        Class<?> serClass = ann.value();
+        Class<?> serClass = oldAnn.value();
         /* 21-Feb-2009, tatu: There is now a way to indicate "no class"
          *   (to essentially denote a 'dummy' annotation, needed for
          *   overriding in some cases), need to check:
@@ -62,13 +72,23 @@ public class JacksonAnnotationIntrospector
     }
 
     @SuppressWarnings("unchecked")
-	public Class<JsonDeserializer<?>> findDeserializerClass(Annotated a)
+	public Class<? extends JsonDeserializer<?>> findDeserializerClass(Annotated a)
     {
-        JsonUseDeserializer ann = a.getAnnotation(JsonUseDeserializer.class);
-        if (ann == null) {
+        /* 21-May-2009, tatu: Slight change; primary annotation is now
+         *    @JsonDeserialize; @JsonUseDeserializer is deprecated
+         */
+        JsonDeserialize ann = a.getAnnotation(JsonDeserialize.class);
+        if (ann != null) {
+            Class<? extends JsonDeserializer<?>> deserClass = ann.using();
+            if (deserClass != JsonDeserializer.None.class) {
+                return deserClass;
+            }
+        }
+        JsonUseDeserializer oldAnn = a.getAnnotation(JsonUseDeserializer.class);
+        if (oldAnn == null) {
             return null;
         }
-        Class<?> deserClass = ann.value();
+        Class<?> deserClass = oldAnn.value();
         if (deserClass == NoClass.class || deserClass == JsonDeserializer.None.class) {
             return null;
         }

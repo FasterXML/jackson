@@ -265,13 +265,12 @@ public abstract class BasicDeserializerFactory
 
     /**
      * Helper method called to check if a class or method
-     * has {@link JsonUseDeserializer} annotation which tells the
-     * class to use for deserialization.
+     * has annotation that tells which class to use for deserialization.
      * Returns null if no such annotation found.
      */
     protected JsonDeserializer<Object> findDeserializerFromAnnotation(DeserializationConfig config, Annotated a)
     {
-        Class<JsonDeserializer<?>> deserClass = config.getAnnotationIntrospector().findDeserializerClass(a);
+        Class<? extends JsonDeserializer<?>> deserClass = config.getAnnotationIntrospector().findDeserializerClass(a);
         if (deserClass == null) {
             return null;
         }
