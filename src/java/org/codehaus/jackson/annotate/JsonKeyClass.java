@@ -23,6 +23,8 @@ import java.lang.annotation.Target;
  *<p>
  * Note: while any class can be indicated as the Key class, there
  * must be a registered Key Deserializer for the type.
+ *
+ * @deprecated As of version 1.1, use {@link org.codehaus.jackson.map.annotate.JsonDeserialize#keyAs} instead
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

@@ -145,8 +145,6 @@ public final class AnnotatedClass
     }
 
     /**
-     * @param annotationFilter Filter used to define which annotations to
-     *    include (for class and member annotations). Can not be null.
      * @param includeCreators Whether to include information about
      *   potential creators (constructors and static factory methods)
      * @param memberFilter Optional filter that defines which member methods

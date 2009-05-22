@@ -142,7 +142,8 @@ public class BasicBeanDescription extends BeanDescription
 
     /**
      * Method for locating the getter method that is annotated with
-     * {@link JsonValue} annotation, if any. If multiple ones are found,
+     * {@link org.codehaus.jackson.annotate.JsonValue} annotation,
+     * if any. If multiple ones are found,
      * an error is reported by throwing {@link IllegalArgumentException}
      */
     public AnnotatedMethod findJsonValueMethod()
@@ -336,7 +337,7 @@ public class BasicBeanDescription extends BeanDescription
 
     /**
      * Method used to locate the method of introspected class that
-     * implements {@link JsonAnySetter}. If no such method exists
+     * implements {@link org.codehaus.jackson.annotate.JsonAnySetter}. If no such method exists
      * null is returned. If more than one are found, an exception
      * is thrown.
      * Additional checks are also made to see that method signature

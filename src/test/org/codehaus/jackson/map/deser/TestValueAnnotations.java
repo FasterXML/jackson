@@ -17,9 +17,9 @@ public class TestValueAnnotations
     extends BaseTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes for @JsonClass
-    //////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Annotated helper classes for @JsonDeserialize#as
+    ///////////////////////////////////////////////////
      */
 
     /* Class for testing valid {@link JsonDeserialize} annotation
@@ -82,9 +82,9 @@ public class TestValueAnnotations
     }
 
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes for @JsonKeyClass
-    //////////////////////////////////////////////
+    //////////////////////////////////////////////////////
+    // Annotated helper classes for @JsonDeserialize.keyAs
+    //////////////////////////////////////////////////////
      */
 
     final static class StringWrapper
@@ -98,7 +98,7 @@ public class TestValueAnnotations
     {
         Map<Object, String> _map;
 
-        @JsonKeyClass(StringWrapper.class)
+        @JsonDeserialize(keyAs=StringWrapper.class)
         public void setMap(Map<Object,String> m)
         {
             // type should be ok, but no need to cast here (won't matter)
@@ -109,21 +109,21 @@ public class TestValueAnnotations
     final static class BrokenMapKeyHolder
     {
         // Invalid: Integer not a sub-class of String
-        @JsonKeyClass(Integer.class)
+        @JsonDeserialize(keyAs=Integer.class)
             public void setStrings(Map<String,String> m) { }
     }
 
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes for @JsonContentClass
-    //////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////
+    // Annotated helper classes for @JsonDeserialize#contentAs
+    ///////////////////////////////////////////////////////////
      */
 
     final static class ListContentHolder
     {
         List<?> _list;
 
-        @JsonContentClass(StringWrapper.class)
+        @JsonDeserialize(contentAs=StringWrapper.class)
         public void setList(List<?> l) {
             _list = l;
         }
@@ -133,10 +133,11 @@ public class TestValueAnnotations
     {
         /* Such annotation not allowed, since it makes no sense;
          * non-container classes have no contents to annotate (but
-         * note that it is possible to first use @JsonClass to mark
-         * Object as, say, a List, and THEN use @JsonContentClass!)
+         * note that it is possible to first use @JsonDesiarialize.as
+         * to mark Object as, say, a List, and THEN use
+         * @JsonDeserialize.contentAs!)
          */
-        @JsonContentClass(String.class)
+        @JsonDeserialize(contentAs=String.class)
             public void setValue(Object x) { }
     }
 
@@ -144,7 +145,7 @@ public class TestValueAnnotations
     {
         Object[] _data;
 
-        @JsonContentClass(Long.class)
+        @JsonDeserialize(contentAs=Long.class)
         public void setData(Object[] o)
         { // should have proper type, but no need to coerce here
             _data = o;
@@ -155,7 +156,7 @@ public class TestValueAnnotations
     {
         Map<Object,Object> _map;
 
-        @JsonContentClass(Integer.class)
+        @JsonDeserialize(contentAs=Integer.class)
         public void setMap(Map<Object,Object> m)
         {
             _map = m;
@@ -220,7 +221,7 @@ public class TestValueAnnotations
 
     /*
     //////////////////////////////////////////////
-    // Test methods for @JsonKeyClass
+    // Test methods for @JsonDeserialize#keyAs
     //////////////////////////////////////////////
      */
 
@@ -253,7 +254,7 @@ public class TestValueAnnotations
 
     /*
     //////////////////////////////////////////////
-    // Test methods for @JsonContentClass
+    // Test methods for @JsonDeserialize#contentAs
     //////////////////////////////////////////////
      */
 
@@ -270,7 +271,8 @@ public class TestValueAnnotations
     }
 
     /**
-     * This test checks that @JsonContentClass is not used for non-container
+     * This test checks that @JsonDeserialize#contentAs is not used
+     * for non-container
      * types; those make no sense, and can be detected easily.
      */
     public void testContentClassValid() throws Exception

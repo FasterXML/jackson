@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * {@link JsonContentClass} instead (or for Map keys,
  * {@link JsonKeyClass}).
  *
- * @deprecated As of version 1.1, use {@link JsonDeserialize} instead
+ * @deprecated As of version 1.1, use {@link org.codehaus.jackson.map.annotate.JsonDeserialize#as} instead
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

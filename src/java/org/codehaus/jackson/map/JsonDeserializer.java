@@ -102,7 +102,7 @@ public abstract class JsonDeserializer<T>
      * indicate that <b>no deserializer is configured</b>.
      *<p>
      * Specifically, this class is to be used as the marker for
-     * annotation {@link org.codehaus.jackson.annotate.map.JsonDeserialize}
+     * annotation {@link org.codehaus.jackson.map.annotate.JsonDeserialize}
      * (and deprecated {@link org.codehaus.jackson.annotate.JsonUseDeserializer}).
      */
     public abstract static class None

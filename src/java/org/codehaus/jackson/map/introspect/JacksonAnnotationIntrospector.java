@@ -40,6 +40,52 @@ public class JacksonAnnotationIntrospector
         return acls.getAnnotation(JacksonAnnotation.class) != null;
     }
 
+    /*
+    ///////////////////////////////////////////////////////
+    // General class annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    public Boolean findCachability(AnnotatedClass ac)
+    {
+        JsonCachable ann = ac.getAnnotation(JsonCachable.class);
+        if (ann == null) {
+            return null;
+        }
+        return ann.value() ? Boolean.TRUE : Boolean.FALSE;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // General method annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    public boolean isIgnorableMethod(AnnotatedMethod m)
+    {
+        JsonIgnore ann = m.getAnnotation(JsonIgnore.class);
+        return (ann != null && ann.value());
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // General field annotations
+    ////////////////////////////////////////////////////
+     */
+
+    public boolean isIgnorableField(AnnotatedField f)
+    {
+        JsonIgnore ann = f.getAnnotation(JsonIgnore.class);
+        return (ann != null && ann.value());
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: general annotations
+    ///////////////////////////////////////////////////////
+    */
+
+
     @SuppressWarnings("unchecked")
     public Class<? extends JsonSerializer<?>> findSerializerClass(Annotated a)
     {
@@ -71,6 +117,81 @@ public class JacksonAnnotationIntrospector
         return (Class<JsonSerializer<?>>)serClass;
     }
 
+    public Class<?> findSerializationType(Annotated am)
+    {
+        // Primary annotation, JsonSerialize
+        JsonSerialize ann = am.getAnnotation(JsonSerialize.class);
+        if (ann != null) {
+            Class<?> cls = ann.as();
+            if (cls != NoClass.class) {
+                return cls;
+            }
+        }
+        return null;
+    }
+
+    public boolean willWriteNullProperties(Annotated a, boolean defValue)
+    {
+        JsonWriteNullProperties ann = a.getAnnotation(JsonWriteNullProperties.class);
+        return (ann == null) ? defValue : ann.value();
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: class annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    public Boolean findGetterAutoDetection(AnnotatedClass ac)
+    {
+        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                for (JsonMethod jm : methods) {
+                    if (jm.getterEnabled()) {
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: method annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    public String findGettablePropertyName(AnnotatedMethod am)
+    {
+        JsonGetter ann = am.getAnnotation(JsonGetter.class);
+        if (ann == null) {
+            return null;
+        }
+        String propName = ann.value();
+        // can it ever be null? I don't think so, but just in case:
+        if (propName == null) {
+            propName = "";
+        }
+        return propName;
+    }
+
+    public boolean hasAsValueAnnotation(AnnotatedMethod am)
+    {
+        JsonValue ann = am.getAnnotation(JsonValue.class);
+        // value of 'false' means disabled...
+        return (ann != null && ann.value());
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Deserialization: general annotations
+    ///////////////////////////////////////////////////////
+    */
+
     @SuppressWarnings("unchecked")
 	public Class<? extends JsonDeserializer<?>> findDeserializerClass(Annotated a)
     {
@@ -98,48 +219,76 @@ public class JacksonAnnotationIntrospector
         return (Class<JsonDeserializer<?>>)deserClass;
     }
 
-    /*
-    ///////////////////////////////////////////////////////
-    // Class annotations, general
-    ///////////////////////////////////////////////////////
-    */
-
-    public Boolean findCachability(AnnotatedClass ac)
+    public Class<?> findDeserializationType(Annotated am)
     {
-        JsonCachable ann = ac.getAnnotation(JsonCachable.class);
-        if (ann == null) {
-            return null;
-        }
-        return ann.value() ? Boolean.TRUE : Boolean.FALSE;
-    }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Class annotations: Serialization
-    ////////////////////////////////////////////////////
-     */
-
-    public Boolean findGetterAutoDetection(AnnotatedClass ac)
-    {
-        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
-        if (cann != null) {
-            JsonMethod[] methods = cann.value();
-            if (methods != null) {
-                for (JsonMethod jm : methods) {
-                    if (jm.getterEnabled()) {
-                        return Boolean.TRUE;
-                    }
-                }
+        // Primary annotation, JsonDeserialize
+        JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
+        if (ann != null) {
+            Class<?> cls = ann.as();
+            if (cls != NoClass.class) {
+                return cls;
             }
-            return Boolean.FALSE;
+        }
+
+        /* !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
+         *    drop support at a later point (for 2.0?)
+         */
+        JsonClass oldAnn = am.getAnnotation(JsonClass.class);
+        if (oldAnn != null) {
+            Class<?> cls = oldAnn.value();
+            if(cls != NoClass.class) {
+                return cls;
+            }
         }
         return null;
     }
 
-    public boolean willWriteNullProperties(AnnotatedClass am, boolean defValue)
+    public Class<?> findDeserializationKeyType(Annotated am)
     {
-        JsonWriteNullProperties ann = am.getAnnotation(JsonWriteNullProperties.class);
-        return (ann == null) ? defValue : ann.value();
+        // Primary annotation, JsonDeserialize
+        JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
+        if (ann != null) {
+            Class<?> cls = ann.keyAs();
+            if (cls != NoClass.class) {
+                return cls;
+            }
+        }
+
+        /* !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
+         *    drop support at a later point (for 2.0?)
+         */
+        JsonKeyClass oldAnn = am.getAnnotation(JsonKeyClass.class);
+        if (oldAnn != null) {
+            Class<?> cls = oldAnn.value();
+            if(cls != NoClass.class) {
+                return cls;
+            }
+        }
+        return null;
+    }
+
+    public Class<?> findDeserializationContentType(Annotated am)
+    {
+        // Primary annotation, JsonDeserialize
+        JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
+        if (ann != null) {
+            Class<?> cls = ann.contentAs();
+            if (cls != NoClass.class) {
+                return cls;
+            }
+        }
+
+        /* !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
+         *    drop support at a later point (for 2.0?)
+         */
+        JsonContentClass oldAnn = am.getAnnotation(JsonContentClass.class);
+        if (oldAnn != null) {
+            Class<?> cls = oldAnn.value();
+            if(cls != NoClass.class) {
+                return cls;
+            }
+        }
+        return null;
     }
 
     /*
@@ -183,65 +332,6 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Method annotations: general
-    ////////////////////////////////////////////////////
-     */
-
-    public boolean isIgnorableMethod(AnnotatedMethod m)
-    {
-        JsonIgnore ann = m.getAnnotation(JsonIgnore.class);
-        return (ann != null && ann.value());
-    }
-
-    /*
-    ///////////////////////////////////////////////////////
-    // Method annotations: serialization
-    ///////////////////////////////////////////////////////
-    */
-
-    public String findGettablePropertyName(AnnotatedMethod am)
-    {
-        JsonGetter ann = am.getAnnotation(JsonGetter.class);
-        if (ann == null) {
-            return null;
-        }
-        String propName = ann.value();
-        // can it ever be null? I don't think so, but just in case:
-        if (propName == null) {
-            propName = "";
-        }
-        return propName;
-    }
-
-    public Class<?> findConcreteSerializationType(AnnotatedMethod am)
-    {
-        // Primary annotation, JsonSerialize
-        JsonSerialize ann = am.getAnnotation(JsonSerialize.class);
-        if (ann != null) {
-            Class<?> cls = ann.as();
-            if (cls != NoClass.class) {
-                return cls;
-            }
-        }
-        return null;
-    }
-
-
-    public boolean hasAsValueAnnotation(AnnotatedMethod am)
-    {
-        JsonValue ann = am.getAnnotation(JsonValue.class);
-        // value of 'false' means disabled...
-        return (ann != null && ann.value());
-    }
-
-    public boolean willWriteNullProperties(AnnotatedMethod am, boolean defValue)
-    {
-        JsonWriteNullProperties ann = am.getAnnotation(JsonWriteNullProperties.class);
-        return (ann == null) ? defValue : ann.value();
-    }
-
-    /*
     ///////////////////////////////////////////////////////
     // Method annotations: deserialization
     ///////////////////////////////////////////////////////
@@ -277,65 +367,5 @@ public class JacksonAnnotationIntrospector
          * to this method getting called)
          */
         return am.hasAnnotation(JsonCreator.class);
-    }
-
-    public Class<?> findConcreteDeserializationType(AnnotatedMethod am)
-    {
-        // Primary annotation, JsonDeserialize
-        JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
-        if (ann != null) {
-            Class<?> cls = ann.as();
-            if (cls != NoClass.class) {
-                return cls;
-            }
-        }
-
-        /* !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
-         *    drop support at a later point (for 2.0?)
-         */
-        JsonClass oldAnn = am.getAnnotation(JsonClass.class);
-        if (oldAnn != null) {
-            Class<?> cls = oldAnn.value();
-            if(cls != NoClass.class) {
-                return cls;
-            }
-        }
-        return null;
-    }
-
-    public Class<?> findKeyType(AnnotatedMethod am)
-    {
-        JsonKeyClass ann = am.getAnnotation(JsonKeyClass.class);
-        if (ann != null) {
-            Class<?> cls = ann.value();
-            if(cls != NoClass.class) {
-                return cls;
-            }
-        }
-        return null;
-    }
-
-    public Class<?> findContentType(AnnotatedMethod am)
-    {
-        JsonContentClass ann = am.getAnnotation(JsonContentClass.class);
-        if (ann != null) {
-            Class<?> cls = ann.value();
-            if(cls != NoClass.class) {
-                return cls;
-            }
-        }
-        return null;
-    }
-
-    /*
-    ////////////////////////////////////////////////////
-    // Field annotations: general
-    ////////////////////////////////////////////////////
-     */
-
-    public boolean isIgnorableField(AnnotatedField f)
-    {
-        JsonIgnore ann = f.getAnnotation(JsonIgnore.class);
-        return (ann != null && ann.value());
     }
 }

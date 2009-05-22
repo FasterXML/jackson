@@ -306,7 +306,7 @@ public abstract class BasicDeserializerFactory
     {
         // first: let's check class for the instance itself:
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        Class<?> subclass = intr.findConcreteDeserializationType(am);
+        Class<?> subclass = intr.findDeserializationType(am);
         if (subclass != null) {
             try {
                 type = type.narrowBy(subclass);
@@ -316,7 +316,7 @@ public abstract class BasicDeserializerFactory
         }
 
         // then key class
-        Class<?> keyClass = intr.findKeyType(am);
+        Class<?> keyClass = intr.findDeserializationKeyType(am);
         if (keyClass != null) {
             // illegal to use on non-Maps
             if (!(type instanceof MapType)) {
@@ -330,7 +330,7 @@ public abstract class BasicDeserializerFactory
         }
 
         // and finally content class; only applicable to structured types
-        Class<?> cc = intr.findContentType(am);
+        Class<?> cc = intr.findDeserializationContentType(am);
         if (cc != null) {
             if (!type.isContainerType()) {
                 throw new JsonMappingException("Illegal content-type annotation on "+am.getName()+"; can only be used for container types (Collections, Maps, arrays");

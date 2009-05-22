@@ -11,7 +11,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 
 /**
  * Marker annotation used to denote whether given instance
- * (currently only used with {@link JsonDeserializer})
+ * (currently only used with {@link org.codehaus.jackson.map.JsonDeserializer})
  * can be cached.
  *<p>
  * Default action to take in absence of annotation depends

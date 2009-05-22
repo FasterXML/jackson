@@ -21,6 +21,8 @@ import java.lang.annotation.Target;
  * the declared type. This is usually the case; and if it wasn't
  * then the call to associated "setter" method would fail with
  * a type-mismatch exception.
+ *
+ * @deprecated As of version 1.1, use {@link org.codehaus.jackson.map.annotate.JsonDeserialize#contentAs} instead
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

@@ -32,7 +32,7 @@ public final class JsonValueSerializer
     /**
      * @param ser Explicit serializer to use, if caller knows it (which
      *   occurs if and only if the "value method" was annotated with
-     *  {@link org.codehaus.jackson.annotate.JsonSerialize#using}), otherwise
+     *  {@link org.codehaus.jackson.map.annotate.JsonSerialize#using}), otherwise
      *  null
      */
     public JsonValueSerializer(Method valueMethod, JsonSerializer<Object> ser)

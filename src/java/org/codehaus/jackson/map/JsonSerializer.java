@@ -34,7 +34,7 @@ public abstract class JsonSerializer<T>
      * indicate that <b>no serializer is configured</b>.
      *<p>
      * Specifically, this class is to be used as the marker for
-     * annotation {@link org.codehaus.jackson.annotate.map.JsonSerialize}
+     * annotation {@link org.codehaus.jackson.map.annotate.JsonSerialize}
      * (and deprecated {@link org.codehaus.jackson.annotate.JsonUseSerializer}).
      */
     public abstract static class None
