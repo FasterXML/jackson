@@ -38,6 +38,48 @@ public class TestDateDeserialization
         assertEquals(inputDate, new ObjectMapper().readValue("\""+inputStr+"\"", java.util.Date.class));
     }
 
+    /**
+     * With 1.0.0 release, ISO8601 is supported as well
+     */
+    public void testDateUtilISO8601() throws Exception
+    {
+        /* let's use simple baseline value, arbitrary date in GMT,
+         * using the standard notation
+         */
+        String inputStr = "1972-12-28T00:00:00.000+0000";
+        Date inputDate = new ObjectMapper().readValue("\""+inputStr+"\"", java.util.Date.class);
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        c.setTime(inputDate);
+        assertEquals(1972, c.get(Calendar.YEAR));
+        assertEquals(Calendar.DECEMBER, c.get(Calendar.MONTH));
+        assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
+
+        // Same but using comma in timezone
+        //inputStr = "1972-12-28T00:00:00.000+00:00";
+        inputStr = "1972-12-28T00:00:00.000";
+        inputDate = new ObjectMapper().readValue("\""+inputStr+"\"", java.util.Date.class);
+        c.setTime(inputDate);
+        assertEquals(1972, c.get(Calendar.YEAR));
+        assertEquals(Calendar.DECEMBER, c.get(Calendar.MONTH));
+        assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
+
+        // Same but only passing hour difference as timezone
+        inputStr = "1972-12-28T00:00:00.000+00";
+        inputDate = new ObjectMapper().readValue("\""+inputStr+"\"", java.util.Date.class);
+        c.setTime(inputDate);
+        assertEquals(1972, c.get(Calendar.YEAR));
+        assertEquals(Calendar.DECEMBER, c.get(Calendar.MONTH));
+        assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
+
+        // And then the same, but using 'Z' as alias for +0000
+        inputStr = "1972-12-28T00:00:00.000Z";
+        inputDate = new ObjectMapper().readValue("\""+inputStr+"\"", java.util.Date.class);
+        c.setTime(inputDate);
+        assertEquals(1972, c.get(Calendar.YEAR));
+        assertEquals(Calendar.DECEMBER, c.get(Calendar.MONTH));
+        assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
+    }
+
     public void testDateSql() throws Exception
     {
         // not ideal, to use (ever-changing) current date, but...
