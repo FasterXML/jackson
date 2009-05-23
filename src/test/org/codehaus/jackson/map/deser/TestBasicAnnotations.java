@@ -21,18 +21,18 @@ public class TestBasicAnnotations
     //////////////////////////////////////////////
      */
 
-    /// Class for testing {@link JsonSetter} annotations
+    /// Class for testing {@link JsonProperty} annotations
     final static class SizeClassSetter
     {
         int _size;
         int _length;
         int _other;
 
-        @JsonSetter public void size(int value) { _size = value; }
-        @JsonSetter("length") public void foobar(int value) { _length = value; }
+        @JsonProperty public void size(int value) { _size = value; }
+        @JsonProperty("length") public void foobar(int value) { _length = value; }
 
         // note: need not be public if annotated
-        @JsonSetter protected void other(int value) { _other = value; }
+        @JsonProperty protected void other(int value) { _other = value; }
 
         // finally: let's add a red herring that should be avoided...
         public void errorOut(int value) { throw new Error(); }
@@ -42,11 +42,23 @@ public class TestBasicAnnotations
     {
         int _x;
 
-        @JsonSetter public void setX(int value) { _x = value; }
+        @JsonProperty public void setX(int value) { _x = value; }
 
         // another red herring, which shouldn't be included
         public void setXandY(int x, int y) { throw new Error(); }
     }
+
+    /**
+     * One more, but this time checking for implied setter
+     * using @JsonDeserialize
+     */
+    final static class SizeClassSetter3
+    {
+        int _x;
+
+        @JsonDeserialize public void x(int value) { _x = value; }
+    }
+
 
     /// Classes for testing Setter discovery with inheritance
     static class BaseBean
@@ -54,7 +66,7 @@ public class TestBasicAnnotations
         int _x = 0, _y = 0;
 
         public void setX(int value) { _x = value; }
-        @JsonSetter("y") void foobar(int value) { _y = value; }
+        @JsonProperty("y") void foobar(int value) { _y = value; }
     }
 
     static class BeanSubClass extends BaseBean
@@ -150,6 +162,16 @@ public class TestBasicAnnotations
             ("{ \"x\": -3 }",
              SizeClassSetter2.class);
         assertEquals(-3, result._x);
+    }
+
+    // Checking parts of [JACKSON-120]
+    public void testSimpleSetter3() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        SizeClassSetter3 result = m.readValue
+            ("{ \"x\": 128 }",
+             SizeClassSetter3.class);
+        assertEquals(128, result._x);
     }
 
     /**

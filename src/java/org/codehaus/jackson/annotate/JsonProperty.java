@@ -7,7 +7,9 @@ import java.lang.annotation.Target;
 
 /**
  * Marker annotation that can be used to define a non-static
- * object field to be used (serialized, deserialized) as
+ * method as a "setter" or "getter" for a logical property
+ * (depending on its signature),
+ * or non-static object field to be used (serialized, deserialized) as
  * a logical property.
  *<p>
  * Default value ("") indicates that the field name is used
@@ -16,7 +18,7 @@ import java.lang.annotation.Target;
  * name. Property name refers to name used externally, as
  * the field name in Json objects.
  */
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonProperty

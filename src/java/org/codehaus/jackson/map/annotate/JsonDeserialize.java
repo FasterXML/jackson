@@ -15,6 +15,15 @@ import org.codehaus.jackson.map.JsonDeserializer;
  * When annotating value classes, configuration is used for instances
  * of the value class but can be overridden by more specific annotations
  * (ones that attach to methods or fields).
+ *<p>
+ * An example annotation would be:
+ *<pre>
+ *  @JsonDeserialize(using=MySerializer.class,
+ *    as=MyHashMap.class,
+ *    keyAs=MyHashKey.class,
+ *    contentAs=MyHashValue.class
+ *  )
+ *</pre>
  *
  * @since 1.1
  */

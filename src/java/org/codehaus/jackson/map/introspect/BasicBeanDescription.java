@@ -88,9 +88,8 @@ public class BasicBeanDescription extends BeanDescription
             if (am.getParameterCount() != 0) {
                 continue;
             }
-
             /* So far so good: final check, then; has to either
-             * (a) be marked with @JsonGetter OR
+             * (a) be marked with JsonProperty (/JsonGetter/JsonSerialize) OR
              * (b) be public AND have suitable name (getXxx or isXxx)
              */
             String propName = _annotationIntrospector.findGettablePropertyName(am);
@@ -293,15 +292,14 @@ public class BasicBeanDescription extends BeanDescription
             }
 
             /* So far so good: final check, then; has to either
-             * (a) be marked with @JsonSetter OR
+             * (a) be marked with JsonProperty (/JsonSetter/JsonDeserialize) OR
              * (b) have suitable name (setXxx) (NOTE: need not be
              *    public, unlike with getters)
              */
             String propName = _annotationIntrospector.findSettablePropertyName(am);
             if (propName != null) { // annotation was found
-                /* As per [JACKSON-64], let's still use mangled
-                 * name if possible; and only if not use unmodified
-                 * method name
+                /* As per [JACKSON-64], let's still use mangled name if
+                 * possible; and only if not use unmodified method name
                  */
                 if (propName.length() == 0) { 
                     propName = okNameForSetter(am);

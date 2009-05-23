@@ -30,7 +30,7 @@ public class TestAnnotatedClass
 
         public BaseClass(int x, int y) { }
 
-        @JsonGetter public int x() { return 3; }
+        @JsonProperty public int x() { return 3; }
     }
 
     static class SubClass extends BaseClass
@@ -93,7 +93,7 @@ public class TestAnnotatedClass
                 assertEquals(0, am.getAnnotationCount());
             } else if ("x".equals(name)) {
                 assertEquals(1, am.getAnnotationCount());
-                assertNotNull(am.getAnnotation(JsonGetter.class));
+                assertNotNull(am.getAnnotation(JsonProperty.class));
             } else {
                 fail("Unexpected method: "+name);
             }

@@ -167,16 +167,27 @@ public class JacksonAnnotationIntrospector
 
     public String findGettablePropertyName(AnnotatedMethod am)
     {
+        /* 22-May-2009, tatu: JsonProperty is the primary annotation
+         *   to check for
+         */
+        JsonProperty pann = am.getAnnotation(JsonProperty.class);
+        if (pann != null) {
+            return pann.value();
+        }
+        /* 22-May-2009, tatu: JsonGetter is deprecated as of 1.1
+         *    but still supported
+         */
         JsonGetter ann = am.getAnnotation(JsonGetter.class);
-        if (ann == null) {
-            return null;
+        if (ann != null) {
+            return ann.value();
         }
-        String propName = ann.value();
-        // can it ever be null? I don't think so, but just in case:
-        if (propName == null) {
-            propName = "";
+        /* 22-May-2009, tatu: And finally, JsonSerialize implies
+         *   that there is a property, although doesn't define name
+         */
+        if (am.hasAnnotation(JsonSerialize.class)) {
+            return "";
         }
-        return propName;
+        return null;
     }
 
     public boolean hasAsValueAnnotation(AnnotatedMethod am)
@@ -339,16 +350,27 @@ public class JacksonAnnotationIntrospector
 
     public String findSettablePropertyName(AnnotatedMethod am)
     {
+        /* 22-May-2009, tatu: JsonProperty is the primary annotation
+         *   to check for
+         */
+        JsonProperty pann = am.getAnnotation(JsonProperty.class);
+        if (pann != null) {
+            return pann.value();
+        }
+        /* 22-May-2009, tatu: JsonSetter is deprecated as of 1.1
+         *    but still supported
+         */
         JsonSetter ann = am.getAnnotation(JsonSetter.class);
-        if (ann == null) {
-            return null;
+        if (ann != null) {
+            return ann.value();
         }
-        String propName = ann.value();
-        // can it ever be null? I don't think so, but just in case:
-        if (propName == null) {
-            propName = "";
+        /* 22-May-2009, tatu: And finally, JsonSerialize implies
+         *   that there is a property, although doesn't define name
+         */
+        if (am.hasAnnotation(JsonDeserialize.class)) {
+            return "";
         }
-        return propName;
+        return null;
     }
 
     public boolean hasAnySetterAnnotation(AnnotatedMethod am)

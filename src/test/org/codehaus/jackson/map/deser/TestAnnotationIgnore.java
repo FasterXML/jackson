@@ -22,7 +22,7 @@ public class TestAnnotationIgnore
         /* Just igoring won't help a lot here; let's define a replacement
          * so that we won't get an exception for "unknown field"
          */
-        @JsonSetter("y") void foobar(int value) {
+        @JsonProperty("y") void foobar(int value) {
             ; // nop
         }
     }

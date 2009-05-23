@@ -42,7 +42,7 @@ public class TestAnnotationIgnore
 
     static class BaseClassIgnore
     {
-        @JsonGetter("x")
+        @JsonProperty("x")
         @JsonIgnore
         public int x() { return 1; }
 
@@ -53,7 +53,7 @@ public class TestAnnotationIgnore
         extends BaseClassIgnore
     {
         /* Annotations to disable ignorance, in sub-class; note that
-         * we must still get "JsonGetter" fro super class
+         * we must still get "JsonProperty" fro super class
          */
         @Override
         @JsonIgnore(false)

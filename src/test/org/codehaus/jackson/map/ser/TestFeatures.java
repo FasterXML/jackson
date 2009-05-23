@@ -21,7 +21,7 @@ public class TestFeatures
      */
     static class GetterClass
     {
-        @JsonGetter("x") public int getX() { return -2; }
+        @JsonProperty("x") public int getX() { return -2; }
         public int getY() { return 1; }
     }
 
@@ -31,7 +31,7 @@ public class TestFeatures
     @JsonAutoDetect(JsonMethod.NONE)
     static class DisabledGetterClass
     {
-        @JsonGetter("x") public int getX() { return -2; }
+        @JsonProperty("x") public int getX() { return -2; }
         public int getY() { return 1; }
     }
 
@@ -41,7 +41,7 @@ public class TestFeatures
     @JsonAutoDetect(JsonMethod.GETTER)
     static class EnabledGetterClass
     {
-        @JsonGetter("x") public int getX() { return -2; }
+        @JsonProperty("x") public int getX() { return -2; }
         public int getY() { return 1; }
     }
 

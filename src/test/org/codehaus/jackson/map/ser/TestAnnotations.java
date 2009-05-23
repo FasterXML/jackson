@@ -23,13 +23,13 @@ public class TestAnnotations
     //////////////////////////////////////////////
      */
 
-    /// Class for testing {@link JsonGetter} annotations
+    /// Class for testing {@link JsonProperty} annotations with getters
     final static class SizeClassGetter
     {
-        @JsonGetter public int size() { return 3; }
-        @JsonGetter("length") public int foobar() { return -17; }
+        @JsonProperty public int size() { return 3; }
+        @JsonProperty("length") public int foobar() { return -17; }
         // note: need not be public since there's annotation
-        @JsonGetter protected int value() { return 0; }
+        @JsonProperty protected int value() { return 0; }
 
         // dummy method; not a getter signature
         protected int getNotReally(int arg) { return 0; }
@@ -39,7 +39,14 @@ public class TestAnnotations
     final static class SizeClassGetter2
     {
         // Should still be considered property "x"
-        @JsonGetter protected int getX() { return 3; }
+        @JsonProperty protected int getX() { return 3; }
+    }
+
+    // and some support for testing [JACKSON-120]
+    final static class SizeClassGetter3
+    {
+        // Should be considered property "y"
+        @JsonSerialize protected int getY() { return 8; }
     }
 
 
@@ -85,7 +92,7 @@ public class TestAnnotations
     class BaseBean {
         public int getX() { return 1; }
         @SuppressWarnings("unused")
-		@JsonGetter("y")
+		@JsonProperty("y")
         private int getY() { return 2; }
     }
 
@@ -141,6 +148,15 @@ public class TestAnnotations
         Map<String,Object> result = writeAndMap(m, new SizeClassGetter2());
         assertEquals(1, result.size());
         assertEquals(Integer.valueOf(3), result.get("x"));
+    }
+
+    // testing [JACKSON-120], implied getter
+    public void testSimpleGetter3() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, new SizeClassGetter3());
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(8), result.get("y"));
     }
 
     /**

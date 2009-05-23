@@ -21,11 +21,11 @@ public class TestAnnotationInheritance
     //////////////////////////////////////////////
      */
 
-    /// Base class for testing {@link JsonGetter} annotations
+    /// Base class for testing {@link JsonProperty} annotations
     static class BasePojo
     {
-        @JsonGetter public int width() { return 3; }
-        @JsonGetter public int length() { return 7; }
+        @JsonProperty public int width() { return 3; }
+        @JsonProperty public int length() { return 7; }
     }
 
     /**
@@ -39,8 +39,8 @@ public class TestAnnotationInheritance
      */
     interface PojoInterface
     {
-        @JsonGetter int width();
-        @JsonGetter int length();
+        @JsonProperty int width();
+        @JsonProperty int length();
     }
 
     /**
