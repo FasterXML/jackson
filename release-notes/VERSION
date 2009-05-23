@@ -7,6 +7,10 @@ Description:
   Development snapshot from trunk, for eventual 1.1 release
 
   Fixes:
+
+  * [JACKSON-121] Problems deserializing Date values of some ISO-8601
+    variants (like one using 'Z' to indicate GMT timezone)
+
   Improvements:
   New features:
 

@@ -54,9 +54,16 @@ public class TestDateDeserialization
         assertEquals(Calendar.DECEMBER, c.get(Calendar.MONTH));
         assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
 
-        // Same but using comma in timezone
-        //inputStr = "1972-12-28T00:00:00.000+00:00";
-        inputStr = "1972-12-28T00:00:00.000";
+        // And then the same, but using 'Z' as alias for +0000 (very common)
+        inputStr = "1972-12-28T00:00:00.000Z";
+        inputDate = new ObjectMapper().readValue("\""+inputStr+"\"", java.util.Date.class);
+        c.setTime(inputDate);
+        assertEquals(1972, c.get(Calendar.YEAR));
+        assertEquals(Calendar.DECEMBER, c.get(Calendar.MONTH));
+        assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
+
+        // Same but using colon in timezone
+        inputStr = "1972-12-28T00:00:00.000+00:00";
         inputDate = new ObjectMapper().readValue("\""+inputStr+"\"", java.util.Date.class);
         c.setTime(inputDate);
         assertEquals(1972, c.get(Calendar.YEAR));
@@ -65,14 +72,6 @@ public class TestDateDeserialization
 
         // Same but only passing hour difference as timezone
         inputStr = "1972-12-28T00:00:00.000+00";
-        inputDate = new ObjectMapper().readValue("\""+inputStr+"\"", java.util.Date.class);
-        c.setTime(inputDate);
-        assertEquals(1972, c.get(Calendar.YEAR));
-        assertEquals(Calendar.DECEMBER, c.get(Calendar.MONTH));
-        assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
-
-        // And then the same, but using 'Z' as alias for +0000
-        inputStr = "1972-12-28T00:00:00.000Z";
         inputDate = new ObjectMapper().readValue("\""+inputStr+"\"", java.util.Date.class);
         c.setTime(inputDate);
         assertEquals(1972, c.get(Calendar.YEAR));
