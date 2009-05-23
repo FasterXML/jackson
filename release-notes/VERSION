@@ -10,6 +10,8 @@ Description:
 
   * [JACKSON-104] Build fails on JDK 1.5
    (reported by Oleksander A)
+  * [JACKSON-121] Problems deserializing Date values of some ISO-8601
+    variants (like one using 'Z' to indicate GMT timezone)
 
 ------------------------------------------------------------------------
 == History: ==
