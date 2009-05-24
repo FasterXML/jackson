@@ -54,4 +54,16 @@ public @interface JsonSerialize
      * and value of this annotation property is ignored.
      */
     public Class<?> as() default NoClass.class;
+
+    /**
+     * Which properties of annotated Bean or {@link java.util.Map} are
+     * to be included in serialization (has no effect on other types
+     * like enums, primitives or collections).
+     * Choices are "all", "properties that have value other than null"
+     * and "properties that have non-default value" (i.e. default value
+     * being property setting for a Bean constructed with default no-arg
+     * constructor, often null).
+     *
+     */
+    public OutputProperties include() default OutputProperties.ALL;
 }

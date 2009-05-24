@@ -356,7 +356,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
     <!-- Compiling and running test cases
       -->
 
-    <target name="compile.test" depends="compile.main">
+    <target name="compile.test" depends="compile.mapper">
         <javac srcdir="${dir.src.test}" destdir="${dir.test.classes}"
             source="1.5" target="1.5"
             debug="true"

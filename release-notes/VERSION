@@ -12,7 +12,11 @@ Description:
     variants (like one using 'Z' to indicate GMT timezone)
 
   Improvements:
+
   New features:
+
+  * [JACKSON-120] Add annotations @JsonSerialize, @JsonDeserialize,
+    to streamline annotation by replacing host of existing annotations.
 
 ------------------------------------------------------------------------
 == History: ==

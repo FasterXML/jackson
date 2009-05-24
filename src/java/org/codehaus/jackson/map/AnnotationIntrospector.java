@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.annotate.OutputProperties;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
@@ -105,14 +106,15 @@ public abstract class AnnotationIntrospector
     public abstract Class<?> findSerializationType(Annotated a);
 
     /**
-     * Method for checking whether property associated with given method,
-     * or all properties of instances of given class
-     * should output null values; given default value for behavior (true
-     * meaning do output nulls, false not).
+     * Method for checking whether given annotated entity (class, method,
+     * field) defines which Bean/Map properties are to be included in
+     * serialization.
+     * If no annotation is found, method should return given second
+     * argument; otherwise value indicated by the annotation
      *
      * @return True if nulls are to be output; false if not.
      */
-    public abstract boolean willWriteNullProperties(Annotated a, boolean defValue);
+    public abstract OutputProperties findSerializationInclusion(Annotated a, OutputProperties defValue);
 
     /*
     ///////////////////////////////////////////////////////

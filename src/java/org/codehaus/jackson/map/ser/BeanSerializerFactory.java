@@ -6,6 +6,7 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.annotate.OutputProperties;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -189,7 +190,7 @@ public class BeanSerializerFactory
         /* are null properties to be written for properties of
          * this class?
          */
-        boolean writeNulls = beanDesc.willWriteNullProperties(config.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
+        OutputProperties outputProps = beanDesc.findSerializationInclusion(config.getSerializationInclusion());
         boolean fixAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
@@ -211,8 +212,8 @@ public class BeanSerializerFactory
             }
 
             // and finally, there may be per-method overrides:
-            boolean methodNulls = beanDesc.willWriteNullProperties(am, writeNulls);
-            props.add(constructGettableProperty(config, en.getKey(), am, ser, methodNulls, serializationType));
+            OutputProperties methodProps = intr.findSerializationInclusion(am, outputProps);
+            props.add(constructGettableProperty(config, en.getKey(), am, ser, methodProps, serializationType));
         }
         return props;
     }
@@ -221,9 +222,9 @@ public class BeanSerializerFactory
                                                             String name,
                                                             AnnotatedMethod am,
                                                             JsonSerializer<Object> ser,
-                                                            boolean writeNulls,
+                                                            OutputProperties outputProps,
                                                             Class<?> serializationType)
     {
-        return new BeanPropertyWriter(name, am.getAnnotated(), ser, writeNulls, serializationType);
+        return new BeanPropertyWriter(name, am.getAnnotated(), ser, outputProps, serializationType);
     }
 }

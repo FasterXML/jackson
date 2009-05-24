@@ -4,6 +4,8 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.OutputProperties;
 
 /**
  * Unit tests for checking handling of SerializationConfig.
@@ -13,7 +15,11 @@ public class TestConfig
 {
     @JsonWriteNullProperties(false)
     @JsonAutoDetect(JsonMethod.NONE)
-    final static class Dummy { }
+    final static class ConfigLegacy { }
+
+    @JsonSerialize(include=OutputProperties.NON_DEFAULT)
+    @JsonAutoDetect(JsonMethod.NONE)
+    final static class Config { }
 
     public void testDefaults()
     {
@@ -30,6 +36,19 @@ public class TestConfig
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT));
     }
 
+    public void testFromAnnotationsLegacy()
+    {
+        ObjectMapper m = new ObjectMapper();
+        SerializationConfig cfg = m.getSerializationConfig();
+
+        /* then configure using annotations from the dummy object; only
+         * subset of features affected this way
+         */
+        cfg.fromAnnotations(ConfigLegacy.class);
+        assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
+        assertFalse(cfg.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
+    }
+
     public void testFromAnnotations()
     {
         ObjectMapper m = new ObjectMapper();
@@ -38,9 +57,9 @@ public class TestConfig
         /* then configure using annotations from the dummy object; only
          * subset of features affected this way
          */
-        cfg.fromAnnotations(Dummy.class);
+        cfg.fromAnnotations(Config.class);
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
-        assertFalse(cfg.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
+        assertEquals(OutputProperties.NON_DEFAULT, cfg.getSerializationInclusion());
     }
 
     public void testIndentation() throws Exception

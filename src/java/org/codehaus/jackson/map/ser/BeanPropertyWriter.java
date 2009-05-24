@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.annotate.OutputProperties;
 
 /**
  * Base bean property handler class, which implements common parts of
@@ -23,6 +24,11 @@ public class BeanPropertyWriter
      * Accessor method used to get property value
      */
     protected final Method _accessorMethod;
+
+    /**
+     * Should we suppress outputting of some properties?
+     */
+    protected final OutputProperties _cfgOutputProperties;
 
     /**
      * Whether this property will be written out if its value is null
@@ -45,13 +51,14 @@ public class BeanPropertyWriter
 
     public BeanPropertyWriter(String name, Method acc,
                               JsonSerializer<Object> ser,
-                              boolean writeIfNull,
+                              OutputProperties outputProps,
                               Class<?> serType)
     {
         _name = name;
         _accessorMethod = acc;
         _serializer = ser;
-        _cfgWriteIfNull = writeIfNull;
+        _cfgOutputProperties = outputProps;
+        _cfgWriteIfNull = (outputProps != OutputProperties.NON_NULL);
         _cfgSerializationType = serType;
     }
 
@@ -62,7 +69,7 @@ public class BeanPropertyWriter
      */
     public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
     {
-        return new BeanPropertyWriter(_name, _accessorMethod, ser, _cfgWriteIfNull, _cfgSerializationType);
+        return new BeanPropertyWriter(_name, _accessorMethod, ser, _cfgOutputProperties, _cfgSerializationType);
     }
 
     public boolean hasSerializer() { return _serializer != null; }

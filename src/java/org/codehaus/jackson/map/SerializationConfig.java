@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import java.text.DateFormat;
 
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.map.annotate.OutputProperties;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.util.StdDateFormat;
 
@@ -65,6 +66,9 @@ public class SerializationConfig
              * {@link org.codehaus.jackson.annotate.JsonWriteNullProperties}
              * that can be used for more granular control (annotates bean
              * classes or individual property access methods).
+             *
+             * @deprecated As of 1.1, use {@link #setSerializationInclusion(OutputProperties}}
+             *    instead
              */
             WRITE_NULL_PROPERTIES(true),
 
@@ -168,6 +172,20 @@ public class SerializationConfig
      */
     protected DateFormat _dateFormat = StdDateFormat.instance;
 
+    /**
+     * Which Bean/Map properties are to be included in serialization?
+     * Default settings is to include all regardless of value; can be
+     * changed to only include non-null properties, or properties
+     * with non-default values.
+     *<p>
+     * Defaults to null for backwards compatibility; if left as null,
+     * will check
+     * deprecated {@link Feature#WRITE_NULL_PROPERTIES}
+     * to choose between {@link OutputProperties#ALL}
+     * and {@link OutputProperties#NON_NULL}.
+     */
+    protected OutputProperties _serializationInclusion = null;
+
     /*
     ///////////////////////////////////////////////////////////
     // Life-cycle
@@ -187,6 +205,7 @@ public class SerializationConfig
         _annotationIntrospector = src._annotationIntrospector;
         _featureFlags = src._featureFlags;
         _dateFormat = src._dateFormat;
+        _serializationInclusion = src._serializationInclusion;
     }
 
     /**
@@ -230,10 +249,9 @@ public class SerializationConfig
     	}
 
         // How about writing null property values?
-        boolean curr = isEnabled(Feature.WRITE_NULL_PROPERTIES);
-        boolean newValue = _annotationIntrospector.willWriteNullProperties(ac, curr);
-        if (newValue != curr) {
-            set(Feature.WRITE_NULL_PROPERTIES, newValue);
+        OutputProperties incl = _annotationIntrospector.findSerializationInclusion(ac, null);
+        if (incl != _serializationInclusion) {
+            setSerializationInclusion(incl);
     	}
     }
     
@@ -251,6 +269,15 @@ public class SerializationConfig
     }
 
     public DateFormat getDateFormat() { return _dateFormat; }
+
+    public OutputProperties getSerializationInclusion()
+    {
+        if (_serializationInclusion != null) {
+            return _serializationInclusion;
+        }
+        return isEnabled(Feature.WRITE_NULL_PROPERTIES) ?
+            OutputProperties.ALL : OutputProperties.NON_NULL;
+    }
 
     /**
      * Method for getting {@link AnnotationIntrospector} configured
@@ -317,6 +344,25 @@ public class SerializationConfig
     // Configuration: other
     ////////////////////////////////////////////////////
      */
+
+    /**
+     * Method that will define global setting of which
+     * bean/map properties are to be included in serialization.
+     * Can be overridden by class annotations (overriding
+     * settings to use for instances of that class) and
+     * method/field annotations (overriding settings for the value
+     * bean for that getter method or field)
+     */
+    public void setSerializationInclusion(OutputProperties props)
+    {
+        _serializationInclusion = props;
+        // And for some level of backwards compatibility, also...
+        if (props == OutputProperties.NON_NULL) {
+            disable(Feature.WRITE_NULL_PROPERTIES);
+        } else {
+            enable(Feature.WRITE_NULL_PROPERTIES);
+        }
+    }
 
     /**
      * Method that will set the textual serialization to use for

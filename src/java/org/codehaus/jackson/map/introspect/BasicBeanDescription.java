@@ -8,6 +8,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanDescription;
+import org.codehaus.jackson.map.annotate.OutputProperties;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public class BasicBeanDescription extends BeanDescription
@@ -377,7 +378,7 @@ public class BasicBeanDescription extends BeanDescription
 
     /*
     ///////////////////////////////////////////////////////
-    // Introspection for serialization, on/off features:
+    // Introspection for serialization
     ///////////////////////////////////////////////////////
      */
 
@@ -387,14 +388,9 @@ public class BasicBeanDescription extends BeanDescription
      * feature (lowest priority, passed as argument)
      * and per-class annotation (highest priority).
      */
-    public boolean willWriteNullProperties(boolean defValue)
+    public OutputProperties findSerializationInclusion(OutputProperties defValue)
     {
-        return _annotationIntrospector.willWriteNullProperties(_classInfo, defValue);
-    }
-
-    public boolean willWriteNullProperties(AnnotatedMethod am, boolean defValue)
-    {
-        return _annotationIntrospector.willWriteNullProperties(am, defValue);
+        return _annotationIntrospector.findSerializationInclusion(_classInfo, defValue);
     }
 
     /*
