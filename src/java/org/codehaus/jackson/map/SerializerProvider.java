@@ -172,9 +172,11 @@ public abstract class SerializerProvider
     public final void defaultSerializeField(String fieldName, Object value, JsonGenerator jgen)
         throws IOException, JsonProcessingException
     {
-        // !!! TODO: [JACKSON-61] omit call for null field, if so specified?
         jgen.writeFieldName(fieldName);
         if (value == null) {
+            /* Note: can't easily check for suppression at this point
+             * any more; caller must check it.
+             */
             getNullValueSerializer().serialize(null, jgen, this);
         } else {
             findValueSerializer(value.getClass()).serialize(value, jgen, this);

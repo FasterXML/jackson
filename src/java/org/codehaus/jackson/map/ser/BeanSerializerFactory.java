@@ -178,7 +178,6 @@ public class BeanSerializerFactory
      */
     protected Collection<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
     {
-        AnnotationIntrospector intr = config.getAnnotationIntrospector();
         // are getters auto-detected?
         boolean autodetect = config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS);
         LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(autodetect, null);
@@ -187,44 +186,30 @@ public class BeanSerializerFactory
             return null;
         }
 
+        PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
+
         /* are null properties to be written for properties of
          * this class?
          */
-        OutputProperties outputProps = beanDesc.findSerializationInclusion(config.getSerializationInclusion());
         boolean fixAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
+
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
             AnnotatedMethod am = en.getValue();
             if (fixAccess) {
                 am.fixAccess();
             }
             // Does Method specify a serializer? If so, let's use it.
-            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, am);
-            // [JACKSON-120]: Check to see if serialization type is fixed
-            Class<?> serializationType = intr.findSerializationType(am);
-            if (serializationType != null) {
-                // Must be a super type...
-                Class<?> rt = am.getReturnType();
-                if (!serializationType.isAssignableFrom(rt)) {
-                    throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+am.getName()+"': class "+serializationType.getName()+" not a super-type of (declared) class "+rt.getName());
-                }
-            }
-
-            // and finally, there may be per-method overrides:
-            OutputProperties methodProps = intr.findSerializationInclusion(am, outputProps);
-            props.add(constructGettableProperty(config, en.getKey(), am, ser, methodProps, serializationType));
+            JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, am);
+            props.add(pb.buildProperty(en.getKey(), am, annotatedSerializer));
         }
         return props;
     }
 
-    protected  BeanPropertyWriter constructGettableProperty(SerializationConfig config,
-                                                            String name,
-                                                            AnnotatedMethod am,
-                                                            JsonSerializer<Object> ser,
-                                                            OutputProperties outputProps,
-                                                            Class<?> serializationType)
+    protected PropertyBuilder constructPropertyBuilder(SerializationConfig config,
+                                                       BasicBeanDescription beanDesc)
     {
-        return new BeanPropertyWriter(name, am.getAnnotated(), ser, outputProps, serializationType);
+        return new PropertyBuilder(config, beanDesc);
     }
 }

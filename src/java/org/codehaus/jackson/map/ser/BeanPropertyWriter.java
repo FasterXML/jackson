@@ -12,30 +12,18 @@ import org.codehaus.jackson.map.annotate.OutputProperties;
  * reflection-based functionality for accessing a property value
  * and serializing it.
  */
-public class BeanPropertyWriter
+public abstract class BeanPropertyWriter
 {
     /**
      * Logical name of the property; will be used as the field name
      * under which value for the property is written.
      */
-    private final String _name;
+    protected final String _name;
 
     /**
      * Accessor method used to get property value
      */
     protected final Method _accessorMethod;
-
-    /**
-     * Should we suppress outputting of some properties?
-     */
-    protected final OutputProperties _cfgOutputProperties;
-
-    /**
-     * Whether this property will be written out if its value is null
-     * or not: if true, property is always written; if false, only
-     * if its value is not null.
-     */
-    protected final boolean _cfgWriteIfNull;
 
     /**
      * Type to use for locating serializer; normally same as return
@@ -51,14 +39,11 @@ public class BeanPropertyWriter
 
     public BeanPropertyWriter(String name, Method acc,
                               JsonSerializer<Object> ser,
-                              OutputProperties outputProps,
                               Class<?> serType)
     {
         _name = name;
         _accessorMethod = acc;
         _serializer = ser;
-        _cfgOutputProperties = outputProps;
-        _cfgWriteIfNull = (outputProps != OutputProperties.NON_NULL);
         _cfgSerializationType = serType;
     }
 
@@ -67,12 +52,9 @@ public class BeanPropertyWriter
      * same properties as this writer, but uses specified serializer
      * instead of currently configured one (if any).
      */
-    public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
-    {
-        return new BeanPropertyWriter(_name, _accessorMethod, ser, _cfgOutputProperties, _cfgSerializationType);
-    }
+    public abstract BeanPropertyWriter withSerializer(JsonSerializer<Object> ser);
 
-    public boolean hasSerializer() { return _serializer != null; }
+    public final boolean hasSerializer() { return _serializer != null; }
 
     public final Class<?> getSerializationType() {
         return _cfgSerializationType;
@@ -89,26 +71,8 @@ public class BeanPropertyWriter
      * within given bean, and to serialize it as a Json Object field
      * using appropriate serializer.
      */
-    public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
-        throws Exception
-    {
-        Object value = get(bean);
-
-        JsonSerializer<Object> ser;
-        if (value == null) {
-            if (!_cfgWriteIfNull) {
-                return;
-            }
-            ser = prov.getNullValueSerializer();
-        } else {
-            ser = _serializer;
-            if (ser == null) {
-                ser = prov.findValueSerializer(value.getClass());
-            }
-        }
-        jgen.writeFieldName(_name);
-        ser.serialize(value, jgen, prov);
-    }
+    public abstract void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
+        throws Exception;
 
     /**
      * Method that can be used to access value of the property this
@@ -127,6 +91,129 @@ public class BeanPropertyWriter
     @Override
     public String toString() {
         return "property '"+getName()+"' (via method "+_accessorMethod.getDeclaringClass()+"#"+_accessorMethod.getName()+"))";
+    }
+
+    /*
+    //////////////////////////////////////////////////////////////
+    // Concrete subclasses
+    //////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Basic property writer that outputs property entry independent
+     * of what value property has.
+     */
+    public final static class Std
+        extends BeanPropertyWriter
+    {
+        public Std(String name, Method acc, JsonSerializer<Object> ser,
+                   Class<?> serType)
+        {
+            super(name, acc, ser, serType);
+        }
+
+        public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
+        {
+            return new Std(_name, _accessorMethod, ser, _cfgSerializationType);
+        }
+
+        public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
+            throws Exception
+        {
+            Object value = get(bean);
+            JsonSerializer<Object> ser;
+            if (value == null) {
+                ser = prov.getNullValueSerializer();
+            } else {
+                ser = _serializer;
+                if (ser == null) {
+                    ser = prov.findValueSerializer(value.getClass());
+                }
+            }
+            jgen.writeFieldName(_name);
+            ser.serialize(value, jgen, prov);
+        }
+    }
+
+    /**
+     * Property writer that outputs all property if and only if it
+     * has non-null value.
+     */
+    public final static class NonNull
+        extends BeanPropertyWriter
+    {
+        public NonNull(String name, Method acc, JsonSerializer<Object> ser,
+                       Class<?> serType)
+        {
+            super(name, acc, ser, serType);
+        }
+
+        public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
+        {
+            return new NonNull(_name, _accessorMethod, ser, _cfgSerializationType);
+        }
+
+        public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
+            throws Exception
+        {
+            Object value = get(bean);
+            if (value != null) { // only non-null entries to be written
+                JsonSerializer<Object> ser = _serializer;
+                if (ser == null) {
+                    ser = prov.findValueSerializer(value.getClass());
+                }
+                jgen.writeFieldName(_name);
+                ser.serialize(value, jgen, prov);
+            }
+        }
+    }
+
+    /**
+     * Property writer that outputs all property if and only if it
+     * has non-null value.
+     */
+    public final static class NonDefault
+        extends BeanPropertyWriter
+    {
+        final Object _defaultValue;
+
+        public NonDefault(String name, Method acc, JsonSerializer<Object> ser,
+                       Class<?> serType,
+                       Object defaultValue)
+        {
+            super(name, acc, ser, serType);
+            if (defaultValue == null) { // sanity check
+                // null not allowed here: must construct different type
+                throw new IllegalArgumentException("Can not have null default value");
+            }
+            _defaultValue = defaultValue;
+        }
+
+        public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
+        {
+            return new NonDefault(_name, _accessorMethod, ser, _cfgSerializationType, _defaultValue);
+        }
+
+        public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
+            throws Exception
+        {
+            Object value = get(bean);
+
+            JsonSerializer<Object> ser;
+            if (value == null) {
+                ser = prov.getNullValueSerializer();
+            } else {
+                if (_defaultValue.equals(value)) {
+                    return;
+                }
+                ser = _serializer;
+                if (ser == null) {
+                    ser = prov.findValueSerializer(value.getClass());
+                }
+            }
+            jgen.writeFieldName(_name);
+            ser.serialize(value, jgen, prov);
+        }
     }
 }
 
