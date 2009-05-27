@@ -119,11 +119,14 @@ public class BasicClassIntrospector
                                                  Class<?> c)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        /* Simpler for serialization; just need class annotations
-         * and setters, not creators.
+        AnnotatedClass ac = AnnotatedClass.construct(c, ai);
+        ac.resolveMemberMethods(getSerializationMethodFilter(cfg));
+        /* only the default constructor needed here (that's needed
+         * in case we need to check default bean property values,
+         * to omit them)
          */
-    	MethodFilter mf = getSerializationMethodFilter(cfg);
-        AnnotatedClass ac = AnnotatedClass.constructFull(c, ai, false, mf, true);
+        ac.resolveCreators(false);
+        ac.resolveFields();
         return new BasicBeanDescription(c, ac, ai);
     }
 
@@ -132,11 +135,12 @@ public class BasicClassIntrospector
                                                    Class<?> c)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        /* More info needed than with serialization, also need creator
-         * info
-         */
-    	MethodFilter mf = getDeserializationMethodFilter(cfg);
-        AnnotatedClass ac = AnnotatedClass.constructFull(c, ai, true, mf, true);
+        AnnotatedClass ac = AnnotatedClass.construct(c, ai);
+        // everything needed for deserialization
+        ac.resolveMemberMethods(getDeserializationMethodFilter(cfg));
+        // include all kinds of creator methods:
+        ac.resolveCreators(true);
+        ac.resolveFields();
         return new BasicBeanDescription(c, ac, ai);
     }
 
@@ -145,10 +149,8 @@ public class BasicClassIntrospector
                                             Class<?> c)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        /* Just need constructors and factory methods, but no
-         * member methods or fields
-         */
-        AnnotatedClass ac = AnnotatedClass.constructFull(c, ai, true, null, false);
+        AnnotatedClass ac = AnnotatedClass.construct(c, ai);
+        ac.resolveCreators(true);
         return new BasicBeanDescription(c, ac, ai);
     }
 
@@ -157,7 +159,7 @@ public class BasicClassIntrospector
                                                     Class<?> c)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.constructFull(c, ai, false, null, false);
+        AnnotatedClass ac = AnnotatedClass.construct(c, ai);
         return new BasicBeanDescription(c, ac, ai);
     }
 
@@ -166,7 +168,7 @@ public class BasicClassIntrospector
                                                     Class<?> c)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.constructFull(c, ai, false, null, false);
+        AnnotatedClass ac = AnnotatedClass.construct(c, ai);
         return new BasicBeanDescription(c, ac, ai);
     }
 

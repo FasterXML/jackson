@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.ser;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 import org.codehaus.jackson.JsonGenerator;
@@ -21,6 +22,14 @@ public class PropertyBuilder
     final SerializationConfig _config;
     final BasicBeanDescription _beanDesc;
     final OutputProperties _outputProps;
+
+    /**
+     * If a property has serialization inclusion value of
+     * {@link OutputProperties#ALL}, we need to know the default
+     * value of the bean, to know if property value equals default
+     * one.
+     */
+    protected Object _defaultBean;
 
     public PropertyBuilder(SerializationConfig config, BasicBeanDescription beanDesc)
     {
@@ -54,8 +63,11 @@ public class PropertyBuilder
         Method m = am.getAnnotated();
         switch (methodProps) {
         case NON_DEFAULT:
-            // !!! 25-May-2009, tatu: temporarily fall down to NON_NULL case
-            //break;
+            Object defValue = getDefault(name, am);
+            if (defValue != null) {
+                return new BeanPropertyWriter.NonDefault(name, m, ser, serializationType, defValue);
+            }
+            // but if it null for this property, fall through to second case:
         case NON_NULL:
             return new BeanPropertyWriter.NonNull(name, m, ser, serializationType);
         }
@@ -63,4 +75,29 @@ public class PropertyBuilder
         return new BeanPropertyWriter.Std(name, m, ser, serializationType);
     }
 
+    protected Object getDefault(String name, AnnotatedMethod am)
+    {
+        if (_defaultBean == null) {
+            /* If we can fix access rights, we should; otherwise non-public
+             * classes or default constructor will prevent instantiation
+             */
+            _defaultBean = _beanDesc.instantiateBean(_config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+            if (_defaultBean == null) {
+                Class<?> cls = _beanDesc.getClassInfo().getAnnotated();
+                throw new IllegalArgumentException("Class "+cls.getName()+" has no default constructor; can not instantiate default bean value to support 'include=OutputProperties.NON_DEFAULT' annotation");
+            }
+        }
+        Method m = am.getAnnotated();
+        try {
+            return m.invoke(_defaultBean);
+        } catch (Exception e) {
+            Throwable t = e;
+            while (t.getCause() != null) {
+                t = t.getCause();
+            }
+            if (t instanceof Error) throw (Error) t;
+            if (t instanceof RuntimeException) throw (RuntimeException) t;
+            throw new IllegalArgumentException("Failed to get property '"+name+"' of default "+_defaultBean.getClass().getName()+" instance (using method '"+m.getName()+"')");
+        }
+    }
 }

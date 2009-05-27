@@ -79,9 +79,10 @@ public class TestAnnotatedClass
 
     public void testSimple()
     {
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (SubClass.class, new JacksonAnnotationIntrospector(),
-             true, BasicClassIntrospector.GetterMethodFilter.instance, true);
+        AnnotatedClass ac = AnnotatedClass.construct(SubClass.class, new JacksonAnnotationIntrospector());
+        ac.resolveMemberMethods(BasicClassIntrospector.GetterMethodFilter.instance);
+        ac.resolveCreators(true);
+        ac.resolveFields();
 
         assertNotNull(ac.getDefaultConstructor());
         assertEquals(1, ac.getSingleArgConstructors().size());
@@ -108,9 +109,8 @@ public class TestAnnotatedClass
      */
     public void testGenericsWithSetter()
     {
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (NumberBean.class, new JacksonAnnotationIntrospector(),
-             true, BasicClassIntrospector.SetterMethodFilter.instance, false);
+        AnnotatedClass ac = AnnotatedClass.construct(NumberBean.class, new JacksonAnnotationIntrospector());
+        ac.resolveMemberMethods(BasicClassIntrospector.SetterMethodFilter.instance);
         assertEquals(1, ac.getMemberMethodCount());
 
         Iterator<AnnotatedMethod> it = ac.memberMethods().iterator();
@@ -125,9 +125,8 @@ public class TestAnnotatedClass
 
     public void testFieldIntrospection()
     {
-        AnnotatedClass ac = AnnotatedClass.constructFull
-            (FieldBean.class, new JacksonAnnotationIntrospector(),
-             false, BasicClassIntrospector.GetterMethodFilter.instance, true);
+        AnnotatedClass ac = AnnotatedClass.construct(FieldBean.class, new JacksonAnnotationIntrospector());
+        ac.resolveFields();
         assertEquals(1, ac.getFieldCount());
         // only one discoverable field property...
         assertEquals("props", ac.getFields().iterator().next().getName());

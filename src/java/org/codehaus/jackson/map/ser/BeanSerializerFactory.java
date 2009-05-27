@@ -185,13 +185,8 @@ public class BeanSerializerFactory
         if (methodsByProp.isEmpty()) {
             return null;
         }
-
-        PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
-
-        /* are null properties to be written for properties of
-         * this class?
-         */
         boolean fixAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
 

@@ -261,7 +261,7 @@ public class DeserializationConfig
          * - USE_GETTERS_AS_SETTERS
          */
 
-        AnnotatedClass ac = AnnotatedClass.constructOnlyClassInfo(cls, _annotationIntrospector);
+        AnnotatedClass ac = AnnotatedClass.construct(cls, _annotationIntrospector);
 
         // Auto-detect setters, creators?
         Boolean ad = _annotationIntrospector.findSetterAutoDetection(ac);

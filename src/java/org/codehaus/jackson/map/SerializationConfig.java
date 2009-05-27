@@ -240,7 +240,7 @@ public class SerializationConfig
      */
     public void fromAnnotations(Class<?> cls)
     {
-        AnnotatedClass ac = AnnotatedClass.constructOnlyClassInfo(cls, _annotationIntrospector);
+        AnnotatedClass ac = AnnotatedClass.construct(cls, _annotationIntrospector);
 
         // Should we enable/disable setter auto-detection?
         Boolean ad = _annotationIntrospector.findGetterAutoDetection(ac);

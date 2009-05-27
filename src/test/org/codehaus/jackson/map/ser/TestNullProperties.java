@@ -7,10 +7,13 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.OutputProperties;
 
 /**
- * Unit tests for checking that the "write null properties" configuration
- * works correctly.
+ * Unit tests for checking that alternative settings for
+ * {@link JsonSerialize#include} annotation property work
+ * as expected.
  */
 public class TestNullProperties
     extends BaseMapTest
@@ -22,17 +25,52 @@ public class TestNullProperties
     }
 
     @JsonWriteNullProperties(false)
-    static class NoNullsBean
+    static class LegacyNoNullsBean
     {
         public String getA() { return "a"; }
         public String getB() { return null; }
     }
 
-    static class MethodBean
+    static class LegacyMethodBean
     {
         @JsonWriteNullProperties(false)
         public String getB() { return null; }
     }
+
+    @JsonSerialize(include=OutputProperties.ALL) // just to ensure default
+    static class NoNullsBean
+    {
+        @JsonSerialize(include=OutputProperties.NON_NULL)
+        public String getA() { return null; }
+
+        public String getB() { return null; }
+    }
+
+    @JsonSerialize(include=OutputProperties.NON_DEFAULT)
+
+    static class NonDefaultBean
+    {
+        String _a = "a", _b = "b";
+
+        NonDefaultBean() { }
+
+        public String getA() { return _a; }
+        public String getB() { return _b; }
+    }
+
+    static class MixedBean
+    {
+        String _a = "a", _b = "b";
+
+        MixedBean() { }
+
+        @JsonSerialize(include=OutputProperties.NON_DEFAULT)
+        public String getA() { return _a; }
+
+        @JsonSerialize(include=OutputProperties.NON_NULL)
+        public String getB() { return _b; }
+    }
+
 
     public void testGlobal() throws IOException
     {
@@ -56,21 +94,68 @@ public class TestNullProperties
         assertFalse(result.containsKey("b"));
     }
 
-    public void testByClass() throws IOException
+    public void testNonNullByClass() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, new NoNullsBean());
+        assertEquals(1, result.size());
+        assertFalse(result.containsKey("a"));
+        assertNull(result.get("a"));
+        assertTrue(result.containsKey("b"));
+        assertNull(result.get("b"));
+    }
+
+    public void testNonDefaultByClass() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        NonDefaultBean bean = new NonDefaultBean();
+        // need to change one of defaults
+        bean._a = "notA";
+        Map<String,Object> result = writeAndMap(m, bean);
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey("a"));
+        assertEquals("notA", result.get("a"));
+        assertFalse(result.containsKey("b"));
+        assertNull(result.get("b"));
+    }
+
+    public void testMixedMethod() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+
+        MixedBean bean = new MixedBean();
+        bean._a = "xyz";
+        bean._b = null;
+        Map<String,Object> result = writeAndMap(m, bean);
+        assertEquals(1, result.size());
+        assertEquals("xyz", result.get("a"));
+        assertFalse(result.containsKey("b"));
+
+        bean._a = "a";
+        bean._b = "b";
+        result = writeAndMap(m, bean);
+        assertEquals(1, result.size());
+        assertEquals("b", result.get("b"));
+        assertFalse(result.containsKey("a"));
+    }
+
+    // // // Tests for deprecated legacy annotations:
+
+    public void testByClassLegacy() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
         assertTrue(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
-        Map<String,Object> result = writeAndMap(m, new NoNullsBean());
+        Map<String,Object> result = writeAndMap(m, new LegacyNoNullsBean());
         assertEquals(1, result.size());
         assertEquals("a", result.get("a"));
         assertNull(result.get("b"));
         assertFalse(result.containsKey("b"));
     }
 
-    public void testByMethod() throws IOException
+    public void testByMethodLegacy() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
-        Map<String,Object> result = writeAndMap(m, new MethodBean());
+        Map<String,Object> result = writeAndMap(m, new LegacyMethodBean());
         assertEquals(0, result.size());
     }
 }

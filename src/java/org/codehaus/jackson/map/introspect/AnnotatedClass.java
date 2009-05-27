@@ -134,57 +134,25 @@ public final class AnnotatedClass
     }
 
     /**
-     * Alternative factory method that only collects information
-     * regarding class itself (mostly annotations), but nothing
-     * regarding methods class has.
+     * Factory method that instantiates an instance. Returned instance
+     * will only be initialized with class annotations, but not with
+     * any method information.
      */
-    public static AnnotatedClass constructOnlyClassInfo(Class<?> cls,
-                                                        AnnotationIntrospector aintr)
-    {
-        return constructFull(cls, aintr, false, null, false);
-    }
-
-    /**
-     * @param includeCreators Whether to include information about
-     *   potential creators (constructors and static factory methods)
-     * @param memberFilter Optional filter that defines which member methods
-     *   to include; if null, no member method information is to be included.
-     * @param includeFields Whether to include non-static fields that are
-     *   either public, or have at least a single annotation
-     */
-    public static AnnotatedClass constructFull(Class<?> cls,
-                                               AnnotationIntrospector aintr,
-                                               boolean includeCreators,
-                                               MethodFilter memberFilter,
-                                               boolean includeFields)
+    public static AnnotatedClass construct(Class<?> cls,
+                                           AnnotationIntrospector aintr)
     {
         List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
         AnnotatedClass ac = new AnnotatedClass(cls, st, aintr);
         ac.resolveClassAnnotations();
-        if (includeCreators) {
-            ac.resolveCreators();
-        }
-        if (memberFilter != null) {
-            ac.resolveMemberMethods(memberFilter);
-        }
-        if (includeFields) {
-            ac.resolveFields();
-        }
         return ac;
     }
-
-    /*
-    ///////////////////////////////////////////////////////
-    // Init methods
-    ///////////////////////////////////////////////////////
-     */
 
     /**
      * Initialization method that will recursively collect Jackson
      * annotations for this class and all super classes and
      * interfaces.
      */
-    private void resolveClassAnnotations()
+    protected void resolveClassAnnotations()
     {
         _classAnnotations = new AnnotationMap();
         // first, annotations from the class itself:
@@ -203,11 +171,20 @@ public final class AnnotatedClass
         }
     }
 
+    /*
+    ///////////////////////////////////////////////////////
+    // Methods for populating method/field information
+    ///////////////////////////////////////////////////////
+     */
+
     /**
      * Initialization method that will find out all constructors
      * and potential static factory methods the class has.
+     *
+     * @param includeAll If true, includes all creator methods; if false,
+     *   will only include the no-arguments "default" constructor
      */
-    private void resolveCreators()
+    public void resolveCreators(boolean includeAll)
     {
         // Then see which constructors we have
         _singleArgConstructors = null;
@@ -217,32 +194,37 @@ public final class AnnotatedClass
                 _defaultConstructor = _constructConstructor(ctor);
                 break;
             case 1:
-                if (_singleArgConstructors == null) {
-                    _singleArgConstructors = new ArrayList<AnnotatedConstructor>();
+                if (includeAll) {
+                    if (_singleArgConstructors == null) {
+                        _singleArgConstructors = new ArrayList<AnnotatedConstructor>();
+                    }
+                    _singleArgConstructors.add(_constructConstructor(ctor));
                 }
-                _singleArgConstructors.add(_constructConstructor(ctor));
                 break;
             }
         }
 
         _singleArgStaticMethods = null;
-        /* Then methods: single-arg static methods (potential factory
-         * methods), and 0/1-arg member methods (getters, setters)
-         */
-        for (Method m : _class.getDeclaredMethods()) {
-            if (Modifier.isStatic(m.getModifiers())) {
-                int argCount = m.getParameterTypes().length;
-                if (argCount == 1) {
-                    if (_singleArgStaticMethods == null) {
-                        _singleArgStaticMethods = new ArrayList<AnnotatedMethod>();
+
+        if (includeAll) {
+            /* Then methods: single-arg static methods (potential factory
+             * methods), and 0/1-arg member methods (getters, setters)
+             */
+            for (Method m : _class.getDeclaredMethods()) {
+                if (Modifier.isStatic(m.getModifiers())) {
+                    int argCount = m.getParameterTypes().length;
+                    if (argCount == 1) {
+                        if (_singleArgStaticMethods == null) {
+                            _singleArgStaticMethods = new ArrayList<AnnotatedMethod>();
+                        }
+                        _singleArgStaticMethods.add(_constructMethod(m));
                     }
-                    _singleArgStaticMethods.add(_constructMethod(m));
                 }
             }
         }
     }
 
-    private void resolveMemberMethods(MethodFilter methodFilter)
+    public void resolveMemberMethods(MethodFilter methodFilter)
     {
         _memberMethods = new AnnotatedMethodMap();
         for (Method m : _class.getDeclaredMethods()) {
@@ -293,7 +275,7 @@ public final class AnnotatedClass
      * that are either public, or have at least a single annotation
      * associated with them.
      */
-    protected void resolveFields()
+    public void resolveFields()
     {
         _fields = new ArrayList<AnnotatedField>();
         _addFields(_fields, _class);

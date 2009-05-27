@@ -54,6 +54,36 @@ public class BasicBeanDescription extends BeanDescription
         return _classInfo.findMethod(name, paramTypes);
     }
 
+    /**
+     * @param fixAccess If true, method is allowed to fix access to the
+     *   default constructor (to be able to call non-public constructor);
+     *   if false, has to use constructor as is.
+     *
+     * @return Instance of class represented by this descriptor, if
+     *   suitable default constructor was found; null otherwise.
+     */
+    public Object instantiateBean(boolean fixAccess)
+    {
+        AnnotatedConstructor ac = _classInfo.getDefaultConstructor();
+        if (ac == null) {
+            return null;
+        }
+        if (fixAccess) {
+            ac.fixAccess();
+        }
+        try {
+            return ac.getAnnotated().newInstance();
+        } catch (Exception e) {
+            Throwable t = e;
+            while (t.getCause() != null) {
+                t = t.getCause();
+            }
+            if (t instanceof Error) throw (Error) t;
+            if (t instanceof RuntimeException) throw (RuntimeException) t;
+            throw new IllegalArgumentException("Failed to instantiate bean of type "+_classInfo.getAnnotated().getName()+": ("+t.getClass().getName()+") "+t.getMessage(), t);
+        }
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // Basic API
