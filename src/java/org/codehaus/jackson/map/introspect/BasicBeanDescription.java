@@ -89,6 +89,77 @@ public class BasicBeanDescription extends BeanDescription
     // Basic API
     ///////////////////////////////////////////////////////
      */
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Introspection, fields (for both ser and deser)
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * @param autodetect Whether to automatically detect public fields
+     *  as properties; if true will do that, if false will require
+     *   explicit annotations.
+     * @param ignoredProperties (optional) names of properties to ignore;
+     *   any fields that would be recognized as one of these properties
+     *   is ignored.
+     *
+     * @return Ordered Map with logical property name as key, and
+     *    matching field as value.
+     */
+    public LinkedHashMap<String,AnnotatedField> findPropertyFields(boolean autodetect,
+                                                                    Collection<String> ignoredProperties)
+    {
+        Boolean classAD = _annotationIntrospector.findFieldAutoDetection(_classInfo);
+        if (classAD != null) {
+            autodetect = classAD.booleanValue();
+        }
+
+        LinkedHashMap<String,AnnotatedField> results = new LinkedHashMap<String,AnnotatedField>();
+        for (AnnotatedField af : _classInfo.fields()) {
+            // note: some prefiltering has been; no static or transient fields included
+
+            /* So far so good: final check, then; has to either
+             * (a) be marked with JsonProperty (or JsonSerialize) OR
+             * (b) be public
+             */
+            String propName = _annotationIntrospector.findPropertyName(af);
+            if (propName != null) {
+                if (propName.length() == 0) { 
+                    propName = af.getName();
+                }
+            } else { // nope, but is a public field?
+                if (!autodetect || !af.isPublic()) {
+                    continue;
+                }
+                propName = af.getName();
+            }
+
+            if (ignoredProperties != null) {
+                if (ignoredProperties.contains(propName)) {
+                    continue;
+                }
+            }
+
+            /* Yup, it is a valid name. But do we have a conflict?
+             * Shouldn't usually happen, but it is possible... and for
+             * now let's consider it a problem
+             */
+            AnnotatedField old = results.put(propName, af);
+            if (old != null) {
+                String oldDesc = old.getFullName();
+                String newDesc = af.getFullName();
+                throw new IllegalArgumentException("Multiple fields representing property \""+propName+"\": "+oldDesc+" vs "+newDesc);
+            }
+        }
+        return results;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Introspection for serialization (write Json), getters
+    ///////////////////////////////////////////////////////
+     */
     
     /**
      * @param autodetect Whether to use Bean naming convention to
@@ -202,7 +273,7 @@ public class BasicBeanDescription extends BeanDescription
 
     /*
     ///////////////////////////////////////////////////////
-    // Introspection for serialization (write Json), factories
+    // Introspection for serialization, factories
     ///////////////////////////////////////////////////////
      */
 

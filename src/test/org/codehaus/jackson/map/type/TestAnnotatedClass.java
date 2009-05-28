@@ -100,7 +100,7 @@ public class TestAnnotatedClass
             }
         }
         assertEquals(1, ac.getFieldCount());
-        assertEquals("foo", ac.getFields().iterator().next().getName());
+        assertEquals("foo", ac.fields().iterator().next().getName());
     }
 
     /**
@@ -129,6 +129,6 @@ public class TestAnnotatedClass
         ac.resolveFields();
         assertEquals(1, ac.getFieldCount());
         // only one discoverable field property...
-        assertEquals("props", ac.getFields().iterator().next().getName());
+        assertEquals("props", ac.fields().iterator().next().getName());
     }
 }

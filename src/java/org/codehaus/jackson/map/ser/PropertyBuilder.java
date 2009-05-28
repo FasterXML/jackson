@@ -54,8 +54,8 @@ public class PropertyBuilder
      * Factory method for constructor a {@link BeanPropertyWriter}
      * that uses specified method as the accessors.
      */
-    public BeanPropertyWriter buildProperty(String name, AnnotatedMethod am,
-                                            JsonSerializer<Object> ser)
+    public BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
+                                            AnnotatedMethod am)
     {
         Class<?> serializationType = findSerializationType(am);
         
@@ -80,8 +80,8 @@ public class PropertyBuilder
      * Factory method for constructor a {@link BeanPropertyWriter}
      * that uses specified method as the accessors.
      */
-    public BeanPropertyWriter buildProperty(String name, AnnotatedField af,
-                                            JsonSerializer<Object> ser)
+    public BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
+                                            AnnotatedField af)
     {
         Class<?> serializationType = findSerializationType(af);
         

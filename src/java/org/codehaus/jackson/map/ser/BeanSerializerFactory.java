@@ -7,6 +7,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
 import org.codehaus.jackson.map.annotate.OutputProperties;
+import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -178,17 +179,33 @@ public class BeanSerializerFactory
      */
     protected Collection<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
     {
-        // are getters auto-detected?
-        boolean autodetect = config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS);
-        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(autodetect, null);
+        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS), null);
+
+        /* [JACKSON-98]: also include field-backed properties:
+         *   (second arg passed to ignore anything for which there is a getter
+         *   method)
+         */
+        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findPropertyFields(config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_FIELDS), methodsByProp.keySet());
+
         // nothing? can't proceed
-        if (methodsByProp.isEmpty()) {
+        if (methodsByProp.isEmpty() && fieldsByProp.isEmpty()) {
             return null;
         }
         boolean fixAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
+
+        // [JACKSON-98]: start with field properties, if any
+        for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
+            AnnotatedField af = en.getValue();
+            if (fixAccess) {
+                af.fixAccess();
+            }
+            // Does Method specify a serializer? If so, let's use it.
+            JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, af);
+            props.add(pb.buildProperty(en.getKey(), annotatedSerializer, af));
+        }
 
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
             AnnotatedMethod am = en.getValue();
@@ -197,8 +214,9 @@ public class BeanSerializerFactory
             }
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, am);
-            props.add(pb.buildProperty(en.getKey(), am, annotatedSerializer));
+            props.add(pb.buildProperty(en.getKey(), annotatedSerializer, am));
         }
+
         return props;
     }
 

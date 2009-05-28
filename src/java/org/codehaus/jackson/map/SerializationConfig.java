@@ -45,6 +45,23 @@ public class SerializationConfig
         AUTO_DETECT_GETTERS(true),
 
         /**
+         * Feature that determines whether non-static fields are recognized as
+         * properties.
+         * If yes, then all public member fields
+         * are considered as properties. If disabled, only fields explicitly
+         * annotated are considered property fields.
+         *<p>
+         * Note that this feature has lower precedence than per-class
+         * annotations, and is only used if there isn't more granular
+         * configuration available.
+         *<P>
+         * Feature is enabled by default.
+         *
+         * @since 1.1
+         */
+        AUTO_DETECT_FIELDS(true),
+
+        /**
          * Feature that determines whether method and field access
          * modifier settings can be overridden when accessing
          * properties. If enabled, method

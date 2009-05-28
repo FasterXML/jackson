@@ -49,6 +49,15 @@ public abstract class AnnotationIntrospector
      */
     public abstract Boolean findCachability(AnnotatedClass ac);
 
+    /**
+     * Method for checking whether there is a class annotation that
+     * indicates whether field auto detection should be enabled.
+     *
+     * @return null if no relevant annotation is located; Boolean.TRUE
+     *   if enabling annotation found, Boolean.FALSE if disabling annotation
+     */
+    public abstract Boolean findFieldAutoDetection(AnnotatedClass ac);
+
     /*
     ///////////////////////////////////////////////////////
     // General method annotations
@@ -81,6 +90,17 @@ public abstract class AnnotationIntrospector
      *    field should be ignored; false if not.
      */
     public abstract boolean isIgnorableField(AnnotatedField f);
+
+    /**
+     * Method for checking whether given field has an annotation
+     * that suggests property name associated with method that
+     * may be a "getter". Should return null if no annotation
+     * is found; otherwise a non-null String.
+     * If non-null value is returned, it is used as the property
+     * name, except for empty String ("") which is taken to mean
+     * "use the field name as is".
+     */
+    public abstract String findPropertyName(AnnotatedField af);
 
     /*
     ///////////////////////////////////////////////////////

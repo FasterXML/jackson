@@ -56,6 +56,23 @@ public class JacksonAnnotationIntrospector
         return ann.value() ? Boolean.TRUE : Boolean.FALSE;
     }
 
+    public Boolean findFieldAutoDetection(AnnotatedClass ac)
+    {
+        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                for (JsonMethod jm : methods) {
+                    if (jm.fieldEnabled()) {
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // General method annotations
@@ -78,6 +95,22 @@ public class JacksonAnnotationIntrospector
     {
         JsonIgnore ann = f.getAnnotation(JsonIgnore.class);
         return (ann != null && ann.value());
+    }
+
+    public String findPropertyName(AnnotatedField af)
+    {
+        JsonProperty pann = af.getAnnotation(JsonProperty.class);
+        if (pann != null) {
+            return pann.value();
+        }
+        /* Also: having either JsonSerialize or JsonSerialize implies
+         * that the field represents a property.
+         */
+        if (af.hasAnnotation(JsonSerialize.class)
+            || af.hasAnnotation(JsonDeserialize.class)) {
+            return "";
+        }
+        return null;
     }
 
     /*

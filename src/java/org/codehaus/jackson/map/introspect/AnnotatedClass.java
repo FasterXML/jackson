@@ -341,9 +341,9 @@ public final class AnnotatedClass
         if (f.isSynthetic()) {
             return false;
         }
-        // Static fields are never included
+        // Static fields are never included, nor transient
         int mods = f.getModifiers();
-        if (Modifier.isStatic(mods)) {
+        if (Modifier.isStatic(mods) || Modifier.isTransient(mods)) {
             return false;
         }
         return true;
@@ -452,7 +452,7 @@ public final class AnnotatedClass
         return (_fields == null) ? 0 : _fields.size();
     }
 
-    public Iterable<AnnotatedField> getFields()
+    public Iterable<AnnotatedField> fields()
     {
         if (_fields == null) {
             List<AnnotatedField> l = Collections.emptyList();
