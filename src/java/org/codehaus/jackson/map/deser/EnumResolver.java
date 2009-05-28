@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
+import org.codehaus.jackson.map.AnnotationIntrospector;
+
 import java.util.*;
 
 /**
@@ -24,7 +26,7 @@ public final class EnumResolver
         _enumsById = map;
     }
 
-    public static EnumResolver constructFor(Class<?> rawEnumCls)
+    public static EnumResolver constructFor(Class<?> rawEnumCls, AnnotationIntrospector ai)
     {
         @SuppressWarnings("unchecked")
         Class<Enum<?>> enumCls = (Class<Enum<?>>) rawEnumCls;
@@ -32,7 +34,7 @@ public final class EnumResolver
         Enum<?>[] enumValues = enumCls.getEnumConstants();
         HashMap<String, Enum<?>> map = new HashMap<String, Enum<?>>();
         for (Enum<?> e : enumValues) {
-            map.put(e.name(), e);
+            map.put(ai.findEnumValue(e), e);
         }
         return new EnumResolver(enumCls, enumValues, map);
     }

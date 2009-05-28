@@ -143,7 +143,7 @@ public abstract class BasicDeserializerFactory
 
         // One special type: EnumSet:
         if (EnumSet.class.isAssignableFrom(collectionClass)) {
-            return new EnumSetDeserializer(EnumResolver.constructFor(valueType.getRawClass()));
+            return new EnumSetDeserializer(EnumResolver.constructFor(valueType.getRawClass(), config.getAnnotationIntrospector()));
         }
 
         // But otherwise we can just use a generic value deserializer:
@@ -183,10 +183,10 @@ public abstract class BasicDeserializerFactory
         Class<?> mapClass = type.getRawClass();
         // But EnumMap requires special handling for keys
         if (EnumMap.class.isAssignableFrom(mapClass)) {
-            return new EnumMapDeserializer(EnumResolver.constructFor(keyType.getRawClass()), valueDes);
+            return new EnumMapDeserializer(EnumResolver.constructFor(keyType.getRawClass(), config.getAnnotationIntrospector()), valueDes);
         }
 
-        /* Otherwise, generic handler works ok; need a key deserializer (null 
+        /* Otherwise, generic handler works ok; need a key deserializer (null
          * indicates 'default' here)
          */
         KeyDeserializer keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(config, keyType);
@@ -227,7 +227,7 @@ public abstract class BasicDeserializerFactory
         if (des != null) {
             return des;
         }
-        JsonDeserializer<?> d2 = new EnumDeserializer(EnumResolver.constructFor(enumClass));
+        JsonDeserializer<?> d2 = new EnumDeserializer(EnumResolver.constructFor(enumClass, config.getAnnotationIntrospector()));
         return (JsonDeserializer<Object>) d2;
     }
 
@@ -268,20 +268,10 @@ public abstract class BasicDeserializerFactory
      * has annotation that tells which class to use for deserialization.
      * Returns null if no such annotation found.
      */
+    @SuppressWarnings("unchecked")
     protected JsonDeserializer<Object> findDeserializerFromAnnotation(DeserializationConfig config, Annotated a)
     {
-        Class<? extends JsonDeserializer<?>> deserClass = config.getAnnotationIntrospector().findDeserializerClass(a);
-        if (deserClass == null) {
-            return null;
-        }
-        try {
-            Object ob = deserClass.newInstance();
-            @SuppressWarnings("unchecked")
-                JsonDeserializer<Object> ser = (JsonDeserializer<Object>) ob;
-            return ser;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+a.getName()+", problem: "+e.getMessage(), e);
-        }
+        return (JsonDeserializer<Object>) config.getAnnotationIntrospector().getDeserializerInstance(a);
     }
 
     /**

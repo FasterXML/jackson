@@ -218,7 +218,7 @@ public final class ContainerSerializers
         {
             jgen.writeStartArray();
             for (Enum<?> en : value) {
-                jgen.writeString(en.name());
+                jgen.writeString(provider.getConfig().getAnnotationIntrospector().findEnumValue(en));
             }
             jgen.writeEndArray();
         }
@@ -301,7 +301,7 @@ public final class ContainerSerializers
 
             for (Map.Entry<? extends Enum<?>,?> entry : value.entrySet()) {
                 // First, serialize key
-                jgen.writeFieldName(entry.getKey().name());
+                jgen.writeFieldName(provider.getConfig().getAnnotationIntrospector().findEnumValue(entry.getKey()));
                 // And then value
                 Object valueElem = entry.getValue();
                 if (valueElem == null) {

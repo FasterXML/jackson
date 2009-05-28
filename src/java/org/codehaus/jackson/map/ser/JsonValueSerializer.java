@@ -73,7 +73,7 @@ public final class JsonValueSerializer
             throw JsonMappingException.wrapWithPath(t, bean, _accessorMethod.getName()+"()");
         }
     }
-    
+
     /*
     ////////////////////////////////////////////////////////
     // ResolvableSerializer impl

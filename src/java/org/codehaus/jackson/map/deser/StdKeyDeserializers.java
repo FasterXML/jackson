@@ -55,9 +55,9 @@ class StdKeyDeserializers
     ////////////////////////////////////////////////////////////
      */
 
-    public static KeyDeserializer constructEnumKeyDeserializer(JavaType type)
+    public static KeyDeserializer constructEnumKeyDeserializer(DeserializationConfig config, JavaType type)
     {
-        EnumResolver er = EnumResolver.constructFor(type.getRawClass());
+        EnumResolver er = EnumResolver.constructFor(type.getRawClass(), config.getAnnotationIntrospector());
         return new StdKeyDeserializer.EnumKD(er);
     }
 

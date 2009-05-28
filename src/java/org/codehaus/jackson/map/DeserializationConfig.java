@@ -347,6 +347,11 @@ public class DeserializationConfig
         return _annotationIntrospector;
     }
 
+    public void setAnnotationIntrospector(AnnotationIntrospector introspector)
+    {
+        this._annotationIntrospector = introspector;
+    }
+
     /**
      * Method that will introspect full bean properties for the purpose
      * of building a bean deserializer

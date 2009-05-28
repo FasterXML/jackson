@@ -124,7 +124,7 @@ public class StdDeserializerProvider
         }
         // And then other one-offs; first, Enum:
         if (type.isEnumType()) {
-            return StdKeyDeserializers.constructEnumKeyDeserializer(type);
+            return StdKeyDeserializers.constructEnumKeyDeserializer(config, type);
         }
         // One more thing: can we find ctor(String) or valueOf(String)?
         kdes = StdKeyDeserializers.findStringBasedKeyDeserializer(config, type);

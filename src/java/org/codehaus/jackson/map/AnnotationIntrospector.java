@@ -109,10 +109,10 @@ public abstract class AnnotationIntrospector
     */
 
     /**
-     * Method for checking whether given annotated object (method,
-     * class etc) specifies {@link JsonSerializer} class to use.
+     * Method for getting a serializer instance on a specified method. Annotations
+     * may specify which serializer instance to use.
      */
-    public abstract Class<? extends JsonSerializer<?>> findSerializerClass(Annotated am);
+    public abstract JsonSerializer<?> getSerializerInstance(Annotated am);
 
     /**
      * Method for accessing annotated type definition that a
@@ -180,6 +180,13 @@ public abstract class AnnotationIntrospector
      */
     public abstract boolean hasAsValueAnnotation(AnnotatedMethod am);
 
+    /**
+     * Method for determining the enum value of a given enum type.
+     *
+     * @return The enum value.
+     */
+    public abstract String findEnumValue(Enum<?> value);
+
     /*
     ///////////////////////////////////////////////////////
     // Deserialization: general annotations
@@ -187,10 +194,10 @@ public abstract class AnnotationIntrospector
     */
 
     /**
-     * Method for checking whether given annotated object (method,
-     * class etc) specifies {@link JsonDeserializer} class to use.
+     * Method for getting a deserializer instance on a specified method. Annotations
+     * may specify which deserializer instance to use.
      */
-    public abstract Class<? extends JsonDeserializer<?>> findDeserializerClass(Annotated am);
+    public abstract JsonDeserializer<?> getDeserializerInstance(Annotated am);
 
     /**
      * Method for accessing annotated type definition that a

@@ -35,7 +35,7 @@ public class BasicSerializerFactory
      * about ClassLoader used to load them. Rather, we can just
      * use the class name, and keep things simple and efficient.
      */
-    final static HashMap<String, JsonSerializer<?>> _concrete = 
+    final static HashMap<String, JsonSerializer<?>> _concrete =
         new HashMap<String, JsonSerializer<?>>();
     static {
         /* String and string-like types (note: date types explicitly
@@ -51,7 +51,7 @@ public class BasicSerializerFactory
         _concrete.put(Currency.class.getName(), sls);
         // including things best serialized as Strings
         _concrete.put(UUID.class.getName(), sls);
-        
+
         // Primitives/wrappers for primitives (primitives needed for Beans)
         _concrete.put(Boolean.class.getName(), BooleanSerializer.instance);
         _concrete.put(Boolean.TYPE.getName(), BooleanSerializer.instance);
@@ -297,7 +297,7 @@ public class BasicSerializerFactory
      * Add-on here means a role that is usually or can be a secondary
      * trait: for example,
      * bean classes may implement {@link Iterable}, but their main
-     * function is usually something else. The reason for 
+     * function is usually something else. The reason for
      */
     public final JsonSerializer<?> findSerializerByAddonType(Class<?> type)
     {
@@ -321,20 +321,10 @@ public class BasicSerializerFactory
      * that tells the class to use for serialization.
      * Returns null if no such annotation found.
      */
+    @SuppressWarnings("unchecked")
     protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a)
     {
-        Class<? extends JsonSerializer<?>> serClass = config.getAnnotationIntrospector().findSerializerClass(a);
-        if (serClass == null) {
-            return null;
-        }
-        try {
-            Object ob = serClass.newInstance();
-            @SuppressWarnings("unchecked")
-                JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
-            return ser;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+a.getName()+", problem: "+e.getMessage(), e);
-        }
+        return (JsonSerializer<Object>) config.getAnnotationIntrospector().getSerializerInstance(a);
     }
 
     /*
@@ -516,7 +506,7 @@ public class BasicSerializerFactory
             public void serialize(Enum<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeString(value.name());
+            jgen.writeString(provider.getConfig().getAnnotationIntrospector().findEnumValue(value));
         }
     }
 
