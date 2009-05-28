@@ -19,6 +19,9 @@ Description:
     means value of a property when bean is constructed using the default
     no-arg constructor
    (requested by Christoph S)
+  * [JACKSON-119] Add (optional) support for using JAXB annotations
+    (by using JaxbAnnotationIntrospector)
+   (requested by Ryan H)
   * [JACKSON-120] Add annotations @JsonSerialize, @JsonDeserialize,
     to streamline annotation by replacing host of existing annotations.
 

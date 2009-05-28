@@ -92,7 +92,7 @@ public class TestAnnotations
     class BaseBean {
         public int getX() { return 1; }
         @SuppressWarnings("unused")
-		@JsonProperty("y")
+            @JsonProperty("y")
         private int getY() { return 2; }
     }
 
@@ -106,7 +106,7 @@ public class TestAnnotations
     //////////////////////////////////////////////
      */
 
-    final static class BogusSerializer extends JsonSerializer<Object>
+    public final static class BogusSerializer extends JsonSerializer<Object>
     {
         public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -116,7 +116,7 @@ public class TestAnnotations
 
     }
 
-    final static class StringSerializer extends JsonSerializer<Object>
+    public final static class StringSerializer extends JsonSerializer<Object>
     {
         public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException

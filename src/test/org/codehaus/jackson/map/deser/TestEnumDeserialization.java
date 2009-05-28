@@ -25,7 +25,7 @@ public class TestEnumDeserialization
         JACKSON, RULES, OK;
     }
 
-    static class DummySerializer extends JsonDeserializer<Object>
+    public static class DummySerializer extends JsonDeserializer<Object>
     {
         public Object deserialize(JsonParser jp, DeserializationContext ctxt)
         {

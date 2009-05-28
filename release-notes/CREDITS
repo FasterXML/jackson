@@ -1,7 +1,9 @@
 Here are people who have contributed to Jackson JSON process development:
 (version numbers in brackets indicate release in which the problem was fixed)
 
-Tatu Saloranta, tatu.saloranta@iki.fi: Author
+Tatu Saloranta, tatu.saloranta@iki.fi: author
+
+Ryan Heaton, ryan@webcohesion.com: co-author
 
 Alain Penders:
   * Reported problem with JavaTypeMapper, where floating point numbers were
@@ -89,10 +91,6 @@ Kevin Grained:
   * Reported [JACKSON-58] (and suggested a fix): NPE with String[]
     serialization
     [0.9.9]
-
-Ryan Heaton:
-  * Helped with [JACKSON-67]: Json content type provider for JAX-RS
-   [0.9.9]
 
 Eldar Abusalimov:
   * Reported [JACKSON-81]: Data binding code could lead to unnecessary

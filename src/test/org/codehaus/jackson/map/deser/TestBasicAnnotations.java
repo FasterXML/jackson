@@ -117,7 +117,7 @@ public class TestBasicAnnotations
     //////////////////////////////////////////////
      */
 
-    final static class ClassDeserializer extends JsonDeserializer<TestDeserializerAnnotationClass>
+    public static class ClassDeserializer extends JsonDeserializer<TestDeserializerAnnotationClass>
     {
         public TestDeserializerAnnotationClass deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
@@ -127,7 +127,7 @@ public class TestBasicAnnotations
         }
     }
 
-    final static class IntsDeserializer extends JsonDeserializer<int[]>
+    public final static class IntsDeserializer extends JsonDeserializer<int[]>
     {
         public int[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
