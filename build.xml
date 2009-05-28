@@ -173,6 +173,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/jackson/map/**/*.java" />
+            <include name="org/codehaus/jackson/node/**/*.java" />
             <!-- mapper builds on core classes -->
             <classpath>
                <pathelement path="${dir.build.classes.core}"/>  

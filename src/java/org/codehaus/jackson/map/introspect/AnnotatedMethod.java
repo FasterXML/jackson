@@ -56,6 +56,15 @@ public final class AnnotatedMethod
         return _annotations.get(acls);
     }
 
+    /**
+     * For methods, this returns declared return type, which is only
+     * useful with getters (setters do not return anything; hence "void"
+     * type is returned here)
+     */
+    public Class<?> getType() {
+        return getReturnType();
+    }
+
     /*
     //////////////////////////////////////////////////////
     // Extended API, generic

@@ -41,6 +41,10 @@ public final class AnnotatedConstructor
         return _annotations.get(acls);
     }
 
+    public Class<?> getType() {
+        return _constructor.getDeclaringClass();
+    }
+
     /*
     //////////////////////////////////////////////////////
     // Extended API

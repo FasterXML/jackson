@@ -42,6 +42,10 @@ public final class AnnotatedField
         return _annotations.get(acls);
     }
 
+    public Class<?> getType() {
+        return _field.getType();
+    }
+
     /*
     //////////////////////////////////////////////////////
     // Extended API, generic
@@ -50,11 +54,6 @@ public final class AnnotatedField
 
     public Type getGenericType() {
         return _field.getGenericType();
-    }
-
-    public Class<?> getType()
-    {
-        return _field.getType();
     }
 
     public Class<?> getDeclaringClass() { return _field.getDeclaringClass(); }

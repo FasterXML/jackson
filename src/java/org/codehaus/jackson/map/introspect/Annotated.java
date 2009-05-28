@@ -26,4 +26,9 @@ public abstract class Annotated
     }
 
     public abstract String getName();
+
+    /**
+     * Method used with annotated things that have class type.
+     */
+    public abstract Class<?> getType();
 }
