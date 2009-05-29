@@ -1,8 +1,1387 @@
+Index: pending/jackson-json-schema.diff
+===================================================================
+--- pending/jackson-json-schema.diff	(revision 372)
++++ pending/jackson-json-schema.diff	(working copy)
+@@ -1,1374 +0,0 @@
+-Index: src/test/org/codehaus/jackson/schema/TestGenerateJsonSchema.java
+-===================================================================
+---- src/test/org/codehaus/jackson/schema/TestGenerateJsonSchema.java	(revision 0)
+-+++ src/test/org/codehaus/jackson/schema/TestGenerateJsonSchema.java	(revision 0)
+-@@ -0,0 +1,75 @@
+-+package org.codehaus.jackson.schema;
+-+
+-+import junit.framework.TestCase;
+-+
+-+import java.util.Collection;
+-+
+-+import org.codehaus.jackson.map.ObjectMapper;
+-+
+-+/**
+-+ * @author Ryan Heaton
+-+ */
+-+public class TestGenerateJsonSchema
+-+        extends TestCase
+-+{
+-+
+-+    /**
+-+     * tests generating json-schema stuff.
+-+     */
+-+    public void testGeneratingJsonSchema()
+-+            throws Exception
+-+    {
+-+        ObjectMapper mapper = new ObjectMapper();
+-+        JsonSchema jsonSchema = mapper.generateJsonSchema(SimpleBean.class);
+-+        assertNotNull(jsonSchema);
+-+    }
+-+
+-+    public static class SimpleBean
+-+    {
+-+        private int property1;
+-+        private String property2;
+-+        private String[] property3;
+-+        private Collection<Float> property4;
+-+
+-+        public int getProperty1()
+-+        {
+-+            return property1;
+-+        }
+-+
+-+        public void setProperty1(int property1)
+-+        {
+-+            this.property1 = property1;
+-+        }
+-+
+-+        public String getProperty2()
+-+        {
+-+            return property2;
+-+        }
+-+
+-+        public void setProperty2(String property2)
+-+        {
+-+            this.property2 = property2;
+-+        }
+-+
+-+        public String[] getProperty3()
+-+        {
+-+            return property3;
+-+        }
+-+
+-+        public void setProperty3(String[] property3)
+-+        {
+-+            this.property3 = property3;
+-+        }
+-+
+-+        public Collection<Float> getProperty4()
+-+        {
+-+            return property4;
+-+        }
+-+
+-+        public void setProperty4(Collection<Float> property4)
+-+        {
+-+            this.property4 = property4;
+-+        }
+-+    }
+-+
+-+}
+-
+-Property changes on: src/test/org/codehaus/jackson/schema/TestGenerateJsonSchema.java
+-___________________________________________________________________
+-Added: svn:mime-type
+-   + text/plain
+-Added: svn:keywords
+-   + Date Revision
+-Added: svn:eol-style
+-   + native
+-
+-Index: src/java/org/codehaus/jackson/node/ObjectNode.java
+-===================================================================
+---- src/java/org/codehaus/jackson/node/ObjectNode.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/node/ObjectNode.java	(working copy)
+-@@ -10,7 +10,7 @@
+- /**
+-  * Note that maps to Json Object structures in Json content.
+-  */
+--public final class ObjectNode
+-+public class ObjectNode
+-     extends ContainerNode
+- {
+-     LinkedHashMap<String, JsonNode> _children = null;
+-Index: src/java/org/codehaus/jackson/schema/JsonSchema.java
+-===================================================================
+---- src/java/org/codehaus/jackson/schema/JsonSchema.java	(revision 0)
+-+++ src/java/org/codehaus/jackson/schema/JsonSchema.java	(revision 0)
+-@@ -0,0 +1,47 @@
+-+package org.codehaus.jackson.schema;
+-+
+-+import org.codehaus.jackson.JsonNode;
+-+import org.codehaus.jackson.JsonGenerator;
+-+import org.codehaus.jackson.JsonGenerationException;
+-+import org.codehaus.jackson.node.ObjectNode;
+-+
+-+import java.io.IOException;
+-+
+-+/**
+-+ * A {@link org.codehaus.jackson.JsonNode} that represents a JSON-Schema instance.
+-+ *
+-+ * @author Ryan Heaton
+-+ * @see http://json-schema.org/
+-+ */
+-+public class JsonSchema extends JsonNode {
+-+
+-+  private final ObjectNode schema;
+-+
+-+  public JsonSchema(ObjectNode schema) {
+-+    this.schema = schema;
+-+  }
+-+
+-+  public String getValueAsText() {
+-+    return this.schema.getValueAsText();
+-+  }
+-+
+-+  public JsonNode path(String fieldName) {
+-+    return this.schema.path(fieldName);
+-+  }
+-+
+-+  public JsonNode path(int index) {
+-+    return this.schema.path(index);
+-+  }
+-+
+-+  public void writeTo(JsonGenerator jg) throws IOException, JsonGenerationException {
+-+    this.schema.writeTo(jg);
+-+  }
+-+
+-+  public String toString() {
+-+    return this.schema.toString();
+-+  }
+-+
+-+  public boolean equals(Object o) {
+-+    return this.schema.equals(o);
+-+  }
+-+}
+-
+-Property changes on: src/java/org/codehaus/jackson/schema/JsonSchema.java
+-___________________________________________________________________
+-Added: svn:mime-type
+-   + text/plain
+-Added: svn:keywords
+-   + Date Revision
+-Added: svn:eol-style
+-   + native
+-
+-Index: src/java/org/codehaus/jackson/map/JsonSerializer.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/JsonSerializer.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/JsonSerializer.java	(working copy)
+-@@ -1,8 +1,11 @@
+- package org.codehaus.jackson.map;
+- 
+- import java.io.IOException;
+-+import java.lang.reflect.Type;
+- 
+- import org.codehaus.jackson.*;
+-+import org.codehaus.jackson.node.ObjectNode;
+-+import org.codehaus.jackson.node.JsonNodeFactory;
+- 
+- /**
+-  * Abstract class that defines API used by {@link ObjectMapper} (and
+-@@ -22,4 +25,19 @@
+-      */
+-     public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
+-         throws IOException, JsonProcessingException;
+-+
+-+    /**
+-+     * Get the representation of the schema to which this serializer will conform.
+-+     *
+-+     * @param provider The serializer provider.
+-+     * @param typeHint A hint about the type.
+-+     * @return The {@link http://json-schema.org/ json-schema} for this serializer.
+-+     */
+-+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+            throws JsonMappingException {
+-+        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+        objectNode.put("type", "any");
+-+        objectNode.put("optional", "true");
+-+        return objectNode;
+-+    }
+- }
+-Index: src/java/org/codehaus/jackson/map/ser/BeanSerializer.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/ser/BeanSerializer.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/ser/BeanSerializer.java	(working copy)
+-@@ -3,10 +3,14 @@
+- import java.io.IOException;
+- import java.lang.reflect.InvocationTargetException;
+- import java.lang.reflect.Modifier;
+-+import java.lang.reflect.Type;
+- import java.util.Collection;
+- 
+- import org.codehaus.jackson.JsonGenerationException;
+- import org.codehaus.jackson.JsonGenerator;
+-+import org.codehaus.jackson.JsonNode;
+-+import org.codehaus.jackson.node.ObjectNode;
+-+import org.codehaus.jackson.node.JsonNodeFactory;
+- import org.codehaus.jackson.map.*;
+- 
+- /**
+-@@ -72,11 +76,34 @@
+-         }
+-     }
+- 
+-+    @Override
+-+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+            throws JsonMappingException
+-+    {
+-+        ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+        //todo: should the classname go in the title?
+-+        //o.put("title", _className);
+-+        o.put("type", "object");
+-+        o.put("optional", true);
+-+        ObjectNode propertiesNode = o.objectNode();
+-+        for (int i = 0; i < _props.length; i++) {
+-+            BeanPropertyWriter prop = _props[i];
+-+            Type hint = prop.getSerializationType();
+-+            if (hint == null) {
+-+                hint = prop._accessorMethod.getGenericReturnType();
+-+            }
+-+            JsonSerializer<Object> jsonSerializer = provider.findValueSerializer(prop.getSerializationType() == null ? prop.getReturnType() : prop.getSerializationType());
+-+            propertiesNode.put(prop.getName(), jsonSerializer.getSchema(provider, hint));
+-+        }
+-+        o.put("properties", propertiesNode);
+-+        return o;
+-+    }
+-+
+-     /*
+--    ////////////////////////////////////////////////////////
+--    // ResolvableSerializer impl
+--    ////////////////////////////////////////////////////////
+--     */
+-+   ////////////////////////////////////////////////////////
+-+   // ResolvableSerializer impl
+-+   ////////////////////////////////////////////////////////
+-+    */
+- 
+-     public void resolve(SerializerProvider provider)
+-         throws JsonMappingException
+-Index: src/java/org/codehaus/jackson/map/ser/ContainerSerializers.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/ser/ContainerSerializers.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/ser/ContainerSerializers.java	(working copy)
+-@@ -2,9 +2,17 @@
+- 
+- import java.io.IOException;
+- import java.util.*;
+-+import java.lang.reflect.Type;
+-+import java.lang.reflect.ParameterizedType;
+- 
+- import org.codehaus.jackson.*;
+-+import org.codehaus.jackson.type.JavaType;
+-+import org.codehaus.jackson.node.ObjectNode;
+-+import org.codehaus.jackson.node.JsonNodeFactory;
+- import org.codehaus.jackson.map.*;
+-+import org.codehaus.jackson.map.type.TypeFactory;
+-+import org.codehaus.jackson.map.type.ArrayType;
+-+import org.codehaus.jackson.map.type.CollectionType;
+- 
+- /**
+-  * Dummy container class to group standard container serializers: serializers
+-@@ -76,6 +84,24 @@
+- 
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            if (typeHint != null) {
+-+                JavaType javaType = TypeFactory.instance._fromType(typeHint);
+-+                if (javaType instanceof CollectionType) {
+-+                    Class<?> componentType = ((CollectionType) javaType).getElementType().getRawClass();
+-+                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
+-+                    o.put("items", ser.getSchema(provider, null));
+-+                }
+-+            }
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     /**
+-@@ -132,6 +158,24 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            if (typeHint != null) {
+-+                JavaType javaType = TypeFactory.instance._fromType(typeHint);
+-+                if (javaType instanceof CollectionType) {
+-+                    Class<?> componentType = ((CollectionType) javaType).getElementType().getRawClass();
+-+                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
+-+                    o.put("items", ser.getSchema(provider, null));
+-+                }
+-+            }
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     public final static class IteratorSerializer
+-@@ -168,6 +212,24 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            if (typeHint instanceof ParameterizedType) {
+-+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
+-+                if (typeArgs.length == 1) {
+-+                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
+-+                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
+-+                    o.put("items", ser.getSchema(provider, null));
+-+                }
+-+            }
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     public final static class IterableSerializer
+-@@ -205,6 +267,24 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            if (typeHint instanceof ParameterizedType) {
+-+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
+-+                if (typeArgs.length == 1) {
+-+                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
+-+                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
+-+                    o.put("items", ser.getSchema(provider, null));
+-+                }
+-+            }
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     public final static class EnumSetSerializer
+-@@ -222,6 +302,24 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            if (typeHint instanceof ParameterizedType) {
+-+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
+-+                if (typeArgs.length == 1) {
+-+                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
+-+                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
+-+                    o.put("items", ser.getSchema(provider, null));
+-+                }
+-+            }
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     /*
+-@@ -286,6 +384,17 @@
+-                 
+-             jgen.writeEndObject();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "object");
+-+            //(ryan) even though it's possible to statically determine the "value" type of the map,
+-+            // there's no way to statically determine the keys, so the "properties" can't be determined.
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     public final static class EnumMapSerializer
+-@@ -328,5 +437,29 @@
+-             }
+-             jgen.writeEndObject();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "object");
+-+            if (typeHint instanceof ParameterizedType) {
+-+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
+-+                if (typeArgs.length == 2) {
+-+                    JavaType enumType = TypeFactory.instance._fromType(typeArgs[0]);
+-+                    JavaType valueType = TypeFactory.instance._fromType(typeArgs[1]);
+-+                    Class<? extends Enum> enumClass = (Class<? extends Enum>) enumType.getRawClass();
+-+                    ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
+-+                    for (Object enumValue : EnumSet.allOf(enumClass)) {
+-+                        JsonSerializer<Object> ser = provider.findValueSerializer(valueType.getRawClass());
+-+                        propsNode.put(((Enum)enumValue).name(), ser.getSchema(provider, null));
+-+                    }
+-+                    o.put("properties", propsNode);
+-+                }
+-+            }
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- }
+-Index: src/java/org/codehaus/jackson/map/ser/StdSerializerProvider.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/ser/StdSerializerProvider.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/ser/StdSerializerProvider.java	(working copy)
+-@@ -3,8 +3,11 @@
+- import java.io.IOException;
+- import java.text.DateFormat;
+- import java.util.Date;
+-+import java.lang.reflect.Type;
+- 
+- import org.codehaus.jackson.*;
+-+import org.codehaus.jackson.node.ObjectNode;
+-+import org.codehaus.jackson.schema.JsonSchema;
+- 
+- import org.codehaus.jackson.map.*;
+- 
+-@@ -52,6 +55,13 @@
+-              */
+-             throw new JsonMappingException("No serializer found for class "+value.getClass().getName()+" (and no bean properties discovered to create bean serializer)");
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            throw new JsonMappingException("No serializer found for class "+typeHint+" (and no bean properties discovered to create bean serializer)");
+-+        }
+-     };
+- 
+-     /*
+-@@ -206,6 +216,33 @@
+-         inst._serializeValue(jgen, value);
+-     }
+- 
+-+    @Override
+-+    public JsonSchema generateJsonSchema(Class<?> type, SerializationConfig config, SerializerFactory jsf)
+-+            throws JsonMappingException
+-+    {
+-+        if (type == null) {
+-+            throw new IllegalArgumentException("A class must be provided.");
+-+        }
+-+
+-+        /* First: we need a separate instance, which will hold a copy of the
+-+         * non-shared ("local") read-only lookup Map for fast
+-+         * class-to-serializer lookup
+-+         */
+-+        StdSerializerProvider inst = createInstance(config, jsf);
+-+        // sanity check to avoid weird errors; to ensure sub-classes do override createInstance
+-+        if (inst.getClass() != getClass()) {
+-+            throw new IllegalStateException("Broken serializer provider: createInstance returned instance of type "+inst.getClass()+"; blueprint of type "+getClass());
+-+        }
+-+        JsonSerializer<Object> ser = inst.findValueSerializer(type);
+-+        JsonNode schemaNode = ser.getSchema(inst, null);
+-+        if (!(schemaNode instanceof ObjectNode)) {
+-+            throw new IllegalArgumentException("Class " + type.getName() +
+-+                    " would not be serialized as a JSON object and therefore has no schema.");
+-+        }
+-+
+-+        return new JsonSchema((ObjectNode) schemaNode);
+-+    }
+-+
+-     public boolean hasSerializerFor(SerializationConfig config,
+-                                     Class<?> cls, SerializerFactory jsf)
+-     {
+-Index: src/java/org/codehaus/jackson/map/ser/JsonValueSerializer.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/ser/JsonValueSerializer.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/ser/JsonValueSerializer.java	(working copy)
+-@@ -4,9 +4,11 @@
+- import java.lang.reflect.InvocationTargetException;
+- import java.lang.reflect.Method;
+- import java.lang.reflect.Modifier;
+-+import java.lang.reflect.Type;
+- 
+- import org.codehaus.jackson.JsonGenerationException;
+- import org.codehaus.jackson.JsonGenerator;
+-+import org.codehaus.jackson.JsonNode;
+- import org.codehaus.jackson.map.*;
+- 
+- /**
+-@@ -73,12 +75,19 @@
+-             throw JsonMappingException.wrapWithPath(t, bean, _accessorMethod.getName()+"()");
+-         }
+-     }
+--    
+-+
+-+    @Override
+-+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+            throws JsonMappingException
+-+    {
+-+        return _serializer.getSchema(provider, null);
+-+    }
+-+
+-     /*
+--    ////////////////////////////////////////////////////////
+--    // ResolvableSerializer impl
+--    ////////////////////////////////////////////////////////
+--     */
+-+   ////////////////////////////////////////////////////////
+-+   // ResolvableSerializer impl
+-+   ////////////////////////////////////////////////////////
+-+    */
+- 
+-     /**
+-      * We can try to find the actual serializer for value, if we can
+-Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java	(working copy)
+-@@ -1,16 +1,24 @@
+- package org.codehaus.jackson.map.ser;
+- 
+-+import org.codehaus.jackson.JsonGenerationException;
+-+import org.codehaus.jackson.JsonGenerator;
+-+import org.codehaus.jackson.JsonNode;
+-+import org.codehaus.jackson.annotate.JsonUseSerializer;
+-+import org.codehaus.jackson.map.*;
+-+import org.codehaus.jackson.map.introspect.Annotated;
+-+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+-+import org.codehaus.jackson.map.type.TypeFactory;
+-+import org.codehaus.jackson.node.ArrayNode;
+-+import org.codehaus.jackson.node.JsonNodeFactory;
+-+import org.codehaus.jackson.node.ObjectNode;
+-+import org.codehaus.jackson.type.JavaType;
+-+
+- import java.io.IOException;
+-+import java.lang.reflect.Type;
+- import java.math.BigDecimal;
+- import java.math.BigInteger;
+- import java.util.*;
+- 
+--import org.codehaus.jackson.*;
+--import org.codehaus.jackson.annotate.JsonUseSerializer;
+--import org.codehaus.jackson.map.*;
+--import org.codehaus.jackson.map.introspect.Annotated;
+--import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+--
+- /**
+-  * Factory class that can provide serializers for standard JDK classes,
+-  * as well as custom classes that extend standard classes or implement
+-@@ -354,6 +362,16 @@
+-         {
+-             jgen.writeBoolean(value.booleanValue());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "boolean");
+-+            objectNode.put("optional", "true"); //(ryan) it may not, in fact, be optional, but there's no way to tell whether we're referencing a boolean or java.lang.Boolean.
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     /**
+-@@ -368,6 +386,16 @@
+-         {
+-             jgen.writeString(value);
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "string");
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     /**
+-@@ -393,6 +421,16 @@
+-         {
+-             jgen.writeString(value.toString());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "string");
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     /**
+-@@ -408,6 +446,16 @@
+-         {
+-             jgen.writeString(value.getName());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "string");
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     /*
+-@@ -425,6 +473,16 @@
+-         {
+-             jgen.writeNumber(value.intValue());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "integer");
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     /**
+-@@ -443,6 +501,16 @@
+-         {
+-             jgen.writeNumber(value.intValue());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "integer");
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     public final static class LongSerializer
+-@@ -456,6 +524,16 @@
+-         {
+-             jgen.writeNumber(value.longValue());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "number");
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     public final static class FloatSerializer
+-@@ -469,6 +547,16 @@
+-         {
+-             jgen.writeNumber(value.floatValue());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "number");
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     public final static class DoubleSerializer
+-@@ -482,6 +570,16 @@
+-         {
+-             jgen.writeNumber(value.doubleValue());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "number");
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     /**
+-@@ -500,6 +598,16 @@
+-             // We'll have to use fallback "untyped" number write method
+-             jgen.writeNumber(value.toString());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "number");
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+- 
+-@@ -518,6 +626,26 @@
+-         {
+-             jgen.writeString(value.name());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "string");
+-+            if (typeHint != null) {
+-+                JavaType type = TypeFactory.instance._fromType(typeHint);
+-+                if (type.isEnumType()) {
+-+                    EnumSet<? extends Enum> enumSet = EnumSet.allOf((Class<? extends Enum>) type.getRawClass());
+-+                    ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
+-+                    for (Enum<?> enumValue : enumSet) {
+-+                        arrayNode.add(enumValue.name());
+-+                    }
+-+                }
+-+            }
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     /**
+-@@ -535,6 +663,17 @@
+-         {
+-             provider.defaultSerializeDateValue(value.getTimeInMillis(), jgen);
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "string");
+-+            //todo: (ryan) add a format for the date in the schema?
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     /**
+-@@ -551,6 +690,17 @@
+-         {
+-             provider.defaultSerializeDateValue(value, jgen);
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "string");
+-+            //todo: (ryan) add a format for the date in the schema?
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     /**
+-@@ -567,6 +717,17 @@
+-         {
+-             jgen.writeString(value.toString());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "string");
+-+            //todo: (ryan) add a format for the date in the schema?
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     public final static class SqlTimeSerializer
+-@@ -578,6 +739,16 @@
+-         {
+-             jgen.writeString(value.toString());
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "string");
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     /**
+-@@ -598,6 +769,15 @@
+-         {
+-             jgen.writeNull();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            objectNode.put("type", "null");
+-+            return objectNode;
+-+        }
+-     }
+- 
+-     public final static class SerializableSerializer
+-@@ -613,5 +793,45 @@
+-         {
+-             value.serialize(jgen, provider);
+-         }
+-+        
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+            String schemaType = "any";
+-+            String objectProperties = null;
+-+            String itemDefinition = null;
+-+            if (typeHint != null) {
+-+                Class<?> rawClass = TypeFactory.fromType(typeHint).getRawClass();
+-+                if (rawClass.isAnnotationPresent(JsonSerializableSchema.class)) {
+-+                    JsonSerializableSchema schemaInfo = rawClass.getAnnotation(JsonSerializableSchema.class);
+-+                    schemaType = schemaInfo.schemaType();
+-+                    if (!"##irrelevant".equals(schemaInfo.schemaObjectPropertiesDefinition())) {
+-+                        objectProperties = schemaInfo.schemaObjectPropertiesDefinition();
+-+                    }
+-+                    if (!"##irrelevant".equals(schemaInfo.schemaItemDefinition())) {
+-+                        itemDefinition = schemaInfo.schemaItemDefinition();
+-+                    }
+-+                }
+-+            }
+-+            objectNode.put("type", schemaType);
+-+            if (objectProperties != null) {
+-+                try {
+-+                    objectNode.put("properties", new ObjectMapper().readValue(objectProperties, JsonNode.class));
+-+                } catch (IOException e) {
+-+                    throw new IllegalStateException(e);
+-+                }
+-+            }
+-+            if (itemDefinition != null) {
+-+                try {
+-+                    objectNode.put("items", new ObjectMapper().readValue(itemDefinition, JsonNode.class));
+-+                } catch (IOException e) {
+-+                    throw new IllegalStateException(e);
+-+                }
+-+            }
+-+            objectNode.put("optional", "true");
+-+            return objectNode;
+-+        }
+-     }
+- }
+-Index: src/java/org/codehaus/jackson/map/ser/FailingSerializer.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/ser/FailingSerializer.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/ser/FailingSerializer.java	(working copy)
+-@@ -1,11 +1,14 @@
+- package org.codehaus.jackson.map.ser;
+- 
+- import java.io.IOException;
+-+import java.lang.reflect.Type;
+- 
+- import org.codehaus.jackson.JsonGenerationException;
+- import org.codehaus.jackson.JsonGenerator;
+-+import org.codehaus.jackson.JsonNode;
+- import org.codehaus.jackson.map.JsonSerializer;
+- import org.codehaus.jackson.map.SerializerProvider;
+-+import org.codehaus.jackson.map.JsonMappingException;
+- 
+- /**
+-  * Special bogus "serializer" that will throw
+-@@ -26,4 +29,11 @@
+-     {
+-         throw new JsonGenerationException(_msg);
+-     }
+-+
+-+    @Override
+-+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+            throws JsonMappingException
+-+    {
+-+        throw new UnsupportedOperationException();
+-+    }
+- }
+-Index: src/java/org/codehaus/jackson/map/ser/ToStringSerializer.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/ser/ToStringSerializer.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/ser/ToStringSerializer.java	(working copy)
+-@@ -1,11 +1,16 @@
+- package org.codehaus.jackson.map.ser;
+- 
+- import java.io.IOException;
+-+import java.lang.reflect.Type;
+- 
+- import org.codehaus.jackson.JsonGenerationException;
+- import org.codehaus.jackson.JsonGenerator;
+-+import org.codehaus.jackson.JsonNode;
+-+import org.codehaus.jackson.node.ObjectNode;
+-+import org.codehaus.jackson.node.JsonNodeFactory;
+- import org.codehaus.jackson.map.JsonSerializer;
+- import org.codehaus.jackson.map.SerializerProvider;
+-+import org.codehaus.jackson.map.JsonMappingException;
+- 
+- /**
+-  * Simple general purpose serializer, useful for any
+-@@ -35,4 +40,15 @@
+-     {
+-         jgen.writeString(value.toString());
+-     }
+-+
+-+    @Override
+-+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+            throws JsonMappingException
+-+    {
+-+        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+        objectNode.put("type", "string");
+-+        objectNode.put("optional", "true");
+-+        return objectNode;
+-+    }
+-+    
+- }
+-Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/ser/ArraySerializers.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/ser/ArraySerializers.java	(working copy)
+-@@ -2,9 +2,16 @@
+- 
+- import java.io.IOException;
+- import java.lang.reflect.InvocationTargetException;
+-+import java.lang.reflect.Type;
+-+import java.lang.reflect.GenericArrayType;
+- 
+- import org.codehaus.jackson.*;
+-+import org.codehaus.jackson.type.JavaType;
+-+import org.codehaus.jackson.node.ObjectNode;
+-+import org.codehaus.jackson.node.JsonNodeFactory;
+- import org.codehaus.jackson.map.*;
+-+import org.codehaus.jackson.map.type.TypeFactory;
+-+import org.codehaus.jackson.map.type.ArrayType;
+- 
+- /**
+-  * Dummy container class to group standard array serializer implementations.
+-@@ -79,6 +86,24 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+                throws JsonMappingException
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            if (typeHint != null) {
+-+                JavaType javaType = TypeFactory.instance._fromType(typeHint);
+-+                if (javaType.isArrayType()) {
+-+                    Class<?> componentType = ((ArrayType) javaType).getComponentType().getRawClass();
+-+                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
+-+                    o.put("items", ser.getSchema(provider, null));
+-+                }
+-+            }
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     public final static class StringArraySerializer
+-@@ -111,6 +136,18 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
+-+            itemSchema.put("type", "string");
+-+            o.put("items", itemSchema);
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     public final static class BooleanArraySerializer
+-@@ -126,6 +163,18 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
+-+            itemSchema.put("type", "boolean");
+-+            o.put("items", itemSchema);
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     /**
+-@@ -142,6 +191,18 @@
+-         {
+-             jgen.writeBinary(value);
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
+-+            itemSchema.put("type", "string"); //binary values written as strings?
+-+            o.put("items", itemSchema);
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     public final static class ShortArraySerializer
+-@@ -158,6 +219,18 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
+-+            itemSchema.put("type", "integer"); //no "short" type defined by json
+-+            o.put("items", itemSchema);
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     /**
+-@@ -174,6 +247,18 @@
+-         {
+-             jgen.writeString(value, 0, value.length);
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
+-+            itemSchema.put("type", "string");
+-+            o.put("items", itemSchema);
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+- 
+-@@ -190,6 +275,18 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
+-+            itemSchema.put("type", "integer");
+-+            o.put("items", itemSchema);
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     public final static class LongArraySerializer
+-@@ -205,6 +302,18 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
+-+            itemSchema.put("type", "number");
+-+            o.put("items", itemSchema);
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     public final static class FloatArraySerializer
+-@@ -220,6 +329,18 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
+-+            itemSchema.put("type", "number");
+-+            o.put("items", itemSchema);
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- 
+-     public final static class DoubleArraySerializer
+-@@ -235,5 +356,17 @@
+-             }
+-             jgen.writeEndArray();
+-         }
+-+
+-+        @Override
+-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+        {
+-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+-+            o.put("type", "array");
+-+            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
+-+            itemSchema.put("type", "number");
+-+            o.put("items", itemSchema);
+-+            o.put("optional", true);
+-+            return o;
+-+        }
+-     }
+- }
+-Index: src/java/org/codehaus/jackson/map/ser/StdKeySerializer.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/ser/StdKeySerializer.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/ser/StdKeySerializer.java	(working copy)
+-@@ -1,11 +1,16 @@
+- package org.codehaus.jackson.map.ser;
+- 
+- import java.io.IOException;
+-+import java.lang.reflect.Type;
+- 
+- import org.codehaus.jackson.JsonGenerationException;
+- import org.codehaus.jackson.JsonGenerator;
+-+import org.codehaus.jackson.JsonNode;
+-+import org.codehaus.jackson.node.ObjectNode;
+-+import org.codehaus.jackson.node.JsonNodeFactory;
+- import org.codehaus.jackson.map.JsonSerializer;
+- import org.codehaus.jackson.map.SerializerProvider;
+-+import org.codehaus.jackson.map.JsonMappingException;
+- 
+- /**
+-  * Specialized serializer that can be used as the generic key
+-@@ -25,4 +30,13 @@
+-             ((String) value) : value.toString();
+-         jgen.writeFieldName(keyStr);
+-     }
+-+
+-+    @Override
+-+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-+            throws JsonMappingException
+-+    {
+-+        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+-+        objectNode.put("type", "string");
+-+        return objectNode;
+-+    }
+- }
+-Index: src/java/org/codehaus/jackson/map/ObjectMapper.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/ObjectMapper.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/ObjectMapper.java	(working copy)
+-@@ -5,6 +5,7 @@
+- import java.util.concurrent.ConcurrentHashMap;
+- 
+- import org.codehaus.jackson.*;
+-+import org.codehaus.jackson.schema.JsonSchema;
+- import org.codehaus.jackson.map.deser.StdDeserializationContext;
+- import org.codehaus.jackson.map.deser.StdDeserializerProvider;
+- import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
+-@@ -13,6 +14,7 @@
+- import org.codehaus.jackson.map.ser.BeanSerializerFactory;
+- import org.codehaus.jackson.map.type.TypeFactory;
+- import org.codehaus.jackson.node.NullNode;
+-+import org.codehaus.jackson.node.ObjectNode;
+- import org.codehaus.jackson.type.JavaType;
+- import org.codehaus.jackson.type.TypeReference;
+- 
+-@@ -580,6 +582,18 @@
+-     }
+- 
+-     /**
+-+     * Generate the {@link http://json-schema.org/ Json-schema} for the specified class.
+-+     *
+-+     * @param t The class.
+-+     * @return The json-schema.
+-+     */
+-+    public JsonSchema generateJsonSchema(Class t)
+-+            throws JsonMappingException
+-+    {
+-+        return _serializerProvider.generateJsonSchema(t, _getUnsharedSConfig(), _serializerFactory);
+-+    }
+-+
+-+    /**
+-      * Method called to configure the generator as necessary and then
+-      * call write functionality
+-      */
+-Index: src/java/org/codehaus/jackson/map/JsonSerializableSchema.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/JsonSerializableSchema.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/JsonSerializableSchema.java	(working copy)
+-@@ -1,21 +1,40 @@
+- package org.codehaus.jackson.map;
+- 
+--import java.io.IOException;
+-+import org.codehaus.jackson.node.ObjectNode;
+- 
+--import org.codehaus.jackson.*;
+-+import java.lang.annotation.Target;
+-+import java.lang.annotation.ElementType;
+-+import java.lang.annotation.Retention;
+-+import java.lang.annotation.RetentionPolicy;
+- 
+- /**
+-- * Interface that can be implemented by objects that know how to
+-- * serialize themselves to Json, using {@link JsonGenerator}
+-- * (and {@link SerializerProvider} if necessary).
+-- *<p>
+-- * Note that implementing this interface binds implementing object
+-- * closely to Jackson API, and that it is often not necessary to do
+-- * so -- if class is a bean, it can be serialized without
+-- * implementing this interface.
+-+ * Metadata that can be applied to a class that implements {@link org.codehaus.jackson.map.JsonSerializable} in
+-+ * order to provide a definition of its schema.
+-  */
+--public interface JsonSerializable
+-+@Target (ElementType.TYPE)
+-+@Retention(RetentionPolicy.RUNTIME)
+-+public @interface JsonSerializableSchema
+- {
+--    public void serialize(JsonGenerator jgen, SerializerProvider provider)
+--        throws IOException, JsonProcessingException;
+--}
+-+
+-+    /**
+-+     * The schema type for this JsonSerializable instance.
+-+     * Possible values: "string", "number", "boolean", "object", "array", "null", "any"
+-+     *
+-+     * @return The schema type for this JsonSerializable instance.
+-+     */
+-+    String schemaType() default "any";
+-+
+-+    /**
+-+     * If the schema type is "object", the node that defines the properties of the object.
+-+     *
+-+     * @return The node representing the schema properties, or "##irrelevant" if irrelevant.
+-+     */
+-+    String schemaObjectPropertiesDefinition() default "##irrelevant";
+-+
+-+    /**
+-+     * If the schema type if "array", the node that defines the schema for the items in the array.
+-+     *
+-+     * @return The schema for the items in the array, or "##irrelevant" if irrelevant.
+-+     */
+-+    String schemaItemDefinition() default "##irrelevant";
+-+}
+-\ No newline at end of file
+-Index: src/java/org/codehaus/jackson/map/SerializerProvider.java
+-===================================================================
+---- src/java/org/codehaus/jackson/map/SerializerProvider.java	(revision 353)
+-+++ src/java/org/codehaus/jackson/map/SerializerProvider.java	(working copy)
+-@@ -4,6 +4,7 @@
+- import java.util.Date;
+- 
+- import org.codehaus.jackson.*;
+-+import org.codehaus.jackson.schema.JsonSchema;
+- 
+- /**
+-  * Abstract class that defines API used by {@link ObjectMapper} and
+-@@ -44,6 +45,19 @@
+-         throws IOException, JsonGenerationException;
+- 
+-     /**
+-+     * Generate the {@link http://json-schema.org/ json-schema}.
+-+     *
+-+     * @param type The type.
+-+     * @param config The config.
+-+     * @param jsf The serializer factory.
+-+     * @return The config.
+-+     */
+-+    public JsonSchema generateJsonSchema(Class<?> type, SerializationConfig config, SerializerFactory jsf)
+-+            throws JsonMappingException {
+-+        throw new UnsupportedOperationException();
+-+    }
+-+
+-+    /**
+-      * Method that can be called to see if this serializer provider
+-      * can find a serializer for an instance of given class.
+-      *<p>
 Index: src/test/org/codehaus/jackson/schema/TestGenerateJsonSchema.java
 ===================================================================
 --- src/test/org/codehaus/jackson/schema/TestGenerateJsonSchema.java	(revision 0)
 +++ src/test/org/codehaus/jackson/schema/TestGenerateJsonSchema.java	(revision 0)
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,99 @@
 +package org.codehaus.jackson.schema;
 +
 +import junit.framework.TestCase;
@@ -10,6 +1389,7 @@ Index: src/test/org/codehaus/jackson/schema/TestGenerateJsonSchema.java
 +import java.util.Collection;
 +
 +import org.codehaus.jackson.map.ObjectMapper;
++import org.codehaus.jackson.JsonNode;
 +
 +/**
 + * @author Ryan Heaton
@@ -26,7 +1406,30 @@ Index: src/test/org/codehaus/jackson/schema/TestGenerateJsonSchema.java
 +    {
 +        ObjectMapper mapper = new ObjectMapper();
 +        JsonSchema jsonSchema = mapper.generateJsonSchema(SimpleBean.class);
++//        System.out.println(jsonSchema.toString());
 +        assertNotNull(jsonSchema);
++        assertEquals("object", jsonSchema.getSchemaNode().get("type").getValueAsText());
++        assertEquals(true, jsonSchema.getSchemaNode().get("optional").getBooleanValue());
++        JsonNode propertiesSchema = jsonSchema.getSchemaNode().get("properties");
++        assertNotNull(propertiesSchema);
++        JsonNode property1Schema = propertiesSchema.get("property1");
++        assertNotNull(property1Schema);
++        assertEquals("integer", property1Schema.get("type").getValueAsText());
++        assertEquals(true, property1Schema.get("optional").getBooleanValue());
++        JsonNode property2Schema = propertiesSchema.get("property2");
++        assertNotNull(property2Schema);
++        assertEquals("string", property2Schema.get("type").getValueAsText());
++        assertEquals(true, property2Schema.get("optional").getBooleanValue());
++        JsonNode property3Schema = propertiesSchema.get("property3");
++        assertNotNull(property3Schema);
++        assertEquals("array", property3Schema.get("type").getValueAsText());
++        assertEquals(true, property3Schema.get("optional").getBooleanValue());
++        assertEquals("string", property3Schema.get("items").get("type").getValueAsText());
++        JsonNode property4Schema = propertiesSchema.get("property4");
++        assertNotNull(property4Schema);
++        assertEquals("array", property4Schema.get("type").getValueAsText());
++        assertEquals(true, property4Schema.get("optional").getBooleanValue());
++        assertEquals("number", property4Schema.get("items").get("type").getValueAsText());
 +    }
 +
 +    public static class SimpleBean
@@ -88,9 +1491,21 @@ Added: svn:keywords
 Added: svn:eol-style
    + native
 
+Index: src/test/org/codehaus/jackson/map/introspect/TestJacksonAnnotationIntrospector.java
+===================================================================
+--- src/test/org/codehaus/jackson/map/introspect/TestJacksonAnnotationIntrospector.java	(revision 372)
++++ src/test/org/codehaus/jackson/map/introspect/TestJacksonAnnotationIntrospector.java	(working copy)
+@@ -17,6 +17,7 @@
+ import java.io.StringWriter;
+ import java.util.Arrays;
+ import java.util.List;
++import java.lang.reflect.Type;
+ 
+ /**
+  * @author Ryan Heaton
 Index: src/java/org/codehaus/jackson/node/ObjectNode.java
 ===================================================================
---- src/java/org/codehaus/jackson/node/ObjectNode.java	(revision 353)
+--- src/java/org/codehaus/jackson/node/ObjectNode.java	(revision 372)
 +++ src/java/org/codehaus/jackson/node/ObjectNode.java	(working copy)
 @@ -10,7 +10,7 @@
  /**
@@ -101,19 +1516,63 @@ Index: src/java/org/codehaus/jackson/node/ObjectNode.java
      extends ContainerNode
  {
      LinkedHashMap<String, JsonNode> _children = null;
+Index: src/java/org/codehaus/jackson/schema/SchemaAware.java
+===================================================================
+--- src/java/org/codehaus/jackson/schema/SchemaAware.java	(revision 0)
++++ src/java/org/codehaus/jackson/schema/SchemaAware.java	(revision 0)
+@@ -0,0 +1,25 @@
++package org.codehaus.jackson.schema;
++
++import org.codehaus.jackson.JsonNode;
++import org.codehaus.jackson.map.SerializerProvider;
++import org.codehaus.jackson.map.JsonMappingException;
++
++import java.lang.reflect.Type;
++
++/**
++ * Marker interface for schema-aware serializers.
++ *
++ * @author Ryan Heaton
++ */
++public interface SchemaAware
++{
++    /**
++     * Get the representation of the schema to which this serializer will conform.
++     *
++     * @param provider The serializer provider.
++     * @param typeHint A hint about the type.
++     * @return The {@link http://json-schema.org/ json-schema} for this serializer.
++     */
++    JsonNode getSchema(SerializerProvider provider, Type typeHint)
++            throws JsonMappingException;
++}
+
+Property changes on: src/java/org/codehaus/jackson/schema/SchemaAware.java
+___________________________________________________________________
+Added: svn:mime-type
+   + text/plain
+Added: svn:keywords
+   + Date Revision
+Added: svn:eol-style
+   + native
+
 Index: src/java/org/codehaus/jackson/schema/JsonSchema.java
 ===================================================================
 --- src/java/org/codehaus/jackson/schema/JsonSchema.java	(revision 0)
 +++ src/java/org/codehaus/jackson/schema/JsonSchema.java	(revision 0)
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,60 @@
 +package org.codehaus.jackson.schema;
 +
 +import org.codehaus.jackson.JsonNode;
 +import org.codehaus.jackson.JsonGenerator;
 +import org.codehaus.jackson.JsonGenerationException;
++import org.codehaus.jackson.map.SerializerProvider;
++import org.codehaus.jackson.map.JsonMappingException;
 +import org.codehaus.jackson.node.ObjectNode;
++import org.codehaus.jackson.node.JsonNodeFactory;
 +
 +import java.io.IOException;
++import java.lang.reflect.Type;
 +
 +/**
 + * A {@link org.codehaus.jackson.JsonNode} that represents a JSON-Schema instance.
@@ -121,37 +1580,46 @@ Index: src/java/org/codehaus/jackson/schema/JsonSchema.java
 + * @author Ryan Heaton
 + * @see http://json-schema.org/
 + */
-+public class JsonSchema extends JsonNode {
++public class JsonSchema
++{
 +
-+  private final ObjectNode schema;
++    private final ObjectNode schema;
 +
-+  public JsonSchema(ObjectNode schema) {
-+    this.schema = schema;
-+  }
++    public JsonSchema(ObjectNode schema)
++    {
++        this.schema = schema;
++    }
 +
-+  public String getValueAsText() {
-+    return this.schema.getValueAsText();
-+  }
++    public ObjectNode getSchemaNode()
++    {
++        return schema;
++    }
 +
-+  public JsonNode path(String fieldName) {
-+    return this.schema.path(fieldName);
-+  }
++    @Override
++    public String toString()
++    {
++        return this.schema.toString();
++    }
 +
-+  public JsonNode path(int index) {
-+    return this.schema.path(index);
-+  }
++    @Override
++    public boolean equals(Object o)
++    {
++        return this.schema.equals(o);
++    }
 +
-+  public void writeTo(JsonGenerator jg) throws IOException, JsonGenerationException {
-+    this.schema.writeTo(jg);
-+  }
++    /**
++     * Get the default schema node.
++     *
++     * @return The default schema node.
++     */
++    public static JsonNode getDefaultSchemaNode()
++    {
++        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
++        objectNode.put("type", "any");
++        objectNode.put("optional", true);
++        return objectNode;
++    }
 +
-+  public String toString() {
-+    return this.schema.toString();
-+  }
-+
-+  public boolean equals(Object o) {
-+    return this.schema.equals(o);
-+  }
 +}
 
 Property changes on: src/java/org/codehaus/jackson/schema/JsonSchema.java
@@ -163,300 +1631,56 @@ Added: svn:keywords
 Added: svn:eol-style
    + native
 
-Index: src/java/org/codehaus/jackson/map/JsonSerializer.java
+Index: src/java/org/codehaus/jackson/xc/XmlAdapterJsonSerializer.java
 ===================================================================
---- src/java/org/codehaus/jackson/map/JsonSerializer.java	(revision 353)
-+++ src/java/org/codehaus/jackson/map/JsonSerializer.java	(working copy)
-@@ -1,8 +1,11 @@
- package org.codehaus.jackson.map;
+--- src/java/org/codehaus/jackson/xc/XmlAdapterJsonSerializer.java	(revision 372)
++++ src/java/org/codehaus/jackson/xc/XmlAdapterJsonSerializer.java	(working copy)
+@@ -2,6 +2,8 @@
  
- import java.io.IOException;
-+import java.lang.reflect.Type;
- 
- import org.codehaus.jackson.*;
-+import org.codehaus.jackson.node.ObjectNode;
-+import org.codehaus.jackson.node.JsonNodeFactory;
- 
- /**
-  * Abstract class that defines API used by {@link ObjectMapper} (and
-@@ -22,4 +25,19 @@
-      */
-     public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
-         throws IOException, JsonProcessingException;
-+
-+    /**
-+     * Get the representation of the schema to which this serializer will conform.
-+     *
-+     * @param provider The serializer provider.
-+     * @param typeHint A hint about the type.
-+     * @return The {@link http://json-schema.org/ json-schema} for this serializer.
-+     */
-+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+            throws JsonMappingException {
-+        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
-+        objectNode.put("type", "any");
-+        objectNode.put("optional", "true");
-+        return objectNode;
-+    }
- }
-Index: src/java/org/codehaus/jackson/map/ser/BeanSerializer.java
-===================================================================
---- src/java/org/codehaus/jackson/map/ser/BeanSerializer.java	(revision 353)
-+++ src/java/org/codehaus/jackson/map/ser/BeanSerializer.java	(working copy)
-@@ -3,10 +3,14 @@
- import java.io.IOException;
- import java.lang.reflect.InvocationTargetException;
- import java.lang.reflect.Modifier;
-+import java.lang.reflect.Type;
- import java.util.Collection;
- 
- import org.codehaus.jackson.JsonGenerationException;
  import org.codehaus.jackson.JsonGenerator;
-+import org.codehaus.jackson.JsonNode;
-+import org.codehaus.jackson.node.ObjectNode;
-+import org.codehaus.jackson.node.JsonNodeFactory;
- import org.codehaus.jackson.map.*;
- 
+ import org.codehaus.jackson.JsonNode;
++import org.codehaus.jackson.schema.SchemaAware;
++import org.codehaus.jackson.schema.JsonSchema;
+ import org.codehaus.jackson.map.JsonMappingException;
+ import org.codehaus.jackson.map.JsonSerializer;
+ import org.codehaus.jackson.map.SerializerProvider;
+@@ -14,7 +16,7 @@
  /**
-@@ -72,11 +76,34 @@
-         }
+  * @author Ryan Heaton
+  */
+-public class XmlAdapterJsonSerializer extends JsonSerializer
++public class XmlAdapterJsonSerializer extends JsonSerializer implements SchemaAware
+ {
+     private final XmlAdapter<Object,Object> xmlAdapter;
+ 
+@@ -37,12 +39,16 @@
+         jsonSerializer.serialize(adapted, jgen, provider);
      }
  
+-//    @Override
+-//    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+-//            throws JsonMappingException
+-//    {
+-//        return provider.findValueSerializer(findValueClass()).getSchema(provider, typeHint);
+-//    }
 +    @Override
 +    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
 +            throws JsonMappingException
 +    {
-+        ObjectNode o = JsonNodeFactory.instance.objectNode();
-+        //todo: should the classname go in the title?
-+        //o.put("title", _className);
-+        o.put("type", "object");
-+        o.put("optional", true);
-+        ObjectNode propertiesNode = o.objectNode();
-+        for (int i = 0; i < _props.length; i++) {
-+            BeanPropertyWriter prop = _props[i];
-+            Type hint = prop.getSerializationType();
-+            if (hint == null) {
-+                hint = prop._accessorMethod.getGenericReturnType();
-+            }
-+            JsonSerializer<Object> jsonSerializer = provider.findValueSerializer(prop.getSerializationType() == null ? prop.getReturnType() : prop.getSerializationType());
-+            propertiesNode.put(prop.getName(), jsonSerializer.getSchema(provider, hint));
-+        }
-+        o.put("properties", propertiesNode);
-+        return o;
++        JsonSerializer<Object> ser = provider.findValueSerializer(findValueClass());
++        JsonNode schemaNode = (ser instanceof SchemaAware) ?
++                ((SchemaAware) ser).getSchema(provider, null) :
++                JsonSchema.getDefaultSchemaNode();
++        return schemaNode;
 +    }
-+
-     /*
--    ////////////////////////////////////////////////////////
--    // ResolvableSerializer impl
--    ////////////////////////////////////////////////////////
--     */
-+   ////////////////////////////////////////////////////////
-+   // ResolvableSerializer impl
-+   ////////////////////////////////////////////////////////
-+    */
  
-     public void resolve(SerializerProvider provider)
-         throws JsonMappingException
-Index: src/java/org/codehaus/jackson/map/ser/ContainerSerializers.java
-===================================================================
---- src/java/org/codehaus/jackson/map/ser/ContainerSerializers.java	(revision 353)
-+++ src/java/org/codehaus/jackson/map/ser/ContainerSerializers.java	(working copy)
-@@ -2,9 +2,17 @@
- 
- import java.io.IOException;
- import java.util.*;
-+import java.lang.reflect.Type;
-+import java.lang.reflect.ParameterizedType;
- 
- import org.codehaus.jackson.*;
-+import org.codehaus.jackson.type.JavaType;
-+import org.codehaus.jackson.node.ObjectNode;
-+import org.codehaus.jackson.node.JsonNodeFactory;
- import org.codehaus.jackson.map.*;
-+import org.codehaus.jackson.map.type.TypeFactory;
-+import org.codehaus.jackson.map.type.ArrayType;
-+import org.codehaus.jackson.map.type.CollectionType;
- 
- /**
-  * Dummy container class to group standard container serializers: serializers
-@@ -76,6 +84,24 @@
- 
-             jgen.writeEndArray();
-         }
-+
-+        @Override
-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+                throws JsonMappingException
-+        {
-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
-+            o.put("type", "array");
-+            if (typeHint != null) {
-+                JavaType javaType = TypeFactory.instance._fromType(typeHint);
-+                if (javaType instanceof CollectionType) {
-+                    Class<?> componentType = ((CollectionType) javaType).getElementType().getRawClass();
-+                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
-+                    o.put("items", ser.getSchema(provider, null));
-+                }
-+            }
-+            o.put("optional", true);
-+            return o;
-+        }
-     }
- 
-     /**
-@@ -132,6 +158,24 @@
-             }
-             jgen.writeEndArray();
-         }
-+
-+        @Override
-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+                throws JsonMappingException
-+        {
-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
-+            o.put("type", "array");
-+            if (typeHint != null) {
-+                JavaType javaType = TypeFactory.instance._fromType(typeHint);
-+                if (javaType instanceof CollectionType) {
-+                    Class<?> componentType = ((CollectionType) javaType).getElementType().getRawClass();
-+                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
-+                    o.put("items", ser.getSchema(provider, null));
-+                }
-+            }
-+            o.put("optional", true);
-+            return o;
-+        }
-     }
- 
-     public final static class IteratorSerializer
-@@ -168,6 +212,24 @@
-             }
-             jgen.writeEndArray();
-         }
-+
-+        @Override
-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+                throws JsonMappingException
-+        {
-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
-+            o.put("type", "array");
-+            if (typeHint instanceof ParameterizedType) {
-+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
-+                if (typeArgs.length == 1) {
-+                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
-+                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
-+                    o.put("items", ser.getSchema(provider, null));
-+                }
-+            }
-+            o.put("optional", true);
-+            return o;
-+        }
-     }
- 
-     public final static class IterableSerializer
-@@ -205,6 +267,24 @@
-             }
-             jgen.writeEndArray();
-         }
-+
-+        @Override
-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+                throws JsonMappingException
-+        {
-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
-+            o.put("type", "array");
-+            if (typeHint instanceof ParameterizedType) {
-+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
-+                if (typeArgs.length == 1) {
-+                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
-+                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
-+                    o.put("items", ser.getSchema(provider, null));
-+                }
-+            }
-+            o.put("optional", true);
-+            return o;
-+        }
-     }
- 
-     public final static class EnumSetSerializer
-@@ -222,6 +302,24 @@
-             }
-             jgen.writeEndArray();
-         }
-+
-+        @Override
-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+                throws JsonMappingException
-+        {
-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
-+            o.put("type", "array");
-+            if (typeHint instanceof ParameterizedType) {
-+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
-+                if (typeArgs.length == 1) {
-+                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
-+                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
-+                    o.put("items", ser.getSchema(provider, null));
-+                }
-+            }
-+            o.put("optional", true);
-+            return o;
-+        }
-     }
- 
-     /*
-@@ -286,6 +384,17 @@
-                 
-             jgen.writeEndObject();
-         }
-+
-+        @Override
-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+        {
-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
-+            o.put("type", "object");
-+            //(ryan) even though it's possible to statically determine the "value" type of the map,
-+            // there's no way to statically determine the keys, so the "properties" can't be determined.
-+            o.put("optional", true);
-+            return o;
-+        }
-     }
- 
-     public final static class EnumMapSerializer
-@@ -328,5 +437,29 @@
-             }
-             jgen.writeEndObject();
-         }
-+
-+        @Override
-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+                throws JsonMappingException
-+        {
-+            ObjectNode o = JsonNodeFactory.instance.objectNode();
-+            o.put("type", "object");
-+            if (typeHint instanceof ParameterizedType) {
-+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
-+                if (typeArgs.length == 2) {
-+                    JavaType enumType = TypeFactory.instance._fromType(typeArgs[0]);
-+                    JavaType valueType = TypeFactory.instance._fromType(typeArgs[1]);
-+                    Class<? extends Enum> enumClass = (Class<? extends Enum>) enumType.getRawClass();
-+                    ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
-+                    for (Object enumValue : EnumSet.allOf(enumClass)) {
-+                        JsonSerializer<Object> ser = provider.findValueSerializer(valueType.getRawClass());
-+                        propsNode.put(((Enum)enumValue).name(), ser.getSchema(provider, null));
-+                    }
-+                    o.put("properties", propsNode);
-+                }
-+            }
-+            o.put("optional", true);
-+            return o;
-+        }
-     }
- }
+     private Class findValueClass()
+     {
 Index: src/java/org/codehaus/jackson/map/ser/StdSerializerProvider.java
 ===================================================================
---- src/java/org/codehaus/jackson/map/ser/StdSerializerProvider.java	(revision 353)
+--- src/java/org/codehaus/jackson/map/ser/StdSerializerProvider.java	(revision 372)
 +++ src/java/org/codehaus/jackson/map/ser/StdSerializerProvider.java	(working copy)
-@@ -3,8 +3,11 @@
+@@ -3,8 +3,12 @@
  import java.io.IOException;
  import java.text.DateFormat;
  import java.util.Date;
@@ -465,24 +1689,11 @@ Index: src/java/org/codehaus/jackson/map/ser/StdSerializerProvider.java
  import org.codehaus.jackson.*;
 +import org.codehaus.jackson.node.ObjectNode;
 +import org.codehaus.jackson.schema.JsonSchema;
++import org.codehaus.jackson.schema.SchemaAware;
  
  import org.codehaus.jackson.map.*;
  
-@@ -52,6 +55,13 @@
-              */
-             throw new JsonMappingException("No serializer found for class "+value.getClass().getName()+" (and no bean properties discovered to create bean serializer)");
-         }
-+
-+        @Override
-+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+                throws JsonMappingException
-+        {
-+            throw new JsonMappingException("No serializer found for class "+typeHint+" (and no bean properties discovered to create bean serializer)");
-+        }
-     };
- 
-     /*
-@@ -206,6 +216,33 @@
+@@ -206,6 +210,35 @@
          inst._serializeValue(jgen, value);
      }
  
@@ -504,7 +1715,9 @@ Index: src/java/org/codehaus/jackson/map/ser/StdSerializerProvider.java
 +            throw new IllegalStateException("Broken serializer provider: createInstance returned instance of type "+inst.getClass()+"; blueprint of type "+getClass());
 +        }
 +        JsonSerializer<Object> ser = inst.findValueSerializer(type);
-+        JsonNode schemaNode = ser.getSchema(inst, null);
++        JsonNode schemaNode = (ser instanceof SchemaAware) ?
++                ((SchemaAware) ser).getSchema(inst, null) : 
++                JsonSchema.getDefaultSchemaNode();
 +        if (!(schemaNode instanceof ObjectNode)) {
 +            throw new IllegalArgumentException("Class " + type.getName() +
 +                    " would not be serialized as a JSON object and therefore has no schema.");
@@ -516,33 +1729,335 @@ Index: src/java/org/codehaus/jackson/map/ser/StdSerializerProvider.java
      public boolean hasSerializerFor(SerializationConfig config,
                                      Class<?> cls, SerializerFactory jsf)
      {
-Index: src/java/org/codehaus/jackson/map/ser/JsonValueSerializer.java
+Index: src/java/org/codehaus/jackson/map/ser/ContainerSerializers.java
 ===================================================================
---- src/java/org/codehaus/jackson/map/ser/JsonValueSerializer.java	(revision 353)
-+++ src/java/org/codehaus/jackson/map/ser/JsonValueSerializer.java	(working copy)
-@@ -4,9 +4,11 @@
+--- src/java/org/codehaus/jackson/map/ser/ContainerSerializers.java	(revision 372)
++++ src/java/org/codehaus/jackson/map/ser/ContainerSerializers.java	(working copy)
+@@ -1,11 +1,24 @@
+ package org.codehaus.jackson.map.ser;
+ 
++import org.codehaus.jackson.JsonGenerationException;
++import org.codehaus.jackson.JsonGenerator;
++import org.codehaus.jackson.JsonNode;
++import org.codehaus.jackson.map.JsonMappingException;
++import org.codehaus.jackson.map.JsonSerializer;
++import org.codehaus.jackson.map.SerializerProvider;
++import org.codehaus.jackson.map.type.CollectionType;
++import org.codehaus.jackson.map.type.TypeFactory;
++import org.codehaus.jackson.node.JsonNodeFactory;
++import org.codehaus.jackson.node.ObjectNode;
++import org.codehaus.jackson.schema.JsonSchema;
++import org.codehaus.jackson.schema.SchemaAware;
++import org.codehaus.jackson.type.JavaType;
++
+ import java.io.IOException;
++import java.lang.reflect.ParameterizedType;
++import java.lang.reflect.Type;
+ import java.util.*;
+ 
+-import org.codehaus.jackson.*;
+-import org.codehaus.jackson.map.*;
+-
+ /**
+  * Dummy container class to group standard container serializers: serializers
+  * that can serialize things like {@link java.util.List}s,
+@@ -30,7 +43,7 @@
+      * that can not}.
+      */
+     public final static class IndexedListSerializer
+-        extends JsonSerializer<List<?>>
++        extends JsonSerializer<List<?>> implements SchemaAware
+     {
+         public final static IndexedListSerializer instance = new IndexedListSerializer();
+ 
+@@ -76,6 +89,27 @@
+ 
+             jgen.writeEndArray();
+         }
++
++        @Override
++        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
++                throws JsonMappingException
++        {
++            ObjectNode o = JsonNodeFactory.instance.objectNode();
++            o.put("type", "array");
++            if (typeHint != null) {
++                JavaType javaType = TypeFactory.instance._fromType(typeHint);
++                if (javaType instanceof CollectionType) {
++                    Class<?> componentType = ((CollectionType) javaType).getElementType().getRawClass();
++                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
++                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
++                            ((SchemaAware) ser).getSchema(provider, null) :
++                            JsonSchema.getDefaultSchemaNode();
++                    o.put("items", schemaNode);
++                }
++            }
++            o.put("optional", true);
++            return o;
++        }
+     }
+ 
+     /**
+@@ -86,7 +120,7 @@
+      * to iterate over elements.
+      */
+     public final static class CollectionSerializer
+-        extends JsonSerializer<Collection<?>>
++        extends JsonSerializer<Collection<?>> implements SchemaAware
+     {
+         public final static CollectionSerializer instance = new CollectionSerializer();
+ 
+@@ -132,10 +166,31 @@
+             }
+             jgen.writeEndArray();
+         }
++
++        @Override
++        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
++                throws JsonMappingException
++        {
++            ObjectNode o = JsonNodeFactory.instance.objectNode();
++            o.put("type", "array");
++            if (typeHint != null) {
++                JavaType javaType = TypeFactory.instance._fromType(typeHint);
++                if (javaType instanceof CollectionType) {
++                    Class<?> componentType = ((CollectionType) javaType).getElementType().getRawClass();
++                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
++                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
++                            ((SchemaAware) ser).getSchema(provider, null) :
++                            JsonSchema.getDefaultSchemaNode();
++                    o.put("items", schemaNode);
++                }
++            }
++            o.put("optional", true);
++            return o;
++        }
+     }
+ 
+     public final static class IteratorSerializer
+-        extends JsonSerializer<Iterator<?>>
++        extends JsonSerializer<Iterator<?>> implements SchemaAware
+     {
+         public final static IteratorSerializer instance = new IteratorSerializer();
+ 
+@@ -168,10 +223,31 @@
+             }
+             jgen.writeEndArray();
+         }
++
++        @Override
++        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
++                throws JsonMappingException
++        {
++            ObjectNode o = JsonNodeFactory.instance.objectNode();
++            o.put("type", "array");
++            if (typeHint instanceof ParameterizedType) {
++                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
++                if (typeArgs.length == 1) {
++                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
++                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
++                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
++                            ((SchemaAware) ser).getSchema(provider, null) :
++                            JsonSchema.getDefaultSchemaNode();
++                    o.put("items", schemaNode);
++                }
++            }
++            o.put("optional", true);
++            return o;
++        }
+     }
+ 
+     public final static class IterableSerializer
+-        extends JsonSerializer<Iterable<?>>
++        extends JsonSerializer<Iterable<?>> implements SchemaAware
+     {
+         public final static IterableSerializer instance = new IterableSerializer();
+ 
+@@ -205,10 +281,31 @@
+             }
+             jgen.writeEndArray();
+         }
++
++        @Override
++        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
++                throws JsonMappingException
++        {
++            ObjectNode o = JsonNodeFactory.instance.objectNode();
++            o.put("type", "array");
++            if (typeHint instanceof ParameterizedType) {
++                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
++                if (typeArgs.length == 1) {
++                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
++                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
++                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
++                            ((SchemaAware) ser).getSchema(provider, null) :
++                            JsonSchema.getDefaultSchemaNode();
++                    o.put("items", schemaNode);
++                }
++            }
++            o.put("optional", true);
++            return o;
++        }
+     }
+ 
+     public final static class EnumSetSerializer
+-        extends JsonSerializer<EnumSet<? extends Enum<?>>>
++        extends JsonSerializer<EnumSet<? extends Enum<?>>> implements SchemaAware
+     {
+         public final static CollectionSerializer instance = new CollectionSerializer();
+ 
+@@ -222,6 +319,27 @@
+             }
+             jgen.writeEndArray();
+         }
++
++        @Override
++        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
++                throws JsonMappingException
++        {
++            ObjectNode o = JsonNodeFactory.instance.objectNode();
++            o.put("type", "array");
++            if (typeHint instanceof ParameterizedType) {
++                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
++                if (typeArgs.length == 1) {
++                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
++                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
++                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
++                            ((SchemaAware) ser).getSchema(provider, null) :
++                            JsonSchema.getDefaultSchemaNode();
++                    o.put("items", schemaNode);
++                }
++            }
++            o.put("optional", true);
++            return o;
++        }
+     }
+ 
+     /*
+@@ -231,7 +349,7 @@
+      */
+ 
+     public final static class MapSerializer
+-        extends JsonSerializer<Map<?,?>>
++        extends JsonSerializer<Map<?,?>> implements SchemaAware
+     {
+         public final static MapSerializer instance = new MapSerializer();
+ 
+@@ -286,10 +404,21 @@
+                 
+             jgen.writeEndObject();
+         }
++
++        @Override
++        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
++        {
++            ObjectNode o = JsonNodeFactory.instance.objectNode();
++            o.put("type", "object");
++            //(ryan) even though it's possible to statically determine the "value" type of the map,
++            // there's no way to statically determine the keys, so the "properties" can't be determined.
++            o.put("optional", true);
++            return o;
++        }
+     }
+ 
+     public final static class EnumMapSerializer
+-        extends JsonSerializer<EnumMap<? extends Enum<?>, ?>>
++        extends JsonSerializer<EnumMap<? extends Enum<?>, ?>> implements SchemaAware
+     {
+         @Override
+             public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
+@@ -328,5 +457,32 @@
+             }
+             jgen.writeEndObject();
+         }
++
++        @Override
++        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
++                throws JsonMappingException
++        {
++            ObjectNode o = JsonNodeFactory.instance.objectNode();
++            o.put("type", "object");
++            if (typeHint instanceof ParameterizedType) {
++                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
++                if (typeArgs.length == 2) {
++                    JavaType enumType = TypeFactory.instance._fromType(typeArgs[0]);
++                    JavaType valueType = TypeFactory.instance._fromType(typeArgs[1]);
++                    Class<? extends Enum> enumClass = (Class<? extends Enum>) enumType.getRawClass();
++                    ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
++                    for (Object enumValue : EnumSet.allOf(enumClass)) {
++                        JsonSerializer<Object> ser = provider.findValueSerializer(valueType.getRawClass());
++                        JsonNode schemaNode = (ser instanceof SchemaAware) ?
++                                ((SchemaAware) ser).getSchema(provider, null) :
++                                JsonSchema.getDefaultSchemaNode();
++                        propsNode.put(provider.getConfig().getAnnotationIntrospector().findEnumValue((Enum)enumValue), schemaNode);
++                    }
++                    o.put("properties", propsNode);
++                }
++            }
++            o.put("optional", true);
++            return o;
++        }
+     }
+ }
+Index: src/java/org/codehaus/jackson/map/ser/BeanSerializer.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/ser/BeanSerializer.java	(revision 372)
++++ src/java/org/codehaus/jackson/map/ser/BeanSerializer.java	(working copy)
+@@ -3,10 +3,16 @@
+ import java.io.IOException;
  import java.lang.reflect.InvocationTargetException;
- import java.lang.reflect.Method;
  import java.lang.reflect.Modifier;
 +import java.lang.reflect.Type;
+ import java.util.Collection;
  
  import org.codehaus.jackson.JsonGenerationException;
  import org.codehaus.jackson.JsonGenerator;
 +import org.codehaus.jackson.JsonNode;
++import org.codehaus.jackson.schema.SchemaAware;
++import org.codehaus.jackson.schema.JsonSchema;
++import org.codehaus.jackson.node.ObjectNode;
++import org.codehaus.jackson.node.JsonNodeFactory;
  import org.codehaus.jackson.map.*;
  
  /**
-@@ -73,12 +75,19 @@
-             throw JsonMappingException.wrapWithPath(t, bean, _accessorMethod.getName()+"()");
+@@ -19,7 +25,7 @@
+  */
+ public class BeanSerializer
+     extends JsonSerializer<Object>
+-    implements ResolvableSerializer
++    implements ResolvableSerializer, SchemaAware
+ {
+     final protected String _className;
+ 
+@@ -72,11 +78,38 @@
          }
      }
--    
-+
+ 
 +    @Override
 +    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
 +            throws JsonMappingException
 +    {
-+        return _serializer.getSchema(provider, null);
++        ObjectNode o = JsonNodeFactory.instance.objectNode();
++        //todo: should the classname go in the title?
++        //o.put("title", _className);
++        o.put("type", "object");
++        o.put("optional", true);
++        ObjectNode propertiesNode = o.objectNode();
++        for (int i = 0; i < _props.length; i++) {
++            BeanPropertyWriter prop = _props[i];
++            Type hint = prop.getSerializationType();
++            if (hint == null) {
++                hint = prop.getGenericPropertyType();
++            }
++            JsonSerializer<Object> ser = provider.findValueSerializer(prop.getSerializationType() == null ? prop.getReturnType() : prop.getSerializationType());
++            JsonNode schemaNode = (ser instanceof SchemaAware) ?
++                    ((SchemaAware) ser).getSchema(provider, hint) : 
++                    JsonSchema.getDefaultSchemaNode();
++            o.put("items", schemaNode);
++            propertiesNode.put(prop.getName(), schemaNode);
++        }
++        o.put("properties", propertiesNode);
++        return o;
 +    }
 +
      /*
@@ -555,44 +2070,212 @@ Index: src/java/org/codehaus/jackson/map/ser/JsonValueSerializer.java
 +   ////////////////////////////////////////////////////////
 +    */
  
-     /**
-      * We can try to find the actual serializer for value, if we can
-Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
+     public void resolve(SerializerProvider provider)
+         throws JsonMappingException
+Index: src/java/org/codehaus/jackson/map/ser/JsonValueSerializer.java
 ===================================================================
---- src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java	(revision 353)
-+++ src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java	(working copy)
-@@ -1,16 +1,24 @@
+--- src/java/org/codehaus/jackson/map/ser/JsonValueSerializer.java	(revision 372)
++++ src/java/org/codehaus/jackson/map/ser/JsonValueSerializer.java	(working copy)
+@@ -4,9 +4,13 @@
+ import java.lang.reflect.InvocationTargetException;
+ import java.lang.reflect.Method;
+ import java.lang.reflect.Modifier;
++import java.lang.reflect.Type;
+ 
+ import org.codehaus.jackson.JsonGenerationException;
+ import org.codehaus.jackson.JsonGenerator;
++import org.codehaus.jackson.JsonNode;
++import org.codehaus.jackson.schema.SchemaAware;
++import org.codehaus.jackson.schema.JsonSchema;
+ import org.codehaus.jackson.map.*;
+ 
+ /**
+@@ -14,7 +18,7 @@
+  * {@link org.codehaus.jackson.annotate.JsonValue} annotation to
+  * indicate that serialization should be done by calling the method
+  * annotated, and serializing result it returns.
+- *<p>
++ * <p/>
+  * Implementation note: we will post-process resulting serializer
+  * (much like what is done with {@link BeanSerializer})
+  * to figure out actual serializers for final types. This must be
+@@ -22,8 +26,8 @@
+  * otherwise we could end up with an infinite loop.
+  */
+ public final class JsonValueSerializer
+-    extends JsonSerializer<Object>
+-    implements ResolvableSerializer
++        extends JsonSerializer<Object>
++        implements ResolvableSerializer, SchemaAware
+ {
+     final Method _accessorMethod;
+ 
+@@ -31,9 +35,9 @@
+ 
+     /**
+      * @param ser Explicit serializer to use, if caller knows it (which
+-     *   occurs if and only if the "value method" was annotated with
+-     *  {@link org.codehaus.jackson.map.annotate.JsonSerialize#using}), otherwise
+-     *  null
++     *            occurs if and only if the "value method" was annotated with
++     *            {@link org.codehaus.jackson.map.annotate.JsonSerialize#using}), otherwise
++     *            null
+      */
+     public JsonValueSerializer(Method valueMethod, JsonSerializer<Object> ser)
+     {
+@@ -42,12 +46,12 @@
+     }
+ 
+     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider prov)
+-        throws IOException, JsonGenerationException
++            throws IOException, JsonGenerationException
+     {
+         try {
+             Object value = _accessorMethod.invoke(bean);
+             JsonSerializer<Object> ser;
+-            
++
+             if (value == null) {
+                 ser = prov.getNullValueSerializer();
+             } else {
+@@ -70,10 +74,19 @@
+                 throw (Error) t;
+             }
+             // let's try to indicate the path best we can...
+-            throw JsonMappingException.wrapWithPath(t, bean, _accessorMethod.getName()+"()");
++            throw JsonMappingException.wrapWithPath(t, bean, _accessorMethod.getName() + "()");
+         }
+     }
+ 
++    @Override
++    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
++            throws JsonMappingException
++    {
++        return (_serializer instanceof SchemaAware) ?
++                ((SchemaAware) _serializer).getSchema(provider, null) :
++                JsonSchema.getDefaultSchemaNode();
++    }
++    
+     /*
+     ////////////////////////////////////////////////////////
+     // ResolvableSerializer impl
+@@ -85,7 +98,7 @@
+      * statically figure out what the result type must be.
+      */
+     public void resolve(SerializerProvider provider)
+-        throws JsonMappingException
++            throws JsonMappingException
+     {
+         if (_serializer == null) {
+             Class<?> rt = _accessorMethod.getReturnType();
+@@ -106,7 +119,8 @@
+      */
+ 
+     @Override
+-    public String toString() {
+-        return "(@JsonValue serializer for method "+_accessorMethod.getDeclaringClass()+"#"+_accessorMethod.getName()+")";
++    public String toString()
++    {
++        return "(@JsonValue serializer for method " + _accessorMethod.getDeclaringClass() + "#" + _accessorMethod.getName() + ")";
+     }
+ }
+Index: src/java/org/codehaus/jackson/map/ser/ToStringSerializer.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/ser/ToStringSerializer.java	(revision 372)
++++ src/java/org/codehaus/jackson/map/ser/ToStringSerializer.java	(working copy)
+@@ -1,11 +1,17 @@
  package org.codehaus.jackson.map.ser;
  
-+import org.codehaus.jackson.JsonGenerationException;
-+import org.codehaus.jackson.JsonGenerator;
-+import org.codehaus.jackson.JsonNode;
-+import org.codehaus.jackson.annotate.JsonUseSerializer;
-+import org.codehaus.jackson.map.*;
-+import org.codehaus.jackson.map.introspect.Annotated;
-+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
-+import org.codehaus.jackson.map.type.TypeFactory;
-+import org.codehaus.jackson.node.ArrayNode;
-+import org.codehaus.jackson.node.JsonNodeFactory;
-+import org.codehaus.jackson.node.ObjectNode;
-+import org.codehaus.jackson.type.JavaType;
-+
  import java.io.IOException;
 +import java.lang.reflect.Type;
+ 
+ import org.codehaus.jackson.JsonGenerationException;
+ import org.codehaus.jackson.JsonGenerator;
++import org.codehaus.jackson.JsonNode;
++import org.codehaus.jackson.schema.SchemaAware;
++import org.codehaus.jackson.node.ObjectNode;
++import org.codehaus.jackson.node.JsonNodeFactory;
+ import org.codehaus.jackson.map.JsonSerializer;
+ import org.codehaus.jackson.map.SerializerProvider;
++import org.codehaus.jackson.map.JsonMappingException;
+ 
+ /**
+  * Simple general purpose serializer, useful for any
+@@ -13,7 +19,7 @@
+  * value.
+  */
+ public final class ToStringSerializer
+-    extends JsonSerializer<Object>
++    extends JsonSerializer<Object> implements SchemaAware
+ {
+     /**
+      * Singleton instance to use.
+@@ -36,4 +42,15 @@
+     {
+         jgen.writeString(value.toString());
+     }
++
++    @Override
++    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
++            throws JsonMappingException
++    {
++        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
++        objectNode.put("type", "string");
++        objectNode.put("optional", true);
++        return objectNode;
++    }
++    
+ }
+Index: src/java/org/codehaus/jackson/map/ser/FailingSerializer.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/ser/FailingSerializer.java	(revision 372)
++++ src/java/org/codehaus/jackson/map/ser/FailingSerializer.java	(working copy)
+@@ -1,11 +1,14 @@
+ package org.codehaus.jackson.map.ser;
+ 
+ import java.io.IOException;
++import java.lang.reflect.Type;
+ 
+ import org.codehaus.jackson.JsonGenerationException;
+ import org.codehaus.jackson.JsonGenerator;
++import org.codehaus.jackson.JsonNode;
+ import org.codehaus.jackson.map.JsonSerializer;
+ import org.codehaus.jackson.map.SerializerProvider;
++import org.codehaus.jackson.map.JsonMappingException;
+ 
+ /**
+  * Special bogus "serializer" that will throw
+Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java	(revision 372)
++++ src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java	(working copy)
+@@ -4,9 +4,16 @@
  import java.math.BigDecimal;
  import java.math.BigInteger;
  import java.util.*;
++import java.lang.reflect.Type;
  
--import org.codehaus.jackson.*;
--import org.codehaus.jackson.annotate.JsonUseSerializer;
--import org.codehaus.jackson.map.*;
--import org.codehaus.jackson.map.introspect.Annotated;
--import org.codehaus.jackson.map.introspect.BasicBeanDescription;
--
- /**
-  * Factory class that can provide serializers for standard JDK classes,
-  * as well as custom classes that extend standard classes or implement
-@@ -354,6 +362,16 @@
+ import org.codehaus.jackson.*;
++import org.codehaus.jackson.schema.SchemaAware;
++import org.codehaus.jackson.type.JavaType;
++import org.codehaus.jackson.node.JsonNodeFactory;
++import org.codehaus.jackson.node.ObjectNode;
++import org.codehaus.jackson.node.ArrayNode;
+ import org.codehaus.jackson.map.*;
++import org.codehaus.jackson.map.type.TypeFactory;
+ import org.codehaus.jackson.map.introspect.Annotated;
+ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+ 
+@@ -334,7 +341,7 @@
+      */
+ 
+     public final static class BooleanSerializer
+-        extends JsonSerializer<Boolean>
++        extends JsonSerializer<Boolean> implements SchemaAware
+     {
+         final static BooleanSerializer instance = new BooleanSerializer();
+ 
+@@ -344,13 +351,23 @@
          {
              jgen.writeBoolean(value.booleanValue());
          }
@@ -603,13 +2286,21 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "boolean");
-+            objectNode.put("optional", "true"); //(ryan) it may not, in fact, be optional, but there's no way to tell whether we're referencing a boolean or java.lang.Boolean.
++            objectNode.put("optional", true); //(ryan) it may not, in fact, be optional, but there's no way to tell whether we're referencing a boolean or java.lang.Boolean.
 +            return objectNode;
 +        }
      }
  
      /**
-@@ -368,6 +386,16 @@
+      * This is the special serializer for regular {@link java.lang.String}s.
+      */
+     public final static class StringSerializer
+-        extends JsonSerializer<String>
++        extends JsonSerializer<String> implements SchemaAware
+     {
+         @Override
+             public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
+@@ -358,6 +375,16 @@
          {
              jgen.writeString(value);
          }
@@ -620,13 +2311,22 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "string");
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      /**
-@@ -393,6 +421,16 @@
+@@ -368,7 +395,7 @@
+      */
+     @Deprecated
+     public final static class StringLikeSerializer<T>
+-        extends JsonSerializer<T>
++        extends JsonSerializer<T> implements SchemaAware
+     {
+         public final static StringLikeSerializer<Object> instance = new StringLikeSerializer<Object>();
+ 
+@@ -383,6 +410,16 @@
          {
              jgen.writeString(value.toString());
          }
@@ -637,13 +2337,22 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "string");
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      /**
-@@ -408,6 +446,16 @@
+@@ -390,7 +427,7 @@
+      * we can just store the name.
+      */
+     public final static class ClassSerializer
+-        extends JsonSerializer<Class<?>>
++        extends JsonSerializer<Class<?>> implements SchemaAware
+     {
+         @Override
+         public void serialize(Class<?> value, JsonGenerator jgen, SerializerProvider provider)
+@@ -398,6 +435,16 @@
          {
              jgen.writeString(value.getName());
          }
@@ -654,13 +2363,22 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "string");
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      /*
-@@ -425,6 +473,16 @@
+@@ -407,7 +454,7 @@
+      */
+ 
+     public final static class IntegerSerializer
+-        extends JsonSerializer<Integer>
++        extends JsonSerializer<Integer> implements SchemaAware
+     {
+         @Override
+             public void serialize(Integer value, JsonGenerator jgen, SerializerProvider provider)
+@@ -415,6 +462,16 @@
          {
              jgen.writeNumber(value.intValue());
          }
@@ -671,13 +2389,22 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "integer");
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      /**
-@@ -443,6 +501,16 @@
+@@ -423,7 +480,7 @@
+      * by calling {@link java.lang.Number#intValue}.
+      */
+     public final static class IntLikeSerializer
+-        extends JsonSerializer<Number>
++        extends JsonSerializer<Number> implements SchemaAware
+     {
+         final static IntLikeSerializer instance = new IntLikeSerializer();
+ 
+@@ -433,10 +490,20 @@
          {
              jgen.writeNumber(value.intValue());
          }
@@ -688,13 +2415,18 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "integer");
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      public final static class LongSerializer
-@@ -456,6 +524,16 @@
+-        extends JsonSerializer<Long>
++        extends JsonSerializer<Long> implements SchemaAware
+     {
+         final static LongSerializer instance = new LongSerializer();
+ 
+@@ -446,10 +513,20 @@
          {
              jgen.writeNumber(value.longValue());
          }
@@ -705,13 +2437,18 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "number");
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      public final static class FloatSerializer
-@@ -469,6 +547,16 @@
+-        extends JsonSerializer<Float>
++        extends JsonSerializer<Float> implements SchemaAware
+     {
+         final static FloatSerializer instance = new FloatSerializer();
+ 
+@@ -459,10 +536,20 @@
          {
              jgen.writeNumber(value.floatValue());
          }
@@ -722,13 +2459,18 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "number");
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      public final static class DoubleSerializer
-@@ -482,6 +570,16 @@
+-        extends JsonSerializer<Double>
++        extends JsonSerializer<Double> implements SchemaAware
+     {
+         final static DoubleSerializer instance = new DoubleSerializer();
+ 
+@@ -472,6 +559,16 @@
          {
              jgen.writeNumber(value.doubleValue());
          }
@@ -739,13 +2481,22 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "number");
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      /**
-@@ -500,6 +598,16 @@
+@@ -479,7 +576,7 @@
+      * types of {@link Number}s (custom types).
+      */
+     public final static class NumberSerializer
+-        extends JsonSerializer<Number>
++        extends JsonSerializer<Number> implements SchemaAware
+     {
+         public final static NumberSerializer instance = new NumberSerializer();
+ 
+@@ -490,6 +587,16 @@
              // We'll have to use fallback "untyped" number write method
              jgen.writeNumber(value.toString());
          }
@@ -756,15 +2507,23 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "number");
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
  
-@@ -518,6 +626,26 @@
+@@ -501,6 +608,7 @@
+ 
+     public final static class EnumSerializer
+         extends JsonSerializer<Enum<?>>
++        implements SchemaAware
+     {
+         @Override
+             public void serialize(Enum<?> value, JsonGenerator jgen, SerializerProvider provider)
+@@ -508,6 +616,26 @@
          {
-             jgen.writeString(value.name());
+             jgen.writeString(provider.getConfig().getAnnotationIntrospector().findEnumValue(value));
          }
 +
 +        @Override
@@ -779,17 +2538,26 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +                    EnumSet<? extends Enum> enumSet = EnumSet.allOf((Class<? extends Enum>) type.getRawClass());
 +                    ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
 +                    for (Enum<?> enumValue : enumSet) {
-+                        arrayNode.add(enumValue.name());
++                        arrayNode.add(provider.getConfig().getAnnotationIntrospector().findEnumValue(enumValue));
 +                    }
 +                }
 +            }
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      /**
-@@ -535,6 +663,17 @@
+@@ -516,7 +644,7 @@
+      * and json.
+      */
+     public final static class CalendarSerializer
+-        extends JsonSerializer<Calendar>
++        extends JsonSerializer<Calendar> implements SchemaAware
+     {
+         public final static CalendarSerializer instance = new CalendarSerializer();
+         @Override
+@@ -525,6 +653,17 @@
          {
              provider.defaultSerializeDateValue(value.getTimeInMillis(), jgen);
          }
@@ -801,13 +2569,22 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "string");
 +            //todo: (ryan) add a format for the date in the schema?
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      /**
-@@ -551,6 +690,17 @@
+@@ -532,7 +671,7 @@
+      * potentially more readable Strings.
+      */
+     public final static class UtilDateSerializer
+-        extends JsonSerializer<java.util.Date>
++        extends JsonSerializer<java.util.Date> implements SchemaAware
+     {
+         public final static UtilDateSerializer instance = new UtilDateSerializer();
+         @Override
+@@ -541,6 +680,17 @@
          {
              provider.defaultSerializeDateValue(value, jgen);
          }
@@ -819,13 +2596,22 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "string");
 +            //todo: (ryan) add a format for the date in the schema?
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      /**
-@@ -567,6 +717,17 @@
+@@ -549,7 +699,7 @@
+      * that should not be used by plain SQL date.
+      */
+     public final static class SqlDateSerializer
+-        extends JsonSerializer<java.sql.Date>
++        extends JsonSerializer<java.sql.Date> implements SchemaAware
+     {
+         @Override
+ 		public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
+@@ -557,10 +707,21 @@
          {
              jgen.writeString(value.toString());
          }
@@ -837,13 +2623,18 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "string");
 +            //todo: (ryan) add a format for the date in the schema?
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      public final static class SqlTimeSerializer
-@@ -578,6 +739,16 @@
+-        extends JsonSerializer<java.sql.Time>
++        extends JsonSerializer<java.sql.Time> implements SchemaAware
+     {
+         @Override
+             public void serialize(java.sql.Time value, JsonGenerator jgen, SerializerProvider provider)
+@@ -568,6 +729,16 @@
          {
              jgen.writeString(value.toString());
          }
@@ -854,13 +2645,22 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +        {
 +            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
 +            objectNode.put("type", "string");
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  
      /**
-@@ -598,6 +769,15 @@
+@@ -576,7 +747,7 @@
+      * This is the default serializer for nulls.
+      */
+     public final static class NullSerializer
+-        extends JsonSerializer<Object>
++        extends JsonSerializer<Object> implements SchemaAware
+     {
+         public final static NullSerializer instance = new NullSerializer();
+ 
+@@ -588,10 +759,19 @@
          {
              jgen.writeNull();
          }
@@ -876,7 +2676,12 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
      }
  
      public final static class SerializableSerializer
-@@ -613,5 +793,45 @@
+-        extends JsonSerializer<JsonSerializable>
++        extends JsonSerializer<JsonSerializable> implements SchemaAware
+     {
+         final static SerializableSerializer instance = new SerializableSerializer();
+ 
+@@ -603,5 +783,45 @@
          {
              value.serialize(jgen, provider);
          }
@@ -917,84 +2722,78 @@ Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
 +                    throw new IllegalStateException(e);
 +                }
 +            }
-+            objectNode.put("optional", "true");
++            objectNode.put("optional", true);
 +            return objectNode;
 +        }
      }
  }
-Index: src/java/org/codehaus/jackson/map/ser/FailingSerializer.java
+Index: src/java/org/codehaus/jackson/map/ser/BeanPropertyWriter.java
 ===================================================================
---- src/java/org/codehaus/jackson/map/ser/FailingSerializer.java	(revision 353)
-+++ src/java/org/codehaus/jackson/map/ser/FailingSerializer.java	(working copy)
-@@ -1,11 +1,14 @@
+--- src/java/org/codehaus/jackson/map/ser/BeanPropertyWriter.java	(revision 372)
++++ src/java/org/codehaus/jackson/map/ser/BeanPropertyWriter.java	(working copy)
+@@ -1,13 +1,13 @@
  package org.codehaus.jackson.map.ser;
  
- import java.io.IOException;
-+import java.lang.reflect.Type;
- 
- import org.codehaus.jackson.JsonGenerationException;
+-import java.lang.reflect.Field;
+-import java.lang.reflect.Method;
+-
  import org.codehaus.jackson.JsonGenerator;
-+import org.codehaus.jackson.JsonNode;
  import org.codehaus.jackson.map.JsonSerializer;
  import org.codehaus.jackson.map.SerializerProvider;
-+import org.codehaus.jackson.map.JsonMappingException;
+-import org.codehaus.jackson.map.annotate.OutputProperties;
  
- /**
-  * Special bogus "serializer" that will throw
-@@ -26,4 +29,11 @@
-     {
-         throw new JsonGenerationException(_msg);
-     }
-+
-+    @Override
-+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+            throws JsonMappingException
-+    {
-+        throw new UnsupportedOperationException();
-+    }
- }
-Index: src/java/org/codehaus/jackson/map/ser/ToStringSerializer.java
-===================================================================
---- src/java/org/codehaus/jackson/map/ser/ToStringSerializer.java	(revision 353)
-+++ src/java/org/codehaus/jackson/map/ser/ToStringSerializer.java	(working copy)
-@@ -1,11 +1,16 @@
- package org.codehaus.jackson.map.ser;
- 
- import java.io.IOException;
++import java.lang.reflect.Field;
++import java.lang.reflect.Method;
 +import java.lang.reflect.Type;
- 
- import org.codehaus.jackson.JsonGenerationException;
- import org.codehaus.jackson.JsonGenerator;
-+import org.codehaus.jackson.JsonNode;
-+import org.codehaus.jackson.node.ObjectNode;
-+import org.codehaus.jackson.node.JsonNodeFactory;
- import org.codehaus.jackson.map.JsonSerializer;
- import org.codehaus.jackson.map.SerializerProvider;
-+import org.codehaus.jackson.map.JsonMappingException;
- 
- /**
-  * Simple general purpose serializer, useful for any
-@@ -35,4 +40,15 @@
-     {
-         jgen.writeString(value.toString());
-     }
 +
-+    @Override
-+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-+            throws JsonMappingException
-+    {
-+        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
-+        objectNode.put("type", "string");
-+        objectNode.put("optional", "true");
-+        return objectNode;
-+    }
-+    
- }
+ /**
+  * Base bean property handler class, which implements common parts of
+  * reflection-based functionality for accessing a property value
+@@ -76,6 +76,13 @@
+      */
+     public abstract Object get(Object bean) throws Exception;
+ 
++    /**
++     * Get the generic property type of this property writer.
++     *
++     * @return The property type, or null if not found.
++     */
++    public abstract Type getGenericPropertyType();
++
+     /*
+     //////////////////////////////////////////////////////////////
+     // Intermediate classes
+@@ -116,6 +123,12 @@
+             public String toString() {
+             return "property '"+getName()+"' (via method "+_accessorMethod.getDeclaringClass().getName()+"#"+_accessorMethod.getName()+"))";
+         }
++
++        @Override
++        public Type getGenericPropertyType()
++        {
++            return _accessorMethod.getGenericReturnType();
++        }
+     }
+ 
+     /**
+@@ -149,6 +162,12 @@
+         }
+ 
+         @Override
++        public Type getGenericPropertyType()
++        {
++            return _field.getGenericType();
++        }
++
++        @Override
+             public String toString() {
+             return "property '"+getName()+"' (field "+_field.getDeclaringClass().getName()+"#"+_field.getName()+"))";
+         }
 Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
 ===================================================================
---- src/java/org/codehaus/jackson/map/ser/ArraySerializers.java	(revision 353)
+--- src/java/org/codehaus/jackson/map/ser/ArraySerializers.java	(revision 372)
 +++ src/java/org/codehaus/jackson/map/ser/ArraySerializers.java	(working copy)
-@@ -2,9 +2,16 @@
+@@ -2,9 +2,18 @@
  
  import java.io.IOException;
  import java.lang.reflect.InvocationTargetException;
@@ -1002,6 +2801,8 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
 +import java.lang.reflect.GenericArrayType;
  
  import org.codehaus.jackson.*;
++import org.codehaus.jackson.schema.SchemaAware;
++import org.codehaus.jackson.schema.JsonSchema;
 +import org.codehaus.jackson.type.JavaType;
 +import org.codehaus.jackson.node.ObjectNode;
 +import org.codehaus.jackson.node.JsonNodeFactory;
@@ -1011,7 +2812,16 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
  
  /**
   * Dummy container class to group standard array serializer implementations.
-@@ -79,6 +86,24 @@
+@@ -26,7 +35,7 @@
+      * Generic serializer for Object arrays (<code>Object[]</code>).
+      */
+     public final static class ObjectArraySerializer
+-        extends JsonSerializer<Object[]>
++        extends JsonSerializer<Object[]> implements SchemaAware
+     {
+         public final static ObjectArraySerializer instance = new ObjectArraySerializer();
+ 
+@@ -79,10 +88,31 @@
              }
              jgen.writeEndArray();
          }
@@ -1027,7 +2837,10 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
 +                if (javaType.isArrayType()) {
 +                    Class<?> componentType = ((ArrayType) javaType).getComponentType().getRawClass();
 +                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
-+                    o.put("items", ser.getSchema(provider, null));
++                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
++                            ((SchemaAware) ser).getSchema(provider, null) :
++                            JsonSchema.getDefaultSchemaNode();
++                    o.put("items", schemaNode);
 +                }
 +            }
 +            o.put("optional", true);
@@ -1036,7 +2849,12 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
      }
  
      public final static class StringArraySerializer
-@@ -111,6 +136,18 @@
+-        extends JsonSerializer<String[]>
++        extends JsonSerializer<String[]> implements SchemaAware
+     {
+         @Override
+ 		public void serialize(String[] value, JsonGenerator jgen, SerializerProvider provider)
+@@ -111,10 +141,22 @@
              }
              jgen.writeEndArray();
          }
@@ -1055,7 +2873,12 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
      }
  
      public final static class BooleanArraySerializer
-@@ -126,6 +163,18 @@
+-        extends JsonSerializer<boolean[]>
++        extends JsonSerializer<boolean[]> implements SchemaAware
+     {
+         @Override
+ 		public void serialize(boolean[] value, JsonGenerator jgen, SerializerProvider provider)
+@@ -126,6 +168,18 @@
              }
              jgen.writeEndArray();
          }
@@ -1074,7 +2897,16 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
      }
  
      /**
-@@ -142,6 +191,18 @@
+@@ -134,7 +188,7 @@
+      * as base64 encoded bytes (using default base64 encoding).
+      */
+     public final static class ByteArraySerializer
+-        extends JsonSerializer<byte[]>
++        extends JsonSerializer<byte[]> implements SchemaAware
+     {
+         @Override
+ 		public void serialize(byte[] value, JsonGenerator jgen, SerializerProvider provider)
+@@ -142,10 +196,22 @@
          {
              jgen.writeBinary(value);
          }
@@ -1093,7 +2925,12 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
      }
  
      public final static class ShortArraySerializer
-@@ -158,6 +219,18 @@
+-        extends JsonSerializer<short[]>
++        extends JsonSerializer<short[]> implements SchemaAware
+     {
+         @SuppressWarnings("cast")
+ 		@Override
+@@ -158,6 +224,18 @@
              }
              jgen.writeEndArray();
          }
@@ -1112,7 +2949,16 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
      }
  
      /**
-@@ -174,6 +247,18 @@
+@@ -166,7 +244,7 @@
+      * Strings, not arrays of entries.
+      */
+     public final static class CharArraySerializer
+-        extends JsonSerializer<char[]>
++        extends JsonSerializer<char[]> implements SchemaAware
+     {
+         @Override
+ 		public void serialize(char[] value, JsonGenerator jgen, SerializerProvider provider)
+@@ -174,11 +252,23 @@
          {
              jgen.writeString(value, 0, value.length);
          }
@@ -1131,7 +2977,13 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
      }
  
  
-@@ -190,6 +275,18 @@
+     public final static class IntArraySerializer
+-        extends JsonSerializer<int[]>
++        extends JsonSerializer<int[]> implements SchemaAware
+     {
+         @Override
+             public void serialize(int[] value, JsonGenerator jgen, SerializerProvider provider)
+@@ -190,10 +280,22 @@
              }
              jgen.writeEndArray();
          }
@@ -1150,7 +3002,12 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
      }
  
      public final static class LongArraySerializer
-@@ -205,6 +302,18 @@
+-        extends JsonSerializer<long[]>
++        extends JsonSerializer<long[]> implements SchemaAware
+     {
+         @Override
+ 		public void serialize(long[] value, JsonGenerator jgen, SerializerProvider provider)
+@@ -205,10 +307,22 @@
              }
              jgen.writeEndArray();
          }
@@ -1169,7 +3026,12 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
      }
  
      public final static class FloatArraySerializer
-@@ -220,6 +329,18 @@
+-        extends JsonSerializer<float[]>
++        extends JsonSerializer<float[]> implements SchemaAware
+     {
+         @Override
+ 		public void serialize(float[] value, JsonGenerator jgen, SerializerProvider provider)
+@@ -220,10 +334,22 @@
              }
              jgen.writeEndArray();
          }
@@ -1188,7 +3050,12 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
      }
  
      public final static class DoubleArraySerializer
-@@ -235,5 +356,17 @@
+-        extends JsonSerializer<double[]>
++        extends JsonSerializer<double[]> implements SchemaAware
+     {
+         @Override
+ 		public void serialize(double[] value, JsonGenerator jgen, SerializerProvider provider)
+@@ -235,5 +361,17 @@
              }
              jgen.writeEndArray();
          }
@@ -1208,9 +3075,9 @@ Index: src/java/org/codehaus/jackson/map/ser/ArraySerializers.java
  }
 Index: src/java/org/codehaus/jackson/map/ser/StdKeySerializer.java
 ===================================================================
---- src/java/org/codehaus/jackson/map/ser/StdKeySerializer.java	(revision 353)
+--- src/java/org/codehaus/jackson/map/ser/StdKeySerializer.java	(revision 372)
 +++ src/java/org/codehaus/jackson/map/ser/StdKeySerializer.java	(working copy)
-@@ -1,11 +1,16 @@
+@@ -1,11 +1,17 @@
  package org.codehaus.jackson.map.ser;
  
  import java.io.IOException;
@@ -1219,6 +3086,7 @@ Index: src/java/org/codehaus/jackson/map/ser/StdKeySerializer.java
  import org.codehaus.jackson.JsonGenerationException;
  import org.codehaus.jackson.JsonGenerator;
 +import org.codehaus.jackson.JsonNode;
++import org.codehaus.jackson.schema.SchemaAware;
 +import org.codehaus.jackson.node.ObjectNode;
 +import org.codehaus.jackson.node.JsonNodeFactory;
  import org.codehaus.jackson.map.JsonSerializer;
@@ -1227,7 +3095,16 @@ Index: src/java/org/codehaus/jackson/map/ser/StdKeySerializer.java
  
  /**
   * Specialized serializer that can be used as the generic key
-@@ -25,4 +30,13 @@
+@@ -13,7 +19,7 @@
+  * Objects.
+  */
+ public final class StdKeySerializer
+-    extends JsonSerializer<Object>
++    extends JsonSerializer<Object> implements SchemaAware
+ {
+     final static StdKeySerializer instace = new StdKeySerializer();
+     
+@@ -25,4 +31,13 @@
              ((String) value) : value.toString();
          jgen.writeFieldName(keyStr);
      }
@@ -1243,7 +3120,7 @@ Index: src/java/org/codehaus/jackson/map/ser/StdKeySerializer.java
  }
 Index: src/java/org/codehaus/jackson/map/ObjectMapper.java
 ===================================================================
---- src/java/org/codehaus/jackson/map/ObjectMapper.java	(revision 353)
+--- src/java/org/codehaus/jackson/map/ObjectMapper.java	(revision 372)
 +++ src/java/org/codehaus/jackson/map/ObjectMapper.java	(working copy)
 @@ -5,6 +5,7 @@
  import java.util.concurrent.ConcurrentHashMap;
@@ -1282,40 +3159,29 @@ Index: src/java/org/codehaus/jackson/map/ObjectMapper.java
       */
 Index: src/java/org/codehaus/jackson/map/JsonSerializableSchema.java
 ===================================================================
---- src/java/org/codehaus/jackson/map/JsonSerializableSchema.java	(revision 353)
-+++ src/java/org/codehaus/jackson/map/JsonSerializableSchema.java	(working copy)
-@@ -1,21 +1,40 @@
- package org.codehaus.jackson.map;
- 
--import java.io.IOException;
-+import org.codehaus.jackson.node.ObjectNode;
- 
--import org.codehaus.jackson.*;
-+import java.lang.annotation.Target;
-+import java.lang.annotation.ElementType;
-+import java.lang.annotation.Retention;
+--- src/java/org/codehaus/jackson/map/JsonSerializableSchema.java	(revision 0)
++++ src/java/org/codehaus/jackson/map/JsonSerializableSchema.java	(revision 0)
+@@ -0,0 +1,43 @@
++package org.codehaus.jackson.map;
++
 +import java.lang.annotation.RetentionPolicy;
- 
- /**
-- * Interface that can be implemented by objects that know how to
-- * serialize themselves to Json, using {@link JsonGenerator}
-- * (and {@link SerializerProvider} if necessary).
-- *<p>
-- * Note that implementing this interface binds implementing object
-- * closely to Jackson API, and that it is often not necessary to do
-- * so -- if class is a bean, it can be serialized without
-- * implementing this interface.
-+ * Metadata that can be applied to a class that implements {@link org.codehaus.jackson.map.JsonSerializable} in
-+ * order to provide a definition of its schema.
-  */
--public interface JsonSerializable
-+@Target (ElementType.TYPE)
++import java.lang.annotation.Retention;
++import java.lang.annotation.ElementType;
++import java.lang.annotation.Target;
++
++/**
++ * Interface that can be implemented by objects that know how to
++ * serialize themselves to Json, using {@link JsonGenerator}
++ * (and {@link SerializerProvider} if necessary).
++ *<p>
++ * Note that implementing this interface binds implementing object
++ * closely to Jackson API, and that it is often not necessary to do
++ * so -- if class is a bean, it can be serialized without
++ * implementing this interface. * @author Ryan Heaton
++ */
++@Target(ElementType.TYPE)
 +@Retention(RetentionPolicy.RUNTIME)
-+public @interface JsonSerializableSchema
- {
--    public void serialize(JsonGenerator jgen, SerializerProvider provider)
--        throws IOException, JsonProcessingException;
--}
++public @interface JsonSerializableSchema {
 +
 +    /**
 +     * The schema type for this JsonSerializable instance.
@@ -1339,10 +3205,19 @@ Index: src/java/org/codehaus/jackson/map/JsonSerializableSchema.java
 +     */
 +    String schemaItemDefinition() default "##irrelevant";
 +}
-\ No newline at end of file
+
+Property changes on: src/java/org/codehaus/jackson/map/JsonSerializableSchema.java
+___________________________________________________________________
+Added: svn:mime-type
+   + text/plain
+Added: svn:keywords
+   + Date Revision
+Added: svn:eol-style
+   + native
+
 Index: src/java/org/codehaus/jackson/map/SerializerProvider.java
 ===================================================================
---- src/java/org/codehaus/jackson/map/SerializerProvider.java	(revision 353)
+--- src/java/org/codehaus/jackson/map/SerializerProvider.java	(revision 372)
 +++ src/java/org/codehaus/jackson/map/SerializerProvider.java	(working copy)
 @@ -4,6 +4,7 @@
  import java.util.Date;
