@@ -1,27 +1,27 @@
 package org.codehaus.jackson.xc;
 
 import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.annotate.OutputProperties;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.annotate.OutputProperties;
-import org.codehaus.jackson.xc.XmlAdapterJsonDeserializer;
-import org.codehaus.jackson.xc.XmlAdapterJsonSerializer;
 
 import javax.xml.bind.annotation.*;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Member;
-import java.lang.reflect.Modifier;
-import java.beans.PropertyDescriptor;
-import java.beans.Introspector;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Field;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -109,8 +109,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     @Override
     public Boolean findFieldAutoDetection(AnnotatedClass ac)
     {
-        // !!! 28-May-2009, tatu: Not yet implemented properly
-        return null;
+        return isFieldsAccessible(ac);
     }
 
     @Override
@@ -249,8 +248,8 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     @Override
     public String findPropertyName(AnnotatedField af)
     {
-        // !!! 28-May-2009, tatu: Not yet implemented properly
-        return null;
+        Field field = af.getAnnotated();
+        return findJaxbPropertyName(field, field.getType(), field.getName());
     }
 
     @Override
@@ -285,7 +284,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         if (annotated instanceof AnnotatedMethod) {
             PropertyDescriptor pd = findPropertyDescriptor((AnnotatedMethod) annotated);
             if (pd != null) {
-                annotation = getAnnotation(annotationClass, pd);
+                annotation = new AnnotatedProperty(pd).getAnnotation(annotationClass);
             }
         }
 
@@ -355,7 +354,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /**
-     * Finds the property descriptor for the specified method.
+     * Finds the property descriptor (adapted to AnnotatedElement) for the specified method.
      *
      * @param m The method.
      * @return The property descriptor, or null if not found.
@@ -392,82 +391,76 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     {
         PropertyDescriptor pd = findPropertyDescriptor(am);
         if (pd != null) {
-            XmlElementWrapper elementWrapper = getAnnotation(XmlElementWrapper.class, pd);
-            if (elementWrapper != null) {
-                if (!"##default".equals(elementWrapper.name())) {
-                    return elementWrapper.name();
-                }
-                else {
-                    return pd.getName();
-                }
-            }
-
-            XmlAttribute attribute = getAnnotation(XmlAttribute.class, pd);
-            if (attribute != null) {
-                if (!"##default".equals(attribute.name())) {
-                    return attribute.name();
-                }
-                else {
-                    return pd.getName();
-                }
-            }
-
-            XmlElement element = getAnnotation(XmlElement.class, pd);
-            if (element != null) {
-                if (!"##default".equals(element.name())) {
-                    return element.name();
-                }
-                else {
-                    return pd.getName();
-                }
-            }
-
-            XmlElementRef elementRef = getAnnotation(XmlElementRef.class, pd);
-            if (elementRef != null) {
-                if (!"##default".equals(elementRef.name())) {
-                    return elementRef.name();
-                }
-                else {
-                    XmlRootElement rootElement = pd.getPropertyType().getAnnotation(XmlRootElement.class);
-                    if (rootElement != null) {
-                        if (!"##default".equals(rootElement.name())) {
-                            return rootElement.name();
-                        }
-                        else {
-                            return Introspector.decapitalize(pd.getPropertyType().getSimpleName());
-                        }
-                    }
-                }
-            }
-
-            XmlValue valueInfo = getAnnotation(XmlValue.class, pd);
-            if (valueInfo != null) {
-                return "value";
-            }
-
-            return pd.getName();
+            return findJaxbPropertyName(new AnnotatedProperty(pd), pd.getPropertyType(), pd.getName());
         }
 
         return null;
     }
 
     /**
-     * Finds an annotation on a property.
-     * @param annotationClass The annotation class.
-     * @param pd The property descriptor.
-     * @return The annotation, or null if not found.
+     * Find the JAXB property name for the given annotated element.
+     *
+     * @param ae The annotated element.
+     * @param aeType The type of the annotated element.
+     * @param defaultName The default name if nothing is specified.
+     * @return The JAXB property name.
      */
-    protected <A extends Annotation> A getAnnotation(Class<A> annotationClass, PropertyDescriptor pd) {
-        A annotation = null;
-        if (pd.getReadMethod() != null) {
-            annotation = pd.getReadMethod().getAnnotation(annotationClass);
+    protected String findJaxbPropertyName(AnnotatedElement ae, Class aeType, String defaultName)
+    {
+        XmlElementWrapper elementWrapper = ae.getAnnotation(XmlElementWrapper.class);
+        if (elementWrapper != null) {
+            if (!"##default".equals(elementWrapper.name())) {
+                return elementWrapper.name();
+            }
+            else {
+                return defaultName;
+            }
         }
 
-        if (annotation == null && pd.getWriteMethod() != null) {
-            annotation = pd.getWriteMethod().getAnnotation(annotationClass);
+        XmlAttribute attribute = ae.getAnnotation(XmlAttribute.class);
+        if (attribute != null) {
+            if (!"##default".equals(attribute.name())) {
+                return attribute.name();
+            }
+            else {
+                return defaultName;
+            }
         }
 
-        return annotation;
+        XmlElement element = ae.getAnnotation(XmlElement.class);
+        if (element != null) {
+            if (!"##default".equals(element.name())) {
+                return element.name();
+            }
+            else {
+                return defaultName;
+            }
+        }
+
+        XmlElementRef elementRef = ae.getAnnotation(XmlElementRef.class);
+        if (elementRef != null) {
+            if (!"##default".equals(elementRef.name())) {
+                return elementRef.name();
+            }
+            else {
+                XmlRootElement rootElement = (XmlRootElement) aeType.getAnnotation(XmlRootElement.class);
+                if (rootElement != null) {
+                    if (!"##default".equals(rootElement.name())) {
+                        return rootElement.name();
+                    }
+                    else {
+                        return Introspector.decapitalize(aeType.getSimpleName());
+                    }
+                }
+            }
+        }
+
+        XmlValue valueInfo = ae.getAnnotation(XmlValue.class);
+        if (valueInfo != null) {
+            return "value";
+        }
+
+        return defaultName;
     }
 
     /**
@@ -523,6 +516,47 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             }
         }
         return adapter;
+    }
+
+    private static class AnnotatedProperty implements AnnotatedElement {
+
+        private final PropertyDescriptor pd;
+
+        private AnnotatedProperty(PropertyDescriptor pd)
+        {
+            this.pd = pd;
+        }
+
+        @Override
+        public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
+        {
+            return (pd.getReadMethod() != null && pd.getReadMethod().isAnnotationPresent(annotationClass))
+                    || (pd.getWriteMethod() != null && pd.getWriteMethod().isAnnotationPresent(annotationClass));
+        }
+
+        @Override
+        public <T extends Annotation> T getAnnotation(Class<T> annotationClass)
+        {
+            T ann = pd.getReadMethod() != null ? pd.getReadMethod().getAnnotation(annotationClass) : null;
+            if (ann == null) {
+                ann = pd.getWriteMethod() != null ? pd.getWriteMethod().getAnnotation(annotationClass) : null;
+            }
+            return ann;
+        }
+
+        @Override
+        public Annotation[] getAnnotations()
+        {
+            //not used. we don't need to support this yet.
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Annotation[] getDeclaredAnnotations()
+        {
+            //not used. we don't need to support this yet.
+            throw new UnsupportedOperationException();
+        }
     }
 
 }
