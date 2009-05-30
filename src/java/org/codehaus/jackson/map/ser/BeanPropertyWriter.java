@@ -1,12 +1,12 @@
 package org.codehaus.jackson.map.ser;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.annotate.OutputProperties;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 /**
  * Base bean property handler class, which implements common parts of
@@ -76,6 +76,13 @@ public abstract class BeanPropertyWriter
      */
     public abstract Object get(Object bean) throws Exception;
 
+    /**
+     * Get the generic property type of this property writer.
+     *
+     * @return The property type, or null if not found.
+     */
+    public abstract Type getGenericPropertyType();
+
     /*
     //////////////////////////////////////////////////////////////
     // Intermediate classes
@@ -116,6 +123,12 @@ public abstract class BeanPropertyWriter
             public String toString() {
             return "property '"+getName()+"' (via method "+_accessorMethod.getDeclaringClass().getName()+"#"+_accessorMethod.getName()+"))";
         }
+
+        @Override
+        public Type getGenericPropertyType()
+        {
+            return _accessorMethod.getGenericReturnType();
+        }
     }
 
     /**
@@ -146,6 +159,12 @@ public abstract class BeanPropertyWriter
             throws Exception
         {
             return _field.get(bean);
+        }
+
+        @Override
+        public Type getGenericPropertyType()
+        {
+            return _field.getGenericType();
         }
 
         @Override

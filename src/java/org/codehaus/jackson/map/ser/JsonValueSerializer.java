@@ -4,9 +4,13 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.schema.SchemaAware;
+import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -14,7 +18,7 @@ import org.codehaus.jackson.map.*;
  * {@link org.codehaus.jackson.annotate.JsonValue} annotation to
  * indicate that serialization should be done by calling the method
  * annotated, and serializing result it returns.
- *<p>
+ * <p/>
  * Implementation note: we will post-process resulting serializer
  * (much like what is done with {@link BeanSerializer})
  * to figure out actual serializers for final types. This must be
@@ -22,8 +26,8 @@ import org.codehaus.jackson.map.*;
  * otherwise we could end up with an infinite loop.
  */
 public final class JsonValueSerializer
-    extends JsonSerializer<Object>
-    implements ResolvableSerializer
+        extends JsonSerializer<Object>
+        implements ResolvableSerializer, SchemaAware
 {
     final Method _accessorMethod;
 
@@ -31,9 +35,9 @@ public final class JsonValueSerializer
 
     /**
      * @param ser Explicit serializer to use, if caller knows it (which
-     *   occurs if and only if the "value method" was annotated with
-     *  {@link org.codehaus.jackson.map.annotate.JsonSerialize#using}), otherwise
-     *  null
+     *            occurs if and only if the "value method" was annotated with
+     *            {@link org.codehaus.jackson.map.annotate.JsonSerialize#using}), otherwise
+     *            null
      */
     public JsonValueSerializer(Method valueMethod, JsonSerializer<Object> ser)
     {
@@ -42,12 +46,12 @@ public final class JsonValueSerializer
     }
 
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider prov)
-        throws IOException, JsonGenerationException
+            throws IOException, JsonGenerationException
     {
         try {
             Object value = _accessorMethod.invoke(bean);
             JsonSerializer<Object> ser;
-            
+
             if (value == null) {
                 ser = prov.getNullValueSerializer();
             } else {
@@ -70,10 +74,19 @@ public final class JsonValueSerializer
                 throw (Error) t;
             }
             // let's try to indicate the path best we can...
-            throw JsonMappingException.wrapWithPath(t, bean, _accessorMethod.getName()+"()");
+            throw JsonMappingException.wrapWithPath(t, bean, _accessorMethod.getName() + "()");
         }
     }
 
+    @Override
+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+            throws JsonMappingException
+    {
+        return (_serializer instanceof SchemaAware) ?
+                ((SchemaAware) _serializer).getSchema(provider, null) :
+                JsonSchema.getDefaultSchemaNode();
+    }
+    
     /*
     ////////////////////////////////////////////////////////
     // ResolvableSerializer impl
@@ -85,7 +98,7 @@ public final class JsonValueSerializer
      * statically figure out what the result type must be.
      */
     public void resolve(SerializerProvider provider)
-        throws JsonMappingException
+            throws JsonMappingException
     {
         if (_serializer == null) {
             Class<?> rt = _accessorMethod.getReturnType();
@@ -106,7 +119,8 @@ public final class JsonValueSerializer
      */
 
     @Override
-    public String toString() {
-        return "(@JsonValue serializer for method "+_accessorMethod.getDeclaringClass()+"#"+_accessorMethod.getName()+")";
+    public String toString()
+    {
+        return "(@JsonValue serializer for method " + _accessorMethod.getDeclaringClass() + "#" + _accessorMethod.getName() + ")";
     }
 }

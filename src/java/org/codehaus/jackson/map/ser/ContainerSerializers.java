@@ -1,10 +1,23 @@
 package org.codehaus.jackson.map.ser;
 
-import java.io.IOException;
-import java.util.*;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.type.CollectionType;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.node.JsonNodeFactory;
+import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.schema.JsonSchema;
+import org.codehaus.jackson.schema.SchemaAware;
+import org.codehaus.jackson.type.JavaType;
 
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
 
 /**
  * Dummy container class to group standard container serializers: serializers
@@ -30,7 +43,7 @@ public final class ContainerSerializers
      * that can not}.
      */
     public final static class IndexedListSerializer
-        extends JsonSerializer<List<?>>
+        extends JsonSerializer<List<?>> implements SchemaAware
     {
         public final static IndexedListSerializer instance = new IndexedListSerializer();
 
@@ -76,6 +89,27 @@ public final class ContainerSerializers
 
             jgen.writeEndArray();
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+            o.put("type", "array");
+            if (typeHint != null) {
+                JavaType javaType = TypeFactory.instance._fromType(typeHint);
+                if (javaType instanceof CollectionType) {
+                    Class<?> componentType = ((CollectionType) javaType).getElementType().getRawClass();
+                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
+                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                            ((SchemaAware) ser).getSchema(provider, null) :
+                            JsonSchema.getDefaultSchemaNode();
+                    o.put("items", schemaNode);
+                }
+            }
+            o.put("optional", true);
+            return o;
+        }
     }
 
     /**
@@ -86,7 +120,7 @@ public final class ContainerSerializers
      * to iterate over elements.
      */
     public final static class CollectionSerializer
-        extends JsonSerializer<Collection<?>>
+        extends JsonSerializer<Collection<?>> implements SchemaAware
     {
         public final static CollectionSerializer instance = new CollectionSerializer();
 
@@ -132,10 +166,31 @@ public final class ContainerSerializers
             }
             jgen.writeEndArray();
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+            o.put("type", "array");
+            if (typeHint != null) {
+                JavaType javaType = TypeFactory.instance._fromType(typeHint);
+                if (javaType instanceof CollectionType) {
+                    Class<?> componentType = ((CollectionType) javaType).getElementType().getRawClass();
+                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
+                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                            ((SchemaAware) ser).getSchema(provider, null) :
+                            JsonSchema.getDefaultSchemaNode();
+                    o.put("items", schemaNode);
+                }
+            }
+            o.put("optional", true);
+            return o;
+        }
     }
 
     public final static class IteratorSerializer
-        extends JsonSerializer<Iterator<?>>
+        extends JsonSerializer<Iterator<?>> implements SchemaAware
     {
         public final static IteratorSerializer instance = new IteratorSerializer();
 
@@ -168,10 +223,31 @@ public final class ContainerSerializers
             }
             jgen.writeEndArray();
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+            o.put("type", "array");
+            if (typeHint instanceof ParameterizedType) {
+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
+                if (typeArgs.length == 1) {
+                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
+                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
+                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                            ((SchemaAware) ser).getSchema(provider, null) :
+                            JsonSchema.getDefaultSchemaNode();
+                    o.put("items", schemaNode);
+                }
+            }
+            o.put("optional", true);
+            return o;
+        }
     }
 
     public final static class IterableSerializer
-        extends JsonSerializer<Iterable<?>>
+        extends JsonSerializer<Iterable<?>> implements SchemaAware
     {
         public final static IterableSerializer instance = new IterableSerializer();
 
@@ -205,10 +281,31 @@ public final class ContainerSerializers
             }
             jgen.writeEndArray();
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+            o.put("type", "array");
+            if (typeHint instanceof ParameterizedType) {
+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
+                if (typeArgs.length == 1) {
+                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
+                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
+                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                            ((SchemaAware) ser).getSchema(provider, null) :
+                            JsonSchema.getDefaultSchemaNode();
+                    o.put("items", schemaNode);
+                }
+            }
+            o.put("optional", true);
+            return o;
+        }
     }
 
     public final static class EnumSetSerializer
-        extends JsonSerializer<EnumSet<? extends Enum<?>>>
+        extends JsonSerializer<EnumSet<? extends Enum<?>>> implements SchemaAware
     {
         public final static CollectionSerializer instance = new CollectionSerializer();
 
@@ -222,6 +319,27 @@ public final class ContainerSerializers
             }
             jgen.writeEndArray();
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+            o.put("type", "array");
+            if (typeHint instanceof ParameterizedType) {
+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
+                if (typeArgs.length == 1) {
+                    JavaType javaType = TypeFactory.instance._fromType(typeArgs[0]);
+                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
+                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                            ((SchemaAware) ser).getSchema(provider, null) :
+                            JsonSchema.getDefaultSchemaNode();
+                    o.put("items", schemaNode);
+                }
+            }
+            o.put("optional", true);
+            return o;
+        }
     }
 
     /*
@@ -231,7 +349,7 @@ public final class ContainerSerializers
      */
 
     public final static class MapSerializer
-        extends JsonSerializer<Map<?,?>>
+        extends JsonSerializer<Map<?,?>> implements SchemaAware
     {
         public final static MapSerializer instance = new MapSerializer();
 
@@ -286,10 +404,21 @@ public final class ContainerSerializers
                 
             jgen.writeEndObject();
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+        {
+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+            o.put("type", "object");
+            //(ryan) even though it's possible to statically determine the "value" type of the map,
+            // there's no way to statically determine the keys, so the "properties" can't be determined.
+            o.put("optional", true);
+            return o;
+        }
     }
 
     public final static class EnumMapSerializer
-        extends JsonSerializer<EnumMap<? extends Enum<?>, ?>>
+        extends JsonSerializer<EnumMap<? extends Enum<?>, ?>> implements SchemaAware
     {
         @Override
             public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
@@ -327,6 +456,33 @@ public final class ContainerSerializers
                 }
             }
             jgen.writeEndObject();
+        }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode o = JsonNodeFactory.instance.objectNode();
+            o.put("type", "object");
+            if (typeHint instanceof ParameterizedType) {
+                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
+                if (typeArgs.length == 2) {
+                    JavaType enumType = TypeFactory.instance._fromType(typeArgs[0]);
+                    JavaType valueType = TypeFactory.instance._fromType(typeArgs[1]);
+                    Class<? extends Enum> enumClass = (Class<? extends Enum>) enumType.getRawClass();
+                    ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
+                    for (Object enumValue : EnumSet.allOf(enumClass)) {
+                        JsonSerializer<Object> ser = provider.findValueSerializer(valueType.getRawClass());
+                        JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                                ((SchemaAware) ser).getSchema(provider, null) :
+                                JsonSchema.getDefaultSchemaNode();
+                        propsNode.put(provider.getConfig().getAnnotationIntrospector().findEnumValue((Enum)enumValue), schemaNode);
+                    }
+                    o.put("properties", propsNode);
+                }
+            }
+            o.put("optional", true);
+            return o;
         }
     }
 }

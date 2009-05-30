@@ -1,11 +1,14 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.JsonMappingException;
 
 /**
  * Special bogus "serializer" that will throw

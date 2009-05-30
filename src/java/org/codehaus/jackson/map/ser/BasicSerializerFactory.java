@@ -4,9 +4,16 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.lang.reflect.Type;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.schema.SchemaAware;
+import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.node.JsonNodeFactory;
+import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 
@@ -334,7 +341,7 @@ public class BasicSerializerFactory
      */
 
     public final static class BooleanSerializer
-        extends JsonSerializer<Boolean>
+        extends JsonSerializer<Boolean> implements SchemaAware
     {
         final static BooleanSerializer instance = new BooleanSerializer();
 
@@ -344,19 +351,39 @@ public class BasicSerializerFactory
         {
             jgen.writeBoolean(value.booleanValue());
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "boolean");
+            objectNode.put("optional", true); //(ryan) it may not, in fact, be optional, but there's no way to tell whether we're referencing a boolean or java.lang.Boolean.
+            return objectNode;
+        }
     }
 
     /**
      * This is the special serializer for regular {@link java.lang.String}s.
      */
     public final static class StringSerializer
-        extends JsonSerializer<String>
+        extends JsonSerializer<String> implements SchemaAware
     {
         @Override
             public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value);
+        }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "string");
+            objectNode.put("optional", true);
+            return objectNode;
         }
     }
 
@@ -368,7 +395,7 @@ public class BasicSerializerFactory
      */
     @Deprecated
     public final static class StringLikeSerializer<T>
-        extends JsonSerializer<T>
+        extends JsonSerializer<T> implements SchemaAware
     {
         public final static StringLikeSerializer<Object> instance = new StringLikeSerializer<Object>();
 
@@ -383,6 +410,16 @@ public class BasicSerializerFactory
         {
             jgen.writeString(value.toString());
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "string");
+            objectNode.put("optional", true);
+            return objectNode;
+        }
     }
 
     /**
@@ -390,13 +427,23 @@ public class BasicSerializerFactory
      * we can just store the name.
      */
     public final static class ClassSerializer
-        extends JsonSerializer<Class<?>>
+        extends JsonSerializer<Class<?>> implements SchemaAware
     {
         @Override
         public void serialize(Class<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.getName());
+        }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "string");
+            objectNode.put("optional", true);
+            return objectNode;
         }
     }
 
@@ -407,13 +454,23 @@ public class BasicSerializerFactory
      */
 
     public final static class IntegerSerializer
-        extends JsonSerializer<Integer>
+        extends JsonSerializer<Integer> implements SchemaAware
     {
         @Override
             public void serialize(Integer value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.intValue());
+        }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "integer");
+            objectNode.put("optional", true);
+            return objectNode;
         }
     }
 
@@ -423,7 +480,7 @@ public class BasicSerializerFactory
      * by calling {@link java.lang.Number#intValue}.
      */
     public final static class IntLikeSerializer
-        extends JsonSerializer<Number>
+        extends JsonSerializer<Number> implements SchemaAware
     {
         final static IntLikeSerializer instance = new IntLikeSerializer();
 
@@ -433,10 +490,20 @@ public class BasicSerializerFactory
         {
             jgen.writeNumber(value.intValue());
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "integer");
+            objectNode.put("optional", true);
+            return objectNode;
+        }
     }
 
     public final static class LongSerializer
-        extends JsonSerializer<Long>
+        extends JsonSerializer<Long> implements SchemaAware
     {
         final static LongSerializer instance = new LongSerializer();
 
@@ -446,10 +513,20 @@ public class BasicSerializerFactory
         {
             jgen.writeNumber(value.longValue());
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "number");
+            objectNode.put("optional", true);
+            return objectNode;
+        }
     }
 
     public final static class FloatSerializer
-        extends JsonSerializer<Float>
+        extends JsonSerializer<Float> implements SchemaAware
     {
         final static FloatSerializer instance = new FloatSerializer();
 
@@ -459,10 +536,20 @@ public class BasicSerializerFactory
         {
             jgen.writeNumber(value.floatValue());
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "number");
+            objectNode.put("optional", true);
+            return objectNode;
+        }
     }
 
     public final static class DoubleSerializer
-        extends JsonSerializer<Double>
+        extends JsonSerializer<Double> implements SchemaAware
     {
         final static DoubleSerializer instance = new DoubleSerializer();
 
@@ -472,6 +559,16 @@ public class BasicSerializerFactory
         {
             jgen.writeNumber(value.doubleValue());
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "number");
+            objectNode.put("optional", true);
+            return objectNode;
+        }
     }
 
     /**
@@ -479,7 +576,7 @@ public class BasicSerializerFactory
      * types of {@link Number}s (custom types).
      */
     public final static class NumberSerializer
-        extends JsonSerializer<Number>
+        extends JsonSerializer<Number> implements SchemaAware
     {
         public final static NumberSerializer instance = new NumberSerializer();
 
@@ -489,6 +586,16 @@ public class BasicSerializerFactory
         {
             // We'll have to use fallback "untyped" number write method
             jgen.writeNumber(value.toString());
+        }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "number");
+            objectNode.put("optional", true);
+            return objectNode;
         }
     }
 
@@ -501,12 +608,33 @@ public class BasicSerializerFactory
 
     public final static class EnumSerializer
         extends JsonSerializer<Enum<?>>
+        implements SchemaAware
     {
         @Override
             public void serialize(Enum<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(provider.getConfig().getAnnotationIntrospector().findEnumValue(value));
+        }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "string");
+            if (typeHint != null) {
+                JavaType type = TypeFactory.instance._fromType(typeHint);
+                if (type.isEnumType()) {
+                    EnumSet<? extends Enum> enumSet = EnumSet.allOf((Class<? extends Enum>) type.getRawClass());
+                    ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
+                    for (Enum<?> enumValue : enumSet) {
+                        arrayNode.add(provider.getConfig().getAnnotationIntrospector().findEnumValue(enumValue));
+                    }
+                }
+            }
+            objectNode.put("optional", true);
+            return objectNode;
         }
     }
 
@@ -516,7 +644,7 @@ public class BasicSerializerFactory
      * and json.
      */
     public final static class CalendarSerializer
-        extends JsonSerializer<Calendar>
+        extends JsonSerializer<Calendar> implements SchemaAware
     {
         public final static CalendarSerializer instance = new CalendarSerializer();
         @Override
@@ -525,6 +653,17 @@ public class BasicSerializerFactory
         {
             provider.defaultSerializeDateValue(value.getTimeInMillis(), jgen);
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "string");
+            //todo: (ryan) add a format for the date in the schema?
+            objectNode.put("optional", true);
+            return objectNode;
+        }
     }
 
     /**
@@ -532,7 +671,7 @@ public class BasicSerializerFactory
      * potentially more readable Strings.
      */
     public final static class UtilDateSerializer
-        extends JsonSerializer<java.util.Date>
+        extends JsonSerializer<java.util.Date> implements SchemaAware
     {
         public final static UtilDateSerializer instance = new UtilDateSerializer();
         @Override
@@ -540,6 +679,17 @@ public class BasicSerializerFactory
             throws IOException, JsonGenerationException
         {
             provider.defaultSerializeDateValue(value, jgen);
+        }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "string");
+            //todo: (ryan) add a format for the date in the schema?
+            objectNode.put("optional", true);
+            return objectNode;
         }
     }
 
@@ -549,7 +699,7 @@ public class BasicSerializerFactory
      * that should not be used by plain SQL date.
      */
     public final static class SqlDateSerializer
-        extends JsonSerializer<java.sql.Date>
+        extends JsonSerializer<java.sql.Date> implements SchemaAware
     {
         @Override
 		public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
@@ -557,16 +707,37 @@ public class BasicSerializerFactory
         {
             jgen.writeString(value.toString());
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "string");
+            //todo: (ryan) add a format for the date in the schema?
+            objectNode.put("optional", true);
+            return objectNode;
+        }
     }
 
     public final static class SqlTimeSerializer
-        extends JsonSerializer<java.sql.Time>
+        extends JsonSerializer<java.sql.Time> implements SchemaAware
     {
         @Override
             public void serialize(java.sql.Time value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());
+        }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "string");
+            objectNode.put("optional", true);
+            return objectNode;
         }
     }
 
@@ -576,7 +747,7 @@ public class BasicSerializerFactory
      * This is the default serializer for nulls.
      */
     public final static class NullSerializer
-        extends JsonSerializer<Object>
+        extends JsonSerializer<Object> implements SchemaAware
     {
         public final static NullSerializer instance = new NullSerializer();
 
@@ -588,10 +759,19 @@ public class BasicSerializerFactory
         {
             jgen.writeNull();
         }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            objectNode.put("type", "null");
+            return objectNode;
+        }
     }
 
     public final static class SerializableSerializer
-        extends JsonSerializer<JsonSerializable>
+        extends JsonSerializer<JsonSerializable> implements SchemaAware
     {
         final static SerializableSerializer instance = new SerializableSerializer();
 
@@ -602,6 +782,46 @@ public class BasicSerializerFactory
             throws IOException, JsonGenerationException
         {
             value.serialize(jgen, provider);
+        }
+        
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+                throws JsonMappingException
+        {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            String schemaType = "any";
+            String objectProperties = null;
+            String itemDefinition = null;
+            if (typeHint != null) {
+                Class<?> rawClass = TypeFactory.fromType(typeHint).getRawClass();
+                if (rawClass.isAnnotationPresent(JsonSerializableSchema.class)) {
+                    JsonSerializableSchema schemaInfo = rawClass.getAnnotation(JsonSerializableSchema.class);
+                    schemaType = schemaInfo.schemaType();
+                    if (!"##irrelevant".equals(schemaInfo.schemaObjectPropertiesDefinition())) {
+                        objectProperties = schemaInfo.schemaObjectPropertiesDefinition();
+                    }
+                    if (!"##irrelevant".equals(schemaInfo.schemaItemDefinition())) {
+                        itemDefinition = schemaInfo.schemaItemDefinition();
+                    }
+                }
+            }
+            objectNode.put("type", schemaType);
+            if (objectProperties != null) {
+                try {
+                    objectNode.put("properties", new ObjectMapper().readValue(objectProperties, JsonNode.class));
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+            if (itemDefinition != null) {
+                try {
+                    objectNode.put("items", new ObjectMapper().readValue(itemDefinition, JsonNode.class));
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+            objectNode.put("optional", true);
+            return objectNode;
         }
     }
 }

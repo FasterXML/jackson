@@ -3,8 +3,12 @@ package org.codehaus.jackson.map.ser;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
+import java.lang.reflect.Type;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.schema.JsonSchema;
+import org.codehaus.jackson.schema.SchemaAware;
 
 import org.codehaus.jackson.map.*;
 
@@ -204,6 +208,35 @@ public class StdSerializerProvider
         }
         // And then we can do actual serialization, through the instance
         inst._serializeValue(jgen, value);
+    }
+
+    @Override
+    public JsonSchema generateJsonSchema(Class<?> type, SerializationConfig config, SerializerFactory jsf)
+            throws JsonMappingException
+    {
+        if (type == null) {
+            throw new IllegalArgumentException("A class must be provided.");
+        }
+
+        /* First: we need a separate instance, which will hold a copy of the
+         * non-shared ("local") read-only lookup Map for fast
+         * class-to-serializer lookup
+         */
+        StdSerializerProvider inst = createInstance(config, jsf);
+        // sanity check to avoid weird errors; to ensure sub-classes do override createInstance
+        if (inst.getClass() != getClass()) {
+            throw new IllegalStateException("Broken serializer provider: createInstance returned instance of type "+inst.getClass()+"; blueprint of type "+getClass());
+        }
+        JsonSerializer<Object> ser = inst.findValueSerializer(type);
+        JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                ((SchemaAware) ser).getSchema(inst, null) : 
+                JsonSchema.getDefaultSchemaNode();
+        if (!(schemaNode instanceof ObjectNode)) {
+            throw new IllegalArgumentException("Class " + type.getName() +
+                    " would not be serialized as a JSON object and therefore has no schema.");
+        }
+
+        return new JsonSchema((ObjectNode) schemaNode);
     }
 
     public boolean hasSerializerFor(SerializationConfig config,

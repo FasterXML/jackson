@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
@@ -13,6 +14,7 @@ import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.NullNode;
+import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -577,6 +579,18 @@ public class ObjectMapper
         throws IOException, JsonGenerationException, JsonMappingException
     {
         _configAndWriteValue(_jsonFactory.createJsonGenerator(w), value);
+    }
+
+    /**
+     * Generate the {@link http://json-schema.org/ Json-schema} for the specified class.
+     *
+     * @param t The class.
+     * @return The json-schema.
+     */
+    public JsonSchema generateJsonSchema(Class t)
+            throws JsonMappingException
+    {
+        return _serializerProvider.generateJsonSchema(t, _getUnsharedSConfig(), _serializerFactory);
     }
 
     /**

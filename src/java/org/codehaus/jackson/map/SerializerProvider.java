@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.schema.JsonSchema;
 
 /**
  * Abstract class that defines API used by {@link ObjectMapper} and
@@ -42,6 +43,19 @@ public abstract class SerializerProvider
                                         JsonGenerator jgen, Object value,
                                         SerializerFactory jsf)
         throws IOException, JsonGenerationException;
+
+    /**
+     * Generate the {@link http://json-schema.org/ json-schema}.
+     *
+     * @param type The type.
+     * @param config The config.
+     * @param jsf The serializer factory.
+     * @return The config.
+     */
+    public JsonSchema generateJsonSchema(Class<?> type, SerializationConfig config, SerializerFactory jsf)
+            throws JsonMappingException {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Method that can be called to see if this serializer provider

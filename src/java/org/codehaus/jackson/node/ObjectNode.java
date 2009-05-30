@@ -10,7 +10,7 @@ import org.codehaus.jackson.map.SerializerProvider;
 /**
  * Note that maps to Json Object structures in Json content.
  */
-public final class ObjectNode
+public class ObjectNode
     extends ContainerNode
 {
     LinkedHashMap<String, JsonNode> _children = null;

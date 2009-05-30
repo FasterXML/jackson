@@ -2,6 +2,8 @@ package org.codehaus.jackson.xc;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.schema.SchemaAware;
+import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
@@ -14,7 +16,7 @@ import java.lang.reflect.Type;
 /**
  * @author Ryan Heaton
  */
-public class XmlAdapterJsonSerializer extends JsonSerializer
+public class XmlAdapterJsonSerializer extends JsonSerializer implements SchemaAware
 {
     private final XmlAdapter<Object,Object> xmlAdapter;
 
@@ -37,12 +39,16 @@ public class XmlAdapterJsonSerializer extends JsonSerializer
         jsonSerializer.serialize(adapted, jgen, provider);
     }
 
-//    @Override
-//    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-//            throws JsonMappingException
-//    {
-//        return provider.findValueSerializer(findValueClass()).getSchema(provider, typeHint);
-//    }
+    @Override
+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+            throws JsonMappingException
+    {
+        JsonSerializer<Object> ser = provider.findValueSerializer(findValueClass());
+        JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                ((SchemaAware) ser).getSchema(provider, null) :
+                JsonSchema.getDefaultSchemaNode();
+        return schemaNode;
+    }
 
     private Class findValueClass()
     {
