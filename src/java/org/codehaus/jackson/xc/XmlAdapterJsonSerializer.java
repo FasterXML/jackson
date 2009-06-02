@@ -16,7 +16,8 @@ import java.lang.reflect.Type;
 /**
  * @author Ryan Heaton
  */
-public class XmlAdapterJsonSerializer extends JsonSerializer implements SchemaAware
+public class XmlAdapterJsonSerializer extends JsonSerializer<Object>
+    implements SchemaAware
 {
     private final XmlAdapter<Object,Object> xmlAdapter;
 
@@ -50,13 +51,13 @@ public class XmlAdapterJsonSerializer extends JsonSerializer implements SchemaAw
         return schemaNode;
     }
 
-    private Class findValueClass()
+    private Class<?> findValueClass()
     {
         Type superClass = this.xmlAdapter.getClass().getGenericSuperclass();
         while (superClass instanceof ParameterizedType && XmlAdapter.class != ((ParameterizedType)superClass).getRawType()) {
-            superClass = ((Class) ((ParameterizedType) superClass).getRawType()).getGenericSuperclass();
+            superClass = ((Class<?>) ((ParameterizedType) superClass).getRawType()).getGenericSuperclass();
         }
-        return (Class) ((ParameterizedType) superClass).getActualTypeArguments()[0];
+        return (Class<?>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
     }
 
 }

@@ -93,16 +93,13 @@
         <echo message = "---------------------------------------------------" />
         <echo message = "1)  readme - Displays this information (default target)." />
         <echo message = "2)  clean - Remove any generated files/directories." />
-        <echo message = "3)  compile.all - Compile all code for ${ant.project.name}." />
-        <echo message = "4)  jars - Compile and create all jars for non-test ${ant.project.name} code (see below for specific ones)." />
-        <echo message = "4b)  jar.asl - Compile and create jar for non-test ${ant.project.name} cod, under Apache (2.0) license." />
+        <echo message = "3)  build - Compile all code, run unit tests" />
+        <echo message = "4)  jars - Compile and create all jars for non-test ${ant.project.name} code" />
         <echo message = "5)  javadoc - Generate ${ant.project.name} code documentation." />
-        <echo message = "6)  compile.test - Compile ${ant.project.name} code and test code" />
-        <echo message = "       for JUnit tests." />
-        <echo message = "7)  test - Run JUnit tests." />
-        <echo message = "8)  dist - Create distribution directory and copy necessary files there" />
-        <echo message = "9) all - Run the clean, compile, javadoc," />
-        <echo message = "         test and dist targets." />  
+        <echo message = "6)  test - Run JUnit tests." />
+        <echo message = "7)  dist - Create distribution directory and copy necessary files there" />
+        <echo message = "8) all - Run clean, compile, test, javadoc," />
+        <echo message = "         and dist targets." />  
         <echo message = "" />
         <echo message = "Available command-line arguments:" />
         <echo message = "---------------------------------" />
@@ -147,6 +144,8 @@
         <delete dir="${dir.dist}"/>
         <delete file="cobertura.ser" />
     </target>
+
+    <target name="build" depends="compile, all-tests" />
 
     <target name="compile" depends="compile.all" />
     <target name="compile.all" depends="
@@ -251,7 +250,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
     <!-- Generic distribution target builds the structure we copy over
          to the website.
       --> 
-    <target name="dist" depends="compile.all ,jars, javadoc"
+    <target name="dist" depends="compile.all,jars,javadoc"
     >
        <!-- First, let's copy the binary jars to dist -->
        <copy todir="${dir.dist}">
@@ -352,7 +351,6 @@ compile.main, compile.test, compile.extra, compile.perf" />
     <!-- Tasks from here down are in support of junit tests.                 -->
     <!--*********************************************************************-->
     <target name="all-tests" depends="test" />
-
 
     <!-- Compiling and running test cases
       -->

@@ -15,7 +15,7 @@ import java.lang.reflect.Type;
  * @author Ryan Heaton
  */
 public class XmlAdapterJsonDeserializer
-        extends JsonDeserializer
+        extends JsonDeserializer<Object>
 {
     private final XmlAdapter<Object,Object> xmlAdapter;
     private final Class<?> valueClass;
@@ -30,9 +30,9 @@ public class XmlAdapterJsonDeserializer
     {
         Type superClass = this.xmlAdapter.getClass().getGenericSuperclass();
         while (superClass instanceof ParameterizedType && XmlAdapter.class != ((ParameterizedType)superClass).getRawType()) {
-            superClass = ((Class) ((ParameterizedType) superClass).getRawType()).getGenericSuperclass();
+            superClass = ((Class<?>) ((ParameterizedType) superClass).getRawType()).getGenericSuperclass();
         }
-        return (Class) ((ParameterizedType) superClass).getActualTypeArguments()[0];
+        return (Class<?>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
     }
 
     @Override

@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.ser;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
-import java.lang.reflect.GenericArrayType;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.schema.SchemaAware;

@@ -21,7 +21,8 @@ public class TestConfig
     @JsonAutoDetect(JsonMethod.NONE)
     final static class Config { }
 
-    public void testDefaults()
+    @SuppressWarnings("deprecation")
+	public void testDefaults()
     {
         ObjectMapper m = new ObjectMapper();
         SerializationConfig cfg = m.getSerializationConfig();
@@ -36,7 +37,8 @@ public class TestConfig
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT));
     }
 
-    public void testFromAnnotationsLegacy()
+    @SuppressWarnings("deprecation")
+	public void testFromAnnotationsLegacy()
     {
         ObjectMapper m = new ObjectMapper();
         SerializationConfig cfg = m.getSerializationConfig();

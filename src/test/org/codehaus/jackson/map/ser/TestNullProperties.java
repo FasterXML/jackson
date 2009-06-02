@@ -72,7 +72,8 @@ public class TestNullProperties
     }
 
 
-    public void testGlobal() throws IOException
+    @SuppressWarnings("deprecation")
+	public void testGlobal() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
         assertTrue(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
@@ -141,7 +142,8 @@ public class TestNullProperties
 
     // // // Tests for deprecated legacy annotations:
 
-    public void testByClassLegacy() throws IOException
+    @SuppressWarnings("deprecation")
+	public void testByClassLegacy() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
         assertTrue(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));

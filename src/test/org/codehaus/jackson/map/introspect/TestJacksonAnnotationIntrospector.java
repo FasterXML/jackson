@@ -4,12 +4,7 @@ import junit.framework.TestCase;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.annotate.JsonGetter;
-import org.codehaus.jackson.annotate.JsonSetter;
-import org.codehaus.jackson.annotate.JsonUseDeserializer;
-import org.codehaus.jackson.annotate.JsonUseSerializer;
+import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
 import javax.xml.namespace.QName;
@@ -17,7 +12,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
-import java.lang.reflect.Type;
 
 /**
  * @author Ryan Heaton
@@ -61,22 +55,22 @@ public class TestJacksonAnnotationIntrospector
         VALUE1
     }
 
+    @SuppressWarnings("deprecation")
     public static class JacksonExample
     {
-
         private String attributeProperty;
         private String elementProperty;
         private List<String> wrappedElementProperty;
         private EnumExample enumProperty;
         private QName qname;
 
-        @JsonUseSerializer(QNameSerializer.class)
+		@JsonUseSerializer(QNameSerializer.class)
         public QName getQname()
         {
             return qname;
         }
 
-        @JsonUseDeserializer(QNameDeserializer.class)
+		@JsonUseDeserializer(QNameDeserializer.class)
         public void setQname(QName qname)
         {
             this.qname = qname;

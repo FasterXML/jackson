@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.ser;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
-import java.lang.reflect.Type;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.node.ObjectNode;

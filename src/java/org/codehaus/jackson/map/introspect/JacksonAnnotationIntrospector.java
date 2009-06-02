@@ -268,7 +268,8 @@ public class JacksonAnnotationIntrospector
         }
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public Class<?> findDeserializationType(Annotated am)
     {
         // Primary annotation, JsonDeserialize
@@ -293,7 +294,8 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
-    public Class<?> findDeserializationKeyType(Annotated am)
+    @SuppressWarnings("deprecation")
+	public Class<?> findDeserializationKeyType(Annotated am)
     {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
@@ -317,7 +319,8 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public Class<?> findDeserializationContentType(Annotated am)
     {
         // Primary annotation, JsonDeserialize
@@ -442,7 +445,7 @@ public class JacksonAnnotationIntrospector
     ////////////////////////////////////////////////////
      */
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     protected Class<? extends JsonSerializer<?>> findSerializerClass(Annotated a)
     {
         /* 21-May-2009, tatu: Slight change; primary annotation is now
@@ -473,7 +476,7 @@ public class JacksonAnnotationIntrospector
         return (Class<JsonSerializer<?>>)serClass;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     protected Class<? extends JsonDeserializer<?>> findDeserializerClass(Annotated a)
     {
         /* 21-May-2009, tatu: Slight change; primary annotation is now

@@ -14,7 +14,6 @@ import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.NullNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -587,7 +586,7 @@ public class ObjectMapper
      * @param t The class.
      * @return The json-schema.
      */
-    public JsonSchema generateJsonSchema(Class t)
+    public JsonSchema generateJsonSchema(Class<?> t)
             throws JsonMappingException
     {
         return _serializerProvider.generateJsonSchema(t, _getUnsharedSConfig(), _serializerFactory);

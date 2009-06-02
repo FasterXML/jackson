@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * This can be done to override an existing JsonIgnore by explictly
  * defining one with 'false' argument.
  */
-@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonIgnore

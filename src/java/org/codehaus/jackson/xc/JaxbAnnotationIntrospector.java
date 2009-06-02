@@ -405,7 +405,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
      * @param defaultName The default name if nothing is specified.
      * @return The JAXB property name.
      */
-    protected String findJaxbPropertyName(AnnotatedElement ae, Class aeType, String defaultName)
+    protected String findJaxbPropertyName(AnnotatedElement ae, Class<?> aeType, String defaultName)
     {
         XmlElementWrapper elementWrapper = ae.getAnnotation(XmlElementWrapper.class);
         if (elementWrapper != null) {

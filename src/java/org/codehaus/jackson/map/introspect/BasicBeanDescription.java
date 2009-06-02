@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map.introspect;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;

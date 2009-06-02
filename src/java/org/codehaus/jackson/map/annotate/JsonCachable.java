@@ -6,8 +6,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.codehaus.jackson.annotate.JacksonAnnotation;
-import org.codehaus.jackson.annotate.NoClass;
-import org.codehaus.jackson.map.JsonSerializer;
 
 /**
  * Marker annotation used to denote whether given instance

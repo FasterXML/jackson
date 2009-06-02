@@ -476,7 +476,7 @@ public final class ContainerSerializers
                         JsonNode schemaNode = (ser instanceof SchemaAware) ?
                                 ((SchemaAware) ser).getSchema(provider, null) :
                                 JsonSchema.getDefaultSchemaNode();
-                        propsNode.put(provider.getConfig().getAnnotationIntrospector().findEnumValue((Enum)enumValue), schemaNode);
+                        propsNode.put(provider.getConfig().getAnnotationIntrospector().findEnumValue((Enum<?>)enumValue), schemaNode);
                     }
                     o.put("properties", propsNode);
                 }

@@ -114,7 +114,7 @@ public class BeanSerializer
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {
-        AnnotationIntrospector ai = provider.getConfig().getAnnotationIntrospector();
+        //AnnotationIntrospector ai = provider.getConfig().getAnnotationIntrospector();
         for (int i = 0, len = _props.length; i < len; ++i) {
             BeanPropertyWriter prop = _props[i];
             if (prop.hasSerializer()) {

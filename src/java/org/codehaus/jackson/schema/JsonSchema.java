@@ -1,15 +1,8 @@
 package org.codehaus.jackson.schema;
 
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
 
 /**
  * A {@link org.codehaus.jackson.JsonNode} that represents a JSON-Schema instance.
