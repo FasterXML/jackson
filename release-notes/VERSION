@@ -37,8 +37,6 @@ Description:
   * [JACKSON-103] Serializing Groovy objects; need to exclude getter method
     "getMetaClass" from serialization to prevent infinite recursion
    (reported by Ray T)
-  * [JACKSON-104] Build, source packaging broken for 0.9.9-6
-   (reported by Oleksander A)
 
   Improvements:
 

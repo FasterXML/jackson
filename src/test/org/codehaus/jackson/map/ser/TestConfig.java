@@ -71,6 +71,8 @@ public class TestConfig
         Map<String,Integer> map = new HashMap<String,Integer>();
         map.put("a", Integer.valueOf(2));
         String result = serializeAsString(m, map).trim();
-        assertEquals("{\n  \"a\" : 2\n}", result);
+        // 02-Jun-2009, tatu: not really a clean way but...
+        String lf = System.getProperty("line.separator");
+        assertEquals("{"+lf+"  \"a\" : 2"+lf+"}", result);
     }
 }
