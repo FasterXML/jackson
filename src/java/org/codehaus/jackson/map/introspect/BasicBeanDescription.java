@@ -91,77 +91,6 @@ public class BasicBeanDescription extends BeanDescription
 
     /*
     ///////////////////////////////////////////////////////
-    // Introspection, fields (for both ser and deser)
-    ///////////////////////////////////////////////////////
-     */
-
-    /**
-     * @param autodetect Whether to automatically detect public fields
-     *  as properties; if true will do that, if false will require
-     *   explicit annotations.
-     * @param ignoredProperties (optional) names of properties to ignore;
-     *   any fields that would be recognized as one of these properties
-     *   is ignored.
-     * @param forSerialization If true, will collect serializable property
-     *    fields; if false, deserializable
-     *
-     * @return Ordered Map with logical property name as key, and
-     *    matching field as value.
-     */
-    public LinkedHashMap<String,AnnotatedField> findPropertyFields(boolean autodetect,
-                                                                   Collection<String> ignoredProperties,
-                                                                   boolean forSerialization)
-    {
-        Boolean classAD = _annotationIntrospector.findFieldAutoDetection(_classInfo);
-        if (classAD != null) {
-            autodetect = classAD.booleanValue();
-        }
-
-        LinkedHashMap<String,AnnotatedField> results = new LinkedHashMap<String,AnnotatedField>();
-        for (AnnotatedField af : _classInfo.fields()) {
-            // note: some prefiltering has been; no static or transient fields included
-
-            /* So far so good: final check, then; has to either
-             * (a) be marked with JsonProperty (or JsonSerialize) OR
-             * (b) be public
-             */
-            String propName = forSerialization
-                ? _annotationIntrospector.findSerializablePropertyName(af)
-                : _annotationIntrospector.findDeserializablePropertyName(af)
-                ;
-            if (propName != null) {
-                if (propName.length() == 0) { 
-                    propName = af.getName();
-                }
-            } else { // nope, but is a public field?
-                if (!autodetect || !af.isPublic()) {
-                    continue;
-                }
-                propName = af.getName();
-            }
-
-            if (ignoredProperties != null) {
-                if (ignoredProperties.contains(propName)) {
-                    continue;
-                }
-            }
-
-            /* Yup, it is a valid name. But do we have a conflict?
-             * Shouldn't usually happen, but it is possible... and for
-             * now let's consider it a problem
-             */
-            AnnotatedField old = results.put(propName, af);
-            if (old != null) {
-                String oldDesc = old.getFullName();
-                String newDesc = af.getFullName();
-                throw new IllegalArgumentException("Multiple fields representing property \""+propName+"\": "+oldDesc+" vs "+newDesc);
-            }
-        }
-        return results;
-    }
-
-    /*
-    ///////////////////////////////////////////////////////
     // Introspection for serialization (write Json), getters
     ///////////////////////////////////////////////////////
      */
@@ -369,6 +298,35 @@ public class BasicBeanDescription extends BeanDescription
 
     /*
     ///////////////////////////////////////////////////////
+    // Introspection for serialization, fields
+    ///////////////////////////////////////////////////////
+     */
+
+    public LinkedHashMap<String,AnnotatedField> findSerializableFields(boolean autodetect,
+                                                                       Collection<String> ignoredProperties)
+    {
+        return _findPropertyFields(autodetect, ignoredProperties, true);
+    }
+    
+    /*
+    ///////////////////////////////////////////////////////
+    // Introspection for serialization, other
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for determining whether null properties should be written
+     * out for a Bean of introspected type. This is based on global
+     * feature (lowest priority, passed as argument)
+     * and per-class annotation (highest priority).
+     */
+    public OutputProperties findSerializationInclusion(OutputProperties defValue)
+    {
+        return _annotationIntrospector.findSerializationInclusion(_classInfo, defValue);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
     // Introspection for deserialization, setters:
     ///////////////////////////////////////////////////////
      */
@@ -484,19 +442,14 @@ public class BasicBeanDescription extends BeanDescription
 
     /*
     ///////////////////////////////////////////////////////
-    // Introspection for serialization
+    // Introspection for deserialization, fields:
     ///////////////////////////////////////////////////////
      */
 
-    /**
-     * Method for determining whether null properties should be written
-     * out for a Bean of introspected type. This is based on global
-     * feature (lowest priority, passed as argument)
-     * and per-class annotation (highest priority).
-     */
-    public OutputProperties findSerializationInclusion(OutputProperties defValue)
+    public LinkedHashMap<String,AnnotatedField> findDeserializableFields(boolean autodetect,
+                                                                       Collection<String> ignoredProperties)
     {
-        return _annotationIntrospector.findSerializationInclusion(_classInfo, defValue);
+        return _findPropertyFields(autodetect, ignoredProperties, false);
     }
 
     /*
@@ -630,8 +583,79 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
+    ///////////////////////////////////////////////////////
+    // Helper methods for field introspection
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * @param autodetect Whether to automatically detect public fields
+     *  as properties; if true will do that, if false will require
+     *   explicit annotations.
+     * @param ignoredProperties (optional) names of properties to ignore;
+     *   any fields that would be recognized as one of these properties
+     *   is ignored.
+     * @param forSerialization If true, will collect serializable property
+     *    fields; if false, deserializable
+     *
+     * @return Ordered Map with logical property name as key, and
+     *    matching field as value.
+     */
+    public LinkedHashMap<String,AnnotatedField> _findPropertyFields(boolean autodetect,
+                                                                   Collection<String> ignoredProperties,
+                                                                   boolean forSerialization)
+    {
+        Boolean classAD = _annotationIntrospector.findFieldAutoDetection(_classInfo);
+        if (classAD != null) {
+            autodetect = classAD.booleanValue();
+        }
+
+        LinkedHashMap<String,AnnotatedField> results = new LinkedHashMap<String,AnnotatedField>();
+        for (AnnotatedField af : _classInfo.fields()) {
+            // note: some prefiltering has been; no static or transient fields included
+
+            /* So far so good: final check, then; has to either
+             * (a) be marked with JsonProperty (or JsonSerialize) OR
+             * (b) be public
+             */
+            String propName = forSerialization
+                ? _annotationIntrospector.findSerializablePropertyName(af)
+                : _annotationIntrospector.findDeserializablePropertyName(af)
+                ;
+            if (propName != null) {
+                if (propName.length() == 0) { 
+                    propName = af.getName();
+                }
+            } else { // nope, but is a public field?
+                if (!autodetect || !af.isPublic()) {
+                    continue;
+                }
+                propName = af.getName();
+            }
+
+            if (ignoredProperties != null) {
+                if (ignoredProperties.contains(propName)) {
+                    continue;
+                }
+            }
+
+            /* Yup, it is a valid name. But do we have a conflict?
+             * Shouldn't usually happen, but it is possible... and for
+             * now let's consider it a problem
+             */
+            AnnotatedField old = results.put(propName, af);
+            if (old != null) {
+                String oldDesc = old.getFullName();
+                String newDesc = af.getFullName();
+                throw new IllegalArgumentException("Multiple fields representing property \""+propName+"\": "+oldDesc+" vs "+newDesc);
+            }
+        }
+        return results;
+    }
+
+    /*
     //////////////////////////////////////////////////////////
-    // Property name manging (getFoo -> foo)
+    // Property name mangling (getFoo -> foo)
     //////////////////////////////////////////////////////////
      */
 

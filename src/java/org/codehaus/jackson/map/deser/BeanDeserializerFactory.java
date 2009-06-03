@@ -4,6 +4,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.*;
@@ -249,23 +250,34 @@ public class BeanDeserializerFactory
         /* As per [JACKSON-88], may also need to consider getters
          * for Map/Collection properties
          */
+        HashSet<String> addedProps = new HashSet<String>(setters.keySet());
         if (config.isEnabled(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS)) {
             /* Hmmh. We have to assume that 'use getters as setters' also
              * implies 'yes, do auto-detect these getters'? (if not, we'd
              * need to add AUTO_DETECT_GETTERS to deser config too, not
              * just ser config)
              */
-            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(true, setters.keySet());
+            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(true, addedProps);
             for (Map.Entry<String,AnnotatedMethod> en : getters.entrySet()) {
                 AnnotatedMethod getter = en.getValue();
                 // should only consider Collections and Maps, for now?
                 Class<?> rt = getter.getReturnType();
                 if (Collection.class.isAssignableFrom(rt)
                     || Map.class.isAssignableFrom(rt)) {
-                    deser.addProperty(constructSetterlessProperty(config, en.getKey(), getter));
+                    String name = en.getKey();
+                    deser.addProperty(constructSetterlessProperty(config, name, getter));
+                    addedProps.add(name);
                 }
             }
         }
+        
+        /* [JACKSON-98]: also include field-backed properties:
+         *   (second arg passed to ignore anything for which there is a getter
+         *   method)
+         */
+        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_FIELDS), addedProps);
+
+        // !!! TBI
     }
 
     /**

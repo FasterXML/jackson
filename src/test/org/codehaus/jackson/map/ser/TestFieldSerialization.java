@@ -2,7 +2,6 @@ package org.codehaus.jackson.map.ser;
 
 import org.codehaus.jackson.map.BaseMapTest;
 
-import java.io.IOException;
 import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
@@ -51,7 +50,8 @@ public class TestFieldSerialization
         public int _z;
     }
 
-    /* Let's test invalid bean too: can't have 2 logical properties
+    /**
+     * Let's test invalid bean too: can't have 2 logical properties
      * with same name
      */
     public class DupFieldBean
@@ -59,13 +59,33 @@ public class TestFieldSerialization
         @JsonProperty("foo")
         public int _z;
 
-        @JsonSerialize
+        @SuppressWarnings("unused")
+		@JsonSerialize
             private int foo;
+    }
+
+    public class DupFieldBean2
+    {
+        public int z;
+
+        @JsonProperty("z")
+        public int _z;
+    }
+
+    /**
+     * It is ok to have a method-based and field-based property
+     * introspectable (although no
+     */
+    public class FieldAndMethodBean
+    {
+        @JsonProperty public int z;
+
+        @JsonProperty("z") public int getZ() { return z+1; }
     }
 
     /*
     //////////////////////////////////////////////
-    // Main tests
+    // Main tests, success
     //////////////////////////////////////////////
      */
 
@@ -81,7 +101,8 @@ public class TestFieldSerialization
         assertEquals(Integer.valueOf(0), result.get("y"));
     }
 
-    public void testSimpleAnnotation() throws Exception
+    @SuppressWarnings("unchecked")
+	public void testSimpleAnnotation() throws Exception
     {
         SimpleFieldBean2 bean = new SimpleFieldBean2();
         bean.values = new String[] { "a", "b" };
@@ -104,10 +125,39 @@ public class TestFieldSerialization
         assertEquals(Integer.valueOf(-4), result.get("z"));
     }
 
+    /**
+     * Unit test that verifies that if both a field and a getter
+     * method exist for a logical property (which is allowed),
+     * getter has precendence over field.
+     */
+    public void testMethodPrecedence() throws Exception
+    {
+        FieldAndMethodBean bean = new FieldAndMethodBean();
+        bean.z = 9;
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, bean);
+        assertEquals(Integer.valueOf(bean.getZ()), result.get("z"));
+    }
+
+    /*
+    //////////////////////////////////////////////
+    // Main tests, failure
+    //////////////////////////////////////////////
+     */
+
     public void testFailureDueToDups() throws Exception
     {
         try {
             writeAndMap(new ObjectMapper(), new DupFieldBean());
+        } catch (JsonMappingException e) {
+            verifyException(e, "Multiple fields representing property");
+        }
+    }
+
+    public void testFailureDueToDupField() throws Exception
+    {
+        try {
+            writeAndMap(new ObjectMapper(), new DupFieldBean2());
         } catch (JsonMappingException e) {
             verifyException(e, "Multiple fields representing property");
         }
