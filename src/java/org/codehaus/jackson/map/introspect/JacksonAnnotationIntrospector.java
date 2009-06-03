@@ -102,23 +102,6 @@ public class JacksonAnnotationIntrospector
         return (ann != null && ann.value());
     }
 
-    @Override
-    public String findPropertyName(AnnotatedField af)
-    {
-        JsonProperty pann = af.getAnnotation(JsonProperty.class);
-        if (pann != null) {
-            return pann.value();
-        }
-        /* Also: having either JsonSerialize or JsonSerialize implies
-         * that the field represents a property.
-         */
-        if (af.hasAnnotation(JsonSerialize.class)
-            || af.hasAnnotation(JsonDeserialize.class)) {
-            return "";
-        }
-        return null;
-    }
-
     /*
     ///////////////////////////////////////////////////////
     // Serialization: general annotations
@@ -247,6 +230,26 @@ public class JacksonAnnotationIntrospector
 
     /*
     ///////////////////////////////////////////////////////
+    // Serialization: field annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public String findSerializablePropertyName(AnnotatedField af)
+    {
+        JsonProperty pann = af.getAnnotation(JsonProperty.class);
+        if (pann != null) {
+            return pann.value();
+        }
+        // Also: having JsonSerialize implies it is such a property
+        if (af.hasAnnotation(JsonSerialize.class)) {
+            return "";
+        }
+        return null;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
     // Deserialization: general annotations
     ///////////////////////////////////////////////////////
     */
@@ -347,7 +350,7 @@ public class JacksonAnnotationIntrospector
 
     /*
     ////////////////////////////////////////////////////
-    // Class annotations: Deserialization
+    // Deserialization: class annotations
     ////////////////////////////////////////////////////
      */
 
@@ -389,7 +392,7 @@ public class JacksonAnnotationIntrospector
 
     /*
     ///////////////////////////////////////////////////////
-    // Method annotations: deserialization
+    // Deserialization: Method annotations
     ///////////////////////////////////////////////////////
     */
 
@@ -437,6 +440,26 @@ public class JacksonAnnotationIntrospector
          * to this method getting called)
          */
         return am.hasAnnotation(JsonCreator.class);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Deserialization: field annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public String findDeserializablePropertyName(AnnotatedField af)
+    {
+        JsonProperty pann = af.getAnnotation(JsonProperty.class);
+        if (pann != null) {
+            return pann.value();
+        }
+        // Also: having JsonDeserialize implies it is such a property
+        if (af.hasAnnotation(JsonDeserialize.class)) {
+            return "";
+        }
+        return null;
     }
 
     /*

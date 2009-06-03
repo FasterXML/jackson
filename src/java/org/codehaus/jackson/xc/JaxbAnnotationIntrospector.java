@@ -246,7 +246,14 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public String findPropertyName(AnnotatedField af)
+    public String findSerializablePropertyName(AnnotatedField af)
+    {
+        Field field = af.getAnnotated();
+        return findJaxbPropertyName(field, field.getType(), field.getName());
+    }
+
+    @Override
+    public String findDeserializablePropertyName(AnnotatedField af)
     {
         Field field = af.getAnnotated();
         return findJaxbPropertyName(field, field.getType(), field.getName());

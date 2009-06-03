@@ -91,17 +91,6 @@ public abstract class AnnotationIntrospector
      */
     public abstract boolean isIgnorableField(AnnotatedField f);
 
-    /**
-     * Method for checking whether given field has an annotation
-     * that suggests property name associated with method that
-     * may be a "getter". Should return null if no annotation
-     * is found; otherwise a non-null String.
-     * If non-null value is returned, it is used as the property
-     * name, except for empty String ("") which is taken to mean
-     * "use the field name as is".
-     */
-    public abstract String findPropertyName(AnnotatedField af);
-
     /*
     ///////////////////////////////////////////////////////
     // Serialization: general annotations
@@ -181,11 +170,31 @@ public abstract class AnnotationIntrospector
     public abstract boolean hasAsValueAnnotation(AnnotatedMethod am);
 
     /**
-     * Method for determining the enum value of a given enum type.
+     * Method for determining the String value to use for serializing
+     * given enumeration entry; used when serializing enumerations
+     * as Strings (the standard method).
      *
-     * @return The enum value.
+     * @return Serialized enum value.
      */
     public abstract String findEnumValue(Enum<?> value);
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: field annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    /**
+     * Method for checking whether given member field represent
+     * a serializable logical property; and if so, returns the
+     * name of that property.
+     * Should return null if no annotation is found (indicating it
+     * is not a serializable field); otherwise a non-null String.
+     * If non-null value is returned, it is used as the property
+     * name, except for empty String ("") which is taken to mean
+     * "use the field name as is".
+     */
+    public abstract String findSerializablePropertyName(AnnotatedField af);
 
     /*
     ///////////////////////////////////////////////////////
@@ -258,7 +267,7 @@ public abstract class AnnotationIntrospector
 
     /*
     ///////////////////////////////////////////////////////
-    // Method annotations: deserialization
+    // Deserialization: method annotations
     ///////////////////////////////////////////////////////
     */
 
@@ -295,4 +304,22 @@ public abstract class AnnotationIntrospector
      *   false otherwise
      */
     public abstract boolean hasCreatorAnnotation(AnnotatedMethod am);
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Deserialization: field annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    /**
+     * Method for checking whether given member field represent
+     * a deserializable logical property; and if so, returns the
+     * name of that property.
+     * Should return null if no annotation is found (indicating it
+     * is not a deserializable field); otherwise a non-null String.
+     * If non-null value is returned, it is used as the property
+     * name, except for empty String ("") which is taken to mean
+     * "use the field name as is".
+     */
+    public abstract String findDeserializablePropertyName(AnnotatedField af);
 }

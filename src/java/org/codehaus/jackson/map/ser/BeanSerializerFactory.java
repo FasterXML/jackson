@@ -183,7 +183,7 @@ public class BeanSerializerFactory
          *   (second arg passed to ignore anything for which there is a getter
          *   method)
          */
-        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findPropertyFields(config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_FIELDS), methodsByProp.keySet());
+        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findPropertyFields(config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_FIELDS), methodsByProp.keySet(), true);
 
         // nothing? can't proceed
         if (methodsByProp.isEmpty() && fieldsByProp.isEmpty()) {

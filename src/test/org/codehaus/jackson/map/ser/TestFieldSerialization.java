@@ -87,12 +87,11 @@ public class TestFieldSerialization
         bean.values = new String[] { "a", "b" };
         ObjectMapper m = new ObjectMapper();
         Map<String,Object> result = writeAndMap(m, bean);
-System.err.println("-> "+result);
         assertEquals(1, result.size());
-        String[] values = (String[]) result.get("values");
-        assertEquals(2, values.length);
-        assertEquals("a", values[0]);
-        assertEquals("b", values[1]);
+        List<String> values = (List<String>) result.get("values");
+        assertEquals(2, values.size());
+        assertEquals("a", values.get(0));
+        assertEquals("b", values.get(1));
     }
 
     public void testNoAutoDetect() throws Exception

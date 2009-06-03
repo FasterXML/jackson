@@ -102,12 +102,15 @@ public class BasicBeanDescription extends BeanDescription
      * @param ignoredProperties (optional) names of properties to ignore;
      *   any fields that would be recognized as one of these properties
      *   is ignored.
+     * @param forSerialization If true, will collect serializable property
+     *    fields; if false, deserializable
      *
      * @return Ordered Map with logical property name as key, and
      *    matching field as value.
      */
     public LinkedHashMap<String,AnnotatedField> findPropertyFields(boolean autodetect,
-                                                                    Collection<String> ignoredProperties)
+                                                                   Collection<String> ignoredProperties,
+                                                                   boolean forSerialization)
     {
         Boolean classAD = _annotationIntrospector.findFieldAutoDetection(_classInfo);
         if (classAD != null) {
@@ -122,7 +125,10 @@ public class BasicBeanDescription extends BeanDescription
              * (a) be marked with JsonProperty (or JsonSerialize) OR
              * (b) be public
              */
-            String propName = _annotationIntrospector.findPropertyName(af);
+            String propName = forSerialization
+                ? _annotationIntrospector.findSerializablePropertyName(af)
+                : _annotationIntrospector.findDeserializablePropertyName(af)
+                ;
             if (propName != null) {
                 if (propName.length() == 0) { 
                     propName = af.getName();
