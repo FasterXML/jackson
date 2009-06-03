@@ -58,7 +58,8 @@ public class TestAnnotationJsonSerialize
     //////////////////////////////////////////////
      */
 
-    public void testSimpleValueDefinition() throws Exception
+    @SuppressWarnings("unchecked")
+	public void testSimpleValueDefinition() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
         Map<String,Object> result = writeAndMap(m, new WrapperClass());

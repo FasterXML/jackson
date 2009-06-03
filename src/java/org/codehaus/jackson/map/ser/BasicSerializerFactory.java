@@ -617,7 +617,7 @@ public class BasicSerializerFactory
             jgen.writeString(provider.getConfig().getAnnotationIntrospector().findEnumValue(value));
         }
 
-		@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -626,10 +626,10 @@ public class BasicSerializerFactory
             if (typeHint != null) {
                 JavaType type = TypeFactory.instance._fromType(typeHint);
                 if (type.isEnumType()) {
-                    @SuppressWarnings("unchecked")
-                    EnumSet<? extends Enum> enumSet = EnumSet.allOf((Class<? extends Enum>) type.getRawClass());
                     ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
-                    for (Enum<?> enumValue : enumSet) {
+                    @SuppressWarnings("unchecked")
+                        Class<Enum<?>> enumClass = (Class<Enum<?>>) type.getRawClass();
+                    for (Enum<?> enumValue : enumClass.getEnumConstants()) {
                         arrayNode.add(provider.getConfig().getAnnotationIntrospector().findEnumValue(enumValue));
                     }
                 }
