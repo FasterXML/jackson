@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.deser;
 
 import org.codehaus.jackson.map.BaseMapTest;
 
@@ -10,10 +10,11 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.*;
 
 /**
- * Unit tests for verifying that field-backed properties can also be serialized
- * (since version 1.1) as well as getter-accessible properties.
+ * Unit tests for verifying that field-backed properties can also be
+ * deserialized (since version 1.1) as well as
+ * setter-accessible properties.
  */
-public class TestFieldSerialization
+public class TestFieldDeserialization
     extends BaseMapTest
 {
     /*
@@ -32,35 +33,29 @@ public class TestFieldSerialization
         // ignored, not detectable either
         @JsonIgnore public int a;
     }
-    
+
     public class SimpleFieldBean2
     {
-        @JsonSerialize String[] values;
-
-        // note: this annotation should not matter for serialization:
-        @JsonDeserialize int dummy;
+        @JsonDeserialize String[] values;
     }
 
     @JsonAutoDetect(JsonMethod.SETTER)
     public class NoAutoDetectBean
     {
         // not auto-detectable any more
-        public int x;
+        public int z;
 
         @JsonProperty("z")
         public int _z;
     }
 
-    /* Let's test invalid bean too: can't have 2 logical properties
-     * with same name
-     */
+    // Let's test invalid bean too
     public class DupFieldBean
     {
-        @JsonProperty("foo")
-        public int _z;
+        public int z;
 
-        @JsonSerialize
-            private int foo;
+        @JsonProperty("z")
+        public int _z;
     }
 
     /*
@@ -71,25 +66,20 @@ public class TestFieldSerialization
 
     public void testSimpleAutoDetect() throws Exception
     {
-        SimpleFieldBean bean = new SimpleFieldBean();
-        // let's set x, leave y as is
-        bean.x = 13;
         ObjectMapper m = new ObjectMapper();
-        Map<String,Object> result = writeAndMap(m, bean);
-        assertEquals(2, result.size());
-        assertEquals(Integer.valueOf(13), result.get("x"));
-        assertEquals(Integer.valueOf(0), result.get("y"));
+        SimpleFieldBean result = m.readValue("{ \"x\" : -13 }",
+                                           SimpleFieldBean.class);
+        assertEquals(0, result.x);
+        assertEquals(-13, result.y);
     }
 
     public void testSimpleAnnotation() throws Exception
     {
-        SimpleFieldBean2 bean = new SimpleFieldBean2();
-        bean.values = new String[] { "a", "b" };
         ObjectMapper m = new ObjectMapper();
-        Map<String,Object> result = writeAndMap(m, bean);
-System.err.println("-> "+result);
-        assertEquals(1, result.size());
-        String[] values = (String[]) result.get("values");
+        SimpleFieldBean2 bean = m.readValue("{ \"values\" : [ \"x\", \"y\" ] }",
+                                           SimpleFieldBean2.class);
+        String[] values = bean.values;
+        assertNotNull(values);
         assertEquals(2, values.length);
         assertEquals("a", values[0]);
         assertEquals("b", values[1]);
@@ -97,12 +87,10 @@ System.err.println("-> "+result);
 
     public void testNoAutoDetect() throws Exception
     {
-        NoAutoDetectBean bean = new NoAutoDetectBean();
-        bean._z = -4;
         ObjectMapper m = new ObjectMapper();
-        Map<String,Object> result = writeAndMap(m, bean);
-        assertEquals(1, result.size());
-        assertEquals(Integer.valueOf(-4), result.get("z"));
+        NoAutoDetectBean bean = m.readValue("{ \"z\" : 7 }",
+                                            NoAutoDetectBean.class);
+        assertEquals(7, bean.z);
     }
 
     public void testFailureDueToDups() throws Exception
@@ -114,4 +102,3 @@ System.err.println("-> "+result);
         }
     }
 }
-

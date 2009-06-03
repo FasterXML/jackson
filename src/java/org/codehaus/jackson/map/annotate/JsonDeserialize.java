@@ -27,7 +27,7 @@ import org.codehaus.jackson.map.JsonDeserializer;
  *
  * @since 1.1
  */
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonDeserialize
