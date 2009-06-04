@@ -47,7 +47,6 @@ public class TestNullProperties
     }
 
     @JsonSerialize(include=OutputProperties.NON_DEFAULT)
-
     static class NonDefaultBean
     {
         String _a = "a", _b = "b";

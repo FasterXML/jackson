@@ -71,7 +71,7 @@ public abstract class JsonGeneratorBase
         _features &= ~f.getMask();
     }
 
-    //public final void setFeature(Feature f, boolean state) {
+    //public void setFeature(Feature f, boolean state) {
 
     public final boolean isFeatureEnabled(Feature f) {
         return (_features & f.getMask()) != 0;
