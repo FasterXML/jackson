@@ -127,7 +127,7 @@ public abstract class JsonGenerator
      * Method for enabling or disabling specified feature:
      * check {@link Feature} for list of available features.
      */
-    public final void setFeature(Feature f, boolean state)
+    public void setFeature(Feature f, boolean state)
     {
         if (state) {
             enableFeature(f);
