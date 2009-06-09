@@ -22,6 +22,9 @@ import org.codehaus.jackson.type.JavaType;
 public class BeanDeserializerFactory
     extends BasicDeserializerFactory
 {
+    /**
+     * Signature of <b>Throwable.initCause</b> method.
+     */
     final static Class<?>[] INIT_CAUSE_PARAMS = new Class<?>[] { Throwable.class };
 
     public final static BeanDeserializerFactory instance = new BeanDeserializerFactory();
@@ -240,8 +243,7 @@ public class BeanDeserializerFactory
 
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
-            AnnotatedMethod setter = en.getValue();
-            SettableBeanProperty prop = constructSettableProperty(config, en.getKey(), setter);
+            SettableBeanProperty prop = constructSettableProperty(config, en.getKey(), en.getValue());
             if (prop != null) {
                 deser.addProperty(prop);
             }
@@ -276,8 +278,12 @@ public class BeanDeserializerFactory
          *   method)
          */
         LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_FIELDS), addedProps);
-
-        // !!! TBI
+        for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
+            SettableBeanProperty prop = constructSettableProperty(config, en.getKey(), en.getValue());
+            if (prop != null) {
+                deser.addProperty(prop);
+            }
+        }
     }
 
     /**
@@ -329,11 +335,9 @@ public class BeanDeserializerFactory
                                                              AnnotatedMethod setter)
         throws JsonMappingException
     {
-        // need to ensure it is callable now:
+        // need to ensure method is callable (for non-public)
         if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
-            if (setter != null) {
-                setter.fixAccess();
-            }
+            setter.fixAccess();
         }
 
         // note: this works since we know there's exactly one arg for methods
@@ -347,7 +351,7 @@ public class BeanDeserializerFactory
         
         Method m = setter.getAnnotated();
         if (propDeser != null) {
-            SettableBeanProperty prop = new SettableBeanProperty(name, type, m, null);
+            SettableBeanProperty prop = new SettableBeanProperty.MethodProperty(name, type, m);
             prop.setValueDeserializer(propDeser);
             return prop;
         }
@@ -355,7 +359,36 @@ public class BeanDeserializerFactory
          * value (no need to check if explicit deser was specified):
          */
         type = modifyTypeByAnnotation(config, setter, type);
-        return new SettableBeanProperty(name, type, m, null);
+        return new SettableBeanProperty.MethodProperty(name, type, m);
+    }
+
+    protected SettableBeanProperty constructSettableProperty(DeserializationConfig config,
+                                                             String name,
+                                                             AnnotatedField field)
+        throws JsonMappingException
+    {
+        // need to ensure method is callable (for non-public)
+        if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+            field.fixAccess();
+        }
+
+        // note: this works since we know there's exactly one arg for methods
+        JavaType type = TypeFactory.fromType(field.getGenericType());
+        /* First: does the Method specify the deserializer to use?
+         * If so, let's use it.
+         */
+        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, field);
+        
+        Field f = field.getAnnotated();
+        if (propDeser != null) {
+            SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(name, type, f);
+            prop.setValueDeserializer(propDeser);
+            return prop;
+        }
+        // Otherwise, method may specify more specific (sub-)class for
+        // value (no need to check if explicit deser was specified):
+        type = modifyTypeByAnnotation(config, field, type);
+        return new SettableBeanProperty.FieldProperty(name, type, f);
     }
 
     /**
@@ -372,15 +405,11 @@ public class BeanDeserializerFactory
     {
         // need to ensure it is callable now:
         if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
-            if (getter != null) {
-                getter.fixAccess();
-            }
+            getter.fixAccess();
         }
 
         // note: this works since we know there's exactly one arg for methods
-        Type rawType = getter.getGenericReturnType();
-        JavaType type = TypeFactory.fromType(rawType);
-        
+        JavaType type = TypeFactory.fromType(getter.getGenericReturnType());
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */
@@ -388,7 +417,7 @@ public class BeanDeserializerFactory
         
         Method m = getter.getAnnotated();
         if (propDeser != null) {
-            SettableBeanProperty prop = new SettableBeanProperty(name, type, null, m);
+            SettableBeanProperty prop = new SettableBeanProperty.SetterlessProperty(name, type, m);
             prop.setValueDeserializer(propDeser);
             return prop;
         }
@@ -396,7 +425,7 @@ public class BeanDeserializerFactory
          * value (no need to check if explicit deser was specified):
          */
         type = modifyTypeByAnnotation(config, getter, type);
-        return new SettableBeanProperty(name, type, null, m);
+        return new SettableBeanProperty.SetterlessProperty(name, type, m);
     }
 
     /*

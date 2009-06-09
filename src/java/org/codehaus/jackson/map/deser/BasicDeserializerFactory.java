@@ -288,22 +288,22 @@ public abstract class BasicDeserializerFactory
      * @throws JsonMappingException if invalid annotation is found
      */
     protected JavaType modifyTypeByAnnotation(DeserializationConfig config,
-                                              AnnotatedMethod am, JavaType type)
+                                              Annotated a, JavaType type)
         throws JsonMappingException
     {
         // first: let's check class for the instance itself:
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        Class<?> subclass = intr.findDeserializationType(am);
+        Class<?> subclass = intr.findDeserializationType(a);
         if (subclass != null) {
             try {
                 type = type.narrowBy(subclass);
             } catch (IllegalArgumentException iae) {
-                throw new JsonMappingException("Failed to narrow type "+type+" with concrete-type annotation (value "+subclass.getName()+"), method '"+am.getName()+"': "+iae.getMessage(), null, iae);
+                throw new JsonMappingException("Failed to narrow type "+type+" with concrete-type annotation (value "+subclass.getName()+"), method '"+a.getName()+"': "+iae.getMessage(), null, iae);
             }
         }
 
         // then key class
-        Class<?> keyClass = intr.findDeserializationKeyType(am);
+        Class<?> keyClass = intr.findDeserializationKeyType(a);
         if (keyClass != null) {
             // illegal to use on non-Maps
             if (!(type instanceof MapType)) {
@@ -317,10 +317,10 @@ public abstract class BasicDeserializerFactory
         }
 
         // and finally content class; only applicable to structured types
-        Class<?> cc = intr.findDeserializationContentType(am);
+        Class<?> cc = intr.findDeserializationContentType(a);
         if (cc != null) {
             if (!type.isContainerType()) {
-                throw new JsonMappingException("Illegal content-type annotation on "+am.getName()+"; can only be used for container types (Collections, Maps, arrays");
+                throw new JsonMappingException("Illegal content-type annotation on "+a.getName()+"; can only be used for container types (Collections, Maps, arrays");
             }
             try {
                 type = type.narrowContentsBy(cc);

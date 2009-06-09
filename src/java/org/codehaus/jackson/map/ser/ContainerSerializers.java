@@ -458,7 +458,8 @@ public final class ContainerSerializers
             jgen.writeEndObject();
         }
 
-		@Override
+        @SuppressWarnings("unchecked")
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -470,7 +471,6 @@ public final class ContainerSerializers
                     JavaType enumType = TypeFactory.instance._fromType(typeArgs[0]);
                     JavaType valueType = TypeFactory.instance._fromType(typeArgs[1]);
                     ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
-                    @SuppressWarnings("unchecked")
                     Class<Enum<?>> enumClass = (Class<Enum<?>>) enumType.getRawClass();
                     for (Enum<?> enumValue : enumClass.getEnumConstants()) {
                         JsonSerializer<Object> ser = provider.findValueSerializer(valueType.getRawClass());

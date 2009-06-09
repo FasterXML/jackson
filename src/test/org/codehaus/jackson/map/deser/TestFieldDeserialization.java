@@ -20,7 +20,7 @@ public class TestFieldDeserialization
     //////////////////////////////////////////////
      */
 
-    public class SimpleFieldBean
+    static class SimpleFieldBean
     {
         public int x, y;
 
@@ -31,13 +31,13 @@ public class TestFieldDeserialization
         @JsonIgnore public int a;
     }
 
-    public class SimpleFieldBean2
+    static class SimpleFieldBean2
     {
         @JsonDeserialize String[] values;
     }
 
     @JsonAutoDetect(JsonMethod.SETTER)
-    public class NoAutoDetectBean
+    static class NoAutoDetectBean
     {
         // not auto-detectable any more
         public int z;
@@ -47,7 +47,7 @@ public class TestFieldDeserialization
     }
 
     // Let's test invalid bean too
-    public class DupFieldBean
+    static class DupFieldBean
     {
         public int z;
 
@@ -66,8 +66,8 @@ public class TestFieldDeserialization
         ObjectMapper m = new ObjectMapper();
         SimpleFieldBean result = m.readValue("{ \"x\" : -13 }",
                                            SimpleFieldBean.class);
-        assertEquals(0, result.x);
-        assertEquals(-13, result.y);
+        assertEquals(-13, result.x);
+        assertEquals(0, result.y);
     }
 
     public void testSimpleAnnotation() throws Exception
