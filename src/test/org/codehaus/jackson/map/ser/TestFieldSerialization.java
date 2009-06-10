@@ -60,7 +60,7 @@ public class TestFieldSerialization
         public int _z;
 
         @SuppressWarnings("unused")
-		@JsonSerialize
+        @JsonSerialize
             private int foo;
     }
 

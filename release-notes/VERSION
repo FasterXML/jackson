@@ -16,6 +16,8 @@ Description:
   New features:
 
   * [JACKSON-70] Add support for generating JSON Schema
+  * [JACKSON-98] Allow serializing/deserializing field-accessible properties,
+    in addition to method-accessible ones.
   * [JACKSON-105] Allow suppressing output of "default values"; which
     means value of a property when bean is constructed using the default
     no-arg constructor

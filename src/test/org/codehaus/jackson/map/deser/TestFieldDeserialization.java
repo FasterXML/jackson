@@ -55,6 +55,16 @@ public class TestFieldDeserialization
         public int _z;
     }
 
+    public class DupFieldBean2
+    {
+        @JsonProperty("foo")
+        public int _z;
+
+        @SuppressWarnings("unused")
+        @JsonDeserialize
+        private int foo;
+    }
+
     /*
     //////////////////////////////////////////////
     // Main tests
@@ -78,8 +88,8 @@ public class TestFieldDeserialization
         String[] values = bean.values;
         assertNotNull(values);
         assertEquals(2, values.length);
-        assertEquals("a", values[0]);
-        assertEquals("b", values[1]);
+        assertEquals("x", values[0]);
+        assertEquals("y", values[1]);
     }
 
     public void testNoAutoDetect() throws Exception
@@ -87,13 +97,22 @@ public class TestFieldDeserialization
         ObjectMapper m = new ObjectMapper();
         NoAutoDetectBean bean = m.readValue("{ \"z\" : 7 }",
                                             NoAutoDetectBean.class);
-        assertEquals(7, bean.z);
+        assertEquals(7, bean._z);
     }
 
     public void testFailureDueToDups() throws Exception
     {
         try {
             writeAndMap(new ObjectMapper(), new DupFieldBean());
+        } catch (JsonMappingException e) {
+            verifyException(e, "Multiple fields representing property");
+        }
+    }
+
+    public void testFailureDueToDups2() throws Exception
+    {
+        try {
+            writeAndMap(new ObjectMapper(), new DupFieldBean2());
         } catch (JsonMappingException e) {
             verifyException(e, "Multiple fields representing property");
         }
