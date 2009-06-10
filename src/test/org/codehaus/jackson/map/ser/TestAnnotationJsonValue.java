@@ -48,6 +48,19 @@ public class TestAnnotationJsonValue
             @JsonValue T value() { return super.value(); }
     }
 
+    final static class ToStringValueClass2
+        extends ValueClass<String>
+    {
+        public ToStringValueClass2(String value) { super(value); }
+
+        /* Simple as well, but let's ensure that other getters won't matter...
+         */
+
+        @JsonProperty int getFoobar() { return 4; }
+
+        public String[] getSomethingElse() { return new String[] { "1", "a" }; }
+    }
+
     /*
     //////////////////////////////////////////////
     // Test cases
@@ -66,5 +79,15 @@ public class TestAnnotationJsonValue
         ObjectMapper m = new ObjectMapper();
         String result = serializeAsString(m, new ToStringValueClass<Integer>(Integer.valueOf(123)));
         assertEquals("\"123\"", result);
+    }
+
+    /**
+     * Test for verifying that additional getters won't confuse serializer.
+     */
+    public void testMixedJsonValue() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        String result = serializeAsString(m, new ToStringValueClass2("xyz"));
+        assertEquals("\"xyz\"", result);
     }
 }
