@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.annotate.OutputProperties;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
@@ -21,13 +21,13 @@ public class PropertyBuilder
 {
     final SerializationConfig _config;
     final BasicBeanDescription _beanDesc;
-    final OutputProperties _outputProps;
+    final JsonSerialize.Properties _outputProps;
 
     final AnnotationIntrospector _annotationIntrospector;
 
     /**
      * If a property has serialization inclusion value of
-     * {@link OutputProperties#ALL}, we need to know the default
+     * {@link JsonSerialize.Properties#ALL}, we need to know the default
      * value of the bean, to know if property value equals default
      * one.
      */
@@ -57,7 +57,7 @@ public class PropertyBuilder
         Class<?> serializationType = findSerializationType(am);
         
         // and finally, there may be per-method overrides:
-        OutputProperties methodProps = _annotationIntrospector.findSerializationInclusion(am, _outputProps);
+        JsonSerialize.Properties methodProps = _annotationIntrospector.findSerializationInclusion(am, _outputProps);
         Method m = am.getAnnotated();
         switch (methodProps) {
         case NON_DEFAULT:
@@ -83,7 +83,7 @@ public class PropertyBuilder
         Class<?> serializationType = findSerializationType(af);
         
         // and finally, there may be per-method overrides:
-        OutputProperties methodProps = _annotationIntrospector.findSerializationInclusion(af, _outputProps);
+        JsonSerialize.Properties methodProps = _annotationIntrospector.findSerializationInclusion(af, _outputProps);
         Field f = af.getAnnotated();
         switch (methodProps) {
         case NON_DEFAULT:
@@ -128,7 +128,7 @@ public class PropertyBuilder
             _defaultBean = _beanDesc.instantiateBean(_config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
             if (_defaultBean == null) {
                 Class<?> cls = _beanDesc.getClassInfo().getAnnotated();
-                throw new IllegalArgumentException("Class "+cls.getName()+" has no default constructor; can not instantiate default bean value to support 'include=OutputProperties.NON_DEFAULT' annotation");
+                throw new IllegalArgumentException("Class "+cls.getName()+" has no default constructor; can not instantiate default bean value to support 'properties=JsonSerialize.Properties.NON_DEFAULT' annotation");
             }
         }
         return _defaultBean;

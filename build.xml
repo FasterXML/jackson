@@ -412,6 +412,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
             <classpath>
                 <pathelement path="${dir.build.classes.core}" />
                 <pathelement path="${dir.build.classes.mapper}" />
+                <pathelement path="${dir.build.classes.xc}" />
                 <pathelement location="${dir.test.classes}" /> 
                 <path refid="test-libs"/>
             </classpath>     
@@ -435,6 +436,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
           <classpath>
                 <pathelement path="${dir.build.classes.core}" />
                 <pathelement path="${dir.build.classes.mapper}" />
+                <pathelement path="${dir.build.classes.xc}" />
                 <pathelement location="${dir.test.classes}" /> 
                 <path refid="test-libs"/>
           </classpath>     

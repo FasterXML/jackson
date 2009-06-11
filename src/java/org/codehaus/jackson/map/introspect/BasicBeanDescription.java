@@ -7,7 +7,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanDescription;
-import org.codehaus.jackson.map.annotate.OutputProperties;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public class BasicBeanDescription extends BeanDescription
@@ -320,7 +320,7 @@ public class BasicBeanDescription extends BeanDescription
      * feature (lowest priority, passed as argument)
      * and per-class annotation (highest priority).
      */
-    public OutputProperties findSerializationInclusion(OutputProperties defValue)
+    public JsonSerialize.Properties findSerializationInclusion(JsonSerialize.Properties defValue)
     {
         return _annotationIntrospector.findSerializationInclusion(_classInfo, defValue);
     }

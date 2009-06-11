@@ -8,7 +8,6 @@ import java.util.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.OutputProperties;
 
 /**
  * Unit tests for checking that alternative settings for
@@ -37,16 +36,16 @@ public class TestNullProperties
         public String getB() { return null; }
     }
 
-    @JsonSerialize(include=OutputProperties.ALL) // just to ensure default
+    @JsonSerialize(properties=JsonSerialize.Properties.ALL) // just to ensure default
     static class NoNullsBean
     {
-        @JsonSerialize(include=OutputProperties.NON_NULL)
+        @JsonSerialize(properties=JsonSerialize.Properties.NON_NULL)
         public String getA() { return null; }
 
         public String getB() { return null; }
     }
 
-    @JsonSerialize(include=OutputProperties.NON_DEFAULT)
+    @JsonSerialize(properties=JsonSerialize.Properties.NON_DEFAULT)
     static class NonDefaultBean
     {
         String _a = "a", _b = "b";
@@ -63,10 +62,10 @@ public class TestNullProperties
 
         MixedBean() { }
 
-        @JsonSerialize(include=OutputProperties.NON_DEFAULT)
+        @JsonSerialize(properties=JsonSerialize.Properties.NON_DEFAULT)
         public String getA() { return _a; }
 
-        @JsonSerialize(include=OutputProperties.NON_NULL)
+        @JsonSerialize(properties=JsonSerialize.Properties.NON_NULL)
         public String getB() { return _b; }
     }
 

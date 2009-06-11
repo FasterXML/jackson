@@ -4,7 +4,7 @@ import java.lang.annotation.Annotation;
 
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.annotate.OutputProperties;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
@@ -121,9 +121,10 @@ public abstract class AnnotationIntrospector
      * If no annotation is found, method should return given second
      * argument; otherwise value indicated by the annotation
      *
-     * @return True if nulls are to be output; false if not.
+     * @return Enumerated value indicating which properties to include
+     *   in serialization
      */
-    public abstract OutputProperties findSerializationInclusion(Annotated a, OutputProperties defValue);
+    public abstract JsonSerialize.Properties findSerializationInclusion(Annotated a, JsonSerialize.Properties defValue);
 
     /*
     ///////////////////////////////////////////////////////

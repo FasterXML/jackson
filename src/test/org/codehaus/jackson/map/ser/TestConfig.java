@@ -5,7 +5,6 @@ import java.util.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.OutputProperties;
 
 /**
  * Unit tests for checking handling of SerializationConfig.
@@ -17,7 +16,7 @@ public class TestConfig
     @JsonAutoDetect(JsonMethod.NONE)
     final static class ConfigLegacy { }
 
-    @JsonSerialize(include=OutputProperties.NON_DEFAULT)
+    @JsonSerialize(properties=JsonSerialize.Properties.NON_DEFAULT)
     @JsonAutoDetect(JsonMethod.NONE)
     final static class Config { }
 
@@ -61,7 +60,7 @@ public class TestConfig
          */
         cfg.fromAnnotations(Config.class);
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
-        assertEquals(OutputProperties.NON_DEFAULT, cfg.getSerializationInclusion());
+        assertEquals(JsonSerialize.Properties.NON_DEFAULT, cfg.getSerializationInclusion());
     }
 
     public void testIndentation() throws Exception

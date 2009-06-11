@@ -9,7 +9,6 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.OutputProperties;
 
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
@@ -141,11 +140,11 @@ public class JacksonAnnotationIntrospector
     }
     
     @Override
-    public OutputProperties findSerializationInclusion(Annotated a, OutputProperties defValue)
+    public JsonSerialize.Properties findSerializationInclusion(Annotated a, JsonSerialize.Properties defValue)
     {
         JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
         if (ann != null) {
-            return ann.include();
+            return ann.properties();
         }
         /* 23-May-2009, tatu: Will still support now-deprecated (as of 1.1)
          *   legacy annotation too:
@@ -153,7 +152,7 @@ public class JacksonAnnotationIntrospector
         JsonWriteNullProperties oldAnn = a.getAnnotation(JsonWriteNullProperties.class);
         if (oldAnn != null) {
             boolean writeNulls = oldAnn.value();
-            return writeNulls ? OutputProperties.ALL : OutputProperties.NON_NULL;
+            return writeNulls ? JsonSerialize.Properties.ALL : JsonSerialize.Properties.NON_NULL;
         }
         return defValue;
     }

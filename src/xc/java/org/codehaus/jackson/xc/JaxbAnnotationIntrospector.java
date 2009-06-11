@@ -3,7 +3,7 @@ package org.codehaus.jackson.xc;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.annotate.OutputProperties;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
@@ -121,17 +121,17 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     /**
      * By default only non-null properties are written (per the JAXB spec.)
      *
-     * @return OutputProperties.NON_NULL
+     * @return JsonSerialize.Properties.NON_NULL
      */
     @Override
-    public OutputProperties findSerializationInclusion(Annotated a, OutputProperties defValue)
+    public JsonSerialize.Properties findSerializationInclusion(Annotated a, JsonSerialize.Properties defValue)
     {
         if ((a instanceof AnnotatedField) || (a instanceof AnnotatedMethod)) {
             boolean nillable = a.getAnnotation(XmlElementWrapper.class) != null ? a.getAnnotation(XmlElementWrapper.class).nillable() :
                     a.getAnnotation(XmlElement.class) != null && a.getAnnotation(XmlElement.class).nillable();
-            return nillable ? OutputProperties.ALL : OutputProperties.NON_NULL;
+            return nillable ? JsonSerialize.Properties.ALL : JsonSerialize.Properties.NON_NULL;
         }
-        return OutputProperties.NON_NULL;
+        return JsonSerialize.Properties.NON_NULL;
     }
 
     @Override
@@ -174,11 +174,11 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         if (m.getAnnotation(XmlTransient.class) != null) {
             return true;
         }
-        else if (m.getAnnotationCount() > 0) {
+        if (m.getAnnotationCount() > 0) {
             //if any annotations are present, it is NOT ignorable.
             return false;
         }
-        else if (isPropertiesAccessible(m)) {
+        if (isPropertiesAccessible(m)) {
             //jaxb only accounts for getter/setter pairs.
             PropertyDescriptor pd = findPropertyDescriptor(m);
             return pd == null || pd.getReadMethod() == null || pd.getWriteMethod() == null; 

@@ -65,5 +65,43 @@ public @interface JsonSerialize
      * constructor, often null).
      *
      */
-    public OutputProperties include() default OutputProperties.ALL;
+    public Properties properties() default Properties.ALL;
+
+    /*
+    /////////////////////////////////////////////////////////////
+    // Value enumerations needed
+    /////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Enumeration used with {@link JsonSerialize#include} property
+     * to define which properties
+     * of Java Beans are to be included in serialization
+     *
+     * @since 1.1
+     */
+    public enum Properties
+    {
+        /**
+         * Value that indicates that all properties are to be included,
+         * independent of value
+         */
+        ALL,
+
+        /**
+         * Value that indicates that only properties with non-null
+         * values are to be included.
+         */
+        NON_NULL,
+
+        /**
+         * Value that indicates that only properties that have values
+         * that differ from default settings (meaning values they have
+         * when Bean is constructed with its no-arguments constructor)
+         * are to be included. Value is generally not useful with
+         * {@link java.util.Map}s, since they have no default values;
+         * and if used, works same as {@link #ALL}.
+         */
+        NON_DEFAULT;
+    }
 }
