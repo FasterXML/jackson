@@ -116,7 +116,7 @@ public class TestAnnotations
 
     }
 
-    public final static class StringSerializer extends JsonSerializer<Object>
+    private final static class StringSerializer extends JsonSerializer<Object>
     {
         public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException

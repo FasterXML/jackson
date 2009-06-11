@@ -347,7 +347,7 @@ public class BasicSerializerFactory
         final static BooleanSerializer instance = new BooleanSerializer();
 
         @Override
-		public void serialize(Boolean value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Boolean value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeBoolean(value.booleanValue());
