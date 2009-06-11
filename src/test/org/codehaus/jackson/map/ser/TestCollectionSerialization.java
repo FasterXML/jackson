@@ -4,12 +4,28 @@ import java.io.*;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.*;
 
 public class TestCollectionSerialization
     extends BaseMapTest
 {
+    /*
+    ////////////////////////////////////////////////////////////////
+    // Helper classes
+    ////////////////////////////////////////////////////////////////
+     */
+
     enum Key { A, B, C };
+
+    // Field-based simple bean with a single property, "values"
+    final static class CollectionBean
+    {
+        @JsonProperty // not required
+            public Collection<Object> values;
+
+        public CollectionBean(Collection<Object> c) { values = c; }
+    }
 
     final static class IterableWrapper
         implements Iterable<Integer>
@@ -26,6 +42,12 @@ public class TestCollectionSerialization
             return _ints.iterator();
         }
     }
+
+    /*
+    ////////////////////////////////////////////////////////////////
+    // Test methods
+    ////////////////////////////////////////////////////////////////
+     */
 
     public void testCollections()
         throws IOException
@@ -76,7 +98,6 @@ public class TestCollectionSerialization
         }
     }
 
-
     public void testEnumMap()
         throws IOException
     {
@@ -110,5 +131,35 @@ public class TestCollectionSerialization
         StringWriter sw = new StringWriter();
         mapper.writeValue(sw, new IterableWrapper(new int[] { 1, 2, 3 }));
         assertEquals("[1,2,3]", sw.toString().trim());
+    }
+
+    /**
+     * Test that checks that empty collections are properly serialized
+     * when they are Bean properties
+     */
+    public void testEmptyBeanCollection()
+        throws IOException
+    {
+        Collection<Object> x = new ArrayList<Object>();
+        x.add("foobar");
+        CollectionBean cb = new CollectionBean(x);
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, cb);
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey("values"));
+        Collection<Object> x2 = (Collection<Object>) result.get("values");
+        assertNotNull(x2);
+        assertEquals(x, x2);
+    }
+
+    public void testNullBeanCollection()
+        throws IOException
+    {
+        CollectionBean cb = new CollectionBean(null);
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, cb);
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey("values"));
+        assertNull(result.get("values"));
     }
 }
