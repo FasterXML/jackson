@@ -13,6 +13,9 @@ Description:
 
   Improvements:
 
+  * [JACKSON-111] Added "jackson-xc" jar to contains XML Compatibility
+    extensions.
+
   New features:
 
   * [JACKSON-70] Add support for generating JSON Schema
