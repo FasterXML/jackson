@@ -27,6 +27,18 @@ public class TestCollectionSerialization
         public CollectionBean(Collection<Object> c) { values = c; }
     }
 
+    static class EnumMapBean
+    {
+        EnumMap<Key,String> _map;
+
+        public EnumMapBean(EnumMap<Key,String> m)
+        {
+            _map = m;
+        }
+
+        public EnumMap<Key,String> getMap() { return _map; }
+    }
+
     final static class IterableWrapper
         implements Iterable<Integer>
     {
@@ -137,6 +149,7 @@ public class TestCollectionSerialization
      * Test that checks that empty collections are properly serialized
      * when they are Bean properties
      */
+    @SuppressWarnings("unchecked")
     public void testEmptyBeanCollection()
         throws IOException
     {
@@ -161,5 +174,37 @@ public class TestCollectionSerialization
         assertEquals(1, result.size());
         assertTrue(result.containsKey("values"));
         assertNull(result.get("values"));
+    }
+
+    @SuppressWarnings("unchecked")
+    public void testEmptyBeanEnumMap()
+        throws IOException
+    {
+        EnumMap<Key,String> map = new EnumMap<Key,String>(Key.class);
+        EnumMapBean b = new EnumMapBean(map);
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, b);
+
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey("map"));
+        // we deserialized to untyped, not back to bean, so:
+        Map<Object,Object> map2 = (Map<Object,Object>) result.get("map");
+        assertNotNull(map2);
+        assertEquals(0, map2.size());
+    }
+
+    /**
+     * Should also be able to serialize null EnumMaps as expected
+     */
+    public void testNullBeanEnumMap()
+        throws IOException
+    {
+        EnumMapBean b = new EnumMapBean(null);
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, b);
+
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey("map"));
+        assertNull(result.get("map"));
     }
 }

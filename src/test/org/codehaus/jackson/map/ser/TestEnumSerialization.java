@@ -89,7 +89,7 @@ public class TestEnumSerialization
      * to specify generic serializer for enum base class
      */
     @SuppressWarnings("unchecked")
-	public void testEnumUsingCSFGenericMapping() throws Exception
+    public void testEnumUsingCSFGenericMapping() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         CustomSerializerFactory sf = new CustomSerializerFactory();
