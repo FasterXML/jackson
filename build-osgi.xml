@@ -198,6 +198,9 @@ org.codehaus.jackson.schema;version=${IMPL_VERSION}
         (OSGi nominally just lists ASL, not sure if/how to
         add multiple?)
       -->
+
+    <!-- First, JAX-RS provider jar -->
+
     <!-- 06-May-2009, tatu: Removed META-INF/services
        registration as it could conflict with other
        JAX-RS json providers.
@@ -233,6 +236,38 @@ org.codehaus.jackson.jaxrs;version=${IMPL_VERSION}"
         <manifest>
           <attribute name="Built-By" value="${user.name}"/>
           <attribute name="Implementation-Title"   value="${IMPL_TITLE_JAXRS}"/>
+          <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+          <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+        </manifest>
+      </osgiJar>
+    </target> 
+
+    <!-- Then XC (Xml Compatibility) jar, since 1.1 -->
+    <target name="jar.xc" depends="compile.xc">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE_XC}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-xc"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-xc-${IMPL_VERSION}"
+         importPackage="
+org.codehaus.jackson;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.type;version='${IMPL_VERSION}'
+,org.codehaus.jackson.type;version='${IMPL_VERSION}'
+"
+         exportpackage="
+org.codehaus.jackson.xc;version=${IMPL_VERSION}"
+         includeResource="META-INF=release-notes/asl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath><pathelement path="${dir.build.classes.xc}" /></classpath>
+        <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Implementation-Title"   value="${IMPL_TITLE_XC}"/>
           <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
           <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
         </manifest>
