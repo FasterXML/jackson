@@ -8,11 +8,10 @@ import org.codehaus.jackson.node.JsonNodeFactory;
  * A {@link org.codehaus.jackson.JsonNode} that represents a JSON-Schema instance.
  *
  * @author Ryan Heaton
- * @see http://json-schema.org/
+ * @see <a href="http://json-schema.org/>JSON Schema</a>
  */
 public class JsonSchema
 {
-
     private final ObjectNode schema;
 
     public JsonSchema(ObjectNode schema)

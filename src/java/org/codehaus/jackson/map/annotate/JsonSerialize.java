@@ -18,7 +18,7 @@ import org.codehaus.jackson.map.JsonSerializer;
  *<p>
  * An example annotation would be:
  *<pre>
- *  @JsonSerialize(using=MySerializer.class,
+ *  &#64;JsonSerialize(using=MySerializer.class,
  *    as=MySubClass.class
  *  )
  *</pre>

@@ -18,7 +18,7 @@ public interface SchemaAware
      *
      * @param provider The serializer provider.
      * @param typeHint A hint about the type.
-     * @return The {@link http://json-schema.org/ json-schema} for this serializer.
+     * @return <a href="http://json-schema.org/">Json-schema</a> for this serializer.
      */
     JsonNode getSchema(SerializerProvider provider, Type typeHint)
             throws JsonMappingException;

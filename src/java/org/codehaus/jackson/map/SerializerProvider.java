@@ -45,7 +45,7 @@ public abstract class SerializerProvider
         throws IOException, JsonGenerationException;
 
     /**
-     * Generate the {@link http://json-schema.org/ json-schema}.
+     * Generate the <a href="http://json-schema.org/">Json-schema</a>.
      *
      * @param type The type.
      * @param config The config.

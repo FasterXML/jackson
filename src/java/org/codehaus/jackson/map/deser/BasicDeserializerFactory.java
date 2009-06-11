@@ -279,7 +279,7 @@ public abstract class BasicDeserializerFactory
      * that the Class has to be raw class of type, or its sub-class
      * (or, implementing class if original Class instance is an interface).
      *
-     * @param am Setter method that the type is associated with
+     * @param a Method or field that the type is associated with
      * @param type Type derived from the setter argument
      *
      * @return Original type if no annotations are present; or a more

@@ -212,9 +212,6 @@ compile.main, compile.test, compile.extra, compile.perf" />
             <include name="org/codehaus/jackson/**/*.java" />
             <!-- builds on core and mapper classes -->
             <classpath>
-               <fileset dir="${dir.lib}/xc">
-                    <include name="*.jar" />
-               </fileset>
                <pathelement path="${dir.build.classes.core}"/>  
                <pathelement path="${dir.build.classes.mapper}"/>  
             </classpath>
@@ -382,7 +379,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
     <!-- Compiling and running test cases
       -->
 
-    <target name="compile.test" depends="compile.mapper">
+    <target name="compile.test" depends="compile.mapper, compile.xc">
         <javac srcdir="${dir.src.test}" destdir="${dir.test.classes}"
             source="1.5" target="1.5"
             debug="true"
@@ -391,6 +388,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
             <classpath>
                 <pathelement path="${dir.build.classes.core}"/>  
                 <pathelement path="${dir.build.classes.mapper}"/>  
+                <pathelement path="${dir.build.classes.xc}"/>  
                 <path refid="test-libs"/>
             </classpath>
         </javac>

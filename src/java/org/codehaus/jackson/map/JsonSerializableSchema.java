@@ -5,20 +5,23 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
+import org.codehaus.jackson.annotate.JacksonAnnotation;
+
 /**
- * Interface that can be implemented by objects that know how to
- * serialize themselves to Json, using {@link JsonGenerator}
- * (and {@link SerializerProvider} if necessary).
+ * Annotation that can be used to define JSON Schema definition for
+ * the annotated class.
  *<p>
- * Note that implementing this interface binds implementing object
- * closely to Jackson API, and that it is often not necessary to do
- * so -- if class is a bean, it can be serialized without
- * implementing this interface. * @author Ryan Heaton
+ * Note that annotation is often not needed: for example, regular
+ * Jackson beans that Jackson can introspect can be used without
+ * annotations, to produce JSON schema definition.
+ * 
+ * @author Ryan Heaton
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface JsonSerializableSchema {
-
+@JacksonAnnotation
+public @interface JsonSerializableSchema
+{
     /**
      * The schema type for this JsonSerializable instance.
      * Possible values: "string", "number", "boolean", "object", "array", "null", "any"

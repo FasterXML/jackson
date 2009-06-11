@@ -18,7 +18,7 @@ import org.codehaus.jackson.map.JsonDeserializer;
  *<p>
  * An example annotation would be:
  *<pre>
- *  @JsonDeserialize(using=MySerializer.class,
+ *  &#64;JsonDeserialize(using=MySerializer.class,
  *    as=MyHashMap.class,
  *    keyAs=MyHashKey.class,
  *    contentAs=MyHashValue.class

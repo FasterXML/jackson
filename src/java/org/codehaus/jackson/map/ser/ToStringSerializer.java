@@ -32,12 +32,12 @@ public final class ToStringSerializer
      * {@link #instance} which is stateless and fully thread-safe. However,
      * there are cases where constructor is needed; for example,
      * when using explicit serializer annotations like
-     * {@link org.codehaus.jackson.annotate.JsonSerialize#using}.
+     * {@link org.codehaus.jackson.map.annotate.JsonSerialize#using}.
      */
     public ToStringSerializer() { }
     
     @Override
-	public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+    public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         jgen.writeString(value.toString());

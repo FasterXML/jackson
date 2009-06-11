@@ -581,7 +581,8 @@ public class ObjectMapper
     }
 
     /**
-     * Generate the {@link http://json-schema.org/ Json-schema} for the specified class.
+     * Generate the <a href="http://json-schema.org/">Json-schema</a>}
+     * for the specified class.
      *
      * @param t The class.
      * @return The json-schema.

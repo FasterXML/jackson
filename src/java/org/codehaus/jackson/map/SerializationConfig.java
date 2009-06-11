@@ -84,7 +84,7 @@ public class SerializationConfig
              * that can be used for more granular control (annotates bean
              * classes or individual property access methods).
              *
-             * @deprecated As of 1.1, use {@link #setSerializationInclusion(OutputProperties}}
+             * @deprecated As of 1.1, use {@link SerializationConfig#setSerializationInclusion}}
              *    instead
              */
             WRITE_NULL_PROPERTIES(true),
