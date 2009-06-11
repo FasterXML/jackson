@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.schema;
 
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Retention;

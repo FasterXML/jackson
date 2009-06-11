@@ -6,7 +6,6 @@ import java.util.concurrent.*;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
-import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;

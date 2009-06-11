@@ -95,7 +95,6 @@ public abstract class SettableBeanProperty
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.nextToken();
-        Object value;
         if (t == JsonToken.VALUE_NULL) {
             return _nullValue;
         }
@@ -229,7 +228,6 @@ public abstract class SettableBeanProperty
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.nextToken();
-            Object value;
             if (t == JsonToken.VALUE_NULL) {
                 /* Hmmh. Is this a problem? We won't be setting anything, so it's
                  * equivalent of empty Collection/Map in this case

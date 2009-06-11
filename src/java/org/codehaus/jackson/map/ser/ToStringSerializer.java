@@ -45,7 +45,7 @@ public final class ToStringSerializer
 
     @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
+        throws JsonMappingException
     {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
         objectNode.put("type", "string");
