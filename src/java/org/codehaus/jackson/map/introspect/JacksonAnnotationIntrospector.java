@@ -108,21 +108,47 @@ public class JacksonAnnotationIntrospector
     */
 
 
+    @SuppressWarnings({ "unchecked", "deprecation" })
     @Override
-    public JsonSerializer<?> getSerializerInstance(Annotated am)
+    public Class<? extends JsonSerializer<?>> findSerializer(Annotated a)
     {
-        Class<? extends JsonSerializer<?>> serClass = findSerializerClass(am);
-        if (serClass == null) {
+        /* 21-May-2009, tatu: Slight change; primary annotation is now
+         *    @JsonSerialize; @JsonUseSerializer is deprecated
+         */
+        JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
+        if (ann != null) {
+            Class<? extends JsonSerializer<?>> serClass = ann.using();
+            if (serClass != JsonSerializer.None.class) {
+                return serClass;
+            }
+        }
+        JsonUseSerializer oldAnn = a.getAnnotation(JsonUseSerializer.class);
+        if (oldAnn == null) {
             return null;
         }
+        Class<?> serClass = oldAnn.value();
+        /* 21-Feb-2009, tatu: There is now a way to indicate "no class"
+         *   (to essentially denote a 'dummy' annotation, needed for
+         *   overriding in some cases), need to check:
+         */
+        if (serClass == NoClass.class || serClass == JsonSerializer.None.class) {
+            return null;
+        }
+        if (!JsonSerializer.class.isAssignableFrom(serClass)) {
+            throw new IllegalArgumentException("Invalid @JsonUseSerializer annotation: Class "+serClass.getName()+" not a JsonSerializer");
+        }
+        return (Class<? extends JsonSerializer<?>>)serClass;
+
+        /*
         try {
             Object ob = serClass.newInstance();
             @SuppressWarnings("unchecked")
                 JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
             return ser;
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+am.getName()+", problem: "+e.getMessage(), e);
+            throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+a.getName()+", problem: "+e.getMessage(), e);
         }
+        */
     }
 
     @Override
@@ -253,10 +279,33 @@ public class JacksonAnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
+    @SuppressWarnings({ "unchecked", "deprecation" })
     @Override
-    public JsonDeserializer<?> getDeserializerInstance(Annotated am)
+    public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a)
     {
-        Class<? extends JsonDeserializer<?>> deserClass = findDeserializerClass(am);
+        /* 21-May-2009, tatu: Slight change; primary annotation is now
+         *    @JsonDeserialize; @JsonUseDeserializer is deprecated
+         */
+        JsonDeserialize ann = a.getAnnotation(JsonDeserialize.class);
+        if (ann != null) {
+            Class<? extends JsonDeserializer<?>> deserClass = ann.using();
+            if (deserClass != JsonDeserializer.None.class) {
+                return deserClass;
+            }
+        }
+        JsonUseDeserializer oldAnn = a.getAnnotation(JsonUseDeserializer.class);
+        if (oldAnn == null) {
+            return null;
+        }
+        Class<?> deserClass = oldAnn.value();
+        if (deserClass == NoClass.class || deserClass == JsonDeserializer.None.class) {
+            return null;
+        }
+        if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
+            throw new IllegalArgumentException("Invalid @JsonUseDeserializer annotation: Class "+deserClass.getName()+" not a JsonDeserializer");
+        }
+        return (Class<? extends JsonDeserializer<?>>)deserClass;
+        /*
         if (deserClass == null) {
             return null;
         }
@@ -266,12 +315,13 @@ public class JacksonAnnotationIntrospector
                 JsonDeserializer<Object> ser = (JsonDeserializer<Object>) ob;
             return ser;
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+am.getName()+", problem: "+e.getMessage(), e);
+            throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+a.getName()+", problem: "+e.getMessage(), e);
         }
+        */
     }
 
     @SuppressWarnings("deprecation")
-	@Override
+    @Override
     public Class<?> findDeserializationType(Annotated am)
     {
         // Primary annotation, JsonDeserialize
@@ -463,65 +513,7 @@ public class JacksonAnnotationIntrospector
 
     /*
     ////////////////////////////////////////////////////
-    // Helper methods: not part of public API
+    // Helper methods
     ////////////////////////////////////////////////////
      */
-
-    @SuppressWarnings({ "unchecked", "deprecation" })
-    protected Class<? extends JsonSerializer<?>> findSerializerClass(Annotated a)
-    {
-        /* 21-May-2009, tatu: Slight change; primary annotation is now
-         *    @JsonSerialize; @JsonUseSerializer is deprecated
-         */
-        JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
-        if (ann != null) {
-            Class<? extends JsonSerializer<?>> serClass = ann.using();
-            if (serClass != JsonSerializer.None.class) {
-                return serClass;
-            }
-        }
-        JsonUseSerializer oldAnn = a.getAnnotation(JsonUseSerializer.class);
-        if (oldAnn == null) {
-            return null;
-        }
-        Class<?> serClass = oldAnn.value();
-        /* 21-Feb-2009, tatu: There is now a way to indicate "no class"
-         *   (to essentially denote a 'dummy' annotation, needed for
-         *   overriding in some cases), need to check:
-         */
-        if (serClass == NoClass.class || serClass == JsonSerializer.None.class) {
-            return null;
-        }
-        if (!JsonSerializer.class.isAssignableFrom(serClass)) {
-            throw new IllegalArgumentException("Invalid @JsonUseSerializer annotation: Class "+serClass.getName()+" not a JsonSerializer");
-        }
-        return (Class<JsonSerializer<?>>)serClass;
-    }
-
-    @SuppressWarnings({ "unchecked", "deprecation" })
-    protected Class<? extends JsonDeserializer<?>> findDeserializerClass(Annotated a)
-    {
-        /* 21-May-2009, tatu: Slight change; primary annotation is now
-         *    @JsonDeserialize; @JsonUseDeserializer is deprecated
-         */
-        JsonDeserialize ann = a.getAnnotation(JsonDeserialize.class);
-        if (ann != null) {
-            Class<? extends JsonDeserializer<?>> deserClass = ann.using();
-            if (deserClass != JsonDeserializer.None.class) {
-                return deserClass;
-            }
-        }
-        JsonUseDeserializer oldAnn = a.getAnnotation(JsonUseDeserializer.class);
-        if (oldAnn == null) {
-            return null;
-        }
-        Class<?> deserClass = oldAnn.value();
-        if (deserClass == NoClass.class || deserClass == JsonDeserializer.None.class) {
-            return null;
-        }
-        if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
-            throw new IllegalArgumentException("Invalid @JsonUseDeserializer annotation: Class "+deserClass.getName()+" not a JsonDeserializer");
-        }
-        return (Class<JsonDeserializer<?>>)deserClass;
-    }
 }

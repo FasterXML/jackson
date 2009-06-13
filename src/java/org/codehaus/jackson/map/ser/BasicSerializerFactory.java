@@ -332,7 +332,29 @@ public class BasicSerializerFactory
     @SuppressWarnings("unchecked")
     protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a)
     {
-        return (JsonSerializer<Object>) config.getAnnotationIntrospector().getSerializerInstance(a);
+        Object serDef = config.getAnnotationIntrospector().findSerializer(a);
+        if (serDef != null) {
+            if (serDef instanceof JsonSerializer) {
+                return (JsonSerializer<Object>) serDef;
+            }
+            /* Alas, there's no way to force return type of "either class
+             * X or Y" -- need to throw an exception after the fact
+             */
+            if (!(serDef instanceof Class)) {
+                throw new IllegalStateException("AnnotationIntrospector returned value of type "+serDef.getClass().getName()+"; expected type JsonSerializer or Class<JsonSerializer> instead");
+            }
+            Class<?> cls = (Class<?>) serDef;
+            if (!JsonSerializer.class.isAssignableFrom(cls)) {
+                throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonSerializer>");
+            }
+            // !!! TBI
+            try {
+                return (JsonSerializer) cls.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return null;
     }
 
     /*

@@ -267,7 +267,29 @@ public abstract class BasicDeserializerFactory
     @SuppressWarnings("unchecked")
     protected JsonDeserializer<Object> findDeserializerFromAnnotation(DeserializationConfig config, Annotated a)
     {
-        return (JsonDeserializer<Object>) config.getAnnotationIntrospector().getDeserializerInstance(a);
+        Object deserDef = config.getAnnotationIntrospector().findDeserializer(a);
+        if (deserDef != null) {
+            if (deserDef instanceof JsonDeserializer) {
+                return (JsonDeserializer<Object>) deserDef;
+            }
+            /* Alas, there's no way to force return type of "either class
+             * X or Y" -- need to throw an exception after the fact
+             */
+            if (!(deserDef instanceof Class)) {
+                throw new IllegalStateException("AnnotationIntrospector returned value of type "+deserDef.getClass().getName()+"; expected type JsonDeserializer or Class<JsonDeserializer> instead");
+            }
+            Class<?> cls = (Class<?>) deserDef;
+            if (!JsonDeserializer.class.isAssignableFrom(cls)) {
+                throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
+            }
+            // !!! TBI
+            try {
+                return (JsonDeserializer) cls.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return null;
     }
 
     /**

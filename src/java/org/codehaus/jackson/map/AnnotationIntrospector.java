@@ -98,10 +98,13 @@ public abstract class AnnotationIntrospector
     */
 
     /**
-     * Method for getting a serializer instance on a specified method. Annotations
-     * may specify which serializer instance to use.
+     * Method for getting a serializer definition on specified method
+     * or field. Type of definition is either instance (of type
+     * {@link JsonSerializer}) or Class (of type
+     * <code>Class<JsonSerializer></code>); if value of different
+     * type is returned, a runtime exception may be thrown by caller.
      */
-    public abstract JsonSerializer<?> getSerializerInstance(Annotated am);
+    public abstract Object findSerializer(Annotated am);
 
     /**
      * Method for accessing annotated type definition that a
@@ -204,10 +207,13 @@ public abstract class AnnotationIntrospector
     */
 
     /**
-     * Method for getting a deserializer instance on a specified method. Annotations
-     * may specify which deserializer instance to use.
+     * Method for getting a deserializer definition on specified method
+     * or field. Type of definition is either instance (of type
+     * {@link JsonDeserializer}) or Class (of type
+     * <code>Class<JsonDeserializer></code>); if value of different
+     * type is returned, a runtime exception may be thrown by caller.
      */
-    public abstract JsonDeserializer<?> getDeserializerInstance(Annotated am);
+    public abstract Object findDeserializer(Annotated am);
 
     /**
      * Method for accessing annotated type definition that a

@@ -73,7 +73,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public JsonSerializer<?> getSerializerInstance(Annotated am)
+    public JsonSerializer<?> findSerializer(Annotated am)
     {
         XmlAdapter<Object,Object> adapter = findAdapter(am);
         if (adapter != null) {
@@ -84,7 +84,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public JsonDeserializer<?> getDeserializerInstance(Annotated am)
+    public JsonDeserializer<?> findDeserializer(Annotated am)
     {
         XmlAdapter<Object,Object> adapter = findAdapter(am);
         if (adapter != null) {
