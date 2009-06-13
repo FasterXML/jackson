@@ -18,12 +18,19 @@
   </typedef>
 
   <target name="maven.init">
+    <!-- First regular release poms -->
     <artifact:pom id="pom.asl.core" file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.asl.mapper" file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.lgpl.core" file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.lgpl.mapper" file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.jaxrs" file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.xc" file="${dir.dist}/jackson-xc-${IMPL_VERSION}.pom" />
+
+    <!-- And then snapshots -->
+    <artifact:pom id="pom.snapshot.core" file="${dir.snapshot}/jackson-core-asl-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.mapper" file="${dir.snapshot}/jackson-mapper-asl-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.jaxrs" file="${dir.snapshot}/jackson-jaxrs-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.xc" file="${dir.snapshot}/jackson-xc-${IMPL_VERSION}-SNAPSHOT.pom" />
   </target>
 
   <target name="maven.repos" depends="maven.init">
@@ -39,12 +46,16 @@
       url="dav:https://dav.codehaus.org/repository/jackson"
    >
       <authentication username="${user}" password="${password}" />
+      <releases enabled="true"/> 
+      <snapshots enabled="false"/> 
     </artifact:remoteRepository>
 
     <artifact:remoteRepository id="repo.snapshot"
       url="dav:https://dav.codehaus.org/snapshots.repository/jackson"
    >
       <authentication username="${user}" password="${password}" />
+      <releases enabled="false"/> 
+      <snapshots enabled="true"/> 
     </artifact:remoteRepository>
   </target>
 
@@ -81,42 +92,28 @@
     -->
   <target name="maven.remote.snapshot" depends="maven.repos">
 
-    <artifact:deploy pomRefId="pom.asl.core" uniqueVersion="true"
+    <artifact:deploy pomRefId="pom.snapshot.core" uniqueVersion="true"
      file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}.jar"
    >
       <remoteRepository refid="repo.snapshot" />
       <attach file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
 
-    <artifact:deploy pomRefId="pom.asl.mapper" uniqueVersion="true"
+    <artifact:deploy pomRefId="pom.snapshot.mapper" uniqueVersion="true"
      file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}.jar"
    >
       <remoteRepository refid="repo.snapshot" />
       <attach file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
 
-    <artifact:deploy pomRefId="pom.lgpl.core" uniqueVersion="true"
-     file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}.jar"
-   >
-      <remoteRepository refid="repo.snapshot" />
-      <attach file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
-    </artifact:deploy>
-
-    <artifact:deploy pomRefId="pom.lgpl.mapper" uniqueVersion="true"
-     file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}.jar"
-   >
-      <remoteRepository refid="repo.snapshot" />
-      <attach file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
-    </artifact:deploy>
-
-    <artifact:deploy pomRefId="pom.jaxrs" uniqueVersion="true"
+    <artifact:deploy pomRefId="pom.snapshot.jaxrs" uniqueVersion="true"
      file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.jar"
    >
       <remoteRepository refid="repo.snapshot" />
       <attach file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
 
-    <artifact:deploy pomRefId="pom.xc" uniqueVersion="true"
+    <artifact:deploy pomRefId="pom.snapshot.xc" uniqueVersion="true"
      file="${dir.dist}/jackson-xc-${IMPL_VERSION}.jar"
    >
       <remoteRepository refid="repo.snapshot" />

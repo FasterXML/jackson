@@ -41,6 +41,7 @@
 
     <!-- Distribution -->
     <property name="dir.dist" location="${basedir}/dist" />
+    <property name="dir.snapshot" location="${basedir}/build/snapshot" />
 
     <!-- Version information -->
 
@@ -130,6 +131,7 @@
 
         <!-- and finally distribution dir -->
         <mkdir dir="${dir.dist}" />
+        <mkdir dir="${dir.snapshot}" />
     </target>
 
     <!-- ***********************************************
@@ -356,6 +358,15 @@ compile.main, compile.test, compile.extra, compile.perf" />
             <globmapper from="*.pom" to="*-${IMPL_VERSION}.pom" />
             <filterset>
                 <filter token="VERSION" value="${IMPL_VERSION}" />
+            </filterset>
+        </copy>
+        <!-- 12-Jun-2009, tatu: Trying to make Maven snapshots work...
+          -->
+        <copy todir="${dir.snapshot}">
+            <fileset dir="${dir.src}/maven" includes="*.pom" />
+            <globmapper from="*.pom" to="*-${IMPL_VERSION}-SNAPSHOT.pom" />
+            <filterset>
+                <filter token="VERSION" value="${IMPL_VERSION}-SNAPSHOT" />
             </filterset>
         </copy>
         <!-- 03-Dec-2008, tatu: Let's validate well-formedness of
