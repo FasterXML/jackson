@@ -159,6 +159,97 @@ public final class ClassUtil
 
     /*
     //////////////////////////////////////////////////////////
+    // Exception handling
+    //////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be used to find the "root cause", innermost
+     * of chained (wrapped) exceptions.
+     */
+    public static Throwable getRootCause(Throwable t)
+    {
+        while (t.getCause() != null) {
+            t = t.getCause();
+        }
+        return t;
+    }
+
+    public static void throwAsIAE(Throwable t)
+    {
+        throwAsIAE(t, t.getMessage());
+    }
+
+    public static void throwAsIAE(Throwable t, String msg)
+    {
+        if (t instanceof RuntimeException) {
+            throw (RuntimeException) t;
+        }
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+        throw new IllegalArgumentException(msg, t);
+    }
+
+    public static void unwrapAndThrowAsIAE(Throwable t)
+    {
+        throwAsIAE(getRootCause(t));
+    }
+
+    public static void unwrapAndThrowAsIAE(Throwable t, String msg)
+    {
+        throwAsIAE(getRootCause(t), msg);
+    }
+
+    /*
+    //////////////////////////////////////////////////////////
+    // Instantiation
+    //////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be called to try to create an instantiate of
+     * specified type. Instantiation is done using default no-argument
+     * constructor.
+     *
+     * @param canFixAccess Whether it is possible to try to change access
+     *   rights of the default constructor (in case it is not publicly
+     *   accessible) or not.
+     *
+     * @throw IllegalArgumentException If instantiation fails for any reason;
+     *    except for cases where constructor throws an unchecked exception
+     *    (which will be passed as is)
+     */
+    public static Object createInstance(Class<?> cls, boolean canFixAccess)
+        throws IllegalArgumentException
+    {
+        Constructor<?> ctor = null;
+        try {
+            ctor = cls.getDeclaredConstructor();
+        } catch (Exception e) {
+            ClassUtil.unwrapAndThrowAsIAE(e, "Failed to find default constructor of class "+cls.getName()+", problem: "+e.getMessage());
+        }
+        if (ctor == null) {
+            throw new IllegalArgumentException("Class "+cls.getName()+" has no default (no arg) constructor");
+        }
+        if (canFixAccess) {
+            checkAndFixAccess(ctor);
+        } else {
+            // Has to be public...
+            if (!Modifier.isPublic(ctor.getModifiers())) {
+                throw new IllegalArgumentException("Default constructor for "+cls.getName()+" is not accessible (non-public?): not allowed to try modify access via Reflection: can not instantiate type");
+            }
+        }
+        try {
+            return ctor.newInstance();
+        } catch (Exception e) {
+            ClassUtil.unwrapAndThrowAsIAE(e, "Failed to instantiate class "+cls.getName()+", problem: "+e.getMessage());
+            return null;
+        }
+    }
+
+    /*
+    //////////////////////////////////////////////////////////
     // Access checking/handling methods
     //////////////////////////////////////////////////////////
      */

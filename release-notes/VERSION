@@ -10,6 +10,8 @@ Description:
 
   * [JACKSON-121] Problems deserializing Date values of some ISO-8601
     variants (like one using 'Z' to indicate GMT timezone)
+  * [JACKSON-122] Annotated serializers and deserializers had to
+    be public classes with public default constructor; not any more.
 
   Improvements:
 

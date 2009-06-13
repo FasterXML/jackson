@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.ArrayNode;
@@ -347,12 +348,7 @@ public class BasicSerializerFactory
             if (!JsonSerializer.class.isAssignableFrom(cls)) {
                 throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonSerializer>");
             }
-            // !!! TBI
-            try {
-                return (JsonSerializer) cls.newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            return (JsonSerializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
         }
         return null;
     }

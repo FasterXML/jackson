@@ -8,6 +8,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -282,12 +283,7 @@ public abstract class BasicDeserializerFactory
             if (!JsonDeserializer.class.isAssignableFrom(cls)) {
                 throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
             }
-            // !!! TBI
-            try {
-                return (JsonDeserializer) cls.newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
         }
         return null;
     }

@@ -305,19 +305,6 @@ public class JacksonAnnotationIntrospector
             throw new IllegalArgumentException("Invalid @JsonUseDeserializer annotation: Class "+deserClass.getName()+" not a JsonDeserializer");
         }
         return (Class<? extends JsonDeserializer<?>>)deserClass;
-        /*
-        if (deserClass == null) {
-            return null;
-        }
-        try {
-            Object ob = deserClass.newInstance();
-            @SuppressWarnings("unchecked")
-                JsonDeserializer<Object> ser = (JsonDeserializer<Object>) ob;
-            return ser;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to instantiate "+deserClass.getName()+" to use as deserializer for "+a.getName()+", problem: "+e.getMessage(), e);
-        }
-        */
     }
 
     @SuppressWarnings("deprecation")

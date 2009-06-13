@@ -7,6 +7,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.type.JavaType;
 
@@ -290,7 +291,7 @@ public class BeanDeserializer
         try {
             bean = _defaultConstructor.newInstance();
         } catch (Exception e) {
-            _rethrow(e);
+            ClassUtil.unwrapAndThrowAsIAE(e);
             return null; // never gets here
         }
 
@@ -363,25 +364,6 @@ public class BeanDeserializer
 
     /*
     /////////////////////////////////////////////////////////
-    // Other helper methods
-    /////////////////////////////////////////////////////////
-     */
-
-    protected static void _rethrow(Exception e)
-        throws RuntimeException
-    {
-        if (e instanceof RuntimeException) {
-            throw (RuntimeException) e;
-        }
-        Throwable t = e;
-        while (t.getCause() != null) {
-            t = t.getCause();
-        }
-        throw new IllegalArgumentException(t.getMessage(), t);
-    }
-
-    /*
-    /////////////////////////////////////////////////////////
     // Helper classes
     /////////////////////////////////////////////////////////
      */
@@ -424,7 +406,7 @@ public class BeanDeserializer
                     return _factoryMethod.invoke(_valueClass, value);
                 }
             } catch (Exception e) {
-                _rethrow(e);
+                ClassUtil.unwrapAndThrowAsIAE(e);
             }
             return null;
         }
@@ -462,7 +444,7 @@ public class BeanDeserializer
                     return _intFactoryMethod.invoke(_valueClass, Integer.valueOf(value));
                 }
             } catch (Exception e) {
-                _rethrow(e);
+                ClassUtil.unwrapAndThrowAsIAE(e);
             }
             // but if not, can do widening conversion
             return construct((long) value);
@@ -482,7 +464,7 @@ public class BeanDeserializer
                     return _longFactoryMethod.invoke(_valueClass, Long.valueOf(value));
                 }
             } catch (Exception e) {
-                _rethrow(e);
+                ClassUtil.unwrapAndThrowAsIAE(e);
             }
             return null;
         }
