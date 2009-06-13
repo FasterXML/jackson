@@ -74,7 +74,7 @@ public @interface JsonSerialize
      */
 
     /**
-     * Enumeration used with {@link JsonSerialize#include} property
+     * Enumeration used with {@link JsonSerialize#properties} property
      * to define which properties
      * of Java Beans are to be included in serialization
      *

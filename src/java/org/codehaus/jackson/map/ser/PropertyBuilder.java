@@ -27,7 +27,7 @@ public class PropertyBuilder
 
     /**
      * If a property has serialization inclusion value of
-     * {@link JsonSerialize.Properties#ALL}, we need to know the default
+     * {@link JsonSerialize#Properties#ALL}, we need to know the default
      * value of the bean, to know if property value equals default
      * one.
      */

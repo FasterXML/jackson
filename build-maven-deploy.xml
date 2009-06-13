@@ -23,6 +23,7 @@
     <artifact:pom id="pom.lgpl.core" file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.lgpl.mapper" file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.jaxrs" file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.xc" file="${dir.dist}/jackson-xc-${IMPL_VERSION}.pom" />
   </target>
 
   <target name="maven.repos" depends="maven.init">
@@ -114,6 +115,13 @@
       <remoteRepository refid="repo.snapshot" />
       <attach file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.xc" uniqueVersion="true"
+     file="${dir.dist}/jackson-xc-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.snapshot" />
+      <attach file="${dir.dist}/jackson-xc-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
   </target>
 
   <!-- target for deploying release versions in "real" Maven
@@ -155,6 +163,13 @@
    >
       <remoteRepository refid="repo.release" />
       <attach file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.xc" uniqueVersion="false"
+     file="${dir.dist}/jackson-xc-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-xc-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
 
   </target>

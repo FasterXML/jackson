@@ -198,8 +198,8 @@ public class SerializationConfig
      * Defaults to null for backwards compatibility; if left as null,
      * will check
      * deprecated {@link Feature#WRITE_NULL_PROPERTIES}
-     * to choose between {@link JsonSerialize.Properties#ALL}
-     * and {@link JsonSerialize.Properties#NON_NULL}.
+     * to choose between {@link JsonSerialize#Properties#ALL}
+     * and {@link JsonSerialize#Properties#NON_NULL}.
      */
     protected JsonSerialize.Properties _serializationInclusion = null;
 

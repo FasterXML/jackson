@@ -216,7 +216,7 @@ public final class ClassUtil
      *   rights of the default constructor (in case it is not publicly
      *   accessible) or not.
      *
-     * @throw IllegalArgumentException If instantiation fails for any reason;
+     * @throws IllegalArgumentException If instantiation fails for any reason;
      *    except for cases where constructor throws an unchecked exception
      *    (which will be passed as is)
      */
