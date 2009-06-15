@@ -550,7 +550,7 @@ public class ObjectMapper
     /**
      * Method that can be used to serialize any Java value as
      * Json output, using output stream provided (using encoding
-     * {link JsonEncoding#UTF8}).
+     * {{@link JsonEncoding#UTF8}).
      *<p>
      * Note: method does not close the underlying stream explicitly
      * here; however, {@link JsonFactory} this mapper uses may choose

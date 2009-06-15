@@ -287,7 +287,7 @@ public class JacksonJsonProvider
      * {@link ContextResolver} mechanism, if it has been properly configured
      * to access it (by JAX-RS runtime).
      * Finally, if no mapper is found, will return a default unconfigured
-     * {link ObjectMapper} instance (one constructed with default constructor
+     * {@link ObjectMapper} instance (one constructed with default constructor
      * and not modified in any way)
      *
      * @param type Class of object being serialized or deserialized;

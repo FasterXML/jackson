@@ -46,6 +46,10 @@ public abstract class AnnotationIntrospector
      * with deserializers, to determine whether provider
      * should cache instances, and if no annotations are found,
      * assumes non-cachable instances.
+     *
+     * @return True, if class is considered cachable within context;
+     *   False if not, and null if introspector does not care either
+     *   way.
      */
     public abstract Boolean findCachability(AnnotatedClass ac);
 
@@ -107,17 +111,6 @@ public abstract class AnnotationIntrospector
     public abstract Object findSerializer(Annotated am);
 
     /**
-     * Method for accessing annotated type definition that a
-     * method can have, to be used as the type for serialization
-     * instead of the runtime type.
-     * Type returned (if any) needs to be widening conversion (super-type).
-     * Declared return type of the method is also considered acceptable.
-     *
-     * @return Class to use instead of runtime type
-     */
-    public abstract Class<?> findSerializationType(Annotated a);
-
-    /**
      * Method for checking whether given annotated entity (class, method,
      * field) defines which Bean/Map properties are to be included in
      * serialization.
@@ -128,6 +121,17 @@ public abstract class AnnotationIntrospector
      *   in serialization
      */
     public abstract JsonSerialize.Properties findSerializationInclusion(Annotated a, JsonSerialize.Properties defValue);
+
+    /**
+     * Method for accessing annotated type definition that a
+     * method can have, to be used as the type for serialization
+     * instead of the runtime type.
+     * Type returned (if any) needs to be widening conversion (super-type).
+     * Declared return type of the method is also considered acceptable.
+     *
+     * @return Class to use instead of runtime type
+     */
+    public abstract Class<?> findSerializationType(Annotated a);
 
     /*
     ///////////////////////////////////////////////////////
@@ -256,21 +260,21 @@ public abstract class AnnotationIntrospector
 
     /**
      * Method for checking whether there is a class annotation that
-     * indicates whether setter-method auto detection should be enabled.
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findSetterAutoDetection(AnnotatedClass ac);
-
-    /**
-     * Method for checking whether there is a class annotation that
      * indicates whether creator-method auto detection should be enabled.
      *
      * @return null if no relevant annotation is located; Boolean.TRUE
      *   if enabling annotation found, Boolean.FALSE if disabling annotation
      */
     public abstract Boolean findCreatorAutoDetection(AnnotatedClass ac);
+
+    /**
+     * Method for checking whether there is a class annotation that
+     * indicates whether setter-method auto detection should be enabled.
+     *
+     * @return null if no relevant annotation is located; Boolean.TRUE
+     *   if enabling annotation found, Boolean.FALSE if disabling annotation
+     */
+    public abstract Boolean findSetterAutoDetection(AnnotatedClass ac);
 
     /*
     ///////////////////////////////////////////////////////
@@ -329,4 +333,275 @@ public abstract class AnnotationIntrospector
      * "use the field name as is".
      */
     public abstract String findDeserializablePropertyName(AnnotatedField af);
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Helper classes
+    ///////////////////////////////////////////////////////
+    */
+
+    /**
+     * Helper class that allows using 2 introspectors such that one
+     * introspector acts as the primary one to use; and second one
+     * as a fallback used if the primary does not provide conclusive
+     * or useful result for a method.
+     *<p>
+     * An obvious consequence of priority is that it is easy to construct
+     * longer chains of introspectors by linking multiple pairs.
+     * Currently most likely combination is that of using the default
+     * Jackson provider, along with JAXB annotation introspector (available
+     * since version 1.1).
+     */
+    public static class Pair
+        extends AnnotationIntrospector
+    {
+        final AnnotationIntrospector _primary, _secondary;
+
+        public Pair(AnnotationIntrospector p,
+                    AnnotationIntrospector s)
+        {
+            _primary = p;
+            _secondary = s;
+        }
+
+        // // // Generic annotation properties, lookup
+        
+        @Override
+        public boolean isHandled(Annotation ann)
+        {
+            return _primary.isHandled(ann) || _secondary.isHandled(ann);
+        }
+
+        // // // General class annotations
+
+        @Override
+        public Boolean findCachability(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findCachability(ac);
+            if (result == null) {
+                result = _secondary.findCachability(ac);
+            }
+            return result;
+        }
+        
+        @Override
+        public Boolean findFieldAutoDetection(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findFieldAutoDetection(ac);
+            if (result == null) {
+                result = _secondary.findFieldAutoDetection(ac);
+            }
+            return result;
+        }
+        
+        // // // General method annotations
+
+        @Override
+        public boolean isIgnorableMethod(AnnotatedMethod m)
+        {
+            return _primary.isIgnorableMethod(m) || _secondary.isIgnorableMethod(m);
+        }
+        
+        // // // General field annotations
+
+        @Override
+        public boolean isIgnorableField(AnnotatedField f)
+        {
+            return _primary.isIgnorableField(f) || _secondary.isIgnorableField(f);
+        }
+
+        // // // Serialization: general annotations
+
+        @Override
+        public Object findSerializer(Annotated am)
+        {
+            Object result = _primary.findSerializer(am);
+            /* Are there non-null results that should be ignored?
+             * (i.e. should some validation be done here)
+             * For now let's assume no
+             */
+            if (result == null) {
+                result = _secondary.findSerializer(am);
+            }
+            return result;
+        }
+
+        @Override
+        public JsonSerialize.Properties findSerializationInclusion(Annotated a,
+                                                                   JsonSerialize.Properties defValue)
+        {
+            /* This is bit trickier: need to combine results in a meaningful
+             * way. Seems like it should be a disjoint; that is, most
+             * restrictive value should be returned.
+             * For enumerations, comparison is done by indexes, which
+             * works: largest value is the last one, which is the most
+             * restrictive value as well.
+             */
+            JsonSerialize.Properties v1 = _primary.findSerializationInclusion(a, defValue);
+            JsonSerialize.Properties v2 = _secondary.findSerializationInclusion(a, defValue);
+            return (v1.compareTo(v2) < 0) ? v2 : v1;
+        }
+        
+        @Override
+        public Class<?> findSerializationType(Annotated a)
+        {
+            Class<?> result = _primary.findSerializationType(a);
+            if (result == null) {
+                result = _secondary.findSerializationType(a);
+            }
+            return result;
+        }
+
+        // // // Serialization: class annotations
+
+        @Override
+        public Boolean findGetterAutoDetection(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findGetterAutoDetection(ac);
+            if (result == null) {
+                result = _secondary.findGetterAutoDetection(ac);
+            }
+            return result;
+        }
+
+        // // // Serialization: method annotations
+        
+        @Override
+        public String findGettablePropertyName(AnnotatedMethod am)
+        {
+            String result = _primary.findGettablePropertyName(am);
+            if (result == null) {
+                result = _secondary.findGettablePropertyName(am);
+            }
+            return result;
+        }
+        
+        @Override
+        public boolean hasAsValueAnnotation(AnnotatedMethod am)
+        {
+            return _primary.hasAsValueAnnotation(am) || _secondary.hasAsValueAnnotation(am);
+        }
+        
+        @Override
+        public String findEnumValue(Enum<?> value)
+        {
+            String result = _primary.findEnumValue(value);
+            if (result == null) {
+                result = _secondary.findEnumValue(value);
+            }
+            return result;
+        }        
+
+        // // // Serialization: field annotations
+
+        @Override
+        public String findSerializablePropertyName(AnnotatedField af)
+        {
+            String result = _primary.findSerializablePropertyName(af);
+            if (result == null) {
+                result = _secondary.findSerializablePropertyName(af);
+            }
+            return result;
+        }
+
+        // // // Deserialization: general annotations
+
+        @Override
+        public Object findDeserializer(Annotated am)
+        {
+            Object result = _primary.findDeserializer(am);
+            if (result == null) {
+                result = _secondary.findDeserializer(am);
+            }
+            return result;
+        }
+        
+        @Override
+        public Class<?> findDeserializationType(Annotated am)
+        {
+            Class<?> result = _primary.findDeserializationType(am);
+            if (result == null) {
+                result = _secondary.findDeserializationType(am);
+            }
+            return result;
+        }
+
+        @Override
+        public Class<?> findDeserializationKeyType(Annotated am)
+        {
+            Class<?> result = _primary.findDeserializationKeyType(am);
+            if (result == null) {
+                result = _secondary.findDeserializationKeyType(am);
+            }
+            return result;
+        }
+
+        @Override
+        public Class<?> findDeserializationContentType(Annotated am)
+        {
+            Class<?> result = _primary.findDeserializationContentType(am);
+            if (result == null) {
+                result = _secondary.findDeserializationContentType(am);
+            }
+            return result;
+        }
+        
+        // // // Deserialization: class annotations
+        
+        @Override
+        public Boolean findCreatorAutoDetection(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findCreatorAutoDetection(ac);
+            if (result == null) {
+                result = _secondary.findCreatorAutoDetection(ac);
+            }
+            return result;
+        }
+
+        @Override
+        public Boolean findSetterAutoDetection(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findSetterAutoDetection(ac);
+            if (result == null) {
+                result = _secondary.findSetterAutoDetection(ac);
+            }
+            return result;
+        }
+
+        // // // Deserialization: method annotations
+
+        @Override
+        public String findSettablePropertyName(AnnotatedMethod am)
+        {
+            String result = _primary.findSettablePropertyName(am);
+            if (result == null) {
+                result = _secondary.findSettablePropertyName(am);
+            }
+            return result;
+        }
+        
+        @Override
+        public boolean hasAnySetterAnnotation(AnnotatedMethod am)
+        {
+            return _primary.hasAnySetterAnnotation(am) || _secondary.hasAnySetterAnnotation(am);
+        }
+
+        @Override
+        public boolean hasCreatorAnnotation(AnnotatedMethod am)
+        {
+            return _primary.hasCreatorAnnotation(am) || _secondary.hasCreatorAnnotation(am);
+        }
+        
+        // // // Deserialization: field annotations
+
+        @Override
+        public String findDeserializablePropertyName(AnnotatedField af)
+        {
+            String result = _primary.findDeserializablePropertyName(af);
+            if (result == null) {
+                result = _secondary.findDeserializablePropertyName(af);
+            }
+            return result;
+        }
+    }
 }

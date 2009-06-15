@@ -32,6 +32,9 @@ Description:
    (requested by Ryan H)
   * [JACKSON-120] Add annotations @JsonSerialize, @JsonDeserialize,
     to streamline annotation by replacing host of existing annotations.
+  * [JACKSON-123] Add "chaining" AnnotationIntrospector (implemented
+    as inner class, AnnotationIntrospector.Pair) that allows combining
+    functionality of 2 introspectors.
 
 ------------------------------------------------------------------------
 == History: ==

@@ -391,14 +391,14 @@ public class JacksonAnnotationIntrospector
      */
 
     @Override
-    public Boolean findSetterAutoDetection(AnnotatedClass ac)
+    public Boolean findCreatorAutoDetection(AnnotatedClass ac)
     {
         JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
         if (cann != null) {
             JsonMethod[] methods = cann.value();
             if (methods != null) {
                 for (JsonMethod jm : methods) {
-                    if (jm.setterEnabled()) {
+                    if (jm.creatorEnabled()) {
                         return Boolean.TRUE;
                     }
                 }
@@ -409,14 +409,14 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public Boolean findCreatorAutoDetection(AnnotatedClass ac)
+    public Boolean findSetterAutoDetection(AnnotatedClass ac)
     {
         JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
         if (cann != null) {
             JsonMethod[] methods = cann.value();
             if (methods != null) {
                 for (JsonMethod jm : methods) {
-                    if (jm.creatorEnabled()) {
+                    if (jm.setterEnabled()) {
                         return Boolean.TRUE;
                     }
                 }

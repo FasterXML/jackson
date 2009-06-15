@@ -6,9 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marker annotation similar to
- * {@link javax.xml.bind.annotation.XmlTransient} that indicates that
- * the annotated method is to be ignored by introspection-based
+ * Marker annotation
+* that indicates that the annotated method or field is to be ignored by
+* introspection-based
  * serialization and deserialization functionality. That is, it should
  * not be consider a "getter", "setter" or "creator".
  * <p>
@@ -19,8 +19,9 @@ import java.lang.annotation.Target;
  * be output unless another annotation defines alternative method
  * to use.
  *<p>
- * This annotation works purely on method-by-method basis;
- * annotation on one method does not imply ignoring other methods.
+ * This annotation works purely on method-by-method (or field-by-field) basis;
+ * annotation on one method or field does not imply ignoring other methods
+ * or fields.
  * Specifically, marking a "setter" candidate does not change handling
  * of matching "getter" method (or vice versa).
  *<p>
@@ -29,6 +30,8 @@ import java.lang.annotation.Target;
  * to <code>true</code>): but argument can be explicitly defined.
  * This can be done to override an existing JsonIgnore by explictly
  * defining one with 'false' argument.
+ *<p>
+ * Annotation is similar to {@link javax.xml.bind.annotation.XmlTransient} 
  */
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)

@@ -28,7 +28,7 @@ import org.codehaus.jackson.util.BufferRecycler;
 
 /**
  * The main factory class of Jackson package, used to configure and
- * construct reader (aka parser, {link JsonParser})
+ * construct reader (aka parser, {@link JsonParser})
  * and writer (aka generator, {@link JsonGenerator})
  * instances.
  *<p>
