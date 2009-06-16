@@ -65,7 +65,7 @@ public class TypeFactory
      */
     public static JavaType fromClass(Class<?> clz)
     {
-        return instance._fromClass(clz);
+        return instance._fromClass(clz, null);
     }
 
     /**
@@ -95,7 +95,11 @@ public class TypeFactory
     ///////////////////////////////////////////////////////
      */
 
-    protected JavaType _fromClass(Class<?> clz)
+    /**
+     * @param generics Mapping of formal parameter declarations (for generic
+     *   types) into actual types
+     */
+    protected JavaType _fromClass(Class<?> clz, Map<String,JavaType> generics)
     {
         // First things first: we may be able to find it from cache
         String clzName = clz.getName();
@@ -122,7 +126,10 @@ public class TypeFactory
             JavaType unknownType = fromClass(Object.class);
             return CollectionType.untyped(clz, unknownType);
         }
-        // Otherwise, it's consider simple (which includes beans)
+        /* Otherwise, it's consider it a Bean; and due to type
+         * erasure it must be simple (no generics available)
+         */
+
         return SimpleType.construct(clz);
     }
 
@@ -135,7 +142,7 @@ public class TypeFactory
     {
         // may still be a simple type...
         if (type instanceof Class) {
-            return _fromClass((Class<?>) type);
+            return _fromClass((Class<?>) type, null);
         }
         // But if not, need to start resolving.
         if (type instanceof ParameterizedType) {
@@ -150,6 +157,9 @@ public class TypeFactory
         if (type instanceof WildcardType) {
             return _fromWildcard((WildcardType) type);
         }
+        /* Otherwise, it's consider it a Bean; which may be either
+         * a generics version or simple bean
+         */
 
         // sanity check
         throw new IllegalArgumentException("Unrecognized Type: "+type.toString());
@@ -184,10 +194,30 @@ public class TypeFactory
             return CollectionType.typed(rawType, fromType(type.getActualTypeArguments()[0]));
         }
 
+        // Maybe a generics version?
+        Type[] args = type.getActualTypeArguments();
+        Map<String,JavaType> types = null;
+
+        if (args != null && args.length > 0) {
+            /* If so, need mapping from name to type, to allow resolving
+             * of generic types
+             */
+            TypeVariable<?>[] vars;
+
+            vars = rawType.getTypeParameters();
+            // Sanity check:
+            if (vars.length != args.length) {
+                throw new IllegalArgumentException("Strange parametrized type (raw: "+rawType+"): number of type arguments != number of type parameters ("+args.length+" vs "+vars.length+")");
+            }
+            types = new HashMap<String,JavaType>();
+            for (int i = 0, len = args.length; i < len; ++i) {
+                types.put(vars[i].getName(), _fromType(args[i]));
+            }
+        }
         /* Neither: well, let's just consider it a bean or such;
          * may or not may not be a problem.
          */
-        return _fromClass(rawType);
+        return _fromClass(rawType, types);
     }
 
     protected JavaType _fromArrayType(GenericArrayType type)
@@ -198,6 +228,8 @@ public class TypeFactory
 
     protected JavaType _fromVariable(TypeVariable<?> type)
     {
+        Type[] bounds = type.getBounds();
+
         /* With type variables we must use bound information.
          * Theoretically this gets tricky, as there may be multiple
          * bounds ("... extends A & B"); and optimally we might
@@ -207,7 +239,7 @@ public class TypeFactory
          * Either way let's just use the first bound, for now, and
          * worry about better match later on if there is need.
          */
-        return _fromType(type.getBounds()[0]);
+        return _fromType(bounds[0]);
     }
 
     protected JavaType _fromWildcard(WildcardType type)

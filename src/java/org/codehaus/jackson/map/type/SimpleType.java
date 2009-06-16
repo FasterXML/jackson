@@ -24,6 +24,12 @@ public final class SimpleType
      * unqualified wildcard ("?").
      */
     public final static SimpleType TYPE_WILDCARD = new SimpleType(Object.class);
+
+    /**
+     * For generic types we need to keep track of mapping from formal
+     * into actual types, to be able to resolve generic signatures.
+     */
+    protected Map<String,JavaType> _typeParameters;
     
     /*
     //////////////////////////////////////////////////////////
@@ -31,9 +37,12 @@ public final class SimpleType
     //////////////////////////////////////////////////////////
      */
 
-    private SimpleType(Class<?> cls)
+    private SimpleType(Class<?> cls) { this(cls, null); }
+
+    private SimpleType(Class<?> cls, Map<String,JavaType> typeParams)
     {
         super(cls);
+        _typeParameters = typeParams;
     }
 
     protected JavaType _narrow(Class<?> subclass)
@@ -49,6 +58,11 @@ public final class SimpleType
 
     public static SimpleType construct(Class<?> cls)
     {
+        return construct(cls, null);
+    }
+
+    public static SimpleType construct(Class<?> cls, Map<String,JavaType> typeParams)
+    {
         /* Let's add sanity checks, just to ensure no
          * Map/Collection entries are constructed
          */
@@ -62,7 +76,7 @@ public final class SimpleType
         if (cls.isArray()) {
             throw new IllegalArgumentException("Can not construct SimpleType for an array (class: "+cls.getName()+")");
         }
-        return new SimpleType(cls);
+        return new SimpleType(cls, typeParams);
     }
 
     /**
