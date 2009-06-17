@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import java.util.*;
 
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Basic container for information gathered by {@link ClassIntrospector} to
@@ -19,9 +20,10 @@ public abstract class BeanDescription
      */
 
     /**
-     * Class being introspected
+     * Bean type information, including raw class and possible
+     * * generics information
      */
-    protected final Class<?> _class;
+    protected final JavaType _type;
 
     /*
     ///////////////////////////////////////////////////////
@@ -29,9 +31,9 @@ public abstract class BeanDescription
     ///////////////////////////////////////////////////////
      */
 
-    protected BeanDescription(Class<?> forClass)
+    protected BeanDescription(JavaType type)
     {
-    	_class = forClass;
+    	_type = type;
     }
 
     /*
@@ -40,7 +42,8 @@ public abstract class BeanDescription
     ///////////////////////////////////////////////////////
      */
 
-    public Class<?> getBeanClass() { return _class; }
+    public JavaType getType() { return _type; }
+    public Class<?> getBeanClass() { return _type.getRawClass(); }
    
     /*
     ///////////////////////////////////////////////////////

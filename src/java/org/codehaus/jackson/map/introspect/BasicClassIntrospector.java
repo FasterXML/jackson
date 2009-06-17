@@ -8,6 +8,7 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ClassIntrospector;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
@@ -128,7 +129,7 @@ public class BasicClassIntrospector
          */
         ac.resolveCreators(false);
         ac.resolveFields();
-        return new BasicBeanDescription(c, ac, ai);
+        return new BasicBeanDescription(TypeFactory.fromClass(c), ac, ai);
     }
 
     @Override
@@ -136,14 +137,13 @@ public class BasicClassIntrospector
                                                    JavaType type)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        Class<?> raw = type.getRawClass();
-        AnnotatedClass ac = AnnotatedClass.construct(raw, ai);
+        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), ai);
         // everything needed for deserialization
         ac.resolveMemberMethods(getDeserializationMethodFilter(cfg));
         // include all kinds of creator methods:
         ac.resolveCreators(true);
         ac.resolveFields();
-        return new BasicBeanDescription(raw, ac, ai);
+        return new BasicBeanDescription(type, ac, ai);
     }
 
     @Override
@@ -153,7 +153,7 @@ public class BasicClassIntrospector
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, ai);
         ac.resolveCreators(true);
-        return new BasicBeanDescription(c, ac, ai);
+        return new BasicBeanDescription(TypeFactory.fromClass(c), ac, ai);
     }
 
     @Override
@@ -162,7 +162,7 @@ public class BasicClassIntrospector
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, ai);
-        return new BasicBeanDescription(c, ac, ai);
+        return new BasicBeanDescription(TypeFactory.fromClass(c), ac, ai);
     }
 
     @Override
@@ -171,7 +171,7 @@ public class BasicClassIntrospector
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, ai);
-        return new BasicBeanDescription(c, ac, ai);
+        return new BasicBeanDescription(TypeFactory.fromClass(c), ac, ai);
     }
 
     /*

@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanDescription;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.type.JavaType;
 
 public class BasicBeanDescription extends BeanDescription
 {
@@ -31,11 +32,11 @@ public class BasicBeanDescription extends BeanDescription
     ///////////////////////////////////////////////////////
      */
 
-    public BasicBeanDescription(Class<?> forClass, AnnotatedClass ac,
+    public BasicBeanDescription(JavaType type, AnnotatedClass ac,
                                 AnnotationIntrospector ai)
 
     {
-    	super(forClass);
+    	super(type);
     	_classInfo = ac;
         _annotationIntrospector = ai;
     }
@@ -266,7 +267,7 @@ public class BasicBeanDescription extends BeanDescription
         // So, of all single-arg static methods:
         for (AnnotatedMethod am : _classInfo.getSingleArgStaticMethods()) {
             // First: return type must be the introspected class
-            if (am.getReturnType() != _class) {
+            if (am.getReturnType() != getBeanClass()) {
                 continue;
             }
             /* Then: must be a recognized factory, meaning:
