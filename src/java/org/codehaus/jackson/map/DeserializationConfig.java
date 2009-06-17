@@ -8,6 +8,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.StdDateFormat;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Object that contains baseline configuration for deserialization
@@ -355,10 +356,12 @@ public class DeserializationConfig
     /**
      * Method that will introspect full bean properties for the purpose
      * of building a bean deserializer
+     *
+     * @param type Type of class to be introspected
      */
     @SuppressWarnings("unchecked")
-	public <T extends BeanDescription> T introspect(Class<?> cls) {
-        return (T) _classIntrospector.forDeserialization(this, cls);
+    public <T extends BeanDescription> T introspect(JavaType type) {
+        return (T) _classIntrospector.forDeserialization(this, type);
     }
 
     /**

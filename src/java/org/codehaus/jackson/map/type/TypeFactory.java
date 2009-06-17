@@ -157,10 +157,6 @@ public class TypeFactory
         if (type instanceof WildcardType) {
             return _fromWildcard((WildcardType) type);
         }
-        /* Otherwise, it's consider it a Bean; which may be either
-         * a generics version or simple bean
-         */
-
         // sanity check
         throw new IllegalArgumentException("Unrecognized Type: "+type.toString());
     }

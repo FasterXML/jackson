@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.ClassIntrospector;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.type.JavaType;
 
 public class BasicClassIntrospector
     extends ClassIntrospector<BasicBeanDescription>
@@ -132,16 +133,17 @@ public class BasicClassIntrospector
 
     @Override
     public BasicBeanDescription forDeserialization(DeserializationConfig cfg,
-                                                   Class<?> c)
+                                                   JavaType type)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(c, ai);
+        Class<?> raw = type.getRawClass();
+        AnnotatedClass ac = AnnotatedClass.construct(raw, ai);
         // everything needed for deserialization
         ac.resolveMemberMethods(getDeserializationMethodFilter(cfg));
         // include all kinds of creator methods:
         ac.resolveCreators(true);
         ac.resolveFields();
-        return new BasicBeanDescription(c, ac, ai);
+        return new BasicBeanDescription(raw, ac, ai);
     }
 
     @Override

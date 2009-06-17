@@ -66,7 +66,7 @@ class StdKeyDeserializers
         /* We don't need full deserialization information, just need to
          * know creators.
          */
-    	BasicBeanDescription beanDesc = config.introspect(type.getRawClass());
+    	BasicBeanDescription beanDesc = config.introspect(type);
         // Ok, so: can we find T(String) constructor?
         Constructor<?> ctor = beanDesc.findSingleArgConstructor(String.class);
         if (ctor != null) {

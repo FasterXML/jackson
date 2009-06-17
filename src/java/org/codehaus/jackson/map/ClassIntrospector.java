@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.type.JavaType;
+
 /**
  * Helper class used to introspect features of POJO value classes
  * used with Jackson. The main use is for finding out
@@ -27,7 +29,7 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      * Factory method that constructs an introspector that has all
      * information needed for deserialization purposes.
      */
-    public abstract T forDeserialization(DeserializationConfig cfg, Class<?> c);
+    public abstract T forDeserialization(DeserializationConfig cfg, JavaType type);
 
     /**
      * Factory method that constructs an introspector that has

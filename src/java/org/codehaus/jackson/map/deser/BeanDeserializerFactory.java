@@ -63,7 +63,7 @@ public class BeanDeserializerFactory
         if (!isPotentialBeanType(beanClass)) {
             return null;
         }
-        BasicBeanDescription beanDesc = config.introspect(beanClass);
+        BasicBeanDescription beanDesc = config.introspect(type);
         // maybe it's explicitly defined by annotations?
         JsonDeserializer<Object> ad = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ad != null) {
@@ -142,7 +142,7 @@ public class BeanDeserializerFactory
          */
         AnnotatedMethod am = beanDesc.findMethod("initCause", INIT_CAUSE_PARAMS);
         if (am != null) { // should never be null
-            SettableBeanProperty prop = constructSettableProperty(config, "cause", am);
+            SettableBeanProperty prop = constructSettableProperty(config, beanDesc, "cause", am);
             if (prop != null) {
                 deser.addProperty(prop);
             }
@@ -243,7 +243,7 @@ public class BeanDeserializerFactory
 
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
-            SettableBeanProperty prop = constructSettableProperty(config, en.getKey(), en.getValue());
+            SettableBeanProperty prop = constructSettableProperty(config, beanDesc, en.getKey(), en.getValue());
             if (prop != null) {
                 deser.addProperty(prop);
             }
@@ -279,7 +279,7 @@ public class BeanDeserializerFactory
          */
         LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_FIELDS), addedProps);
         for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
-            SettableBeanProperty prop = constructSettableProperty(config, en.getKey(), en.getValue());
+            SettableBeanProperty prop = constructSettableProperty(config, beanDesc, en.getKey(), en.getValue());
             if (prop != null) {
                 deser.addProperty(prop);
             }
@@ -331,6 +331,7 @@ public class BeanDeserializerFactory
      *   there should be no property based on given definitions.
      */
     protected SettableBeanProperty constructSettableProperty(DeserializationConfig config,
+                                                             BasicBeanDescription beanDesc,
                                                              String name,
                                                              AnnotatedMethod setter)
         throws JsonMappingException
@@ -363,6 +364,7 @@ public class BeanDeserializerFactory
     }
 
     protected SettableBeanProperty constructSettableProperty(DeserializationConfig config,
+                                                             BasicBeanDescription beanDesc,
                                                              String name,
                                                              AnnotatedField field)
         throws JsonMappingException
