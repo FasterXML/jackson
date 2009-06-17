@@ -86,7 +86,17 @@ public class TypeFactory
      */
     public static JavaType fromType(Type type)
     {
-        return instance._fromType(type);
+        return instance._fromType(type, null);
+    }
+
+    /**
+     * @param context Type context that can be used for binding
+     *   named formal type parameters, if any (if null, no context
+     *   is used)
+     */
+    public static JavaType fromType(Type type, JavaType context)
+    {
+        return instance._fromType(type, context);
     }
 
     /*
@@ -96,10 +106,10 @@ public class TypeFactory
      */
 
     /**
-     * @param generics Mapping of formal parameter declarations (for generic
+     * @param genericParams Mapping of formal parameter declarations (for generic
      *   types) into actual types
      */
-    protected JavaType _fromClass(Class<?> clz, Map<String,JavaType> generics)
+    protected JavaType _fromClass(Class<?> clz, Map<String,JavaType> genericParams)
     {
         // First things first: we may be able to find it from cache
         String clzName = clz.getName();
@@ -130,7 +140,7 @@ public class TypeFactory
          * erasure it must be simple (no generics available)
          */
 
-        return SimpleType.construct(clz);
+        return SimpleType.construct(clz, genericParams);
     }
 
     /**
@@ -138,7 +148,7 @@ public class TypeFactory
      * as Java typing returned from <code>getGenericXxx</code> methods
      * (usually for a return or argument type).
      */
-    public JavaType _fromType(Type type)
+    public JavaType _fromType(Type type, JavaType context)
     {
         // may still be a simple type...
         if (type instanceof Class) {
@@ -146,16 +156,16 @@ public class TypeFactory
         }
         // But if not, need to start resolving.
         if (type instanceof ParameterizedType) {
-            return _fromParamType((ParameterizedType) type);
+            return _fromParamType((ParameterizedType) type, context);
         }
         if (type instanceof GenericArrayType) {
-            return _fromArrayType((GenericArrayType) type);
+            return _fromArrayType((GenericArrayType) type, context);
         }
         if (type instanceof TypeVariable) {
-            return _fromVariable((TypeVariable<?>) type);
+            return _fromVariable((TypeVariable<?>) type, context);
         }
         if (type instanceof WildcardType) {
-            return _fromWildcard((WildcardType) type);
+            return _fromWildcard((WildcardType) type, context);
         }
         // sanity check
         throw new IllegalArgumentException("Unrecognized Type: "+type.toString());
@@ -171,7 +181,7 @@ public class TypeFactory
      * fashion. For other types we will then just fall back
      * to using "raw" class information.
      */
-    protected JavaType _fromParamType(ParameterizedType type)
+    protected JavaType _fromParamType(ParameterizedType type, JavaType context)
     {
         /* First: what is the actual base type? One odd thing
          * is that 'getRawType' returns Type, not Class<?> as
@@ -203,11 +213,12 @@ public class TypeFactory
             vars = rawType.getTypeParameters();
             // Sanity check:
             if (vars.length != args.length) {
-                throw new IllegalArgumentException("Strange parametrized type (raw: "+rawType+"): number of type arguments != number of type parameters ("+args.length+" vs "+vars.length+")");
+                throw new IllegalArgumentException
+                    ("Strange parametrized type (raw: "+rawType+"): number of type arguments != number of type parameters ("+args.length+" vs "+vars.length+")");
             }
             types = new HashMap<String,JavaType>();
             for (int i = 0, len = args.length; i < len; ++i) {
-                types.put(vars[i].getName(), _fromType(args[i]));
+                types.put(vars[i].getName(), _fromType(args[i], context));
             }
         }
         /* Neither: well, let's just consider it a bean or such;
@@ -216,29 +227,47 @@ public class TypeFactory
         return _fromClass(rawType, types);
     }
 
-    protected JavaType _fromArrayType(GenericArrayType type)
+    protected JavaType _fromArrayType(GenericArrayType type, JavaType context)
     {
-        JavaType compType = _fromType(type.getGenericComponentType());
+        JavaType compType = _fromType(type.getGenericComponentType(), context);
         return ArrayType.construct(compType);
     }
 
-    protected JavaType _fromVariable(TypeVariable<?> type)
+    protected JavaType _fromVariable(TypeVariable<?> type, JavaType context)
     {
+        // Ok: here's where context might come in handy!
+        String name = type.getName();
+        JavaType actualType = context.findVariableType(name);
+        if (actualType != null) {
+            return actualType;
+        }
+
+        /* 16-Jun-2009, tatu: Instead of trying to figure out graceful
+         *   fallback, let's just throw an Exception: chances are caller
+         *   wouldn't find it very intuitive to get "untyped" binding.
+         *   Plus variables just should not remain unexpanded.
+         */
+        throw new IllegalArgumentException
+            ("Unresolved TypeVariable <"+name+"> (from "+type.getGenericDeclaration()+")");
+
+        // Old code for reference:
+
+        /*
         Type[] bounds = type.getBounds();
 
-        /* With type variables we must use bound information.
-         * Theoretically this gets tricky, as there may be multiple
-         * bounds ("... extends A & B"); and optimally we might
-         * want to choose the best match. Also, bounds are optional;
-         * but here we are lucky in that implicit "Object" is
-         * added as bounds if so.
-         * Either way let's just use the first bound, for now, and
-         * worry about better match later on if there is need.
-         */
+        // With type variables we must use bound information.
+        // Theoretically this gets tricky, as there may be multiple
+        // bounds ("... extends A & B"); and optimally we might
+        // want to choose the best match. Also, bounds are optional;
+        // but here we are lucky in that implicit "Object" is
+        // added as bounds if so.
+        // Either way let's just use the first bound, for now, and
+        // worry about better match later on if there is need.
         return _fromType(bounds[0]);
+        */
     }
 
-    protected JavaType _fromWildcard(WildcardType type)
+    protected JavaType _fromWildcard(WildcardType type, JavaType context)
     {
         /* Similar to challenges with TypeVariable, we may have
          * multiple upper bounds. But it is also possible that if
@@ -248,6 +277,6 @@ public class TypeFactory
          * For now, we won't try anything more advanced; above is
          * just for future reference.
          */
-        return _fromType(type.getUpperBounds()[0]);
+        return _fromType(type.getUpperBounds()[0], context);
     }
 }

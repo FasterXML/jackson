@@ -56,11 +56,6 @@ public final class SimpleType
         throw new IllegalArgumentException("Internal error: SimpleType.narrowContentsBy() should never be called");
     }
 
-    public static SimpleType construct(Class<?> cls)
-    {
-        return construct(cls, null);
-    }
-
     public static SimpleType construct(Class<?> cls, Map<String,JavaType> typeParams)
     {
         /* Let's add sanity checks, just to ensure no
@@ -131,12 +126,21 @@ public final class SimpleType
      * no instances are ever created for Collection/Map types.
      */
     @Override
-	public boolean isFullyTyped() {
+    public boolean isFullyTyped() {
         return (this != TYPE_UNSPECIFIED && this != TYPE_WILDCARD);
     }
 
     @Override
-	public boolean isContainerType() { return false; }
+    public boolean isContainerType() { return false; }
+
+    @Override
+    public JavaType findVariableType(String name)
+    {
+        if (_typeParameters != null) {
+            return _typeParameters.get(name);
+        }
+        return null;
+    }
 
     /*
     //////////////////////////////////////////////////////////
@@ -145,13 +149,13 @@ public final class SimpleType
      */
 
     @Override
-        public String toString()
+    public String toString()
     {
         return "[simple type, class "+_class.getName()+"]";
     }
 
     @Override
-	public boolean equals(Object o)
+    public boolean equals(Object o)
     {
         if (o == this) return true;
         if (o == null) return false;

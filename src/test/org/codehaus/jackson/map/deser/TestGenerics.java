@@ -66,4 +66,24 @@ public class TestGenerics
         SimpleBean bean = (SimpleBean) contents;
         assertEquals(13, bean.x);
     }
+
+    /**
+     * Unit test for verifying fix to [JACKSON-109].
+     */
+    public void testArrayOfGenericWrappers() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Wrapper<SimpleBean>[] result = mapper.readValue
+            ("[ {\"value\": { \"x\" : 9 } } ]",
+             new TypeReference<Wrapper<SimpleBean>[]>() { });
+        assertNotNull(result);
+        assertEquals(Wrapper[].class, result.getClass());
+        assertEquals(1, result.length);
+        Wrapper<SimpleBean> elem = result[0];
+        Object contents = elem.value;
+        assertNotNull(contents);
+        assertEquals(SimpleBean.class, contents.getClass());
+        SimpleBean bean = (SimpleBean) contents;
+        assertEquals(9, bean.x);
+    }
 }

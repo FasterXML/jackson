@@ -343,7 +343,7 @@ public class BeanDeserializerFactory
 
         // note: this works since we know there's exactly one arg for methods
         Type rawType = setter.getGenericParameterTypes()[0];
-        JavaType type = TypeFactory.fromType(rawType);
+        JavaType type = resolveType(beanDesc, rawType);
         
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
@@ -373,9 +373,7 @@ public class BeanDeserializerFactory
         if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
             field.fixAccess();
         }
-
-        // note: this works since we know there's exactly one arg for methods
-        JavaType type = TypeFactory.fromType(field.getGenericType());
+        JavaType type = resolveType(beanDesc, field.getGenericType());
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */
@@ -512,5 +510,17 @@ public class BeanDeserializerFactory
             throw new IllegalArgumentException("Can not deserialize Class "+type.getName()+" (of type "+typeStr+") as a Bean");
         }
     	return true;
+    }
+
+    /**
+     * Helper method used to resolve method return types and field
+     * types. The main trick here is that the containing bean may
+     * have type variable binding information (when deserializing
+     * using generic type passed as type reference), which is
+     * needed in some cases.
+     */
+    protected JavaType resolveType(BasicBeanDescription beanDesc, Type type)
+    {
+        return TypeFactory.fromType(type, beanDesc.getType());
     }
 }

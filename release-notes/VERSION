@@ -8,6 +8,8 @@ Description:
 
   Fixes:
 
+  * [JACKSON-109] Allow deserializing into generics Bean classes
+    (like Wrapper<Bean>) not just generic Maps and Collections 
   * [JACKSON-121] Problems deserializing Date values of some ISO-8601
     variants (like one using 'Z' to indicate GMT timezone)
   * [JACKSON-122] Annotated serializers and deserializers had to

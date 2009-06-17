@@ -131,6 +131,16 @@ public abstract class JavaType
 
     public final boolean isPrimitive() { return _class.isPrimitive(); }
 
+    /**
+     * Method that can be called to see if this type has generic type
+     * binding information for type variables, for given formal
+     * type parameter name.
+     *
+     * @return Type given formal type parameter name maps to, if any;
+     *   null if this type knows of no binding for name
+     */
+    public JavaType findVariableType(String name) { return null; }
+
     /*
     ///////////////////////////////////////////////////////////////
     // Helper methods

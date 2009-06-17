@@ -74,7 +74,7 @@ public final class ArrayType
                 String.class,
                 };
         for (Class<?> cls : classes) {
-            SimpleType compType = SimpleType.construct(cls);
+            SimpleType compType = SimpleType.construct(cls, null);
             ArrayType arrayType = construct(compType);
             types.put(arrayType.getRawClass().getName(), arrayType);
         }

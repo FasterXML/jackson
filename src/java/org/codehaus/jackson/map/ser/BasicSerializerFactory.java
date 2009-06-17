@@ -643,7 +643,7 @@ public class BasicSerializerFactory
             ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
             objectNode.put("type", "string");
             if (typeHint != null) {
-                JavaType type = TypeFactory.instance._fromType(typeHint);
+                JavaType type = TypeFactory.fromType(typeHint);
                 if (type.isEnumType()) {
                     ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
                     @SuppressWarnings("unchecked")

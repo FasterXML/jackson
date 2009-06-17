@@ -95,7 +95,7 @@ public final class ArraySerializers
             ObjectNode o = JsonNodeFactory.instance.objectNode();
             o.put("type", "array");
             if (typeHint != null) {
-                JavaType javaType = TypeFactory.instance._fromType(typeHint);
+                JavaType javaType = TypeFactory.fromType(typeHint);
                 if (javaType.isArrayType()) {
                     Class<?> componentType = ((ArrayType) javaType).getComponentType().getRawClass();
                     JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
