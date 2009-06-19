@@ -59,6 +59,18 @@ import java.lang.reflect.Field;
  */
 public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 {
+    final String _jaxbPackageName;
+
+    public JaxbAnnotationIntrospector()
+    {
+        _jaxbPackageName = XmlElement.class.getPackage().getName();
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // General annotation properties
+    ////////////////////////////////////////////////////
+     */
 
     /**
      * An annotation is handled if it's in the same package as @XmlElement, including subpackages.
@@ -69,36 +81,15 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     @Override
     public boolean isHandled(Annotation ann)
     {
-        return ann != null && ann.getClass().getPackage() != null && ann.getClass().getPackage().getName().startsWith(XmlElement.class.getPackage().getName());
+        Package pkg = ann.getClass().getPackage();
+        return (pkg != null) && pkg.getName().startsWith(_jaxbPackageName);
     }
 
-    @Override
-    public JsonSerializer<?> findSerializer(Annotated am)
-    {
-        XmlAdapter<Object,Object> adapter = findAdapter(am);
-        if (adapter != null) {
-            return new XmlAdapterJsonSerializer(adapter);
-        }
-
-        return null;
-    }
-
-    @Override
-    public JsonDeserializer<?> findDeserializer(Annotated am)
-    {
-        XmlAdapter<Object,Object> adapter = findAdapter(am);
-        if (adapter != null) {
-            return new XmlAdapterJsonDeserializer(adapter);
-        }
-
-        return null;
-    }
-
-    @Override
-    public Boolean findGetterAutoDetection(AnnotatedClass ac)
-    {
-        return isPropertiesAccessible(ac);
-    }
+    /*
+    ///////////////////////////////////////////////////////
+    // General class annotations
+    ///////////////////////////////////////////////////////
+    */
 
     @Override
     public Boolean findCachability(AnnotatedClass ac)
@@ -110,6 +101,102 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     public Boolean findFieldAutoDetection(AnnotatedClass ac)
     {
         return isFieldsAccessible(ac);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // General method annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public boolean isIgnorableMethod(AnnotatedMethod m)
+    {
+        if (m.getAnnotation(XmlTransient.class) != null) {
+            return true;
+        }
+        if (m.getAnnotationCount() > 0) {
+            //if any annotations are present, it is NOT ignorable.
+            return false;
+        }
+        if (isPropertiesAccessible(m)) {
+            //jaxb only accounts for getter/setter pairs.
+            PropertyDescriptor pd = findPropertyDescriptor(m);
+            return pd == null || pd.getReadMethod() == null || pd.getWriteMethod() == null; 
+        }
+
+        return true;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // General field annotations
+    ////////////////////////////////////////////////////
+     */
+
+    @Override
+    public boolean isIgnorableField(AnnotatedField f)
+    {
+        if (f.getAnnotation(XmlTransient.class) != null) {
+            return true;
+        }
+        /* 19-Jun-2009, tatu: It shouldn't be necessary to check for
+         *   auto-detection settings here; rather, only need to verify
+         *   there's no @XmlTransient used.
+         *
+         *   Some other problems:
+         *   - Check for 'if any annotations' wouldn't work if multiple
+         *     annotations are included (case when chaining introspectors)
+         */
+        /*
+        if (f.getAnnotationCount() > 0) {
+            //if any annotations are present, it is NOT ignorable.
+            return false;
+        }
+
+        XmlAccessType accessType = XmlAccessType.PUBLIC_MEMBER;
+        XmlAccessorType at = findAnnotation(XmlAccessorType.class, f, true, true, true);
+        if (at != null) {
+            accessType = at.value();
+        }
+        
+        return accessType != XmlAccessType.FIELD &&
+            !(accessType == XmlAccessType.PUBLIC_MEMBER && Modifier.isPublic(f.getAnnotated().getModifiers()));
+        */
+
+        return false;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: general annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public JsonSerializer<?> findSerializer(Annotated am)
+    {
+        XmlAdapter<Object,Object> adapter = findAdapter(am);
+        if (adapter != null) {
+            return new XmlAdapterJsonSerializer(adapter);
+        }
+        return null;
+    }
+
+    @Override
+    public JsonDeserializer<?> findDeserializer(Annotated am)
+    {
+        XmlAdapter<Object,Object> adapter = findAdapter(am);
+        if (adapter != null) {
+            return new XmlAdapterJsonDeserializer(adapter);
+        }
+        return null;
+    }
+
+    @Override
+    public Boolean findGetterAutoDetection(AnnotatedClass ac)
+    {
+        return isPropertiesAccessible(ac);
     }
 
     @Override
@@ -169,25 +256,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public boolean isIgnorableMethod(AnnotatedMethod m)
-    {
-        if (m.getAnnotation(XmlTransient.class) != null) {
-            return true;
-        }
-        if (m.getAnnotationCount() > 0) {
-            //if any annotations are present, it is NOT ignorable.
-            return false;
-        }
-        if (isPropertiesAccessible(m)) {
-            //jaxb only accounts for getter/setter pairs.
-            PropertyDescriptor pd = findPropertyDescriptor(m);
-            return pd == null || pd.getReadMethod() == null || pd.getWriteMethod() == null; 
-        }
-
-        return true;
-    }
-
-    @Override
     public String findGettablePropertyName(AnnotatedMethod am)
     {
         String propertyName = findJaxbSpecifiedPropertyName(am);
@@ -224,28 +292,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public boolean isIgnorableField(AnnotatedField f)
-    {
-        if (f.getAnnotation(XmlTransient.class) != null) {
-            return true;
-        }
-        else if (f.getAnnotationCount() > 0) {
-            //if any annotations are present, it is NOT ignorable.
-            return false;
-        }
-        else {
-            XmlAccessType accessType = XmlAccessType.PUBLIC_MEMBER;
-            XmlAccessorType at = findAnnotation(XmlAccessorType.class, f, true, true, true);
-            if (at != null) {
-                accessType = at.value();
-            }
-
-            return accessType != XmlAccessType.FIELD &&
-                    !(accessType == XmlAccessType.PUBLIC_MEMBER && Modifier.isPublic(f.getAnnotated().getModifiers()));
-        }
-    }
-
-    @Override
     public String findSerializablePropertyName(AnnotatedField af)
     {
         Field field = af.getAnnotated();
@@ -272,6 +318,12 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         enumValue = xmlEnumValue != null ? xmlEnumValue.value() : enumValue;
         return enumValue;
     }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Helper methods (non-API)
+    ///////////////////////////////////////////////////////
+    */
 
     /**
      * Finds an annotation.

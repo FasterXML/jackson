@@ -1,13 +1,8 @@
 package org.codehaus.jackson.map.introspect;
 
-import junit.framework.TestCase;
-
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.bind.annotation.XmlEnumValue;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -16,59 +11,23 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 import java.io.StringWriter;
-import java.util.List;
-import java.util.Arrays;
+import java.util.*;
 
 /**
+ * Tests for verifying that JAXB annotation based introspector
+ * implementation works as expected
+ *
  * @author Ryan Heaton
+ * @author Tatu Saloranta
  */
 public class TestJaxbAnnotationIntrospector
-        extends TestCase
+    extends org.codehaus.jackson.map.BaseMapTest
 {
-
-    /**
-     * tests getting serializer/deserializer instances.
+    /*
+    /////////////////////////////////////////////////////
+    // Helper beans
+    /////////////////////////////////////////////////////
      */
-    public void testSerializeDeserializeWithJaxbAnnotations() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        mapper.getSerializationConfig().set(SerializationConfig.Feature.INDENT_OUTPUT, true);
-        JaxbExample ex = new JaxbExample();
-        QName qname = new QName("urn:hi", "hello");
-        ex.setQname(qname);
-        ex.setAttributeProperty("attributeValue");
-        ex.setElementProperty("elementValue");
-        ex.setWrappedElementProperty(Arrays.asList("wrappedElementValue"));
-        ex.setEnumProperty(EnumExample.VALUE1);
-        StringWriter writer = new StringWriter();
-        mapper.writeValue(writer, ex);
-        writer.flush();
-        writer.close();
-
-        String json = writer.toString();
-
-        // uncomment to see what the json looks like.
-        // System.out.println(json);
-
-        //make sure the json is written out correctly.
-        JsonNode node = mapper.readValue(json, JsonNode.class);
-        assertEquals(qname.toString(), node.get("qname").getValueAsText());
-        assertEquals("attributeValue", node.get("myattribute").getValueAsText());
-        assertEquals("elementValue", node.get("myelement").getValueAsText());
-        assertEquals(1, node.get("mywrapped").size());
-        assertEquals("wrappedElementValue", node.get("mywrapped").get(0).getValueAsText());
-        assertEquals("Value One", node.get("enumProperty").getValueAsText());
-
-        //now make sure it gets deserialized correctly.
-        JaxbExample readEx = mapper.readValue(json, JaxbExample.class);
-        assertEquals(ex.qname, readEx.qname);
-        assertEquals(ex.attributeProperty, readEx.attributeProperty);
-        assertEquals(ex.elementProperty, readEx.elementProperty);
-        assertEquals(ex.wrappedElementProperty, readEx.wrappedElementProperty);
-        assertEquals(ex.enumProperty, readEx.enumProperty);
-    }
 
     public static enum EnumExample {
 
@@ -157,4 +116,80 @@ public class TestJaxbAnnotationIntrospector
         }
     }
 
+    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+    public static class SimpleBean
+    {
+        @XmlElement
+            protected String jaxb = "1";
+
+        @XmlElement
+            protected String jaxb2 = "2";
+
+        @XmlElement(name="jaxb3")
+            private String oddName = "3";
+
+        public String notAGetter() { return "xyz"; }
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Unit tests
+    /////////////////////////////////////////////////////
+     */
+
+    public void testDetection() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+
+        Map<String,Object> result = writeAndMap(mapper, new SimpleBean());
+        assertEquals(3, result.size());
+        assertEquals("1", result.get("jaxb"));
+        assertEquals("2", result.get("jaxb2"));
+        assertEquals("3", result.get("jaxb3"));
+    }
+
+    /**
+     * tests getting serializer/deserializer instances.
+     */
+    public void testSerializeDeserializeWithJaxbAnnotations() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.getSerializationConfig().set(SerializationConfig.Feature.INDENT_OUTPUT, true);
+        JaxbExample ex = new JaxbExample();
+        QName qname = new QName("urn:hi", "hello");
+        ex.setQname(qname);
+        ex.setAttributeProperty("attributeValue");
+        ex.setElementProperty("elementValue");
+        ex.setWrappedElementProperty(Arrays.asList("wrappedElementValue"));
+        ex.setEnumProperty(EnumExample.VALUE1);
+        StringWriter writer = new StringWriter();
+        mapper.writeValue(writer, ex);
+        writer.flush();
+        writer.close();
+
+        String json = writer.toString();
+
+        // uncomment to see what the json looks like.
+        // System.out.println(json);
+
+        //make sure the json is written out correctly.
+        JsonNode node = mapper.readValue(json, JsonNode.class);
+        assertEquals(qname.toString(), node.get("qname").getValueAsText());
+        assertEquals("attributeValue", node.get("myattribute").getValueAsText());
+        assertEquals("elementValue", node.get("myelement").getValueAsText());
+        assertEquals(1, node.get("mywrapped").size());
+        assertEquals("wrappedElementValue", node.get("mywrapped").get(0).getValueAsText());
+        assertEquals("Value One", node.get("enumProperty").getValueAsText());
+
+        //now make sure it gets deserialized correctly.
+        JaxbExample readEx = mapper.readValue(json, JaxbExample.class);
+        assertEquals(ex.qname, readEx.qname);
+        assertEquals(ex.attributeProperty, readEx.attributeProperty);
+        assertEquals(ex.elementProperty, readEx.elementProperty);
+        assertEquals(ex.wrappedElementProperty, readEx.wrappedElementProperty);
+        assertEquals(ex.enumProperty, readEx.enumProperty);
+    }
 }

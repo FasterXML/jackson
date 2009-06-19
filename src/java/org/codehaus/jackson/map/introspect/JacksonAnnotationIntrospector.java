@@ -138,17 +138,6 @@ public class JacksonAnnotationIntrospector
             throw new IllegalArgumentException("Invalid @JsonUseSerializer annotation: Class "+serClass.getName()+" not a JsonSerializer");
         }
         return (Class<? extends JsonSerializer<?>>)serClass;
-
-        /*
-        try {
-            Object ob = serClass.newInstance();
-            @SuppressWarnings("unchecked")
-                JsonSerializer<Object> ser = (JsonSerializer<Object>) ob;
-            return ser;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to instantiate "+serClass.getName()+" to use as serializer for "+a.getName()+", problem: "+e.getMessage(), e);
-        }
-        */
     }
 
     @Override
