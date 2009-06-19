@@ -81,8 +81,17 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     @Override
     public boolean isHandled(Annotation ann)
     {
-        Package pkg = ann.getClass().getPackage();
-        return (pkg != null) && pkg.getName().startsWith(_jaxbPackageName);
+        /* note: class we want is the annotation class, not instance
+         * (since annotation instances, like enums, may be of different
+         * physical type!)
+         */
+        Class<?> cls = ann.annotationType();
+        Package pkg = cls.getPackage();
+        if (pkg != null) {
+            return pkg.getName().startsWith(_jaxbPackageName);
+        }
+        // not sure if this is needed but...
+        return cls.getName().startsWith(_jaxbPackageName);
     }
 
     /*
