@@ -221,26 +221,101 @@ public class ObjectMapper
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method that returns
+     * the shared default {@link SerializationConfig} object
+     * that defines configuration settings for serialization.
+     * Returned object is "live" meaning that changes will be used
+     * for future serialization operations for this mapper when using
+     * mapper's default configuration
+     */
     public SerializationConfig getSerializationConfig() {
         return _serializationConfig;
     }
 
+    /**
+     * Method that creates a copy of
+     * the shared default {@link SerializationConfig} object
+     * that defines configuration settings for serialization.
+     * Since it is a copy, any changes made to the configuration
+     * object will NOT directly affect serialization done using
+     * basic serialization methods that use the shared object (that is,
+     * ones that do not take separate {@link SerializationConfig}
+     * argument.
+     *<p>
+     * The use case is that of changing object settings of the configuration
+     * (like date format being used, see {@link SerializationConfig#setDateFormat}).
+     */
+    public SerializationConfig copySerializationConfig() {
+        return _serializationConfig.createUnshared();
+    }
+
+    /**
+     * Method for replacing the shared default serialization configuration
+     * object.
+     */
     public void setSerializationConfig(SerializationConfig cfg) {
         _serializationConfig = cfg;
     }
 
+    /**
+     * Method for changing state of an on/off serialization feature for
+     * this object mapper.
+     *<p>
+     * This is method is basically a shortcut method for calling
+     * {@link SerializationConfig#set} on the shared {@link SerializationConfig}
+     * object with given arguments.
+     */
     public void configure(SerializationConfig.Feature f, boolean state) {
         _serializationConfig.set(f, state);
     }
 
+    /**
+     * Method that returns
+     * the shared default {@link DeserializationConfig} object
+     * that defines configuration settings for deserialization.
+     * Returned object is "live" meaning that changes will be used
+     * for future deserialization operations for this mapper when using
+     * mapper's default configuration
+     */
     public DeserializationConfig getDeserializationConfig() {
         return _deserializationConfig;
     }
 
+    /**
+     * Method that creates a copy of
+     * the shared default {@link DeserializationConfig} object
+     * that defines configuration settings for deserialization.
+     * Since it is a copy, any changes made to the configuration
+     * object will NOT directly affect deserialization done using
+     * basic deserialization methods that use the shared object (that is,
+     * ones that do not take separate {@link DeserializationConfig}
+     * argument.
+     *<p>
+     * The use case is that of changing object settings of the configuration
+     * (like deserialization problem handler,
+     * see {@link DeserializationConfig#addHandler})
+     */
+    public DeserializationConfig copyDeserializationConfig() {
+        return _deserializationConfig.createUnshared();
+    }
+
+    /**
+     * Method for replacing the shared default deserialization configuration
+     * object.
+     */
     public void setDeserializationConfig(DeserializationConfig cfg) {
         _deserializationConfig = cfg;
     }
 
+    /**
+     * Method for changing state of an on/off desserialization feature for
+     * this object mapper.
+     *<p>
+     * This is method is basically a shortcut method for calling
+     * {@link DeserializationConfig#set} on the shared {@link DeserializationConfig}
+     * object with given arguments.
+     */
     public void configure(DeserializationConfig.Feature f, boolean state) {
         _deserializationConfig.set(f, state);
     }
@@ -344,6 +419,16 @@ public class ObjectMapper
         throws IOException, JsonGenerationException, JsonMappingException
     {
         _serializerProvider.serializeValue(_getUnsharedSConfig(), jgen, value, _serializerFactory);
+        jgen.flush();
+    }
+
+    /**
+     * @since 1.1
+     */
+    public void writeValue(JsonGenerator jgen, Object value, SerializationConfig config)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {
+        _serializerProvider.serializeValue(config, jgen, value, _serializerFactory);
         jgen.flush();
     }
 

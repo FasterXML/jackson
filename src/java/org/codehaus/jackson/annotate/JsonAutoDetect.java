@@ -17,10 +17,10 @@ import java.lang.annotation.Target;
  * Pseudo-value <code>NONE</code> means that all auto-detection is disabled
  * for the <b>specific</b> class that annotation is applied to (including
  * its super-types, but only when resolving that class).
- * Pseudo-value <code>ALL</code> means that auto-detection is enabled
+ * Pseudo-value <code>ALWAYS</code> means that auto-detection is enabled
  * for all method types for the class in similar way.
  *<p>
- * The default value is <code>ALL</code>: that is, by default, auto-detection
+ * The default value is <code>ALWAYS</code>: that is, by default, auto-detection
  * is enabled for all classes unless instructed otherwise.
  */
 @Target(ElementType.TYPE)

@@ -321,7 +321,7 @@ public class BasicBeanDescription extends BeanDescription
      * feature (lowest priority, passed as argument)
      * and per-class annotation (highest priority).
      */
-    public JsonSerialize.Properties findSerializationInclusion(JsonSerialize.Properties defValue)
+    public JsonSerialize.Inclusion findSerializationInclusion(JsonSerialize.Inclusion defValue)
     {
         return _annotationIntrospector.findSerializationInclusion(_classInfo, defValue);
     }

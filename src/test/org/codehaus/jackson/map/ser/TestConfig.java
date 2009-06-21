@@ -16,7 +16,7 @@ public class TestConfig
     @JsonAutoDetect(JsonMethod.NONE)
     final static class ConfigLegacy { }
 
-    @JsonSerialize(properties=JsonSerialize.Properties.NON_DEFAULT)
+    @JsonSerialize(include=JsonSerialize.Inclusion.NON_DEFAULT)
     @JsonAutoDetect(JsonMethod.NONE)
     final static class Config { }
 
@@ -60,7 +60,7 @@ public class TestConfig
          */
         cfg.fromAnnotations(Config.class);
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
-        assertEquals(JsonSerialize.Properties.NON_DEFAULT, cfg.getSerializationInclusion());
+        assertEquals(JsonSerialize.Inclusion.NON_DEFAULT, cfg.getSerializationInclusion());
     }
 
     public void testIndentation() throws Exception

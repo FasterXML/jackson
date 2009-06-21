@@ -120,7 +120,7 @@ public abstract class AnnotationIntrospector
      * @return Enumerated value indicating which properties to include
      *   in serialization
      */
-    public abstract JsonSerialize.Properties findSerializationInclusion(Annotated a, JsonSerialize.Properties defValue);
+    public abstract JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue);
 
     /**
      * Method for accessing annotated type definition that a
@@ -427,8 +427,8 @@ public abstract class AnnotationIntrospector
         }
 
         @Override
-        public JsonSerialize.Properties findSerializationInclusion(Annotated a,
-                                                                   JsonSerialize.Properties defValue)
+        public JsonSerialize.Inclusion findSerializationInclusion(Annotated a,
+                                                                   JsonSerialize.Inclusion defValue)
         {
             /* This is bit trickier: need to combine results in a meaningful
              * way. Seems like it should be a disjoint; that is, most
@@ -437,8 +437,8 @@ public abstract class AnnotationIntrospector
              * works: largest value is the last one, which is the most
              * restrictive value as well.
              */
-            JsonSerialize.Properties v1 = _primary.findSerializationInclusion(a, defValue);
-            JsonSerialize.Properties v2 = _secondary.findSerializationInclusion(a, defValue);
+            JsonSerialize.Inclusion v1 = _primary.findSerializationInclusion(a, defValue);
+            JsonSerialize.Inclusion v2 = _secondary.findSerializationInclusion(a, defValue);
             return (v1.compareTo(v2) < 0) ? v2 : v1;
         }
         

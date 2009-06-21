@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map.introspect;
 
-import java.io.*;
 import java.util.*;
 
 import javax.xml.bind.annotation.*;
@@ -28,10 +27,11 @@ public class TestIntrospectorPair
      * Simple test bean for verifying basic field detection and property
      * naming annotation handling
      */
+    @SuppressWarnings("unused")
     @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
     static class NamedBean
     {
-        @JsonProperty
+		@JsonProperty
             private String jackson = "1";
 
         @XmlElement(name="jaxb")

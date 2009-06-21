@@ -56,7 +56,7 @@ public @interface JsonSerialize
     public Class<?> as() default NoClass.class;
 
     /**
-     * Which properties of annotated Bean or {@link java.util.Map} are
+     * Which properties of annotated Bean are
      * to be included in serialization (has no effect on other types
      * like enums, primitives or collections).
      * Choices are "all", "properties that have value other than null"
@@ -65,7 +65,7 @@ public @interface JsonSerialize
      * constructor, often null).
      *
      */
-    public Properties properties() default Properties.ALL;
+    public Inclusion include() default Inclusion.ALWAYS;
 
     /*
     /////////////////////////////////////////////////////////////
@@ -74,19 +74,19 @@ public @interface JsonSerialize
      */
 
     /**
-     * Enumeration used with {@link JsonSerialize#properties} property
+     * Enumeration used with {@link JsonSerialize#include} property
      * to define which properties
      * of Java Beans are to be included in serialization
      *
      * @since 1.1
      */
-    public enum Properties
+    public enum Inclusion
     {
         /**
-         * Value that indicates that all properties are to be included,
+         * Value that indicates that properties are to be always included,
          * independent of value
          */
-        ALL,
+        ALWAYS,
 
         /**
          * Value that indicates that only properties with non-null
@@ -100,7 +100,7 @@ public @interface JsonSerialize
          * when Bean is constructed with its no-arguments constructor)
          * are to be included. Value is generally not useful with
          * {@link java.util.Map}s, since they have no default values;
-         * and if used, works same as {@link #ALL}.
+         * and if used, works same as {@link #ALWAYS}.
          */
         NON_DEFAULT;
     }

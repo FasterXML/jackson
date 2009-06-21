@@ -360,6 +360,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
                 <filter token="VERSION" value="${IMPL_VERSION}" />
             </filterset>
         </copy>
+
         <!-- 12-Jun-2009, tatu: Trying to make Maven snapshots work...
           -->
         <copy todir="${dir.snapshot}">
@@ -369,12 +370,14 @@ compile.main, compile.test, compile.extra, compile.perf" />
                 <filter token="VERSION" value="${IMPL_VERSION}-SNAPSHOT" />
             </filterset>
         </copy>
+
         <!-- 03-Dec-2008, tatu: Let's validate well-formedness of
           resulting files (to avoid things like [JACKSON-25])
          -->
         <xmlvalidate lenient="true">
         <!-- lenient: check only well-formedness, no dtd/schema (yet) -->
-            <fileset dir="${dir.src}/maven" includes="*.pom" />
+            <fileset dir="${dir.dist}" includes="*.pom" />
+            <fileset dir="${dir.snapshot}" includes="*.pom" />
         </xmlvalidate>
     </target>
 

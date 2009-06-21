@@ -305,6 +305,17 @@ public class DeserializationConfig
             _problemHandlers = new LinkedNode<DeserializationProblemHandler>(h, _problemHandlers);
         }
     }
+
+    /**
+     * Method for removing all configuring problem handlers; usually done to replace
+     * existing handler(s) with different one(s)
+     *
+     * @since 1.1
+     */
+    public void clearHandlers()
+    {
+        _problemHandlers = null;
+    }
         
     /*
     ///////////////////////////////////////////////////////////

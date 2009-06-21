@@ -132,7 +132,7 @@ public abstract class StdDeserializer<T>
         public StringDeserializer() { super(String.class); }
 
         @Override
-            public String deserialize(JsonParser jp, DeserializationContext ctxt)
+        public String deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken curr = jp.getCurrentToken();

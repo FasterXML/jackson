@@ -36,16 +36,16 @@ public class TestNullProperties
         public String getB() { return null; }
     }
 
-    @JsonSerialize(properties=JsonSerialize.Properties.ALL) // just to ensure default
+    @JsonSerialize(include=JsonSerialize.Inclusion.ALWAYS) // just to ensure default
     static class NoNullsBean
     {
-        @JsonSerialize(properties=JsonSerialize.Properties.NON_NULL)
+        @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
         public String getA() { return null; }
 
         public String getB() { return null; }
     }
 
-    @JsonSerialize(properties=JsonSerialize.Properties.NON_DEFAULT)
+    @JsonSerialize(include=JsonSerialize.Inclusion.NON_DEFAULT)
     static class NonDefaultBean
     {
         String _a = "a", _b = "b";
@@ -62,10 +62,10 @@ public class TestNullProperties
 
         MixedBean() { }
 
-        @JsonSerialize(properties=JsonSerialize.Properties.NON_DEFAULT)
+        @JsonSerialize(include=JsonSerialize.Inclusion.NON_DEFAULT)
         public String getA() { return _a; }
 
-        @JsonSerialize(properties=JsonSerialize.Properties.NON_NULL)
+        @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
         public String getB() { return _b; }
     }
 

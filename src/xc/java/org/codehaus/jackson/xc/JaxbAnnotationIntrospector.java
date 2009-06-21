@@ -20,7 +20,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Field;
 
 /**
@@ -217,17 +216,17 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     /**
      * By default only non-null properties are written (per the JAXB spec.)
      *
-     * @return JsonSerialize.Properties.NON_NULL
+     * @return JsonSerialize.Inclusion.NON_NULL
      */
     @Override
-    public JsonSerialize.Properties findSerializationInclusion(Annotated a, JsonSerialize.Properties defValue)
+    public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue)
     {
         if ((a instanceof AnnotatedField) || (a instanceof AnnotatedMethod)) {
             boolean nillable = a.getAnnotation(XmlElementWrapper.class) != null ? a.getAnnotation(XmlElementWrapper.class).nillable() :
                     a.getAnnotation(XmlElement.class) != null && a.getAnnotation(XmlElement.class).nillable();
-            return nillable ? JsonSerialize.Properties.ALL : JsonSerialize.Properties.NON_NULL;
+            return nillable ? JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
         }
-        return JsonSerialize.Properties.NON_NULL;
+        return JsonSerialize.Inclusion.NON_NULL;
     }
 
     @Override

@@ -4,6 +4,7 @@ import java.text.DateFormat;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion; // for javadocs
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.util.StdDateFormat;
 
@@ -198,10 +199,10 @@ public class SerializationConfig
      * Defaults to null for backwards compatibility; if left as null,
      * will check
      * deprecated {@link Feature#WRITE_NULL_PROPERTIES}
-     * to choose between {@link JsonSerialize.Properties#ALL}
-     * and {@link JsonSerialize.Properties#NON_NULL}.
+     * to choose between {@link Inclusion#ALWAYS}
+     * and {@link Inclusion#NON_NULL}.
      */
-    protected JsonSerialize.Properties _serializationInclusion = null;
+    protected JsonSerialize.Inclusion _serializationInclusion = null;
 
     /*
     ///////////////////////////////////////////////////////////
@@ -266,7 +267,7 @@ public class SerializationConfig
     	}
 
         // How about writing null property values?
-        JsonSerialize.Properties incl = _annotationIntrospector.findSerializationInclusion(ac, null);
+        JsonSerialize.Inclusion incl = _annotationIntrospector.findSerializationInclusion(ac, null);
         if (incl != _serializationInclusion) {
             setSerializationInclusion(incl);
     	}
@@ -287,13 +288,13 @@ public class SerializationConfig
 
     public DateFormat getDateFormat() { return _dateFormat; }
 
-    public JsonSerialize.Properties getSerializationInclusion()
+    public JsonSerialize.Inclusion getSerializationInclusion()
     {
         if (_serializationInclusion != null) {
             return _serializationInclusion;
         }
         return isEnabled(Feature.WRITE_NULL_PROPERTIES) ?
-            JsonSerialize.Properties.ALL : JsonSerialize.Properties.NON_NULL;
+            JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
     }
 
     /**
@@ -370,11 +371,11 @@ public class SerializationConfig
      * method/field annotations (overriding settings for the value
      * bean for that getter method or field)
      */
-    public void setSerializationInclusion(JsonSerialize.Properties props)
+    public void setSerializationInclusion(JsonSerialize.Inclusion props)
     {
         _serializationInclusion = props;
         // And for some level of backwards compatibility, also...
-        if (props == JsonSerialize.Properties.NON_NULL) {
+        if (props == JsonSerialize.Inclusion.NON_NULL) {
             disable(Feature.WRITE_NULL_PROPERTIES);
         } else {
             enable(Feature.WRITE_NULL_PROPERTIES);

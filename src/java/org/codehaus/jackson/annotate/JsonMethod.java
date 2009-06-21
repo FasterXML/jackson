@@ -6,7 +6,7 @@ package org.codehaus.jackson.annotate;
  *<p>
  * In addition to actual method types (GETTER, SETTER, CREATOR; and
  * sort-of-method, FIELD), 2 pseudo-types
- * are defined for convenience: <code>ALL</code> and <code>NONE</code>. These
+ * are defined for convenience: <code>ALWAYS</code> and <code>NONE</code>. These
  * can be used to indicate, all or none of available method types (respectively),
  * for use by annotations that takes <code>JsonMethod</code> argument.
  */

@@ -58,6 +58,20 @@ public enum JsonToken
     FIELD_NAME(null),
         
     /**
+     * Placeholder token returned when the input source has a concept
+     * of embedded Object that are not accessible as usual structure
+     * (of starting with {@link #START_OBJECT}, having values, ending with
+     * {@link #END_OBJECT}), but as "raw" objects.
+     *<p>
+     * Note: this token is never returned by regular JSON readers, but
+     * only by readers that expose other kinds of source (like Maps,
+     * Lists and such).
+     *
+     * @since 1.1
+     */
+    VALUE_EMBEDDED_OBJECT(null),
+
+    /**
      * VALUE_STRING is returned when a String token is encountered
      * in value context (array element, field value, or root-level
      * stand-alone value)
@@ -78,32 +92,32 @@ public enum JsonToken
      * have floating point or exponent marker in it, in addition
      * to one or more digits.
      */
-        VALUE_NUMBER_FLOAT(null),
+    VALUE_NUMBER_FLOAT(null),
 
     /**
      * VALUE_TRUE is returned when encountering literal "true" in
      * value context
      */
-        VALUE_TRUE("true"),
+    VALUE_TRUE("true"),
 
     /**
      * VALUE_FALSE is returned when encountering literal "false" in
      * value context
      */
-        VALUE_FALSE("false"),
+    VALUE_FALSE("false"),
 
-        /**
-         * VALUE_NULL is returned when encountering literal "null" in
-         * value context
-         */
-        VALUE_NULL("null")
+    /**
+     * VALUE_NULL is returned when encountering literal "null" in
+     * value context
+     */
+    VALUE_NULL("null")
         ;
 
-    final String mSerialized;
+    final String _serialized;
 
-    final char[] mSerializedChars;
+    final char[] _serializedChars;
 
-    final byte[] mSerializedBytes;
+    final byte[] _serializedBytes;
 
     /**
      * @param Textual representation for this token, if there is a
@@ -112,24 +126,24 @@ public enum JsonToken
     JsonToken(String token)
     {
         if (token == null) {
-            mSerialized = null;
-            mSerializedChars = null;
-            mSerializedBytes = null;
+            _serialized = null;
+            _serializedChars = null;
+            _serializedBytes = null;
         } else {
-            mSerialized = token;
-            mSerializedChars = token.toCharArray();
+            _serialized = token;
+            _serializedChars = token.toCharArray();
             // It's all in ascii, can just case...
-            int len = mSerializedChars.length;
-            mSerializedBytes = new byte[len];
+            int len = _serializedChars.length;
+            _serializedBytes = new byte[len];
             for (int i = 0; i < len; ++i) {
-                mSerializedBytes[i] = (byte) mSerializedChars[i];
+                _serializedBytes[i] = (byte) _serializedChars[i];
             }
         }
     }
 
-    public String asString() { return mSerialized; }
-    public char[] asCharArray() { return mSerializedChars; }
-    public byte[] asByteArray() { return mSerializedBytes; }
+    public String asString() { return _serialized; }
+    public char[] asCharArray() { return _serializedChars; }
+    public byte[] asByteArray() { return _serializedBytes; }
 
     public boolean isNumeric() {
         return (this == VALUE_NUMBER_INT) || (this == VALUE_NUMBER_FLOAT);
@@ -141,6 +155,6 @@ public enum JsonToken
      * Object/Array start/end markers all field names.
      */
     public boolean isScalarValue() {
-        return ordinal() > FIELD_NAME.ordinal();
+        return ordinal() >= VALUE_STRING.ordinal();
     }
 }

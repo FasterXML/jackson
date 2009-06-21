@@ -155,11 +155,11 @@ public class JacksonAnnotationIntrospector
     }
     
     @Override
-    public JsonSerialize.Properties findSerializationInclusion(Annotated a, JsonSerialize.Properties defValue)
+    public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue)
     {
         JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
         if (ann != null) {
-            return ann.properties();
+            return ann.include();
         }
         /* 23-May-2009, tatu: Will still support now-deprecated (as of 1.1)
          *   legacy annotation too:
@@ -167,7 +167,7 @@ public class JacksonAnnotationIntrospector
         JsonWriteNullProperties oldAnn = a.getAnnotation(JsonWriteNullProperties.class);
         if (oldAnn != null) {
             boolean writeNulls = oldAnn.value();
-            return writeNulls ? JsonSerialize.Properties.ALL : JsonSerialize.Properties.NON_NULL;
+            return writeNulls ? JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
         }
         return defValue;
     }
