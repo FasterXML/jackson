@@ -1,5 +1,5 @@
 /**
- * Contains main public API of the core streaming JSON
+ * Main public API classes of the core streaming JSON
  * processor: most importantly {@link org.codehaus.jackson.JsonFactory}
  * used for constructing
  *  Json parser ({@link org.codehaus.jackson.JsonParser})

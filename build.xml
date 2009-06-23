@@ -261,11 +261,35 @@ compile.main, compile.test, compile.extra, compile.perf" />
         <!-- Build a dirpath that contains just the "source" tree -->
         <javadoc windowtitle="Jackson JSON Processor"
             destdir="${dir.javadoc}" 
-            author="true" 
-            version="true">
+            author="true" version="true">
+
+            <classpath>
+               <fileset dir="${dir.lib}/jaxrs">
+                    <include name="*.jar" />
+               </fileset>
+            </classpath>
+
             <packageset dir="${dir.src.java}" defaultexcludes="yes">
                 <include name="org/codehaus/**" />
             </packageset>
+            <packageset dir="${dir.src.java.jaxrs}" defaultexcludes="yes">
+                <include name="org/codehaus/jackson/jaxrs/**" />
+            </packageset>
+            <packageset dir="${dir.src.java.xc}" defaultexcludes="yes">
+                <include name="org/codehaus/jackson/xc/**" />
+            </packageset>
+
+            <!-- Need to link to regular JDK 6 classes  -->
+            <link href="http://java.sun.com/javase/6/docs/api" />
+            <!-- And JAX-RS (jsr-311) as well -->
+            <link href="http://jackson.codehaus.org/javadoc/jax-rs/1.0" />
+
+            <group title="Jackson Core" packages="org.codehaus.jackson*" />
+            <group title="Jackson Mapper"
+               packages="org.codehaus.jackson.map*:org.codehaus.jackson.node:org.codehaus.jackson.schema"
+            />
+            <group title="Jackson JAX-RS provider" packages="org.codehaus.jackson.jaxrs" />
+            <group title="Jackson XML Compatibility" packages="org.codehaus.jackson.xc" />
         </javadoc>
     </target> 
 
