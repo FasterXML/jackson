@@ -267,7 +267,8 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     public String findGettablePropertyName(AnnotatedMethod am)
     {
         String propertyName = findJaxbSpecifiedPropertyName(am);
-        return propertyName == null ? am.getName() : propertyName;
+        // null -> no annotation found
+        return (propertyName == null) ? null : propertyName;
     }
 
     @Override
@@ -281,7 +282,8 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     public String findSettablePropertyName(AnnotatedMethod am)
     {
         String propertyName = findJaxbSpecifiedPropertyName(am);
-        return propertyName == null ? am.getName() : propertyName;
+        // null -> no annotation found
+        return (propertyName == null) ? null : propertyName;
     }
 
     @Override
@@ -476,49 +478,44 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     {
         XmlElementWrapper elementWrapper = ae.getAnnotation(XmlElementWrapper.class);
         if (elementWrapper != null) {
-            if (!"##default".equals(elementWrapper.name())) {
-                return elementWrapper.name();
+            String name = elementWrapper.name();
+            if (!"##default".equals(name)) {
+                return name;
             }
-            else {
-                return defaultName;
-            }
+            return defaultName;
         }
 
         XmlAttribute attribute = ae.getAnnotation(XmlAttribute.class);
         if (attribute != null) {
-            if (!"##default".equals(attribute.name())) {
-                return attribute.name();
+            String name = attribute.name();
+            if (!"##default".equals(name)) {
+                return name;
             }
-            else {
-                return defaultName;
-            }
+            return defaultName;
         }
 
         XmlElement element = ae.getAnnotation(XmlElement.class);
         if (element != null) {
-            if (!"##default".equals(element.name())) {
-                return element.name();
+            String name = element.name();
+            if (!"##default".equals(name)) {
+                return name;
             }
-            else {
-                return defaultName;
-            }
+            return defaultName;
         }
 
         XmlElementRef elementRef = ae.getAnnotation(XmlElementRef.class);
         if (elementRef != null) {
-            if (!"##default".equals(elementRef.name())) {
-                return elementRef.name();
+            String name = elementRef.name();
+            if (!"##default".equals(name)) {
+                return name;
             }
-            else {
-                XmlRootElement rootElement = (XmlRootElement) aeType.getAnnotation(XmlRootElement.class);
-                if (rootElement != null) {
-                    if (!"##default".equals(rootElement.name())) {
-                        return rootElement.name();
-                    }
-                    else {
-                        return Introspector.decapitalize(aeType.getSimpleName());
-                    }
+            XmlRootElement rootElement = (XmlRootElement) aeType.getAnnotation(XmlRootElement.class);
+            if (rootElement != null) {
+                name = rootElement.name();
+                if (!"##default".equals(name)) {
+                    return name;
                 }
+                return Introspector.decapitalize(aeType.getSimpleName());
             }
         }
 
