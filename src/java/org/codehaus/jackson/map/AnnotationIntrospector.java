@@ -472,6 +472,14 @@ public abstract class AnnotationIntrospector
             String result = _primary.findGettablePropertyName(am);
             if (result == null) {
                 result = _secondary.findGettablePropertyName(am);
+            } else if (result.length() == 0) {
+                /* Empty String is a default; can be overridden by
+                 * more explicit answer from secondary entry
+                 */
+                String str2 = _secondary.findGettablePropertyName(am);
+                if (str2 != null) {
+                    result = str2;
+                }
             }
             return result;
         }
@@ -500,6 +508,14 @@ public abstract class AnnotationIntrospector
             String result = _primary.findSerializablePropertyName(af);
             if (result == null) {
                 result = _secondary.findSerializablePropertyName(af);
+            } else if (result.length() == 0) {
+                /* Empty String is a default; can be overridden by
+                 * more explicit answer from secondary entry
+                 */
+                String str2 = _secondary.findSerializablePropertyName(af);
+                if (str2 != null) {
+                    result = str2;
+                }
             }
             return result;
         }
@@ -576,6 +592,14 @@ public abstract class AnnotationIntrospector
             String result = _primary.findSettablePropertyName(am);
             if (result == null) {
                 result = _secondary.findSettablePropertyName(am);
+            } else if (result.length() == 0) {
+                /* Empty String is a default; can be overridden by
+                 * more explicit answer from secondary entry
+                 */
+                String str2 = _secondary.findSettablePropertyName(am);
+                if (str2 != null) {
+                    result = str2;
+                }
             }
             return result;
         }
@@ -600,6 +624,14 @@ public abstract class AnnotationIntrospector
             String result = _primary.findDeserializablePropertyName(af);
             if (result == null) {
                 result = _secondary.findDeserializablePropertyName(af);
+            } else if (result.length() == 0) {
+                /* Empty String is a default; can be overridden by
+                 * more explicit answer from secondary entry
+                 */
+                String str2 = _secondary.findDeserializablePropertyName(af);
+                if (str2 != null) {
+                    result = str2;
+                }
             }
             return result;
         }

@@ -352,7 +352,18 @@ public class ObjectMapper
     public <T> T readValue(JsonParser jp, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(jp, TypeFactory.fromClass(valueType));
+        return (T) _readValue(jp, TypeFactory.fromClass(valueType), copyDeserializationConfig());
+    } 
+
+    /**
+     * @since 1.1
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(JsonParser jp, Class<T> valueType, 
+                           DeserializationConfig cfg)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readValue(jp, TypeFactory.fromClass(valueType), cfg);
     } 
 
     /**
@@ -367,7 +378,19 @@ public class ObjectMapper
     public <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(jp, TypeFactory.fromTypeReference(valueTypeRef));
+        return (T) _readValue(jp, TypeFactory.fromTypeReference(valueTypeRef),
+                              copyDeserializationConfig());
+    } 
+
+    /**
+     * @since 1.1
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef,
+                           DeserializationConfig cfg)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readValue(jp, TypeFactory.fromTypeReference(valueTypeRef), cfg);
     } 
 
     /**
@@ -381,7 +404,18 @@ public class ObjectMapper
     public <T> T readValue(JsonParser jp, JavaType valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(jp, valueType);
+        return (T) _readValue(jp, valueType, copyDeserializationConfig());
+    } 
+
+    /**
+     * @since 1.1
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(JsonParser jp, JavaType valueType,
+                           DeserializationConfig cfg)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readValue(jp, valueType, cfg);
     } 
 
     /**
@@ -399,7 +433,22 @@ public class ObjectMapper
          *   will map Json null straight into Java null. But what
          *   we want to return is the "null node" instead.
          */
-        JsonNode n = (JsonNode) _readValue(jp, JSON_NODE_TYPE);
+        JsonNode n = (JsonNode) _readValue(jp, JSON_NODE_TYPE,
+                                           copyDeserializationConfig());
+        return (n == null) ? NullNode.instance : n;
+    }
+
+    /**
+     * @since 1.1
+     */
+    public JsonNode readTree(JsonParser jp, DeserializationConfig cfg)
+        throws IOException, JsonProcessingException
+    {
+        /* 02-Mar-2009, tatu: One twist; deserialization provider
+         *   will map Json null straight into Java null. But what
+         *   we want to return is the "null node" instead.
+         */
+        JsonNode n = (JsonNode) _readValue(jp, JSON_NODE_TYPE, cfg);
         return (n == null) ? NullNode.instance : n;
     }
 
@@ -418,11 +467,15 @@ public class ObjectMapper
     public void writeValue(JsonGenerator jgen, Object value)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        _serializerProvider.serializeValue(_getUnsharedSConfig(), jgen, value, _serializerFactory);
+        _serializerProvider.serializeValue(copySerializationConfig(), jgen, value, _serializerFactory);
         jgen.flush();
     }
 
     /**
+     * Method that can be used to serialize any Java value as
+     * Json output, using provided {@link JsonGenerator},
+     * configured as per passed configuration object.
+     *
      * @since 1.1
      */
     public void writeValue(JsonGenerator jgen, Object value, SerializationConfig config)
@@ -439,7 +492,18 @@ public class ObjectMapper
     public void writeTree(JsonGenerator jgen, JsonNode rootNode)
         throws IOException, JsonProcessingException
     {
-        _serializerProvider.serializeValue(_getUnsharedSConfig(), jgen, rootNode, _serializerFactory);
+        _serializerProvider.serializeValue(copySerializationConfig(), jgen, rootNode, _serializerFactory);
+        jgen.flush();
+    }
+
+    /**
+     * @since 1.1
+     */
+    public void writeTree(JsonGenerator jgen, JsonNode rootNode,
+                          SerializationConfig cfg)
+        throws IOException, JsonProcessingException
+    {
+        _serializerProvider.serializeValue(cfg, jgen, rootNode, _serializerFactory);
         jgen.flush();
     }
 
@@ -675,8 +739,20 @@ public class ObjectMapper
     public JsonSchema generateJsonSchema(Class<?> t)
             throws JsonMappingException
     {
-        return _serializerProvider.generateJsonSchema(t, _getUnsharedSConfig(), _serializerFactory);
+        return generateJsonSchema(t, copySerializationConfig());
     }
+
+    public JsonSchema generateJsonSchema(Class<?> t, SerializationConfig cfg)
+            throws JsonMappingException
+    {
+        return _serializerProvider.generateJsonSchema(t, cfg, _serializerFactory);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods, overridable
+    ////////////////////////////////////////////////////
+     */
 
     /**
      * Method called to configure the generator as necessary and then
@@ -685,7 +761,7 @@ public class ObjectMapper
     protected final void _configAndWriteValue(JsonGenerator jgen, Object value)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        SerializationConfig cfg = _getUnsharedSConfig();
+        SerializationConfig cfg = copySerializationConfig();
         // [JACKSON-96]: allow enabling pretty printing for ObjectMapper directly
         if (cfg.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
             jgen.useDefaultPrettyPrinter();
@@ -707,16 +783,11 @@ public class ObjectMapper
         }
     }
 
-    /*
-    ////////////////////////////////////////////////////
-    // Internal methods, overridable
-    ////////////////////////////////////////////////////
-     */
-
     /**
      * Actual implementation of value reading+binding operation.
      */
-    protected Object _readValue(JsonParser jp, JavaType valueType)
+    protected Object _readValue(JsonParser jp, JavaType valueType,
+                                DeserializationConfig cfg)
         throws IOException, JsonParseException, JsonMappingException
     {
         /* First: may need to read the next token, to initialize
@@ -730,7 +801,7 @@ public class ObjectMapper
             || t == JsonToken.END_OBJECT) {
             result = null;
         } else { // pointing to event other than null
-            DeserializationContext ctxt = _createDeserializationContext(jp);
+            DeserializationContext ctxt = _createDeserializationContext(jp, cfg);
             // ok, let's get the value
             result = _findRootDeserializer(valueType).deserialize(jp, ctxt);
         }
@@ -750,7 +821,7 @@ public class ObjectMapper
                 || t == JsonToken.END_OBJECT) {
                 result = null;
             } else {
-                DeserializationContext ctxt = _createDeserializationContext(jp);
+                DeserializationContext ctxt = _createDeserializationContext(jp, copyDeserializationConfig());
                 result = _findRootDeserializer(valueType).deserialize(jp, ctxt);
             }
             // Need to consume the token too
@@ -806,20 +877,6 @@ public class ObjectMapper
      */
 
     /**
-     * Method that creates a non-shared copy of the serialization configuration
-     * object owned by this mapper
-     */
-    private SerializationConfig _getUnsharedSConfig()
-    {
-    	return _serializationConfig.createUnshared();
-    }
-
-    private DeserializationConfig _getUnsharedDConfig()
-    {
-    	return _deserializationConfig.createUnshared();
-    }
-
-    /**
      * Method called to locate deserializer for the passed root-level value.
      */
     protected JsonDeserializer<Object> _findRootDeserializer(JavaType valueType)
@@ -840,8 +897,8 @@ public class ObjectMapper
         return deser;
     }
 
-    protected DeserializationContext _createDeserializationContext(JsonParser jp)
+    protected DeserializationContext _createDeserializationContext(JsonParser jp, DeserializationConfig cfg)
     {
-        return new StdDeserializationContext(_getUnsharedDConfig(), jp);
+        return new StdDeserializationContext(cfg, jp);
     }
 }

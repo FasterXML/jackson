@@ -31,7 +31,7 @@ public class TestIntrospectorPair
     @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
     static class NamedBean
     {
-		@JsonProperty
+        @JsonProperty
             private String jackson = "1";
 
         @XmlElement(name="jaxb")
@@ -45,13 +45,32 @@ public class TestIntrospectorPair
         public String notAGetter() { return "xyz"; }
     }
 
+    /**
+     * Another bean for verifying details of property naming
+     */
+   @SuppressWarnings("unused")
+    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+    static class NamedBean2
+    {
+        @JsonProperty("")
+        @XmlElement(name="jaxb")
+        public String foo = "abc";
+
+        @JsonProperty("jackson")
+        @XmlElement()
+        public String getBar() { return "123"; }
+
+        // JAXB, alas, requires setters for all properties too
+        public void setBar(String v) { }
+    }
+
     /*
     /////////////////////////////////////////////////////
     // Unit tests
     /////////////////////////////////////////////////////
      */
 
-    public void testSimpleNaming1() throws Exception
+    public void testSimple() throws Exception
     {
         ObjectMapper mapper;
         AnnotationIntrospector jacksonAI = new JacksonAnnotationIntrospector();
@@ -81,5 +100,36 @@ public class TestIntrospectorPair
         assertEquals("2", result.get("jaxb"));
         // JAXB one should have priority
         assertEquals("3", result.get("bothJaxb"));
+    }
+
+    public void testNaming() throws Exception
+    {
+        ObjectMapper mapper;
+        AnnotationIntrospector jacksonAI = new JacksonAnnotationIntrospector();
+        AnnotationIntrospector jaxbAI = new JaxbAnnotationIntrospector();
+        AnnotationIntrospector pair;
+        Map<String,Object> result;
+
+        mapper = new ObjectMapper();
+        // first: test with Jackson/Jaxb pair (jackson having precedence)
+        pair = new AnnotationIntrospector.Pair(jacksonAI, jaxbAI);
+        mapper.getSerializationConfig().setAnnotationIntrospector(pair);
+
+        result = writeAndMap(mapper, new NamedBean2());
+        assertEquals(2, result.size());
+        // order shouldn't really matter here...
+        assertEquals("123", result.get("jackson"));
+        assertEquals("abc", result.get("jaxb"));
+
+        mapper = new ObjectMapper();
+        pair = new AnnotationIntrospector.Pair(jaxbAI, jacksonAI);
+        mapper.getSerializationConfig().setAnnotationIntrospector(pair);
+
+        result = writeAndMap(mapper, new NamedBean2());
+        /* Hmmh. Not 100% sure what JAXB would dictate.... thus...
+         */
+        assertEquals(2, result.size());
+        assertEquals("abc", result.get("jaxb"));
+        //assertEquals("123", result.get("jackson"));
     }
 }
