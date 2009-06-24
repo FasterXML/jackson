@@ -239,7 +239,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
     <target name="compile.perf" depends="compile.main">
       <mkdir dir="${dir.build.classes.perf}" />
         <!-- Let's also compile micro-benchmarks... -->
-        <javac srcdir="${dir.src}/perf" destdir="${dir.build.classes.perf}" debug="false"
+        <javac srcdir="${dir.src}/perf" destdir="${dir.build.classes.perf}" debug="true"
         >
             <classpath>
                <fileset dir="${dir.lib}/perf">
