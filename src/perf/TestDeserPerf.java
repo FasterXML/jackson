@@ -22,33 +22,59 @@ public final class TestDeserPerf
 
     static class Bean2 {
         int x;
+        long y;
         String name;
 
         public void setX(int v) { x = v; }
+        public void setY(long v) { y = v; }
         public void setName(String v) { name = v; }
     }
 
-    final static class FieldBean {
+    final static class FieldBean
+    {
+        public FieldBean() { }
+        public FieldBean(FieldBean2 bean,
+                         FieldBean2 bean2,
+                         FieldBean2 bean3,
+                         FieldBean2 bean4)
+        {
+            this.bean = bean;
+            this.bean2 = bean2;
+            this.bean3 = bean3;
+            this.bean4 = bean4;
+        }
+
         public FieldBean2 bean, bean2, bean3, bean4;
     }
 
     final static class FieldBean2 {
         public int x;
+        public long y;
         public String name;
+
+        public FieldBean2() { }
+
+        public FieldBean2(int x, long y, String name) {
+            this.x = x;
+            this.y = y;
+            this.name = name;
+        }
     }
 
     private final int REPS;
     private final ObjectMapper _mapper;
     private final byte[] _data;
-
+    
     public TestDeserPerf()
         throws Exception
     {
         // Let's try to guestimate suitable size, to spend enough (but not too much) time per round
-        REPS = 60000;
+        REPS = 20000;
         _mapper = new ObjectMapper();
         ByteArrayOutputStream result = new ByteArrayOutputStream();
-        _mapper.writeValue(result, new FieldBean());
+        _mapper.writeValue(result, new FieldBean(
+)
+);
         _data = result.toByteArray();
     }
 

@@ -49,8 +49,8 @@ public final class TestSerPerf
     }
 
     final static class FinalFieldBean2 {
-        public int getX() { return 3; }
-        public String getName() { return "foobar"; }
+        public int x = 3;
+        public String name = "foobar";
     }
 
     private final int REPS;
@@ -65,7 +65,7 @@ public final class TestSerPerf
     {
         _mapper = new ObjectMapper();
         // Let's try to guestimate suitable size... to get to 50 megs processed
-        REPS = 40000;
+        REPS = 10000;
     }
 
     public void test()
@@ -82,7 +82,7 @@ public final class TestSerPerf
 
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            int round = (i++ % 4);
+            int round = (i++ % 3);
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -99,13 +99,18 @@ public final class TestSerPerf
                 sum += testObjectSer(_finalFieldBean, REPS, result);
                 break;
             case 2:
-                msg = "Jackson, object, nonfinal";
-                sum += testObjectSer(_nonFinalBean, REPS, result);
-                break;
-            case 3:
                 msg = "Jackson, tree";
                 sum += testTreeSer(_tree, REPS, result);
                 break;
+
+                /*
+            case 4:
+                msg = "Jackson, object, nonfinal";
+                sum += testObjectSer(_nonFinalBean, REPS, result);
+                break;
+                */
+
+
             default:
                 throw new Error("Internal error");
             }
