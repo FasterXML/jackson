@@ -12,6 +12,8 @@ Description:
 
   New features:
 
+  * [JACKSON-114] Add feature and annotations to make serialization use
+    static (declared) type over concrete (actual/runtime) type
   * [JACKSON-131] Allow constructing and passing of non-shared
     SerializationConfig/DeserializationConfig instances to ObjectMapper
 

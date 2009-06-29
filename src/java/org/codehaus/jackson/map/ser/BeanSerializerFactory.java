@@ -204,7 +204,7 @@ public class BeanSerializerFactory
             }
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, af);
-            props.add(pb.buildProperty(en.getKey(), annotatedSerializer, af));
+            props.add(pb.buildProperty(en.getKey(), annotatedSerializer, af, staticTyping));
         }
 
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
@@ -214,9 +214,8 @@ public class BeanSerializerFactory
             }
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, am);
-            props.add(pb.buildProperty(en.getKey(), annotatedSerializer, am));
+            props.add(pb.buildProperty(en.getKey(), annotatedSerializer, am, staticTyping));
         }
-
         return props;
     }
 

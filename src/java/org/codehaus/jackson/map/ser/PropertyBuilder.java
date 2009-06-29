@@ -51,12 +51,17 @@ public class PropertyBuilder
     /**
      * Factory method for constructor a {@link BeanPropertyWriter}
      * that uses specified method as the accessors.
+     *
+     * @param defaultUseStaticTyping Whether default typing mode is
+     *   'static' or not (if not, it's 'dynamic'); can be overridden
+     *   by annotation related to property itself
      */
     public BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
-                                            AnnotatedMethod am)
+                                            AnnotatedMethod am,
+                                            boolean defaultUseStaticTyping)
     {
-        Class<?> serializationType = findSerializationType(am);
-        
+        Class<?> serializationType = findSerializationType(am, defaultUseStaticTyping);
+
         // and finally, there may be per-method overrides:
         JsonSerialize.Inclusion methodProps = _annotationIntrospector.findSerializationInclusion(am, _outputProps);
         Method m = am.getAnnotated();
@@ -77,11 +82,16 @@ public class PropertyBuilder
     /**
      * Factory method for constructor a {@link BeanPropertyWriter}
      * that uses specified method as the accessors.
+     *
+     * @param defaultUseStaticTyping Whether default typing mode is
+     *   'static' or not (if not, it's 'dynamic'); can be overridden
+     *   by annotation related to property itself
      */
     public BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
-                                            AnnotatedField af)
+                                            AnnotatedField af,
+                                            boolean defaultUseStaticTyping)
     {
-        Class<?> serializationType = findSerializationType(af);
+        Class<?> serializationType = findSerializationType(af, defaultUseStaticTyping);
         
         // and finally, there may be per-method overrides:
         JsonSerialize.Inclusion methodProps = _annotationIntrospector.findSerializationInclusion(af, _outputProps);
@@ -106,7 +116,8 @@ public class PropertyBuilder
     //////////////////////////////////////////////////
      */
 
-    protected Class<?> findSerializationType(Annotated a)
+    protected Class<?> findSerializationType(Annotated a,
+                                             boolean useStaticTyping)
     {
         // [JACKSON-120]: Check to see if serialization type is fixed
         Class<?> serializationType = _annotationIntrospector.findSerializationType(a);
@@ -116,8 +127,19 @@ public class PropertyBuilder
             if (!serializationType.isAssignableFrom(type)) {
                 throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+a.getName()+"': class "+serializationType.getName()+" not a super-type of (declared) class "+type.getName());
             }
+            return serializationType;
         }
-        return serializationType;
+        /* [JACKSON-114]: if using static typing, declared type is known
+         * to be the type...
+         */
+        JsonSerialize.Typing typing = _annotationIntrospector.findSerializationTyping(a);
+        if (typing != null) {
+            useStaticTyping = (typing == JsonSerialize.Typing.STATIC);
+        }
+        if (useStaticTyping) {
+            return a.getType();
+        }
+        return null;
     }
 
     protected Object getDefaultBean()

@@ -32,7 +32,11 @@ public class TestAnnotationJsonSerialize
         public int getY() { return 5; }
     }
 
-    static class WrapperClass
+    /**
+     * Test class to verify that <code>JsonSerialize.as</code>
+     * works as expected
+     */
+    static class WrapperClassForAs
     {
         @JsonSerialize(as=ValueInterface.class)
         public ValueClass getValue() {
@@ -42,9 +46,9 @@ public class TestAnnotationJsonSerialize
 
     // This should indicate that static type be used for all fields
     @JsonSerialize(typing=JsonSerialize.Typing.STATIC)
-    static class WrapperClassForStatic
+    static class WrapperClassForStaticTyping
     {
-        public ValueClass getValue() {
+        public ValueInterface getValue() {
             return new ValueClass();
         }
     }
@@ -71,7 +75,7 @@ public class TestAnnotationJsonSerialize
     public void testSimpleValueDefinition() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        Map<String,Object> result = writeAndMap(m, new WrapperClass());
+        Map<String,Object> result = writeAndMap(m, new WrapperClassForAs());
         assertEquals(1, result.size());
         Object ob = result.get("value");
         // Should see only "x", not "y"
@@ -94,7 +98,7 @@ public class TestAnnotationJsonSerialize
     public void testStaticTypingForClass() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        Map<String,Object> result = writeAndMap(m, new WrapperClassForStatic());
+        Map<String,Object> result = writeAndMap(m, new WrapperClassForStaticTyping());
         assertEquals(1, result.size());
         Object ob = result.get("value");
         // Should see only "x", not "y"
