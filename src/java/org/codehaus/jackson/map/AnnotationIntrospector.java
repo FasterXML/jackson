@@ -124,7 +124,7 @@ public abstract class AnnotationIntrospector
 
     /**
      * Method for accessing annotated type definition that a
-     * method can have, to be used as the type for serialization
+     * method/field can have, to be used as the type for serialization
      * instead of the runtime type.
      * Type returned (if any) needs to be widening conversion (super-type).
      * Declared return type of the method is also considered acceptable.
@@ -132,6 +132,18 @@ public abstract class AnnotationIntrospector
      * @return Class to use instead of runtime type
      */
     public abstract Class<?> findSerializationType(Annotated a);
+
+    /**
+     * Method for accessing declared typing mode annotated (if any).
+     * This is used for type detection, unless more granular settings
+     * (such as actual exact type; or serializer to use which means
+     * no type information is needed) take precedence.
+     *
+     * @since 1.2
+     *
+     * @return Typing mode to use, if annotation is found; null otherwise
+     */
+    public abstract JsonSerialize.Typing findSerializationTyping(Annotated a);
 
     /*
     ///////////////////////////////////////////////////////
@@ -448,6 +460,16 @@ public abstract class AnnotationIntrospector
             Class<?> result = _primary.findSerializationType(a);
             if (result == null) {
                 result = _secondary.findSerializationType(a);
+            }
+            return result;
+        }
+
+        @Override
+        public JsonSerialize.Typing findSerializationTyping(Annotated a)
+        {
+            JsonSerialize.Typing result = _primary.findSerializationTyping(a);
+            if (result == null) {
+                result = _secondary.findSerializationTyping(a);
             }
             return result;
         }

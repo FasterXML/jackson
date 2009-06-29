@@ -8,6 +8,21 @@ Description:
 
   Fixes:
 
+  Improvements:
+
+  New features:
+
+  * [JACKSON-131] Allow constructing and passing of non-shared
+    SerializationConfig/DeserializationConfig instances to ObjectMapper
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.1.0 [22-Jun-2009]
+
+  Fixes:
+
   * [JACKSON-109] Allow deserializing into generics Bean classes
     (like Wrapper<Bean>) not just generic Maps and Collections 
   * [JACKSON-121] Problems deserializing Date values of some ISO-8601
@@ -37,10 +52,6 @@ Description:
   * [JACKSON-123] Add "chaining" AnnotationIntrospector (implemented
     as inner class, AnnotationIntrospector.Pair) that allows combining
     functionality of 2 introspectors.
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.0.0 [09-May-2009]
 

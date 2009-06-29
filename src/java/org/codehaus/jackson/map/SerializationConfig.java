@@ -43,7 +43,7 @@ public class SerializationConfig
          *<P>
          * Feature is enabled by default.
          */
-        AUTO_DETECT_GETTERS(true),
+        AUTO_DETECT_GETTERS(true)
 
         /**
          * Feature that determines whether non-static fields are recognized as
@@ -60,7 +60,7 @@ public class SerializationConfig
          *
          * @since 1.1
          */
-        AUTO_DETECT_FIELDS(true),
+         ,AUTO_DETECT_FIELDS(true)
 
         /**
          * Feature that determines whether method and field access
@@ -70,59 +70,71 @@ public class SerializationConfig
          * may be called to enable access to otherwise unaccessible
          * objects.
          */
-        CAN_OVERRIDE_ACCESS_MODIFIERS(true),
+        ,CAN_OVERRIDE_ACCESS_MODIFIERS(true)
 
         // // // Generic output features
 
-            /**
-             * Feature that determines the default settings of whether Bean
-             * properties with null values are to be written out.
-             *<p>
-             * Feature is enabled by default (null properties written).
-             *<p>
-             * Note too that there is annotation
-             * {@link org.codehaus.jackson.annotate.JsonWriteNullProperties}
-             * that can be used for more granular control (annotates bean
-             * classes or individual property access methods).
-             *
-             * @deprecated As of 1.1, use {@link SerializationConfig#setSerializationInclusion}}
-             *    instead
-             */
-            WRITE_NULL_PROPERTIES(true),
+        /**
+         * Feature that determines the default settings of whether Bean
+         * properties with null values are to be written out.
+         *<p>
+         * Feature is enabled by default (null properties written).
+         *<p>
+         * Note too that there is annotation
+         * {@link org.codehaus.jackson.annotate.JsonWriteNullProperties}
+         * that can be used for more granular control (annotates bean
+         * classes or individual property access methods).
+         *
+         * @deprecated As of 1.1, use {@link SerializationConfig#setSerializationInclusion}}
+         *    instead
+         */
+        ,WRITE_NULL_PROPERTIES(true)
+
+        /**
+         * Feature that determines whether the type detection for
+         * serialization should be using actual dynamic runtime type,
+         * or declared static type.
+         * Default value is false, to use dynamic runtime type.
+         *<p>
+         * This global default value can be overridden at class, method
+         * or field level by using {@link JsonSerialize#typing} annotation
+         * property
+         */
+        ,USE_STATIC_TYPING(false)
 
         // // // Features for datatype-specific serialization
 
-            /**
-             * Feature that determines whether {@link java.util.Date}s
-             * (and Date-based things like {@link java.util.Calendar}s) are to be
-             * serialized as numeric timestamps (true; the default),
-             * or as textual representation (false).
-             * If textual representation is used, the actual format is
-             * one returned by a call to {@link #getDateFormat}.
-             */
-            WRITE_DATES_AS_TIMESTAMPS(true),
+        /**
+         * Feature that determines whether {@link java.util.Date}s
+         * (and Date-based things like {@link java.util.Calendar}s) are to be
+         * serialized as numeric timestamps (true; the default),
+         * or as textual representation (false).
+         * If textual representation is used, the actual format is
+         * one returned by a call to {@link #getDateFormat}.
+         */
+        ,WRITE_DATES_AS_TIMESTAMPS(true)
 
-            // // // Output fine tuning
-
-            /**
-             * Feature that allows enabling (or disabling) indentation
-             * for the underlying generator, using the default pretty
-             * printer (see
-             * {@link org.codehaus.jackson.JsonGenerator#useDefaultPrettyPrinter}
-             * for details).
-             *<p>
-             * Note that this only affects cases where
-             * {@link org.codehaus.jackson.JsonGenerator}
-             * is constructed implicitly by ObjectMapper: if explicit
-             * generator is passed, its configuration is not changed.
-             *<p>
-             * Also note that if you want to configure details of indentation,
-             * you need to directly configure the generator: there is a
-             * method to use any <code>PrettyPrinter</code> instance.
-             * This feature will only allow using the default implementation.
-             */
-            INDENT_OUTPUT(false)
-
+        // // // Output fine tuning
+            
+        /**
+         * Feature that allows enabling (or disabling) indentation
+         * for the underlying generator, using the default pretty
+         * printer (see
+         * {@link org.codehaus.jackson.JsonGenerator#useDefaultPrettyPrinter}
+         * for details).
+         *<p>
+         * Note that this only affects cases where
+         * {@link org.codehaus.jackson.JsonGenerator}
+         * is constructed implicitly by ObjectMapper: if explicit
+         * generator is passed, its configuration is not changed.
+         *<p>
+         * Also note that if you want to configure details of indentation,
+         * you need to directly configure the generator: there is a
+         * method to use any <code>PrettyPrinter</code> instance.
+         * This feature will only allow using the default implementation.
+         */
+        ,INDENT_OUTPUT(false)
+            
             ;
 
         final boolean _defaultState;
@@ -271,6 +283,11 @@ public class SerializationConfig
         if (incl != _serializationInclusion) {
             setSerializationInclusion(incl);
     	}
+
+        JsonSerialize.Typing typing = _annotationIntrospector.findSerializationTyping(ac);
+        if (typing != null) {
+            set(Feature.USE_STATIC_TYPING, (typing == JsonSerialize.Typing.STATIC));
+        }
     }
     
     /*

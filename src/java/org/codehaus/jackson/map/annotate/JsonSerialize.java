@@ -19,9 +19,14 @@ import org.codehaus.jackson.map.JsonSerializer;
  * An example annotation would be:
  *<pre>
  *  &#64;JsonSerialize(using=MySerializer.class,
- *    as=MySubClass.class
+ *    as=MySubClass.class,
+ *    include=JsonSerialize.Inclusion.NON_NULL,
+ *    typing=JsonSerialize.Typing.STATIC
  *  )
  *</pre>
+ * (which would be redundant, since some properties block others:
+ * specifically, 'using' has precedence over 'as', which has precedence
+ * over 'typing' setting)
  *
  * @since 1.1
  */
@@ -67,6 +72,15 @@ public @interface JsonSerialize
      */
     public Inclusion include() default Inclusion.ALWAYS;
 
+    /**
+     * Whether type detection used is dynamic or static: that is,
+     * whether actual runtime type is used (dynamic), or just the
+     * declared type (static).
+     *
+     * @since 1.2
+     */
+    public Typing typing() default Typing.DYNAMIC;
+
     /*
     /////////////////////////////////////////////////////////////
     // Value enumerations needed
@@ -77,8 +91,6 @@ public @interface JsonSerialize
      * Enumeration used with {@link JsonSerialize#include} property
      * to define which properties
      * of Java Beans are to be included in serialization
-     *
-     * @since 1.1
      */
     public enum Inclusion
     {
@@ -103,5 +115,26 @@ public @interface JsonSerialize
          * and if used, works same as {@link #ALWAYS}.
          */
         NON_DEFAULT;
+    }
+
+    /**
+     * Enumeration used with {@link JsonSerialize#typing} property
+     * to define whether type detection is based on dynamic runtime
+     * type (DYNAMIC) or declared type (STATIC).
+     */
+    public enum Typing
+    {
+        /**
+         * Value that indicates that the actual dynamic runtime type is to
+         * be used.
+         */
+        DYNAMIC,
+
+        /**
+         * Value that indicates that the static declared type is to
+         * be used.
+         */
+            STATIC
+            ;
     }
 }

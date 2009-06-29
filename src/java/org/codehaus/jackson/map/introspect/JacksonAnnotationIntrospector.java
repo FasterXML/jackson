@@ -141,20 +141,6 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public Class<?> findSerializationType(Annotated am)
-    {
-        // Primary annotation, JsonSerialize
-        JsonSerialize ann = am.getAnnotation(JsonSerialize.class);
-        if (ann != null) {
-            Class<?> cls = ann.as();
-            if (cls != NoClass.class) {
-                return cls;
-            }
-        }
-        return null;
-    }
-    
-    @Override
     public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue)
     {
         JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
@@ -170,6 +156,27 @@ public class JacksonAnnotationIntrospector
             return writeNulls ? JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
         }
         return defValue;
+    }
+
+    @Override
+    public Class<?> findSerializationType(Annotated am)
+    {
+        // Primary annotation, JsonSerialize
+        JsonSerialize ann = am.getAnnotation(JsonSerialize.class);
+        if (ann != null) {
+            Class<?> cls = ann.as();
+            if (cls != NoClass.class) {
+                return cls;
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    public JsonSerialize.Typing findSerializationTyping(Annotated a)
+    {
+        JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
+        return (ann == null) ? null : ann.typing();
     }
 
     /*

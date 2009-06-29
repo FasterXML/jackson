@@ -192,22 +192,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public JsonDeserializer<?> findDeserializer(Annotated am)
-    {
-        XmlAdapter<Object,Object> adapter = findAdapter(am);
-        if (adapter != null) {
-            return new XmlAdapterJsonDeserializer(adapter);
-        }
-        return null;
-    }
-
-    @Override
-    public Boolean findGetterAutoDetection(AnnotatedClass ac)
-    {
-        return isPropertiesAccessible(ac);
-    }
-
-    @Override
     public Class<?> findSerializationType(Annotated a)
     {
         return null;
@@ -227,6 +211,88 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             return nillable ? JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
         }
         return JsonSerialize.Inclusion.NON_NULL;
+    }
+
+    public JsonSerialize.Typing findSerializationTyping(Annotated a)
+    {
+        return null;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: class annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public Boolean findGetterAutoDetection(AnnotatedClass ac)
+    {
+        return isPropertiesAccessible(ac);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: method annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public String findGettablePropertyName(AnnotatedMethod am)
+    {
+        String propertyName = findJaxbSpecifiedPropertyName(am);
+        // null -> no annotation found
+        return (propertyName == null) ? null : propertyName;
+    }
+
+    @Override
+    public boolean hasAsValueAnnotation(AnnotatedMethod am)
+    {
+        //since jaxb says @XmlValue can exist with attributes, this won't map as a json value.
+        return false;
+    }
+
+    @Override
+    public String findEnumValue(Enum<?> e)
+    {
+        String enumValue = e.name();
+        XmlEnumValue xmlEnumValue;
+        try {
+            xmlEnumValue = e.getDeclaringClass().getDeclaredField(e.name()).getAnnotation(XmlEnumValue.class);
+        } catch (NoSuchFieldException e1) {
+            throw new IllegalStateException(e1);
+        }
+        enumValue = xmlEnumValue != null ? xmlEnumValue.value() : enumValue;
+        return enumValue;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: field annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public String findSerializablePropertyName(AnnotatedField af)
+    {
+        Field field = af.getAnnotated();
+        return findJaxbPropertyName(field, field.getType(), field.getName());
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Deserialization: general annotations
+    ///////////////////////////////////////////////////////
+    */
+
+
+    @Override
+    public JsonDeserializer<?> findDeserializer(Annotated am)
+    {
+        XmlAdapter<Object,Object> adapter = findAdapter(am);
+        if (adapter != null) {
+            return new XmlAdapterJsonDeserializer(adapter);
+        }
+        return null;
     }
 
     @Override
@@ -264,21 +330,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public String findGettablePropertyName(AnnotatedMethod am)
-    {
-        String propertyName = findJaxbSpecifiedPropertyName(am);
-        // null -> no annotation found
-        return (propertyName == null) ? null : propertyName;
-    }
-
-    @Override
-    public boolean hasAsValueAnnotation(AnnotatedMethod am)
-    {
-        //since jaxb says @XmlValue can exist with attributes, this won't map as a json value.
-        return false;
-    }
-
-    @Override
     public String findSettablePropertyName(AnnotatedMethod am)
     {
         String propertyName = findJaxbSpecifiedPropertyName(am);
@@ -302,31 +353,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public String findSerializablePropertyName(AnnotatedField af)
-    {
-        Field field = af.getAnnotated();
-        return findJaxbPropertyName(field, field.getType(), field.getName());
-    }
-
-    @Override
     public String findDeserializablePropertyName(AnnotatedField af)
     {
         Field field = af.getAnnotated();
         return findJaxbPropertyName(field, field.getType(), field.getName());
-    }
-
-    @Override
-    public String findEnumValue(Enum<?> e)
-    {
-        String enumValue = e.name();
-        XmlEnumValue xmlEnumValue;
-        try {
-            xmlEnumValue = e.getDeclaringClass().getDeclaredField(e.name()).getAnnotation(XmlEnumValue.class);
-        } catch (NoSuchFieldException e1) {
-            throw new IllegalStateException(e1);
-        }
-        enumValue = xmlEnumValue != null ? xmlEnumValue.value() : enumValue;
-        return enumValue;
     }
 
     /*

@@ -5,6 +5,7 @@ import java.util.*;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -190,6 +191,7 @@ public class BeanSerializerFactory
             return null;
         }
         boolean fixAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        boolean staticTyping = usesStaticTyping(config, beanDesc);
         PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
@@ -222,5 +224,21 @@ public class BeanSerializerFactory
                                                        BasicBeanDescription beanDesc)
     {
         return new PropertyBuilder(config, beanDesc);
+    }
+
+    /**
+     * Helper method to check whether global settings and/or class
+     * annotations for the bean class indicate that static typing
+     * (declared types)  should be used for properties.
+     * (instead of dynamic runtime types).
+     */
+    protected boolean usesStaticTyping(SerializationConfig config,
+                                       BasicBeanDescription beanDesc)
+    {
+        JsonSerialize.Typing t = config.getAnnotationIntrospector().findSerializationTyping(beanDesc.getClassInfo());
+        if (t != null) {
+            return (t == JsonSerialize.Typing.STATIC);
+        }
+        return config.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING);
     }
 }

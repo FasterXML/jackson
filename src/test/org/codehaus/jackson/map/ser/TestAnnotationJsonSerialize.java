@@ -40,6 +40,15 @@ public class TestAnnotationJsonSerialize
         }
     }
 
+    // This should indicate that static type be used for all fields
+    @JsonSerialize(typing=JsonSerialize.Typing.STATIC)
+    static class WrapperClassForStatic
+    {
+        public ValueClass getValue() {
+            return new ValueClass();
+        }
+    }
+
     /**
      * Test bean that has an invalid {@link JsonClass} annotation.
      */
@@ -59,7 +68,7 @@ public class TestAnnotationJsonSerialize
      */
 
     @SuppressWarnings("unchecked")
-	public void testSimpleValueDefinition() throws Exception
+    public void testSimpleValueDefinition() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
         Map<String,Object> result = writeAndMap(m, new WrapperClass());
@@ -81,4 +90,16 @@ public class TestAnnotationJsonSerialize
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public void testStaticTypingForClass() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, new WrapperClassForStatic());
+        assertEquals(1, result.size());
+        Object ob = result.get("value");
+        // Should see only "x", not "y"
+        result = (Map<String,Object>) ob;
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(3), result.get("x"));
+    }
 }
