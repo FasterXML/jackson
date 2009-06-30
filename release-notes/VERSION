@@ -1,10 +1,12 @@
-Version: 1.1.0-SNAPSHOT
+Version: 1.1.0
 
 Release date:
   22-Jun-2009
 
 Description:
-  Development snapshot from trunk, for eventual 1.1 release
+  Official 1.1 release: main focus on improving interoperability via
+  JAXB annotation compatibility, basic JSON schema generation functionality
+  and ability to directly serialize fields as well as method-access properties.
 
   Fixes:
 
