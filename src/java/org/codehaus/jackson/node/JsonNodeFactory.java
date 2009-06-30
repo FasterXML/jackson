@@ -13,8 +13,9 @@ import java.math.BigInteger;
 public class JsonNodeFactory
 {
     /**
-     * Singleton instance: given that this class is stateless,
-     * a globally shared singleton can be used
+     * Default singleton instance that construct "standard" node instances:
+     * given that this class is stateless, a globally shared singleton
+     * can be used.
      */
     public final static JsonNodeFactory instance = new JsonNodeFactory();
 

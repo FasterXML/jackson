@@ -13,7 +13,10 @@ import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.NullNode;
+import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -110,6 +113,19 @@ public class ObjectMapper
 
     /*
     ////////////////////////////////////////////////////
+    // Configuration settings, other
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Node factory to use for creating 
+     *
+     * @since 1.2
+     */
+    protected JsonNodeFactory _nodeFactory;
+
+    /*
+    ////////////////////////////////////////////////////
     // Caching
     ////////////////////////////////////////////////////
      */
@@ -201,6 +217,9 @@ public class ObjectMapper
 
         // Default serializer factory is stateless, can just assign
         _serializerFactory = BeanSerializerFactory.instance;
+
+        // and use standard JsonNodeFactory initially
+        _nodeFactory = JsonNodeFactory.instance;
     }
 
     public void setSerializerFactory(SerializerFactory f) {
@@ -213,6 +232,17 @@ public class ObjectMapper
 
     public void setDeserializerProvider(DeserializerProvider p) {
         _deserializerProvider = p;
+    }
+
+    /**
+     * Method for specifying {@link JsonNodeFactory} to use for
+     * constructing root level tree nodes (via method
+     * {@link #createObjectNode}
+     *
+     * @since 1.2
+     */
+    public void setNodeFactory(JsonNodeFactory f) {
+        _nodeFactory = f;
     }
 
     /*
@@ -328,6 +358,17 @@ public class ObjectMapper
      *   construct Json parser and generators
      */
     public JsonFactory getJsonFactory() { return _jsonFactory; }
+
+    /**
+     * Method that can be used to get hold of {@link JsonNodeFactory}
+     * that this mapper will use when directly constructing
+     * root {@link JsonNode} instances for Trees.
+     *
+     * @since 1.2
+     */
+    public JsonNodeFactory getNodeFactory() {
+        return _nodeFactory;
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -505,6 +546,38 @@ public class ObjectMapper
     {
         _serializerProvider.serializeValue(cfg, jgen, rootNode, _serializerFactory);
         jgen.flush();
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Public API (from ObjectCodec): Tree Model support
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     *<p>
+     * Note: return type is co-variant, as basic ObjectCodec
+     * abstraction can not refer to concrete node types (as it's
+     * part of core package, whereas impls are part of mapper
+     * package)
+     *
+     * @since 1.2
+     */
+    public ObjectNode createObjectNode() {
+        return _nodeFactory.objectNode();
+    }
+
+    /**
+     *<p>
+     * Note: return type is co-variant, as basic ObjectCodec
+     * abstraction can not refer to concrete node types (as it's
+     * part of core package, whereas impls are part of mapper
+     * package)
+     *
+     * @since 1.2
+     */
+    public ArrayNode createArrayNode() {
+        return _nodeFactory.arrayNode();
     }
 
     /*

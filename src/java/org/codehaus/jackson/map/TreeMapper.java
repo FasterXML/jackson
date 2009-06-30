@@ -4,7 +4,8 @@ import java.io.*;
 import java.net.URL;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.node.*;
+import org.codehaus.jackson.node.JsonNodeFactory;
+import org.codehaus.jackson.node.NullNode;
 
 /**
  * This mapper (or, codec) provides mapping between Json,
@@ -24,26 +25,9 @@ public class TreeMapper
     extends JsonNodeFactory
 {
     /**
-     * Enumeration that defines strategies available for dealing with
-     * duplicate field names (when mapping JSON to Java types).
-     */
-    public enum DupFields {
-        ERROR /* default */
-            , USE_FIRST
-            , USE_LAST
-            ;
-    }
-
-    /**
-     * This option defines how duplicate field names (from JSON input)
-     * are to be handled. Default is to throw a {@link JsonParseException}.
-     */
-    protected DupFields _cfgDupFields = DupFields.ERROR;
-
-    /**
      * Mapper that handles actual serialization/deserialization
      */
-    protected final ObjectMapper _objectMapper;
+    protected ObjectMapper _objectMapper;
 
     /*
     ////////////////////////////////////////////////////
@@ -53,7 +37,7 @@ public class TreeMapper
 
     public TreeMapper()
     {
-        this(new ObjectMapper());
+        this(null);
     }
 
     public TreeMapper(ObjectMapper m)
@@ -68,7 +52,7 @@ public class TreeMapper
      * @return Json factory that this mapper uses when it needs to
      *   construct Json parser and generators
      */
-    public JsonFactory getJsonFactory() { return _objectMapper.getJsonFactory(); }
+    public JsonFactory getJsonFactory() { return objectMapper().getJsonFactory(); }
 
     /*
     ////////////////////////////////////////////////////
@@ -106,49 +90,49 @@ public class TreeMapper
             }
         }
         // note: called method converts null to NullNode:
-        return _objectMapper.readTree(jp);
+        return objectMapper().readTree(jp);
     }
 
     public JsonNode readTree(File src)
         throws IOException, JsonParseException
     {
 
-        JsonNode n = _objectMapper.readValue(src, JsonNode.class);
+        JsonNode n = objectMapper().readValue(src, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(URL src)
         throws IOException, JsonParseException
     {
-        JsonNode n = _objectMapper.readValue(src, JsonNode.class);
+        JsonNode n = objectMapper().readValue(src, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(InputStream src)
         throws IOException, JsonParseException
     {
-        JsonNode n = _objectMapper.readValue(src, JsonNode.class);
+        JsonNode n = objectMapper().readValue(src, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(Reader src)
         throws IOException, JsonParseException
     {
-        JsonNode n = _objectMapper.readValue(src, JsonNode.class);
+        JsonNode n = objectMapper().readValue(src, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(String jsonContent)
         throws IOException, JsonParseException
     {
-        JsonNode n = _objectMapper.readValue(jsonContent, JsonNode.class);
+        JsonNode n = objectMapper().readValue(jsonContent, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(byte[] jsonContent)
         throws IOException, JsonParseException
     {
-        JsonNode n = _objectMapper.readValue(jsonContent, 0, jsonContent.length, JsonNode.class);
+        JsonNode n = objectMapper().readValue(jsonContent, 0, jsonContent.length, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
@@ -162,18 +146,32 @@ public class TreeMapper
     public void writeTree(JsonNode rootNode, File dst)
         throws IOException, JsonParseException
     {
-        _objectMapper.writeValue(dst, rootNode);
+        objectMapper().writeValue(dst, rootNode);
     }
 
     public void writeTree(JsonNode rootNode, Writer dst)
         throws IOException, JsonParseException
     {
-        _objectMapper.writeValue(dst, rootNode);
+        objectMapper().writeValue(dst, rootNode);
     }
 
     public void writeTree(JsonNode rootNode, OutputStream dst)
         throws IOException, JsonParseException
     {
-        _objectMapper.writeValue(dst, rootNode);
+        objectMapper().writeValue(dst, rootNode);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods
+    ////////////////////////////////////////////////////
+     */
+
+    protected synchronized ObjectMapper objectMapper()
+    {
+        if (_objectMapper == null) {
+            _objectMapper = new ObjectMapper();
+        }
+        return _objectMapper;
     }
 }

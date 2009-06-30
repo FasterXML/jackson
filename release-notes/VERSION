@@ -1,10 +1,10 @@
-Version: 1.1.0-SNAPSHOT
+Version: 1.2.0-SNAPSHOT
 
 Release date:
-  22-Jun-2009
+  xx-Jul-2009
 
 Description:
-  Development snapshot from trunk, for eventual 1.1 release
+  Development snapshot from trunk, for eventual 1.2 release
 
   Fixes:
 
@@ -16,6 +16,7 @@ Description:
     static (declared) type over concrete (actual/runtime) type
   * [JACKSON-131] Allow constructing and passing of non-shared
     SerializationConfig/DeserializationConfig instances to ObjectMapper
+  * [JACKSON-135] Add basic JsonNode construction support in ObjectMapper
 
 ------------------------------------------------------------------------
 == History: ==
