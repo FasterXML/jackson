@@ -620,9 +620,10 @@ public abstract class JsonParser
      * not for {@link JsonFactory} (unless its <code>setCodec</code>
      * method has been explicitly called).
      *<p>
-     * This method may advance the evens stream, for structured types
+     * This method may advance the event stream, for structured types
      * the current event will be the closing end marker (END_ARRAY,
      * END_OBJECT) of the bound structure. For non-structured Json types
+     * (and for {@link JsonToken#VALUE_EMBEDDED_OBJECT})
      * stream is not advanced.
      *<p>
      * Note: this method should NOT be used if the result type is a
@@ -648,6 +649,7 @@ public abstract class JsonParser
      * This method may advance the event stream, for structured types
      * the current event will be the closing end marker (END_ARRAY,
      * END_OBJECT) of the bound structure. For non-structured Json types
+     * (and for {@link JsonToken#VALUE_EMBEDDED_OBJECT})
      * stream is not advanced.
      */
     public abstract <T> T readValueAs(TypeReference<?> valueTypeRef)

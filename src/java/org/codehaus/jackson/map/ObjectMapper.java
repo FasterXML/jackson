@@ -203,7 +203,7 @@ public class ObjectMapper
      */
     public ObjectMapper(JsonFactory jf,
                         SerializerProvider sp, DeserializerProvider dp,
-                        SerializationConfig sconfig, DeserializationConfig dconfig)
+                       SerializationConfig sconfig, DeserializationConfig dconfig)
     {
         /* 02-Mar-2009, tatu: Important: we MUST default to using
          *   the mapping factory, otherwise tree serialization will
@@ -222,14 +222,26 @@ public class ObjectMapper
         _nodeFactory = JsonNodeFactory.instance;
     }
 
+    /**
+     * Method for setting specific {@link SerializerFactory} to use
+     * for constructing (bean) serializers.
+     */
     public void setSerializerFactory(SerializerFactory f) {
         _serializerFactory = f;
     }
 
+    /**
+     * Method for setting specific {@link SerializerProvider} to use
+     * for handling caching of {@link JsonSerializer} instances.
+     */
     public void setSerializerProvider(SerializerProvider p) {
         _serializerProvider = p;
     }
 
+    /**
+     * Method for setting specific {@link DeserializerProvider} to use
+     * for handling caching of {@link JsonDeserializer} instances.
+     */
     public void setDeserializerProvider(DeserializerProvider p) {
         _deserializerProvider = p;
     }
@@ -339,7 +351,7 @@ public class ObjectMapper
     }
 
     /**
-     * Method for changing state of an on/off desserialization feature for
+     * Method for changing state of an on/off deserialization feature for
      * this object mapper.
      *<p>
      * This is method is basically a shortcut method for calling
@@ -358,6 +370,36 @@ public class ObjectMapper
      *   construct Json parser and generators
      */
     public JsonFactory getJsonFactory() { return _jsonFactory; }
+
+    /**
+     * Method for changing state of an on/off {@link JsonParser} feature for
+     * {@link JsonFactory} instance this object mapper uses.
+     *<p>
+     * This is method is basically a shortcut method for calling
+     * {@link JsonFactory#setParserFeature} on the shared
+     * {@link JsonFactory} this mapper uses (which is accessible
+     * using {@link #getJsonFactory}).
+     *
+     * @since 1.2
+     */
+    public void configure(JsonParser.Feature f, boolean state) {
+        _jsonFactory.setParserFeature(f, state);
+    }
+
+    /**
+     * Method for changing state of an on/off {@link JsonGenerator} feature for
+     * {@link JsonFactory} instance this object mapper uses.
+     *<p>
+     * This is method is basically a shortcut method for calling
+     * {@link JsonFactory#setGeneratorFeature} on the shared
+     * {@link JsonFactory} this mapper uses (which is accessible
+     * using {@link #getJsonFactory}).
+     *
+     * @since 1.2
+     */
+    public void configure(JsonGenerator.Feature f, boolean state) {
+        _jsonFactory.setGeneratorFeature(f, state);
+    }
 
     /**
      * Method that can be used to get hold of {@link JsonNodeFactory}
@@ -397,7 +439,21 @@ public class ObjectMapper
     } 
 
     /**
+     * Method to deserialize Json content into a non-container
+     * type (it can be an array type, however): typically a bean, array
+     * or a wrapper type (like {@link java.lang.Boolean}).
+     *<p>
+     * Note: this method should NOT be used if the result type is a
+     * container ({@link java.util.Collection} or {@link java.util.Map}.
+     * The reason is that due to type erasure, key and value types
+     * can not be introspected when using this method.
      * @since 1.1
+     *
+     * @param cfg Specific deserialization configuration to use for
+     *   this operation. Note that not all config settings can
+     *   be changed on per-operation basis: some changeds only take effect
+     *   before calling the operation for the first time (for the mapper
+     *   instance)
      */
     @SuppressWarnings("unchecked")
     public <T> T readValue(JsonParser jp, Class<T> valueType, 
@@ -424,6 +480,18 @@ public class ObjectMapper
     } 
 
     /**
+     * Method to deserialize Json content into a Java type, reference
+     * to which is passed as argument. Type is passed using so-called
+     * "super type token" (see )
+     * and specifically needs to be used if the root type is a 
+     * parameterized (generic) container type.
+     *
+     * @param cfg Specific deserialization configuration to use for
+     *   this operation. Note that not all config settings can
+     *   be changed on per-operation basis: some changeds only take effect
+     *   before calling the operation for the first time (for the mapper
+     *   instance)
+     *
      * @since 1.1
      */
     @SuppressWarnings("unchecked")
@@ -449,6 +517,17 @@ public class ObjectMapper
     } 
 
     /**
+     * Method to deserialize Json content into a Java type, reference
+     * to which is passed as argument. Type is passed using 
+     * Jackson specific type; instance of which can be constructed using
+     * {@link TypeFactory}.
+     *
+     * @param cfg Specific deserialization configuration to use for
+     *   this operation. Note that not all config settings can
+     *   be changed on per-operation basis: some changeds only take effect
+     *   before calling the operation for the first time (for the mapper
+     *   instance)
+     *
      * @since 1.1
      */
     @SuppressWarnings("unchecked")
@@ -480,6 +559,18 @@ public class ObjectMapper
     }
 
     /**
+     * Method to deserialize Json content as tree expressed
+     * using set of {@link JsonNode} instances. Returns
+     * root of the resulting tree (where root can consist
+     * of just a single node if the current event is a
+     * value event, not container).
+     *
+     * @param cfg Specific deserialization configuration to use for
+     *   this operation. Note that not all config settings can
+     *   be changed on per-operation basis: some changeds only take effect
+     *   before calling the operation for the first time (for the mapper
+     *   instance)
+     *
      * @since 1.1
      */
     public JsonNode readTree(JsonParser jp, DeserializationConfig cfg)
@@ -538,6 +629,9 @@ public class ObjectMapper
     }
 
     /**
+     * Method to serialize given Json Tree, using generator
+     * provided.
+     *
      * @since 1.1
      */
     public void writeTree(JsonGenerator jgen, JsonNode rootNode,
