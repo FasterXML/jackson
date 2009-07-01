@@ -213,4 +213,3 @@ public abstract class SerializerProvider
     public abstract void defaultSerializeDateValue(Date date, JsonGenerator jgen)
         throws IOException, JsonProcessingException;
 }
-

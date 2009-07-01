@@ -95,7 +95,13 @@ public class CustomSerializerFactory
      * the type to received additional annotations, and value is the
      * type that has annotations to "mix in".
      *<p>
-     * !!! 30-Mar-2009, tatu: Not used as of yet
+     * Annotations associated with the value classes will be used to
+     * override annotations of the key class, associated with the
+     * same field or method. They can be further masked by sub-classes:
+     * you can think of it as injecting annotations between the target
+     * class and its sub-classes (or interfaces)
+     *
+     * @since 1.2
      */
     HashMap<ClassKey,Class<?>> _mixInAnnotations;
 
@@ -210,8 +216,10 @@ public class CustomSerializerFactory
      * anything <code>destinationClass</code> (and its super-types)
      * has already.
      *
-     * @param destinationClass Type to modify by adding annotations
-     * @param classWithMixIns Type that contains annotations to add
+     * @since 1.2
+     *
+     * @param destinationClass Class to modify by adding annotations
+     * @param classWithMixIns Class that contains annotations to add
      */
     public void addMixInAnnotationMapping(Class<?> destinationClass,
                                           Class<?> classWithMixIns)
@@ -278,6 +286,20 @@ public class CustomSerializerFactory
          * bean (or basic) serializer factory handle construction.
          */
         return super.createSerializer(type, config);
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // MixInResolver implementation
+    ////////////////////////////////////////////////////////////
+     */
+
+    public Class<?> findMixInClassFor(Class<?> cls)
+    {
+        if (_mixInAnnotations == null) {
+            return null;
+        }
+        return _mixInAnnotations.get(new ClassKey(cls));
     }
 }
 

@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.introspect.MixInResolver;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
@@ -41,6 +42,7 @@ import org.codehaus.jackson.map.util.ClassUtil;
  */
 public class BeanSerializerFactory
     extends BasicSerializerFactory
+    implements MixInResolver
 {
     /**
      * Like {@link BasicSerializerFactory}, this factory is stateless, and
@@ -80,7 +82,7 @@ public class BeanSerializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-        public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
+    public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
     {
         // First, fast lookup for exact type:
         JsonSerializer<?> ser = super.findSerializerByLookup(type);
@@ -103,6 +105,16 @@ public class BeanSerializerFactory
             }
         }
         return (JsonSerializer<T>) ser;
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // MixInResolver implementation: dummy one for this class
+    ////////////////////////////////////////////////////////////
+     */
+
+    public Class<?> findMixInClassFor(Class<?> cls) {
+        return null;
     }
 
     /*
