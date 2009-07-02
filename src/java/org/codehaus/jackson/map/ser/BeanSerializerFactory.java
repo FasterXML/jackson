@@ -2,6 +2,8 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
+import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.codehaus.jackson.map.ClassIntrospector;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
@@ -9,7 +11,6 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
-import org.codehaus.jackson.map.introspect.MixInResolver;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
@@ -42,7 +43,7 @@ import org.codehaus.jackson.map.util.ClassUtil;
  */
 public class BeanSerializerFactory
     extends BasicSerializerFactory
-    implements MixInResolver
+    implements ClassIntrospector.MixInResolver
 {
     /**
      * Like {@link BasicSerializerFactory}, this factory is stateless, and

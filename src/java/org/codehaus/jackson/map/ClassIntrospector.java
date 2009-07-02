@@ -11,11 +11,31 @@ import org.codehaus.jackson.type.JavaType;
  */
 public abstract class ClassIntrospector<T extends BeanDescription>
 {
-	protected ClassIntrospector() { }
+    /*
+    ///////////////////////////////////////////////////////
+    // Helper interfaces
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
+     * Interface used for decoupling details of how mix-in annotation
+     * definitions are accessed (via this interface), and how
+     * they are stored (defined by classes that implement the interface)
+     */
+    public interface MixInResolver
+    {
+        /**
+         * Method that will check if there are "mix-in" classes (with mix-in
+         * annotations) for given class
+         */
+        public Class<?> findMixInClassFor(Class<?> cls);
+    }
+
+    protected ClassIntrospector() { }
 	
     /*
     ///////////////////////////////////////////////////////
-    // Factory methods
+    // Public API: factory methods
     ///////////////////////////////////////////////////////
      */
     

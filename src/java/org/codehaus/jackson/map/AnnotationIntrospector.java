@@ -348,9 +348,24 @@ public abstract class AnnotationIntrospector
 
     /*
     ///////////////////////////////////////////////////////
-    // Helper classes
+    // Helper interfaces, classes
     ///////////////////////////////////////////////////////
     */
+
+
+    /**
+     * Interface used for decoupling details of how mix-in annotation
+     * definitions are accessed (via this interface), and how
+     * they are stored (defined by classes that implement the interface)
+     */
+    public interface MixInResolver
+    {
+        /**
+         * Method that will check if there are "mix-in" classes (with mix-in
+         * annotations) for given class
+         */
+        public Class<?> findMixInClassFor(Class<?> cls);
+    }
 
     /**
      * Helper class that allows using 2 introspectors such that one
