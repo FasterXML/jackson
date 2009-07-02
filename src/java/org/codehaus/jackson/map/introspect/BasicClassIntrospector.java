@@ -7,6 +7,7 @@ import java.util.*;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ClassIntrospector;
 import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.MapperConfig;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -118,7 +119,8 @@ public class BasicClassIntrospector
      */
 
     public BasicBeanDescription forSerialization(SerializationConfig cfg,
-                                                 Class<?> c)
+                                                 Class<?> c,
+                                                 MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, ai);
@@ -134,7 +136,8 @@ public class BasicClassIntrospector
 
     @Override
     public BasicBeanDescription forDeserialization(DeserializationConfig cfg,
-                                                   JavaType type)
+                                                   JavaType type,
+                                                   MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), ai);
@@ -148,7 +151,8 @@ public class BasicClassIntrospector
 
     @Override
     public BasicBeanDescription forCreation(DeserializationConfig cfg,
-                                            Class<?> c)
+                                            Class<?> c,
+                                            MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, ai);
@@ -157,17 +161,9 @@ public class BasicClassIntrospector
     }
 
     @Override
-    public BasicBeanDescription forClassAnnotations(DeserializationConfig cfg,
-                                                    Class<?> c)
-    {
-        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(c, ai);
-        return new BasicBeanDescription(TypeFactory.fromClass(c), ac, ai);
-    }
-
-    @Override
-    public BasicBeanDescription forClassAnnotations(SerializationConfig cfg,
-                                                    Class<?> c)
+    public BasicBeanDescription forClassAnnotations(MapperConfig cfg,
+                                                    Class<?> c,
+                                                   MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, ai);

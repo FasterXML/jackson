@@ -43,29 +43,31 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      * Factory method that constructs an introspector that has all
      * information needed for serialization purposes.
      */
-    public abstract T forSerialization(SerializationConfig cfg, Class<?> c);
+    public abstract T forSerialization(SerializationConfig cfg, Class<?> c,
+                                       MixInResolver r);
 
     /**
      * Factory method that constructs an introspector that has all
      * information needed for deserialization purposes.
      */
-    public abstract T forDeserialization(DeserializationConfig cfg, JavaType type);
-
+    public abstract T forDeserialization(DeserializationConfig cfg, JavaType type,
+                                         MixInResolver r);
+    
     /**
      * Factory method that constructs an introspector that has
      * information necessary for creating instances of given
      * class ("creator"), as well as class annotations, but
      * no information on member methods
      */
-    public abstract T forCreation(DeserializationConfig cfg, Class<?> c);
+    public abstract T forCreation(DeserializationConfig cfg, Class<?> c,
+                                  MixInResolver r);
 
     /**
      * Factory method that constructs an introspector that only has
      * information regarding annotations class itself has, but nothing
      * on methods or constructors.
      */
-    public abstract T forClassAnnotations(DeserializationConfig cfg, Class<?> c);
-
-    public abstract T forClassAnnotations(SerializationConfig cfg, Class<?> c);
+    public abstract T forClassAnnotations(MapperConfig cfg, Class<?> c,
+                                          MixInResolver r);
 }
 

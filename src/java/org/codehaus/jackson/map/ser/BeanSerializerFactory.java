@@ -43,7 +43,6 @@ import org.codehaus.jackson.map.util.ClassUtil;
  */
 public class BeanSerializerFactory
     extends BasicSerializerFactory
-    implements ClassIntrospector.MixInResolver
 {
     /**
      * Like {@link BasicSerializerFactory}, this factory is stateless, and
@@ -106,16 +105,6 @@ public class BeanSerializerFactory
             }
         }
         return (JsonSerializer<T>) ser;
-    }
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // MixInResolver implementation: dummy one for this class
-    ////////////////////////////////////////////////////////////
-     */
-
-    public Class<?> findMixInClassFor(Class<?> cls) {
-        return null;
     }
 
     /*

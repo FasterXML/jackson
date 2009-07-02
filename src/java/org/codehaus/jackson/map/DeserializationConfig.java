@@ -1,11 +1,13 @@
 package org.codehaus.jackson.map;
 
 import java.text.DateFormat;
+import java.util.*;
 
 import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.type.JavaType;
@@ -23,6 +25,7 @@ import org.codehaus.jackson.type.JavaType;
  * cached first time they are needed.
  */
 public class DeserializationConfig
+    implements MapperConfig
 {
     /**
      * Enumeration that defines togglable features that guide
@@ -217,6 +220,21 @@ public class DeserializationConfig
      */
     protected DateFormat _dateFormat = DEFAULT_DATE_FORMAT;
 
+    /**
+     * Mapping that defines how to apply mix-in annotations: key is
+     * the type to received additional annotations, and value is the
+     * type that has annotations to "mix in".
+     *<p>
+     * Annotations associated with the value classes will be used to
+     * override annotations of the key class, associated with the
+     * same field or method. They can be further masked by sub-classes:
+     * you can think of it as injecting annotations between the target
+     * class and its sub-classes (or interfaces)
+     *
+     * @since 1.2
+     */
+    HashMap<ClassKey,Class<?>> _mixInAnnotations;
+
     /*
     ///////////////////////////////////////////////////////////
     // Life-cycle
@@ -239,18 +257,11 @@ public class DeserializationConfig
         _dateFormat = src._dateFormat;
     }
 
-    /**
-     * Method that is called to create a non-shared copy of the configuration
-     * to be used for a deserialization operation.
-     * Note that if sub-classing
-     * and sub-class has additional instance methods,
-     * this method <b>must</b> be overridden to produce proper sub-class
-     * instance.
+    /*
+    ///////////////////////////////////////////////////////////
+    // MapperConfig implementation
+    ///////////////////////////////////////////////////////////
      */
-    public DeserializationConfig createUnshared()
-    {
-    	return new DeserializationConfig(this);
-    }
 
     /**
      * Method that checks class annotations that the argument Object has,
@@ -262,13 +273,13 @@ public class DeserializationConfig
      *<p>
      * Ones that are known to have effect are:
      *<ul>
-     * <li>{@link JsonWriteNullProperties}</li>
      * <li>{@link JsonAutoDetect}</li>
      *</ul>
      * 
      * @param cls Class of which class annotations to use
      *   for changing configuration settings
      */
+    @Override
     public void fromAnnotations(Class<?> cls)
     {
     	/* no class annotation for:
@@ -291,6 +302,84 @@ public class DeserializationConfig
             set(Feature.AUTO_DETECT_CREATORS, ad.booleanValue());
     	}
     }
+
+    /**
+     * Method that is called to create a non-shared copy of the configuration
+     * to be used for a deserialization operation.
+     * Note that if sub-classing
+     * and sub-class has additional instance methods,
+     * this method <b>must</b> be overridden to produce proper sub-class
+     * instance.
+     */
+    @Override
+    public DeserializationConfig createUnshared()
+    {
+    	return new DeserializationConfig(this);
+    }
+
+
+    @Override
+    public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
+        _classIntrospector = i;
+    }
+
+    /**
+     * Method for getting {@link AnnotationIntrospector} configured
+     * to introspect annotation values used for configuration.
+     */
+    @Override
+    public AnnotationIntrospector getAnnotationIntrospector() {
+        return _annotationIntrospector;
+    }
+
+    @Override
+    public void setAnnotationIntrospector(AnnotationIntrospector introspector)
+    {
+        this._annotationIntrospector = introspector;
+    }
+
+    /**
+     * Method to use for defining mix-in annotations to use for augmenting
+     * annotations that deserializable classes have.
+     * Mixing in is done when introspecting class annotations and properties.
+     * Map passed contains keys that are target classes (ones to augment
+     * with new annotation overrides), and values that are source classes
+     * (have annotations to use for augmentation).
+     * Annotations from source classes (and their supertypes)
+     * will <b>override</b>
+     * annotations that target classes (and their super-types) have.
+     *<p>
+     * Note: a copy of argument Map is created; the original Map is
+     * not modified or retained by this config object.
+     *
+     * @since 1.2
+     */
+    @Override
+    public void setMixInAnnotations(Map<Class<?>, Class<?>> sourceMixins)
+    {
+        HashMap<ClassKey,Class<?>> mixins = null;
+        if (sourceMixins != null && sourceMixins.size() > 0) {
+            mixins = new HashMap<ClassKey,Class<?>>(sourceMixins.size());
+            for (Map.Entry<Class<?>,Class<?>> en : sourceMixins.entrySet()) {
+                mixins.put(new ClassKey(en.getKey()), en.getValue());
+            }
+        }
+        _mixInAnnotations = mixins;
+    }
+
+    /***
+     * @since 1.2
+     */
+    @Override
+    public Class<?> findMixInClassFor(Class<?> cls) {
+        return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
+    }
+
+    /*
+    ///////////////////////////////////////////////////////////
+    // Adding problem handlers
+    ///////////////////////////////////////////////////////////
+     */
 
     /**
      * Method that can be used to add a handler that can (try to)
@@ -352,19 +441,6 @@ public class DeserializationConfig
     public DateFormat getDateFormat() { return _dateFormat; }
 
     /**
-     * Method for getting {@link AnnotationIntrospector} configured
-     * to introspect annotation values used for configuration.
-     */
-    public AnnotationIntrospector getAnnotationIntrospector() {
-        return _annotationIntrospector;
-    }
-
-    public void setAnnotationIntrospector(AnnotationIntrospector introspector)
-    {
-        this._annotationIntrospector = introspector;
-    }
-
-    /**
      * Method that will introspect full bean properties for the purpose
      * of building a bean deserializer
      *
@@ -372,7 +448,7 @@ public class DeserializationConfig
      */
     @SuppressWarnings("unchecked")
     public <T extends BeanDescription> T introspect(JavaType type) {
-        return (T) _classIntrospector.forDeserialization(this, type);
+        return (T) _classIntrospector.forDeserialization(this, type, this);
     }
 
     /**
@@ -381,7 +457,7 @@ public class DeserializationConfig
      */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspectForCreation(Class<?> cls) {
-        return (T) _classIntrospector.forCreation(this, cls);
+        return (T) _classIntrospector.forCreation(this, cls, this);
     }
 
     /**
@@ -390,7 +466,7 @@ public class DeserializationConfig
      */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forClassAnnotations(this, cls);
+        return (T) _classIntrospector.forClassAnnotations(this, cls, this);
     }
 
     /*
@@ -440,9 +516,5 @@ public class DeserializationConfig
      */
     public void setDateFormat(DateFormat df) {
         _dateFormat = (df == null) ? StdDateFormat.instance : df;
-    }
-
-    public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
-        _classIntrospector = i;
     }
 }

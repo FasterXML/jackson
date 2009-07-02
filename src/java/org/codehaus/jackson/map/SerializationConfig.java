@@ -1,11 +1,13 @@
 package org.codehaus.jackson.map;
 
 import java.text.DateFormat;
+import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion; // for javadocs
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.StdDateFormat;
 
 /**
@@ -21,6 +23,7 @@ import org.codehaus.jackson.map.util.StdDateFormat;
  * cached first time they are needed.
  */
 public class SerializationConfig
+    implements MapperConfig
 {
     /**
      * Enumeration that defines togglable features that guide
@@ -216,6 +219,21 @@ public class SerializationConfig
      */
     protected JsonSerialize.Inclusion _serializationInclusion = null;
 
+    /**
+     * Mapping that defines how to apply mix-in annotations: key is
+     * the type to received additional annotations, and value is the
+     * type that has annotations to "mix in".
+     *<p>
+     * Annotations associated with the value classes will be used to
+     * override annotations of the key class, associated with the
+     * same field or method. They can be further masked by sub-classes:
+     * you can think of it as injecting annotations between the target
+     * class and its sub-classes (or interfaces)
+     *
+     * @since 1.2
+     */
+    HashMap<ClassKey,Class<?>> _mixInAnnotations;
+
     /*
     ///////////////////////////////////////////////////////////
     // Life-cycle
@@ -238,18 +256,11 @@ public class SerializationConfig
         _serializationInclusion = src._serializationInclusion;
     }
 
-    /**
-     * Method that is called to create a non-shared copy of the configuration
-     * to be used for a serialization operation.
-     * Note that if sub-classing
-     * and sub-class has additional instance methods,
-     * this method <b>must</b> be overridden to produce proper sub-class
-     * instance.
+    /*
+    ///////////////////////////////////////////////////////////
+    // MapperConfig implementation
+    ///////////////////////////////////////////////////////////
      */
-    public SerializationConfig createUnshared()
-    {
-    	return new SerializationConfig(this);
-    }
 
     /**
      * Method that checks class annotations that the argument Object has,
@@ -259,15 +270,17 @@ public class SerializationConfig
      * annotations have global significance, and thus only subset of
      * Jackson annotations will have any effect.
      *<p>
-     * Ones that are known to have effect are:
+     * Serialization annotations that are known to have effect are:
      *<ul>
      * <li>{@link JsonWriteNullProperties}</li>
      * <li>{@link JsonAutoDetect}</li>
+     * <li>{@link JsonSerialize#typing}</li>
      *</ul>
      * 
      * @param cls Class of which class annotations to use
      *   for changing configuration settings
      */
+    @Override
     public void fromAnnotations(Class<?> cls)
     {
         AnnotatedClass ac = AnnotatedClass.construct(cls, _annotationIntrospector);
@@ -290,6 +303,77 @@ public class SerializationConfig
         }
     }
     
+    /**
+     * Method that is called to create a non-shared copy of the configuration
+     * to be used for a serialization operation.
+     * Note that if sub-classing
+     * and sub-class has additional instance methods,
+     * this method <b>must</b> be overridden to produce proper sub-class
+     * instance.
+     */
+    @Override
+    public SerializationConfig createUnshared()
+    {
+    	return new SerializationConfig(this);
+    }
+
+    @Override
+    public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
+        _classIntrospector = i;
+    }
+
+    /**
+     * Method for getting {@link AnnotationIntrospector} configured
+     * to introspect annotation values used for configuration.
+     */
+    @Override
+    public AnnotationIntrospector getAnnotationIntrospector() {
+        return _annotationIntrospector;
+    }
+
+    @Override
+    public void setAnnotationIntrospector(AnnotationIntrospector ai) {
+        _annotationIntrospector = ai;
+    }
+
+    /**
+     * Method to use for defining mix-in annotations to use for augmenting
+     * annotations that serializable classes have.
+     * Mixing in is done when introspecting class annotations and properties.
+     * Map passed contains keys that are target classes (ones to augment
+     * with new annotation overrides), and values that are source classes
+     * (have annotations to use for augmentation).
+     * Annotations from source classes (and their supertypes)
+     * will <b>override</b>
+     * annotations that target classes (and their super-types) have.
+     *<p>
+     * Note: a copy of argument Map is created; the original Map is
+     * not modified or retained by this config object.
+     *
+     * @since 1.2
+     */
+    @Override
+    public void setMixInAnnotations(Map<Class<?>, Class<?>> sourceMixins)
+    {
+        HashMap<ClassKey,Class<?>> mixins = null;
+        if (sourceMixins != null && sourceMixins.size() > 0) {
+            mixins = new HashMap<ClassKey,Class<?>>(sourceMixins.size());
+            for (Map.Entry<Class<?>,Class<?>> en : sourceMixins.entrySet()) {
+                mixins.put(new ClassKey(en.getKey()), en.getValue());
+            }
+        }
+        _mixInAnnotations = mixins;
+    }
+
+    /***
+     * @since 1.2
+     */
+    @Override
+    public Class<?> findMixInClassFor(Class<?> cls) {
+        return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
+    }
+
+
     /*
     ///////////////////////////////////////////////////////////
     // Accessors
@@ -314,21 +398,13 @@ public class SerializationConfig
             JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
     }
 
-    /**
-     * Method for getting {@link AnnotationIntrospector} configured
-     * to introspect annotation values used for configuration.
-     */
-    public AnnotationIntrospector getAnnotationIntrospector() {
-        return _annotationIntrospector;
-    }
-
    /**
      * Method that will introspect full bean properties for the purpose
      * of building a bean serializer
      */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspect(Class<?> cls) {
-        return (T) _classIntrospector.forSerialization(this, cls);
+        return (T) _classIntrospector.forSerialization(this, cls, this);
     }
 
     /**
@@ -337,7 +413,7 @@ public class SerializationConfig
      */
     @SuppressWarnings("unchecked")
 	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forClassAnnotations(this, cls);
+        return (T) _classIntrospector.forClassAnnotations(this, cls, this);
     }
 
     /*
@@ -411,14 +487,6 @@ public class SerializationConfig
         _dateFormat = df;
         // Also: enable/disable usage of 
         set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
-    }
-
-    public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
-        _classIntrospector = i;
-    }
-
-    public void setAnnotationIntrospector(AnnotationIntrospector ai) {
-        _annotationIntrospector = ai;
     }
 
     /*
