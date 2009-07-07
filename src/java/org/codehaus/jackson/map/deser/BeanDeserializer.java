@@ -65,6 +65,14 @@ public class BeanDeserializer
      */
     protected NumberConstructor _numberConstructor;
 
+    /**
+     * If the bean class can be instantiated using a creator
+     * (an annotated single arg constructor or static method),
+     * this object is used for handling details of how delegate-based
+     * deserialization and instance construction works
+     */
+    protected DelegatingConstructor _delegatingConstructor;
+
     /*
     ///////////////////////////////////////////////
     // Property information, setters
@@ -108,12 +116,25 @@ public class BeanDeserializer
         _defaultConstructor = ctor;
     }
 
-    public void setConstructor(StringConstructor ctor) {
-        _stringConstructor = ctor;
+    public void setStringConstructor(Class<?> valueClass,
+				     AnnotatedConstructor ctor, AnnotatedMethod factoryMethod)
+    {
+	_stringConstructor = new StringConstructor(valueClass, ctor, factoryMethod);
     }
 
-    public void setConstructor(NumberConstructor ctor) {
-        _numberConstructor = ctor;
+    public void setNumberConstructor(Class<?> valueClass,
+				     AnnotatedConstructor intCtor,  AnnotatedConstructor longCtor,
+				     AnnotatedMethod intFactory, AnnotatedMethod longFactory)
+    {
+	_numberConstructor = new NumberConstructor(valueClass, intCtor, longCtor, intFactory, longFactory);
+    }
+
+    public void setObjectConstructor(JavaType valueType,
+				     AnnotatedConstructor ctor, AnnotatedMethod factory)
+    {
+	// important: ensure we do not hold on to default constructor...
+	_defaultConstructor = null;
+	_delegatingConstructor = new DelegatingConstructor(valueType, ctor, factory);
     }
     
     /**
@@ -227,6 +248,12 @@ public class BeanDeserializer
             }
             _anySetter.setValueDeserializer(deser);
         }
+
+	// or, delegate-based constructor:
+	if (_delegatingConstructor != null) {
+            JavaType type = _delegatingConstructor.getValueType();
+	    _delegatingConstructor.setDeserializer(provider.findValueDeserializer(config, type, _beanType, null));
+	}
     }
 
     /*
@@ -282,10 +309,11 @@ public class BeanDeserializer
     public Object deserializeFromObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        // !!! TODO: alternative constructors (with annotated params)
-
-        // But for now, must have the default constructor:
         if (_defaultConstructor == null) {
+	    // 07-Jul-2009, tatu: let's allow delegate-based approach too
+	    if (_delegatingConstructor != null) {
+		return _delegatingConstructor.deserialize(jp, ctxt);
+	    }
             throw JsonMappingException.from(jp, "No default constructor found for type "+_beanType+": can not instantiate from Json object");
         }
 
@@ -370,30 +398,20 @@ public class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
-    static class ConstructorBase
-    {
-        protected final Class<?> _valueClass;
-
-        public ConstructorBase(Class<?> valueClass)
-        {
-            _valueClass = valueClass;
-        }
-    }
-
     /**
      * Helper class that can handle simple deserialization from
      * Json String values.
      */
     final static class StringConstructor
-        extends ConstructorBase
     {
+        protected final Class<?> _valueClass;
         protected final Method _factoryMethod;
         protected final Constructor<?> _ctor;
 
         public StringConstructor(Class<?> valueClass, AnnotatedConstructor ctor,
                                  AnnotatedMethod factoryMethod)
         {
-            super(valueClass);
+            _valueClass = valueClass;
             _ctor = (ctor == null) ? null : ctor.getAnnotated();
             _factoryMethod = (factoryMethod == null) ? null : factoryMethod.getAnnotated();
         }
@@ -415,8 +433,9 @@ public class BeanDeserializer
     }
 
     final static class NumberConstructor
-        extends ConstructorBase
     {
+        protected final Class<?> _valueClass;
+
         protected final Constructor<?> _intCtor;
         protected final Constructor<?> _longCtor;
 
@@ -428,7 +447,7 @@ public class BeanDeserializer
                                  AnnotatedConstructor longCtor,
                                  AnnotatedMethod ifm, AnnotatedMethod lfm)
         {
-            super(valueClass);
+            _valueClass = valueClass;
             _intCtor = (intCtor == null) ? null : intCtor.getAnnotated(); 
             _longCtor = (longCtor == null) ? null : longCtor.getAnnotated();
             _intFactoryMethod = (ifm == null) ? null : ifm.getAnnotated();
@@ -470,5 +489,61 @@ public class BeanDeserializer
             }
             return null;
         }
+    }
+
+    /**
+     * Helper class used to delegate parts of deserialization into
+     * another serializer, and then construct instance with deserialized
+     * results (either via constructor or factory method)
+     */
+    final static class DelegatingConstructor
+    {
+	/**
+	 * Type to deserialize JSON to, as well as the type to pass to
+	 * creator (constructor, factory method)
+	 */
+	protected final JavaType _valueType;
+
+        protected final Constructor<?> _ctor;
+        protected final Method _factoryMethod;
+        protected final Class<?> _factoryClass;
+
+	/**
+	 * Delegate deserializer to use for actual deserialization, before
+	 * instantiating value
+	 */
+	protected JsonDeserializer<Object> _deserializer;
+
+        public DelegatingConstructor(JavaType valueType,
+				     AnnotatedConstructor ctor,
+				     AnnotatedMethod factoryMethod)
+	{
+	    _valueType = valueType;
+	    _ctor = ctor.getAnnotated();
+	    _factoryMethod = factoryMethod.getAnnotated();
+	    _factoryClass = (_factoryMethod == null) ? null : _factoryMethod.getDeclaringClass();
+	}
+
+	public JavaType getValueType() { return _valueType; }
+
+	public void setDeserializer(JsonDeserializer<Object> deser)
+	{
+	    _deserializer = deser;
+	}
+
+	public Object deserialize(JsonParser jp, DeserializationContext ctxt)
+	    throws IOException, JsonProcessingException
+	{
+	    Object value = _deserializer.deserialize(jp, ctxt);
+            try {
+                if (_ctor != null) {
+                    return _ctor.newInstance(value);
+                }
+		return _factoryMethod.invoke(_factoryClass, value);
+            } catch (Exception e) {
+                ClassUtil.unwrapAndThrowAsIAE(e);
+		return null;
+            }
+	}
     }
 }

@@ -261,7 +261,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
         <!-- Build a dirpath that contains just the "source" tree -->
         <javadoc windowtitle="Jackson JSON Processor"
             destdir="${dir.javadoc}" 
-            author="true" version="true">
+            author="true" version="true" use="true">
 
             <classpath>
                <fileset dir="${dir.lib}/jaxrs">

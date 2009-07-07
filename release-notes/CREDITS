@@ -120,3 +120,10 @@ Christoph Strebin:
     means value of a property when bean is constructed using the default
     no-arg constructor
    [1.1.0]
+
+Dain Sundstrom:
+  * Suggested addition of "-use" for javadoc generation
+   [1.2.0]
+  * Suggested [JACKSON-136] JsonParser and JsonGenerator should implement
+    java.io.Closeable (since they already have close() method)
+   [1.2.0]

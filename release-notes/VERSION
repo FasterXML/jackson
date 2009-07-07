@@ -10,6 +10,12 @@ Description:
 
   Improvements:
 
+  * Added "-use" flag for generating javadocs
+   (suggested by Dain S)
+  * [JACKSON-136] JsonParser and JsonGenerator should implement
+    java.io.Closeable (since they already have close() method)
+   (suggested by Dain S)
+
   New features:
 
   * [JACKSON-114] Add feature and annotations to make serialization use

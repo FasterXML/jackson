@@ -252,12 +252,15 @@ public class BeanDeserializerFactory
         }
 
         if (strCtor != null || strFactory != null) {
-            deser.setConstructor(new BeanDeserializer.StringConstructor(beanClass, strCtor, strFactory));
+            deser.setStringConstructor(beanClass, strCtor, strFactory);
         }
         if (intCtor != null || intFactory != null ||
             longCtor != null || longFactory != null) {
-            deser.setConstructor(new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactory, longFactory));
+            deser.setNumberConstructor(beanClass, intCtor, longCtor, intFactory, longFactory);
         }
+	if (otherCtor != null || otherFactory != null) {
+	    deser.setObjectConstructor(beanDesc.getType(), otherCtor, otherFactory);
+	}
     }
     
     protected AnnotatedConstructor verifyNonDup(AnnotatedConstructor newOne, AnnotatedConstructor oldOne,
