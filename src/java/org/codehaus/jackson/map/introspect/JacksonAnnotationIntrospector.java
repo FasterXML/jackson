@@ -465,13 +465,13 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public boolean hasCreatorAnnotation(AnnotatedMethod am)
+    public boolean hasCreatorAnnotation(Annotated a)
     {
         /* No dedicated disabling; regular @JsonIgnore used
          * if needs to be ignored (and if so, is handled prior
          * to this method getting called)
          */
-        return am.hasAnnotation(JsonCreator.class);
+        return a.hasAnnotation(JsonCreator.class);
     }
 
     /*

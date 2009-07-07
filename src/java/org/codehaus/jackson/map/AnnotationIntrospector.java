@@ -318,7 +318,8 @@ public abstract class AnnotationIntrospector
     public abstract boolean hasAnySetterAnnotation(AnnotatedMethod am);
 
     /**
-     * Method for checking whether given method has an annotation
+     * Method for checking whether given annotated item (method, constructor)
+     * has an annotation
      * that suggests that the method is a "creator" (aka factory)
      * method to be used for construct new instances of deserialized
      * values.
@@ -326,7 +327,7 @@ public abstract class AnnotationIntrospector
      * @return True if such annotation is found (and is not disabled),
      *   false otherwise
      */
-    public abstract boolean hasCreatorAnnotation(AnnotatedMethod am);
+    public abstract boolean hasCreatorAnnotation(Annotated a);
 
     /*
     ///////////////////////////////////////////////////////
@@ -633,9 +634,9 @@ public abstract class AnnotationIntrospector
         }
 
         @Override
-        public boolean hasCreatorAnnotation(AnnotatedMethod am)
+        public boolean hasCreatorAnnotation(Annotated a)
         {
-            return _primary.hasCreatorAnnotation(am) || _secondary.hasCreatorAnnotation(am);
+            return _primary.hasCreatorAnnotation(a) || _secondary.hasCreatorAnnotation(a);
         }
         
         // // // Deserialization: field annotations

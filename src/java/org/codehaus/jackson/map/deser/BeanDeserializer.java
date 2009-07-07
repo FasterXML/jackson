@@ -7,6 +7,8 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
+import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
+import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.type.JavaType;
@@ -388,12 +390,12 @@ public class BeanDeserializer
         protected final Method _factoryMethod;
         protected final Constructor<?> _ctor;
 
-        public StringConstructor(Class<?> valueClass, Constructor<?> ctor,
-                                 Method factoryMethod)
+        public StringConstructor(Class<?> valueClass, AnnotatedConstructor ctor,
+                                 AnnotatedMethod factoryMethod)
         {
             super(valueClass);
-            _ctor = ctor;
-            _factoryMethod = factoryMethod;
+            _ctor = (ctor == null) ? null : ctor.getAnnotated();
+            _factoryMethod = (factoryMethod == null) ? null : factoryMethod.getAnnotated();
         }
 
         public Object construct(String value)
@@ -422,15 +424,15 @@ public class BeanDeserializer
         protected final Method _longFactoryMethod;
 
         public NumberConstructor(Class<?> valueClass,
-                                 Constructor<?> intCtor,
-                                 Constructor<?> longCtor,
-                                 Method ifm, Method lfm)
+                                 AnnotatedConstructor intCtor,
+                                 AnnotatedConstructor longCtor,
+                                 AnnotatedMethod ifm, AnnotatedMethod lfm)
         {
             super(valueClass);
-            _intCtor = intCtor;
-            _longCtor = longCtor;
-            _intFactoryMethod = ifm;
-            _longFactoryMethod = lfm;
+            _intCtor = (intCtor == null) ? null : intCtor.getAnnotated(); 
+            _longCtor = (longCtor == null) ? null : longCtor.getAnnotated();
+            _intFactoryMethod = (ifm == null) ? null : ifm.getAnnotated();
+            _longFactoryMethod = (lfm == null) ? null : lfm.getAnnotated();
         }
 
         public Object construct(int value)

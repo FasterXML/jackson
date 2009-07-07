@@ -227,6 +227,27 @@ public class BasicBeanDescription extends BeanDescription
         return ac.getAnnotated();
     }
 
+    public List<AnnotatedConstructor> getSingleArgConstructors()
+    {
+        return _classInfo.getSingleArgConstructors();
+    }
+
+    public List<AnnotatedMethod> getFactoryMethods()
+    {
+        // must filter out anything that clearly is not a factory method
+        List<AnnotatedMethod> candidates = _classInfo.getSingleArgStaticMethods();
+        if (candidates.isEmpty()) {
+            return candidates;
+        }
+        ArrayList<AnnotatedMethod> result = new ArrayList<AnnotatedMethod>();
+        for (AnnotatedMethod am : candidates) {
+            if (isFactoryMethod(am)) {
+                result.add(am);
+            }
+        }
+        return result;
+    }
+
     /**
      * Method that can be called to locate a single-arg constructor that
      * takes specified exact type (will not accept supertype constructors)
@@ -238,9 +259,8 @@ public class BasicBeanDescription extends BeanDescription
         for (AnnotatedConstructor ac : _classInfo.getSingleArgConstructors()) {
             // This list is already filtered to only include accessible
             Class<?>[] args = ac.getParameterTypes();
-            /* (note: for now this is a redundant check; but in future
-             * that'll change; thus leaving here for now)
-             */
+            // (note: for now this is a redundant check; but in future
+            // that may change; thus leaving here for now)
             if (args.length == 1) {
                 Class<?> actArg = args[0];
                 for (Class<?> expArg : argTypes) {
@@ -266,35 +286,38 @@ public class BasicBeanDescription extends BeanDescription
     {
         // So, of all single-arg static methods:
         for (AnnotatedMethod am : _classInfo.getSingleArgStaticMethods()) {
-            // First: return type must be the introspected class
-            if (am.getReturnType() != getBeanClass()) {
-                continue;
-            }
-            /* Then: must be a recognized factory, meaning:
-             * (a) public "valueOf", OR
-             * (b) marked with @JsonCreator annotation
-             */
-            if (_annotationIntrospector.hasCreatorAnnotation(am)) {
-                ;
-            } else if ("valueOf".equals(am.getName())) {
-                ;
-            } else { // not recognized, skip
-                continue;
-            }
-
-            // And finally, must take one of expected arg types (or supertype)
-            /* !!! 18-May-2009, tatu: should it complain for explicitly
-             *   marked method that has incompatible signature?
-             */
-            Class<?> actualArgType = am.getParameterTypes()[0];
-            for (Class<?> expArgType : expArgTypes) {
-                // And one that matches what we would pass in
-                if (actualArgType.isAssignableFrom(expArgType)) {
-                    return am.getAnnotated();
+            if (isFactoryMethod(am)) {
+                // And must take one of expected arg types (or supertype)
+                Class<?> actualArgType = am.getParameterTypes()[0];
+                for (Class<?> expArgType : expArgTypes) {
+                    // And one that matches what we would pass in
+                    if (actualArgType.isAssignableFrom(expArgType)) {
+                        return am.getAnnotated();
+                    }
                 }
             }
         }
         return null;
+    }
+
+    protected boolean isFactoryMethod(AnnotatedMethod am)
+    {
+        // First: return type must be the introspected class
+        if (am.getReturnType() != getBeanClass()) {
+            return false;
+        }
+
+        /* Also: must be a recognized factory method, meaning:
+         * (a) marked with @JsonCreator annotation, or
+         * (a) "valueOf" (at this point, need not be public)
+         */
+        if (_annotationIntrospector.hasCreatorAnnotation(am)) {
+            return true;
+        }
+        if ("valueOf".equals(am.getName())) {
+            return true;
+        }
+        return false;
     }
 
     /*

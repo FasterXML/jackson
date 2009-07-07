@@ -55,6 +55,13 @@ public final class AnnotatedConstructor
         return _constructor.getParameterTypes();
     }
 
+
+    public Class<?> getParameterType(int index)
+    {
+        Class<?>[] types = getParameterTypes();
+        return (index >= types.length) ? null : types[index];
+    }
+
     /**
      * Method that can be called to modify access rights, by calling
      * {@link java.lang.reflect.AccessibleObject#setAccessible} on

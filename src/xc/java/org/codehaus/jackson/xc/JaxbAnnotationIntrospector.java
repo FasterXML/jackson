@@ -347,7 +347,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public boolean hasCreatorAnnotation(AnnotatedMethod am)
+    public boolean hasCreatorAnnotation(Annotated am)
     {
         return false;
     }

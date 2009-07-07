@@ -4,6 +4,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -190,15 +191,10 @@ public class BeanDeserializerFactory
                                                BeanDeserializer deser)
     {
         Class<?> beanClass = beanDesc.getBeanClass();
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
 
-        /* Ok then: let's figure out scalar value - based construction
-         * aspects.
-         *
-         * !!! 09-Jan-2009, tatu: Should allow construction from Map
-         *   (which would then be assumed to be "untyped") factory method,
-         *   iff it's marked with @JsonCreator.
-         *   (same with Collections?)
-         */
+        // First, let's figure out constructor/factor- based instantation
         Constructor<?> defaultCtor = beanDesc.findDefaultConstructor();
         if (defaultCtor != null) {
             if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
@@ -207,16 +203,87 @@ public class BeanDeserializerFactory
 
             deser.setDefaultConstructor(defaultCtor);
         }
-        BeanDeserializer.StringConstructor sctor = getStringCreators(config, beanClass, beanDesc);
-        if (sctor != null) {
-            deser.setConstructor(sctor);
+
+        // Then need to find all applicable (single-arg) constructors...
+        AnnotatedConstructor strCtor = null;
+        AnnotatedConstructor intCtor = null;
+        AnnotatedConstructor longCtor = null;
+        AnnotatedConstructor otherCtor = null;
+
+        for (AnnotatedConstructor ctor : beanDesc.getSingleArgConstructors()) {
+            Class<?> type = ctor.getParameterType(0);
+            if (type == String.class) {
+                strCtor = verifyNonDup(ctor, strCtor, fixAccess);
+            } else if (type == int.class || type == Integer.class) {
+                intCtor = verifyNonDup(ctor, intCtor, fixAccess);
+            } else if (type == long.class || type == Long.class) {
+                longCtor = verifyNonDup(ctor, longCtor, fixAccess);
+            } else {
+                // Must be annotated for bean types, public etc not enough
+                if (!intr.hasCreatorAnnotation(ctor)) {
+                    continue;
+                }
+                otherCtor = verifyNonDup(ctor, otherCtor, fixAccess);
+            }
         }
-        BeanDeserializer.NumberConstructor nctor = getNumberCreators(config, beanClass, beanDesc);
-        if (nctor != null) {
-            deser.setConstructor(nctor);
+
+        // and/or single-arg static methods
+        List<AnnotatedMethod> fmethods = beanDesc.getFactoryMethods();
+        AnnotatedMethod strFactory = null;
+        AnnotatedMethod intFactory = null;
+        AnnotatedMethod longFactory = null;
+        AnnotatedMethod otherFactory = null;
+
+        for (AnnotatedMethod factory : beanDesc.getFactoryMethods()) {
+            Class<?> type = factory.getParameterType(0);
+            if (type == String.class) {
+                strFactory = verifyNonDup(factory, strFactory, fixAccess);
+            } else if (type == int.class || type == Integer.class) {
+                intFactory = verifyNonDup(factory, intFactory, fixAccess);
+            } else if (type == long.class || type == Long.class) {
+                longFactory = verifyNonDup(factory, longFactory, fixAccess);
+            } else {
+                // Must be annotated for bean types, public etc not enough
+                if (!intr.hasCreatorAnnotation(factory)) {
+                    continue;
+                }
+                otherFactory = verifyNonDup(factory, otherFactory, fixAccess);
+            }
+        }
+
+        if (strCtor != null || strFactory != null) {
+            deser.setConstructor(new BeanDeserializer.StringConstructor(beanClass, strCtor, strFactory));
+        }
+        if (intCtor != null || intFactory != null ||
+            longCtor != null || longFactory != null) {
+            deser.setConstructor(new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactory, longFactory));
         }
     }
     
+    protected AnnotatedConstructor verifyNonDup(AnnotatedConstructor newOne, AnnotatedConstructor oldOne,
+                                                boolean fixAccess)
+    {
+        if (oldOne != null) {
+            throw new IllegalArgumentException("Conflicting single-arg constructors (types "+oldOne.getParameterType(0).getName()+" vs "+newOne.getParameterType(0).getName());
+        }
+        if (fixAccess) {
+            ClassUtil.checkAndFixAccess(newOne.getAnnotated());
+        }
+        return newOne;
+    }
+
+    protected AnnotatedMethod verifyNonDup(AnnotatedMethod newOne, AnnotatedMethod oldOne,
+                                           boolean fixAccess)
+    {
+        if (oldOne != null) {
+            throw new IllegalArgumentException("Conflicting single-arg factory methods (types "+oldOne.getParameterType(0).getName()+" vs "+newOne.getParameterType(0).getName());
+        }
+        if (fixAccess) {
+            ClassUtil.checkAndFixAccess(newOne.getAnnotated());
+        }
+        return newOne;
+    }
+
     /**
      * Method called to figure out settable properties for the
      * deserializer.
@@ -426,59 +493,6 @@ public class BeanDeserializerFactory
          */
         type = modifyTypeByAnnotation(config, getter, type);
         return new SettableBeanProperty.SetterlessProperty(name, type, m);
-    }
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Helper methods for Bean deserializer: factory methods
-    ////////////////////////////////////////////////////////////
-     */
-
-    BeanDeserializer.StringConstructor getStringCreators(DeserializationConfig config,
-                                                         Class<?> beanClass,
-                                                         BasicBeanDescription beanDesc)
-    {
-        boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-
-        // Single-string ctor
-        Constructor<?> sctor = beanDesc.findSingleArgConstructor(String.class);
-        if (sctor != null && fixAccess) {
-            ClassUtil.checkAndFixAccess(sctor);
-        }
-        // and/or one of "well-known" factory methods
-        Method factoryMethod = beanDesc.findFactoryMethod(String.class);
-        if (factoryMethod != null) {
-            ClassUtil.checkAndFixAccess(factoryMethod);
-        }
-        return new BeanDeserializer.StringConstructor(beanClass, sctor, factoryMethod);
-    }
-
-    BeanDeserializer.NumberConstructor getNumberCreators(DeserializationConfig config,
-                                                         Class<?> beanClass,
-                                                         BasicBeanDescription beanDesc)
-    {
-        boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-
-        // single-arg ctors 
-        Constructor<?> intCtor = beanDesc.findSingleArgConstructor(int.class, Integer.class);
-        if (intCtor != null && fixAccess) {
-            ClassUtil.checkAndFixAccess(intCtor);
-        }
-        Constructor<?> longCtor = beanDesc.findSingleArgConstructor(long.class, Long.class);
-        if (longCtor != null && fixAccess) {
-            ClassUtil.checkAndFixAccess(longCtor);
-        }
-
-        // and/or one of "well-known" factory methods
-        Method intFactoryMethod = beanDesc.findFactoryMethod(int.class, Integer.class);
-        if (intFactoryMethod != null && fixAccess) {
-            ClassUtil.checkAndFixAccess(intFactoryMethod);
-        }
-        Method longFactoryMethod = beanDesc.findFactoryMethod(long.class, Long.class);
-        if (longFactoryMethod != null && fixAccess) {
-            ClassUtil.checkAndFixAccess(longFactoryMethod);
-        }
-        return new BeanDeserializer.NumberConstructor(beanClass, intCtor, longCtor, intFactoryMethod, longFactoryMethod);
     }
 
     /*
