@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.deser;
 
+import java.awt.Point; // just for convenience
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -29,16 +30,19 @@ public class TestConstructFromMap
         }
     }
 
-    static class FactoryFromBigDecimal
+    static class FactoryFromPoint
     {
-        int _value;
+        int _x, _y;
 
-        private FactoryFromBigDecimal(int v) { _value = v; }
+        private FactoryFromPoint(Point p) {
+            _x = p.x;
+            _y = p.y;
+        }
 
         @JsonCreator
-            static FactoryFromBigDecimal createIt(BigDecimal d)
+        static FactoryFromPoint createIt(Point p)
         {
-            return new FactoryFromBigDecimal(d.intValue());
+            return new FactoryFromPoint(p);
         }
     }
 
@@ -52,16 +56,17 @@ public class TestConstructFromMap
     {
         ObjectMapper m = new ObjectMapper();
         ConstructorFromMap result = m.readValue
-            ("{ \"x\":1, \"y\" : 2 }", ConstructorFromMap.class);
+            ("{ \"x\":1, \"y\" : \"abc\" }", ConstructorFromMap.class);
         assertEquals(1, result._x);
-        assertEquals(2, result._y);
+        assertEquals("abc", result._y);
     }
 
     public void testViaFactory() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        FactoryFromBigDecimal result = m.readValue("  28.13 ", FactoryFromBigDecimal.class);
-        assertEquals(28, result._value);
+        FactoryFromPoint result = m.readValue("{ \"x\" : 3, \"y\" : 4 }", FactoryFromPoint.class);
+        assertEquals(3, result._x);
+        assertEquals(4, result._y);
     }
 
 }
