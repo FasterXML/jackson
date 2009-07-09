@@ -4,7 +4,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
 /**
- * This unit test suite tests use of {@link JsonIgnore}
+ * This unit test suite that tests use of {@link JsonIgnore}
  * annotation with deserialization.
  */
 public class TestAnnotationIgnore

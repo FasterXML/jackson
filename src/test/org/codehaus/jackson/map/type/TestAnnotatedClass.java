@@ -119,8 +119,7 @@ public class TestAnnotatedClass
         assertEquals("setX", am.getName());
         // should be one from sub-class
         assertEquals(NumberBean.class, am.getDeclaringClass());
-        Type[] types = am.getGenericParameterTypes();
-        assertEquals(Integer.class, types[0]);
+        assertEquals(Integer.class, am.getParameterClass(0));
     }
 
     public void testFieldIntrospection()
