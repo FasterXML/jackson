@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.type.JavaType;
@@ -129,12 +130,11 @@ public class BeanDeserializer
 	_numberConstructor = new NumberConstructor(valueClass, intCtor, longCtor, intFactory, longFactory);
     }
 
-    public void setObjectConstructor(JavaType valueType,
-				     AnnotatedConstructor ctor, AnnotatedMethod factory)
+    public void setObjectConstructor(AnnotatedConstructor ctor, AnnotatedMethod factory)
     {
 	// important: ensure we do not hold on to default constructor...
 	_defaultConstructor = null;
-	_delegatingConstructor = new DelegatingConstructor(valueType, ctor, factory);
+	_delegatingConstructor = new DelegatingConstructor(ctor, factory);
     }
     
     /**
@@ -186,11 +186,14 @@ public class BeanDeserializer
      * that could be used to construct an instance.
      */
     public void validateConstructors()
+        throws JsonMappingException
     {
         // sanity check: must have a constructor of one type or another
-        if ((_defaultConstructor == null) && (_numberConstructor == null)
-            && (_stringConstructor == null)) {
-            throw new IllegalArgumentException("Can not create Bean deserializer for ("+_beanType+"): neither default constructor nor factory methods found");
+        if ((_defaultConstructor == null)
+            && (_numberConstructor == null)
+            && (_stringConstructor == null)
+            && (_delegatingConstructor == null)) {
+            throw new JsonMappingException("Can not create Bean deserializer for ("+_beanType+"): neither default/delegating constructor nor factory methods found");
         }
     }
 
@@ -506,7 +509,6 @@ public class BeanDeserializer
 
         protected final Constructor<?> _ctor;
         protected final Method _factoryMethod;
-        protected final Class<?> _factoryClass;
 
 	/**
 	 * Delegate deserializer to use for actual deserialization, before
@@ -514,14 +516,20 @@ public class BeanDeserializer
 	 */
 	protected JsonDeserializer<Object> _deserializer;
 
-        public DelegatingConstructor(JavaType valueType,
-				     AnnotatedConstructor ctor,
-				     AnnotatedMethod factoryMethod)
+        public DelegatingConstructor(AnnotatedConstructor ctor,
+				     AnnotatedMethod factory)
 	{
-	    _valueType = valueType;
-	    _ctor = ctor.getAnnotated();
-	    _factoryMethod = factoryMethod.getAnnotated();
-	    _factoryClass = (_factoryMethod == null) ? null : _factoryMethod.getDeclaringClass();
+            if (ctor != null) {
+                _ctor = ctor.getAnnotated();
+                _factoryMethod = null;
+                _valueType = TypeFactory.fromType(ctor.getParameterType(0));
+            } else if (factory != null) {
+                _ctor = null;
+                _factoryMethod = factory.getAnnotated();
+                _valueType = TypeFactory.fromType(factory.getParameterType(0));
+            } else {
+                throw new IllegalArgumentException("Internal error: neither delegating constructor nor factory method passed");
+            }
 	}
 
 	public JavaType getValueType() { return _valueType; }
@@ -539,7 +547,8 @@ public class BeanDeserializer
                 if (_ctor != null) {
                     return _ctor.newInstance(value);
                 }
-		return _factoryMethod.invoke(_factoryClass, value);
+                // static method, 'obj' can be null
+		return _factoryMethod.invoke(null, value);
             } catch (Exception e) {
                 ClassUtil.unwrapAndThrowAsIAE(e);
 		return null;

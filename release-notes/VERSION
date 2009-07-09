@@ -18,6 +18,9 @@ Description:
 
   New features:
 
+  * [JACKSON-92] Allow use of @JsonCreator for constructors and
+    static methods that take a single deserializable type as argument
+    (so-called delegating creators)
   * [JACKSON-114] Add feature and annotations to make serialization use
     static (declared) type over concrete (actual/runtime) type
   * [JACKSON-131] Allow constructing and passing of non-shared
