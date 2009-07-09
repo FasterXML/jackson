@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.introspect;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
 
 import org.codehaus.jackson.map.util.ClassUtil;
 
@@ -51,14 +52,19 @@ public final class AnnotatedConstructor
     //////////////////////////////////////////////////////
      */
 
-    public Class<?>[] getParameterTypes() {
-        return _constructor.getParameterTypes();
+    public int getParameterCount() {
+        return _constructor.getParameterTypes().length;
     }
 
-
-    public Class<?> getParameterType(int index)
+    public Class<?> getParameterClass(int index)
     {
-        Class<?>[] types = getParameterTypes();
+        Class<?>[] types = _constructor.getParameterTypes();
+        return (index >= types.length) ? null : types[index];
+    }
+
+    public Type getParameterType(int index)
+    {
+        Type[] types = _constructor.getGenericParameterTypes();
         return (index >= types.length) ? null : types[index];
     }
 

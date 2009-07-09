@@ -71,11 +71,11 @@ public final class AnnotatedMethod
     //////////////////////////////////////////////////////
      */
 
-    public Type[] getGenericParameterTypes() {
+    public Type[] getParameterTypes() {
         return _method.getGenericParameterTypes();
     }
 
-    public Class<?>[] getParameterTypes()
+    public Class<?>[] getParameterClasses()
     {
         if (_paramTypes == null) {
             _paramTypes = _method.getParameterTypes();
@@ -87,9 +87,15 @@ public final class AnnotatedMethod
         return getParameterTypes().length;
     }
 
-    public Class<?> getParameterType(int index)
+    public Class<?> getParameterClass(int index)
     {
-        Class<?>[] types = getParameterTypes();
+        Class<?>[] types = _method.getParameterTypes();
+        return (index >= types.length) ? null : types[index];
+    }
+
+    public Type getParameterType(int index)
+    {
+        Type[] types = _method.getGenericParameterTypes();
         return (index >= types.length) ? null : types[index];
     }
 

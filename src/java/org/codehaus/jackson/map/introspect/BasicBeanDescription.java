@@ -258,11 +258,11 @@ public class BasicBeanDescription extends BeanDescription
     {
         for (AnnotatedConstructor ac : _classInfo.getSingleArgConstructors()) {
             // This list is already filtered to only include accessible
-            Class<?>[] args = ac.getParameterTypes();
-            // (note: for now this is a redundant check; but in future
-            // that may change; thus leaving here for now)
-            if (args.length == 1) {
-                Class<?> actArg = args[0];
+            /* (note: for now this is a redundant check; but in future
+             * that may change; thus leaving here for now)
+             */
+            if (ac.getParameterCount() == 1) {
+                Class<?> actArg = ac.getParameterClass(0);
                 for (Class<?> expArg : argTypes) {
                     if (expArg == actArg) {
                         return ac.getAnnotated();
@@ -288,7 +288,7 @@ public class BasicBeanDescription extends BeanDescription
         for (AnnotatedMethod am : _classInfo.getSingleArgStaticMethods()) {
             if (isFactoryMethod(am)) {
                 // And must take one of expected arg types (or supertype)
-                Class<?> actualArgType = am.getParameterTypes()[0];
+                Class<?> actualArgType = am.getParameterClass(0);
                 for (Class<?> expArgType : expArgTypes) {
                     // And one that matches what we would pass in
                     if (actualArgType.isAssignableFrom(expArgType)) {
@@ -455,7 +455,7 @@ public class BasicBeanDescription extends BeanDescription
              *  requested; easy enough for devs to add support within
              *  method.
              */
-            Class<?> type = am.getParameterTypes()[0];
+            Class<?> type = am.getParameterClass(0);
             if (type != String.class && type != Object.class) {
                 throw new IllegalArgumentException("Invalid 'any-setter' annotation on method "+am.getName()+"(): first argument not of type String or Object, but "+type.getName());
             }
