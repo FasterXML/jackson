@@ -211,7 +211,7 @@ public class BeanDeserializerFactory
         AnnotatedConstructor otherCtor = null;
 
         for (AnnotatedConstructor ctor : beanDesc.getSingleArgConstructors()) {
-            Class<?> type = ctor.getParameterType(0);
+            Class<?> type = ctor.getParameterClass(0);
             if (type == String.class) {
                 strCtor = verifyNonDup(ctor, strCtor, fixAccess);
             } else if (type == int.class || type == Integer.class) {
@@ -235,7 +235,7 @@ public class BeanDeserializerFactory
         AnnotatedMethod otherFactory = null;
 
         for (AnnotatedMethod factory : beanDesc.getFactoryMethods()) {
-            Class<?> type = factory.getParameterType(0);
+            Class<?> type = factory.getParameterClass(0);
             if (type == String.class) {
                 strFactory = verifyNonDup(factory, strFactory, fixAccess);
             } else if (type == int.class || type == Integer.class) {
@@ -259,7 +259,7 @@ public class BeanDeserializerFactory
             deser.setNumberConstructor(beanClass, intCtor, longCtor, intFactory, longFactory);
         }
 	if (otherCtor != null || otherFactory != null) {
-	    deser.setObjectConstructor(beanDesc.getType(), otherCtor, otherFactory);
+	    deser.setObjectConstructor(otherCtor, otherFactory);
 	}
     }
     
@@ -267,7 +267,7 @@ public class BeanDeserializerFactory
                                                 boolean fixAccess)
     {
         if (oldOne != null) {
-            throw new IllegalArgumentException("Conflicting single-arg constructors (types "+oldOne.getParameterType(0).getName()+" vs "+newOne.getParameterType(0).getName());
+            throw new IllegalArgumentException("Conflicting single-arg constructors (types "+oldOne.getParameterClass(0).getName()+" vs "+newOne.getParameterClass(0).getName());
         }
         if (fixAccess) {
             ClassUtil.checkAndFixAccess(newOne.getAnnotated());
@@ -279,7 +279,7 @@ public class BeanDeserializerFactory
                                            boolean fixAccess)
     {
         if (oldOne != null) {
-            throw new IllegalArgumentException("Conflicting single-arg factory methods (types "+oldOne.getParameterType(0).getName()+" vs "+newOne.getParameterType(0).getName());
+            throw new IllegalArgumentException("Conflicting single-arg factory methods (types "+oldOne.getParameterClass(0).getName()+" vs "+newOne.getParameterClass(0).getName());
         }
         if (fixAccess) {
             ClassUtil.checkAndFixAccess(newOne.getAnnotated());
@@ -375,7 +375,7 @@ public class BeanDeserializerFactory
          */
         JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, am);
         // we know it's a 2-arg method, second arg is the vlaue
-        Type rawType = am.getGenericParameterTypes()[1];
+        Type rawType = am.getParameterType(1);
         JavaType type = TypeFactory.fromType(rawType);
         Method m = am.getAnnotated();
         if (deser != null) {
@@ -412,8 +412,7 @@ public class BeanDeserializerFactory
         }
 
         // note: this works since we know there's exactly one arg for methods
-        Type rawType = setter.getGenericParameterTypes()[0];
-        JavaType type = resolveType(beanDesc, rawType);
+        JavaType type = resolveType(beanDesc, setter.getParameterType(0));
         
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
