@@ -1,19 +1,17 @@
 package org.codehaus.jackson.schema;
 
-import junit.framework.TestCase;
-
-import java.util.Collection;
+import java.util.*;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ObjectNode;
 
 /**
  * @author Ryan Heaton
  */
 public class TestGenerateJsonSchema
-        extends TestCase
+    extends org.codehaus.jackson.map.BaseMapTest
 {
-
     /**
      * tests generating json-schema stuff.
      */
@@ -22,11 +20,11 @@ public class TestGenerateJsonSchema
     {
         ObjectMapper mapper = new ObjectMapper();
         JsonSchema jsonSchema = mapper.generateJsonSchema(SimpleBean.class);
-//        System.out.println(jsonSchema.toString());
         assertNotNull(jsonSchema);
-        assertEquals("object", jsonSchema.getSchemaNode().get("type").getValueAsText());
-        assertEquals(true, jsonSchema.getSchemaNode().get("optional").getBooleanValue());
-        JsonNode propertiesSchema = jsonSchema.getSchemaNode().get("properties");
+	ObjectNode root = jsonSchema.getSchemaNode();
+        assertEquals("object", root.get("type").getValueAsText());
+        assertEquals(true, root.get("optional").getBooleanValue());
+        JsonNode propertiesSchema = root.get("properties");
         assertNotNull(propertiesSchema);
         JsonNode property1Schema = propertiesSchema.get("property1");
         assertNotNull(property1Schema);
@@ -46,6 +44,25 @@ public class TestGenerateJsonSchema
         assertEquals("array", property4Schema.get("type").getValueAsText());
         assertEquals(true, property4Schema.get("optional").getBooleanValue());
         assertEquals("number", property4Schema.get("items").get("type").getValueAsText());
+    }
+
+    /**
+     * Additional unit test for verifying that schema object itself
+     * is properly serializable
+     *
+     * @since 1.2
+     */
+    public void testSchemaSerialization()
+            throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonSchema jsonSchema = mapper.generateJsonSchema(SimpleBean.class);
+	Map<String,Object> result = writeAndMap(mapper, jsonSchema);
+	assertNotNull(result);
+	// no need to check out full structure, just basics...
+	assertEquals("object", result.get("type"));
+	assertEquals(Boolean.TRUE, result.get("optional"));
+	assertNotNull(result.get("properties"));
     }
 
     public static class SimpleBean

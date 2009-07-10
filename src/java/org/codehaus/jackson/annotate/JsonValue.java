@@ -36,8 +36,8 @@ public @interface JsonValue
 {
     /**
      * Optional argument that defines whether this annotation is active
-     * or not. The only use for value 'false' if for overriding purposes
-     * Mostly it may be necessary when used
+     * or not. The only use for value 'false' if for overriding purposes.
+     * Overriding may be necessary when used
      * with "mix-in annotations" (aka "annotation overrides").
      * For most cases, however, default value of "true" is just fine
      * and should be omitted.

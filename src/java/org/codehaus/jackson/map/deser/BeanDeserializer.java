@@ -273,25 +273,11 @@ public class BeanDeserializer
             return deserializeFromObject(jp, ctxt);
         }
         if (t == JsonToken.VALUE_STRING) {
-            Object value = _stringConstructor.construct(jp.getText());
-            if (value != null) {
-                return value;
-            }
-        }
+	    return deserializeFromString(jp, ctxt);
+	}
         if (t.isNumeric()) {
-            Object value = null;
-            switch (jp.getNumberType()) {
-            case INT:
-                value = _numberConstructor.construct(jp.getIntValue());
-                break;
-            case LONG:
-                value = _numberConstructor.construct(jp.getLongValue());
-                break;
-            }
-            if (value != null) {
-                return value;
-            }
-        }
+	    return deserializeFromNumber(jp, ctxt);
+	}
         throw ctxt.mappingException(getBeanClass());
     }
 
@@ -346,6 +332,35 @@ public class BeanDeserializer
             handleUnknownProperty(ctxt, bean, propName);
         }
         return bean;
+    }
+
+    public Object deserializeFromString(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+	if (_stringConstructor != null) {
+	    return _stringConstructor.construct(jp.getText());
+        }
+	if (_delegatingConstructor != null) {
+	    return _delegatingConstructor.deserialize(jp, ctxt);
+	}
+        throw ctxt.mappingException(getBeanClass());
+    }
+
+    public Object deserializeFromNumber(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+	if (_numberConstructor != null) {
+            switch (jp.getNumberType()) {
+            case INT:
+		return _numberConstructor.construct(jp.getIntValue());
+            case LONG:
+		return _numberConstructor.construct(jp.getLongValue());
+            }
+	}
+	if (_delegatingConstructor != null) {
+	    return _delegatingConstructor.deserialize(jp, ctxt);
+	}
+	throw ctxt.mappingException(getBeanClass());
     }
 
     /*

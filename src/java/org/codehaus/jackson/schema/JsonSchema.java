@@ -1,6 +1,7 @@
 package org.codehaus.jackson.schema;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 
@@ -19,6 +20,15 @@ public class JsonSchema
         this.schema = schema;
     }
 
+    /**
+     *<p>
+     * Note: this method is specified with {@link JsonValue} annotation
+     * to represent serialization to use; same as if explicitly
+     * serializing returned object.
+     *
+     * @return Root node of the schema tree
+     */
+    @JsonValue
     public ObjectNode getSchemaNode()
     {
         return schema;
