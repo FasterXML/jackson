@@ -157,19 +157,71 @@ public final class AnnotatedClass
      * Initialization method that will recursively collect Jackson
      * annotations for this class and all super classes and
      * interfaces.
+     *<p>
+     * Starting with 1.2, it will also apply mix-in annotations,
+     * as per [JACKSON-76]
      */
     protected void resolveClassAnnotations()
     {
         _classAnnotations = new AnnotationMap();
+        // add mix-in annotations first (overrides)
+        _addClassMixIns(_classAnnotations, _class);
         // first, annotations from the class itself:
         for (Annotation a : _class.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
-                _classAnnotations.add(a);
+                    _classAnnotations.addIfNotPresent(a);
             }
         }
+
         // and then from super types
         for (Class<?> cls : _superTypes) {
+            // and mix mix-in annotations in-between
+            _addClassMixIns(_classAnnotations, cls);
             for (Annotation a : cls.getDeclaredAnnotations()) {
+                if (_annotationIntrospector.isHandled(a)) {
+                    _classAnnotations.addIfNotPresent(a);
+                }
+            }
+        }
+
+        /* and finally... any annotations there might be for plain
+         * old Object.class: separate because for all other purposes
+         * it is just ignored (not included in super types)
+         */
+        // but only if annotated thingy is a class, not interface
+        if (!_class.isInterface()) {
+            _addClassMixIns(_classAnnotations, Object.class);
+        }
+    }
+
+    /**
+     * Helper method for adding any mix-in annotations specified
+     * class might have.
+     */
+    protected void _addClassMixIns(AnnotationMap annotations, Class<?> toMask)
+    {
+        if (_mixInResolver == null) {
+            return;
+        }
+        Class<?> mixin = _mixInResolver.findMixInClassFor(toMask);
+        if (mixin == null) {
+            return;
+        }
+        // Ok, first: annotations from mix-in class itself:
+        for (Annotation a : mixin.getDeclaredAnnotations()) {
+            if (_annotationIntrospector.isHandled(a)) {
+                _classAnnotations.addIfNotPresent(a);
+            }
+        }
+        /* And then from its supertypes, if any. But note that we will
+         *  only consider super-types up until reaching the masked
+         * class (if found); this because often mix-in class
+         * is a sub-class (for convenience reasons). And if so, we
+         * absolutely must NOT include super types of masked class,
+         * as that would inverse precedence of annotations.
+         */
+        for (Class<?> parent : ClassUtil.findSuperTypes(mixin, toMask)) {
+            for (Annotation a : mixin.getDeclaredAnnotations()) {
                 if (_annotationIntrospector.isHandled(a)) {
                     _classAnnotations.addIfNotPresent(a);
                 }

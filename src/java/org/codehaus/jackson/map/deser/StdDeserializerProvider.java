@@ -192,8 +192,7 @@ public class StdDeserializerProvider
          */
         if (deser != null) {
             AnnotationIntrospector aintr = config.getAnnotationIntrospector();
-            // !!! TODO: pass mixin resolver!!!
-            AnnotatedClass ac = AnnotatedClass.construct(deser.getClass(), aintr, null);
+            AnnotatedClass ac = AnnotatedClass.construct(deser.getClass(), aintr, config);
             // Caching? (yes for bean and enum deserializers)
             Boolean b = aintr.findCachability(ac);
             if (b != null && b.booleanValue()) {
