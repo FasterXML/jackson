@@ -19,7 +19,8 @@ import org.codehaus.jackson.map.JsonMappingException;
  * value.
  */
 public final class ToStringSerializer
-    extends JsonSerializer<Object> implements SchemaAware
+    extends JsonSerializer<Object>
+    implements SchemaAware
 {
     /**
      * Singleton instance to use.
@@ -43,7 +44,7 @@ public final class ToStringSerializer
         jgen.writeString(value.toString());
     }
 
-    @Override
+    //@Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException
     {

@@ -302,8 +302,12 @@ public class BasicBeanDescription extends BeanDescription
 
     protected boolean isFactoryMethod(AnnotatedMethod am)
     {
-        // First: return type must be the introspected class
-        if (am.getReturnType() != getBeanClass()) {
+        /* First: return type must be compatible with the introspected class
+         * (i.e. allowed to be sub-class, although usually is the same
+         * class)
+         */
+        Class<?> rt = am.getReturnType();
+        if (!getBeanClass().isAssignableFrom(rt)) {
             return false;
         }
 

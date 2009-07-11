@@ -12,11 +12,9 @@ import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
-import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.schema.JsonSerializableSchema;
-import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -355,44 +353,12 @@ public class BasicSerializerFactory
 
     /*
     /////////////////////////////////////////////////////////////////
-    // Base serializer that has some shared functionality
-    /////////////////////////////////////////////////////////////////
-     */
-
-    protected abstract static class SerializerBase<T>
-        extends JsonSerializer<T>
-    {
-        public abstract JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException;
-
-        protected ObjectNode createObjectNode() {
-            return JsonNodeFactory.instance.objectNode();
-        }
-
-        protected ObjectNode createSchemaNode(String type)
-        {
-            ObjectNode schema = createObjectNode();
-            schema.put("type", type);
-            return schema;
-        }
-
-        protected ObjectNode createSchemaNode(String type, boolean isOptional)
-        {
-            ObjectNode schema = createSchemaNode(type);
-            schema.put("optional", isOptional);
-            return schema;
-        }
-    }
-
-    /*
-    /////////////////////////////////////////////////////////////////
     // Concrete serializers, non-numeric primitives, Strings, Classes
     /////////////////////////////////////////////////////////////////
      */
 
     public final static class BooleanSerializer
         extends SerializerBase<Boolean>
-        implements SchemaAware
     {
         @Deprecated
         final static BooleanSerializer instance = new BooleanSerializer(false);
@@ -433,7 +399,7 @@ public class BasicSerializerFactory
      * This is the special serializer for regular {@link java.lang.String}s.
      */
     public final static class StringSerializer
-        extends SerializerBase<String> implements SchemaAware
+        extends SerializerBase<String>
     {
         @Override
             public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
@@ -457,7 +423,7 @@ public class BasicSerializerFactory
      */
     @Deprecated
     public final static class StringLikeSerializer<T>
-        extends SerializerBase<T> implements SchemaAware
+        extends SerializerBase<T>
     {
         public final static StringLikeSerializer<Object> instance = new StringLikeSerializer<Object>();
 
@@ -485,7 +451,7 @@ public class BasicSerializerFactory
      * we can just serialize the class name and that should be enough.
      */
     public final static class ClassSerializer
-        extends SerializerBase<Class<?>> implements SchemaAware
+        extends SerializerBase<Class<?>>
     {
         @Override
         public void serialize(Class<?> value, JsonGenerator jgen, SerializerProvider provider)
@@ -509,7 +475,7 @@ public class BasicSerializerFactory
      */
 
     public final static class IntegerSerializer
-        extends SerializerBase<Integer> implements SchemaAware
+        extends SerializerBase<Integer>
     {
         @Override
         public void serialize(Integer value, JsonGenerator jgen, SerializerProvider provider)
@@ -532,12 +498,12 @@ public class BasicSerializerFactory
      * by calling {@link java.lang.Number#intValue}.
      */
     public final static class IntLikeSerializer
-        extends SerializerBase<Number> implements SchemaAware
+        extends SerializerBase<Number>
     {
         final static IntLikeSerializer instance = new IntLikeSerializer();
 
         @Override
-            public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.intValue());
@@ -552,7 +518,7 @@ public class BasicSerializerFactory
     }
 
     public final static class LongSerializer
-        extends SerializerBase<Long> implements SchemaAware
+        extends SerializerBase<Long>
     {
         final static LongSerializer instance = new LongSerializer();
 
@@ -571,7 +537,7 @@ public class BasicSerializerFactory
     }
 
     public final static class FloatSerializer
-        extends SerializerBase<Float> implements SchemaAware
+        extends SerializerBase<Float>
     {
         final static FloatSerializer instance = new FloatSerializer();
 
@@ -590,7 +556,7 @@ public class BasicSerializerFactory
     }
 
     public final static class DoubleSerializer
-        extends SerializerBase<Double> implements SchemaAware
+        extends SerializerBase<Double>
     {
         final static DoubleSerializer instance = new DoubleSerializer();
 
@@ -613,7 +579,7 @@ public class BasicSerializerFactory
      * types of {@link Number}s (custom types).
      */
     public final static class NumberSerializer
-        extends SerializerBase<Number> implements SchemaAware
+        extends SerializerBase<Number>
     {
         public final static NumberSerializer instance = new NumberSerializer();
 
@@ -641,7 +607,6 @@ public class BasicSerializerFactory
 
     public final static class EnumSerializer
         extends SerializerBase<Enum<?>>
-        implements SchemaAware
     {
         @Override
             public void serialize(Enum<?> value, JsonGenerator jgen, SerializerProvider provider)
@@ -676,7 +641,7 @@ public class BasicSerializerFactory
      * and json.
      */
     public final static class CalendarSerializer
-        extends SerializerBase<Calendar> implements SchemaAware
+        extends SerializerBase<Calendar>
     {
         public final static CalendarSerializer instance = new CalendarSerializer();
         @Override
@@ -699,7 +664,7 @@ public class BasicSerializerFactory
      * potentially more readable Strings.
      */
     public final static class UtilDateSerializer
-        extends SerializerBase<java.util.Date> implements SchemaAware
+        extends SerializerBase<java.util.Date>
     {
         public final static UtilDateSerializer instance = new UtilDateSerializer();
         @Override
@@ -724,7 +689,7 @@ public class BasicSerializerFactory
      * that should not be used by plain SQL date.
      */
     public final static class SqlDateSerializer
-        extends SerializerBase<java.sql.Date> implements SchemaAware
+        extends SerializerBase<java.sql.Date>
     {
         @Override
 		public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
@@ -742,10 +707,10 @@ public class BasicSerializerFactory
     }
 
     public final static class SqlTimeSerializer
-        extends SerializerBase<java.sql.Time> implements SchemaAware
+        extends SerializerBase<java.sql.Time>
     {
         @Override
-            public void serialize(java.sql.Time value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(java.sql.Time value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());
@@ -764,7 +729,7 @@ public class BasicSerializerFactory
      * This is the default serializer for nulls.
      */
     public final static class NullSerializer
-        extends SerializerBase<Object> implements SchemaAware
+        extends SerializerBase<Object>
     {
         public final static NullSerializer instance = new NullSerializer();
 
@@ -786,7 +751,7 @@ public class BasicSerializerFactory
     }
 
     public final static class SerializableSerializer
-        extends SerializerBase<JsonSerializable> implements SchemaAware
+        extends SerializerBase<JsonSerializable>
     {
         final static SerializableSerializer instance = new SerializableSerializer();
 

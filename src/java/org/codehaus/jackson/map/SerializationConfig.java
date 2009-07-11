@@ -280,10 +280,13 @@ public class SerializationConfig
      * @param cls Class of which class annotations to use
      *   for changing configuration settings
      */
-    @Override
+    //@Override
     public void fromAnnotations(Class<?> cls)
     {
-        AnnotatedClass ac = AnnotatedClass.construct(cls, _annotationIntrospector);
+        /* 10-Jul-2009, tatu: Should be able to just pass null as
+         *    'MixInResolver'; no mix-ins set at this point
+         */
+        AnnotatedClass ac = AnnotatedClass.construct(cls, _annotationIntrospector, null);
 
         // Should we enable/disable setter auto-detection?
         Boolean ad = _annotationIntrospector.findGetterAutoDetection(ac);
@@ -311,13 +314,13 @@ public class SerializationConfig
      * this method <b>must</b> be overridden to produce proper sub-class
      * instance.
      */
-    @Override
+    //@Override
     public SerializationConfig createUnshared()
     {
     	return new SerializationConfig(this);
     }
 
-    @Override
+    //@Override
     public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
         _classIntrospector = i;
     }
@@ -326,12 +329,12 @@ public class SerializationConfig
      * Method for getting {@link AnnotationIntrospector} configured
      * to introspect annotation values used for configuration.
      */
-    @Override
+    //@Override
     public AnnotationIntrospector getAnnotationIntrospector() {
         return _annotationIntrospector;
     }
 
-    @Override
+    //@Override
     public void setAnnotationIntrospector(AnnotationIntrospector ai) {
         _annotationIntrospector = ai;
     }
@@ -352,7 +355,7 @@ public class SerializationConfig
      *
      * @since 1.2
      */
-    @Override
+    //@Override
     public void setMixInAnnotations(Map<Class<?>, Class<?>> sourceMixins)
     {
         HashMap<ClassKey,Class<?>> mixins = null;
@@ -368,7 +371,7 @@ public class SerializationConfig
     /***
      * @since 1.2
      */
-    @Override
+    //@Override
     public Class<?> findMixInClassFor(Class<?> cls) {
         return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
     }

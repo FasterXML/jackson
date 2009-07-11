@@ -5,6 +5,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.codehaus.jackson.map.ClassIntrospector.MixInResolver;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedClass
@@ -75,6 +76,8 @@ public final class AnnotatedClass
      */
     final AnnotationIntrospector _annotationIntrospector;
 
+    final MixInResolver _mixInResolver;
+
     /*
     ///////////////////////////////////////////////////////
     // Gathered information
@@ -126,11 +129,13 @@ public final class AnnotatedClass
      * configuring instances differently depending on use cases
      */
     private AnnotatedClass(Class<?> cls, List<Class<?>> superTypes,
-                           AnnotationIntrospector aintr)
+                           AnnotationIntrospector aintr,
+                           MixInResolver mir)
     {
         _class = cls;
         _superTypes = superTypes;
         _annotationIntrospector = aintr;
+        _mixInResolver = mir;
     }
 
     /**
@@ -139,10 +144,11 @@ public final class AnnotatedClass
      * any method information.
      */
     public static AnnotatedClass construct(Class<?> cls,
-                                           AnnotationIntrospector aintr)
+                                           AnnotationIntrospector aintr,
+                                           MixInResolver mir)
     {
         List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
-        AnnotatedClass ac = new AnnotatedClass(cls, st, aintr);
+        AnnotatedClass ac = new AnnotatedClass(cls, st, aintr, mir);
         ac.resolveClassAnnotations();
         return ac;
     }

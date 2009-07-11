@@ -79,7 +79,8 @@ public class TestAnnotatedClass
 
     public void testSimple()
     {
-        AnnotatedClass ac = AnnotatedClass.construct(SubClass.class, new JacksonAnnotationIntrospector());
+        // null -> no mix-in annotations
+        AnnotatedClass ac = AnnotatedClass.construct(SubClass.class, new JacksonAnnotationIntrospector(), null);
         ac.resolveMemberMethods(BasicClassIntrospector.GetterMethodFilter.instance);
         ac.resolveCreators(true);
         ac.resolveFields();
@@ -109,7 +110,8 @@ public class TestAnnotatedClass
      */
     public void testGenericsWithSetter()
     {
-        AnnotatedClass ac = AnnotatedClass.construct(NumberBean.class, new JacksonAnnotationIntrospector());
+        // null -> no mix-in annotations
+        AnnotatedClass ac = AnnotatedClass.construct(NumberBean.class, new JacksonAnnotationIntrospector(), null);
         ac.resolveMemberMethods(BasicClassIntrospector.SetterMethodFilter.instance);
         assertEquals(1, ac.getMemberMethodCount());
 
@@ -124,7 +126,8 @@ public class TestAnnotatedClass
 
     public void testFieldIntrospection()
     {
-        AnnotatedClass ac = AnnotatedClass.construct(FieldBean.class, new JacksonAnnotationIntrospector());
+        // null -> no mix-in annotations
+        AnnotatedClass ac = AnnotatedClass.construct(FieldBean.class, new JacksonAnnotationIntrospector(), null);
         ac.resolveFields();
         assertEquals(1, ac.getFieldCount());
         // only one discoverable field property...

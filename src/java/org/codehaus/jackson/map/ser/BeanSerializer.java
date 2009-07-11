@@ -78,7 +78,7 @@ public class BeanSerializer
         }
     }
 
-    @Override
+    //@Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
             throws JsonMappingException
     {

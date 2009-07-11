@@ -9,7 +9,6 @@ import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.type.ArrayType;
@@ -34,12 +33,12 @@ public final class ArraySerializers
      * Generic serializer for Object arrays (<code>Object[]</code>).
      */
     public final static class ObjectArraySerializer
-        extends JsonSerializer<Object[]> implements SchemaAware
+        extends SerializerBase<Object[]>
     {
         public final static ObjectArraySerializer instance = new ObjectArraySerializer();
 
         @Override
-            public void serialize(Object[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Object[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -88,12 +87,11 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
+        //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
+            throws JsonMappingException
         {
-            ObjectNode o = JsonNodeFactory.instance.objectNode();
-            o.put("type", "array");
+            ObjectNode o = createSchemaNode("array", true);
             if (typeHint != null) {
                 JavaType javaType = TypeFactory.fromType(typeHint);
                 if (javaType.isArrayType()) {
@@ -105,16 +103,15 @@ public final class ArraySerializers
                     o.put("items", schemaNode);
                 }
             }
-            o.put("optional", true);
             return o;
         }
     }
 
     public final static class StringArraySerializer
-        extends JsonSerializer<String[]> implements SchemaAware
+        extends SerializerBase<String[]>
     {
         @Override
-		public void serialize(String[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(String[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -141,24 +138,21 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
+        //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
-            ObjectNode o = JsonNodeFactory.instance.objectNode();
-            o.put("type", "array");
-            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
-            itemSchema.put("type", "string");
+            ObjectNode o = createSchemaNode("array", true);
+            ObjectNode itemSchema = createSchemaNode("string");
             o.put("items", itemSchema);
-            o.put("optional", true);
             return o;
         }
     }
 
     public final static class BooleanArraySerializer
-        extends JsonSerializer<boolean[]> implements SchemaAware
+        extends SerializerBase<boolean[]>
     {
         @Override
-		public void serialize(boolean[] value, JsonGenerator jgen, SerializerProvider provider)
+	public void serialize(boolean[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -168,15 +162,12 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
+        //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
-            ObjectNode o = JsonNodeFactory.instance.objectNode();
-            o.put("type", "array");
-            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
-            itemSchema.put("type", "boolean");
+            ObjectNode o = createSchemaNode("array", true);
+            ObjectNode itemSchema = createSchemaNode("boolean");
             o.put("items", itemSchema);
-            o.put("optional", true);
             return o;
         }
     }
@@ -187,34 +178,31 @@ public final class ArraySerializers
      * as base64 encoded bytes (using default base64 encoding).
      */
     public final static class ByteArraySerializer
-        extends JsonSerializer<byte[]> implements SchemaAware
+        extends SerializerBase<byte[]>
     {
         @Override
-		public void serialize(byte[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(byte[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeBinary(value);
         }
 
-        @Override
+        //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
-            ObjectNode o = JsonNodeFactory.instance.objectNode();
-            o.put("type", "array");
-            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
-            itemSchema.put("type", "string"); //binary values written as strings?
+            ObjectNode o = createSchemaNode("array", true);
+            ObjectNode itemSchema = createSchemaNode("string"); //binary values written as strings?
             o.put("items", itemSchema);
-            o.put("optional", true);
             return o;
         }
     }
 
     public final static class ShortArraySerializer
-        extends JsonSerializer<short[]> implements SchemaAware
+        extends SerializerBase<short[]>
     {
         @SuppressWarnings("cast")
-		@Override
-		public void serialize(short[] value, JsonGenerator jgen, SerializerProvider provider)
+        @Override
+        public void serialize(short[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -224,15 +212,12 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
+        //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
-            ObjectNode o = JsonNodeFactory.instance.objectNode();
-            o.put("type", "array");
-            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
-            itemSchema.put("type", "integer"); //no "short" type defined by json
+            ObjectNode o = createSchemaNode("array", true);
+            ObjectNode itemSchema = createSchemaNode("integer"); //no "short" type defined by json
             o.put("items", itemSchema);
-            o.put("optional", true);
             return o;
         }
     }
@@ -243,34 +228,32 @@ public final class ArraySerializers
      * Strings, not arrays of entries.
      */
     public final static class CharArraySerializer
-        extends JsonSerializer<char[]> implements SchemaAware
+        extends SerializerBase<char[]>
     {
         @Override
-		public void serialize(char[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(char[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value, 0, value.length);
         }
 
-        @Override
+        //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
-            ObjectNode o = JsonNodeFactory.instance.objectNode();
-            o.put("type", "array");
-            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
+            ObjectNode o = createSchemaNode("array", true);
+            ObjectNode itemSchema = createSchemaNode("string");
             itemSchema.put("type", "string");
             o.put("items", itemSchema);
-            o.put("optional", true);
             return o;
         }
     }
 
 
     public final static class IntArraySerializer
-        extends JsonSerializer<int[]> implements SchemaAware
+        extends SerializerBase<int[]>
     {
         @Override
-            public void serialize(int[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(int[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -280,24 +263,21 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
+        //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
-            ObjectNode o = JsonNodeFactory.instance.objectNode();
-            o.put("type", "array");
-            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
-            itemSchema.put("type", "integer");
+            ObjectNode o = createSchemaNode("array", true);
+            ObjectNode itemSchema = createSchemaNode("integer");
             o.put("items", itemSchema);
-            o.put("optional", true);
             return o;
         }
     }
 
     public final static class LongArraySerializer
-        extends JsonSerializer<long[]> implements SchemaAware
+        extends SerializerBase<long[]>
     {
         @Override
-		public void serialize(long[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(long[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -307,24 +287,21 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
+        //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
-            ObjectNode o = JsonNodeFactory.instance.objectNode();
-            o.put("type", "array");
-            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
-            itemSchema.put("type", "number");
+            ObjectNode o = createSchemaNode("array", true);
+            ObjectNode itemSchema = createSchemaNode("number", true);
             o.put("items", itemSchema);
-            o.put("optional", true);
             return o;
         }
     }
 
     public final static class FloatArraySerializer
-        extends JsonSerializer<float[]> implements SchemaAware
+        extends SerializerBase<float[]>
     {
         @Override
-		public void serialize(float[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(float[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -334,24 +311,21 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
+        //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
-            ObjectNode o = JsonNodeFactory.instance.objectNode();
-            o.put("type", "array");
-            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
-            itemSchema.put("type", "number");
+            ObjectNode o = createSchemaNode("array", true);
+            ObjectNode itemSchema = createSchemaNode("number");
             o.put("items", itemSchema);
-            o.put("optional", true);
             return o;
         }
     }
 
     public final static class DoubleArraySerializer
-        extends JsonSerializer<double[]> implements SchemaAware
+        extends SerializerBase<double[]>
     {
         @Override
-		public void serialize(double[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(double[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -361,15 +335,12 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
+        //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
-            ObjectNode o = JsonNodeFactory.instance.objectNode();
-            o.put("type", "array");
-            ObjectNode itemSchema = JsonNodeFactory.instance.objectNode();
-            itemSchema.put("type", "number");
+            ObjectNode o = createSchemaNode("array", true);
+            ObjectNode itemSchema = createSchemaNode("number");
             o.put("items", itemSchema);
-            o.put("optional", true);
             return o;
         }
     }

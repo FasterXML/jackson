@@ -192,7 +192,8 @@ public class StdDeserializerProvider
          */
         if (deser != null) {
             AnnotationIntrospector aintr = config.getAnnotationIntrospector();
-            AnnotatedClass ac = AnnotatedClass.construct(deser.getClass(), aintr);
+            // !!! TODO: pass mixin resolver!!!
+            AnnotatedClass ac = AnnotatedClass.construct(deser.getClass(), aintr, null);
             // Caching? (yes for bean and enum deserializers)
             Boolean b = aintr.findCachability(ac);
             if (b != null && b.booleanValue()) {
@@ -214,7 +215,7 @@ public class StdDeserializerProvider
      */
     @SuppressWarnings("unchecked")
     protected JsonDeserializer<Object> _createDeserializer(DeserializationConfig config, 
-    			JavaType type,
+                                                           JavaType type,
                                                            JavaType referrer, String refPropName)
         throws JsonMappingException
     {

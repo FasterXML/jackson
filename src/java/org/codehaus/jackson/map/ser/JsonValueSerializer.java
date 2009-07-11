@@ -46,7 +46,7 @@ public final class JsonValueSerializer
     }
 
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider prov)
-            throws IOException, JsonGenerationException
+        throws IOException, JsonGenerationException
     {
         try {
             Object value = _accessorMethod.invoke(bean);
@@ -78,9 +78,9 @@ public final class JsonValueSerializer
         }
     }
 
-    @Override
+    //@Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
+        throws JsonMappingException
     {
         return (_serializer instanceof SchemaAware) ?
                 ((SchemaAware) _serializer).getSchema(provider, null) :

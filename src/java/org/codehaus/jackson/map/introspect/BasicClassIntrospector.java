@@ -123,7 +123,7 @@ public class BasicClassIntrospector
                                                  MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(c, ai);
+        AnnotatedClass ac = AnnotatedClass.construct(c, ai, r);
         ac.resolveMemberMethods(getSerializationMethodFilter(cfg));
         /* only the default constructor needed here (that's needed
          * in case we need to check default bean property values,
@@ -140,7 +140,7 @@ public class BasicClassIntrospector
                                                    MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), ai);
+        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), ai, r);
         // everything needed for deserialization
         ac.resolveMemberMethods(getDeserializationMethodFilter(cfg));
         // include all kinds of creator methods:
@@ -155,7 +155,7 @@ public class BasicClassIntrospector
                                             MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(c, ai);
+        AnnotatedClass ac = AnnotatedClass.construct(c, ai, r);
         ac.resolveCreators(true);
         return new BasicBeanDescription(TypeFactory.fromClass(c), ac, ai);
     }
@@ -166,7 +166,7 @@ public class BasicClassIntrospector
                                                    MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(c, ai);
+        AnnotatedClass ac = AnnotatedClass.construct(c, ai, r);
         return new BasicBeanDescription(TypeFactory.fromClass(c), ac, ai);
     }
 
