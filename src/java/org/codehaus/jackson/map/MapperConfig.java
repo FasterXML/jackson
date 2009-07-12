@@ -57,6 +57,20 @@ public interface MapperConfig
      */
     public void setMixInAnnotations(Map<Class<?>, Class<?>> mixins);
 
+    /**
+     * Method to use for adding mix-in annotations to use for augmenting
+     * specified class or interface. All annotations from
+     * <code>mixinSource</code> are taken to override annotations
+     * that <code>target</code> (or its supertypes) has.
+     *
+     * @since 1.2
+     *
+     * @param target Class (or interface) whose annotations to effectively override
+     * @param mixinSource Class (or interface) whose annotations are to
+     *   be "added" to target's annotations, overriding as necessary
+     */
+    public void addMixInAnnotations(Class<?> target, Class<?> mixinSource);
+
     // ClassIntrospector.MixInResolver impl:
 
     /**

@@ -368,11 +368,21 @@ public class SerializationConfig
         _mixInAnnotations = mixins;
     }
 
+    //@Override
+    public void addMixInAnnotations(Class<?> target, Class<?> mixinSource)
+    {
+        if (_mixInAnnotations == null) {
+            _mixInAnnotations = new HashMap<ClassKey,Class<?>>();
+        }
+        _mixInAnnotations.put(new ClassKey(target), mixinSource);
+    }
+
     /***
      * @since 1.2
      */
     //@Override
     public Class<?> findMixInClassFor(Class<?> cls) {
+System.err.println(" DEBUG: find for "+cls.getName()+"; map "+_mixInAnnotations);
         return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
     }
 

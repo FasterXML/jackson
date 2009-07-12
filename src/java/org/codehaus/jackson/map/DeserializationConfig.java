@@ -370,6 +370,15 @@ public class DeserializationConfig
         _mixInAnnotations = mixins;
     }
 
+    //@Override
+    public void addMixInAnnotations(Class<?> target, Class<?> mixinSource)
+    {
+        if (_mixInAnnotations == null) {
+            _mixInAnnotations = new HashMap<ClassKey,Class<?>>();
+        }
+        _mixInAnnotations.put(new ClassKey(target), mixinSource);
+    }
+
     /***
      * @since 1.2
      */

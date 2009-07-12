@@ -169,7 +169,7 @@ public final class AnnotatedClass
         // first, annotations from the class itself:
         for (Annotation a : _class.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
-                    _classAnnotations.addIfNotPresent(a);
+                _classAnnotations.addIfNotPresent(a);
             }
         }
 
@@ -210,7 +210,7 @@ public final class AnnotatedClass
         // Ok, first: annotations from mix-in class itself:
         for (Annotation a : mixin.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
-                _classAnnotations.addIfNotPresent(a);
+                annotations.addIfNotPresent(a);
             }
         }
         /* And then from its supertypes, if any. But note that we will
@@ -223,7 +223,7 @@ public final class AnnotatedClass
         for (Class<?> parent : ClassUtil.findSuperTypes(mixin, toMask)) {
             for (Annotation a : mixin.getDeclaredAnnotations()) {
                 if (_annotationIntrospector.isHandled(a)) {
-                    _classAnnotations.addIfNotPresent(a);
+                    annotations.addIfNotPresent(a);
                 }
             }
         }
