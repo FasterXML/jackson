@@ -382,7 +382,6 @@ public class SerializationConfig
      */
     //@Override
     public Class<?> findMixInClassFor(Class<?> cls) {
-System.err.println(" DEBUG: find for "+cls.getName()+"; map "+_mixInAnnotations);
         return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
     }
 
