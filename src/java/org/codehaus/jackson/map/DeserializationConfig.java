@@ -235,6 +235,16 @@ public class DeserializationConfig
      */
     HashMap<ClassKey,Class<?>> _mixInAnnotations;
 
+
+    /**
+     * Flag used to detect when a copy if mix-in annotations is
+     * needed: set when current copy is shared, cleared when a
+     * fresh copy is maed
+     *
+     * @since 1.2
+     */
+    protected boolean _mixInAnnotationsShared;
+
     /*
     ///////////////////////////////////////////////////////////
     // Life-cycle
@@ -248,13 +258,15 @@ public class DeserializationConfig
         _annotationIntrospector = annIntr;
     }
 
-    protected DeserializationConfig(DeserializationConfig src)
+    protected DeserializationConfig(DeserializationConfig src,
+                                    HashMap<ClassKey,Class<?>> mixins)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
         _featureFlags = src._featureFlags;
         _problemHandlers = src._problemHandlers;
         _dateFormat = src._dateFormat;
+        _mixInAnnotations = mixins;
     }
 
     /*
@@ -317,7 +329,9 @@ public class DeserializationConfig
     //@Override
     public DeserializationConfig createUnshared()
     {
-    	return new DeserializationConfig(this);
+        HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
+        _mixInAnnotationsShared = true;
+    	return new DeserializationConfig(this, mixins);
     }
 
 
@@ -367,13 +381,15 @@ public class DeserializationConfig
                 mixins.put(new ClassKey(en.getKey()), en.getValue());
             }
         }
+        _mixInAnnotationsShared = false;
         _mixInAnnotations = mixins;
     }
 
     //@Override
     public void addMixInAnnotations(Class<?> target, Class<?> mixinSource)
     {
-        if (_mixInAnnotations == null) {
+        if (_mixInAnnotations == null || _mixInAnnotationsShared) {
+            _mixInAnnotationsShared = false;
             _mixInAnnotations = new HashMap<ClassKey,Class<?>>();
         }
         _mixInAnnotations.put(new ClassKey(target), mixinSource);

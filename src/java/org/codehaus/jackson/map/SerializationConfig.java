@@ -232,7 +232,16 @@ public class SerializationConfig
      *
      * @since 1.2
      */
-    HashMap<ClassKey,Class<?>> _mixInAnnotations;
+    protected HashMap<ClassKey,Class<?>> _mixInAnnotations;
+
+    /**
+     * Flag used to detect when a copy if mix-in annotations is
+     * needed: set when current copy is shared, cleared when a
+     * fresh copy is maed
+     *
+     * @since 1.2
+     */
+    protected boolean _mixInAnnotationsShared;
 
     /*
     ///////////////////////////////////////////////////////////
@@ -247,13 +256,15 @@ public class SerializationConfig
         _annotationIntrospector = annIntr;
     }
 
-    protected SerializationConfig(SerializationConfig src)
+    protected SerializationConfig(SerializationConfig src,
+                                  HashMap<ClassKey,Class<?>> mixins)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
         _featureFlags = src._featureFlags;
         _dateFormat = src._dateFormat;
         _serializationInclusion = src._serializationInclusion;
+        _mixInAnnotations = mixins;
     }
 
     /*
@@ -317,7 +328,9 @@ public class SerializationConfig
     //@Override
     public SerializationConfig createUnshared()
     {
-    	return new SerializationConfig(this);
+        HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
+        _mixInAnnotationsShared = true;
+    	return new SerializationConfig(this, mixins);
     }
 
     //@Override
@@ -365,13 +378,15 @@ public class SerializationConfig
                 mixins.put(new ClassKey(en.getKey()), en.getValue());
             }
         }
+        _mixInAnnotationsShared = false;
         _mixInAnnotations = mixins;
     }
 
     //@Override
     public void addMixInAnnotations(Class<?> target, Class<?> mixinSource)
     {
-        if (_mixInAnnotations == null) {
+        if (_mixInAnnotations == null || _mixInAnnotationsShared) {
+            _mixInAnnotationsShared = false;
             _mixInAnnotations = new HashMap<ClassKey,Class<?>>();
         }
         _mixInAnnotations.put(new ClassKey(target), mixinSource);

@@ -64,21 +64,24 @@ public class TestMixinsForClass
         Map<String,Object> result;
 
         // first: with no mix-ins:
-        /*
         result = writeAndMap(mapper, new LeafClass("abc"));
         assertEquals(1, result.size());
         assertEquals("abc", result.get("a"));
-        */
 
         // then with top-level override
         mapper = new ObjectMapper();
         mapper.getSerializationConfig().addMixInAnnotations(LeafClass.class, MixIn.class);
         result = writeAndMap(mapper, new LeafClass("abc"));
-//System.err.println("== "+result);
         assertEquals(2, result.size());
         assertEquals("abc", result.get("a"));
         assertEquals("c", result.get("c"));
 
+        // then mid-level override; should not have any effect
+        mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(BaseClass.class, MixIn.class);
+        result = writeAndMap(mapper, new LeafClass("abc"));
+        assertEquals(1, result.size());
+        assertEquals("abc", result.get("a"));
     }
 
     /*
