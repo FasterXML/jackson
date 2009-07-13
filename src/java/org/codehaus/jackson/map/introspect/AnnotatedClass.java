@@ -76,7 +76,18 @@ public final class AnnotatedClass
      */
     final AnnotationIntrospector _annotationIntrospector;
 
+    /**
+     * Object that knows mapping of mix-in classes (ones that contain
+     * annotations to add) with their target classes (ones that
+     * get these additional annotations "mixed in").
+     */
     final MixInResolver _mixInResolver;
+
+    /**
+     * Primary mix-in class; one to use for the annotated class
+     * itself. Can be null.
+     */
+    final Class<?> _primaryMixIn;
 
     /*
     ///////////////////////////////////////////////////////
@@ -136,6 +147,8 @@ public final class AnnotatedClass
         _superTypes = superTypes;
         _annotationIntrospector = aintr;
         _mixInResolver = mir;
+        _primaryMixIn = (_mixInResolver == null) ? null
+            : _mixInResolver.findMixInClassFor(_class);
     }
 
     /**
@@ -173,7 +186,9 @@ public final class AnnotatedClass
     {
         _classAnnotations = new AnnotationMap();
         // add mix-in annotations first (overrides)
-        _addClassMixIns(_classAnnotations, _class);
+        if (_primaryMixIn != null) {
+            _addClassMixIns(_classAnnotations, _class, _primaryMixIn);
+        }
         // first, annotations from the class itself:
         for (Annotation a : _class.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
@@ -209,10 +224,14 @@ public final class AnnotatedClass
      */
     protected void _addClassMixIns(AnnotationMap annotations, Class<?> toMask)
     {
-        if (_mixInResolver == null) {
-            return;
+        if (_mixInResolver != null) {
+            _addClassMixIns(annotations, toMask, _mixInResolver.findMixInClassFor(toMask));
         }
-        Class<?> mixin = _mixInResolver.findMixInClassFor(toMask);
+    }
+
+    protected void _addClassMixIns(AnnotationMap annotations, Class<?> toMask,
+                                   Class<?> mixin)
+    {
         if (mixin == null) {
             return;
         }
@@ -239,9 +258,9 @@ public final class AnnotatedClass
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Methods for populating method/field information
-    ///////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////
+    // Methods for populating creator (ctor, factory) information
+    /////////////////////////////////////////////////////////////
      */
 
     /**
@@ -273,6 +292,10 @@ public final class AnnotatedClass
                 break;
             }
         }
+        // and if need be, augment with mix-ins
+        if (_primaryMixIn != null) {
+            _addConstructorMixins(_primaryMixIn);
+        }
 
         _singleArgStaticMethods = null;
 
@@ -291,8 +314,27 @@ public final class AnnotatedClass
                     }
                 }
             }
+            if (_primaryMixIn != null) {
+                _addFactoryMixins(_primaryMixIn);
+            }
         }
     }
+
+    protected void _addConstructorMixins(Class<?> mixin)
+    {
+        // !!! TBI
+    }
+
+    protected void _addFactoryMixins(Class<?> mixin)
+    {
+        // !!! TBI
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Methods for populating method information
+    ///////////////////////////////////////////////////////
+     */
 
     public void resolveMemberMethods(MethodFilter methodFilter)
     {
@@ -340,6 +382,12 @@ public final class AnnotatedClass
         }
     }
 
+    /*
+    ///////////////////////////////////////////////////////
+    // Methods for populating field information
+    ///////////////////////////////////////////////////////
+     */
+
     /**
      * Method that will collect all member (non-static) fields
      * that are either public, or have at least a single annotation
@@ -349,6 +397,50 @@ public final class AnnotatedClass
     {
         _fields = new ArrayList<AnnotatedField>();
         _addFields(_fields, _class);
+        if (_primaryMixIn != null) {
+            _addFieldMixIns(_primaryMixIn);
+        }
+    }
+
+    protected void _addFields(List<AnnotatedField> fields, Class<?> c)
+    {
+        /* First, a quick test: we only care for regular classes (not
+         * interfaces, primitive types etc), except for Object.class.
+         * A simple check to rule out other cases is to see if there
+         * is a super class or not.
+         */
+        Class<?> parent = c.getSuperclass();
+        if (parent != null) {
+            /* Let's add super-class' fields first, then ours.
+             * Also: we won't be checking for masking (by name); it
+             * can happen, if very rarely, but will be handled later
+             * on when resolving masking between methods and fields
+             */
+            _addFields(fields, parent);
+            for (Field f : c.getDeclaredFields()) {
+                if (!_isIncludableField(f)) {
+                    continue;
+                }
+                /* Need to be public, or have an annotation
+                 * (these are required, but not sufficient checks).
+                 * Note: can also check for exclusion here, since fields
+                 * are not overridable.
+                 */
+                Annotation[] anns = f.getAnnotations();
+                int mods = f.getModifiers();
+                if (Modifier.isPublic(mods) || anns.length > 0) {
+                    AnnotatedField af = _constructField(f);
+                    if (!_annotationIntrospector.isIgnorableField(af)) {
+                        fields.add(af);
+                    }
+                }
+            }
+        }
+    }
+
+    protected void _addFieldMixIns(Class<?> _primaryMixIn)
+    {
+        // !!! TBI
     }
 
     /*
@@ -417,42 +509,6 @@ public final class AnnotatedClass
             return false;
         }
         return true;
-    }
-
-    private void _addFields(List<AnnotatedField> fields, Class<?> c)
-    {
-        /* First, a quick test: we only care for regular classes (not
-         * interfaces, primitive types etc), except for Object.class.
-         * A simple check to rule out other cases is to see if there
-         * is a super class or not.
-         */
-        Class<?> parent = c.getSuperclass();
-        if (parent != null) {
-            /* Let's add super-class' fields first, then ours.
-             * Also: we won't be checking for masking (by name); it
-             * can happen, if very rarely, but will be handled later
-             * on when resolving masking between methods and fields
-             */
-            _addFields(fields, parent);
-            for (Field f : c.getDeclaredFields()) {
-                if (!_isIncludableField(f)) {
-                    continue;
-                }
-                /* Need to be public, or have an annotation
-                 * (these are required, but not sufficient checks).
-                 * Note: can also check for exclusion here, since fields
-                 * are not overridable.
-                 */
-                Annotation[] anns = f.getAnnotations();
-                int mods = f.getModifiers();
-                if (Modifier.isPublic(mods) || anns.length > 0) {
-                    AnnotatedField af = _constructField(f);
-                    if (!_annotationIntrospector.isIgnorableField(af)) {
-                        fields.add(af);
-                    }
-                }
-            }
-        }
     }
 
     /*
