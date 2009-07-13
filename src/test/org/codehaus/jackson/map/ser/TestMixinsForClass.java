@@ -115,10 +115,4 @@ public class TestMixinsForClass
         assertEquals(1, result.size());
         assertEquals("c2", result.get("c"));
     }
-
-    /*
-    ///////////////////////////////////////////////////////////
-    // Helper methods
-    ///////////////////////////////////////////////////////////
-     */
 }

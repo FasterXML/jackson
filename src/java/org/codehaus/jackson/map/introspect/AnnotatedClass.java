@@ -153,6 +153,14 @@ public final class AnnotatedClass
         return ac;
     }
 
+    /*
+    ///////////////////////////////////////////////////////
+    // Methods for resolving class annotations
+    // (resolution consisting of inheritance, overrides,
+    // and injection of mix-ins as necessary)
+    ///////////////////////////////////////////////////////
+     */
+
     /**
      * Initialization method that will recursively collect Jackson
      * annotations for this class and all super classes and
@@ -188,10 +196,11 @@ public final class AnnotatedClass
          * old Object.class: separate because for all other purposes
          * it is just ignored (not included in super types)
          */
-        // but only if annotated thingy is a class, not interface
-        if (!_class.isInterface()) {
-            _addClassMixIns(_classAnnotations, Object.class);
-        }
+        /* 12-Jul-2009, tatu: Should this be done for interfaces too?
+         *   For now, yes, seems useful for some cases, and not harmful
+         *   for any?
+         */
+        _addClassMixIns(_classAnnotations, Object.class);
     }
 
     /**
@@ -238,6 +247,9 @@ public final class AnnotatedClass
     /**
      * Initialization method that will find out all constructors
      * and potential static factory methods the class has.
+     *<p>
+     * Starting with 1.2, it will also apply mix-in annotations,
+     * as per [JACKSON-76]
      *
      * @param includeAll If true, includes all creator methods; if false,
      *   will only include the no-arguments "default" constructor
