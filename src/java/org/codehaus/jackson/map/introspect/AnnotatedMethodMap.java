@@ -11,7 +11,7 @@ import java.util.*;
 public final class AnnotatedMethodMap
     implements Iterable<AnnotatedMethod>
 {
-    LinkedHashMap<MethodKey,AnnotatedMethod> _methods;
+    LinkedHashMap<MemberKey,AnnotatedMethod> _methods;
 
     public AnnotatedMethodMap() { }
 
@@ -21,9 +21,9 @@ public final class AnnotatedMethodMap
     public void add(AnnotatedMethod am)
     {
         if (_methods == null) {
-            _methods = new LinkedHashMap<MethodKey,AnnotatedMethod>();
+            _methods = new LinkedHashMap<MemberKey,AnnotatedMethod>();
         }
-        _methods.put(new MethodKey(am.getAnnotated()), am);
+        _methods.put(new MemberKey(am.getAnnotated()), am);
     }
 
     /**
@@ -33,7 +33,7 @@ public final class AnnotatedMethodMap
     public void remove(AnnotatedMethod am)
     {
         if (_methods != null) {
-            _methods.remove(new MethodKey(am.getAnnotated()));
+            _methods.remove(new MemberKey(am.getAnnotated()));
         }
     }
 
@@ -50,7 +50,7 @@ public final class AnnotatedMethodMap
         if (_methods == null) {
             return null;
         }
-        return _methods.get(new MethodKey(name, paramTypes));
+        return _methods.get(new MemberKey(name, paramTypes));
     }
 
     public AnnotatedMethod find(Method m)
@@ -58,7 +58,7 @@ public final class AnnotatedMethodMap
         if (_methods == null) {
             return null;
         }
-        return _methods.get(new MethodKey(m));
+        return _methods.get(new MemberKey(m));
     }
 
     /*

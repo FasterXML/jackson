@@ -1,24 +1,31 @@
 package org.codehaus.jackson.map.introspect;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 /**
- * Helper class needed to be able to efficiently store {@link Method}s
+ * Helper class needed to be able to efficiently access class
+ * member functions ({@link Method}s and {@link Constructor}s)
  * in {@link java.util.Map}s.
  */
-public final class MethodKey
+public final class MemberKey
 {
     final static Class<?>[] NO_CLASSES = new Class<?>[0];
 
     final String _name;
     final Class<?>[] _argTypes;
 
-    public MethodKey(Method m)
+    public MemberKey(Method m)
     {
         this(m.getName(), m.getParameterTypes());
     }
 
-    public MethodKey(String name, Class<?>[] argTypes)
+    public MemberKey(Constructor ctor)
+    {
+        this("", ctor.getParameterTypes());
+    }
+
+    public MemberKey(String name, Class<?>[] argTypes)
     {
         _name = name;
         _argTypes = (argTypes == null) ? NO_CLASSES : argTypes;
@@ -43,7 +50,7 @@ public final class MethodKey
         if (o.getClass() != getClass()) {
             return false;
         }
-        MethodKey other = (MethodKey) o;
+        MemberKey other = (MemberKey) o;
         if (!_name.equals(other._name)) {
             return false;
         }

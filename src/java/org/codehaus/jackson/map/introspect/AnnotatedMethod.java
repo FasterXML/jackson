@@ -39,6 +39,16 @@ public final class AnnotatedMethod
         _annotations.addIfNotPresent(a);
     }
 
+    /**
+     * Method called to override an annotation, usually due to a mix-in
+     * annotation masking or overriding an annotation 'real' constructor
+     * has.
+     */
+    public void addOrOverride(Annotation a)
+    {
+        _annotations.add(a);
+    }
+
     /*
     //////////////////////////////////////////////////////
     // Annotated impl

@@ -7,6 +7,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 
@@ -78,6 +79,10 @@ public abstract class AnnotationIntrospector
      */
     public abstract boolean isIgnorableMethod(AnnotatedMethod m);
 
+    /**
+     * @since 1.2
+     */
+    public abstract boolean isIgnorableConstructor(AnnotatedConstructor c);
 
     /*
     ////////////////////////////////////////////////////
@@ -410,11 +415,15 @@ public abstract class AnnotationIntrospector
         // // // General method annotations
 
         @Override
-        public boolean isIgnorableMethod(AnnotatedMethod m)
-        {
+        public boolean isIgnorableMethod(AnnotatedMethod m) {
             return _primary.isIgnorableMethod(m) || _secondary.isIgnorableMethod(m);
         }
         
+        @Override
+        public boolean isIgnorableConstructor(AnnotatedConstructor c) {
+            return _primary.isIgnorableConstructor(c) || _secondary.isIgnorableConstructor(c);
+        }
+
         // // // General field annotations
 
         @Override

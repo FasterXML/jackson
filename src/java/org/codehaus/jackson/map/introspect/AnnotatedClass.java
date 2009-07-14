@@ -294,11 +294,32 @@ public final class AnnotatedClass
         }
         // and if need be, augment with mix-ins
         if (_primaryMixIn != null) {
-            _addConstructorMixins(_primaryMixIn);
+            if (_defaultConstructor != null || _singleArgConstructors != null) {
+                _addConstructorMixins(_primaryMixIn);
+            }
+        }
+
+
+        /* And then... let's remove all constructors that are
+         * deemed to be ignorable after all annotations has been
+         * properly collapsed.
+         */
+        if (_defaultConstructor != null) {
+            if (_annotationIntrospector.isIgnorableConstructor(_defaultConstructor)) {
+                _defaultConstructor = null;
+            }
+        }
+        if (_singleArgConstructors != null) {
+            // count down to allow safe removal
+            for (int i = _singleArgConstructors.size(); --i >= 0; ) {
+                if (_annotationIntrospector.isIgnorableConstructor(_singleArgConstructors.get(i))) {
+                    _singleArgConstructors.remove(i);
+                }
+            }
         }
 
         _singleArgStaticMethods = null;
-
+        
         if (includeAll) {
             /* Then methods: single-arg static methods (potential factory
              * methods), and 0/1-arg member methods (getters, setters)
@@ -314,20 +335,97 @@ public final class AnnotatedClass
                     }
                 }
             }
-            if (_primaryMixIn != null) {
+            // mix-ins to mix in?
+            if (_primaryMixIn != null && _singleArgStaticMethods != null) {
                 _addFactoryMixins(_primaryMixIn);
+            }
+            // anything to ignore at this point?
+            if (_singleArgStaticMethods != null) {
+                // count down to allow safe removal
+                for (int i = _singleArgStaticMethods.size(); --i >= 0; ) {
+                    if (_annotationIntrospector.isIgnorableMethod(_singleArgStaticMethods.get(i))) {
+                        _singleArgStaticMethods.remove(i);
+                    }
+                }
             }
         }
     }
 
     protected void _addConstructorMixins(Class<?> mixin)
     {
-        // !!! TBI
+        MemberKey[] ctorKeys = null;
+        int ctorCount = (_singleArgConstructors == null) ? 0 : _singleArgConstructors.size();
+        for (Constructor<?> ctor : mixin.getDeclaredConstructors()) {
+            switch (ctor.getParameterTypes().length) {
+            case 0:
+                if (_defaultConstructor != null) {
+                    _addMixins(ctor, _defaultConstructor);
+                }
+                break;
+            case 1:
+                if (ctorKeys == null) {
+                    ctorKeys = new MemberKey[ctorCount];
+                    for (int i = 0; i < ctorCount; ++i) {
+                        ctorKeys[i] = new MemberKey(_singleArgConstructors.get(i).getAnnotated());
+                    }
+                }
+                MemberKey key = new MemberKey(ctor);
+                for (int i = 0; i < ctorCount; ++i) {
+                    if (key.equals(ctorKeys[i])) {
+                        _addMixins(ctor, _singleArgConstructors.get(i));
+                        break;
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     protected void _addFactoryMixins(Class<?> mixin)
     {
-        // !!! TBI
+        MemberKey[] methodKeys = null;
+        int methodCount = _singleArgStaticMethods.size();
+
+        for (Method m : mixin.getDeclaredMethods()) {
+            if (!Modifier.isStatic(m.getModifiers())) {
+                continue;
+            }
+            if (m.getParameterTypes().length != 1) {
+                continue;
+            }
+            if (methodKeys == null) {
+                methodKeys = new MemberKey[methodCount];
+                for (int i = 0; i < methodCount; ++i) {
+                    methodKeys[i] = new MemberKey(_singleArgStaticMethods.get(i).getAnnotated());
+                }
+            }
+            MemberKey key = new MemberKey(m);
+            for (int i = 0; i < methodCount; ++i) {
+                if (key.equals(methodKeys[i])) {
+                    _addMixins(m, _singleArgStaticMethods.get(i));
+                    break;
+                }
+                break;
+            }
+        }
+    }
+
+    protected void _addMixins(Constructor mixin, AnnotatedConstructor target)
+    {
+        for (Annotation a : mixin.getDeclaredAnnotations()) {
+            if (_annotationIntrospector.isHandled(a)) {
+                target.addOrOverride(a);
+            }
+        }
+    }
+
+    protected void _addMixins(Method mixin, AnnotatedMethod target)
+    {
+        for (Annotation a : mixin.getDeclaredAnnotations()) {
+            if (_annotationIntrospector.isHandled(a)) {
+                target.addOrOverride(a);
+            }
+        }
     }
 
     /*

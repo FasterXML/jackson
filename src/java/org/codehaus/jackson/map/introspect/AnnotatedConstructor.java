@@ -25,6 +25,16 @@ public final class AnnotatedConstructor
         _annotations = annMap;
     }
 
+    /**
+     * Method called to override an annotation, usually due to a mix-in
+     * annotation masking or overriding an annotation 'real' constructor
+     * has.
+     */
+    public void addOrOverride(Annotation a)
+    {
+        _annotations.add(a);
+    }
+
     /*
     //////////////////////////////////////////////////////
     // Annotated impl
@@ -76,6 +86,17 @@ public final class AnnotatedConstructor
     public void fixAccess()
     {
         ClassUtil.checkAndFixAccess(_constructor);
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Extended API, specific annotations
+    //////////////////////////////////////////////////////
+     */
+
+    public String toString()
+    {
+        return "[constructor for "+getName()+", annotations: "+_annotations+"]";
     }
 }
 

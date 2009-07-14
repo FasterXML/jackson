@@ -3,8 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.io.*;
 import java.util.*;
 
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
 public class TestMixinsForCreators
@@ -21,12 +20,25 @@ public class TestMixinsForCreators
         protected String _a;
 
         public BaseClass(String a) {
-            _a = a;
+            _a = a+"...";
+        }
+
+        private BaseClass(String value, boolean dummy) {
+            _a = value;
         }
 
         public static BaseClass myFactory(String a) {
-            return new BaseClass(a+"X");
+            return new BaseClass(a+"X", true);
         }
+    }
+
+    static class BaseClassWithPrivateCtor
+    {
+        protected String _a;
+        private BaseClassWithPrivateCtor(String a) {
+            _a = a+"...";
+        }
+
     }
 
     /**
@@ -42,7 +54,13 @@ public class TestMixinsForCreators
     {
         @JsonIgnore protected MixIn(String s) { }
 
-        @JsonCreator static BaseClass myFactory(String a) { return null; }
+        @JsonCreator
+        static BaseClass myFactory(String a) { return null; }
+    }
+
+    static class MixInForPrivate
+    {
+        @JsonCreator MixInForPrivate(String s) { }
     }
 
     /*
@@ -51,20 +69,31 @@ public class TestMixinsForCreators
     ///////////////////////////////////////////////////////////
      */
 
-    public void testSimple() throws IOException
+    public void testForConstructor() throws IOException
     {
+        /*
         ObjectMapper m = new ObjectMapper();
-        // First: test default behavior: should use constructor
-        String result = m.readValue("\"string\"", String.class);
-        assertEquals("string", result);
-
-        /* Then with simple mix-in: should change to use the factory
-         * method.
-         */
-        m = new ObjectMapper();
-        m.getDeserializationConfig().addMixInAnnotations(BaseClass.class, MixIn.class);
-        result = m.readValue("\"string\"", String.class);
-        assertEquals("stringX", result);
+        m.getDeserializationConfig().addMixInAnnotations(BaseClassWithPrivateCtor.class, MixInForPrivate.class);
+        BaseClassWithPrivateCtor result = m.readValue("\"?\"", BaseClassWithPrivateCtor.class);
+        assertEquals("?...", result._a);
+        */
     }
 
+    public void testForFactoryAndCtor() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        BaseClass result;
+
+        // First: test default behavior: should use constructor
+        /*
+        result = m.readValue("\"string\"", BaseClass.class);
+        assertEquals("string...", result._a);
+        */
+
+        // Then with simple mix-in: should change to use the factory method
+        m = new ObjectMapper();
+        m.getDeserializationConfig().addMixInAnnotations(BaseClass.class, MixIn.class);
+        result = m.readValue("\"string\"", BaseClass.class);
+        assertEquals("stringX", result._a);
+    }
 }

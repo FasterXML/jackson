@@ -82,10 +82,13 @@ public class JacksonAnnotationIntrospector
     */
 
     @Override
-    public boolean isIgnorableMethod(AnnotatedMethod m)
-    {
-        JsonIgnore ann = m.getAnnotation(JsonIgnore.class);
-        return (ann != null && ann.value());
+    public boolean isIgnorableMethod(AnnotatedMethod m) {
+        return _isIgnorable(m);
+    }
+
+    @Override
+    public boolean isIgnorableConstructor(AnnotatedConstructor c) {
+        return _isIgnorable(c);
     }
 
     /*
@@ -95,10 +98,8 @@ public class JacksonAnnotationIntrospector
      */
 
     @Override
-    public boolean isIgnorableField(AnnotatedField f)
-    {
-        JsonIgnore ann = f.getAnnotation(JsonIgnore.class);
-        return (ann != null && ann.value());
+    public boolean isIgnorableField(AnnotatedField f) {
+        return _isIgnorable(f);
     }
 
     /*
@@ -499,4 +500,10 @@ public class JacksonAnnotationIntrospector
     // Helper methods
     ////////////////////////////////////////////////////
      */
+
+    protected boolean _isIgnorable(Annotated a)
+    {
+        JsonIgnore ann = a.getAnnotation(JsonIgnore.class);
+        return (ann != null && ann.value());
+    }
 }

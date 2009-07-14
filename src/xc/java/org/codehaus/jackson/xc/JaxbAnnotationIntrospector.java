@@ -6,6 +6,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 
@@ -134,6 +135,16 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         }
 
         return true;
+    }
+
+    @Override
+    public boolean isIgnorableConstructor(AnnotatedConstructor c)
+    {
+        /* @XmlTransient can not be attached to constructors...
+         * so there seems to be no way to do this. But then again,
+         * JAXB does not use non-default constructors anyway.
+         */
+        return false;
     }
 
     /*
