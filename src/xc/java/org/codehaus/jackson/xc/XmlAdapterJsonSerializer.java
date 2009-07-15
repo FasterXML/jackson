@@ -40,7 +40,7 @@ public class XmlAdapterJsonSerializer extends JsonSerializer<Object>
         jsonSerializer.serialize(adapted, jgen, provider);
     }
 
-    @Override
+    //@Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
             throws JsonMappingException
     {

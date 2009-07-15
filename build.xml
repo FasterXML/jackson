@@ -61,6 +61,8 @@
        <fileset dir="${dir.lib}">
             <include name="junit/*.jar" />
             <include name="cglib/*.jar" />
+            <!-- For 1.5, need JAXB API jar too -->
+            <include name="jaxb/*.jar" />
        </fileset>
     </path>
 
@@ -217,6 +219,10 @@ compile.main, compile.test, compile.extra, compile.perf" />
             <classpath>
                <pathelement path="${dir.build.classes.core}"/>  
                <pathelement path="${dir.build.classes.mapper}"/>  
+               <!-- For JDK 1.5 build, need JAXB API -->
+               <fileset dir="${dir.lib}/jaxb">
+                    <include name="*.jar" />
+               </fileset>
             </classpath>
         </javac>
     </target>
