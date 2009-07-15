@@ -640,7 +640,9 @@ public class BasicBeanDescription extends BeanDescription
 
         LinkedHashMap<String,AnnotatedField> results = new LinkedHashMap<String,AnnotatedField>();
         for (AnnotatedField af : _classInfo.fields()) {
-            // note: some prefiltering has been; no static or transient fields included
+            /* note: some prefiltering has been; no static or transient fields 
+             * included; nor anything marked as ignorable (@JsonIgnore)
+             */
 
             /* So far so good: final check, then; has to either
              * (a) be marked with JsonProperty (or JsonSerialize) OR

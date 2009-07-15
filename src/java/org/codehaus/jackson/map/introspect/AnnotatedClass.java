@@ -301,7 +301,7 @@ public final class AnnotatedClass
 
 
         /* And then... let's remove all constructors that are
-         * deemed to be ignorable after all annotations has been
+         * deemed to be ignorable after all annotations have been
          * properly collapsed.
          */
         if (_defaultConstructor != null) {
@@ -468,7 +468,7 @@ public final class AnnotatedClass
         }
 
         /* And last but not least: let's remove all methods that are
-         * deemed to be ignorable after all annotations has been
+         * deemed to be ignorable after all annotations have been
          * properly collapsed.
          */
         Iterator<AnnotatedMethod> it = _memberMethods.iterator();
@@ -495,8 +495,17 @@ public final class AnnotatedClass
     {
         _fields = new ArrayList<AnnotatedField>();
         _addFields(_fields, _class);
-        if (_primaryMixIn != null) {
-            _addFieldMixIns(_primaryMixIn);
+
+        /* And last but not least: let's remove all fields that are
+         * deemed to be ignorable after all annotations have been
+         * properly collapsed.
+         */
+        Iterator<AnnotatedField> it = _fields.iterator();
+        while (it.hasNext()) {
+            AnnotatedField f = it.next();
+            if (_annotationIntrospector.isIgnorableField(f)) {
+                it.remove();
+            }
         }
     }
 
@@ -512,33 +521,53 @@ public final class AnnotatedClass
             /* Let's add super-class' fields first, then ours.
              * Also: we won't be checking for masking (by name); it
              * can happen, if very rarely, but will be handled later
-             * on when resolving masking between methods and fields
+             * (being handled meaning an exception gets
              */
             _addFields(fields, parent);
             for (Field f : c.getDeclaredFields()) {
+                // static fields not included, nor transient
                 if (!_isIncludableField(f)) {
                     continue;
                 }
-                /* Need to be public, or have an annotation
-                 * (these are required, but not sufficient checks).
-                 * Note: can also check for exclusion here, since fields
-                 * are not overridable.
+                /* Ok now: we can (and need) not filter out ignorable fields
+                 * at this point; partly because mix-ins haven't been
+                 * added, and partly because logic can be done when
+                 * determining get/settability of the field.
                  */
-                Annotation[] anns = f.getAnnotations();
-                int mods = f.getModifiers();
-                if (Modifier.isPublic(mods) || anns.length > 0) {
-                    AnnotatedField af = _constructField(f);
-                    if (!_annotationIntrospector.isIgnorableField(af)) {
-                        fields.add(af);
-                    }
+                fields.add(_constructField(f));
+            }
+            // And then... any mix-in overrides?
+            if (_mixInResolver != null) {
+                Class<?> mixin = _mixInResolver.findMixInClassFor(c);
+                if (mixin != null) {
+                    _addFieldMixIns(mixin, fields);
                 }
             }
         }
     }
 
-    protected void _addFieldMixIns(Class<?> _primaryMixIn)
+    protected void _addFieldMixIns(Class<?> mixin, List<AnnotatedField> fields)
     {
-        // !!! TBI
+        for (Field f : mixin.getDeclaredFields()) {
+            /* there are some dummy things (static, synthetic); better
+             * ignore
+             */
+            if (!_isIncludableField(f)) {
+                continue;
+            }
+            String name = f.getName();
+            // anything to mask?
+            for (AnnotatedField af : fields) {
+                if (name.equals(af.getName())) {
+                    for (Annotation a : f.getDeclaredAnnotations()) {
+                        if (_annotationIntrospector.isHandled(a)) {
+                            af.addOrOverride(a);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     /*
