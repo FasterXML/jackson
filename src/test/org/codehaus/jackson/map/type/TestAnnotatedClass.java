@@ -5,6 +5,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
@@ -64,11 +65,11 @@ public class TestAnnotatedClass
 
         // not public, no annotations, shouldn't be included
         @SuppressWarnings("unused")
-		private long bar;
+        private long bar;
 
         @SuppressWarnings("unused")
-		@JsonProperty
-            private String props;
+        @JsonProperty
+        private String props;
     }
 
     /*
@@ -129,8 +130,16 @@ public class TestAnnotatedClass
         // null -> no mix-in annotations
         AnnotatedClass ac = AnnotatedClass.construct(FieldBean.class, new JacksonAnnotationIntrospector(), null);
         ac.resolveFields();
-        assertEquals(1, ac.getFieldCount());
-        // only one discoverable field property...
-        assertEquals("props", ac.fields().iterator().next().getName());
+        /* 14-Jul-2009, tatu: AnnotatedClass does remove forcibly ignored
+         *   entries, but will still contain non-public fields too (earlier
+         *   versions didn't, but filtering was moved to a later point)
+         */
+        assertEquals(2, ac.getFieldCount());
+        for (AnnotatedField f : ac.fields()) {
+            String fname = f.getName();
+            if (!"bar".equals(fname) && !"props".equals(fname)) {
+                fail("Unexpected field name '"+fname+"'");
+            }
+        }
     }
 }
