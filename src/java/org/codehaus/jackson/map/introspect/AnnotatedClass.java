@@ -437,35 +437,17 @@ public final class AnnotatedClass
     public void resolveMemberMethods(MethodFilter methodFilter)
     {
         _memberMethods = new AnnotatedMethodMap();
-        for (Method m : _class.getDeclaredMethods()) {
-            if (_isIncludableMethod(m)) {
-                _memberMethods.add(_constructMethod(m));
-            }
-        }
-        /* and then augment these with annotations from
-         * super-types:
-         */
+        AnnotatedMethodMap mixins = new AnnotatedMethodMap();
+        // first: methods from the class itself
+        _addMemberMethods(_class, _memberMethods, _primaryMixIn, mixins);
+
+        // and then augment these with annotations from super-types:
         for (Class<?> cls : _superTypes) {
-            for (Method m : cls.getDeclaredMethods()) {
-                if (!_isIncludableMethod(m)) {
-                    continue;
-                }
-                AnnotatedMethod old = _memberMethods.find(m);
-                if (old == null) {
-                    _memberMethods.add(_constructMethod(m));
-                } else {
-                    /* If sub-class already has the method, we only want
-                     * to augment annotations with entries that are not
-                     * masked by sub-class:
-                     */
-                    for (Annotation a : m.getDeclaredAnnotations()) {
-                        if (_annotationIntrospector.isHandled(a)) {
-                            old.addIfNotPresent(a);
-                        }
-                    }
-                }
-            }
+            Class<?> mixin = (_mixInResolver == null) ? null : _mixInResolver.findMixInClassFor(cls);
+            _addMemberMethods(cls, _memberMethods, mixin, mixins);
         }
+
+        // !!! TBI: handle Object.class; annotations, mix-ins
 
         /* And last but not least: let's remove all methods that are
          * deemed to be ignorable after all annotations have been
@@ -476,6 +458,65 @@ public final class AnnotatedClass
             AnnotatedMethod am = it.next();
             if (_annotationIntrospector.isIgnorableMethod(am)) {
                 it.remove();
+            }
+        }
+    }
+
+    protected void _addMemberMethods(Class<?> cls, AnnotatedMethodMap methods,
+                                     Class<?> mixinCls, AnnotatedMethodMap mixins)
+    {
+        // first, mixins, since they have higher priority then class methods
+        if (mixinCls != null) {
+            for (Method m : mixinCls.getDeclaredMethods()) {
+                if (!_isIncludableMethod(m)) {
+                    continue;
+                }
+                AnnotatedMethod am = methods.find(m);
+                /* Do we already have a method to augment (from sub-class
+                 * that will mask this mixin)? If so, add if visible
+                 * without masking (no such annotation)
+                 */
+                if (am != null) {
+                    _addMixUnders(m, am);
+                    /* Otherwise will have precedence, but must wait
+                     * until we find the real method (mixin methods are
+                     * just placeholder, can't be called)
+                     */
+                } else {
+                    mixins.add(_constructMethod(m));
+                }
+            }
+        }
+
+        // then methods from the class itself
+        for (Method m : cls.getDeclaredMethods()) {
+            if (!_isIncludableMethod(m)) {
+                continue;
+            }
+            AnnotatedMethod old = methods.find(m);
+            if (old == null) {
+                AnnotatedMethod newM = _constructMethod(m);
+                methods.add(newM);
+                // Ok, but is there a mix-in to connect now?
+                old = mixins.remove(m);
+                if (old != null) {
+                    _addMixUnders(m, old);
+                }
+            } else {
+                /* If sub-class already has the method, we only want
+                 * to augment annotations with entries that are not
+                 * masked by sub-class:
+                 */
+                _addMixUnders(m, old);
+            }
+        }
+    }
+
+    protected void _addMixUnders(Method mixin, AnnotatedMethod target)
+    {
+        for (Annotation a : mixin.getDeclaredAnnotations()) {
+            if (_annotationIntrospector.isHandled(a)) {
+                target.addIfNotPresent(a);
             }
         }
     }

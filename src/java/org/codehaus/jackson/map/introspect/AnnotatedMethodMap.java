@@ -30,11 +30,17 @@ public final class AnnotatedMethodMap
      * Method called to remove specified method, assuming
      * it exists in the Map
      */
-    public void remove(AnnotatedMethod am)
+    public AnnotatedMethod remove(AnnotatedMethod am)
+    {
+        return remove(am.getAnnotated());
+    }
+
+    public AnnotatedMethod remove(Method m)
     {
         if (_methods != null) {
-            _methods.remove(new MemberKey(am.getAnnotated()));
+            return _methods.remove(new MemberKey(m));
         }
+        return null;
     }
 
     public boolean isEmpty() {
