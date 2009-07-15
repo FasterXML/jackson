@@ -591,14 +591,12 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             this.pd = pd;
         }
 
-        @Override
         public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
         {
             return (pd.getReadMethod() != null && pd.getReadMethod().isAnnotationPresent(annotationClass))
                     || (pd.getWriteMethod() != null && pd.getWriteMethod().isAnnotationPresent(annotationClass));
         }
 
-        @Override
         public <T extends Annotation> T getAnnotation(Class<T> annotationClass)
         {
             T ann = pd.getReadMethod() != null ? pd.getReadMethod().getAnnotation(annotationClass) : null;
@@ -608,14 +606,12 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             return ann;
         }
 
-        @Override
         public Annotation[] getAnnotations()
         {
             //not used. we don't need to support this yet.
             throw new UnsupportedOperationException();
         }
 
-        @Override
         public Annotation[] getDeclaredAnnotations()
         {
             //not used. we don't need to support this yet.

@@ -88,7 +88,6 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -141,7 +140,6 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = JsonNodeFactory.instance.objectNode();
@@ -168,7 +166,6 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = JsonNodeFactory.instance.objectNode();
@@ -196,7 +193,6 @@ public final class ArraySerializers
             jgen.writeBinary(value);
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = JsonNodeFactory.instance.objectNode();
@@ -224,7 +220,6 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = JsonNodeFactory.instance.objectNode();
@@ -252,7 +247,6 @@ public final class ArraySerializers
             jgen.writeString(value, 0, value.length);
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = JsonNodeFactory.instance.objectNode();
@@ -280,7 +274,6 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = JsonNodeFactory.instance.objectNode();
@@ -307,7 +300,6 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = JsonNodeFactory.instance.objectNode();
@@ -334,7 +326,6 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = JsonNodeFactory.instance.objectNode();
@@ -361,7 +352,6 @@ public final class ArraySerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = JsonNodeFactory.instance.objectNode();

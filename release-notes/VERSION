@@ -1,12 +1,22 @@
-Version: 1.1.0
+Version: 1.1.1
 
 Release date:
-  22-Jun-2009
+  xx-Jul-2009
 
 Description:
-  Official 1.1 release: main focus on improving interoperability via
-  JAXB annotation compatibility, basic JSON schema generation functionality
-  and ability to directly serialize fields as well as method-access properties.
+  Minor patch release for 1.1.
+
+  Fixes:
+
+  * Core jar incorrectly included much of "mapper" classes (in addition
+    to core classes)
+  * Now compiles again using JDK 1.5 javac (1.1.0 didn't)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.1.0 [22-Jun-2009]
 
   Fixes:
 
@@ -39,10 +49,6 @@ Description:
   * [JACKSON-123] Add "chaining" AnnotationIntrospector (implemented
     as inner class, AnnotationIntrospector.Pair) that allows combining
     functionality of 2 introspectors.
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.0.0 [09-May-2009]
 

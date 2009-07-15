@@ -61,6 +61,8 @@
        <fileset dir="${dir.lib}">
             <include name="junit/*.jar" />
             <include name="cglib/*.jar" />
+            <!-- For 1.5, need JAXB API jar too -->
+            <include name="jaxb/*.jar" />
        </fileset>
     </path>
 
@@ -167,6 +169,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
             <compilerarg value="-Xlint:unchecked" />
             <exclude name="org/codehaus/jackson/map/**/*.java" />
             <exclude name="org/codehaus/jackson/node/**/*.java" />
+            <exclude name="org/codehaus/jackson/schema/**/*.java" />
             <include name="org/codehaus/**/*.java" />
         </javac>
     </target>
@@ -216,6 +219,10 @@ compile.main, compile.test, compile.extra, compile.perf" />
             <classpath>
                <pathelement path="${dir.build.classes.core}"/>  
                <pathelement path="${dir.build.classes.mapper}"/>  
+               <!-- For JDK 1.5 build, need JAXB API -->
+               <fileset dir="${dir.lib}/jaxb">
+                    <include name="*.jar" />
+               </fileset>
             </classpath>
         </javac>
     </target>
@@ -239,7 +246,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
     <target name="compile.perf" depends="compile.main">
       <mkdir dir="${dir.build.classes.perf}" />
         <!-- Let's also compile micro-benchmarks... -->
-        <javac srcdir="${dir.src}/perf" destdir="${dir.build.classes.perf}" debug="false"
+        <javac srcdir="${dir.src}/perf" destdir="${dir.build.classes.perf}" debug="true"
         >
             <classpath>
                <fileset dir="${dir.lib}/perf">
@@ -261,7 +268,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
         <!-- Build a dirpath that contains just the "source" tree -->
         <javadoc windowtitle="Jackson JSON Processor"
             destdir="${dir.javadoc}" 
-            author="true" version="true">
+            author="true" version="true" use="true">
 
             <classpath>
                <fileset dir="${dir.lib}/jaxrs">

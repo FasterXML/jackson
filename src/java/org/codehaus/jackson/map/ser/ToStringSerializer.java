@@ -43,7 +43,6 @@ public final class ToStringSerializer
         jgen.writeString(value.toString());
     }
 
-    @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException
     {
