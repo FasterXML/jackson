@@ -295,7 +295,7 @@ public final class AnnotatedClass
         // and if need be, augment with mix-ins
         if (_primaryMixIn != null) {
             if (_defaultConstructor != null || _singleArgConstructors != null) {
-                _addConstructorMixins(_primaryMixIn);
+                _addConstructorMixIns(_primaryMixIn);
             }
         }
 
@@ -337,7 +337,7 @@ public final class AnnotatedClass
             }
             // mix-ins to mix in?
             if (_primaryMixIn != null && _singleArgStaticMethods != null) {
-                _addFactoryMixins(_primaryMixIn);
+                _addFactoryMixIns(_primaryMixIn);
             }
             // anything to ignore at this point?
             if (_singleArgStaticMethods != null) {
@@ -351,7 +351,7 @@ public final class AnnotatedClass
         }
     }
 
-    protected void _addConstructorMixins(Class<?> mixin)
+    protected void _addConstructorMixIns(Class<?> mixin)
     {
         MemberKey[] ctorKeys = null;
         int ctorCount = (_singleArgConstructors == null) ? 0 : _singleArgConstructors.size();
@@ -359,7 +359,7 @@ public final class AnnotatedClass
             switch (ctor.getParameterTypes().length) {
             case 0:
                 if (_defaultConstructor != null) {
-                    _addMixins(ctor, _defaultConstructor);
+                    _addMixOvers(ctor, _defaultConstructor);
                 }
                 break;
             case 1:
@@ -372,7 +372,7 @@ public final class AnnotatedClass
                 MemberKey key = new MemberKey(ctor);
                 for (int i = 0; i < ctorCount; ++i) {
                     if (key.equals(ctorKeys[i])) {
-                        _addMixins(ctor, _singleArgConstructors.get(i));
+                        _addMixOvers(ctor, _singleArgConstructors.get(i));
                         break;
                     }
                     break;
@@ -381,7 +381,7 @@ public final class AnnotatedClass
         }
     }
 
-    protected void _addFactoryMixins(Class<?> mixin)
+    protected void _addFactoryMixIns(Class<?> mixin)
     {
         MemberKey[] methodKeys = null;
         int methodCount = _singleArgStaticMethods.size();
@@ -402,28 +402,10 @@ public final class AnnotatedClass
             MemberKey key = new MemberKey(m);
             for (int i = 0; i < methodCount; ++i) {
                 if (key.equals(methodKeys[i])) {
-                    _addMixins(m, _singleArgStaticMethods.get(i));
+                    _addMixOvers(m, _singleArgStaticMethods.get(i));
                     break;
                 }
                 break;
-            }
-        }
-    }
-
-    protected void _addMixins(Constructor mixin, AnnotatedConstructor target)
-    {
-        for (Annotation a : mixin.getDeclaredAnnotations()) {
-            if (_annotationIntrospector.isHandled(a)) {
-                target.addOrOverride(a);
-            }
-        }
-    }
-
-    protected void _addMixins(Method mixin, AnnotatedMethod target)
-    {
-        for (Annotation a : mixin.getDeclaredAnnotations()) {
-            if (_annotationIntrospector.isHandled(a)) {
-                target.addOrOverride(a);
             }
         }
     }
@@ -446,8 +428,33 @@ public final class AnnotatedClass
             Class<?> mixin = (_mixInResolver == null) ? null : _mixInResolver.findMixInClassFor(cls);
             _addMemberMethods(cls, _memberMethods, mixin, mixins);
         }
+        // Special case: mix-ins for Object.class? (to apply to ALL classes)
+        if (_mixInResolver != null) {
+            Class<?> mixin = _mixInResolver.findMixInClassFor(Object.class);
+            if (mixin != null) {
+                _addMethodMixIns(_memberMethods, mixin, mixins);
+            }
+        }
 
-        // !!! TBI: handle Object.class; annotations, mix-ins
+        /* Any unmatched mix-ins? Most likely error cases (not matching
+         * any method); but there is one possible real use case:
+         * exposing Object#hashCode (alas, Object#getClass can NOT be
+         * exposed, see [JACKSON-140])
+         */
+        if (!mixins.isEmpty()) {
+            Iterator<AnnotatedMethod> it = mixins.iterator();
+            while (it.hasNext()) {
+                AnnotatedMethod mixIn = it.next();
+                try {
+                    Method m = Object.class.getDeclaredMethod(mixIn.getName(), mixIn.getParameterClasses());
+                    if (m != null) {
+                        AnnotatedMethod am = _constructMethod(m);
+                        _addMixOvers(mixIn.getAnnotated(), am);
+                        _memberMethods.add(am);
+                    }
+                } catch (Exception e) { }
+            }
+        }
 
         /* And last but not least: let's remove all methods that are
          * deemed to be ignorable after all annotations have been
@@ -463,60 +470,59 @@ public final class AnnotatedClass
     }
 
     protected void _addMemberMethods(Class<?> cls, AnnotatedMethodMap methods,
-                                     Class<?> mixinCls, AnnotatedMethodMap mixins)
+                                     Class<?> mixInCls, AnnotatedMethodMap mixIns)
     {
-        // first, mixins, since they have higher priority then class methods
-        if (mixinCls != null) {
-            for (Method m : mixinCls.getDeclaredMethods()) {
+        // first, mixIns, since they have higher priority then class methods
+        if (mixInCls != null) {
+            _addMethodMixIns(methods, mixInCls, mixIns);
+        }
+
+        if (cls != null) {
+            // then methods from the class itself
+            for (Method m : cls.getDeclaredMethods()) {
                 if (!_isIncludableMethod(m)) {
                     continue;
                 }
-                AnnotatedMethod am = methods.find(m);
-                /* Do we already have a method to augment (from sub-class
-                 * that will mask this mixin)? If so, add if visible
-                 * without masking (no such annotation)
-                 */
-                if (am != null) {
-                    _addMixUnders(m, am);
-                    /* Otherwise will have precedence, but must wait
-                     * until we find the real method (mixin methods are
-                     * just placeholder, can't be called)
-                     */
+                AnnotatedMethod old = methods.find(m);
+                if (old == null) {
+                    AnnotatedMethod newM = _constructMethod(m);
+                    methods.add(newM);
+                    // Ok, but is there a mix-in to connect now?
+                    old = mixIns.remove(m);
+                    if (old != null) {
+                        _addMixOvers(old.getAnnotated(), newM);
+                    }
                 } else {
-                    mixins.add(_constructMethod(m));
-                }
-            }
-        }
-
-        // then methods from the class itself
-        for (Method m : cls.getDeclaredMethods()) {
-            if (!_isIncludableMethod(m)) {
-                continue;
-            }
-            AnnotatedMethod old = methods.find(m);
-            if (old == null) {
-                AnnotatedMethod newM = _constructMethod(m);
-                methods.add(newM);
-                // Ok, but is there a mix-in to connect now?
-                old = mixins.remove(m);
-                if (old != null) {
+                    /* If sub-class already has the method, we only want
+                     * to augment annotations with entries that are not
+                     * masked by sub-class:
+                     */
                     _addMixUnders(m, old);
                 }
-            } else {
-                /* If sub-class already has the method, we only want
-                 * to augment annotations with entries that are not
-                 * masked by sub-class:
-                 */
-                _addMixUnders(m, old);
             }
         }
     }
 
-    protected void _addMixUnders(Method mixin, AnnotatedMethod target)
+    protected void _addMethodMixIns(AnnotatedMethodMap methods,
+                                    Class<?> mixInCls, AnnotatedMethodMap mixIns)
     {
-        for (Annotation a : mixin.getDeclaredAnnotations()) {
-            if (_annotationIntrospector.isHandled(a)) {
-                target.addIfNotPresent(a);
+        for (Method m : mixInCls.getDeclaredMethods()) {
+            if (!_isIncludableMethod(m)) {
+                continue;
+            }
+            AnnotatedMethod am = methods.find(m);
+            /* Do we already have a method to augment (from sub-class
+             * that will mask this mixIn)? If so, add if visible
+             * without masking (no such annotation)
+             */
+            if (am != null) {
+                _addMixUnders(m, am);
+                /* Otherwise will have precedence, but must wait
+                 * until we find the real method (mixIn methods are
+                 * just placeholder, can't be called)
+                 */
+            } else {
+                mixIns.add(_constructMethod(m));
             }
         }
     }
@@ -647,7 +653,7 @@ public final class AnnotatedClass
  
     /*
     ///////////////////////////////////////////////////////
-    // Helper methods, other
+    // Helper methods, inclusion filtering
     ///////////////////////////////////////////////////////
      */
 
@@ -677,6 +683,39 @@ public final class AnnotatedClass
             return false;
         }
         return true;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Helper methods, attaching annotations
+    ///////////////////////////////////////////////////////
+     */
+
+    protected void _addMixOvers(Constructor mixin, AnnotatedConstructor target)
+    {
+        for (Annotation a : mixin.getDeclaredAnnotations()) {
+            if (_annotationIntrospector.isHandled(a)) {
+                target.addOrOverride(a);
+            }
+        }
+    }
+
+    protected void _addMixOvers(Method mixin, AnnotatedMethod target)
+    {
+        for (Annotation a : mixin.getDeclaredAnnotations()) {
+            if (_annotationIntrospector.isHandled(a)) {
+                target.addOrOverride(a);
+            }
+        }
+    }
+
+    protected void _addMixUnders(Method mixin, AnnotatedMethod target)
+    {
+        for (Annotation a : mixin.getDeclaredAnnotations()) {
+            if (_annotationIntrospector.isHandled(a)) {
+                target.addIfNotPresent(a);
+            }
+        }
     }
 
     /*

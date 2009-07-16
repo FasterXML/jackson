@@ -45,6 +45,9 @@ public class TestMixinsForFields
         // Let's remove 'a'
         @JsonIgnore
         public String a;
+
+        // also: add a dummy field that is NOT to match anything
+        @JsonProperty public String xyz;
     }
 
     /*

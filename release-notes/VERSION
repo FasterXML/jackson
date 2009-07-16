@@ -18,6 +18,9 @@ Description:
 
   New features:
 
+  * [JACKSON-76] Mix-in annotations: allow dynamic attachment of
+    annotations to existing classes, for purposes of configuring
+    serialization/deserialization behavior
   * [JACKSON-92] Allow use of @JsonCreator for constructors and
     static methods that take a single deserializable type as argument
     (so-called delegating creators)

@@ -71,12 +71,10 @@ public class TestMixinsForCreators
 
     public void testForConstructor() throws IOException
     {
-        /*
         ObjectMapper m = new ObjectMapper();
         m.getDeserializationConfig().addMixInAnnotations(BaseClassWithPrivateCtor.class, MixInForPrivate.class);
         BaseClassWithPrivateCtor result = m.readValue("\"?\"", BaseClassWithPrivateCtor.class);
         assertEquals("?...", result._a);
-        */
     }
 
     public void testForFactoryAndCtor() throws IOException
@@ -85,10 +83,8 @@ public class TestMixinsForCreators
         BaseClass result;
 
         // First: test default behavior: should use constructor
-        /*
         result = m.readValue("\"string\"", BaseClass.class);
         assertEquals("string...", result._a);
-        */
 
         // Then with simple mix-in: should change to use the factory method
         m = new ObjectMapper();
