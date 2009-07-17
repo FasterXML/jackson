@@ -382,7 +382,7 @@ public final class WriterBasedGenerator
      */
 
     @Override
-	public void writeNumber(int i)
+    public void writeNumber(int i)
         throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write number");
@@ -394,7 +394,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	public void writeNumber(long l)
+    public void writeNumber(long l)
         throws IOException, JsonGenerationException
     {
         // up to 20 digits, minus sign
@@ -415,20 +415,34 @@ public final class WriterBasedGenerator
         writeRaw(v.toString());
     }
 
-
+    
     @Override
-	public void writeNumber(double d)
+    public void writeNumber(double d)
         throws IOException, JsonGenerationException
     {
+        if (Double.isNaN(d) || Double.isInfinite(d)) {
+            // [JACKSON-139]
+            if (isFeatureEnabled(Feature.QUOTE_NON_NUMERIC_NUMBERS)) {
+        	writeString(String.valueOf(d));
+                return;
+            }
+        }
         // What is the max length for doubles? 40 chars?
         _verifyValueWrite("write number");
         writeRaw(String.valueOf(d));
     }
 
     @Override
-	public void writeNumber(float f)
+    public void writeNumber(float f)
         throws IOException, JsonGenerationException
     {
+        if (Float.isNaN(f) || Float.isInfinite(f)) {
+            // [JACKSON-139]
+            if (isFeatureEnabled(Feature.QUOTE_NON_NUMERIC_NUMBERS)) {
+        	writeString(String.valueOf(f));
+                return;
+            }
+        }
         // What is the max length for floats?
         _verifyValueWrite("write number");
         writeRaw(String.valueOf(f));

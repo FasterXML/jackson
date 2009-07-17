@@ -121,9 +121,16 @@ Christoph Strebin:
     no-arg constructor
    [1.1.0]
 
+Peter Harris:
+  * Reported [JACKSON-139], provided patch for fixing it: Non-numeric
+    double values (NaN, Infinity) are serialized as invalid JSON tokens
+    (reported by Peter H)
+   [1.1.1]
+
 Dain Sundstrom:
   * Suggested addition of "-use" for javadoc generation
    [1.2.0]
   * Suggested [JACKSON-136] JsonParser and JsonGenerator should implement
     java.io.Closeable (since they already have close() method)
    [1.2.0]
+

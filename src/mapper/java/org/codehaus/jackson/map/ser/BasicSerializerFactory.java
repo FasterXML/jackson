@@ -584,11 +584,20 @@ public class BasicSerializerFactory
         public final static NumberSerializer instance = new NumberSerializer();
 
         @Override
-		public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            // We'll have to use fallback "untyped" number write method
-            jgen.writeNumber(value.toString());
+            /* These shouldn't match (as there are more specific ones),
+             * but just to be sure:
+             */
+            if (value instanceof Double) {
+                jgen.writeNumber(((Double) value).doubleValue());
+            } else if (value instanceof Float) {
+                jgen.writeNumber(((Float) value).floatValue());
+            } else {
+                // We'll have to use fallback "untyped" number write method
+                jgen.writeNumber(value.toString());
+            }
         }
 
         @Override

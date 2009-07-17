@@ -67,6 +67,20 @@ public abstract class JsonGenerator
          * occurs when used straight from javascript.
          */
         ,QUOTE_FIELD_NAMES(true)
+
+        /**
+         * Feature that determines whether "exceptional" (not real number)
+         * float/double values are outputted as quoted strings.
+         * The values checked are Double.Nan,
+         * Double.POSITIVE_INFINITY and Double.NEGATIVE_INIFINTY (and 
+         * associated Float values).
+         * If feature is disabled, these numbers are still output using
+         * associated literal values, resulting in non-conformant
+         * output
+         *<p>
+         * Feature is enabled by default.
+         */
+        ,QUOTE_NON_NUMERIC_NUMBERS(true)
             ;
 
         final boolean _defaultState;
