@@ -39,7 +39,7 @@ public final class ArraySerializers
         public final static ObjectArraySerializer instance = new ObjectArraySerializer();
 
         @Override
-            public void serialize(Object[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Object[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();

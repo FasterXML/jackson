@@ -8,6 +8,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-139] Non-numeric double values (NaN, Infinity) are serialized
+    as invalid JSON tokens
+    (reported by Peter H)
   * Core jar incorrectly included much of "mapper" classes (in addition
     to core classes)
   * Now compiles again using JDK 1.5 javac (1.1.0 didn't)

@@ -7,6 +7,7 @@ import java.util.*;
 import java.lang.reflect.Type;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -565,7 +566,7 @@ public class BasicSerializerFactory
         final static DoubleSerializer instance = new DoubleSerializer();
 
         @Override
-		public void serialize(Double value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Double value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.doubleValue());
@@ -591,11 +592,20 @@ public class BasicSerializerFactory
         public final static NumberSerializer instance = new NumberSerializer();
 
         @Override
-		public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            // We'll have to use fallback "untyped" number write method
-            jgen.writeNumber(value.toString());
+            /* These shouldn't match (as there are more specific ones),
+             * but just to be sure:
+             */
+            if (value instanceof Double) {
+                jgen.writeNumber(((Double) value).doubleValue());
+            } else if (value instanceof Float) {
+                jgen.writeNumber(((Float) value).floatValue());
+            } else {
+                // We'll have to use fallback "untyped" number write method
+                jgen.writeNumber(value.toString());
+            }
         }
 
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
@@ -709,7 +719,7 @@ public class BasicSerializerFactory
         extends JsonSerializer<java.sql.Date> implements SchemaAware
     {
         @Override
-		public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());

@@ -25,25 +25,33 @@ public class TestSimpleTypes
     public void testFloat() throws Exception
     {
         double[] values = new double[] {
-            0.0, 1.0, 0.1, -37.01, 999.99, 0.3, 33.3
+            0.0, 1.0, 0.1, -37.01, 999.99, 0.3, 33.3, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
         };
         ObjectMapper mapper = new ObjectMapper();
 
         for (double d : values) {
-            float f = (float) d;
-            assertEquals(String.valueOf(f),serializeAsString(mapper, Float.valueOf(f)));
+           float f = (float) d;
+    	   String expected = String.valueOf(f);
+	       if (Float.isNaN(f) || Float.isInfinite(f)) {
+	          expected = "\""+expected+"\"";
+       	   }
+           assertEquals(expected,serializeAsString(mapper, Float.valueOf(f)));
         }
     }
 
     public void testDouble() throws Exception
     {
         double[] values = new double[] {
-            0.0, 1.0, 0.1, -37.01, 999.99, 0.3, 33.3
+            0.0, 1.0, 0.1, -37.01, 999.99, 0.3, 33.3, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
         };
         ObjectMapper mapper = new ObjectMapper();
 
         for (double d : values) {
-            assertEquals(String.valueOf(d),serializeAsString(mapper, Double.valueOf(d)));
+        	String expected = String.valueOf(d);
+        	if (Double.isNaN(d) || Double.isInfinite(d)) {
+        		expected = "\""+d+"\"";
+        	}
+            assertEquals(expected,serializeAsString(mapper, Double.valueOf(d)));
         }
     }
 
