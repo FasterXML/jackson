@@ -4,9 +4,8 @@
 
     <!-- Source directories -->
     <property name="dir.src" location="${basedir}/src" />
-    <property name="dir.src.java" location="${dir.src}/java" />
-    <property name="dir.src.java.core" location="${dir.src.java}" />
-    <property name="dir.src.java.mapper" location="${dir.src.java}" />
+    <property name="dir.src.java.core" location="${dir.src}/java" />
+    <property name="dir.src.java.mapper" location="${dir.src}/mapper/java" />
     <property name="dir.src.java.jaxrs" location="${dir.src}/jaxrs/java" />
     <property name="dir.src.java.xc" location="${dir.src}/xc/java" />
     <property name="dir.src.resource.jaxrs" location="${dir.src}/jaxrs/resources" />
@@ -162,27 +161,22 @@ compile.main, compile.test, compile.extra, compile.perf" />
       depends="compile.core, compile.mapper, compile.jaxrs, compile.xc" />
 
     <target name="compile.core" depends="prepare">
-        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.core}"
+        <javac srcdir="${dir.src.java.core}" destdir="${dir.build.classes.core}"
             source="1.5" target="1.5"
             debug="false"
         >
             <compilerarg value="-Xlint:unchecked" />
-            <exclude name="org/codehaus/jackson/map/**/*.java" />
-            <exclude name="org/codehaus/jackson/node/**/*.java" />
-            <exclude name="org/codehaus/jackson/schema/**/*.java" />
             <include name="org/codehaus/**/*.java" />
         </javac>
     </target>
 
     <target name="compile.mapper" depends="compile.core">
-        <javac srcdir="${dir.src.java}" destdir="${dir.build.classes.mapper}"
+        <javac srcdir="${dir.src.java.mapper}" destdir="${dir.build.classes.mapper}"
             source="1.5" target="1.5"
             debug="true"
         >
             <compilerarg value="-Xlint:unchecked" />
-            <include name="org/codehaus/jackson/map/**/*.java" />
-            <include name="org/codehaus/jackson/node/**/*.java" />
-            <include name="org/codehaus/jackson/schema/**/*.java" />
+            <include name="org/codehaus/jackson/**/*.java" />
             <!-- mapper builds on core classes -->
             <classpath>
                <pathelement path="${dir.build.classes.core}"/>  
@@ -276,7 +270,10 @@ compile.main, compile.test, compile.extra, compile.perf" />
                </fileset>
             </classpath>
 
-            <packageset dir="${dir.src.java}" defaultexcludes="yes">
+            <packageset dir="${dir.src.java.core}" defaultexcludes="yes">
+                <include name="org/codehaus/**" />
+            </packageset>
+            <packageset dir="${dir.src.java.mapper}" defaultexcludes="yes">
                 <include name="org/codehaus/**" />
             </packageset>
             <packageset dir="${dir.src.java.jaxrs}" defaultexcludes="yes">
@@ -344,22 +341,21 @@ compile.main, compile.test, compile.extra, compile.perf" />
             and both license types
          -->
        <jar destfile="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-sources.jar"
-          filesonly="true" compress="true" basedir="${dir.src.java}"
-          excludes="org/codehaus/jackson/map/**"
+          filesonly="true" compress="true" basedir="${dir.src.java.core}"
           includes="org/codehaus/jackson/**"
        />
        <jar destfile="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-sources.jar"
-          filesonly="true" compress="true" basedir="${dir.src.java}"
+          filesonly="true" compress="true" basedir="${dir.src.java.mapper}"
           includes="org/codehaus/jackson/map/**"
        />
 
        <jar destfile="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}-sources.jar"
-          filesonly="true" compress="true" basedir="${dir.src.java}"
+          filesonly="true" compress="true" basedir="${dir.src.java.core}"
           excludes="org/codehaus/jackson/map/**"
           includes="org/codehaus/jackson/**"
        />
        <jar destfile="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar"
-          filesonly="true" compress="true" basedir="${dir.src.java}"
+          filesonly="true" compress="true" basedir="${dir.src.java.mapper}"
           includes="org/codehaus/jackson/map/**"
        />
        <jar destfile="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar"
