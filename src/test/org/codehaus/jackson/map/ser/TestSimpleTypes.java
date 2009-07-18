@@ -32,8 +32,8 @@ public class TestSimpleTypes
         for (double d : values) {
            float f = (float) d;
     	   String expected = String.valueOf(f);
-	       if (Float.isNaN(f) || Float.isInfinite(f)) {
-	          expected = "\""+expected+"\"";
+           if (Float.isNaN(f) || Float.isInfinite(f)) {
+               expected = "\""+expected+"\"";
        	   }
            assertEquals(expected,serializeAsString(mapper, Float.valueOf(f)));
         }
@@ -47,10 +47,10 @@ public class TestSimpleTypes
         ObjectMapper mapper = new ObjectMapper();
 
         for (double d : values) {
-        	String expected = String.valueOf(d);
-        	if (Double.isNaN(d) || Double.isInfinite(d)) {
-        		expected = "\""+d+"\"";
-        	}
+            String expected = String.valueOf(d);
+            if (Double.isNaN(d) || Double.isInfinite(d)) {
+                expected = "\""+d+"\"";
+            }
             assertEquals(expected,serializeAsString(mapper, Double.valueOf(d)));
         }
     }

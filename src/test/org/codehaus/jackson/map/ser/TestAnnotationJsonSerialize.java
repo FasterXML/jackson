@@ -53,6 +53,19 @@ public class TestAnnotationJsonSerialize
         }
     }
 
+    static class WrapperClassForStaticTyping2
+    {
+        @JsonSerialize(typing=JsonSerialize.Typing.STATIC)
+        public ValueInterface getStaticValue() {
+            return new ValueClass();
+        }
+
+        @JsonSerialize(typing=JsonSerialize.Typing.DYNAMIC)
+        public ValueInterface getDynamicValue() {
+            return new ValueClass();
+        }
+    }
+
     /**
      * Test bean that has an invalid {@link JsonClass} annotation.
      */
@@ -105,5 +118,26 @@ public class TestAnnotationJsonSerialize
         result = (Map<String,Object>) ob;
         assertEquals(1, result.size());
         assertEquals(Integer.valueOf(3), result.get("x"));
+    }
+
+    @SuppressWarnings("unchecked")
+    public void testMixedTypingForClass() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, new WrapperClassForStaticTyping2());
+        assertEquals(2, result.size());
+
+        Object obStatic = result.get("staticValue");
+        // Should see only "x", not "y"
+        Map<String,Object> stat = (Map<String,Object>) obStatic;
+        assertEquals(1, stat.size());
+        assertEquals(Integer.valueOf(3), stat.get("x"));
+
+        Object obDynamic = result.get("dynamicValue");
+        // Should see both
+        Map<String,Object> dyn = (Map<String,Object>) obDynamic;
+        assertEquals(2, dyn.size());
+        assertEquals(Integer.valueOf(3), dyn.get("x"));
+        assertEquals(Integer.valueOf(5), dyn.get("y"));
     }
 }

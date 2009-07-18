@@ -33,15 +33,53 @@ public abstract class StdDeserializer<T>
     /////////////////////////////////////////////////////////////
     */
 
-    protected int _parseInt(JsonParser jp, DeserializationContext ctxt)
+    protected final boolean _parseBoolean(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.getCurrentToken();
-        
-        if (t == JsonToken.VALUE_NUMBER_INT) {
-            return jp.getIntValue();
+        if (t == JsonToken.VALUE_TRUE) {
+            return true;
         }
-        if (t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
+        if (t == JsonToken.VALUE_FALSE) {
+            return false;
+        }
+        // [JACKSON-78]: should accept ints too, (0 == false, otherwise true)
+        if (t == JsonToken.VALUE_NUMBER_INT) {
+            return (jp.getIntValue() == 0) ? Boolean.FALSE : Boolean.TRUE; 
+        }
+        // And finally, let's allow Strings to be converted too
+        if (t == JsonToken.VALUE_STRING) {
+            String text = jp.getText().trim();
+            if ("true".equals(text)) {
+                return Boolean.TRUE;
+            }
+            if ("false".equals(text)) {
+                return Boolean.FALSE;
+            }
+            throw ctxt.weirdStringException(_valueClass, "only \"true\" or \"false\" recognized");
+        }
+        // Otherwise, no can do:
+        throw ctxt.mappingException(_valueClass);
+    }
+
+    protected final short _parseShort(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        int value = _parseInt(jp, ctxt);
+        // So far so good: but does it fit?
+        if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
+            throw ctxt.weirdStringException(_valueClass, "overflow, value can not be represented as 16-bit value");
+        }
+        return (short) value;
+    }
+
+    protected final int _parseInt(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        JsonToken t = jp.getCurrentToken();
+
+        // Int works as is, coercing fine as well
+        if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
             return jp.getIntValue();
         }
         if (t == JsonToken.VALUE_STRING) { // let's do implicit re-parse
@@ -53,33 +91,120 @@ public abstract class StdDeserializer<T>
                 throw ctxt.weirdStringException(_valueClass, "not a valid representation of integral number value");
             }
         }
+        if (t == JsonToken.VALUE_NULL) {
+            return 0;
+        }
         // Otherwise, no can do:
         throw ctxt.mappingException(_valueClass);
     }
 
-    protected double _parseDouble(JsonParser jp, DeserializationContext ctxt)
+    protected final long _parseLong(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-            // We accept couple of different types; obvious ones first:
-            JsonToken t = jp.getCurrentToken();
+        JsonToken t = jp.getCurrentToken();
 
-            if (t == JsonToken.VALUE_NUMBER_FLOAT) {
-                return jp.getDoubleValue();
+        // it should be ok to coerce (although may fail, too)
+        if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) {
+            return jp.getLongValue();
+        }
+        // let's allow Strings to be converted too
+        if (t == JsonToken.VALUE_STRING) {
+            // !!! 05-Jan-2009, tatu: Should we try to limit value space, JDK is too lenient?
+            String text = jp.getText().trim();
+            try {
+                return Long.parseLong(text);
+            } catch (IllegalArgumentException iae) { }
+            throw ctxt.weirdStringException(_valueClass, "not a valid long value");
+        }
+        // Otherwise, no can do:
+        throw ctxt.mappingException(_valueClass);
+    }
+
+    protected final float _parseFloat(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        // We accept couple of different types; obvious ones first:
+        JsonToken t = jp.getCurrentToken();
+        
+        if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
+            return jp.getFloatValue();
+        }
+        // And finally, let's allow Strings to be converted too
+        if (t == JsonToken.VALUE_STRING) {
+            // !!! 05-Jan-2009, tatu: Should we try to limit value space, JDK is too lenient?
+            String text = jp.getText().trim();
+            if (text.length() > 1) {
+                switch (text.charAt(0)) {
+                case 'I':
+                    if ("Infinity".equals(text) || "INF".equals(text)) {
+                        return Float.POSITIVE_INFINITY;
+                    }
+                    break;
+                case 'N':
+                    if ("NaN".equals(text)) {
+                        return Float.NaN;
+                    }
+                    break;
+                case '-':
+                    if ("-Infinity".equals(text) || "-INF".equals(text)) {
+                        return Float.NEGATIVE_INFINITY;
+                    }
+                    break;
+                }
             }
-            if (t == JsonToken.VALUE_NUMBER_INT) {
-                return jp.getDoubleValue();
+            try {
+                return Float.parseFloat(text);
+            } catch (IllegalArgumentException iae) { }
+            throw ctxt.weirdStringException(_valueClass, "not a valid double value");
+        }
+        if (t == JsonToken.VALUE_NULL) {
+            return 0.0f;
+        }
+        // Otherwise, no can do:
+        throw ctxt.mappingException(_valueClass);
+    }
+
+    protected final double _parseDouble(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        // We accept couple of different types; obvious ones first:
+        JsonToken t = jp.getCurrentToken();
+        
+        if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
+            return jp.getDoubleValue();
+        }
+        // And finally, let's allow Strings to be converted too
+        if (t == JsonToken.VALUE_STRING) {
+            String text = jp.getText().trim();
+            if (text.length() > 1) {
+                switch (text.charAt(0)) {
+                case 'I':
+                    if ("Infinity".equals(text) || "INF".equals(text)) {
+                        return Double.POSITIVE_INFINITY;
+                    }
+                    break;
+                case 'N':
+                    if ("NaN".equals(text)) {
+                        return Double.NaN;
+                    }
+                    break;
+                case '-':
+                    if ("-Infinity".equals(text) || "-INF".equals(text)) {
+                        return Double.NEGATIVE_INFINITY;
+                    }
+                    break;
+                }
             }
-            // And finally, let's allow Strings to be converted too
-            if (t == JsonToken.VALUE_STRING) {
-                // !!! 05-Jan-2009, tatu: Should we try to limit value space, JDK is too lenient?
-                String text = jp.getText().trim();
-                try {
-                    return Double.parseDouble(text);
-                } catch (IllegalArgumentException iae) { }
-                throw ctxt.weirdStringException(_valueClass, "not a valid double value");
-            }
+            try {
+                return Double.parseDouble(text);
+            } catch (IllegalArgumentException iae) { }
+            throw ctxt.weirdStringException(_valueClass, "not a valid double value");
+        }
+        if (t == JsonToken.VALUE_NULL) {
+            return 0.0;
+        }
             // Otherwise, no can do:
-            throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass);
     }
 
     protected java.util.Date _parseDate(JsonParser jp, DeserializationContext ctxt)
@@ -188,34 +313,7 @@ public abstract class StdDeserializer<T>
 	public Boolean deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            // We accept couple of different types; obvious ones first:
-            JsonToken t = jp.getCurrentToken();
-            if (t == JsonToken.VALUE_TRUE) {
-                return Boolean.TRUE;
-            }
-            if (t == JsonToken.VALUE_FALSE) {
-                return Boolean.FALSE;
-            }
-            
-            // [JACKSON-78]: should accept ints too, (0 == false, otherwise true)
-            if (t == JsonToken.VALUE_NUMBER_INT) {
-                return (jp.getIntValue() == 0) ? Boolean.FALSE : Boolean.TRUE; 
-            }
-
-            // And finally, let's allow Strings to be converted too
-            if (t == JsonToken.VALUE_STRING) {
-                String text = jp.getText();
-                if ("true".equals(text)) {
-                    return Boolean.TRUE;
-                }
-                if ("false".equals(text)) {
-                    return Boolean.FALSE;
-                }
-                throw ctxt.weirdStringException(_valueClass, "only \"true\" or \"false\" recognized");
-            }
-            
-            // Otherwise, no can do:
-            throw ctxt.mappingException(_valueClass);
+            return _parseBoolean(jp, ctxt) ? Boolean.TRUE : Boolean.FALSE;
         }
     }
 
@@ -252,12 +350,7 @@ public abstract class StdDeserializer<T>
         public Short deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            int value = _parseInt(jp, ctxt);
-            // So far so good: but does it fit?
-            if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
-                throw ctxt.weirdStringException(_valueClass, "overflow, value can not be represented as 16-bit value");
-            }
-            return Short.valueOf((short) value);
+            return Short.valueOf(_parseShort(jp, ctxt));
         }
     }
 
@@ -270,7 +363,7 @@ public abstract class StdDeserializer<T>
         }
 
         @Override
-		public Character deserialize(JsonParser jp, DeserializationContext ctxt)
+        public Character deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -320,27 +413,7 @@ public abstract class StdDeserializer<T>
         public Long deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            // We accept couple of different types; obvious ones first:
-            JsonToken t = jp.getCurrentToken();
-
-            if (t == JsonToken.VALUE_NUMBER_INT) {
-                return jp.getLongValue();
-            }
-            // it should be ok to coerce (although may fail, too)
-            if (t == JsonToken.VALUE_NUMBER_FLOAT) {
-                return jp.getLongValue();
-            }
-            // And finally, let's allow Strings to be converted too
-            if (t == JsonToken.VALUE_STRING) {
-                // !!! 05-Jan-2009, tatu: Should we try to limit value space, JDK is too lenient?
-                String text = jp.getText().trim();
-                try {
-                    return Long.parseLong(text);
-                } catch (IllegalArgumentException iae) { }
-                throw ctxt.weirdStringException(_valueClass, "not a valid long value");
-            }
-            // Otherwise, no can do:
-            throw ctxt.mappingException(_valueClass);
+            return Long.valueOf(_parseLong(jp, ctxt));
         }
     }
 
@@ -353,7 +426,7 @@ public abstract class StdDeserializer<T>
         }
 
         @Override
-		public Float deserialize(JsonParser jp, DeserializationContext ctxt)
+        public Float deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             /* 22-Jan-2009, tatu: Bounds/range checks would be tricky
@@ -372,7 +445,7 @@ public abstract class StdDeserializer<T>
         }
 
         @Override
-		public Double deserialize(JsonParser jp, DeserializationContext ctxt)
+        public Double deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             return _parseDouble(jp, ctxt);
