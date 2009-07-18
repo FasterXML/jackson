@@ -32,6 +32,11 @@ public class TestSimpleTypes
         void setV(double v) { _v = v; }
     }
 
+    final static class FloatBean {
+        float _v;
+        void setV(float v) { _v = v; }
+    }
+
     /**
      * Also, let's ensure that it's ok to override methods.
      */
@@ -103,6 +108,38 @@ public class TestSimpleTypes
         assertEquals(0.0, array[0]);
     }
 
+    public void testDoublePrimitiveNonNumeric() throws Exception
+    {
+        // first, simple case:
+        ObjectMapper mapper = new ObjectMapper();
+        // bit tricky with binary fps but...
+        double value = Double.POSITIVE_INFINITY;
+        DoubleBean result = mapper.readValue(new StringReader("{\"v\":\""+value+"\"}"), DoubleBean.class);
+        assertEquals(value, result._v);
+        
+        // should work with arrays too..
+        double[] array = mapper.readValue(new StringReader("[ \"Infinity\" ]"), double[].class);
+        assertNotNull(array);
+        assertEquals(1, array.length);
+        assertEquals(Double.POSITIVE_INFINITY, array[0]);
+    }
+    
+    public void testFloatPrimitiveNonNumeric() throws Exception
+    {
+        // first, simple case:
+        ObjectMapper mapper = new ObjectMapper();
+        // bit tricky with binary fps but...
+        float value = Float.POSITIVE_INFINITY;
+        FloatBean result = mapper.readValue(new StringReader("{\"v\":\""+value+"\"}"), FloatBean.class);
+        assertEquals(value, result._v);
+        
+        // should work with arrays too..
+        float[] array = mapper.readValue(new StringReader("[ \"Infinity\" ]"), float[].class);
+        assertNotNull(array);
+        assertEquals(1, array.length);
+        assertEquals(Float.POSITIVE_INFINITY, array[0]);
+    }
+    
     /**
      * Beyond simple case, let's also ensure that method overriding works as
      * expected.
@@ -221,7 +258,7 @@ public class TestSimpleTypes
 
         // Also: should be able to coerce floats, strings:
         String[] STRS = new String[] {
-            "1.0", "0.0", "-0.3", "0.7", "42.012", "-999.0"
+            "1.0", "0.0", "-0.3", "0.7", "42.012", "-999.0", "NaN"
         };
 
         for (String str : STRS) {
@@ -242,14 +279,23 @@ public class TestSimpleTypes
 
         // Also: should be able to coerce doubles, strings:
         String[] STRS = new String[] {
-            "1.0", "0.0", "-0.3", "0.7", "42.012", "-999.0"
+            "1.0", "0.0", "-0.3", "0.7", "42.012", "-999.0", "NaN"
         };
 
         for (String str : STRS) {
             // First, as regular double value
             Double exp = Double.valueOf(str);
-            Double result = mapper.readValue(new StringReader(str), Double.class);
-            assertEquals(exp, result);
+            Double result;
+            try {
+            	result = mapper.readValue(new StringReader(str), Double.class);
+            	assertEquals(exp, result);
+            } catch (JsonParseException e) {
+            	if (str.equals("NaN")) {
+                    // This is OK as NaN is not acceptable as a simple pass-in value. It must be quoted 
+            	} else {
+                    throw e;
+            	}
+            }
 
             // and then as coerced String:
             result = mapper.readValue(new StringReader(" \""+str+"\""), Double.class);
