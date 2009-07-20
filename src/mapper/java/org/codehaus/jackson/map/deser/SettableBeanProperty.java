@@ -44,7 +44,11 @@ public abstract class SettableBeanProperty
         /* 09-Jan-2009, tatu: Intern()ing makes sense since Jackson parsed
          *   field names are interned too, hence lookups will be faster.
          */
-        _propName = InternCache.instance.intern(propName);
+        if (propName == null || propName.length() == 0) {
+            _propName = "";
+        } else {
+            _propName = InternCache.instance.intern(propName);
+        }
         _type = type;
     }
 

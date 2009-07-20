@@ -1,4 +1,4 @@
-Version: 1.2.0-SNAPSHOT
+Version: 1.2.0
 
 Release date:
   xx-Jul-2009
@@ -34,6 +34,17 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+1.1.1 [18-Jul-2009]
+
+  Fixes:
+
+  * [JACKSON-139] Non-numeric double values (NaN, Infinity) are serialized
+    as invalid JSON tokens
+    (reported by Peter H)
+  * Core jar incorrectly included much of "mapper" classes (in addition
+    to core classes)
+  * Now compiles again using JDK 1.5 javac (1.1.0 didn't)
+
 1.1.0 [22-Jun-2009]
 
   Fixes:
@@ -67,6 +78,15 @@ Description:
   * [JACKSON-123] Add "chaining" AnnotationIntrospector (implemented
     as inner class, AnnotationIntrospector.Pair) that allows combining
     functionality of 2 introspectors.
+
+1.0.1 [04-Jun-2009]
+
+  Fixes:
+
+  * [JACKSON-104] Build fails on JDK 1.5, assorted other minor issues
+   (reported by Oleksander A)
+  * [JACKSON-121] Problems deserializing Date values of some ISO-8601
+    variants (like one using 'Z' to indicate GMT timezone)
 
 1.0.0 [09-May-2009]
 

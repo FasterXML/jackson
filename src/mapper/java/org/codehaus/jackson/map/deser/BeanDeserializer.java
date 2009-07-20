@@ -22,8 +22,8 @@ import org.codehaus.jackson.type.JavaType;
 @JsonCachable
 /* Because of costs associated with constructing bean deserializers,
  * they usually should be cached unlike other deserializer types.
- * Additionally it is important to be able to cache bean serializers
- * to handle cyclic references.
+ * But more importantly, it is important to be able to cache
+ * bean serializers to handle cyclic references.
  */
 public class BeanDeserializer
     extends JsonDeserializer<Object>
@@ -45,7 +45,8 @@ public class BeanDeserializer
 
     /**
      * Default constructor used to instantiate the bean when mapping
-     * from Json object.
+     * from Json object, and only using setters for initialization
+     * (not specific constructors)
      */
     protected Constructor<?> _defaultConstructor;
 
@@ -200,7 +201,7 @@ public class BeanDeserializer
     /**
      * Method called to finalize setup of this deserializer,
      * after deserializer itself has been registered. This
-     * is needed to handle recursive dependencies.
+     * is needed to handle recursive and transitive dependencies.
      */
     public void resolve(DeserializationConfig config, DeserializerProvider provider)
         throws JsonMappingException
@@ -228,13 +229,7 @@ public class BeanDeserializer
                 deser = seen.get(type);
             }
             if (deser == null) {
-                deser = provider.findValueDeserializer(config, type, _beanType, prop.getPropertyName());
-                if (deser instanceof BeanDeserializer) {
-                    if (seen == null) {
-                        seen = new HashMap<JavaType, JsonDeserializer<Object>>();
-                    }
-                    seen.put(type, deser);
-                }
+                deser = findDeserializer(config, provider, type, prop.getPropertyName(), seen);
             }
             prop.setValueDeserializer(deser);
         }
@@ -247,15 +242,15 @@ public class BeanDeserializer
                 deser = seen.get(type);
             }
             if (deser == null) {
-                deser = provider.findValueDeserializer(config, type, _beanType, null);
+                deser = findDeserializer(config, provider, type, "[any]", seen);
             }
             _anySetter.setValueDeserializer(deser);
         }
 
-	// or, delegate-based constructor:
+	// as well as delegate-based constructor:
 	if (_delegatingConstructor != null) {
-            JavaType type = _delegatingConstructor.getValueType();
-	    _delegatingConstructor.setDeserializer(provider.findValueDeserializer(config, type, _beanType, null));
+            JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingConstructor.getValueType(), "[constructor-arg[0]]", seen);
+	    _delegatingConstructor.setDeserializer(deser);
 	}
     }
 
@@ -408,6 +403,25 @@ public class BeanDeserializer
         throws IOException, JsonProcessingException
     {
         throw ctxt.unknownFieldException(resultBean, fieldName);
+    }
+
+    /**
+     * Helper method used to locate deserializers for properties the
+     * bean itself contains.
+     */
+    protected JsonDeserializer<Object> findDeserializer(DeserializationConfig config, DeserializerProvider provider,
+                                                        JavaType type, String propertyName,
+                                                        HashMap<JavaType, JsonDeserializer<Object>> seen)
+        throws JsonMappingException
+    {
+        JsonDeserializer<Object> deser = provider.findValueDeserializer(config, type, _beanType, propertyName);
+        if (deser instanceof BeanDeserializer) {
+            if (seen == null) {
+                seen = new HashMap<JavaType, JsonDeserializer<Object>>();
+            }
+            seen.put(type, deser);
+        }
+        return deser;
     }
 
     /*

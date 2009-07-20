@@ -5,6 +5,8 @@ Tatu Saloranta, tatu.saloranta@iki.fi: author
 
 Ryan Heaton, ryan@webcohesion.com: co-author
 
+Peter Harris, Peter.Harris@betfair.com: contributor
+
 Alain Penders:
   * Reported problem with JavaTypeMapper, where floating point numbers were
     accidentally converted to Booleans.
