@@ -58,6 +58,9 @@ public abstract class StdDeserializer<T>
             }
             throw ctxt.weirdStringException(_valueClass, "only \"true\" or \"false\" recognized");
         }
+        if (t == JsonToken.VALUE_NULL) {
+            return Boolean.FALSE;
+        }
         // Otherwise, no can do:
         throw ctxt.mappingException(_valueClass);
     }
