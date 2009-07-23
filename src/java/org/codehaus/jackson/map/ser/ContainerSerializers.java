@@ -90,7 +90,6 @@ public final class ContainerSerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -167,7 +166,6 @@ public final class ContainerSerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -224,7 +222,6 @@ public final class ContainerSerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -282,7 +279,6 @@ public final class ContainerSerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -320,7 +316,6 @@ public final class ContainerSerializers
             jgen.writeEndArray();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -405,7 +400,6 @@ public final class ContainerSerializers
             jgen.writeEndObject();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = JsonNodeFactory.instance.objectNode();
@@ -459,7 +453,6 @@ public final class ContainerSerializers
         }
 
         @SuppressWarnings("unchecked")
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {

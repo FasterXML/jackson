@@ -7,6 +7,7 @@ import java.util.*;
 import java.lang.reflect.Type;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -371,7 +372,6 @@ public class BasicSerializerFactory
             jgen.writeBoolean(value.booleanValue());
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -395,7 +395,6 @@ public class BasicSerializerFactory
             jgen.writeString(value);
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -430,7 +429,6 @@ public class BasicSerializerFactory
             jgen.writeString(value.toString());
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -455,7 +453,6 @@ public class BasicSerializerFactory
             jgen.writeString(value.getName());
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -482,7 +479,6 @@ public class BasicSerializerFactory
             jgen.writeNumber(value.intValue());
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -510,7 +506,6 @@ public class BasicSerializerFactory
             jgen.writeNumber(value.intValue());
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -533,7 +528,6 @@ public class BasicSerializerFactory
             jgen.writeNumber(value.longValue());
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -556,7 +550,6 @@ public class BasicSerializerFactory
             jgen.writeNumber(value.floatValue());
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -573,13 +566,12 @@ public class BasicSerializerFactory
         final static DoubleSerializer instance = new DoubleSerializer();
 
         @Override
-		public void serialize(Double value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Double value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.doubleValue());
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -600,14 +592,22 @@ public class BasicSerializerFactory
         public final static NumberSerializer instance = new NumberSerializer();
 
         @Override
-		public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            // We'll have to use fallback "untyped" number write method
-            jgen.writeNumber(value.toString());
+            /* These shouldn't match (as there are more specific ones),
+             * but just to be sure:
+             */
+            if (value instanceof Double) {
+                jgen.writeNumber(((Double) value).doubleValue());
+            } else if (value instanceof Float) {
+                jgen.writeNumber(((Float) value).floatValue());
+            } else {
+                // We'll have to use fallback "untyped" number write method
+                jgen.writeNumber(value.toString());
+            }
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -636,7 +636,6 @@ public class BasicSerializerFactory
             jgen.writeString(provider.getConfig().getAnnotationIntrospector().findEnumValue(value));
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -674,7 +673,6 @@ public class BasicSerializerFactory
             provider.defaultSerializeDateValue(value.getTimeInMillis(), jgen);
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -701,7 +699,6 @@ public class BasicSerializerFactory
             provider.defaultSerializeDateValue(value, jgen);
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -722,13 +719,12 @@ public class BasicSerializerFactory
         extends JsonSerializer<java.sql.Date> implements SchemaAware
     {
         @Override
-		public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -750,7 +746,6 @@ public class BasicSerializerFactory
             jgen.writeString(value.toString());
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -780,7 +775,6 @@ public class BasicSerializerFactory
             jgen.writeNull();
         }
 
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {
@@ -804,7 +798,6 @@ public class BasicSerializerFactory
             value.serialize(jgen, provider);
         }
         
-        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
                 throws JsonMappingException
         {

@@ -1,12 +1,25 @@
-Version: 1.1.0
+Version: 1.1.1
 
 Release date:
-  22-Jun-2009
+  18-Jul-2009
 
 Description:
-  Official 1.1 release: main focus on improving interoperability via
-  JAXB annotation compatibility, basic JSON schema generation functionality
-  and ability to directly serialize fields as well as method-access properties.
+  Minor patch release for 1.1.
+
+  Fixes:
+
+  * [JACKSON-139] Non-numeric double values (NaN, Infinity) are serialized
+    as invalid JSON tokens
+    (reported by Peter H)
+  * Core jar incorrectly included much of "mapper" classes (in addition
+    to core classes)
+  * Now compiles again using JDK 1.5 javac (1.1.0 didn't)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.1.0 [22-Jun-2009]
 
   Fixes:
 
@@ -40,9 +53,14 @@ Description:
     as inner class, AnnotationIntrospector.Pair) that allows combining
     functionality of 2 introspectors.
 
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
+1.0.1 [04-Jun-2009]
+
+  Fixes:
+
+  * [JACKSON-104] Build fails on JDK 1.5, assorted other minor issues
+   (reported by Oleksander A)
+  * [JACKSON-121] Problems deserializing Date values of some ISO-8601
+    variants (like one using 'Z' to indicate GMT timezone)
 
 1.0.0 [09-May-2009]
 

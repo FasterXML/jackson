@@ -78,7 +78,6 @@ public final class JsonValueSerializer
         }
     }
 
-    @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
             throws JsonMappingException
     {

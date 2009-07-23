@@ -120,3 +120,9 @@ Christoph Strebin:
     means value of a property when bean is constructed using the default
     no-arg constructor
    [1.1.0]
+
+Peter Harris:
+  * Reported [JACKSON-139], provided patch for fixing it: Non-numeric
+    double values (NaN, Infinity) are serialized as invalid JSON tokens
+    (reported by Peter H)
+   [1.1.1]
