@@ -17,6 +17,8 @@ import org.codehaus.jackson.map.*;
 public class TestSimpleTypes
     extends BaseMapTest
 {
+    final static String NAN_STRING = "NaN";
+
     final static class BooleanBean {
         boolean _v;
         void setV(boolean v) { _v = v; }
@@ -258,14 +260,18 @@ public class TestSimpleTypes
 
         // Also: should be able to coerce floats, strings:
         String[] STRS = new String[] {
-            "1.0", "0.0", "-0.3", "0.7", "42.012", "-999.0", "NaN"
+            "1.0", "0.0", "-0.3", "0.7", "42.012", "-999.0", NAN_STRING
         };
 
         for (String str : STRS) {
-            // First, as regular floating point value
             Float exp = Float.valueOf(str);
-            Float result = mapper.readValue(new StringReader(str), Float.class);
-            assertEquals(exp, result);
+            Float result;
+
+            if (NAN_STRING != str) {
+                // First, as regular floating point value
+                result = mapper.readValue(new StringReader(str), Float.class);
+                assertEquals(exp, result);
+            }
 
             // and then as coerced String:
             result = mapper.readValue(new StringReader(" \""+str+"\""), Float.class);
@@ -279,24 +285,18 @@ public class TestSimpleTypes
 
         // Also: should be able to coerce doubles, strings:
         String[] STRS = new String[] {
-            "1.0", "0.0", "-0.3", "0.7", "42.012", "-999.0", "NaN"
+            "1.0", "0.0", "-0.3", "0.7", "42.012", "-999.0", NAN_STRING
         };
 
         for (String str : STRS) {
-            // First, as regular double value
             Double exp = Double.valueOf(str);
             Double result;
-            try {
+
+            // First, as regular double value
+            if (NAN_STRING != str) {
             	result = mapper.readValue(new StringReader(str), Double.class);
             	assertEquals(exp, result);
-            } catch (JsonParseException e) {
-            	if (str.equals("NaN")) {
-                    // This is OK as NaN is not acceptable as a simple pass-in value. It must be quoted 
-            	} else {
-                    throw e;
-            	}
             }
-
             // and then as coerced String:
             result = mapper.readValue(new StringReader(" \""+str+"\""), Double.class);
             assertEquals(exp, result);

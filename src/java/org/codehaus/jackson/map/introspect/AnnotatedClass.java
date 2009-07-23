@@ -228,7 +228,7 @@ public final class AnnotatedClass
     {
         _memberMethods = new AnnotatedMethodMap();
         for (Method m : _class.getDeclaredMethods()) {
-            if (_isIncludableMethod(m)) {
+            if (_isIncludableMethod(m, methodFilter)) {
                 _memberMethods.add(_constructMethod(m));
             }
         }
@@ -237,7 +237,7 @@ public final class AnnotatedClass
          */
         for (Class<?> cls : _superTypes) {
             for (Method m : cls.getDeclaredMethods()) {
-                if (!_isIncludableMethod(m)) {
+                if (!_isIncludableMethod(m, methodFilter)) {
                     continue;
                 }
                 AnnotatedMethod old = _memberMethods.find(m);
@@ -321,8 +321,11 @@ public final class AnnotatedClass
     ///////////////////////////////////////////////////////
      */
 
-    protected boolean _isIncludableMethod(Method m)
+    protected boolean _isIncludableMethod(Method m, MethodFilter filter)
     {
+        if (filter != null && !filter.includeMethod(m)) {
+            return false;
+        }
         /* 07-Apr-2009, tatu: Looks like generics can introduce hidden
          *   bridge and/or synthetic methods. I don't think we want to
          *   consider those...

@@ -1,10 +1,23 @@
-Version: 1.1.1
+Version: 1.1.2
 
 Release date:
-  18-Jul-2009
+  xx-Jul-2009
 
 Description:
-  Minor patch release for 1.1.
+  Patch release for 1.1.
+
+  Fixes:
+
+  * [JACKSON-144] Static "getter-like" methods mistaken for getters (for
+    serialization)
+   (reported by Dan S)
+
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.1.1 [18-Jul-2009]
 
   Fixes:
 
@@ -14,10 +27,6 @@ Description:
   * Core jar incorrectly included much of "mapper" classes (in addition
     to core classes)
   * Now compiles again using JDK 1.5 javac (1.1.0 didn't)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.1.0 [22-Jun-2009]
 

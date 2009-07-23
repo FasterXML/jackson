@@ -126,3 +126,8 @@ Peter Harris:
     double values (NaN, Infinity) are serialized as invalid JSON tokens
     (reported by Peter H)
    [1.1.1]
+
+Dan Simpson:
+  * Reported [JACKSON-144]: Static "getter-like" methods mistaken for
+    getters (for serialization)
+   [1.1.2]
