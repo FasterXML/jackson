@@ -19,9 +19,12 @@ import java.lang.annotation.Target;
  * the field name in Json objects.
  *<p>
  * NOTE: since version 1.1, annotation has also been applicable
- * to fields (not with 1.0)
+ * to fields (not with 1.0).
+ *<p>
+ * NOTE: since version 1.2, annotation has also been applicable
+ * to (constructor) parameters
  */
-@Target({ElementType.FIELD, ElementType.METHOD})
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonProperty

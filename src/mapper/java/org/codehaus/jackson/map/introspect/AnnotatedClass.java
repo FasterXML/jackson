@@ -109,13 +109,13 @@ public final class AnnotatedClass
     /**
      * Single argument constructors the class has, if any.
      */
-    List<AnnotatedConstructor> _singleArgConstructors;
+    List<AnnotatedConstructor> _constructors;
 
     /**
      * Single argument static methods that might be usable
      * as factory methods
      */
-    List<AnnotatedMethod> _singleArgStaticMethods;
+    List<AnnotatedMethod> _creatorMethods;
 
     /**
      * Member methods of interest; for now ones with 0 or 1 arguments
@@ -276,25 +276,24 @@ public final class AnnotatedClass
     public void resolveCreators(boolean includeAll)
     {
         // Then see which constructors we have
-        _singleArgConstructors = null;
+        _constructors = null;
         for (Constructor<?> ctor : _class.getDeclaredConstructors()) {
             switch (ctor.getParameterTypes().length) {
             case 0:
-                _defaultConstructor = _constructConstructor(ctor);
+                _defaultConstructor = _constructConstructor(ctor, true);
                 break;
-            case 1:
+            default:
                 if (includeAll) {
-                    if (_singleArgConstructors == null) {
-                        _singleArgConstructors = new ArrayList<AnnotatedConstructor>();
+                    if (_constructors == null) {
+                        _constructors = new ArrayList<AnnotatedConstructor>();
                     }
-                    _singleArgConstructors.add(_constructConstructor(ctor));
+                    _constructors.add(_constructConstructor(ctor, false));
                 }
-                break;
             }
         }
         // and if need be, augment with mix-ins
         if (_primaryMixIn != null) {
-            if (_defaultConstructor != null || _singleArgConstructors != null) {
+            if (_defaultConstructor != null || _constructors != null) {
                 _addConstructorMixIns(_primaryMixIn);
             }
         }
@@ -309,42 +308,43 @@ public final class AnnotatedClass
                 _defaultConstructor = null;
             }
         }
-        if (_singleArgConstructors != null) {
+        if (_constructors != null) {
             // count down to allow safe removal
-            for (int i = _singleArgConstructors.size(); --i >= 0; ) {
-                if (_annotationIntrospector.isIgnorableConstructor(_singleArgConstructors.get(i))) {
-                    _singleArgConstructors.remove(i);
+            for (int i = _constructors.size(); --i >= 0; ) {
+                if (_annotationIntrospector.isIgnorableConstructor(_constructors.get(i))) {
+                    _constructors.remove(i);
                 }
             }
         }
 
-        _singleArgStaticMethods = null;
+        _creatorMethods = null;
         
         if (includeAll) {
-            /* Then methods: single-arg static methods (potential factory
-             * methods), and 0/1-arg member methods (getters, setters)
+            /* Then static methods which are potential factory
+             * methods
              */
             for (Method m : _class.getDeclaredMethods()) {
-                if (Modifier.isStatic(m.getModifiers())) {
-                    int argCount = m.getParameterTypes().length;
-                    if (argCount == 1) {
-                        if (_singleArgStaticMethods == null) {
-                            _singleArgStaticMethods = new ArrayList<AnnotatedMethod>();
-                        }
-                        _singleArgStaticMethods.add(_constructMethod(m));
+                if (!Modifier.isStatic(m.getModifiers())) {
+                    continue;
+                }
+                int argCount = m.getParameterTypes().length;
+                if (argCount >= 1) {
+                    if (_creatorMethods == null) {
+                        _creatorMethods = new ArrayList<AnnotatedMethod>();
                     }
+                    _creatorMethods.add(_constructCreatorMethod(m));
                 }
             }
             // mix-ins to mix in?
-            if (_primaryMixIn != null && _singleArgStaticMethods != null) {
+            if (_primaryMixIn != null && _creatorMethods != null) {
                 _addFactoryMixIns(_primaryMixIn);
             }
             // anything to ignore at this point?
-            if (_singleArgStaticMethods != null) {
+            if (_creatorMethods != null) {
                 // count down to allow safe removal
-                for (int i = _singleArgStaticMethods.size(); --i >= 0; ) {
-                    if (_annotationIntrospector.isIgnorableMethod(_singleArgStaticMethods.get(i))) {
-                        _singleArgStaticMethods.remove(i);
+                for (int i = _creatorMethods.size(); --i >= 0; ) {
+                    if (_annotationIntrospector.isIgnorableMethod(_creatorMethods.get(i))) {
+                        _creatorMethods.remove(i);
                     }
                 }
             }
@@ -354,27 +354,27 @@ public final class AnnotatedClass
     protected void _addConstructorMixIns(Class<?> mixin)
     {
         MemberKey[] ctorKeys = null;
-        int ctorCount = (_singleArgConstructors == null) ? 0 : _singleArgConstructors.size();
+        int ctorCount = (_constructors == null) ? 0 : _constructors.size();
         for (Constructor<?> ctor : mixin.getDeclaredConstructors()) {
             switch (ctor.getParameterTypes().length) {
             case 0:
                 if (_defaultConstructor != null) {
-                    _addMixOvers(ctor, _defaultConstructor);
+                    _addMixOvers(ctor, _defaultConstructor, false);
                 }
                 break;
             case 1:
                 if (ctorKeys == null) {
                     ctorKeys = new MemberKey[ctorCount];
                     for (int i = 0; i < ctorCount; ++i) {
-                        ctorKeys[i] = new MemberKey(_singleArgConstructors.get(i).getAnnotated());
+                        ctorKeys[i] = new MemberKey(_constructors.get(i).getAnnotated());
                     }
                 }
                 MemberKey key = new MemberKey(ctor);
                 for (int i = 0; i < ctorCount; ++i) {
-                    if (key.equals(ctorKeys[i])) {
-                        _addMixOvers(ctor, _singleArgConstructors.get(i));
-                        break;
+                    if (!key.equals(ctorKeys[i])) {
+                        continue;
                     }
+                    _addMixOvers(ctor, _constructors.get(i), true);
                     break;
                 }
             }
@@ -384,27 +384,27 @@ public final class AnnotatedClass
     protected void _addFactoryMixIns(Class<?> mixin)
     {
         MemberKey[] methodKeys = null;
-        int methodCount = _singleArgStaticMethods.size();
+        int methodCount = _creatorMethods.size();
 
         for (Method m : mixin.getDeclaredMethods()) {
             if (!Modifier.isStatic(m.getModifiers())) {
                 continue;
             }
-            if (m.getParameterTypes().length != 1) {
+            if (m.getParameterTypes().length == 0) {
                 continue;
             }
             if (methodKeys == null) {
                 methodKeys = new MemberKey[methodCount];
                 for (int i = 0; i < methodCount; ++i) {
-                    methodKeys[i] = new MemberKey(_singleArgStaticMethods.get(i).getAnnotated());
+                    methodKeys[i] = new MemberKey(_creatorMethods.get(i).getAnnotated());
                 }
             }
             MemberKey key = new MemberKey(m);
             for (int i = 0; i < methodCount; ++i) {
-                if (key.equals(methodKeys[i])) {
-                    _addMixOvers(m, _singleArgStaticMethods.get(i));
-                    break;
+                if (!key.equals(methodKeys[i])) {
+                    continue;
                 }
+                _addMixOvers(m, _creatorMethods.get(i), true);
                 break;
             }
         }
@@ -449,7 +449,7 @@ public final class AnnotatedClass
                     Method m = Object.class.getDeclaredMethod(mixIn.getName(), mixIn.getParameterClasses());
                     if (m != null) {
                         AnnotatedMethod am = _constructMethod(m);
-                        _addMixOvers(mixIn.getAnnotated(), am);
+                        _addMixOvers(mixIn.getAnnotated(), am, false);
                         _memberMethods.add(am);
                     }
                 } catch (Exception e) { }
@@ -492,7 +492,7 @@ public final class AnnotatedClass
                     // Ok, but is there a mix-in to connect now?
                     old = mixIns.remove(m);
                     if (old != null) {
-                        _addMixOvers(old.getAnnotated(), newM);
+                        _addMixOvers(old.getAnnotated(), newM, false);
                     }
                 } else {
                     /* If sub-class already has the method, we only want
@@ -628,17 +628,38 @@ public final class AnnotatedClass
 
     protected AnnotatedMethod _constructMethod(Method m)
     {
-        return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()));
+        /* note: parameter annotations not used for regular (getter, setter)
+         * methods; only for creator methods (static factory methods)
+         */
+        return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()),
+                                   null);
     }
 
-    protected AnnotatedConstructor _constructConstructor(Constructor<?> ctor)
+    protected AnnotatedConstructor _constructConstructor(Constructor<?> ctor, boolean defaultCtor)
     {
-        return new AnnotatedConstructor(ctor, _collectRelevantAnnotations(ctor.getDeclaredAnnotations()));
+        return new AnnotatedConstructor(ctor, _collectRelevantAnnotations(ctor.getDeclaredAnnotations()),
+                                        defaultCtor ? null :  _collectRelevantAnnotations(ctor.getParameterAnnotations()));
+    }
+
+    protected AnnotatedMethod _constructCreatorMethod(Method m)
+    {
+        return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()),
+                                   _collectRelevantAnnotations(m.getParameterAnnotations()));
     }
 
     protected AnnotatedField _constructField(Field f)
     {
         return new AnnotatedField(f, _collectRelevantAnnotations(f.getDeclaredAnnotations()));
+    }
+
+    protected AnnotationMap[] _collectRelevantAnnotations(Annotation[][] anns)
+    {
+        int len = anns.length;
+        AnnotationMap[] result = new AnnotationMap[len];
+        for (int i = 0; i < len; ++i) {
+            result[i] = _collectRelevantAnnotations(anns[i]);
+        }
+        return result;
     }
 
     protected AnnotationMap _collectRelevantAnnotations(Annotation[] anns)
@@ -697,20 +718,46 @@ public final class AnnotatedClass
     ///////////////////////////////////////////////////////
      */
 
-    protected void _addMixOvers(Constructor mixin, AnnotatedConstructor target)
+    /**
+     * @param addParamAnnotations Whether parameter annotations are to be
+     *   added as well
+     */
+    protected void _addMixOvers(Constructor mixin, AnnotatedConstructor target,
+                                boolean addParamAnnotations)
     {
         for (Annotation a : mixin.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
                 target.addOrOverride(a);
             }
         }
+        if (addParamAnnotations) {
+            Annotation[][] pa = mixin.getParameterAnnotations();
+            for (int i = 0, len = pa.length; i < len; ++i) {
+                for (Annotation a : pa[i]) {
+                    target.addOrOverrideParam(i, a);
+                }
+            }
+        }
     }
 
-    protected void _addMixOvers(Method mixin, AnnotatedMethod target)
+    /**
+     * @param addParamAnnotations Whether parameter annotations are to be
+     *   added as well
+     */
+    protected void _addMixOvers(Method mixin, AnnotatedMethod target,
+                                boolean addParamAnnotations)
     {
         for (Annotation a : mixin.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
                 target.addOrOverride(a);
+            }
+        }
+        if (addParamAnnotations) {
+            Annotation[][] pa = mixin.getParameterAnnotations();
+            for (int i = 0, len = pa.length; i < len; ++i) {
+                for (Annotation a : pa[i]) {
+                    target.addOrOverrideParam(i, a);
+                }
             }
         }
     }
@@ -756,20 +803,20 @@ public final class AnnotatedClass
 
     public AnnotatedConstructor getDefaultConstructor() { return _defaultConstructor; }
 
-    public List<AnnotatedConstructor> getSingleArgConstructors()
+    public List<AnnotatedConstructor> getConstructors()
     {
-        if (_singleArgConstructors == null) {
+        if (_constructors == null) {
             return Collections.emptyList();
         }
-        return _singleArgConstructors;
+        return _constructors;
     }
 
-    public List<AnnotatedMethod> getSingleArgStaticMethods()
+    public List<AnnotatedMethod> getStaticMethods()
     {
-        if (_singleArgStaticMethods == null) {
+        if (_creatorMethods == null) {
             return Collections.emptyList();
         }
-        return _singleArgStaticMethods;
+        return _creatorMethods;
     }
 
     public Iterable<AnnotatedMethod> memberMethods()

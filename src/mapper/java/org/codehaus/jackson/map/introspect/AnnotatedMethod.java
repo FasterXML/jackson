@@ -13,6 +13,9 @@ public final class AnnotatedMethod
 
     final AnnotationMap _annotations;
 
+
+    final AnnotationMap[] _paramAnnotations;
+
     // // Simple lazy-caching:
 
     public Class<?>[] _paramTypes;
@@ -23,10 +26,12 @@ public final class AnnotatedMethod
     //////////////////////////////////////////////////////
      */
 
-    public AnnotatedMethod(Method method, AnnotationMap annMap)
+    public AnnotatedMethod(Method method, AnnotationMap annMap,
+                           AnnotationMap[] paramAnnotations)
     {
         _method = method;
         _annotations = annMap;
+        _paramAnnotations = paramAnnotations;
     }
 
     /**
@@ -40,13 +45,29 @@ public final class AnnotatedMethod
     }
 
     /**
-     * Method called to override an annotation, usually due to a mix-in
-     * annotation masking or overriding an annotation 'real' constructor
+     * Method called to override a method annotation, usually due to a mix-in
+     * annotation masking or overriding an annotation 'real' method
      * has.
      */
     public void addOrOverride(Annotation a)
     {
         _annotations.add(a);
+    }
+
+    /**
+     * Method called to override a method parameter annotation,
+     * usually due to a mix-in
+     * annotation masking or overriding an annotation 'real' method
+     * has.
+     */
+    public void addOrOverrideParam(int paramIndex, Annotation a)
+    {
+        AnnotationMap old = _paramAnnotations[paramIndex];
+        if (old == null) {
+            old = new AnnotationMap();
+            _paramAnnotations[paramIndex] = old;
+        }
+        old.add(a);
     }
 
     /*

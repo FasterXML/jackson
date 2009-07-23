@@ -27,10 +27,13 @@ import org.codehaus.jackson.map.JsonSerializer;
  * (which would be redundant, since some properties block others:
  * specifically, 'using' has precedence over 'as', which has precedence
  * over 'typing' setting)
+ *<p>
+ * NOTE: since version 1.2, annotation has also been applicable
+ * to (constructor) parameters
  *
  * @since 1.1
  */
-@Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonSerialize

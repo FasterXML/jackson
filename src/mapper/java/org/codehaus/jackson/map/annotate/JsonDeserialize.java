@@ -24,10 +24,13 @@ import org.codehaus.jackson.map.JsonDeserializer;
  *    contentAs=MyHashValue.class
  *  )
  *</pre>
+ *<p>
+ * NOTE: since version 1.2, annotation has also been applicable
+ * to (constructor) parameters
  *
  * @since 1.1
  */
-@Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonDeserialize

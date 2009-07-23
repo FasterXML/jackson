@@ -11,7 +11,9 @@ public final class AnnotatedConstructor
 {
     final Constructor<?> _constructor;
 
-    final AnnotationMap _annotations;
+    final AnnotationMap _classAnnotations;
+
+    final AnnotationMap[] _paramAnnotations;
 
     /*
     //////////////////////////////////////////////////////
@@ -19,20 +21,38 @@ public final class AnnotatedConstructor
     //////////////////////////////////////////////////////
      */
 
-    public AnnotatedConstructor(Constructor<?> constructor, AnnotationMap annMap)
+    public AnnotatedConstructor(Constructor<?> constructor, AnnotationMap annMap,
+                                AnnotationMap[] paramAnnotations)
     {
         _constructor = constructor;
-        _annotations = annMap;
+        _classAnnotations = annMap;
+        _paramAnnotations = paramAnnotations;
     }
 
     /**
-     * Method called to override an annotation, usually due to a mix-in
+     * Method called to override a constructor annotation, usually due to a mix-in
      * annotation masking or overriding an annotation 'real' constructor
      * has.
      */
     public void addOrOverride(Annotation a)
     {
-        _annotations.add(a);
+        _classAnnotations.add(a);
+    }
+
+    /**
+     * Method called to override a constructor parameter annotation,
+     * usually due to a mix-in
+     * annotation masking or overriding an annotation 'real' constructor
+     * has.
+     */
+    public void addOrOverrideParam(int paramIndex, Annotation a)
+    {
+        AnnotationMap old = _paramAnnotations[paramIndex];
+        if (old == null) {
+            old = new AnnotationMap();
+            _paramAnnotations[paramIndex] = old;
+        }
+        old.add(a);
     }
 
     /*
@@ -49,7 +69,7 @@ public final class AnnotatedConstructor
 
     public <A extends Annotation> A getAnnotation(Class<A> acls)
     {
-        return _annotations.get(acls);
+        return _classAnnotations.get(acls);
     }
 
     public Class<?> getType() {
@@ -96,7 +116,7 @@ public final class AnnotatedConstructor
 
     public String toString()
     {
-        return "[constructor for "+getName()+", annotations: "+_annotations+"]";
+        return "[constructor for "+getName()+", annotations: "+_classAnnotations+"]";
     }
 }
 

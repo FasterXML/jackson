@@ -227,15 +227,15 @@ public class BasicBeanDescription extends BeanDescription
         return ac.getAnnotated();
     }
 
-    public List<AnnotatedConstructor> getSingleArgConstructors()
+    public List<AnnotatedConstructor> getConstructors()
     {
-        return _classInfo.getSingleArgConstructors();
+        return _classInfo.getConstructors();
     }
 
     public List<AnnotatedMethod> getFactoryMethods()
     {
         // must filter out anything that clearly is not a factory method
-        List<AnnotatedMethod> candidates = _classInfo.getSingleArgStaticMethods();
+        List<AnnotatedMethod> candidates = _classInfo.getStaticMethods();
         if (candidates.isEmpty()) {
             return candidates;
         }
@@ -256,7 +256,7 @@ public class BasicBeanDescription extends BeanDescription
      */
     public Constructor<?> findSingleArgConstructor(Class<?>... argTypes)
     {
-        for (AnnotatedConstructor ac : _classInfo.getSingleArgConstructors()) {
+        for (AnnotatedConstructor ac : _classInfo.getConstructors()) {
             // This list is already filtered to only include accessible
             /* (note: for now this is a redundant check; but in future
              * that may change; thus leaving here for now)
@@ -285,7 +285,7 @@ public class BasicBeanDescription extends BeanDescription
     public Method findFactoryMethod(Class<?>... expArgTypes)
     {
         // So, of all single-arg static methods:
-        for (AnnotatedMethod am : _classInfo.getSingleArgStaticMethods()) {
+        for (AnnotatedMethod am : _classInfo.getStaticMethods()) {
             if (isFactoryMethod(am)) {
                 // And must take one of expected arg types (or supertype)
                 Class<?> actualArgType = am.getParameterClass(0);

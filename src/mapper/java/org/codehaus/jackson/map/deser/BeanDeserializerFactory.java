@@ -210,7 +210,10 @@ public class BeanDeserializerFactory
         AnnotatedConstructor longCtor = null;
         AnnotatedConstructor otherCtor = null;
 
-        for (AnnotatedConstructor ctor : beanDesc.getSingleArgConstructors()) {
+        for (AnnotatedConstructor ctor : beanDesc.getConstructors()) {
+            if (ctor.getParameterCount() != 1) {
+                continue;
+            }
             Class<?> type = ctor.getParameterClass(0);
             if (type == String.class) {
                 strCtor = verifyNonDup(ctor, strCtor, fixAccess);
@@ -235,6 +238,9 @@ public class BeanDeserializerFactory
         AnnotatedMethod otherFactory = null;
 
         for (AnnotatedMethod factory : beanDesc.getFactoryMethods()) {
+            if (factory.getParameterCount() != 1) {
+                continue;
+            }
             Class<?> type = factory.getParameterClass(0);
             if (type == String.class) {
                 strFactory = verifyNonDup(factory, strFactory, fixAccess);

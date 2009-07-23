@@ -87,8 +87,8 @@ public class TestAnnotatedClass
         ac.resolveFields();
 
         assertNotNull(ac.getDefaultConstructor());
-        assertEquals(1, ac.getSingleArgConstructors().size());
-        assertEquals(0, ac.getSingleArgStaticMethods().size());
+        assertEquals(1, ac.getConstructors().size());
+        assertEquals(0, ac.getStaticMethods().size());
         assertEquals(2, ac.getMemberMethodCount());
         for (AnnotatedMethod am : ac.memberMethods()) {
             String name = am.getName();
