@@ -129,6 +129,11 @@ Peter Harris:
     (reported by Peter H)
    [1.1.1]
 
+Dan Simpson:
+  * Reported [JACKSON-144]: Static "getter-like" methods mistaken for
+    getters (for serialization)
+   [1.1.2]
+
 Dain Sundstrom:
   * Suggested addition of "-use" for javadoc generation
    [1.2.0]

@@ -421,18 +421,18 @@ public final class AnnotatedClass
         _memberMethods = new AnnotatedMethodMap();
         AnnotatedMethodMap mixins = new AnnotatedMethodMap();
         // first: methods from the class itself
-        _addMemberMethods(_class, _memberMethods, _primaryMixIn, mixins);
+        _addMemberMethods(_class, methodFilter, _memberMethods, _primaryMixIn, mixins);
 
         // and then augment these with annotations from super-types:
         for (Class<?> cls : _superTypes) {
             Class<?> mixin = (_mixInResolver == null) ? null : _mixInResolver.findMixInClassFor(cls);
-            _addMemberMethods(cls, _memberMethods, mixin, mixins);
+            _addMemberMethods(cls, methodFilter, _memberMethods, mixin, mixins);
         }
         // Special case: mix-ins for Object.class? (to apply to ALL classes)
         if (_mixInResolver != null) {
             Class<?> mixin = _mixInResolver.findMixInClassFor(Object.class);
             if (mixin != null) {
-                _addMethodMixIns(_memberMethods, mixin, mixins);
+                _addMethodMixIns(methodFilter, _memberMethods, mixin, mixins);
             }
         }
 
@@ -469,18 +469,20 @@ public final class AnnotatedClass
         }
     }
 
-    protected void _addMemberMethods(Class<?> cls, AnnotatedMethodMap methods,
+    protected void _addMemberMethods(Class<?> cls,
+                                     MethodFilter methodFilter, 
+                                     AnnotatedMethodMap methods,
                                      Class<?> mixInCls, AnnotatedMethodMap mixIns)
     {
         // first, mixIns, since they have higher priority then class methods
         if (mixInCls != null) {
-            _addMethodMixIns(methods, mixInCls, mixIns);
+            _addMethodMixIns(methodFilter, methods, mixInCls, mixIns);
         }
 
         if (cls != null) {
             // then methods from the class itself
             for (Method m : cls.getDeclaredMethods()) {
-                if (!_isIncludableMethod(m)) {
+                if (!_isIncludableMethod(m, methodFilter)) {
                     continue;
                 }
                 AnnotatedMethod old = methods.find(m);
@@ -503,11 +505,12 @@ public final class AnnotatedClass
         }
     }
 
-    protected void _addMethodMixIns(AnnotatedMethodMap methods,
+    protected void _addMethodMixIns(MethodFilter methodFilter, 
+                                    AnnotatedMethodMap methods,
                                     Class<?> mixInCls, AnnotatedMethodMap mixIns)
     {
         for (Method m : mixInCls.getDeclaredMethods()) {
-            if (!_isIncludableMethod(m)) {
+            if (!_isIncludableMethod(m, methodFilter)) {
                 continue;
             }
             AnnotatedMethod am = methods.find(m);
@@ -657,8 +660,11 @@ public final class AnnotatedClass
     ///////////////////////////////////////////////////////
      */
 
-    protected boolean _isIncludableMethod(Method m)
+    protected boolean _isIncludableMethod(Method m, MethodFilter filter)
     {
+        if (filter != null && !filter.includeMethod(m)) {
+            return false;
+        }
         /* 07-Apr-2009, tatu: Looks like generics can introduce hidden
          *   bridge and/or synthetic methods. I don't think we want to
          *   consider those...
