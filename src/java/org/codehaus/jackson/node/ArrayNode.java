@@ -322,8 +322,8 @@ public final class ArrayNode
             return false;
         }
         ArrayNode other = (ArrayNode) o;
-        if (_children == null) {
-            return other._children == null;
+        if (_children == null || _children.size() == 0) {
+            return other.size() == 0;
         }
         return other._sameChildren(_children);
     }
@@ -401,10 +401,14 @@ public final class ArrayNode
         }
     }
 
+    /**
+     * Note: this method gets called iff <code>otherChildren</code>
+     * is non-empty
+     */
     private boolean _sameChildren(ArrayList<JsonNode> otherChildren)
     {
         int len = otherChildren.size();
-        if (_children.size() != len) {
+        if (this.size() != len) { // important: call size() to handle case of null list...
             return false;
         }
         for (int i = 0; i < len; ++i) {
