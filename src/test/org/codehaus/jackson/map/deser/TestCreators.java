@@ -17,6 +17,35 @@ public class TestCreators
      */
 
     /**
+     * Simple(st) possible demonstration of using annotated
+     * constructors
+     */
+    static class ConstructorBean {
+        int x;
+
+        @JsonCreator protected ConstructorBean(@JsonProperty("x") int x) {
+            this.x = x;
+        }
+    }
+
+    static class FactoryBean {
+        double d; // teehee
+        @JsonCreator protected FactoryBean(@JsonProperty("f") double value) {
+            d = value;
+        }
+    }
+
+    /**
+     * Simple demonstration of INVALID construtor annotation (only
+     * defining name for first arg)
+     */
+    static class BrokenBean {
+        @JsonCreator protected BrokenBean(@JsonProperty("a") int a,
+                                          int b) {
+        }
+    }
+
+    /**
      * Bean that defines both creator and factory methor as
      * creators. Constructors have priority; but it is possible
      * to hide it using mix-in annotations.
@@ -54,9 +83,23 @@ public class TestCreators
 
     /*
     //////////////////////////////////////////////
-    // Test methods
+    // Test methods, valid cases
     //////////////////////////////////////////////
      */
+
+    public void testSimpleConstructor() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        ConstructorBean bean = m.readValue("{ \"x\" : 42 }", ConstructorBean.class);
+        assertEquals(42, bean.x);
+    }
+
+    public void testSimpleFactory() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        FactoryBean bean = m.readValue("{ \"d\" : 0.25 }", FactoryBean.class);
+        assertEquals(0.25, bean.d);
+    }
 
     public void testConstructorCreator() throws Exception
     {
@@ -77,5 +120,19 @@ public class TestCreators
         assertEquals("ctor:xyz", bean.a);
     }
 
+    /*
+    //////////////////////////////////////////////
+    // Test methods, invalid/broken cases
+    //////////////////////////////////////////////
+     */
 
+    public void testBrokenConstructor() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        try {
+            BrokenBean bean = m.readValue("{ \"x\" : 42 }", BrokenBean.class);
+        } catch (JsonMappingException je) {
+            verifyException(je, "has no property name");
+        }
+    }
 }

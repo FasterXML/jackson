@@ -228,43 +228,59 @@ public class BeanDeserializerFactory
             boolean isCreator = intr.hasCreatorAnnotation(ctor);
             // some single-arg constructors (String, number) are auto-detected
             if (argCount == 1) {
-                Class<?> type = ctor.getParameterClass(0);
-                if (type == String.class) {
-                    if (autodetect || isCreator) {
-                        strCtor = verifyNonDup(ctor, strCtor, fixAccess);
-                    }
-                    continue;
-                }
-                if (type == int.class || type == Integer.class) {
-                    if (autodetect || isCreator) {
-                        intCtor = verifyNonDup(ctor, intCtor, fixAccess);
-                    }
-                    continue;
-                }
-                if (type == long.class || type == Long.class) {
-                    if (autodetect || isCreator) {
-                        longCtor = verifyNonDup(ctor, longCtor, fixAccess);
-                    }
-                    continue;
-                }
-                // Then others: must have explicit @JsonCreator
-                if (!intr.hasCreatorAnnotation(ctor)) {
-                    continue;
-                }
-                /* If so; either delegating constructor (no property name
-                 * binding), or non-default constructor (property name)
+                /* but note: if we do have parameter name, it'll be
+                 * "property constructor", and needs to be skipped for now
                  */
                 AnnotationMap anns = ctor.getParameterAnnotations(0);
                 String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
-                if (name == null) { // == delegating
-                    // Must be annotated for bean types, public etc not enough
-                    delegatingCtor = verifyNonDup(ctor, delegatingCtor, fixAccess);
-                } else {
-                    // !!! TBI
-                    propCtor = null;
-                    throw new RuntimeException("Not yet implemented!");
+                if (name == null) { // not delegating
+                    Class<?> type = ctor.getParameterClass(0);
+                    if (type == String.class) {
+                        if (autodetect || isCreator) {
+                            strCtor = verifyNonDup(ctor, strCtor, fixAccess);
+                        }
+                        continue;
+                    }
+                    if (type == int.class || type == Integer.class) {
+                        if (autodetect || isCreator) {
+                            intCtor = verifyNonDup(ctor, intCtor, fixAccess);
+                        }
+                        continue;
+                    }
+                    if (type == long.class || type == Long.class) {
+                        if (autodetect || isCreator) {
+                            longCtor = verifyNonDup(ctor, longCtor, fixAccess);
+                        }
+                        continue;
+                    }
+                    // Delegating constructor ok iff it has @JsonCreator (etc)
+                    if (intr.hasCreatorAnnotation(ctor)) {
+                        delegatingCtor = verifyNonDup(ctor, delegatingCtor, fixAccess);
+                    }
+                    // otherwise just ignored
+                    continue;
+                }
+                // fall through if there's name
+            } else {
+                // more than 2 args, must be @JsonCreator
+                if (!intr.hasCreatorAnnotation(ctor)) {
+                    continue;
                 }
             }
+
+            // 1 or more args; all params must have name annotations
+            String[] names = new String[argCount];
+            for (int i = 0; i < argCount; ++i) {
+                AnnotationMap anns = ctor.getParameterAnnotations(i);
+                String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
+                // At this point, name annotation is NOT optional
+                if (name == null) {
+                    throw new IllegalArgumentException("Argument #"+i+" of constructor "+ctor+" has no property name annotation; must have when multiple-paramater constructor annotated as Creator");
+                }
+                // !!! TBI
+            }
+            propCtor = null;
+            throw new RuntimeException("Not Yet Implemented");
         }
 
         // and/or single-arg static methods
@@ -282,42 +298,57 @@ public class BeanDeserializerFactory
             boolean isCreator = intr.hasCreatorAnnotation(factory);
             // some single-arg factory methods (String, number) are auto-detected
             if (argCount == 1) {
-                Class<?> type = factory.getParameterClass(0);
-                if (type == String.class) {
-                    if (autodetect || isCreator) {
-                        strFactory = verifyNonDup(factory, strFactory, fixAccess);
-                    }
-                    continue;
-                }
-                if (type == int.class || type == Integer.class) {
-                    if (autodetect || isCreator) {
-                        intFactory = verifyNonDup(factory, intFactory, fixAccess);
-                    }
-                    continue;
-                }
-                if (type == long.class || type == Long.class) {
-                    if (autodetect || isCreator) {
-                        longFactory = verifyNonDup(factory, longFactory, fixAccess);
-                    }
-                    continue;
-                }
-                // Then others: must have explicit @JsonCreator
-                if (!intr.hasCreatorAnnotation(factory)) {
-                    continue;
-                }
-                /* If so; either delegating constructor (no property name
-                 * binding), or non-default constructor (property name)
+                /* but as above: if we do have parameter name, it'll be
+                 * "property constructor", and needs to be skipped for now
                  */
                 AnnotationMap anns = factory.getParameterAnnotations(0);
                 String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
-                if (name == null) { // == delegating
-                    delegatingFactory = verifyNonDup(factory, delegatingFactory, fixAccess);
-                } else {
-                    // !!! TBI
-                    propFactory = null;
-                    throw new RuntimeException("Not yet implemented!");
+                if (name == null) { // not delegating
+                    Class<?> type = factory.getParameterClass(0);
+                    if (type == String.class) {
+                        if (autodetect || isCreator) {
+                            strFactory = verifyNonDup(factory, strFactory, fixAccess);
+                        }
+                        continue;
+                    }
+                    if (type == int.class || type == Integer.class) {
+                        if (autodetect || isCreator) {
+                            intFactory = verifyNonDup(factory, intFactory, fixAccess);
+                        }
+                        continue;
+                    }
+                    if (type == long.class || type == Long.class) {
+                        if (autodetect || isCreator) {
+                            longFactory = verifyNonDup(factory, longFactory, fixAccess);
+                        }
+                        continue;
+                    }
+                    if (intr.hasCreatorAnnotation(factory)) {
+                        delegatingFactory = verifyNonDup(factory, delegatingFactory, fixAccess);
+                    }
+                    // otherwise just ignored
+                    continue;
+                }
+                // fall through if there's name
+            } else {
+                // more than 2 args, must be @JsonCreator
+                if (!intr.hasCreatorAnnotation(factory)) {
+                    continue;
                 }
             }
+            // 1 or more args; all params must have name annotations
+            String[] names = new String[argCount];
+            for (int i = 0; i < argCount; ++i) {
+                AnnotationMap anns = factory.getParameterAnnotations(i);
+                String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
+                // At this point, name annotation is NOT optional
+                if (name == null) {
+                    throw new IllegalArgumentException("Argument #"+i+" of factory method "+factory+" has no property name annotation; must have when multiple-paramater static method annotated as Creator");
+                }
+                // !!! TBI
+            }
+            propFactory = null;
+            throw new RuntimeException("Not Yet Implemented");
         }
 
         if (strCtor != null || strFactory != null) {
