@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.introspect.AnnotationMap;
 
 /**
  * Abstract class that defines API used for introspecting annotation-based
@@ -354,6 +355,21 @@ public abstract class AnnotationIntrospector
 
     /*
     ///////////////////////////////////////////////////////
+    // Deserialization: parameter annotations (for
+    // creator method parameters)
+    ///////////////////////////////////////////////////////
+    */
+
+    /**
+     * Method for checking whether given set of annotations indicates
+     * property name for associated parameter.
+     * No actual parameter object can be passed since JDK offers no
+     * representation; just annotations.
+     */
+    public abstract String findPropertyNameForParam(AnnotationMap paramAnnotations);
+
+    /*
+    ///////////////////////////////////////////////////////
     // Helper classes
     ///////////////////////////////////////////////////////
     */
@@ -667,5 +683,21 @@ public abstract class AnnotationIntrospector
             }
             return result;
         }
+
+        // // // Deserialization: parameter annotations (for creators)
+
+        @Override
+        public String findPropertyNameForParam(AnnotationMap paramAnnotations)
+        {
+            String result = null;
+            if (paramAnnotations != null) { // just sanity checking...
+                result = _primary.findPropertyNameForParam(paramAnnotations);
+                if (result == null) {
+                    result = _secondary.findPropertyNameForParam(paramAnnotations);
+                }
+            }
+            return result;
+        }
     }
+
 }

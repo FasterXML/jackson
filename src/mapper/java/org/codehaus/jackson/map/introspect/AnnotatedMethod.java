@@ -130,6 +130,16 @@ public final class AnnotatedMethod
         return (index >= types.length) ? null : types[index];
     }
 
+    public AnnotationMap getParameterAnnotations(int index)
+    {
+        if (_paramAnnotations != null) {
+            if (index >= 0 && index <= _paramAnnotations.length) {
+                return _paramAnnotations[index];
+            }
+        }
+        return null;
+    }
+
     public Type getGenericReturnType() { return _method.getGenericReturnType(); }
 
     public Class<?> getReturnType() { return _method.getReturnType(); }

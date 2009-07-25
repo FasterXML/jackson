@@ -496,6 +496,28 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
+    ///////////////////////////////////////////////////////
+    // Deserialization: parameters annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public String findPropertyNameForParam(AnnotationMap ann)
+    {
+        if (ann != null) {
+            JsonProperty pann = ann.get(JsonProperty.class);
+            if (pann != null) {
+                return pann.value();
+            }
+            /* And can not use JsonDeserialize as we can not use
+             * name auto-detection (names of local variables including
+             * parameters are not necessarily preserved in bytecode)
+             */
+        }
+        return null;
+    }
+
+    /*
     ////////////////////////////////////////////////////
     // Helper methods
     ////////////////////////////////////////////////////

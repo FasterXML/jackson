@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.introspect.AnnotationMap;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
@@ -368,6 +369,19 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     {
         Field field = af.getAnnotated();
         return findJaxbPropertyName(field, field.getType(), field.getName());
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Deserialization: parameters annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public String findPropertyNameForParam(AnnotationMap paramAnnotations)
+    {
+        // JAXB has nothing like this...
+        return null;
     }
 
     /*

@@ -7,6 +7,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.introspect.AnnotationMap;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -113,9 +114,9 @@ public class BeanDeserializerFactory
         BeanDeserializer deser = constructBeanDeserializerInstance(config, type, beanDesc);
 
         // First: add constructors
-        addDeserializerConstructors(config, beanDesc, deser);
+        addDeserializerCreators(config, beanDesc, deser);
         // and check that there are enough
-        deser.validateConstructors();
+        deser.validateCreators();
 
          // And then setters for deserializing from Json Object
         addBeanProps(config, beanDesc, deser);
@@ -132,8 +133,8 @@ public class BeanDeserializerFactory
          * basic stuff
          */
         BeanDeserializer deser = constructThrowableDeserializerInstance(config, type, beanDesc);
-        addDeserializerConstructors(config, beanDesc, deser);
-        deser.validateConstructors(); // not 100% necessary but...
+        addDeserializerCreators(config, beanDesc, deser);
+        deser.validateCreators();
         addBeanProps(config, beanDesc, deser);
 
         /* But then let's decorate things a bit
@@ -186,9 +187,13 @@ public class BeanDeserializerFactory
         return new ThrowableDeserializer(type);
     }
 
-    protected void addDeserializerConstructors(DeserializationConfig config,
-                                               BasicBeanDescription beanDesc,
-                                               BeanDeserializer deser)
+    /**
+     * Method that is to find all creators (constructors, factory methods)
+     * for the bean type to deserialize.
+     */
+    protected void addDeserializerCreators(DeserializationConfig config,
+                                           BasicBeanDescription beanDesc,
+                                           BeanDeserializer deser)
     {
         Class<?> beanClass = beanDesc.getBeanClass();
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
@@ -204,68 +209,126 @@ public class BeanDeserializerFactory
             deser.setDefaultConstructor(defaultCtor);
         }
 
-        // Then need to find all applicable (single-arg) constructors...
+        boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS);
+
+        // Then need to find all applicable constructors...
         AnnotatedConstructor strCtor = null;
         AnnotatedConstructor intCtor = null;
         AnnotatedConstructor longCtor = null;
-        AnnotatedConstructor otherCtor = null;
+        // delegating->first binds to alternate type (like Map)
+        AnnotatedConstructor delegatingCtor = null;
+        // property ctor->all parameters bound to types first
+        AnnotatedConstructor propCtor = null;
 
         for (AnnotatedConstructor ctor : beanDesc.getConstructors()) {
-            if (ctor.getParameterCount() != 1) {
+            int argCount = ctor.getParameterCount();
+            if (argCount < 1) {
                 continue;
             }
-            Class<?> type = ctor.getParameterClass(0);
-            if (type == String.class) {
-                strCtor = verifyNonDup(ctor, strCtor, fixAccess);
-            } else if (type == int.class || type == Integer.class) {
-                intCtor = verifyNonDup(ctor, intCtor, fixAccess);
-            } else if (type == long.class || type == Long.class) {
-                longCtor = verifyNonDup(ctor, longCtor, fixAccess);
-            } else {
-                // Must be annotated for bean types, public etc not enough
+            boolean isCreator = intr.hasCreatorAnnotation(ctor);
+            // some single-arg constructors (String, number) are auto-detected
+            if (argCount == 1) {
+                Class<?> type = ctor.getParameterClass(0);
+                if (type == String.class) {
+                    if (autodetect || isCreator) {
+                        strCtor = verifyNonDup(ctor, strCtor, fixAccess);
+                    }
+                    continue;
+                }
+                if (type == int.class || type == Integer.class) {
+                    if (autodetect || isCreator) {
+                        intCtor = verifyNonDup(ctor, intCtor, fixAccess);
+                    }
+                    continue;
+                }
+                if (type == long.class || type == Long.class) {
+                    if (autodetect || isCreator) {
+                        longCtor = verifyNonDup(ctor, longCtor, fixAccess);
+                    }
+                    continue;
+                }
+                // Then others: must have explicit @JsonCreator
                 if (!intr.hasCreatorAnnotation(ctor)) {
                     continue;
                 }
-                otherCtor = verifyNonDup(ctor, otherCtor, fixAccess);
+                /* If so; either delegating constructor (no property name
+                 * binding), or non-default constructor (property name)
+                 */
+                AnnotationMap anns = ctor.getParameterAnnotations(0);
+                String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
+                if (name == null) { // == delegating
+                    // Must be annotated for bean types, public etc not enough
+                    delegatingCtor = verifyNonDup(ctor, delegatingCtor, fixAccess);
+                } else {
+                    // !!! TBI
+                    propCtor = null;
+                    throw new RuntimeException("Not yet implemented!");
+                }
             }
         }
 
         // and/or single-arg static methods
-        //List<AnnotatedMethod> fmethods = beanDesc.getFactoryMethods();
         AnnotatedMethod strFactory = null;
         AnnotatedMethod intFactory = null;
         AnnotatedMethod longFactory = null;
-        AnnotatedMethod otherFactory = null;
+        AnnotatedMethod delegatingFactory = null;
+        AnnotatedMethod propFactory = null;
 
         for (AnnotatedMethod factory : beanDesc.getFactoryMethods()) {
-            if (factory.getParameterCount() != 1) {
+            int argCount = factory.getParameterCount();
+            if (argCount < 1) {
                 continue;
             }
-            Class<?> type = factory.getParameterClass(0);
-            if (type == String.class) {
-                strFactory = verifyNonDup(factory, strFactory, fixAccess);
-            } else if (type == int.class || type == Integer.class) {
-                intFactory = verifyNonDup(factory, intFactory, fixAccess);
-            } else if (type == long.class || type == Long.class) {
-                longFactory = verifyNonDup(factory, longFactory, fixAccess);
-            } else {
-                // Must be annotated for bean types, public etc not enough
+            boolean isCreator = intr.hasCreatorAnnotation(factory);
+            // some single-arg factory methods (String, number) are auto-detected
+            if (argCount == 1) {
+                Class<?> type = factory.getParameterClass(0);
+                if (type == String.class) {
+                    if (autodetect || isCreator) {
+                        strFactory = verifyNonDup(factory, strFactory, fixAccess);
+                    }
+                    continue;
+                }
+                if (type == int.class || type == Integer.class) {
+                    if (autodetect || isCreator) {
+                        intFactory = verifyNonDup(factory, intFactory, fixAccess);
+                    }
+                    continue;
+                }
+                if (type == long.class || type == Long.class) {
+                    if (autodetect || isCreator) {
+                        longFactory = verifyNonDup(factory, longFactory, fixAccess);
+                    }
+                    continue;
+                }
+                // Then others: must have explicit @JsonCreator
                 if (!intr.hasCreatorAnnotation(factory)) {
                     continue;
                 }
-                otherFactory = verifyNonDup(factory, otherFactory, fixAccess);
+                /* If so; either delegating constructor (no property name
+                 * binding), or non-default constructor (property name)
+                 */
+                AnnotationMap anns = factory.getParameterAnnotations(0);
+                String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
+                if (name == null) { // == delegating
+                    delegatingFactory = verifyNonDup(factory, delegatingFactory, fixAccess);
+                } else {
+                    // !!! TBI
+                    propFactory = null;
+                    throw new RuntimeException("Not yet implemented!");
+                }
             }
         }
 
         if (strCtor != null || strFactory != null) {
-            deser.setStringConstructor(beanClass, strCtor, strFactory);
+            deser.setStringCreators(beanClass, strCtor, strFactory);
         }
         if (intCtor != null || intFactory != null ||
             longCtor != null || longFactory != null) {
-            deser.setNumberConstructor(beanClass, intCtor, longCtor, intFactory, longFactory);
+            deser.setNumberCreators(beanClass, intCtor, longCtor, intFactory, longFactory);
         }
-	if (otherCtor != null || otherFactory != null) {
-	    deser.setObjectConstructor(otherCtor, otherFactory);
+	if (delegatingCtor != null || delegatingFactory != null) {
+	    deser.setDelegatingCreators(delegatingCtor, delegatingFactory);
 	}
     }
     

@@ -98,6 +98,16 @@ public final class AnnotatedConstructor
         return (index >= types.length) ? null : types[index];
     }
 
+    public AnnotationMap getParameterAnnotations(int index)
+    {
+        if (_paramAnnotations != null) {
+            if (index >= 0 && index <= _paramAnnotations.length) {
+                return _paramAnnotations[index];
+            }
+        }
+        return null;
+    }
+
     /**
      * Method that can be called to modify access rights, by calling
      * {@link java.lang.reflect.AccessibleObject#setAccessible} on

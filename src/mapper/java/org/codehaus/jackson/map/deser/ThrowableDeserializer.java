@@ -33,7 +33,7 @@ public class ThrowableDeserializer
      */
 
     @Override
-    public void validateConstructors()
+    public void validateCreators()
     {
         /* Unlike regular beans, exceptions require String constuctor
          *

@@ -118,20 +118,30 @@ public class BeanDeserializer
         _defaultConstructor = ctor;
     }
 
-    public void setStringConstructor(Class<?> valueClass,
-				     AnnotatedConstructor ctor, AnnotatedMethod factoryMethod)
+    public void setStringCreators(Class<?> valueClass,
+                                  AnnotatedConstructor ctor, AnnotatedMethod factoryMethod)
     {
 	_stringConstructor = new StringConstructor(valueClass, ctor, factoryMethod);
     }
-
-    public void setNumberConstructor(Class<?> valueClass,
-				     AnnotatedConstructor intCtor,  AnnotatedConstructor longCtor,
-				     AnnotatedMethod intFactory, AnnotatedMethod longFactory)
+    
+    public void setNumberCreators(Class<?> valueClass,
+                                  AnnotatedConstructor intCtor,  AnnotatedConstructor longCtor,
+                                  AnnotatedMethod intFactory, AnnotatedMethod longFactory)
     {
 	_numberConstructor = new NumberConstructor(valueClass, intCtor, longCtor, intFactory, longFactory);
     }
 
-    public void setObjectConstructor(AnnotatedConstructor ctor, AnnotatedMethod factory)
+    /**
+     * Method called to define a "delegating" constructor to use for
+     * deserializing from JSON Object structs. Delegation here means that
+     * the JSON Object is first deserialized into delegated type, and
+     * then resulting value is passed as the argument to delegating
+     * constructor.
+     *<p>
+     * Note that delegating constructors have precedence over default
+     * and property-based constructors.
+     */
+    public void setDelegatingCreators(AnnotatedConstructor ctor, AnnotatedMethod factory)
     {
 	// important: ensure we do not hold on to default constructor...
 	_defaultConstructor = null;
@@ -186,7 +196,7 @@ public class BeanDeserializer
      * Method called to ensure that there is at least one constructor
      * that could be used to construct an instance.
      */
-    public void validateConstructors()
+    public void validateCreators()
         throws JsonMappingException
     {
         // sanity check: must have a constructor of one type or another
