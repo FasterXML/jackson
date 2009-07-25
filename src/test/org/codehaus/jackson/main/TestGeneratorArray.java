@@ -1,4 +1,4 @@
-package main;
+package org.codehaus.jackson.main;
 
 import org.codehaus.jackson.*;
 
@@ -9,7 +9,7 @@ import java.io.*;
  * of {@link JsonGenerator} work as expected.
  */
 public class TestGeneratorArray
-    extends BaseTest
+    extends main.BaseTest
 {
     public void testEmptyArrayWrite()
         throws Exception

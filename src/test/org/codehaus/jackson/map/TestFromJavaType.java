@@ -1,4 +1,4 @@
-package map;
+package org.codehaus.jackson.map;
 
 import main.BaseTest;
 
@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
 
 /**
  * This unit test suite tries verify simplest aspects of
@@ -17,7 +16,7 @@ import org.codehaus.jackson.map.*;
  * @author Tatu Saloranta
  */
 public class TestFromJavaType
-    extends BaseTest
+    extends main.BaseTest
 {
     public void testFromArray()
         throws Exception

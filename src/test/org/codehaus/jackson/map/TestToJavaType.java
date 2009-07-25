@@ -1,4 +1,4 @@
-package map;
+package org.codehaus.jackson.map;
 
 import main.BaseTest;
 
@@ -6,14 +6,13 @@ import java.io.*;
 import java.util.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
 
 /**
  * Unit tests for verifying "old" data binding from Json to JDK objects;
  * one that only uses core JDK types; wrappers, Maps and Lists.
  */
 public class TestToJavaType
-    extends BaseTest
+    extends main.BaseTest
 {
     @SuppressWarnings("unchecked")
 	public void testSampleDoc()

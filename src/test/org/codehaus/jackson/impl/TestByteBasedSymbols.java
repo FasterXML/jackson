@@ -1,4 +1,4 @@
-package impl;
+package org.codehaus.jackson.impl;
 
 import java.io.*;
 
@@ -6,15 +6,13 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.sym.Name;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 
-import main.BaseTest;
-
 /**
  * Unit test(s) to verify that handling of (byte-based) symbol tables
  * is working. Created to verify fix to [JACKSON-5] (although not very
  * good at catching it...).
  */
 public class TestByteBasedSymbols
-    extends BaseTest
+    extends main.BaseTest
 {
     final static String[] FIELD_NAMES = new String[] {
         "a", "b", "c", "x", "y", "b13", "abcdefg", "a123",

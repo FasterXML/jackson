@@ -1,4 +1,4 @@
-package main;
+package org.codehaus.jackson.util;
 
 import org.codehaus.jackson.io.NumberOutput;
 
@@ -9,7 +9,7 @@ import java.util.Random;
  * printingg methods work as expected.
  */
 public class TestNumberPrinting
-    extends BaseTest
+    extends main.BaseTest
 {
     public void testIntPrinting()
         throws Exception

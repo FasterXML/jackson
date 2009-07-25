@@ -328,12 +328,14 @@ public final class AnnotatedClass
                     continue;
                 }
                 int argCount = m.getParameterTypes().length;
-                if (argCount >= 1) {
-                    if (_creatorMethods == null) {
-                        _creatorMethods = new ArrayList<AnnotatedMethod>();
-                    }
-                    _creatorMethods.add(_constructCreatorMethod(m));
+                // factory methods take at least one arg:
+                if (argCount < 1) {
+                    continue;
                 }
+                if (_creatorMethods == null) {
+                    _creatorMethods = new ArrayList<AnnotatedMethod>();
+                }
+                _creatorMethods.add(_constructCreatorMethod(m));
             }
             // mix-ins to mix in?
             if (_primaryMixIn != null && _creatorMethods != null) {
