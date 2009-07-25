@@ -2,8 +2,6 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ClassIntrospector;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;

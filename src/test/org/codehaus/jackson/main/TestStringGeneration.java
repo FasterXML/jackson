@@ -1,6 +1,8 @@
-package main;
+package org.codehaus.jackson.main;
 
 import java.io.*;
+
+import main.BaseTest;
 
 import org.codehaus.jackson.*;
 

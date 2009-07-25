@@ -20,7 +20,7 @@ public final class MemberKey
         this(m.getName(), m.getParameterTypes());
     }
 
-    public MemberKey(Constructor ctor)
+    public MemberKey(Constructor<?> ctor)
     {
         this("", ctor.getParameterTypes());
     }

@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map.type;
 
-import java.lang.reflect.*;
 import java.util.*;
 
 import org.codehaus.jackson.map.BaseMapTest;

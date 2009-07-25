@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.*;
-import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;

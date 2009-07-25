@@ -48,7 +48,6 @@ public class TestIntrospectorPair
     /**
      * Another bean for verifying details of property naming
      */
-   @SuppressWarnings("unused")
     @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
     static class NamedBean2
     {

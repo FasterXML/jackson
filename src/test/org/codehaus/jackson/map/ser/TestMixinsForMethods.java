@@ -18,7 +18,9 @@ public class TestMixinsForMethods
     // base class: just one visible property ('b')
     static class BaseClass
     {
-        private String a, b;
+        @SuppressWarnings("unused")
+		private String a;
+		private String b;
 
         protected BaseClass() { }
 

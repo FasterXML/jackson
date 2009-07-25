@@ -249,7 +249,7 @@ public final class AnnotatedClass
          * as that would inverse precedence of annotations.
          */
         for (Class<?> parent : ClassUtil.findSuperTypes(mixin, toMask)) {
-            for (Annotation a : mixin.getDeclaredAnnotations()) {
+            for (Annotation a : parent.getDeclaredAnnotations()) {
                 if (_annotationIntrospector.isHandled(a)) {
                     annotations.addIfNotPresent(a);
                 }
@@ -724,7 +724,7 @@ public final class AnnotatedClass
      * @param addParamAnnotations Whether parameter annotations are to be
      *   added as well
      */
-    protected void _addMixOvers(Constructor mixin, AnnotatedConstructor target,
+    protected void _addMixOvers(Constructor<?> mixin, AnnotatedConstructor target,
                                 boolean addParamAnnotations)
     {
         for (Annotation a : mixin.getDeclaredAnnotations()) {

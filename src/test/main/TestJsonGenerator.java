@@ -1,5 +1,7 @@
 package main;
 
+import main.BaseTest;
+
 import org.codehaus.jackson.*;
 
 import java.io.*;

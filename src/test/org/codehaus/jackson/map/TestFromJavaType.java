@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map;
 
-import main.BaseTest;
-
 import java.io.*;
 import java.math.BigDecimal;
 import java.util.*;

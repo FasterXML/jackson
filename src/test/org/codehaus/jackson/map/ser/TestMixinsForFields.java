@@ -5,7 +5,6 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class TestMixinsForFields
     extends BaseMapTest

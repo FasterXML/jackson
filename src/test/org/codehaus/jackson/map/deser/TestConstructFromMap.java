@@ -23,7 +23,7 @@ public class TestConstructFromMap
         String _y;
 
         @JsonCreator
-        ConstructorFromMap(Map arg)
+        ConstructorFromMap(Map<?,?> arg)
         {
             _x = ((Number) arg.get("x")).intValue();
             _y = (String) arg.get("y");

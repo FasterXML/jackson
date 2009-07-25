@@ -231,7 +231,7 @@ public class BeanDeserializerFactory
         }
 
         // and/or single-arg static methods
-        List<AnnotatedMethod> fmethods = beanDesc.getFactoryMethods();
+        //List<AnnotatedMethod> fmethods = beanDesc.getFactoryMethods();
         AnnotatedMethod strFactory = null;
         AnnotatedMethod intFactory = null;
         AnnotatedMethod longFactory = null;
