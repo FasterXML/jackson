@@ -40,8 +40,8 @@ public class ThrowableDeserializer
          * !!! 07-Apr-2009, tatu: Ideally we would try to use String+Throwable
          *   constructor, but for now String one has to do
          */
-        if (_stringConstructor == null) {
-            throw new IllegalArgumentException("Can not create Throwable deserializer for ("+_beanType+"): no single-String-arg constructor found");
+        if (_stringCreator == null) {
+            throw new IllegalArgumentException("Can not create Throwable deserializer for ("+_beanType+"): no single-String Creator (constructor, factory method) found");
         }
     }
 
@@ -77,7 +77,7 @@ public class ThrowableDeserializer
 
             // Maybe it's "message"?
             if (PROP_NAME_MESSAGE.equals(propName)) {
-                throwable = _stringConstructor.construct(jp.getText());
+                throwable = _stringCreator.construct(jp.getText());
                 // any pending values?
                 if (pending != null) {
                     for (int i = 0, len = pendingIx; i < len; i += 2) {

@@ -195,30 +195,31 @@ public class BeanDeserializerFactory
                                            BasicBeanDescription beanDesc,
                                            BeanDeserializer deser)
     {
-        Class<?> beanClass = beanDesc.getBeanClass();
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
 
         // First, let's figure out constructor/factor- based instantation
         Constructor<?> defaultCtor = beanDesc.findDefaultConstructor();
         if (defaultCtor != null) {
-            if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+            if (fixAccess) {
                 ClassUtil.checkAndFixAccess(defaultCtor);
             }
 
             deser.setDefaultConstructor(defaultCtor);
         }
 
-        boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS);
+        BeanDeserializer.CreatorContainer creators =  new BeanDeserializer.CreatorContainer(beanDesc.getBeanClass(), fixAccess);
+        _addDeserializerConstructors(config, beanDesc, deser, intr, creators);
+        _addDeserializerFactoryMethods(config, beanDesc, deser, intr, creators);
+        deser.setCreators(creators);
+    }
 
-        // Then need to find all applicable constructors...
-        AnnotatedConstructor strCtor = null;
-        AnnotatedConstructor intCtor = null;
-        AnnotatedConstructor longCtor = null;
-        // delegating->first binds to alternate type (like Map)
-        AnnotatedConstructor delegatingCtor = null;
-        // property ctor->all parameters bound to types first
-        AnnotatedConstructor propCtor = null;
+    protected void _addDeserializerConstructors
+        (DeserializationConfig config, BasicBeanDescription beanDesc,
+         BeanDeserializer deser, AnnotationIntrospector intr,
+         BeanDeserializer.CreatorContainer creators)
+    {
+        boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS);
 
         for (AnnotatedConstructor ctor : beanDesc.getConstructors()) {
             int argCount = ctor.getParameterCount();
@@ -237,25 +238,25 @@ public class BeanDeserializerFactory
                     Class<?> type = ctor.getParameterClass(0);
                     if (type == String.class) {
                         if (autodetect || isCreator) {
-                            strCtor = verifyNonDup(ctor, strCtor, fixAccess);
+                            creators.addStringConstructor(ctor);
                         }
                         continue;
                     }
                     if (type == int.class || type == Integer.class) {
                         if (autodetect || isCreator) {
-                            intCtor = verifyNonDup(ctor, intCtor, fixAccess);
+                            creators.addIntConstructor(ctor);
                         }
                         continue;
                     }
                     if (type == long.class || type == Long.class) {
                         if (autodetect || isCreator) {
-                            longCtor = verifyNonDup(ctor, longCtor, fixAccess);
+                            creators.addLongConstructor(ctor);
                         }
                         continue;
                     }
                     // Delegating constructor ok iff it has @JsonCreator (etc)
                     if (intr.hasCreatorAnnotation(ctor)) {
-                        delegatingCtor = verifyNonDup(ctor, delegatingCtor, fixAccess);
+                        creators.addDelegatingConstructor(ctor);
                     }
                     // otherwise just ignored
                     continue;
@@ -269,7 +270,7 @@ public class BeanDeserializerFactory
             }
 
             // 1 or more args; all params must have name annotations
-            String[] names = new String[argCount];
+            SettableBeanProperty.CreatorProperty[] properties = new SettableBeanProperty.CreatorProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
                 AnnotationMap anns = ctor.getParameterAnnotations(i);
                 String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
@@ -277,18 +278,20 @@ public class BeanDeserializerFactory
                 if (name == null) {
                     throw new IllegalArgumentException("Argument #"+i+" of constructor "+ctor+" has no property name annotation; must have when multiple-paramater constructor annotated as Creator");
                 }
-                // !!! TBI
+                JavaType type = TypeFactory.fromType(ctor.getParameterType(i));
+                properties[i] =  new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), i);
             }
-            propCtor = null;
-            throw new RuntimeException("Not Yet Implemented");
+            creators.addPropertyConstructor(ctor, properties);
         }
+    }
 
+    protected void _addDeserializerFactoryMethods
+        (DeserializationConfig config, BasicBeanDescription beanDesc,
+         BeanDeserializer deser, AnnotationIntrospector intr,
+         BeanDeserializer.CreatorContainer creators)
+    {
         // and/or single-arg static methods
-        AnnotatedMethod strFactory = null;
-        AnnotatedMethod intFactory = null;
-        AnnotatedMethod longFactory = null;
-        AnnotatedMethod delegatingFactory = null;
-        AnnotatedMethod propFactory = null;
+        boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS);
 
         for (AnnotatedMethod factory : beanDesc.getFactoryMethods()) {
             int argCount = factory.getParameterCount();
@@ -307,24 +310,24 @@ public class BeanDeserializerFactory
                     Class<?> type = factory.getParameterClass(0);
                     if (type == String.class) {
                         if (autodetect || isCreator) {
-                            strFactory = verifyNonDup(factory, strFactory, fixAccess);
+                            creators.addStringFactory(factory);
                         }
                         continue;
                     }
                     if (type == int.class || type == Integer.class) {
                         if (autodetect || isCreator) {
-                            intFactory = verifyNonDup(factory, intFactory, fixAccess);
+                            creators.addIntFactory(factory);
                         }
                         continue;
                     }
                     if (type == long.class || type == Long.class) {
                         if (autodetect || isCreator) {
-                            longFactory = verifyNonDup(factory, longFactory, fixAccess);
+                            creators.addLongFactory(factory);
                         }
                         continue;
                     }
                     if (intr.hasCreatorAnnotation(factory)) {
-                        delegatingFactory = verifyNonDup(factory, delegatingFactory, fixAccess);
+                        creators.addDelegatingFactory(factory);
                     }
                     // otherwise just ignored
                     continue;
@@ -337,7 +340,7 @@ public class BeanDeserializerFactory
                 }
             }
             // 1 or more args; all params must have name annotations
-            String[] names = new String[argCount];
+            SettableBeanProperty.CreatorProperty[] properties = new SettableBeanProperty.CreatorProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
                 AnnotationMap anns = factory.getParameterAnnotations(i);
                 String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
@@ -345,48 +348,13 @@ public class BeanDeserializerFactory
                 if (name == null) {
                     throw new IllegalArgumentException("Argument #"+i+" of factory method "+factory+" has no property name annotation; must have when multiple-paramater static method annotated as Creator");
                 }
-                // !!! TBI
+                JavaType type = TypeFactory.fromType(factory.getParameterType(i));
+                properties[i] =  new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), i);
             }
-            propFactory = null;
-            throw new RuntimeException("Not Yet Implemented");
+            creators.addPropertyFactory(factory, properties);
         }
-
-        if (strCtor != null || strFactory != null) {
-            deser.setStringCreators(beanClass, strCtor, strFactory);
-        }
-        if (intCtor != null || intFactory != null ||
-            longCtor != null || longFactory != null) {
-            deser.setNumberCreators(beanClass, intCtor, longCtor, intFactory, longFactory);
-        }
-	if (delegatingCtor != null || delegatingFactory != null) {
-	    deser.setDelegatingCreators(delegatingCtor, delegatingFactory);
-	}
     }
     
-    protected AnnotatedConstructor verifyNonDup(AnnotatedConstructor newOne, AnnotatedConstructor oldOne,
-                                                boolean fixAccess)
-    {
-        if (oldOne != null) {
-            throw new IllegalArgumentException("Conflicting single-arg constructors (types "+oldOne.getParameterClass(0).getName()+" vs "+newOne.getParameterClass(0).getName());
-        }
-        if (fixAccess) {
-            ClassUtil.checkAndFixAccess(newOne.getAnnotated());
-        }
-        return newOne;
-    }
-
-    protected AnnotatedMethod verifyNonDup(AnnotatedMethod newOne, AnnotatedMethod oldOne,
-                                           boolean fixAccess)
-    {
-        if (oldOne != null) {
-            throw new IllegalArgumentException("Conflicting single-arg factory methods (types "+oldOne.getParameterClass(0).getName()+" vs "+newOne.getParameterClass(0).getName());
-        }
-        if (fixAccess) {
-            ClassUtil.checkAndFixAccess(newOne.getAnnotated());
-        }
-        return newOne;
-    }
-
     /**
      * Method called to figure out settable properties for the
      * deserializer.

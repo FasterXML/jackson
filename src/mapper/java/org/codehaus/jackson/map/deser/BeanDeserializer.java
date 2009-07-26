@@ -56,7 +56,7 @@ public class BeanDeserializer
      * knows how to invoke method/constructor in question.
      * If so, no setters will be used.
      */
-    protected StringConstructor _stringConstructor;
+    protected StringCreator _stringCreator;
 
     /**
      * If the "bean" class can be instantiated using just a single
@@ -65,7 +65,7 @@ public class BeanDeserializer
      * knows how to invoke method/constructor in question.
      * If so, no setters will be used.
      */
-    protected NumberConstructor _numberConstructor;
+    protected NumberCreator _numberCreator;
 
     /**
      * If the bean class can be instantiated using a creator
@@ -73,7 +73,9 @@ public class BeanDeserializer
      * this object is used for handling details of how delegate-based
      * deserialization and instance construction works
      */
-    protected DelegatingConstructor _delegatingConstructor;
+    protected DelegatingCreator _delegatingCreator;
+
+    protected PropertyBasedCreator _propertyBasedCreator;
 
     /*
     ///////////////////////////////////////////////
@@ -118,34 +120,32 @@ public class BeanDeserializer
         _defaultConstructor = ctor;
     }
 
-    public void setStringCreators(Class<?> valueClass,
-                                  AnnotatedConstructor ctor, AnnotatedMethod factoryMethod)
-    {
-	_stringConstructor = new StringConstructor(valueClass, ctor, factoryMethod);
-    }
-    
-    public void setNumberCreators(Class<?> valueClass,
-                                  AnnotatedConstructor intCtor,  AnnotatedConstructor longCtor,
-                                  AnnotatedMethod intFactory, AnnotatedMethod longFactory)
-    {
-	_numberConstructor = new NumberConstructor(valueClass, intCtor, longCtor, intFactory, longFactory);
-    }
-
     /**
-     * Method called to define a "delegating" constructor to use for
-     * deserializing from JSON Object structs. Delegation here means that
-     * the JSON Object is first deserialized into delegated type, and
-     * then resulting value is passed as the argument to delegating
-     * constructor.
-     *<p>
-     * Note that delegating constructors have precedence over default
-     * and property-based constructors.
+     * Method called by factory after it has introspected all available
+     * Creators (constructors, static factory methods).
      */
-    public void setDelegatingCreators(AnnotatedConstructor ctor, AnnotatedMethod factory)
-    {
-	// important: ensure we do not hold on to default constructor...
-	_defaultConstructor = null;
-	_delegatingConstructor = new DelegatingConstructor(ctor, factory);
+    public void setCreators(CreatorContainer creators)
+     {
+        _stringCreator = creators.stringCreator();
+        _numberCreator = creators.numberCreator();
+        /**
+         * Delegating constructor means that
+         * the JSON Object is first deserialized into delegated type, and
+         * then resulting value is passed as the argument to delegating
+         * constructor.
+         *
+         * Note that delegating constructors have precedence over default
+         * and property-based constructors.
+         */
+        _delegatingCreator = creators.delegatingCreator();
+        _propertyBasedCreator = creators.propertyBasedCreator();
+
+	/* important: ensure we do not hold on to default constructor,
+         * if delegating OR property-based creator is found
+         */
+	if (_delegatingCreator != null || _propertyBasedCreator != null) {
+            _defaultConstructor = null;
+	}
     }
     
     /**
@@ -201,9 +201,10 @@ public class BeanDeserializer
     {
         // sanity check: must have a constructor of one type or another
         if ((_defaultConstructor == null)
-            && (_numberConstructor == null)
-            && (_stringConstructor == null)
-            && (_delegatingConstructor == null)) {
+            && (_numberCreator == null)
+            && (_stringCreator == null)
+            && (_delegatingCreator == null)
+            && (_propertyBasedCreator == null)) {
             throw new JsonMappingException("Can not create Bean deserializer for ("+_beanType+"): neither default/delegating constructor nor factory methods found");
         }
     }
@@ -258,9 +259,9 @@ public class BeanDeserializer
         }
 
 	// as well as delegate-based constructor:
-	if (_delegatingConstructor != null) {
-            JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingConstructor.getValueType(), "[constructor-arg[0]]", seen);
-	    _delegatingConstructor.setDeserializer(deser);
+	if (_delegatingCreator != null) {
+            JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingCreator.getValueType(), "[constructor-arg[0]]", seen);
+	    _delegatingCreator.setDeserializer(deser);
 	}
     }
 
@@ -305,8 +306,8 @@ public class BeanDeserializer
     {
         if (_defaultConstructor == null) {
 	    // 07-Jul-2009, tatu: let's allow delegate-based approach too
-	    if (_delegatingConstructor != null) {
-		return _delegatingConstructor.deserialize(jp, ctxt);
+	    if (_delegatingCreator != null) {
+		return _delegatingCreator.deserialize(jp, ctxt);
 	    }
             throw JsonMappingException.from(jp, "No default constructor found for type "+_beanType+": can not instantiate from Json object");
         }
@@ -342,11 +343,11 @@ public class BeanDeserializer
     public Object deserializeFromString(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-	if (_stringConstructor != null) {
-	    return _stringConstructor.construct(jp.getText());
+	if (_stringCreator != null) {
+	    return _stringCreator.construct(jp.getText());
         }
-	if (_delegatingConstructor != null) {
-	    return _delegatingConstructor.deserialize(jp, ctxt);
+	if (_delegatingCreator != null) {
+	    return _delegatingCreator.deserialize(jp, ctxt);
 	}
         throw ctxt.mappingException(getBeanClass());
     }
@@ -354,16 +355,16 @@ public class BeanDeserializer
     public Object deserializeFromNumber(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-	if (_numberConstructor != null) {
+	if (_numberCreator != null) {
             switch (jp.getNumberType()) {
             case INT:
-		return _numberConstructor.construct(jp.getIntValue());
+		return _numberCreator.construct(jp.getIntValue());
             case LONG:
-		return _numberConstructor.construct(jp.getLongValue());
+		return _numberCreator.construct(jp.getLongValue());
             }
 	}
-	if (_delegatingConstructor != null) {
-	    return _delegatingConstructor.deserialize(jp, ctxt);
+	if (_delegatingCreator != null) {
+	    return _delegatingCreator.deserialize(jp, ctxt);
 	}
 	throw ctxt.mappingException(getBeanClass());
     }
@@ -441,17 +442,159 @@ public class BeanDeserializer
      */
 
     /**
+     * Container for set of Creators (constructors, factory methods)
+     */
+    public final static class CreatorContainer
+    {
+        /// Type of bean being created
+        final Class<?> _beanClass;
+        final boolean _canFixAccess;
+
+        AnnotatedMethod _strFactory, _intFactory, _longFactory;
+        AnnotatedMethod _delegatingFactory;
+        AnnotatedMethod _propertyBasedFactory;
+        SettableBeanProperty.CreatorProperty[] _propertyBasedFactoryProperties = null;
+
+        AnnotatedConstructor _strConstructor, _intConstructor, _longConstructor;
+        AnnotatedConstructor _delegatingConstructor;
+        AnnotatedConstructor _propertyBasedConstructor;
+        SettableBeanProperty.CreatorProperty[] _propertyBasedConstructorProperties = null;
+
+        public CreatorContainer(Class<?> beanClass, boolean canFixAccess) {
+            _canFixAccess = canFixAccess;
+            _beanClass = beanClass;
+        }
+
+        /*
+        /////////////////////////////////////////////////////////
+        // Setters
+        /////////////////////////////////////////////////////////
+        */
+
+        public void addStringConstructor(AnnotatedConstructor ctor) {
+            _strConstructor = verifyNonDup(ctor, _strConstructor, "String");
+        }
+        public void addIntConstructor(AnnotatedConstructor ctor) {
+            _intConstructor = verifyNonDup(ctor, _intConstructor, "int");
+        }
+        public void addLongConstructor(AnnotatedConstructor ctor) {
+            _longConstructor = verifyNonDup(ctor, _longConstructor, "long");
+        }
+
+        public void addDelegatingConstructor(AnnotatedConstructor ctor) {
+            _delegatingConstructor = verifyNonDup(ctor, _delegatingConstructor, "long");
+        }
+
+        public void addPropertyConstructor(AnnotatedConstructor ctor, SettableBeanProperty.CreatorProperty[] properties)
+        {
+            _propertyBasedConstructor = verifyNonDup(ctor, _propertyBasedConstructor, "property-based");
+            _propertyBasedConstructorProperties = properties;
+        }
+
+        public void addStringFactory(AnnotatedMethod factory) {
+            _strFactory = verifyNonDup(factory, _strFactory, "String");
+        }
+        public void addIntFactory(AnnotatedMethod factory) {
+            _intFactory = verifyNonDup(factory, _intFactory, "int");
+        }
+        public void addLongFactory(AnnotatedMethod factory) {
+            _longFactory = verifyNonDup(factory, _longFactory, "long");
+        }
+
+        public void addDelegatingFactory(AnnotatedMethod factory) {
+            _delegatingFactory = verifyNonDup(factory, _delegatingFactory, "long");
+        }
+
+        public void addPropertyFactory(AnnotatedMethod factory, SettableBeanProperty.CreatorProperty[] properties)
+        {
+            _propertyBasedFactory = verifyNonDup(factory, _propertyBasedFactory, "property-based");
+            _propertyBasedFactoryProperties = properties;
+        }
+
+        /*
+        /////////////////////////////////////////////////////////
+        // Accessors
+        /////////////////////////////////////////////////////////
+        */
+
+        public StringCreator stringCreator()
+        {
+            if (_strConstructor == null &&  _strFactory == null) {
+                return null;
+            }
+            return new StringCreator(_beanClass, _strConstructor, _strFactory);
+        }
+
+        public NumberCreator numberCreator()
+        {
+            if (_intConstructor == null && _intFactory == null
+                || _longConstructor == null && _longFactory == null) {
+                return null;
+            }
+            return new NumberCreator(_beanClass, _intConstructor, _intFactory,
+                                     _longConstructor, _longFactory);
+        }
+
+        public DelegatingCreator delegatingCreator()
+        {
+            if (_delegatingConstructor == null && _delegatingFactory == null) {
+                return null;
+            }
+            return new DelegatingCreator(_delegatingConstructor, _delegatingFactory);
+        }
+
+        public PropertyBasedCreator propertyBasedCreator()
+        {
+            if (_propertyBasedConstructor == null && _propertyBasedFactory == null) {
+                return null;
+            }
+            return new PropertyBasedCreator(_propertyBasedConstructor, _propertyBasedConstructorProperties,
+                                            _propertyBasedFactory, _propertyBasedFactoryProperties);
+        }
+
+        /*
+        /////////////////////////////////////////////////////////
+        // Helper methods
+        /////////////////////////////////////////////////////////
+        */
+
+        protected AnnotatedConstructor verifyNonDup(AnnotatedConstructor newOne, AnnotatedConstructor oldOne,
+                                                    String type)
+        {
+            if (oldOne != null) {
+                throw new IllegalArgumentException("Conflicting "+type+" constructors: already had "+oldOne+", encountered "+newOne);
+            }
+            if (_canFixAccess) {
+                ClassUtil.checkAndFixAccess(newOne.getAnnotated());
+            }
+            return newOne;
+        }
+        
+        protected AnnotatedMethod verifyNonDup(AnnotatedMethod newOne, AnnotatedMethod oldOne,
+                                               String type)
+        {
+            if (oldOne != null) {
+                throw new IllegalArgumentException("Conflicting "+type+" factory methods: already had "+oldOne+", encountered "+newOne);
+            }
+            if (_canFixAccess) {
+                ClassUtil.checkAndFixAccess(newOne.getAnnotated());
+            }
+            return newOne;
+        }
+    }
+
+    /**
      * Helper class that can handle simple deserialization from
      * Json String values.
      */
-    final static class StringConstructor
+    final static class StringCreator
     {
         protected final Class<?> _valueClass;
         protected final Method _factoryMethod;
         protected final Constructor<?> _ctor;
 
-        public StringConstructor(Class<?> valueClass, AnnotatedConstructor ctor,
-                                 AnnotatedMethod factoryMethod)
+        public StringCreator(Class<?> valueClass, AnnotatedConstructor ctor,
+                             AnnotatedMethod factoryMethod)
         {
             _valueClass = valueClass;
             _ctor = (ctor == null) ? null : ctor.getAnnotated();
@@ -474,7 +617,7 @@ public class BeanDeserializer
         }
     }
 
-    final static class NumberConstructor
+    final static class NumberCreator
     {
         protected final Class<?> _valueClass;
 
@@ -484,10 +627,9 @@ public class BeanDeserializer
         protected final Method _intFactoryMethod;
         protected final Method _longFactoryMethod;
 
-        public NumberConstructor(Class<?> valueClass,
-                                 AnnotatedConstructor intCtor,
-                                 AnnotatedConstructor longCtor,
-                                 AnnotatedMethod ifm, AnnotatedMethod lfm)
+        public NumberCreator(Class<?> valueClass,
+                             AnnotatedConstructor intCtor, AnnotatedMethod ifm,
+                             AnnotatedConstructor longCtor, AnnotatedMethod lfm)
         {
             _valueClass = valueClass;
             _intCtor = (intCtor == null) ? null : intCtor.getAnnotated(); 
@@ -538,7 +680,7 @@ public class BeanDeserializer
      * another serializer, and then construct instance with deserialized
      * results (either via constructor or factory method)
      */
-    final static class DelegatingConstructor
+    final static class DelegatingCreator
     {
 	/**
 	 * Type to deserialize JSON to, as well as the type to pass to
@@ -555,8 +697,8 @@ public class BeanDeserializer
 	 */
 	protected JsonDeserializer<Object> _deserializer;
 
-        public DelegatingConstructor(AnnotatedConstructor ctor,
-				     AnnotatedMethod factory)
+        public DelegatingCreator(AnnotatedConstructor ctor,
+                                 AnnotatedMethod factory)
 	{
             if (ctor != null) {
                 _ctor = ctor.getAnnotated();
@@ -593,5 +735,19 @@ public class BeanDeserializer
 		return null;
             }
 	}
+    }
+
+    /**
+     * Helper class used to handle details of using a "non-default"
+     * creator (constructor or factory that takes one or more arguments
+     * that represent logical bean properties)
+     */
+    final static class PropertyBasedCreator
+    {
+        public PropertyBasedCreator(AnnotatedConstructor ctor, SettableBeanProperty.CreatorProperty[] ctorProps,
+                                    AnnotatedMethod factory, SettableBeanProperty.CreatorProperty[] factoryProps)
+        {
+            // !!! TBI
+        }
     }
 }

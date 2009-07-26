@@ -74,6 +74,16 @@ public abstract class SettableBeanProperty
 
     public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
 
+    /**
+     * Method to use for accessing index of the property (related to
+     * other properties in the same context); currently only applicable
+     * to "Creator properties".
+     *<p>
+     * Base implementation returns -1 to indicate that no index exists
+     * for the property.
+     */
+    public int getCreatorIndex() { return -1; }
+
     /*
     ////////////////////////////////////////////////////////
     // Public API
@@ -307,4 +317,54 @@ public abstract class SettableBeanProperty
         }
     }
 
+    /**
+     * This concrete sub-class implements property that is passed
+     * via Creator (constructor or static factory method).
+     */
+    public final static class CreatorProperty
+        extends SettableBeanProperty
+    {
+        final Class<?> _declaringClass;
+
+        /**
+         * Index of the property
+         */
+        final int _index;
+
+        public CreatorProperty(String propName, JavaType type,
+                               Class<?> declaringClass, int index)
+        {
+            super(propName, type);
+            _declaringClass = declaringClass;
+            _index = index;
+        }
+
+        /**
+         * Method to use for accessing index of the property (related to
+         * other properties in the same context); currently only applicable
+         * to "Creator properties".
+         *<p>
+         * Base implementation returns -1 to indicate that no index exists
+         * for the property.
+         */
+        public int getCreatorIndex() { return _index; }
+        
+        protected Class<?> getDeclaringClass()
+        {
+            return _declaringClass;
+        }
+
+        public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
+                                      Object instance)
+            throws IOException, JsonProcessingException
+        {
+            set(instance, deserialize(jp, ctxt));
+        }
+
+        public void set(Object instance, Object value)
+            throws IOException
+        {
+            throw new IllegalStateException("Method should never be called on a "+getClass().getName());
+        }
+    }
 }
