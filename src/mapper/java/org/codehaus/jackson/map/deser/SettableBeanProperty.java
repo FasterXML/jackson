@@ -364,7 +364,10 @@ public abstract class SettableBeanProperty
         public void set(Object instance, Object value)
             throws IOException
         {
-            throw new IllegalStateException("Method should never be called on a "+getClass().getName());
+            /* Hmmmh. Should we return quietly (NOP), or error?
+             * For now, let's just bail out without fuss.
+             */
+            //throw new IllegalStateException("Method should never be called on a "+getClass().getName());
         }
     }
 }

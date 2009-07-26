@@ -75,6 +75,12 @@ public class BeanDeserializer
      */
     protected DelegatingCreator _delegatingCreator;
 
+    /**
+     * If the beans need to be instantiated using constructor
+     * or factory method
+     * that takes one or more named properties as argument(s),
+     * this creator is used for serialization.
+     */
     protected PropertyBasedCreator _propertyBasedCreator;
 
     /*
@@ -263,6 +269,20 @@ public class BeanDeserializer
             JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingCreator.getValueType(), "[constructor-arg[0]]", seen);
 	    _delegatingCreator.setDeserializer(deser);
 	}
+        // or property-based one
+        if (_propertyBasedCreator != null) {
+            for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
+                JavaType type = prop.getType();
+                JsonDeserializer<Object> deser = null;
+                if (seen != null) {
+                    deser = seen.get(type);
+                }
+                if (deser == null) {
+                    deser = findDeserializer(config, provider, type, prop.getPropertyName(), seen);
+                }
+                prop.setValueDeserializer(deser);
+            }
+        }
     }
 
     /*
@@ -305,6 +325,10 @@ public class BeanDeserializer
         throws IOException, JsonProcessingException
     {
         if (_defaultConstructor == null) {
+            // 25-Jul-2009, tatu: finally, can also use "non-default" constructor (or factory method)
+            if (_propertyBasedCreator != null) {
+                return _deserializeUsingPropertyBased(jp, ctxt);
+            }
 	    // 07-Jul-2009, tatu: let's allow delegate-based approach too
 	    if (_delegatingCreator != null) {
 		return _delegatingCreator.deserialize(jp, ctxt);
@@ -367,6 +391,64 @@ public class BeanDeserializer
 	    return _delegatingCreator.deserialize(jp, ctxt);
 	}
 	throw ctxt.mappingException(getBeanClass());
+    }
+
+    /**
+     * Method called to deserialize bean using "property-based creator":
+     * this means that a non-default constructor or factory method is
+     * called, and then possibly other setters. The trick is that
+     * values for creator method need to be buffered, first; and 
+     * due to non-guaranteed ordering possibly some other properties
+     * as well.
+     *
+     * @since 1.2
+     */
+    protected final Object _deserializeUsingPropertyBased(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        final PropertyBasedCreator creator = _propertyBasedCreator;
+        BeanBuilder builder = creator.startBuilding(jp, ctxt);
+        Object bean = null;
+
+        while (true) {
+            // end of JSON object?
+            if (jp.nextToken() == JsonToken.END_OBJECT) {
+                // if so, can just construct and leave...
+                return builder.build();
+            }
+            String propName = jp.getCurrentName();
+            // creator property?
+            SettableBeanProperty prop = creator.findCreatorProperty(propName);
+            if (prop != null) {
+                // Last property to set?
+                if (builder.assignParameter(prop.getCreatorIndex(), prop.deserialize(jp, ctxt))) {
+                    bean = builder.build();
+                    break;
+                }
+            }
+            // regular property?
+            prop = _props.get(propName);
+            if (prop != null) {
+                builder.bufferProperty(prop, prop.deserialize(jp, ctxt));
+                continue;
+            }
+            // "any property"?
+            if (_anySetter != null) {
+                builder.bufferAnyProperty(_anySetter, propName, _anySetter.deserialize(jp, ctxt));
+                continue;
+            }
+            // Unknown? This is trickiest to deal with...
+            /* !!! 25-Jul-2009, tatu: This should be improved, once we
+             *   have a better way dealing with unknown properties
+             */
+            // need to process or skip the following token
+            /*JsonToken t =*/ jp.nextToken();
+            // Unknown: let's call handler method
+            handleUnknownProperty(ctxt, /*bean*/ null, propName);
+        }
+
+        // !!! TBI
+        return bean;
     }
 
     /*
@@ -437,7 +519,7 @@ public class BeanDeserializer
 
     /*
     /////////////////////////////////////////////////////////
-    // Helper classes
+    // Helper classes: containers
     /////////////////////////////////////////////////////////
      */
 
@@ -582,6 +664,12 @@ public class BeanDeserializer
             return newOne;
         }
     }
+
+    /*
+    /////////////////////////////////////////////////////////
+    // Helper classes: concreate Creators
+    /////////////////////////////////////////////////////////
+     */
 
     /**
      * Helper class that can handle simple deserialization from
@@ -744,10 +832,166 @@ public class BeanDeserializer
      */
     final static class PropertyBasedCreator
     {
+        protected final Constructor<?> _ctor;
+        protected final Method _factoryMethod;
+
+        /**
+         * Map that contains property objects for either constructor or factory
+         * method (whichever one is null: one property for each
+         * parameter for that one), keyed by logical property name
+         */
+        protected final HashMap<String, SettableBeanProperty> _properties;
+
         public PropertyBasedCreator(AnnotatedConstructor ctor, SettableBeanProperty[] ctorProps,
                                     AnnotatedMethod factory, SettableBeanProperty[] factoryProps)
         {
+            // We will only use one: and constructor has precedence over factory
+            SettableBeanProperty[] props;
+            if (ctor != null) {
+                _ctor = ctor.getAnnotated();
+                _factoryMethod = null;
+                props = ctorProps;
+            } else if (factory != null) {
+                _ctor = null;
+                _factoryMethod = factory.getAnnotated();
+                props = factoryProps;
+            } else {
+                throw new IllegalArgumentException("Internal error: neither delegating constructor nor factory method passed");
+            }
+            _properties = new HashMap<String, SettableBeanProperty>();
+            for (SettableBeanProperty prop : props) {
+                _properties.put(prop.getPropertyName(), prop);
+            }
+        }
+
+        public Collection<SettableBeanProperty> properties() {
+            return _properties.values();
+        }
+
+        public SettableBeanProperty findCreatorProperty(String name) {
+            return _properties.get(name);
+        }
+
+        /**
+         * Method called when starting to build a bean instance.
+         */
+        public BeanBuilder startBuilding(JsonParser jp, DeserializationContext ctxt)
+        {
+            return new BeanBuilder(jp, ctxt, _properties.size());
+        }
+    }
+
+    /*
+    /////////////////////////////////////////////////////////
+    // Helper classes: builder used with property-based Creator
+    /////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Stateful object used to store state during construction
+     * of beans that use Creators, and hence need buffering
+     * before instance is constructed.
+     */
+    final static class BeanBuilder
+    {
+        final JsonParser _parser;
+        final DeserializationContext _context;
+
+        /**
+         * Buffer for storing creator parameters before constructing
+         * instance
+         */
+        final Object[] _creatorParameters;
+
+        /**
+         * Number of creator parameters we are still missing.
+         *<p>
+         * NOTE: assumes there are no duplicates, for now.
+         */
+        int _paramsNeeded;
+
+        /**
+         * If we get non-creator parameters before or between
+         * creator parameters, those need to be buffered. Buffer
+         * is just a simple linked list
+         */
+        PropValue _buffer;
+
+        public BeanBuilder(JsonParser jp, DeserializationContext ctxt,
+                           int paramCount)
+        {
+            _parser = jp;
+            _context = ctxt;
+            _paramsNeeded = paramCount;
+            _creatorParameters = new Object[paramCount];
+        }
+
+        /**
+         * @return True if we have received all creator parameters
+         */
+        public boolean assignParameter(int index, Object value) {
+            _creatorParameters[index] = value;
+            return --_paramsNeeded <= 0;
+        }
+
+        public void bufferProperty(SettableBeanProperty prop, Object value) {
+            _buffer = new RegularPropValue(_buffer, value, prop);
+        }
+
+        public void bufferAnyProperty(SettableAnyProperty prop, String propName, Object value) {
+            _buffer = new AnyPropValue(_buffer, value, prop, propName);
+        }
+
+        public Object build() {
             // !!! TBI
+            return null;
+        }
+
+        /*
+        /////////////////////////////////////////////////////
+        // Helper classes for buffering property values
+        /////////////////////////////////////////////////////
+         */
+
+        abstract static class PropValue
+        {
+            public final PropValue next;
+            public final Object value;
+
+            protected PropValue(PropValue next, Object value)
+            {
+                this.next = next;
+                this.value = value;
+            }
+        }
+
+        final static class RegularPropValue
+            extends PropValue
+        {
+            final SettableBeanProperty _property;
+
+            public RegularPropValue(PropValue next, Object value,
+                                    SettableBeanProperty prop)
+            {
+                super(next, value);
+                _property = prop;
+            }
+        }
+
+        final static class AnyPropValue
+            extends PropValue
+        {
+            final SettableAnyProperty _property;
+            final String _propertyName;
+
+            public AnyPropValue(PropValue next, Object value,
+                                SettableAnyProperty prop,
+                                String propName)
+            {
+                super(next, value);
+                _property = prop;
+                _propertyName = propName;
+            }
         }
     }
 }
