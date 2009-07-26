@@ -97,7 +97,7 @@ public class TestCreators
     public void testSimpleFactory() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        FactoryBean bean = m.readValue("{ \"d\" : 0.25 }", FactoryBean.class);
+        FactoryBean bean = m.readValue("{ \"f\" : 0.25 }", FactoryBean.class);
         assertEquals(0.25, bean.d);
     }
 

@@ -405,36 +405,36 @@ public class BeanDeserializer
      */
     protected final Object _deserializeUsingPropertyBased(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
-    {
+    { 
         final PropertyBasedCreator creator = _propertyBasedCreator;
-        BeanBuilder builder = creator.startBuilding(jp, ctxt);
+        PropertyBuffer buffer = creator.startBuilding(jp, ctxt);
         Object bean = null;
 
         while (true) {
             // end of JSON object?
             if (jp.nextToken() == JsonToken.END_OBJECT) {
                 // if so, can just construct and leave...
-                return builder.build();
+                return creator.build(buffer);
             }
             String propName = jp.getCurrentName();
             // creator property?
             SettableBeanProperty prop = creator.findCreatorProperty(propName);
             if (prop != null) {
                 // Last property to set?
-                if (builder.assignParameter(prop.getCreatorIndex(), prop.deserialize(jp, ctxt))) {
-                    bean = builder.build();
+                if (buffer.assignParameter(prop.getCreatorIndex(), prop.deserialize(jp, ctxt))) {
+                    bean = creator.build(buffer);
                     break;
                 }
             }
             // regular property?
             prop = _props.get(propName);
             if (prop != null) {
-                builder.bufferProperty(prop, prop.deserialize(jp, ctxt));
+                buffer.bufferProperty(prop, prop.deserialize(jp, ctxt));
                 continue;
             }
             // "any property"?
             if (_anySetter != null) {
-                builder.bufferAnyProperty(_anySetter, propName, _anySetter.deserialize(jp, ctxt));
+                buffer.bufferAnyProperty(_anySetter, propName, _anySetter.deserialize(jp, ctxt));
                 continue;
             }
             // Unknown? This is trickiest to deal with...
@@ -444,7 +444,7 @@ public class BeanDeserializer
             // need to process or skip the following token
             /*JsonToken t =*/ jp.nextToken();
             // Unknown: let's call handler method
-            handleUnknownProperty(ctxt, /*bean*/ null, propName);
+            handleUnknownProperty(ctxt, getBeanClass(), propName);
         }
 
         // !!! TBI
@@ -465,7 +465,8 @@ public class BeanDeserializer
      *
      * @param ctxt Context for deserialization; allows access to the parser,
      *    error reporting functionality
-     * @param resultBean Bean that is being populated by this deserializer
+     * @param resultBean Bean that is being populated by this deserializer;
+     *   or, if not known, Class that would be instantiated to get bean
      * @param propName Name of the property that can not be mapped
      */
     protected void handleUnknownProperty(DeserializationContext ctxt, Object resultBean, String propName)
@@ -875,9 +876,22 @@ public class BeanDeserializer
         /**
          * Method called when starting to build a bean instance.
          */
-        public BeanBuilder startBuilding(JsonParser jp, DeserializationContext ctxt)
+        public PropertyBuffer startBuilding(JsonParser jp, DeserializationContext ctxt)
         {
-            return new BeanBuilder(jp, ctxt, _properties.size());
+            return new PropertyBuffer(jp, ctxt, _properties.size());
+        }
+
+        public Object build(PropertyBuffer buffer)
+        {
+            try {
+                if (_ctor != null) {
+                    return _ctor.newInstance(buffer.getParameters());
+                }
+                return _factoryMethod.invoke(null, buffer.getParameters());
+            } catch (Exception e) {
+                ClassUtil.unwrapAndThrowAsIAE(e);
+                return null; // never gets here
+            }
         }
     }
 
@@ -892,7 +906,7 @@ public class BeanDeserializer
      * of beans that use Creators, and hence need buffering
      * before instance is constructed.
      */
-    final static class BeanBuilder
+    final static class PropertyBuffer
     {
         final JsonParser _parser;
         final DeserializationContext _context;
@@ -917,14 +931,16 @@ public class BeanDeserializer
          */
         PropValue _buffer;
 
-        public BeanBuilder(JsonParser jp, DeserializationContext ctxt,
-                           int paramCount)
+        public PropertyBuffer(JsonParser jp, DeserializationContext ctxt,
+                              int paramCount)
         {
             _parser = jp;
             _context = ctxt;
             _paramsNeeded = paramCount;
             _creatorParameters = new Object[paramCount];
         }
+
+        protected final Object[] getParameters() { return _creatorParameters; }
 
         /**
          * @return True if we have received all creator parameters
@@ -940,11 +956,6 @@ public class BeanDeserializer
 
         public void bufferAnyProperty(SettableAnyProperty prop, String propName, Object value) {
             _buffer = new AnyPropValue(_buffer, value, prop, propName);
-        }
-
-        public Object build() {
-            // !!! TBI
-            return null;
         }
 
         /*
