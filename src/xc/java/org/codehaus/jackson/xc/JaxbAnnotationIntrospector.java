@@ -4,12 +4,7 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.introspect.Annotated;
-import org.codehaus.jackson.map.introspect.AnnotatedClass;
-import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
-import org.codehaus.jackson.map.introspect.AnnotatedField;
-import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.AnnotationMap;
+import org.codehaus.jackson.map.introspect.*;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
@@ -378,7 +373,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     */
 
     @Override
-    public String findPropertyNameForParam(AnnotationMap paramAnnotations)
+        public String findPropertyNameForParam(AnnotatedParameter param)
     {
         // JAXB has nothing like this...
         return null;

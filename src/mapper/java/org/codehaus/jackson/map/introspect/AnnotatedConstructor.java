@@ -82,6 +82,10 @@ public final class AnnotatedConstructor
     //////////////////////////////////////////////////////
      */
 
+    public AnnotatedParameter getParameter(int index) {
+        return new AnnotatedParameter(getParameterType(index), _paramAnnotations[index]);
+    }
+
     public int getParameterCount() {
         return _constructor.getParameterTypes().length;
     }

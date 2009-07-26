@@ -633,8 +633,7 @@ public final class AnnotatedClass
         /* note: parameter annotations not used for regular (getter, setter)
          * methods; only for creator methods (static factory methods)
          */
-        return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()),
-                                   null);
+        return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()), null);
     }
 
     protected AnnotatedConstructor _constructConstructor(Constructor<?> ctor, boolean defaultCtor)

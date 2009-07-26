@@ -502,10 +502,10 @@ public class JacksonAnnotationIntrospector
     */
 
     @Override
-    public String findPropertyNameForParam(AnnotationMap ann)
+        public String findPropertyNameForParam(AnnotatedParameter param)
     {
-        if (ann != null) {
-            JsonProperty pann = ann.get(JsonProperty.class);
+        if (param != null) {
+            JsonProperty pann = param.getAnnotation(JsonProperty.class);
             if (pann != null) {
                 return pann.value();
             }

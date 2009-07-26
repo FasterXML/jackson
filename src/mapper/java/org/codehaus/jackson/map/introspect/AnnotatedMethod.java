@@ -13,7 +13,6 @@ public final class AnnotatedMethod
 
     final AnnotationMap _annotations;
 
-
     final AnnotationMap[] _paramAnnotations;
 
     // // Simple lazy-caching:
@@ -101,6 +100,10 @@ public final class AnnotatedMethod
     // Extended API, generic
     //////////////////////////////////////////////////////
      */
+
+    public AnnotatedParameter getParameter(int index) {
+        return new AnnotatedParameter(getParameterType(index), _paramAnnotations[index]);
+    }
 
     public Type[] getParameterTypes() {
         return _method.getGenericParameterTypes();

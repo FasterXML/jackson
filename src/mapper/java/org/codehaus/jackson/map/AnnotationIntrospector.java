@@ -5,12 +5,7 @@ import java.lang.annotation.Annotation;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.introspect.Annotated;
-import org.codehaus.jackson.map.introspect.AnnotatedClass;
-import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
-import org.codehaus.jackson.map.introspect.AnnotatedField;
-import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.AnnotationMap;
+import org.codehaus.jackson.map.introspect.*;
 
 /**
  * Abstract class that defines API used for introspecting annotation-based
@@ -366,7 +361,7 @@ public abstract class AnnotationIntrospector
      * No actual parameter object can be passed since JDK offers no
      * representation; just annotations.
      */
-    public abstract String findPropertyNameForParam(AnnotationMap paramAnnotations);
+    public abstract String findPropertyNameForParam(AnnotatedParameter param);
 
     /*
     ///////////////////////////////////////////////////////
@@ -687,14 +682,11 @@ public abstract class AnnotationIntrospector
         // // // Deserialization: parameter annotations (for creators)
 
         @Override
-        public String findPropertyNameForParam(AnnotationMap paramAnnotations)
+        public String findPropertyNameForParam(AnnotatedParameter param)
         {
-            String result = null;
-            if (paramAnnotations != null) { // just sanity checking...
-                result = _primary.findPropertyNameForParam(paramAnnotations);
-                if (result == null) {
-                    result = _secondary.findPropertyNameForParam(paramAnnotations);
-                }
+            String result = _primary.findPropertyNameForParam(param);
+            if (result == null) {
+                result = _secondary.findPropertyNameForParam(param);
             }
             return result;
         }

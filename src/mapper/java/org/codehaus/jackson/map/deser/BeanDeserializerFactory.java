@@ -4,11 +4,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
-import org.codehaus.jackson.map.introspect.AnnotatedField;
-import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.AnnotationMap;
-import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
@@ -194,6 +190,7 @@ public class BeanDeserializerFactory
     protected void addDeserializerCreators(DeserializationConfig config,
                                            BasicBeanDescription beanDesc,
                                            BeanDeserializer deser)
+        throws JsonMappingException
     {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
@@ -218,6 +215,7 @@ public class BeanDeserializerFactory
         (DeserializationConfig config, BasicBeanDescription beanDesc,
          BeanDeserializer deser, AnnotationIntrospector intr,
          BeanDeserializer.CreatorContainer creators)
+        throws JsonMappingException
     {
         boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS);
 
@@ -232,9 +230,8 @@ public class BeanDeserializerFactory
                 /* but note: if we do have parameter name, it'll be
                  * "property constructor", and needs to be skipped for now
                  */
-                AnnotationMap anns = ctor.getParameterAnnotations(0);
-                String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
-                if (name == null) { // not delegating
+                String name = intr.findPropertyNameForParam(ctor.getParameter(0));
+                if (name == null || name.length() == 0) { // not property based
                     Class<?> type = ctor.getParameterClass(0);
                     if (type == String.class) {
                         if (autodetect || isCreator) {
@@ -270,16 +267,15 @@ public class BeanDeserializerFactory
             }
 
             // 1 or more args; all params must have name annotations
-            SettableBeanProperty.CreatorProperty[] properties = new SettableBeanProperty.CreatorProperty[argCount];
+            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
-                AnnotationMap anns = ctor.getParameterAnnotations(i);
-                String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
+                AnnotatedParameter param = ctor.getParameter(i);
+                String name = (param == null) ? null : intr.findPropertyNameForParam(param);
                 // At this point, name annotation is NOT optional
-                if (name == null) {
+                if (name == null || name.length() == 0) {
                     throw new IllegalArgumentException("Argument #"+i+" of constructor "+ctor+" has no property name annotation; must have when multiple-paramater constructor annotated as Creator");
                 }
-                JavaType type = TypeFactory.fromType(ctor.getParameterType(i));
-                properties[i] =  new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), i);
+                properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
             }
             creators.addPropertyConstructor(ctor, properties);
         }
@@ -289,6 +285,7 @@ public class BeanDeserializerFactory
         (DeserializationConfig config, BasicBeanDescription beanDesc,
          BeanDeserializer deser, AnnotationIntrospector intr,
          BeanDeserializer.CreatorContainer creators)
+        throws JsonMappingException
     {
         // and/or single-arg static methods
         boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS);
@@ -304,9 +301,8 @@ public class BeanDeserializerFactory
                 /* but as above: if we do have parameter name, it'll be
                  * "property constructor", and needs to be skipped for now
                  */
-                AnnotationMap anns = factory.getParameterAnnotations(0);
-                String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
-                if (name == null) { // not delegating
+                String name = intr.findPropertyNameForParam(factory.getParameter(0));
+                if (name == null || name.length() == 0) { // not property based
                     Class<?> type = factory.getParameterClass(0);
                     if (type == String.class) {
                         if (autodetect || isCreator) {
@@ -340,16 +336,16 @@ public class BeanDeserializerFactory
                 }
             }
             // 1 or more args; all params must have name annotations
-            SettableBeanProperty.CreatorProperty[] properties = new SettableBeanProperty.CreatorProperty[argCount];
+            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
-                AnnotationMap anns = factory.getParameterAnnotations(i);
-                String name = (anns == null) ? null : intr.findPropertyNameForParam(anns);
+                AnnotatedParameter param = factory.getParameter(i);
+                String name = intr.findPropertyNameForParam(param);
                 // At this point, name annotation is NOT optional
-                if (name == null) {
+                if (name == null || name.length() == 0) {
                     throw new IllegalArgumentException("Argument #"+i+" of factory method "+factory+" has no property name annotation; must have when multiple-paramater static method annotated as Creator");
                 }
-                JavaType type = TypeFactory.fromType(factory.getParameterType(i));
-                properties[i] =  new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), i);
+                JavaType type = resolveType(beanDesc, factory.getParameterType(i));
+                properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
             }
             creators.addPropertyFactory(factory, properties);
         }
@@ -563,6 +559,32 @@ public class BeanDeserializerFactory
          */
         type = modifyTypeByAnnotation(config, getter, type);
         return new SettableBeanProperty.SetterlessProperty(name, type, m);
+    }
+
+    /**
+     * Method that will construct a property object that represents
+     * a logical property passed via Creator (constructor or static
+     * factory method)
+     */
+    protected SettableBeanProperty constructCreatorProperty(DeserializationConfig config,
+                                                            BasicBeanDescription beanDesc,
+                                                            String name,
+                                                            int index,
+                                                            AnnotatedParameter param)
+        throws JsonMappingException
+    {
+        JavaType type = resolveType(beanDesc, param.getParameterType());
+        // Is there an annotation that specifies exact deserializer?
+        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, param);
+        // If yes, we are mostly done:
+        if (deser != null) {
+            SettableBeanProperty.CreatorProperty prop = new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), index);
+            prop.setValueDeserializer(deser);
+            return prop;
+        }
+        // Otherwise may have other type specifying annotations
+        type = modifyTypeByAnnotation(config, param, type);
+       return new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), index);
     }
 
     /*

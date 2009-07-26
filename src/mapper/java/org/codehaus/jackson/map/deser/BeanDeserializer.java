@@ -453,12 +453,12 @@ public class BeanDeserializer
         AnnotatedMethod _strFactory, _intFactory, _longFactory;
         AnnotatedMethod _delegatingFactory;
         AnnotatedMethod _propertyBasedFactory;
-        SettableBeanProperty.CreatorProperty[] _propertyBasedFactoryProperties = null;
+        SettableBeanProperty[] _propertyBasedFactoryProperties = null;
 
         AnnotatedConstructor _strConstructor, _intConstructor, _longConstructor;
         AnnotatedConstructor _delegatingConstructor;
         AnnotatedConstructor _propertyBasedConstructor;
-        SettableBeanProperty.CreatorProperty[] _propertyBasedConstructorProperties = null;
+        SettableBeanProperty[] _propertyBasedConstructorProperties = null;
 
         public CreatorContainer(Class<?> beanClass, boolean canFixAccess) {
             _canFixAccess = canFixAccess;
@@ -485,7 +485,7 @@ public class BeanDeserializer
             _delegatingConstructor = verifyNonDup(ctor, _delegatingConstructor, "long");
         }
 
-        public void addPropertyConstructor(AnnotatedConstructor ctor, SettableBeanProperty.CreatorProperty[] properties)
+        public void addPropertyConstructor(AnnotatedConstructor ctor, SettableBeanProperty[] properties)
         {
             _propertyBasedConstructor = verifyNonDup(ctor, _propertyBasedConstructor, "property-based");
             _propertyBasedConstructorProperties = properties;
@@ -505,7 +505,7 @@ public class BeanDeserializer
             _delegatingFactory = verifyNonDup(factory, _delegatingFactory, "long");
         }
 
-        public void addPropertyFactory(AnnotatedMethod factory, SettableBeanProperty.CreatorProperty[] properties)
+        public void addPropertyFactory(AnnotatedMethod factory, SettableBeanProperty[] properties)
         {
             _propertyBasedFactory = verifyNonDup(factory, _propertyBasedFactory, "property-based");
             _propertyBasedFactoryProperties = properties;
@@ -744,8 +744,8 @@ public class BeanDeserializer
      */
     final static class PropertyBasedCreator
     {
-        public PropertyBasedCreator(AnnotatedConstructor ctor, SettableBeanProperty.CreatorProperty[] ctorProps,
-                                    AnnotatedMethod factory, SettableBeanProperty.CreatorProperty[] factoryProps)
+        public PropertyBasedCreator(AnnotatedConstructor ctor, SettableBeanProperty[] ctorProps,
+                                    AnnotatedMethod factory, SettableBeanProperty[] factoryProps)
         {
             // !!! TBI
         }
