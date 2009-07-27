@@ -30,8 +30,23 @@ public class TestCreators
 
     static class FactoryBean {
         double d; // teehee
-        @JsonCreator protected FactoryBean(@JsonProperty("f") double value) {
-            d = value;
+
+        private FactoryBean(double value, boolean dummy) { d = value; }
+
+        @JsonCreator protected static FactoryBean createIt(@JsonProperty("f") double value) {
+            return new FactoryBean(value, true);
+        }
+    }
+
+    static class FactoryBeanMixIn { // static just to be able to use static methods
+        /**
+         * Note: signature (name and parameter types) must match; but
+         * only annotations will be used, not code or such. And use
+         * is by augmentation, so we only need to add things to add
+         * or override.
+         */
+        static FactoryBean createIt(@JsonProperty("mixed") double xyz) {
+            return null;
         }
     }
 
@@ -243,7 +258,7 @@ public class TestCreators
     /////////////////////////////////////////////////////
      */
 
-    public void testFactoryCreator() throws Exception
+    public void testFactoryCreatorWithMixin() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
         m.getDeserializationConfig().addMixInAnnotations(CreatorBean.class, MixIn.class);
@@ -251,6 +266,15 @@ public class TestCreators
             ("{ \"a\" : \"xyz\", \"x\" : 12 }", CreatorBean.class);
         assertEquals(11, bean.x);
         assertEquals("factory:xyz", bean.a);
+    }
+
+    public void testFactoryCreatorWithRenamingMixin() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.getDeserializationConfig().addMixInAnnotations(FactoryBean.class, FactoryBeanMixIn.class);
+        // override changes property name from "f" to "mixed"
+        FactoryBean bean = m.readValue("{ \"mixed\" :  20.5 }", FactoryBean.class);
+        assertEquals(20.5, bean.d);
     }
 
     /*
