@@ -69,8 +69,8 @@ public class TestCreators
         }
 
         @JsonCreator
-        public CreatorBean buildMeUpButterCup(@JsonProperty("a") String paramA,
-                                              @JsonProperty("x") int paramX)
+        public static CreatorBean buildMeUpButterCup(@JsonProperty("a") String paramA,
+                                                     @JsonProperty("x") int paramX)
         {
             return new CreatorBean("factory:"+paramA, paramX-1, false);
         }
@@ -106,7 +106,7 @@ public class TestCreators
         ObjectMapper m = new ObjectMapper();
         CreatorBean bean = m.readValue
             ("{ \"a\" : \"xyz\", \"x\" : 12 }", CreatorBean.class);
-        assertEquals(14, bean.x);
+        assertEquals(13, bean.x);
         assertEquals("ctor:xyz", bean.a);
     }
 
@@ -116,7 +116,7 @@ public class TestCreators
         m.getDeserializationConfig().addMixInAnnotations(CreatorBean.class, MixIn.class);
         CreatorBean bean = m.readValue
             ("{ \"a\" : \"xyz\", \"x\" : 12 }", CreatorBean.class);
-        assertEquals(14, bean.x);
+        assertEquals(11, bean.x);
         assertEquals("ctor:xyz", bean.a);
     }
 

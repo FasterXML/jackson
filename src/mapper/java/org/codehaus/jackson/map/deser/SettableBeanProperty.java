@@ -161,7 +161,7 @@ public abstract class SettableBeanProperty
         throw new JsonMappingException(th.getMessage(), null, th);
     }
     
-    @Override public String toString() { return "[property '"+_propName+"]"; }
+    @Override public String toString() { return "[property '"+_propName+"']"; }
 
     /*
     ////////////////////////////////////////////////////////

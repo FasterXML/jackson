@@ -423,8 +423,10 @@ public class BeanDeserializer
                 // Last property to set?
                 if (buffer.assignParameter(prop.getCreatorIndex(), prop.deserialize(jp, ctxt))) {
                     bean = creator.build(buffer);
-                    break;
+                    // !!! TBI:
+                    return bean;
                 }
+                continue;
             }
             // regular property?
             prop = _props.get(propName);
@@ -446,9 +448,6 @@ public class BeanDeserializer
             // Unknown: let's call handler method
             handleUnknownProperty(ctxt, getBeanClass(), propName);
         }
-
-        // !!! TBI
-        return bean;
     }
 
     /*
