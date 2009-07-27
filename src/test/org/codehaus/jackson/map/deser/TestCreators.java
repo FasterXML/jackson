@@ -10,9 +10,9 @@ import org.codehaus.jackson.map.*;
 public class TestCreators
     extends BaseMapTest
 {
-  /*
+    /*
     //////////////////////////////////////////////
-    // Annotated helper classes
+    // Annotated helper classes, simple
     //////////////////////////////////////////////
      */
 
@@ -77,6 +77,22 @@ public class TestCreators
     }
 
     /**
+     * Class for sole purpose of hosting mix-in annotations.
+     * Couple of things to note: (a) MUST be static class (non-static
+     * get implicit pseudo-arg, 'this';
+     * (b) for factory methods, must have static to match (part of signature)
+     */
+    abstract static class MixIn {
+        @JsonIgnore private MixIn(String a, int x) { }
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Annotated helper classes, mixed (creator and props)
+    //////////////////////////////////////////////////////
+     */
+
+    /**
      * Test bean for ensuring that constructors can be mixed with setters
      */
     static class ConstructorAndPropsBean
@@ -111,14 +127,31 @@ public class TestCreators
         public void setC(int value) { arg3 = value; }
     }
 
-    /**
-     * Class for sole purpose of hosting mix-in annotations.
-     * Couple of things to note: (a) MUST be static class (non-static
-     * get implicit pseudo-arg, 'this';
-     * (b) for factory methods, must have static to match (part of signature)
-     */
-    abstract static class MixIn {
-        @JsonIgnore private MixIn(String a, int x) { }
+    static class DeferredConstructorAndPropsBean
+    {
+        final int[] createA;
+        String propA = "xyz";
+        String propB;
+
+        @JsonCreator
+        public DeferredConstructorAndPropsBean(@JsonProperty("createA") int[] a)
+        {
+            createA = a;
+        }
+        public void setPropA(String a) { propA = a; }
+        public void setPropB(String b) { propB = b; }
+    }
+
+    static class DeferredFactoryAndPropsBean
+    {
+        String prop, ctor;
+
+        @JsonCreator DeferredFactoryAndPropsBean(@JsonProperty("ctor") String str)
+        {
+            ctor = str;
+        }
+
+        public void setProp(String str) { prop = str; }
     }
 
     /*
@@ -180,6 +213,29 @@ public class TestCreators
     // Test methods, valid cases, deferred, no mixins
     /////////////////////////////////////////////////////
      */
+
+    public void testDeferredConstructorAndProps() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        DeferredConstructorAndPropsBean bean = m.readValue
+            ("{ \"propB\" : \"...\", \"createA\" : [ 1 ], \"propA\" : null }",
+             DeferredConstructorAndPropsBean.class);
+
+        assertEquals("...", bean.propB);
+        assertNull(bean.propA);
+        assertNotNull(bean.createA);
+        assertEquals(1, bean.createA.length);
+        assertEquals(1, bean.createA[0]);
+    }
+
+    public void testDeferredFactoryAndProps() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        DeferredFactoryAndPropsBean bean = m.readValue
+            ("{ \"prop\" : \"1\", \"ctor\" : \"2\" }", DeferredFactoryAndPropsBean.class);
+        assertEquals("1", bean.prop);
+        assertEquals("2", bean.ctor);
+    }
 
     /*
     /////////////////////////////////////////////////////

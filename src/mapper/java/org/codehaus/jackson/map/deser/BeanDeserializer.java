@@ -343,7 +343,6 @@ public class BeanDeserializer
             ClassUtil.unwrapAndThrowAsIAE(e);
             return null; // never gets here
         }
-
         while (jp.nextToken() != JsonToken.END_OBJECT) { // otherwise field name
             String propName = jp.getCurrentName();
             SettableBeanProperty prop = _props.get(propName);
@@ -403,12 +402,11 @@ public class BeanDeserializer
      *
      * @since 1.2
      */
-    protected final Object _deserializeUsingPropertyBased(JsonParser jp, DeserializationContext ctxt)
+    protected final Object _deserializeUsingPropertyBased(final JsonParser jp, final DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     { 
         final PropertyBasedCreator creator = _propertyBasedCreator;
         PropertyBuffer buffer = creator.startBuilding(jp, ctxt);
-        Object bean = null;
 
         while (true) {
             // end of JSON object?
@@ -422,13 +420,11 @@ public class BeanDeserializer
             if (prop != null) {
                 // Last property to set?
                 if (buffer.assignParameter(prop.getCreatorIndex(), prop.deserialize(jp, ctxt))) {
-                    bean = creator.build(buffer);
-                    // !!! TBI:
-                    return bean;
+                    return _deserializeProperties(jp, ctxt, creator.build(buffer));
                 }
                 continue;
             }
-            // regular property?
+            // regular property? needs buffering
             prop = _props.get(propName);
             if (prop != null) {
                 buffer.bufferProperty(prop, prop.deserialize(jp, ctxt));
@@ -448,6 +444,34 @@ public class BeanDeserializer
             // Unknown: let's call handler method
             handleUnknownProperty(ctxt, getBeanClass(), propName);
         }
+    }
+
+    /**
+     * Method that will process "extra" properties that follow
+     * Creator-bound properties (if any).
+     */
+    protected Object _deserializeProperties(final JsonParser jp, final DeserializationContext ctxt,
+                                            Object bean)
+        throws IOException, JsonProcessingException
+    {
+        while (jp.nextToken() != JsonToken.END_OBJECT) { // otherwise field name
+            String propName = jp.getCurrentName();
+            SettableBeanProperty prop = _props.get(propName);
+
+            if (prop != null) { // normal case
+                prop.deserializeAndSet(jp, ctxt, bean);
+                continue;
+            }
+            if (_anySetter != null) {
+                _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
+                continue;
+            }
+            // need to process or skip the following token
+            /*JsonToken t =*/ jp.nextToken();
+            // Unknown: let's call handler method
+            handleUnknownProperty(ctxt, bean, propName);
+        }
+        return bean;
     }
 
     /*
@@ -881,16 +905,24 @@ public class BeanDeserializer
         }
 
         public Object build(PropertyBuffer buffer)
+            throws IOException, JsonProcessingException
         {
+            Object bean;
             try {
                 if (_ctor != null) {
-                    return _ctor.newInstance(buffer.getParameters());
+                    bean = _ctor.newInstance(buffer.getParameters());
+                } else {
+                    bean =  _factoryMethod.invoke(null, buffer.getParameters());
                 }
-                return _factoryMethod.invoke(null, buffer.getParameters());
             } catch (Exception e) {
                 ClassUtil.unwrapAndThrowAsIAE(e);
                 return null; // never gets here
             }
+            // Anything buffered?
+            for (PropValue pv = buffer.buffered(); pv != null; pv = pv.next) {
+                pv.assign(bean);
+            }
+            return bean;
         }
     }
 
@@ -921,14 +953,14 @@ public class BeanDeserializer
          *<p>
          * NOTE: assumes there are no duplicates, for now.
          */
-        int _paramsNeeded;
+        private int _paramsNeeded;
 
         /**
          * If we get non-creator parameters before or between
          * creator parameters, those need to be buffered. Buffer
          * is just a simple linked list
          */
-        PropValue _buffer;
+        private PropValue _buffered;
 
         public PropertyBuffer(JsonParser jp, DeserializationContext ctxt,
                               int paramCount)
@@ -940,6 +972,7 @@ public class BeanDeserializer
         }
 
         protected final Object[] getParameters() { return _creatorParameters; }
+        protected PropValue buffered() { return _buffered; }
 
         /**
          * @return True if we have received all creator parameters
@@ -950,58 +983,73 @@ public class BeanDeserializer
         }
 
         public void bufferProperty(SettableBeanProperty prop, Object value) {
-            _buffer = new RegularPropValue(_buffer, value, prop);
+            _buffered = new RegularPropValue(_buffered, value, prop);
         }
 
         public void bufferAnyProperty(SettableAnyProperty prop, String propName, Object value) {
-            _buffer = new AnyPropValue(_buffer, value, prop, propName);
+            _buffered = new AnyPropValue(_buffered, value, prop, propName);
+        }
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Helper classes for buffering property values
+    /////////////////////////////////////////////////////
+    */
+
+    abstract static class PropValue
+    {
+        public final PropValue next;
+        public final Object value;
+        
+        protected PropValue(PropValue next, Object value)
+        {
+            this.next = next;
+            this.value = value;
         }
 
-        /*
-        /////////////////////////////////////////////////////
-        // Helper classes for buffering property values
-        /////////////////////////////////////////////////////
-         */
-
-        abstract static class PropValue
+        public abstract void assign(Object bean)
+            throws IOException, JsonProcessingException;
+    }
+    
+    final static class RegularPropValue
+        extends PropValue
+    {
+        final SettableBeanProperty _property;
+        
+        public RegularPropValue(PropValue next, Object value,
+                                SettableBeanProperty prop)
         {
-            public final PropValue next;
-            public final Object value;
-
-            protected PropValue(PropValue next, Object value)
-            {
-                this.next = next;
-                this.value = value;
-            }
+            super(next, value);
+            _property = prop;
         }
 
-        final static class RegularPropValue
-            extends PropValue
+        public void assign(Object bean)
+            throws IOException, JsonProcessingException
         {
-            final SettableBeanProperty _property;
-
-            public RegularPropValue(PropValue next, Object value,
-                                    SettableBeanProperty prop)
-            {
-                super(next, value);
-                _property = prop;
-            }
+            _property.set(bean, value);
+        }
+    }
+    
+    final static class AnyPropValue
+        extends PropValue
+    {
+        final SettableAnyProperty _property;
+        final String _propertyName;
+        
+        public AnyPropValue(PropValue next, Object value,
+                            SettableAnyProperty prop,
+                            String propName)
+        {
+            super(next, value);
+            _property = prop;
+            _propertyName = propName;
         }
 
-        final static class AnyPropValue
-            extends PropValue
+        public void assign(Object bean)
+            throws IOException, JsonProcessingException
         {
-            final SettableAnyProperty _property;
-            final String _propertyName;
-
-            public AnyPropValue(PropValue next, Object value,
-                                SettableAnyProperty prop,
-                                String propName)
-            {
-                super(next, value);
-                _property = prop;
-                _propertyName = propName;
-            }
+            _property.set(bean, _propertyName, value);
         }
     }
 }

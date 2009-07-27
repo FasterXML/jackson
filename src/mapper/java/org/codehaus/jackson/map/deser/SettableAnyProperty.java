@@ -57,12 +57,7 @@ public final class SettableAnyProperty
                                         Object instance, String propName)
         throws IOException, JsonProcessingException
     {
-        Object value = deserialize(jp, ctxt);
-        try {
-            _setter.invoke(instance, propName, value);
-        } catch (Exception e) {
-            _throwAsIOE(e, propName, value);
-        }
+        set(instance, propName, deserialize(jp, ctxt));
     }
 
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -73,6 +68,16 @@ public final class SettableAnyProperty
             return null;
         }
         return _valueDeserializer.deserialize(jp, ctxt);
+    }
+
+    public final void set(Object instance, String propName, Object value)
+        throws IOException
+    {
+        try {
+            _setter.invoke(instance, propName, value);
+        } catch (Exception e) {
+            _throwAsIOE(e, propName, value);
+        }
     }
 
     /*

@@ -232,19 +232,7 @@ public abstract class BasicDeserializerFactory
     public JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p)
         throws JsonMappingException
     {
-        /* !!! 02-Mar-2009, tatu: Should probably allow specifying more
-         *   accurate nodes too...
-         */
-        /*
-        if (ArrayNode.class.isAssignableFrom(nodeClass)) {
-            // !!! TBI
-        }
-        if (ObjectNode.class.isAssignableFrom(nodeClass)) {
-            // !!! TBI
-        }
-        */
-        // For plain old JsonNode, we'll return basic deserializer:
-        return JsonNodeDeserializer.instance;
+        return JsonNodeDeserializer.getDeserializer(nodeClass);
     }
 
     @Override

@@ -8,57 +8,48 @@ import org.codehaus.jackson.node.*;
 
 /**
  * Deserializer that can build instances of {@link JsonNode} from any
- * Json content.
+ * Json content, using appropriate {@link JsonNode} type.
  */
 public class JsonNodeDeserializer
-    extends StdDeserializer<JsonNode>
+    extends BaseNodeDeserializer<JsonNode>
 {
+    /**
+     * Singleton instance of generic deserializer for {@link JsonNode}
+     *
+     * @deprecated Use {@link #getNodeDeserializer} accessor instead
+     */
+    @Deprecated
     public final static JsonNodeDeserializer instance = new JsonNodeDeserializer();
 
-    protected JsonNodeFactory _nodeFactory;
+    protected JsonNodeDeserializer() { super(JsonNode.class); }
 
-    public JsonNodeDeserializer()
+    public static JsonDeserializer<? extends JsonNode> getDeserializer(Class<?> nodeClass)
     {
-        super(JsonNode.class);
-        _nodeFactory = JsonNodeFactory.instance;
+        if (ObjectNode.class.isAssignableFrom(nodeClass)) {
+            return ObjectDeserializer.instance;
+        }
+        if (ArrayNode.class.isAssignableFrom(nodeClass)) {
+            return ArrayDeserializer.instance;
+        }
+        // For others, generic one works fine
+        return JsonNodeDeserializer.instance;
     }
-
-    public JsonNodeFactory getNodeFactory() { return _nodeFactory; }
-    public void setNodeFactory(JsonNodeFactory nf) { _nodeFactory = nf; }
 
     /*
     /////////////////////////////////////////////////////
-    // Actual deserializer implementation
+    // Actual deserializer implementations
     /////////////////////////////////////////////////////
-     */
+    */
 
     public JsonNode deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         switch (jp.getCurrentToken()) {
         case START_OBJECT:
-            {
-                ObjectNode node = _nodeFactory.objectNode();
-                while (jp.nextToken() != JsonToken.END_OBJECT) {
-                    String fieldName = jp.getCurrentName();
-                    jp.nextToken();
-                    JsonNode value = deserialize(jp, ctxt);
-                    JsonNode old = node.put(fieldName, value);
-                    if (old != null) {
-                        _handleDuplicateField(fieldName, node, old, value);
-                    }
-                }
-                return node;
-            }
+            return deserializeObject(jp, ctxt);
 
         case START_ARRAY:
-            {
-                ArrayNode node = _nodeFactory.arrayNode();
-                while (jp.nextToken() != JsonToken.END_ARRAY) {
-                    node.add(deserialize(jp, ctxt));
-                }
-                return node;
-            }
+            return deserializeArray(jp, ctxt);
 
         case VALUE_STRING:
             return _nodeFactory.textNode(jp.getText());
@@ -108,16 +99,81 @@ public class JsonNodeDeserializer
 
     /*
     /////////////////////////////////////////////////////
-    // Overridable methods
+    // Specific instances for more accurate types
     /////////////////////////////////////////////////////
      */
 
+    final static class ObjectDeserializer
+        extends BaseNodeDeserializer<ObjectNode>
+    {
+        final static ObjectDeserializer instance = new ObjectDeserializer();
+
+        protected ObjectDeserializer() {
+            super(ObjectNode.class);
+        }
+
+        @Override
+        public ObjectNode deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            if (jp.getCurrentToken() == JsonToken.START_OBJECT) {
+                return deserializeObject(jp, ctxt);
+            }
+            throw ctxt.mappingException(ObjectNode.class);
+        }
+    }
+
+    final static class ArrayDeserializer
+        extends BaseNodeDeserializer<ArrayNode>
+    {
+        final static ArrayDeserializer instance = new ArrayDeserializer();
+
+        protected ArrayDeserializer() {
+            super(ArrayNode.class);
+        }
+
+        @Override
+        public ArrayNode deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            if (jp.getCurrentToken() == JsonToken.START_ARRAY) {
+                return deserializeArray(jp, ctxt);
+            }
+            throw ctxt.mappingException(ArrayNode.class);
+        }
+    }
+}
+
+/**
+ * Base class for all actual {@link JsonNode} deserializer
+ * implementations
+ */
+abstract class BaseNodeDeserializer<N extends JsonNode>
+    extends StdDeserializer<N>
+{
+    protected JsonNodeFactory _nodeFactory;
+    
+    public BaseNodeDeserializer(Class<N> nodeClass)
+    {
+        super(nodeClass);
+        _nodeFactory = JsonNodeFactory.instance;
+    }
+    
+    public JsonNodeFactory getNodeFactory() { return _nodeFactory; }
+    public void setNodeFactory(JsonNodeFactory nf) { _nodeFactory = nf; }
+    
+    /*
+    /////////////////////////////////////////////////////
+    // Overridable methods
+    /////////////////////////////////////////////////////
+    */
+    
     protected void _reportProblem(JsonParser jp, String msg)
         throws JsonMappingException
     {
         throw new JsonMappingException(msg, jp.getTokenLocation());
     }
-
+    
     /**
      * Method called when there is a duplicate value for a field.
      * By default we don't care, and the last value is used.
@@ -137,5 +193,37 @@ public class JsonNodeDeserializer
     {
         // By default, we don't do anything
         ;
+    }
+    
+    /*
+    /////////////////////////////////////////////////////
+    // Helper methods
+    /////////////////////////////////////////////////////
+    */
+    
+    protected final ObjectNode deserializeObject(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        ObjectNode node = _nodeFactory.objectNode();
+        while (jp.nextToken() != JsonToken.END_OBJECT) {
+            String fieldName = jp.getCurrentName();
+            jp.nextToken();
+            JsonNode value = deserialize(jp, ctxt);
+            JsonNode old = node.put(fieldName, value);
+            if (old != null) {
+                _handleDuplicateField(fieldName, node, old, value);
+            }
+        }
+        return node;
+    }
+    
+    protected final ArrayNode deserializeArray(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        ArrayNode node = _nodeFactory.arrayNode();
+        while (jp.nextToken() != JsonToken.END_ARRAY) {
+            node.add(deserialize(jp, ctxt));
+        }
+        return node;
     }
 }
