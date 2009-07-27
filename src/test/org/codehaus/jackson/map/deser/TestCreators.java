@@ -76,15 +76,55 @@ public class TestCreators
         }
     }
 
-    // Class for sole purpose of hosting mix-in annotations
-    abstract class MixIn {
+    /**
+     * Test bean for ensuring that constructors can be mixed with setters
+     */
+    static class ConstructorAndPropsBean
+    {
+        final int a, b;
+        boolean c;
+
+        @JsonCreator protected ConstructorAndPropsBean(@JsonProperty("a") int a,
+                                                       @JsonProperty("b") int b)
+        {
+            this.a = a;
+            this.b = b;
+        }
+
+        public void setC(boolean value) { c = value; }
+    }
+
+    /**
+     * Test bean for ensuring that factory methods can be mixed with setters
+     */
+    static class FactoryAndPropsBean
+    {
+        boolean[] arg1;
+        int arg2, arg3;
+
+        @JsonCreator protected FactoryAndPropsBean(@JsonProperty("a") boolean[] arg)
+        {
+            arg1 = arg;
+        }
+
+        public void setB(int value) { arg2 = value; }
+        public void setC(int value) { arg3 = value; }
+    }
+
+    /**
+     * Class for sole purpose of hosting mix-in annotations.
+     * Couple of things to note: (a) MUST be static class (non-static
+     * get implicit pseudo-arg, 'this';
+     * (b) for factory methods, must have static to match (part of signature)
+     */
+    abstract static class MixIn {
         @JsonIgnore private MixIn(String a, int x) { }
     }
 
     /*
-    //////////////////////////////////////////////
-    // Test methods, valid cases
-    //////////////////////////////////////////////
+    /////////////////////////////////////////////////////
+    // Test methods, valid cases, non-deferred, no-mixins
+    /////////////////////////////////////////////////////
      */
 
     public void testSimpleConstructor() throws Exception
@@ -110,6 +150,43 @@ public class TestCreators
         assertEquals("ctor:xyz", bean.a);
     }
 
+    public void testConstructorAndProps() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        ConstructorAndPropsBean bean = m.readValue
+            ("{ \"a\" : \"1\", \"b\": 2, \"c\" : true }", ConstructorAndPropsBean.class);
+        assertEquals(1, bean.a);
+        assertEquals(2, bean.b);
+        assertEquals(true, bean.c);
+    }
+
+    public void testFactoryAndProps() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        FactoryAndPropsBean bean = m.readValue
+            ("{ \"a\" : [ false, true, false ], \"b\": 2, \"c\" : -1 }", FactoryAndPropsBean.class);
+        assertEquals(2, bean.arg2);
+        assertEquals(-1, bean.arg3);
+        boolean[] arg1 = bean.arg1;
+        assertNotNull(arg1);
+        assertEquals(3, arg1.length);
+        assertFalse(arg1[0]);
+        assertTrue(arg1[1]);
+        assertFalse(arg1[2]);
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Test methods, valid cases, deferred, no mixins
+    /////////////////////////////////////////////////////
+     */
+
+    /*
+    /////////////////////////////////////////////////////
+    // Test methods, valid cases, mixins
+    /////////////////////////////////////////////////////
+     */
+
     public void testFactoryCreator() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -117,7 +194,7 @@ public class TestCreators
         CreatorBean bean = m.readValue
             ("{ \"a\" : \"xyz\", \"x\" : 12 }", CreatorBean.class);
         assertEquals(11, bean.x);
-        assertEquals("ctor:xyz", bean.a);
+        assertEquals("factory:xyz", bean.a);
     }
 
     /*

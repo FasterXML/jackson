@@ -364,7 +364,7 @@ public final class AnnotatedClass
                     _addMixOvers(ctor, _defaultConstructor, false);
                 }
                 break;
-            case 1:
+            default:
                 if (ctorKeys == null) {
                     ctorKeys = new MemberKey[ctorCount];
                     for (int i = 0; i < ctorCount; ++i) {
@@ -372,6 +372,7 @@ public final class AnnotatedClass
                     }
                 }
                 MemberKey key = new MemberKey(ctor);
+
                 for (int i = 0; i < ctorCount; ++i) {
                     if (!key.equals(ctorKeys[i])) {
                         continue;
