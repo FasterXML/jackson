@@ -3,6 +3,11 @@ import java.io.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
+/**
+ * Micro-benchmark for comparing performance of bean deserialization
+ * using three methods: tree (JsonNode) deserialization; method-based
+ * bean deserialization and field-based bean deserialization.
+ */
 public final class TestDeserPerf
 {
     /*
