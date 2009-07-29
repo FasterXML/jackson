@@ -32,6 +32,9 @@ Description:
   * [JACKSON-131] Allow constructing and passing of non-shared
     SerializationConfig/DeserializationConfig instances to ObjectMapper
   * [JACKSON-135] Add basic JsonNode construction support in ObjectMapper
+  * [JACKSON-147] Add global deserialization feature for suppressing error
+    reporting for unknown properties
+    (DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES)
 
 ------------------------------------------------------------------------
 == History: ==

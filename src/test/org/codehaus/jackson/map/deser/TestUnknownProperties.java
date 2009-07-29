@@ -11,16 +11,24 @@ import org.codehaus.jackson.map.*;
 public class TestUnknownProperties
     extends BaseMapTest
 {
-    final static String JSON_UNKNOWN_FIELD = "{ \"a\" : 1, \"foo\" : 3 }";
+    final static String JSON_UNKNOWN_FIELD = "{ \"a\" : 1, \"foo\" : [ 1, 2, 3], \"b\" : -1 }";
+
+    /*
+    ///////////////////////////////////////////////////////////
+    // Helper classes
+    ///////////////////////////////////////////////////////////
+     */
+
     final static class TestBean
     {
         String _unknown;
 
-        int _a;
+        int _a, _b;
 
         public TestBean() { }
 
         public void setA(int a) { _a = a; }
+        public void setB(int b) { _b = b; }
 
         public void markUnknown(String unk) { _unknown = unk; }
     }
@@ -38,12 +46,19 @@ public class TestUnknownProperties
             throws IOException, JsonProcessingException
         {
             JsonParser jp = ctxt.getParser();
-            ((TestBean) bean).markUnknown(propertyName+":"+jp.getText());
+            // very simple, just to verify that we do see correct token type
+            ((TestBean) bean).markUnknown(propertyName+":"+jp.getCurrentToken().toString());
             // Yup, we are good to go; must skip whatever value we'd have:
             jp.skipChildren();
             return true;
         }
     }
+
+    /*
+    ///////////////////////////////////////////////////////////
+    // Test methods
+    ///////////////////////////////////////////////////////////
+     */
 
     /**
      * By default we should just get an exception if an unknown property
@@ -61,9 +76,10 @@ public class TestUnknownProperties
     }
 
     /**
-     * And then using a handler...
+     * Test that verifies that it is possible to ignore unknown properties using
+     * {@link UnknownPropertyHandler}.
      */
-    public void testUnknownHandlingIgnore()
+    public void testUnknownHandlingIgnoreWithHandler()
         throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -71,6 +87,30 @@ public class TestUnknownProperties
         TestBean result = mapper.readValue(new StringReader(JSON_UNKNOWN_FIELD), TestBean.class);
         assertNotNull(result);
         assertEquals(1, result._a);
-        assertEquals("foo:3", result._unknown);
+        assertEquals(-1, result._b);
+        assertEquals("foo:START_ARRAY", result._unknown);
+    }
+
+    /**
+     * Test for checking that it is also possible to simply suppress
+     * error reporting for unknown properties.
+     *
+     * @since 1.2
+     */
+    public void testUnknownHandlingIgnoreWithFeature()
+        throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        TestBean result = null;
+        try {
+            result = mapper.readValue(new StringReader(JSON_UNKNOWN_FIELD), TestBean.class);
+        } catch (JsonMappingException jex) {
+            fail("Did not expect a problem, got: "+jex.getMessage());
+        }
+        assertNotNull(result);
+        assertEquals(1, result._a);
+        assertNull(result._unknown);
+        assertEquals(-1, result._b);
     }
 }

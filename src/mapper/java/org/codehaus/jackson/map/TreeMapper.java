@@ -20,6 +20,8 @@ import org.codehaus.jackson.node.NullNode;
  * {@link JsonGenerator}. The remaining functionality is limited
  * to {@link JsonNodeFactory} implementation which allows constructing
  * typed {@link JsonNode} instances.
+ *
+ * @deprecated Use {@link org.codehaus.jackson.map.ObjectMapper} instead
  */
 public class TreeMapper
     extends JsonNodeFactory

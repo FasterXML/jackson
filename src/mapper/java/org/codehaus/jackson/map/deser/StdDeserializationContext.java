@@ -156,21 +156,21 @@ public class StdDeserializationContext
     }
 
     @Override
-	public JsonMappingException weirdNumberException(Class<?> instClass, String msg)
+    public JsonMappingException weirdNumberException(Class<?> instClass, String msg)
     {
         return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+" from number value ("+_valueDesc()+"): "+msg);
     }
 
     @Override
-	public JsonMappingException weirdKeyException(Class<?> keyClass, String keyValue, String msg)
+    public JsonMappingException weirdKeyException(Class<?> keyClass, String keyValue, String msg)
     {
         return JsonMappingException.from(_parser, "Can not construct Map key of type "+keyClass.getName()+" from String \""+_desc(keyValue)+"\": "+msg);
     }
 
     @Override
-    public JsonMappingException unknownFieldException(Object instance, String fieldName)
+    public JsonMappingException unknownFieldException(Object instanceOrClass, String fieldName)
     {
-        String clsName = determineClassName(instance);
+        String clsName = determineClassName(instanceOrClass);
         return JsonMappingException.from(_parser, "Unrecognized field \""+fieldName+"\" (Class "+clsName+"), not marked as ignorable");
     }
 

@@ -144,7 +144,28 @@ public class DeserializationConfig
          * point numbers will by default be deserialized using whatever
          * is the most compact integral type, to optimize efficiency.
          */
-        USE_BIG_INTEGER_FOR_INTS(false)
+        USE_BIG_INTEGER_FOR_INTS(false),
+
+        // // // Problem handling
+
+        /**
+         * Feature that determines whether encountering of unknown
+         * properties (ones that do not map to a property, and there is
+         * no "any setter" or handler that can handle it)
+         * should result in a failure (by throwing a
+         * {@link JsonMappingException}) or not.
+         * This setting only takes effect after all other handling
+         * methods for unknown properties have been tried, and
+         * property remains unhandled.
+         *<p>
+         * Feature is enabled by default, meaning that 
+         * {@link JsonMappingException} is thrown if an unknown property
+         * is encountered. This is the implicit default prior to
+         * introduction of the feature.
+         *
+         * @since 1.2
+         */
+         FAIL_ON_UNKNOWN_PROPERTIES(true)
 	            ;
 
         final boolean _defaultState;

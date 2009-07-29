@@ -82,5 +82,10 @@ public abstract class DeserializationContext
 
     public abstract JsonMappingException weirdKeyException(Class<?> keyClass, String keyValue, String msg);
 
-    public abstract JsonMappingException unknownFieldException(Object instance, String fieldName);
+    /**
+     * @param instanceOrClass Either value being populated (if one has been
+     *   instantiated), or Class that indicates type that would be (or
+     *   have been) instantiated
+     */
+    public abstract JsonMappingException unknownFieldException(Object instanceOrClass, String fieldName);
 }

@@ -11,7 +11,6 @@ import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
-import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -26,7 +25,7 @@ import org.codehaus.jackson.type.JavaType;
  * bean serializers to handle cyclic references.
  */
 public class BeanDeserializer
-    extends JsonDeserializer<Object>
+    extends StdDeserializer<Object>
     implements ResolvableDeserializer
 {
     /*
@@ -117,6 +116,7 @@ public class BeanDeserializer
 
     public BeanDeserializer(JavaType type) 
     {
+        super(type.getRawClass());
         _beanType = type;
         _props = new HashMap<String, SettableBeanProperty>();
         _ignorableProps = null;
@@ -480,47 +480,20 @@ public class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
-    /**
-     * Method called to deal with a property that did not map to a known
-     * Bean property. Method can deal with the problem as it sees fit (ignore,
-     * throw exception); but if it does return, it has to skip the matching
-     * Json content parser has.
-     *
-     * @param ctxt Context for deserialization; allows access to the parser,
-     *    error reporting functionality
-     * @param resultBean Bean that is being populated by this deserializer;
-     *   or, if not known, Class that would be instantiated to get bean
-     * @param propName Name of the property that can not be mapped
-     */
-    protected void handleUnknownProperty(DeserializationContext ctxt, Object resultBean, String propName)
+@Override
+    protected void handleUnknownProperty(DeserializationContext ctxt, Object beanOrClass, String propName)
         throws IOException, JsonProcessingException
-    {
-        // otherwise, what to do with it? Ignore?
+{
+    // If registered as ignorable, skip
         if (_ignorableProps != null && _ignorableProps.contains(propName)) {
-            ; // fine, ignore as is
-        } else {
-            LinkedNode<DeserializationProblemHandler> h = ctxt.getConfig().getProblemHandlers();
-            while (h != null) {
-                // Can bail out if it's handled
-                if (h.value().handleUnknownProperty(ctxt, this, resultBean, propName)) {
-                    return;
-                }
-            }
-            // Nope, not handled. Still a problem:
-            reportUnknownField(ctxt, resultBean, propName);
+            ctxt.getParser().skipChildren();
+            return;
         }
-        /* either way, need to skip now; we point to first token of value
-         * (START_xxx for structured, or the value token for others)
+        /* Otherwise use default handling (call handler(s); if not
+         * handled, throw exception or skip depending on settings)
          */
-        ctxt.getParser().skipChildren();
-    }
-        
-    protected void reportUnknownField(DeserializationContext ctxt,
-                                      Object resultBean, String fieldName)
-        throws IOException, JsonProcessingException
-    {
-        throw ctxt.unknownFieldException(resultBean, fieldName);
-    }
+        super.handleUnknownProperty(ctxt, beanOrClass, propName);
+}
 
     /**
      * Helper method used to locate deserializers for properties the

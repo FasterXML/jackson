@@ -10,8 +10,10 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.DeserializationProblemHandler;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.util.LinkedNode;
 
 /**
  * Base class for simple standard deserializers
@@ -29,7 +31,7 @@ public abstract class StdDeserializer<T>
 
     /*
     /////////////////////////////////////////////////////////////
-    // Helper methods for sub-classes
+    // Helper methods for sub-classes, parsing
     /////////////////////////////////////////////////////////////
     */
 
@@ -226,6 +228,59 @@ public abstract class StdDeserializer<T>
             throw ctxt.weirdStringException(_valueClass, "not a valid representation (error: "+iae.getMessage()+")");
         }
     }
+
+    /*
+    /////////////////////////////////////////////////////////////
+    // Helper methods for sub-classes, problem reporting
+    /////////////////////////////////////////////////////////////
+    */
+
+    /**
+     * Method called to deal with a property that did not map to a known
+     * Bean property. Method can deal with the problem as it sees fit (ignore,
+     * throw exception); but if it does return, it has to skip the matching
+     * Json content parser has.
+     *
+     * @param ctxt Context for deserialization; allows access to the parser,
+     *    error reporting functionality
+     * @param instanceOrClass Instance that is being populated by this
+     *   deserializer, or if not known, Class that would be instantiated.
+     *   If null, will assume type is what {@link #getValueClass} returns.
+     * @param propName Name of the property that can not be mapped
+     */
+    protected void handleUnknownProperty(DeserializationContext ctxt, Object instanceOrClass, String propName)
+        throws IOException, JsonProcessingException
+    {
+        LinkedNode<DeserializationProblemHandler> h = ctxt.getConfig().getProblemHandlers();
+        if (instanceOrClass == null) {
+            instanceOrClass = getValueClass();
+        }
+        while (h != null) {
+            // Can bail out if it's handled
+            if (h.value().handleUnknownProperty(ctxt, this, instanceOrClass, propName)) {
+                return;
+            }
+        }
+        // Nope, not handled. Potentially that's a problem...
+        reportUnknownProperty(ctxt, instanceOrClass, propName);
+
+        /* If we get this far, need to skip now; we point to first token of
+         * value (START_xxx for structured, or the value token for others)
+         */
+        ctxt.getParser().skipChildren();
+    }
+        
+    protected void reportUnknownProperty(DeserializationContext ctxt,
+                                         Object instanceOrClass, String fieldName)
+        throws IOException, JsonProcessingException
+    {
+        // throw exception if that's what we are expected to do
+        if (ctxt.isEnabled(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES)) {
+            throw ctxt.unknownFieldException(instanceOrClass, fieldName);
+        }
+        // ... or if not, just ignore
+    }
+
 
     /*
     /////////////////////////////////////////////////////////////
@@ -650,7 +705,7 @@ public abstract class StdDeserializer<T>
         public StackTraceElementDeserializer() { super(StackTraceElement.class); }
 
         @Override
-            public StackTraceElement deserialize(JsonParser jp, DeserializationContext ctxt)
+        public StackTraceElement deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -676,7 +731,7 @@ public abstract class StdDeserializer<T>
                     } else if ("nativeMethod".equals(propName)) {
                         // no setter, not passed via constructor: ignore
                     } else {
-                        ctxt.unknownFieldException(_valueClass, propName);
+                        handleUnknownProperty(ctxt, _valueClass, propName);
                     }
                 }
                 return new StackTraceElement(className, methodName, fileName, lineNumber);

@@ -28,6 +28,8 @@ public class TestConfig
 
         assertFalse(cfg.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS));
         assertFalse(cfg.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS));
+
+        assertTrue(cfg.isEnabled(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES));
     }
 
     public void testFromAnnotations()
