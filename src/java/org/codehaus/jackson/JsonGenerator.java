@@ -131,29 +131,35 @@ public abstract class JsonGenerator
      * check {@link Feature} for list of available features.
      *
      * @return Generator itself (this), to allow chaining
+     *
+     * @since 1.2
      */
-    public abstract JsonGenerator enableFeature(Feature f);
+    public abstract JsonGenerator enable(Feature f);
 
     /**
      * Method for disabling specified  features
      * (check {@link Feature} for list of features)
      *
      * @return Generator itself (this), to allow chaining
+     *
+     * @since 1.2
      */
-    public abstract JsonGenerator disableFeature(Feature f);
+    public abstract JsonGenerator disable(Feature f);
 
     /**
      * Method for enabling or disabling specified feature:
      * check {@link Feature} for list of available features.
      *
      * @return Generator itself (this), to allow chaining
+     *
+     * @since 1.2
      */
-    public JsonGenerator setFeature(Feature f, boolean state)
+    public JsonGenerator configure(Feature f, boolean state)
     {
         if (state) {
-            enableFeature(f);
+            enable(f);
         } else {
-            disableFeature(f);
+            disable(f);
         }
         return this;
     }
@@ -161,8 +167,10 @@ public abstract class JsonGenerator
     /**
      * Method for checking whether given feature is enabled.
      * Check {@link Feature} for list of available features.
+     *
+     * @since 1.2
      */
-    public abstract boolean isFeatureEnabled(Feature f);
+    public abstract boolean isEnabled(Feature f);
 
     /**
      * Method that can be called to set or reset the object to
@@ -179,6 +187,21 @@ public abstract class JsonGenerator
      * (using method {@link #writeObject}).
      */
     public abstract ObjectCodec getCodec();
+
+    // // // Older deprecated versions
+
+    /// @deprecated Use {@link #enable(Feature)} instead
+    public void enableFeature(Feature f) { enable(f); }
+
+    /// @deprecated Use {@link #disable(Feature)} instead
+    public void disableFeature(Feature f) { disable(f); }
+
+    /// @deprecated Use {@link #configure(Feature)} instead
+    public void setFeature(Feature f, boolean state) { configure(f, state); }
+
+    /// @deprecated Use {@link #isEnabled(Feature)} instead
+    public boolean isFeatureEnabled(Feature f) { return isEnabled(f); }
+
 
     /*
     ////////////////////////////////////////////////////

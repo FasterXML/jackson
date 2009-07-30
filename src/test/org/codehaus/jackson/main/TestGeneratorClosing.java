@@ -32,10 +32,10 @@ public class TestGeneratorClosing
         JsonFactory f = new JsonFactory();
 
         // Check the default settings
-        assertTrue(f.isGeneratorFeatureEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET));
+        assertTrue(f.isEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET));
         // then change
-        f.disableGeneratorFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-        assertFalse(f.isGeneratorFeatureEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET));
+        f.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+        assertFalse(f.isEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET));
         MyWriter output = new MyWriter();
         JsonGenerator jg = f.createJsonGenerator(output);
 
@@ -51,7 +51,7 @@ public class TestGeneratorClosing
         throws Exception
     {
         JsonFactory f = new JsonFactory();
-        f.enableGeneratorFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+        f.enable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         MyWriter output = new MyWriter();
         JsonGenerator jg = f.createJsonGenerator(output);
 
@@ -67,7 +67,7 @@ public class TestGeneratorClosing
         throws Exception
     {
         JsonFactory f = new JsonFactory();
-        f.disableGeneratorFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+        f.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
         MyStream output = new MyStream();
         JsonGenerator jg = f.createJsonGenerator(output, JsonEncoding.UTF8);
 
@@ -82,7 +82,7 @@ public class TestGeneratorClosing
     {
         JsonFactory f = new JsonFactory();
         // let's verify default setting, first:
-        assertTrue(f.isGeneratorFeatureEnabled(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT));
+        assertTrue(f.isEnabled(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT));
         StringWriter sw = new StringWriter();
 
         // First, test arrays:
@@ -103,7 +103,7 @@ public class TestGeneratorClosing
         throws Exception
     {
         JsonFactory f = new JsonFactory();
-        f.disableGeneratorFeature(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT);
+        f.disable(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT);
         StringWriter sw = new StringWriter();
         JsonGenerator jg = f.createJsonGenerator(sw);
         jg.writeStartArray();

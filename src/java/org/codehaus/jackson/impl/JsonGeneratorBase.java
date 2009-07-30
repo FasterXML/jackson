@@ -63,19 +63,22 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
-    public JsonGenerator enableFeature(Feature f) {
+    @Override
+    public JsonGenerator enable(Feature f) {
         _features |= f.getMask();
         return this;
     }
 
-    public JsonGenerator disableFeature(Feature f) {
+    @Override
+    public JsonGenerator disable(Feature f) {
         _features &= ~f.getMask();
         return this;
     }
 
-    //public void setFeature(Feature f, boolean state) {
+    //public JsonGenerator configure(Feature f, boolean state) { }
 
-    public final boolean isFeatureEnabled(Feature f) {
+    @Override
+    public final boolean isEnabled(Feature f) {
         return (_features & f.getMask()) != 0;
     }
 

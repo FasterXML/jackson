@@ -18,10 +18,10 @@ public class TestJsonGeneratorFeatures
         // by default, quoting should be enabled
         _testFieldNameQuoting(jf, true);
         // can disable it
-        jf.disableGeneratorFeature(JsonGenerator.Feature.QUOTE_FIELD_NAMES);
+        jf.disable(JsonGenerator.Feature.QUOTE_FIELD_NAMES);
         _testFieldNameQuoting(jf, false);
         // and (re)enable:
-        jf.enableGeneratorFeature(JsonGenerator.Feature.QUOTE_FIELD_NAMES);
+        jf.enable(JsonGenerator.Feature.QUOTE_FIELD_NAMES);
         _testFieldNameQuoting(jf, true);
     }
 
@@ -32,10 +32,10 @@ public class TestJsonGeneratorFeatures
         // by default, quoting should be enabled
         _testNonNumericQuoting(jf, true);
         // can disable it
-        jf.disableGeneratorFeature(JsonGenerator.Feature.QUOTE_NON_NUMERIC_NUMBERS);
+        jf.disable(JsonGenerator.Feature.QUOTE_NON_NUMERIC_NUMBERS);
         _testNonNumericQuoting(jf, false);
         // and (re)enable:
-        jf.enableGeneratorFeature(JsonGenerator.Feature.QUOTE_NON_NUMERIC_NUMBERS);
+        jf.enable(JsonGenerator.Feature.QUOTE_NON_NUMERIC_NUMBERS);
         _testNonNumericQuoting(jf, true);
     }
 

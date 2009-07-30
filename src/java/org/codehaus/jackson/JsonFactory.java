@@ -124,15 +124,33 @@ public class JsonFactory
 
     /*
     //////////////////////////////////////////////////////
-    // Configuration
+    // Configuration, parser settings
     //////////////////////////////////////////////////////
      */
 
     /**
-     * Method for enabling specified parser features
+     * Method for enabling or disabling specified parser feature
      * (check {@link JsonParser.Feature} for list of features)
+     *
+     * @since 1.2
      */
-    public final JsonFactory enableParserFeature(JsonParser.Feature f) {
+    public final JsonFactory configure(JsonParser.Feature f, boolean state)
+    {
+        if (state) {
+            enable(f);
+        } else {
+            disable(f);
+        }
+        return this;
+    }
+
+    /**
+     * Method for enabling specified parser feature
+     * (check {@link JsonParser.Feature} for list of features)
+     *
+     * @since 1.2
+     */
+    public final JsonFactory enable(JsonParser.Feature f) {
         _parserFeatures |= f.getMask();
         return this;
     }
@@ -140,55 +158,141 @@ public class JsonFactory
     /**
      * Method for disabling specified parser features
      * (check {@link JsonParser.Feature} for list of features)
+     *
+     * @since 1.2
      */
-    public final JsonFactory disableParserFeature(JsonParser.Feature f) {
+    public final JsonFactory disable(JsonParser.Feature f) {
         _parserFeatures &= ~f.getMask();
         return this;
     }
 
-    public final JsonFactory setParserFeature(JsonParser.Feature f, boolean state) {
-        if (state) {
-            enableParserFeature(f);
-        } else {
-            disableParserFeature(f);
-        }
-        return this;
+    /**
+     * Checked whether specified parser feature is enabled.
+     *
+     * @since 1.2
+     */
+    public final boolean isEnabled(JsonParser.Feature f) {
+        return (_parserFeatures & f.getMask()) != 0;
     }
 
+    // // // Older deprecated (as of 1.2) methods
+
+    /**
+     * @deprecated Use {@link #enable(JsonParser.Feature)} instead
+     */
+    public final void enableParserFeature(JsonParser.Feature f) {
+        enable(f);
+    }
+
+    /**
+     * @deprecated Use {@link #disable(JsonParser.Feature)} instead
+     */
+    public final void disableParserFeature(JsonParser.Feature f) {
+        disable(f);
+    }
+
+    /**
+     * @deprecated Use {@link #configure(JsonParser.Feature, boolean)} instead
+     */
+    public final void setParserFeature(JsonParser.Feature f, boolean state) {
+        configure(f, state);
+    }
+
+    /**
+     * @deprecated Use {@link #isEnabled(JsonParser.Feature)} instead
+     */
     public final boolean isParserFeatureEnabled(JsonParser.Feature f) {
         return (_parserFeatures & f.getMask()) != 0;
     }
 
+    /*
+    //////////////////////////////////////////////////////
+    // Configuration, generator settings
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for enabling or disabling specified generator feature
+     * (check {@link JsonGenerator.Feature} for list of features)
+     *
+     * @since 1.2
+     */
+    public final JsonFactory configure(JsonGenerator.Feature f, boolean state) {
+        if (state) {
+            enable(f);
+        } else {
+            disable(f);
+        }
+        return this;
+    }
+
+
     /**
      * Method for enabling specified generator features
      * (check {@link JsonGenerator.Feature} for list of features)
+     *
+     * @since 1.2
      */
-    public final JsonFactory enableGeneratorFeature(JsonGenerator.Feature f) {
+    public final JsonFactory enable(JsonGenerator.Feature f) {
         _generatorFeatures |= f.getMask();
         return this;
     }
 
     /**
-     * Method for disabling specified generator features
+     * Method for disabling specified generator feature
      * (check {@link JsonGenerator.Feature} for list of features)
+     *
+     * @since 1.2
      */
-    public final JsonFactory disableGeneratorFeature(JsonGenerator.Feature f) {
+    public final JsonFactory disable(JsonGenerator.Feature f) {
         _generatorFeatures &= ~f.getMask();
         return this;
     }
 
-    public final JsonFactory setGeneratorFeature(JsonGenerator.Feature f, boolean state) {
-        if (state) {
-            enableGeneratorFeature(f);
-        } else {
-            disableGeneratorFeature(f);
-        }
-        return this;
-    }
-
-    public final boolean isGeneratorFeatureEnabled(JsonGenerator.Feature f) {
+    /**
+     * Checked whether specified generator feature is enabled.
+     *
+     * @since 1.2
+     */
+    public final boolean isEnabled(JsonGenerator.Feature f) {
         return (_generatorFeatures & f.getMask()) != 0;
     }
+
+    // // // Older deprecated (as of 1.2) methods
+
+    /**
+     * @deprecated Use {@link #enable(JsonGenerator.Feature)} instead
+     */
+    public final void enableGeneratorFeature(JsonGenerator.Feature f) {
+        enable(f);
+    }
+
+    /**
+     * @deprecated Use {@link #disable(JsonGenerator.Feature)} instead
+     */
+    public final void disableGeneratorFeature(JsonGenerator.Feature f) {
+        disable(f);
+    }
+
+    /**
+     * @deprecated Use {@link #configure(JsonGenerator.Feature, boolean)} instead
+     */
+    public final void setGeneratorFeature(JsonGenerator.Feature f, boolean state) {
+        configure(f, state);
+    }
+
+    /**
+     * @deprecated Use {@link #isEnabled(JsonGenerator.Feature)} instead
+     */
+    public final boolean isGeneratorFeatureEnabled(JsonGenerator.Feature f) {
+        return isEnabled(f);
+    }
+
+    /*
+    //////////////////////////////////////////////////////
+    // Configuration, other
+    //////////////////////////////////////////////////////
+     */
 
     public JsonFactory setCodec(ObjectCodec oc) {
         _objectCodec = oc;

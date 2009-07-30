@@ -91,6 +91,7 @@ org.codehaus.jackson.schema;version=${IMPL_VERSION}
 "
          privatePackage="
 !org.codehaus.jackson.map,
+!org.codehaus.jackson.map.annotate,
 !org.codehaus.jackson.map.deser,
 !org.codehaus.jackson.map.ser,
 !org.codehaus.jackson.node,
@@ -178,6 +179,7 @@ org.codehaus.jackson.node;version=${IMPL_VERSION},
 org.codehaus.jackson.schema;version=${IMPL_VERSION}
 "
          privatePackage="!org.codehaus.jackson.map,
+!org.codehaus.jackson.map.annotate,
 !org.codehaus.jackson.map.deser,
 !org.codehaus.jackson.map.ser,
 !org.codehaus.jackson.node,

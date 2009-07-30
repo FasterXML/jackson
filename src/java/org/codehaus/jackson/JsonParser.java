@@ -187,8 +187,11 @@ public abstract class JsonParser
     /**
      * Method for enabling specified parser feature
      * (check {@link Feature} for list of features)
+     *
+     * @since 1.2
      */
-    public JsonParser enableFeature(Feature f) {
+    public JsonParser enable(Feature f)
+    {
         _features |= f.getMask();
         return this;
     }
@@ -196,8 +199,11 @@ public abstract class JsonParser
     /**
      * Method for disabling specified  feature
      * (check {@link Feature} for list of features)
+     *
+     * @since 1.2
      */
-    public JsonParser disableFeature(Feature f) {
+    public JsonParser disable(Feature f)
+    {
         _features &= ~f.getMask();
         return this;
     }
@@ -205,8 +211,11 @@ public abstract class JsonParser
     /**
      * Method for enabled or disabling specified feature
      * (check {@link Feature} for list of features)
+     *
+     * @since 1.2
      */
-    public JsonParser setFeature(Feature f, boolean state) {
+    public JsonParser configure(Feature f, boolean state)
+    {
         if (state) {
             enableFeature(f);
         } else {
@@ -218,10 +227,25 @@ public abstract class JsonParser
     /**
      * Method for checking whether specified {@link Feature}
      * is enabled.
+     *
+     * @since 1.2
      */
-    public final boolean isFeatureEnabled(Feature f) {
+    public final boolean isEnabled(Feature f) {
         return (_features & f.getMask()) != 0;
     }
+
+    /// @deprecated Use {@link #configure(Feature)} instead
+    public void setFeature(Feature f, boolean state) { configure(f, state); }
+
+    /// @deprecated Use {@link #enable(Feature)} instead
+    public void enableFeature(Feature f) { enable(f); }
+
+    /// @deprecated Use {@link #disable(Feature)} instead
+    public void disableFeature(Feature f) { disable(f); }
+
+    /// @deprecated Use {@link #isEnabled(Feature)} instead
+    public final boolean isFeatureEnabled(Feature f) { return isEnabled(f); }
+
 
     /*
     ////////////////////////////////////////////////////
