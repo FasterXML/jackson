@@ -43,8 +43,6 @@ public class TestParserFeatures
         final String JSON = "{ test : 3 }";
         final String EXP_ERROR_FRAGMENT = "was expecting double-quote to start";
         JsonFactory f = new JsonFactory();
-
-        // First using String reader
         JsonParser jp = useStream ?
             createParserUsingStream(f, JSON, "UTF-8")
             : createParserUsingReader(f, JSON)
@@ -60,13 +58,30 @@ public class TestParserFeatures
 
     private void _testUnquoted(boolean useStream) throws Exception
     {
-        final String JSON = "{ a : 1, _foo:true, $:\"money!\" }";
+        final String JSON = "{ a : 1, _foo:true, $:\"money!\", \" \":null }";
         JsonFactory f = new JsonFactory();
-        // First using String reader
+        f.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
         JsonParser jp = useStream ?
             createParserUsingStream(f, JSON, "UTF-8")
             : createParserUsingReader(f, JSON)
             ;
-        // !!! TBI
+
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("a", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("_foo", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_TRUE, jp.nextToken());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("$", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("money!", jp.getText());
+
+        // and then regular quoted one should still work too:
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals(" ", jp.getCurrentName());
+
+        assertToken(JsonToken.END_OBJECT, jp.nextToken());
     }
 }
