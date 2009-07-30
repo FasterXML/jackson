@@ -79,5 +79,15 @@ public class TestFeatures
         assertTrue(result.containsKey("x"));
         assertTrue(result.containsKey("y"));
     }
-}
 
+    // Simple test verifying that chainable methods work ok...
+    public void testConfigChainability()
+    {
+        ObjectMapper m = new ObjectMapper();
+        assertTrue(m.getDeserializationConfig().isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS));
+        assertTrue(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
+        m.configure(DeserializationConfig.Feature.AUTO_DETECT_SETTERS, false).configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
+        assertFalse(m.getDeserializationConfig().isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS));
+        assertFalse(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
+    }
+}

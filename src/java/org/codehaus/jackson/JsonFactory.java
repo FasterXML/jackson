@@ -132,24 +132,27 @@ public class JsonFactory
      * Method for enabling specified parser features
      * (check {@link JsonParser.Feature} for list of features)
      */
-    public final void enableParserFeature(JsonParser.Feature f) {
+    public final JsonFactory enableParserFeature(JsonParser.Feature f) {
         _parserFeatures |= f.getMask();
+        return this;
     }
 
     /**
      * Method for disabling specified parser features
      * (check {@link JsonParser.Feature} for list of features)
      */
-    public final void disableParserFeature(JsonParser.Feature f) {
+    public final JsonFactory disableParserFeature(JsonParser.Feature f) {
         _parserFeatures &= ~f.getMask();
+        return this;
     }
 
-    public final void setParserFeature(JsonParser.Feature f, boolean state) {
+    public final JsonFactory setParserFeature(JsonParser.Feature f, boolean state) {
         if (state) {
             enableParserFeature(f);
         } else {
             disableParserFeature(f);
         }
+        return this;
     }
 
     public final boolean isParserFeatureEnabled(JsonParser.Feature f) {
@@ -160,31 +163,38 @@ public class JsonFactory
      * Method for enabling specified generator features
      * (check {@link JsonGenerator.Feature} for list of features)
      */
-    public final void enableGeneratorFeature(JsonGenerator.Feature f) {
+    public final JsonFactory enableGeneratorFeature(JsonGenerator.Feature f) {
         _generatorFeatures |= f.getMask();
+        return this;
     }
 
     /**
      * Method for disabling specified generator features
      * (check {@link JsonGenerator.Feature} for list of features)
      */
-    public final void disableGeneratorFeature(JsonGenerator.Feature f) {
+    public final JsonFactory disableGeneratorFeature(JsonGenerator.Feature f) {
         _generatorFeatures &= ~f.getMask();
+        return this;
     }
 
-    public final void setGeneratorFeature(JsonGenerator.Feature f, boolean state) {
+    public final JsonFactory setGeneratorFeature(JsonGenerator.Feature f, boolean state) {
         if (state) {
             enableGeneratorFeature(f);
         } else {
             disableGeneratorFeature(f);
         }
+        return this;
     }
 
     public final boolean isGeneratorFeatureEnabled(JsonGenerator.Feature f) {
         return (_generatorFeatures & f.getMask()) != 0;
     }
 
-    public void setCodec(ObjectCodec oc) { _objectCodec = oc; }
+    public JsonFactory setCodec(ObjectCodec oc) {
+        _objectCodec = oc;
+        return this;
+    }
+
     public ObjectCodec getCodec() { return _objectCodec; }
 
     /*

@@ -13,6 +13,7 @@ import org.codehaus.jackson.node.*;
  * This unit test suite tries to verify that JsonNode-based trees
  * can be serialized as expected
  */
+@SuppressWarnings("deprecation")
 public class TestTreeSerialization
     extends BaseMapTest
 {

@@ -12,6 +12,7 @@ import org.codehaus.jackson.node.*;
  * This unit test suite tries to verify that the "JSON type"
  * mapper constructed JsonNodes can be serialized properly.
  */
+@SuppressWarnings("deprecation")
 public class TestTreeMapperSerializer
     extends BaseTest
 {

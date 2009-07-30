@@ -226,24 +226,27 @@ public class ObjectMapper
      * Method for setting specific {@link SerializerFactory} to use
      * for constructing (bean) serializers.
      */
-    public void setSerializerFactory(SerializerFactory f) {
+    public ObjectMapper setSerializerFactory(SerializerFactory f) {
         _serializerFactory = f;
+        return this;
     }
 
     /**
      * Method for setting specific {@link SerializerProvider} to use
      * for handling caching of {@link JsonSerializer} instances.
      */
-    public void setSerializerProvider(SerializerProvider p) {
+    public ObjectMapper setSerializerProvider(SerializerProvider p) {
         _serializerProvider = p;
+        return this;
     }
 
     /**
      * Method for setting specific {@link DeserializerProvider} to use
      * for handling caching of {@link JsonDeserializer} instances.
      */
-    public void setDeserializerProvider(DeserializerProvider p) {
+    public ObjectMapper setDeserializerProvider(DeserializerProvider p) {
         _deserializerProvider = p;
+        return this;
     }
 
     /**
@@ -253,8 +256,9 @@ public class ObjectMapper
      *
      * @since 1.2
      */
-    public void setNodeFactory(JsonNodeFactory f) {
+    public ObjectMapper setNodeFactory(JsonNodeFactory f) {
         _nodeFactory = f;
+        return this;
     }
 
     /*
@@ -296,8 +300,9 @@ public class ObjectMapper
      * Method for replacing the shared default serialization configuration
      * object.
      */
-    public void setSerializationConfig(SerializationConfig cfg) {
+    public ObjectMapper setSerializationConfig(SerializationConfig cfg) {
         _serializationConfig = cfg;
+        return this;
     }
 
     /**
@@ -308,8 +313,9 @@ public class ObjectMapper
      * {@link SerializationConfig#set} on the shared {@link SerializationConfig}
      * object with given arguments.
      */
-    public void configure(SerializationConfig.Feature f, boolean state) {
+    public ObjectMapper configure(SerializationConfig.Feature f, boolean state) {
         _serializationConfig.set(f, state);
+        return this;
     }
 
     /**
@@ -346,8 +352,9 @@ public class ObjectMapper
      * Method for replacing the shared default deserialization configuration
      * object.
      */
-    public void setDeserializationConfig(DeserializationConfig cfg) {
+    public ObjectMapper setDeserializationConfig(DeserializationConfig cfg) {
         _deserializationConfig = cfg;
+        return this;
     }
 
     /**
@@ -358,8 +365,9 @@ public class ObjectMapper
      * {@link DeserializationConfig#set} on the shared {@link DeserializationConfig}
      * object with given arguments.
      */
-    public void configure(DeserializationConfig.Feature f, boolean state) {
+    public ObjectMapper configure(DeserializationConfig.Feature f, boolean state) {
         _deserializationConfig.set(f, state);
+        return this;
     }
 
     /**
@@ -382,8 +390,9 @@ public class ObjectMapper
      *
      * @since 1.2
      */
-    public void configure(JsonParser.Feature f, boolean state) {
+    public ObjectMapper configure(JsonParser.Feature f, boolean state) {
         _jsonFactory.setParserFeature(f, state);
+        return this;
     }
 
     /**
@@ -397,8 +406,9 @@ public class ObjectMapper
      *
      * @since 1.2
      */
-    public void configure(JsonGenerator.Feature f, boolean state) {
+    public ObjectMapper configure(JsonGenerator.Feature f, boolean state) {
         _jsonFactory.setGeneratorFeature(f, state);
+        return this;
     }
 
     /**

@@ -14,10 +14,11 @@ import org.codehaus.jackson.node.*;
  * mapper can properly parse JSON and bind contents into appropriate
  * JsonNode instances.
  */
+@SuppressWarnings("deprecation")
 public class TestTreeMapperDeserializer
     extends BaseTest
 {
-    public void testSimple()
+	public void testSimple()
         throws Exception
     {
         final String JSON = SAMPLE_DOC_JSON_SPEC;

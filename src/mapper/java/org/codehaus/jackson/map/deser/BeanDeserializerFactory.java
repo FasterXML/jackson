@@ -344,7 +344,6 @@ public class BeanDeserializerFactory
                 if (name == null || name.length() == 0) {
                     throw new IllegalArgumentException("Argument #"+i+" of factory method "+factory+" has no property name annotation; must have when multiple-paramater static method annotated as Creator");
                 }
-                JavaType type = resolveType(beanDesc, factory.getParameterType(i));
                 properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
             }
             creators.addPropertyFactory(factory, properties);

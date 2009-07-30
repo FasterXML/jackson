@@ -129,26 +129,33 @@ public abstract class JsonGenerator
     /**
      * Method for enabling specified parser features:
      * check {@link Feature} for list of available features.
+     *
+     * @return Generator itself (this), to allow chaining
      */
-    public abstract void enableFeature(Feature f);
+    public abstract JsonGenerator enableFeature(Feature f);
 
     /**
      * Method for disabling specified  features
      * (check {@link Feature} for list of features)
+     *
+     * @return Generator itself (this), to allow chaining
      */
-    public abstract void disableFeature(Feature f);
+    public abstract JsonGenerator disableFeature(Feature f);
 
     /**
      * Method for enabling or disabling specified feature:
      * check {@link Feature} for list of available features.
+     *
+     * @return Generator itself (this), to allow chaining
      */
-    public void setFeature(Feature f, boolean state)
+    public JsonGenerator setFeature(Feature f, boolean state)
     {
         if (state) {
             enableFeature(f);
         } else {
             disableFeature(f);
         }
+        return this;
     }
 
     /**
@@ -161,8 +168,10 @@ public abstract class JsonGenerator
      * Method that can be called to set or reset the object to
      * use for writing Java objects as JsonContent
      * (using method {@link #writeObject}).
+     *
+     * @return Generator itself (this), to allow chaining
      */
-    public abstract void setCodec(ObjectCodec oc);
+    public abstract JsonGenerator setCodec(ObjectCodec oc);
 
     /**
      * Method for accessing the object used for writing Java
@@ -185,17 +194,22 @@ public abstract class JsonGenerator
      * To use the default pretty printer that comes with core
      * Jackson distribution, call {@link #useDefaultPrettyPrinter}
      * instead.
+     *
+     * @return Generator itself (this), to allow chaining
      */
-    public final void setPrettyPrinter(PrettyPrinter pp) {
+    public final JsonGenerator setPrettyPrinter(PrettyPrinter pp) {
         _cfgPrettyPrinter = pp;
+        return this;
     }
 
     /**
      * Convenience method for enabling pretty-printing using
      * the default pretty printer
      * ({@link org.codehaus.jackson.impl.DefaultPrettyPrinter}).
+     *
+     * @return Generator itself (this), to allow chaining
      */
-    public abstract void useDefaultPrettyPrinter();
+    public abstract JsonGenerator useDefaultPrettyPrinter();
 
     /*
     ////////////////////////////////////////////////////

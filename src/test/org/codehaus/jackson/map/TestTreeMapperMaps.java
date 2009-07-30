@@ -11,6 +11,7 @@ import org.codehaus.jackson.node.*;
  * Unit tests to verify that Json Objects map property to Map-like
  * ObjectNodes.
  */
+@SuppressWarnings("deprecation")
 public class TestTreeMapperMaps
     extends BaseTest
 {

@@ -57,17 +57,33 @@ public abstract class JsonParser
          */
         AUTO_CLOSE_SOURCE(true)
             
-            /**
-             * Feature that determines whether parser will allow use
-             * of Java/C++ style comments (both '/'+'*' and
-             * '//' varieties) within parsed content or not.
-             * Given that JSON specification does not mention comments,
-             * this is a non-standards feature; however, in the wild
-             * this is extensively used. As such, feature is
-             * <b>disabled by default</b> for parsers and must be
-             * explicitly enabled (via factory or parser instance).
-             */
-            ,ALLOW_COMMENTS(false)
+        /**
+         * Feature that determines whether parser will allow use
+         * of Java/C++ style comments (both '/'+'*' and
+         * '//' varieties) within parsed content or not.
+         *<p>
+         * Since JSON specification does not mention comments as legal
+         * construct,
+         * this is a non-standard feature; however, in the wild
+         * this is extensively used. As such, feature is
+         * <b>disabled by default</b> for parsers and must be
+         * explicitly enabled (via factory or parser instance).
+         */
+        ,ALLOW_COMMENTS(false)
+
+        /**
+         * Feature that determines whether parser will allow use
+         * of unquoted field names (which is allowed by Javascript,
+         * but not by JSON specification).
+         *<p>
+         * Since JSON specification requires use of double quotes for
+         * field names,
+         * this is a non-standard feature, and as such disabled by
+         * default.
+         *
+         * @since 1.2
+         */
+        ,ALLOW_UNQUOTED_FIELD_NAMES(false)
             ;
 
         final boolean _defaultState;
@@ -172,28 +188,31 @@ public abstract class JsonParser
      * Method for enabling specified parser feature
      * (check {@link Feature} for list of features)
      */
-    public void enableFeature(Feature f) {
+    public JsonParser enableFeature(Feature f) {
         _features |= f.getMask();
+        return this;
     }
 
     /**
      * Method for disabling specified  feature
      * (check {@link Feature} for list of features)
      */
-    public void disableFeature(Feature f) {
+    public JsonParser disableFeature(Feature f) {
         _features &= ~f.getMask();
+        return this;
     }
 
     /**
      * Method for enabled or disabling specified feature
      * (check {@link Feature} for list of features)
      */
-    public void setFeature(Feature f, boolean state) {
+    public JsonParser setFeature(Feature f, boolean state) {
         if (state) {
             enableFeature(f);
         } else {
             disableFeature(f);
         }
+        return this;
     }
 
     /**
@@ -258,7 +277,7 @@ public abstract class JsonParser
      * will call {@link #nextToken} to point to the next
      * available token, if any.
      */
-    public abstract void skipChildren()
+    public abstract JsonParser skipChildren()
         throws IOException, JsonParseException;
 
     /**

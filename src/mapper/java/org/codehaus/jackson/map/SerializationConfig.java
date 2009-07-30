@@ -7,6 +7,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion; // for javadocs
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.StdDateFormat;
 
@@ -30,8 +31,20 @@ public class SerializationConfig
      * the serialization feature.
      */
     public enum Feature {
-        // // // Class introspection configuration
+        // // // Introspection configuration
         
+        /**
+         * Feature that determines whether annotation introspection
+         * is used for configuration; if enabled, configured
+         * {@link AnnotationIntrospector} will be used: if disabled,
+         * no annotations are considered.
+         *<P>
+         * Feature is enabled by default.
+         *
+         * @since 1.2
+         */
+        USE_ANNOTATIONS(true)
+
         /**
          * Feature that determines whether "getter" methods are
          * automatically detected based on standard Bean naming convention
@@ -46,7 +59,7 @@ public class SerializationConfig
          *<P>
          * Feature is enabled by default.
          */
-        AUTO_DETECT_GETTERS(true)
+        ,AUTO_DETECT_GETTERS(true)
 
         /**
          * Feature that determines whether non-static fields are recognized as
@@ -74,7 +87,7 @@ public class SerializationConfig
          * objects.
          */
         ,CAN_OVERRIDE_ACCESS_MODIFIERS(true)
-
+            
         // // // Generic output features
 
         /**
@@ -88,7 +101,7 @@ public class SerializationConfig
          * that can be used for more granular control (annotates bean
          * classes or individual property access methods).
          *
-         * @deprecated As of 1.1, use {@link SerializationConfig#setSerializationInclusion}}
+         * @deprecated As of 1.1, use {@link SerializationConfig#setSerializationInclusion}
          *    instead
          */
         ,WRITE_NULL_PROPERTIES(true)
@@ -296,6 +309,9 @@ public class SerializationConfig
     {
         /* 10-Jul-2009, tatu: Should be able to just pass null as
          *    'MixInResolver'; no mix-ins set at this point
+         * 29-Jul-2009, tatu: Also, we do NOT ignore annotations here, even
+         *    if Feature.USE_ANNOTATIONS was disabled, since caller
+         *    specifically requested annotations to be added with this call
          */
         AnnotatedClass ac = AnnotatedClass.construct(cls, _annotationIntrospector, null);
 
@@ -343,8 +359,15 @@ public class SerializationConfig
      * to introspect annotation values used for configuration.
      */
     //@Override
-    public AnnotationIntrospector getAnnotationIntrospector() {
-        return _annotationIntrospector;
+    public AnnotationIntrospector getAnnotationIntrospector()
+    {
+        /* 29-Jul-2009, tatu: it's now possible to disable use of
+         *   annotations; can be done using "no-op" introspector
+         */
+        if (isEnabled(Feature.USE_ANNOTATIONS)) {
+            return _annotationIntrospector;
+        }
+        return NopAnnotationIntrospector.instance;
     }
 
     //@Override

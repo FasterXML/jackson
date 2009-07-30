@@ -258,12 +258,12 @@ public abstract class JsonParserBase
         return t;
     }
 
-    public void skipChildren()
+    public JsonParser skipChildren()
         throws IOException, JsonParseException
     {
         if (_currToken != JsonToken.START_OBJECT
             && _currToken != JsonToken.START_ARRAY) {
-            return;
+            return this;
         }
         int open = 1;
 
@@ -274,11 +274,11 @@ public abstract class JsonParserBase
             JsonToken t = nextToken();
             if (t == null) {
                 _handleEOF();
-                /* given constraints, above should nevert return;
+                /* given constraints, above should never return;
                  * however, FindBugs doesn't know about it and
                  * complains... so let's add dummy break here
                  */
-                break;
+                return this;
             }
             switch (t) {
             case START_OBJECT:
@@ -288,7 +288,7 @@ public abstract class JsonParserBase
             case END_OBJECT:
             case END_ARRAY:
                 if (--open == 0) {
-                    return;
+                    return this;
                 }
                 break;
             }

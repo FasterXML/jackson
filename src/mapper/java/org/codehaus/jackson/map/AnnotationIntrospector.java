@@ -472,6 +472,12 @@ public abstract class AnnotationIntrospector
              */
             JsonSerialize.Inclusion v1 = _primary.findSerializationInclusion(a, defValue);
             JsonSerialize.Inclusion v2 = _secondary.findSerializationInclusion(a, defValue);
+            if (v1 == null) {
+                return v2;
+            }
+            if (v2 == null) {
+                return v1;
+            }
             return (v1.compareTo(v2) < 0) ? v2 : v1;
         }
         

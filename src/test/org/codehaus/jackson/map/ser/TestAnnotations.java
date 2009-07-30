@@ -45,7 +45,7 @@ public class TestAnnotations
     // and some support for testing [JACKSON-120]
     final static class SizeClassGetter3
     {
-        // Should be considered property "y"
+        // Should be considered property "y" even tho non-public
         @JsonSerialize protected int getY() { return 8; }
     }
 
@@ -89,14 +89,14 @@ public class TestAnnotations
      * Class for verifying that getter information is inherited
      * as expected via normal class inheritance
      */
-    class BaseBean {
+    static class BaseBean {
         public int getX() { return 1; }
         @SuppressWarnings("unused")
             @JsonProperty("y")
         private int getY() { return 2; }
     }
 
-    class SubClassBean extends BaseBean {
+    static class SubClassBean extends BaseBean {
         public int getZ() { return 3; }
     }
 

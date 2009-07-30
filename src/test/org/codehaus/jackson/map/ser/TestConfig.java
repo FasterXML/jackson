@@ -12,6 +12,12 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 public class TestConfig
     extends BaseMapTest
 {
+    /*
+    //////////////////////////////////////////////
+    // Helper beans
+    //////////////////////////////////////////////
+     */
+
     @JsonWriteNullProperties(false)
     @JsonAutoDetect(JsonMethod.NONE)
     final static class ConfigLegacy { }
@@ -21,6 +27,18 @@ public class TestConfig
     @JsonAutoDetect(JsonMethod.NONE)
     final static class Config { }
 
+    static class AnnoBean {
+        public int getX() { return 1; }
+        @SuppressWarnings("unused") @JsonProperty("y")
+        private int getY() { return 2; }
+    }
+
+    /*
+    //////////////////////////////////////////////
+    // Main tests
+    //////////////////////////////////////////////
+     */
+
     @SuppressWarnings("deprecation")
 	public void testDefaults()
     {
@@ -28,6 +46,7 @@ public class TestConfig
         SerializationConfig cfg = m.getSerializationConfig();
 
         // First, defaults:
+        assertTrue(cfg.isEnabled(SerializationConfig.Feature.USE_ANNOTATIONS));
         assertTrue(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
         assertTrue(cfg.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
 
@@ -76,5 +95,19 @@ public class TestConfig
         // 02-Jun-2009, tatu: not really a clean way but...
         String lf = System.getProperty("line.separator");
         assertEquals("{"+lf+"  \"a\" : 2"+lf+"}", result);
+    }
+
+    public void testAnnotationsDisabled() throws Exception
+    {
+        // first: verify that annotation introspection is enabled by default
+        ObjectMapper m = new ObjectMapper();
+        assertTrue(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.USE_ANNOTATIONS));
+        Map<String,Object> result = writeAndMap(m, new AnnoBean());
+        assertEquals(2, result.size());
+
+        m = new ObjectMapper();
+        m.configure(SerializationConfig.Feature.USE_ANNOTATIONS, false);
+        result = writeAndMap(m, new AnnoBean());
+        assertEquals(1, result.size());
     }
 }

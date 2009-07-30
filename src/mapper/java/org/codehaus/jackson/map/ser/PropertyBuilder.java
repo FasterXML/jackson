@@ -65,15 +65,17 @@ public class PropertyBuilder
         // and finally, there may be per-method overrides:
         JsonSerialize.Inclusion methodProps = _annotationIntrospector.findSerializationInclusion(am, _outputProps);
         Method m = am.getAnnotated();
-        switch (methodProps) {
-        case NON_DEFAULT:
-            Object defValue = getDefaultValue(name, am, getDefaultBean());
-            if (defValue != null) {
-                return new BeanPropertyWriter.NonDefaultMethod(name, ser, serializationType, m, defValue);
+        if (methodProps != null) {
+            switch (methodProps) {
+            case NON_DEFAULT:
+                Object defValue = getDefaultValue(name, am, getDefaultBean());
+                if (defValue != null) {
+                    return new BeanPropertyWriter.NonDefaultMethod(name, ser, serializationType, m, defValue);
+                }
+                // but if it null for this property, fall through to second case:
+            case NON_NULL:
+                return new BeanPropertyWriter.NonNullMethod(name, ser, serializationType, m);
             }
-            // but if it null for this property, fall through to second case:
-        case NON_NULL:
-            return new BeanPropertyWriter.NonNullMethod(name, ser, serializationType, m);
         }
         // Default case is to do no filtering:
         return new BeanPropertyWriter.StdMethod(name, ser, serializationType, m);

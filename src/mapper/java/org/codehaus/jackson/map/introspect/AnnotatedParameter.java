@@ -4,8 +4,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Type;
 
-import org.codehaus.jackson.map.util.ClassUtil;
-
 /**
  * Object that represents method parameters, mostly so that associated
  * annotations can be processed conveniently.

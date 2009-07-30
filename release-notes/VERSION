@@ -15,6 +15,8 @@ Description:
   * [JACKSON-136] JsonParser and JsonGenerator should implement
     java.io.Closeable (since they already have close() method)
    (suggested by Dain S)
+  * [JACKSON-148] Changed configuration methods to allow chaining,
+    by returning 'this' (instead of 'void')
 
   New features:
 
@@ -34,7 +36,10 @@ Description:
   * [JACKSON-135] Add basic JsonNode construction support in ObjectMapper
   * [JACKSON-147] Add global deserialization feature for suppressing error
     reporting for unknown properties
-    (DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES)
+  * [JACKSON-149] Add ser/deser features
+    (DeserializationConfig.Feature.USE_ANNOTATIONS,
+    SerializationConfig.Feature.USE_ANNOTATIONS) to allow disabling
+    use of annotations for serialization and/or deserialization config
 
 ------------------------------------------------------------------------
 == History: ==

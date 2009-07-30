@@ -287,7 +287,7 @@ public class TestCreators
     {
         ObjectMapper m = new ObjectMapper();
         try {
-            BrokenBean bean = m.readValue("{ \"x\" : 42 }", BrokenBean.class);
+            /*BrokenBean bean =*/ m.readValue("{ \"x\" : 42 }", BrokenBean.class);
         } catch (JsonMappingException je) {
             verifyException(je, "has no property name");
         }

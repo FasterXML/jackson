@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
+import java.util.Map;
+
 import org.codehaus.jackson.map.BaseMapTest;
 
 import org.codehaus.jackson.annotate.*;
@@ -14,12 +16,26 @@ public class TestConfig
     @JsonAutoDetect(JsonMethod.NONE)
     final static class Dummy { }
 
+    static class AnnoBean {
+        int value = 3;
+        
+        @JsonProperty("y")
+            public void setX(int v) { value = v; }
+    }
+    
+    /*
+    //////////////////////////////////////////////
+    // Main tests
+    //////////////////////////////////////////////
+     */
+
     public void testDefaults()
     {
         ObjectMapper m = new ObjectMapper();
         DeserializationConfig cfg = m.getDeserializationConfig();
 
         // Expected defaults:
+        assertTrue(cfg.isEnabled(DeserializationConfig.Feature.USE_ANNOTATIONS));
         assertTrue(cfg.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS));
         assertTrue(cfg.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS));
         assertTrue(cfg.isEnabled(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS));
@@ -43,5 +59,21 @@ public class TestConfig
         cfg.fromAnnotations(Dummy.class);
         assertFalse(cfg.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS));
         assertFalse(cfg.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS));
+    }
+        
+    public void testAnnotationsDisabled() throws Exception
+    {
+        // first: verify that annotation introspection is enabled by default
+        ObjectMapper m = new ObjectMapper();
+        assertTrue(m.getDeserializationConfig().isEnabled(DeserializationConfig.Feature.USE_ANNOTATIONS));
+        // with annotations, property is renamed
+        AnnoBean bean = m.readValue("{ \"y\" : 0 }", AnnoBean.class);
+        assertEquals(0, bean.value);
+
+        m = new ObjectMapper();
+        m.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
+        // without annotations, should default to default bean-based name...
+        bean = m.readValue("{ \"x\" : 0 }", AnnoBean.class);
+        assertEquals(0, bean.value);
     }
 }

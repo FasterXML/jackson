@@ -7,6 +7,7 @@ import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.StdDateFormat;
@@ -32,7 +33,19 @@ public class DeserializationConfig
      * the serialization feature.
      */
     public enum Feature {
-        // // // Class introspection configuration
+        // // // Introspection configuration
+
+        /**
+         * Feature that determines whether annotation introspection
+         * is used for configuration; if enabled, configured
+         * {@link AnnotationIntrospector} will be used: if disabled,
+         * no annotations are considered.
+         *<P>
+         * Feature is enabled by default.
+         *
+         * @since 1.2
+         */
+        USE_ANNOTATIONS(true),
 
         /**
          * Feature that determines whether "setter" methods are
@@ -366,14 +379,21 @@ public class DeserializationConfig
      * to introspect annotation values used for configuration.
      */
     //@Override
-    public AnnotationIntrospector getAnnotationIntrospector() {
-        return _annotationIntrospector;
+    public AnnotationIntrospector getAnnotationIntrospector()
+    {
+        /* 29-Jul-2009, tatu: it's now possible to disable use of
+         *   annotations; can be done using "no-op" introspector
+         */
+        if (isEnabled(Feature.USE_ANNOTATIONS)) {
+            return _annotationIntrospector;
+        }
+        return NopAnnotationIntrospector.instance;
     }
 
     //@Override
     public void setAnnotationIntrospector(AnnotationIntrospector introspector)
     {
-        this._annotationIntrospector = introspector;
+        _annotationIntrospector = introspector;
     }
 
     /**
@@ -416,7 +436,7 @@ public class DeserializationConfig
         _mixInAnnotations.put(new ClassKey(target), mixinSource);
     }
 
-    /***
+    /**
      * @since 1.2
      */
     //@Override

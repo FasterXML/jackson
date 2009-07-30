@@ -63,12 +63,14 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
-    public void enableFeature(Feature f) {
+    public JsonGenerator enableFeature(Feature f) {
         _features |= f.getMask();
+        return this;
     }
 
-    public void disableFeature(Feature f) {
+    public JsonGenerator disableFeature(Feature f) {
         _features &= ~f.getMask();
+        return this;
     }
 
     //public void setFeature(Feature f, boolean state) {
@@ -77,12 +79,15 @@ public abstract class JsonGeneratorBase
         return (_features & f.getMask()) != 0;
     }
 
-    public final void useDefaultPrettyPrinter()
+    public final JsonGenerator useDefaultPrettyPrinter()
     {
-        setPrettyPrinter(new DefaultPrettyPrinter());
+        return setPrettyPrinter(new DefaultPrettyPrinter());
     }
 
-    public final void setCodec(ObjectCodec oc) { _objectCodec = oc; }
+    public final JsonGenerator setCodec(ObjectCodec oc) {
+        _objectCodec = oc;
+        return this;
+    }
 
     public final ObjectCodec getCodec() { return _objectCodec; }
 
