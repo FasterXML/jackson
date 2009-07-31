@@ -114,7 +114,9 @@ public final class ReaderBasedParser
          */
         boolean inObject = _parsingContext.inObject();
         if (inObject) {
-            _handleFieldName(i);
+           // First, field name itself:
+            String name = _parseFieldName(i);
+            _parsingContext.setCurrentName(name);
             _currToken = JsonToken.FIELD_NAME;
             i = _skipWS();
             if (i != INT_COLON) {
@@ -259,11 +261,11 @@ public final class ReaderBasedParser
     ////////////////////////////////////////////////////
      */
 
-    protected void _handleFieldName(int i)
+    protected final String _parseFieldName(int i)
         throws IOException, JsonParseException
     {
         if (i != INT_QUOTE) {
-            _reportUnexpectedChar(i, "was expecting double-quote to start field name");
+            return _handleUnusualFieldName(i);
         }
         /* First: let's try to see if we have a simple name: one that does
          * not cross input buffer boundary, and does not contain escape
@@ -283,9 +285,7 @@ public final class ReaderBasedParser
                     if (ch == '"') {
                         int start = _inputPtr;
                         _inputPtr = ptr+1; // to skip the quote
-                        String name = _symbols.findSymbol(_inputBuffer, start, ptr - start, hash);
-                        _parsingContext.setCurrentName(name);
-                        return;
+                        return _symbols.findSymbol(_inputBuffer, start, ptr - start, hash);
                     }
                     break;
                 }
@@ -296,10 +296,10 @@ public final class ReaderBasedParser
 
         int start = _inputPtr;
         _inputPtr = ptr;
-        handleFieldName2(start, hash);
+        return _parseFieldName2(start, hash);
     }
 
-    private void handleFieldName2(int startPtr, int hash)
+    private String _parseFieldName2(int startPtr, int hash)
         throws IOException, JsonParseException
     {
         _textBuffer.resetWithShared(_inputBuffer, startPtr, (_inputPtr - startPtr));
@@ -351,12 +351,29 @@ public final class ReaderBasedParser
             int start = tb.getTextOffset();
             int len = tb.size();
 
-            _parsingContext.setCurrentName(_symbols.findSymbol(buf, start, len, hash));
+            return _symbols.findSymbol(buf, start, len, hash);
         }
     }
 
-	@Override
-	protected void _finishString()
+    /**
+     * Method called when we see non-white space character other
+     * than double quote, when expecting a field name.
+     * In standard mode will just throw an expection; but
+     * in non-standard modes may be able to parse name.
+     */
+    protected final String _handleUnusualFieldName(int i)
+        throws IOException, JsonParseException
+    {
+        // [JACKSON-69]: allow unquoted names if feature enabled:
+        if (!isEnabled(Feature.ALLOW_UNQUOTED_FIELD_NAMES)) {
+            _reportUnexpectedChar(i, "was expecting double-quote to start field name");
+        }
+        // !!! TBI
+        return null;
+    }
+  
+    @Override
+    protected void _finishString()
         throws IOException, JsonParseException
     {
         /* First: let's try to see if we have simple String value: one

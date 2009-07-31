@@ -126,11 +126,11 @@ public final class Utf8StreamParser
             // First, field name itself:
             Name n = _parseFieldName(i);
             _parsingContext.setCurrentName(n.getName());
+            _currToken = JsonToken.FIELD_NAME;
             i = _skipWS();
             if (i != INT_COLON) {
                 _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
             }
-            _currToken = JsonToken.FIELD_NAME;
             i = _skipWS();
         }
 
@@ -249,7 +249,7 @@ public final class Utf8StreamParser
         if (_objectCodec == null) {
             throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize Json into regular Java objects");
         }
-        /* Ugh. Stupid Java type erasure... can't just chain call,s
+        /* Ugh. Stupid Java type erasure... can't just chain the call,
          * must cast here also.
          */
         return (T) _objectCodec.readValue(this, valueTypeRef);
@@ -271,11 +271,11 @@ public final class Utf8StreamParser
     ////////////////////////////////////////////////////
      */
 
-    protected final  Name _parseFieldName(int i)
+    protected final Name _parseFieldName(int i)
         throws IOException, JsonParseException
     {
         if (i != INT_QUOTE) {
-            _reportUnexpectedChar(i, "was expecting double-quote to start field name");
+            return _handleUnusualFieldName(i);
         }
         // First: can we optimize out bounds checks?
         if ((_inputEnd - _inputPtr) < 9) { // Need 8 chars, plus one trailing (quote)
@@ -571,6 +571,23 @@ public final class Utf8StreamParser
         return name;
     }
 
+    /**
+     * Method called when we see non-white space character other
+     * than double quote, when expecting a field name.
+     * In standard mode will just throw an expection; but
+     * in non-standard modes may be able to parse name.
+     */
+    protected final Name _handleUnusualFieldName(int i)
+        throws IOException, JsonParseException
+    {
+        // [JACKSON-69]: allow unquoted names if feature enabled:
+        if (!isEnabled(Feature.ALLOW_UNQUOTED_FIELD_NAMES)) {
+            _reportUnexpectedChar(i, "was expecting double-quote to start field name");
+        }
+        // !!! TBI
+        return null;
+    }
+
     private final Name findName(int q1, int lastQuadBytes)
         throws JsonParseException
     {
@@ -732,7 +749,7 @@ public final class Utf8StreamParser
     }
 
     @Override
-	protected void _finishString()
+    protected void _finishString()
         throws IOException, JsonParseException
     {
         int outPtr = 0;
