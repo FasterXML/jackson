@@ -18,9 +18,8 @@ public class TestMixinsForMethods
     // base class: just one visible property ('b')
     static class BaseClass
     {
-        @SuppressWarnings("unused")
-		private String a;
-		private String b;
+        @SuppressWarnings("unused") private String a;
+        private String b;
 
         protected BaseClass() { }
 
@@ -57,14 +56,30 @@ public class TestMixinsForMethods
         public LeafClass(String a, String b) { super(a, b); }
 
         @Override
-            @JsonIgnore
-            public String takeB() { return null; }
+        @JsonIgnore
+        public String takeB() { return null; }
     }
                
     interface ObjectMixIn
     {
         // and then ditto for hashCode...
         @JsonProperty public int hashCode();
+    }
+
+    static class EmptyBean { }
+
+    static class SimpleBean extends EmptyBean
+    {
+        int x() { return 42; }
+    }
+
+    /**
+     * This mix-in is to be attached to EmptyBean, but really modify
+     * methods that its subclass, SimpleBean, has.
+     */
+    abstract class MixInForSimple
+    {
+        @JsonProperty("x") abstract int x();
     }
 
     /*
@@ -113,6 +128,19 @@ public class TestMixinsForMethods
         result = writeAndMap(mapper, bean);
         assertEquals(1, result.size());
         assertEquals("XXX", result.get("a"));
+    }
+
+    /**
+     * Another intermediate mix-in, to verify that annotations
+     * properly "trickle up"
+     */
+    public void testIntermediateMixin2() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(EmptyBean.class, MixInForSimple.class);
+        Map<String,Object> result = writeAndMap(mapper, new SimpleBean());
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(42), result.get("x"));
     }
 
     /**
