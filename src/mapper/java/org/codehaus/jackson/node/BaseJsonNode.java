@@ -28,7 +28,7 @@ public abstract class BaseJsonNode
      * want to use the standard serialization interface.
      */
     @Override
-	public final void writeTo(JsonGenerator jgen)
+    public final void writeTo(JsonGenerator jgen)
         throws IOException, JsonGenerationException
     {
         /* it's ok to pass null, as long as other nodes handle

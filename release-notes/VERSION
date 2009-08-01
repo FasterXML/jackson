@@ -45,6 +45,17 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+1.1.2 [31-Jul-2009]
+
+  Fixes:
+
+  * [JACKSON-143] NPE on ArrayNode.equals() when comparing empty array
+    node to non-empty array node
+   (reported by Gregory G)
+  * [JACKSON-144] Static "getter-like" methods mistaken for getters (for
+    serialization)
+   (reported by Dan S)
+
 1.1.1 [18-Jul-2009]
 
   Fixes:

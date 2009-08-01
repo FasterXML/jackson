@@ -428,7 +428,7 @@ public final class ReaderBasedParser
                     break;
                 }
             }
-            char c = _inputBuffer[_inputPtr++];
+            char c = _inputBuffer[_inputPtr];
             int i = (int) c;
             if (i <= maxCode) {
                 if (codes[i] != 0) {
@@ -437,6 +437,7 @@ public final class ReaderBasedParser
             } else if (!Character.isJavaIdentifierPart(c)) {
                 break;
             }
+            ++_inputPtr;
             hash = (hash * 31) + i;
             // Ok, let's add char to output:
             outBuf[outPtr++] = c;

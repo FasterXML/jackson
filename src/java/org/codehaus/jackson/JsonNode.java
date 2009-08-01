@@ -308,7 +308,7 @@ public abstract class JsonNode
      * @deprecated Use {@link #getPath(String)} instead
      */
     @Deprecated
-	public final JsonNode getPath(String fieldName) { return path(fieldName); }
+    public final JsonNode getPath(String fieldName) { return path(fieldName); }
 
     /**
      * This method is similar to {@link #get(int)}, except
