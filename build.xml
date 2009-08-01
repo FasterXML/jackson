@@ -163,7 +163,7 @@ compile.main, compile.test, compile.extra, compile.perf" />
     <target name="compile.core" depends="prepare">
         <javac srcdir="${dir.src.java.core}" destdir="${dir.build.classes.core}"
             source="1.5" target="1.5"
-            debug="false"
+            debug="true"
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/**/*.java" />

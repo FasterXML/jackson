@@ -79,7 +79,14 @@ public class TestMixinsForMethods
      */
     abstract class MixInForSimple
     {
+        // This should apply to sub-class
         @JsonProperty("x") abstract int x();
+
+        // and this matches nothing, should be ignored
+        @JsonProperty("notreally") public int xxx() { return 3; }
+
+        // nor this
+        public abstract int getIt();
     }
 
     /*

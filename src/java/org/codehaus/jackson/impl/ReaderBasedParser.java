@@ -384,7 +384,6 @@ public final class ReaderBasedParser
         if (!firstOk) {
             _reportUnexpectedChar(i, "was expecting either valid name character (for unquoted name) or double-quote (for quoted) to start field name");
         }
-
         int ptr = _inputPtr;
         int hash = 0;
         final int inputLen = _inputEnd;

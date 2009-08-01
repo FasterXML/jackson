@@ -82,6 +82,8 @@ public class TestParserFeatures
         assertToken(JsonToken.FIELD_NAME, jp.nextToken());
         assertEquals(" ", jp.getCurrentName());
 
+        assertToken(JsonToken.VALUE_NULL, jp.nextToken());
+
         assertToken(JsonToken.END_OBJECT, jp.nextToken());
     }
 }

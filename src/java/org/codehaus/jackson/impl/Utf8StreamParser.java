@@ -585,6 +585,7 @@ public final class Utf8StreamParser
             _reportUnexpectedChar(i, "was expecting double-quote to start field name");
         }
         // !!! TBI
+        if (true) throw new IllegalStateException("Not yet implemented");
         return null;
     }
 

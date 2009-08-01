@@ -70,7 +70,6 @@ public final class CharTypes
         int[] table = new int[256];
         // Default is "not a name char", mark ones that are
         Arrays.fill(table, -1);
-
         // Assume rules with JS same as Java (change if/as needed)
         for (int i = 33; i < 256; ++i) {
             if (Character.isJavaIdentifierPart((char) i)) {
@@ -87,7 +86,7 @@ public final class CharTypes
      */
     final static int[] sInputCodesUtf8JsNames;
     static {
-        int[] table = new int[sInputCodesJsNames.length];
+        int[] table = new int[256];
         // start with 8-bit JS names 
         System.arraycopy(sInputCodesJsNames, 0, table, 0, sInputCodesJsNames.length);
         // and override with UTF-8 high-bit part
@@ -157,8 +156,8 @@ public final class CharTypes
     public final static int[] getInputCodeLatin1() { return sInputCodes; }
     public final static int[] getInputCodeUtf8() { return sInputCodesUtf8; }
 
-    public final static int[] getInputCodeLatin1JsNames() { return sInputCodes; }
-    public final static int[] getInputCodeUtf8JsNames() { return sInputCodesUtf8; }
+    public final static int[] getInputCodeLatin1JsNames() { return sInputCodesJsNames; }
+    public final static int[] getInputCodeUtf8JsNames() { return sInputCodesUtf8JsNames; }
 
     public final static int[] getInputCodeComment() { return sInputCodesComment; }
     public final static int[] getOutputEscapes() { return sOutputEscapes; }
