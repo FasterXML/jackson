@@ -80,17 +80,16 @@ public final class CharTypes
     }
 
     /**
-     * Table to support unquoted fields names with UTF-8 codec
-     * just mixes ascii/latin1 one, but with regulard UTF-8 override
-     * for high-bit range
+     * This table is similar to Latin1, except that it marks all "high-bit"
+     * code as ok. They will be validated at a later point, when decoding
+     * name
      */
     final static int[] sInputCodesUtf8JsNames;
     static {
         int[] table = new int[256];
         // start with 8-bit JS names 
         System.arraycopy(sInputCodesJsNames, 0, table, 0, sInputCodesJsNames.length);
-        // and override with UTF-8 high-bit part
-        System.arraycopy(sInputCodesUtf8, 128, table, 128, 128);
+        Arrays.fill(table, 128, 128, 0);
         sInputCodesUtf8JsNames = table;
     }
 

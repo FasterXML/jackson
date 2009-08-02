@@ -577,16 +577,68 @@ public final class Utf8StreamParser
      * In standard mode will just throw an expection; but
      * in non-standard modes may be able to parse name.
      */
-    protected final Name _handleUnusualFieldName(int i)
+    protected final Name _handleUnusualFieldName(int ch)
         throws IOException, JsonParseException
     {
         // [JACKSON-69]: allow unquoted names if feature enabled:
         if (!isEnabled(Feature.ALLOW_UNQUOTED_FIELD_NAMES)) {
-            _reportUnexpectedChar(i, "was expecting double-quote to start field name");
+            _reportUnexpectedChar(ch, "was expecting double-quote to start field name");
         }
-        // !!! TBI
-        if (true) throw new IllegalStateException("Not yet implemented");
-        return null;
+        /* Also: note that although we use a different table here,
+         * it does NOT handle UTF-8 decoding. It'll just pass those
+         * high-bit codes as acceptable for later decoding.
+         */
+        final int[] codes = CharTypes.getInputCodeUtf8JsNames();
+        // Also: must start with a valid character...
+        if (codes[ch] != 0) {
+            _reportUnexpectedChar(ch, "was expecting either valid name character (for unquoted name) or double-quote (for quoted) to start field name");
+        }
+
+        /* Ok, now; instead of ultra-optimizing parsing here (as with
+         * regular JSON names), let's just use the generic "slow"
+         * variant. Can measure its impact later on if need be
+         */
+        int[] quads = _quadBuffer;
+        int qlen = 0;
+        int currQuad = 0;
+        int currQuadBytes = 0;
+
+        while (true) {
+            // Ok, we have one more byte to add at any rate:
+            if (currQuadBytes < 4) {
+                ++currQuadBytes;
+                currQuad = (currQuad << 8) | ch;
+            } else {
+                if (qlen >= quads.length) {
+                    _quadBuffer = quads = growArrayBy(quads, quads.length);
+                }
+                quads[qlen++] = currQuad;
+                currQuad = ch;
+                currQuadBytes = 1;
+            }
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportInvalidEOF(" in field name");
+                }
+            }
+            ch = _inputBuffer[_inputPtr] & 0xFF;
+            if (codes[ch] != 0) {
+                break;
+            }
+            ++_inputPtr;
+        }
+
+        if (currQuadBytes > 0) {
+            if (qlen >= quads.length) {
+                _quadBuffer = quads = growArrayBy(quads, quads.length);
+            }
+            quads[qlen++] = currQuad;
+        }
+        Name name = _symbols.findName(quads, qlen);
+        if (name == null) {
+            name = addName(quads, qlen, currQuadBytes);
+        }
+        return name;
     }
 
     private final Name findName(int q1, int lastQuadBytes)

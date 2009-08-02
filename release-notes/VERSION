@@ -23,6 +23,7 @@ Description:
   * [JACKSON-33] Allow use of "non-default constructors" and
     multiple-argument factory methods for constructing beans to
     deserialize
+  * [JACKSON-69] Support parsing non-standard JSON where Object keys are not quoted
   * [JACKSON-76] Mix-in annotations: allow dynamic attachment of
     annotations to existing classes, for purposes of configuring
     serialization/deserialization behavior
