@@ -1,12 +1,12 @@
 Version: 1.2.0
 
 Release date:
-  xx-Jul-2009
+  01-Aug-2009
 
 Description:
-  Development snapshot from trunk, for eventual 1.2 release
-
-  Fixes:
+  Official 1.2 release. Contains all bug fixes up to 1.1.2,
+  and a set of new features that significantly include interoperability
+  and ease-of-use, developer ergonomics.
 
   Improvements:
 
