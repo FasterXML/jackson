@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
+import javax.activation.DataHandler;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -195,6 +196,11 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         if (adapter != null) {
             return new XmlAdapterJsonSerializer(adapter);
         }
+
+        if (am.getType() != null && DataHandler.class.isAssignableFrom(am.getType())) {
+            return new DataHandlerJsonSerializer();
+        }
+        
         return null;
     }
 
@@ -299,6 +305,11 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         if (adapter != null) {
             return new XmlAdapterJsonDeserializer(adapter);
         }
+
+        if (am.getType() != null && DataHandler.class.isAssignableFrom(am.getType())) {
+            return new DataHandlerJsonDeserializer();
+        }
+
         return null;
     }
 
