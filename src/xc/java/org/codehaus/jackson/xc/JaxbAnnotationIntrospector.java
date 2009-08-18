@@ -10,6 +10,9 @@ import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import javax.activation.DataHandler;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -19,6 +22,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
 import java.lang.reflect.Field;
+import java.net.URI;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -197,10 +201,26 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             return new XmlAdapterJsonSerializer(adapter);
         }
 
-        if (am.getType() != null && DataHandler.class.isAssignableFrom(am.getType())) {
-            return new DataHandlerJsonSerializer();
+        Class<?> type = am.getType();
+        if (type != null) {
+            if (DataHandler.class.isAssignableFrom(type)) {
+                return new DataHandlerJsonSerializer();
+            }
+            else if (URI.class.isAssignableFrom(type)) {
+                return new URIJsonSerializer();
+            }
+            else if (QName.class.isAssignableFrom(type)) {
+                return new QNameJsonSerializer();
+            }
+            else if (Duration.class.isAssignableFrom(type)) {
+                return new DurationJsonSerializer();
+            }
+            else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
+                return new XMLGregorianCalendarJsonSerializer();
+            }
         }
-        
+
+
         return null;
     }
 
@@ -306,8 +326,23 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             return new XmlAdapterJsonDeserializer(adapter);
         }
 
-        if (am.getType() != null && DataHandler.class.isAssignableFrom(am.getType())) {
-            return new DataHandlerJsonDeserializer();
+        Class<?> type = am.getType();
+        if (type != null) {
+            if (DataHandler.class.isAssignableFrom(type)) {
+                return new DataHandlerJsonDeserializer();
+            }
+            else if (URI.class.isAssignableFrom(type)) {
+                return new URIJsonDeserializer();
+            }
+            else if (QName.class.isAssignableFrom(type)) {
+                return new QNameJsonDeserializer();
+            }
+            else if (Duration.class.isAssignableFrom(type)) {
+                return new DurationJsonDeserializer();
+            }
+            else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
+                return new XMLGregorianCalendarJsonDeserializer();
+            }
         }
 
         return null;
