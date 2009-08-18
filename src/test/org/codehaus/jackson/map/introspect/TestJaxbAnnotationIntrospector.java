@@ -135,6 +135,18 @@ public class TestJaxbAnnotationIntrospector
             public int foobar = 3;
     }
 
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class SimpleBean2 {
+
+        protected String jaxb = "1";
+        private String jaxb2 = "2";
+        @XmlElement(name="jaxb3")
+        private String oddName = "3";
+
+    }
+
+
+
     /*
     /////////////////////////////////////////////////////
     // Unit tests
@@ -147,6 +159,12 @@ public class TestJaxbAnnotationIntrospector
         mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
 
         Map<String,Object> result = writeAndMap(mapper, new SimpleBean());
+        assertEquals(3, result.size());
+        assertEquals("1", result.get("jaxb"));
+        assertEquals("2", result.get("jaxb2"));
+        assertEquals("3", result.get("jaxb3"));
+
+        result = writeAndMap(mapper, new SimpleBean2());
         assertEquals(3, result.size());
         assertEquals("1", result.get("jaxb"));
         assertEquals("2", result.get("jaxb2"));

@@ -22,6 +22,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 
 /**
@@ -125,10 +126,13 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         if (m.getAnnotation(XmlTransient.class) != null) {
             return true;
         }
-        if (m.getAnnotationCount() > 0) {
-            //if any annotations are present, it is NOT ignorable.
-            return false;
+        for (Annotation annotation : m.getAnnotated().getDeclaredAnnotations()) {
+            if (isHandled(annotation)) {
+                //if any annotations are present, it is NOT ignorable.
+                return false;
+            }
         }
+
         if (isPropertiesAccessible(m)) {
             //jaxb only accounts for getter/setter pairs.
             PropertyDescriptor pd = findPropertyDescriptor(m);
@@ -160,18 +164,17 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         if (f.getAnnotation(XmlTransient.class) != null) {
             return true;
         }
-        /* 19-Jun-2009, tatu: It shouldn't be necessary to check for
-         *   auto-detection settings here; rather, only need to verify
-         *   there's no @XmlTransient used.
-         *
-         *   Some other problems:
-         *   - Check for 'if any annotations' wouldn't work if multiple
-         *     annotations are included (case when chaining introspectors)
+
+        /**
+         * 2009-08-19 (heatonra) The following annotation check is necessary,
+         * see http://jira.codehaus.org/browse/JACKSON-151
          */
-        /*
-        if (f.getAnnotationCount() > 0) {
-            //if any annotations are present, it is NOT ignorable.
-            return false;
+
+        for (Annotation annotation : f.getAnnotated().getDeclaredAnnotations()) {
+            if (isHandled(annotation)) {
+                //if any JAXB annotations are present, it is NOT ignorable.
+                return false;
+            }
         }
 
         XmlAccessType accessType = XmlAccessType.PUBLIC_MEMBER;
@@ -182,9 +185,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         
         return accessType != XmlAccessType.FIELD &&
             !(accessType == XmlAccessType.PUBLIC_MEMBER && Modifier.isPublic(f.getAnnotated().getModifiers()));
-        */
-
-        return false;
     }
 
     /*
