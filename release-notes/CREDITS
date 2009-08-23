@@ -135,4 +135,4 @@ Dan Simpson:
 Gregory Gerard
   * Reportd [JACKSON-143]: NPE on ArrayNode.equals() when comparing empty
     array node to non-empty array node
-   (reported by Gregory G)
+   [1.1.2]
