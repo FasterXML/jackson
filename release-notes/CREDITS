@@ -134,6 +134,11 @@ Dan Simpson:
     getters (for serialization)
    [1.1.2]
 
+Gregory Gerard
+  * Reportd [JACKSON-143]: NPE on ArrayNode.equals() when comparing empty
+    array node to non-empty array node
+   [1.1.2]
+
 Dain Sundstrom:
   * Suggested addition of "-use" for javadoc generation
    [1.2.0]
