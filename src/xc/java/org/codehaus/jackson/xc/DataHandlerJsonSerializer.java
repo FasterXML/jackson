@@ -21,13 +21,21 @@ public class DataHandlerJsonSerializer extends SerializerBase<DataHandler>
 
     @Override
     public void serialize(DataHandler value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonProcessingException
+        throws IOException, JsonProcessingException
     {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024 * 10]; //10k?
+        /* for copy-through, a small buffer should suffice: ideally
+         * we might want to reuse a generic byte buffer, but for now
+         * there's no serializer context to hold them.
+         * 
+         * Also: it'd be nice not to have buffer all data, but use a
+         * streaming output. But currently JsonGenerator won't allow
+         * that.
+         */
+        byte[] buffer = new byte[1024 * 4]; //10k?
         InputStream in = value.getInputStream();
         int len = in.read(buffer);
-        while (len < 0) {
+        while (len > 0) {
             out.write(buffer, 0, len);
             len = in.read(buffer);
         }

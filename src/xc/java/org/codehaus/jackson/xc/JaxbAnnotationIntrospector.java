@@ -10,9 +10,6 @@ import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import javax.activation.DataHandler;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -201,22 +198,13 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             return new XmlAdapterJsonSerializer(adapter);
         }
 
+        /* [JACKSON-150]: add support for additional core XML
+         * types needed by JAXB
+         */
         Class<?> type = am.getType();
         if (type != null) {
             if (DataHandler.class.isAssignableFrom(type)) {
                 return new DataHandlerJsonSerializer();
-            }
-            else if (URI.class.isAssignableFrom(type)) {
-                return new URIJsonSerializer();
-            }
-            else if (QName.class.isAssignableFrom(type)) {
-                return new QNameJsonSerializer();
-            }
-            else if (Duration.class.isAssignableFrom(type)) {
-                return new DurationJsonSerializer();
-            }
-            else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
-                return new XMLGregorianCalendarJsonSerializer();
             }
         }
 
@@ -326,22 +314,13 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             return new XmlAdapterJsonDeserializer(adapter);
         }
 
+        /* [JACKSON-150]: add support for additional core XML
+         * types needed by JAXB
+         */
         Class<?> type = am.getType();
         if (type != null) {
             if (DataHandler.class.isAssignableFrom(type)) {
                 return new DataHandlerJsonDeserializer();
-            }
-            else if (URI.class.isAssignableFrom(type)) {
-                return new URIJsonDeserializer();
-            }
-            else if (QName.class.isAssignableFrom(type)) {
-                return new QNameJsonDeserializer();
-            }
-            else if (Duration.class.isAssignableFrom(type)) {
-                return new DurationJsonDeserializer();
-            }
-            else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
-                return new XMLGregorianCalendarJsonDeserializer();
             }
         }
 

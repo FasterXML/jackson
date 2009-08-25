@@ -7,6 +7,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-150] Some JAXB-required core types (XMLGregorianCalendar,
+    Duration, QName, DataHandler) were not supported adequately
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

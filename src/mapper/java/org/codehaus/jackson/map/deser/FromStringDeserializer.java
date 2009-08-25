@@ -78,12 +78,9 @@ public abstract class FromStringDeserializer<T>
         public URIDeserializer() { super(URI.class); }
         
         protected URI _deserialize(String value, DeserializationContext ctxt)
+            throws IllegalArgumentException
         {
-            try {
-                return new URI(value);
-            } catch (java.net.URISyntaxException e) { // stupid; not based on IOException or IllegalArgumentException
-                throw new IllegalArgumentException(e.getMessage(), e);
-            }
+            return URI.create(value);
         }
     }
 

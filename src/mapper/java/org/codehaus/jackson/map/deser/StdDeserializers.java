@@ -58,6 +58,16 @@ class StdDeserializers
         add(new FromStringDeserializer.URLDeserializer());
         add(new FromStringDeserializer.URIDeserializer());
 
+        /* 25-Aug-2009, tatu: Chances are that Google's Android and GAE
+         *   don't have "javax.xml.namespace" even though they are
+         *   standard part of JDK 1.5. So let's be defensive here
+         */
+        try {
+            add(CoreXMLDeserializers.DurationDeserializer.class.newInstance());
+            add(CoreXMLDeserializers.GregorianCalendarDeserializer.class.newInstance());
+            add(CoreXMLDeserializers.QNameDeserializer.class.newInstance());
+        } catch (Throwable t) { }
+
         // And finally some odds and ends
 
         // to deserialize Throwable, need stack trace elements:

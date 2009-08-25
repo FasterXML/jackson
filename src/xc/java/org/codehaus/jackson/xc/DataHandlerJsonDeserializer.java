@@ -16,26 +16,26 @@ import java.io.ByteArrayInputStream;
  * @author Ryan Heaton
  */
 public class DataHandlerJsonDeserializer
-        extends JsonDeserializer<DataHandler>
+    extends JsonDeserializer<DataHandler>
 {
 
     @Override
     public DataHandler deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
+        throws IOException, JsonProcessingException
     {
         final byte[] value = jp.getBinaryValue();
         return new DataHandler(new DataSource()
         {
             @Override
             public InputStream getInputStream()
-                    throws IOException
+                throws IOException
             {
                 return new ByteArrayInputStream(value);
             }
 
             @Override
             public OutputStream getOutputStream()
-                    throws IOException
+                throws IOException
             {
                 throw new IOException();
             }

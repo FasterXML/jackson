@@ -92,16 +92,11 @@ public class BasicSerializerFactory
         _concrete.put(java.sql.Time.class.getName(), new SqlTimeSerializer());
         // note: timestamps are very similar to java.util.Date, thus serialized as such
         _concrete.put(java.sql.Timestamp.class.getName(), UtilDateSerializer.instance);
-        // not sure if this is exactly right (should use toXMLFormat()?) but:
-        /* 19-Jan-2009, tatu: [JACSKON-37]: This is something Android platform doesn't have
-         *    so need to hard-code name (it is available on standard JDK 1.5 and above)
-         */
-        _concrete.put("javax.xml.datatype.XMLGregorianCalendar", ToStringSerializer.instance);
 
         /* Reference types, URLs, URIs
          */
-        _concrete.put(java.net.URL.class.getName(), ToStringSerializer.instance);
-        _concrete.put(java.net.URI.class.getName(), ToStringSerializer.instance);
+        _concrete.put(java.net.URL.class.getName(), sls);
+        _concrete.put(java.net.URI.class.getName(), sls);
 
         // Class.class
         _concrete.put(Class.class.getName(), new ClassSerializer());
@@ -143,6 +138,20 @@ public class BasicSerializerFactory
         // and Enum-variations of set/map
         _concrete.put(EnumMap.class.getName(), new ContainerSerializers.EnumMapSerializer());
         _concrete.put(EnumSet.class.getName(), new ContainerSerializers.EnumSetSerializer());
+
+        /* XML/JAXB related types available on JDK 1.5; but that seem
+         * to cause problems
+         * for castrated platforms like Google Android and GAE...
+         * As such, need to use bit more caution
+         */
+
+        // not sure if this is exactly right (should use toXMLFormat()?) but:
+        /* 19-Jan-2009, tatu: [JACKSON-37]: This is something Android platform doesn't have
+         *    so need to hard-code name (it is available on standard JDK 1.5 and above)
+         */
+        _concrete.put("javax.xml.namespace.QName", sls);
+        _concrete.put("javax.xml.datatype.XMLGregorianCalendar", sls);
+        _concrete.put("javax.xml.datatype.Duration", sls);
 
         /* Finally, couple of oddball types. Not sure if these are
          * really needed...
@@ -418,7 +427,7 @@ public class BasicSerializerFactory
     /**
      * Deprecated serializer, identical to {@link ToStringSerializer}.
      *
-     * @deprecated Use {@link ToStringSerializer} instead (stand-along class,
+     * @deprecated Use {@link ToStringSerializer} instead (stand-alone class,
      *   more accurate name)
      */
     @Deprecated
