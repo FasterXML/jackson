@@ -1,16 +1,17 @@
 package org.codehaus.jackson.xc;
 
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
-
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ByteArrayInputStream;
+
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 
 /**
  * @author Ryan Heaton

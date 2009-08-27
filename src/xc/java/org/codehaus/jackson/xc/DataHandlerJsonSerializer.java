@@ -1,17 +1,18 @@
 package org.codehaus.jackson.xc;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+
+import javax.activation.DataHandler;
+
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.ser.SerializerBase;
 import org.codehaus.jackson.node.ObjectNode;
-
-import javax.activation.DataHandler;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Type;
 
 /**
  * @author Ryan Heaton

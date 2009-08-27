@@ -504,8 +504,10 @@ public class JsonFactory
     /**
      * Method used by factory to create buffer recycler instances
      * for parsers and generators.
+     *<p>
+     * Note: only public to give access for <code>ObjectMapper</code>
      */
-    protected final BufferRecycler _getBufferRecycler()
+    public final BufferRecycler _getBufferRecycler()
     {
         SoftReference<BufferRecycler> ref = _recyclerRef.get();
         BufferRecycler br = (ref == null) ? null : ref.get();

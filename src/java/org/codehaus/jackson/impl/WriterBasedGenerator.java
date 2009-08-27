@@ -949,6 +949,7 @@ public final class WriterBasedGenerator
             _writer.write(buf, 0, 2);
         }
     }
+
     private void _appendSingleEscape(int escCode, char[] buf, int ptr)
     {
         if (escCode < 0) { // control char, value -(char + 1)

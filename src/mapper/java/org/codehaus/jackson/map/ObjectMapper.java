@@ -5,7 +5,7 @@ import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.schema.JsonSchema;
+import org.codehaus.jackson.io.SegmentedStringWriter;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
@@ -17,6 +17,7 @@ import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.NullNode;
 import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -876,7 +877,7 @@ public class ObjectMapper
     /**
      * Method that can be used to serialize any Java value as
      * Json output, using output stream provided (using encoding
-     * {{@link JsonEncoding#UTF8}).
+     * {@link JsonEncoding#UTF8}).
      *<p>
      * Note: method does not close the underlying stream explicitly
      * here; however, {@link JsonFactory} this mapper uses may choose
@@ -907,11 +908,34 @@ public class ObjectMapper
     }
 
     /**
-     * Generate the <a href="http://json-schema.org/">Json-schema</a>}
-     * for the specified class.
+     * Method that can be used to serialize any Java value as
+     * a String. Functionally equivalent to calling
+     * {@link #writeValue(Writer,Object)} with {@link java.io.StringWriter}
+     * and constructing String, but more efficient.
      *
-     * @param t The class.
-     * @return The json-schema.
+     * @since 1.3
+     */
+    public String writeValueAsString(Object value)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {
+        // alas, we have to pull the recycler directly here...
+        SegmentedStringWriter sw = new SegmentedStringWriter(_jsonFactory._getBufferRecycler());
+        _configAndWriteValue(_jsonFactory.createJsonGenerator(sw), value);
+        return sw.getAndClear();
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Extended Public API: JSON Schema generation
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Generate <a href="http://json-schema.org/">Json-schema</a>
+     * instance for the specified class.
+     *
+     * @param t The class to generate schema for
+     * @return Constructed JSON schema.
      */
     public JsonSchema generateJsonSchema(Class<?> t)
             throws JsonMappingException

@@ -302,70 +302,6 @@ public final class TextBuffer
         return result;
     }
 
-    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
-     *   let's just delete it.
-     */
-    /*
-    public int contentsToArray(int srcStart, char[] dst, int dstStart, int len) {
-
-        // Easy to copy from shared buffer:
-
-        if (_inputStart >= 0) {
-
-            int amount = _inputLen - srcStart;
-            if (amount > len) {
-                amount = len;
-            } else if (amount < 0) {
-                amount = 0;
-            }
-            if (amount > 0) {
-                System.arraycopy(_inputBuffer, _inputStart+srcStart,
-                                 dst, dstStart, amount);
-            }
-            return amount;
-        }
-
-        // Could also check if we have array, but that'd only help with
-        // braindead clients that get full array first, then segments...
-        // which hopefully aren't that common
-        // Copying from segmented array is bit more involved:
-        int totalAmount = 0;
-        if (_segments != null) {
-            for (int i = 0, segc = _segments.size(); i < segc; ++i) {
-                char[] segment = _segments.get(i);
-                int segLen = segment.length;
-                int amount = segLen - srcStart;
-                if (amount < 1) { // nothing from this segment?
-                    srcStart -= segLen;
-                    continue;
-                }
-                if (amount >= len) { // can get rest from this segment?
-                    System.arraycopy(segment, srcStart, dst, dstStart, len);
-                    return (totalAmount + len);
-                }
-                // Can get some from this segment, offset becomes zero:
-                System.arraycopy(segment, srcStart, dst, dstStart, amount);
-                totalAmount += amount;
-                dstStart += amount;
-                len -= amount;
-                srcStart = 0;
-            }
-        }
-        // Need to copy anything from last segment?
-        if (len > 0) {
-            int maxAmount = _currentSize - srcStart;
-            if (len > maxAmount) {
-                len = maxAmount;
-            }
-            if (len > 0) { // should always be true
-                System.arraycopy(_currentSegment, srcStart, dst, dstStart, len);
-                totalAmount += len;
-            }
-        }
-        return totalAmount;
-    }
-    */
-
     /**
      * Convenience method for converting contents of the buffer
      * into a {@link BigDecimal}.
@@ -415,6 +351,22 @@ public final class TextBuffer
         }
     }
 
+    public void append(char c) {
+        // Using shared buffer so far?
+        if (_inputStart >= 0) {
+            unshare(16);
+        }
+        _resultString = null;
+        _resultArray = null;
+        // Room in current segment?
+        char[] curr = _currentSegment;
+        if (_currentSize >= curr.length) {
+            expand(1);
+            curr = _currentSegment;
+        }
+        curr[_currentSize++] = c;
+    }
+
     public void append(char[] c, int start, int len)
     {
         // Can't append to shared buf (sanity check)
@@ -442,6 +394,37 @@ public final class TextBuffer
             // have enough room in segment.
             expand(len); // note: curr != _currentSegment after this
             System.arraycopy(c, start, _currentSegment, 0, len);
+            _currentSize = len;
+        }
+    }
+
+    public void append(String str, int offset, int len)
+    {
+        // Can't append to shared buf (sanity check)
+        if (_inputStart >= 0) {
+            unshare(len);
+        }
+        _resultString = null;
+        _resultArray = null;
+
+        // Room in current segment?
+        char[] curr = _currentSegment;
+        int max = curr.length - _currentSize;
+        if (max >= len) {
+            str.getChars(offset, len, curr, _currentSize);
+            _currentSize += len;
+        } else {
+            // No room for all, need to copy part(s):
+            if (max > 0) {
+                str.getChars(offset, max, curr, _currentSize);
+                len -= max;
+                offset += max;
+            }
+            /* And then allocate new segment; we are guaranteed to now
+             * have enough room in segment.
+             */
+            expand(len);
+            str.getChars(offset, len, _currentSegment, 0);
             _currentSize = len;
         }
     }
