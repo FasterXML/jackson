@@ -80,6 +80,7 @@ org.codehaus.jackson;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.io;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.type;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.util;version='${IMPL_VERSION}'
+,javax.xml.datatype, javax.xml.namespace
 "
          exportpackage="
 org.codehaus.jackson.map;version=${IMPL_VERSION},
@@ -169,6 +170,7 @@ org.codehaus.jackson;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.io;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.type;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.util;version='${IMPL_VERSION}'
+,javax.xml.datatype, javax.xml.namespace
 "
          exportpackage="
 org.codehaus.jackson.map;version=${IMPL_VERSION},
@@ -258,12 +260,15 @@ org.codehaus.jackson.jaxrs;version=${IMPL_VERSION}"
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          filename="jackson-xc-${IMPL_VERSION}"
          importPackage="
-javax.xml.bind.annotation
+javax.activation
+,javax.xml.bind.annotation
 ,javax.xml.bind.annotation.adapters
 ,org.codehaus.jackson;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.annotate;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.introspect;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.ser;version='${IMPL_VERSION}'
+,org.codehaus.jackson.node;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.schema;version='${IMPL_VERSION}'
 "
          exportpackage="
