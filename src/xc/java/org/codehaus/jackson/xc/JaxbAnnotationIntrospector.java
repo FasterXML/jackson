@@ -10,17 +10,15 @@ import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
-import javax.activation.DataHandler;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Member;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
-import java.net.URI;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -59,10 +57,23 @@ import java.net.URI;
 public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 {
     final String _jaxbPackageName;
+    final JsonSerializer _dataHandlerSerializer;
+    final JsonDeserializer _dataHandlerDeserializer;
 
     public JaxbAnnotationIntrospector()
     {
         _jaxbPackageName = XmlElement.class.getPackage().getName();
+
+        JsonSerializer dataHandlerSerializer = null;
+        JsonDeserializer dataHandlerDeserializer = null;
+        try {
+            dataHandlerSerializer = (JsonSerializer) Class.forName("org.codehaus.jackson.xc.DataHandlerJsonSerializer").newInstance();
+            dataHandlerDeserializer = (JsonDeserializer) Class.forName("org.codehaus.jackson.xc.DataHandlerJsonDeserializer").newInstance();
+        } catch (Throwable e) {
+            //dataHandlers not supported...
+        }
+        _dataHandlerSerializer = dataHandlerSerializer;
+        _dataHandlerDeserializer = dataHandlerDeserializer;
     }
 
     /*
@@ -77,7 +88,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
      * @param ann The annotation.
      * @return Whether the annotation is in the JAXB package.
      */
-    @Override
     public boolean isHandled(Annotation ann)
     {
         /* note: class we want is the annotation class, not instance
@@ -99,13 +109,11 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    @Override
     public Boolean findCachability(AnnotatedClass ac)
     {
         return null;
     }
 
-    @Override
     public Boolean findFieldAutoDetection(AnnotatedClass ac)
     {
         return isFieldsAccessible(ac);
@@ -117,7 +125,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    @Override
     public boolean isIgnorableMethod(AnnotatedMethod m)
     {
         if (m.getAnnotation(XmlTransient.class) != null) {
@@ -139,7 +146,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return true;
     }
 
-    @Override
     public boolean isIgnorableConstructor(AnnotatedConstructor c)
     {
         /* @XmlTransient can not be attached to constructors...
@@ -155,7 +161,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     ////////////////////////////////////////////////////
      */
 
-    @Override
     public boolean isIgnorableField(AnnotatedField f)
     {
         if (f.getAnnotation(XmlTransient.class) != null) {
@@ -190,7 +195,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    @Override
     public JsonSerializer<?> findSerializer(Annotated am)
     {
         XmlAdapter<Object,Object> adapter = findAdapter(am);
@@ -203,8 +207,8 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
          */
         Class<?> type = am.getType();
         if (type != null) {
-            if (DataHandler.class.isAssignableFrom(type)) {
-                return new DataHandlerJsonSerializer();
+            if (_dataHandlerSerializer != null && isDataHandler(type)) {
+                return _dataHandlerSerializer;
             }
         }
 
@@ -212,7 +216,20 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return null;
     }
 
-    @Override
+    /**
+     * Determines whether the type is assignable to class javax.activation.DataHandler without requiring that class
+     * to be on the classpath.
+     *
+     * @param type The type.
+     * @return Whether the type is assignable to class javax.activation.DataHandler
+     */
+    private boolean isDataHandler(Class<?> type)
+    {
+        return type != null
+               && !Object.class.equals(type)
+               && (("javax.activation.DataHandler".equals(type.getName()) || isDataHandler(type.getSuperclass())));
+    }
+
     public Class<?> findSerializationType(Annotated a)
     {
         return null;
@@ -223,7 +240,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
      *
      * @return JsonSerialize.Inclusion.NON_NULL
      */
-    @Override
     public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue)
     {
         if ((a instanceof AnnotatedField) || (a instanceof AnnotatedMethod)) {
@@ -245,7 +261,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    @Override
     public Boolean findGetterAutoDetection(AnnotatedClass ac)
     {
         return isPropertiesAccessible(ac);
@@ -257,7 +272,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    @Override
     public String findGettablePropertyName(AnnotatedMethod am)
     {
         String propertyName = findJaxbSpecifiedPropertyName(am);
@@ -265,14 +279,12 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return (propertyName == null) ? null : propertyName;
     }
 
-    @Override
     public boolean hasAsValueAnnotation(AnnotatedMethod am)
     {
         //since jaxb says @XmlValue can exist with attributes, this won't map as a json value.
         return false;
     }
 
-    @Override
     public String findEnumValue(Enum<?> e)
     {
         String enumValue = e.name();
@@ -292,7 +304,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    @Override
     public String findSerializablePropertyName(AnnotatedField af)
     {
         Field field = af.getAnnotated();
@@ -306,7 +317,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     */
 
 
-    @Override
     public JsonDeserializer<?> findDeserializer(Annotated am)
     {
         XmlAdapter<Object,Object> adapter = findAdapter(am);
@@ -319,27 +329,24 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
          */
         Class<?> type = am.getType();
         if (type != null) {
-            if (DataHandler.class.isAssignableFrom(type)) {
-                return new DataHandlerJsonDeserializer();
+            if (_dataHandlerDeserializer != null && isDataHandler(type)) {
+                return _dataHandlerDeserializer;
             }
         }
 
         return null;
     }
 
-    @Override
     public Class<?> findDeserializationType(Annotated am)
     {
         return null;
     }
 
-    @Override
     public Class<?> findDeserializationKeyType(Annotated am)
     {
         return null;
     }
 
-    @Override
     public Class<?> findDeserializationContentType(Annotated am)
     {
         XmlElement annotation = findAnnotation(XmlElement.class, am, false, false, false);
@@ -349,19 +356,16 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return null;
     }
 
-    @Override
     public Boolean findSetterAutoDetection(AnnotatedClass ac)
     {
         return isPropertiesAccessible(ac);
     }
 
-    @Override
     public Boolean findCreatorAutoDetection(AnnotatedClass ac)
     {
         return null;
     }
 
-    @Override
     public String findSettablePropertyName(AnnotatedMethod am)
     {
         String propertyName = findJaxbSpecifiedPropertyName(am);
@@ -369,7 +373,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return (propertyName == null) ? null : propertyName;
     }
 
-    @Override
     public boolean hasAnySetterAnnotation(AnnotatedMethod am)
     {
         //(ryan) JAXB has @XmlAnyAttribute and @XmlAnyElement annotations, but they're not applicable in this case
@@ -378,13 +381,11 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return false;
     }
 
-    @Override
     public boolean hasCreatorAnnotation(Annotated am)
     {
         return false;
     }
 
-    @Override
     public String findDeserializablePropertyName(AnnotatedField af)
     {
         Field field = af.getAnnotated();
@@ -397,8 +398,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    @Override
-        public String findPropertyNameForParam(AnnotatedParameter param)
+    public String findPropertyNameForParam(AnnotatedParameter param)
     {
         // JAXB has nothing like this...
         return null;
@@ -666,14 +666,12 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             this.pd = pd;
         }
 
-        //@Override
         public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
         {
             return (pd.getReadMethod() != null && pd.getReadMethod().isAnnotationPresent(annotationClass))
                     || (pd.getWriteMethod() != null && pd.getWriteMethod().isAnnotationPresent(annotationClass));
         }
 
-        //@Override
         public <T extends Annotation> T getAnnotation(Class<T> annotationClass)
         {
             T ann = pd.getReadMethod() != null ? pd.getReadMethod().getAnnotation(annotationClass) : null;
@@ -683,14 +681,12 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             return ann;
         }
 
-        //@Override
         public Annotation[] getAnnotations()
         {
             //not used. we don't need to support this yet.
             throw new UnsupportedOperationException();
         }
 
-        //@Override
         public Annotation[] getDeclaredAnnotations()
         {
             //not used. we don't need to support this yet.
