@@ -1,7 +1,7 @@
 import java.io.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.TreeMapper;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public final class TestCopyPerf
 {
@@ -16,7 +16,7 @@ public final class TestCopyPerf
     {
         _jsonFactory = new JsonFactory();
         FileInputStream fis = new FileInputStream(f);
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         JsonParser jp = _jsonFactory.createJsonParser(fis);
         _tree = mapper.readTree(jp);
         jp.close();
