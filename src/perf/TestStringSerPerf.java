@@ -47,9 +47,6 @@ public final class TestStringSerPerf
             String msg;
             boolean lf = (round == 0);
 
-            round = 2;
-
-
             switch (round) {
 
             case 0:
