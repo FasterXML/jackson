@@ -110,6 +110,52 @@ public class TestCollectionSerialization
         }
     }
 
+    public void testBigCollection()
+        throws IOException
+    {
+        final int COUNT = 9999;
+        ArrayList<Integer> value = new ArrayList<Integer>();
+        for (int i = 0; i <= COUNT; ++i) {
+            value.add(i);
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        // Let's test using 3 main variants...
+        for (int mode = 0; mode < 3; ++mode) {
+            JsonParser jp = null;
+            switch (mode) {
+            case 0:
+                {
+                    ByteArrayOutputStream out = new ByteArrayOutputStream(value.size());
+                    mapper.writeValue(out, value);
+                    jp = new JsonFactory().createJsonParser(out.toByteArray());
+                }
+                break;
+            case 1:
+                {
+                    StringWriter sw = new StringWriter(value.size());
+                    mapper.writeValue(sw, value);
+                    jp = createParserUsingReader(sw.toString());
+                }
+                break;
+            case 2:
+                {
+                    String str = mapper.writeValueAsString(value);
+                    jp = createParserUsingReader(str);
+                }
+                break;
+            }
+
+            // and verify
+            assertToken(JsonToken.START_ARRAY, jp.nextToken());
+            for (int i = 0; i <= COUNT; ++i) {
+                assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+                assertEquals(i, jp.getIntValue());
+            }
+            assertToken(JsonToken.END_ARRAY, jp.nextToken());
+            jp.close();
+        }
+    }
+
     public void testEnumMap()
         throws IOException
     {

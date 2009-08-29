@@ -10,6 +10,11 @@ Description:
   * [JACKSON-150] Some JAXB-required core types (XMLGregorianCalendar,
     Duration, QName, DataHandler) were not supported adequately
 
+  Improvements:
+
+  * [JACKSON-152] Add "ObjectMapper.writeValueAsString()" convenience
+    method to simplify serializing JSON into String.
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

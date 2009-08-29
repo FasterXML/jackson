@@ -46,9 +46,15 @@ public abstract class BaseMapTest
     protected String serializeAsString(ObjectMapper m, Object value)
         throws IOException
     {
+        /* 28-Aug-2009, tatu: Let's use new functionality, to also
+         *   exercise specialized custom "stringable" writer...
+         */
+        /*
         StringWriter sw = new StringWriter();
         m.writeValue(sw, value);
         return sw.toString();
+        */
+        return m.writeValueAsString(value);
     }
 
     protected String serializeAsString(Object value)
