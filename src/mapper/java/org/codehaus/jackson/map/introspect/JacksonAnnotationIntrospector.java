@@ -304,6 +304,32 @@ public class JacksonAnnotationIntrospector
         return (Class<? extends JsonDeserializer<?>>)deserClass;
     }
 
+    @Override
+    public Class<? extends JsonDeserializer<?>> findKeyDeserializer(Annotated a)
+    {
+        JsonDeserialize ann = a.getAnnotation(JsonDeserialize.class);
+        if (ann != null) {
+            Class<? extends JsonDeserializer<?>> deserClass = ann.keyUsing();
+            if (deserClass != JsonDeserializer.None.class) {
+                return deserClass;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Class<? extends JsonDeserializer<?>> findContentDeserializer(Annotated a)
+    {
+        JsonDeserialize ann = a.getAnnotation(JsonDeserialize.class);
+        if (ann != null) {
+            Class<? extends JsonDeserializer<?>> deserClass = ann.contentUsing();
+            if (deserClass != JsonDeserializer.None.class) {
+                return deserClass;
+            }
+        }
+        return null;
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     public Class<?> findDeserializationType(Annotated am)
@@ -331,7 +357,7 @@ public class JacksonAnnotationIntrospector
     }
 
     @SuppressWarnings("deprecation")
-	public Class<?> findDeserializationKeyType(Annotated am)
+    public Class<?> findDeserializationKeyType(Annotated am)
     {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);

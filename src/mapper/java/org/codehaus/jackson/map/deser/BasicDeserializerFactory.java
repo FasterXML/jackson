@@ -276,6 +276,40 @@ public abstract class BasicDeserializerFactory
         return null;
     }
 
+    @SuppressWarnings("unchecked")
+    protected JsonDeserializer<Object> findKeyDeserializerFromAnnotation(DeserializationConfig config, Annotated a)
+    {
+        Object deserDef = config.getAnnotationIntrospector().findKeyDeserializer(a);
+        if (deserDef != null) {
+            if (deserDef instanceof JsonDeserializer) {
+                return (JsonDeserializer<Object>) deserDef;
+            }
+            Class<?> cls = (Class<?>) deserDef;
+            if (!JsonDeserializer.class.isAssignableFrom(cls)) {
+                throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
+            }
+            return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected JsonDeserializer<Object> findContentDeserializerFromAnnotation(DeserializationConfig config, Annotated a)
+    {
+        Object deserDef = config.getAnnotationIntrospector().findContentDeserializer(a);
+        if (deserDef != null) {
+            if (deserDef instanceof JsonDeserializer) {
+                return (JsonDeserializer<Object>) deserDef;
+            }
+            Class<?> cls = (Class<?>) deserDef;
+            if (!JsonDeserializer.class.isAssignableFrom(cls)) {
+                throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
+            }
+            return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        }
+        return null;
+    }
+
     /**
      * Method called to see if given method has annotations that indicate
      * a more specific type than what the argument specifies.

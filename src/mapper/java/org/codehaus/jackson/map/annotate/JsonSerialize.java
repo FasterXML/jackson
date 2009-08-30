@@ -38,6 +38,8 @@ import org.codehaus.jackson.map.JsonSerializer;
 @JacksonAnnotation
 public @interface JsonSerialize
 {
+    // // // Annotations for explicitly specifying deserializer
+
     /**
      * Serializer class to use for
      * serializing associated value. Depending on what is annotated,
@@ -46,6 +48,10 @@ public @interface JsonSerialize
      * serializing property access via a getter method.
      */
     public Class<? extends JsonSerializer<?>> using() default JsonSerializer.None.class;
+
+    // // // Annotations for type handling, explicit declaration
+    // // // (type used for choosing deserializer, if not explicitly
+    // // // specified)
 
     /**
      * Subtype (of declared type, which itself is subtype of runtime type)
@@ -64,6 +70,17 @@ public @interface JsonSerialize
     public Class<?> as() default NoClass.class;
 
     /**
+     * Whether type detection used is dynamic or static: that is,
+     * whether actual runtime type is used (dynamic), or just the
+     * declared type (static).
+     *
+     * @since 1.2
+     */
+    public Typing typing() default Typing.DYNAMIC;
+
+    // // // Annotation(s) for inclusion criteria
+
+    /**
      * Which properties of annotated Bean are
      * to be included in serialization (has no effect on other types
      * like enums, primitives or collections).
@@ -74,15 +91,6 @@ public @interface JsonSerialize
      *
      */
     public Inclusion include() default Inclusion.ALWAYS;
-
-    /**
-     * Whether type detection used is dynamic or static: that is,
-     * whether actual runtime type is used (dynamic), or just the
-     * declared type (static).
-     *
-     * @since 1.2
-     */
-    public Typing typing() default Typing.DYNAMIC;
 
     /*
     /////////////////////////////////////////////////////////////

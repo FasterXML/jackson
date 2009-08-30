@@ -337,6 +337,18 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return null;
     }
 
+    public JsonDeserializer<?> findKeyDeserializer(Annotated am)
+    {
+        // Is there something like this in JAXB?
+        return null;
+    }
+
+    public JsonDeserializer<?> findContentDeserializer(Annotated am)
+    {
+        // Is there something like this in JAXB?
+        return null;
+    }
+
     public Class<?> findDeserializationType(Annotated am)
     {
         return null;

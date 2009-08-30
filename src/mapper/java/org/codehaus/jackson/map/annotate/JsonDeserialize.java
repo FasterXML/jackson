@@ -35,6 +35,8 @@ import org.codehaus.jackson.map.JsonDeserializer;
 @JacksonAnnotation
 public @interface JsonDeserialize
 {
+    // // // Annotations for explicitly specifying deserializer
+
     /**
      * Deserializer class to use for deserializing associated value.
      * Depending on what is annotated,
@@ -44,6 +46,32 @@ public @interface JsonDeserialize
      */
     public Class<? extends JsonDeserializer<?>> using()
         default JsonDeserializer.None.class;
+
+    /**
+     * Deserializer class to use for deserializing contents (elements
+     * of a Collection/array, values of Maps) of annotated property.
+     * Can only be used on instances (methods, fields, constructors),
+     * and not value classes themselves.
+     *
+     * @since 1.3
+     */
+    public Class<? extends JsonDeserializer<?>> contentUsing()
+        default JsonDeserializer.None.class;
+
+    /**
+     * Deserializer class to use for deserializing Map keys
+     * of annotated property.
+     * Can only be used on instances (methods, fields, constructors),
+     * and not value classes themselves.
+     *
+     * @since 1.3
+     */
+    public Class<? extends JsonDeserializer<?>> keyUsing()
+        default JsonDeserializer.None.class;
+
+    // // // Annotations for explicitly specifying deserialization type
+    // // // (which is used for choosing deserializer, if not explicitly
+    // // // specified
 
     /**
      * Concrete type to deserialize values as, instead of type otherwise

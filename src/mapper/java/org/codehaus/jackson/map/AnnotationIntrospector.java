@@ -69,6 +69,10 @@ public abstract class AnnotationIntrospector
      * Method for checking whether there is an annotation that
      * indicates that given method should be ignored for all
      * operations (serialization, deserialization).
+     *<p>
+     * Note that this method should <b>ONLY</b> return true for such
+     * explicit ignoral cases; and not if method just happens not to
+     * be visible for annotation processor.
      *
      * @return True, if an annotation is found to indicate that the
      *    method should be ignored; false if not.
@@ -231,6 +235,16 @@ public abstract class AnnotationIntrospector
      * type is returned, a runtime exception may be thrown by caller.
      */
     public abstract Object findDeserializer(Annotated am);
+
+    /**
+     * @since 1.3
+     */
+    public abstract Object findKeyDeserializer(Annotated am);
+
+    /**
+     * @since 1.3
+     */
+    public abstract Object findContentDeserializer(Annotated am);
 
     /**
      * Method for accessing annotated type definition that a
@@ -577,6 +591,26 @@ public abstract class AnnotationIntrospector
             Object result = _primary.findDeserializer(am);
             if (result == null) {
                 result = _secondary.findDeserializer(am);
+            }
+            return result;
+        }
+
+        @Override
+        public Object findKeyDeserializer(Annotated am)
+        {
+            Object result = _primary.findKeyDeserializer(am);
+            if (result == null) {
+                result = _secondary.findKeyDeserializer(am);
+            }
+            return result;
+        }
+
+        @Override
+        public Object findContentDeserializer(Annotated am)
+        {
+            Object result = _primary.findContentDeserializer(am);
+            if (result == null) {
+                result = _secondary.findContentDeserializer(am);
             }
             return result;
         }

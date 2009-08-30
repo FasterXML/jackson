@@ -76,56 +76,11 @@ public class TestBasicAnnotations
         public void setZ(int value) { _z = value; }
     }
 
-    /**
-     * Class for testing {@link JsonDeserializer} annotation
-     * for class itself.
-     */
-    @JsonDeserialize(using=ClassDeserializer.class)
-    final static class TestDeserializerAnnotationClass {
-        int _a;
-        
-        /* we'll test it by not having default no-arg ctor, and leaving
-         * out single-int-arg ctor (because deserializer would use that too)
-         */
-        public TestDeserializerAnnotationClass(int a, int b) {
-            _a = a;
-        }
-
-    }
-
-    /**
-     * Class for testing {@link JsonDeserializer} annotation
-     * for a method
-     */
-    final static class TestDeserializerAnnotationMethod {
-        int[] _ints;
-
-        /* Note: could be made to work otherwise, except that
-         * to trigger failure (in absence of annotation) Json
-         * is of type VALUE_NUMBER_INT, not an Array: array would
-         * work by default, but scalar not
-         */
-        @JsonDeserialize(using=IntsDeserializer.class)
-        public void setInts(int[] i) {
-            _ints = i;
-        }
-    }
-
     /*
     //////////////////////////////////////////////
     // Other helper classes
     //////////////////////////////////////////////
      */
-
-    static class ClassDeserializer extends JsonDeserializer<TestDeserializerAnnotationClass>
-    {
-        public TestDeserializerAnnotationClass deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
-            int i = jp.getIntValue();
-            return new TestDeserializerAnnotationClass(i, i);
-        }
-    }
 
     private final static class IntsDeserializer extends JsonDeserializer<int[]>
     {
@@ -187,34 +142,5 @@ public class TestBasicAnnotations
         assertEquals(1, result._x);
         assertEquals(2, result._y);
         assertEquals(3, result._z);
-    }
-
-    /**
-     * Unit test to verify that {@link JsonDeserialize#using} annotation works
-     * when applied to a class
-     */
-    public void testClassDeserializer() throws Exception
-    {
-        ObjectMapper m = new ObjectMapper();
-        TestDeserializerAnnotationClass result = m.readValue
-            ("  123  ", TestDeserializerAnnotationClass.class);
-        assertEquals(123, result._a);
-    }
-
-    /**
-     * Unit test to verify that {@link JsonDeserialize#using} annotation works
-     * when applied to a Method
-     */
-    public void testMethodDeserializer() throws Exception
-    {
-        ObjectMapper m = new ObjectMapper();
-        // note: since it's part of method, must parse from Object struct
-        TestDeserializerAnnotationMethod result = m.readValue
-            (" { \"ints\" : 3 } ", TestDeserializerAnnotationMethod.class);
-        assertNotNull(result);
-        int[] ints = result._ints;
-        assertNotNull(ints);
-        assertEquals(1, ints.length);
-        assertEquals(3, ints[0]);
     }
 }

@@ -52,9 +52,13 @@ public class NopAnnotationIntrospector
     }
 
     @Override
-    public Object findDeserializer(Annotated am) {
-        return null;
-    }
+    public Object findDeserializer(Annotated am) { return null; }
+
+    @Override
+    public Object findKeyDeserializer(Annotated am) { return null; }
+
+    @Override
+    public Object findContentDeserializer(Annotated am) { return null; }
 
     @Override
     public String findEnumValue(Enum<?> value) {
