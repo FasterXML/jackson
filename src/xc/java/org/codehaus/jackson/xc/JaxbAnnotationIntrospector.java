@@ -127,23 +127,8 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public boolean isIgnorableMethod(AnnotatedMethod m)
     {
-        if (m.getAnnotation(XmlTransient.class) != null) {
-            return true;
-        }
-        for (Annotation annotation : m.getAnnotated().getDeclaredAnnotations()) {
-            if (isHandled(annotation)) {
-                //if any annotations are present, it is NOT ignorable.
-                return false;
-            }
-        }
+        return m.getAnnotation(XmlTransient.class) != null;
 
-        if (isPropertiesAccessible(m)) {
-            //jaxb only accounts for getter/setter pairs.
-            PropertyDescriptor pd = findPropertyDescriptor(m);
-            return pd == null || pd.getReadMethod() == null || pd.getWriteMethod() == null; 
-        }
-
-        return true;
     }
 
     public boolean isIgnorableConstructor(AnnotatedConstructor c)
@@ -163,30 +148,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public boolean isIgnorableField(AnnotatedField f)
     {
-        if (f.getAnnotation(XmlTransient.class) != null) {
-            return true;
-        }
-
-        /**
-         * 2009-08-19 (heatonra) The following annotation check is necessary,
-         * see http://jira.codehaus.org/browse/JACKSON-151
-         */
-
-        for (Annotation annotation : f.getAnnotated().getDeclaredAnnotations()) {
-            if (isHandled(annotation)) {
-                //if any JAXB annotations are present, it is NOT ignorable.
-                return false;
-            }
-        }
-
-        XmlAccessType accessType = XmlAccessType.PUBLIC_MEMBER;
-        XmlAccessorType at = findAnnotation(XmlAccessorType.class, f, true, true, true);
-        if (at != null) {
-            accessType = at.value();
-        }
-        
-        return accessType != XmlAccessType.FIELD &&
-            !(accessType == XmlAccessType.PUBLIC_MEMBER && Modifier.isPublic(f.getAnnotated().getModifiers()));
+        return f.getAnnotation(XmlTransient.class) != null;
     }
 
     /*
@@ -274,6 +236,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public String findGettablePropertyName(AnnotatedMethod am)
     {
+        if (isInvisible(am)) {
+            return null;
+        }
+
         String propertyName = findJaxbSpecifiedPropertyName(am);
         // null -> no annotation found
         return (propertyName == null) ? null : propertyName;
@@ -298,6 +264,60 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return enumValue;
     }
 
+    /**
+     * Whether the specified field is invisible, per the JAXB visibility rules.
+     *
+     * @param f The field.
+     * @return Whether the field is invisible.
+     */
+    protected boolean isInvisible(AnnotatedField f)
+    {
+        boolean invisible = true;
+
+        for (Annotation annotation : f.getAnnotated().getDeclaredAnnotations()) {
+            if (isHandled(annotation)) {
+                //if any JAXB annotations are present, it is NOT ignorable.
+                invisible = false;
+            }
+        }
+
+        if (invisible) {
+            XmlAccessType accessType = XmlAccessType.PUBLIC_MEMBER;
+            XmlAccessorType at = findAnnotation(XmlAccessorType.class, f, true, true, true);
+            if (at != null) {
+                accessType = at.value();
+            }
+
+            invisible = accessType != XmlAccessType.FIELD &&
+                !(accessType == XmlAccessType.PUBLIC_MEMBER && Modifier.isPublic(f.getAnnotated().getModifiers()));
+        }
+        return invisible;
+    }
+
+    /**
+     * Whether the specified method (assumed to be a property) is invisible, per the JAXB rules.
+     *
+     * @param m The method.
+     * @return whether the method is invisible.
+     */
+    protected boolean isInvisible(AnnotatedMethod m)
+    {
+        boolean invisible = true;
+        for (Annotation annotation : m.getAnnotated().getDeclaredAnnotations()) {
+            if (isHandled(annotation)) {
+                //if any annotations are present, it is NOT ignorable.
+                invisible = false;
+            }
+        }
+
+        if (isPropertiesAccessible(m)) {
+            //jaxb only accounts for getter/setter pairs.
+            PropertyDescriptor pd = findPropertyDescriptor(m);
+            invisible = pd == null || pd.getReadMethod() == null || pd.getWriteMethod() == null;
+        }
+        return invisible;
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Serialization: field annotations
@@ -306,6 +326,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public String findSerializablePropertyName(AnnotatedField af)
     {
+        if (isInvisible(af)) {
+            return null;
+        }
+        
         Field field = af.getAnnotated();
         return findJaxbPropertyName(field, field.getType(), field.getName());
     }
@@ -380,6 +404,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public String findSettablePropertyName(AnnotatedMethod am)
     {
+        if (isInvisible(am)) {
+            return null;
+        }
+
         String propertyName = findJaxbSpecifiedPropertyName(am);
         // null -> no annotation found
         return (propertyName == null) ? null : propertyName;
@@ -400,6 +428,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public String findDeserializablePropertyName(AnnotatedField af)
     {
+        if (isInvisible(af)) {
+            return null;
+        }
+
         Field field = af.getAnnotated();
         return findJaxbPropertyName(field, field.getType(), field.getName());
     }
