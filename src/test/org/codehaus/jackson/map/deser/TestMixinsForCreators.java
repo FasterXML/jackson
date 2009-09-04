@@ -62,6 +62,19 @@ public class TestMixinsForCreators
         @JsonCreator MixInForPrivate(String s) { }
     }
 
+    static class StringWrapper {
+        String _value;
+        private StringWrapper(String s, boolean foo) { _value = s; }
+
+        private static StringWrapper create(String str) {
+            return new StringWrapper(str, false);
+        }
+    }
+
+    abstract static class StringWrapperMixIn {
+        @JsonCreator static StringWrapper create(String str) { return null; }
+    }
+
     /*
     ///////////////////////////////////////////////////////////
     // Unit tests
@@ -90,5 +103,13 @@ public class TestMixinsForCreators
         m.getDeserializationConfig().addMixInAnnotations(BaseClass.class, MixIn.class);
         result = m.readValue("\"string\"", BaseClass.class);
         assertEquals("stringX", result._a);
+    }
+
+    public void testFactoryMixIn() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.getDeserializationConfig().addMixInAnnotations(StringWrapper.class, StringWrapperMixIn.class);
+        StringWrapper result = m.readValue("\"a\"", StringWrapper.class);
+        assertEquals("a", result._value);
     }
 }
