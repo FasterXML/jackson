@@ -93,8 +93,7 @@ public class BasicSerializerFactory
         // note: timestamps are very similar to java.util.Date, thus serialized as such
         _concrete.put(java.sql.Timestamp.class.getName(), UtilDateSerializer.instance);
 
-        /* Reference types, URLs, URIs
-         */
+        // Reference types, URLs, URIs
         _concrete.put(java.net.URL.class.getName(), sls);
         _concrete.put(java.net.URI.class.getName(), sls);
 
@@ -138,6 +137,9 @@ public class BasicSerializerFactory
         // and Enum-variations of set/map
         _concrete.put(EnumMap.class.getName(), new ContainerSerializers.EnumMapSerializer());
         _concrete.put(EnumSet.class.getName(), new ContainerSerializers.EnumSetSerializer());
+
+        // Then standard JDK types that need extra TLC:
+        JdkSerializers.addAll(_concrete);
 
         /* XML/JAXB related types available on JDK 1.5; but that seem
          * to cause problems
@@ -776,7 +778,7 @@ public class BasicSerializerFactory
         private SerializableSerializer() { }
 
         @Override
-		public void serialize(JsonSerializable value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(JsonSerializable value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             value.serialize(jgen, provider);
@@ -784,7 +786,7 @@ public class BasicSerializerFactory
         
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
+            throws JsonMappingException
         {
             ObjectNode objectNode = createObjectNode();
             String schemaType = "any";

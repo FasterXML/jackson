@@ -64,8 +64,8 @@ public class BeanSerializer
         } catch (Exception e) {
             // [JACKSON-55] Need to add reference information
             /* 05-Mar-2009, tatu: But one nasty edge is when we get
-             *   StackOverflow: usually due to infinite loop. But that gets
-             *   hidden within an InvocationTargetException...
+             *   StackOverflow: usually due to infinite loop. But that
+             *   usually gets hidden within an InvocationTargetException...
              */
             Throwable t = e;
             while (t instanceof InvocationTargetException && t.getCause() != null) {
@@ -75,6 +75,14 @@ public class BeanSerializer
                 throw (Error) t;
             }
             throw JsonMappingException.wrapWithPath(t, bean, _props[i].getName());
+        } catch (StackOverflowError e) {
+            /* 04-Sep-2009, tatu: Dealing with this is tricky, since we do not
+             *   have many stack frames to spare... just one or two; can't
+             *   make many calls.
+             */
+            JsonMappingException mapE = new JsonMappingException("Infinite recursion (StackOverflowError)");
+            mapE.prependPath(new JsonMappingException.Reference(bean, _props[i].getName()));
+            throw mapE;
         }
     }
 

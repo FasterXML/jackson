@@ -16,6 +16,12 @@ import org.codehaus.jackson.*;
 public class JsonMappingException
     extends JsonProcessingException
 {
+    /**
+     * Let's limit length of reference chain, to limit damage in cases
+     * of infinite recursion.
+     */
+    final static int MAX_REFS_TO_LIST = 1000;
+
     /*
     ////////////////////////////////////////////////////////
     // Helper classes
@@ -231,7 +237,8 @@ public class JsonMappingException
      */
     public void prependPath(Object referrer, String fieldName)
     {
-        prependPath(new Reference(referrer, fieldName));
+        Reference ref = new Reference(referrer, fieldName);
+        prependPath(ref);
     }
     /**
      * Method called to prepend a reference information in front of
@@ -239,12 +246,22 @@ public class JsonMappingException
      */
     public void prependPath(Object referrer, int index)
     {
-        prependPath(new Reference(referrer, index));
+        Reference ref = new Reference(referrer, index);
+        prependPath(ref);
     }
 
     public void prependPath(Reference r)
     {
-        _nonNullPath().addFirst(r);
+        if (_path == null) {
+            _path = new LinkedList<Reference>();
+        }
+        /* Also: let's not increase without bounds. Could choose either
+         * head or tail; tail is easier (no need to ever remove), as
+         * well as potentially more useful so let's use it:
+         */
+        if (_path.size() < MAX_REFS_TO_LIST) {
+            _path.addFirst(r);
+        }
     }
 
     /*
@@ -293,14 +310,6 @@ public class JsonMappingException
     // Internal methods
     ////////////////////////////////////////////////////////
      */
-
-    protected LinkedList<Reference> _nonNullPath()
-    {
-        if (_path == null) {
-            _path = new LinkedList<Reference>();
-        }
-        return _path;
-    }
 
     protected void _appendPathDesc(StringBuilder sb)
     {

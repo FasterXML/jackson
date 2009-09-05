@@ -123,7 +123,7 @@ public final class ContainerSerializers
         public final static CollectionSerializer instance = new CollectionSerializer();
 
         @Override
-		public void serialize(Collection<?> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Collection<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
