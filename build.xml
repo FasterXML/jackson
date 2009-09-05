@@ -58,10 +58,12 @@
 
     <path id="test-libs">
        <fileset dir="${dir.lib}">
+            <!-- for actual unit testing, junit -->
             <include name="junit/*.jar" />
-            <include name="cglib/*.jar" />
-            <!-- For 1.5, need JAXB API jar too -->
+            <!-- For 1.5, need JAXB API jar too (and related) -->
             <include name="jaxb/*.jar" />
+            <!-- and some other misc libs for interoperability tests -->
+            <include name="test/*.jar" />
        </fileset>
     </path>
 
