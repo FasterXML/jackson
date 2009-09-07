@@ -88,14 +88,11 @@ public final class MapType
         return new  MapType(_class, newKeyType, _valueType, _fullyTyped);
     }
 
-    /*
-    //////////////////////////////////////////////////////////
-    // Extended API
-    //////////////////////////////////////////////////////////
-     */
-
+    @Override
     public JavaType getKeyType() { return _keyType; }
-    public JavaType getValueType() { return _valueType; }
+
+    @Override
+    public JavaType getContentType() { return _valueType; }
 
     /*
     //////////////////////////////////////////////////////////

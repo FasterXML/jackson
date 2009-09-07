@@ -98,7 +98,7 @@ public final class ContainerSerializers
             if (typeHint != null) {
                 JavaType javaType = TypeFactory.fromType(typeHint);
                 if (javaType instanceof CollectionType) {
-                    Class<?> componentType = ((CollectionType) javaType).getElementType().getRawClass();
+                    Class<?> componentType = ((CollectionType) javaType).getContentType().getRawClass();
                     JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
@@ -173,7 +173,7 @@ public final class ContainerSerializers
             if (typeHint != null) {
                 JavaType javaType = TypeFactory.fromType(typeHint);
                 if (javaType instanceof CollectionType) {
-                    Class<?> componentType = ((CollectionType) javaType).getElementType().getRawClass();
+                    Class<?> componentType = ((CollectionType) javaType).getContentType().getRawClass();
                     JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :

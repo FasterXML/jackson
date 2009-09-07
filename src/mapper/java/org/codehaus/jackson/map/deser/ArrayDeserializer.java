@@ -40,7 +40,7 @@ public class ArrayDeserializer
     {
         super(Object[].class);
         _arrayClass = arrayType.getRawClass();
-        _elementClass = arrayType.getComponentType().getRawClass();
+        _elementClass = arrayType.getContentType().getRawClass();
         _untyped = (_elementClass == Object.class);
         _elementDeserializer = elemDeser;
     }

@@ -68,13 +68,13 @@ public final class CollectionType
 
     public boolean isFullyTyped() { return _fullyTyped; }
 
+    public JavaType getContentType() { return _elementType; }
+
     /*
     //////////////////////////////////////////////////////////
     // Extended API
     //////////////////////////////////////////////////////////
      */
-
-    public JavaType getElementType() { return _elementType; }
 
     public boolean isContainerType() { return true; }
 

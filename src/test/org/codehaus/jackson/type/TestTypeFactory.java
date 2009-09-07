@@ -74,7 +74,7 @@ public class TestTypeFactory
         assertEquals(CollectionType.class, t.getClass());
         assertSame(ArrayList.class, t.getRawClass());
         assertTrue(t.isFullyTyped());
-        JavaType elemType = ((CollectionType) t).getElementType();
+        JavaType elemType = ((CollectionType) t).getContentType();
         assertNotNull(elemType);
         assertSame(SimpleType.class, elemType.getClass());
         assertSame(String.class, elemType.getRawClass());
@@ -95,6 +95,6 @@ public class TestTypeFactory
         assertTrue(t.isFullyTyped());
         MapType mt = (MapType) t;
         assertEquals(TypeFactory.fromClass(String.class), mt.getKeyType());
-        assertEquals(TypeFactory.fromClass(Integer.class), mt.getValueType());
+        assertEquals(TypeFactory.fromClass(Integer.class), mt.getContentType());
     }
 }

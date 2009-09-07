@@ -22,6 +22,17 @@ public abstract class JavaType
 
     protected int _hashCode;
 
+    /**
+     * Optional handler (codec) that can be attached to indicate 
+     * what to use for this specific type.
+     *<p>
+     * Note: untyped (i.e. caller has to cast) because it is used for
+     * different kinds of handlers, with unrelated types.
+     *
+     * @since 1.3
+     */
+    Object _handler;
+
     /*
     ///////////////////////////////////////////////////////////////
     // Life-cycle
@@ -87,6 +98,20 @@ public abstract class JavaType
 
     public abstract JavaType narrowContentsBy(Class<?> contentClass);
 
+    /**
+     * Method for assigning handler to associate with this type; or
+     * if null passed, to remove such assignment
+     * 
+     * @since 1.3
+     */
+    public void setHandler(Object h) {
+        // sanity check, should be assigned just once
+        if (h != null && _handler != null) {
+            throw new IllegalStateException("Trying to reset handler for type ["+toString()+"]; old handler of type "+_handler.getClass().getName()+", new handler of type "+h.getClass().getName());
+        }
+        _handler = h;
+    }
+
     /*
     ///////////////////////////////////////////////////////////////
     // Public API
@@ -140,6 +165,26 @@ public abstract class JavaType
      *   null if this type knows of no binding for name
      */
     public JavaType findVariableType(String name) { return null; }
+
+    /**
+     * Method for accessing key type for this type, assuming type
+     * has such a concept (only Map types do)
+     */
+    public JavaType getKeyType() { return null; }
+
+    /**
+     * Method for accessing content type of this type, if type has
+     * such a thing: simple types do not, structured types do
+     * (like arrays, Collections and Maps)
+     */
+    public JavaType getContentType() { return null; }
+
+    /**
+     * Method for accessing handler associated with this type, if any
+     * 
+     * @since 1.3
+     */
+    public Object getHandler() { return _handler; }
 
     /*
     ///////////////////////////////////////////////////////////////

@@ -113,9 +113,9 @@ public abstract class BasicDeserializerFactory
         throws JsonMappingException
     {
         // Ok; first: do we have a primitive type?
-        JavaType elemType = type.getComponentType();
+        JavaType elemType = type.getContentType();
 
-        // First, special type(s), such as "primitive" arrays (int[] etc)
+        // First, special type(s), such as "primitive" arrys (int[] etc)
         JsonDeserializer<Object> deser = _arrayDeserializers.get(elemType);
         if (deser != null) {
             return deser;
@@ -134,18 +134,18 @@ public abstract class BasicDeserializerFactory
     public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        JavaType valueType = type.getElementType();
+        JavaType contentType = type.getContentType();
 
         Class<?> collectionClass = type.getRawClass();
 
         // One special type: EnumSet:
         if (EnumSet.class.isAssignableFrom(collectionClass)) {
-            return new EnumSetDeserializer(EnumResolver.constructFor(valueType.getRawClass(), config.getAnnotationIntrospector()));
+            return new EnumSetDeserializer(EnumResolver.constructFor(contentType.getRawClass(), config.getAnnotationIntrospector()));
         }
 
         // But otherwise we can just use a generic value deserializer:
         // 'null' -> collections have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(config, valueType, type, null);
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(config, contentType, type, null);
 
         /* One twist: if we are being asked to instantiate an interface or
          * abstract Collection, we need to either find something that implements
@@ -173,9 +173,9 @@ public abstract class BasicDeserializerFactory
     {
         JavaType keyType = type.getKeyType();
         // Value handling is identical for all, so:
-        JavaType valueType = type.getValueType();
+        JavaType contentType = type.getContentType();
         // 'null' -> maps have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(config, valueType, type, null);
+        JsonDeserializer<Object> valueDes = p.findValueDeserializer(config, contentType, type, null);
 
         Class<?> mapClass = type.getRawClass();
         // But EnumMap requires special handling for keys

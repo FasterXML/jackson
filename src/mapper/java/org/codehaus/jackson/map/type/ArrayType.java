@@ -134,13 +134,8 @@ public final class ArrayType
 
     public boolean isContainerType() { return true; }
 
-    /*
-    //////////////////////////////////////////////////////////
-    // Extended API
-    //////////////////////////////////////////////////////////
-     */
-
-    public JavaType getComponentType() { return  _componentType; }
+    @Override
+    public JavaType getContentType() { return  _componentType; }
 
     /*
     //////////////////////////////////////////////////////////

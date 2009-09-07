@@ -95,7 +95,7 @@ public final class ArraySerializers
             if (typeHint != null) {
                 JavaType javaType = TypeFactory.fromType(typeHint);
                 if (javaType.isArrayType()) {
-                    Class<?> componentType = ((ArrayType) javaType).getComponentType().getRawClass();
+                    Class<?> componentType = ((ArrayType) javaType).getContentType().getRawClass();
                     JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
