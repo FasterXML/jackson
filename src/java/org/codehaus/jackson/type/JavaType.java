@@ -62,7 +62,11 @@ public abstract class JavaType
         }
         // Otherwise, ensure compatibility
         _assertSubclass(subclass, _class);
-        return _narrow(subclass);
+        JavaType result = _narrow(subclass);
+        if (_handler != null) {
+            result.setHandler(_handler);
+        }
+        return result;
     }
 
     /**
