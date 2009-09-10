@@ -392,7 +392,7 @@ public class ObjectMapper
      * @since 1.2
      */
     public ObjectMapper configure(JsonParser.Feature f, boolean state) {
-        _jsonFactory.setParserFeature(f, state);
+        _jsonFactory.configure(f, state);
         return this;
     }
 
@@ -408,7 +408,7 @@ public class ObjectMapper
      * @since 1.2
      */
     public ObjectMapper configure(JsonGenerator.Feature f, boolean state) {
-        _jsonFactory.setGeneratorFeature(f, state);
+        _jsonFactory.configure(f, state);
         return this;
     }
 

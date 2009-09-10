@@ -57,18 +57,18 @@ import java.lang.reflect.Modifier;
 public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 {
     final String _jaxbPackageName;
-    final JsonSerializer _dataHandlerSerializer;
-    final JsonDeserializer _dataHandlerDeserializer;
+    final JsonSerializer<?> _dataHandlerSerializer;
+    final JsonDeserializer<?> _dataHandlerDeserializer;
 
     public JaxbAnnotationIntrospector()
     {
         _jaxbPackageName = XmlElement.class.getPackage().getName();
 
-        JsonSerializer dataHandlerSerializer = null;
-        JsonDeserializer dataHandlerDeserializer = null;
+        JsonSerializer<?> dataHandlerSerializer = null;
+        JsonDeserializer<?> dataHandlerDeserializer = null;
         try {
-            dataHandlerSerializer = (JsonSerializer) Class.forName("org.codehaus.jackson.xc.DataHandlerJsonSerializer").newInstance();
-            dataHandlerDeserializer = (JsonDeserializer) Class.forName("org.codehaus.jackson.xc.DataHandlerJsonDeserializer").newInstance();
+            dataHandlerSerializer = (JsonSerializer<?>) Class.forName("org.codehaus.jackson.xc.DataHandlerJsonSerializer").newInstance();
+            dataHandlerDeserializer = (JsonDeserializer<?>) Class.forName("org.codehaus.jackson.xc.DataHandlerJsonDeserializer").newInstance();
         } catch (Throwable e) {
             //dataHandlers not supported...
         }
