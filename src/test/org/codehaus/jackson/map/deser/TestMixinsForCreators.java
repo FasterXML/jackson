@@ -66,7 +66,8 @@ public class TestMixinsForCreators
         String _value;
         private StringWrapper(String s, boolean foo) { _value = s; }
 
-        private static StringWrapper create(String str) {
+        @SuppressWarnings("unused")
+		private static StringWrapper create(String str) {
             return new StringWrapper(str, false);
         }
     }

@@ -2,7 +2,6 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.*;
 
-import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
 public class TestJdkTypes

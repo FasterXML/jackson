@@ -27,10 +27,10 @@ public class TestParserClosing
         JsonFactory f = new JsonFactory();
 
         // Check the default settings
-        assertTrue(f.isParserFeatureEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+        assertTrue(f.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
         // then change
         f.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
-        assertFalse(f.isParserFeatureEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+        assertFalse(f.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
         MyReader input = new MyReader(DOC);
         JsonParser jp = f.createJsonParser(input);
 
@@ -54,7 +54,7 @@ public class TestParserClosing
 
         JsonFactory f = new JsonFactory();
         f.enable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
-        assertTrue(f.isParserFeatureEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+        assertTrue(f.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
         MyReader input = new MyReader(DOC);
         JsonParser jp = f.createJsonParser(input);
         assertFalse(input.isClosed());

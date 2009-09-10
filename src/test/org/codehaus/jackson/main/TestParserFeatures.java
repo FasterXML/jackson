@@ -1,7 +1,5 @@
 package org.codehaus.jackson.main;
 
-import java.io.*;
-
 import org.codehaus.jackson.*;
 
 /**
@@ -14,9 +12,9 @@ public class TestParserFeatures
     public void testDefaultSettings()
     {
         JsonFactory f = new JsonFactory();
-        assertTrue(f.isParserFeatureEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
-        assertFalse(f.isParserFeatureEnabled(JsonParser.Feature.ALLOW_COMMENTS));
-        assertFalse(f.isParserFeatureEnabled(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES));
+        assertTrue(f.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+        assertFalse(f.isEnabled(JsonParser.Feature.ALLOW_COMMENTS));
+        assertFalse(f.isEnabled(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES));
     }
 
     public void testQuotesRequired() throws Exception

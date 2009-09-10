@@ -135,11 +135,12 @@ public class TestJaxbAnnotationIntrospector
             public int foobar = 3;
     }
 
+    @SuppressWarnings("unused")
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class SimpleBean2 {
 
         protected String jaxb = "1";
-        private String jaxb2 = "2";
+		private String jaxb2 = "2";
         @XmlElement(name="jaxb3")
         private String oddName = "3";
 
