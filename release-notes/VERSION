@@ -17,6 +17,8 @@ Description:
 
   * [JACKSON-152] Add "ObjectMapper.writeValueAsString()" convenience
     method to simplify serializing JSON into String.
+  * [JACKSON-158] Bean serializer now checks for direct self-references
+    (partial, trivial cycle detection)
 
 ------------------------------------------------------------------------
 == History: ==

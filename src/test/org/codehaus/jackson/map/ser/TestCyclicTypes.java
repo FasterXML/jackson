@@ -23,7 +23,7 @@ public class TestCyclicTypes
 
     static class Bean
     {
-        final Bean _next;
+        Bean _next;
         final String _name;
 
         public Bean(Bean next, String name) {
@@ -33,6 +33,8 @@ public class TestCyclicTypes
 
         public Bean getNext() { return _next; }
         public String getName() { return _name; }
+
+        public void assignNext(Bean n) { _next = n; }
     }
 
     /*
@@ -41,7 +43,7 @@ public class TestCyclicTypes
     //////////////////////////////////////////////
      */
 
-	public void testLinked() throws Exception
+    public void testLinked() throws Exception
     {
         Bean last = new Bean(null, "last");
         Bean first = new Bean(last, "first");
@@ -56,5 +58,22 @@ public class TestCyclicTypes
         assertEquals(2, map2.size());
         assertEquals("last", map2.get("name"));
         assertNull(map2.get("next"));
+    }
+
+    /**
+     * Test for verifying that [JACKSON-158] works as expected
+     */
+    public void testSelfReference() throws Exception
+    {
+        Bean selfRef = new Bean(null, "self-refs");
+        Bean first = new Bean(selfRef, "first");
+        selfRef.assignNext(selfRef);
+        ObjectMapper m = new ObjectMapper();
+        Bean[] wrapper = new Bean[] { first };
+        try {
+            writeAndMap(m, wrapper);
+        } catch (JsonMappingException e) {
+            verifyException(e, "Direct self-reference leading to cycle");
+        }
     }
 }
