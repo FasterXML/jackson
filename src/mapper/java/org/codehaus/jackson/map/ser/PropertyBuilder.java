@@ -60,25 +60,7 @@ public class PropertyBuilder
                                             AnnotatedMethod am,
                                             boolean defaultUseStaticTyping)
     {
-        Class<?> serializationType = findSerializationType(am, defaultUseStaticTyping);
-
-        // and finally, there may be per-method overrides:
-        JsonSerialize.Inclusion methodProps = _annotationIntrospector.findSerializationInclusion(am, _outputProps);
-        Method m = am.getAnnotated();
-        if (methodProps != null) {
-            switch (methodProps) {
-            case NON_DEFAULT:
-                Object defValue = getDefaultValue(name, am, getDefaultBean());
-                if (defValue != null) {
-                    return new BeanPropertyWriter.NonDefaultMethod(name, ser, serializationType, m, defValue);
-                }
-                // but if it null for this property, fall through to second case:
-            case NON_NULL:
-                return new BeanPropertyWriter.NonNullMethod(name, ser, serializationType, m);
-            }
-        }
-        // Default case is to do no filtering:
-        return new BeanPropertyWriter.StdMethod(name, ser, serializationType, m);
+        return _buildProperty(name, ser, defaultUseStaticTyping, am, am.getAnnotated(), null);
     }
 
     /**
@@ -93,23 +75,34 @@ public class PropertyBuilder
                                             AnnotatedField af,
                                             boolean defaultUseStaticTyping)
     {
-        Class<?> serializationType = findSerializationType(af, defaultUseStaticTyping);
-        
-        // and finally, there may be per-method overrides:
-        JsonSerialize.Inclusion methodProps = _annotationIntrospector.findSerializationInclusion(af, _outputProps);
-        Field f = af.getAnnotated();
-        switch (methodProps) {
-        case NON_DEFAULT:
-            Object defValue = getDefaultValue(name, af, getDefaultBean());
-            if (defValue != null) {
-                return new BeanPropertyWriter.NonDefaultField(name, ser, serializationType, f, defValue);
+        return _buildProperty(name, ser, defaultUseStaticTyping, af, null, af.getAnnotated());
+    }
+
+    protected BeanPropertyWriter _buildProperty(String name, JsonSerializer<Object> ser,
+                                               boolean defaultUseStaticTyping,
+                                               Annotated a, Method m, Field f)
+    {
+        Class<?> serializationType = findSerializationType(a, defaultUseStaticTyping);
+
+        Object suppValue = null;
+        boolean suppressNulls = false;
+
+        JsonSerialize.Inclusion methodProps = _annotationIntrospector.findSerializationInclusion(a, _outputProps);
+
+        if (methodProps != null) {
+            switch (methodProps) {
+            case NON_DEFAULT:
+                suppValue = getDefaultValue(name, m, f);
+                if (suppValue == null) {
+                    suppressNulls = true;
+                }
+                break;
+            case NON_NULL:
+                suppressNulls = true;
+                break;
             }
-            // but if it null for this property, fall through to second case:
-        case NON_NULL:
-            return new BeanPropertyWriter.NonNullField(name, ser, serializationType, f);
         }
-        // Default case is to do no filtering:
-        return new BeanPropertyWriter.StdField(name, ser, serializationType, f);
+        return new BeanPropertyWriter(name, ser, serializationType, m, f, suppressNulls, suppValue);
     }
 
     /*
@@ -159,6 +152,19 @@ public class PropertyBuilder
         return _defaultBean;
     }
 
+    protected Object getDefaultValue(String name, Method m, Field f)
+    {
+        Object defaultBean = getDefaultBean();
+        try {
+            if (m != null) {
+                return m.invoke(defaultBean);
+            }
+            return f.get(defaultBean);
+        } catch (Exception e) {
+            return _throwWrapped(e, name, defaultBean);
+        }
+    }
+
     protected Object _throwWrapped(Exception e, String propName, Object defaultBean)
     {
         Throwable t = e;
@@ -168,37 +174,5 @@ public class PropertyBuilder
         if (t instanceof Error) throw (Error) t;
         if (t instanceof RuntimeException) throw (RuntimeException) t;
         throw new IllegalArgumentException("Failed to get property '"+propName+"' of default "+defaultBean.getClass().getName()+" instance");
-    }
-        
-    /*
-    //////////////////////////////////////////////////
-    // Helper methods, for method-backed properties
-    //////////////////////////////////////////////////
-     */
-
-    protected Object getDefaultValue(String name, AnnotatedMethod am, Object defaultBean)
-    {
-        Method m = am.getAnnotated();
-        try {
-            return m.invoke(defaultBean);
-        } catch (Exception e) {
-            return _throwWrapped(e, name, defaultBean);
-        }
-    }
-
-    /*
-    //////////////////////////////////////////////////
-    // Helper methods, field-backed properties
-    //////////////////////////////////////////////////
-     */
-
-    protected Object getDefaultValue(String name, AnnotatedField af, Object defaultBean)
-    {
-        Field f = af.getAnnotated();
-        try {
-            return f.get(defaultBean);
-        } catch (Exception e) {
-            return _throwWrapped(e, name, defaultBean);
-        }
     }
 }
