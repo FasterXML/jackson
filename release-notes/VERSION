@@ -20,6 +20,12 @@ Description:
   * [JACKSON-158] Bean serializer now checks for direct self-references
     (partial, trivial cycle detection)
 
+  New features:
+
+  * [JACKSON-154] Added JsonDeserialize.keyUsing and .contentUsing,
+    to allow for overriding key and content/value deserializers for
+    properties of structured (array, Collection, Map) types
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

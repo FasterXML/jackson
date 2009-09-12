@@ -3,6 +3,7 @@ package org.codehaus.jackson.xc;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
 
@@ -361,13 +362,13 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return null;
     }
 
-    public JsonDeserializer<?> findKeyDeserializer(Annotated am)
+    public Class<KeyDeserializer> findKeyDeserializer(Annotated am)
     {
         // Is there something like this in JAXB?
         return null;
     }
 
-    public JsonDeserializer<?> findContentDeserializer(Annotated am)
+    public Class<JsonDeserializer<?>> findContentDeserializer(Annotated am)
     {
         // Is there something like this in JAXB?
         return null;

@@ -6,6 +6,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -305,12 +306,12 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public Class<? extends JsonDeserializer<?>> findKeyDeserializer(Annotated a)
+    public Class<? extends KeyDeserializer> findKeyDeserializer(Annotated a)
     {
         JsonDeserialize ann = a.getAnnotation(JsonDeserialize.class);
         if (ann != null) {
-            Class<? extends JsonDeserializer<?>> deserClass = ann.keyUsing();
-            if (deserClass != JsonDeserializer.None.class) {
+            Class<? extends KeyDeserializer> deserClass = ann.keyUsing();
+            if (deserClass != KeyDeserializer.None.class) {
                 return deserClass;
             }
         }

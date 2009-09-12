@@ -70,6 +70,11 @@ public class TestAnnotationUsing
         public Map<String,Object> values;
     }
 
+    static class MapKeyBean {
+        @JsonDeserialize(keyUsing=MapKeyDeserializer.class)
+        public Map<Object,Object> values;
+    }
+
     /*
     //////////////////////////////////////////////
     // Deserializers
@@ -95,10 +100,18 @@ public class TestAnnotationUsing
         }
     }
 
+    private final static class MapKeyDeserializer extends KeyDeserializer
+    {
+        public Object deserializeKey(String key, DeserializationContext ctxt)
+        {
+            return new String[] { key };
+        }
+    }
+
     /*
-    //////////////////////////////////////////////
-    // Test methods
-    //////////////////////////////////////////////
+    /////////////////////////////////////////////////////////
+    // Tests: specifying deserializer of value itself
+    /////////////////////////////////////////////////////////
      */
 
     /**
@@ -127,6 +140,12 @@ public class TestAnnotationUsing
         assertEquals(1, ints.length);
         assertEquals(3, ints[0]);
     }
+
+    /*
+    /////////////////////////////////////////////////////////
+    // Tests: specifying deserializer for keys and/or contents
+    /////////////////////////////////////////////////////////
+     */
 
     public void testArrayContentUsing() throws Exception
     {
@@ -158,5 +177,32 @@ public class TestAnnotationUsing
         assertEquals(2, ((ValueClass) obs.get(1))._a);
         assertEquals(ValueClass.class, obs.get(2).getClass());
         assertEquals(3, ((ValueClass) obs.get(2))._a);
+    }
+
+    public void testMapContentUsing() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        MapBean result = m.readValue(" { \"values\" : { \"a\": 1, \"b\":2 } } ", MapBean.class);
+        assertNotNull(result);
+        Map<String,Object> map = result.values;
+        assertNotNull(map);
+        assertEquals(2, map.size());
+        assertEquals(ValueClass.class, map.get("a").getClass());
+        assertEquals(1, ((ValueClass) map.get("a"))._a);
+        assertEquals(ValueClass.class, map.get("b").getClass());
+        assertEquals(2, ((ValueClass) map.get("b"))._a);
+    }
+
+    public void testMapKeyUsing() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        MapKeyBean result = m.readValue(" { \"values\" : { \"a\": true } } ", MapKeyBean.class);
+        assertNotNull(result);
+        Map<Object,Object> map = result.values;
+        assertNotNull(map);
+        assertEquals(1, map.size());
+        Map.Entry<Object,Object> en = map.entrySet().iterator().next();
+        assertEquals(String[].class, en.getKey().getClass());
+        assertEquals(Boolean.TRUE, en.getValue());
     }
 }

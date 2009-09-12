@@ -48,38 +48,6 @@ public final class ArrayType
         return new ArrayType(componentType, emptyInstance);
     }                                   
 
-    /**
-     * Method that can be called to add known simple types into given
-     * class-to-type map.
-     */
-    protected static void addCommonTypes(Map<String, JavaType> types)
-    {
-        /**
-         * These are commonly seen simple array types, for which we'll just reuse
-         * flyweight eagerly constructed type instances. This to reduce
-         * memory usage a bit (for type-heavy systems) and maybe improve
-         * performance a bit too.
-         */
-        Class<?>[] classes = new Class<?>[] {
-            // First, primitive arrays
-            boolean.class, char.class,
-                byte.class, short.class, int.class, long.class,
-                float.class, double.class,
-                
-                // let's skip wrappers here (i.e. just construct as/if needed)
-                
-                // Then other basic types
-                
-                Object.class,
-                String.class,
-                };
-        for (Class<?> cls : classes) {
-            SimpleType compType = SimpleType.construct(cls, null);
-            ArrayType arrayType = construct(compType);
-            types.put(arrayType.getRawClass().getName(), arrayType);
-        }
-    }
-
     /*
     //////////////////////////////////////////////////////////
     // Methods for narrowing conversions

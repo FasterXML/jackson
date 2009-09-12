@@ -109,43 +109,48 @@ public abstract class BasicDeserializerFactory
      */
 
     @Override
-	public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p)
+    public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        // Ok; first: do we have a primitive type?
         JavaType elemType = type.getContentType();
-
-        // First, special type(s), such as "primitive" arrys (int[] etc)
-        JsonDeserializer<Object> deser = _arrayDeserializers.get(elemType);
-        if (deser != null) {
-            return deser;
+        // Very first thing: is deserializer hard-coded for elements?
+        @SuppressWarnings("unchecked")
+        JsonDeserializer<Object> contentDeser = (JsonDeserializer<Object>) elemType.getHandler();
+        if (contentDeser == null) {
+            // Maybe special array type, such as "primitive" arrays (int[] etc)
+            JsonDeserializer<Object> deser = _arrayDeserializers.get(elemType);
+            if (deser != null) {
+                return deser;
+            }
+            // If not, generic one:
+            if (elemType.isPrimitive()) { // sanity check
+                throw new IllegalArgumentException("Internal error: primitive type ("+type+") passed, no array deserializer found");
+            }
+            // 'null' -> arrays have no referring fields
+            contentDeser = p.findValueDeserializer(config, elemType, type, null);
         }
-
-        // If not, generic one:
-        if (elemType.isPrimitive()) { // sanity check
-            throw new IllegalArgumentException("Internal error: primitive type ("+type+") passed, no array deserializer found");
-        }
-        // 'null' -> arrays have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(config, elemType, type, null);
-        return new ArrayDeserializer(type, valueDes);
+        return new ArrayDeserializer(type, contentDeser);
     }
 
     @Override
     public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        JavaType contentType = type.getContentType();
-
         Class<?> collectionClass = type.getRawClass();
+        JavaType contentType = type.getContentType();
+        // Very first thing: is deserializer hard-coded for elements?
+        @SuppressWarnings("unchecked")
+        JsonDeserializer<Object> contentDeser = (JsonDeserializer<Object>) contentType.getHandler();
 
-        // One special type: EnumSet:
-        if (EnumSet.class.isAssignableFrom(collectionClass)) {
-            return new EnumSetDeserializer(EnumResolver.constructFor(contentType.getRawClass(), config.getAnnotationIntrospector()));
+        if (contentDeser == null) { // not defined by annotation
+            // One special type: EnumSet:
+            if (EnumSet.class.isAssignableFrom(collectionClass)) {
+                return new EnumSetDeserializer(EnumResolver.constructFor(contentType.getRawClass(), config.getAnnotationIntrospector()));
+            }
+            // But otherwise we can just use a generic value deserializer:
+            // 'null' -> collections have no referring fields
+            contentDeser = p.findValueDeserializer(config, contentType, type, null);
         }
-
-        // But otherwise we can just use a generic value deserializer:
-        // 'null' -> collections have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(config, contentType, type, null);
 
         /* One twist: if we are being asked to instantiate an interface or
          * abstract Collection, we need to either find something that implements
@@ -164,7 +169,7 @@ public abstract class BasicDeserializerFactory
             }
             collectionClass = fallback;
         }
-        return new CollectionDeserializer(collectionClass, valueDes);
+        return new CollectionDeserializer(collectionClass, contentDeser);
     }
 
     @Override
@@ -172,21 +177,31 @@ public abstract class BasicDeserializerFactory
         throws JsonMappingException
     {
         JavaType keyType = type.getKeyType();
-        // Value handling is identical for all, so:
         JavaType contentType = type.getContentType();
-        // 'null' -> maps have no referring fields
-        JsonDeserializer<Object> valueDes = p.findValueDeserializer(config, contentType, type, null);
 
+        // First: is there annotation-specified deserializer for values?
+        @SuppressWarnings("unchecked")
+        JsonDeserializer<Object> contentDeser = (JsonDeserializer<Object>) contentType.getHandler();
+        if (contentDeser == null) { // nope...
+            contentDeser = p.findValueDeserializer(config, contentType, type, null);
+        }
+
+        // Value handling is identical for all, so:
+        // 'null' -> maps have no referring fields
         Class<?> mapClass = type.getRawClass();
         // But EnumMap requires special handling for keys
         if (EnumMap.class.isAssignableFrom(mapClass)) {
-            return new EnumMapDeserializer(EnumResolver.constructFor(keyType.getRawClass(), config.getAnnotationIntrospector()), valueDes);
+            return new EnumMapDeserializer(EnumResolver.constructFor(keyType.getRawClass(), config.getAnnotationIntrospector()), contentDeser);
         }
 
         /* Otherwise, generic handler works ok; need a key deserializer (null
          * indicates 'default' here)
          */
-        KeyDeserializer keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(config, keyType);
+        @SuppressWarnings("unchecked")
+        KeyDeserializer keyDes = (KeyDeserializer) keyType.getHandler();
+        if (keyDes == null) {
+            keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(config, keyType);
+        }
 
         /* But there is one more twist: if we are being asked to instantiate
          * an interface or abstract Map, we need to either find something
@@ -205,7 +220,7 @@ public abstract class BasicDeserializerFactory
             }
             mapClass = fallback;
         }
-        return new MapDeserializer(mapClass, keyDes, valueDes);
+        return new MapDeserializer(mapClass, keyDes, contentDeser);
     }
 
     /**
@@ -253,61 +268,32 @@ public abstract class BasicDeserializerFactory
      * has annotation that tells which class to use for deserialization.
      * Returns null if no such annotation found.
      */
-    @SuppressWarnings("unchecked")
     protected JsonDeserializer<Object> findDeserializerFromAnnotation(DeserializationConfig config, Annotated a)
     {
         Object deserDef = config.getAnnotationIntrospector().findDeserializer(a);
         if (deserDef != null) {
-            if (deserDef instanceof JsonDeserializer) {
-                return (JsonDeserializer<Object>) deserDef;
-            }
-            /* Alas, there's no way to force return type of "either class
-             * X or Y" -- need to throw an exception after the fact
-             */
-            if (!(deserDef instanceof Class)) {
-                throw new IllegalStateException("AnnotationIntrospector returned value of type "+deserDef.getClass().getName()+"; expected type JsonDeserializer or Class<JsonDeserializer> instead");
-            }
-            Class<?> cls = (Class<?>) deserDef;
-            if (!JsonDeserializer.class.isAssignableFrom(cls)) {
-                throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
-            }
-            return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+            return _constructDeserializer(config, deserDef);
         }
         return null;
     }
 
     @SuppressWarnings("unchecked")
-    protected JsonDeserializer<Object> findKeyDeserializerFromAnnotation(DeserializationConfig config, Annotated a)
+    JsonDeserializer<Object> _constructDeserializer(DeserializationConfig config, Object deserDef)
     {
-        Object deserDef = config.getAnnotationIntrospector().findKeyDeserializer(a);
-        if (deserDef != null) {
-            if (deserDef instanceof JsonDeserializer) {
-                return (JsonDeserializer<Object>) deserDef;
-            }
-            Class<?> cls = (Class<?>) deserDef;
-            if (!JsonDeserializer.class.isAssignableFrom(cls)) {
-                throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
-            }
-            return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        if (deserDef instanceof JsonDeserializer) {
+            return (JsonDeserializer<Object>) deserDef;
         }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected JsonDeserializer<Object> findContentDeserializerFromAnnotation(DeserializationConfig config, Annotated a)
-    {
-        Object deserDef = config.getAnnotationIntrospector().findContentDeserializer(a);
-        if (deserDef != null) {
-            if (deserDef instanceof JsonDeserializer) {
-                return (JsonDeserializer<Object>) deserDef;
-            }
-            Class<?> cls = (Class<?>) deserDef;
-            if (!JsonDeserializer.class.isAssignableFrom(cls)) {
-                throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
-            }
-            return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        /* Alas, there's no way to force return type of "either class
+         * X or Y" -- need to throw an exception after the fact
+         */
+        if (!(deserDef instanceof Class)) {
+            throw new IllegalStateException("AnnotationIntrospector returned deserializer definition of type "+deserDef.getClass().getName()+"; expected type JsonDeserializer or Class<JsonDeserializer> instead");
         }
-        return null;
+        Class<?> cls = (Class<?>) deserDef;
+        if (!JsonDeserializer.class.isAssignableFrom(cls)) {
+            throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
+        }
+        return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
     }
 
     /**
@@ -342,29 +328,28 @@ public abstract class BasicDeserializerFactory
         }
 
         // then key class
-        Class<?> keyClass = intr.findDeserializationKeyType(a);
-        if (keyClass != null) {
-            // illegal to use on non-Maps
-            if (!(type instanceof MapType)) {
-                throw new JsonMappingException("Illegal key-type annotation: type "+type+" is not a Map type");
+        if (type.isContainerType()) {
+            Class<?> keyClass = intr.findDeserializationKeyType(a);
+            if (keyClass != null) {
+                // illegal to use on non-Maps
+                if (!(type instanceof MapType)) {
+                    throw new JsonMappingException("Illegal key-type annotation: type "+type+" is not a Map type");
+                }
+                try {
+                    type = ((MapType) type).narrowKey(keyClass);
+                } catch (IllegalArgumentException iae) {
+                    throw new JsonMappingException("Failed to narrow key type "+type+" with key-type annotation ("+keyClass.getName()+"): "+iae.getMessage(), null, iae);
+                }
             }
-            try {
-                type = ((MapType) type).narrowKey(keyClass);
-            } catch (IllegalArgumentException iae) {
-                throw new JsonMappingException("Failed to narrow key type "+type+" with key-type annotation ("+keyClass.getName()+"): "+iae.getMessage(), null, iae);
-            }
-        }
-
-        // and finally content class; only applicable to structured types
-        Class<?> cc = intr.findDeserializationContentType(a);
-        if (cc != null) {
-            if (!type.isContainerType()) {
-                throw new JsonMappingException("Illegal content-type annotation on "+a.getName()+"; can only be used for container types (Collections, Maps, arrays");
-            }
-            try {
-                type = type.narrowContentsBy(cc);
-            } catch (IllegalArgumentException iae) {
-                throw new JsonMappingException("Failed to narrow content type "+type+" with content-type annotation ("+cc.getName()+"): "+iae.getMessage(), null, iae);
+            
+            // and finally content class; only applicable to structured types
+            Class<?> cc = intr.findDeserializationContentType(a);
+            if (cc != null) {
+                try {
+                    type = type.narrowContentsBy(cc);
+                } catch (IllegalArgumentException iae) {
+                    throw new JsonMappingException("Failed to narrow content type "+type+" with content-type annotation ("+cc.getName()+"): "+iae.getMessage(), null, iae);
+                }
             }
         }
         return type;

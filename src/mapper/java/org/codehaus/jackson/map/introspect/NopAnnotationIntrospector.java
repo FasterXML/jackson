@@ -2,6 +2,8 @@ package org.codehaus.jackson.map.introspect;
 
 import java.lang.annotation.Annotation;
 
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Typing;
@@ -55,10 +57,10 @@ public class NopAnnotationIntrospector
     public Object findDeserializer(Annotated am) { return null; }
 
     @Override
-    public Object findKeyDeserializer(Annotated am) { return null; }
+    public Class<KeyDeserializer> findKeyDeserializer(Annotated am) { return null; }
 
     @Override
-    public Object findContentDeserializer(Annotated am) { return null; }
+    public Class<JsonDeserializer<?>> findContentDeserializer(Annotated am) { return null; }
 
     @Override
     public String findEnumValue(Enum<?> value) {

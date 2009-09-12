@@ -220,10 +220,10 @@ public final class ClassUtil
      *    except for cases where constructor throws an unchecked exception
      *    (which will be passed as is)
      */
-    public static Object createInstance(Class<?> cls, boolean canFixAccess)
+    public static <T> T createInstance(Class<T> cls, boolean canFixAccess)
         throws IllegalArgumentException
     {
-        Constructor<?> ctor = null;
+        Constructor<T> ctor = null;
         try {
             ctor = cls.getDeclaredConstructor();
         } catch (Exception e) {

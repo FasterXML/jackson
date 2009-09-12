@@ -83,8 +83,6 @@ public abstract class JsonDeserializer<T>
      * Expectation is that no class outside of Jackson mapper
      * has used this facility.
      *
-     * @since 0.9.9-4
-     *
      * @deprecated Should be implemented using
      *   {@link org.codehaus.jackson.map.annotate.JsonCachable} instead
      */

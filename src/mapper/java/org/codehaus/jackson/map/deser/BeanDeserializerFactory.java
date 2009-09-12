@@ -475,7 +475,7 @@ public class BeanDeserializerFactory
         }
 
         // note: this works since we know there's exactly one arg for methods
-        JavaType type = resolveType(beanDesc, setter.getParameterType(0));
+        JavaType type = resolveType(config, beanDesc, setter.getParameterType(0), setter);
         
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
@@ -505,7 +505,7 @@ public class BeanDeserializerFactory
         if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
             field.fixAccess();
         }
-        JavaType type = resolveType(beanDesc, field.getGenericType());
+        JavaType type = resolveType(config, beanDesc, field.getGenericType(), field);
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */
@@ -572,7 +572,7 @@ public class BeanDeserializerFactory
                                                             AnnotatedParameter param)
         throws JsonMappingException
     {
-        JavaType type = resolveType(beanDesc, param.getParameterType());
+        JavaType type = resolveType(config, beanDesc, param.getParameterType(), param);
         // Is there an annotation that specifies exact deserializer?
         JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, param);
         // If yes, we are mostly done:
@@ -623,9 +623,35 @@ public class BeanDeserializerFactory
      * have type variable binding information (when deserializing
      * using generic type passed as type reference), which is
      * needed in some cases.
+     *<p>
+     * Starting with version 1.3, this method will also instances
+     * of key and content deserializers if defined by annotations.
      */
-    protected JavaType resolveType(BasicBeanDescription beanDesc, Type type)
+    protected JavaType resolveType(DeserializationConfig config,
+                                   BasicBeanDescription beanDesc, Type rawType,
+                                   Annotated a)
     {
-        return TypeFactory.fromType(type, beanDesc.getType());
+        JavaType type = TypeFactory.fromType(rawType, beanDesc.getType());
+        // [JACKSON-154]: Also need to handle keyUsing, contentUsing
+        if (type.isContainerType()) {
+            AnnotationIntrospector intr = config.getAnnotationIntrospector();
+            boolean canForceAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+            JavaType keyType = type.getKeyType();
+            if (keyType != null) {
+                Class<? extends KeyDeserializer> kdClass = intr.findKeyDeserializer(a);
+                if (kdClass != null && kdClass != KeyDeserializer.None.class) {
+                    KeyDeserializer kd = ClassUtil.createInstance(kdClass, canForceAccess);
+                    keyType.setHandler(kd);
+                }
+            }
+            // and all container types have content types...
+            Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(a);
+            if (cdClass != null && cdClass != JsonDeserializer.None.class) {
+                @SuppressWarnings("unchecked")
+                JsonDeserializer<?> cd = ClassUtil.createInstance(cdClass, canForceAccess);
+                type.getContentType().setHandler(cd);
+            }
+        }
+        return type;
     }
 }

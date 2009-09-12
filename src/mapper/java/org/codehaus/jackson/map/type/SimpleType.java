@@ -39,7 +39,7 @@ public final class SimpleType
 
     private SimpleType(Class<?> cls) { this(cls, null); }
 
-    private SimpleType(Class<?> cls, Map<String,JavaType> typeParams)
+    protected SimpleType(Class<?> cls, Map<String,JavaType> typeParams)
     {
         super(cls);
         _typeParameters = typeParams;
@@ -72,46 +72,6 @@ public final class SimpleType
             throw new IllegalArgumentException("Can not construct SimpleType for an array (class: "+cls.getName()+")");
         }
         return new SimpleType(cls, typeParams);
-    }
-
-    /**
-     * Method that can be called to add known simple types into given
-     * class-to-type map.
-     */
-    protected static void addCommonTypes(Map<String, JavaType> types)
-    {
-        /**
-         * These are commonly seen types, for which we'll just reuse
-         * flyweight eagerly constructed type instances. This to reduce
-         * memory usage a bit (for type-heavy systems) and maybe improve
-         * performance a bit too.
-         */
-        final Class<?>[] classes = new Class<?>[] {
-            // First, primitives
-            boolean.class, char.class,
-                byte.class, short.class, int.class, long.class,
-                float.class, double.class,
-                
-                // Then wrappers for same:
-                Boolean.class, Character.class,
-                Byte.class, Short.class, Integer.class, Long.class,
-                Float.class, Double.class,
-                
-                // Then other common simple (and importantly, final) types:
-                
-                /* We do actually allow mapping to Object; what this means
-                 * is to use whatever is the "natural" Object type for
-                 * Json content entry (String for textual values, Boolean
-                 * for bools, Integer for int values that fit 32-bit int,
-                 * Map for Json objects, List for Json arrays).
-                 */
-                Object.class,
-                
-                String.class,
-                };
-        for (Class<?> cls : classes) {
-            types.put(cls.getName(), new SimpleType(cls));
-        }
     }
 
     /*

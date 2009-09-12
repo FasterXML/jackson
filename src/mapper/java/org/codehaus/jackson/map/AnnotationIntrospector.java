@@ -229,7 +229,8 @@ public abstract class AnnotationIntrospector
 
     /**
      * Method for getting a deserializer definition on specified method
-     * or field. Type of definition is either instance (of type
+     * or field.
+     * Type of definition is either instance (of type
      * {@link JsonDeserializer}) or Class (of type
      * <code>Class<JsonDeserializer></code>); if value of different
      * type is returned, a runtime exception may be thrown by caller.
@@ -237,14 +238,29 @@ public abstract class AnnotationIntrospector
     public abstract Object findDeserializer(Annotated am);
 
     /**
+     * Method for getting a deserializer definition for keys of
+     * associated <code>Map</code> property.
+     * Type of definition is either instance (of type
+     * {@link JsonDeserializer}) or Class (of type
+     * <code>Class<JsonDeserializer></code>); if value of different
+     * type is returned, a runtime exception may be thrown by caller.
+     * 
      * @since 1.3
      */
-    public abstract Object findKeyDeserializer(Annotated am);
+    public abstract Class<? extends KeyDeserializer> findKeyDeserializer(Annotated am);
 
     /**
+     * Method for getting a deserializer definition for content (values) of
+     * associated <code>Collection</code>, <code>array</code> or
+     * <code>Map</code> property.
+     * Type of definition is either instance (of type
+     * {@link JsonDeserializer}) or Class (of type
+     * <code>Class<JsonDeserializer></code>); if value of different
+     * type is returned, a runtime exception may be thrown by caller.
+     * 
      * @since 1.3
      */
-    public abstract Object findContentDeserializer(Annotated am);
+    public abstract Class<? extends JsonDeserializer<?>> findContentDeserializer(Annotated am);
 
     /**
      * Method for accessing annotated type definition that a
@@ -596,20 +612,20 @@ public abstract class AnnotationIntrospector
         }
 
         @Override
-        public Object findKeyDeserializer(Annotated am)
+        public Class<? extends KeyDeserializer> findKeyDeserializer(Annotated am)
         {
-            Object result = _primary.findKeyDeserializer(am);
-            if (result == null) {
+            Class<? extends KeyDeserializer> result = _primary.findKeyDeserializer(am);
+            if (result == null || result == KeyDeserializer.None.class) {
                 result = _secondary.findKeyDeserializer(am);
             }
             return result;
         }
 
         @Override
-        public Object findContentDeserializer(Annotated am)
+        public Class<? extends JsonDeserializer<?>> findContentDeserializer(Annotated am)
         {
-            Object result = _primary.findContentDeserializer(am);
-            if (result == null) {
+            Class<? extends JsonDeserializer<?>> result = _primary.findContentDeserializer(am);
+            if (result == null || result == JsonDeserializer.None.class) {
                 result = _secondary.findContentDeserializer(am);
             }
             return result;

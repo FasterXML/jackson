@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 import org.codehaus.jackson.annotate.JacksonAnnotation;
 import org.codehaus.jackson.annotate.NoClass;
 import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.KeyDeserializer;
 
 /**
  * Annotation use for configuring deserialization aspects, by attaching
@@ -66,8 +67,8 @@ public @interface JsonDeserialize
      *
      * @since 1.3
      */
-    public Class<? extends JsonDeserializer<?>> keyUsing()
-        default JsonDeserializer.None.class;
+    public Class<? extends KeyDeserializer> keyUsing()
+        default KeyDeserializer.None.class;
 
     // // // Annotations for explicitly specifying deserialization type
     // // // (which is used for choosing deserializer, if not explicitly

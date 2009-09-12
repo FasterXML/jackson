@@ -14,39 +14,13 @@ public class TypeFactory
 {
     public final static TypeFactory instance = new TypeFactory();
 
-    /**
-     * To optimize a common use case, we will use a lookup cache to
-     * map straight from raw (type erased) Class instances to
-     * matching types, for common simple classes. Not that this
-     * lookup Map <b>must not</b> contain anything that could
-     * accidentally mask real typed information; specifically,
-     * no Map or Collection types are allowed to be added, and
-     * similarly only those Array typed where element type
-     * can not be a parameterized type.
-     * Also: only those classes that are always loaded by the
-     * bootstrap class loader (i.e. JDK core classes) can
-     * be mapped this way, since we do not include class loader
-     * information.
-     */
-    protected final HashMap<String, JavaType> _commonTypeCache;
-
     /*
     //////////////////////////////////////////////////
     // Life-cycle
     //////////////////////////////////////////////////
      */
 
-    protected TypeFactory()
-    {
-        _commonTypeCache = new HashMap<String, JavaType>();
-        SimpleType.addCommonTypes(_commonTypeCache);
-        ArrayType.addCommonTypes(_commonTypeCache);
-        /* As mentioned above, no Map/Collection types
-         * should be cached, since proper instances will
-         * depend not only on raw type of container class
-         * itself, but also member types.
-         */
-    }
+    private TypeFactory() { }
 
     /*
     //////////////////////////////////////////////////
@@ -111,14 +85,7 @@ public class TypeFactory
      */
     protected JavaType _fromClass(Class<?> clz, Map<String,JavaType> genericParams)
     {
-        // First things first: we may be able to find it from cache
-        String clzName = clz.getName();
-        JavaType type = _commonTypeCache.get(clzName);
-        if (type != null) {
-            return type;
-        }
-
-        // Ok, not a known type. So is it an array?
+        // First: do we have an array type?
         if (clz.isArray()) {
             return ArrayType.construct(fromClass(clz.getComponentType()));
         }
@@ -136,11 +103,10 @@ public class TypeFactory
             JavaType unknownType = fromClass(Object.class);
             return CollectionType.untyped(clz, unknownType);
         }
-        /* Otherwise, it's consider it a Bean; and due to type
+        /* Otherwise, consider it a Bean; and due to type
          * erasure it must be simple (no generics available)
          */
-
-        return SimpleType.construct(clz, genericParams);
+        return new SimpleType(clz, genericParams);
     }
 
     /**
