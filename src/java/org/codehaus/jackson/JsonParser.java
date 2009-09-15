@@ -84,6 +84,28 @@ public abstract class JsonParser
          * @since 1.2
          */
         ,ALLOW_UNQUOTED_FIELD_NAMES(false)
+
+            // 14-Sep-2009, Tatu: This would be [JACKSON-142] implementation:
+        /*
+         * Feature that allows parser to recognize set of
+         * "Not-a-Number" (NaN) tokens as legal floating number
+         * values (similar to how many other data formats and
+         * programming language source code allows it).
+         * Specific subset contains values that
+         * <a href="http://www.w3.org/TR/xmlschema-2/">XML Schema</a>
+         * (see section 3.2.4.1, Lexical Representation)
+         * allows (tokens are quoted contents, not including quotes):
+         *<ul>
+         *  <li>"INF" (for positive infinity)
+         *  <li>"-INF" (for negative infinity)
+         *  <li>"NaN" (for other not-a-numbers, like result of division by zero)
+         *</ul>
+         *
+         * @since 1.3
+
+         ,ALLOW_NON_NUMERIC_NUMBERS(false)
+         */
+
             ;
 
         final boolean _defaultState;
