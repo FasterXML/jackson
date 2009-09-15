@@ -406,7 +406,7 @@ public class BeanDeserializer
         throws IOException, JsonProcessingException
     { 
         final PropertyBasedCreator creator = _propertyBasedCreator;
-        PropertyBuffer buffer = creator.startBuilding(jp, ctxt);
+        PropertyValueBuffer buffer = creator.startBuilding(jp, ctxt);
 
         while (true) {
             // end of JSON object?
@@ -872,12 +872,12 @@ public class BeanDeserializer
         /**
          * Method called when starting to build a bean instance.
          */
-        public PropertyBuffer startBuilding(JsonParser jp, DeserializationContext ctxt)
+        public PropertyValueBuffer startBuilding(JsonParser jp, DeserializationContext ctxt)
         {
-            return new PropertyBuffer(jp, ctxt, _properties.size());
+            return new PropertyValueBuffer(jp, ctxt, _properties.size());
         }
 
-        public Object build(PropertyBuffer buffer)
+        public Object build(PropertyValueBuffer buffer)
             throws IOException, JsonProcessingException
         {
             Object bean;
@@ -892,137 +892,10 @@ public class BeanDeserializer
                 return null; // never gets here
             }
             // Anything buffered?
-            for (PropValue pv = buffer.buffered(); pv != null; pv = pv.next) {
+            for (PropertyValue pv = buffer.buffered(); pv != null; pv = pv.next) {
                 pv.assign(bean);
             }
             return bean;
-        }
-    }
-
-    /*
-    /////////////////////////////////////////////////////////
-    // Helper classes: builder used with property-based Creator
-    /////////////////////////////////////////////////////////
-     */
-
-    /**
-     * Stateful object used to store state during construction
-     * of beans that use Creators, and hence need buffering
-     * before instance is constructed.
-     */
-    final static class PropertyBuffer
-    {
-        final JsonParser _parser;
-        final DeserializationContext _context;
-
-        /**
-         * Buffer for storing creator parameters before constructing
-         * instance
-         */
-        final Object[] _creatorParameters;
-
-        /**
-         * Number of creator parameters we are still missing.
-         *<p>
-         * NOTE: assumes there are no duplicates, for now.
-         */
-        private int _paramsNeeded;
-
-        /**
-         * If we get non-creator parameters before or between
-         * creator parameters, those need to be buffered. Buffer
-         * is just a simple linked list
-         */
-        private PropValue _buffered;
-
-        public PropertyBuffer(JsonParser jp, DeserializationContext ctxt,
-                              int paramCount)
-        {
-            _parser = jp;
-            _context = ctxt;
-            _paramsNeeded = paramCount;
-            _creatorParameters = new Object[paramCount];
-        }
-
-        protected final Object[] getParameters() { return _creatorParameters; }
-        protected PropValue buffered() { return _buffered; }
-
-        /**
-         * @return True if we have received all creator parameters
-         */
-        public boolean assignParameter(int index, Object value) {
-            _creatorParameters[index] = value;
-            return --_paramsNeeded <= 0;
-        }
-
-        public void bufferProperty(SettableBeanProperty prop, Object value) {
-            _buffered = new RegularPropValue(_buffered, value, prop);
-        }
-
-        public void bufferAnyProperty(SettableAnyProperty prop, String propName, Object value) {
-            _buffered = new AnyPropValue(_buffered, value, prop, propName);
-        }
-    }
-
-    /*
-    /////////////////////////////////////////////////////
-    // Helper classes for buffering property values
-    /////////////////////////////////////////////////////
-    */
-
-    abstract static class PropValue
-    {
-        public final PropValue next;
-        public final Object value;
-        
-        protected PropValue(PropValue next, Object value)
-        {
-            this.next = next;
-            this.value = value;
-        }
-
-        public abstract void assign(Object bean)
-            throws IOException, JsonProcessingException;
-    }
-    
-    final static class RegularPropValue
-        extends PropValue
-    {
-        final SettableBeanProperty _property;
-        
-        public RegularPropValue(PropValue next, Object value,
-                                SettableBeanProperty prop)
-        {
-            super(next, value);
-            _property = prop;
-        }
-
-        public void assign(Object bean)
-            throws IOException, JsonProcessingException
-        {
-            _property.set(bean, value);
-        }
-    }
-    
-    final static class AnyPropValue
-        extends PropValue
-    {
-        final SettableAnyProperty _property;
-        final String _propertyName;
-        
-        public AnyPropValue(PropValue next, Object value,
-                            SettableAnyProperty prop,
-                            String propName)
-        {
-            super(next, value);
-            _property = prop;
-            _propertyName = propName;
-        }
-
-        public void assign(Object bean)
-            throws IOException, JsonProcessingException
-        {
-            _property.set(bean, _propertyName, value);
         }
     }
 }
