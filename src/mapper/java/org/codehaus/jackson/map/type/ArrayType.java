@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.type;
 
 import java.lang.reflect.Array;
-import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
 

@@ -14,9 +14,6 @@ public final class EnumResolver<T extends Enum<T>>
 
     protected final T[] _enums;
 
-    /**
-     *
-     */
     protected final HashMap<String, T> _enumsById;
 
     private EnumResolver(Class<T> enumClass, T[] enums, HashMap<String, T> map)
@@ -26,9 +23,9 @@ public final class EnumResolver<T extends Enum<T>>
         _enumsById = map;
     }
 
-    public static <ET extends Enum<ET>> EnumResolver constructFor(Class<ET> enumCls, AnnotationIntrospector ai)
+    public static <ET extends Enum<ET>> EnumResolver<ET> constructFor(Class<ET> enumCls, AnnotationIntrospector ai)
     {
-        T[] enumValues = enumCls.getEnumConstants();
+        ET[] enumValues = enumCls.getEnumConstants();
         HashMap<String, ET> map = new HashMap<String, ET>();
         for (ET e : enumValues) {
             map.put(ai.findEnumValue(e), e);
@@ -36,6 +33,20 @@ public final class EnumResolver<T extends Enum<T>>
         return new EnumResolver<ET>(enumCls, enumValues, map);
     }
 
+    /**
+     * This method is needed because of the dynamic nature of constructing Enum
+     * resolvers.
+     */
+    @SuppressWarnings("unchecked")
+    public static EnumResolver<?> constructUnsafe(Class<?> rawEnumCls, AnnotationIntrospector ai)
+    {            
+        /* This is oh so wrong... but at least ugliness is mostly hidden in just
+         * this one place.
+         */
+        Class<Enum> enumCls = (Class<Enum>) rawEnumCls;
+        return constructFor(enumCls, ai);
+    }
+    
     public T findEnum(String key)
     {
         return _enumsById.get(key);

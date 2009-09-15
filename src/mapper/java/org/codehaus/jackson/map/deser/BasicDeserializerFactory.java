@@ -145,7 +145,7 @@ public abstract class BasicDeserializerFactory
         if (contentDeser == null) { // not defined by annotation
             // One special type: EnumSet:
             if (EnumSet.class.isAssignableFrom(collectionClass)) {
-                return new EnumSetDeserializer(EnumResolver.constructFor(contentType.getRawClass(), config.getAnnotationIntrospector()));
+                return new EnumSetDeserializer(EnumResolver.constructUnsafe(contentType.getRawClass(), config.getAnnotationIntrospector()));
             }
             // But otherwise we can just use a generic value deserializer:
             // 'null' -> collections have no referring fields
@@ -191,13 +191,12 @@ public abstract class BasicDeserializerFactory
         Class<?> mapClass = type.getRawClass();
         // But EnumMap requires special handling for keys
         if (EnumMap.class.isAssignableFrom(mapClass)) {
-            return new EnumMapDeserializer(EnumResolver.constructFor(keyType.getRawClass(), config.getAnnotationIntrospector()), contentDeser);
+            return new EnumMapDeserializer(EnumResolver.constructUnsafe(keyType.getRawClass(), config.getAnnotationIntrospector()), contentDeser);
         }
 
         /* Otherwise, generic handler works ok; need a key deserializer (null
          * indicates 'default' here)
          */
-        @SuppressWarnings("unchecked")
         KeyDeserializer keyDes = (KeyDeserializer) keyType.getHandler();
         if (keyDes == null) {
             keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(config, keyType);
@@ -239,7 +238,7 @@ public abstract class BasicDeserializerFactory
         if (des != null) {
             return des;
         }
-        JsonDeserializer<?> d2 = new EnumDeserializer(EnumResolver.constructFor(enumClass, config.getAnnotationIntrospector()));
+        JsonDeserializer<?> d2 = new EnumDeserializer(EnumResolver.constructUnsafe(enumClass, config.getAnnotationIntrospector()));
         return (JsonDeserializer<Object>) d2;
     }
 

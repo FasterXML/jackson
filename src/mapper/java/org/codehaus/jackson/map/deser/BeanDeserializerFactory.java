@@ -647,7 +647,6 @@ public class BeanDeserializerFactory
             // and all container types have content types...
             Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(a);
             if (cdClass != null && cdClass != JsonDeserializer.None.class) {
-                @SuppressWarnings("unchecked")
                 JsonDeserializer<?> cd = ClassUtil.createInstance(cdClass, canForceAccess);
                 type.getContentType().setHandler(cd);
             }

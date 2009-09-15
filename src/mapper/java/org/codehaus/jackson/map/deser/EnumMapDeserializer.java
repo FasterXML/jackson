@@ -20,11 +20,11 @@ import org.codehaus.jackson.map.DeserializationContext;
 public final class EnumMapDeserializer
     extends StdDeserializer<EnumMap<?,?>>
 {
-    final EnumResolver _enumResolver;
+    final EnumResolver<?> _enumResolver;
 
     final JsonDeserializer<Object> _valueDeserializer;
 
-    public EnumMapDeserializer(EnumResolver enumRes, JsonDeserializer<Object> valueDes)
+    public EnumMapDeserializer(EnumResolver<?> enumRes, JsonDeserializer<Object> valueDes)
     {
         super(EnumMap.class);
         _enumResolver = enumRes;
@@ -60,9 +60,9 @@ public final class EnumMapDeserializer
     }
 
     @SuppressWarnings("unchecked") 
-    private EnumMap constructMap()
+    private EnumMap<?,?> constructMap()
     {
-        Class<Enum<?>> enumCls = _enumResolver.getEnumClass();
+        Class<? extends Enum<?>> enumCls = _enumResolver.getEnumClass();
     	return new EnumMap(enumCls);
     }
 }

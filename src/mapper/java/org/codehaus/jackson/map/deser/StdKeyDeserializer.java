@@ -186,9 +186,9 @@ public abstract class StdKeyDeserializer
 
     final static class EnumKD extends StdKeyDeserializer
     {
-        final EnumResolver _resolver;
+        final EnumResolver<?> _resolver;
 
-        EnumKD(EnumResolver er)
+        EnumKD(EnumResolver<?> er)
         {
             super(er.getEnumClass());
             _resolver = er;

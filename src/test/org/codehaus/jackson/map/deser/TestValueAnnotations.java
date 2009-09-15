@@ -269,23 +269,6 @@ public class TestValueAnnotations
         assertEquals("abc", ((StringWrapper) value)._string);
     }
 
-    /**
-     * This test checks that @JsonDeserialize#contentAs is not used
-     * for non-container
-     * types; those make no sense, and can be detected easily.
-     */
-    public void testContentClassValid() throws Exception
-    {
-        // should fail due to incompatible Annotation
-        try {
-            InvalidContentClass result = new ObjectMapper().readValue
-                ("{ \"value\" : \"x\" }", InvalidContentClass.class);
-            fail("Expected a failure, but got results: "+result);
-        } catch (JsonMappingException jme) {
-            verifyException(jme, "Illegal content-type annotation");
-        }
-    }
-
     public void testOverrideArrayContents() throws Exception
     {
         ObjectMapper m = new ObjectMapper();

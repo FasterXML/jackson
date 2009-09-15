@@ -20,9 +20,9 @@ import org.codehaus.jackson.map.annotate.JsonCachable;
 public class EnumDeserializer
     extends StdDeserializer<Enum<?>>
 {
-    final EnumResolver _resolver;
+    final EnumResolver<?> _resolver;
     
-    public EnumDeserializer(EnumResolver res)
+    public EnumDeserializer(EnumResolver<?> res)
     {
         super(Enum.class);
         _resolver = res;

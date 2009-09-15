@@ -37,13 +37,6 @@ public class TestTypeFactory
         }
     }
 
-    public void testSimpleTypeRefs()
-    {
-        // And then via type reference...
-        assertSame(TypeFactory.fromClass(Integer.class), TypeFactory.fromTypeReference(new TypeReference<Integer>() { }));
-        assertSame(TypeFactory.fromClass(String.class), TypeFactory.fromTypeReference(new TypeReference<String>() { }));
-    }
-
     public void testArrays()
     {
         Class<?>[] classes = new Class<?>[] {
