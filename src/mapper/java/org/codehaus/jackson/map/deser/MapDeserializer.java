@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.*;
 
 import org.codehaus.jackson.JsonProcessingException;
@@ -26,6 +27,8 @@ public class MapDeserializer
 
     final Class<Map<Object,Object>> _mapClass;
 
+    final Constructor<Map<Object,Object>> _defaultCtor;
+
     /**
      * Key deserializer used, if not null. If null, String from json
      * content is used as is.
@@ -38,10 +41,16 @@ public class MapDeserializer
     final JsonDeserializer<Object> _valueDeserializer;
 
     @SuppressWarnings("unchecked") 
-    public MapDeserializer(Class<?> mapClass, KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser)
+    public MapDeserializer(Class<?> mapClass, Constructor<Map<Object,Object>> defCtor,
+                           KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser)
     {
         super(Map.class);
         _mapClass = (Class<Map<Object,Object>>) mapClass;
+        _defaultCtor = defCtor;
+        // For now, must have the default constructor...
+        if (defCtor == null) {
+            throw new IllegalArgumentException("No default constructor for Map class "+mapClass.getName());
+        }
         _keyDeserializer = keyDeser;
         _valueDeserializer = valueDeser;
     }
@@ -52,7 +61,7 @@ public class MapDeserializer
     {
         Map<Object,Object> result;
         try {
-            result = _mapClass.newInstance();
+            result = _defaultCtor.newInstance();
         } catch (Exception e) {
             throw ctxt.instantiationException(_mapClass, e);
         }

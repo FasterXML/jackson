@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.deser;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -65,9 +66,9 @@ public abstract class BasicDeserializerFactory
         }
     }
 
-    /* We do some defaulting for abstract Map classes and
+    /* We do some defaulting for abstract Collection classes and
      * interfaces, to avoid having to use exact types or annotations in
-     * cases where the most common concrete Maps will do.
+     * cases where the most common concrete Collection will do.
      */
     @SuppressWarnings("unchecked")
     final static HashMap<String, Class<? extends Collection>> _collectionFallbacks =
@@ -183,20 +184,20 @@ public abstract class BasicDeserializerFactory
         @SuppressWarnings("unchecked")
         JsonDeserializer<Object> contentDeser = (JsonDeserializer<Object>) contentType.getHandler();
         if (contentDeser == null) { // nope...
+        // 'null' -> maps have no referring fields
             contentDeser = p.findValueDeserializer(config, contentType, type, null);
         }
-
-        // Value handling is identical for all, so:
-        // 'null' -> maps have no referring fields
         Class<?> mapClass = type.getRawClass();
-        // But EnumMap requires special handling for keys
+
+        /* Value handling is identical for all,
+         * but EnumMap requires special handling for keys
+         */
         if (EnumMap.class.isAssignableFrom(mapClass)) {
             return new EnumMapDeserializer(EnumResolver.constructUnsafe(keyType.getRawClass(), config.getAnnotationIntrospector()), contentDeser);
         }
 
-        /* Otherwise, generic handler works ok; need a key deserializer (null
-         * indicates 'default' here)
-         */
+        // Otherwise, generic handler works ok.
+        // Ok: need a key deserializer (null indicates 'default' here)
         KeyDeserializer keyDes = (KeyDeserializer) keyType.getHandler();
         if (keyDes == null) {
             keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(config, keyType);
@@ -212,14 +213,34 @@ public abstract class BasicDeserializerFactory
          * be implementing)
          */
         if (type.isInterface() || type.isAbstract()) {
-            @SuppressWarnings("unchecked")
             Class<? extends Map> fallback = _mapFallbacks.get(mapClass.getName());
             if (fallback == null) {
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Map type "+type);
             }
             mapClass = fallback;
         }
-        return new MapDeserializer(mapClass, keyDes, contentDeser);
+
+        /* [JACKSON-153]: allow use of @JsonCreator. For that we need
+         *   to find creators, but don't need info for other methods
+         *   (may need to change in future)
+         */
+        BasicBeanDescription beanDesc = config.introspectForCreation(mapClass);
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        // First, locate the default constructor (if one available)
+        @SuppressWarnings("unchecked")
+        Constructor<Map<Object,Object>> mapCtor = (Constructor<Map<Object,Object>>) beanDesc.findDefaultConstructor();
+        if (mapCtor != null) {
+            if (fixAccess) {
+                ClassUtil.checkAndFixAccess(mapCtor);
+            }
+        }
+
+        // First, let's figure out constructor/factor- based instantation
+
+        // !!! TBI
+
+        return new MapDeserializer(mapClass, mapCtor, keyDes, contentDeser);
     }
 
     /**
