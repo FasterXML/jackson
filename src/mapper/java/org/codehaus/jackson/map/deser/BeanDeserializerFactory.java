@@ -205,7 +205,7 @@ public class BeanDeserializerFactory
             deser.setDefaultConstructor(defaultCtor);
         }
 
-        BeanDeserializer.CreatorContainer creators =  new BeanDeserializer.CreatorContainer(beanDesc.getBeanClass(), fixAccess);
+        CreatorContainer creators =  new CreatorContainer(beanDesc.getBeanClass(), fixAccess);
         _addDeserializerConstructors(config, beanDesc, deser, intr, creators);
         _addDeserializerFactoryMethods(config, beanDesc, deser, intr, creators);
         deser.setCreators(creators);
@@ -214,7 +214,7 @@ public class BeanDeserializerFactory
     protected void _addDeserializerConstructors
         (DeserializationConfig config, BasicBeanDescription beanDesc,
          BeanDeserializer deser, AnnotationIntrospector intr,
-         BeanDeserializer.CreatorContainer creators)
+         CreatorContainer creators)
         throws JsonMappingException
     {
         boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS);
@@ -284,7 +284,7 @@ public class BeanDeserializerFactory
     protected void _addDeserializerFactoryMethods
         (DeserializationConfig config, BasicBeanDescription beanDesc,
          BeanDeserializer deser, AnnotationIntrospector intr,
-         BeanDeserializer.CreatorContainer creators)
+         CreatorContainer creators)
         throws JsonMappingException
     {
         // and/or single-arg static methods
@@ -560,32 +560,6 @@ public class BeanDeserializerFactory
         return new SettableBeanProperty.SetterlessProperty(name, type, m);
     }
 
-    /**
-     * Method that will construct a property object that represents
-     * a logical property passed via Creator (constructor or static
-     * factory method)
-     */
-    protected SettableBeanProperty constructCreatorProperty(DeserializationConfig config,
-                                                            BasicBeanDescription beanDesc,
-                                                            String name,
-                                                            int index,
-                                                            AnnotatedParameter param)
-        throws JsonMappingException
-    {
-        JavaType type = resolveType(config, beanDesc, param.getParameterType(), param);
-        // Is there an annotation that specifies exact deserializer?
-        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, param);
-        // If yes, we are mostly done:
-        if (deser != null) {
-            SettableBeanProperty.CreatorProperty prop = new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), index);
-            prop.setValueDeserializer(deser);
-            return prop;
-        }
-        // Otherwise may have other type specifying annotations
-        type = modifyTypeByAnnotation(config, param, type);
-       return new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), index);
-    }
-
     /*
     ////////////////////////////////////////////////////////////
     // Helper methods for Bean deserializer, other
@@ -615,42 +589,5 @@ public class BeanDeserializerFactory
             throw new IllegalArgumentException("Can not deserialize Class "+type.getName()+" (of type "+typeStr+") as a Bean");
         }
     	return true;
-    }
-
-    /**
-     * Helper method used to resolve method return types and field
-     * types. The main trick here is that the containing bean may
-     * have type variable binding information (when deserializing
-     * using generic type passed as type reference), which is
-     * needed in some cases.
-     *<p>
-     * Starting with version 1.3, this method will also instances
-     * of key and content deserializers if defined by annotations.
-     */
-    protected JavaType resolveType(DeserializationConfig config,
-                                   BasicBeanDescription beanDesc, Type rawType,
-                                   Annotated a)
-    {
-        JavaType type = TypeFactory.fromType(rawType, beanDesc.getType());
-        // [JACKSON-154]: Also need to handle keyUsing, contentUsing
-        if (type.isContainerType()) {
-            AnnotationIntrospector intr = config.getAnnotationIntrospector();
-            boolean canForceAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-            JavaType keyType = type.getKeyType();
-            if (keyType != null) {
-                Class<? extends KeyDeserializer> kdClass = intr.findKeyDeserializer(a);
-                if (kdClass != null && kdClass != KeyDeserializer.None.class) {
-                    KeyDeserializer kd = ClassUtil.createInstance(kdClass, canForceAccess);
-                    keyType.setHandler(kd);
-                }
-            }
-            // and all container types have content types...
-            Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(a);
-            if (cdClass != null && cdClass != JsonDeserializer.None.class) {
-                JsonDeserializer<?> cd = ClassUtil.createInstance(cdClass, canForceAccess);
-                type.getContentType().setHandler(cd);
-            }
-        }
-        return type;
     }
 }

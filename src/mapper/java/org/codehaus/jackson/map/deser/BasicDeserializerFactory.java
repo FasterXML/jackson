@@ -1,12 +1,16 @@
 package org.codehaus.jackson.map.deser;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
+import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
+import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -213,6 +217,7 @@ public abstract class BasicDeserializerFactory
          * be implementing)
          */
         if (type.isInterface() || type.isAbstract()) {
+            @SuppressWarnings("unchecked")
             Class<? extends Map> fallback = _mapFallbacks.get(mapClass.getName());
             if (fallback == null) {
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Map type "+type);
@@ -229,18 +234,15 @@ public abstract class BasicDeserializerFactory
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         // First, locate the default constructor (if one available)
         @SuppressWarnings("unchecked")
-        Constructor<Map<Object,Object>> mapCtor = (Constructor<Map<Object,Object>>) beanDesc.findDefaultConstructor();
-        if (mapCtor != null) {
+        Constructor<Map<Object,Object>> defaultCtor = (Constructor<Map<Object,Object>>) beanDesc.findDefaultConstructor();
+        if (defaultCtor != null) {
             if (fixAccess) {
-                ClassUtil.checkAndFixAccess(mapCtor);
+                ClassUtil.checkAndFixAccess(defaultCtor);
             }
         }
-
-        // First, let's figure out constructor/factor- based instantation
-
-        // !!! TBI
-
-        return new MapDeserializer(mapClass, mapCtor, keyDes, contentDeser);
+        MapDeserializer md = new MapDeserializer(mapClass, defaultCtor, keyDes, contentDeser);
+        md.setCreators(findMapCreators(config, beanDesc));
+        return md;
     }
 
     /**
@@ -373,5 +375,132 @@ public abstract class BasicDeserializerFactory
             }
         }
         return type;
+    }
+
+    /**
+     * Helper method used to resolve method return types and field
+     * types. The main trick here is that the containing bean may
+     * have type variable binding information (when deserializing
+     * using generic type passed as type reference), which is
+     * needed in some cases.
+     *<p>
+     * Starting with version 1.3, this method will also instances
+     * of key and content deserializers if defined by annotations.
+     */
+    protected JavaType resolveType(DeserializationConfig config,
+                                   BasicBeanDescription beanDesc, Type rawType,
+                                   Annotated a)
+    {
+        JavaType type = TypeFactory.fromType(rawType, beanDesc.getType());
+        // [JACKSON-154]: Also need to handle keyUsing, contentUsing
+        if (type.isContainerType()) {
+            AnnotationIntrospector intr = config.getAnnotationIntrospector();
+            boolean canForceAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+            JavaType keyType = type.getKeyType();
+            if (keyType != null) {
+                Class<? extends KeyDeserializer> kdClass = intr.findKeyDeserializer(a);
+                if (kdClass != null && kdClass != KeyDeserializer.None.class) {
+                    KeyDeserializer kd = ClassUtil.createInstance(kdClass, canForceAccess);
+                    keyType.setHandler(kd);
+                }
+            }
+            // and all container types have content types...
+            Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(a);
+            if (cdClass != null && cdClass != JsonDeserializer.None.class) {
+                JsonDeserializer<?> cd = ClassUtil.createInstance(cdClass, canForceAccess);
+                type.getContentType().setHandler(cd);
+            }
+        }
+        return type;
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Helper methods, dealing with Creators
+    ////////////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method used to find non-default constructors and factory 
+     * methods that are marked to be used as Creators for a Map type.
+     */
+    CreatorContainer findMapCreators(DeserializationConfig config,
+                                     BasicBeanDescription beanDesc)
+        throws JsonMappingException
+    {
+        Class<?> mapClass = beanDesc.getBeanClass();
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        CreatorContainer creators =  new CreatorContainer(mapClass, fixAccess);
+        // First, let's find if we have a constructor creator:
+        for (AnnotatedConstructor ctor : beanDesc.getConstructors()) {
+            int argCount = ctor.getParameterCount();
+            if (argCount < 1 || !intr.hasCreatorAnnotation(ctor)) { // default ctor, or not marked with JsonCreator, skip
+                continue;
+            }
+            // For Map types property name is not optional for ctor params
+            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
+            int nameCount = 0;
+            for (int i = 0; i < argCount; ++i) {
+                AnnotatedParameter param = ctor.getParameter(i);
+                String name = (param == null) ? null : intr.findPropertyNameForParam(param);
+                // At this point, name annotation is NOT optional
+                if (name == null || name.length() == 0) {
+                    throw new IllegalArgumentException("Parameter #"+i+" of constructor "+ctor+" has no property name annotation: must have for @JsonCreator for a Map type");
+                }
+                ++nameCount;
+                properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
+            }
+            creators.addPropertyConstructor(ctor, properties);
+        }
+
+        // And then if there's a factory creator
+        for (AnnotatedMethod factory : beanDesc.getFactoryMethods()) {
+            int argCount = factory.getParameterCount();
+            if (argCount < 1 || !intr.hasCreatorAnnotation(factory)) { // no args, or not marked with JsonCreator, skip
+                continue;
+            }
+            // Property name is not optional for factory method params
+            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
+            int nameCount = 0;
+            for (int i = 0; i < argCount; ++i) {
+                AnnotatedParameter param = factory.getParameter(i);
+                String name = (param == null) ? null : intr.findPropertyNameForParam(param);
+                // At this point, name annotation is NOT optional
+                if (name == null || name.length() == 0) {
+                    throw new IllegalArgumentException("Parameter #"+i+" of factory method "+factory+" has no property name annotation: must have for @JsonCreator for a Map type");
+                }
+                ++nameCount;
+                properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
+            }
+            creators.addPropertyFactory(factory, properties);
+        }
+        return creators;
+    }
+
+    /**
+     * Method that will construct a property object that represents
+     * a logical property passed via Creator (constructor or static
+     * factory method)
+     */
+    protected SettableBeanProperty constructCreatorProperty(DeserializationConfig config,
+                                                            BasicBeanDescription beanDesc,
+                                                            String name,
+                                                            int index,
+                                                            AnnotatedParameter param)
+        throws JsonMappingException
+    {
+        JavaType type = resolveType(config, beanDesc, param.getParameterType(), param);
+        // Is there an annotation that specifies exact deserializer?
+        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, param);
+        // If yes, we are mostly done:
+        if (deser != null) {
+            SettableBeanProperty.CreatorProperty prop = new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), index);
+            prop.setValueDeserializer(deser);
+            return prop;
+        }
+        // Otherwise may have other type specifying annotations
+        type = modifyTypeByAnnotation(config, param, type);
+       return new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), index);
     }
 }

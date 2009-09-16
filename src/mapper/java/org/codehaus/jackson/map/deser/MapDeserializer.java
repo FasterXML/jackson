@@ -23,11 +23,9 @@ import org.codehaus.jackson.map.KeyDeserializer;
 public class MapDeserializer
     extends StdDeserializer<Map<Object,Object>>
 {
-    // // Configuration
+    // // Configuration: typing, deserializers
 
     final Class<Map<Object,Object>> _mapClass;
-
-    final Constructor<Map<Object,Object>> _defaultCtor;
 
     /**
      * Key deserializer used, if not null. If null, String from json
@@ -39,6 +37,24 @@ public class MapDeserializer
      * Value deserializer.
      */
     final JsonDeserializer<Object> _valueDeserializer;
+
+    // // Instance construction settings:
+
+    final Constructor<Map<Object,Object>> _defaultCtor;
+
+    /**
+     * If the Map is to be instantiated using non-default constructor
+     * or factory method
+     * that takes one or more named properties as argument(s),
+     * this creator is used for instantiation.
+     */
+    protected Creator.PropertyBased _propertyBasedCreator;
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Life-cycle
+    ////////////////////////////////////////////////////////////
+     */
 
     @SuppressWarnings("unchecked") 
     public MapDeserializer(Class<?> mapClass, Constructor<Map<Object,Object>> defCtor,
@@ -55,6 +71,21 @@ public class MapDeserializer
         _valueDeserializer = valueDeser;
     }
 
+    /**
+     * Method called to add constructor and/or factory method based
+     * creators to be used with Map, instead of default constructor.
+     */
+    public void setCreators(CreatorContainer creators)
+    {
+        _propertyBasedCreator = creators.propertyBasedCreator();
+    }
+
+    /*
+    ////////////////////////////////////////////////////////////
+    // Deserializer API
+    ////////////////////////////////////////////////////////////
+     */
+
     @Override
     public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
@@ -70,7 +101,7 @@ public class MapDeserializer
 
     @Override
     public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt,
-                                Map<Object,Object> result)
+                                          Map<Object,Object> result)
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_OBJECT

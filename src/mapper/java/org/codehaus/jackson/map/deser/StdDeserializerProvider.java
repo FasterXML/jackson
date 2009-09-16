@@ -222,18 +222,19 @@ public class StdDeserializerProvider
         if (type.isEnumType()) {
             return (JsonDeserializer<Object>) _factory.createEnumDeserializer(config, type.getRawClass(), this);
         }
-        if (type instanceof ArrayType) {
-            return (JsonDeserializer<Object>)_factory.createArrayDeserializer(config, (ArrayType) type, this);
+        if (type.isContainerType()) {
+            if (type instanceof ArrayType) {
+                return (JsonDeserializer<Object>)_factory.createArrayDeserializer(config, (ArrayType) type, this);
+            }
+            if (type instanceof MapType) {
+                return (JsonDeserializer<Object>)_factory.createMapDeserializer(config, (MapType) type, this);
+            }
+            if (type instanceof CollectionType) {
+                return (JsonDeserializer<Object>)_factory.createCollectionDeserializer(config, (CollectionType) type, this);
+            }
         }
-        if (type instanceof MapType) {
-            return (JsonDeserializer<Object>)_factory.createMapDeserializer(config, (MapType) type, this);
-        }
-        if (type instanceof CollectionType) {
-            return (JsonDeserializer<Object>)_factory.createCollectionDeserializer(config, (CollectionType) type, this);
-        }
-        /* 02-Mar-2009, tatu: Let's consider JsonNode to be a type of its
-         *   own
-         */
+
+        // 02-Mar-2009, tatu: Let's consider JsonNode to be a type of its own
         Class<?> rawClass = type.getRawClass();
         if (JsonNode.class.isAssignableFrom(rawClass)) {
             Class<? extends JsonNode> nodeClass = (Class<? extends JsonNode>) rawClass;
