@@ -240,8 +240,9 @@ public abstract class BasicDeserializerFactory
                 ClassUtil.checkAndFixAccess(defaultCtor);
             }
         }
-        MapDeserializer md = new MapDeserializer(mapClass, defaultCtor, keyDes, contentDeser);
+        MapDeserializer md = new MapDeserializer(type, defaultCtor, keyDes, contentDeser);
         md.setCreators(findMapCreators(config, beanDesc));
+        md.validateCreators();
         return md;
     }
 

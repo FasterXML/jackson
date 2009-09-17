@@ -228,37 +228,19 @@ public class BeanDeserializer
          *   references should lead to different deserializers, and for other
          *   types cost is much lower so we can drop caching
          */
-        HashMap<JavaType, JsonDeserializer<Object>> seen = null;
+        HashMap<JavaType, JsonDeserializer<Object>> seen = new HashMap<JavaType, JsonDeserializer<Object>>();
 
         for (SettableBeanProperty prop : _props.values()) {
             // May already have deserializer from annotations, if so, skip:
             if (prop.hasValueDeserializer()) {
                 continue;
             }
-
-            JavaType type = prop.getType();
-            JsonDeserializer<Object> deser = null;
-
-            if (seen != null) {
-                deser = seen.get(type);
-            }
-            if (deser == null) {
-                deser = findDeserializer(config, provider, type, prop.getPropertyName(), seen);
-            }
-            prop.setValueDeserializer(deser);
+            prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(), seen));
         }
 
         // Finally, "any setter" may also need to be resolved now
         if (_anySetter != null && !_anySetter.hasValueDeserializer()) {
-            JavaType type = _anySetter.getType();
-            JsonDeserializer<Object> deser = null;
-            if (seen != null) {
-                deser = seen.get(type);
-            }
-            if (deser == null) {
-                deser = findDeserializer(config, provider, type, "[any]", seen);
-            }
-            _anySetter.setValueDeserializer(deser);
+            _anySetter.setValueDeserializer(findDeserializer(config, provider, _anySetter.getType(), "[any]", seen));
         }
 
 	// as well as delegate-based constructor:
@@ -269,15 +251,7 @@ public class BeanDeserializer
         // or property-based one
         if (_propertyBasedCreator != null) {
             for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
-                JavaType type = prop.getType();
-                JsonDeserializer<Object> deser = null;
-                if (seen != null) {
-                    deser = seen.get(type);
-                }
-                if (deser == null) {
-                    deser = findDeserializer(config, provider, type, prop.getPropertyName(), seen);
-                }
-                prop.setValueDeserializer(deser);
+                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(), seen));
             }
         }
     }
@@ -311,6 +285,8 @@ public class BeanDeserializer
      */
 
     public final Class<?> getBeanClass() { return _beanType.getRawClass(); }
+
+    @Override public JavaType getValueType() { return _beanType; }
 
     /*
     /////////////////////////////////////////////////////////
@@ -477,11 +453,11 @@ public class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
-@Override
+    @Override
     protected void handleUnknownProperty(DeserializationContext ctxt, Object beanOrClass, String propName)
         throws IOException, JsonProcessingException
-{
-    // If registered as ignorable, skip
+    {
+        // If registered as ignorable, skip
         if (_ignorableProps != null && _ignorableProps.contains(propName)) {
             ctxt.getParser().skipChildren();
             return;
@@ -490,27 +466,5 @@ public class BeanDeserializer
          * handled, throw exception or skip depending on settings)
          */
         super.handleUnknownProperty(ctxt, beanOrClass, propName);
-}
-
-    /**
-     * Helper method used to locate deserializers for properties the
-     * bean itself contains.
-     */
-    protected JsonDeserializer<Object> findDeserializer(DeserializationConfig config, DeserializerProvider provider,
-                                                        JavaType type, String propertyName,
-                                                        HashMap<JavaType, JsonDeserializer<Object>> seen)
-        throws JsonMappingException
-    {
-        JsonDeserializer<Object> deser = provider.findValueDeserializer(config, type, _beanType, propertyName);
-        if (deser instanceof BeanDeserializer) {
-            if (seen == null) {
-                seen = new HashMap<JavaType, JsonDeserializer<Object>>();
-            }
-            seen.put(type, deser);
-        }
-        return deser;
     }
-
-
 }
-

@@ -340,7 +340,7 @@ public class TestCreators
     public void testMapWithFactory() throws Exception
     {
         MapWithFactory result = new ObjectMapper().readValue
-            ("\"x\":\"...\",\"b\":true  }",
+            ("{\"x\":\"...\",\"b\":true  }",
              MapWithFactory.class);
         assertEquals("...", result.get("x"));
         assertEquals(1, result.size());

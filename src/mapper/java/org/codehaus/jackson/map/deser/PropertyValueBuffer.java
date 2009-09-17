@@ -62,5 +62,9 @@ public final class PropertyValueBuffer
     public void bufferAnyProperty(SettableAnyProperty prop, String propName, Object value) {
         _buffered = new PropertyValue.Any(_buffered, value, prop, propName);
     }
+
+    public void bufferMapProperty(Object key, Object value) {
+        _buffered = new PropertyValue.Map(_buffered, value, key);
+    }
 }
 

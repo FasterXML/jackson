@@ -17,6 +17,7 @@ Description:
 
   * [JACKSON-152] Add "ObjectMapper.writeValueAsString()" convenience
     method to simplify serializing JSON into String.
+  * [JACKSON-153] Allow use of @JsonCreator with Map types too
   * [JACKSON-158] Bean serializer now checks for direct self-references
     (partial, trivial cycle detection)
 

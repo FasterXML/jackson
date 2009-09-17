@@ -51,7 +51,7 @@ public abstract class JsonDeserializer<T>
      * that do not explicitly add support do not expect to get the call.
      */
     public T deserialize(JsonParser jp, DeserializationContext ctxt,
-                                  T intoValue)
+                         T intoValue)
         throws IOException, JsonProcessingException
     {
         throw new UnsupportedOperationException();
@@ -71,23 +71,6 @@ public abstract class JsonDeserializer<T>
      * Default implementation simply returns null.
      */
     public T getNullValue() { return null; }
-
-    /**
-     * Method called to determine if this deserializer can and should be
-     * cached by deserializer provider.
-     *<p>
-     * NOTE: As of Jackson 1.1, this method will NOT be called any more;
-     * instead, annotation 
-     * {@link org.codehaus.jackson.map.annotate.JsonCachable} is
-     * introspected.
-     * Expectation is that no class outside of Jackson mapper
-     * has used this facility.
-     *
-     * @deprecated Should be implemented using
-     *   {@link org.codehaus.jackson.map.annotate.JsonCachable} instead
-     */
-    @Deprecated
-    public boolean shouldBeCached() { return false; }
 
     /*
     //////////////////////////////////////////////////////

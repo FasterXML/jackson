@@ -8,15 +8,14 @@ import java.util.*;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.DeserializationProblemHandler;
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.util.LinkedNode;
+import org.codehaus.jackson.type.JavaType;
 
 /**
- * Base class for simple standard deserializers
+ * Base class for common deserializers. Contains shared
+ * base functionality for dealing with primitive values, such
+ * as (re)parsing from String.
  */
 public abstract class StdDeserializer<T>
     extends JsonDeserializer<T>
@@ -28,6 +27,8 @@ public abstract class StdDeserializer<T>
     }
 
     public Class<?> getValueClass() { return _valueClass; }
+
+    public JavaType getValueType() { return null; }
 
     /*
     /////////////////////////////////////////////////////////////
@@ -227,6 +228,36 @@ public abstract class StdDeserializer<T>
         } catch (IllegalArgumentException iae) {
             throw ctxt.weirdStringException(_valueClass, "not a valid representation (error: "+iae.getMessage()+")");
         }
+    }
+
+    /*
+    /////////////////////////////////////////////////////////////
+    // Helper methods for sub-classes, resolving dependencies
+    /////////////////////////////////////////////////////////////
+    */
+
+    /**
+     * Helper method used to locate deserializers for properties the
+     * bean itself contains.
+     *
+     * @param type Type of property to deserialize
+     */
+    protected JsonDeserializer<Object> findDeserializer(DeserializationConfig config, DeserializerProvider provider,
+                                                        JavaType type, String propertyName,
+                                                        Map<JavaType, JsonDeserializer<Object>> seen)
+        throws JsonMappingException
+    {
+        JsonDeserializer<Object> deser = (seen == null) ?
+            null : seen.get(type);
+        if (deser == null) {
+            deser = provider.findValueDeserializer(config, type, getValueType(), propertyName);
+            if (seen != null) {
+                if (deser instanceof BeanDeserializer) {
+                    seen.put(type, deser);
+                }
+            }
+        }
+        return deser;
     }
 
     /*

@@ -242,8 +242,8 @@ abstract class Creator
             try {
                 if (_ctor != null) {
                     bean = _ctor.newInstance(buffer.getParameters());
-            } else {
-                bean =  _factoryMethod.invoke(null, buffer.getParameters());
+                } else {
+                    bean =  _factoryMethod.invoke(null, buffer.getParameters());
                 }
             } catch (Exception e) {
                 ClassUtil.unwrapAndThrowAsIAE(e);

@@ -50,6 +50,10 @@ abstract class PropertyValue
         }
     }
     
+    /**
+     * Property value type used when storing entries to be added
+     * to a POJO using "any setter".
+     */
     final static class Any
         extends PropertyValue
     {
@@ -69,6 +73,29 @@ abstract class PropertyValue
             throws IOException, JsonProcessingException
         {
             _property.set(bean, _propertyName, value);
+        }
+    }
+
+    /**
+     * Property value type used when storing entries to be added
+     * to a Map.
+     */
+    final static class Map
+        extends PropertyValue
+    {
+        final Object _key;
+        
+        public Map(PropertyValue next, Object value, Object key)
+        {
+            super(next, value);
+            _key = key;
+        }
+
+        @SuppressWarnings("unchecked") 
+        public void assign(Object bean)
+            throws IOException, JsonProcessingException
+        {
+            ((java.util.Map<Object,Object>) bean).put(_key, value);
         }
     }
 }

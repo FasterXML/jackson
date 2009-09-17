@@ -13,6 +13,13 @@ public class TestMapDeserialization
         KEY1, KEY2, WHATEVER;
     }
 
+    final static class BrokenMap
+        extends HashMap
+    {
+        // No default ctor, nor @JsonCreators
+        public BrokenMap(boolean dummy) { super(); }
+    }
+
     public void testUntypedMap() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -191,4 +198,16 @@ public class TestMapDeserialization
         }
     }
 
+    public void testNoCtorMap() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            BrokenMap result = mapper.readValue("{ \"a\" : 3 }", BrokenMap.class);
+            // should never get here; assert added to remove compiler warning
+            assertNull(result);
+        } catch (JsonMappingException e) {
+            // instead, should get this exception:
+            verifyException(e, "no default/delegating constructor or factory method");
+        }
+    }
 }
