@@ -3,6 +3,8 @@ package org.codehaus.jackson.map.deser;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
+import java.util.*;
+
 /**
  * Unit tests for verifying that it is possible to annotate
  * various kinds of things with {@link @JsonCreator} annotation.
@@ -170,6 +172,43 @@ public class TestCreators
     }
 
     /*
+    //////////////////////////////////////////////
+    // Annotated helper classes for Maps
+    //////////////////////////////////////////////
+     */
+
+    static class MapWithCtor extends HashMap
+    {
+        final int _number;
+        String _text = "initial";
+
+        MapWithCtor() { this(-1, "default"); }
+
+        @JsonCreator
+            public MapWithCtor(@JsonProperty("number") int nr,
+                               @JsonProperty("text") String t)
+        {
+            _number = nr;
+            _text = t;
+        }
+    }
+
+    static class MapWithFactory extends TreeMap
+    {
+        Boolean _b;
+
+        private MapWithFactory(Boolean b) {
+            _b = b;
+        }
+
+        @JsonCreator
+            static MapWithFactory createIt(@JsonProperty("b") Boolean b)
+        {
+            return new MapWithFactory(b);
+        }
+    }
+
+    /*
     /////////////////////////////////////////////////////
     // Test methods, valid cases, non-deferred, no-mixins
     /////////////////////////////////////////////////////
@@ -275,6 +314,37 @@ public class TestCreators
         // override changes property name from "f" to "mixed"
         FactoryBean bean = m.readValue("{ \"mixed\" :  20.5 }", FactoryBean.class);
         assertEquals(20.5, bean.d);
+    }
+
+    /*
+    /////////////////////////////////////////////////////
+    // Test methods, valid cases, Map with creator
+    // (to test [JACKSON-153])
+    /////////////////////////////////////////////////////
+     */
+
+    public void testMapWithConstructor() throws Exception
+    {
+        MapWithCtor result = new ObjectMapper().readValue
+            ("{\"text\":\"abc\", \"entry\":true, \"number\":123, \"xy\":\"yx\"}",
+             MapWithCtor.class);
+        // regular Map entries:
+        assertEquals(Boolean.TRUE, result.get("entry"));
+        assertEquals("yx", result.get("xy"));
+        assertEquals(2, result.size());
+        // then ones passed via constructor
+        assertEquals("abc", result._text);
+        assertEquals(123, result._number);
+    }
+
+    public void testMapWithFactory() throws Exception
+    {
+        MapWithFactory result = new ObjectMapper().readValue
+            ("\"x\":\"...\",\"b\":true  }",
+             MapWithFactory.class);
+        assertEquals("...", result.get("x"));
+        assertEquals(1, result.size());
+        assertEquals(Boolean.TRUE, result._b);
     }
 
     /*
