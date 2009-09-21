@@ -17,7 +17,7 @@ public class TestParser
 
         JsonParser jp = f.createJsonParser(new File(args[0]));
         //JsonParser jp = f.createJsonParser(new InputStreamReader(new FileInputStream(args[0]), "UTF-8"));
-        jp.enableFeature(JsonParser.Feature.ALLOW_COMMENTS);
+        jp.enable(JsonParser.Feature.ALLOW_COMMENTS);
 
         System.out.println("Parser: "+jp);
 

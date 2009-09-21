@@ -22,7 +22,7 @@ public final class ReaderBasedParser
     ////////////////////////////////////////////////////
      */
 
-    final ObjectCodec _objectCodec;
+    protected ObjectCodec _objectCodec;
 
     final protected CharsToNameCanonicalizer _symbols;
 
@@ -38,6 +38,14 @@ public final class ReaderBasedParser
         super(ioCtxt, features, r);
         _objectCodec = codec;
         _symbols = st;
+    }
+
+    public ObjectCodec getCodec() {
+        return _objectCodec;
+    }
+
+    public void setCodec(ObjectCodec c) {
+        _objectCodec = c;
     }
 
     /*
@@ -719,7 +727,7 @@ public final class ReaderBasedParser
     private final void _skipComment()
         throws IOException, JsonParseException
     {
-        if (!isFeatureEnabled(Feature.ALLOW_COMMENTS)) {
+        if (!isEnabled(Feature.ALLOW_COMMENTS)) {
             _reportUnexpectedChar('/', "maybe a (non-standard) comment? (not recognized as one since Feature 'ALLOW_COMMENTS' not enabled for parser)");
         }
         // First: check which comment (if either) it is:

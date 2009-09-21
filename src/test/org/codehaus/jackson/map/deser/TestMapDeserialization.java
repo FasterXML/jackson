@@ -13,8 +13,9 @@ public class TestMapDeserialization
         KEY1, KEY2, WHATEVER;
     }
 
-    final static class BrokenMap
-        extends HashMap
+    @SuppressWarnings("serial")
+    static class BrokenMap
+        extends HashMap<Object,Object>
     {
         // No default ctor, nor @JsonCreators
         public BrokenMap(boolean dummy) { super(); }

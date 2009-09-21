@@ -230,7 +230,6 @@ public abstract class BasicDeserializerFactory
          *   (may need to change in future)
          */
         BasicBeanDescription beanDesc = config.introspectForCreation(mapClass);
-        AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         // First, locate the default constructor (if one available)
         @SuppressWarnings("unchecked")

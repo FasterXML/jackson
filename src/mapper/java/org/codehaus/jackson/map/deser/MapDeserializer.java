@@ -56,7 +56,6 @@ public class MapDeserializer
     ////////////////////////////////////////////////////////////
      */
 
-    @SuppressWarnings("unchecked") 
     public MapDeserializer(JavaType mapType, Constructor<Map<Object,Object>> defCtor,
                            KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser)
     {
@@ -155,6 +154,7 @@ public class MapDeserializer
     /////////////////////////////////////////////////////////
      */
 
+    @SuppressWarnings("unchecked")
     public final Class<?> getMapClass() { return (Class<Map<Object,Object>>) _mapType.getRawClass(); }
 
     @Override public JavaType getValueType() { return _mapType; }

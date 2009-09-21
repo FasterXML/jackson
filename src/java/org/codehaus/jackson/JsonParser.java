@@ -175,6 +175,24 @@ public abstract class JsonParser
 
     protected JsonParser() { }
 
+    /**
+     * Accessor for {@link ObjectCodec} associated with this
+     * parser, if any. Codec is used by {@link #readValueAs(Class)}
+     * method (and its variants).
+     *
+     * @since 1.3
+     */
+    public abstract ObjectCodec getCodec();
+
+    /**
+     * Setter that allows defining {@link ObjectCodec} associated with this
+     * parser, if any. Codec is used by {@link #readValueAs(Class)}
+     * method (and its variants).
+     *
+     * @since 1.3
+     */
+    public abstract void setCodec(ObjectCodec c);
+
     /*
     ////////////////////////////////////////////////////
     // Closeable implementation
@@ -183,9 +201,7 @@ public abstract class JsonParser
 
     /**
      * Closes the parser so that no further iteration or data access
-     * can be made.
-     *<p>
-     * Method will also close the underlying input source,
+     * can be made; will also close the underlying input source
      * if parser either <b>owns</b> the input source, or feature
      * {@link Feature#AUTO_CLOSE_SOURCE} is enabled.
      * Whether parser owns the input source depends on factory
@@ -231,7 +247,7 @@ public abstract class JsonParser
     }
 
     /**
-     * Method for enabled or disabling specified feature
+     * Method for enabling or disabling specified feature
      * (check {@link Feature} for list of features)
      *
      * @since 1.2
@@ -256,16 +272,20 @@ public abstract class JsonParser
         return (_features & f.getMask()) != 0;
     }
 
-    /// @deprecated Use {@link #configure(Feature)} instead
+    /** @deprecated Use {@link #configure} instead
+     */
     public void setFeature(Feature f, boolean state) { configure(f, state); }
 
-    /// @deprecated Use {@link #enable(Feature)} instead
+    /** @deprecated Use {@link #enable(Feature)} instead
+     */
     public void enableFeature(Feature f) { enable(f); }
 
-    /// @deprecated Use {@link #disable(Feature)} instead
+    /** @deprecated Use {@link #disable(Feature)} instead
+     */
     public void disableFeature(Feature f) { disable(f); }
 
-    /// @deprecated Use {@link #isEnabled(Feature)} instead
+    /** @deprecated Use {@link #isEnabled(Feature)} instead
+     */
     public final boolean isFeatureEnabled(Feature f) { return isEnabled(f); }
 
 
@@ -343,6 +363,11 @@ public abstract class JsonParser
      */
 
     /**
+     * Accessor to find which token parser currently points to, if any;
+     * null will be returned if none.
+     * If return value is non-null, data associated with the token
+     * is available via other accessor methods.
+     *
      * @return Type of the token this parser currently points to,
      *   if any: null before any tokens have been read, and
      *   after end-of-input has been encountered, as well as
@@ -354,6 +379,10 @@ public abstract class JsonParser
     }
 
     /**
+     * Method for checking whether parser currently points to
+     * a token (and data for that token is available).
+     * Equivalent to check for <code>parser.getCurrentToken() != null</code>.
+     *
      * @return True if the parser just returned a valid
      *   token via {@link #nextToken}; false otherwise (parser
      *   was just constructed, encountered end-of-input
@@ -476,6 +505,9 @@ public abstract class JsonParser
         throws IOException, JsonParseException;
 
     /**
+     * Accessor used with {@link #getTextCharacters}, to know length
+     * of String stored in returned buffer.
+     *
      * @return Number of characters within buffer returned
      *   by {@link #getTextCharacters} that are part of
      *   textual content of the current token.
@@ -484,6 +516,9 @@ public abstract class JsonParser
         throws IOException, JsonParseException;
 
     /**
+     * Accessor used with {@link #getTextCharacters}, to know offset
+     * of the first text content character within buffer.
+     *
      * @return Offset of the first character within buffer returned
      *   by {@link #getTextCharacters} that is part of
      *   textual content of the current token.

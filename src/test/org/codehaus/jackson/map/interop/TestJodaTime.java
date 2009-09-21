@@ -31,4 +31,26 @@ public class TestJodaTime
         // should verify something here? looks like we get 24 fields...
         assertEquals(24, result.size());
     }
+
+    /**
+     * Ok, then: should be able to convert from number directly, since
+     * DateTime has a single-long-arg ctor
+     */
+    /* 19-Sep-2009, tatu: Alas, the way Jackson currently works, this
+     *   will fail because there's no deserializer for referred type
+     *   Chronology (abstract class)
+     */
+    /*
+    public void testDeserFromNumber() throws IOException
+    {
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        // use some arbitrary but non-default time point (after 1.1.1970)
+        cal.set(Calendar.YEAR, 1972);
+        long timepoint = cal.getTime().getTime();
+
+        DateTime dt = new ObjectMapper().readValue(String.valueOf(timepoint), DateTime.class);
+        assertEquals(timepoint, dt.getMillis());
+        
+    }
+    */
 }

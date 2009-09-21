@@ -23,7 +23,7 @@ public final class Utf8StreamParser
     ////////////////////////////////////////////////////
     */
 
-    final ObjectCodec _objectCodec;
+    protected ObjectCodec _objectCodec;
 
     final protected BytesToNameCanonicalizer _symbols;
 
@@ -47,6 +47,14 @@ public final class Utf8StreamParser
         super(ctxt, features, in, inputBuffer, start, end, bufferRecyclable);
         _objectCodec = codec;
         _symbols = sym;
+    }
+
+    public ObjectCodec getCodec() {
+        return _objectCodec;
+    }
+
+    public void setCodec(ObjectCodec c) {
+        _objectCodec = c;
     }
 
     /*
@@ -1060,7 +1068,7 @@ public final class Utf8StreamParser
     private final void _skipComment()
         throws IOException, JsonParseException
     {
-        if (!isFeatureEnabled(Feature.ALLOW_COMMENTS)) {
+        if (!isEnabled(Feature.ALLOW_COMMENTS)) {
             _reportUnexpectedChar('/', "maybe a (non-standard) comment? (not recognized as one since Feature 'ALLOW_COMMENTS' not enabled for parser)");
         }
         // First: check which comment (if either) it is:

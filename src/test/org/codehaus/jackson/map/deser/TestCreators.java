@@ -177,7 +177,8 @@ public class TestCreators
     //////////////////////////////////////////////
      */
 
-    static class MapWithCtor extends HashMap
+    @SuppressWarnings("serial")
+    static class MapWithCtor extends HashMap<Object,Object>
     {
         final int _number;
         String _text = "initial";
@@ -193,7 +194,8 @@ public class TestCreators
         }
     }
 
-    static class MapWithFactory extends TreeMap
+    @SuppressWarnings("serial")
+    static class MapWithFactory extends TreeMap<Object,Object>
     {
         Boolean _b;
 

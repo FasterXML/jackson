@@ -190,16 +190,20 @@ public abstract class JsonGenerator
 
     // // // Older deprecated versions
 
-    /// @deprecated Use {@link #enable(Feature)} instead
+    /** @deprecated Use {@link #enable} instead
+     */
     public void enableFeature(Feature f) { enable(f); }
 
-    /// @deprecated Use {@link #disable(Feature)} instead
+    /** @deprecated Use {@link #disable} instead
+     */
     public void disableFeature(Feature f) { disable(f); }
 
-    /// @deprecated Use {@link #configure(Feature)} instead
+    /** @deprecated Use {@link #configure} instead
+     */
     public void setFeature(Feature f, boolean state) { configure(f, state); }
 
-    /// @deprecated Use {@link #isEnabled(Feature)} instead
+    /** @deprecated Use {@link #isEnabled} instead
+     */
     public boolean isFeatureEnabled(Feature f) { return isEnabled(f); }
 
 

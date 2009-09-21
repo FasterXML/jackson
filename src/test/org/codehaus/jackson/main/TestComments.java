@@ -29,7 +29,7 @@ public class TestComments
         JsonFactory jf = new JsonFactory();
         assertFalse(jf.isEnabled(JsonParser.Feature.ALLOW_COMMENTS));
         JsonParser jp = jf.createJsonParser(new StringReader("[ 1 ]"));
-        assertFalse(jp.isFeatureEnabled(JsonParser.Feature.ALLOW_COMMENTS));
+        assertFalse(jp.isEnabled(JsonParser.Feature.ALLOW_COMMENTS));
     }
 
     public void testCommentsDisabled()

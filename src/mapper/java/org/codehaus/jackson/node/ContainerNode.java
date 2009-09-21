@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 
 /**
@@ -70,6 +71,16 @@ public abstract class ContainerNode
     public final BinaryNode binaryNode(byte[] data, int offset, int length) { return _nodeFactory.binaryNode(data, offset, length); }
 
     public final POJONode POJONode(Object pojo) { return _nodeFactory.POJONode(pojo); }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Parser/generator construction
+    ////////////////////////////////////////////////////
+     */
+
+    public final JsonGenerator append() {
+        return _nodeFactory.constructGenerator(this);
+    }
 
     /*
     ////////////////////////////////////////////////////

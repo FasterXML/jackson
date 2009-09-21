@@ -36,5 +36,10 @@ public abstract class BaseJsonNode
          */
         serialize(jgen, null);
     }
+
+    @Override
+    public JsonParser traverse() {
+        return new NodeTraversingParser(this);
+    }
 }
 

@@ -106,7 +106,7 @@ public abstract class StreamBasedParserBase
          *   feature is enabled.
          */
         if (_inputStream != null) {
-            if (_ioContext.isResourceManaged() || isFeatureEnabled(Feature.AUTO_CLOSE_SOURCE)) {
+            if (_ioContext.isResourceManaged() || isEnabled(Feature.AUTO_CLOSE_SOURCE)) {
                 _inputStream.close();
             }
             _inputStream = null;

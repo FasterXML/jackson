@@ -347,6 +347,35 @@ public abstract class JsonNode
 
     /*
     ////////////////////////////////////////////////////
+    // Public API: converting to/from Streaming API
+    ////////////////////////////////////////////////////
+     */
+
+
+    /**
+     * Method for constructing a {@link JsonParser} instance for
+     * iterating over contents of the tree that this
+     * node is root of.
+     * Functionally equivalent to first serializing tree
+     * using {@link #writeTo} and then re-parsing but much
+     * more efficient.
+     */
+    public abstract JsonParser traverse();
+
+    /**
+     * Method for constructing a {@link JsonGenerator} instance that
+     * allows modifying contents of this JSON node by appending
+     * JSON content using streaming API.
+     * Note that this only works for container nodes: calling method
+     * on non-container nodes will throw an {@link IllegalStateException}
+     */
+    public JsonGenerator append() {
+        // to be overridden by container classes
+        throw new IllegalStateException("Can not call method on a non-container type ("+getClass().getName()+")");
+    }
+
+    /*
+    ////////////////////////////////////////////////////
     // Overridden standard methods
     ////////////////////////////////////////////////////
      */

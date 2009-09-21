@@ -25,14 +25,14 @@ public class BeanPropertyWriter
     /**
      * Accessor method used to get property value, for
      * method-accessible properties.
-     * Null if and only if {@link _field} is null.
+     * Null if and only if {@link #_field} is null.
      */
     protected final Method _accessorMethod;
     
     /**
      * Field that contains the property value for field-accessible
      * properties.
-     * Null if and only if {@link _accessorMethod} is null.
+     * Null if and only if {@link #_accessorMethod} is null.
      */
     protected final Field _field;
 
