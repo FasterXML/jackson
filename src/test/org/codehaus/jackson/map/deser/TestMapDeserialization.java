@@ -5,10 +5,17 @@ import org.codehaus.jackson.map.*;
 import java.util.*;
 
 import org.codehaus.jackson.type.TypeReference;
+import org.codehaus.jackson.annotate.JsonCreator;
 
 public class TestMapDeserialization
     extends BaseMapTest
 {
+    /*
+    ***************************************************
+    * Test classes, enums
+    ***************************************************
+     */
+
     enum Key {
         KEY1, KEY2, WHATEVER;
     }
@@ -20,6 +27,22 @@ public class TestMapDeserialization
         // No default ctor, nor @JsonCreators
         public BrokenMap(boolean dummy) { super(); }
     }
+
+    static class BoolWrapper {
+        final Boolean b;
+
+        @JsonCreator BoolWrapper(Boolean value) {
+            b = value;
+        }
+    }
+
+    static class MapSubClass extends HashMap<String,BoolWrapper> { }
+
+    /*
+    ***************************************************
+    * Test methods
+    ***************************************************
+     */
 
     public void testUntypedMap() throws Exception
     {
@@ -211,4 +234,20 @@ public class TestMapDeserialization
             verifyException(e, "no default/delegating constructor or factory method");
         }
     }
+
+    /**
+     * Verifying that sub-classing works ok wrt generics information
+     */
+    public void testMapSubClass() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        MapSubClass result = mapper.readValue
+            ("{\"a\":true }", MapSubClass.class);
+        assertEquals(1, result.size());
+        Object value = result.get("a");
+        assertEquals(BoolWrapper.class, value.getClass());
+        BoolWrapper bw = (BoolWrapper) value;
+        assertEquals(Boolean.TRUE, bw.b);
+    }
+
 }
