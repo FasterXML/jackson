@@ -52,6 +52,7 @@ public class TestGenericMapDeser
     // Tests for sub-classing
     ////////////////////////////////////////////////////////////
      */
+
     /**
      * Verifying that sub-classing works ok wrt generics information
      */
@@ -88,5 +89,4 @@ public class TestGenericMapDeser
         assertEquals("a", ((StringWrapper) en.getKey()).str);
         assertEquals(Boolean.TRUE, ((BooleanWrapper) en.getValue()).b);
     }
-
 }

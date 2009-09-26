@@ -181,6 +181,13 @@ public abstract class BasicDeserializerFactory
    public JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, MapType type, DeserializerProvider p)
         throws JsonMappingException
     {
+        Class<?> mapClass = type.getRawClass();
+        /* Ok, to resolve [JACKSON-167], we need to check class annotations
+         * (and later on, may need creator info too)
+         */
+        BasicBeanDescription beanDesc = config.introspectForCreation(mapClass);
+        type = (MapType) modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
+        
         JavaType keyType = type.getKeyType();
         JavaType contentType = type.getContentType();
 
@@ -188,11 +195,9 @@ public abstract class BasicDeserializerFactory
         @SuppressWarnings("unchecked")
         JsonDeserializer<Object> contentDeser = (JsonDeserializer<Object>) contentType.getHandler();
         if (contentDeser == null) { // nope...
-        // 'null' -> maps have no referring fields
+            // 'null' -> maps have no referring fields
             contentDeser = p.findValueDeserializer(config, contentType, type, null);
         }
-        Class<?> mapClass = type.getRawClass();
-
         /* Value handling is identical for all,
          * but EnumMap requires special handling for keys
          */
@@ -225,11 +230,7 @@ public abstract class BasicDeserializerFactory
             mapClass = fallback;
         }
 
-        /* [JACKSON-153]: allow use of @JsonCreator. For that we need
-         *   to find creators, but don't need info for other methods
-         *   (may need to change in future)
-         */
-        BasicBeanDescription beanDesc = config.introspectForCreation(mapClass);
+        // [JACKSON-153]: allow use of @JsonCreator
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         // First, locate the default constructor (if one available)
         @SuppressWarnings("unchecked")
