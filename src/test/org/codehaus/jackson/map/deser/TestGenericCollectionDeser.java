@@ -60,9 +60,7 @@ public class TestGenericCollectionDeser
     ////////////////////////////////////////////////////////////
      */
 
-    /**
-     * Verifying that sub-classing works ok wrt generics information
-     */
+    // Verifying that sub-classing works ok wrt generics information
     public void testAnnotatedLStringist() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();

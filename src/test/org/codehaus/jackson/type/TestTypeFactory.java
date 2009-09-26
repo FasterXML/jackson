@@ -60,7 +60,7 @@ public class TestTypeFactory
         JavaType t = TypeFactory.fromClass(ArrayList.class);
         assertEquals(CollectionType.class, t.getClass());
         assertSame(ArrayList.class, t.getRawClass());
-        assertFalse(t.isFullyTyped());
+        assertFalse("Untyped class should not be considered fully typed", t.isFullyTyped());
 
         // And then the proper way
         t = TypeFactory.fromTypeReference(new TypeReference<ArrayList<String>>() { });

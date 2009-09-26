@@ -96,12 +96,22 @@ public class TypeFactory
          * instance will return 'false' from its 'isFullyTyped' method)
          */
         if (Map.class.isAssignableFrom(clz)) {
-            JavaType unknownType = fromClass(Object.class);
-            return MapType.untyped(clz, unknownType, unknownType);
+            JavaType keyType, contentType;
+            MapType parentType = _findParentType(clz, MapType.class);
+System.err.println("DEBUG: map parent == "+parentType+"; typed "+parentType.isFullyTyped());
+            if (parentType == null) {
+                JavaType unknown = _unknownType();
+                return MapType.untyped(clz, unknown, unknown);
+            }
+            return MapType.typed(clz, parentType.getKeyType(), parentType.getContentType());
         }
         if (Collection.class.isAssignableFrom(clz)) {
-            JavaType unknownType = fromClass(Object.class);
-            return CollectionType.untyped(clz, unknownType);
+            CollectionType parentType = _findParentType(clz, CollectionType.class);
+System.err.println("DEBUG: Collection parent == "+parentType+"; typed "+parentType.isFullyTyped());
+            if (parentType == null) {
+                return CollectionType.untyped(clz, _unknownType());
+            }
+            return CollectionType.typed(clz, parentType.getContentType());
         }
         /* Otherwise, consider it a Bean; and due to type
          * erasure it must be simple (no generics available)
@@ -140,12 +150,9 @@ public class TypeFactory
     /**
      * This method deals with parameterized types, that is,
      * first class generic classes.
-     * We actually only care about generics
-     * iff they are of type Map or Collection -- otherwise
-     * we'll just use the raw type. This because we have no
-     * idea how to handle genericized classes in, well, generic
-     * fashion. For other types we will then just fall back
-     * to using "raw" class information.
+     *<p>
+     * Since version 1.2, this resolves all generics types, not just
+     * Maps or Collections.
      */
     protected JavaType _fromParamType(ParameterizedType type, JavaType context)
     {
@@ -201,6 +208,14 @@ public class TypeFactory
 
     protected JavaType _fromVariable(TypeVariable<?> type, JavaType context)
     {
+        /* 26-Sep-2009, tatus: It should be possible to try "partial"
+         *  resolution; meaning that it is ok not to find bindings.
+         *  For now this is indicated by passing null context.
+         */
+        if (context == null) {
+            return _unknownType();
+        }
+
         // Ok: here's where context might come in handy!
         String name = type.getName();
         JavaType actualType = context.findVariableType(name);
@@ -244,5 +259,31 @@ public class TypeFactory
          * just for future reference.
          */
         return _fromType(type.getUpperBounds()[0], context);
+    }
+
+    /**
+     * Method that is to figure out actual type parameters that given
+     * class binds to generic types defined by given interface
+     * type. This could mean, for example, trying to figure out
+     * key and value types for Map implementations.
+     */
+    @SuppressWarnings("unchecked")
+    protected <T extends JavaType> T _findParentType(Class<?> clz, Class<T> expType)
+    {
+        Type parentType = clz.getGenericSuperclass();
+        if (parentType != null) {
+            // Need to have context, for now
+            JavaType parent = _fromType(parentType, null);
+            // This should always be true, but let's ensure:
+            if (expType.isAssignableFrom(parent.getClass())) {
+                return (T) parent;
+            }
+        }
+        // no, couldn't find
+        return null;
+    }
+
+    protected JavaType _unknownType() {
+        return _fromClass(Object.class, null);
     }
 }
