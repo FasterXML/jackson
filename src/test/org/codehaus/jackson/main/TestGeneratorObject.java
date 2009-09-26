@@ -170,4 +170,40 @@ public class TestGeneratorObject
         assertEquals(null, jp.nextToken());
         jp.close();
     }
+
+    /**
+     * Tests to cover [JACKSON-164]
+     */
+    public void testConvenienceMethodsWithNulls()
+        throws Exception
+    {
+        StringWriter sw = new StringWriter();
+        JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+        gen.writeStartObject();
+
+        gen.writeStringField("str", null);
+        gen.writeNumberField("num", null);
+        gen.writeObjectField("obj", null);
+
+        gen.writeEndObject();
+        gen.close();
+
+        String docStr = sw.toString();
+        JsonParser jp = createParserUsingReader(docStr);
+        assertEquals(JsonToken.START_OBJECT, jp.nextToken());
+
+        assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("str", jp.getCurrentName());
+        assertEquals(JsonToken.VALUE_NULL, jp.nextToken());
+
+        assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("num", jp.getCurrentName());
+        assertEquals(JsonToken.VALUE_NULL, jp.nextToken());
+
+        assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("obj", jp.getCurrentName());
+        assertEquals(JsonToken.VALUE_NULL, jp.nextToken());
+
+        assertEquals(JsonToken.END_OBJECT, jp.nextToken());
+    }
 }

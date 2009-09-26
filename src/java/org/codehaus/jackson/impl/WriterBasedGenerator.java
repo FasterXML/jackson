@@ -103,7 +103,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	protected void _writeStartObject()
+    protected void _writeStartObject()
         throws IOException, JsonGenerationException
     {
         if (_outputTail >= _outputEnd) {
@@ -113,7 +113,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	protected void _writeEndObject()
+    protected void _writeEndObject()
         throws IOException, JsonGenerationException
     {
         if (_outputTail >= _outputEnd) {
@@ -123,7 +123,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	protected void _writeFieldName(String name, boolean commaBefore)
+    protected void _writeFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
         if (_cfgPrettyPrinter != null) {
@@ -196,6 +196,10 @@ public final class WriterBasedGenerator
         throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write text value");
+        if (text == null) {
+            _writeNull();
+            return;
+        }
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
@@ -412,7 +416,11 @@ public final class WriterBasedGenerator
         throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write number");
-        writeRaw(v.toString());
+        if (v == null) {
+            _writeNull();
+        } else {
+            writeRaw(v.toString());
+        }
     }
 
     
@@ -449,12 +457,16 @@ public final class WriterBasedGenerator
     }
 
     @Override
-    public void writeNumber(BigDecimal dec)
+    public void writeNumber(BigDecimal value)
         throws IOException, JsonGenerationException
     {
         // Don't really know max length for big decimal, no point checking
         _verifyValueWrite("write number");
-        writeRaw(dec.toString());
+        if (value == null) {
+            _writeNull();
+        } else {
+            writeRaw(value.toString());
+        }
     }
 
     @Override
@@ -491,25 +503,22 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	public void writeNull()
+    public void writeNull()
         throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write null value");
-        if ((_outputTail + 4) >= _outputEnd) {
-            _flushBuffer();
-        }
-        int ptr = _outputTail;
-        char[] buf = _outputBuffer;
-        buf[ptr] = 'n';
-        buf[++ptr] = 'u';
-        buf[++ptr] = 'l';
-        buf[++ptr] = 'l';
-        _outputTail = ptr+1;
+        _writeNull();
     }
 
     public final void writeObject(Object value)
         throws IOException, JsonProcessingException
     {
+        if (value == null) {
+            // important: call method that does check value write:
+            writeNull();
+            return;
+        }
+
         /* 02-Mar-2009, tatu: we are NOT to call _verifyValueWrite here,
          *   because that will be done when codec actually serializes
          *   contained POJO. If we did call it it would advance state
@@ -525,6 +534,10 @@ public final class WriterBasedGenerator
         throws IOException, JsonProcessingException
     {
         // As with 'writeObject()', we are not check if write would work
+        if (rootNode == null) {
+            writeNull();
+            return;
+        }
         if (_objectCodec == null) {
             throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize JsonNode-based trees");
         }
@@ -922,6 +935,20 @@ public final class WriterBasedGenerator
         }
     }
 
+    private final void _writeNull() throws IOException
+    {
+        if ((_outputTail + 4) >= _outputEnd) {
+            _flushBuffer();
+        }
+        int ptr = _outputTail;
+        char[] buf = _outputBuffer;
+        buf[ptr] = 'n';
+        buf[++ptr] = 'u';
+        buf[++ptr] = 'l';
+        buf[++ptr] = 'l';
+        _outputTail = ptr+1;
+    }
+        
     /**
      * @param escCode Character code for escape sequence (\C); or -1
      *   to indicate a generic (\\uXXXX) sequence.

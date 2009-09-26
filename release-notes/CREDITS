@@ -152,5 +152,7 @@ Gabe Schnaubelt:
    [1.3.0]
 
 Benjamin Darfler:
-  * Suggesed [JACKSON-165]: Add JsonParser.getBooleanValue() convenience method
+  * Suggested [JACKSON-164]: Improve null-handling in JsonGenerator.writeStringField()
+   [1.3.0]
+  * Suggested [JACKSON-165]: Add JsonParser.getBooleanValue() convenience method
    [1.3.0]
