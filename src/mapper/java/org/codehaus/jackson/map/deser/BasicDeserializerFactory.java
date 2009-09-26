@@ -142,6 +142,10 @@ public abstract class BasicDeserializerFactory
         throws JsonMappingException
     {
         Class<?> collectionClass = type.getRawClass();
+
+        // To resolve [JACKSON-167], need to check class annotations
+        BasicBeanDescription beanDesc = config.introspectClassAnnotations(collectionClass);
+        type = (CollectionType) modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
         JavaType contentType = type.getContentType();
         // Very first thing: is deserializer hard-coded for elements?
         @SuppressWarnings("unchecked")
@@ -182,6 +186,7 @@ public abstract class BasicDeserializerFactory
         throws JsonMappingException
     {
         Class<?> mapClass = type.getRawClass();
+
         /* Ok, to resolve [JACKSON-167], we need to check class annotations
          * (and later on, may need creator info too)
          */
