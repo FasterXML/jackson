@@ -4,8 +4,9 @@ import org.codehaus.jackson.map.*;
 
 import java.util.*;
 
-import org.codehaus.jackson.type.TypeReference;
 import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.type.TypeReference;
 
 public class TestMapDeserialization
     extends BaseMapTest
@@ -27,16 +28,6 @@ public class TestMapDeserialization
         // No default ctor, nor @JsonCreators
         public BrokenMap(boolean dummy) { super(); }
     }
-
-    static class BoolWrapper {
-        final Boolean b;
-
-        @JsonCreator BoolWrapper(Boolean value) {
-            b = value;
-        }
-    }
-
-    static class MapSubClass extends HashMap<String,BoolWrapper> { }
 
     /*
     ***************************************************
@@ -210,6 +201,12 @@ public class TestMapDeserialization
         assertNull(result.get(Key.KEY1));
     }
 
+    /*
+    ////////////////////////////////////////////////////////////
+    // Error tests
+    ////////////////////////////////////////////////////////////
+     */
+
     public void testMapError() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -234,20 +231,4 @@ public class TestMapDeserialization
             verifyException(e, "no default/delegating constructor or factory method");
         }
     }
-
-    /**
-     * Verifying that sub-classing works ok wrt generics information
-     */
-    public void testMapSubClass() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        MapSubClass result = mapper.readValue
-            ("{\"a\":true }", MapSubClass.class);
-        assertEquals(1, result.size());
-        Object value = result.get("a");
-        assertEquals(BoolWrapper.class, value.getClass());
-        BoolWrapper bw = (BoolWrapper) value;
-        assertEquals(Boolean.TRUE, bw.b);
-    }
-
 }
