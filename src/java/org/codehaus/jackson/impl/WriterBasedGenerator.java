@@ -141,7 +141,7 @@ public final class WriterBasedGenerator
         /* To support [JACKSON-46], we'll do this:
          * (Quostion: should quoting of spaces (etc) still be enabled?)
          */
-        if (!isFeatureEnabled(Feature.QUOTE_FIELD_NAMES)) {
+        if (!isEnabled(Feature.QUOTE_FIELD_NAMES)) {
             _writeString(name);
             return;
         }
@@ -170,7 +170,7 @@ public final class WriterBasedGenerator
             _cfgPrettyPrinter.beforeObjectEntries(this);
         }
 
-        if (isFeatureEnabled(Feature.QUOTE_FIELD_NAMES)) { // standard
+        if (isEnabled(Feature.QUOTE_FIELD_NAMES)) { // standard
             if (_outputTail >= _outputEnd) {
                 _flushBuffer();
             }
@@ -430,7 +430,7 @@ public final class WriterBasedGenerator
     {
         if (Double.isNaN(d) || Double.isInfinite(d)) {
             // [JACKSON-139]
-            if (isFeatureEnabled(Feature.QUOTE_NON_NUMERIC_NUMBERS)) {
+            if (isEnabled(Feature.QUOTE_NON_NUMERIC_NUMBERS)) {
         	writeString(String.valueOf(d));
                 return;
             }
@@ -446,7 +446,7 @@ public final class WriterBasedGenerator
     {
         if (Float.isNaN(f) || Float.isInfinite(f)) {
             // [JACKSON-139]
-            if (isFeatureEnabled(Feature.QUOTE_NON_NUMERIC_NUMBERS)) {
+            if (isEnabled(Feature.QUOTE_NON_NUMERIC_NUMBERS)) {
         	writeString(String.valueOf(f));
                 return;
             }
@@ -638,7 +638,7 @@ public final class WriterBasedGenerator
          */
         // First: let's see that we still have buffers...
         if (_outputBuffer != null
-            && isFeatureEnabled(Feature.AUTO_CLOSE_JSON_CONTENT)) {
+            && isEnabled(Feature.AUTO_CLOSE_JSON_CONTENT)) {
             while (true) {
                 JsonStreamContext ctxt = getOutputContext();
                 if (ctxt.inArray()) {
@@ -658,7 +658,7 @@ public final class WriterBasedGenerator
          *   One downside: when using UTF8Writer, underlying buffer(s)
          *   may not be properly recycled if we don't close the writer.
          */
-        if (_ioContext.isResourceManaged() || isFeatureEnabled(Feature.AUTO_CLOSE_TARGET)) {
+        if (_ioContext.isResourceManaged() || isEnabled(Feature.AUTO_CLOSE_TARGET)) {
             _writer.close();
         } else {
             // If we can't close it, we should at least flush

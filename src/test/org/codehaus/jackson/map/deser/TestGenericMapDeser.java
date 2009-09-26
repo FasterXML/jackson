@@ -6,8 +6,8 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
-import org.codehaus.jackson.type.TypeReference;
 
+@SuppressWarnings("serial")
 public class TestGenericMapDeser
     extends BaseMapTest
 {
@@ -17,13 +17,9 @@ public class TestGenericMapDeser
     ***************************************************
      */
 
-
     static class BooleanWrapper {
         final Boolean b;
-
-        @JsonCreator BooleanWrapper(Boolean value) {
-            b = value;
-        }
+        @JsonCreator BooleanWrapper(Boolean value) { b = value; }
     }
 
     static class StringWrapper {

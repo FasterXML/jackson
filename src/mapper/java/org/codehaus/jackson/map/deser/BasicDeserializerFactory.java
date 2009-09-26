@@ -145,7 +145,8 @@ public abstract class BasicDeserializerFactory
 
         // To resolve [JACKSON-167], need to check class annotations
         BasicBeanDescription beanDesc = config.introspectClassAnnotations(collectionClass);
-        type = (CollectionType) modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
+        type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
+
         JavaType contentType = type.getContentType();
         // Very first thing: is deserializer hard-coded for elements?
         @SuppressWarnings("unchecked")
@@ -191,7 +192,7 @@ public abstract class BasicDeserializerFactory
          * (and later on, may need creator info too)
          */
         BasicBeanDescription beanDesc = config.introspectForCreation(mapClass);
-        type = (MapType) modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
+        type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
         
         JavaType keyType = type.getKeyType();
         JavaType contentType = type.getContentType();
@@ -340,8 +341,9 @@ public abstract class BasicDeserializerFactory
      *
      * @throws JsonMappingException if invalid annotation is found
      */
-    protected JavaType modifyTypeByAnnotation(DeserializationConfig config,
-                                              Annotated a, JavaType type)
+    @SuppressWarnings("unchecked")
+    protected <T extends JavaType> T modifyTypeByAnnotation(DeserializationConfig config,
+                                              Annotated a, T type)
         throws JsonMappingException
     {
         // first: let's check class for the instance itself:
@@ -349,7 +351,7 @@ public abstract class BasicDeserializerFactory
         Class<?> subclass = intr.findDeserializationType(a);
         if (subclass != null) {
             try {
-                type = type.narrowBy(subclass);
+                type = (T) type.narrowBy(subclass);
             } catch (IllegalArgumentException iae) {
                 throw new JsonMappingException("Failed to narrow type "+type+" with concrete-type annotation (value "+subclass.getName()+"), method '"+a.getName()+"': "+iae.getMessage(), null, iae);
             }
@@ -364,7 +366,7 @@ public abstract class BasicDeserializerFactory
                     throw new JsonMappingException("Illegal key-type annotation: type "+type+" is not a Map type");
                 }
                 try {
-                    type = ((MapType) type).narrowKey(keyClass);
+                    type = (T) ((MapType) type).narrowKey(keyClass);
                 } catch (IllegalArgumentException iae) {
                     throw new JsonMappingException("Failed to narrow key type "+type+" with key-type annotation ("+keyClass.getName()+"): "+iae.getMessage(), null, iae);
                 }
@@ -374,7 +376,7 @@ public abstract class BasicDeserializerFactory
             Class<?> cc = intr.findDeserializationContentType(a);
             if (cc != null) {
                 try {
-                    type = type.narrowContentsBy(cc);
+                    type = (T) type.narrowContentsBy(cc);
                 } catch (IllegalArgumentException iae) {
                     throw new JsonMappingException("Failed to narrow content type "+type+" with content-type annotation ("+cc.getName()+"): "+iae.getMessage(), null, iae);
                 }

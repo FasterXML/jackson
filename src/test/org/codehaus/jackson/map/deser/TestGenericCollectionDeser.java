@@ -4,10 +4,9 @@ import org.codehaus.jackson.map.*;
 
 import java.util.*;
 
-import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
-import org.codehaus.jackson.type.TypeReference;
 
+@SuppressWarnings("serial")
 public class TestGenericCollectionDeser
     extends BaseMapTest
 {
@@ -17,13 +16,6 @@ public class TestGenericCollectionDeser
     ***************************************************
      */
 
-    static class StringWrapper {
-        final String str;
-        @JsonCreator StringWrapper(String value) {
-            str = value;
-        }
-    }
-
     static class ListSubClass extends ArrayList<StringWrapper> { }
 
     /**
@@ -31,7 +23,10 @@ public class TestGenericCollectionDeser
      * using annotations.
      */
     @JsonDeserialize(contentAs=StringWrapper.class)
-        static class AnnotatedList extends ArrayList<Object> { }
+        static class AnnotatedStringList extends ArrayList<Object> { }
+
+    @JsonDeserialize(contentAs=BooleanWrapper.class)
+        static class AnnotatedBooleanList extends ArrayList<Object> { }
 
     /*
     ***************************************************
@@ -68,13 +63,23 @@ public class TestGenericCollectionDeser
     /**
      * Verifying that sub-classing works ok wrt generics information
      */
-    public void testAnnotatedList() throws Exception
+    public void testAnnotatedLStringist() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        AnnotatedList result = mapper.readValue("[ \"...\" ]", AnnotatedList.class);
+        AnnotatedStringList result = mapper.readValue("[ \"...\" ]", AnnotatedStringList.class);
         assertEquals(1, result.size());
         Object ob = result.get(0);
         assertEquals(StringWrapper.class, ob.getClass());
         assertEquals("...", ((StringWrapper) ob).str);
+    }
+
+    public void testAnnotatedBooleanList() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        AnnotatedBooleanList result = mapper.readValue("[ false ]", AnnotatedBooleanList.class);
+        assertEquals(1, result.size());
+        Object ob = result.get(0);
+        assertEquals(BooleanWrapper.class, ob.getClass());
+        assertFalse(((BooleanWrapper) ob).b);
     }
 }

@@ -5,11 +5,40 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 
+import org.codehaus.jackson.annotate.JsonCreator;
+
 import main.BaseTest;
 
 public abstract class BaseMapTest
     extends BaseTest
 {
+    /*
+    //////////////////////////////////////////////
+    // Shared helper classes
+    //////////////////////////////////////////////
+     */
+
+    /**
+     * Simple wrapper around boolean types, usually to test value
+     * conversions or wrapping
+     */
+    protected static class BooleanWrapper {
+        public final Boolean b;
+        @JsonCreator BooleanWrapper(Boolean value) { b = value; }
+    }
+
+    /**
+     * Simple wrapper around String type, usually to test value
+     * conversions or wrapping
+     */
+    protected static class StringWrapper {
+        public final String str;
+        @JsonCreator StringWrapper(String value) {
+            str = value;
+        }
+    }
+
+
     protected BaseMapTest() { super(); }
 
     /*

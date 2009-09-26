@@ -30,6 +30,24 @@ public class TestCreators
         }
     }
 
+    /**
+     * Another simple constructor, but with bit more unusual argument
+     * type
+     */
+    static class BooleanConstructorBean {
+        Boolean b;
+        @JsonCreator protected BooleanConstructorBean(Boolean b) {
+            this.b = b;
+        }
+    }
+
+    static class DoubleConstructorBean {
+        Double d; // cup?
+        @JsonCreator protected DoubleConstructorBean(Double d) {
+            this.d = d;
+        }
+    }
+
     static class FactoryBean {
         double d; // teehee
 
@@ -221,6 +239,21 @@ public class TestCreators
         ObjectMapper m = new ObjectMapper();
         ConstructorBean bean = m.readValue("{ \"x\" : 42 }", ConstructorBean.class);
         assertEquals(42, bean.x);
+    }
+
+    public void testSimpleDoubleConstructor() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        Double exp = new Double("0.25");
+        DoubleConstructorBean bean = m.readValue(exp.toString(), DoubleConstructorBean.class);
+        assertEquals(exp, bean.d);
+    }
+
+    public void testSimpleBooleanConstructor() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        BooleanConstructorBean bean = m.readValue(" true ", BooleanConstructorBean.class);
+        assertEquals(Boolean.TRUE, bean.b);
     }
 
     public void testSimpleFactory() throws Exception

@@ -4,8 +4,6 @@ import org.codehaus.jackson.map.*;
 
 import java.util.*;
 
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.type.TypeReference;
 
 public class TestMapDeserialization

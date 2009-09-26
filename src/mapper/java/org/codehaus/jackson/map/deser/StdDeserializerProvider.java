@@ -227,7 +227,6 @@ public class StdDeserializerProvider
                 return (JsonDeserializer<Object>)_factory.createArrayDeserializer(config, (ArrayType) type, this);
             }
             if (type instanceof MapType) {
-System.err.println("Map type = "+type);
                 return (JsonDeserializer<Object>)_factory.createMapDeserializer(config, (MapType) type, this);
             }
             if (type instanceof CollectionType) {

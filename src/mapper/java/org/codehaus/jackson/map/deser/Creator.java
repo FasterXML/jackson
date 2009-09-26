@@ -140,8 +140,7 @@ abstract class Creator
 	 */
 	protected JsonDeserializer<Object> _deserializer;
 
-        public Delegating(AnnotatedConstructor ctor,
-                          AnnotatedMethod factory)
+        public Delegating(AnnotatedConstructor ctor, AnnotatedMethod factory)
 	{
             if (ctor != null) {
                 _ctor = ctor.getAnnotated();

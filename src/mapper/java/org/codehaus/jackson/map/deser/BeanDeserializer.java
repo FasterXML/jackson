@@ -275,6 +275,9 @@ public class BeanDeserializer
         if (t.isNumeric()) {
 	    return deserializeFromNumber(jp, ctxt);
 	}
+        if (t == JsonToken.VALUE_TRUE || t == JsonToken.VALUE_FALSE) {
+            return deserializeFromBoolean(jp, ctxt);
+        }
         throw ctxt.mappingException(getBeanClass());
     }
 
@@ -359,6 +362,15 @@ public class BeanDeserializer
 		return _numberCreator.construct(jp.getLongValue());
             }
 	}
+	if (_delegatingCreator != null) {
+	    return _delegatingCreator.deserialize(jp, ctxt);
+	}
+	throw ctxt.mappingException(getBeanClass());
+    }
+
+    public Object deserializeFromBoolean(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
 	if (_delegatingCreator != null) {
 	    return _delegatingCreator.deserialize(jp, ctxt);
 	}
