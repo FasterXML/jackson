@@ -55,7 +55,7 @@ public abstract class BeanDescription
      * @param ignoredProperties (optional, may be null) Names of properties
      *   to ignore; getters for these properties are not to be returned.
      */
-    public abstract LinkedHashMap<String,AnnotatedMethod> findGetters(boolean autodetect, Collection<String> ignoredProperties);
+    public abstract LinkedHashMap<String,AnnotatedMethod> findGetters(boolean autoDetectGetters, boolean autoDetectIsGetters, Collection<String> ignoredProperties);
 
-    public abstract LinkedHashMap<String,AnnotatedMethod> findSetters(boolean autodetect);
+    public abstract LinkedHashMap<String,AnnotatedMethod> findSetters(boolean autoDetect);
 }

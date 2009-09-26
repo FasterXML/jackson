@@ -20,6 +20,10 @@ Description:
   * [JACKSON-153] Allow use of @JsonCreator with Map types too
   * [JACKSON-158] Bean serializer now checks for direct self-references
     (partial, trivial cycle detection)
+  * [JACKSON-165] Add JsonParser.getBooleanValue() convenience method
+    (suggested by Benjamin Darfler)
+  * [JACKSON-166] Add ability to control auto-detection of
+    "is getters" (boolean isXxx()) methods separate from regular getters
 
   New features:
 

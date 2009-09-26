@@ -97,14 +97,18 @@ public class BasicBeanDescription extends BeanDescription
      */
     
     /**
-     * @param autodetect Whether to use Bean naming convention to
-     *   automatically detect bean properties; if true will do that,
-     *   if false will require explicit annotations.
+     * @param getterAutoDetect Whether to use Bean naming convention to
+     *   automatically detect bean properties matching 'getXxx' methods
+     *   (unless overridden by per-class annotations)
+     * @param isGetterAutoDetect Whether to use Bean naming convention to
+     *   automatically detect boolean bean properties matching 'isXxx' methods
+     *   (unless overridden by per-class annotations)
      *
      * @return Ordered Map with logical property name as key, and
      *    matching getter method as value.
      */
-    public LinkedHashMap<String,AnnotatedMethod> findGetters(boolean autodetect,
+    public LinkedHashMap<String,AnnotatedMethod> findGetters(boolean getterAutoDetect,
+                                                             boolean isGetterAutoDetect,
                                                              Collection<String> ignoredProperties)
     {
         /* As part of [JACKSON-52] we'll use baseline settings for
@@ -113,7 +117,12 @@ public class BasicBeanDescription extends BeanDescription
          */
         Boolean classAD = _annotationIntrospector.findGetterAutoDetection(_classInfo);
         if (classAD != null) {
-            autodetect = classAD.booleanValue();
+            getterAutoDetect = classAD.booleanValue();
+        }
+        // similarly for [JACKSON-166] (separate "is getters")
+        classAD = _annotationIntrospector.findIsGetterAutoDetection(_classInfo);
+        if (classAD != null) {
+            isGetterAutoDetect = classAD.booleanValue();
         }
 
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
@@ -136,25 +145,28 @@ public class BasicBeanDescription extends BeanDescription
                  * method name
                  */
                 if (propName.length() == 0) { 
-                    propName = okNameForGetter(am);
+                    propName = okNameForAnyGetter(am, am.getName());
                     if (propName == null) {
                         propName = am.getName();
                     }
                 }
-            } else { // nope, but is public bean-getter name?
-                if (!autodetect) {
-                    continue;
-                }
+            } else {
                 /* For getters (but not for setters), auto-detection
                  * requires method to be public:
                  */
-                if (!am.isPublic()) {
-                    continue;
+                if (!am.isPublic()) continue;
+
+                propName = am.getName();
+                // [JACKSON-166], need to separate getXxx/isXxx methods
+                if (propName.startsWith("get")) { // nope, but is public bean-getter name?
+                    if (!getterAutoDetect) continue;
+                    propName = okNameForGetter(am, propName);
+                } else {
+                    if (!isGetterAutoDetect) continue;
+                    propName = okNameForIsGetter(am, propName);
                 }
-                propName = okNameForGetter(am);
-                if (propName == null) { // null means 'not valid'
-                    continue;
-                }
+                // null return value means 'not valid'
+                if (propName == null) continue;
             }
 
             if (ignoredProperties != null) {
@@ -486,9 +498,17 @@ public class BasicBeanDescription extends BeanDescription
     ///////////////////////////////////////////////////////
      */
 
-    protected String okNameForGetter(AnnotatedMethod am)
+    protected String okNameForAnyGetter(AnnotatedMethod am, String name)
     {
-        String name = am.getName();
+        String str = okNameForIsGetter(am, name);
+        if (str == null) {
+            str = okNameForGetter(am, name);
+        }
+        return str;
+    }
+
+    protected String okNameForGetter(AnnotatedMethod am, String name)
+    {
         if (name.startsWith("get")) {
             /* 16-Feb-2009, tatu: To handle [JACKSON-53], need to block
              *   CGLib-provided method "getCallbacks". Not sure of exact
@@ -511,6 +531,11 @@ public class BasicBeanDescription extends BeanDescription
             }
             return mangleGetterName(am, name.substring(3));
         }
+        return null;
+    }
+
+    protected String okNameForIsGetter(AnnotatedMethod am, String name)
+    {
         if (name.startsWith("is")) {
             // plus, must return boolean...
             Class<?> rt = am.getReturnType();

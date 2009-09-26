@@ -55,10 +55,13 @@ public class TestConfig
 
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT));
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING));
+
+        // since 1.3:
+        assertTrue(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS));
     }
 
     @SuppressWarnings("deprecation")
-	public void testFromAnnotationsLegacy()
+    public void testFromAnnotationsLegacy()
     {
         ObjectMapper m = new ObjectMapper();
         SerializationConfig cfg = m.getSerializationConfig();
@@ -68,6 +71,7 @@ public class TestConfig
          */
         cfg.fromAnnotations(ConfigLegacy.class);
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
+        assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS));
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
     }
 
@@ -81,6 +85,7 @@ public class TestConfig
          */
         cfg.fromAnnotations(Config.class);
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
+        assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS));
         assertEquals(JsonSerialize.Inclusion.NON_DEFAULT, cfg.getSerializationInclusion());
         assertTrue(cfg.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING));
     }

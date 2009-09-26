@@ -15,6 +15,12 @@ import org.codehaus.jackson.map.*;
 public class TestFeatures
     extends BaseMapTest
 {
+    /*
+    *********************************************************
+    * Helper classes
+    *********************************************************
+     */
+
     /**
      * Class with one explicitly defined getter, one name-based
      * auto-detectable getter.
@@ -43,7 +49,29 @@ public class TestFeatures
     {
         @JsonProperty("x") public int getX() { return -2; }
         public int getY() { return 1; }
+
+        // not auto-detected, since "is getter" auto-detect disabled
+        public boolean isOk() { return true; }
     }
+
+    /**
+     * One more: only detect "isXxx", not "getXXX"
+     */
+    @JsonAutoDetect(JsonMethod.IS_GETTER)
+    static class EnabledIsGetterClass
+    {
+        // Won't be auto-detected any more
+        public int getY() { return 1; }
+
+        // but this will be
+        public boolean isOk() { return true; }
+    }
+
+    /*
+    *********************************************************
+    * Test methods
+    *********************************************************
+     */
 
     public void testGlobalAutoDetection() throws IOException
     {
@@ -78,6 +106,18 @@ public class TestFeatures
         assertEquals(2, result.size());
         assertTrue(result.containsKey("x"));
         assertTrue(result.containsKey("y"));
+    }
+
+    public void testPerClassAutoDetectionForIsGetter() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        // class level should override
+        m.configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, true);
+        m.configure(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS, false);
+         Map<String,Object> result = writeAndMap(m, new EnabledIsGetterClass());
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey("ok"));
+        assertEquals(Boolean.TRUE, result.get("ok"));
     }
 
     // Simple test verifying that chainable methods work ok...

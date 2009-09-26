@@ -205,6 +205,24 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
+    @Override
+    public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
+    {
+        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                for (JsonMethod jm : methods) {
+                    if (jm.isGetterEnabled()) {
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Serialization: method annotations

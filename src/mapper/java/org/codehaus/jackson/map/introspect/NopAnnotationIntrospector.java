@@ -82,6 +82,14 @@ public class NopAnnotationIntrospector
         return null;
     }
 
+    /**
+     * @since 1.3
+     */
+    @Override
+    public Boolean findIsGetterAutoDetection(AnnotatedClass ac) {
+        return null;
+    }
+
     @Override
     public String findPropertyNameForParam(AnnotatedParameter param) {
         return null;

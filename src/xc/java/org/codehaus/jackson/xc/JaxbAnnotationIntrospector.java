@@ -229,6 +229,15 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return isPropertiesAccessible(ac);
     }
 
+    /**
+     * @since 1.3
+     */
+    public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
+    {
+        // No difference between regular getters, "is getters"
+        return isPropertiesAccessible(ac);
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Serialization: method annotations

@@ -27,6 +27,20 @@ public class TestNumericValues
         assertEquals(BigDecimal.valueOf((long) EXP_I), jp.getDecimalValue());
     }
 
+    public void testInvalidIntAccess()
+        throws Exception
+    {
+        JsonParser jp = createParserUsingReader("[ \"abc\" ]");
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        try {
+            jp.getIntValue();
+            fail("Expected error trying to call getIntValue on non-numeric value");
+        } catch (JsonParseException e) {
+            verifyException(e, "can not use numeric value accessors");
+        }
+    }
+
     public void testSimpleLong()
         throws Exception
     {
@@ -193,6 +207,36 @@ public class TestNumericValues
                 }
             }
             assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        }
+    }
+
+
+    /*
+    *******************************************
+    * New tests for 1.3 features
+    *******************************************
+     */
+
+    public void testSimpleBoolean()
+        throws Exception
+    {
+        JsonParser jp = createParserUsingReader("[ true ]");
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_TRUE, jp.nextToken());
+        assertEquals(true, jp.getBooleanValue());
+    }
+
+    public void testInvalidBooleanAccess()
+        throws Exception
+    {
+        JsonParser jp = createParserUsingReader("[ \"abc\" ]");
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        try {
+            jp.getBooleanValue();
+            fail("Expected error trying to call getBooleanValue on non-boolean value");
+        } catch (JsonParseException e) {
+            verifyException(e, "not of boolean type");
         }
     }
 }

@@ -667,6 +667,26 @@ public abstract class JsonParser
     public abstract BigDecimal getDecimalValue()
         throws IOException, JsonParseException;
 
+    /**
+     * Convenience accessor that can be called when the current
+     * token is {@link JsonToken#VALUE_TRUE} or
+     * {@link JsonToken#VALUE_FALSE}.
+     *<p>
+     * Note: if the token is not of above-mentioned boolean types,
+ an integer, but its value falls
+     * outside of range of Java long, a {@link JsonParseException}
+     * may be thrown to indicate numeric overflow/underflow.
+     *
+     * @since 1.3
+     */
+    public boolean getBooleanValue()
+        throws IOException, JsonParseException
+    {
+        if (_currToken == JsonToken.VALUE_TRUE) return true;
+        if (_currToken == JsonToken.VALUE_FALSE) return false;
+        throw new JsonParseException("Current token ("+_currToken+") not of boolean type", getCurrentLocation());
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Public API, access to token information, binary

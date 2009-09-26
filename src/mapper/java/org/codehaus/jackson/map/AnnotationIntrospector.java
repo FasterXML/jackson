@@ -158,12 +158,31 @@ public abstract class AnnotationIntrospector
 
     /**
      * Method for checking whether there is a class annotation that
-     * indicates whether getter-method auto detection should be enabled.
+     * indicates whether (regular) getter-method auto detection
+     * should be enabled.
+     * Getter methods are methods with name "getXxx()" (for property "xxx");
+     * "isXxx()" are not included (instead those are considered
+     * "is getters")
      *
      * @return null if no relevant annotation is located; Boolean.TRUE
      *   if enabling annotation found, Boolean.FALSE if disabling annotation
      */
     public abstract Boolean findGetterAutoDetection(AnnotatedClass ac);
+
+    /**
+     * Method for checking whether there is a class annotation that
+     * indicates whether (regular) getter-method auto detection
+     * should be enabled.
+     * Getter methods are methods with name "getXxx()" (for property "xxx");
+     * "isXxx()" are not included (instead those are considered
+     * "is getters")
+     *
+     * @since 1.3
+     *
+     * @return null if no relevant annotation is located; Boolean.TRUE
+     *   if enabling annotation found, Boolean.FALSE if disabling annotation
+     */
+    public abstract Boolean findIsGetterAutoDetection(AnnotatedClass ac);
 
     /*
     ///////////////////////////////////////////////////////
@@ -539,6 +558,16 @@ public abstract class AnnotationIntrospector
             Boolean result = _primary.findGetterAutoDetection(ac);
             if (result == null) {
                 result = _secondary.findGetterAutoDetection(ac);
+            }
+            return result;
+        }
+
+        @Override
+        public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findIsGetterAutoDetection(ac);
+            if (result == null) {
+                result = _secondary.findIsGetterAutoDetection(ac);
             }
             return result;
         }

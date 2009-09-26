@@ -178,7 +178,10 @@ public class BeanSerializerFactory
      */
     protected Collection<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
     {
-        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS), null);
+        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters
+            (config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS),
+             config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS),
+             null);
 
         /* [JACKSON-98]: also include field-backed properties:
          *   (second arg passed to ignore anything for which there is a getter

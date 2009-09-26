@@ -18,6 +18,10 @@ public enum JsonMethod
      * can be used for effectively setting Collection or Map values
      * in absence of setters, iff returned value is not a copy but
      * actual value of the logical property.
+     *<p>
+     * Since version 1.3, this does <b>NOT</b> include "is getters" (methods
+     * that return boolean and named 'isXxx' for property 'xxx'); instead,
+     * {@link #IS_GETTER} is used}.
      */
     GETTER,
 
@@ -43,6 +47,15 @@ public enum JsonMethod
         FIELD,
 
         /**
+         * "Is getters" are getter-like methods that are named "isXxx"
+         * (instead of "getXxx" for getters) and return boolean value
+         * (either primitive, or {@link java.lang.Boolean}).
+         *
+         * @since 1.3
+         */
+        IS_GETTER,
+
+        /**
          * This pseudo-type indicates that none of real types is included
          */
         NONE,
@@ -61,6 +74,10 @@ public enum JsonMethod
 
     public boolean getterEnabled() {
         return (this == GETTER) || (this == ALL);
+    }
+
+    public boolean isGetterEnabled() {
+        return (this == IS_GETTER) || (this == ALL);
     }
 
     public boolean setterEnabled() {

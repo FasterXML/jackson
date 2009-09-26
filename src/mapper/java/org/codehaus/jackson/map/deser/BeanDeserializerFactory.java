@@ -392,7 +392,7 @@ public class BeanDeserializerFactory
              * need to add AUTO_DETECT_GETTERS to deser config too, not
              * just ser config)
              */
-            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(true, addedProps);
+            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(true, false, addedProps);
             for (Map.Entry<String,AnnotatedMethod> en : getters.entrySet()) {
                 AnnotatedMethod getter = en.getValue();
                 // should only consider Collections and Maps, for now?

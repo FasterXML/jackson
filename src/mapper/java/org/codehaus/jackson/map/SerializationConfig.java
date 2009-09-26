@@ -46,12 +46,15 @@ public class SerializationConfig
         USE_ANNOTATIONS(true)
 
         /**
-         * Feature that determines whether "getter" methods are
+         * Feature that determines whether regualr "getter" methods are
          * automatically detected based on standard Bean naming convention
          * or not. If yes, then all public zero-argument methods that
-         * start with prefix "get" (or, "is" if return type is boolean)
-         * are considered as getters. If disabled, only methods explicitly
-         * annotated are considered getters.
+         * start with prefix "get" 
+         * are considered as getters.
+         * If disabled, only methods explicitly  annotated are considered getters.
+         *<p>
+         * Note that since version 1.3, this does <b>NOT</b> include
+         * "is getters" (see {@link #AUTO_DETECT_IS_GETTERS} for details)
          *<p>
          * Note that this feature has lower precedence than per-class
          * annotations, and is only used if there isn't more granular
@@ -60,6 +63,22 @@ public class SerializationConfig
          * Feature is enabled by default.
          */
         ,AUTO_DETECT_GETTERS(true)
+
+        /**
+         * Feature that determines whether "is getter" methods are
+         * automatically detected based on standard Bean naming convention
+         * or not. If yes, then all public zero-argument methods that
+         * start with prefix "is", and whose return type is boolean
+         * are considered as "is getters".
+         * If disabled, only methods explicitly annotated are considered getters.
+         *<p>
+         * Note that this feature has lower precedence than per-class
+         * annotations, and is only used if there isn't more granular
+         * configuration available.
+         *<P>
+         * Feature is enabled by default.
+         */
+        ,AUTO_DETECT_IS_GETTERS(true)
 
         /**
          * Feature that determines whether non-static fields are recognized as
@@ -319,6 +338,10 @@ public class SerializationConfig
         Boolean ad = _annotationIntrospector.findGetterAutoDetection(ac);
         if (ad != null) {
             set(Feature.AUTO_DETECT_GETTERS, ad.booleanValue());
+    	}
+        ad = _annotationIntrospector.findIsGetterAutoDetection(ac);
+        if (ad != null) {
+            set(Feature.AUTO_DETECT_IS_GETTERS, ad.booleanValue());
     	}
 
         // How about writing null property values?
