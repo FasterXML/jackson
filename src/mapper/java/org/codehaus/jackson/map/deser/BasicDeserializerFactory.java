@@ -234,6 +234,8 @@ public abstract class BasicDeserializerFactory
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Map type "+type);
             }
             mapClass = fallback;
+            // But if so, also need to re-check creators...
+            beanDesc = config.introspectForCreation(mapClass);
         }
 
         // [JACKSON-153]: allow use of @JsonCreator
