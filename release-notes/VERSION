@@ -1,12 +1,21 @@
-Version: 1.2.0
+Version: 1.2.1
 
 Release date:
-  01-Aug-2009
+  xx-Oct-2009
 
 Description:
-  Official 1.2 release. Contains all bug fixes up to 1.1.2,
-  and a set of new features that significantly include interoperability
-  and ease-of-use, developer ergonomics.
+  Bug-fix release for 1.2.0.
+
+  Problems fixed:
+
+  * [JACKSON-162] OSGi packaging problems for xc package.
+   (reported by Troy Waldrep)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.2.0 [01-Aug-2009]
 
   Improvements:
 
@@ -41,10 +50,6 @@ Description:
     (DeserializationConfig.Feature.USE_ANNOTATIONS,
     SerializationConfig.Feature.USE_ANNOTATIONS) to allow disabling
     use of annotations for serialization and/or deserialization config
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.1.2 [31-Jul-2009]
 
