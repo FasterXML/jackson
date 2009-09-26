@@ -156,3 +156,8 @@ Benjamin Darfler:
    [1.3.0]
   * Suggested [JACKSON-165]: Add JsonParser.getBooleanValue() convenience method
    [1.3.0]
+
+Troy Waldrep:
+  * Reported [JACKSON-162]: OSGi packaging problems for xc package.
+   [1.3.0]
+ 

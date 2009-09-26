@@ -1,7 +1,7 @@
 Version: 1.3.0
 
 Release date:
-  xx-Sep-2009
+  xx-Oct-2009
 
 Description:
 
@@ -12,6 +12,8 @@ Description:
   * [JACKSON-155] Failed to serialize java.io.File (with infinite
     recursion)
    (reported by Gabe S)
+  * [JACKSON-162] OSGi packaging problems for xc package.
+   (reported by Troy Waldrep)
 
   Improvements:
 
