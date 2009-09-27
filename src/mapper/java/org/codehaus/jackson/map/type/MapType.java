@@ -18,44 +18,30 @@ public final class MapType
      */
     final JavaType _valueType;
 
-    final boolean _fullyTyped;
-
     /*
     //////////////////////////////////////////////////////////
     // Life-cycle
     //////////////////////////////////////////////////////////
      */
 
-    private MapType(Class<?> mapType, JavaType keyT, JavaType valueT,
-                    boolean fullyTyped)
+    private MapType(Class<?> mapType, JavaType keyT, JavaType valueT)
     {
         super(mapType);
         _keyType = keyT;
         _hashCode += keyT.hashCode();
         _valueType = valueT;
         _hashCode += valueT.hashCode();
-        _fullyTyped = fullyTyped;
     }
 
-    /**
-     * Method called to construct a partially typed instance. Partial
-     * means that we can not determine component types, due to type
-     * erasure. Resulting type may or may not be acceptable to caller.
-     */
-    public static MapType untyped(Class<?> rawType, JavaType keyT, JavaType valueT)
+    public static MapType construct(Class<?> rawType, JavaType keyT, JavaType valueT)
     {
         // nominally component types will be just Object.class
-        return new MapType(rawType, keyT, valueT, false);
-    }
-
-    public static MapType typed(Class<?> rawType, JavaType keyT, JavaType valueT)
-    {
-        return new MapType(rawType, keyT, valueT, keyT.isFullyTyped() & valueT.isFullyTyped());
+        return new MapType(rawType, keyT, valueT);
     }
 
     protected JavaType _narrow(Class<?> subclass)
     {
-        return new MapType(subclass, _keyType, _valueType, _fullyTyped);
+        return new MapType(subclass, _keyType, _valueType);
     }
 
     public JavaType narrowContentsBy(Class<?> contentClass)
@@ -65,7 +51,7 @@ public final class MapType
             return this;
         }
         JavaType newValueType = _valueType.narrowBy(contentClass);
-        return new  MapType(_class, _keyType, newValueType, _fullyTyped);
+        return new MapType(_class, _keyType, newValueType);
     }
 
     /*
@@ -73,8 +59,6 @@ public final class MapType
     // Public API
     //////////////////////////////////////////////////////////
      */
-
-    public boolean isFullyTyped() { return _fullyTyped; }
 
     public boolean isContainerType() { return true; }
 
@@ -85,7 +69,7 @@ public final class MapType
             return this;
         }
         JavaType newKeyType = _keyType.narrowBy(keySubclass);
-        return new  MapType(_class, newKeyType, _valueType, _fullyTyped);
+        return new MapType(_class, newKeyType, _valueType);
     }
 
     @Override

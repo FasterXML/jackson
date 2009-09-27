@@ -80,16 +80,6 @@ public final class SimpleType
     //////////////////////////////////////////////////////////
      */
 
-    /**
-     * Simple types are always fully typed, except for special
-     * placeholder types. Maintaining this constrain requires that
-     * no instances are ever created for Collection/Map types.
-     */
-    @Override
-    public boolean isFullyTyped() {
-        return (this != TYPE_UNSPECIFIED && this != TYPE_WILDCARD);
-    }
-
     @Override
     public boolean isContainerType() { return false; }
 

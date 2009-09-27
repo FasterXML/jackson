@@ -134,15 +134,6 @@ public abstract class JavaType
     }
 
     /**
-     * Method that can be used to check whether type described is
-     * fully typed, regarding the way JavaTypes are used for
-     * deserialization. For this to be true, all Collection and Map
-     * types must have proper element/value/key type information,
-     * and can not be plain classes.
-     */
-    public abstract boolean isFullyTyped();
-
-    /**
      * @return True if type represented is a container type; this includes
      *    array, Map and Collection types.
      */

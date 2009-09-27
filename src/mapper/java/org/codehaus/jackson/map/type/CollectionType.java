@@ -13,25 +13,22 @@ public final class CollectionType
      */
     final JavaType _elementType;
 
-    final boolean _fullyTyped;
-
     /*
     //////////////////////////////////////////////////////////
     // Life-cycle
     //////////////////////////////////////////////////////////
      */
 
-    private CollectionType(Class<?> collT, JavaType elemT, boolean fullyTyped)
+    private CollectionType(Class<?> collT, JavaType elemT)
     {
         super(collT);
         _elementType = elemT;
         _hashCode += elemT.hashCode();
-        _fullyTyped = fullyTyped;
     }
 
     protected JavaType _narrow(Class<?> subclass)
     {
-        return new CollectionType(subclass, _elementType, _fullyTyped);
+        return new CollectionType(subclass, _elementType);
     }
 
     public JavaType narrowContentsBy(Class<?> contentClass)
@@ -41,23 +38,13 @@ public final class CollectionType
             return this;
         }
         JavaType newElementType = _elementType.narrowBy(contentClass);
-        return new CollectionType(_class, newElementType, _fullyTyped);
+        return new CollectionType(_class, newElementType);
     }
 
-    /**
-     * Method called to construct a partially typed instance. Partial
-     * means that we can not determine component types, due to type
-     * erasure. Resulting type may or may not be acceptable to caller.
-     */
-    public static CollectionType untyped(Class<?> rawType, JavaType elemT)
+    public static CollectionType construct(Class<?> rawType, JavaType elemT)
     {
         // nominally component types will be just Object.class
-        return new CollectionType(rawType, elemT, false);
-    }
-
-    public static CollectionType typed(Class<?> rawType, JavaType elemT)
-    {
-        return new CollectionType(rawType, elemT, elemT.isFullyTyped());
+        return new CollectionType(rawType, elemT);
     }
 
     /*
@@ -65,8 +52,6 @@ public final class CollectionType
     // Public API
     //////////////////////////////////////////////////////////
      */
-
-    public boolean isFullyTyped() { return _fullyTyped; }
 
     public JavaType getContentType() { return _elementType; }
 

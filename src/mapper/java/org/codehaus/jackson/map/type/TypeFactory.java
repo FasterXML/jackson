@@ -90,25 +90,20 @@ public class TypeFactory
             return ArrayType.construct(fromClass(clz.getComponentType()));
         }
         /* Maps and Collections aren't quite as hot; problem is, due
-         * to type erasure we can't know typing and can only assume
-         * base Object... at any rate, whether that's a problem is up
-         * to caller to decide: we'll just flag this (resulting type
-         * instance will return 'false' from its 'isFullyTyped' method)
+         * to type erasure we often do not know typing and can only assume
+         * base Object.
          */
         if (Map.class.isAssignableFrom(clz)) {
             MapType parentType = _findParentType(clz, MapType.class);
-            if (parentType == null) {
+            if (parentType == null) {                
                 JavaType unknown = _unknownType();
-                return MapType.untyped(clz, unknown, unknown);
+                return MapType.construct(clz, unknown, unknown);
             }
-            return MapType.typed(clz, parentType.getKeyType(), parentType.getContentType());
+            return MapType.construct(clz, parentType.getKeyType(), parentType.getContentType());
         }
         if (Collection.class.isAssignableFrom(clz)) {
             CollectionType parentType = _findParentType(clz, CollectionType.class);
-            if (parentType == null) {
-                return CollectionType.untyped(clz, _unknownType());
-            }
-            return CollectionType.typed(clz, parentType.getContentType());
+            return CollectionType.construct(clz, (parentType == null) ? _unknownType() : parentType.getContentType());
         }
         /* Otherwise, consider it a Bean; and due to type
          * erasure it must be simple (no generics available)
@@ -164,10 +159,10 @@ public class TypeFactory
         // Ok: Map or Collection?
         if (Map.class.isAssignableFrom(rawType)) {
             Type[] args = type.getActualTypeArguments();
-            return MapType.typed(rawType, fromType(args[0]), fromType(args[1]));
+            return MapType.construct(rawType, fromType(args[0]), fromType(args[1]));
         }
         if (Collection.class.isAssignableFrom(rawType)) {
-            return CollectionType.typed(rawType, fromType(type.getActualTypeArguments()[0]));
+            return CollectionType.construct(rawType, fromType(type.getActualTypeArguments()[0]));
         }
 
         // Maybe a generics version?

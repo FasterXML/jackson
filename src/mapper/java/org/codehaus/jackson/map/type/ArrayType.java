@@ -17,8 +17,6 @@ public final class ArrayType
      */
     final JavaType _componentType;
 
-    final boolean _fullyTyped;
-
     /**
      * We will also keep track of shareable instance of empty array,
      * since it usually needs to be constructed any way; and because
@@ -32,7 +30,6 @@ public final class ArrayType
         _componentType = componentType;
         _emptyArray = emptyInstance;
         _hashCode += componentType.hashCode();
-        _fullyTyped = componentType.isFullyTyped();
     }
 
     public static ArrayType construct(JavaType componentType)
@@ -92,12 +89,6 @@ public final class ArrayType
     // Public API
     //////////////////////////////////////////////////////////
      */
-
-    /**
-     * Simple types are always fully typed: this requires that
-     * no instances are ever created for Collection/Map types.
-     */
-    public boolean isFullyTyped() { return _fullyTyped; }
 
     public boolean isContainerType() { return true; }
 
