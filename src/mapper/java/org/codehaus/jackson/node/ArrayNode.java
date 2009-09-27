@@ -23,6 +23,8 @@ public final class ArrayNode
     ///////////////////////////////////////////////////////////
      */
 
+    @Override public JsonToken asToken() { return JsonToken.START_ARRAY; }
+
     @Override
     public boolean isArray() { return true; }
 

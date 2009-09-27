@@ -20,6 +20,8 @@ public final class IntNode
 
     public static IntNode valueOf(int i) { return new IntNode(i); }
 
+    @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_INT; }
+
     @Override
     public boolean isIntegralNumber() { return true; }
 

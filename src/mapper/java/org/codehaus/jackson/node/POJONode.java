@@ -28,6 +28,8 @@ public final class POJONode
         return null;
     }
 
+    @Override public JsonToken asToken() { return JsonToken.VALUE_EMBEDDED_OBJECT; }
+
     @Override
     public boolean isPojo() { return true; }
 

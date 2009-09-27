@@ -20,6 +20,9 @@ public final class BigIntegerNode
     public static BigIntegerNode valueOf(BigInteger v) { return new BigIntegerNode(v); }
 
     @Override
+    public JsonToken asToken() { return JsonToken.VALUE_NUMBER_INT; }
+
+    @Override
     public boolean isIntegralNumber() { return true; }
 
     @Override

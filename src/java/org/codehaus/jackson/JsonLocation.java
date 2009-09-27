@@ -7,6 +7,14 @@ package org.codehaus.jackson;
  */
 public class JsonLocation
 {
+    /**
+     * Shared immutable "N/A location" that can be returned to indicate
+     * that no location information is available
+     *
+     * @since 1.3
+     */
+    public final static JsonLocation NA = new JsonLocation("N/A", -1L, -1, -1);
+
     final long _totalChars;
 
     final int _lineNr;

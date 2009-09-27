@@ -20,6 +20,9 @@ public final class DecimalNode
 
     public static DecimalNode valueOf(BigDecimal d) { return new DecimalNode(d); }
 
+
+    @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_FLOAT; }
+
     @Override
         public boolean isFloatingPointNumber() { return true; }
     

@@ -20,6 +20,8 @@ public final class LongNode
 
     public static LongNode valueOf(long l) { return new LongNode(l); }
 
+    @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_INT; }
+
     @Override
     public boolean isIntegralNumber() { return true; }
 

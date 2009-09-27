@@ -19,8 +19,44 @@ public abstract class BaseJsonNode
 {
     protected BaseJsonNode() { }
 
+    /*
+     *********************************************
+     * Support for traversal-as-stream
+     *********************************************
+     */
+
+    @Override
+    public JsonParser traverse() {
+        return new NodeTraversingParser(this);
+    }
+
+    /**
+     * Method that can be used for efficient type detection
+     * when using stream abstraction for traversing nodes.
+     * Will return the first {@link JsonToken} that equivalent
+     * stream event would produce (for most nodes there is just
+     * one token but for structured/container types multiple)
+     */
+    public abstract JsonToken asToken();
+
+    /*
+     *********************************************
+     * JsonSerializable
+     *********************************************
+     */
+
+    /**
+     * Method called to serialize node instances using given generator.
+     */
     public abstract void serialize(JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonProcessingException;
+
+
+    /*
+     *********************************************
+     * Other
+     *********************************************
+     */
 
     /**
      *<p>
@@ -37,9 +73,5 @@ public abstract class BaseJsonNode
         serialize(jgen, null);
     }
 
-    @Override
-    public JsonParser traverse() {
-        return new NodeTraversingParser(this);
-    }
 }
 

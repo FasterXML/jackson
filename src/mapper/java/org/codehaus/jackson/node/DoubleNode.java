@@ -21,6 +21,8 @@ public final class DoubleNode
 
     public static DoubleNode valueOf(double v) { return new DoubleNode(v); }
 
+    @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_FLOAT; }
+
     @Override
         public boolean isFloatingPointNumber() { return true; }
 

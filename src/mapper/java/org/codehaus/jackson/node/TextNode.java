@@ -38,6 +38,8 @@ public final class TextNode
         return new TextNode(v);
     }
 
+    @Override public JsonToken asToken() { return JsonToken.VALUE_STRING; }
+
     @Override
     public boolean isTextual() { return true; }
 

@@ -21,6 +21,8 @@ public final class MissingNode
 
     public static MissingNode getInstance() { return instance; }
 
+    @Override public JsonToken asToken() { return JsonToken.NOT_AVAILABLE; }
+
     @Override
     public boolean isMissingNode() { return true; }
 

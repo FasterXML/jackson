@@ -1,6 +1,7 @@
 package org.codehaus.jackson.node;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonToken;
 
 /**
  * This intermediate base class is used for all leaf nodes, that is,
@@ -14,6 +15,9 @@ public abstract class ValueNode
 
     @Override
     public boolean isValueNode() { return true; }
+
+    @Override
+    public abstract JsonToken asToken();
 
     /*
     ////////////////////////////////////////////////////

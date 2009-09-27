@@ -10,17 +10,23 @@ import org.codehaus.jackson.type.TypeReference;
 public class NodeTraversingParser extends JsonParser
 {
     /*
-    ////////////////////////////////////////////////////
-    // Configuration, state
-    ////////////////////////////////////////////////////
+     *********************************************
+     * Configuration
+     *********************************************
      */
 
     protected ObjectCodec _objectCodec;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+     *********************************************
+     * State
+     *********************************************
+     */
+
+    /*
+     *********************************************
+     * Life-cycle
+     *********************************************
      */
 
     public NodeTraversingParser(JsonNode n) {
@@ -36,9 +42,20 @@ public class NodeTraversingParser extends JsonParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, traversal
-    ////////////////////////////////////////////////////
+     *********************************************
+     * Closeable implementation
+     *********************************************
+     */
+
+    @Override
+    public void close() throws IOException {
+        // Nothing to do here...
+    }
+
+    /*
+     *********************************************
+     * Public API, traversal
+     *********************************************
      */
 
     @Override
@@ -53,11 +70,81 @@ public class NodeTraversingParser extends JsonParser
         return null;
     }
 
+    @Override
+    public JsonParser skipChildren() throws IOException, JsonParseException {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
     @Override
-    public void close() throws IOException {
-        // Nothing to do here...
+    public boolean isClosed() {
+        // TODO Auto-generated method stub
+        return false;
     }
+
+    /*
+     *********************************************
+     * Public API, token accessors
+     *********************************************
+     */
+
+    @Override
+    public String getCurrentName() throws IOException, JsonParseException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public JsonStreamContext getParsingContext() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public JsonLocation getTokenLocation() {
+        return JsonLocation.NA;
+    }
+
+    @Override
+    public JsonLocation getCurrentLocation() {
+        return JsonLocation.NA;
+    }
+
+    /*
+     *********************************************
+     * Public API, access to textual content
+     *********************************************
+     */
+
+    @Override
+    public String getText() throws IOException, JsonParseException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public char[] getTextCharacters() throws IOException, JsonParseException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public int getTextLength() throws IOException, JsonParseException {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public int getTextOffset() throws IOException, JsonParseException {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /*
+     *********************************************
+     * Public API, typed non-text access
+     *********************************************
+     */
 
     @Override
     public BigInteger getBigIntegerValue() throws IOException,
@@ -67,28 +154,9 @@ public class NodeTraversingParser extends JsonParser
     }
 
     @Override
-    public byte[] getBinaryValue(Base64Variant b64variant) throws IOException,
-            JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public byte getByteValue() throws IOException, JsonParseException {
         // TODO Auto-generated method stub
         return 0;
-    }
-
-    @Override
-    public JsonLocation getCurrentLocation() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public String getCurrentName() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -133,11 +201,6 @@ public class NodeTraversingParser extends JsonParser
         return null;
     }
 
-    @Override
-    public JsonStreamContext getParsingContext() {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
     @Override
     public short getShortValue() throws IOException, JsonParseException {
@@ -145,41 +208,24 @@ public class NodeTraversingParser extends JsonParser
         return 0;
     }
 
+    /*
+     *********************************************
+     * Public API, typed binary (base64) access
+     *********************************************
+     */
+
     @Override
-    public String getText() throws IOException, JsonParseException {
+    public byte[] getBinaryValue(Base64Variant b64variant) throws IOException,
+            JsonParseException {
         // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
-    public char[] getTextCharacters() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public int getTextLength() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public int getTextOffset() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public JsonLocation getTokenLocation() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public boolean isClosed() {
-        // TODO Auto-generated method stub
-        return false;
-    }
+    /*
+     *********************************************
+     * Public API, data binding
+     *********************************************
+     */
 
     @Override
     public <T> T readValueAs(Class<T> valueType) throws IOException,
@@ -201,9 +247,9 @@ public class NodeTraversingParser extends JsonParser
         return null;
     }
 
-    @Override
-    public JsonParser skipChildren() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    /*
+     *********************************************
+     * Internal methods
+     *********************************************
+     */
 }

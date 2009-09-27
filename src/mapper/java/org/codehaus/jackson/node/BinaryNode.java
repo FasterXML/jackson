@@ -55,6 +55,15 @@ public final class BinaryNode
     }
 
     @Override
+    public JsonToken asToken() {
+        /* No distinct type; could use one for textual values,
+         * but given that it's not in text form at this point,
+         * embedded-object is closest
+         */
+        return JsonToken.VALUE_EMBEDDED_OBJECT;
+    }
+
+    @Override
     public boolean isBinary() { return true; }
 
     /**

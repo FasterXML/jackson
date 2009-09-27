@@ -6,6 +6,7 @@ import java.util.NoSuchElementException;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonToken;
 
 /**
  * This intermediate base class is used for all container nodes,
@@ -28,6 +29,9 @@ public abstract class ContainerNode
 
     @Override
     public boolean isContainerNode() { return true; }
+
+    @Override
+    public abstract JsonToken asToken();
 
     @Override
     public String getValueAsText() { return null; }

@@ -23,6 +23,8 @@ public class ObjectNode
     ///////////////////////////////////////////////////////////
      */
 
+    @Override public JsonToken asToken() { return JsonToken.START_OBJECT; }
+
     @Override
     public boolean isObject() { return true; }
 
