@@ -87,7 +87,7 @@ public final class CollectionType
     @Override
         public String toString()
     {
-        return "[collection type for "+_elementType+"]";
+        return "[collection type; class "+_class.getName()+", contains "+_elementType+"]";
     }
 
     public boolean equals(Object o)

@@ -103,7 +103,7 @@ public final class MapType
     @Override
         public String toString()
     {
-        return "[map type, "+_keyType+" -> "+_valueType+"]";
+        return "[map type; class "+_class.getName()+", "+_keyType+" -> "+_valueType+"]";
     }
 
     public boolean equals(Object o)

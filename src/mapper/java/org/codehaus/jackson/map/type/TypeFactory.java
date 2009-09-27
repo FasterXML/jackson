@@ -96,9 +96,7 @@ public class TypeFactory
          * instance will return 'false' from its 'isFullyTyped' method)
          */
         if (Map.class.isAssignableFrom(clz)) {
-            JavaType keyType, contentType;
             MapType parentType = _findParentType(clz, MapType.class);
-System.err.println("DEBUG: map parent == "+parentType+"; typed "+parentType.isFullyTyped());
             if (parentType == null) {
                 JavaType unknown = _unknownType();
                 return MapType.untyped(clz, unknown, unknown);
@@ -107,7 +105,6 @@ System.err.println("DEBUG: map parent == "+parentType+"; typed "+parentType.isFu
         }
         if (Collection.class.isAssignableFrom(clz)) {
             CollectionType parentType = _findParentType(clz, CollectionType.class);
-System.err.println("DEBUG: Collection parent == "+parentType+"; typed "+parentType.isFullyTyped());
             if (parentType == null) {
                 return CollectionType.untyped(clz, _unknownType());
             }

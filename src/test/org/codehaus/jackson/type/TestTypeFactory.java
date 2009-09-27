@@ -60,13 +60,12 @@ public class TestTypeFactory
         JavaType t = TypeFactory.fromClass(ArrayList.class);
         assertEquals(CollectionType.class, t.getClass());
         assertSame(ArrayList.class, t.getRawClass());
-        assertFalse("Untyped class should not be considered fully typed", t.isFullyTyped());
 
         // And then the proper way
         t = TypeFactory.fromTypeReference(new TypeReference<ArrayList<String>>() { });
         assertEquals(CollectionType.class, t.getClass());
         assertSame(ArrayList.class, t.getRawClass());
-        assertTrue(t.isFullyTyped());
+
         JavaType elemType = ((CollectionType) t).getContentType();
         assertNotNull(elemType);
         assertSame(SimpleType.class, elemType.getClass());
@@ -79,13 +78,11 @@ public class TestTypeFactory
         JavaType t = TypeFactory.fromClass(HashMap.class);
         assertEquals(MapType.class, t.getClass());
         assertSame(HashMap.class, t.getRawClass());
-        assertFalse(t.isFullyTyped());
 
         // And then the proper way
         t = TypeFactory.fromTypeReference(new TypeReference<HashMap<String,Integer>>() { });
         assertEquals(MapType.class, t.getClass());
         assertSame(HashMap.class, t.getRawClass());
-        assertTrue(t.isFullyTyped());
         MapType mt = (MapType) t;
         assertEquals(TypeFactory.fromClass(String.class), mt.getKeyType());
         assertEquals(TypeFactory.fromClass(Integer.class), mt.getContentType());
