@@ -153,6 +153,17 @@ public abstract class JsonNode
      */
     public boolean isBinary() { return false; }
 
+    /**
+     * Method that can be used for efficient type detection
+     * when using stream abstraction for traversing nodes.
+     * Will return the first {@link JsonToken} that equivalent
+     * stream event would produce (for most nodes there is just
+     * one token but for structured/container types multiple)
+     *
+     * @since 1.3
+     */
+    public abstract JsonToken asToken();
+
     /*
     ////////////////////////////////////////////////////
     // Public API, value access
@@ -160,13 +171,11 @@ public abstract class JsonNode
      */
 
     /**
-     * Method to use for accessing String values (list values, Object
-     * field values, root-level values).
+     * Method to use for accessing String values.
      * Does <b>NOT</b> do any conversions for non-String value nodes;
      * for non-String values (ones for which {@link #isTextual} returns
      * false) null will be returned.
-     * For String values, null is never returned; empty Strings are returned
-     * as is.
+     * For String values, null is never returned (but empty Strings may be)
      *
      * @return Textual value this node contains, iff it is a textual
      *   json node (comes from Json String value entry)

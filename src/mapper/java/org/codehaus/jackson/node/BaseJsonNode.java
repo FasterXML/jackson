@@ -36,6 +36,8 @@ public abstract class BaseJsonNode
      * Will return the first {@link JsonToken} that equivalent
      * stream event would produce (for most nodes there is just
      * one token but for structured/container types multiple)
+     *
+     * @since 1.3
      */
     public abstract JsonToken asToken();
 

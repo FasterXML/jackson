@@ -17,11 +17,23 @@ public class NodeTraversingParser extends JsonParser
 
     protected ObjectCodec _objectCodec;
 
+    /**
+     * Traversal context within tree
+     */
+    protected NodeContext _nodeContext;
+
     /*
      *********************************************
      * State
      *********************************************
      */
+
+    /**
+     * Flag that indicates whether parser is closed or not. Gets
+     * set when parser is either closed by explicit call
+     * ({@link #close}) or when end-of-input is reached.
+     */
+    protected boolean _closed;
 
     /*
      *********************************************
@@ -29,16 +41,26 @@ public class NodeTraversingParser extends JsonParser
      *********************************************
      */
 
-    public NodeTraversingParser(JsonNode n) {
-        //!!! TBI
-    }
+    public NodeTraversingParser(JsonNode n) { this(n, null); }
 
-    public ObjectCodec getCodec() {
-        return _objectCodec;
+    public NodeTraversingParser(JsonNode n, ObjectCodec codec)
+    {
+        if (n.isArray()) {
+            _nodeContext = new NodeContext.Array(n, null);
+        } else if (n.isObject()) {
+            _nodeContext = new NodeContext.Object(n, null);
+        } else { // value node
+            _nodeContext = new NodeContext.RootValue(n, null);
+        }
+        _nodeContext = null;
     }
 
     public void setCodec(ObjectCodec c) {
         _objectCodec = c;
+    }
+
+    public ObjectCodec getCodec() {
+        return _objectCodec;
     }
 
     /*
@@ -48,8 +70,11 @@ public class NodeTraversingParser extends JsonParser
      */
 
     @Override
-    public void close() throws IOException {
-        // Nothing to do here...
+    public void close() throws IOException
+    {
+        if (!_closed) {
+            _closed = true;
+        }
     }
 
     /*
@@ -59,27 +84,55 @@ public class NodeTraversingParser extends JsonParser
      */
 
     @Override
-    public JsonToken nextToken() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
+    public JsonToken nextToken() throws IOException, JsonParseException
+    {
+        if (_closed) return null; // closed: no more tokens
+        // are we to descend to a child?
+        if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
+            _nodeContext = _nodeContext.iterateChildren();
+        }
+        do {
+            _currToken = _nodeContext.nextToken();
+            if (_currToken != null) return _currToken;
+            _nodeContext = _nodeContext.getParent();
+        } while (_nodeContext != null);
+
+        // Ok, we hit the end
+        close();
         return null;
     }
 
     @Override
-    public JsonToken nextValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
+    public JsonToken nextValue() throws IOException, JsonParseException
+    {
+        if (_closed) return null; // closed: no more tokens
+        // are we to descend to a child?
+        if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
+            _nodeContext = _nodeContext.iterateChildren();
+        }
+        do {
+            _currToken = _nodeContext.nextValue();
+            if (_currToken != null) return _currToken;
+            _nodeContext = _nodeContext.getParent();
+        } while (_nodeContext != null);
+        close();
         return null;
     }
 
     @Override
-    public JsonParser skipChildren() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
+    public JsonParser skipChildren() throws IOException, JsonParseException
+    {
+        if (_currToken == JsonToken.START_OBJECT) {
+            _currToken = JsonToken.END_OBJECT;
+        } else if (_currToken == JsonToken.START_ARRAY) {
+            _currToken = JsonToken.END_ARRAY;
+        }
+        return this;
     }
 
     @Override
     public boolean isClosed() {
-        // TODO Auto-generated method stub
-        return false;
+        return _closed;
     }
 
     /*
@@ -89,15 +142,13 @@ public class NodeTraversingParser extends JsonParser
      */
 
     @Override
-    public String getCurrentName() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getCurrentName() {
+        return (_nodeContext == null) ? null : _nodeContext.getCurrentName();
     }
 
     @Override
     public JsonStreamContext getParsingContext() {
-        // TODO Auto-generated method stub
-        return null;
+        return _nodeContext;
     }
 
     @Override
@@ -117,21 +168,28 @@ public class NodeTraversingParser extends JsonParser
      */
 
     @Override
-    public String getText() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getText()
+    {
+        if (_closed) return null;
+        // need to separate handling a bit...
+        if (_currToken == JsonToken.FIELD_NAME) {
+            return _nodeContext.getCurrentName();
+        }
+        JsonNode n = currentNode();
+        // only non-null for actual text nodes...
+        String text = n.getTextValue();
+        // otherwise, default to whatever Token produces...
+        return _currToken.asString();
     }
 
     @Override
     public char[] getTextCharacters() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
+        return getText().toCharArray();
     }
 
     @Override
     public int getTextLength() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
+        return getText().length();
     }
 
     @Override
@@ -148,7 +206,8 @@ public class NodeTraversingParser extends JsonParser
 
     @Override
     public BigInteger getBigIntegerValue() throws IOException,
-            JsonParseException {
+            JsonParseException
+    {
         // TODO Auto-generated method stub
         return null;
     }
@@ -208,6 +267,16 @@ public class NodeTraversingParser extends JsonParser
         return 0;
     }
 
+    public Object getEmbeddedObject() {
+        if (!_closed) {
+            JsonNode n = currentNode();
+            if (n.isPojo()) {
+                return ((POJONode) n).getPojo();
+            }
+        }
+        return null;
+    }
+
     /*
      *********************************************
      * Public API, typed binary (base64) access
@@ -229,7 +298,8 @@ public class NodeTraversingParser extends JsonParser
 
     @Override
     public <T> T readValueAs(Class<T> valueType) throws IOException,
-            JsonProcessingException {
+            JsonProcessingException
+    {
         // TODO Auto-generated method stub
         return null;
     }
@@ -252,4 +322,9 @@ public class NodeTraversingParser extends JsonParser
      * Internal methods
      *********************************************
      */
+
+    protected JsonNode currentNode() {
+        if (_closed) return null;
+        return _nodeContext.currentNode();
+    }
 }
