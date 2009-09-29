@@ -160,10 +160,10 @@ public class MapDeserializer
     @Override public JavaType getValueType() { return _mapType; }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////////////
-     */
+    *************************************************
+    * Internal methods
+    *************************************************
+    */
 
     protected final void _readAndBind(JsonParser jp, DeserializationContext ctxt,
                                       Map<Object,Object> result)

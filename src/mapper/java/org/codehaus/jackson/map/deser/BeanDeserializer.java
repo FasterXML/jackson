@@ -266,18 +266,25 @@ public class BeanDeserializer
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.getCurrentToken();
+        // common case first:
         if (t == JsonToken.START_OBJECT) {
             return deserializeFromObject(jp, ctxt);
         }
-        if (t == JsonToken.VALUE_STRING) {
+        // and then others, generally requiring use of @JsonCreator
+        switch (t) {
+        case VALUE_STRING:
 	    return deserializeFromString(jp, ctxt);
-	}
-        if (t.isNumeric()) {
+        case VALUE_NUMBER_INT:
+        case VALUE_NUMBER_FLOAT:
 	    return deserializeFromNumber(jp, ctxt);
+        case VALUE_EMBEDDED_OBJECT:
+            return jp.getEmbeddedObject();
+        case VALUE_TRUE:
+        case VALUE_FALSE:
+        case START_ARRAY:
+            // these only work if there's a (delegating) creator...
+            return deserializeUsingCreator(jp, ctxt);
 	}
-        if (t == JsonToken.VALUE_TRUE || t == JsonToken.VALUE_FALSE) {
-            return deserializeFromBoolean(jp, ctxt);
-        }
         throw ctxt.mappingException(getBeanClass());
     }
 
@@ -368,7 +375,7 @@ public class BeanDeserializer
 	throw ctxt.mappingException(getBeanClass());
     }
 
-    public Object deserializeFromBoolean(JsonParser jp, DeserializationContext ctxt)
+    public Object deserializeUsingCreator(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
 	if (_delegatingCreator != null) {

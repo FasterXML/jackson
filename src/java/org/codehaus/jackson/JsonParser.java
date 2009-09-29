@@ -687,6 +687,24 @@ public abstract class JsonParser
         throw new JsonParseException("Current token ("+_currToken+") not of boolean type", getCurrentLocation());
     }
 
+    /**
+     * Accessor that can be called if (and onl if) the current token
+     * is {@link JsonToken#EMBEDDED_OBJECT}. For other token types,
+     * null is returned.
+     *<p>
+     * Note: only some specialized parser implementations support
+     * embedding of objects (usually ones that are facades on top
+     * of non-streaming sources, such as object trees).
+     *
+     * @since 1.3
+     */
+    public Object getEmbeddedObject()
+        throws IOException, JsonParseException
+    {
+        // By default we will always return null
+        return null;
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Public API, access to token information, binary

@@ -39,6 +39,18 @@ public abstract class BaseMapTest
     }
 
 
+    protected static class ObjectWrapper {
+        private final Object object;
+        ObjectWrapper(final Object object) {
+            this.object = object;
+        }
+        public Object getObject() { return object; }
+        @JsonCreator
+            static ObjectWrapper jsonValue(final Object object) {
+            return new ObjectWrapper(object);
+        }
+    }
+
     protected BaseMapTest() { super(); }
 
     /*

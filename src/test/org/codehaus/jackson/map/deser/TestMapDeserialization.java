@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.deser;
 
 import org.codehaus.jackson.map.*;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.codehaus.jackson.type.TypeReference;
@@ -29,7 +30,7 @@ public class TestMapDeserialization
 
     /*
     ***************************************************
-    * Test methods
+    * Test methods, untyped (Object valued) maps
     ***************************************************
      */
 
@@ -60,7 +61,7 @@ public class TestMapDeserialization
      * Let's also try another way to express "gimme a Map" deserialization;
      * this time by specifying a Map class, to reduce need to cast
      */
-	public void testUntypedMap2() throws Exception
+    public void testUntypedMap2() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         // to get "untyped" default map-to-map, pass Object.class
@@ -75,6 +76,47 @@ public class TestMapDeserialization
 
         assertEquals("x", result.get("a"));
     }
+
+    private static final String UNTYPED_MAP_JSON =
+            "{ \"double\":42.0, \"string\":\"string\","
+            +"\"boolean\":true, \"list\":[\"list0\"],"
+            +"\"null\":null }";
+    
+    @SuppressWarnings("serial")
+    static class ObjectWrapperMap extends HashMap<String, ObjectWrapper> { }
+    
+    public void testSpecialMap() throws IOException
+    {
+       final ObjectMapper mapper = new ObjectMapper();
+       final ObjectWrapperMap map = mapper.readValue(UNTYPED_MAP_JSON, ObjectWrapperMap.class);
+       _doTestUntyped(map);
+    }
+
+    public void testGenericMap() throws IOException
+    {
+        final ObjectMapper mapper = new ObjectMapper();
+        final Map<String, ObjectWrapper> map = mapper.readValue
+            (UNTYPED_MAP_JSON,
+             new TypeReference<Map<String, ObjectWrapper>>() { });
+       _doTestUntyped(map);
+    }
+    
+    private void _doTestUntyped(final Map<String, ObjectWrapper> map)
+    {
+       assertEquals(Double.valueOf(42), map.get("double").getObject());
+       assertEquals("string", map.get("string").getObject());
+       assertEquals(Boolean.TRUE, map.get("boolean").getObject());
+       assertEquals(Collections.singletonList("list0"), map.get("list").getObject());
+       assertTrue(map.containsKey("null"));
+       assertNull(map.get("null"));
+       assertEquals(5, map.size());
+    }
+
+    /*
+    ***************************************************
+    * Test methods, typed maps
+    ***************************************************
+     */
 
     public void testExactStringIntMap() throws Exception
     {
@@ -157,6 +199,12 @@ public class TestMapDeserialization
 
         assertNull(result.get(""));
     }
+
+    /*
+    ***************************************************
+    * Test methods, maps with enums
+    ***************************************************
+     */
 
     public void testEnumMap() throws Exception
     {
