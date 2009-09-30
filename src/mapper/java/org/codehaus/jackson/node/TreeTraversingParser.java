@@ -52,7 +52,6 @@ public class TreeTraversingParser extends JsonParser
         } else { // value node
             _nodeContext = new NodeContext.RootValue(n, null);
         }
-        _nodeContext = null;
     }
 
     public void setCodec(ObjectCodec c) {
