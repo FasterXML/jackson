@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.type.TypeReference;
 
-public class NodeTraversingParser extends JsonParser
+public class TreeTraversingParser extends JsonParser
 {
     /*
      *********************************************
@@ -41,9 +41,9 @@ public class NodeTraversingParser extends JsonParser
      *********************************************
      */
 
-    public NodeTraversingParser(JsonNode n) { this(n, null); }
+    public TreeTraversingParser(JsonNode n) { this(n, null); }
 
-    public NodeTraversingParser(JsonNode n, ObjectCodec codec)
+    public TreeTraversingParser(JsonNode n, ObjectCodec codec)
     {
         if (n.isArray()) {
             _nodeContext = new NodeContext.Array(n, null);

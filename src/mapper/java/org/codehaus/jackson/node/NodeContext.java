@@ -5,7 +5,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 
 /**
- * Helper class used by {@link NodeTraversingParser} to keep track
+ * Helper class used by {@link TreeTraversingParser} to keep track
  * of hierarchic location within traversed JSON tree.
  */
 abstract class NodeContext

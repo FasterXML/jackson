@@ -16,8 +16,8 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ContainerNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
-import org.codehaus.jackson.node.NodeModifyingGenerator;
-import org.codehaus.jackson.node.NodeTraversingParser;
+import org.codehaus.jackson.node.TreeAppendingGenerator;
+import org.codehaus.jackson.node.TreeTraversingParser;
 import org.codehaus.jackson.node.NullNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
@@ -717,7 +717,7 @@ public class ObjectMapper
      */
     public JsonParser treeAsEvents(JsonNode n)
     {
-        return new NodeTraversingParser(n, this);
+        return new TreeTraversingParser(n, this);
     }
 
     /**
@@ -728,7 +728,7 @@ public class ObjectMapper
         if (!n.isContainerNode()) {
             throw new IllegalArgumentException("JsonNode passed in is not a container node (type "+n.getClass().getName()+")");
         }
-        return new NodeModifyingGenerator((ContainerNode) n, this);
+        return new TreeAppendingGenerator((ContainerNode) n, this);
     }
 
     /*

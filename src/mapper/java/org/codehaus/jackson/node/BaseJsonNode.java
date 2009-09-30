@@ -27,7 +27,7 @@ public abstract class BaseJsonNode
 
     @Override
     public JsonParser traverse() {
-        return new NodeTraversingParser(this);
+        return new TreeTraversingParser(this);
     }
 
     /**

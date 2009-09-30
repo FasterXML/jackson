@@ -156,7 +156,7 @@ public class JsonNodeFactory
      */
 
     public JsonGenerator constructGenerator(ContainerNode n) {
-        return new NodeModifyingGenerator(n);
+        return new TreeAppendingGenerator(n);
     }
 }
 
