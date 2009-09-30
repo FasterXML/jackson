@@ -14,7 +14,10 @@ import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.ContainerNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
+import org.codehaus.jackson.node.NodeModifyingGenerator;
+import org.codehaus.jackson.node.NodeTraversingParser;
 import org.codehaus.jackson.node.NullNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
@@ -560,13 +563,7 @@ public class ObjectMapper
     public JsonNode readTree(JsonParser jp)
         throws IOException, JsonProcessingException
     {
-        /* 02-Mar-2009, tatu: One twist; deserialization provider
-         *   will map Json null straight into Java null. But what
-         *   we want to return is the "null node" instead.
-         */
-        JsonNode n = (JsonNode) _readValue(jp, JSON_NODE_TYPE,
-                                           copyDeserializationConfig());
-        return (n == null) ? NullNode.instance : n;
+        return readTree(jp, copyDeserializationConfig());
     }
 
     /**
@@ -592,6 +589,36 @@ public class ObjectMapper
          *   we want to return is the "null node" instead.
          */
         JsonNode n = (JsonNode) _readValue(jp, JSON_NODE_TYPE, cfg);
+        return (n == null) ? NullNode.instance : n;
+    }
+
+    /**
+     * @since 1.3
+     */
+    public JsonNode readTree(InputStream in)
+        throws IOException, JsonProcessingException
+    {
+        JsonNode n = (JsonNode) readValue(in, JSON_NODE_TYPE);
+        return (n == null) ? NullNode.instance : n;
+    }
+
+    /**
+     * @since 1.3
+     */
+    public JsonNode readTree(Reader r)
+        throws IOException, JsonProcessingException
+    {
+        JsonNode n = (JsonNode) readValue(r, JSON_NODE_TYPE);
+        return (n == null) ? NullNode.instance : n;
+    }
+
+    /**
+     * @since 1.3
+     */
+    public JsonNode readTree(String content)
+        throws IOException, JsonProcessingException
+    {
+        JsonNode n = (JsonNode) readValue(content, JSON_NODE_TYPE);
         return (n == null) ? NullNode.instance : n;
     }
 
@@ -683,6 +710,25 @@ public class ObjectMapper
      */
     public ArrayNode createArrayNode() {
         return _nodeFactory.arrayNode();
+    }
+
+    /**
+     * @since 1.3
+     */
+    public JsonParser treeAsEvents(JsonNode n)
+    {
+        return new NodeTraversingParser(n, this);
+    }
+
+    /**
+     * @since 1.3
+     */
+    public JsonGenerator treeFromEvents(JsonNode n)
+    {
+        if (!n.isContainerNode()) {
+            throw new IllegalArgumentException("JsonNode passed in is not a container node (type "+n.getClass().getName()+")");
+        }
+        return new NodeModifyingGenerator((ContainerNode) n, this);
     }
 
     /*

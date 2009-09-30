@@ -6,8 +6,31 @@ import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
 
-public class NodeModifyingGenerator extends JsonGenerator {
-    public NodeModifyingGenerator(ContainerNode n) {
+public class NodeModifyingGenerator extends JsonGenerator
+{
+    /*
+     *********************************************
+     * Configuration
+     *********************************************
+     */
+
+    protected ObjectCodec _objectCodec;
+
+    /*
+     *********************************************
+     * State
+     *********************************************
+     */
+
+    /*
+     *********************************************
+     * Life-cycle
+     *********************************************
+     */
+
+    public NodeModifyingGenerator(ContainerNode n) { this(n, null); }
+
+    public NodeModifyingGenerator(ContainerNode n, ObjectCodec codec) {
         // !!! TBI
     }
     

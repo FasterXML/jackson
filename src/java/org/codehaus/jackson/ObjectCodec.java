@@ -19,12 +19,12 @@ public abstract class ObjectCodec
 
     /*
     /////////////////////////////////////////////////
-    // API for serialization (Object-to-Json)
+    // API for serialization (Object-to-JSON)
     /////////////////////////////////////////////////
      */
 
     /**
-     * Method to deserialize Json content into a non-container
+     * Method to deserialize JSON content into a non-container
      * type (it can be an array type, however): typically a bean, array
      * or a wrapper type (like {@link java.lang.Boolean}).
      *<p>
@@ -37,7 +37,7 @@ public abstract class ObjectCodec
         throws IOException, JsonProcessingException;
 
     /**
-     * Method to deserialize Json content into a Java type, reference
+     * Method to deserialize JSON content into a Java type, reference
      * to which is passed as argument. Type is passed using so-called
      * "super type token" (see )
      * and specifically needs to be used if the root type is a 
@@ -47,7 +47,7 @@ public abstract class ObjectCodec
         throws IOException, JsonProcessingException;
 
     /**
-     * Method to deserialize Json content as tree expressed
+     * Method to deserialize JSON content as tree expressed
      * using set of {@link JsonNode} instances. Returns
      * root of the resulting tree (where root can consist
      * of just a single node if the current event is a
@@ -57,7 +57,7 @@ public abstract class ObjectCodec
         throws IOException, JsonProcessingException;
 
     /**
-     * Method to deserialize Json content as tree expressed
+     * Method to deserialize JSON content as tree expressed
      * using set of {@link JsonNode} instances. Returns
      * root of the resulting tree (where root can consist
      * of just a single node if the current event is a
@@ -107,4 +107,26 @@ public abstract class ObjectCodec
      * @since 1.2
      */
     public abstract JsonNode createArrayNode();
+
+    /**
+     * Method for constructing a {@link JsonParser} for reading
+     * contents of a JSON tree, as if it was external serialized
+     * JSON content.
+     *
+     * @since 1.3
+     */
+    public abstract JsonParser treeAsEvents(JsonNode n);
+
+    /**
+     * Method for constructing a {@link JsonGenerator} that can
+     * be used to add content to a JSON tree.
+     *
+     * @param containerNode Container node to add contents to via created generator.
+     *   If node is not a container node (as per {@link JsonNode#isContainerNode}),
+     *   {@link IllegalArgumentException} will be thrown
+     *
+     * @since 1.3
+     */
+    public abstract JsonGenerator treeFromEvents(JsonNode containerNode)
+        throws IllegalArgumentException;
 }
