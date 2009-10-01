@@ -14,11 +14,31 @@ import org.codehaus.jackson.map.SerializerProvider;
 public final class IntNode
     extends NumericNode
 {
+    // // // Let's cache small set of common value
+
+    final static int MIN_CANONICAL = -1;
+    final static int MAX_CANONICAL = 10;
+
+    private final static IntNode[] CANONICALS;
+    static {
+        int count = MAX_CANONICAL - MIN_CANONICAL + 1;
+        CANONICALS = new IntNode[count];
+        for (int i = 0; i < count; ++i) {
+            CANONICALS[i] = new IntNode(MIN_CANONICAL + i);
+        }
+    }
+
+    /**
+     * Integer value this node contains
+     */
     final int _value;
 
     public IntNode(int v) { _value = v; }
 
-    public static IntNode valueOf(int i) { return new IntNode(i); }
+    public static IntNode valueOf(int i) {
+        if (i > MAX_CANONICAL || i < MIN_CANONICAL) return new IntNode(i);
+        return CANONICALS[i - MIN_CANONICAL];
+    }
 
     @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_INT; }
 

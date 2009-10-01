@@ -8,12 +8,12 @@ import org.codehaus.jackson.*;
  * Helper class used by {@link TreeTraversingParser} to keep track
  * of hierarchic location within traversed JSON tree.
  */
-abstract class NodeContext
+abstract class NodeCursor
     extends JsonStreamContext
 {
-    final NodeContext _parent;
+    final NodeCursor _parent;
 
-    public NodeContext(int contextType, NodeContext p)
+    public NodeCursor(int contextType, NodeCursor p)
     {
         super(contextType);
         _parent = p;
@@ -26,7 +26,7 @@ abstract class NodeContext
      */
 
     // note: co-variant return type
-    public final NodeContext getParent() { return _parent; }
+    public final NodeCursor getParent() { return _parent; }
 
     public abstract String getCurrentName();
 
@@ -37,20 +37,21 @@ abstract class NodeContext
      */
 
     public abstract JsonToken nextToken();
-
     public abstract JsonToken nextValue();
+    public abstract JsonToken endToken();
 
     public abstract JsonNode currentNode();
+    public abstract boolean currentHasChildren();
 
     /**
      * Method called to create a new context for iterating all
      * contents of the current structured value (JSON array or object)
      */
-    public NodeContext iterateChildren() {
+    public final NodeCursor iterateChildren() {
         JsonNode n = currentNode();
         if (n == null) throw new IllegalStateException("No current node");
-        if (n.isArray()) {
-                return new Array(n, this);
+        if (n.isArray()) { // false since we have already returned START_ARRAY
+            return new Array(n, this);
         }
         if (n.isObject()) {
             return new Object(n, this);
@@ -70,13 +71,13 @@ abstract class NodeContext
      * Note that context is NOT created for leaf values.
      */
     protected final static class RootValue
-        extends NodeContext
+        extends NodeCursor
     {
         JsonNode _node;
 
         protected boolean _done = false;
 
-        public RootValue(JsonNode n, NodeContext p) {
+        public RootValue(JsonNode n, NodeCursor p) {
             super(JsonStreamContext.TYPE_ROOT, p);
             _node = n;
         }
@@ -93,45 +94,65 @@ abstract class NodeContext
         }
         
         public JsonToken nextValue() { return nextToken(); }
-
+        public JsonToken endToken() { return null; }
         public JsonNode currentNode() { return _node; }
+        public boolean currentHasChildren() { return false; }
     }
 
+    /**
+     * Cursor used for traversing non-empty JSON Array nodes
+     */
     protected final static class Array
-        extends NodeContext
+        extends NodeCursor
     {
         Iterator<JsonNode> _contents;
 
         JsonNode _currentNode;
 
-        public Array(JsonNode n, NodeContext p) {
+        /**
+         * @param returnStartArray Whether cursor should return {@link JsonToken#START_ARRAY}
+         *    before contents or not.
+         */
+        public Array(JsonNode n, NodeCursor p) {
             super(JsonStreamContext.TYPE_ARRAY, p);
             _contents = n.getElements();
         }
 
         public String getCurrentName() { return null; }
 
-        public JsonToken nextToken() {
-            if (!_contents.hasNext()) return null;
+        public JsonToken nextToken()
+        {
+            if (!_contents.hasNext()) {
+                _currentNode = null;
+                return null;
+            }
             _currentNode = _contents.next();
             return _currentNode.asToken();
         }
 
         public JsonToken nextValue() { return nextToken(); }
+        public JsonToken endToken() { return JsonToken.END_ARRAY; }
 
         public JsonNode currentNode() { return _currentNode; }
+        public boolean currentHasChildren() {
+            // note: ONLY to be called for container nodes
+            return ((ContainerNode) currentNode()).size() > 0;
+        }
     }
 
+    /**
+     * Cursor used for traversing non-empty JSON Object nodes
+     */
     protected final static class Object
-        extends NodeContext
+        extends NodeCursor
     {
         Iterator<Map.Entry<String, JsonNode>> _contents;
-
-        Map.Entry<String,JsonNode> _current;
+        Map.Entry<String, JsonNode> _current;
 
         boolean _needEntry;
-
-        public Object(JsonNode n, NodeContext p) {
+        
+        public Object(JsonNode n, NodeCursor p)
+        {
             super(JsonStreamContext.TYPE_OBJECT, p);
             _contents = ((ObjectNode) n).getFields();
             _needEntry = true;
@@ -141,9 +162,14 @@ abstract class NodeContext
             return (_current == null) ? null : _current.getKey();
         }
 
-        public JsonToken nextToken() {
+        public JsonToken nextToken()
+        {
+            // Need a new entry?
             if (_needEntry) {
-                if (!_contents.hasNext()) return null;
+                if (!_contents.hasNext()) {
+                    _current = null;
+                    return null;
+                }
                 _needEntry = false;
                 _current = _contents.next();
                 return JsonToken.FIELD_NAME;
@@ -152,18 +178,23 @@ abstract class NodeContext
             return _current.getValue().asToken();
         }
 
-        public JsonToken nextValue() {
-            if (_needEntry) {
-                if (!_contents.hasNext()) return null;
-                _current = _contents.next();
-            } else {
-                _needEntry = true;
+        public JsonToken nextValue()
+        {
+            JsonToken t = nextToken();
+            if (t == JsonToken.FIELD_NAME) {
+                t = nextToken();
             }
-            return _current.getValue().asToken();
+            return t;
         }
 
+        public JsonToken endToken() { return JsonToken.END_OBJECT; }
+
         public JsonNode currentNode() {
-            return _current.getValue();
+            return (_current == null) ? null : _current.getValue();
+        }
+        public boolean currentHasChildren() {
+            // note: ONLY to be called for container nodes
+            return ((ContainerNode) currentNode()).size() > 0;
         }
     }
 }

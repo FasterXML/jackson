@@ -225,46 +225,6 @@ public final class ReaderBasedParser
 
     /*
     ////////////////////////////////////////////////////
-    // Public API, data binding
-    ////////////////////////////////////////////////////
-     */
-
-    @Override
-    public final <T> T readValueAs(Class<T> valueType)
-        throws IOException, JsonProcessingException
-    {
-        if (_objectCodec == null) {
-            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize Json into regular Java objects");
-        }
-        return _objectCodec.readValue(this, valueType);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public final <T> T readValueAs(TypeReference<?> valueTypeRef)
-        throws IOException, JsonProcessingException
-    {
-        if (_objectCodec == null) {
-            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize Json into regular Java objects");
-        }
-        /* Ugh. Stupid Java type erasure... can't just chain call,s
-         * must cast here also.
-         */
-        return (T) _objectCodec.readValue(this, valueTypeRef);
-    }
-
-    @Override
-    public final JsonNode readValueAsTree()
-        throws IOException, JsonProcessingException
-    {
-        if (_objectCodec == null) {
-            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize Json into JsonNode tree");
-        }
-        return _objectCodec.readTree(this);
-    }
-
-    /*
-    ////////////////////////////////////////////////////
     // Internal methods, secondary parsing
     ////////////////////////////////////////////////////
      */

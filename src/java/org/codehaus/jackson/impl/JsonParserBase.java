@@ -244,19 +244,7 @@ public abstract class JsonParserBase
     public abstract JsonToken nextToken()
         throws IOException, JsonParseException;
 
-    public final JsonToken nextValue()
-        throws IOException, JsonParseException
-    {
-        /* Implementation should be as trivial as follows; only
-         * needs to change if we are to skip other tokens (for
-         * example, if comments were exposed as tokens)
-         */
-        JsonToken t = nextToken();
-        if (t == JsonToken.FIELD_NAME) {
-            t = nextToken();
-       }
-        return t;
-    }
+    //public final JsonToken nextValue()
 
     public JsonParser skipChildren()
         throws IOException, JsonParseException

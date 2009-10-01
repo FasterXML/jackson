@@ -326,8 +326,19 @@ public abstract class JsonParser
      *
      * @since 0.9.7
      */
-    public abstract JsonToken nextValue()
-        throws IOException, JsonParseException;
+    public JsonToken nextValue()
+        throws IOException, JsonParseException
+    {
+        /* Implementation should be as trivial as follows; only
+         * needs to change if we are to skip other tokens (for
+         * example, if comments were exposed as tokens)
+         */
+        JsonToken t = nextToken();
+        if (t == JsonToken.FIELD_NAME) {
+            t = nextToken();
+        }
+        return t;
+    }
 
     /**
      * Method that will skip all child tokens of an array or
@@ -772,8 +783,15 @@ public abstract class JsonParser
      * The reason is that due to type erasure, key and value types
      * can not be introspected when using this method.
      */
-    public abstract <T> T readValueAs(Class<T> valueType)
-        throws IOException, JsonProcessingException;
+    public final <T> T readValueAs(Class<T> valueType)
+        throws IOException, JsonProcessingException
+    {
+        ObjectCodec codec = getCodec();
+        if (codec == null) {
+            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize JSON into Java objects");
+        }
+        return codec.readValue(this, valueType);
+    }
 
     /**
      * Method to deserialize Json content into a Java type, reference
@@ -793,8 +811,19 @@ public abstract class JsonParser
      * (and for {@link JsonToken#VALUE_EMBEDDED_OBJECT})
      * stream is not advanced.
      */
-    public abstract <T> T readValueAs(TypeReference<?> valueTypeRef)
-        throws IOException, JsonProcessingException;
+    @SuppressWarnings("unchecked")
+    public final <T> T readValueAs(TypeReference<?> valueTypeRef)
+        throws IOException, JsonProcessingException
+    {
+        ObjectCodec codec = getCodec();
+        if (codec == null) {
+            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize JSON into Java objects");
+        }
+        /* Ugh. Stupid Java type erasure... can't just chain call,s
+         * must cast here also.
+         */
+        return (T) codec.readValue(this, valueTypeRef);
+    }
 
     /**
      * Method to deserialize Json content into equivalent "tree model",
@@ -803,6 +832,13 @@ public abstract class JsonParser
      * for objects object node (with child nodes), and for other types
      * matching leaf node type
      */
-    public abstract JsonNode readValueAsTree()
-        throws IOException, JsonProcessingException;
+    public final JsonNode readValueAsTree()
+        throws IOException, JsonProcessingException
+    {
+        ObjectCodec codec = getCodec();
+        if (codec == null) {
+            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize JSON into JsonNode tree");
+        }
+        return codec.readTree(this);
+    }
 }

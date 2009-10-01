@@ -7,6 +7,14 @@ import java.math.BigInteger;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.type.TypeReference;
 
+/**
+ * Facade over {@link JsonNode} that implements {@link JsonParser} to allow
+ * accessing contents of JSON tree in alternate form (stream of tokens).
+ * Useful when a streaming source is expected by code, such as data binding
+ * functionality.
+ * 
+ * @author tatu
+ */
 public class TreeTraversingParser extends JsonParser
 {
     /*
@@ -20,7 +28,7 @@ public class TreeTraversingParser extends JsonParser
     /**
      * Traversal context within tree
      */
-    protected NodeContext _nodeContext;
+    protected NodeCursor _nodeCursor;
 
     /*
      *********************************************
@@ -28,6 +36,18 @@ public class TreeTraversingParser extends JsonParser
      *********************************************
      */
 
+    /**
+     * Sometimes parser needs to buffer a single look-ahead token; if so,
+     * it'll be stored here. This is currently used for handling 
+     */
+    protected JsonToken _nextToken;
+
+    /**
+     * Flag needed to handle recursion into contents of child
+     * Array/Object nodes.
+     */
+    protected boolean _startContainer;
+    
     /**
      * Flag that indicates whether parser is closed or not. Gets
      * set when parser is either closed by explicit call
@@ -46,11 +66,13 @@ public class TreeTraversingParser extends JsonParser
     public TreeTraversingParser(JsonNode n, ObjectCodec codec)
     {
         if (n.isArray()) {
-            _nodeContext = new NodeContext.Array(n, null);
+            _nextToken = JsonToken.START_ARRAY;
+            _nodeCursor = new NodeCursor.Array(n, null);
         } else if (n.isObject()) {
-            _nodeContext = new NodeContext.Object(n, null);
+            _nextToken = JsonToken.START_OBJECT;
+            _nodeCursor = new NodeCursor.Object(n, null);
         } else { // value node
-            _nodeContext = new NodeContext.RootValue(n, null);
+            _nodeCursor = new NodeCursor.RootValue(n, null);
         }
     }
 
@@ -73,6 +95,8 @@ public class TreeTraversingParser extends JsonParser
     {
         if (!_closed) {
             _closed = true;
+            _nodeCursor = null;
+            _currToken = null;
         }
     }
 
@@ -85,38 +109,44 @@ public class TreeTraversingParser extends JsonParser
     @Override
     public JsonToken nextToken() throws IOException, JsonParseException
     {
-        if (_closed) return null; // closed: no more tokens
-        // are we to descend to a child?
-        if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
-            _nodeContext = _nodeContext.iterateChildren();
+        if (_nextToken != null) {
+            _currToken = _nextToken;
+            _nextToken = null;
+            return _currToken;
         }
-        do {
-            _currToken = _nodeContext.nextToken();
-            if (_currToken != null) return _currToken;
-            _nodeContext = _nodeContext.getParent();
-        } while (_nodeContext != null);
-
-        // Ok, we hit the end
-        close();
-        return null;
+        // are we to descend to a container child?
+        if (_startContainer) {
+            _startContainer = false;
+            // minor optimization: empty containers can be skipped
+            if (!_nodeCursor.currentHasChildren()) {
+                _currToken = (_currToken == JsonToken.START_OBJECT) ?
+                    JsonToken.END_OBJECT : JsonToken.END_ARRAY;
+                return _currToken;
+            }
+            _nodeCursor = _nodeCursor.iterateChildren();
+            return (_currToken = _nodeCursor.nextToken());
+        }
+        // No more content?
+        if (_nodeCursor == null) {
+            _closed = true; // if not already set
+            return null;
+        }
+        // Otherwise, next entry from current cursor
+        _currToken = _nodeCursor.nextToken();
+        if (_currToken != null) {
+            if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
+                _startContainer = true;
+            }
+            return _currToken;
+        }
+        // null means no more children; need to return end marker
+        _currToken = _nodeCursor.endToken();
+        _nodeCursor = _nodeCursor.getParent();
+        return _currToken;
     }
 
-    @Override
-    public JsonToken nextValue() throws IOException, JsonParseException
-    {
-        if (_closed) return null; // closed: no more tokens
-        // are we to descend to a child?
-        if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
-            _nodeContext = _nodeContext.iterateChildren();
-        }
-        do {
-            _currToken = _nodeContext.nextValue();
-            if (_currToken != null) return _currToken;
-            _nodeContext = _nodeContext.getParent();
-        } while (_nodeContext != null);
-        close();
-        return null;
-    }
+    // default works well here:
+    //public JsonToken nextValue() throws IOException, JsonParseException
 
     @Override
     public JsonParser skipChildren() throws IOException, JsonParseException
@@ -142,12 +172,12 @@ public class TreeTraversingParser extends JsonParser
 
     @Override
     public String getCurrentName() {
-        return (_nodeContext == null) ? null : _nodeContext.getCurrentName();
+        return (_nodeCursor == null) ? null : _nodeCursor.getCurrentName();
     }
 
     @Override
     public JsonStreamContext getParsingContext() {
-        return _nodeContext;
+        return _nodeCursor;
     }
 
     @Override
@@ -172,11 +202,14 @@ public class TreeTraversingParser extends JsonParser
         if (_closed) return null;
         // need to separate handling a bit...
         if (_currToken == JsonToken.FIELD_NAME) {
-            return _nodeContext.getCurrentName();
+            return _nodeCursor.getCurrentName();
         }
         JsonNode n = currentNode();
         // only non-null for actual text nodes...
-        String text = n.getTextValue();
+        String text = (n == null) ? null : n.getTextValue();
+        if (text != null) {
+            return text;
+        }
         // otherwise, default to whatever Token produces...
         return _currToken.asString();
     }
@@ -269,7 +302,7 @@ public class TreeTraversingParser extends JsonParser
     public Object getEmbeddedObject() {
         if (!_closed) {
             JsonNode n = currentNode();
-            if (n.isPojo()) {
+            if (n != null && n.isPojo()) {
                 return ((POJONode) n).getPojo();
             }
         }
@@ -291,39 +324,14 @@ public class TreeTraversingParser extends JsonParser
 
     /*
      *********************************************
-     * Public API, data binding
-     *********************************************
-     */
-
-    @Override
-    public <T> T readValueAs(Class<T> valueType) throws IOException,
-            JsonProcessingException
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public <T> T readValueAs(TypeReference<?> valueTypeRef) throws IOException,
-            JsonProcessingException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public JsonNode readValueAsTree() throws IOException, JsonProcessingException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /*
-     *********************************************
      * Internal methods
      *********************************************
      */
 
     protected JsonNode currentNode() {
-        if (_closed) return null;
-        return _nodeContext.currentNode();
+        if (_closed || _nodeCursor == null) {
+            return null;
+        }
+        return _nodeCursor.currentNode();
     }
 }
