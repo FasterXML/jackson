@@ -104,14 +104,14 @@ public final class Utf8StreamParser
         // Closing scope?
         if (i == INT_RBRACKET) {
             if (!_parsingContext.inArray()) {
-                _reportMismatchedEndMarker(i, ']');
+                _reportMismatchedEndMarker(i, '}');
             }
             _parsingContext = _parsingContext.getParent();
             return (_currToken = JsonToken.END_ARRAY);
         }
         if (i == INT_RCURLY) {
             if (!_parsingContext.inObject()) {
-                _reportMismatchedEndMarker(i, '}');
+                _reportMismatchedEndMarker(i, ']');
             }
             _parsingContext = _parsingContext.getParent();
             return (_currToken = JsonToken.END_OBJECT);
