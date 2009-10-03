@@ -13,8 +13,9 @@ public class JsonLocation
      *
      * @since 1.3
      */
-    public final static JsonLocation NA = new JsonLocation("N/A", -1L, -1, -1);
+    public final static JsonLocation NA = new JsonLocation("N/A", -1L, -1L, -1, -1);
 
+    final long _totalBytes;
     final long _totalChars;
 
     final int _lineNr;
@@ -27,10 +28,22 @@ public class JsonLocation
 
     public JsonLocation(Object srcRef, long totalChars, int lineNr, int colNr)
     {
+        /* Unfortunately, none of legal encodings are straight single-byte
+         * encodings. Could determine offset for UTF-16/UTF-32, but the
+         * most important one is UTF-8...
+         * so for now, we'll just not report any real byte count
+         */
+        this(srcRef, -1L, totalChars, lineNr, colNr);
+    }
+
+    public JsonLocation(Object srcRef, long totalBytes, long totalChars,
+                        int lineNr, int colNr)
+    {
+        _sourceRef = srcRef;
+        _totalBytes = totalBytes;
         _totalChars = totalChars;
         _lineNr = lineNr;
         _columnNr = colNr;
-        _sourceRef = srcRef;
     }
 
     /**
@@ -65,12 +78,7 @@ public class JsonLocation
      */
     public long getByteOffset()
     {
-        /* Unfortunately, none of legal encodings are straight single-byte
-         * encodings. Could determine offset for UTF-16/UTF-32, but the
-         * most important one is UTF-8... so for now, let's just not
-         * report anything.
-         */
-        return -1;
+        return _totalBytes;
     }
 
     @Override
@@ -89,5 +97,35 @@ public class JsonLocation
         sb.append(_columnNr);
         sb.append(']');
         return sb.toString();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = (_sourceRef == null) ? 1 : _sourceRef.hashCode();
+        hash ^= _lineNr;
+        hash += _columnNr;
+        hash ^= (int) _totalChars;
+        hash += (int) _totalBytes;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object other)
+    {
+        if (other == this) return true;
+        if (other == null) return false;
+        if (!(other instanceof JsonLocation)) return false;
+        JsonLocation otherLoc = (JsonLocation) other;
+
+        if (_sourceRef == null) {
+            if (otherLoc._sourceRef != null) return false;
+        } else if (!_sourceRef.equals(otherLoc._sourceRef)) return false;
+
+        return (_lineNr == otherLoc._lineNr)
+            && (_columnNr == otherLoc._columnNr)
+            && (_totalChars == otherLoc._totalChars)
+            && (getByteOffset() == otherLoc.getByteOffset())
+            ;
     }
 }
