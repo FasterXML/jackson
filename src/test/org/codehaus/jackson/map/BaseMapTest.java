@@ -84,6 +84,13 @@ public abstract class BaseMapTest
         return writeAndMap(new ObjectMapper(), value);
     }
 
+    @SuppressWarnings("unchecked")
+    protected <T> T readAndMapFromString(ObjectMapper m, String input, Class<T> cls)
+        throws IOException
+    {
+        return (T) m.readValue("\""+input+"\"", cls);
+    }
+
     protected String serializeAsString(ObjectMapper m, Object value)
         throws IOException
     {

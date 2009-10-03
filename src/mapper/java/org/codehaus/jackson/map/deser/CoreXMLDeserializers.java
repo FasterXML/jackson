@@ -37,7 +37,7 @@ public class CoreXMLDeserializers
     ////////////////////////////////////////////////////////////////////////
     */
 
-    public class DurationDeserializer
+    public static class DurationDeserializer
         extends FromStringDeserializer<Duration>
     {
         public DurationDeserializer() { super(Duration.class); }
@@ -49,7 +49,7 @@ public class CoreXMLDeserializers
         }
     }
 
-    public class GregorianCalendarDeserializer
+    public static class GregorianCalendarDeserializer
         extends FromStringDeserializer<XMLGregorianCalendar>
     {
         public GregorianCalendarDeserializer() { super(XMLGregorianCalendar.class); }
@@ -61,7 +61,7 @@ public class CoreXMLDeserializers
         }
     }
 
-    public class QNameDeserializer
+    public static class QNameDeserializer
         extends FromStringDeserializer<QName>
     {
         public QNameDeserializer() { super(QName.class); }
