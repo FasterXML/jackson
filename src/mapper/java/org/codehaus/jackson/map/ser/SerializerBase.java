@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
@@ -20,6 +22,9 @@ public abstract class SerializerBase<T>
     extends JsonSerializer<T>
     implements SchemaAware
 {
+    public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
+        throws IOException, JsonGenerationException;
+
     public abstract JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException;
     

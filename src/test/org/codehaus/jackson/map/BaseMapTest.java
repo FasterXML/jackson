@@ -94,14 +94,6 @@ public abstract class BaseMapTest
     protected String serializeAsString(ObjectMapper m, Object value)
         throws IOException
     {
-        /* 28-Aug-2009, tatu: Let's use new functionality, to also
-         *   exercise specialized custom "stringable" writer...
-         */
-        /*
-        StringWriter sw = new StringWriter();
-        m.writeValue(sw, value);
-        return sw.toString();
-        */
         return m.writeValueAsString(value);
     }
 
@@ -109,6 +101,10 @@ public abstract class BaseMapTest
         throws IOException
     {
         return serializeAsString(new ObjectMapper(), value);
+    }
+
+    public String quote(String str) {
+        return '"'+str+'"';
     }
 }
 

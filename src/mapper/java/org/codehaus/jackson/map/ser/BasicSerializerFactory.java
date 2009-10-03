@@ -1,10 +1,12 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
-import java.lang.reflect.Type;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -49,7 +51,7 @@ public class BasicSerializerFactory
          * not included -- can use either textual or numeric serialization)
          */
         _concrete.put(String.class.getName(), new StringSerializer());
-        ToStringSerializer sls = ToStringSerializer.instance;
+        final ToStringSerializer sls = ToStringSerializer.instance;
         _concrete.put(StringBuffer.class.getName(), sls);
         _concrete.put(StringBuilder.class.getName(), sls);
         _concrete.put(Character.class.getName(), sls);
@@ -152,14 +154,29 @@ public class BasicSerializerFactory
          *    so need to hard-code name (it is available on standard JDK 1.5 and above)
          */
         _concrete.put("javax.xml.namespace.QName", sls);
-        _concrete.put("javax.xml.datatype.XMLGregorianCalendar", sls);
-        _concrete.put("javax.xml.datatype.Duration", sls);
 
         /* Finally, couple of oddball types. Not sure if these are
          * really needed...
          */
         final NullSerializer nullS = NullSerializer.instance;
         _concrete.put(Void.TYPE.getName(), nullS);
+    }
+
+    /* 02-Oct-2009, tatu: Core XML types are actually abstract types,
+     *   can't do direct mappings... But we do need classes, iff
+     *   they are available on running platform
+     */
+    protected final static Class<?> _classXMLGregorianCalendar;
+    protected final static Class<?> _classXMLDuration;
+    static { // as above, javax.xml appears to be missing from some platforms
+        Class<?> greg = null;
+        Class<?> dur = null;
+        try {
+            greg = XMLGregorianCalendar.class;
+            dur = Duration.class;
+        } catch (Throwable t) { }
+        _classXMLGregorianCalendar = greg;
+        _classXMLDuration = dur;
     }
 
     /*
@@ -303,12 +320,22 @@ public class BasicSerializerFactory
         if (java.util.Date.class.isAssignableFrom(type)) {
             return UtilDateSerializer.instance;
         }
+        /* [JACKSON-150]: Note that 'toString()' does work for gregorian
+         *   calendar too; it just calls the actual method ('toXMLFormat')
+         *   that is really needed.
+         */
+        if (_classXMLGregorianCalendar != null && _classXMLGregorianCalendar.isAssignableFrom(type)) {
+            return StringLikeSerializer.instance;
+        }
+        if (_classXMLDuration != null && _classXMLDuration.isAssignableFrom(type)) {
+            return StringLikeSerializer.instance;
+        }
         if (Collection.class.isAssignableFrom(type)) {
             return ContainerSerializers.CollectionSerializer.instance;
         }
         return null;
     }
-
+        
     /**
      * Reflection-based serialized find method, which checks if
      * given class implements one of recognized "add-on" interfaces.
@@ -413,7 +440,7 @@ public class BasicSerializerFactory
         extends SerializerBase<String>
     {
         @Override
-            public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value);

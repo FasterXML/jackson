@@ -26,8 +26,8 @@ import org.codehaus.jackson.map.*;
  * otherwise we could end up with an infinite loop.
  */
 public final class JsonValueSerializer
-        extends JsonSerializer<Object>
-        implements ResolvableSerializer, SchemaAware
+    extends JsonSerializer<Object>
+    implements ResolvableSerializer, SchemaAware
 {
     final Method _accessorMethod;
 
