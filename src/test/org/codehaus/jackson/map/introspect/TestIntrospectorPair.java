@@ -17,6 +17,9 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 public class TestIntrospectorPair
     extends org.codehaus.jackson.map.BaseMapTest
 {
+    final static AnnotationIntrospector _jacksonAI = new JacksonAnnotationIntrospector();
+    final static AnnotationIntrospector _jaxbAI = new JaxbAnnotationIntrospector();
+    
     /*
     /////////////////////////////////////////////////////
     // Helper beans
@@ -63,6 +66,22 @@ public class TestIntrospectorPair
         public void setBar(String v) { }
     }
 
+    /**
+     * And a bean to check how "ignore" annotations work with
+     * various combinations of annotation introspectors
+     */
+    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+    static class IgnoreBean
+    {
+        @JsonIgnore
+            public int getNumber() { return 13; }
+
+        @XmlTransient
+        public String getText() { return "abc"; }
+
+        public boolean getAny() { return true; }
+    }
+
     /*
     /////////////////////////////////////////////////////
     // Unit tests
@@ -72,14 +91,12 @@ public class TestIntrospectorPair
     public void testSimple() throws Exception
     {
         ObjectMapper mapper;
-        AnnotationIntrospector jacksonAI = new JacksonAnnotationIntrospector();
-        AnnotationIntrospector jaxbAI = new JaxbAnnotationIntrospector();
         AnnotationIntrospector pair;
         Map<String,Object> result;
 
         mapper = new ObjectMapper();
         // first: test with Jackson/Jaxb pair (jackson having precedence)
-        pair = new AnnotationIntrospector.Pair(jacksonAI, jaxbAI);
+        pair = new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI);
         mapper.getSerializationConfig().setAnnotationIntrospector(pair);
 
         result = writeAndMap(mapper, new NamedBean());
@@ -90,7 +107,7 @@ public class TestIntrospectorPair
         assertEquals("3", result.get("bothJackson"));
 
         mapper = new ObjectMapper();
-        pair = new AnnotationIntrospector.Pair(jaxbAI, jacksonAI);
+        pair = new AnnotationIntrospector.Pair(_jaxbAI, _jacksonAI);
         mapper.getSerializationConfig().setAnnotationIntrospector(pair);
 
         result = writeAndMap(mapper, new NamedBean());
@@ -104,14 +121,12 @@ public class TestIntrospectorPair
     public void testNaming() throws Exception
     {
         ObjectMapper mapper;
-        AnnotationIntrospector jacksonAI = new JacksonAnnotationIntrospector();
-        AnnotationIntrospector jaxbAI = new JaxbAnnotationIntrospector();
         AnnotationIntrospector pair;
         Map<String,Object> result;
 
         mapper = new ObjectMapper();
         // first: test with Jackson/Jaxb pair (jackson having precedence)
-        pair = new AnnotationIntrospector.Pair(jacksonAI, jaxbAI);
+        pair = new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI);
         mapper.getSerializationConfig().setAnnotationIntrospector(pair);
 
         result = writeAndMap(mapper, new NamedBean2());
@@ -121,7 +136,7 @@ public class TestIntrospectorPair
         assertEquals("abc", result.get("jaxb"));
 
         mapper = new ObjectMapper();
-        pair = new AnnotationIntrospector.Pair(jaxbAI, jacksonAI);
+        pair = new AnnotationIntrospector.Pair(_jaxbAI, _jacksonAI);
         mapper.getSerializationConfig().setAnnotationIntrospector(pair);
 
         result = writeAndMap(mapper, new NamedBean2());
@@ -130,5 +145,44 @@ public class TestIntrospectorPair
         assertEquals(2, result.size());
         assertEquals("abc", result.get("jaxb"));
         //assertEquals("123", result.get("jackson"));
+    }
+
+    public void testSimpleIgnore() throws Exception
+    {
+        ObjectMapper mapper;
+        AnnotationIntrospector pair;
+
+        // first: only Jackson introspector (default)
+        mapper = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(mapper, new IgnoreBean());
+        assertEquals(2, result.size());
+        assertEquals("abc", result.get("text"));
+        assertEquals(Boolean.TRUE, result.get("any"));
+
+        // Then JAXB only
+        mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(_jaxbAI);
+
+        // jackson one should have priority
+        result = writeAndMap(mapper, new IgnoreBean());
+        assertEquals(2, result.size());
+        assertEquals(Integer.valueOf(13), result.get("number"));
+        assertEquals(Boolean.TRUE, result.get("any"));
+
+        // then both, Jackson first
+        mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI));
+
+        result = writeAndMap(mapper, new IgnoreBean());
+        assertEquals(1, result.size());
+        assertEquals(Boolean.TRUE, result.get("any"));
+
+        // then both, JAXB first
+        mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new AnnotationIntrospector.Pair(_jaxbAI, _jacksonAI));
+
+        result = writeAndMap(mapper, new IgnoreBean());
+        assertEquals(1, result.size());
+        assertEquals(Boolean.TRUE, result.get("any"));
     }
 }

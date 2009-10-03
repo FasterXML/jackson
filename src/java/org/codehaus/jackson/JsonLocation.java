@@ -6,6 +6,7 @@ package org.codehaus.jackson;
  * within input streams.
  */
 public class JsonLocation
+    implements java.io.Serializable // as per [JACKSON-168]
 {
     /**
      * Shared immutable "N/A location" that can be returned to indicate

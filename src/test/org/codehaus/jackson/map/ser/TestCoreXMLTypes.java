@@ -13,7 +13,6 @@ public class TestCoreXMLTypes
     public void testQName() throws Exception
     {
         QName qn = new QName("http://abc", "tag", "prefix");
-        ObjectMapper mapper = new ObjectMapper();
         assertEquals(quote(qn.toString()), serializeAsString(qn));
     }
 
