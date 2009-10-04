@@ -41,60 +41,15 @@ public class JsonNodeDeserializer
     /////////////////////////////////////////////////////
     */
 
+    /**
+     * Implementation that will produce types of any JSON nodes; not just one
+     * deserializer is registered to handle (in case of more specialized handler).
+     * Overridden by typed sub-classes for more thorough checking
+     */
     public JsonNode deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        switch (jp.getCurrentToken()) {
-        case START_OBJECT:
-            return deserializeObject(jp, ctxt);
-
-        case START_ARRAY:
-            return deserializeArray(jp, ctxt);
-
-        case VALUE_STRING:
-            return _nodeFactory.textNode(jp.getText());
-
-        case VALUE_NUMBER_INT:
-            {
-                JsonParser.NumberType nt = jp.getNumberType();
-                if (nt == JsonParser.NumberType.BIG_INTEGER
-                    || ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS)) {
-                    return _nodeFactory.numberNode(jp.getIntValue());
-                }
-                if (nt == JsonParser.NumberType.INT) {
-                    return _nodeFactory.numberNode(jp.getIntValue());
-                }
-                return _nodeFactory.numberNode(jp.getLongValue());
-            }
-
-        case VALUE_NUMBER_FLOAT:
-            {
-                JsonParser.NumberType nt = jp.getNumberType();
-                if (nt == JsonParser.NumberType.BIG_DECIMAL
-                    || ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
-                    return _nodeFactory.numberNode(jp.getDecimalValue());
-                }
-                return _nodeFactory.numberNode(jp.getDoubleValue());
-            }
-
-        case VALUE_TRUE:
-            return _nodeFactory.booleanNode(true);
-
-        case VALUE_FALSE:
-            return _nodeFactory.booleanNode(false);
-
-        case VALUE_NULL:
-            return _nodeFactory.nullNode();
-
-            // These states can not be mapped; input stream is
-            // off by an event or two
-
-        case FIELD_NAME:
-        case END_OBJECT:
-        case END_ARRAY:
-        default:
-            throw ctxt.mappingException(getValueClass());
-        }
+        return deserializeAny(jp, ctxt);
     }
 
     /*
@@ -120,9 +75,9 @@ public class JsonNodeDeserializer
                 return deserializeObject(jp, ctxt);
             }
             throw ctxt.mappingException(ObjectNode.class);
-        }
+         }
     }
-
+        
     final static class ArrayDeserializer
         extends BaseNodeDeserializer<ArrayNode>
     {
@@ -131,7 +86,7 @@ public class JsonNodeDeserializer
         protected ArrayDeserializer() {
             super(ArrayNode.class);
         }
-
+        
         @Override
         public ArrayNode deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
@@ -208,7 +163,7 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
         while (jp.nextToken() != JsonToken.END_OBJECT) {
             String fieldName = jp.getCurrentName();
             jp.nextToken();
-            JsonNode value = deserialize(jp, ctxt);
+            JsonNode value = deserializeAny(jp, ctxt);
             JsonNode old = node.put(fieldName, value);
             if (old != null) {
                 _handleDuplicateField(fieldName, node, old, value);
@@ -222,8 +177,64 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
     {
         ArrayNode node = _nodeFactory.arrayNode();
         while (jp.nextToken() != JsonToken.END_ARRAY) {
-            node.add(deserialize(jp, ctxt));
+            node.add(deserializeAny(jp, ctxt));
         }
         return node;
+    }
+
+    protected final JsonNode deserializeAny(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        switch (jp.getCurrentToken()) {
+        case START_OBJECT:
+            return deserializeObject(jp, ctxt);
+
+        case START_ARRAY:
+            return deserializeArray(jp, ctxt);
+
+        case VALUE_STRING:
+            return _nodeFactory.textNode(jp.getText());
+
+        case VALUE_NUMBER_INT:
+            {
+                JsonParser.NumberType nt = jp.getNumberType();
+                if (nt == JsonParser.NumberType.BIG_INTEGER
+                    || ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS)) {
+                    return _nodeFactory.numberNode(jp.getIntValue());
+                }
+                if (nt == JsonParser.NumberType.INT) {
+                    return _nodeFactory.numberNode(jp.getIntValue());
+                }
+                return _nodeFactory.numberNode(jp.getLongValue());
+            }
+
+        case VALUE_NUMBER_FLOAT:
+            {
+                JsonParser.NumberType nt = jp.getNumberType();
+                if (nt == JsonParser.NumberType.BIG_DECIMAL
+                    || ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
+                    return _nodeFactory.numberNode(jp.getDecimalValue());
+                }
+                return _nodeFactory.numberNode(jp.getDoubleValue());
+            }
+
+        case VALUE_TRUE:
+            return _nodeFactory.booleanNode(true);
+
+        case VALUE_FALSE:
+            return _nodeFactory.booleanNode(false);
+
+        case VALUE_NULL:
+            return _nodeFactory.nullNode();
+
+            // These states can not be mapped; input stream is
+            // off by an event or two
+
+        case FIELD_NAME:
+        case END_OBJECT:
+        case END_ARRAY:
+        default:
+            throw ctxt.mappingException(getValueClass());
+        }
     }
 }
