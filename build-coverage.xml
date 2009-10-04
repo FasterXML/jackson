@@ -34,6 +34,7 @@
                 <fileset dir="${dir.test.classes}">
                     <!-- Need to exclude inner classes... -->
                     <exclude name="**/*$*.class"/>
+                    <!-- and one particularly slow test? -->
                     <exclude name="**/TestStringGeneration.class"/>
                     <include name="**/Test*.class"/>
                 </fileset>
@@ -54,12 +55,19 @@
                   -->
                 <pathelement path="${dir.build.classes.core}" />
                 <pathelement path="${dir.build.classes.mapper}" />
+                <pathelement path="${dir.build.classes.xc}" />
                 <path refid="test-libs"/>
             </classpath>     
         </junit>
         <!-- and then reporting -->
         <cobertura-report format="html" destdir="${cobertura.coverage.dir}" >
-          <fileset dir="${dir.src.java}">
+          <fileset dir="${dir.src.java.core}">
+            <include name="org/codehaus/**/*.java" />
+          </fileset>
+          <fileset dir="${dir.src.java.mapper}">
+            <include name="org/codehaus/**/*.java" />
+          </fileset>
+          <fileset dir="${dir.src.java.xc}">
             <include name="org/codehaus/**/*.java" />
           </fileset>
         </cobertura-report>

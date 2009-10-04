@@ -2,7 +2,6 @@ package org.codehaus.jackson.io;
 
 import java.io.*;
 
-
 /**
  * Simple {@link InputStream} implementation that is used to "unwind" some
  * data previously read from an input stream; so that as long as some of
@@ -118,7 +117,7 @@ public final class MergedStream
 
             if (amount > n) { // all in pushed back segment?
                 _ptr += (int) n;
-                return amount;
+                return n;
             }
             freeMergedBuffer();
             count += amount;
