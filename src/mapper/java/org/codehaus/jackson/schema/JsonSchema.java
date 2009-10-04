@@ -1,6 +1,8 @@
 package org.codehaus.jackson.schema;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
@@ -15,6 +17,15 @@ public class JsonSchema
 {
     private final ObjectNode schema;
 
+    /**
+     * Main constructor for schema instances.
+     *<p>
+     * This is the creator constructor used by Jackson itself when
+     * deserializing instances. It is so-called delegating creator, 
+     * meaning that its argument will be bound by Jackson before
+     * constructor gets called.
+     */
+    @JsonCreator
     public JsonSchema(ObjectNode schema)
     {
         this.schema = schema;
@@ -43,7 +54,15 @@ public class JsonSchema
     @Override
     public boolean equals(Object o)
     {
-        return this.schema.equals(o);
+        if (o == this) return true;
+        if (o == null) return false;
+        if (!(o instanceof JsonSchema)) return false;
+
+        JsonSchema other = (JsonSchema) o;
+        if (schema == null) {
+            return other.schema == null;
+        }
+        return schema.equals(other.schema);
     }
 
     /**
