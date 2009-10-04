@@ -74,12 +74,20 @@ public class TestIntrospectorPair
     static class IgnoreBean
     {
         @JsonIgnore
-            public int getNumber() { return 13; }
+        public int getNumber() { return 13; }
 
         @XmlTransient
         public String getText() { return "abc"; }
 
         public boolean getAny() { return true; }
+    }
+
+    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+    static class IgnoreFieldBean
+    {
+        @JsonIgnore public int number = 7;
+        @XmlTransient public String text = "123";
+        public boolean any = true;
     }
 
     /*
@@ -182,6 +190,45 @@ public class TestIntrospectorPair
         mapper.getSerializationConfig().setAnnotationIntrospector(new AnnotationIntrospector.Pair(_jaxbAI, _jacksonAI));
 
         result = writeAndMap(mapper, new IgnoreBean());
+        assertEquals(1, result.size());
+        assertEquals(Boolean.TRUE, result.get("any"));
+    }
+
+    public void testSimpleFieldIgnore() throws Exception
+    {
+        ObjectMapper mapper;
+        AnnotationIntrospector pair;
+
+        // first: only Jackson introspector (default)
+        mapper = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(mapper, new IgnoreFieldBean());
+        assertEquals(2, result.size());
+        assertEquals("123", result.get("text"));
+        assertEquals(Boolean.TRUE, result.get("any"));
+
+        // Then JAXB only
+        mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(_jaxbAI);
+
+        // jackson one should have priority
+        result = writeAndMap(mapper, new IgnoreFieldBean());
+        assertEquals(2, result.size());
+        assertEquals(Integer.valueOf(7), result.get("number"));
+        assertEquals(Boolean.TRUE, result.get("any"));
+
+        // then both, Jackson first
+        mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI));
+
+        result = writeAndMap(mapper, new IgnoreFieldBean());
+        assertEquals(1, result.size());
+        assertEquals(Boolean.TRUE, result.get("any"));
+
+        // then both, JAXB first
+        mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new AnnotationIntrospector.Pair(_jaxbAI, _jacksonAI));
+
+        result = writeAndMap(mapper, new IgnoreFieldBean());
         assertEquals(1, result.size());
         assertEquals(Boolean.TRUE, result.get("any"));
     }
