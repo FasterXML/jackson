@@ -145,4 +145,12 @@ Dain Sundstrom:
   * Suggested [JACKSON-136] JsonParser and JsonGenerator should implement
     java.io.Closeable (since they already have close() method)
    [1.2.0]
+ 
+Troy Waldrep:
+  * Reported [JACKSON-162]: OSGi packaging problems for xc package.
+   [1.2.1]
 
+Randy Layma:
+  * Reported [JACKSON-171]: Self-referential types cause infinite recursion
+    when using only JAXB annotation introspector
+   [1.2.1]
