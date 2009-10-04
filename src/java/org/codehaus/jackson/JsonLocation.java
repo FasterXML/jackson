@@ -1,5 +1,8 @@
 package org.codehaus.jackson;
 
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * Object that encapsulates Location information used for reporting
  * parsing (or potentially generation) errors, as well as current location
@@ -37,14 +40,18 @@ public class JsonLocation
         this(srcRef, -1L, totalChars, lineNr, colNr);
     }
 
-    public JsonLocation(Object srcRef, long totalBytes, long totalChars,
-                        int lineNr, int colNr)
+    @JsonCreator
+    public JsonLocation(@JsonProperty("sourceRef") Object sourceRef,
+                        @JsonProperty("byteOffset") long totalBytes,
+                        @JsonProperty("charOffset") long totalChars,
+                        @JsonProperty("lineNr") int lineNr,
+                        @JsonProperty("columnNr") int columnNr)
     {
-        _sourceRef = srcRef;
+        _sourceRef = sourceRef;
         _totalBytes = totalBytes;
         _totalChars = totalChars;
         _lineNr = lineNr;
-        _columnNr = colNr;
+        _columnNr = columnNr;
     }
 
     /**

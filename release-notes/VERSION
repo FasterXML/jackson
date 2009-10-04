@@ -33,6 +33,8 @@ Description:
     (suggested by Benjamin Darfler)
   * [JACKSON-166] Add ability to control auto-detection of
     "is getters" (boolean isXxx()) methods separate from regular getters
+  * [JACKSON-168] Make JsonLocation serializable (and deserializable)
+    (suggested by Shay B)
 
   New features:
 
