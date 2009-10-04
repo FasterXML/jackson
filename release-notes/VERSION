@@ -16,6 +16,9 @@ Description:
    (reported by Troy Waldrep)
   * [JACKSON-167] Map and Collection sub-classes seem to lose generic
     information for deserialization
+  * [JACKSON-171] Self-referential types cause infinite recursion when
+    using only JAXB annotation introspector
+    (reported by Randy L)
 
   Improvements:
 
