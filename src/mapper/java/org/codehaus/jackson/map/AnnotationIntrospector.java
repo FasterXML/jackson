@@ -44,7 +44,7 @@ public abstract class AnnotationIntrospector
      * should cache instances, and if no annotations are found,
      * assumes non-cachable instances.
      *
-     * @return True, if class is considered cachable within context;
+     * @return True, if class is considered cachable within context,
      *   False if not, and null if introspector does not care either
      *   way.
      */

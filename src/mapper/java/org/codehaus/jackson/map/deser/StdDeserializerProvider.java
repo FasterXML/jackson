@@ -194,16 +194,22 @@ public class StdDeserializerProvider
             AnnotationIntrospector aintr = config.getAnnotationIntrospector();
             // note: pass 'null' to prevent mix-ins from being used
             AnnotatedClass ac = AnnotatedClass.construct(deser.getClass(), aintr, null);
-            // Caching? (yes for bean and enum deserializers)
-            Boolean b = aintr.findCachability(ac);
-            if (b != null && b.booleanValue()) {
+            boolean isResolvable = (deser instanceof ResolvableDeserializer);
+            /* Caching? (yes for bean and enum deserializers)
+             /* Also: since caching also serves to prevent infinite recursion
+             * for self-referential types, we really need to cache if
+             * deserializer is resolvable
+             * (see [JACKSON-171] for details on why)
+             */
+            Boolean needToCache = isResolvable ? null : aintr.findCachability(ac);
+            if (isResolvable || (needToCache != null && needToCache.booleanValue())) {
                 _cachedDeserializers.put(type, deser);
             }
             /* Need to resolve? Mostly done for bean deserializers; allows
              * resolving of cyclic types, which can not yet be done during
              * construction:
              */
-            if (deser instanceof ResolvableDeserializer) {
+            if (isResolvable) {
                 _resolveDeserializer(config, (ResolvableDeserializer)deser);
             }
         }

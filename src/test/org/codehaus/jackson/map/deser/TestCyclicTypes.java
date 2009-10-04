@@ -36,7 +36,6 @@ public class TestCyclicTypes
 
     // Also another one to ensure JAXB annotation introspector has no problems
     @XmlAccessorType(XmlAccessType.FIELD)
-    @XmlType(name = "badTestCase", propOrder = { "id", "cicrular" })
     static class JaxbBean
     {
         @XmlElement(required = true)
@@ -67,6 +66,8 @@ public class TestCyclicTypes
         assertNull(last._next);
     }
 
+    /* Added to check for [JACKSON-171]
+     */
     public void testWithJAXB() throws Exception
     {
         String jsonData = "{\"id\":1}";

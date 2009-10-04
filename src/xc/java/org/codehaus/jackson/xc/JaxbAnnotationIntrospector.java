@@ -112,6 +112,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public Boolean findCachability(AnnotatedClass ac)
     {
+        // Nothing to indicate this in JAXB, return "don't care"
         return null;
     }
 

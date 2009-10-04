@@ -2,9 +2,12 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
+import javax.xml.bind.annotation.*;
+
 import org.codehaus.jackson.map.BaseMapTest;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 /**
  * Simple unit tests to verify that it is possible to handle
@@ -21,6 +24,7 @@ public class TestCyclicTypes
     //////////////////////////////////////////////
      */
 
+    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
     static class Bean
     {
         Bean _next;
@@ -75,5 +79,19 @@ public class TestCyclicTypes
         } catch (JsonMappingException e) {
             verifyException(e, "Direct self-reference leading to cycle");
         }
+    }
+
+    /* Added to check for [JACKSON-171], i.e. that type its being
+     * cyclic is not a problem (instances are).
+     */
+    public void testWithJAXB() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        Map<String,Object> results = writeAndMap(mapper, new Bean(null, "abx"));
+        assertEquals(2, results.size());
+        assertEquals("abx", results.get("name"));
+        assertTrue(results.containsKey("next"));
+        assertNull(results.get("next"));
     }
 }
