@@ -18,7 +18,7 @@ public abstract class StdKeyDeserializer
     protected StdKeyDeserializer(Class<?> cls) { _keyClass = cls; }
 
     @Override
-	public final Object deserializeKey(String key, DeserializationContext ctxt)
+    public final Object deserializeKey(String key, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         if (key == null) { // is this even legal call?
@@ -71,7 +71,7 @@ public abstract class StdKeyDeserializer
         BoolKD() { super(Boolean.class); }
 
         @Override
-		public Boolean _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        public Boolean _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             if ("true".equals(key)) {
                 return Boolean.TRUE;
@@ -195,7 +195,7 @@ public abstract class StdKeyDeserializer
         }
 
         @Override
-            public Enum<?> _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        public Enum<?> _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             Enum<?> e = _resolver.findEnum(key);
             if (e == null) {

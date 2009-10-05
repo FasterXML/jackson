@@ -16,7 +16,7 @@ public class TestGenerateJsonSchema
      * tests generating json-schema stuff.
      */
     public void testGeneratingJsonSchema()
-            throws Exception
+        throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         JsonSchema jsonSchema = mapper.generateJsonSchema(SimpleBean.class);
@@ -63,6 +63,16 @@ public class TestGenerateJsonSchema
 	assertEquals("object", result.get("type"));
 	assertEquals(Boolean.TRUE, result.get("optional"));
 	assertNotNull(result.get("properties"));
+    }
+
+    public void testInvalidCall()
+        throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // not ok to pass null
+        try {
+            mapper.generateJsonSchema(null);
+        } catch (IllegalArgumentException iae) { }
     }
 
     public static class SimpleBean

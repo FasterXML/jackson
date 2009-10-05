@@ -11,14 +11,30 @@ import org.codehaus.jackson.map.*;
 public class TestReadJsonSchema
     extends org.codehaus.jackson.map.BaseMapTest
 {
+    enum SchemaEnum { YES, NO; }
+
     static class Schemable {
         public String name;
 
+        // We'll include tons of stuff, just to force generation of schema
         public boolean[] states;
+        public byte[] binaryData;
+        public short[] shorts;
+        public int[] ints;
+        public long[] longs;
+
+        public float[] floats;
+        public double[] doubles;
+
+        public Object[] objects;
+        public JsonSerializer someSerializable;
 
         public List<String> extra;
 
         public Map<String,Double> sizes;
+
+        SchemaEnum testEnum;
+        public EnumSet<SchemaEnum> testEnums;
     }
 
     /**

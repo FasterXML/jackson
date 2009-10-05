@@ -10,7 +10,7 @@ import org.codehaus.jackson.map.type.ArrayType;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 
 /**
- * Basic serializer that can serializer non-primitive arrays.
+ * Basic serializer that can serialize non-primitive arrays.
  */
 public class ArrayDeserializer
     extends StdDeserializer<Object>
@@ -50,6 +50,13 @@ public class ArrayDeserializer
     {
         // Ok: must point to START_ARRAY
         if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+            /* 04-Oct-2009, tatu: One exception; byte arrays are generally
+             *   serialized as base64, so that should be handled
+             */
+            if (jp.getCurrentToken() == JsonToken.VALUE_STRING
+                && _elementClass == Byte.class) {
+                return deserializeFromBase64(jp, ctxt);
+            }
             throw ctxt.mappingException(_arrayClass);
         }
 
@@ -76,6 +83,19 @@ public class ArrayDeserializer
             result = buffer.completeAndClearBuffer(chunk, ix, _elementClass);
         }
         ctxt.returnObjectBuffer(buffer);
+        return result;
+    }
+
+    protected Byte[] deserializeFromBase64(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        // First same as what ArrayDeserializers.ByteDeser does:
+        byte[] b = jp.getBinaryValue(ctxt.getBase64Variant());
+        // But then need to convert to wrappers
+        Byte[] result = new Byte[b.length];
+        for (int i = 0, len = b.length; i < len; ++i) {
+            result[i] = Byte.valueOf(b[i]);
+        }
         return result;
     }
 }

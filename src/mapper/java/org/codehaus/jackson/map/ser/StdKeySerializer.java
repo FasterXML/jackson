@@ -24,7 +24,7 @@ public final class StdKeySerializer
     final static StdKeySerializer instace = new StdKeySerializer();
     
     @Override
-	public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+    public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         String keyStr = (value.getClass() == String.class) ?
@@ -34,7 +34,7 @@ public final class StdKeySerializer
 
     //@Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
+        throws JsonMappingException
     {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
         objectNode.put("type", "string");

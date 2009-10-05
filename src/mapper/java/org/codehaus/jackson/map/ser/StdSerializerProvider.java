@@ -40,7 +40,7 @@ public class StdSerializerProvider
     final static boolean CACHE_UNKNOWN_MAPPINGS = false;
 
     public final static JsonSerializer<Object> DEFAULT_NULL_KEY_SERIALIZER =
-        new FailingSerializer("Null key for a Map not allower in Json (use a converting NullKeySerializer?)");
+        new FailingSerializer("Null key for a Map not allowed in Json (use a converting NullKeySerializer?)");
 
     public final static JsonSerializer<Object> DEFAULT_KEY_SERIALIZER = new StdKeySerializer();
 

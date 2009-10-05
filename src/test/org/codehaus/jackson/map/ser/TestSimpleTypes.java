@@ -3,6 +3,8 @@ package org.codehaus.jackson.map.ser;
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import static org.junit.Assert.*;
+
 /**
  * Unit tests for verifying serialization of simple basic non-structured
  * types; primitives (and/or their wrappers), Strings.
@@ -15,6 +17,42 @@ public class TestSimpleTypes
         ObjectMapper mapper = new ObjectMapper();
         assertEquals("true", serializeAsString(mapper, Boolean.TRUE));
         assertEquals("false", serializeAsString(mapper, Boolean.FALSE));
+    }
+
+    public void testBooleanArray() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals("[true,false]", serializeAsString(mapper, new boolean[] { true, false} ));
+        assertEquals("[true,false]", serializeAsString(mapper, new Boolean[] { Boolean.TRUE, Boolean.FALSE} ));
+    }
+
+    public void testByteArray() throws Exception
+    {
+        byte[] data = { 1, 17, -3, 127, -128 };
+        Byte[] data2 = new Byte[data.length];
+        for (int i = 0; i < data.length; ++i) {
+            data2[i] = data[i]; // auto-boxing
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        // For this we need to deserialize, to get base64 codec
+        String str1 = serializeAsString(mapper, data);
+        String str2 = serializeAsString(mapper, data2);
+        assertArrayEquals(data, mapper.readValue(str1, byte[].class));
+        assertArrayEquals(data2, mapper.readValue(str1, Byte[].class));
+    }
+
+    public void testShortArray() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals("[0,1]", serializeAsString(mapper, new short[] { 0, 1 }));
+        assertEquals("[2,3]", serializeAsString(mapper, new Short[] { 2, 3 }));
+    }
+
+    public void testIntArray() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals("[0,-3]", serializeAsString(mapper, new int[] { 0, -3 }));
+        assertEquals("[13,9]", serializeAsString(mapper, new Integer[] { 13, 9 }));
     }
 
     /* Note: dealing with floating-point values is tricky; not sure if
