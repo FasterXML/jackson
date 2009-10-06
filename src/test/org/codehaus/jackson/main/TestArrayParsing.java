@@ -47,7 +47,7 @@ public class TestArrayParsing
 
         try {
             jp.nextToken();
-            fail("Expected a parsing error for missing array close marker");
+            fail("Expected a parsing error for odd character");
         } catch (JsonParseException jex) {
             verifyException(jex, "Unexpected character");
         }

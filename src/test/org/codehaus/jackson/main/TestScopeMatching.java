@@ -46,30 +46,38 @@ public class TestScopeMatching
     public void testMismatchArrayToObject()
         throws Exception
     {
-        JsonParser jp = createParserUsingReader("[ 1, 2 }");
-        assertToken(JsonToken.START_ARRAY, jp.nextToken());
-        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
-        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
-
-        try {
-            jp.nextToken();
-            fail("Expected an exception for incorrectly closed ARRAY");
-        } catch (JsonParseException jpe) {
-            verifyException(jpe, "Unexpected close marker");
+        final String JSON = "[ 1, 2 }";
+        for (int i = 0; i < 2; ++i) {
+            JsonParser jp = (i == 0) ? createParserUsingReader(JSON)
+                : createParserUsingStream(JSON, "UTF-8");
+            assertToken(JsonToken.START_OBJECT, jp.nextToken());
+            assertToken(JsonToken.START_ARRAY, jp.nextToken());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            try {
+                jp.nextToken();
+                fail("Expected an exception for incorrectly closed ARRAY");
+            } catch (JsonParseException jpe) {
+                verifyException(jpe, "Unexpected close marker '}': expected ']'");
+            }
         }
     }
 
     public void testMismatchObjectToArray()
         throws Exception
     {
-        JsonParser jp = createParserUsingReader("{ ]");
-        assertToken(JsonToken.START_OBJECT, jp.nextToken());
-
-        try {
-            jp.nextToken();
-            fail("Expected an exception for incorrectly closed OBJECT");
-        } catch (JsonParseException jpe) {
-            verifyException(jpe, "Unexpected close marker");
+        final String JSON = "{ ]";
+        for (int i = 0; i < 2; ++i) {
+            JsonParser jp = (i == 0) ? createParserUsingReader(JSON)
+                : createParserUsingStream(JSON, "UTF-8");
+            assertToken(JsonToken.START_OBJECT, jp.nextToken());
+            
+            try {
+                jp.nextToken();
+                fail("Expected an exception for incorrectly closed OBJECT");
+            } catch (JsonParseException jpe) {
+                verifyException(jpe, "Unexpected close marker ']': expected '}'");
+            }
         }
     }
 }

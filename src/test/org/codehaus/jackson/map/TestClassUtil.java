@@ -15,15 +15,28 @@ public class TestClassUtil
     static abstract class BaseClass implements Comparable<BaseClass>,
         BaseInt
     {
+        BaseClass(String str) { }
     }
 
     interface BaseInt { }
 
     interface SubInt extends BaseInt { }
 
+    enum TestEnum { A; }
+
+    abstract class InnerNonStatic { }
+
+    static class Inner {
+        protected Inner() {
+            throw new IllegalStateException("test");
+        }
+    }
+
     static abstract class SubClass
         extends BaseClass
-        implements SubInt { }
+        implements SubInt {
+        SubClass() { super("x"); }
+    }
 
     public void testSimple()
     {
@@ -35,5 +48,62 @@ public class TestClassUtil
             Comparable.class
         };
         assertArrayEquals(exp, classes);
+    }
+
+    public void testCanBeABeanType()
+    {
+        assertEquals("annotation", ClassUtil.canBeABeanType(java.lang.annotation.Retention.class));
+        assertEquals("array", ClassUtil.canBeABeanType(String[].class));
+        assertEquals("enum", ClassUtil.canBeABeanType(TestEnum.class));
+        assertEquals("primitive", ClassUtil.canBeABeanType(Integer.TYPE));
+        assertNull(ClassUtil.canBeABeanType(Integer.class));
+
+        assertEquals("non-static member class", ClassUtil.isLocalType(InnerNonStatic.class));
+        assertNull(ClassUtil.isLocalType(Integer.class));
+    }
+
+    public void testExceptionHelpers()
+    {
+        RuntimeException e = new RuntimeException("test");
+        RuntimeException wrapper = new RuntimeException(e);
+
+        assertSame(e, ClassUtil.getRootCause(wrapper));
+
+        try {
+            ClassUtil.throwAsIAE(e);
+            fail("Shouldn't get this far");
+        } catch (RuntimeException e2) {
+            assertSame(e, e2);
+        }
+
+        try {
+            ClassUtil.unwrapAndThrowAsIAE(wrapper);
+            fail("Shouldn't get this far");
+        } catch (RuntimeException e2) {
+            assertSame(e, e2);
+        }
+    }
+
+    public void testFailedCreateInstance()
+    {
+        try {
+            ClassUtil.createInstance(BaseClass.class, true);
+        } catch (IllegalArgumentException e) {
+            verifyException(e, "has no default");
+        }
+
+        try {
+            // false means ctor would need to be public
+            ClassUtil.createInstance(Inner.class, false);
+        } catch (IllegalArgumentException e) {
+            verifyException(e, "is not accessible");
+        }
+
+        // and finally, check that we'll get expected exception...
+        try {
+            ClassUtil.createInstance(Inner.class, true);
+        } catch (IllegalStateException e) {
+            verifyException(e, "test");
+        }
     }
 }

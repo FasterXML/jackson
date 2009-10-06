@@ -82,6 +82,7 @@ public final class CollectionType
         if (o.getClass() != getClass()) return false;
 
         CollectionType other = (CollectionType) o;
-        return _elementType.equals(other._elementType);
+        return  (_class == other._class)
+            && _elementType.equals(other._elementType);
     }
 }

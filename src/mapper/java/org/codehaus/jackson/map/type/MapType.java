@@ -97,7 +97,8 @@ public final class MapType
         if (o.getClass() != getClass()) return false;
 
         MapType other = (MapType) o;
-        return _keyType.equals(other._keyType)
+        return (_class == other._class)
+            && _keyType.equals(other._keyType)
             && _valueType.equals(other._valueType);
     }
 }

@@ -226,6 +226,8 @@ public final class ClassUtil
         Constructor<T> ctor = null;
         try {
             ctor = cls.getDeclaredConstructor();
+        } catch (NoSuchMethodException e) {
+            ;
         } catch (Exception e) {
             ClassUtil.unwrapAndThrowAsIAE(e, "Failed to find default constructor of class "+cls.getName()+", problem: "+e.getMessage());
         }
