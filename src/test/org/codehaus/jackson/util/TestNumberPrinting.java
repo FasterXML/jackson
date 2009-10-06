@@ -1,8 +1,8 @@
 package org.codehaus.jackson.util;
 
-import org.codehaus.jackson.io.NumberOutput;
-
 import java.util.Random;
+
+import org.codehaus.jackson.io.NumberOutput;
 
 /**
  * Set of basic unit tests for verifying that the low-level number

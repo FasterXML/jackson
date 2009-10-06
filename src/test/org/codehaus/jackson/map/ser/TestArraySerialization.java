@@ -17,6 +17,14 @@ public class TestArraySerialization
         assertEquals("[1,2,3,-7]", sw.toString().trim());
     }
 
+    public void testLongArray() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        StringWriter sw = new StringWriter();
+        mapper.writeValue(sw, new long[] { Long.MIN_VALUE, 0, Long.MAX_VALUE });
+        assertEquals("["+Long.MIN_VALUE+",0,"+Long.MAX_VALUE+"]", sw.toString().trim());
+    }
+
     public void testStringArray() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();

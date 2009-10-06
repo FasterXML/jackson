@@ -15,6 +15,7 @@ public class TestReadJsonSchema
 
     static class Schemable {
         public String name;
+        public char[] nameBuffer;
 
         // We'll include tons of stuff, just to force generation of schema
         public boolean[] states;
@@ -27,11 +28,14 @@ public class TestReadJsonSchema
         public double[] doubles;
 
         public Object[] objects;
-        public JsonSerializer someSerializable;
+        public JsonSerializable someSerializable;
 
         public List<String> extra;
+        public ArrayList<String> extra2;
+        public Iterator<String[]> extra3;
 
         public Map<String,Double> sizes;
+        public EnumMap<SchemaEnum,List<String>> whatever;
 
         SchemaEnum testEnum;
         public EnumSet<SchemaEnum> testEnums;

@@ -232,4 +232,30 @@ public class TestIntrospectorPair
         assertEquals(1, result.size());
         assertEquals(Boolean.TRUE, result.get("any"));
     }
+
+    public void testSimpleOther() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // Let's use Jackson+JAXB comb
+        AnnotationIntrospector ann = new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI);
+
+        AnnotatedClass testClass = AnnotatedClass.construct(NamedBean.class, ann, null);
+        assertNull(ann.findCachability(testClass));
+        //assertNull(ann.findSerializationInclusion(testClass, null));
+        assertNull(ann.findCreatorAutoDetection(testClass));
+
+        assertEquals(Boolean.TRUE, ann.findSetterAutoDetection(testClass));
+        assertEquals(Boolean.TRUE, ann.findGetterAutoDetection(testClass));
+
+        assertNull(ann.findDeserializationType(testClass));
+        assertNull(ann.findDeserializationContentType(testClass));
+        assertNull(ann.findDeserializationKeyType(testClass));
+        assertNull(ann.findSerializationType(testClass));
+
+        assertNull(ann.findDeserializer(testClass));
+        assertNull(ann.findContentDeserializer(testClass));
+        assertNull(ann.findKeyDeserializer(testClass));
+
+        assertFalse(ann.hasCreatorAnnotation(testClass));
+    }
 }

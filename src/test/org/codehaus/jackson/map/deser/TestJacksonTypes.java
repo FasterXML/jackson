@@ -22,4 +22,16 @@ public class TestJacksonTypes
         assertEquals("Did not correctly deserialize standard serialization '"+ser+"'",
                      loc, result);
     }
+
+    // doesn't really belong here but...
+    public void testJsonLocationProps()
+    {
+        JsonLocation loc = new JsonLocation(null,  -1, -1, 100, 13);
+        assertTrue(loc.equals(loc));
+        assertFalse(loc.equals(null));
+        assertFalse(loc.equals("abx"));
+
+        // should we check it's not 0?
+        loc.hashCode();
+    }
 }
