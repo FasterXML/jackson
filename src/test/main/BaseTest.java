@@ -46,6 +46,111 @@ public class BaseTest
 
     /*
     ////////////////////////////////////////////////////////
+    // High-level helpers
+    ////////////////////////////////////////////////////////
+     */
+
+    protected void verifyJsonSpecSampleDoc(JsonParser jp, boolean verifyContents)
+        throws IOException
+    {
+        if (!jp.hasCurrentToken()) {
+            jp.nextToken();
+        }
+        assertToken(JsonToken.START_OBJECT, jp.getCurrentToken()); // main object
+
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Image'
+        if (verifyContents) {
+            verifyFieldName(jp, "Image");
+        }
+
+        assertToken(JsonToken.START_OBJECT, jp.nextToken()); // 'image' object
+
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Width'
+        if (verifyContents) {
+            verifyFieldName(jp, "Width");
+        }
+
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        if (verifyContents) {
+            verifyIntValue(jp, SAMPLE_SPEC_VALUE_WIDTH);
+        }
+
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Height'
+        if (verifyContents) {
+            verifyFieldName(jp, "Height");
+        }
+
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        verifyIntValue(jp, SAMPLE_SPEC_VALUE_HEIGHT);
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Title'
+        if (verifyContents) {
+            verifyFieldName(jp, "Title");
+        }
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals(SAMPLE_SPEC_VALUE_TITLE, getAndVerifyText(jp));
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Thumbnail'
+        if (verifyContents) {
+            verifyFieldName(jp, "Thumbnail");
+        }
+
+        assertToken(JsonToken.START_OBJECT, jp.nextToken()); // 'thumbnail' object
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Url'
+        if (verifyContents) {
+            verifyFieldName(jp, "Url");
+        }
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        if (verifyContents) {
+            assertEquals(SAMPLE_SPEC_VALUE_TN_URL, getAndVerifyText(jp));
+        }
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Height'
+        if (verifyContents) {
+            verifyFieldName(jp, "Height");
+        }
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_HEIGHT);
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Width'
+        if (verifyContents) {
+            verifyFieldName(jp, "Width");
+        }
+        // Width value is actually a String in the example
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals(SAMPLE_SPEC_VALUE_TN_WIDTH, getAndVerifyText(jp));
+
+        assertToken(JsonToken.END_OBJECT, jp.nextToken()); // 'thumbnail' object
+
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'IDs'
+        assertToken(JsonToken.START_ARRAY, jp.nextToken()); // 'ids' array
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken()); // ids[0]
+        verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_ID1);
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken()); // ids[1]
+        verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_ID2);
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken()); // ids[2]
+        verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_ID3);
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken()); // ids[3]
+        verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_ID4);
+        assertToken(JsonToken.END_ARRAY, jp.nextToken()); // 'ids' array
+
+        assertToken(JsonToken.END_OBJECT, jp.nextToken()); // 'image' object
+
+        assertToken(JsonToken.END_OBJECT, jp.nextToken()); // main object
+    }
+
+    protected void verifyFieldName(JsonParser jp, String expName)
+        throws IOException
+    {
+        assertEquals(expName, jp.getText());
+        assertEquals(expName, jp.getCurrentName());
+    }
+
+    protected void verifyIntValue(JsonParser jp, long expValue)
+        throws IOException
+    {
+        // First, via textual
+        assertEquals(String.valueOf(expValue), jp.getText());
+    }
+
+    /*
+    ////////////////////////////////////////////////////////
     // Parser/generator construction
     ////////////////////////////////////////////////////////
      */

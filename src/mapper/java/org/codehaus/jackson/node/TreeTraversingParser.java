@@ -199,19 +199,27 @@ public class TreeTraversingParser extends JsonParser
     @Override
     public String getText()
     {
-        if (_closed) return null;
+        if (_closed) {
+            return null;
+        }
         // need to separate handling a bit...
-        if (_currToken == JsonToken.FIELD_NAME) {
+        switch (_currToken) {
+        case FIELD_NAME:
             return _nodeCursor.getCurrentName();
+        case VALUE_STRING:
+            return currentNode().getTextValue();
+        case VALUE_NUMBER_INT:
+        case VALUE_NUMBER_FLOAT:
+            return String.valueOf(currentNode().getNumberValue());
+        case VALUE_EMBEDDED_OBJECT:
+            JsonNode n = currentNode();
+            if (n != null && n.isBinary()) {
+                // this will convert it to base64
+                return n.getValueAsText();
+            }
         }
-        JsonNode n = currentNode();
-        // only non-null for actual text nodes...
-        String text = (n == null) ? null : n.getTextValue();
-        if (text != null) {
-            return text;
-        }
-        // otherwise, default to whatever Token produces...
-        return _currToken.asString();
+
+        return (_currToken == null) ? null : _currToken.asString();
     }
 
     @Override
@@ -236,67 +244,49 @@ public class TreeTraversingParser extends JsonParser
      *********************************************
      */
 
+    //public byte getByteValue() throws IOException, JsonParseException
+
     @Override
-    public BigInteger getBigIntegerValue() throws IOException,
-            JsonParseException
-    {
-        // TODO Auto-generated method stub
-        return null;
+    public NumberType getNumberType() throws IOException, JsonParseException {
+        JsonNode n = currentNumericNode();
+        return (n == null) ? null : n.getNumberType();
     }
 
     @Override
-    public byte getByteValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
+    public BigInteger getBigIntegerValue() throws IOException, JsonParseException
+    {
+        return currentNumericNode().getBigIntegerValue();
     }
+
 
     @Override
     public BigDecimal getDecimalValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
+        return currentNumericNode().getDecimalValue();
     }
 
     @Override
     public double getDoubleValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
+        return currentNumericNode().getDoubleValue();
     }
 
     @Override
     public float getFloatValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public int getIntValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
+        return (float) currentNumericNode().getDoubleValue();
     }
 
     @Override
     public long getLongValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
+        return currentNumericNode().getLongValue();
     }
 
     @Override
-    public NumberType getNumberType() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
+    public int getIntValue() throws IOException, JsonParseException {
+        return currentNumericNode().getIntValue();
     }
 
     @Override
     public Number getNumberValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
-    @Override
-    public short getShortValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
+        return currentNumericNode().getNumberValue();
     }
 
     public Object getEmbeddedObject() {
@@ -316,9 +306,26 @@ public class TreeTraversingParser extends JsonParser
      */
 
     @Override
-    public byte[] getBinaryValue(Base64Variant b64variant) throws IOException,
-            JsonParseException {
-        // TODO Auto-generated method stub
+    public byte[] getBinaryValue(Base64Variant b64variant)
+        throws IOException, JsonParseException
+    {
+        // Multiple possibilities...
+        JsonNode n = currentNode();
+        if (n != null) { // binary node?
+            byte[] data = n.getBinaryValue();
+            if (data != null) {
+                return data;
+            }
+            // Or maybe byte[] as POJO?
+            if (n.isPojo()) {
+                Object ob = ((POJONode) n).getPojo();
+                if (ob instanceof byte[]) {
+                    return (byte[]) ob;
+                }
+            }
+            // Or perhaps it's a text node? If so, try base64 decode
+        }
+
         return null;
     }
 
@@ -333,5 +340,16 @@ public class TreeTraversingParser extends JsonParser
             return null;
         }
         return _nodeCursor.currentNode();
+    }
+
+    protected JsonNode currentNumericNode()
+        throws JsonParseException
+    {
+        JsonNode n = currentNode();
+        if (n == null || !n.isNumber()) {
+            JsonToken t = (n == null) ? null : n.asToken();
+            throw _constructError("Current token ("+t+") not numeric, can not use numeric value accessors");
+        }
+        return n;
     }
 }

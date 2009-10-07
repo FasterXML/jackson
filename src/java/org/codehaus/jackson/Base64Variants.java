@@ -18,8 +18,6 @@ package org.codehaus.jackson;
  * Container for commonly used Base64 variants.
  * 
  * @author Tatu Saloranta
- *
- * @since 0.9.3
  */
 public final class Base64Variants
 {

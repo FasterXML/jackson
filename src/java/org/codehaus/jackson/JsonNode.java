@@ -164,6 +164,13 @@ public abstract class JsonNode
      */
     public abstract JsonToken asToken();
 
+    /**
+     * If this node is a numeric type (as per {@link #isNumber}),
+     * returns native type that node uses to store the numeric
+     * value.
+     */
+    public abstract JsonParser.NumberType getNumberType();
+
     /*
     ////////////////////////////////////////////////////
     // Public API, value access
@@ -184,13 +191,18 @@ public abstract class JsonNode
 
     /**
      * Method to use for accessing binary content of binary nodes (nodes
-     * for which {@link #isBinary} returns true).
-     * For non-binary nodes, returns null.
+     * for which {@link #isBinary} returns true); or for Text Nodes
+     * (ones for which {@link #getTextValue} returns non-null value),
+     * to read decoded base64 data.
+     * For other types of nodes, returns null.
      *
      * @return Binary data this node contains, iff it is a binary
      *   node; null otherwise
      */
-    public byte[] getBinaryValue() { return null; }
+    public byte[] getBinaryValue() throws IOException
+    {
+        return null;
+    }
 
     public boolean getBooleanValue() { return false; }
     public Number getNumberValue() { return Integer.valueOf(getIntValue()); }

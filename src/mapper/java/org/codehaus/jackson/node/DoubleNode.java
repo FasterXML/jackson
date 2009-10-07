@@ -17,17 +17,37 @@ public final class DoubleNode
 {
     final double _value;
 
+    /* 
+    ************************************************
+    * Construction
+    ************************************************
+     */
+
     public DoubleNode(double v) { _value = v; }
 
     public static DoubleNode valueOf(double v) { return new DoubleNode(v); }
 
+    /* 
+    ************************************************
+    * BaseJsonNode extended API
+    ************************************************
+     */
+
     @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_FLOAT; }
 
-    @Override
-        public boolean isFloatingPointNumber() { return true; }
+    public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.DOUBLE; }
+
+    /* 
+    ************************************************
+    * Overrridden JsonNode methods
+    ************************************************
+     */
 
     @Override
-        public boolean isDouble() { return true; }
+    public boolean isFloatingPointNumber() { return true; }
+
+    @Override
+    public boolean isDouble() { return true; }
 
     @Override
     public Number getNumberValue() {

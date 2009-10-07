@@ -64,8 +64,8 @@ public enum JsonToken
      * {@link #END_OBJECT}), but as "raw" objects.
      *<p>
      * Note: this token is never returned by regular JSON readers, but
-     * only by readers that expose other kinds of source (like Maps,
-     * Lists and such).
+     * only by readers that expose other kinds of source (like
+     * {@link JsonNode}-based JSON trees, Maps, Lists and such).
      *
      * @since 1.1
      */

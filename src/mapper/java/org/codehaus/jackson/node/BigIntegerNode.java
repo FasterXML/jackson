@@ -15,12 +15,27 @@ public final class BigIntegerNode
 {
     final BigInteger _value;
 
+    /* 
+    ************************************************
+    * Construction
+    ************************************************
+    */
+
     public BigIntegerNode(BigInteger v) { _value = v; }
 
     public static BigIntegerNode valueOf(BigInteger v) { return new BigIntegerNode(v); }
 
+    /* 
+    ************************************************
+    * Overrridden JsonNode methods
+    ************************************************
+    */
+
     @Override
     public JsonToken asToken() { return JsonToken.VALUE_NUMBER_INT; }
+
+    @Override
+    public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.BIG_INTEGER; }
 
     @Override
     public boolean isIntegralNumber() { return true; }

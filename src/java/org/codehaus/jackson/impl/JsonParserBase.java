@@ -634,11 +634,6 @@ public abstract class JsonParserBase
         throw new RuntimeException("Internal error: this code path should never get executed");
     }
 
-    protected final JsonParseException _constructError(String msg)
-    {
-        return new JsonParseException(msg, getCurrentLocation());
-    }
-
     protected final JsonParseException _constructError(String msg, Throwable t)
     {
         return new JsonParseException(msg, getCurrentLocation(), t);

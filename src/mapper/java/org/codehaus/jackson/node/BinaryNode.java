@@ -7,8 +7,8 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.SerializerProvider;
 
 /**
- * Value node that contains Base64 encoded binary value, output and stored
- * as Json String value.
+ * Value node that contains Base64 encoded binary value, which will be
+ * output and stored as Json String value.
  */
 public final class BinaryNode
     extends ValueNode

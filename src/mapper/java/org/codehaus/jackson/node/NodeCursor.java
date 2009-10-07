@@ -6,11 +6,15 @@ import org.codehaus.jackson.*;
 
 /**
  * Helper class used by {@link TreeTraversingParser} to keep track
- * of hierarchic location within traversed JSON tree.
+ * of current location within traversed JSON tree.
  */
 abstract class NodeCursor
     extends JsonStreamContext
 {
+    /**
+     * Parent cursor of this cursor, if any; null for root
+     * cursors.
+     */
     final NodeCursor _parent;
 
     public NodeCursor(int contextType, NodeCursor p)
@@ -85,11 +89,11 @@ abstract class NodeCursor
         public String getCurrentName() { return null; }
 
         public JsonToken nextToken() {
-            if (_node != null) {
-                JsonToken t = _node.asToken();
-                _node = null;
-                return t;
+            if (!_done) {
+                _done = true;
+                return _node.asToken();
             }
+            _node = null;
             return null;
         }
         

@@ -41,6 +41,14 @@ public abstract class BaseJsonNode
      */
     public abstract JsonToken asToken();
 
+    /**
+     * @since 1.3
+     */
+    public JsonParser.NumberType getNumberType() {
+        // most types non-numeric, so:
+        return null; 
+    }
+
     /*
      *********************************************
      * JsonSerializable

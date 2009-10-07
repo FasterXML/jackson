@@ -53,8 +53,10 @@ public final class ByteArrayBuilder
 
     private int _currBlockPtr;
     
-    public ByteArrayBuilder() {
-        _currBlock = new byte[INITIAL_BLOCK_SIZE];
+    public ByteArrayBuilder() { this(INITIAL_BLOCK_SIZE); }
+
+    public ByteArrayBuilder(int firstBlockSize) {
+        _currBlock = new byte[firstBlockSize];
     }
 
     public void reset()

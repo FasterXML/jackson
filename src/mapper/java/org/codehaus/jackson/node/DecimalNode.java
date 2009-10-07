@@ -16,12 +16,31 @@ public final class DecimalNode
 {
     final BigDecimal _value;
 
+    /* 
+    ************************************************
+    * Construction
+    ************************************************
+    */
+
     public DecimalNode(BigDecimal v) { _value = v; }
 
     public static DecimalNode valueOf(BigDecimal d) { return new DecimalNode(d); }
 
+    /* 
+    ************************************************
+    * BaseJsonNode extended API
+    ************************************************
+    */
 
     @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_FLOAT; }
+
+    public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.BIG_DECIMAL; }
+
+    /* 
+    ************************************************
+    * Overrridden JsonNode methods
+    ************************************************
+     */
 
     @Override
         public boolean isFloatingPointNumber() { return true; }

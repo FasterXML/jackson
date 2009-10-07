@@ -16,11 +16,27 @@ public final class LongNode
 {
     final long _value;
 
+    /* 
+    ************************************************
+    * Construction
+    ************************************************
+    */
+
     public LongNode(long v) { _value = v; }
 
     public static LongNode valueOf(long l) { return new LongNode(l); }
 
+    /* 
+    ************************************************
+    * Overrridden JsonNode methods
+    ************************************************
+    */
+
     @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_INT; }
+
+    @Override
+    public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.LONG; }
+
 
     @Override
     public boolean isIntegralNumber() { return true; }

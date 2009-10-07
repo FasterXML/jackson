@@ -3,6 +3,8 @@ package org.codehaus.jackson.node;
 import java.io.*;
 import java.util.*;
 
+import static org.junit.Assert.*;
+
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
@@ -23,7 +25,7 @@ public class TestTreeTraversingParser
 
         assertToken(JsonToken.START_OBJECT, jp.nextToken());
         assertNull(jp.getCurrentName());
-        assertEquals(JsonToken.START_OBJECT.asString(), jp.getText());
+        assertEquals("Expected START_OBJECT", JsonToken.START_OBJECT.asString(), jp.getText());
 
         assertToken(JsonToken.FIELD_NAME, jp.nextToken());
         assertEquals("a", jp.getCurrentName());
@@ -75,6 +77,78 @@ public class TestTreeTraversingParser
 
         jp.close();
         assertTrue(jp.isClosed());
+    }
+
+    /**
+     * Unit test that verifies that we can (re)parse sample document
+     * from JSON specification.
+     */
+    public void testSpecDoc() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        JsonNode tree = m.readTree(SAMPLE_DOC_JSON_SPEC);
+        JsonParser jp = tree.traverse();
+
+        verifyJsonSpecSampleDoc(jp, true);
+    }
+
+    public void testBinaryPojo() throws Exception
+    {
+        byte[] inputBinary = new byte[] { 1, 2, 100 };
+        POJONode n = new POJONode(inputBinary);
+        JsonParser jp = n.traverse();
+
+        assertNull(jp.getCurrentToken());
+        assertToken(JsonToken.VALUE_EMBEDDED_OBJECT, jp.nextToken());
+        byte[] data = jp.getBinaryValue();
+        assertNotNull(data);
+        assertArrayEquals(inputBinary, data);
+        Object pojo = jp.getEmbeddedObject();
+        assertSame(data, pojo);
+    }
+
+    public void testBinaryNode() throws Exception
+    {
+        byte[] inputBinary = new byte[] { 0, -5 };
+        BinaryNode n = new BinaryNode(inputBinary);
+        JsonParser jp = n.traverse();
+
+        assertNull(jp.getCurrentToken());
+        // exposed as POJO... not as VALUE_STRING
+        assertToken(JsonToken.VALUE_EMBEDDED_OBJECT, jp.nextToken());
+        byte[] data = jp.getBinaryValue();
+        assertNotNull(data);
+        assertArrayEquals(inputBinary, data);
+
+        // but as importantly, can be viewed as base64 encoded thing:
+        assertEquals("APs=", jp.getText());
+
+        assertNull(jp.nextToken());
+    }
+
+    public void testTextAsBinary() throws Exception
+    {
+        TextNode n = new TextNode("   APs=\n");
+        JsonParser jp = n.traverse();
+        assertNull(jp.getCurrentToken());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        byte[] data = jp.getBinaryValue();
+        assertNotNull(data);
+        assertArrayEquals(new byte[] { 0, -5 }, data);
+
+        assertNull(jp.nextToken());
+        jp.close();
+        assertTrue(jp.isClosed());
+
+        // Also: let's verify we get an exception for garbage...
+        n = new TextNode("?!??");
+        jp = n.traverse();
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        try {
+            jp.getBinaryValue();
+        } catch (JsonParseException e) {
+            verifyException(e, "Illegal character");
+        }
     }
 }
 

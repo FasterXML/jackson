@@ -54,12 +54,6 @@ public abstract class JsonNumericParserBase
     final static double MIN_INT_D = (double) Integer.MIN_VALUE;
     final static double MAX_INT_D = (double) Integer.MAX_VALUE;
 
-    final static int MIN_BYTE_I = (int) Byte.MIN_VALUE;
-    final static int MAX_BYTE_I = (int) Byte.MAX_VALUE;
-
-    final static int MIN_SHORT_I = (int) Short.MIN_VALUE;
-    final static int MAX_SHORT_I = (int) Short.MAX_VALUE;
-
     // Digits, numeric
     final protected static int INT_0 = '0';
     final protected static int INT_1 = '1';
@@ -235,27 +229,6 @@ public abstract class JsonNumericParserBase
             return NumberType.BIG_DECIMAL;
         }
         return NumberType.DOUBLE;
-    }
-
-    public byte getByteValue()
-        throws IOException, JsonParseException
-    {
-        int value = getIntValue();
-        // So far so good: but does it fit?
-        if (value < MIN_BYTE_I || value > MAX_BYTE_I) {
-            _reportError("Numeric value ("+getText()+") out of range of Java byte");
-        }
-        return (byte) value;
-    }
-
-    public short getShortValue()
-        throws IOException, JsonParseException
-    {
-        int value = getIntValue();
-        if (value < MIN_SHORT_I || value > MAX_SHORT_I) {
-            _reportError("Numeric value ("+getText()+") out of range of Java short");
-        }
-        return (short) value;
     }
 
     public int getIntValue()

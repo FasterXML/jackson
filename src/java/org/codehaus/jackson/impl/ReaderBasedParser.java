@@ -817,7 +817,7 @@ public final class ReaderBasedParser
      */
 
     @Override
-	protected byte[] _decodeBase64(Base64Variant b64variant)
+    protected byte[] _decodeBase64(Base64Variant b64variant)
         throws IOException, JsonParseException
     {
         ByteArrayBuilder builder = _getByteArrayBuilder();

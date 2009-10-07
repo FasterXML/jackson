@@ -31,6 +31,12 @@ import org.codehaus.jackson.type.TypeReference;
 public abstract class JsonParser
     implements Closeable
 {
+    private final static int MIN_BYTE_I = (int) Byte.MIN_VALUE;
+    private final static int MAX_BYTE_I = (int) Byte.MAX_VALUE;
+
+    private final static int MIN_SHORT_I = (int) Short.MIN_VALUE;
+    private final static int MAX_SHORT_I = (int) Short.MAX_VALUE;
+
     /**
      * Enumeration of possible "native" (optimal) types that can be
      * used for numbers.
@@ -574,8 +580,16 @@ public abstract class JsonParser
      * Java byte, a {@link JsonParseException}
      * will be thrown to indicate numeric overflow/underflow.
      */
-    public abstract byte getByteValue()
-        throws IOException, JsonParseException;
+    public byte getByteValue()
+        throws IOException, JsonParseException
+    {
+        int value = getIntValue();
+        // So far so good: but does it fit?
+        if (value < MIN_BYTE_I || value > MAX_BYTE_I) {
+            throw _constructError("Numeric value ("+getText()+") out of range of Java byte");
+        }
+        return (byte) value;
+    }
 
     /**
      * Numeric accessor that can be called when the current
@@ -590,8 +604,15 @@ public abstract class JsonParser
      * Java short, a {@link JsonParseException}
      * will be thrown to indicate numeric overflow/underflow.
      */
-    public abstract short getShortValue()
-        throws IOException, JsonParseException;
+    public short getShortValue()
+        throws IOException, JsonParseException
+    {
+        int value = getIntValue();
+        if (value < MIN_SHORT_I || value > MAX_SHORT_I) {
+            throw _constructError("Numeric value ("+getText()+") out of range of Java short");
+        }
+        return (short) value;
+    }
 
     /**
      * Numeric accessor that can be called when the current
@@ -840,5 +861,20 @@ public abstract class JsonParser
             throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize JSON into JsonNode tree");
         }
         return codec.readTree(this);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Helper method for constructing {@link JsonParseException}s
+     * based on current state of the parser
+     */
+    protected final JsonParseException _constructError(String msg)
+    {
+        return new JsonParseException(msg, getCurrentLocation());
     }
 }

@@ -33,6 +33,12 @@ public final class IntNode
      */
     final int _value;
 
+    /* 
+    ************************************************
+    * Construction
+    ************************************************
+    */
+
     public IntNode(int v) { _value = v; }
 
     public static IntNode valueOf(int i) {
@@ -40,7 +46,21 @@ public final class IntNode
         return CANONICALS[i - MIN_CANONICAL];
     }
 
+    /* 
+    ************************************************
+    * BaseJsonNode extended API
+    ************************************************
+    */
+
     @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_INT; }
+
+    public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.INT; }
+
+    /* 
+    ************************************************
+    * Overrridden JsonNode methods
+    ************************************************
+    */
 
     @Override
     public boolean isIntegralNumber() { return true; }
