@@ -731,6 +731,13 @@ public class ObjectMapper
         return new TreeAppendingGenerator((ContainerNode) n, this);
     }
 
+    public <T> T treeToValue(JsonNode n, Class<T> valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        JsonParser jp = treeAsEvents(n);
+        return readValue(jp, valueType);
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Extended Public API, accessors

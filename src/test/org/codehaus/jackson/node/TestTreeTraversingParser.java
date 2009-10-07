@@ -150,5 +150,34 @@ public class TestTreeTraversingParser
             verifyException(e, "Illegal character");
         }
     }
+
+    static class Person {
+        public String name;
+        public int magicNumber;
+        public List<String> kids;
+    }
+
+    /**
+     * Very simple test case to verify that tree-to-POJO
+     * conversion works ok
+     */
+    public void testDataBind() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        JsonNode tree = m.readTree
+            ("{ \"name\" : \"Tatu\", \n"
+             +"\"magicNumber\" : 42,"
+             +"\"kids\" : [ \"Leo\", \"Lila\", \"Leia\" ] \n"
+             +"}");
+        Person tatu = m.treeToValue(tree, Person.class);
+        assertNotNull(tatu);
+        assertEquals(42, tatu.magicNumber);
+        assertEquals("Tatu", tatu.name);
+        assertNotNull(tatu.kids);
+        assertEquals(3, tatu.kids.size());
+        assertEquals("Leo", tatu.kids.get(0));
+        assertEquals("Lila", tatu.kids.get(1));
+        assertEquals("Leia", tatu.kids.get(2));
+    }
 }
 
