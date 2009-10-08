@@ -675,6 +675,22 @@ public abstract class JsonGenerator
 
     /**
      * Convenience method for outputting a field entry ("member")
+     * that contains specified data in base64-encoded form.
+     * Equivalent to:
+     *<pre>
+     *  writeFieldName(fieldName);
+     *  writeBinary(value);
+     *</pre>
+     */
+    public final void writeBinaryField(String fieldName, byte[] data)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeBinary(data);
+    }
+
+    /**
+     * Convenience method for outputting a field entry ("member")
      * (that will contain a Json Array value), and the START-ARRAY marker.
      * Equivalent to:
      *<pre>

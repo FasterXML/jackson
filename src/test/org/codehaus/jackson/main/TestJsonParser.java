@@ -12,6 +12,52 @@ import java.util.*;
 public class TestJsonParser
     extends main.BaseTest
 {
+    public void testConfig() throws Exception
+    {
+        JsonParser jp = createParserUsingReader("[ ]");
+        jp.enable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+        assertTrue(jp.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+        jp.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+        assertFalse(jp.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+
+        jp.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, true);
+        assertTrue(jp.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+        jp.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+        assertFalse(jp.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+
+        // and then deprecated methods
+        jp.enableFeature(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+        assertTrue(jp.isFeatureEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+        jp.disableFeature(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+        assertFalse(jp.isFeatureEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+        jp.setFeature(JsonParser.Feature.AUTO_CLOSE_SOURCE, true);
+        assertTrue(jp.isFeatureEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+    }
+
+    public void testTokenAccess() throws Exception
+    {
+        JsonParser jp = createParserUsingReader("[ ]");
+        assertNull(jp.getCurrentToken());
+        jp.clearCurrentToken();
+        assertNull(jp.getCurrentToken());
+        assertNull(jp.getEmbeddedObject());
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.START_ARRAY, jp.getCurrentToken());
+        jp.clearCurrentToken();
+        assertNull(jp.getCurrentToken());
+
+
+        // Also: no codec defined by default
+        try {
+            jp.readValueAsTree();
+            fail("Should get exception without codec");
+        } catch (IllegalStateException e) {
+            verifyException(e, "No ObjectCodec defined");
+        }
+
+        jp.close();
+    }
+
     /**
      * This basic unit test verifies that example given in the Json
      * specification (RFC-4627 or later) is properly parsed at

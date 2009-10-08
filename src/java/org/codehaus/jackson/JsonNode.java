@@ -205,7 +205,17 @@ public abstract class JsonNode
     }
 
     public boolean getBooleanValue() { return false; }
-    public Number getNumberValue() { return Integer.valueOf(getIntValue()); }
+
+    /**
+     * Returns numeric value for this node, <b>if and only if</b>
+     * this node is numeric ({@link #isNumber} returns true); otherwise
+     * returns null
+     *
+     * @return Number value this node contains, if any (null for non-number
+     *   nodes).
+     */
+    public Number getNumberValue() { return null; }
+
     public int getIntValue() { return 0; }
     public long getLongValue() { return 0L; }
     public double getDoubleValue() { return 0.0; }

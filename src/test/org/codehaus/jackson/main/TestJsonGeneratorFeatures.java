@@ -39,6 +39,19 @@ public class TestJsonGeneratorFeatures
         _testNonNumericQuoting(jf, true);
     }
 
+    public void testDeprecated() throws IOException
+    {
+        JsonFactory jf = new JsonFactory();
+        JsonGenerator jg = jf.createJsonGenerator(new StringWriter());
+
+        jg.enableFeature(JsonGenerator.Feature.QUOTE_FIELD_NAMES);
+        assertTrue(jg.isFeatureEnabled(JsonGenerator.Feature.QUOTE_FIELD_NAMES));
+        jg.disableFeature(JsonGenerator.Feature.QUOTE_FIELD_NAMES);
+        assertFalse(jg.isFeatureEnabled(JsonGenerator.Feature.QUOTE_FIELD_NAMES));
+        jg.setFeature(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
+        assertTrue(jg.isFeatureEnabled(JsonGenerator.Feature.QUOTE_FIELD_NAMES));
+    }
+
     /*
     ///////////////////////////////////////////////////////////
     // Helper methods

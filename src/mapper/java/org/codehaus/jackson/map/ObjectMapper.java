@@ -985,7 +985,7 @@ public class ObjectMapper
 
     /**
      * Generate <a href="http://json-schema.org/">Json-schema</a>
-     * instance for the specified class.
+     * instance for specified class.
      *
      * @param t The class to generate schema for
      * @return Constructed JSON schema.
@@ -996,6 +996,14 @@ public class ObjectMapper
         return generateJsonSchema(t, copySerializationConfig());
     }
 
+    /**
+     * Generate <a href="http://json-schema.org/">Json-schema</a>
+     * instance for specified class, using specific
+     * serialization configuration
+     *
+     * @param t The class to generate schema for
+     * @return Constructed JSON schema.
+     */
     public JsonSchema generateJsonSchema(Class<?> t, SerializationConfig cfg)
             throws JsonMappingException
     {

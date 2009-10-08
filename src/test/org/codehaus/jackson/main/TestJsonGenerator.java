@@ -118,7 +118,7 @@ public class TestJsonGenerator
             jp.close();
         }
     }
-
+    
     // // Then root-level output testing
 
      public void testRootIntsWrite()
@@ -141,6 +141,23 @@ public class TestJsonGenerator
          assertEquals(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
          assertEquals(-13, jp.getIntValue());
          jp.close();
+     }
+    
+    // Convenience methods
+    
+    public void testFieldValueWrites()
+         throws Exception
+     {
+         StringWriter sw = new StringWriter();
+         JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
+         gen.writeStartObject();
+         gen.writeNumberField("long", 3L);
+         gen.writeNumberField("double", 0.25);
+         gen.writeNumberField("float", -0.25f);
+         gen.writeEndObject();
+         gen.close();
+
+         assertEquals("{\"long\":3,\"double\":0.25,\"float\":-0.25}", sw.toString().trim());
      }
 
     /*

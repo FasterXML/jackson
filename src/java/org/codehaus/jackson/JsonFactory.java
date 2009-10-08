@@ -536,7 +536,8 @@ public class JsonFactory
              * matter a lot: performance penalty of extra wrapping is more
              * relevant when accessing local file system.
              */
-            if (url.getHost() == null) {
+            String host = url.getHost();
+            if (host == null || host.length() == 0) {
                 return new FileInputStream(url.getPath());
             }
         }
