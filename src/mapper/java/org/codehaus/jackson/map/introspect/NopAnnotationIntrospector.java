@@ -23,6 +23,35 @@ public class NopAnnotationIntrospector
      */
     public final static NopAnnotationIntrospector instance = new NopAnnotationIntrospector();
 
+    /*
+    ////////////////////////////////////////////////////
+    // General annotation properties
+    ////////////////////////////////////////////////////
+     */
+
+    @Override
+    public boolean isHandled(Annotation ann) {
+        return false;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // General annotations
+    ////////////////////////////////////////////////////
+     */
+
+    @Override
+    public String findNamespace(Annotated ann)
+    {
+        return null;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // General class annotations
+    ///////////////////////////////////////////////////////
+    */
+
     @Override
     public Boolean findCachability(AnnotatedClass ac) {
         return null;
@@ -142,11 +171,6 @@ public class NopAnnotationIntrospector
 
     @Override
     public boolean hasCreatorAnnotation(Annotated a) {
-        return false;
-    }
-
-    @Override
-    public boolean isHandled(Annotation ann) {
         return false;
     }
 

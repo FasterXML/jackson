@@ -83,6 +83,7 @@ public class TestUnknownProperties
         throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().clearHandlers();
         mapper.getDeserializationConfig().addHandler(new MyHandler());
         TestBean result = mapper.readValue(new StringReader(JSON_UNKNOWN_FIELD), TestBean.class);
         assertNotNull(result);

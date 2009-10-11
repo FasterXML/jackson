@@ -90,6 +90,13 @@ public class TestIntrospectorPair
         public boolean any = true;
     }
 
+    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+    @XmlRootElement(namespace="urn:whatever")
+    static class NamespaceBean
+    {
+        public String string;
+    }
+
     /*
     /////////////////////////////////////////////////////
     // Unit tests
@@ -257,5 +264,16 @@ public class TestIntrospectorPair
         assertNull(ann.findKeyDeserializer(testClass));
 
         assertFalse(ann.hasCreatorAnnotation(testClass));
+    }
+
+    public void testNamepsace() throws Exception
+    {
+        // first: test with Jackson/Jaxb pair (jackson having precedence)
+        AnnotationIntrospector pair = new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI);
+        assertEquals("urn:whatever", pair.findNamespace(AnnotatedClass.construct(NamespaceBean.class, pair, null)));
+
+        // then reverse; should make no difference
+        pair = new AnnotationIntrospector.Pair(_jaxbAI, _jacksonAI);
+        assertEquals("urn:whatever", pair.findNamespace(AnnotatedClass.construct(NamespaceBean.class, pair, null)));
     }
 }

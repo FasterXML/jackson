@@ -20,6 +20,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -57,6 +58,8 @@ import java.lang.reflect.Modifier;
  */
 public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 {
+    final static String MARKER_FOR_DEFAULT = "##default";
+
     final String _jaxbPackageName;
     final JsonSerializer<?> _dataHandlerSerializer;
     final JsonDeserializer<?> _dataHandlerDeserializer;
@@ -102,6 +105,52 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         }
         // not sure if this is needed but...
         return cls.getName().startsWith(_jaxbPackageName);
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // General annotations
+    ////////////////////////////////////////////////////
+     */
+
+    @Override
+    public String findNamespace(Annotated ann)
+    {
+        String ns = null;
+
+        /* 10-Oct-2009, tatus: I suspect following won't work quite
+         *  as well as it should, wrt. defaulting to package.
+         *  But it should work well enough to get things started --
+         *  currently this method is not needed, and when it is,
+         *  this can be improved.
+         */
+
+        if (ann instanceof AnnotatedClass) {
+            /* For classes, it must be @XmlRootElement. Also, we do
+             * want to use defaults from package, base class
+             */
+            XmlRootElement elem = findAnnotation(XmlRootElement.class, ann, true, false, true);
+            if (elem != null) {
+                ns = elem.namespace();
+            }
+        } else {
+            // For others, XmlElement or XmlAttribute work (anything else?)
+            XmlElement elem = findAnnotation(XmlElement.class, ann, false, false, false);
+            if (elem != null) {
+                ns = elem.namespace();
+            }
+            if (ns == null || MARKER_FOR_DEFAULT.equals(ns)) {
+                XmlAttribute attr = findAnnotation(XmlAttribute.class, ann, false, false, false);
+                if (attr != null) {
+                    ns = attr.namespace();
+                }
+            }
+        }
+        // JAXB uses marker for "not defined"
+        if (MARKER_FOR_DEFAULT.equals(ns)) {
+            ns = null;
+        }
+        return ns;
     }
 
     /*
@@ -492,13 +541,14 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         }
         if (annotation == null) {
             Class memberClass;
-            if (annotated.getAnnotated() instanceof Member) {
-                memberClass = ((Member) annotated.getAnnotated()).getDeclaringClass();
+            AnnotatedElement annType = annotated.getAnnotated();
+            if (annType instanceof Member) {
+                memberClass = ((Member) annType).getDeclaringClass();
                 if (includeClass) {
                     annotation = (A) memberClass.getAnnotation(annotationClass);
                 }
-            } else if (annotated.getAnnotated() instanceof Class) {
-                memberClass = ((Class) annotated.getAnnotated());
+            } else if (annType instanceof Class) {
+                memberClass = (Class) annType;
             } else {
                 throw new IllegalStateException("Unsupported annotated member: " + annotated.getClass().getName());
             }
@@ -609,7 +659,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         XmlElementWrapper elementWrapper = ae.getAnnotation(XmlElementWrapper.class);
         if (elementWrapper != null) {
             String name = elementWrapper.name();
-            if (!"##default".equals(name)) {
+            if (!MARKER_FOR_DEFAULT.equals(name)) {
                 return name;
             }
             return defaultName;
@@ -618,7 +668,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         XmlAttribute attribute = ae.getAnnotation(XmlAttribute.class);
         if (attribute != null) {
             String name = attribute.name();
-            if (!"##default".equals(name)) {
+            if (!MARKER_FOR_DEFAULT.equals(name)) {
                 return name;
             }
             return defaultName;
@@ -627,7 +677,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         XmlElement element = ae.getAnnotation(XmlElement.class);
         if (element != null) {
             String name = element.name();
-            if (!"##default".equals(name)) {
+            if (!MARKER_FOR_DEFAULT.equals(name)) {
                 return name;
             }
             return defaultName;
@@ -636,13 +686,13 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         XmlElementRef elementRef = ae.getAnnotation(XmlElementRef.class);
         if (elementRef != null) {
             String name = elementRef.name();
-            if (!"##default".equals(name)) {
+            if (!MARKER_FOR_DEFAULT.equals(name)) {
                 return name;
             }
             XmlRootElement rootElement = (XmlRootElement) aeType.getAnnotation(XmlRootElement.class);
             if (rootElement != null) {
                 name = rootElement.name();
-                if (!"##default".equals(name)) {
+                if (!MARKER_FOR_DEFAULT.equals(name)) {
                     return name;
                 }
                 return Introspector.decapitalize(aeType.getSimpleName());

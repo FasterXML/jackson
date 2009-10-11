@@ -75,7 +75,8 @@ public final class BinaryNode
     public byte[] getBinaryValue() { return _data; }
 
     /**
-     * Hmmh. This gets bit tricky and inefficient, but we can do it ok.
+     * Hmmh. This is not quite as efficient as using {@link #serialize},
+     * but will work correctly.
      */
     public String getValueAsText() {
         return _asBase64(false, _data);

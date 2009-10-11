@@ -5,8 +5,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
@@ -146,7 +146,13 @@ public class TestJaxbAnnotationIntrospector
 
     }
 
-
+    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+    @XmlRootElement(namespace="urn:class")
+    static class NamespaceBean
+    {
+        @XmlElement(namespace="urn:method")
+        public String string;
+    }
 
     /*
     /////////////////////////////////////////////////////
@@ -214,5 +220,15 @@ public class TestJaxbAnnotationIntrospector
         assertEquals(ex.elementProperty, readEx.elementProperty);
         assertEquals(ex.wrappedElementProperty, readEx.wrappedElementProperty);
         assertEquals(ex.enumProperty, readEx.enumProperty);
+    }
+
+    public void testNamespaceAccess() throws Exception
+    {
+        AnnotationIntrospector ai = new JaxbAnnotationIntrospector();
+        assertEquals("urn:class", ai.findNamespace(AnnotatedClass.construct(NamespaceBean.class, ai, null)));
+        /* should it return null or empty String? Should be null
+         * for no annotations; empty for explicitly empty NS.
+         */
+        assertNull(ai.findNamespace(AnnotatedClass.construct(SimpleBean.class, ai, null)));
     }
 }

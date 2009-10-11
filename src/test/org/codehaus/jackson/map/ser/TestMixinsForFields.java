@@ -80,8 +80,13 @@ public class TestMixinsForFields
         ObjectMapper mapper = new ObjectMapper();
         Map<String,Object> result;
         // ordering here shouldn't matter really...
-        mapper.getSerializationConfig().addMixInAnnotations(SubClass.class, MixIn.class);
-        mapper.getSerializationConfig().addMixInAnnotations(BaseClass.class, MixIn2.class);
+        HashMap<Class<?>,Class<?>> mixins = new HashMap<Class<?>,Class<?>>();
+        // first, clear (not strictly needed -- just for fun)
+        mapper.getSerializationConfig().setMixInAnnotations(null);
+        mixins.put(SubClass.class, MixIn.class);
+        mixins.put(BaseClass.class, MixIn2.class);
+        mapper.getSerializationConfig().setMixInAnnotations(mixins);
+
         result = writeAndMap(mapper, new SubClass("1", "2"));
         assertEquals(1, result.size());
         // 'a' should be suppressed; 'b' mapped to 'banana'

@@ -43,6 +43,19 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
+    ////////////////////////////////////////////////////
+    // General annotations
+    ////////////////////////////////////////////////////
+     */
+
+    @Override
+    public String findNamespace(Annotated ann)
+    {
+        // Jackson has no annotations for this (JAXB does)
+        return null;
+    }
+
+    /*
     ///////////////////////////////////////////////////////
     // General class annotations
     ///////////////////////////////////////////////////////

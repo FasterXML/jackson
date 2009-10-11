@@ -43,6 +43,8 @@ Description:
   * [JACKSON-154] Added JsonDeserialize.keyUsing and .contentUsing,
     to allow for overriding key and content/value deserializers for
     properties of structured (array, Collection, Map) types
+  * Added method in AnnotationIntrospector to find declared namespace
+    for JAXB annotations, needed for XML compatibility (future features)
 
 ------------------------------------------------------------------------
 == History: ==
