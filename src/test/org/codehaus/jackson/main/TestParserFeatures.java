@@ -37,6 +37,18 @@ public class TestParserFeatures
         _testLargeUnquoted(true);
     }
 
+    public void testSingleQuotesDefault() throws Exception
+    {
+        _testSingleQuotesDefault(false);
+        _testSingleQuotesDefault(true);
+    }
+
+    public void testSingleQuotesEnabled() throws Exception
+    {
+        _testSingleQuotesEnabled(false);
+        _testSingleQuotesEnabled(true);
+    }
+
     /*
     /////////////////////////////////////////////////////////////////
     // Secondary test methods
@@ -127,5 +139,71 @@ public class TestParserFeatures
             assertToken(JsonToken.END_OBJECT, jp.nextToken());
         }
         assertToken(JsonToken.END_ARRAY, jp.nextToken());
+    }
+
+    /**
+     * Test to verify that the default parser settings do not
+     * accept single-quotes for String values (field names,
+     * textual values)
+     */
+    private void _testSingleQuotesDefault(boolean useStream) throws Exception
+    {
+        JsonFactory f = new JsonFactory();
+        // First, let's see that by default they are not allowed
+        String JSON = "[ 'text' ]";
+        JsonParser jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
+            : createParserUsingReader(f, JSON);
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        try {
+            jp.nextToken();
+        } catch (JsonParseException e) {
+            verifyException(e, "Unexpected character ('''");
+        }
+
+        JSON = "{ 'a':1 }";
+        jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
+            : createParserUsingReader(f, JSON);
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+        try {
+            jp.nextToken();
+        } catch (JsonParseException e) {
+            verifyException(e, "Unexpected character ('''");
+        }
+    }
+
+    /**
+     * Test to verify [JACKSON-173], optional handling of
+     * single quotes, to allow handling invalid (but, alas, common)
+     * JSON.
+     */
+    private void _testSingleQuotesEnabled(boolean useStream) throws Exception
+    {
+        JsonFactory f = new JsonFactory();
+        f.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+
+        String JSON = "{ 'a' : 1, \"foobar\": 'b', '_abcde1234':'d', '\"' : '\"\"' }";
+        JsonParser jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
+            : createParserUsingReader(f, JSON);
+
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("a", jp.getText());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals("1", jp.getText());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("foobar", jp.getText());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("b", jp.getText());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("_abcde1234", jp.getText());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("d", jp.getText());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("\"", jp.getText());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("\"\"", jp.getText());
+
+        assertToken(JsonToken.END_OBJECT, jp.nextToken());
     }
 }

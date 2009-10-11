@@ -50,7 +50,7 @@ public abstract class ReaderBasedNumericParser
      * part of processing.
      */
     @Override
-	protected final JsonToken parseNumberText(int ch)
+    protected final JsonToken parseNumberText(int ch)
         throws IOException, JsonParseException
     {
         /* Although we will always be complete with respect to textual

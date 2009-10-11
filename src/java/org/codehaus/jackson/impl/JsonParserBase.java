@@ -34,6 +34,7 @@ public abstract class JsonParserBase
     final static int INT_COLON = ':';
     final static int INT_COMMA = ',';
     final static int INT_ASTERISK = '*';
+    final static int INT_APOSTROPHE = '\'';
 
     // Letters we need
     final static int INT_b = 'b';

@@ -59,7 +59,7 @@ public final class ReaderBasedParser
      *   to indicate end-of-input
      */
     @Override
-	public JsonToken nextToken()
+    public JsonToken nextToken()
         throws IOException, JsonParseException
     {
         /* First: field names are special -- we will always tokenize
@@ -190,8 +190,12 @@ public final class ReaderBasedParser
             t = parseNumberText(i);
             break;
         default:
-            _reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
-            t = null; // never gets here
+            if (i == INT_APOSTROPHE && isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
+                _parseApostropheString();
+            } else {
+                _reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
+            }
+            t = JsonToken.VALUE_STRING;
         }
 
         if (inObject) {
@@ -264,10 +268,10 @@ public final class ReaderBasedParser
 
         int start = _inputPtr;
         _inputPtr = ptr;
-        return _parseFieldName2(start, hash);
+        return _parseFieldName2(start, hash, INT_QUOTE);
     }
 
-    private String _parseFieldName2(int startPtr, int hash)
+    private String _parseFieldName2(int startPtr, int hash, int endChar)
         throws IOException, JsonParseException
     {
         _textBuffer.resetWithShared(_inputBuffer, startPtr, (_inputPtr - startPtr));
@@ -281,7 +285,7 @@ public final class ReaderBasedParser
         while (true) {
             if (_inputPtr >= _inputEnd) {
                 if (!loadMore()) {
-                    _reportInvalidEOF(": was expecting closing quote for name");
+                    _reportInvalidEOF(": was expecting closing '"+((char) endChar)+"' for name");
                 }
             }
             char c = _inputBuffer[_inputPtr++];
@@ -293,8 +297,8 @@ public final class ReaderBasedParser
                      * For now let's assume it does not.
                      */
                     c = _decodeEscaped();
-                } else if (i <= INT_QUOTE) {
-                    if (i == INT_QUOTE) {
+                } else if (i <= endChar) {
+                    if (i == endChar) {
                         break;
                     }
                     if (i < INT_SPACE) {
@@ -334,6 +338,10 @@ public final class ReaderBasedParser
     protected final String _handleUnusualFieldName(int i)
         throws IOException, JsonParseException
     {
+        // [JACKSON-173]: allow single quotes
+        if (i == INT_APOSTROPHE && isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
+            return _parseApostropheFieldName();
+        }
         // [JACKSON-69]: allow unquoted names if feature enabled:
         if (!isEnabled(Feature.ALLOW_UNQUOTED_FIELD_NAMES)) {
             _reportUnexpectedChar(i, "was expecting double-quote to start field name");
@@ -377,6 +385,95 @@ public final class ReaderBasedParser
         int start = _inputPtr-1;
         _inputPtr = ptr;
         return _parseUnusualFieldName2(start, hash, codes);
+    }
+
+    /* Method for handling names as per [JACKSON-173]
+     *
+     * @since 1.3
+     */
+    protected final String _parseApostropheFieldName()
+        throws IOException, JsonParseException
+    {
+        // Note: mostly copy of_parseFieldName
+        int ptr = _inputPtr;
+        int hash = 0;
+        final int inputLen = _inputEnd;
+
+        if (ptr < inputLen) {
+            final int[] codes = CharTypes.getInputCodeLatin1();
+            final int maxCode = codes.length;
+
+            do {
+                int ch = _inputBuffer[ptr];
+                if (ch == '\'') {
+                    int start = _inputPtr;
+                    _inputPtr = ptr+1; // to skip the quote
+                    return _symbols.findSymbol(_inputBuffer, start, ptr - start, hash);
+                }
+                if (ch < maxCode && codes[ch] != 0) {
+                    break;
+                }
+                hash = (hash * 31) + ch;
+                ++ptr;
+            } while (ptr < inputLen);
+        }
+
+        int start = _inputPtr;
+        _inputPtr = ptr;
+
+        return _parseFieldName2(start, hash, INT_APOSTROPHE);
+    }
+
+    /**
+     * @since 1.3
+     */
+    private final void _parseApostropheString()
+        throws IOException, JsonParseException
+    {
+        /* [JACKSON-173]: allow single quotes. Unlike with regular
+         * Strings, we'll eagerly parse contents; this so that there's
+         * no need to store information on quote char used.
+         *
+         * Also, no separation to fast/slow parsing; we'll just do
+         * one regular (~= slow) parsing, to keep code simple
+         */
+
+        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+        int outPtr = _textBuffer.getCurrentSegmentSize();
+
+        while (true) {
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportInvalidEOF(": was expecting closing quote for a string value");
+                }
+            }
+            char c = _inputBuffer[_inputPtr++];
+            int i = (int) c;
+            if (i <= INT_BACKSLASH) {
+                if (i == INT_BACKSLASH) {
+                    /* Although chars outside of BMP are to be escaped as
+                     * an UTF-16 surrogate pair, does that affect decoding?
+                     * For now let's assume it does not.
+                     */
+                    c = _decodeEscaped();
+                } else if (i <= INT_APOSTROPHE) {
+                    if (i == INT_APOSTROPHE) {
+                        break;
+                    }
+                    if (i < INT_SPACE) {
+                        _throwUnquotedSpace(i, "string value");
+                    }
+                }
+            }
+            // Need more room?
+            if (outPtr >= outBuf.length) {
+                outBuf = _textBuffer.finishCurrentSegment();
+                outPtr = 0;
+            }
+            // Ok, let's add char to output:
+            outBuf[outPtr++] = c;
+        }
+        _textBuffer.setCurrentLength(outPtr);
     }
 
     /**

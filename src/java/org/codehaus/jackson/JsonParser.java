@@ -74,6 +74,8 @@ public abstract class JsonParser
          * this is extensively used. As such, feature is
          * <b>disabled by default</b> for parsers and must be
          * explicitly enabled (via factory or parser instance).
+         *<p>
+         * This feature can be changed for parser instances.
          */
         ,ALLOW_COMMENTS(false)
 
@@ -86,10 +88,30 @@ public abstract class JsonParser
          * field names,
          * this is a non-standard feature, and as such disabled by
          * default.
+         *<p>
+         * This feature can be changed for parser instances.
          *
          * @since 1.2
          */
         ,ALLOW_UNQUOTED_FIELD_NAMES(false)
+
+        /**
+         * Feature that determines whether parser will allow use
+         * of single quotes (apostrophe, character '\'') for
+         * quoting Strings (names and String values). If so,
+         * this is in addition to other acceptabl markers.
+         * but not by JSON specification).
+         *<p>
+         * Since JSON specification requires use of double quotes for
+         * field names,
+         * this is a non-standard feature, and as such disabled by
+         * default.
+         *<p>
+         * This feature can be changed for parser instances.
+         *
+         * @since 1.3
+         */
+        ,ALLOW_SINGLE_QUOTES(false)
 
             // 14-Sep-2009, Tatu: This would be [JACKSON-142] implementation:
         /*
@@ -106,8 +128,6 @@ public abstract class JsonParser
          *  <li>"-INF" (for negative infinity)
          *  <li>"NaN" (for other not-a-numbers, like result of division by zero)
          *</ul>
-         *
-         * @since 1.3
 
          ,ALLOW_NON_NUMERIC_NUMBERS(false)
          */
