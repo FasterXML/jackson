@@ -190,12 +190,8 @@ public final class ReaderBasedParser
             t = parseNumberText(i);
             break;
         default:
-            if (i == INT_APOSTROPHE && isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
-                _parseApostropheString();
-            } else {
-                _reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
-            }
-            t = JsonToken.VALUE_STRING;
+            t = _handleUnexpectedValue(i);
+            break;
         }
 
         if (inObject) {
@@ -387,10 +383,6 @@ public final class ReaderBasedParser
         return _parseUnusualFieldName2(start, hash, codes);
     }
 
-    /* Method for handling names as per [JACKSON-173]
-     *
-     * @since 1.3
-     */
     protected final String _parseApostropheFieldName()
         throws IOException, JsonParseException
     {
@@ -425,11 +417,19 @@ public final class ReaderBasedParser
     }
 
     /**
+     * Method for handling cases where first non-space character
+     * of an expected value token is not legal for standard JSON content.
+     *
      * @since 1.3
      */
-    private final void _parseApostropheString()
+    protected final JsonToken _handleUnexpectedValue(int i)
         throws IOException, JsonParseException
     {
+        // Most likely an error, unless we are to allow single-quote-strings
+        if (i != INT_APOSTROPHE || !isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
+            _reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
+        }
+
         /* [JACKSON-173]: allow single quotes. Unlike with regular
          * Strings, we'll eagerly parse contents; this so that there's
          * no need to store information on quote char used.
@@ -437,7 +437,6 @@ public final class ReaderBasedParser
          * Also, no separation to fast/slow parsing; we'll just do
          * one regular (~= slow) parsing, to keep code simple
          */
-
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
         int outPtr = _textBuffer.getCurrentSegmentSize();
 
@@ -448,7 +447,7 @@ public final class ReaderBasedParser
                 }
             }
             char c = _inputBuffer[_inputPtr++];
-            int i = (int) c;
+            i = (int) c;
             if (i <= INT_BACKSLASH) {
                 if (i == INT_BACKSLASH) {
                     /* Although chars outside of BMP are to be escaped as
@@ -474,6 +473,7 @@ public final class ReaderBasedParser
             outBuf[outPtr++] = c;
         }
         _textBuffer.setCurrentLength(outPtr);
+        return JsonToken.VALUE_STRING;
     }
 
     /**

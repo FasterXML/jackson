@@ -181,7 +181,7 @@ public class TestParserFeatures
         JsonFactory f = new JsonFactory();
         f.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
 
-        String JSON = "{ 'a' : 1, \"foobar\": 'b', '_abcde1234':'d', '\"' : '\"\"' }";
+        String JSON = "{ 'a' : 1, \"foobar\": 'b', '_abcde1234':'d', '\"' : '\"\"', '':'' }";
         JsonParser jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
             : createParserUsingReader(f, JSON);
 
@@ -202,7 +202,12 @@ public class TestParserFeatures
         assertToken(JsonToken.FIELD_NAME, jp.nextToken());
         assertEquals("\"", jp.getText());
         assertToken(JsonToken.VALUE_STRING, jp.nextToken());
-        assertEquals("\"\"", jp.getText());
+        //assertEquals("\"\"", jp.getText());
+
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("", jp.getText());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("", jp.getText());
 
         assertToken(JsonToken.END_OBJECT, jp.nextToken());
     }

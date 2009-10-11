@@ -199,8 +199,7 @@ public final class Utf8StreamParser
             t = parseNumberText(i);
             break;
         default:
-            _reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
-            t = null; // never gets here
+            t = _handleUnexpectedValue(i);
         }
 
         if (inObject) {
@@ -724,6 +723,12 @@ public final class Utf8StreamParser
         return name;
     }
 
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods, symbol (name) handling
+    ////////////////////////////////////////////////////
+     */
+
     private final Name findName(int q1, int lastQuadBytes)
         throws JsonParseException
     {
@@ -884,6 +889,12 @@ public final class Utf8StreamParser
 
     }
 
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods, String value parsing
+    ////////////////////////////////////////////////////
+     */
+
     @Override
     protected void _finishString()
         throws IOException, JsonParseException
@@ -1038,6 +1049,114 @@ public final class Utf8StreamParser
             }
         }
     }
+
+    /**
+     * Method for handling cases where first non-space character
+     * of an expected value token is not legal for standard JSON content.
+     *
+     * @since 1.3
+     */
+    protected final JsonToken _handleUnexpectedValue(int c)
+        throws IOException, JsonParseException
+    {
+        // Most likely an error, unless we are to allow single-quote-strings
+        if (c != INT_APOSTROPHE || !isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
+            _reportUnexpectedChar(c, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
+        }
+
+        // Otherwise almost verbatim copy of _finishString()
+        int outPtr = 0;
+        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+
+        // Here we do want to do full decoding, hence:
+        final int[] codes = CharTypes.getInputCodeUtf8();
+        final byte[] inputBuffer = _inputBuffer;
+
+        main_loop:
+        while (true) {
+            // Then the tight ascii non-funny-char loop:
+            ascii_loop:
+            while (true) {
+                if (_inputPtr >= _inputEnd) {
+                    loadMoreGuaranteed();
+                }
+                if (outPtr >= outBuf.length) {
+                    outBuf = _textBuffer.finishCurrentSegment();
+                    outPtr = 0;
+                }
+                int max = _inputEnd;
+                {
+                    int max2 = _inputPtr + (outBuf.length - outPtr);
+                    if (max2 < max) {
+                        max = max2;
+                    }
+                }
+                while (_inputPtr < max) {
+                    c = (int) inputBuffer[_inputPtr++] & 0xFF;
+                    if (c == INT_APOSTROPHE || codes[c] != 0) {
+                        break ascii_loop;
+                    }
+                    outBuf[outPtr++] = (char) c;
+                }
+            }
+
+            // Ok: end marker, escape or multi-byte?
+            if (c == INT_APOSTROPHE) {
+                break main_loop;
+            }
+
+            switch (codes[c]) {
+            case 1: // backslash
+                if (c != INT_QUOTE) { // marked as special, isn't here
+                    c = _decodeEscaped();
+                }
+                break;
+            case 2: // 2-byte UTF
+                c = _decodeUtf8_2(c);
+                break;
+            case 3: // 3-byte UTF
+                if ((_inputEnd - _inputPtr) >= 2) {
+                    c = _decodeUtf8_3fast(c);
+                } else {
+                    c = _decodeUtf8_3(c);
+                }
+                break;
+            case 4: // 4-byte UTF
+                c = _decodeUtf8_4(c);
+                // Let's add first part right away:
+                outBuf[outPtr++] = (char) (0xD800 | (c >> 10));
+                if (outPtr >= outBuf.length) {
+                    outBuf = _textBuffer.finishCurrentSegment();
+                    outPtr = 0;
+                }
+                c = 0xDC00 | (c & 0x3FF);
+                // And let the other char output down below
+                break;
+            default:
+                if (c < INT_SPACE) {
+                    _throwUnquotedSpace(c, "string value");
+                }
+                // Is this good enough error message?
+                _reportInvalidChar(c);
+            }
+            // Need more room?
+            if (outPtr >= outBuf.length) {
+                outBuf = _textBuffer.finishCurrentSegment();
+                outPtr = 0;
+            }
+            // Ok, let's add char to output:
+            outBuf[outPtr++] = (char) c;
+        }
+        _textBuffer.setCurrentLength(outPtr);
+
+        return JsonToken.VALUE_STRING;
+    }
+
+    /*
+    ////////////////////////////////////////////////////
+    // Internal methods, other parsing helper methods
+    ////////////////////////////////////////////////////
+     */
 
     protected void _matchToken(JsonToken token)
         throws IOException, JsonParseException
@@ -1252,7 +1371,7 @@ public final class Utf8StreamParser
             break;
 
         default:
-            _reportError("Unrecognized character escape \\ followed by "+_getCharDesc(_decodeCharForError(c)));
+            _reportError("Unrecognized character escape (\\ followed by "+_getCharDesc(_decodeCharForError(c))+")");
         }
 
         // Ok, a hex escape. Need 4 characters
