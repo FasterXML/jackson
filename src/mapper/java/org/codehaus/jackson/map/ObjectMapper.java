@@ -715,26 +715,27 @@ public class ObjectMapper
     /**
      * @since 1.3
      */
-    public JsonParser treeAsEvents(JsonNode n)
+    public JsonParser treeAsTokens(JsonNode n)
     {
         return new TreeTraversingParser(n, this);
     }
 
-    /**
+    /*
      * @since 1.3
-     */
-    public JsonGenerator treeFromEvents(JsonNode n)
+     *
+    public JsonGenerator treeFromTokens(JsonNode n)
     {
         if (!n.isContainerNode()) {
             throw new IllegalArgumentException("JsonNode passed in is not a container node (type "+n.getClass().getName()+")");
         }
         return new TreeAppendingGenerator((ContainerNode) n, this);
     }
+    */
 
     public <T> T treeToValue(JsonNode n, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        JsonParser jp = treeAsEvents(n);
+        JsonParser jp = treeAsTokens(n);
         return readValue(jp, valueType);
     }
 

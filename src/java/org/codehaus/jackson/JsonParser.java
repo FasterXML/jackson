@@ -385,7 +385,7 @@ public abstract class JsonParser
 
     /**
      * Method that can be called to determine whether this parser
-     * is closed or not. If it is closed, no new events can be
+     * is closed or not. If it is closed, no new tokens can be
      * retrieved by calling {@link #nextToken} (and the underlying
      * stream may be closed). Closing may be due to an explicit
      * call to {@link #close} or because parser has encountered
@@ -423,7 +423,7 @@ public abstract class JsonParser
      * @return True if the parser just returned a valid
      *   token via {@link #nextToken}; false otherwise (parser
      *   was just constructed, encountered end-of-input
-     *   and returned null from {@link #nextToken}, or the event
+     *   and returned null from {@link #nextToken}, or the token
      *   has been consumed)
      */
     public final boolean hasCurrentToken()
@@ -454,7 +454,7 @@ public abstract class JsonParser
 
     /**
      * Method that can be called to get the name associated with
-     * the current event: for {@link JsonToken#FIELD_NAME}s it will
+     * the current token: for {@link JsonToken#FIELD_NAME}s it will
      * be the same as what {@link #getText} returns;
      * for field values it will be preceding field name;
      * and for others (array values, root-level values) null.
@@ -505,10 +505,10 @@ public abstract class JsonParser
      */
 
     /**
-     * Method for accessing textual representation of the current event;
-     * if no current event (before first call to {@link #nextToken}, or
+     * Method for accessing textual representation of the current token;
+     * if no current token (before first call to {@link #nextToken}, or
      * after encountering end-of-input), returns null.
-     * Method can be called for any event.
+     * Method can be called for any token type.
      */
     public abstract String getText()
         throws IOException, JsonParseException;
@@ -579,7 +579,7 @@ public abstract class JsonParser
         throws IOException, JsonParseException;
 
     /**
-     * If current event is of type 
+     * If current token is of type 
      * {@link JsonToken#VALUE_NUMBER_INT} or
      * {@link JsonToken#VALUE_NUMBER_FLOAT}, returns
      * one of {@link NumberType} constants; otherwise returns null.
@@ -772,7 +772,7 @@ public abstract class JsonParser
      * and decoding result (except for decoding part),
      * but should be significantly more performant.
      *<p>
-     * Note that non-decoded textual contents of the current event
+     * Note that non-decoded textual contents of the current token
      * are not guaranteed to be accessible after this method
      * is called. Current implementation, for example, clears up
      * textual content during decoding.
@@ -814,7 +814,7 @@ public abstract class JsonParser
      * method has been explicitly called).
      *<p>
      * This method may advance the event stream, for structured types
-     * the current event will be the closing end marker (END_ARRAY,
+     * the current token will be the closing end marker (END_ARRAY,
      * END_OBJECT) of the bound structure. For non-structured Json types
      * (and for {@link JsonToken#VALUE_EMBEDDED_OBJECT})
      * stream is not advanced.
@@ -847,7 +847,7 @@ public abstract class JsonParser
      * method has been explicitly called).
      *<p>
      * This method may advance the event stream, for structured types
-     * the current event will be the closing end marker (END_ARRAY,
+     * the current token will be the closing end marker (END_ARRAY,
      * END_OBJECT) of the bound structure. For non-structured Json types
      * (and for {@link JsonToken#VALUE_EMBEDDED_OBJECT})
      * stream is not advanced.

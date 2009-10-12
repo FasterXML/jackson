@@ -115,9 +115,9 @@ public abstract class ObjectCodec
      *
      * @since 1.3
      */
-    public abstract JsonParser treeAsEvents(JsonNode n);
+    public abstract JsonParser treeAsTokens(JsonNode n);
 
-    /**
+    /*
      * Method for constructing a {@link JsonGenerator} that can
      * be used to add content to a JSON tree.
      *
@@ -126,7 +126,10 @@ public abstract class ObjectCodec
      *   {@link IllegalArgumentException} will be thrown
      *
      * @since 1.3
-     */
-    public abstract JsonGenerator treeFromEvents(JsonNode containerNode)
+    public abstract JsonGenerator treeFromTokens(JsonNode containerNode)
         throws IllegalArgumentException;
+    */
+
+    public abstract <T> T treeToValue(JsonNode n, Class<T> valueType)
+        throws IOException, JsonProcessingException;
 }
