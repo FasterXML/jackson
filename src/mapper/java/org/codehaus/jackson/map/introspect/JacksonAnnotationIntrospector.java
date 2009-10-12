@@ -89,6 +89,13 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
+    @Override
+    public String findRootName(AnnotatedClass ac)
+    {
+        // No annotation currently defined for this feature, so:
+        return null;
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // General method annotations

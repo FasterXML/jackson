@@ -78,6 +78,17 @@ public abstract class AnnotationIntrospector
      */
     public abstract Boolean findFieldAutoDetection(AnnotatedClass ac);
 
+    /**
+     * Method for locating name used as "root name" (for use by
+     * some serializers when outputting root-level object -- mostly
+     * for XML compatibility purposes) for given class, if one
+     * is defined. Returns null if no declaration found; can return
+     * explicit empty String, which is usually ignored as well as null.
+     *
+     * @since 1.3
+     */
+    public abstract String findRootName(AnnotatedClass ac);
+
     /*
     ///////////////////////////////////////////////////////
     // General method annotations
@@ -514,6 +525,20 @@ public abstract class AnnotationIntrospector
                 result = _secondary.findFieldAutoDetection(ac);
             }
             return result;
+        }
+
+        @Override
+        public String findRootName(AnnotatedClass ac)
+        {
+            String name1 = _primary.findRootName(ac);
+            if (name1 == null) {
+                return _secondary.findRootName(ac);
+            } else if (name1.length() > 0) {
+                return name1;
+            }
+            // name1 is empty; how about secondary?
+            String name2 = _secondary.findRootName(ac);
+            return (name2 == null) ? name1 : name2;
         }
         
         // // // General method annotations

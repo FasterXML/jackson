@@ -129,7 +129,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             /* For classes, it must be @XmlRootElement. Also, we do
              * want to use defaults from package, base class
              */
-            XmlRootElement elem = findAnnotation(XmlRootElement.class, ann, true, false, true);
+            XmlRootElement elem = findRootElementAnnotation((AnnotatedClass) ann);
             if (elem != null) {
                 ns = elem.namespace();
             }
@@ -159,15 +159,29 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
+    @Override
     public Boolean findCachability(AnnotatedClass ac)
     {
         // Nothing to indicate this in JAXB, return "don't care"
         return null;
     }
 
+    @Override
     public Boolean findFieldAutoDetection(AnnotatedClass ac)
     {
         return isFieldsAccessible(ac);
+    }
+
+    @Override
+    public String findRootName(AnnotatedClass ac)
+    {
+        XmlRootElement elem = findRootElementAnnotation(ac);
+        if (elem != null) {
+            String name = elem.name();
+            // default means "derive from class name"; so we'll return ""
+            return MARKER_FOR_DEFAULT.equals(name) ? "" : name;
+        }
+        return null;
     }
 
     /*
@@ -705,6 +719,12 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         }
 
         return defaultName;
+    }
+
+    private XmlRootElement findRootElementAnnotation(AnnotatedClass ac)
+    {
+        // Yes, check package, no class (already included), yes superclasses
+        return findAnnotation(XmlRootElement.class, ac, true, false, true);
     }
 
     /**

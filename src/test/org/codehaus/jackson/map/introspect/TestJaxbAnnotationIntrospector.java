@@ -154,6 +154,9 @@ public class TestJaxbAnnotationIntrospector
         public String string;
     }
 
+    @XmlRootElement(name="test")
+    static class RootNameBean { }
+
     /*
     /////////////////////////////////////////////////////
     // Unit tests
@@ -230,5 +233,16 @@ public class TestJaxbAnnotationIntrospector
          * for no annotations; empty for explicitly empty NS.
          */
         assertNull(ai.findNamespace(AnnotatedClass.construct(SimpleBean.class, ai, null)));
+    }
+
+    public void testRootNameAccess() throws Exception
+    {
+        AnnotationIntrospector ai = new JaxbAnnotationIntrospector();
+        // If no @XmlRootElement, should get null (unless pkg has etc)
+        assertNull(ai.findRootName(AnnotatedClass.construct(SimpleBean.class, ai, null)));
+        // With @XmlRootElement, but no name, empty String
+        assertEquals("", ai.findRootName(AnnotatedClass.construct(NamespaceBean.class, ai, null)));
+        // and otherwise explicit name
+        assertEquals("test", ai.findRootName(AnnotatedClass.construct(RootNameBean.class, ai, null)));
     }
 }

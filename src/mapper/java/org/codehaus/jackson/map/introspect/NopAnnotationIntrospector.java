@@ -48,7 +48,7 @@ public class NopAnnotationIntrospector
 
     /*
     ///////////////////////////////////////////////////////
-    // General class annotations
+    // General Class annotations
     ///////////////////////////////////////////////////////
     */
 
@@ -56,6 +56,22 @@ public class NopAnnotationIntrospector
     public Boolean findCachability(AnnotatedClass ac) {
         return null;
     }
+
+    @Override
+    public Boolean findFieldAutoDetection(AnnotatedClass ac) {
+        return null;
+    }
+
+    @Override
+    public String findRootName(AnnotatedClass ac) {
+        return null;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // General Method annotations
+    ///////////////////////////////////////////////////////
+    */
 
     @Override
     public Boolean findCreatorAutoDetection(AnnotatedClass ac) {
@@ -93,11 +109,6 @@ public class NopAnnotationIntrospector
 
     @Override
     public String findEnumValue(Enum<?> value) {
-        return null;
-    }
-
-    @Override
-    public Boolean findFieldAutoDetection(AnnotatedClass ac) {
         return null;
     }
 

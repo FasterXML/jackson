@@ -91,7 +91,7 @@ public class TestIntrospectorPair
     }
 
     @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
-    @XmlRootElement(namespace="urn:whatever")
+    @XmlRootElement(name="test", namespace="urn:whatever")
     static class NamespaceBean
     {
         public String string;
@@ -266,7 +266,7 @@ public class TestIntrospectorPair
         assertFalse(ann.hasCreatorAnnotation(testClass));
     }
 
-    public void testNamepsace() throws Exception
+    public void testNamespace() throws Exception
     {
         // first: test with Jackson/Jaxb pair (jackson having precedence)
         AnnotationIntrospector pair = new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI);
@@ -275,5 +275,18 @@ public class TestIntrospectorPair
         // then reverse; should make no difference
         pair = new AnnotationIntrospector.Pair(_jaxbAI, _jacksonAI);
         assertEquals("urn:whatever", pair.findNamespace(AnnotatedClass.construct(NamespaceBean.class, pair, null)));
+    }
+
+    public void testRootName() throws Exception
+    {
+        // first: test with Jackson/Jaxb pair (jackson having precedence)
+        AnnotationIntrospector pair = new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI);
+        assertNull(pair.findRootName(AnnotatedClass.construct(NamedBean.class, pair, null)));
+        assertEquals("test", pair.findRootName(AnnotatedClass.construct(NamespaceBean.class, pair, null)));
+
+        // then reverse; should make no difference
+        pair = new AnnotationIntrospector.Pair(_jaxbAI, _jacksonAI);
+        assertNull(pair.findRootName(AnnotatedClass.construct(NamedBean.class, pair, null)));
+        assertEquals("test", pair.findRootName(AnnotatedClass.construct(NamespaceBean.class, pair, null)));
     }
 }
