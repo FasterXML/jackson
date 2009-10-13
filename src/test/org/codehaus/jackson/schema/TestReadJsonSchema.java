@@ -30,6 +30,8 @@ public class TestReadJsonSchema
         public Object[] objects;
         public JsonSerializable someSerializable;
 
+        public Iterable iterableOhYeahBaby;
+
         public List<String> extra;
         public ArrayList<String> extra2;
         public Iterator<String[]> extra3;

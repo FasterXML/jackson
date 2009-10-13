@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.*;
+import java.util.*;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -52,6 +53,15 @@ public class TestEnumSerialization
         StringWriter sw = new StringWriter();
         mapper.writeValue(sw, TestEnum.B);
         assertEquals("\"B\"", sw.toString());
+    }
+
+    public void testEnumSet() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        StringWriter sw = new StringWriter();
+        EnumSet<TestEnum> value = EnumSet.of(TestEnum.B);
+        mapper.writeValue(sw, value);
+        assertEquals("[\"B\"]", sw.toString());
     }
 
     /**

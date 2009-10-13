@@ -43,11 +43,11 @@ public class JacksonJsonProvider
         MessageBodyWriter<Object>
 {
     /**
-     * 06-Apr-2009, tatu: Looks like we need to worry about accidental
+     * Looks like we need to worry about accidental
      *   data binding for types we shouldn't be handling. This is
      *   probably not a very good way to do it, but let's start by
      *   blacklisting things we are not to handle.
-     *
+     *<p>
      *  (why ClassKey? since plain old Class has no hashCode() defined,
      *  lookups are painfully slow)
      */
@@ -79,6 +79,11 @@ public class JacksonJsonProvider
             StreamingOutput.class, Response.class
             };
 
+    /**
+     * Default {@link ObjectMapper} to use in absence of any
+     * configured (direct or indirect) mapper. Created lazily
+     * if (and only if) it is needed.
+     */
     protected ObjectMapper _defaultMapper;
 
     /*
@@ -155,6 +160,9 @@ public class JacksonJsonProvider
     ///////////////////////////////////////////////////////
      */
 
+    /**
+     * Method for defining whether {@link 
+     */
     public void checkCanDeserialize(boolean state) { _cfgCheckCanDeserialize = state; }
     public void checkCanSerialize(boolean state) { _cfgCheckCanSerialize = state; }
 
@@ -167,12 +175,99 @@ public class JacksonJsonProvider
         _configuredMapper = m;
     }
 
+    /**
+     * Method that can be used to access configured mapper; and if
+     * one has not yet been specified (by call to {@link #setMapper}),
+     * construct an instance and set it by calling {@link #setMapper}.
+     *<p>
+     * Note that construction of such mapper means that
+     * no auto-detection will occur: that is, context is
+     * not checked for auto-wired {@link ObjectMapper}.
+     */
+    protected ObjectMapper configuredMapper() {
+        if (_configuredMapper == null) {
+            _configuredMapper = new ObjectMapper();
+        }
+        return _configuredMapper;
+    }
+
+    public JacksonJsonProvider configure(DeserializationConfig.Feature f, boolean state) {
+        configuredMapper().configure(f, state);
+        return this;
+    }
+
+    public JacksonJsonProvider configure(SerializationConfig.Feature f, boolean state) {
+        configuredMapper().configure(f, state);
+        return this;
+    }
+
+    public JacksonJsonProvider configure(JsonParser.Feature f, boolean state) {
+        configuredMapper().configure(f, state);
+        return this;
+    }
+
+    public JacksonJsonProvider configure(JsonGenerator.Feature f, boolean state) {
+        configuredMapper().configure(f, state);
+        return this;
+    }
+
+    public JacksonJsonProvider enable(DeserializationConfig.Feature f, boolean state) {
+        configuredMapper().configure(f, true);
+        return this;
+    }
+
+    public JacksonJsonProvider enable(SerializationConfig.Feature f, boolean state) {
+        configuredMapper().configure(f, true);
+        return this;
+    }
+
+    public JacksonJsonProvider enable(JsonParser.Feature f, boolean state) {
+        configuredMapper().configure(f, true);
+        return this;
+    }
+
+    public JacksonJsonProvider enable(JsonGenerator.Feature f, boolean state) {
+        configuredMapper().configure(f, true);
+        return this;
+    }
+
+    public JacksonJsonProvider disable(DeserializationConfig.Feature f, boolean state) {
+        configuredMapper().configure(f, false);
+        return this;
+    }
+
+    public JacksonJsonProvider disable(SerializationConfig.Feature f, boolean state) {
+        configuredMapper().configure(f, false);
+        return this;
+    }
+
+    public JacksonJsonProvider disable(JsonParser.Feature f, boolean state) {
+        configuredMapper().configure(f, false);
+        return this;
+    }
+
+    public JacksonJsonProvider disable(JsonGenerator.Feature f, boolean state) {
+        configuredMapper().configure(f, false);
+        return this;
+    }
+
     /*
     ////////////////////////////////////////////////////
     // MessageBodyReader impl
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method that JAX-RS container calls to try to check whether
+     * values of given type (and media type) can be deserialized by
+     * this provider.
+     * Implementation will first check that expected media type is
+     * a JSON type (via call to {@link #isJsonType}; then verify
+     * that type is not one of "untouchable" types (types we will never
+     * automatically handle), and finally that there is a deserializer
+     * for type (iff {@link #checkCanDeserialize} has been called with
+     * true argument -- otherwise assumption is there will be a handler)
+     */
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
         if (!isJsonType(mediaType)) {
@@ -201,6 +296,10 @@ public class JacksonJsonProvider
         return true;
     }
     
+    /**
+     * Method that JAX-RS container calls to deserialize given
+     * value.
+     */
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String,String> httpHeaders, InputStream entityStream) 
         throws IOException
     {
@@ -219,6 +318,14 @@ public class JacksonJsonProvider
     ////////////////////////////////////////////////////
      */
 
+    /**
+     * Method that JAX-RS container calls to try to figure out
+     * serialized length of given value. Since computation of
+     * this length is about as expensive as serialization itself,
+     * implementation will return -1 to denote "not known", so
+     * that container will determine length from actual serialized
+     * output (if needed).
+     */
     public long getSize(Object value, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
         /* In general figuring output size requires actual writing; usually not
@@ -227,6 +334,17 @@ public class JacksonJsonProvider
         return -1;
     }
 
+    /**
+     * Method that JAX-RS container calls to try to check whether
+     * given value (of specified type) can be serialized by
+     * this provider.
+     * Implementation will first check that expected media type is
+     * a JSON type (via call to {@link #isJsonType}; then verify
+     * that type is not one of "untouchable" types (types we will never
+     * automatically handle), and finally that there is a serializer
+     * for type (iff {@link #checkCanSerialize} has been called with
+     * true argument -- otherwise assumption is there will be a handler)
+     */
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
         if (!isJsonType(mediaType)) {
@@ -255,6 +373,10 @@ public class JacksonJsonProvider
         return true;
     }
 
+    /**
+     * Method that JAX-RS container calls to serialize given
+     * value.
+     */
     public void writeTo(Object value, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String,Object> httpHeaders, OutputStream entityStream) 
         throws IOException
     {
@@ -332,7 +454,14 @@ public class JacksonJsonProvider
         }
     }
 
-    public boolean isJsonType(MediaType mediaType)
+    /**
+     * Helper method used to check whether given media type
+     * is JSON type or sub type.
+     * Current implementation essentially checks to see whether
+     * {@link MediaType#getSubType} returns "json" or something
+     * ending with "+json".
+     */
+    protected boolean isJsonType(MediaType mediaType)
     {
         /* As suggested by Stephen D, there are 2 ways to check: either
          * being as inclusive as possible (if subtype is "json"), or
@@ -343,7 +472,7 @@ public class JacksonJsonProvider
         if (mediaType != null) {
             // Ok: there are also "xxx+json" subtypes, which count as well
             String subtype = mediaType.getSubtype();
-            return "json".equals(subtype) || subtype.endsWith("+json");
+            return "json".equalsIgnoreCase(subtype) || subtype.endsWith("+json");
         }
         /* Not sure if this can happen; but it seems reasonable
          * that we can at least produce json without media type?
