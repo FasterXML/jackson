@@ -6,8 +6,6 @@ public final class CharTypes
 {
     final static char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
 
-    private CharTypes() { }
-
     /**
      * Lookup table used for determining which input characters
      * need special handling when contained in text segment.

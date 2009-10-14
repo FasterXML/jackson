@@ -424,12 +424,12 @@ public final class TextBuffer
         char[] curr = _currentSegment;
         int max = curr.length - _currentSize;
         if (max >= len) {
-            str.getChars(offset, len, curr, _currentSize);
+            str.getChars(offset, offset+len, curr, _currentSize);
             _currentSize += len;
         } else {
             // No room for all, need to copy part(s):
             if (max > 0) {
-                str.getChars(offset, max, curr, _currentSize);
+                str.getChars(offset, offset+max, curr, _currentSize);
                 len -= max;
                 offset += max;
             }
@@ -437,7 +437,7 @@ public final class TextBuffer
              * have enough room in segment.
              */
             expand(len);
-            str.getChars(offset, len, _currentSegment, 0);
+            str.getChars(offset, offset+len, _currentSegment, 0);
             _currentSize = len;
         }
     }
