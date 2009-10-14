@@ -5,8 +5,6 @@ import java.util.*;
 
 public final class ClassUtil
 {
-    private ClassUtil() { }
-
     /*
     //////////////////////////////////////////////////////////
     // Methods that deal with inheritance

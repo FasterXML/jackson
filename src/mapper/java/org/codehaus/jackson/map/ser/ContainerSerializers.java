@@ -3,9 +3,7 @@ package org.codehaus.jackson.map.ser;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.CollectionType;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.JsonNodeFactory;
@@ -302,8 +300,9 @@ public final class ContainerSerializers
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
+            AnnotationIntrospector intr = provider.getConfig().getAnnotationIntrospector();
             for (Enum<?> en : value) {
-                jgen.writeString(provider.getConfig().getAnnotationIntrospector().findEnumValue(en));
+                jgen.writeString(intr.findEnumValue(en));
             }
             jgen.writeEndArray();
         }
@@ -410,9 +409,10 @@ public final class ContainerSerializers
             JsonSerializer<Object> prevSerializer = null;
             Class<?> prevClass = null;
 
+            AnnotationIntrospector intr = provider.getConfig().getAnnotationIntrospector();
             for (Map.Entry<? extends Enum<?>,?> entry : value.entrySet()) {
                 // First, serialize key
-                jgen.writeFieldName(provider.getConfig().getAnnotationIntrospector().findEnumValue(entry.getKey()));
+                jgen.writeFieldName(intr.findEnumValue(entry.getKey()));
                 // And then value
                 Object valueElem = entry.getValue();
                 if (valueElem == null) {

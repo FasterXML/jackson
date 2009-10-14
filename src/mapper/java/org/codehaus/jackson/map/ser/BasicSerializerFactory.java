@@ -656,7 +656,7 @@ public class BasicSerializerFactory
         extends SerializerBase<Enum<?>>
     {
         @Override
-            public void serialize(Enum<?> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Enum<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(provider.getConfig().getAnnotationIntrospector().findEnumValue(value));

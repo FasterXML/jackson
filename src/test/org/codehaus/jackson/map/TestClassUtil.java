@@ -38,7 +38,7 @@ public class TestClassUtil
         SubClass() { super("x"); }
     }
 
-    public void testSimple()
+    public void testSuperTypes()
     {
         Collection<Class<?>> result = ClassUtil.findSuperTypes(SubClass.class, null);
         Class<?>[] classes = result.toArray(new Class<?>[result.size()]);
@@ -48,6 +48,13 @@ public class TestClassUtil
             Comparable.class
         };
         assertArrayEquals(exp, classes);
+    }
+
+    public void testIsConcrete()
+    {
+        assertTrue(ClassUtil.isConcrete(getClass()));
+        assertFalse(ClassUtil.isConcrete(BaseClass.class));
+        assertFalse(ClassUtil.isConcrete(BaseInt.class));
     }
 
     public void testCanBeABeanType()

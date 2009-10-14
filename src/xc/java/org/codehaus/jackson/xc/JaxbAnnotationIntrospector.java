@@ -325,6 +325,12 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return false;
     }
 
+    /**
+     *<p>
+     * !!! 12-Oct-2009, tatu: This is hideously slow implementation,
+     *   called potentially for every single enum value being
+     *   serialized. Need to improve somehow
+     */
     public String findEnumValue(Enum<?> e)
     {
         String enumValue = e.name();

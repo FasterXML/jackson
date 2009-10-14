@@ -19,6 +19,8 @@ public class TestIntrospectorPair
 {
     final static AnnotationIntrospector _jacksonAI = new JacksonAnnotationIntrospector();
     final static AnnotationIntrospector _jaxbAI = new JaxbAnnotationIntrospector();
+
+    public TestIntrospectorPair() { super(); }
     
     /*
     /////////////////////////////////////////////////////
@@ -71,6 +73,7 @@ public class TestIntrospectorPair
      * various combinations of annotation introspectors
      */
     @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+    @JsonWriteNullProperties
     static class IgnoreBean
     {
         @JsonIgnore
@@ -131,6 +134,17 @@ public class TestIntrospectorPair
         assertEquals("2", result.get("jaxb"));
         // JAXB one should have priority
         assertEquals("3", result.get("bothJaxb"));
+    }
+
+    public void testProperties() throws Exception
+    {
+        AnnotationIntrospector pair = new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI);
+        assertTrue(pair.isHandled(NamespaceBean.class.getAnnotation(XmlRootElement.class)));
+        assertTrue(pair.isHandled(IgnoreBean.class.getAnnotation(JsonWriteNullProperties.class)));
+        assertTrue(pair.isHandled(IgnoreBean.class.getAnnotation(JsonWriteNullProperties.class)));
+
+        AnnotatedConstructor con = new AnnotatedConstructor(getClass().getConstructor(), null, null);
+        assertFalse(pair.isIgnorableConstructor(con));
     }
 
     public void testNaming() throws Exception
