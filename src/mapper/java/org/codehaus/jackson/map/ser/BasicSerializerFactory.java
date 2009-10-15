@@ -14,6 +14,7 @@ import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.schema.JsonSerializableSchema;
@@ -135,10 +136,6 @@ public class BasicSerializerFactory
         _concrete.put(HashSet.class.getName(), collectionS);
         _concrete.put(LinkedHashSet.class.getName(), collectionS);
         _concrete.put(TreeSet.class.getName(), collectionS);
-
-        // and Enum-variations of set/map
-        _concrete.put(EnumMap.class.getName(), new ContainerSerializers.EnumMapSerializer());
-        _concrete.put(EnumSet.class.getName(), new ContainerSerializers.EnumSetSerializer());
 
         // Then standard JDK types that need extra TLC:
         JdkSerializers.addAll(_concrete);
@@ -288,6 +285,9 @@ public class BasicSerializerFactory
             return SerializableSerializer.instance;
         }
         if (Map.class.isAssignableFrom(type)) {
+            if (EnumMap.class.isAssignableFrom(type)) {
+                return new ContainerSerializers.EnumMapSerializer();
+            }
             return ContainerSerializers.MapSerializer.instance;
         }
         if (Object[].class.isAssignableFrom(type)) {
@@ -312,7 +312,9 @@ public class BasicSerializerFactory
             if (ser != null) {
                 return ser;
             }
-            return new EnumSerializer();
+            @SuppressWarnings("unchecked")
+            Class<Enum<?>> enumClass = (Class<Enum<?>>) type;
+            return EnumSerializer.construct(enumClass, config.getAnnotationIntrospector());
         }
         if (Calendar.class.isAssignableFrom(type)) {
             return CalendarSerializer.instance;
@@ -331,6 +333,9 @@ public class BasicSerializerFactory
             return StringLikeSerializer.instance;
         }
         if (Collection.class.isAssignableFrom(type)) {
+            if (EnumSet.class.isAssignableFrom(type)) {
+                return new ContainerSerializers.EnumSetSerializer();
+            }
             return ContainerSerializers.CollectionSerializer.instance;
         }
         return null;
@@ -651,36 +656,6 @@ public class BasicSerializerFactory
     // Other odd-ball special-purpose serializers
     ////////////////////////////////////////////////////////////
      */
-
-    public final static class EnumSerializer
-        extends SerializerBase<Enum<?>>
-    {
-        @Override
-        public void serialize(Enum<?> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeString(provider.getConfig().getAnnotationIntrospector().findEnumValue(value));
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
-            ObjectNode objectNode = createSchemaNode("string", true);
-            if (typeHint != null) {
-                JavaType type = TypeFactory.fromType(typeHint);
-                if (type.isEnumType()) {
-                    ArrayNode enumNode = objectNode.putArray("enum");
-                    @SuppressWarnings("unchecked")
-                        Class<Enum<?>> enumClass = (Class<Enum<?>>) type.getRawClass();
-                    for (Enum<?> enumValue : enumClass.getEnumConstants()) {
-                        enumNode.add(provider.getConfig().getAnnotationIntrospector().findEnumValue(enumValue));
-                    }
-                }
-            }
-            return objectNode;
-        }
-    }
 
     /**
      * For time values we should use timestamp, since that is about the only

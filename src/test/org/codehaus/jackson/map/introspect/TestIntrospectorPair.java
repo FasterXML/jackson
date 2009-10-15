@@ -141,10 +141,11 @@ public class TestIntrospectorPair
         AnnotationIntrospector pair = new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI);
         assertTrue(pair.isHandled(NamespaceBean.class.getAnnotation(XmlRootElement.class)));
         assertTrue(pair.isHandled(IgnoreBean.class.getAnnotation(JsonWriteNullProperties.class)));
-        assertTrue(pair.isHandled(IgnoreBean.class.getAnnotation(JsonWriteNullProperties.class)));
 
+        /* won't work without actually getting class annotations etc
         AnnotatedConstructor con = new AnnotatedConstructor(getClass().getConstructor(), null, null);
         assertFalse(pair.isIgnorableConstructor(con));
+        */
     }
 
     public void testNaming() throws Exception

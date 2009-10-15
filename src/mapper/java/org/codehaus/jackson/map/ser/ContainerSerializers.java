@@ -296,7 +296,7 @@ public final class ContainerSerializers
         public final static CollectionSerializer instance = new CollectionSerializer();
 
         @Override
-            public void serialize(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();

@@ -24,6 +24,9 @@ public final class AnnotatedConstructor
     public AnnotatedConstructor(Constructor<?> constructor, AnnotationMap annMap,
                                 AnnotationMap[] paramAnnotations)
     {
+        if (constructor == null) {
+            throw new IllegalArgumentException("Null constructor not allowed");
+        }
         _constructor = constructor;
         _classAnnotations = annMap;
         _paramAnnotations = paramAnnotations;
