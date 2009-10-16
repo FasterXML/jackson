@@ -1,21 +1,22 @@
 package org.codehaus.jackson.map.ser;
 
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
+
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.CollectionType;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.type.JavaType;
-
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.*;
 
 /**
  * Dummy container class to group standard container serializers: serializers
@@ -418,9 +419,24 @@ public final class ContainerSerializers
             Class<?> prevClass = null;
 
             AnnotationIntrospector intr = provider.getConfig().getAnnotationIntrospector();
+            // for efficient key serialization, we need this:
+            EnumValues enumValues = null;
+
             for (Map.Entry<? extends Enum<?>,?> entry : value.entrySet()) {
                 // First, serialize key
-                jgen.writeFieldName(intr.findEnumValue(entry.getKey()));
+                Enum<?> key = entry.getKey();
+                if (enumValues == null) {
+                    /* 15-Oct-2009, tatu: This is bit clumsy, but still the
+                     * simplest efficient way to do it currently,
+                     * as Serializers get cached.
+                     * (it does assume we'll always use default serializer
+                     * tho -- so ideally code should be rewritten)
+                     */
+                    // ... and lovely two-step casting process too...
+                    SerializerBase<?> ser = (SerializerBase<?>) provider.findValueSerializer(key.getDeclaringClass());
+                    enumValues = ((EnumSerializer) ser).getEnumValues();
+                }
+                jgen.writeFieldName(enumValues.valueFor(key));
                 // And then value
                 Object valueElem = entry.getValue();
                 if (valueElem == null) {

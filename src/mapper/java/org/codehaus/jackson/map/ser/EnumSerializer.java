@@ -53,5 +53,7 @@ public class EnumSerializer
         }
         return objectNode;
     }
+
+    public EnumValues getEnumValues() { return _values; }
 }
 
