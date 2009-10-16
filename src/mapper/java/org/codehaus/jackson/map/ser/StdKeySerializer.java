@@ -19,7 +19,7 @@ import org.codehaus.jackson.map.JsonMappingException;
  * Objects.
  */
 public final class StdKeySerializer
-    extends JsonSerializer<Object> implements SchemaAware
+    extends SerializerBase<Object>
 {
     final static StdKeySerializer instace = new StdKeySerializer();
     
@@ -36,8 +36,6 @@ public final class StdKeySerializer
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException
     {
-        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
-        objectNode.put("type", "string");
-        return objectNode;
+        return createSchemaNode("string");
     }
 }

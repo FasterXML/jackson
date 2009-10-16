@@ -301,15 +301,23 @@ public final class ContainerSerializers
         {
             jgen.writeStartArray();
             AnnotationIntrospector intr = provider.getConfig().getAnnotationIntrospector();
+            JsonSerializer<Object> enumSer = null;
+            /* Need to dynamically find instance serializer; unfortunately
+             * that seems to be the only way to figure out type (no accessors
+             * to the enum class that set knows)
+             */
             for (Enum<?> en : value) {
-                jgen.writeString(intr.findEnumValue(en));
+                if (enumSer == null) {
+                    enumSer = provider.findValueSerializer(en.getDeclaringClass());
+                }
+                enumSer.serialize(en, jgen, provider);
             }
             jgen.writeEndArray();
         }
 
         //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
+            throws JsonMappingException
         {
             ObjectNode o = createSchemaNode("array", true);
             if (typeHint instanceof ParameterizedType) {

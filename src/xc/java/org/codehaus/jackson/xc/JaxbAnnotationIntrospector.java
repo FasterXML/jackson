@@ -333,15 +333,14 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
      */
     public String findEnumValue(Enum<?> e)
     {
+        Class<?> enumClass = e.getDeclaringClass();
         String enumValue = e.name();
-        XmlEnumValue xmlEnumValue;
         try {
-            xmlEnumValue = e.getDeclaringClass().getDeclaredField(e.name()).getAnnotation(XmlEnumValue.class);
+            XmlEnumValue xmlEnumValue = enumClass.getDeclaredField(enumValue).getAnnotation(XmlEnumValue.class);
+            return (xmlEnumValue != null) ? xmlEnumValue.value() : enumValue;
         } catch (NoSuchFieldException e1) {
-            throw new IllegalStateException(e1);
+            throw new IllegalStateException("Could not locate Enum entry '"+enumValue+"' (Enum class "+enumClass.getName()+")", e1);
         }
-        enumValue = xmlEnumValue != null ? xmlEnumValue.value() : enumValue;
-        return enumValue;
     }
 
     /**
