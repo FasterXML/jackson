@@ -46,6 +46,9 @@ Description:
   * [JACKSON-173] Add "JsonParser.Feature.ALLOW_SINGLE_QUOTES" to
     handle some more invalid JSON content
     (requested by Brian M)
+  * [JACKSON-174] Add "ObjectMapper.convertValue()" convenience method
+    for simple Object-to-Object conversions, using Jackson's data binding
+    functionality
   * Added method in AnnotationIntrospector to find declared namespace
     for JAXB annotations, needed for XML compatibility (future features)
 

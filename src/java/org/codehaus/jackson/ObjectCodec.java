@@ -125,11 +125,17 @@ public abstract class ObjectCodec
      *   If node is not a container node (as per {@link JsonNode#isContainerNode}),
      *   {@link IllegalArgumentException} will be thrown
      *
-     * @since 1.3
-    public abstract JsonGenerator treeFromTokens(JsonNode containerNode)
+c    public abstract JsonGenerator treeFromTokens(JsonNode containerNode)
         throws IllegalArgumentException;
     */
 
+    /**
+     * Convenience method for converting given JSON tree into instance of specified
+     * value type. This is equivalent to first constructing a {@link JsonParser} to
+     * iterate over contents of the tree, and using that parser for data binding.
+     * 
+     * @since 1.3
+     */
     public abstract <T> T treeToValue(JsonNode n, Class<T> valueType)
         throws IOException, JsonProcessingException;
 }

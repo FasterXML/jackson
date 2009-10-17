@@ -978,6 +978,60 @@ public class ObjectMapper
 
     /*
     ////////////////////////////////////////////////////
+    // Extended Public API: convenience type conversion
+    ////////////////////////////////////////////////////
+     */
+   
+    /**
+     * Convenience method for doing two-step conversion from given value, into
+     * instance of given value type. This is functionality equivalent to first
+     * serializing given value into JSON, then binding JSON data into value
+     * of given type, but may be executed without fully serializing into
+     * JSON. Same converters (serializers, deserializers) will be used as for
+     * data binding, meaning same object mapper configuration works.
+     *      
+     * @throws IllegalArgumentException If conversion fails due to incompatible type;
+     *    if so, root cause will contain underlying checked exception data binding
+     *    functionality threw
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T convertValue(Object fromValue, Class<T> toValueType)
+        throws IllegalArgumentException
+    {
+        return (T) _convert(fromValue, TypeFactory.fromClass(toValueType));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T convertValue(Object fromValue, TypeReference toValueTypeRef)
+        throws IllegalArgumentException
+    {
+        return (T) _convert(fromValue, TypeFactory.fromTypeReference(toValueTypeRef));
+    } 
+
+    @SuppressWarnings("unchecked")
+    public <T> T convertValue(Object fromValue, JavaType toValueType)
+        throws IllegalArgumentException
+    {
+        return (T) _convert(fromValue, toValueType);
+    } 
+
+    protected Object _convert(Object fromValue, JavaType toValueType)
+        throws IllegalArgumentException
+    {
+        try {
+            /* TODO: [JACKSON-175], use an intermediate token buffer
+             */
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(200);
+            writeValue(bos, fromValue);
+            byte[] data = bos.toByteArray();
+            return readValue(data, 0, data.length, toValueType);
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+        
+    /*
+    ////////////////////////////////////////////////////
     // Extended Public API: JSON Schema generation
     ////////////////////////////////////////////////////
      */
