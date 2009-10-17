@@ -1018,6 +1018,8 @@ public class ObjectMapper
     protected Object _convert(Object fromValue, JavaType toValueType)
         throws IllegalArgumentException
     {
+        // sanity check for null first:
+        if (fromValue == null) return null;
         try {
             /* TODO: [JACKSON-175], use an intermediate token buffer
              */
@@ -1026,7 +1028,7 @@ public class ObjectMapper
             byte[] data = bos.toByteArray();
             return readValue(data, 0, data.length, toValueType);
         } catch (IOException e) {
-            throw new IllegalArgumentException(e);
+            throw new IllegalArgumentException(e.getMessage(), e);
         }
     }
         
