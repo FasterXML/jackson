@@ -24,7 +24,12 @@ public class TestJsonParser
         assertTrue(jp.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
         jp.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
         assertFalse(jp.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+    }
 
+    @SuppressWarnings("deprecation")
+    public void testConfigDeprecated() throws Exception
+    {
+        JsonParser jp = createParserUsingReader("[ ]");
         // and then deprecated methods
         jp.enableFeature(JsonParser.Feature.AUTO_CLOSE_SOURCE);
         assertTrue(jp.isFeatureEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));

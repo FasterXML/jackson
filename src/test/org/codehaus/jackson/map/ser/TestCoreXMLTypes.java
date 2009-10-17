@@ -1,10 +1,8 @@
 package org.codehaus.jackson.map.ser;
-import java.io.*;
 
 import javax.xml.datatype.*;
 import javax.xml.namespace.QName;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 public class TestCoreXMLTypes

@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.type.TypeReference;
 
 /**
  * Facade over {@link JsonNode} that implements {@link JsonParser} to allow

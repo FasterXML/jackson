@@ -301,7 +301,6 @@ public final class ContainerSerializers
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
-            AnnotationIntrospector intr = provider.getConfig().getAnnotationIntrospector();
             JsonSerializer<Object> enumSer = null;
             /* Need to dynamically find instance serializer; unfortunately
              * that seems to be the only way to figure out type (no accessors
@@ -418,7 +417,6 @@ public final class ContainerSerializers
             JsonSerializer<Object> prevSerializer = null;
             Class<?> prevClass = null;
 
-            AnnotationIntrospector intr = provider.getConfig().getAnnotationIntrospector();
             // for efficient key serialization, we need this:
             EnumValues enumValues = null;
 

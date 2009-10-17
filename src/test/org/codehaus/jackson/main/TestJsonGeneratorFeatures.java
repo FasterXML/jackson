@@ -39,6 +39,7 @@ public class TestJsonGeneratorFeatures
         _testNonNumericQuoting(jf, true);
     }
 
+    @SuppressWarnings("deprecation")
     public void testDeprecated() throws IOException
     {
         JsonFactory jf = new JsonFactory();

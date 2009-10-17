@@ -14,11 +14,8 @@ import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
-import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.schema.JsonSerializableSchema;
-import org.codehaus.jackson.type.JavaType;
 
 /**
  * Factory class that can provide serializers for standard JDK classes,

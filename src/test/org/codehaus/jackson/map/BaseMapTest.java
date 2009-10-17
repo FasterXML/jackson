@@ -84,7 +84,6 @@ public abstract class BaseMapTest
         return writeAndMap(new ObjectMapper(), value);
     }
 
-    @SuppressWarnings("unchecked")
     protected <T> T readAndMapFromString(ObjectMapper m, String input, Class<T> cls)
         throws IOException
     {

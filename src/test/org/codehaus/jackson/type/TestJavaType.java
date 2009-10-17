@@ -4,7 +4,6 @@ import java.util.*;
 
 import main.BaseTest;
 
-import org.codehaus.jackson.type.*;
 import org.codehaus.jackson.map.type.*;
 
 /**

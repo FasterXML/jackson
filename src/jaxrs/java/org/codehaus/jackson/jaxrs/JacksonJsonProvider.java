@@ -308,7 +308,7 @@ public class JacksonJsonProvider
         /* Important: we are NOT to close the underlying stream after
          * mapping, so we need to instruct parser:
          */
-        jp.disableFeature(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+        jp.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
         return mapper.readValue(jp, _convertType(genericType));
     }
 
@@ -385,7 +385,7 @@ public class JacksonJsonProvider
          */
         ObjectMapper mapper = locateMapper(type, mediaType);
         JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(entityStream, JsonEncoding.UTF8);
-        jg.disableFeature(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+        jg.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
 
         // Want indentation?
         if (mapper.getSerializationConfig().isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {

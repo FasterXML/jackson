@@ -179,11 +179,8 @@ public class TestIntrospectorPair
 
     public void testSimpleIgnore() throws Exception
     {
-        ObjectMapper mapper;
-        AnnotationIntrospector pair;
-
         // first: only Jackson introspector (default)
-        mapper = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
         Map<String,Object> result = writeAndMap(mapper, new IgnoreBean());
         assertEquals(2, result.size());
         assertEquals("abc", result.get("text"));
@@ -219,7 +216,6 @@ public class TestIntrospectorPair
     public void testSimpleFieldIgnore() throws Exception
     {
         ObjectMapper mapper;
-        AnnotationIntrospector pair;
 
         // first: only Jackson introspector (default)
         mapper = new ObjectMapper();
@@ -257,7 +253,6 @@ public class TestIntrospectorPair
 
     public void testSimpleOther() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
         // Let's use Jackson+JAXB comb
         AnnotationIntrospector ann = new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI);
 

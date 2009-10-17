@@ -2,8 +2,6 @@ package org.codehaus.jackson.map;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
-
 import org.codehaus.jackson.map.util.StdDateFormat;
 
 public class TestStdDateFormat

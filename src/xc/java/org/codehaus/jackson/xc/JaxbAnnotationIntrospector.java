@@ -20,7 +20,6 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.

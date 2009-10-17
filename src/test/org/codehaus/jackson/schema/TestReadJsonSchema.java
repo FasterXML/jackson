@@ -2,7 +2,6 @@ package org.codehaus.jackson.schema;
 
 import java.util.*;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -30,7 +29,7 @@ public class TestReadJsonSchema
         public Object[] objects;
         public JsonSerializable someSerializable;
 
-        public Iterable iterableOhYeahBaby;
+        public Iterable<Object> iterableOhYeahBaby;
 
         public List<String> extra;
         public ArrayList<String> extra2;

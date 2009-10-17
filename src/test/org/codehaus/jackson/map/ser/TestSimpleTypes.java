@@ -38,7 +38,7 @@ public class TestSimpleTypes
         String str1 = serializeAsString(mapper, data);
         String str2 = serializeAsString(mapper, data2);
         assertArrayEquals(data, mapper.readValue(str1, byte[].class));
-        assertArrayEquals(data2, mapper.readValue(str1, Byte[].class));
+        assertArrayEquals(data2, mapper.readValue(str2, Byte[].class));
     }
 
     public void testShortArray() throws Exception

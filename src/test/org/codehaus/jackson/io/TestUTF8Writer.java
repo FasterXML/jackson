@@ -2,7 +2,6 @@ package org.codehaus.jackson.io;
 
 import java.io.*;
 
-import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.util.BufferRecycler;
 
 public class TestUTF8Writer

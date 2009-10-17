@@ -11,6 +11,8 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class JsonLocation
     implements java.io.Serializable // as per [JACKSON-168]
 {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Shared immutable "N/A location" that can be returned to indicate
      * that no location information is available

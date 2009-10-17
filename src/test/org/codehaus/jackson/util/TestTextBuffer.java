@@ -1,9 +1,5 @@
 package org.codehaus.jackson.util;
 
-import org.codehaus.jackson.io.NumberOutput;
-
-import java.util.Random;
-
 public class TestTextBuffer
     extends main.BaseTest
 {

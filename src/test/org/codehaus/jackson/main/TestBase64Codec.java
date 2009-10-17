@@ -1,7 +1,5 @@
 package org.codehaus.jackson.main;
 
-import java.io.*;
-
 import static org.junit.Assert.*;
 
 import org.codehaus.jackson.*;

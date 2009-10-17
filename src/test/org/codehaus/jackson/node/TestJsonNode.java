@@ -1,14 +1,10 @@
 package org.codehaus.jackson.node;
 
-import java.io.*;
 import java.math.BigInteger;
 import java.math.BigDecimal;
 
-import static org.junit.Assert.*;
-
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.node.*;
 
 /**
  * Basic tests for {@link JsonNode} base class and some features
@@ -43,8 +39,8 @@ public class TestJsonNode
         assertFalse(n.getElements().hasNext());
         assertFalse(n.getFieldNames().hasNext());
         // path is never null; but does point to missing node
-        assertNotNull(n.getPath("xyz"));
-        assertTrue(n.getPath("xyz").isMissingNode());
+        assertNotNull(n.path("xyz"));
+        assertTrue(n.path("xyz").isMissingNode());
 
         try {
             n.append();

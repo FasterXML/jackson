@@ -7,6 +7,7 @@ import org.codehaus.jackson.*;
 public class TestJsonFactory
     extends main.BaseTest
 {
+    @SuppressWarnings("deprecation")
     public void testFeatures() throws Exception
     {
         JsonFactory f = new JsonFactory();
@@ -36,6 +37,7 @@ public class TestJsonFactory
         
     }
     
+    @SuppressWarnings("deprecation")
     public void testJsonWithFiles() throws Exception
     {
         File file = File.createTempFile("jackson-test", null);

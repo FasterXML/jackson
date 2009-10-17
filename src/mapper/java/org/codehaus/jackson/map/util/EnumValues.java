@@ -2,7 +2,6 @@ package org.codehaus.jackson.map.util;
 
 import java.util.*;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 public final class EnumValues
