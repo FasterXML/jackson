@@ -5,6 +5,7 @@ import java.util.*;
 import java.lang.reflect.Array;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.type.TypeReference;
 
 public class TestArrayConversions
     extends org.codehaus.jackson.map.BaseMapTest
@@ -67,6 +68,11 @@ public class TestArrayConversions
         verifyIntArrayConversion(data, byte[].class);
         verifyIntArrayConversion(data, short[].class);
         verifyIntArrayConversion(data, long[].class);
+
+        List<Number> expNums = _numberList(data, data.length);
+        // Alas, due to type erasure, need to use TypeRef, not just class
+        List<Integer> actNums = mapper.convertValue(data, new TypeReference<List<Integer>>() {});
+        assertEquals(expNums, actNums);
     }
 
     public void testLongArrayToX() throws Exception
@@ -75,7 +81,10 @@ public class TestArrayConversions
         verifyLongArrayConversion(data, byte[].class);
         verifyLongArrayConversion(data, short[].class);
         verifyLongArrayConversion(data, int[].class);
-        
+ 
+        List<Number> expNums = _numberList(data, data.length);
+        List<Long> actNums = mapper.convertValue(data, new TypeReference<List<Long>>() {});
+        assertEquals(expNums, actNums);        
     }
 
     public void testOverflows()
@@ -168,6 +177,15 @@ public class TestArrayConversions
         return result;
     }
 
+    private List<Number> _numberList(Object numberArray, int size)
+    {
+        ArrayList<Number> result = new ArrayList<Number>(size);
+        for (int i = 0; i < size; ++i) {
+            result.add((Number) Array.get(numberArray, i));
+        }
+        return result;
+    }
+    
     /**
      * Helper method for checking that given collections contain integral Numbers
      * that essentially contain same values in same order
