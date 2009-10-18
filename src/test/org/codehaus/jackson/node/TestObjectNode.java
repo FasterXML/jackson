@@ -20,14 +20,16 @@ public class TestObjectNode
 
         assertFalse(n.getElements().hasNext());
         assertFalse(n.getFields().hasNext());
+        assertFalse(n.getFieldNames().hasNext());
         assertNull(n.get("a"));
-        assertTrue(n.get("a").isMissingNode());
+        assertTrue(n.path("a").isMissingNode());
 
         TextNode text = TextNode.valueOf("x");
         n.put("a", text);
         assertEquals(1, n.size());
         assertTrue(n.getElements().hasNext());
         assertTrue(n.getFields().hasNext());
+        assertTrue(n.getFieldNames().hasNext());
         assertSame(text, n.get("a"));
         assertSame(text, n.path("a"));
         assertNull(n.get("b"));
@@ -44,11 +46,12 @@ public class TestObjectNode
         n.put("null", "notReallNull");
         assertEquals(3, n.size());
         assertNotNull(n.remove("null"));
+        assertEquals(2, n.size());
 
         Map<String,JsonNode> nodes = new HashMap<String,JsonNode>();
         nodes.put("d", text);
         n.putAll(nodes);
-        assertEquals(4, n.size());
+        assertEquals(3, n.size());
 
         n.removeAll();
         assertEquals(0, n.size());

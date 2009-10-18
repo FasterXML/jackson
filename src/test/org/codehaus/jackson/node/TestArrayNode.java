@@ -1,5 +1,6 @@
 package org.codehaus.jackson.node;
 
+import java.io.*;
 import java.math.BigInteger;
 import java.math.BigDecimal;
 import java.util.*;
@@ -13,16 +14,19 @@ import org.codehaus.jackson.map.*;
 public class TestArrayNode
     extends BaseMapTest
 {
-    public void testBasics()
+    public void testBasics() throws IOException
     {
         ArrayNode n = new ArrayNode(JsonNodeFactory.instance);
         assertStandardEquals(n);
         assertFalse(n.getElements().hasNext());
+        assertFalse(n.getFieldNames().hasNext());
         TextNode text = TextNode.valueOf("x");
         n.add(text);
         assertEquals(1, n.size());
         assertFalse(0 == n.hashCode());
         assertTrue(n.getElements().hasNext());
+        // no field names for arrays
+        assertFalse(n.getFieldNames().hasNext());
         assertNull(n.get("x")); // not used with arrays
         assertTrue(n.path("x").isMissingNode());
         assertSame(text, n.get(0));
@@ -46,19 +50,75 @@ public class TestArrayNode
 
         assertFalse(n.get(0).isTextual());
         assertNotNull(n.remove(0));
+        assertEquals(2, n.size());
         assertTrue(n.get(0).isTextual());
 
         ArrayList<JsonNode> nodes = new ArrayList<JsonNode>();
         nodes.add(text);
+        n.addAll(nodes);
         assertEquals(3, n.size());
         assertNull(n.get(10000));
+        assertNull(n.remove(-4));
+
+        TextNode text2 = TextNode.valueOf("b");
+        n.insert(0, text2);
+        assertEquals(4, n.size());
+        assertSame(text2, n.get(0));
 
         assertNotNull(n.addArray());
-        assertEquals(4, n.size());
-        n.addPOJO("foo");
         assertEquals(5, n.size());
+        n.addPOJO("foo");
+        assertEquals(6, n.size());
+
+        // Try serializing it for fun, too...
+        JsonGenerator jg = new MappingJsonFactory().createJsonGenerator(new StringWriter());
+        n.serialize(jg, null);
 
         n.removeAll();
         assertEquals(0, n.size());
+    }
+
+    public void testAdds()
+    {
+        ArrayNode n = new ArrayNode(JsonNodeFactory.instance);
+        assertNotNull(n.addArray());
+        assertNotNull(n.addObject());
+        n.addPOJO("foobar");
+        n.add(1);
+        n.add(1L);
+        n.add(0.5);
+        n.add(0.5f);
+        assertEquals(7, n.size());
+
+        assertNotNull(n.insertArray(0));
+        assertNotNull(n.insertObject(0));
+        n.insertPOJO(2, "xxx");
+        assertEquals(10, n.size());
+    }
+
+    public void testParser() throws Exception
+    {
+        ArrayNode n = new ArrayNode(JsonNodeFactory.instance);
+        n.add(123);
+        TreeTraversingParser p = new TreeTraversingParser(n, null);
+        p.setCodec(null);
+        assertNull(p.getCodec());
+        assertNotNull(p.getParsingContext());
+        assertNotNull(p.getTokenLocation());
+        assertNotNull(p.getCurrentLocation());
+        assertNull(p.getEmbeddedObject());
+        assertNull(p.currentNode());
+
+        //assertNull(p.getNumberType());
+
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        p.skipChildren();
+        assertToken(JsonToken.END_ARRAY, p.getCurrentToken());
+        p.close();
+
+        p = new TreeTraversingParser(n, null);
+        p.nextToken();
+        assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
+        assertEquals(JsonParser.NumberType.INT, p.getNumberType());
     }
 }
