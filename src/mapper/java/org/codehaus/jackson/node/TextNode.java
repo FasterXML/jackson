@@ -43,6 +43,9 @@ public final class TextNode
 
     @Override public JsonToken asToken() { return JsonToken.VALUE_STRING; }
 
+    /**
+     * Yes indeed it is textual
+     */
     @Override
     public boolean isTextual() { return true; }
 
@@ -62,6 +65,11 @@ public final class TextNode
         return getBinaryValue(Base64Variants.getDefaultVariant());
     }
 
+    /**
+     * Method for accessing textual contents assuming they were
+     * base64 encoded; if so, they are decoded and resulting binary
+     * data is returned.
+     */
     public byte[] getBinaryValue(Base64Variant b64variant)
         throws IOException
     {

@@ -160,6 +160,52 @@ public class ObjectNode
         return null;
     }
 
+    public ObjectNode removeAll()
+    {
+        _children.clear();
+        return this;
+    }
+
+    /**
+     * Method for adding given properties to this object node, overriding
+     * any existing values for those properties.
+     * 
+     * @param other Object of which properties to add to this object
+     * 
+     * @return This node (to allow chaining)
+     * 
+     * @since 1.3
+     */
+    public JsonNode putAll(Map<String,JsonNode> properties)
+    {
+        Iterator<Map.Entry<String, JsonNode>> it = properties.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String,JsonNode> en = it.next();
+            _children.put(en.getKey(), en.getValue());
+        }
+        return this;
+    }
+
+    /**
+     * Method for adding all properties of the given Object, overriding
+     * any existing values for those properties.
+     * 
+     * @param other Object of which properties to add to this object
+     * 
+     * @return This node (to allow chaining)
+     * 
+     * @since 1.3
+     */
+    public JsonNode putAll(ObjectNode other)
+    {
+        Iterator<Map.Entry<String,JsonNode>> it = other.getFields();
+        while (it.hasNext()) {
+            Map.Entry<String,JsonNode> en = it.next();
+            _children.put(en.getKey(), en.getValue());
+        }
+        return this;
+    }
+    
     /*
     ///////////////////////////////////////////////////////////
     // Extended ObjectNode API, mutators, typed

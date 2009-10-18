@@ -48,4 +48,90 @@ public class TestJsonNode
             verifyException(e, "non-container type");
         }
     }
+
+    public void testText()
+    {
+        assertNull(TextNode.valueOf(null));
+        TextNode empty = TextNode.valueOf("");
+        assertStandardEquals(empty);
+        assertSame(TextNode.EMPTY_STRING_NODE, empty);
+    }
+
+    public void testLong()
+    {
+        LongNode n = LongNode.valueOf(1L);
+        assertStandardEquals(n);
+        assertTrue(0 != n.hashCode());
+        assertEquals(JsonToken.VALUE_NUMBER_INT, n.asToken());
+        assertEquals(JsonParser.NumberType.LONG, n.getNumberType());
+        assertEquals(1, n.getIntValue());
+        assertEquals(1L, n.getLongValue());
+        assertEquals(BigDecimal.ONE, n.getDecimalValue());
+        assertEquals(BigInteger.ONE, n.getBigIntegerValue());
+        assertEquals("1", n.getValueAsText());
+    }
+
+    public void testDecimalNode() throws Exception
+    {
+        DecimalNode n = DecimalNode.valueOf(BigDecimal.ONE);
+        assertStandardEquals(n);
+        assertTrue(n.equals(new DecimalNode(BigDecimal.ONE)));
+        assertEquals(JsonToken.VALUE_NUMBER_FLOAT, n.asToken());
+        assertEquals(JsonParser.NumberType.BIG_DECIMAL, n.getNumberType());
+        assertTrue(n.isNumber());
+        assertFalse(n.isIntegralNumber());
+        assertTrue(n.isBigDecimal());
+        assertEquals(BigDecimal.ONE, n.getNumberValue());
+        assertEquals(1, n.getIntValue());
+        assertEquals(1L, n.getLongValue());
+        assertEquals(BigDecimal.ONE, n.getDecimalValue());
+        assertEquals("1", n.getValueAsText());
+    }
+
+    public void testBigIntegerNode() throws Exception
+    {
+        BigIntegerNode n = BigIntegerNode.valueOf(BigInteger.ONE);
+        assertStandardEquals(n);
+        assertTrue(n.equals(new BigIntegerNode(BigInteger.ONE)));
+        assertEquals(JsonToken.VALUE_NUMBER_INT, n.asToken());
+        assertEquals(JsonParser.NumberType.BIG_INTEGER, n.getNumberType());
+        assertTrue(n.isNumber());
+        assertTrue(n.isIntegralNumber());
+        assertTrue(n.isBigInteger());
+        assertEquals(BigInteger.ONE, n.getNumberValue());
+        assertEquals(1, n.getIntValue());
+        assertEquals(1L, n.getLongValue());
+        assertEquals(BigInteger.ONE, n.getBigIntegerValue());
+        assertEquals("1", n.getValueAsText());
+    }
+
+    public void testBinary() throws Exception
+    {
+        assertNull(BinaryNode.valueOf(null));
+        assertNull(BinaryNode.valueOf(null, 0, 0));
+
+        BinaryNode empty = BinaryNode.valueOf(new byte[1], 0, 0);
+        assertSame(BinaryNode.EMPTY_BINARY_NODE, empty);
+        assertStandardEquals(empty);
+
+        byte[] data = new byte[3];
+        data[1] = (byte) 3;
+        BinaryNode n = BinaryNode.valueOf(data, 1, 1);
+        data[2] = (byte) 3;
+        BinaryNode n2 = BinaryNode.valueOf(data, 2, 1);
+        assertTrue(n.equals(n2));
+        assertEquals("\"Aw==\"", n.toString());
+
+        assertEquals("AAMD", BinaryNode._asBase64(false, data));
+    }
+
+    public void testPOJO()
+    {
+        POJONode n = new POJONode("x"); // not really a pojo but that's ok
+        assertStandardEquals(n);
+        assertEquals(n, new POJONode("x"));
+        assertNull(n.getValueAsText());
+        // not sure if this is what it'll remain as but:
+        assertEquals("x", n.toString());
+    }
 }

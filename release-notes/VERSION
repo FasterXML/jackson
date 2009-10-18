@@ -52,6 +52,12 @@ Description:
   * Added method in AnnotationIntrospector to find declared namespace
     for JAXB annotations, needed for XML compatibility (future features)
 
+  Other:
+
+  * Removed obsolete class 'org.codehaus.jackson.map.type.TypeReference'
+    (obsoleted by 'org.codehaus.jackson.type.TypeReference) -- was supposed
+    to have been removed by 1.0 but had not been.
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

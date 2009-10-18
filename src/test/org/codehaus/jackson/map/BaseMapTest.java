@@ -12,6 +12,8 @@ import main.BaseTest;
 public abstract class BaseMapTest
     extends BaseTest
 {
+    final static Object SINGLETON_OBJECT = new Object();
+
     /*
     //////////////////////////////////////////////
     // Shared helper classes
@@ -62,6 +64,20 @@ public abstract class BaseMapTest
     protected void assertEquals(int[] exp, int[] act)
     {
         assertArrayEquals(exp, act);
+    }
+
+    /**
+     * Helper method for verifying 3 basic cookie cutter cases;
+     * identity comparison (true), and against null (false),
+     * or object of different type (false)
+     */
+    protected void assertStandardEquals(Object o)
+    {
+        assertTrue(o.equals(o));
+        assertFalse(o.equals(null));
+        assertFalse(o.equals(SINGLETON_OBJECT));
+        // just for fun, let's also call hash code...
+        o.hashCode();
     }
 
     /*

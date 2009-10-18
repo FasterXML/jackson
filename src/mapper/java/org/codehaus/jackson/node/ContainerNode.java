@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonToken;
 
@@ -78,13 +77,18 @@ public abstract class ContainerNode
 
     /*
     ////////////////////////////////////////////////////
-    // Parser/generator construction
+    // Common mutators
     ////////////////////////////////////////////////////
      */
 
-    public final JsonGenerator append() {
-        return _nodeFactory.constructGenerator(this);
-    }
+    /**
+     * Method for removing all children container has (if any)
+     *
+     * @return Container node itself (to allow method call chaining)
+     *
+     * @since 1.3
+     */
+    public abstract ContainerNode removeAll();
 
     /*
     ////////////////////////////////////////////////////

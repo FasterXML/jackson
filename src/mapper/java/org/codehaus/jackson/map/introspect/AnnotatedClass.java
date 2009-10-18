@@ -17,7 +17,7 @@ public final class AnnotatedClass
     ///////////////////////////////////////////////////////
      */
 
-    /**
+    /*
      * Filter used to only include methods that have signature that is
      * compatible with "factory" methods: are static, take a single
      * argument, and returns something.
@@ -27,6 +27,8 @@ public final class AnnotatedClass
      * are supported (with accompanying annotations to bind args
      * to properties).
      */
+    // 17-Oct-2009, tatus: Not used any more; will leave commented out for now
+    /*
     public final static class FactoryMethodFilter
         implements MethodFilter
     {
@@ -50,6 +52,7 @@ public final class AnnotatedClass
             return true;
         }
     }
+    */
 
     /*
     ///////////////////////////////////////////////////////

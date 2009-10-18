@@ -148,15 +148,5 @@ public class JsonNodeFactory
      * cases as Json Strings or other node types.
      */
     public POJONode POJONode(Object pojo) { return new POJONode(pojo); }
-
-    /*
-    ////////////////////////////////////////////////////////
-    // Factory methods for Streaming API compatibility
-    ////////////////////////////////////////////////////////
-     */
-
-    public JsonGenerator constructGenerator(ContainerNode n) {
-        return new TreeAppendingGenerator(n);
-    }
 }
 

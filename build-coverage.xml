@@ -23,6 +23,8 @@
         </fileset>
         <fileset dir="${dir.build.classes.mapper}">
           <include name="org/codehaus/jackson/map/**/*.class"/>
+          <include name="org/codehaus/jackson/node/**/*.class"/>
+          <include name="org/codehaus/jackson/schema/**/*.class"/>
         </fileset>
       </cobertura-instrument>
 

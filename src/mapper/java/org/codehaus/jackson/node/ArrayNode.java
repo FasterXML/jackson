@@ -122,6 +122,40 @@ public final class ArrayNode
     }
 
     /**
+     * Method for adding all child nodes of given Array, appending to
+     * child nodes this array contains
+     * 
+     * @param other Array to add contents from
+     * 
+     * @return This node (to allow chaining)
+     * 
+     * @since 1.3
+     */
+    public JsonNode addAll(ArrayNode other)
+    {
+        ArrayList<JsonNode> contents = other._children;
+        for (int i = 0, len = contents.size(); i < len; ++i) {
+            _children.add(contents.get(i));
+        }
+        return this;
+    }
+
+    /**
+     * Method for adding given nodes as child nodes of this array node.
+     * 
+     * @param nodes Nodes to add
+     * 
+     * @return This node (to allow chaining)
+     * 
+     * @since 1.3
+     */
+    public JsonNode addAll(Collection<JsonNode> nodes)
+    {
+        _children.addAll(nodes);
+        return this;
+    }
+    
+    /**
      * Method for inserting specified child node as an element
      * of this Array. If index is 0 or less, it will be inserted as
      * the first element; if >= size(), appended at the end, and otherwise
@@ -149,6 +183,12 @@ public final class ArrayNode
         return null;
     }
 
+    public ArrayNode removeAll()
+    {
+        _children.clear();
+        return this;
+    }
+    
     /*
     ///////////////////////////////////////////////////////////
     // Extended ObjectNode API, mutators, generic

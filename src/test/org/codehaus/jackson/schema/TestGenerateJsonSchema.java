@@ -21,6 +21,16 @@ public class TestGenerateJsonSchema
         ObjectMapper mapper = new ObjectMapper();
         JsonSchema jsonSchema = mapper.generateJsonSchema(SimpleBean.class);
         assertNotNull(jsonSchema);
+
+        // test basic equality, and that equals() handles null, other obs
+        assertTrue(jsonSchema.equals(jsonSchema));
+        assertFalse(jsonSchema.equals(null));
+        assertFalse(jsonSchema.equals("foo"));
+
+        // other basic things
+        assertNotNull(jsonSchema.toString());
+        assertNotNull(JsonSchema.getDefaultSchemaNode());
+
 	ObjectNode root = jsonSchema.getSchemaNode();
         assertEquals("object", root.get("type").getValueAsText());
         assertEquals(true, root.get("optional").getBooleanValue());
