@@ -7,7 +7,6 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion; // for javadocs
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
-import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.StdDateFormat;
 
@@ -390,7 +389,7 @@ public class SerializationConfig
         if (isEnabled(Feature.USE_ANNOTATIONS)) {
             return _annotationIntrospector;
         }
-        return NopAnnotationIntrospector.instance;
+        return AnnotationIntrospector.nopInstance();
     }
 
     //@Override

@@ -170,7 +170,7 @@ public class ObjectNode
      * Method for adding given properties to this object node, overriding
      * any existing values for those properties.
      * 
-     * @param other Object of which properties to add to this object
+     * @param properties Properties to add
      * 
      * @return This node (to allow chaining)
      * 

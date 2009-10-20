@@ -238,8 +238,12 @@ javax.ws.rs
 ,javax.ws.rs.ext
 ,org.codehaus.jackson;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.introspect;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.type;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.type;version='${IMPL_VERSION}'
+"
+         dynamicImportPackage="
+org.codehaus.jackson.xc
 "
          exportpackage="
 org.codehaus.jackson.jaxrs;version=${IMPL_VERSION}"

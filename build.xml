@@ -186,24 +186,6 @@ compile.main, compile.test, compile.extra, compile.perf" />
         </javac>
     </target>
 
-    <target name="compile.jaxrs" depends="compile.mapper">
-        <javac srcdir="${dir.src.java.jaxrs}" destdir="${dir.build.classes.jaxrs}"
-            source="1.5" target="1.5"
-            debug="true"
-        >
-            <compilerarg value="-Xlint:unchecked" />
-            <include name="org/codehaus/jackson/**/*.java" />
-            <!-- builds on core and mapper classes -->
-            <classpath>
-               <fileset dir="${dir.lib}/jaxrs">
-                    <include name="*.jar" />
-               </fileset>
-               <pathelement path="${dir.build.classes.core}"/>  
-               <pathelement path="${dir.build.classes.mapper}"/>  
-            </classpath>
-        </javac>
-    </target>
-
     <target name="compile.xc" depends="compile.mapper">
         <javac srcdir="${dir.src.java.xc}" destdir="${dir.build.classes.xc}"
             source="1.5" target="1.5"
@@ -219,6 +201,26 @@ compile.main, compile.test, compile.extra, compile.perf" />
                <fileset dir="${dir.lib}/jaxb">
                     <include name="*.jar" />
                </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile.jaxrs" depends="compile.mapper,compile.xc">
+        <javac srcdir="${dir.src.java.jaxrs}" destdir="${dir.build.classes.jaxrs}"
+            source="1.5" target="1.5"
+            debug="true"
+        >
+            <compilerarg value="-Xlint:unchecked" />
+            <include name="org/codehaus/jackson/**/*.java" />
+            <!-- builds on core and mapper classes -->
+            <classpath>
+               <fileset dir="${dir.lib}/jaxrs">
+                    <include name="*.jar" />
+               </fileset>
+               <pathelement path="${dir.build.classes.core}"/>  
+               <pathelement path="${dir.build.classes.mapper}"/>  
+               <!-- this is optional dependency, but needed for compilation -->
+               <pathelement path="${dir.build.classes.xc}"/>
             </classpath>
         </javac>
     </target>

@@ -24,24 +24,50 @@ import org.codehaus.jackson.type.JavaType;
 /**
  * Basic implementation of JAX-RS abstractions ({@link MessageBodyReader},
  * {@link MessageBodyWriter}) needed for binding
- * JSON ("application/json") content to and from POJOs.
+ * JSON ("application/json") content to and from Java Objects ("POJO"s).
  *<p>
- * Currently most configurability is via caller configuring
- * {@link ObjectMapper} it uses to construct this provider.
- * Additionally it is possible to enable detection of which types
- * can be serialized/deserialized, which is not enabled by default
- * (since it is usually not needed).
+ * Actual data binding functionality is implemented by {@link ObjectMapper}:
+ * mapper to use can be configured in multiple ways:
+ * <ul>
+ *  <li>By explicitly passing mapper to use in constructor
+ *  <li>By explictly setting mapper to use by {@link #setMapper}
+ *  <li>By defining JAX-RS <code>Provider</code> that returns {@link ObjectMapper}s.
+ *  <li>By doing none of above, in which case a default mapper instance is
+ *     constructed (and configured if configuration methods are called)
+ * </ul>
+ * The last method ("do nothing specific") is often good enough; explicit passing
+ * of Mapper is simple and explicit; and Provider-based method may make sense
+ * with Depedency Injection frameworks, or if Mapper has to be configured differently
+ * for different media types.
+ *<p>
+ * Note that the default mapper instance will be automatically created if
+ * one of explicit configuration methods (like {@link #configure})
+ * is called: if so, Provider-based introspection is <b>NOT</b> used, but the
+ * resulting Mapper is used as configured.
+ *<p>
+ * Note: version 1.3 added a sub-class ({@link JacksonJaxbJsonProvider}) which
+ * is configured by default to use both Jackson and JAXB annotations for configuration
+ * (base class when used as-is defaults to using just Jackson annotations)
  *
  * @author Tatu Saloranta
  */
 @Provider
-    @Consumes({MediaType.APPLICATION_JSON, "text/json"})
-    @Produces({MediaType.APPLICATION_JSON, "text/json"})
+@Consumes({MediaType.APPLICATION_JSON, "text/json"})
+@Produces({MediaType.APPLICATION_JSON, "text/json"})
 public class JacksonJsonProvider
     implements
         MessageBodyReader<Object>,
         MessageBodyWriter<Object>
 {
+    /**
+     * Default annotation sets to use, if not explicitly defined during
+     * construction: Jackson annotations checked first; and if none defined
+     * for property, JAXB annotations as a fallback.
+     */
+    public final static Annotations[] DEFAULT_ANNOTATIONS = {
+        Annotations.JACKSON, Annotations.JAXB
+    };
+
     /**
      * Looks like we need to worry about accidental
      *   data binding for types we shouldn't be handling. This is
@@ -79,12 +105,7 @@ public class JacksonJsonProvider
             StreamingOutput.class, Response.class
             };
 
-    /**
-     * Default {@link ObjectMapper} to use in absence of any
-     * configured (direct or indirect) mapper. Created lazily
-     * if (and only if) it is needed.
-     */
-    protected ObjectMapper _defaultMapper;
+    protected final MapperConfigurator _mapperConfig;
 
     /*
     ///////////////////////////////////////////////////////
@@ -100,13 +121,6 @@ public class JacksonJsonProvider
     @Context
     protected Providers _providers;
 
-    /**
-     * Mapper provider was constructed with if any; if null, provider
-     * is dynamically located; and if that fails, default instance
-     * will be used.
-     */
-    protected ObjectMapper _configuredMapper;
-
     /*
     ///////////////////////////////////////////////////////
     // Configuration
@@ -117,7 +131,7 @@ public class JacksonJsonProvider
      * Whether we want to actually check that Jackson has
      * a serializer for given type. Since this should generally
      * be the case (due to auto-discovery) and since the call
-     * to check this is not free, defaults to false.
+     * to check availability can be bit expensive, defaults to false.
      */
     protected boolean _cfgCheckCanSerialize = false;
 
@@ -125,7 +139,7 @@ public class JacksonJsonProvider
      * Whether we want to actually check that Jackson has
      * a deserializer for given type. Since this should generally
      * be the case (due to auto-discovery) and since the call
-     * to check this is not free, defaults to false.
+     * to check availability can be bit expensive, defaults to false.
      */
     protected boolean _cfgCheckCanDeserialize = false;
 
@@ -141,17 +155,26 @@ public class JacksonJsonProvider
      */
     public JacksonJsonProvider()
     {
-        this(null);
+        this(null, DEFAULT_ANNOTATIONS);
     }
 
+    /**
+     * @param annotationsToUse Annotation set(s) to use for configuring
+     *    data binding
+     */
+    public JacksonJsonProvider(Annotations... annotationsToUse)
+    {
+        this(null, annotationsToUse);
+    }
+    
     /**
      * Constructor to use when a custom mapper (usually components
      * like serializer/deserializer factories that have been configured)
      * is to be used.
      */
-    public JacksonJsonProvider(ObjectMapper mapper)
+    public JacksonJsonProvider(ObjectMapper mapper, Annotations[] annotationsToUse)
     {
-        _configuredMapper = mapper;
+        _mapperConfig = new MapperConfigurator(mapper, annotationsToUse);
     }
 
     /*
@@ -161,93 +184,97 @@ public class JacksonJsonProvider
      */
 
     /**
-     * Method for defining whether {@link 
+     * Method for defining whether actual detection for existence of
+     * a deserializer for type should be done when {@link #isReadable}
+     * is called.
      */
     public void checkCanDeserialize(boolean state) { _cfgCheckCanDeserialize = state; }
+
+    /**
+     * Method for defining whether actual detection for existence of
+     * a serializer for type should be done when {@link #isWriteable}
+     * is called.
+     */
     public void checkCanSerialize(boolean state) { _cfgCheckCanSerialize = state; }
 
+    /**
+     * Method for configuring which annotation sets to use (including none).
+     * Annotation sets are defined in order decreasing precedence; that is,
+     * first one has the priority over following ones.
+     * 
+     * @param annotationsToUse Ordered list of annotation sets to use; if null,
+     *    default
+     */
+    public void setAnnotationsToUse(Annotations[] annotationsToUse) {
+        _mapperConfig.setAnnotationsToUse(annotationsToUse);
+    }
+    
     /**
      * Method that can be used to directly define {@link ObjectMapper} to use
      * for serialization and deserialization; if null, will use the standard
      * provider discovery from context instead. Default setting is null.
      */
     public void setMapper(ObjectMapper m) {
-        _configuredMapper = m;
-    }
-
-    /**
-     * Method that can be used to access configured mapper; and if
-     * one has not yet been specified (by call to {@link #setMapper}),
-     * construct an instance and set it by calling {@link #setMapper}.
-     *<p>
-     * Note that construction of such mapper means that
-     * no auto-detection will occur: that is, context is
-     * not checked for auto-wired {@link ObjectMapper}.
-     */
-    protected ObjectMapper configuredMapper() {
-        if (_configuredMapper == null) {
-            _configuredMapper = new ObjectMapper();
-        }
-        return _configuredMapper;
+        _mapperConfig.setMapper(m);
     }
 
     public JacksonJsonProvider configure(DeserializationConfig.Feature f, boolean state) {
-        configuredMapper().configure(f, state);
+        _mapperConfig.configure(f, state);
         return this;
     }
 
     public JacksonJsonProvider configure(SerializationConfig.Feature f, boolean state) {
-        configuredMapper().configure(f, state);
+        _mapperConfig.configure(f, state);
         return this;
     }
 
     public JacksonJsonProvider configure(JsonParser.Feature f, boolean state) {
-        configuredMapper().configure(f, state);
+        _mapperConfig.configure(f, state);
         return this;
     }
 
     public JacksonJsonProvider configure(JsonGenerator.Feature f, boolean state) {
-        configuredMapper().configure(f, state);
+        _mapperConfig.configure(f, state);
         return this;
     }
 
     public JacksonJsonProvider enable(DeserializationConfig.Feature f, boolean state) {
-        configuredMapper().configure(f, true);
+        _mapperConfig.configure(f, true);
         return this;
     }
 
     public JacksonJsonProvider enable(SerializationConfig.Feature f, boolean state) {
-        configuredMapper().configure(f, true);
+        _mapperConfig.configure(f, true);
         return this;
     }
 
     public JacksonJsonProvider enable(JsonParser.Feature f, boolean state) {
-        configuredMapper().configure(f, true);
+        _mapperConfig.configure(f, true);
         return this;
     }
 
     public JacksonJsonProvider enable(JsonGenerator.Feature f, boolean state) {
-        configuredMapper().configure(f, true);
+        _mapperConfig.configure(f, true);
         return this;
     }
 
     public JacksonJsonProvider disable(DeserializationConfig.Feature f, boolean state) {
-        configuredMapper().configure(f, false);
+        _mapperConfig.configure(f, false);
         return this;
     }
 
     public JacksonJsonProvider disable(SerializationConfig.Feature f, boolean state) {
-        configuredMapper().configure(f, false);
+        _mapperConfig.configure(f, false);
         return this;
     }
 
     public JacksonJsonProvider disable(JsonParser.Feature f, boolean state) {
-        configuredMapper().configure(f, false);
+        _mapperConfig.configure(f, false);
         return this;
     }
 
     public JacksonJsonProvider disable(JsonGenerator.Feature f, boolean state) {
-        configuredMapper().configure(f, false);
+        _mapperConfig.configure(f, false);
         return this;
     }
 
@@ -401,64 +428,10 @@ public class JacksonJsonProvider
      */
 
     /**
-     * Method called to locate {@link ObjectMapper} to use for serialization
-     * and deserialization. If an instance has been explicitly defined by
-     * {@link #setMapper} (or non-null instance passed in constructor), that
-     * will be used. 
-     * If not, will try to locate it using standard JAX-RS
-     * {@link ContextResolver} mechanism, if it has been properly configured
-     * to access it (by JAX-RS runtime).
-     * Finally, if no mapper is found, will return a default unconfigured
-     * {@link ObjectMapper} instance (one constructed with default constructor
-     * and not modified in any way)
-     *
-     * @param type Class of object being serialized or deserialized;
-     *   not checked at this point, since it is assumed that unprocessable
-     *   classes have been already weeded out,
-     *   but will be passed to {@link ContextResolver} as is.
-     * @param mediaType Declared media type for the instance to process:
-     *   not used by this method,
-     *   but will be passed to {@link ContextResolver} as is.
-     */
-    protected ObjectMapper locateMapper(Class<?> type, MediaType mediaType)
-    {
-        // First: were we configured with an instance?
-        if (_configuredMapper != null) {
-            return _configuredMapper;
-        }
-
-        // If not, maybe we can get one configured via context?
-        ContextResolver<ObjectMapper> resolver = _providers.getContextResolver(ObjectMapper.class, mediaType);
-        /* Above should work as is, but due to this bug
-         *   [https://jersey.dev.java.net/issues/show_bug.cgi?id=288]
-         * in Jersey, it doesn't. But this works until resolution of
-         * the issue:
-         */
-        if (resolver == null) {
-            resolver = _providers.getContextResolver(ObjectMapper.class, null);
-        }
-        if (resolver != null) {
-            ObjectMapper mapper = resolver.getContext(type);
-            if (mapper != null) {
-                return mapper;
-            }
-        }
-        /* nope: must use an unconfigured default instance
-         * (ideally we'd log a warning if this happens...)
-         */
-        synchronized (this) {
-            if (_defaultMapper == null) {
-                _defaultMapper = new ObjectMapper();
-            }
-            return _defaultMapper;
-        }
-    }
-
-    /**
      * Helper method used to check whether given media type
      * is JSON type or sub type.
      * Current implementation essentially checks to see whether
-     * {@link MediaType#getSubType} returns "json" or something
+     * {@link MediaType#getSubtype} returns "json" or something
      * ending with "+json".
      */
     protected boolean isJsonType(MediaType mediaType)
@@ -480,6 +453,52 @@ public class JacksonJsonProvider
         return true;
     }
 
+    /**
+     * Method called to locate {@link ObjectMapper} to use for serialization
+     * and deserialization. If an instance has been explicitly defined by
+     * {@link #setMapper} (or non-null instance passed in constructor), that
+     * will be used. 
+     * If not, will try to locate it using standard JAX-RS
+     * {@link ContextResolver} mechanism, if it has been properly configured
+     * to access it (by JAX-RS runtime).
+     * Finally, if no mapper is found, will return a default unconfigured
+     * {@link ObjectMapper} instance (one constructed with default constructor
+     * and not modified in any way)
+     *
+     * @param type Class of object being serialized or deserialized;
+     *   not checked at this point, since it is assumed that unprocessable
+     *   classes have been already weeded out,
+     *   but will be passed to {@link ContextResolver} as is.
+     * @param mediaType Declared media type for the instance to process:
+     *   not used by this method,
+     *   but will be passed to {@link ContextResolver} as is.
+     */
+    public ObjectMapper locateMapper(Class<?> type, MediaType mediaType)
+    {
+        // First: were we configured with a specific instance?
+        ObjectMapper m = _mapperConfig.getConfiguredMapper();
+        if (m == null) {
+            // If not, maybe we can get one configured via context?
+            ContextResolver<ObjectMapper> resolver = _providers.getContextResolver(ObjectMapper.class, mediaType);
+            /* Above should work as is, but due to this bug
+             *   [https://jersey.dev.java.net/issues/show_bug.cgi?id=288]
+             * in Jersey, it doesn't. But this works until resolution of
+             * the issue:
+             */
+            if (resolver == null) {
+                resolver = _providers.getContextResolver(ObjectMapper.class, null);
+            }
+            if (resolver != null) {
+                m = resolver.getContext(type);
+            }
+            if (m == null) {
+                // If not, let's get the fallback default instance
+                m = _mapperConfig.getDefaultMapper();
+            }
+        }
+        return m;
+    }
+
     /*
     ////////////////////////////////////////////////////
     // Private/sub-class helper methods
@@ -493,5 +512,9 @@ public class JacksonJsonProvider
     protected JavaType _convertType(Type jdkType)
     {
         return TypeFactory.fromType(jdkType);
+    }
+
+    protected Annotations[] _defaultAnnotations() {
+        return DEFAULT_ANNOTATIONS;
     }
 }

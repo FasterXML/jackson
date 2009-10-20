@@ -741,7 +741,7 @@ public abstract class JsonParser
 
     /**
      * Accessor that can be called if (and onl if) the current token
-     * is {@link JsonToken#EMBEDDED_OBJECT}. For other token types,
+     * is {@link JsonToken#VALUE_EMBEDDED_OBJECT}. For other token types,
      * null is returned.
      *<p>
      * Note: only some specialized parser implementations support

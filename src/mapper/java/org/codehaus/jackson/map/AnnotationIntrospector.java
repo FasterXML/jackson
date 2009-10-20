@@ -15,6 +15,21 @@ import org.codehaus.jackson.map.introspect.*;
  */
 public abstract class AnnotationIntrospector
 {
+    /**
+     * Factory method for accessing "no operation" implementation
+     * of introspector: instance that will never find any annotation-based
+     * configuration.
+     * 
+     * @since 1.3
+     */
+    public static AnnotationIntrospector nopInstance() {
+        return NopAnnotationIntrospector.instance;
+    }
+
+    public static AnnotationIntrospector pair(AnnotationIntrospector a1, AnnotationIntrospector a2) {
+        return new Pair(a1, a2);
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // Generic annotation properties, lookup
