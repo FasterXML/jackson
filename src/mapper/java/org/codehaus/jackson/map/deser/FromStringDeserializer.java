@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Currency;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
@@ -94,6 +95,19 @@ public abstract class FromStringDeserializer<T>
         {
             // will throw IAE if unknown:
             return Currency.getInstance(value);
+        }
+    }
+
+    public static class PatternDeserializer
+        extends FromStringDeserializer<Pattern>
+    {
+        public PatternDeserializer() { super(Pattern.class); }
+        
+        protected Pattern _deserialize(String value, DeserializationContext ctxt)
+            throws IllegalArgumentException
+        {
+            // will throw IAE (or its subclass) if malformed
+            return Pattern.compile(value);
         }
     }
 }

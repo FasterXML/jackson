@@ -57,6 +57,7 @@ Description:
   * Removed obsolete class 'org.codehaus.jackson.map.type.TypeReference'
     (obsoleted by 'org.codehaus.jackson.type.TypeReference) -- was supposed
     to have been removed by 1.0 but had not been.
+  * Added support to handle 'java.util.regex.Pattern'
 
 ------------------------------------------------------------------------
 == History: ==

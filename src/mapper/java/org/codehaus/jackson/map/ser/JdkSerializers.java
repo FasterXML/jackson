@@ -22,6 +22,17 @@ public abstract class JdkSerializers
     static void addAll(HashMap<String, JsonSerializer<?>> sers)
     {
         sers.put(File.class.getName(), new FileSerializer());
+
+        // And then things that 'toString()' can handle
+        final ToStringSerializer sls = ToStringSerializer.instance;
+
+        // Other reference types (URLs, URIs)
+        sers.put(java.net.URL.class.getName(), sls);
+        sers.put(java.net.URI.class.getName(), sls);
+
+        sers.put(Currency.class.getName(), sls);
+        sers.put(UUID.class.getName(), sls);
+        sers.put(java.util.regex.Pattern.class.getName(), sls);
     }
 
     /**

@@ -57,6 +57,7 @@ class StdDeserializers
         add(new FromStringDeserializer.UUIDDeserializer());
         add(new FromStringDeserializer.URLDeserializer());
         add(new FromStringDeserializer.URIDeserializer());
+        add(new FromStringDeserializer.PatternDeserializer());
 
         /* 25-Aug-2009, tatu: Chances are that Google's Android and GAE
          *   don't have "javax.xml.namespace" even though they are

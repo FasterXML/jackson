@@ -54,10 +54,6 @@ public class BasicSerializerFactory
         _concrete.put(StringBuilder.class.getName(), sls);
         _concrete.put(Character.class.getName(), sls);
         _concrete.put(Character.TYPE.getName(), sls);
-        // currency units best dealt with as strings too
-        _concrete.put(Currency.class.getName(), sls);
-        // including things best serialized as Strings
-        _concrete.put(UUID.class.getName(), sls);
 
         // Primitives/wrappers for primitives (primitives needed for Beans)
         _concrete.put(Boolean.TYPE.getName(), new BooleanSerializer(true));
@@ -92,10 +88,6 @@ public class BasicSerializerFactory
         _concrete.put(java.sql.Time.class.getName(), new SqlTimeSerializer());
         // note: timestamps are very similar to java.util.Date, thus serialized as such
         _concrete.put(java.sql.Timestamp.class.getName(), UtilDateSerializer.instance);
-
-        // Reference types, URLs, URIs
-        _concrete.put(java.net.URL.class.getName(), sls);
-        _concrete.put(java.net.URI.class.getName(), sls);
 
         // Class.class
         _concrete.put(Class.class.getName(), new ClassSerializer());
@@ -134,7 +126,7 @@ public class BasicSerializerFactory
         _concrete.put(LinkedHashSet.class.getName(), collectionS);
         _concrete.put(TreeSet.class.getName(), collectionS);
 
-        // Then standard JDK types that need extra TLC:
+        // Then other standard JDK types:
         JdkSerializers.addAll(_concrete);
 
         /* XML/JAXB related types available on JDK 1.5; but that seem

@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.*;
+import java.util.regex.Pattern;
 
 import org.codehaus.jackson.map.*;
 
@@ -22,5 +23,13 @@ public class TestJdkTypes
         File f = new File("/tmp/foo.txt");
         String str = serializeAsString(new ObjectMapper(), f);
         assertEquals("\""+f.getAbsolutePath()+"\"", str);
+    }
+
+    public void testRegexps() throws IOException
+    {
+        final String PATTERN_STR = "\\s+([a-b]+)\\w?";
+        Pattern p = Pattern.compile(PATTERN_STR);
+        String str = serializeAsString(new ObjectMapper(), p);
+        assertEquals(p.pattern(), str);
     }
 }
