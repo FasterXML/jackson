@@ -14,6 +14,8 @@ public class TestConfig
     @JsonAutoDetect(JsonMethod.NONE)
     final static class Dummy { }
 
+    final static class EmptyDummy { }
+
     static class AnnoBean {
         int value = 3;
         
@@ -46,13 +48,28 @@ public class TestConfig
         assertTrue(cfg.isEnabled(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES));
     }
 
+    public void testOverrideIntrospectors()
+    {
+        ObjectMapper m = new ObjectMapper();
+        DeserializationConfig cfg = m.getDeserializationConfig();
+        // and finally, ensure we could override introspectors
+        cfg.setIntrospector(null); // no way to verify tho
+        cfg.setAnnotationIntrospector(null);
+        assertNull(cfg.getAnnotationIntrospector());
+    }
+
     public void testFromAnnotations()
     {
         ObjectMapper m = new ObjectMapper();
         DeserializationConfig cfg = m.getDeserializationConfig();
 
-        /* Configure using annotations from the dummy object; only
-         * subset of features affected this way
+        // First: without any annotations
+        cfg.fromAnnotations(EmptyDummy.class);
+        assertTrue(cfg.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS));
+        assertTrue(cfg.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS));
+        
+        /* Then configure using annotations from dummy object that
+         * does have annotations; only subset of features affected this way
          */
         cfg.fromAnnotations(Dummy.class);
         assertFalse(cfg.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS));

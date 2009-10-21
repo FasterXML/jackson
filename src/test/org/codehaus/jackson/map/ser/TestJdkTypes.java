@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.*;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.codehaus.jackson.map.*;
@@ -29,7 +30,9 @@ public class TestJdkTypes
     {
         final String PATTERN_STR = "\\s+([a-b]+)\\w?";
         Pattern p = Pattern.compile(PATTERN_STR);
-        String str = serializeAsString(new ObjectMapper(), p);
-        assertEquals(p.pattern(), str);
+        Map<String,Object> input = new HashMap<String,Object>();
+        input.put("p", p);
+        Map<String,Object> result = writeAndMap(input);
+        assertEquals(p.pattern(), result.get("p"));
     }
 }

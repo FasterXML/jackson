@@ -45,17 +45,13 @@ public abstract class SerializerProvider
         throws IOException, JsonGenerationException;
 
     /**
-     * Generate the <a href="http://json-schema.org/">Json-schema</a>.
+     * Generate <a href="http://json-schema.org/">Json-schema</a> for
+     * given type.
      *
-     * @param type The type.
-     * @param config The config.
-     * @param jsf The serializer factory.
-     * @return The config.
+     * @param type The type for which to generate schema
      */
-    public JsonSchema generateJsonSchema(Class<?> type, SerializationConfig config, SerializerFactory jsf)
-            throws JsonMappingException {
-        throw new UnsupportedOperationException();
-    }
+    public abstract JsonSchema generateJsonSchema(Class<?> type, SerializationConfig config, SerializerFactory jsf)
+        throws JsonMappingException;
 
     /**
      * Method that can be called to see if this serializer provider

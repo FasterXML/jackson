@@ -27,6 +27,8 @@ public class TestConfig
     @JsonAutoDetect(JsonMethod.NONE)
     final static class Config { }
 
+    final static class ConfigNone { }
+
     static class AnnoBean {
         public int getX() { return 1; }
         @SuppressWarnings("unused") @JsonProperty("y")
@@ -60,6 +62,24 @@ public class TestConfig
         assertTrue(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS));
     }
 
+    public void testOverrideIntrospectors()
+    {
+        ObjectMapper m = new ObjectMapper();
+        SerializationConfig cfg = m.getSerializationConfig();
+        // and finally, ensure we could override introspectors
+        cfg.setIntrospector(null); // no way to verify tho
+        cfg.setAnnotationIntrospector(null);
+        assertNull(cfg.getAnnotationIntrospector());
+    }
+
+    public void testMisc()
+    {
+        ObjectMapper m = new ObjectMapper();
+        SerializationConfig cfg = m.getSerializationConfig();
+        cfg.setDateFormat(null); // just to execute the code path
+        assertNotNull(cfg.toString()); // ditto
+    }
+
     @SuppressWarnings("deprecation")
     public void testFromAnnotationsLegacy()
     {
@@ -79,7 +99,13 @@ public class TestConfig
     {
         ObjectMapper m = new ObjectMapper();
         SerializationConfig cfg = m.getSerializationConfig();
-
+        
+        // first without any annotations
+        cfg.fromAnnotations(ConfigNone.class);
+        assertTrue(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
+        assertTrue(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS));
+        assertFalse(cfg.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING));
+ 
         /* then configure using annotations from the dummy object; only
          * subset of features affected this way
          */
