@@ -11,6 +11,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 import java.io.StringWriter;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -43,6 +44,7 @@ public class TestJaxbAnnotationIntrospector
         private List<String> wrappedElementProperty;
         private EnumExample enumProperty;
         private QName qname;
+        private String propertyToIgnore;
 
         @XmlJavaTypeAdapter(QNameAdapter.class)
         public QName getQname()
@@ -96,6 +98,17 @@ public class TestJaxbAnnotationIntrospector
         public void setEnumProperty(EnumExample enumProperty)
         {
             this.enumProperty = enumProperty;
+        }
+
+        @XmlTransient
+        public String getPropertyToIgnore()
+        {
+            return propertyToIgnore;
+        }
+
+        public void setPropertyToIgnore(String propertyToIgnore)
+        {
+            this.propertyToIgnore = propertyToIgnore;
         }
     }
 
@@ -197,6 +210,7 @@ public class TestJaxbAnnotationIntrospector
         ex.setElementProperty("elementValue");
         ex.setWrappedElementProperty(Arrays.asList("wrappedElementValue"));
         ex.setEnumProperty(EnumExample.VALUE1);
+        ex.setPropertyToIgnore("ignored");
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, ex);
         writer.flush();
@@ -215,6 +229,7 @@ public class TestJaxbAnnotationIntrospector
         assertEquals(1, node.get("mywrapped").size());
         assertEquals("wrappedElementValue", node.get("mywrapped").get(0).getValueAsText());
         assertEquals("Value One", node.get("enumProperty").getValueAsText());
+        assertNull(node.get("propertyToIgnore"));
 
         //now make sure it gets deserialized correctly.
         JaxbExample readEx = mapper.readValue(json, JaxbExample.class);
@@ -223,6 +238,7 @@ public class TestJaxbAnnotationIntrospector
         assertEquals(ex.elementProperty, readEx.elementProperty);
         assertEquals(ex.wrappedElementProperty, readEx.wrappedElementProperty);
         assertEquals(ex.enumProperty, readEx.enumProperty);
+        assertNull(readEx.propertyToIgnore);
     }
 
     public void testNamespaceAccess() throws Exception
