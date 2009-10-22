@@ -8,15 +8,22 @@ Description:
 
   Problems fixed:
 
+  * [JACKSON-177] Problems with Hibernate, repackaged cglib
+    (reported by Ted B)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.2.1 [03-Oct-2009]
+
+  Problems fixed:
+
   * [JACKSON-162] OSGi packaging problems for xc package.
    (reported by Troy Waldrep)
   * [JACKSON-171] Self-referential types cause infinite recursion when
     using only JAXB annotation introspector
     (reported by Randy L)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.2.0 [01-Aug-2009]
 

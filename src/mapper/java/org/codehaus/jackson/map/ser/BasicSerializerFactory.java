@@ -147,6 +147,7 @@ public class BasicSerializerFactory
         /* Finally, couple of oddball types. Not sure if these are
          * really needed...
          */
+        _concrete.put(java.util.regex.Pattern.class.getName(), sls);
         final NullSerializer nullS = NullSerializer.instance;
         _concrete.put(Void.TYPE.getName(), nullS);
     }
