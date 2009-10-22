@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.compat;
 
 import main.BaseTest;
 
@@ -6,7 +6,9 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import net.sf.cglib.proxy.*;
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
 
 import org.codehaus.jackson.map.*;
 

@@ -174,3 +174,7 @@ Brian McCallister:
   * Suggested [JACKSON-173]: Add "JsonParser.Feature.ALLOW_SINGLE_QUOTES"
     to handle commonly encountered invalid JSON content
    [1.3.0]
+
+Ted Bergeron:
+  * Reported [JACKSON-177].
+   [1.3.0]
