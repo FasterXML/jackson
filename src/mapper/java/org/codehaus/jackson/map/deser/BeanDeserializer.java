@@ -607,7 +607,7 @@ public class BeanDeserializer
         public NumberCreator numberCreator()
         {
             if (_intConstructor == null && _intFactory == null
-                || _longConstructor == null && _longFactory == null) {
+                && _longConstructor == null && _longFactory == null) {
                 return null;
             }
             return new NumberCreator(_beanClass, _intConstructor, _intFactory,
