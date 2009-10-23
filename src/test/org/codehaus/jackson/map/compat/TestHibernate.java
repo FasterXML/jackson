@@ -24,7 +24,7 @@ public class TestHibernate
     //////////////////////////////////////////////
      */
 
-    interface BeanInterface {
+    interface BeanInterfaceHib {
         public int getX();
     }
 
@@ -40,7 +40,7 @@ public class TestHibernate
     public void testHibernateCglib() throws Exception
     {
         Enhancer enh = new Enhancer();
-        enh.setInterfaces(new Class[] { BeanInterface.class });
+        enh.setInterfaces(new Class[] { BeanInterfaceHib.class });
         enh.setCallback(new MethodInterceptor() {
                 public Object intercept(Object obj, Method method,
                                         Object[] args, MethodProxy proxy)
@@ -52,7 +52,7 @@ public class TestHibernate
                     return proxy.invokeSuper(obj, args);
                 }
             });
-        BeanInterface bean = (BeanInterface) enh.create();
+        BeanInterfaceHib bean = (BeanInterfaceHib) enh.create();
         ObjectMapper mapper = new ObjectMapper();
         Map<String,Object> result = writeAndMap(mapper, bean);
         assertEquals(1, result.size());
