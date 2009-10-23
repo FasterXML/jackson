@@ -91,7 +91,7 @@ public class CreatorContainer
     public Creator.NumberBased numberCreator()
     {
         if (_intConstructor == null && _intFactory == null
-            || _longConstructor == null && _longFactory == null) {
+            && _longConstructor == null && _longFactory == null) {
             return null;
         }
         return new Creator.NumberBased(_beanClass, _intConstructor, _intFactory,

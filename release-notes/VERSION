@@ -21,6 +21,8 @@ Description:
     (reported by Randy L)
   * [JACKSON-177] Problems with Hibernate, repackaged cglib
     (reported by Ted B)
+  * [JACKSON-179] Single-long-arg factory Creators were not working
+    (reported by Brian M)
 
   Improvements:
 

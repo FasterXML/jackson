@@ -48,16 +48,6 @@ public class TestCreators
         }
     }
 
-    static class LongFactoryBean {
-        long value;
-
-        private LongFactoryBean(long v) { value = v; }
-
-        @JsonCreator static protected LongFactoryBean valueOf(long v) {
-            return new LongFactoryBean(v);
-        }
-    }
-
     static class FactoryBean {
         double d; // teehee
 
@@ -65,6 +55,16 @@ public class TestCreators
 
         @JsonCreator protected static FactoryBean createIt(@JsonProperty("f") double value) {
             return new FactoryBean(value, true);
+        }
+    }
+
+    static class LongFactoryBean {
+        long value;
+
+        private LongFactoryBean(long v) { value = v; }
+
+        @JsonCreator static protected LongFactoryBean valueOf(long v) {
+            return new LongFactoryBean(v);
         }
     }
 
@@ -277,7 +277,7 @@ public class TestCreators
     {
         ObjectMapper m = new ObjectMapper();
         long VALUE = 123456789000L;
-        LongFactoryBean bean = m.readValue("{ \"f\" : "+VALUE+" }", LongFactoryBean.class);
+        LongFactoryBean bean = m.readValue(String.valueOf(VALUE), LongFactoryBean.class);
         assertEquals(VALUE, bean.value);
     }
 
