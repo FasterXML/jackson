@@ -136,6 +136,21 @@ public class SerializationConfig
          */
         ,USE_STATIC_TYPING(false)
 
+        /**
+         * Feature that can be enabled to make root value (usually JSON
+         * Object but can be any type) wrapped within a single property
+         * JSON object, where key as the "root name", as determined by
+         * annotation introspector (esp. for JAXB that uses
+         * <code>@XmlRootElement.name</code>) or fallback (non-qualified
+         * class name).
+         * Feature is mostly intended for JAXB compatibility.
+         *<p>
+         * Default setting is false, meaning root value is not wrapped.
+         *
+         * @since 1.3
+         */
+        ,WRAP_ROOT_VALUE(false)
+
         // // // Features for datatype-specific serialization
 
         /**

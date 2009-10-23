@@ -179,6 +179,23 @@ public class DeserializationConfig
          * @since 1.2
          */
          FAIL_ON_UNKNOWN_PROPERTIES(true)
+
+        // // // Structural changes
+
+        /**
+         * Feature that can be enabled to handle "wrapped" values
+         * (see {@link SerializationConfig.Feature#WRAP_ROOT_VALUE}
+         * for details).
+         * If enabled, value being deserialized must be a single-property
+         * JSON Object where the key name matches expected "root name"
+         * (determined using annotation, or if none, fallback which is
+         * the unqualified class name of the expected value)
+         *<p>
+         * Default setting is false, meaning root value is not wrapped.
+         *
+         * @since 1.3
+         */
+        ,WRAP_ROOT_VALUE(false)
 	            ;
 
         final boolean _defaultState;
