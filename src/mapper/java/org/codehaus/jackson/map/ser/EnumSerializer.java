@@ -43,7 +43,7 @@ public class EnumSerializer
     {
         ObjectNode objectNode = createSchemaNode("string", true);
         if (typeHint != null) {
-            JavaType type = TypeFactory.fromType(typeHint);
+            JavaType type = TypeFactory.type(typeHint);
             if (type.isEnumType()) {
                 ArrayNode enumNode = objectNode.putArray("enum");
                 for (String value : _values.values()) {

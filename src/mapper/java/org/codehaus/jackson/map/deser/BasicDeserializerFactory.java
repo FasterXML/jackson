@@ -31,7 +31,7 @@ public abstract class BasicDeserializerFactory
 {
     // // Can cache some types
 
-    final static JavaType TYPE_STRING = TypeFactory.fromClass(String.class);
+    final static JavaType TYPE_STRING = TypeFactory.type(String.class);
 
     /**
      * We will pre-create serializers for common non-structured
@@ -401,7 +401,7 @@ public abstract class BasicDeserializerFactory
                                    BasicBeanDescription beanDesc, Type rawType,
                                    Annotated a)
     {
-        JavaType type = TypeFactory.fromType(rawType, beanDesc.getType());
+        JavaType type = TypeFactory.type(rawType, beanDesc.getType());
         // [JACKSON-154]: Also need to handle keyUsing, contentUsing
         if (type.isContainerType()) {
             AnnotationIntrospector intr = config.getAnnotationIntrospector();

@@ -41,7 +41,7 @@ class StdKeyDeserializers
     private void add(StdKeyDeserializer kdeser)
     {
         Class<?> keyClass = kdeser.getKeyClass();
-        _keyDeserializers.put(TypeFactory.fromClass(keyClass), kdeser);
+        _keyDeserializers.put(TypeFactory.type(keyClass), kdeser);
     }
 
     public static HashMap<JavaType, KeyDeserializer> constructAll()

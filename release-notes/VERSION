@@ -53,6 +53,9 @@ Description:
   * [JACKSON-174] Add "ObjectMapper.convertValue()" convenience method
     for simple Object-to-Object conversions, using Jackson's data binding
     functionality
+  * [JACKSON-181] Added convenience methods in TypeFactory to allow
+    dynamically constructed fully typed structured types (map, collection
+    array types), similar to using TypeReference but without inner classes
   * Added method in AnnotationIntrospector to find declared namespace
     for JAXB annotations, needed for XML compatibility (future features)
 

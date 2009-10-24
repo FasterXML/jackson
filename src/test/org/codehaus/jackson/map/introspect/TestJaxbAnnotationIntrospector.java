@@ -11,7 +11,6 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 import java.io.StringWriter;
-import java.io.File;
 import java.util.*;
 
 /**

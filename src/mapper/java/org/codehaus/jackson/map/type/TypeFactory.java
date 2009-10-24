@@ -7,8 +7,25 @@ import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
- * Class that knows how construct {@link JavaType} instances,
+ * Class used for constracting concrete {@link JavaType} instances,
  * given various inputs.
+ *<p>
+ * Typical usage patterns is to statically import factory methods
+ * of this class, to allow convenient instantiation of structured
+ * types, especially {@link Collection} and {@link Map} types
+ * to represent generic types. For example
+ *<pre>
+ * mapType(Integer.class)
+ *</pre>
+ * to represent
+ *<pre>
+ *  Map&lt;String,Integer>
+ *</pre>
+ * This is an alternative to using {@link TypeReference} that would
+ * be something like
+ *<pre>
+ *  new TypeReference&lt;Map&lt;String,Integer>>() { }
+ *</pre>
  */
 public class TypeFactory
 {
@@ -29,6 +46,124 @@ public class TypeFactory
      */
 
     /**
+     * Factory method for constructing {@link JavaType} from given
+     * "raw" type; which may be anything from simple {@link Class}
+     * to full generic type.
+     *
+     * @since 1.3
+     */
+    public static JavaType type(Type t)
+    {
+        return instance._fromType(t, null);
+    }
+
+    /**
+     * Factory method that can use given context to resolve
+     * named generic types.
+     *
+     * @param context Type context that can be used for binding
+     *   named formal type parameters, if any (if null, no context
+     *   is used)
+     */
+    public static JavaType type(Type type, JavaType context)
+    {
+        return instance._fromType(type, context);
+    }
+
+    /**
+     * Factory method that can be used if the full generic type has
+     * been passed using {@link TypeReference}. This only needs to be
+     * done if the root type to bind to is generic; but if so,
+     * it must be done to get proper typing.
+     */
+    public static JavaType type(TypeReference<?> ref)
+    {
+        return type(ref.getType());
+    }
+    
+    /**
+     * Convenience factory method for constructing {@link JavaType} that
+     * represent array that contains elements
+     * of specified type.
+     *
+     * @since 1.3
+     */
+    public static JavaType arrayType(Class<?> elementType)
+    {
+        return arrayType(type(elementType));
+    }
+
+    /**
+     * Convenience factory method for constructing {@link JavaType} that
+     * represent array that contains elements
+     * of specified type.
+     * 
+     * @since 1.3
+     */
+    public static JavaType arrayType(JavaType elementType)
+    {
+        return ArrayType.construct(elementType);
+    }
+
+    /**
+     * Convenience factory method for constructing {@link JavaType} that
+     * represent Collection of specified type and contains elements
+     * of specified type
+     *
+     * @since 1.3
+     */
+    @SuppressWarnings("unchecked")
+    public static JavaType collectionType(Class<? extends Collection> collectionType, Class<?> elementType)
+    {
+        return collectionType(collectionType, type(elementType));
+    }
+    
+    /**
+     * Convenience factory method for constructing {@link JavaType} that
+     * represent Collection of specified type and contains elements
+     * of specified type
+     *
+     * @since 1.3
+     */
+    @SuppressWarnings("unchecked")
+    public static JavaType collectionType(Class<? extends Collection> collectionType, JavaType elementType)
+    {
+        return CollectionType.construct(collectionType, elementType);
+    }
+
+    /**
+     * Convenience factory method for constructing {@link JavaType} that
+     * represent Map of specified type and contains elements
+     * of specified type
+     *
+     * @since 1.3
+     */
+    @SuppressWarnings("unchecked")
+    public static JavaType mapType(Class<? extends Map> mapType, Class<?> keyType, Class<?> valueType)
+    {
+        return mapType(mapType, type(keyType), type(valueType));
+    }
+
+    /**
+     * Convenience factory method for constructing {@link JavaType} that
+     * represent Map of specified type and contains elements
+     * of specified type
+     *
+     * @since 1.3
+     */
+    @SuppressWarnings("unchecked")
+    public static JavaType mapType(Class<? extends Map> mapType, JavaType keyType, JavaType valueType)
+    {
+        return MapType.construct(mapType, keyType, valueType);
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Legacy methods
+    ///////////////////////////////////////////////////////
+     */
+
+    /**
      * Factory method that can be used if only type information
      * available is of type {@link Class}. This means that there
      * will not be generic type information due to type erasure,
@@ -36,6 +171,8 @@ public class TypeFactory
      * types and non-typed container types.
      * And for other types (primitives/wrappers, beans), this
      * is all that is needed.
+     *
+     * @deprecated Use {@link #type(Type)} instead
      */
     public static JavaType fromClass(Class<?> clz)
     {
@@ -47,16 +184,20 @@ public class TypeFactory
      * been passed using {@link TypeReference}. This only needs to be
      * done if the root type to bind to is generic; but if so,
      * it must be done to get proper typing.
+     *
+     * @deprecated Use {@link #type(Type)} instead
      */
     public static JavaType fromTypeReference(TypeReference<?> ref)
     {
-        return fromType(ref.getType());
+        return type(ref.getType());
     }
 
     /**
      * Factory method that can be used if type information is passed
      * as Java typing returned from <code>getGenericXxx</code> methods
      * (usually for a return or argument type).
+     *
+     * @deprecated Use {@link #type(Type)} instead
      */
     public static JavaType fromType(Type type)
     {
@@ -67,6 +208,8 @@ public class TypeFactory
      * @param context Type context that can be used for binding
      *   named formal type parameters, if any (if null, no context
      *   is used)
+     *
+     * @deprecated Use {@link #type(Type,JavaType)} instead
      */
     public static JavaType fromType(Type type, JavaType context)
     {
@@ -87,7 +230,7 @@ public class TypeFactory
     {
         // First: do we have an array type?
         if (clz.isArray()) {
-            return ArrayType.construct(fromClass(clz.getComponentType()));
+            return ArrayType.construct(_fromType(clz.getComponentType(), null));
         }
         /* Maps and Collections aren't quite as hot; problem is, due
          * to type erasure we often do not know typing and can only assume

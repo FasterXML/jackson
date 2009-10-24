@@ -1,8 +1,6 @@
 package org.codehaus.jackson.node;
 
 import java.io.*;
-import java.math.BigInteger;
-import java.math.BigDecimal;
 import java.util.*;
 
 import org.codehaus.jackson.*;

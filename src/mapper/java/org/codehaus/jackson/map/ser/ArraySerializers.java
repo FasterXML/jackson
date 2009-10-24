@@ -93,7 +93,7 @@ public final class ArraySerializers
         {
             ObjectNode o = createSchemaNode("array", true);
             if (typeHint != null) {
-                JavaType javaType = TypeFactory.fromType(typeHint);
+                JavaType javaType = TypeFactory.type(typeHint);
                 if (javaType.isArrayType()) {
                     Class<?> componentType = ((ArrayType) javaType).getContentType().getRawClass();
                     JsonSerializer<Object> ser = provider.findValueSerializer(componentType);

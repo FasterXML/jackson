@@ -511,7 +511,7 @@ public class JacksonJsonProvider
      */
     protected JavaType _convertType(Type jdkType)
     {
-        return TypeFactory.fromType(jdkType);
+        return TypeFactory.type(jdkType);
     }
 
     protected Annotations[] _defaultAnnotations() {

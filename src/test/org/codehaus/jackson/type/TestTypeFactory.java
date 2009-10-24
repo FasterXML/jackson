@@ -32,8 +32,8 @@ public class TestTypeFactory
         };
 
         for (Class<?> clz : classes) {
-            assertSame(clz, TypeFactory.fromClass(clz).getRawClass());
-            assertSame(clz, TypeFactory.fromType(clz).getRawClass());
+            assertSame(clz, TypeFactory.type(clz).getRawClass());
+            assertSame(clz, TypeFactory.type(clz).getRawClass());
         }
     }
 
@@ -49,20 +49,21 @@ public class TestTypeFactory
         };
 
         for (Class<?> clz : classes) {
-            assertSame(clz, TypeFactory.fromClass(clz).getRawClass());
-            assertSame(clz, TypeFactory.fromType(clz).getRawClass());
+            assertSame(clz, TypeFactory.type(clz).getRawClass());
+            Class<?> elemType = clz.getComponentType();
+            assertSame(clz, TypeFactory.arrayType(elemType).getRawClass());
         }
     }
 
     public void testCollections()
     {
         // Ok, first: let's test what happens when we pass 'raw' Collection:
-        JavaType t = TypeFactory.fromClass(ArrayList.class);
+        JavaType t = TypeFactory.type(ArrayList.class);
         assertEquals(CollectionType.class, t.getClass());
         assertSame(ArrayList.class, t.getRawClass());
 
         // And then the proper way
-        t = TypeFactory.fromTypeReference(new TypeReference<ArrayList<String>>() { });
+        t = TypeFactory.type(new TypeReference<ArrayList<String>>() { });
         assertEquals(CollectionType.class, t.getClass());
         assertSame(ArrayList.class, t.getRawClass());
 
@@ -70,21 +71,32 @@ public class TestTypeFactory
         assertNotNull(elemType);
         assertSame(SimpleType.class, elemType.getClass());
         assertSame(String.class, elemType.getRawClass());
+
+        // And alternate method too
+        t = TypeFactory.collectionType(ArrayList.class, String.class);
+        assertEquals(CollectionType.class, t.getClass());
+        assertSame(String.class, ((CollectionType) t).getContentType().getRawClass());
     }
 
     public void testMaps()
     {
         // Ok, first: let's test what happens when we pass 'raw' Map:
-        JavaType t = TypeFactory.fromClass(HashMap.class);
+        JavaType t = TypeFactory.type(HashMap.class);
         assertEquals(MapType.class, t.getClass());
         assertSame(HashMap.class, t.getRawClass());
 
         // And then the proper way
-        t = TypeFactory.fromTypeReference(new TypeReference<HashMap<String,Integer>>() { });
+        t = TypeFactory.type(new TypeReference<HashMap<String,Integer>>() { });
         assertEquals(MapType.class, t.getClass());
         assertSame(HashMap.class, t.getRawClass());
         MapType mt = (MapType) t;
-        assertEquals(TypeFactory.fromClass(String.class), mt.getKeyType());
-        assertEquals(TypeFactory.fromClass(Integer.class), mt.getContentType());
+        assertEquals(TypeFactory.type(String.class), mt.getKeyType());
+        assertEquals(TypeFactory.type(Integer.class), mt.getContentType());
+
+        // And alternate method too
+        t = TypeFactory.mapType(TreeMap.class, String.class, Integer.class);
+        assertEquals(MapType.class, t.getClass());
+        assertSame(String.class, ((MapType) t).getKeyType().getRawClass());
+        assertSame(Integer.class, ((MapType) t).getContentType().getRawClass());
     }
 }

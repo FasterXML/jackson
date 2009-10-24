@@ -66,7 +66,7 @@ public final class ArrayType
          * only simple way to do it.
          */
         Class<?> newCompClass = subclass.getComponentType();
-        JavaType newCompType = TypeFactory.fromClass(newCompClass);
+        JavaType newCompType = TypeFactory.type(newCompClass);
         return construct(newCompType);
     }
 

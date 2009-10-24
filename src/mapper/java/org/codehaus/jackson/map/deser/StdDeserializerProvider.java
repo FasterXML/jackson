@@ -19,8 +19,8 @@ import org.codehaus.jackson.type.JavaType;
 public class StdDeserializerProvider
     extends DeserializerProvider
 {
-    final static JavaType _typeObject = TypeFactory.fromClass(Object.class);
-    final static JavaType _typeString = TypeFactory.fromClass(String.class);
+    final static JavaType _typeObject = TypeFactory.type(Object.class);
+    final static JavaType _typeString = TypeFactory.type(String.class);
 
     /*
     ////////////////////////////////////////////////////

@@ -1,7 +1,5 @@
 package org.codehaus.jackson.node;
 
-import org.codehaus.jackson.JsonGenerator;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 

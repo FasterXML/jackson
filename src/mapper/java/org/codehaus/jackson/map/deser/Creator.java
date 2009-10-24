@@ -145,11 +145,11 @@ abstract class Creator
             if (ctor != null) {
                 _ctor = ctor.getAnnotated();
                 _factoryMethod = null;
-                _valueType = TypeFactory.fromType(ctor.getParameterType(0));
+                _valueType = TypeFactory.type(ctor.getParameterType(0));
             } else if (factory != null) {
                 _ctor = null;
                 _factoryMethod = factory.getAnnotated();
-                _valueType = TypeFactory.fromType(factory.getParameterType(0));
+                _valueType = TypeFactory.type(factory.getParameterType(0));
             } else {
                 throw new IllegalArgumentException("Internal error: neither delegating constructor nor factory method passed");
             }

@@ -1,7 +1,5 @@
 package org.codehaus.jackson.io;
 
-import java.io.*;
-
 import org.codehaus.jackson.util.BufferRecycler;
 
 public class TestIOContext

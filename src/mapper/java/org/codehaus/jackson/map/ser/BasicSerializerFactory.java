@@ -784,7 +784,7 @@ public class BasicSerializerFactory
             String objectProperties = null;
             String itemDefinition = null;
             if (typeHint != null) {
-                Class<?> rawClass = TypeFactory.fromType(typeHint).getRawClass();
+                Class<?> rawClass = TypeFactory.type(typeHint).getRawClass();
                 if (rawClass.isAnnotationPresent(JsonSerializableSchema.class)) {
                     JsonSerializableSchema schemaInfo = rawClass.getAnnotation(JsonSerializableSchema.class);
                     schemaType = schemaInfo.schemaType();

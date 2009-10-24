@@ -93,7 +93,7 @@ public final class ContainerSerializers
         {
             ObjectNode o = createSchemaNode("array", true);
             if (typeHint != null) {
-                JavaType javaType = TypeFactory.fromType(typeHint);
+                JavaType javaType = TypeFactory.type(typeHint);
                 if (javaType instanceof CollectionType) {
                     Class<?> componentType = ((CollectionType) javaType).getContentType().getRawClass();
                     JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
@@ -166,7 +166,7 @@ public final class ContainerSerializers
         {
             ObjectNode o = createSchemaNode("array", true);
             if (typeHint != null) {
-                JavaType javaType = TypeFactory.fromType(typeHint);
+                JavaType javaType = TypeFactory.type(typeHint);
                 if (javaType instanceof CollectionType) {
                     Class<?> componentType = ((CollectionType) javaType).getContentType().getRawClass();
                     JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
@@ -223,7 +223,7 @@ public final class ContainerSerializers
             if (typeHint instanceof ParameterizedType) {
                 Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
                 if (typeArgs.length == 1) {
-                    JavaType javaType = TypeFactory.fromType(typeArgs[0]);
+                    JavaType javaType = TypeFactory.type(typeArgs[0]);
                     JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
@@ -279,7 +279,7 @@ public final class ContainerSerializers
             if (typeHint instanceof ParameterizedType) {
                 Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
                 if (typeArgs.length == 1) {
-                    JavaType javaType = TypeFactory.fromType(typeArgs[0]);
+                    JavaType javaType = TypeFactory.type(typeArgs[0]);
                     JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
@@ -323,7 +323,7 @@ public final class ContainerSerializers
             if (typeHint instanceof ParameterizedType) {
                 Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
                 if (typeArgs.length == 1) {
-                    JavaType javaType = TypeFactory.fromType(typeArgs[0]);
+                    JavaType javaType = TypeFactory.type(typeArgs[0]);
                     JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
@@ -469,8 +469,8 @@ public final class ContainerSerializers
             if (typeHint instanceof ParameterizedType) {
                 Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
                 if (typeArgs.length == 2) {
-                    JavaType enumType = TypeFactory.fromType(typeArgs[0]);
-                    JavaType valueType = TypeFactory.fromType(typeArgs[1]);
+                    JavaType enumType = TypeFactory.type(typeArgs[0]);
+                    JavaType valueType = TypeFactory.type(typeArgs[1]);
                     ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
                     Class<Enum<?>> enumClass = (Class<Enum<?>>) enumType.getRawClass();
                     for (Enum<?> enumValue : enumClass.getEnumConstants()) {

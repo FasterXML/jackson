@@ -439,7 +439,7 @@ public class BeanDeserializerFactory
         JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, am);
         // we know it's a 2-arg method, second arg is the vlaue
         Type rawType = am.getParameterType(1);
-        JavaType type = TypeFactory.fromType(rawType);
+        JavaType type = TypeFactory.type(rawType);
         Method m = am.getAnnotated();
         if (deser != null) {
             SettableAnyProperty prop = new SettableAnyProperty(type, m);
@@ -541,7 +541,7 @@ public class BeanDeserializerFactory
         }
 
         // note: this works since we know there's exactly one arg for methods
-        JavaType type = TypeFactory.fromType(getter.getGenericReturnType());
+        JavaType type = TypeFactory.type(getter.getGenericReturnType());
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */

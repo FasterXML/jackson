@@ -113,6 +113,19 @@ public abstract class JsonParser
          */
         ,ALLOW_SINGLE_QUOTES(false)
 
+        /**
+         * Feature that determines whether JSON object field names are
+         * to be canonicalized using {@link String#intern} or not:
+         * if enabled, all field names will be intern()ed (and caller
+         * can count on this being true for all such names); if disabled,
+         * no intern()ing is done. There may still be basic
+         * canonicalization (that is, same String will be used to represent
+         * all identical object property names for a single document).
+         *
+         * @since 1.3
+         */
+         ,INTERN_FIELD_NAMES(true)
+
             // 14-Sep-2009, Tatu: This would be [JACKSON-142] implementation:
         /*
          * Feature that allows parser to recognize set of

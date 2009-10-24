@@ -24,7 +24,7 @@ public class TestObjectMapper
         ObjectMapper m = new ObjectMapper();
         assertTrue(m.canSerialize(String.class));
 
-        assertTrue(m.canDeserialize(TypeFactory.fromClass(String.class)));
+        assertTrue(m.canDeserialize(TypeFactory.type(String.class)));
     }
 
     public void testTreeRead() throws Exception

@@ -131,7 +131,7 @@ public class BasicClassIntrospector
          */
         ac.resolveCreators(false);
         ac.resolveFields();
-        return new BasicBeanDescription(TypeFactory.fromClass(c), ac, ai);
+        return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
     }
 
     @Override
@@ -157,7 +157,7 @@ public class BasicClassIntrospector
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, ai, r);
         ac.resolveCreators(true);
-        return new BasicBeanDescription(TypeFactory.fromClass(c), ac, ai);
+        return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
     }
 
     @Override
@@ -167,7 +167,7 @@ public class BasicClassIntrospector
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, ai, r);
-        return new BasicBeanDescription(TypeFactory.fromClass(c), ac, ai);
+        return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
     }
 
     /*
