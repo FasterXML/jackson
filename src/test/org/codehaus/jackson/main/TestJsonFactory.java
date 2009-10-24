@@ -7,20 +7,32 @@ import org.codehaus.jackson.*;
 public class TestJsonFactory
     extends main.BaseTest
 {
-    @SuppressWarnings("deprecation")
-    public void testFeatures() throws Exception
+    public void testGeneratorFeatures() throws Exception
     {
         JsonFactory f = new JsonFactory();
         assertNull(f.getCodec());
 
-        // First still supported methods
         f.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
         assertTrue(f.isEnabled(JsonGenerator.Feature.QUOTE_FIELD_NAMES));
         f.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
         assertFalse(f.isEnabled(JsonGenerator.Feature.QUOTE_FIELD_NAMES));
-        
-        // Then deprecated methods
-        
+    }
+
+    public void testParserFeatures() throws Exception
+    {
+        JsonFactory f = new JsonFactory();
+        assertNull(f.getCodec());
+
+        f.configure(JsonParser.Feature.INTERN_FIELD_NAMES, true);
+        assertTrue(f.isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES));
+        f.configure(JsonParser.Feature.INTERN_FIELD_NAMES, false);
+        assertFalse(f.isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES));
+    }
+    
+    @SuppressWarnings("deprecation")
+    public void testDeprecatedFeatures() throws Exception
+    {
+        JsonFactory f = new JsonFactory();
         f.enableParserFeature(JsonParser.Feature.ALLOW_COMMENTS);
         assertTrue(f.isParserFeatureEnabled(JsonParser.Feature.ALLOW_COMMENTS));
         f.disableParserFeature(JsonParser.Feature.ALLOW_COMMENTS);

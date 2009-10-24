@@ -179,4 +179,10 @@ Brian McCallister:
 
 Ted Bergeron:
   * Reported [JACKSON-177].
-   [ 1.3.0]
+   [1.3.0]
+
+Jeff Yu:
+  * Suggested [JACKSON-180]: Add 'JsonParser.Feature.INTERN_FIELD_NAMES' to
+    allow disabling field name intern()ing.
+   [1.3.0]
+

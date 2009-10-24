@@ -25,6 +25,8 @@ public final class ReaderBasedParser
 
     final protected CharsToNameCanonicalizer _symbols;
 
+    final protected boolean _internFieldNames;
+    
     /*
     ////////////////////////////////////////////////////
     // Life-cycle
@@ -37,6 +39,7 @@ public final class ReaderBasedParser
         super(ioCtxt, features, r);
         _objectCodec = codec;
         _symbols = st;
+        _internFieldNames = isEnabled(Feature.INTERN_FIELD_NAMES);
     }
 
     public ObjectCodec getCodec() {
@@ -252,7 +255,7 @@ public final class ReaderBasedParser
                     if (ch == '"') {
                         int start = _inputPtr;
                         _inputPtr = ptr+1; // to skip the quote
-                        return _symbols.findSymbol(_inputBuffer, start, ptr - start, hash);
+                        return _symbols.findSymbol(_internFieldNames, _inputBuffer, start, ptr - start, hash);
                     }
                     break;
                 }
@@ -318,7 +321,7 @@ public final class ReaderBasedParser
             int start = tb.getTextOffset();
             int len = tb.size();
 
-            return _symbols.findSymbol(buf, start, len, hash);
+            return _symbols.findSymbol(_internFieldNames, buf, start, len, hash);
         }
     }
 
@@ -366,12 +369,12 @@ public final class ReaderBasedParser
                     if (codes[ch] != 0) {
                         int start = _inputPtr-1; // -1 to bring back first char
                         _inputPtr = ptr;
-                        return _symbols.findSymbol(_inputBuffer, start, ptr - start, hash);
+                        return _symbols.findSymbol(_internFieldNames, _inputBuffer, start, ptr - start, hash);
                     }
                 } else if (!Character.isJavaIdentifierPart((char) ch)) {
                     int start = _inputPtr-1; // -1 to bring back first char
                     _inputPtr = ptr;
-                    return _symbols.findSymbol(_inputBuffer, start, ptr - start, hash);
+                    return _symbols.findSymbol(_internFieldNames, _inputBuffer, start, ptr - start, hash);
                 }
                 hash = (hash * 31) + ch;
                 ++ptr;
@@ -399,7 +402,7 @@ public final class ReaderBasedParser
                 if (ch == '\'') {
                     int start = _inputPtr;
                     _inputPtr = ptr+1; // to skip the quote
-                    return _symbols.findSymbol(_inputBuffer, start, ptr - start, hash);
+                    return _symbols.findSymbol(_internFieldNames, _inputBuffer, start, ptr - start, hash);
                 }
                 if (ch < maxCode && codes[ch] != 0) {
                     break;
@@ -519,7 +522,7 @@ public final class ReaderBasedParser
             int start = tb.getTextOffset();
             int len = tb.size();
 
-            return _symbols.findSymbol(buf, start, len, hash);
+            return _symbols.findSymbol(_internFieldNames, buf, start, len, hash);
         }
     }
   

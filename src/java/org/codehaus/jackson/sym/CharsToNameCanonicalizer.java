@@ -50,17 +50,6 @@ public final class CharsToNameCanonicalizer
     protected static final int DEFAULT_TABLE_SIZE = 64;
 
     /**
-     * Config setting that determines whether Strings to be added need to be
-     * interned before being added or not. Forcing intern()ing will add
-     * some overhead when adding new Strings, but may be beneficial if such
-     * Strings are generally used by other parts of system. Note that even
-     * without interning, all returned String instances are guaranteed
-     * to be comparable with equality (==) operator; it's just that such
-     * guarantees are not made for Strings other classes return.
-     */
-    protected static final boolean INTERN_STRINGS = true;
-
-    /**
      * Let's limit max size to 3/4 of 8k; this corresponds
      * to 32k main hash index. This should allow for enough distinct
      * names for almost any case.
@@ -311,7 +300,11 @@ public final class CharsToNameCanonicalizer
     ////////////////////////////////////////////////////
      */
 
-    public String findSymbol(char[] buffer, int start, int len, int hash)
+    /**
+     * @param intern If a new symbol String needs to be constructed, whether
+     *   it should be intern()ed or not.
+     */
+    public String findSymbol(boolean intern, char[] buffer, int start, int len, int hash)
     {
         if (len < 1) { // empty Strings are simplest to handle up front
             return "";
@@ -359,7 +352,7 @@ public final class CharsToNameCanonicalizer
         ++_size;
 
         String newSymbol = new String(buffer, start, len);
-        if (INTERN_STRINGS) {
+        if (intern) {
             newSymbol = InternCache.instance.intern(newSymbol);
         }
         // Ok; do we need to add primary entry, or a bucket?
@@ -372,79 +365,6 @@ public final class CharsToNameCanonicalizer
 
         return newSymbol;
     }
-
-    /**
-     * Similar to to {@link #findSymbol(char[],int,int,int)}; used to either
-     * do potentially cheap intern() (if table already has intern()ed version),
-     * or to pre-populate symbol table with known values.
-     */
-    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
-     *   let's just delete it.
-     */
-    /*
-    public String findSymbol(String str)
-    {
-        int len = str.length();
-        // Sanity check:
-        if (len < 1) {
-            return "";
-        }
-
-        int index = calcHash(str) & _indexMask;
-        String sym = _symbols[index];
-
-        // Optimal case; checking existing primary symbol for hash index:
-        if (sym != null) {
-            // Let's inline primary String equality checking:
-            if (sym.length() == len) {
-                int i = 0;
-                for (; i < len; ++i) {
-                    if (sym.charAt(i) != str.charAt(i)) {
-                        break;
-                    }
-                }
-                // Optimal case; primary match found
-                if (i == len) {
-                    return sym;
-                }
-            }
-            // How about collision bucket?
-            Bucket b = _buckets[index >> 1];
-            if (b != null) {
-                sym = b.find(str);
-                if (sym != null) {
-                    return sym;
-                }
-            }
-        }
-
-        // Need to expand?
-        if (_size >= _sizeThreshold) {
-            rehash();
-            // Need to recalc hash; rare occurence (index mask has been
-            // recalculated as part of rehash)
-            index = calcHash(str) & _indexMask;
-        } else if (!_dirty) {
-            // Or perhaps we need to do copy-on-write?
-            copyArrays();
-            _dirty = true;
-        }
-        ++_size;
-
-        if (INTERN_STRINGS) {
-            str = InternCache.instance.intern(str);
-        }
-        // Ok; do we need to add primary entry, or a bucket?
-        if (_symbols[index] == null) {
-            _symbols[index] = str;
-        } else {
-            int bix = index >> 1;
-            _buckets[bix] = new Bucket(str, _buckets[bix]);
-        }
-
-        return str;
-    }
-    */
 
     /**
      * Implementation of a hashing method for variable length

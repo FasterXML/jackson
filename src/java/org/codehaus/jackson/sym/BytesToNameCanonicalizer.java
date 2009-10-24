@@ -29,7 +29,7 @@ public final class BytesToNameCanonicalizer
      * 'empty' status.
      */
     final static int LAST_VALID_BUCKET = 0xFE;
-
+    
     /*
     /////////////////////////////////////////////////////
     // Linkage, needed for merging symbol tables
@@ -152,8 +152,6 @@ public final class BytesToNameCanonicalizer
 
     public synchronized BytesToNameCanonicalizer makeChild()
     {
-//System.err.print("[makeChild w "+System.identityHashCode(this)+", "+_count+"]");
-
         return new BytesToNameCanonicalizer(this);
     }
 
@@ -278,17 +276,6 @@ public final class BytesToNameCanonicalizer
         _collListShared = true;
     }
 
-    /**
-     * Method used by test code, to reset state of the name table.
-     */
-    /*
-    public void nuke() {
-        _mainHash = null;
-        _mainNames = null;
-        _collList = null;
-    }
-
-    */
     /*
     /////////////////////////////////////////////////////
     // API, accessors
@@ -466,8 +453,11 @@ public final class BytesToNameCanonicalizer
     /////////////////////////////////////////////////////
      */
 
-    public Name addName(String symbolStr, int[] quads, int qlen)
+    public Name addName(String symbolStr, boolean intern, int[] quads, int qlen)
     {
+        if (intern) {
+            symbolStr = InternCache.instance.intern(symbolStr);
+        }
         int hash = calcHash(quads, qlen);
         Name symbol = constructName(hash, symbolStr, quads, qlen);
         _addSymbol(hash, symbol);
@@ -823,18 +813,18 @@ public final class BytesToNameCanonicalizer
     /////////////////////////////////////////////////////
      */
 
-    public static Name constructName(int hash, String name, int q1, int q2)
-    {
-        name = InternCache.instance.intern(name);
+    /*
+    private static Name constructName(int hash, String name, int q1, int q2)
+    {     
         if (q2 == 0) { // one quad only?
             return new Name1(name, hash, q1);
         }
         return new Name2(name, hash, q1, q2);
     }
+    */
 
-    public static Name constructName(int hash, String name, int[] quads, int qlen)
+    private static Name constructName(int hash, String name, int[] quads, int qlen)
     {
-        name = InternCache.instance.intern(name);
         if (qlen < 4) { // Need to check for 3 quad one, can do others too
             switch (qlen) {
             case 1:

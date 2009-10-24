@@ -24,6 +24,13 @@ public class TestJsonParser
         assertTrue(jp.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
         jp.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
         assertFalse(jp.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+
+        // default should be true here:
+        assertTrue(jp.isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES));
+        jp.configure(JsonParser.Feature.INTERN_FIELD_NAMES, false);
+        assertFalse(jp.isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES));
+        jp.configure(JsonParser.Feature.INTERN_FIELD_NAMES, true);
+        assertTrue(jp.isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES));
     }
 
     @SuppressWarnings("deprecation")
@@ -37,6 +44,42 @@ public class TestJsonParser
         assertFalse(jp.isFeatureEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
         jp.setFeature(JsonParser.Feature.AUTO_CLOSE_SOURCE, true);
         assertTrue(jp.isFeatureEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
+    }
+
+    public void testInterningWithStreams() throws Exception
+    {
+        _testIntern(true, true, "a");
+        _testIntern(true, false, "b");
+    }
+
+    public void testInterningWithReaders() throws Exception
+    {
+        _testIntern(false, true, "c");
+        _testIntern(false, false, "d");
+    }
+    
+    private void _testIntern(boolean useStream, boolean enableIntern, String expName) throws IOException
+    {
+        JsonFactory f = new JsonFactory();
+        f.configure(JsonParser.Feature.INTERN_FIELD_NAMES, enableIntern);
+        assertEquals(enableIntern, f.isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES));
+        final String JSON = "{ \""+expName+"\" : 1}";
+        JsonParser jp = useStream ?
+            createParserUsingStream(f, JSON, "UTF-8") : createParserUsingReader(f, JSON);
+
+        assertEquals(enableIntern, jp.isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES));
+            
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        // needs to be same of cours
+        String actName = jp.getCurrentName();
+        assertEquals(expName, actName);
+        if (enableIntern) {
+            assertSame(expName, actName);
+        } else {
+            assertNotSame(expName, actName);
+        }
+        jp.close();
     }
 
     public void testTokenAccess() throws Exception

@@ -22,12 +22,18 @@ public final class Utf8StreamParser
     ////////////////////////////////////////////////////
     */
 
+    /**
+     * Codec used for data binding when (if) requested.
+     */
     protected ObjectCodec _objectCodec;
 
+    /**
+     * Symbol table that contains field names encountered so far
+     */
     final protected BytesToNameCanonicalizer _symbols;
 
     /**
-     * This buffer is used for name parsing.
+     * Temporary buffer used for name parsing.
      */
     protected int[] _quadBuffer = new int[32];
 
@@ -880,12 +886,11 @@ public final class Utf8StreamParser
          * for ns-aware mode...)
          */
         String baseName = new String(cbuf, 0, cix);
-        // And finally, unalign if necessary
+        // And finally, un-align if necessary
         if (lastQuadBytes < 4) {
             quads[qlen-1] = lastQuad;
         }
-        return _symbols.addName(baseName, quads, qlen);
-
+        return _symbols.addName(baseName, isEnabled(Feature.INTERN_FIELD_NAMES), quads, qlen);
     }
 
     /*

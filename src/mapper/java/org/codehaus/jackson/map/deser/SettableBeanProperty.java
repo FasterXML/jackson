@@ -42,8 +42,9 @@ public abstract class SettableBeanProperty
     public SettableBeanProperty(String propName, JavaType type)
     {
         /* 09-Jan-2009, tatu: Intern()ing makes sense since Jackson parsed
-         *   field names are interned too, hence lookups will be faster.
+         *   field names are (usually) interned too, hence lookups will be faster.
          */
+        // 23-Oct-2009, tatu: should this be disabled wrt [JACKSON-180]?
         if (propName == null || propName.length() == 0) {
             _propName = "";
         } else {
