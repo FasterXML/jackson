@@ -86,11 +86,11 @@ public class TestByteBasedSymbols
         assertNull(nc.findName(A_BYTES));
         assertNull(nc.findName(A_BYTES, B_BYTES));
 
-        nc.addName("AAAA", true, new int[] { A_BYTES }, 1);
+        nc.addName("AAAA", new int[] { A_BYTES }, 1);
         Name n1 = nc.findName(A_BYTES);
         assertNotNull(n1);
         assertEquals("AAAA", n1.getName());
-        nc.addName("AAAABBBB", true, new int[] { A_BYTES, B_BYTES }, 2);
+        nc.addName("AAAABBBB", new int[] { A_BYTES, B_BYTES }, 2);
         Name n2 = nc.findName(A_BYTES, B_BYTES);
         assertEquals("AAAABBBB", n2.getName());
         assertNotNull(n2);

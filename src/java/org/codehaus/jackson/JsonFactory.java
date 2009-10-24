@@ -78,7 +78,7 @@ public class JsonFactory
      * It should not be linked back to the original blueprint, to
      * avoid contents from leaking between factories.
      */
-    protected CharsToNameCanonicalizer _rootCharSymbols = CharsToNameCanonicalizer.createRoot();
+    protected CharsToNameCanonicalizer _rootCharSymbols = CharsToNameCanonicalizer.createRoot(true);
 
     /**
      * Alternative to the basic symbol table, some stream-based
@@ -381,7 +381,8 @@ public class JsonFactory
     public final JsonParser createJsonParser(Reader r)
         throws IOException, JsonParseException
     {
-        return new ReaderBasedParser(_createContext(r, false), _parserFeatures, r, _objectCodec, _rootCharSymbols.makeChild());
+        return new ReaderBasedParser(_createContext(r, false), _parserFeatures, r, _objectCodec,
+                _rootCharSymbols.makeChild(isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES)));
     }
 
     public final JsonParser createJsonParser(byte[] data)
@@ -403,7 +404,8 @@ public class JsonFactory
     {
         StringReader r = new StringReader(content);
         // true -> must be managed as caller didn't hand Reader
-        return new ReaderBasedParser(_createContext(r, true), _parserFeatures, r, _objectCodec, _rootCharSymbols.makeChild());
+        return new ReaderBasedParser(_createContext(r, true), _parserFeatures, r, _objectCodec,
+                _rootCharSymbols.makeChild(isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES)));
     }
 
     private JsonParser _createJsonParser(InputStream in, IOContext ctxt)

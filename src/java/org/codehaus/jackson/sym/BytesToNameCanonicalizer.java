@@ -44,6 +44,12 @@ public final class BytesToNameCanonicalizer
     /////////////////////////////////////////////////////    
      */
 
+    /**
+     * Whether canonial symbol Strings are to be intern()ed before added
+     * to the table or not
+     */
+    final boolean _intern;
+    
     // // // First, global information
 
     /**
@@ -147,12 +153,16 @@ public final class BytesToNameCanonicalizer
 
     public static BytesToNameCanonicalizer createRoot()
     {
-        return new BytesToNameCanonicalizer(DEFAULT_TABLE_SIZE);
+        return new BytesToNameCanonicalizer(DEFAULT_TABLE_SIZE, true);
     }
 
-    public synchronized BytesToNameCanonicalizer makeChild()
+    /**
+     * @param intern Whether canonical symbol Strings should be interned
+     *   or not
+     */
+    public synchronized BytesToNameCanonicalizer makeChild(boolean intern)
     {
-        return new BytesToNameCanonicalizer(this);
+        return new BytesToNameCanonicalizer(this, intern);
     }
 
     /**
@@ -174,9 +184,10 @@ public final class BytesToNameCanonicalizer
         }
     }
 
-    private BytesToNameCanonicalizer(int hashSize)
+    private BytesToNameCanonicalizer(int hashSize, boolean intern)
     {
         _parent = null;
+        _intern = intern;
         /* Sanity check: let's now allow hash sizes below certain
          * min. value
          */
@@ -200,9 +211,10 @@ public final class BytesToNameCanonicalizer
     /**
      * Constructor used when creating a child instance
      */
-    private BytesToNameCanonicalizer(BytesToNameCanonicalizer parent)
+    private BytesToNameCanonicalizer(BytesToNameCanonicalizer parent, boolean intern)
     {
         _parent = parent;
+        _intern = intern;
 
         // First, let's copy the state as is:
         _count = parent._count;
@@ -453,9 +465,9 @@ public final class BytesToNameCanonicalizer
     /////////////////////////////////////////////////////
      */
 
-    public Name addName(String symbolStr, boolean intern, int[] quads, int qlen)
+    public Name addName(String symbolStr, int[] quads, int qlen)
     {
-        if (intern) {
+        if (_intern) {
             symbolStr = InternCache.instance.intern(symbolStr);
         }
         int hash = calcHash(quads, qlen);

@@ -58,7 +58,7 @@ public final class CharsToNameCanonicalizer
 
     final static CharsToNameCanonicalizer sBootstrapSymbolTable;
     static {
-        sBootstrapSymbolTable = new CharsToNameCanonicalizer(DEFAULT_TABLE_SIZE);
+        sBootstrapSymbolTable = new CharsToNameCanonicalizer(DEFAULT_TABLE_SIZE, true);
     }
 
     /*
@@ -75,6 +75,12 @@ public final class CharsToNameCanonicalizer
      */
     protected CharsToNameCanonicalizer _parent;
 
+    /**
+     * Whether canonical symbol Strings are to be intern()ed before added
+     * to the table or not
+     */
+    final boolean _intern;
+    
     /*
     ////////////////////////////////////////
     // Actual symbol table data:
@@ -136,9 +142,9 @@ public final class CharsToNameCanonicalizer
     ////////////////////////////////////////
      */
 
-    public static CharsToNameCanonicalizer createRoot()
+    public static CharsToNameCanonicalizer createRoot(boolean intern)
     {
-        return sBootstrapSymbolTable.makeOrphan();
+        return sBootstrapSymbolTable.makeOrphan(intern);
     }
 
     /**
@@ -148,8 +154,9 @@ public final class CharsToNameCanonicalizer
      * @param initialSize Minimum initial size for bucket array; internally
      *   will always use a power of two equal to or bigger than this value.
      */
-    public CharsToNameCanonicalizer(int initialSize)
+    public CharsToNameCanonicalizer(int initialSize, boolean intern)
     {
+        _intern = intern;
         // And we'll also set flags so no copying of buckets is needed:
         _dirty = true;
 
@@ -185,10 +192,11 @@ public final class CharsToNameCanonicalizer
     /**
      * Internal constructor used when creating child instances.
      */
-    private CharsToNameCanonicalizer(CharsToNameCanonicalizer parent,
+    private CharsToNameCanonicalizer(CharsToNameCanonicalizer parent, boolean intern,
                         String[] symbols, Bucket[] buckets, int size)
     {
         _parent = parent;
+        _intern = intern;
 
         _symbols = symbols;
         _buckets = buckets;
@@ -214,14 +222,14 @@ public final class CharsToNameCanonicalizer
      * on which only makeChild/mergeChild are called, but instance itself
      * is not used as a symbol table.
      */
-    public synchronized CharsToNameCanonicalizer makeChild()
+    public synchronized CharsToNameCanonicalizer makeChild(boolean intern)
     {
-        return new CharsToNameCanonicalizer(this, _symbols, _buckets, _size);
+        return new CharsToNameCanonicalizer(this, intern, _symbols, _buckets, _size);
     }
 
-    private CharsToNameCanonicalizer makeOrphan()
+    private CharsToNameCanonicalizer makeOrphan(boolean intern)
     {
-        return new CharsToNameCanonicalizer(null, _symbols, _buckets, _size);
+        return new CharsToNameCanonicalizer(null, intern, _symbols, _buckets, _size);
     }
 
     /**
@@ -304,7 +312,7 @@ public final class CharsToNameCanonicalizer
      * @param intern If a new symbol String needs to be constructed, whether
      *   it should be intern()ed or not.
      */
-    public String findSymbol(boolean intern, char[] buffer, int start, int len, int hash)
+    public String findSymbol(char[] buffer, int start, int len, int hash)
     {
         if (len < 1) { // empty Strings are simplest to handle up front
             return "";
@@ -352,7 +360,7 @@ public final class CharsToNameCanonicalizer
         ++_size;
 
         String newSymbol = new String(buffer, start, len);
-        if (intern) {
+        if (_intern) {
             newSymbol = InternCache.instance.intern(newSymbol);
         }
         // Ok; do we need to add primary entry, or a bucket?

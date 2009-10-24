@@ -890,7 +890,7 @@ public final class Utf8StreamParser
         if (lastQuadBytes < 4) {
             quads[qlen-1] = lastQuad;
         }
-        return _symbols.addName(baseName, isEnabled(Feature.INTERN_FIELD_NAMES), quads, qlen);
+        return _symbols.addName(baseName, quads, qlen);
     }
 
     /*

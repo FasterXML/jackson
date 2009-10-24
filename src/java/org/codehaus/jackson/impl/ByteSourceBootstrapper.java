@@ -203,10 +203,11 @@ public final class ByteSourceBootstrapper
         throws IOException, JsonParseException
     {
         JsonEncoding enc = detectEncoding();
+        boolean intern = JsonParser.Feature.INTERN_FIELD_NAMES.enabledIn(features);
         if (enc == JsonEncoding.UTF8) {
-            return new Utf8StreamParser(_context, features, _in, codec, rootByteSymbols.makeChild(), _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
+            return new Utf8StreamParser(_context, features, _in, codec, rootByteSymbols.makeChild(intern), _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
         }
-        return new ReaderBasedParser(_context, features, constructReader(), codec, rootCharSymbols.makeChild());
+        return new ReaderBasedParser(_context, features, constructReader(), codec, rootCharSymbols.makeChild(intern));
     }
 
     /*
