@@ -1,8 +1,10 @@
 package org.codehaus.jackson.main;
 
-import org.codehaus.jackson.*;
-
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+import org.codehaus.jackson.*;
 
 /**
  * Set of basic unit tests for verifying that the basic generator
@@ -11,8 +13,14 @@ import java.io.*;
 public class TestJsonGeneratorFeatures
     extends main.BaseTest
 {
-    public void testFieldNameQuoting()
-        throws IOException
+    public void testConfigDefaults() throws IOException
+    {
+        JsonFactory jf = new JsonFactory();
+        JsonGenerator jg = jf.createJsonGenerator(new StringWriter());
+        assertFalse(jg.isEnabled(JsonGenerator.Feature.WRITE_NUMBERS_AS_STRINGS));
+    }
+
+    public void testFieldNameQuoting() throws IOException
     {
         JsonFactory jf = new JsonFactory();
         // by default, quoting should be enabled
@@ -39,6 +47,41 @@ public class TestJsonGeneratorFeatures
         _testNonNumericQuoting(jf, true);
     }
 
+    /**
+     * Testing for [JACKSON-176], ability to force serializing numbers
+     * as JSON Strings.
+     */
+    public void testNumbersAsJSONStrings() throws IOException
+    {
+        JsonFactory jf = new JsonFactory();
+        // by default should output numbers as-is:
+        assertEquals("[1,2,1.25,2.25,3,0.5]", _writeNumbers(jf));        
+
+        // but if overridden, quotes as Strings
+        jf.configure(JsonGenerator.Feature.WRITE_NUMBERS_AS_STRINGS, true);
+        assertEquals("[\"1\",\"2\",\"1.25\",\"2.25\",\"3\",\"0.5\"]",
+                     _writeNumbers(jf));
+    }
+
+    private String _writeNumbers(JsonFactory jf) throws IOException
+    {
+        StringWriter sw = new StringWriter();
+        JsonGenerator jg = jf.createJsonGenerator(sw);
+    
+        jg.writeStartArray();
+        jg.writeNumber(1);
+        jg.writeNumber(2L);
+        jg.writeNumber(1.25);
+        jg.writeNumber(2.25f);
+        jg.writeNumber(BigInteger.valueOf(3));
+        jg.writeNumber(BigDecimal.valueOf(0.5));
+        jg.writeEndArray();
+        jg.close();
+
+        return sw.toString();
+    }
+
+    
     @SuppressWarnings("deprecation")
     public void testDeprecated() throws IOException
     {

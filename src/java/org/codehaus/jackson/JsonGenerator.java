@@ -81,6 +81,24 @@ public abstract class JsonGenerator
          * Feature is enabled by default.
          */
         ,QUOTE_NON_NUMERIC_NUMBERS(true)
+
+        /**
+         * Feature that forces all Java numbers to be written as JSON strings.
+         * Default state is 'false', meaning that Java numbers are to
+         * be serialized using basic numeric serialization (as JSON
+         * numbers, integral or floating point). If enabled, all such
+         * numeric values are instead written out as JSON Strings.
+         *<p>
+         * One use case is to avoid problems with Javascript limitations:
+         * since Javascript standard specifies that all number handling
+         * should be done using 64-bit IEEE 754 floating point values,
+         * result being that some 64-bit integer values can not be
+         * accurately represent (as mantissa is only 51 bit wide).
+         *
+         * @since 1.3
+         */
+        ,WRITE_NUMBERS_AS_STRINGS(false)
+
             ;
 
         final boolean _defaultState;
