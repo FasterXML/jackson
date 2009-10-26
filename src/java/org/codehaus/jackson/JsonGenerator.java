@@ -136,7 +136,8 @@ public abstract class JsonGenerator
      */
     protected PrettyPrinter _cfgPrettyPrinter;
 
-    protected JsonGenerator() { }
+    protected JsonGenerator() {
+    }
 
     /*
     ////////////////////////////////////////////////////

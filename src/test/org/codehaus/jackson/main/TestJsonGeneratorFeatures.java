@@ -55,11 +55,11 @@ public class TestJsonGeneratorFeatures
     {
         JsonFactory jf = new JsonFactory();
         // by default should output numbers as-is:
-        assertEquals("[1,2,1.25,2.25,3,0.5]", _writeNumbers(jf));        
+        assertEquals("[1,2,1.25,2.25,3001,0.5,-1]", _writeNumbers(jf));        
 
         // but if overridden, quotes as Strings
         jf.configure(JsonGenerator.Feature.WRITE_NUMBERS_AS_STRINGS, true);
-        assertEquals("[\"1\",\"2\",\"1.25\",\"2.25\",\"3\",\"0.5\"]",
+        assertEquals("[\"1\",\"2\",\"1.25\",\"2.25\",\"3001\",\"0.5\",\"-1\"]",
                      _writeNumbers(jf));
     }
 
@@ -73,8 +73,9 @@ public class TestJsonGeneratorFeatures
         jg.writeNumber(2L);
         jg.writeNumber(1.25);
         jg.writeNumber(2.25f);
-        jg.writeNumber(BigInteger.valueOf(3));
+        jg.writeNumber(BigInteger.valueOf(3001));
         jg.writeNumber(BigDecimal.valueOf(0.5));
+        jg.writeNumber("-1");
         jg.writeEndArray();
         jg.close();
 

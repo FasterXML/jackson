@@ -28,7 +28,17 @@ public abstract class JsonGeneratorBase
      */
     protected int _features;
 
-    // // // State:
+    /**
+     * Flag set to indicate that implicit conversion from number
+     * to JSON String is needed (as per {@link Feature#WRITE_NUMBERS_AS_STRINGS}).
+     */
+    protected boolean _cfgNumbersAsStrings;
+
+    /*
+    ////////////////////////////////////////////////////
+    // State
+    ////////////////////////////////////////////////////
+     */
 
     /**
      * Object that keeps track of the current contextual state
@@ -55,6 +65,7 @@ public abstract class JsonGeneratorBase
         _features = features;
         _writeContext = JsonWriteContext.createRootContext();
         _objectCodec = codec;
+        _cfgNumbersAsStrings = isEnabled(Feature.WRITE_NUMBERS_AS_STRINGS);
     }
 
     /*
@@ -66,12 +77,18 @@ public abstract class JsonGeneratorBase
     @Override
     public JsonGenerator enable(Feature f) {
         _features |= f.getMask();
+        if (f == Feature.WRITE_NUMBERS_AS_STRINGS) {
+            _cfgNumbersAsStrings = true;
+        }
         return this;
     }
 
     @Override
     public JsonGenerator disable(Feature f) {
         _features &= ~f.getMask();
+        if (f == Feature.WRITE_NUMBERS_AS_STRINGS) {
+            _cfgNumbersAsStrings = false;
+        }
         return this;
     }
 

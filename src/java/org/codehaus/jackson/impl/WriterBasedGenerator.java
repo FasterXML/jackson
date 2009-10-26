@@ -24,7 +24,7 @@ public final class WriterBasedGenerator
     final protected IOContext _ioContext;
 
     final protected Writer _writer;
-
+    
     /*
     ////////////////////////////////////////////////////
     // Output buffering
@@ -93,7 +93,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	protected void _writeEndArray()
+    protected void _writeEndArray()
         throws IOException, JsonGenerationException
     {
         if (_outputTail >= _outputEnd) {
@@ -390,36 +390,64 @@ public final class WriterBasedGenerator
         throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write number");
-        // up to 10 digits, minus sign
+        // up to 10 digits and possible minus sign
         if ((_outputTail + 11) >= _outputEnd) {
             _flushBuffer();
         }
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedInt(i);
+            return;
+        }
         _outputTail = NumberOutput.outputInt(i, _outputBuffer, _outputTail);
     }
+
+    private final void _writeQuotedInt(int i) throws IOException {
+        if ((_outputTail + 13) >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = '"';
+        _outputTail = NumberOutput.outputInt(i, _outputBuffer, _outputTail);
+        _outputBuffer[_outputTail++] = '"';
+    }    
 
     @Override
     public void writeNumber(long l)
         throws IOException, JsonGenerationException
     {
-        // up to 20 digits, minus sign
         _verifyValueWrite("write number");
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedLong(l);
+            return;
+        }
         if ((_outputTail + 21) >= _outputEnd) {
+            // up to 20 digits, minus sign
             _flushBuffer();
         }
         _outputTail = NumberOutput.outputLong(l, _outputBuffer, _outputTail);
     }
 
+    private final void _writeQuotedLong(long l) throws IOException {
+        if ((_outputTail + 23) >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = '"';
+        _outputTail = NumberOutput.outputLong(l, _outputBuffer, _outputTail);
+        _outputBuffer[_outputTail++] = '"';
+    }
+
     // !!! 05-Aug-2008, tatus: Any ways to optimize these?
 
     @Override
-    public void writeNumber(BigInteger v)
+    public void writeNumber(BigInteger value)
         throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write number");
-        if (v == null) {
+        if (value == null) {
             _writeNull();
+        } else if (_cfgNumbersAsStrings) {
+            _writeQuotedRaw(value);
         } else {
-            writeRaw(v.toString());
+            writeRaw(value.toString());
         }
     }
 
@@ -428,12 +456,12 @@ public final class WriterBasedGenerator
     public void writeNumber(double d)
         throws IOException, JsonGenerationException
     {
-        if (Double.isNaN(d) || Double.isInfinite(d)) {
+        if (_cfgNumbersAsStrings ||
             // [JACKSON-139]
-            if (isEnabled(Feature.QUOTE_NON_NUMERIC_NUMBERS)) {
-        	writeString(String.valueOf(d));
-                return;
-            }
+            (((Double.isNaN(d) || Double.isInfinite(d))
+                && isEnabled(Feature.QUOTE_NON_NUMERIC_NUMBERS)))) {
+            writeString(String.valueOf(d));
+            return;
         }
         // What is the max length for doubles? 40 chars?
         _verifyValueWrite("write number");
@@ -444,12 +472,12 @@ public final class WriterBasedGenerator
     public void writeNumber(float f)
         throws IOException, JsonGenerationException
     {
-        if (Float.isNaN(f) || Float.isInfinite(f)) {
+        if (_cfgNumbersAsStrings ||
             // [JACKSON-139]
-            if (isEnabled(Feature.QUOTE_NON_NUMERIC_NUMBERS)) {
-        	writeString(String.valueOf(f));
-                return;
-            }
+            (((Float.isNaN(f) || Float.isInfinite(f))
+                && isEnabled(Feature.QUOTE_NON_NUMERIC_NUMBERS)))) {
+            writeString(String.valueOf(f));
+            return;
         }
         // What is the max length for floats?
         _verifyValueWrite("write number");
@@ -464,6 +492,8 @@ public final class WriterBasedGenerator
         _verifyValueWrite("write number");
         if (value == null) {
             _writeNull();
+        } else if (_cfgNumbersAsStrings) {
+            _writeQuotedRaw(value);
         } else {
             writeRaw(value.toString());
         }
@@ -474,11 +504,28 @@ public final class WriterBasedGenerator
         throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write number");
-        writeRaw(encodedValue);
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedRaw(encodedValue);            
+        } else {
+            writeRaw(encodedValue);
+        }
     }
 
+    private final void _writeQuotedRaw(Object value) throws IOException
+    {
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = '"';
+        writeRaw(value.toString());
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = '"';
+    }
+    
     @Override
-	public void writeBoolean(boolean state)
+    public void writeBoolean(boolean state)
         throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write boolean value");

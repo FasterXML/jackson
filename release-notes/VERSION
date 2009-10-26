@@ -53,6 +53,10 @@ Description:
   * [JACKSON-174] Add "ObjectMapper.convertValue()" convenience method
     for simple Object-to-Object conversions, using Jackson's data binding
     functionality
+  * [JACKSON-176] Added 'JsonGenerator.Feature.WRITE_NUMBER_AS_STRINGS'
+    as a work-around for Javascript problems with big longs (due to
+    always representing numbers as 64-bit doubles internally)
+    (requested by Doug D)
   * [JACKSON-180] Added 'JsonParser.Feature.INTERN_FIELD_NAMES' to allow
     disabling field name intern()ing.
     (suggested by Jeff Y)

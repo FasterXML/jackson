@@ -186,3 +186,8 @@ Jeff Yu:
     allow disabling field name intern()ing.
    [1.3.0]
 
+Doug Daniels:
+  * Suggested [JACKSON-176]: Add a work-around for Javascript's problems
+    with big 64-bit longs (due to always representing numbers as 64-bit
+    doubles internally, thus truncating some long values)
+   [1.3.0]
