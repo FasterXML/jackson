@@ -2,8 +2,10 @@ package org.codehaus.jackson.map.deser;
 
 import main.BaseTest;
 
+import java.io.IOException;
 import java.util.*;
 
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
@@ -21,7 +23,7 @@ public class TestValueAnnotations
     ///////////////////////////////////////////////////
      */
 
-    @JsonDeserialize(as=RootStringImpl.class)
+    @JsonDeserialize(using=RootStringDeserializer.class)
     interface RootString {
         public String contents();
     }
@@ -33,6 +35,20 @@ public class TestValueAnnotations
         public RootStringImpl(String x) { _contents = x; }
 
         public String contents() { return _contents; }
+        public String contents2() { return _contents; }
+    }
+
+    @JsonDeserialize(as=RootInterfaceImpl.class)
+    interface RootInterface {
+        public String getA();
+    }
+
+    static class RootInterfaceImpl implements RootInterface {
+        public String a;
+
+        public RootInterfaceImpl() { }
+
+        public String getA() { return a; }
     }
 
     @JsonDeserialize(contentAs=RootStringImpl.class)
@@ -40,6 +56,22 @@ public class TestValueAnnotations
 
     @JsonDeserialize(contentAs=RootStringImpl.class)
     static class RootList extends LinkedList<RootStringImpl> { }
+
+    static class RootStringDeserializer
+        extends StdDeserializer<RootString>
+    {
+        public RootStringDeserializer() { super(RootString.class); }
+
+        @Override
+        public RootString deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            if (jp.getCurrentToken() == JsonToken.VALUE_STRING) {
+                return new RootStringImpl(jp.getText());
+            }
+            throw ctxt.mappingException(_valueClass);
+        }
+    }
 
     /*
     ///////////////////////////////////////////////////
@@ -251,10 +283,18 @@ public class TestValueAnnotations
     //////////////////////////////////////////////
      */
 
-    public void testIntefaceAs() throws Exception
+    public void testRootInterfaceAs() throws Exception
     {
-        RootString value = new ObjectMapper().readValue("\"abc\"", RootString.class);
-        assertEquals("abc", value.contents());
+        RootInterface value = new ObjectMapper().readValue("{\"a\":\"abc\" }", RootInterface.class);
+        assertTrue(value instanceof RootInterfaceImpl);
+        assertEquals("abc", value.getA());
+    }
+
+    public void testRootInterfaceUsing() throws Exception
+    {
+        RootString value = new ObjectMapper().readValue("\"xxx\"", RootString.class);
+        assertTrue(value instanceof RootString);
+        assertEquals("xxx", value.contents());
     }
 
     public void testRootListAs() throws Exception

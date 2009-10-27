@@ -23,6 +23,9 @@ Description:
     (reported by Ted B)
   * [JACKSON-179] Single-long-arg factory Creators were not working
     (reported by Brian M)
+  * [JACKSON-183] Root-level 'JsonDeserialize' annotation was not handled
+    completely; 'as' setting was not taking effect
+    (reported by Nick P)
 
   Improvements:
 

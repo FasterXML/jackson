@@ -57,8 +57,7 @@ public class BeanDeserializerFactory
             return deser;
         }
         // Otherwise: could the class be a Bean class?
-        Class<?> beanClass = type.getRawClass();
-        if (!isPotentialBeanType(beanClass)) {
+        if (!isPotentialBeanType(type.getRawClass())) {
             return null;
         }
         BasicBeanDescription beanDesc = config.introspect(type);
@@ -67,10 +66,17 @@ public class BeanDeserializerFactory
         if (ad != null) {
             return ad;
         }
+        // or has value annotation for redirection?
+        JavaType newType =  modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
+        if (newType.getRawClass() != type.getRawClass()) {
+            type = newType;
+            beanDesc = config.introspect(type);
+        }
+
         /* 02-Mar-2009, tatu: Can't instantiate abstract classes or interfaces
          *   so now might be a good time to catch that problem...
          */
-        if (!ClassUtil.isConcrete(beanClass)) {
+        if (!type.isConcrete()) {
             return null;
         }
 
@@ -78,7 +84,7 @@ public class BeanDeserializerFactory
          * (Throwable or its sub-classes)? If so, need slightly
          * different handling.
          */
-        if (Throwable.class.isAssignableFrom(beanClass)) {
+        if (type.isThrowable()) {
             return buildThrowableDeserializer(config, type, beanDesc);
         }
 

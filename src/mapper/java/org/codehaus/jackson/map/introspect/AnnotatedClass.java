@@ -171,6 +171,82 @@ public final class AnnotatedClass
 
     /*
     ///////////////////////////////////////////////////////
+    // Annotated impl 
+    ///////////////////////////////////////////////////////
+     */
+
+    public Class<?> getAnnotated() { return _class; }
+
+    public int getModifiers() { return _class.getModifiers(); }
+
+    public String getName() { return _class.getName(); }
+
+    public <A extends Annotation> A getAnnotation(Class<A> acls)
+    {
+        if (_classAnnotations == null) {
+            return null;
+        }
+        return _classAnnotations.get(acls);
+    }
+
+    public Class<?> getType() {
+        return _class;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Public API, generic accessors
+    ///////////////////////////////////////////////////////
+     */
+
+    public AnnotatedConstructor getDefaultConstructor() { return _defaultConstructor; }
+
+    public List<AnnotatedConstructor> getConstructors()
+    {
+        if (_constructors == null) {
+            return Collections.emptyList();
+        }
+        return _constructors;
+    }
+
+    public List<AnnotatedMethod> getStaticMethods()
+    {
+        if (_creatorMethods == null) {
+            return Collections.emptyList();
+        }
+        return _creatorMethods;
+    }
+
+    public Iterable<AnnotatedMethod> memberMethods()
+    {
+        return _memberMethods;
+    }
+
+    public int getMemberMethodCount()
+    {
+        return _memberMethods.size();
+    }
+
+    public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
+    {
+        return _memberMethods.find(name, paramTypes);
+    }
+
+    public int getFieldCount() {
+        return (_fields == null) ? 0 : _fields.size();
+    }
+
+    public Iterable<AnnotatedField> fields()
+    {
+        if (_fields == null) {
+            List<AnnotatedField> l = Collections.emptyList();
+            return l;
+        }
+        return _fields;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
     // Methods for resolving class annotations
     // (resolution consisting of inheritance, overrides,
     // and injection of mix-ins as necessary)
@@ -774,82 +850,6 @@ public final class AnnotatedClass
                 target.addIfNotPresent(a);
             }
         }
-    }
-
-    /*
-    ///////////////////////////////////////////////////////
-    // Annotated impl 
-    ///////////////////////////////////////////////////////
-     */
-
-    public Class<?> getAnnotated() { return _class; }
-
-    public int getModifiers() { return _class.getModifiers(); }
-
-    public String getName() { return _class.getName(); }
-
-    public <A extends Annotation> A getAnnotation(Class<A> acls)
-    {
-        if (_classAnnotations == null) {
-            return null;
-        }
-        return _classAnnotations.get(acls);
-    }
-
-    public Class<?> getType() {
-        return _class;
-    }
-
-    /*
-    ///////////////////////////////////////////////////////
-    // Public API, generic accessors
-    ///////////////////////////////////////////////////////
-     */
-
-    public AnnotatedConstructor getDefaultConstructor() { return _defaultConstructor; }
-
-    public List<AnnotatedConstructor> getConstructors()
-    {
-        if (_constructors == null) {
-            return Collections.emptyList();
-        }
-        return _constructors;
-    }
-
-    public List<AnnotatedMethod> getStaticMethods()
-    {
-        if (_creatorMethods == null) {
-            return Collections.emptyList();
-        }
-        return _creatorMethods;
-    }
-
-    public Iterable<AnnotatedMethod> memberMethods()
-    {
-        return _memberMethods;
-    }
-
-    public int getMemberMethodCount()
-    {
-        return _memberMethods.size();
-    }
-
-    public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
-    {
-        return _memberMethods.find(name, paramTypes);
-    }
-
-    public int getFieldCount() {
-        return (_fields == null) ? 0 : _fields.size();
-    }
-
-    public Iterable<AnnotatedField> fields()
-    {
-        if (_fields == null) {
-            List<AnnotatedField> l = Collections.emptyList();
-            return l;
-        }
-        return _fields;
     }
 
     /*

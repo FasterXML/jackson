@@ -143,6 +143,16 @@ public abstract class JavaType
         return Modifier.isAbstract(_class.getModifiers());
     }
 
+    /// @since 1.3
+    public boolean isConcrete() {
+        int mod = _class.getModifiers();
+        return (mod & (Modifier.INTERFACE | Modifier.ABSTRACT)) == 0;
+    }
+
+    public boolean isThrowable() {
+        return Throwable.class.isAssignableFrom(_class);
+    }
+
     public final boolean isArrayType() { return _class.isArray(); }
 
     public final boolean isEnumType() { return _class.isEnum(); }

@@ -382,7 +382,7 @@ public class JacksonAnnotationIntrospector
             }
         }
 
-        /* !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
+        /* TODO: !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
          *    drop support at a later point (for 2.0?)
          */
         JsonClass oldAnn = am.getAnnotation(JsonClass.class);
