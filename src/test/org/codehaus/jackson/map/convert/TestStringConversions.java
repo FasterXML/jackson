@@ -25,4 +25,11 @@ public class TestStringConversions
         
         assertArrayEquals(ints, mapper.convertValue(Ints, int[].class));
     }
+
+    public void testStringsToInts()
+    {
+        // let's verify our "neat trick" actually works...
+        assertArrayEquals(new int[] { 1, 2, 3, 4, -1, 0 },
+                          mapper.convertValue("1  2 3    4  -1 0".split("\\s+"), int[].class));
+    }
 }
