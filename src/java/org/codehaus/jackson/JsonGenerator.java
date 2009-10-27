@@ -103,6 +103,8 @@ public abstract class JsonGenerator
 
         final boolean _defaultState;
 
+        final int _mask;
+        
         /**
          * Method that calculates bit set (flags) of all features that
          * are enabled by default.
@@ -120,11 +122,12 @@ public abstract class JsonGenerator
         
         private Feature(boolean defaultState) {
             _defaultState = defaultState;
+            _mask = (1 << ordinal());
         }
         
         public boolean enabledByDefault() { return _defaultState; }
     
-        public int getMask() { return (1 << ordinal()); }
+        public int getMask() { return _mask; }
     };
 
     // // // Configuration:

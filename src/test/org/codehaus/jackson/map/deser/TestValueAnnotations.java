@@ -17,6 +17,32 @@ public class TestValueAnnotations
 {
     /*
     ///////////////////////////////////////////////////
+    // Annotated root classes for @JsonDeserialize#as
+    ///////////////////////////////////////////////////
+     */
+
+    @JsonDeserialize(as=RootStringImpl.class)
+    interface RootString {
+        public String contents();
+    }
+
+    static class RootStringImpl implements RootString
+    {
+        final String _contents;
+
+        public RootStringImpl(String x) { _contents = x; }
+
+        public String contents() { return _contents; }
+    }
+
+    @JsonDeserialize(contentAs=RootStringImpl.class)
+    static class RootMap extends HashMap<String,RootStringImpl> { }
+
+    @JsonDeserialize(contentAs=RootStringImpl.class)
+    static class RootList extends LinkedList<RootStringImpl> { }
+
+    /*
+    ///////////////////////////////////////////////////
     // Annotated helper classes for @JsonDeserialize#as
     ///////////////////////////////////////////////////
      */
@@ -164,7 +190,7 @@ public class TestValueAnnotations
 
     /*
     //////////////////////////////////////////////
-    // Test methods for @JsonClass
+    // Test methods for @JsonDeserialize#as
     //////////////////////////////////////////////
      */
 
@@ -216,6 +242,37 @@ public class TestValueAnnotations
         } catch (JsonMappingException jme) {
             verifyException(jme, "is not assignable to");
         }
+    }
+
+    /*
+    //////////////////////////////////////////////
+    // Test methods for @JsonDeserialize#as used
+    // for root values
+    //////////////////////////////////////////////
+     */
+
+    public void testIntefaceAs() throws Exception
+    {
+        RootString value = new ObjectMapper().readValue("\"abc\"", RootString.class);
+        assertEquals("abc", value.contents());
+    }
+
+    public void testRootListAs() throws Exception
+    {
+        RootMap value = new ObjectMapper().readValue("{\"a\":\"b\"}", RootMap.class);
+        assertEquals(1, value.size());
+        Object v2 = value.get("a");
+        assertEquals(RootStringImpl.class, v2.getClass());
+        assertEquals("b", ((RootString) v2).contents());
+    }
+
+    public void testRootMapAs() throws Exception
+    {
+        RootList value = new ObjectMapper().readValue("[ \"c\" ]", RootList.class);
+        assertEquals(1, value.size());
+        Object v2 = value.get(0);
+        assertEquals(RootStringImpl.class, v2.getClass());
+        assertEquals("c", ((RootString) v2).contents());
     }
 
     /*
