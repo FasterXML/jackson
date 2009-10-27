@@ -169,6 +169,17 @@ public class TestJaxbAnnotationIntrospector
     @XmlRootElement(name="test")
     static class RootNameBean { }
 
+    /* Bean for testing problem [JACKSON-183]: with normal
+     * auto-detect enabled, 2 fields visible; if disabled, just 1.
+     */
+    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+    static class Jackson183Bean {
+        public String a = "a";
+
+        @XmlElement
+        public String b = "b";
+    }
+
     /*
     /////////////////////////////////////////////////////
     // Unit tests
@@ -259,5 +270,27 @@ public class TestJaxbAnnotationIntrospector
         assertEquals("", ai.findRootName(AnnotatedClass.construct(NamespaceBean.class, ai, null)));
         // and otherwise explicit name
         assertEquals("test", ai.findRootName(AnnotatedClass.construct(RootNameBean.class, ai, null)));
+    }
+
+    public void testAutoDetectDisable() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        Jackson183Bean bean = new Jackson183Bean();
+
+        // Ok: by default, should see 2 fields:
+        Map<String,Object> result = writeAndMap(mapper, bean);
+        assertEquals(2, result.size());
+        assertEquals("a", result.get("a"));
+        assertEquals("b", result.get("b"));
+
+        // But when disabling auto-detection, just one
+        mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
+        result = writeAndMap(mapper, bean);
+        assertEquals(1, result.size());
+        assertNull(result.get("a"));
+        assertEquals("b", result.get("b"));
     }
 }
