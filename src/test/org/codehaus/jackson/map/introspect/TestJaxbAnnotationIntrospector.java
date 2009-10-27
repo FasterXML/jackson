@@ -171,8 +171,9 @@ public class TestJaxbAnnotationIntrospector
 
     /* Bean for testing problem [JACKSON-183]: with normal
      * auto-detect enabled, 2 fields visible; if disabled, just 1.
+     * NOTE: should NOT include "XmlAccessorType", since it will
+     * have priority over global defaults
      */
-    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
     static class Jackson183Bean {
         public String a = "a";
 

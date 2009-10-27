@@ -289,7 +289,16 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public Boolean findGetterAutoDetection(AnnotatedClass ac)
     {
-        return isPropertiesAccessible(ac);
+        /* Ok: should only return non-null if there is explicit
+         * definition; default (of "PUBLIC_MEMBER") should
+         * be indicated as null return value
+         */
+        XmlAccessType at = findAccessType(ac);
+        if (at != null) {
+            boolean enabled = (at == XmlAccessType.PUBLIC_MEMBER) || (at == XmlAccessType.PROPERTY);
+            return enabled ? Boolean.TRUE : Boolean.FALSE;
+        }
+        return null;
     }
 
     /**
@@ -298,7 +307,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
     {
         // No difference between regular getters, "is getters"
-        return isPropertiesAccessible(ac);
+        return findGetterAutoDetection(ac);
     }
 
     /*
@@ -391,7 +400,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         if (isPropertiesAccessible(m)) {
             //jaxb only accounts for getter/setter pairs.
             PropertyDescriptor pd = findPropertyDescriptor(m);
-            invisible = pd == null || pd.getReadMethod() == null || pd.getWriteMethod() == null;
+            invisible = (pd == null) || pd.getReadMethod() == null || pd.getWriteMethod() == null;
         }
         return invisible;
     }
@@ -596,12 +605,24 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
      */
     protected boolean isPropertiesAccessible(Annotated ac)
     {
-        XmlAccessType accessType = XmlAccessType.PUBLIC_MEMBER;
-        XmlAccessorType at = findAnnotation(XmlAccessorType.class, ac, true, true, true);
-        if (at != null) {
-            accessType = at.value();
+        XmlAccessType accessType = findAccessType(ac);
+        if (accessType == null) {
+            // JAXB default is "PUBLIC_MEMBER"
+            accessType = XmlAccessType.PUBLIC_MEMBER;
         }
-        return accessType == XmlAccessType.PUBLIC_MEMBER || accessType == XmlAccessType.PROPERTY;
+        return (accessType == XmlAccessType.PUBLIC_MEMBER) || (accessType == XmlAccessType.PROPERTY);
+    }
+
+    /**
+     * Method for locating JAXB {@link XmlAccessType} annotation value
+     * for given annotated entity, if it has one, or inherits one from
+     * its ancestors (in JAXB sense, package etc). Returns null if
+     * nothing has been explicitly defined.
+     */
+    protected XmlAccessType findAccessType(Annotated ac)
+    {
+        XmlAccessorType at = findAnnotation(XmlAccessorType.class, ac, true, true, true);
+        return (at == null) ? null : at.value();
     }
 
     /**
