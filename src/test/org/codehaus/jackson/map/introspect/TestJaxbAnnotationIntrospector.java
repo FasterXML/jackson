@@ -152,7 +152,7 @@ public class TestJaxbAnnotationIntrospector
     public static class SimpleBean2 {
 
         protected String jaxb = "1";
-		private String jaxb2 = "2";
+        private String jaxb2 = "2";
         @XmlElement(name="jaxb3")
         private String oddName = "3";
 
@@ -168,18 +168,6 @@ public class TestJaxbAnnotationIntrospector
 
     @XmlRootElement(name="test")
     static class RootNameBean { }
-
-    /* Bean for testing problem [JACKSON-183]: with normal
-     * auto-detect enabled, 2 fields visible; if disabled, just 1.
-     * NOTE: should NOT include "XmlAccessorType", since it will
-     * have priority over global defaults
-     */
-    static class Jackson183Bean {
-        public String a = "a";
-
-        @XmlElement
-        public String b = "b";
-    }
 
     /*
     /////////////////////////////////////////////////////
@@ -271,27 +259,5 @@ public class TestJaxbAnnotationIntrospector
         assertEquals("", ai.findRootName(AnnotatedClass.construct(NamespaceBean.class, ai, null)));
         // and otherwise explicit name
         assertEquals("test", ai.findRootName(AnnotatedClass.construct(RootNameBean.class, ai, null)));
-    }
-
-    public void testAutoDetectDisable() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        Jackson183Bean bean = new Jackson183Bean();
-
-        // Ok: by default, should see 2 fields:
-        Map<String,Object> result = writeAndMap(mapper, bean);
-        assertEquals(2, result.size());
-        assertEquals("a", result.get("a"));
-        assertEquals("b", result.get("b"));
-
-        // But when disabling auto-detection, just one
-        mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        mapper.configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
-        result = writeAndMap(mapper, bean);
-        assertEquals(1, result.size());
-        assertNull(result.get("a"));
-        assertEquals("b", result.get("b"));
     }
 }

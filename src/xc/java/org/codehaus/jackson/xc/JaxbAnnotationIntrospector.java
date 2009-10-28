@@ -319,12 +319,11 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     public String findGettablePropertyName(AnnotatedMethod am)
     {
         if (isInvisible(am)) {
+System.err.println("DEBUG: findGettable for "+am+", invis: "+isInvisible(am));
             return null;
         }
-
-        String propertyName = findJaxbSpecifiedPropertyName(am);
-        // null -> no annotation found
-        return (propertyName == null) ? null : propertyName;
+        // null if no annotation is found (can still use auto-detection)
+        return findJaxbSpecifiedPropertyName(am);
     }
 
     public boolean hasAsValueAnnotation(AnnotatedMethod am)
@@ -416,9 +415,13 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         if (isInvisible(af)) {
             return null;
         }
-        
         Field field = af.getAnnotated();
-        return findJaxbPropertyName(field, field.getType(), field.getName());
+        String name = findJaxbPropertyName(field, field.getType(), "");
+        /* This may seem wrong, but since JAXB field auto-detection
+         * needs to find even non-public fields (if enabled by
+         * JAXB access type), we need to return name like so:
+         */
+        return (name == null) ? field.getName() : name;
     }
 
     /*
@@ -494,10 +497,8 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         if (isInvisible(am)) {
             return null;
         }
-
-        String propertyName = findJaxbSpecifiedPropertyName(am);
-        // null -> no annotation found
-        return (propertyName == null) ? null : propertyName;
+        // null if no annotation is found (can still use auto-detection)
+        return findJaxbSpecifiedPropertyName(am);
     }
 
     public boolean hasAnySetterAnnotation(AnnotatedMethod am)
@@ -518,9 +519,9 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         if (isInvisible(af)) {
             return null;
         }
-
         Field field = af.getAnnotated();
-        return findJaxbPropertyName(field, field.getType(), field.getName());
+        // "" is the return value to return for unnamed @XmlElement etc
+        return findJaxbPropertyName(field, field.getType(), "");
     }
 
     /*
@@ -679,9 +680,8 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     {
         PropertyDescriptor pd = findPropertyDescriptor(am);
         if (pd != null) {
-            return findJaxbPropertyName(new AnnotatedProperty(pd), pd.getPropertyType(), pd.getName());
+            return findJaxbPropertyName(new AnnotatedProperty(pd), pd.getPropertyType(), "");
         }
-
         return null;
     }
 
@@ -691,7 +691,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
      * @param ae The annotated element.
      * @param aeType The type of the annotated element.
      * @param defaultName The default name if nothing is specified.
-     * @return The JAXB property name.
+     *
+     * @return The JAXB property name, if found (null if no annotations
+     *    found); defaultName if annotation has value indicating default
+     *    should be used.
      */
     protected String findJaxbPropertyName(AnnotatedElement ae, Class<?> aeType, String defaultName)
     {
@@ -743,7 +746,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
             return "value";
         }
 
-        return defaultName;
+        return null;
     }
 
     private XmlRootElement findRootElementAnnotation(AnnotatedClass ac)

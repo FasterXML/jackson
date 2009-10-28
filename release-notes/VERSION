@@ -42,6 +42,8 @@ Description:
     "is getters" (boolean isXxx()) methods separate from regular getters
   * [JACKSON-168] Make JsonLocation serializable (and deserializable)
     (suggested by Shay B)
+  * [JACKSON-182] Improved handling of SerializationConfig.AUTO_DETECT_GETTERS
+    with JAXB annotations (uses Jackson-specified default, not JAXB defaults)
 
   New features:
 
