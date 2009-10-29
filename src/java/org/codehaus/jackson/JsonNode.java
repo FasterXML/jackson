@@ -334,9 +334,9 @@ public abstract class JsonNode
     public abstract JsonNode path(String fieldName);
 
     /**
-     * Alias of {@link #getPath(String)}.
+     * Alias of {@link #path(String)}.
      *
-     * @deprecated Use {@link #getPath(String)} instead
+     * @deprecated Use {@link #path(String)} instead
      */
     @Deprecated
     public final JsonNode getPath(String fieldName) { return path(fieldName); }
@@ -352,12 +352,12 @@ public abstract class JsonNode
     public abstract JsonNode path(int index);
 
     /**
-     * Alias of {@link #getPath(int)}.
+     * Alias of {@link #path(int)}.
      *
-     * @deprecated Use {@link #getPath(int)} instead
+     * @deprecated Use {@link #path(int)} instead
      */
     @Deprecated
-	public final JsonNode getPath(int index) { return path(index); }
+    public final JsonNode getPath(int index) { return path(index); }
 
     /*
     ////////////////////////////////////////////////////
