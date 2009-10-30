@@ -21,7 +21,7 @@ public class TestFieldSerialization
     //////////////////////////////////////////////
      */
 
-    public class SimpleFieldBean
+    static class SimpleFieldBean
     {
         public int x, y;
 
@@ -32,12 +32,21 @@ public class TestFieldSerialization
         @JsonIgnore public int a;
     }
     
-    public class SimpleFieldBean2
+    static class SimpleFieldBean2
     {
         @JsonSerialize String[] values;
 
         // note: this annotation should not matter for serialization:
         @JsonDeserialize int dummy;
+    }
+
+    static class TransientBean
+    {
+        public int a;
+        // transients should not be included
+        public transient int b;
+        // or statics
+        public static int c;
     }
 
     @JsonAutoDetect(JsonMethod.SETTER)
@@ -113,6 +122,14 @@ public class TestFieldSerialization
         assertEquals(2, values.size());
         assertEquals("a", values.get(0));
         assertEquals("b", values.get(1));
+    }
+
+    public void testTransientAndStatic() throws Exception
+    {
+        TransientBean bean = new TransientBean();
+        Map<String,Object> result = writeAndMap(bean);
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(0), result.get("a"));
     }
 
     public void testNoAutoDetect() throws Exception

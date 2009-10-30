@@ -4,6 +4,7 @@ import java.io.*;
 import java.math.BigDecimal;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonGenerator.Feature;
 
 /**
  * This base class implements part of API that a JSON generator exposes

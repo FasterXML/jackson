@@ -5,7 +5,11 @@ import org.codehaus.jackson.map.ObjectMapper;
 /**
  * JSON content type provider automatically configured to use both Jackson
  * and JAXB annotations (in that order of priority). Otherwise functionally
- * same as {@link JacksonJsonProvider}
+ * same as {@link JacksonJsonProvider}.
+ *<p>
+ * Typical usage pattern is to just instantiate instance of this
+ * provider for JAX-RS and use as is: this will use both Jackson and
+ * JAXB annotations (with Jackson annotations having priority).
  * 
  * @since 1.3
  */

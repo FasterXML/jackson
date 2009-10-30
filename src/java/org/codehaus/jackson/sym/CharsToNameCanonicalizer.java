@@ -308,10 +308,6 @@ public final class CharsToNameCanonicalizer
     ////////////////////////////////////////////////////
      */
 
-    /**
-     * @param intern If a new symbol String needs to be constructed, whether
-     *   it should be intern()ed or not.
-     */
     public String findSymbol(char[] buffer, int start, int len, int hash)
     {
         if (len < 1) { // empty Strings are simplest to handle up front

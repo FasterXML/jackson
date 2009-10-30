@@ -52,6 +52,8 @@ Description:
   * [JACKSON-154] Added JsonDeserialize.keyUsing and .contentUsing,
     to allow for overriding key and content/value deserializers for
     properties of structured (array, Collection, Map) types
+  * [JACKSON-159] Added 'org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider'
+    to improve use of Jackson as JSON converter for JAX-RS services.
   * [JACKSON-173] Add "JsonParser.Feature.ALLOW_SINGLE_QUOTES" to
     handle some more invalid JSON content
     (requested by Brian M)

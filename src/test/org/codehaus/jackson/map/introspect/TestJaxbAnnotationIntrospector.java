@@ -114,15 +114,13 @@ public class TestJaxbAnnotationIntrospector
     public static class QNameAdapter extends XmlAdapter<String, QName> {
 
         @Override
-        public QName unmarshal(String v)
-                throws Exception
+        public QName unmarshal(String v) throws Exception
         {
             return QName.valueOf(v);
         }
 
         @Override
-        public String marshal(QName v)
-                throws Exception
+        public String marshal(QName v) throws Exception
         {
             return v.toString();
         }
@@ -132,19 +130,19 @@ public class TestJaxbAnnotationIntrospector
     public static class SimpleBean
     {
         @XmlElement
-            protected String jaxb = "1";
+        protected String jaxb = "1";
 
         @XmlElement
-            protected String jaxb2 = "2";
+        protected String jaxb2 = "2";
 
         @SuppressWarnings("unused")
-		@XmlElement(name="jaxb3")
-            private String oddName = "3";
+        @XmlElement(name="jaxb3")
+        private String oddName = "3";
 
         public String notAGetter() { return "xyz"; }
 
         @XmlTransient
-            public int foobar = 3;
+        public int foobar = 3;
     }
 
     @SuppressWarnings("unused")
