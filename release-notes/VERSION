@@ -1,9 +1,10 @@
 Version: 1.3.0
 
 Release date:
-  xx-Oct-2009
+  30-Oct-2009
 
 Description:
+  Official 1.3 release.
 
   Fixes:
 
@@ -22,10 +23,10 @@ Description:
   * [JACKSON-177] Problems with Hibernate, repackaged cglib
     (reported by Ted B)
   * [JACKSON-179] Single-long-arg factory Creators were not working
-    (reported by Brian M)
+   (reported by Brian M)
   * [JACKSON-183] Root-level 'JsonDeserialize' annotation was not handled
     completely; 'as' setting was not taking effect
-    (reported by Nick P)
+   (reported by Nick P)
 
   Improvements:
 
@@ -35,13 +36,13 @@ Description:
   * [JACKSON-158] Bean serializer now checks for direct self-references
     (partial, trivial cycle detection)
   * [JACKSON-164] Improve null handling for JsonGenerator.writeStringValue
-    (suggested by Benjamin Darfler)
+   (suggested by Benjamin Darfler)
   * [JACKSON-165] Add JsonParser.getBooleanValue() convenience method
     (suggested by Benjamin Darfler)
   * [JACKSON-166] Add ability to control auto-detection of
     "is getters" (boolean isXxx()) methods separate from regular getters
   * [JACKSON-168] Make JsonLocation serializable (and deserializable)
-    (suggested by Shay B)
+   (suggested by Shay B)
   * [JACKSON-182] Improved handling of SerializationConfig.AUTO_DETECT_GETTERS
     with JAXB annotations (uses Jackson-specified default, not JAXB defaults)
 
@@ -56,7 +57,7 @@ Description:
     to improve use of Jackson as JSON converter for JAX-RS services.
   * [JACKSON-173] Add "JsonParser.Feature.ALLOW_SINGLE_QUOTES" to
     handle some more invalid JSON content
-    (requested by Brian M)
+   (requested by Brian M)
   * [JACKSON-174] Add "ObjectMapper.convertValue()" convenience method
     for simple Object-to-Object conversions, using Jackson's data binding
     functionality
@@ -66,7 +67,7 @@ Description:
     (requested by Doug D)
   * [JACKSON-180] Added 'JsonParser.Feature.INTERN_FIELD_NAMES' to allow
     disabling field name intern()ing.
-    (suggested by Jeff Y)
+   (suggested by Jeff Y)
   * [JACKSON-181] Added convenience methods in TypeFactory to allow
     dynamically constructed fully typed structured types (map, collection
     array types), similar to using TypeReference but without inner classes
