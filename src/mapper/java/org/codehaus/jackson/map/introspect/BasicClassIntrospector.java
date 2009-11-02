@@ -129,7 +129,10 @@ public class BasicClassIntrospector
          * in case we need to check default bean property values,
          * to omit them)
          */
-        ac.resolveCreators(false);
+        /* 31-Oct-2009, tatus: Actually, creator info will come in handy
+         *   for resolving [JACKSON-170] as well
+         */
+        ac.resolveCreators(true);
         ac.resolveFields();
         return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
     }
