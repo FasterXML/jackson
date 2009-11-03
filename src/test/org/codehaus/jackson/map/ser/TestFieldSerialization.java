@@ -83,7 +83,8 @@ public class TestFieldSerialization
 
     /**
      * It is ok to have a method-based and field-based property
-     * introspectable (although no
+     * introspectable: only one should be serialized, and since
+     * methods have precedence, it should be the method one.
      */
     public class FieldAndMethodBean
     {
@@ -151,9 +152,8 @@ public class TestFieldSerialization
     {
         FieldAndMethodBean bean = new FieldAndMethodBean();
         bean.z = 9;
-        ObjectMapper m = new ObjectMapper();
-        Map<String,Object> result = writeAndMap(m, bean);
-        assertEquals(Integer.valueOf(bean.getZ()), result.get("z"));
+        assertEquals(10, bean.getZ());
+        assertEquals("{\"z\":10}", serializeAsString(bean));
     }
 
     /*

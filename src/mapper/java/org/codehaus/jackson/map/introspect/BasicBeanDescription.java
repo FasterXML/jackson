@@ -336,6 +336,39 @@ public class BasicBeanDescription extends BeanDescription
         return false;
     }
 
+    /**
+     * Method for getting ordered list of named Creator properties.
+     * Returns an empty list is none found. If multiple Creator
+     * methods are defined, order between properties from different
+     * methods is undefined; however, properties for each such
+     * Creator are ordered properly relative to each other. For the
+     * usual case of just a single Creator, named properties are
+     * thus properly ordered.
+     */
+    public List<String> findCreatorPropertyNames()
+    {
+        List<String> names = null;
+
+        for (int i = 0; i < 2; ++i) {
+            List<? extends AnnotatedWithParams> l =
+                (i == 0) ? getConstructors() : getFactoryMethods();
+            for (AnnotatedWithParams creator : l) {
+                int argCount = creator.getParameterCount();
+                if (argCount < 1) continue;
+                String name = _annotationIntrospector.findPropertyNameForParam(creator.getParameter(0));
+                if (name == null) continue;
+                if (names == null) {
+                    names = new ArrayList<String>();
+                }
+                // !!! TBI
+            }
+        }
+        if (names == null) {
+            return Collections.emptyList();
+        }
+        return names;
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Introspection for serialization, fields

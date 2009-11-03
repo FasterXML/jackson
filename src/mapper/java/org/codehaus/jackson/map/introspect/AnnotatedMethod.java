@@ -7,13 +7,9 @@ import java.lang.reflect.Type;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedMethod
-    extends Annotated
+    extends AnnotatedWithParams
 {
     final Method _method;
-
-    final AnnotationMap _annotations;
-
-    final AnnotationMap[] _paramAnnotations;
 
     // // Simple lazy-caching:
 
@@ -25,48 +21,11 @@ public final class AnnotatedMethod
     //////////////////////////////////////////////////////
      */
 
-    public AnnotatedMethod(Method method, AnnotationMap annMap,
-                           AnnotationMap[] paramAnnotations)
+    public AnnotatedMethod(Method method,
+                           AnnotationMap classAnn, AnnotationMap[] paramAnn)
     {
+        super(classAnn, paramAnn);
         _method = method;
-        _annotations = annMap;
-        _paramAnnotations = paramAnnotations;
-    }
-
-    /**
-     * Method called to augment annotations, by adding specified
-     * annotation if and only if it is not yet present in the
-     * annotation map we have.
-     */
-    public void addIfNotPresent(Annotation a)
-    {
-        _annotations.addIfNotPresent(a);
-    }
-
-    /**
-     * Method called to override a method annotation, usually due to a mix-in
-     * annotation masking or overriding an annotation 'real' method
-     * has.
-     */
-    public void addOrOverride(Annotation a)
-    {
-        _annotations.add(a);
-    }
-
-    /**
-     * Method called to override a method parameter annotation,
-     * usually due to a mix-in
-     * annotation masking or overriding an annotation 'real' method
-     * has.
-     */
-    public void addOrOverrideParam(int paramIndex, Annotation a)
-    {
-        AnnotationMap old = _paramAnnotations[paramIndex];
-        if (old == null) {
-            old = new AnnotationMap();
-            _paramAnnotations[paramIndex] = old;
-        }
-        old.add(a);
     }
 
     /*
@@ -81,10 +40,6 @@ public final class AnnotatedMethod
 
     public String getName() { return _method.getName(); }
 
-    public <A extends Annotation> A getAnnotation(Class<A> acls)
-    {
-        return _annotations.get(acls);
-    }
 
     /**
      * For methods, this returns declared return type, which is only
@@ -105,20 +60,12 @@ public final class AnnotatedMethod
         return new AnnotatedParameter(getParameterType(index), _paramAnnotations[index]);
     }
 
-    public Type[] getParameterTypes() {
-        return _method.getGenericParameterTypes();
-    }
-
-    public Class<?>[] getParameterClasses()
-    {
-        if (_paramTypes == null) {
-            _paramTypes = _method.getParameterTypes();
-        }
-        return _paramTypes;
-    }
-
     public int getParameterCount() {
         return getParameterTypes().length;
+    }
+
+    public Type[] getParameterTypes() {
+        return _method.getGenericParameterTypes();
     }
 
     public Class<?> getParameterClass(int index)
@@ -133,14 +80,12 @@ public final class AnnotatedMethod
         return (index >= types.length) ? null : types[index];
     }
 
-    public AnnotationMap getParameterAnnotations(int index)
+    public Class<?>[] getParameterClasses()
     {
-        if (_paramAnnotations != null) {
-            if (index >= 0 && index <= _paramAnnotations.length) {
-                return _paramAnnotations[index];
-            }
+        if (_paramTypes == null) {
+            _paramTypes = _method.getParameterTypes();
         }
-        return null;
+        return _paramTypes;
     }
 
     public Type getGenericReturnType() { return _method.getGenericReturnType(); }
@@ -153,8 +98,6 @@ public final class AnnotatedMethod
         return getDeclaringClass().getName() + "#" + getName() + "("
             +getParameterCount()+" params)";
     }
-
-    public int getAnnotationCount() { return _annotations.size(); }
 
     /**
      * Method that can be called to modify access rights, by calling
@@ -174,7 +117,7 @@ public final class AnnotatedMethod
 
     public String toString()
     {
-        return "[method "+getName()+", annotations: "+_annotations+"]";
+        return "[method "+getName()+", annotations: "+_classAnnotations+"]";
     }
 }
 
