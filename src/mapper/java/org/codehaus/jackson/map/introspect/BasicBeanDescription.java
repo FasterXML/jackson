@@ -350,8 +350,8 @@ public class BasicBeanDescription extends BeanDescription
         List<String> names = null;
 
         for (int i = 0; i < 2; ++i) {
-            List<? extends AnnotatedWithParams> l =
-                (i == 0) ? getConstructors() : getFactoryMethods();
+            List<? extends AnnotatedWithParams> l = (i == 0)
+                ? getConstructors() : getFactoryMethods();
             for (AnnotatedWithParams creator : l) {
                 int argCount = creator.getParameterCount();
                 if (argCount < 1) continue;
@@ -360,7 +360,10 @@ public class BasicBeanDescription extends BeanDescription
                 if (names == null) {
                     names = new ArrayList<String>();
                 }
-                // !!! TBI
+                names.add(name);
+                for (int p = 1; p < argCount; ++p) {
+                    names.add(_annotationIntrospector.findPropertyNameForParam(creator.getParameter(p)));
+                }
             }
         }
         if (names == null) {

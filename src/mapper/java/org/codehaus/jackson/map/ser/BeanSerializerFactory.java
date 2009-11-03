@@ -219,7 +219,38 @@ public class BeanSerializerFactory
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, am);
             props.add(pb.buildProperty(en.getKey(), annotatedSerializer, am, staticTyping));
         }
+
+        /* Ok: so far so good. But do we need to (re)order these somehow?
+         * (for [JACKSON-170], initially)
+         */
+        List<String> creatorProps = beanDesc.findCreatorPropertyNames();
+        if (!creatorProps.isEmpty()) {
+            props = reorderProperties(props, creatorProps);
+        }
         return props;
+    }
+
+    /**
+     * Helper method that will impose given partial ordering on
+     * property list.
+     */
+    ArrayList<BeanPropertyWriter> reorderProperties(ArrayList<BeanPropertyWriter> props, List<String> propOrder)
+    {
+        int size = props.size();
+        Map<String,BeanPropertyWriter> all = new HashMap<String,BeanPropertyWriter>(size*2);
+
+        for (BeanPropertyWriter w : props) {
+            all.put(w.getName(), w);
+        }
+        Map<String,BeanPropertyWriter> ordered = new LinkedHashMap<String,BeanPropertyWriter>(size*2);
+        for (String name : propOrder) {
+            BeanPropertyWriter w = all.get(name);
+            if (w != null) {
+                ordered.put(name, w);
+            }
+        }
+        ordered.putAll(all);
+        return new ArrayList<BeanPropertyWriter>(ordered.values());
     }
 
     protected PropertyBuilder constructPropertyBuilder(SerializationConfig config,

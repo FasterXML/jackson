@@ -1,10 +1,20 @@
-Version: 1.3.0
+Version: 1.4.0
 
 Release date:
-  30-Oct-2009
+  xx-Dec-2009
 
 Description:
-  Official 1.3 release.
+  Official 1.4 release.
+
+  Improvements:
+
+  * [JACKSON-170] Serialize Creator properties before other properties
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.3.0 [30-Oct-2009]
 
   Fixes:
 
@@ -13,13 +23,8 @@ Description:
   * [JACKSON-155] Failed to serialize java.io.File (with infinite
     recursion)
    (reported by Gabe S)
-  * [JACKSON-162] OSGi packaging problems for xc package.
-   (reported by Troy Waldrep)
   * [JACKSON-167] Map and Collection sub-classes seem to lose generic
     information for deserialization
-  * [JACKSON-171] Self-referential types cause infinite recursion when
-    using only JAXB annotation introspector
-    (reported by Randy L)
   * [JACKSON-177] Problems with Hibernate, repackaged cglib
     (reported by Ted B)
   * [JACKSON-179] Single-long-arg factory Creators were not working
@@ -81,9 +86,15 @@ Description:
     to have been removed by 1.0 but had not been.
   * Added support to handle 'java.util.regex.Pattern'
 
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
+1.2.1 [03-Oct-2009]
+
+  Problems fixed:
+
+  * [JACKSON-162] OSGi packaging problems for xc package.
+   (reported by Troy Waldrep)
+  * [JACKSON-171] Self-referential types cause infinite recursion when
+    using only JAXB annotation introspector
+    (reported by Randy L)
 
 1.2.0 [02-Aug-2009]
 
