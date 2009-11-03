@@ -319,7 +319,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     public String findGettablePropertyName(AnnotatedMethod am)
     {
         if (isInvisible(am)) {
-System.err.println("DEBUG: findGettable for "+am+", invis: "+isInvisible(am));
             return null;
         }
         // null if no annotation is found (can still use auto-detection)
