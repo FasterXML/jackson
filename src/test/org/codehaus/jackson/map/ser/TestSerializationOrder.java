@@ -3,8 +3,6 @@ package org.codehaus.jackson.map.ser;
 import org.codehaus.jackson.map.BaseMapTest;
 
 import org.codehaus.jackson.annotate.*;
-import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.annotate.*;
 
 /**
  * Unit tests for verifying that constraints on ordering of serialized

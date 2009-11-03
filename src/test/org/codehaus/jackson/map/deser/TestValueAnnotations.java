@@ -51,9 +51,11 @@ public class TestValueAnnotations
         public String getA() { return a; }
     }
 
+    @SuppressWarnings("serial")
     @JsonDeserialize(contentAs=RootStringImpl.class)
     static class RootMap extends HashMap<String,RootStringImpl> { }
 
+    @SuppressWarnings("serial")
     @JsonDeserialize(contentAs=RootStringImpl.class)
     static class RootList extends LinkedList<RootStringImpl> { }
 

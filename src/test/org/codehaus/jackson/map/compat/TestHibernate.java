@@ -2,8 +2,9 @@ package org.codehaus.jackson.map.compat;
 
 import main.BaseTest;
 
+/*
 import java.io.*;
-import java.lang.reflect.Method;
+//import java.lang.reflect.Method;
 import java.util.*;
 
 import org.hibernate.repackage.cglib.proxy.Enhancer;
@@ -11,6 +12,7 @@ import org.hibernate.repackage.cglib.proxy.MethodInterceptor;
 import org.hibernate.repackage.cglib.proxy.MethodProxy;
 
 import org.codehaus.jackson.map.*;
+*/
 
 /**
  * Basic tests covering Hibernate-compatibility features.
@@ -69,6 +71,7 @@ public class TestHibernate
     //////////////////////////////////////////////
      */
 
+    /*
     @SuppressWarnings("unchecked")
 	private Map<String,Object> writeAndMap(ObjectMapper m, Object value)
         throws IOException
@@ -77,5 +80,6 @@ public class TestHibernate
         m.writeValue(sw, value);
         return (Map<String,Object>) m.readValue(sw.toString(), Object.class);
     }
+    */
 }
 

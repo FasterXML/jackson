@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map.convert;
 
-import java.util.*;
-
 import org.codehaus.jackson.map.*;
 
 public class TestBeanConversions
