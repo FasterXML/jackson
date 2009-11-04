@@ -77,6 +77,21 @@ public class TestMapDeserialization
         assertEquals("x", result.get("a"));
     }
 
+    /**
+     * Unit test for [JACKSON-185]
+     */
+    public void testUntypedMap3() throws Exception
+    {
+        String JSON = "{\"a\":[{\"a\":\"b\"},\"value\"]}";
+        Map<?,?> result = readAndMapFromString(new ObjectMapper(), JSON, Map.class);
+        assertTrue(result instanceof Map);
+        assertEquals(1, result.size());
+        Object ob = result.get("a");
+        assertNotNull(ob);
+        Collection<?> list = (Collection<?>)ob;
+        assertEquals(2, list.size());
+    }
+
     private static final String UNTYPED_MAP_JSON =
             "{ \"double\":42.0, \"string\":\"string\","
             +"\"boolean\":true, \"list\":[\"list0\"],"
