@@ -243,6 +243,16 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
+    public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
+        JsonPropertyOrder order = ac.getAnnotation(JsonPropertyOrder.class);
+        return (order == null) ? null : order.value();
+    }
+
+    public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
+        JsonPropertyOrder order = ac.getAnnotation(JsonPropertyOrder.class);
+        return (order == null) ? null : order.alphabetic();
+    }
+
     /*
     ///////////////////////////////////////////////////////
     // Serialization: method annotations

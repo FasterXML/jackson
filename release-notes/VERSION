@@ -10,6 +10,11 @@ Description:
 
   * [JACKSON-170] Serialize Creator properties before other properties
 
+  New features:
+
+  * [JACKSON-90] Added @JsonPropertyOrder, which allows for specifying
+    order in which properties are serialized.
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

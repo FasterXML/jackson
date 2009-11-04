@@ -122,6 +122,14 @@ public class NopAnnotationIntrospector
         return null;
     }
 
+    public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
+        return null;
+    }
+
+    public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
+        return null;
+    }
+
     /**
      * @since 1.3
      */

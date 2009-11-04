@@ -15,6 +15,13 @@ import org.codehaus.jackson.map.introspect.*;
  */
 public abstract class AnnotationIntrospector
 {
+    
+    /*
+    ///////////////////////////////////////////////////////
+    // Factory methods
+    ///////////////////////////////////////////////////////
+     */
+    
     /**
      * Factory method for accessing "no operation" implementation
      * of introspector: instance that will never find any annotation-based
@@ -229,6 +236,23 @@ public abstract class AnnotationIntrospector
      */
     public abstract Boolean findIsGetterAutoDetection(AnnotatedClass ac);
 
+    /**
+     * Method for accessing defined property serialization order (which may be
+     * partial). May return null if no ordering is defined.
+     * 
+     * @since 1.4
+     */
+    public abstract String[] findSerializationPropertyOrder(AnnotatedClass ac);
+
+    /**
+     * Method for checking whether an annotation indicates that serialized properties
+     * for which no explicit is defined should be alphabetically (lexicograpically)
+     * ordered
+     * 
+     * @since 1.4
+     */
+    public abstract Boolean findSerializationSortAlphabetically(AnnotatedClass ac);
+    
     /*
     ///////////////////////////////////////////////////////
     // Serialization: method annotations
@@ -654,6 +678,27 @@ public abstract class AnnotationIntrospector
                 result = _secondary.findIsGetterAutoDetection(ac);
             }
             return result;
+        }
+
+        public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
+            String[] result = _primary.findSerializationPropertyOrder(ac);
+            if (result == null) {
+                result = _secondary.findSerializationPropertyOrder(ac);
+            }
+            return result;            
+        }
+
+        /**
+         * Method for checking whether an annotation indicates that serialized properties
+         * for which no explicit is defined should be alphabetically (lexicograpically)
+         * ordered
+         */
+        public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
+            Boolean result = _primary.findSerializationSortAlphabetically(ac);
+            if (result == null) {
+                result = _secondary.findSerializationSortAlphabetically(ac);
+            }
+            return result;            
         }
 
         // // // Serialization: method annotations

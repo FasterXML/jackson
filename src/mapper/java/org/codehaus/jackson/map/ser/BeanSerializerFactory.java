@@ -2,10 +2,12 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
+import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -220,12 +222,19 @@ public class BeanSerializerFactory
             props.add(pb.buildProperty(en.getKey(), annotatedSerializer, am, staticTyping));
         }
 
-        /* Ok: so far so good. But do we need to (re)order these somehow?
-         * (for [JACKSON-170], initially)
+        // Ok: so far so good. But do we need to (re)order these somehow?
+        /* Yes; first, for [JACKSON-90] (explicit ordering and/or alphabetic)
+         * and then for [JACKSON-170] (implicitly order creator properties before others)
          */
         List<String> creatorProps = beanDesc.findCreatorPropertyNames();
-        if (!creatorProps.isEmpty()) {
-            props = reorderProperties(props, creatorProps);
+        // Then how about explicit ordering?
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        AnnotatedClass ac = beanDesc.getClassInfo();
+        String[] propOrder = intr.findSerializationPropertyOrder(ac);
+        Boolean alpha = intr.findSerializationSortAlphabetically(ac);
+        boolean sort = (alpha != null) && alpha.booleanValue();
+        if (sort || !creatorProps.isEmpty() || propOrder != null) {
+            props = reorderProperties(props, creatorProps, propOrder, sort);
         }
         return props;
     }
@@ -234,21 +243,39 @@ public class BeanSerializerFactory
      * Helper method that will impose given partial ordering on
      * property list.
      */
-    ArrayList<BeanPropertyWriter> reorderProperties(ArrayList<BeanPropertyWriter> props, List<String> propOrder)
+    ArrayList<BeanPropertyWriter> reorderProperties(ArrayList<BeanPropertyWriter> props,
+            List<String> creatorProps, String[] propertyOrder, boolean sort)
     {
         int size = props.size();
-        Map<String,BeanPropertyWriter> all = new HashMap<String,BeanPropertyWriter>(size*2);
+        Map<String,BeanPropertyWriter> all;
+        // Need to (re)sort alphabetically?
+        if (sort) {
+            all = new TreeMap<String,BeanPropertyWriter>();
+        } else {
+            all = new LinkedHashMap<String,BeanPropertyWriter>(size*2);
+        }
 
         for (BeanPropertyWriter w : props) {
             all.put(w.getName(), w);
         }
         Map<String,BeanPropertyWriter> ordered = new LinkedHashMap<String,BeanPropertyWriter>(size*2);
-        for (String name : propOrder) {
+        // Ok: primarily by explicit order
+        if (propertyOrder != null) {
+            for (String name : propertyOrder) {
+                BeanPropertyWriter w = all.get(name);
+                if (w != null) {
+                    ordered.put(name, w);
+                }
+            }            
+        }
+        // And secondly by sorting Creator properties before other unordered properties
+        for (String name : creatorProps) {
             BeanPropertyWriter w = all.get(name);
             if (w != null) {
                 ordered.put(name, w);
             }
         }
+        // And finally whatever is left (trying to put again will not change ordering)
         ordered.putAll(all);
         return new ArrayList<BeanPropertyWriter>(ordered.values());
     }

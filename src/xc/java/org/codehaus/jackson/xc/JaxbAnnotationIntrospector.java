@@ -32,6 +32,8 @@ import java.lang.reflect.Modifier;
  * <li>{@link XmlElementDecl}
  * <li>{@link XmlElementRefs} because Jackson doesn't have any support for 'named' collection items.
  * <li>{@link XmlElements} because Jackson doesn't have any support for 'named' collection items.
+ *    <br />NOTE: it is possible that this annotation will be supported in future.
+ *   </li>
  * <li>{@link XmlID} because jackson' doesn't support referential integrity.
  * <li>{@link XmlIDREF} because jackson' doesn't support referential integrity.
  * <li>{@link javax.xml.bind.annotation.XmlInlineBinaryData}
@@ -40,7 +42,7 @@ import java.lang.reflect.Modifier;
  * <li>{@link javax.xml.bind.annotation.XmlMixed}
  * <li>{@link XmlNs}
  * <li>{@link XmlRegistry}
- * <li>{@link XmlRootElement} because there isn't an equivalent element name for a JSON object.
+ * <li>{@link XmlRootElement} is not currently used, but it may be used in future for XML compatibility features
  * <li>{@link XmlSchema}
  * <li>{@link XmlSchemaType}
  * <li>{@link XmlSchemaTypes}
@@ -308,6 +310,17 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     {
         // No difference between regular getters, "is getters"
         return findGetterAutoDetection(ac);
+    }
+
+    public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
+        // no JAXB annotation that would define this...
+        return null;
+    }
+
+    public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
+        // Yup, XmlAccessorOrder can provide this...
+        XmlAccessorOrder order = findAnnotation(XmlAccessorOrder.class, ac, true, true, true);
+        return (order == null) ? null : (order.value() == XmlAccessOrder.ALPHABETICAL);
     }
 
     /*

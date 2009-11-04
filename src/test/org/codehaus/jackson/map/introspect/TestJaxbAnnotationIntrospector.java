@@ -167,6 +167,14 @@ public class TestJaxbAnnotationIntrospector
     @XmlRootElement(name="test")
     static class RootNameBean { }
 
+    @XmlAccessorOrder(XmlAccessOrder.ALPHABETICAL)
+    public static class AlphaBean
+    {
+        public int c = 3;
+        public int a = 1;
+        public int b = 2;
+    }
+    
     /*
     /////////////////////////////////////////////////////
     // Unit tests
@@ -257,5 +265,13 @@ public class TestJaxbAnnotationIntrospector
         assertEquals("", ai.findRootName(AnnotatedClass.construct(NamespaceBean.class, ai, null)));
         // and otherwise explicit name
         assertEquals("test", ai.findRootName(AnnotatedClass.construct(RootNameBean.class, ai, null)));
+    }
+
+    // JAXB can specify that properties are to be written in alphabetic order...
+    public void testSerializationOrdering() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        assertEquals("{\"a\":1,\"b\":2,\"c\":3}", serializeAsString(mapper, new AlphaBean()));
     }
 }
