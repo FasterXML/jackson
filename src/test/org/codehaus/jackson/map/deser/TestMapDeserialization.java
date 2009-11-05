@@ -83,13 +83,24 @@ public class TestMapDeserialization
     public void testUntypedMap3() throws Exception
     {
         String JSON = "{\"a\":[{\"a\":\"b\"},\"value\"]}";
-        Map<?,?> result = readAndMapFromString(new ObjectMapper(), JSON, Map.class);
+        ObjectMapper m = new ObjectMapper();
+        Map<?,?> result = m.readValue(JSON, Map.class);
         assertTrue(result instanceof Map);
         assertEquals(1, result.size());
         Object ob = result.get("a");
         assertNotNull(ob);
         Collection<?> list = (Collection<?>)ob;
         assertEquals(2, list.size());
+
+        JSON = "{ \"var1\":\"val1\", \"var2\":\"val2\", "
+            +"\"subvars\": ["
+            +" {  \"subvar1\" : \"subvar2\", \"x\" : \"y\" }, "
+            +" { \"a\":1 } ]"
+            +" }"
+            ;
+        result = m.readValue(JSON, Map.class);
+        assertTrue(result instanceof Map);
+        assertEquals(3, result.size());
     }
 
     private static final String UNTYPED_MAP_JSON =
