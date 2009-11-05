@@ -68,6 +68,16 @@ public class TestCreators
         }
     }
 
+    static class StringFactoryBean {
+        String value;
+
+        private StringFactoryBean(String v, boolean dummy) { value = v; }
+
+        @JsonCreator static protected StringFactoryBean valueOf(String v) {
+            return new StringFactoryBean(v, true);
+        }
+    }
+
     static class FactoryBeanMixIn { // static just to be able to use static methods
         /**
          * Note: signature (name and parameter types) must match; but
@@ -279,6 +289,14 @@ public class TestCreators
         long VALUE = 123456789000L;
         LongFactoryBean bean = m.readValue(String.valueOf(VALUE), LongFactoryBean.class);
         assertEquals(VALUE, bean.value);
+    }
+
+    public void testStringFactory() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        String str = "abc";
+        StringFactoryBean bean = m.readValue(quote(str), StringFactoryBean.class);
+        assertEquals(str, bean.value);
     }
 
     public void testConstructorCreator() throws Exception
