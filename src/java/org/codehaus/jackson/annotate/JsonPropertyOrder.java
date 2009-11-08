@@ -21,7 +21,8 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonPropertyOrder {
+public @interface JsonPropertyOrder
+{
     /**
      * Order in which properties of annotated object are to be serialized in.
      */

@@ -37,9 +37,9 @@ import org.codehaus.jackson.map.util.ClassUtil;
  * direct calls to {@link BasicSerializerFactory}.
  *<p>
  * Finally, since all caching is handled by the serializer provider
- * (not factory), and since there is no configurability, this
- * factory is stateless. And thus a global singleton instance can
- * be used.
+ * (not factory) and there is no configurability, this
+ * factory is stateless.
+ * This means that a global singleton instance can be used.
  */
 public class BeanSerializerFactory
     extends BasicSerializerFactory
@@ -146,7 +146,7 @@ public class BeanSerializerFactory
 
     /*
     ////////////////////////////////////////////////////////////
-    // Overridable internal methods
+    // Overridable non-public methods
     ////////////////////////////////////////////////////////////
      */
 
@@ -167,18 +167,22 @@ public class BeanSerializerFactory
                                                              BasicBeanDescription beanDesc)
     {
         // First: what properties are to be serializable?
-        Collection<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
+        List<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
         if (props == null || props.size() == 0) {
             // No properties, no serializer
             return null;
         }
+        // Any properties to suppress?
+        // And finally: do they need to be sorted in some special way?
+        props = sortBeanProperties(config, beanDesc, props);
         return new BeanSerializer(type, props);
     }
 
     /**
-     * Method used to collect all actual serializable properties
+     * Method used to collect all actual serializable properties.
+     * Can be overridden to implement custom detection schemes.
      */
-    protected Collection<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
+    protected List<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
     {
         LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters
             (config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS),
@@ -221,7 +225,22 @@ public class BeanSerializerFactory
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, am);
             props.add(pb.buildProperty(en.getKey(), annotatedSerializer, am, staticTyping));
         }
+        return props;
+    }
 
+    /**
+     * Overridable method that will impose given partial ordering on
+     * list of discovered propertied. Method can be overridden to
+     * provide custom ordering of properties, beyond configurability
+     * offered by annotations (whic allow alphabetic ordering, as
+     * well as explicit ordering by providing array of property names).
+     *<p>
+     * By default Creator properties will be ordered before other
+     * properties. Explicit custom ordering will override this implicit
+     * default ordering.
+     */
+    protected List<BeanPropertyWriter> sortBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc, List<BeanPropertyWriter> props)
+    {
         // Ok: so far so good. But do we need to (re)order these somehow?
         /* Yes; first, for [JACKSON-90] (explicit ordering and/or alphabetic)
          * and then for [JACKSON-170] (implicitly order creator properties before others)
@@ -234,17 +253,45 @@ public class BeanSerializerFactory
         Boolean alpha = intr.findSerializationSortAlphabetically(ac);
         boolean sort = (alpha != null) && alpha.booleanValue();
         if (sort || !creatorProps.isEmpty() || propOrder != null) {
-            props = reorderProperties(props, creatorProps, propOrder, sort);
+            props = _sortBeanProperties(props, creatorProps, propOrder, sort);
         }
         return props;
     }
 
+    protected PropertyBuilder constructPropertyBuilder(SerializationConfig config,
+                                                       BasicBeanDescription beanDesc)
+    {
+        return new PropertyBuilder(config, beanDesc);
+    }
+
     /**
-     * Helper method that will impose given partial ordering on
-     * property list.
+     * Helper method to check whether global settings and/or class
+     * annotations for the bean class indicate that static typing
+     * (declared types)  should be used for properties.
+     * (instead of dynamic runtime types).
      */
-    ArrayList<BeanPropertyWriter> reorderProperties(ArrayList<BeanPropertyWriter> props,
-            List<String> creatorProps, String[] propertyOrder, boolean sort)
+    protected boolean usesStaticTyping(SerializationConfig config,
+                                       BasicBeanDescription beanDesc)
+    {
+        JsonSerialize.Typing t = config.getAnnotationIntrospector().findSerializationTyping(beanDesc.getClassInfo());
+        if (t != null) {
+            return (t == JsonSerialize.Typing.STATIC);
+        }
+        return config.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING);
+    }
+
+    /*
+    *****************************************************************
+    * Internal helper methods
+    *****************************************************************
+     */
+
+    /**
+     * Helper method that will sort given List of properties according
+     * to defined criteria (usually detected by annotations)
+     */
+    List<BeanPropertyWriter> _sortBeanProperties(List<BeanPropertyWriter> props,
+                                                 List<String> creatorProps, String[] propertyOrder, boolean sort)
     {
         int size = props.size();
         Map<String,BeanPropertyWriter> all;
@@ -280,25 +327,4 @@ public class BeanSerializerFactory
         return new ArrayList<BeanPropertyWriter>(ordered.values());
     }
 
-    protected PropertyBuilder constructPropertyBuilder(SerializationConfig config,
-                                                       BasicBeanDescription beanDesc)
-    {
-        return new PropertyBuilder(config, beanDesc);
-    }
-
-    /**
-     * Helper method to check whether global settings and/or class
-     * annotations for the bean class indicate that static typing
-     * (declared types)  should be used for properties.
-     * (instead of dynamic runtime types).
-     */
-    protected boolean usesStaticTyping(SerializationConfig config,
-                                       BasicBeanDescription beanDesc)
-    {
-        JsonSerialize.Typing t = config.getAnnotationIntrospector().findSerializationTyping(beanDesc.getClassInfo());
-        if (t != null) {
-            return (t == JsonSerialize.Typing.STATIC);
-        }
-        return config.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING);
-    }
 }
