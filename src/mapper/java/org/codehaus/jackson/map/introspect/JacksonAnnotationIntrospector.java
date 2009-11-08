@@ -96,6 +96,18 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
+    @Override
+    public String[] findPropertiesToIgnore(AnnotatedClass ac) {
+        JsonIgnoreProperties ignore = ac.getAnnotation(JsonIgnoreProperties.class);
+        return (ignore == null) ? null : ignore.value();
+    }
+
+    @Override
+    public Boolean findIgnoreUnknownProperties(AnnotatedClass ac) {
+        JsonIgnoreProperties ignore = ac.getAnnotation(JsonIgnoreProperties.class);
+        return (ignore == null) ? null : ignore.ignoreUnknown();
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // General method annotations

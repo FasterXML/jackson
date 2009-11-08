@@ -67,6 +67,16 @@ public class NopAnnotationIntrospector
         return null;
     }
 
+    @Override
+    public String[] findPropertiesToIgnore(AnnotatedClass ac) {
+        return null;
+    }
+
+    @Override
+    public Boolean findIgnoreUnknownProperties(AnnotatedClass ac) {
+        return null;
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // General Method annotations

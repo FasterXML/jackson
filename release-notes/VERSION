@@ -15,6 +15,11 @@ Description:
   * [JACKSON-90] Added @JsonPropertyOrder, which allows for specifying
     order in which properties are serialized.
 
+  Other:
+
+  * Removed "BasicSerializerFactory.StringLikeSerializer" that was
+    deprecated for 1.0, replaced by public "ToStringSerializer"
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

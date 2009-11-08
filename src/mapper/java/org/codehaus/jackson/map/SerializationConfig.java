@@ -491,7 +491,7 @@ public class SerializationConfig
      * of building a bean serializer
      */
     @SuppressWarnings("unchecked")
-	public <T extends BeanDescription> T introspect(Class<?> cls) {
+    public <T extends BeanDescription> T introspect(Class<?> cls) {
         return (T) _classIntrospector.forSerialization(this, cls, this);
     }
 
@@ -500,7 +500,7 @@ public class SerializationConfig
      * annotations: useful if no getter/setter/creator information is needed.
      */
     @SuppressWarnings("unchecked")
-	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
+    public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
         return (T) _classIntrospector.forClassAnnotations(this, cls, this);
     }
 

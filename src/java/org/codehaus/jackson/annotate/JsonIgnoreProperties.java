@@ -9,6 +9,8 @@ import java.lang.annotation.Target;
  * Annotation that can be used to either suppress serialization of
  * properties (during serialization), or ignore processing of
  * JSON properties read (during deserialization).
+ *<p>
+ * Only applicable to classes, not for properties (getters, setters, fields).
  * 
  * @since 1.4
  */
@@ -18,7 +20,7 @@ import java.lang.annotation.Target;
 public @interface JsonIgnoreProperties
 {
     /**
-     * Enumeration of names of properties to ignore.
+     * Names of properties to ignore.
      */
     public String[] value() default { };
 

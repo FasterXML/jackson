@@ -185,6 +185,23 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return null;
     }
 
+    @Override
+    public String[] findPropertiesToIgnore(AnnotatedClass ac) {
+        // nothing in JAXB for this?
+        return null;
+    }
+
+    @Override
+    public Boolean findIgnoreUnknownProperties(AnnotatedClass ac) {
+        /* 08-Nov-2009, tatus: This is bit trickier: by default JAXB
+         * does actually ignore all unknown properties.
+         * But since there is no annotation to
+         * specify or change this, it seems wrong to claim such setting
+         * is in effect. May need to revisit this issue in future
+         */
+        return null;
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // General method annotations

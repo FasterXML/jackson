@@ -85,7 +85,7 @@ public class BeanSerializerFactory
     public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
     {
         // First, fast lookup for exact type:
-        JsonSerializer<?> ser = super.findSerializerByLookup(type);
+        JsonSerializer<?> ser = super.findSerializerByLookup(type, config);
         if (ser == null) {
             // and then introspect for some safe (?) JDK types
             ser = super.findSerializerByPrimaryType(type, config);
@@ -100,7 +100,7 @@ public class BeanSerializerFactory
                  * implementation of some basic JDK interface?
                  */
                 if (ser == null) {
-                    ser = super.findSerializerByAddonType(type);
+                    ser = super.findSerializerByAddonType(type, config);
                 }
             }
         }
@@ -166,13 +166,14 @@ public class BeanSerializerFactory
     protected JsonSerializer<Object> constructBeanSerializer(Class<?> type, SerializationConfig config,
                                                              BasicBeanDescription beanDesc)
     {
-        // First: what properties are to be serializable?
+        // First: any detectable (auto-detect, annotations) properties to serialize?
         List<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
         if (props == null || props.size() == 0) {
             // No properties, no serializer
             return null;
         }
         // Any properties to suppress?
+        props = filterBeanProperties(config, beanDesc, props);
         // And finally: do they need to be sorted in some special way?
         props = sortBeanProperties(config, beanDesc, props);
         return new BeanSerializer(type, props);
@@ -224,6 +225,29 @@ public class BeanSerializerFactory
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, am);
             props.add(pb.buildProperty(en.getKey(), annotatedSerializer, am, staticTyping));
+        }
+        return props;
+    }
+    /**
+     * Overridable method that can filter out properties. Default implementation
+     * checks annotations class may have.
+     */
+    protected List<BeanPropertyWriter> filterBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc, List<BeanPropertyWriter> props)
+    {
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        AnnotatedClass ac = beanDesc.getClassInfo();
+        String[] ignored = intr.findPropertiesToIgnore(ac);
+        if (ignored != null && ignored.length > 0) {
+            HashSet<String> ignoredSet = new HashSet<String>();
+            for (String prop : ignored) {
+                ignoredSet.add(prop);
+            }
+            Iterator<BeanPropertyWriter> it = props.iterator();
+            while (it.hasNext()) {
+                if (ignoredSet.contains(it.next().getName())) {
+                    it.remove();
+                }
+            }
         }
         return props;
     }

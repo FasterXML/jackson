@@ -115,7 +115,7 @@ public class BasicSerializerFactory
         // (java.util.concurrent has others, but let's allow those to be
         // found via slower introspection; too many to enumerate here)
 
-        final ContainerSerializers.MapSerializer mapS = ContainerSerializers.MapSerializer.instance;
+        final MapSerializer mapS = MapSerializer.instance;
         _concrete.put(HashMap.class.getName(), mapS);
         _concrete.put(Hashtable.class.getName(), mapS);
         _concrete.put(LinkedHashMap.class.getName(), mapS);
@@ -131,7 +131,8 @@ public class BasicSerializerFactory
 
         /* XML/JAXB related types available on JDK 1.5; but that seem
          * to cause problems
-         * for castrated platforms like Google Android and GAE...
+         * for somewhat limited platforms like Google Android and GAE... (which
+         * are "almost 1.5 but not quite")
          * As such, need to use bit more caution
          */
 
@@ -209,7 +210,7 @@ public class BasicSerializerFactory
         public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
     {
         // First, fast lookup for exact type:
-        JsonSerializer<?> ser = findSerializerByLookup(type);
+        JsonSerializer<?> ser = findSerializerByLookup(type, config);
         if (ser == null) {
             /* and should that fail, slower introspection methods; first
              * one that deals with "primary" types
@@ -217,7 +218,7 @@ public class BasicSerializerFactory
             ser = findSerializerByPrimaryType(type, config);
             if (ser == null) {
                 // And if that fails, one with "secondary" traits:
-                ser = findSerializerByAddonType(type);
+                ser = findSerializerByAddonType(type, config);
             }
         }
         return (JsonSerializer<T>) ser;
@@ -244,9 +245,20 @@ public class BasicSerializerFactory
      * type itself, but not consider super-classes or implemented
      * interfaces.
      */
-    public final JsonSerializer<?> findSerializerByLookup(Class<?> type)
+    public final JsonSerializer<?> findSerializerByLookup(Class<?> type, SerializationConfig config)
     {
-        return _concrete.get(type.getName());
+        JsonSerializer<?> ser = _concrete.get(type.getName());
+        /* 08-Nov-2009, tatus: Some standard types may need customization;
+         *    for now that just means Maps, but in future probably other
+         *    collections as well. For strictly standard types this is
+         *    currently only needed due to mix-in annotations.
+         */
+        if (ser != null ) {
+            if (ser == MapSerializer.instance) {
+                return buildMapSerializer(type, config);
+            }
+        }
+        return ser;
     }
 
     /**
@@ -277,7 +289,7 @@ public class BasicSerializerFactory
             if (EnumMap.class.isAssignableFrom(type)) {
                 return new ContainerSerializers.EnumMapSerializer();
             }
-            return ContainerSerializers.MapSerializer.instance;
+            return buildMapSerializer(type, config);
         }
         if (Object[].class.isAssignableFrom(type)) {
             return ArraySerializers.ObjectArraySerializer.instance;
@@ -316,10 +328,10 @@ public class BasicSerializerFactory
          *   that is really needed.
          */
         if (_classXMLGregorianCalendar != null && _classXMLGregorianCalendar.isAssignableFrom(type)) {
-            return StringLikeSerializer.instance;
+            return ToStringSerializer.instance;
         }
         if (_classXMLDuration != null && _classXMLDuration.isAssignableFrom(type)) {
-            return StringLikeSerializer.instance;
+            return ToStringSerializer.instance;
         }
         if (Collection.class.isAssignableFrom(type)) {
             if (EnumSet.class.isAssignableFrom(type)) {
@@ -338,7 +350,7 @@ public class BasicSerializerFactory
      * bean classes may implement {@link Iterable}, but their main
      * function is usually something else. The reason for
      */
-    public final JsonSerializer<?> findSerializerByAddonType(Class<?> type)
+    public final JsonSerializer<?> findSerializerByAddonType(Class<?> type, SerializationConfig config)
     {
         // These need to be in decreasing order of specificity...
         if (Iterator.class.isAssignableFrom(type)) {
@@ -381,6 +393,17 @@ public class BasicSerializerFactory
             return (JsonSerializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
         }
         return null;
+    }
+
+    /**
+     * Helper method that handles configuration details when constructing serializers for
+     * {@link java.util.Map} types.
+     */
+    protected JsonSerializer<?> buildMapSerializer(Class<?> type, SerializationConfig config)
+    {
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        BasicBeanDescription beanDesc = config.introspectClassAnnotations(type);
+        return MapSerializer.construct(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));
     }
 
     /*
@@ -438,37 +461,6 @@ public class BasicSerializerFactory
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value);
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            return createSchemaNode("string", true);
-        }
-    }
-
-    /**
-     * Deprecated serializer, identical to {@link ToStringSerializer}.
-     *
-     * @deprecated Use {@link ToStringSerializer} instead (stand-alone class,
-     *   more accurate name)
-     */
-    @Deprecated
-    public final static class StringLikeSerializer<T>
-        extends SerializerBase<T>
-    {
-        public final static StringLikeSerializer<Object> instance = new StringLikeSerializer<Object>();
-
-        /* 17-Feb-2009, tatus: better ensure there is the no-arg constructor,
-         *   so it can be used via annotations
-         */
-        public StringLikeSerializer() { }
-
-        @Override
-        public void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeString(value.toString());
         }
 
         @Override

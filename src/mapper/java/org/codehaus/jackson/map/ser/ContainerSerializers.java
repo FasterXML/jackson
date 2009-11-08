@@ -341,70 +341,16 @@ public final class ContainerSerializers
     ////////////////////////////////////////////////////////////
      */
 
+    /**
+     * Deprecated map serializer; starting with version 1.4, there
+     * is non-inner class version
+     * 
+     * @deprecated Since 1.4, please use the non-inner class
+     *    {@link org.codehaus.jackson.map.ser.MapSerializer} instead.
+s     */
+    @Deprecated
     public final static class MapSerializer
-        extends SerializerBase<Map<?,?>>
-    {
-        public final static MapSerializer instance = new MapSerializer();
-
-        @Override
-            public void serialize(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeStartObject();
-
-            if (!value.isEmpty()) {
-                final JsonSerializer<Object> keySerializer = provider.getKeySerializer();
-                JsonSerializer<Object> prevValueSerializer = null;
-                Class<?> prevValueClass = null;
-
-                Object keyElem, valueElem;
-
-                for (Map.Entry<?,?> entry : value.entrySet()) {
-                    // First, serialize key
-                    keyElem = entry.getKey();
-                    if (keyElem == null) {
-                        provider.getNullKeySerializer().serialize(null, jgen, provider);
-                    } else {
-                        keySerializer.serialize(keyElem, jgen, provider);
-                    }
-
-                    // And then value
-                    valueElem = entry.getValue();
-                    if (valueElem == null) {
-                        provider.getNullValueSerializer().serialize(null, jgen, provider);
-                    } else {
-                        Class<?> cc = valueElem.getClass();
-                        JsonSerializer<Object> currSerializer;
-                        if (cc == prevValueClass) {
-                            currSerializer = prevValueSerializer;
-                        } else {
-                            currSerializer = provider.findValueSerializer(cc);
-                            prevValueSerializer = currSerializer;
-                            prevValueClass = cc;
-                        }
-                        try {
-                            currSerializer.serialize(valueElem, jgen, provider);
-                        } catch (Exception e) {
-                            // [JACKSON-55] Need to add reference information
-                            String keyDesc = ""+keyElem;
-                            wrapAndThrow(e, value, keyDesc);
-                        }
-                    }
-                }
-            }
-                
-            jgen.writeEndObject();
-        }
-
-        //@Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            ObjectNode o = createSchemaNode("object", true);
-            //(ryan) even though it's possible to statically determine the "value" type of the map,
-            // there's no way to statically determine the keys, so the "properties" can't be determined.
-            return o;
-        }
-    }
+        extends org.codehaus.jackson.map.ser.MapSerializer { }
 
     public final static class EnumMapSerializer
         extends SerializerBase<EnumMap<? extends Enum<?>, ?>>

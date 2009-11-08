@@ -30,7 +30,8 @@ public abstract class JsonGeneratorBase
 
     /**
      * Flag set to indicate that implicit conversion from number
-     * to JSON String is needed (as per {@link Feature#WRITE_NUMBERS_AS_STRINGS}).
+     * to JSON String is needed (as per
+     * {@link org.codehaus.jackson.JsonGenerator.Feature#WRITE_NUMBERS_AS_STRINGS}).
      */
     protected boolean _cfgNumbersAsStrings;
 

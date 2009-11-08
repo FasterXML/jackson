@@ -111,6 +111,24 @@ public abstract class AnnotationIntrospector
      */
     public abstract String findRootName(AnnotatedClass ac);
 
+    /**
+     * Method for finding list of properties to ignore for given class
+     * (null is returned if not specified).
+     * List of property names is applied
+     * after other detection mechanisms, to filter out these specific
+     * properties from being serialized and deserialized.
+     * 
+     * @since 1.4
+     */
+    public abstract String[] findPropertiesToIgnore(AnnotatedClass ac);
+
+    /**
+     * Method for checking whether an annotation indicates that all unknown properties
+     * 
+     * @since 1.4
+     */
+    public abstract Boolean findIgnoreUnknownProperties(AnnotatedClass ac);
+    
     /*
     ///////////////////////////////////////////////////////
     // General method annotations
@@ -579,7 +597,26 @@ public abstract class AnnotationIntrospector
             String name2 = _secondary.findRootName(ac);
             return (name2 == null) ? name1 : name2;
         }
-        
+
+        @Override
+        public String[] findPropertiesToIgnore(AnnotatedClass ac)
+        {
+            String[] result = _primary.findPropertiesToIgnore(ac);
+            if (result == null) {
+                result = _secondary.findPropertiesToIgnore(ac);
+            }
+            return result;            
+        }
+
+        @Override
+        public Boolean findIgnoreUnknownProperties(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findIgnoreUnknownProperties(ac);
+            if (result == null) {
+                result = _secondary.findIgnoreUnknownProperties(ac);
+            }
+            return result;
+        }        
         // // // General method annotations
 
         @Override
