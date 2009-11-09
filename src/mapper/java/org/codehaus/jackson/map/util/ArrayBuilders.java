@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.util;
 
+import java.util.*;
 
 /**
  * Helper class that contains set of distinct builders for different
@@ -125,6 +126,23 @@ public final class ArrayBuilders
     {
         public DoubleBuilder() { }
         public final double[] _constructArray(int len) { return new double[len]; }
+    }
+    
+    /*
+     ***************************************************************
+     * Static helper methods
+     ***************************************************************
+     */
+
+    public static <T> HashSet<T> arrayToSet(T[] elements)
+    {
+        HashSet<T> result = new HashSet<T>();
+        if (elements != null) {
+            for (T elem : elements) {
+                result.add(elem);
+            }
+        }
+        return result;
     }
 }
 

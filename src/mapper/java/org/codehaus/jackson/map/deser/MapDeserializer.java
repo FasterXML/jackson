@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -50,6 +51,10 @@ public class MapDeserializer
      */
     protected Creator.PropertyBased _propertyBasedCreator;
 
+    // // Any properties to ignore if seen?
+    
+    protected HashSet<String> _ignorableProperties;
+    
     /*
     ////////////////////////////////////////////////////////////
     // Life-cycle
@@ -73,6 +78,12 @@ public class MapDeserializer
     public void setCreators(CreatorContainer creators)
     {
         _propertyBasedCreator = creators.propertyBasedCreator();
+    }
+
+    public void setIgnorableProperties(String[] ignorable)
+    {
+        _ignorableProperties = (ignorable == null || ignorable.length == 0) ?
+            null : ArrayBuilders.arrayToSet(ignorable);
     }
 
     /*
@@ -178,6 +189,10 @@ public class MapDeserializer
             Object key = (keyDes == null) ? fieldName : keyDes.deserializeKey(fieldName, ctxt);
             // And then the value...
             JsonToken t = jp.nextToken();
+            if (_ignorableProperties != null && _ignorableProperties.contains(fieldName)) {
+                jp.skipChildren();
+                continue;
+            }
             // Note: must handle null explicitly here; value deserializers won't
             Object value = (t == JsonToken.VALUE_NULL) ? null : valueDes.deserialize(jp, ctxt);
             /* !!! 23-Dec-2008, tatu: should there be an option to verify
@@ -202,6 +217,11 @@ public class MapDeserializer
                 return (Map<Object,Object>)creator.build(buffer);
             }
             String propName = jp.getCurrentName();
+            if (_ignorableProperties != null && _ignorableProperties.contains(propName)) {
+                jp.nextToken(); // to get to value
+                jp.skipChildren(); // and skip it (in case of array/object)
+                continue;
+            }
             // creator property?
             SettableBeanProperty prop = creator.findCreatorProperty(propName);
             if (prop != null) {

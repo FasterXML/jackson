@@ -105,6 +105,12 @@ public class BeanDeserializer
      */
     protected HashSet<String> _ignorableProps;
 
+    /**
+     * Flag that can be set to ignore and skip unknown properties.
+     * If set, will not throw an exception for unknown properties.
+     */
+    protected boolean _ignoreAllUnknown;
+    
     /*
     /////////////////////////////////////////////////////////
     // Life-cycle, construction, initialization
@@ -177,6 +183,10 @@ public class BeanDeserializer
         _anySetter = s;
     }
 
+    public void setIgnoreUnknownProperties(boolean ignore) {
+        _ignoreAllUnknown = ignore;
+    }
+    
     /**
      * Method that will add property name as one of properties that can
      * be ignored if not recognized.
@@ -334,6 +344,9 @@ public class BeanDeserializer
                 prop.deserializeAndSet(jp, ctxt, bean);
                 continue;
             }
+            /* 08-Nov-2009, tatus: Should we first check ignorable properties,
+             *    and skip? For now, we'll just call any setter.
+             */
             if (_anySetter != null) {
                 _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
                 continue;
@@ -472,12 +485,17 @@ public class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
+    /**
+     * Method called when a JSON property is encountered that has not matching
+     * setter, any-setter or field, and thus can not be assigned.
+     */
     @Override
     protected void handleUnknownProperty(DeserializationContext ctxt, Object beanOrClass, String propName)
         throws IOException, JsonProcessingException
     {
         // If registered as ignorable, skip
-        if (_ignorableProps != null && _ignorableProps.contains(propName)) {
+        if (_ignoreAllUnknown ||
+            (_ignorableProps != null && _ignorableProps.contains(propName))) {
             ctxt.getParser().skipChildren();
             return;
         }

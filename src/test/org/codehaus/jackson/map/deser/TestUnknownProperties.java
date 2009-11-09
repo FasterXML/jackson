@@ -1,8 +1,10 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.*;
+import java.util.HashMap;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -54,6 +56,29 @@ public class TestUnknownProperties
         }
     }
 
+    @JsonIgnoreProperties({"b", "c"})
+    static class IgnoreSome
+    {
+        public int a, b;
+        private String c, d;
+
+        public IgnoreSome() { }
+
+        public String c() { return c; }
+        public void setC(String value) { c = value; }
+        public String d() { return d; }
+        public void setD(String value) { d = value; }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown=true)
+    static class IgnoreUnknown {
+        public int a;
+    }
+
+    @SuppressWarnings("serial")
+    @JsonIgnoreProperties({"a", "d"})
+    static class IgnoreMap extends HashMap<String,Object> { }
+    
     /*
     ///////////////////////////////////////////////////////////
     // Test methods
@@ -113,5 +138,44 @@ public class TestUnknownProperties
         assertEquals(1, result._a);
         assertNull(result._unknown);
         assertEquals(-1, result._b);
+    }
+
+    /// @since 1.4
+    public void testWithClassIgnore()
+        throws Exception
+    {
+        IgnoreSome result = new ObjectMapper().readValue("{ \"a\":1,\"b\":2,\"c\":\"x\",\"d\":\"y\"}", IgnoreSome.class);
+        // first: should deserialize 2 of properties normally
+        assertEquals(1, result.a);
+        assertEquals("y", result.d());
+        // and not take other 2
+        assertEquals(0, result.b);
+        assertNull(result.c());
+    }
+
+    /// @since 1.4
+    public void testClassIgnoreWithMap() throws Exception
+    {
+        // Let's actually use incompatible types for "a" and "d"; should not matter when ignored
+        IgnoreMap result = new ObjectMapper().readValue
+            ("{ \"a\":[ 1],\n"
+                +"\"b\":2,\n"
+                +"\"c\": \"x\",\n"
+                +"\"d\":false }", IgnoreMap.class);
+        assertEquals(2, result.size());
+        Object ob = result.get("b");
+        assertEquals(Integer.class, ob.getClass());
+        assertEquals(Integer.valueOf(2), ob);
+        assertEquals("x", result.get("c"));
+        assertFalse(result.containsKey("a"));
+        assertFalse(result.containsKey("d"));
+    }
+
+    /// @since 1.4
+    public void testClassWithIgnoreUnknown() throws Exception
+    {
+        IgnoreUnknown result = new ObjectMapper().readValue
+            ("{\"b\":3,\"c\":[1,2],\"x\":{ },\"a\":-3}", IgnoreUnknown.class);
+        assertEquals(-3, result.a);
     }
 }

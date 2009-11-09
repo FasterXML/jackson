@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
@@ -238,10 +239,7 @@ public class BeanSerializerFactory
         AnnotatedClass ac = beanDesc.getClassInfo();
         String[] ignored = intr.findPropertiesToIgnore(ac);
         if (ignored != null && ignored.length > 0) {
-            HashSet<String> ignoredSet = new HashSet<String>();
-            for (String prop : ignored) {
-                ignoredSet.add(prop);
-            }
+            HashSet<String> ignoredSet = ArrayBuilders.arrayToSet(ignored);
             Iterator<BeanPropertyWriter> it = props.iterator();
             while (it.hasNext()) {
                 if (ignoredSet.contains(it.next().getName())) {

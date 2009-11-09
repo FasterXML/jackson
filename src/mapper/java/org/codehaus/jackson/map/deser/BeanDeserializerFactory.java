@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
@@ -367,25 +368,37 @@ public class BeanDeserializerFactory
     {
         boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS);
         Map<String,AnnotatedMethod> setters = beanDesc.findSetters(autodetect);
-        // Also, do we have a fallback "any" setter? If so, need to bind
-        {
-            AnnotatedMethod anyM = beanDesc.findAnySetter();
-            if (anyM != null) {
-                deser.setAnySetter(constructAnySetter(config, anyM));
-            }
-        }
+        // Also, do we have a fallback "any" setter?
+        AnnotatedMethod anySetter = beanDesc.findAnySetter();
 
         /* No setters? Should we proceed here? It may well be ok, if
          * there are factory methods or such.
          */
         //if (setters.isEmpty() && anySetter == null) ...
 
+        // And finally, any specifications for "known ignored"? [JACSON-77]
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        HashSet<String> ignored = ArrayBuilders.arrayToSet(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));
+        for (String propName : ignored) {
+            deser.addIgnorable(propName);
+        }
+        Boolean B = intr.findIgnoreUnknownProperties(beanDesc.getClassInfo());
+        if (B != null) {
+            deser.setIgnoreUnknownProperties(B.booleanValue());
+        }
+        
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
-            SettableBeanProperty prop = constructSettableProperty(config, beanDesc, en.getKey(), en.getValue());
-            if (prop != null) {
-                deser.addProperty(prop);
+            String name = en.getKey();            
+            if (!ignored.contains(name)) {
+                SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, en.getValue());
+                if (prop != null) {
+                    deser.addProperty(prop);
+                }
             }
+        }
+        if (anySetter != null) {
+            deser.setAnySetter(constructAnySetter(config, anySetter));
         }
 
         /* As per [JACKSON-88], may also need to consider getters
@@ -406,8 +419,10 @@ public class BeanDeserializerFactory
                 if (Collection.class.isAssignableFrom(rt)
                     || Map.class.isAssignableFrom(rt)) {
                     String name = en.getKey();
-                    deser.addProperty(constructSetterlessProperty(config, name, getter));
-                    addedProps.add(name);
+                    if (!ignored.contains(name)) {
+                        deser.addProperty(constructSetterlessProperty(config, name, getter));
+                        addedProps.add(name);
+                    }
                 }
             }
         }
@@ -418,9 +433,12 @@ public class BeanDeserializerFactory
          */
         LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_FIELDS), addedProps);
         for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
-            SettableBeanProperty prop = constructSettableProperty(config, beanDesc, en.getKey(), en.getValue());
-            if (prop != null) {
-                deser.addProperty(prop);
+            String name = en.getKey();
+            if (!ignored.contains(name)) {
+                SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, en.getValue());
+                if (prop != null) {
+                    deser.addProperty(prop);
+                }
             }
         }
     }
