@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.HashMap;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.map.*;
 
@@ -78,7 +79,13 @@ public class TestUnknownProperties
     @SuppressWarnings("serial")
     @JsonIgnoreProperties({"a", "d"})
     static class IgnoreMap extends HashMap<String,Object> { }
-    
+
+    static class ImplicitIgnores {
+        @JsonIgnore public int a;
+        @JsonIgnore public void setB(int b) { }
+        public int c;
+    }
+
     /*
     ///////////////////////////////////////////////////////////
     // Test methods
@@ -177,5 +184,25 @@ public class TestUnknownProperties
         IgnoreUnknown result = new ObjectMapper().readValue
             ("{\"b\":3,\"c\":[1,2],\"x\":{ },\"a\":-3}", IgnoreUnknown.class);
         assertEquals(-3, result.a);
+    }
+
+    /**
+     * Test that verifies that use of {@link @JsonIgnore} will add implicit
+     * skipping of matching properties.
+     */
+    public void testClassWithUnknownAndIgnore() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        // should be ok: "a" and "b" ignored, "c" mapped:
+        ImplicitIgnores result = m.readValue
+            ("{\"a\":1,\"b\":2,\"c\":3 }", ImplicitIgnores.class);
+        assertEquals(3, result.c);
+
+        // but "d" is not defined, so should still error
+        try {
+            m.readValue("{\"a\":1,\"b\":2,\"c\":3,\"d\":4 }", ImplicitIgnores.class);            
+        } catch (JsonMappingException e) {
+            verifyException(e, "foo");
+        }
     }
 }

@@ -49,7 +49,7 @@ public class StdDeserializationContext
      */
 
     @Override
-	public JsonParser getParser() { return _parser; }
+    public JsonParser getParser() { return _parser; }
 
     /*
     ///////////////////////////////////////////////////
@@ -58,7 +58,7 @@ public class StdDeserializationContext
      */
 
     @Override
-	public final ObjectBuffer leaseObjectBuffer()
+    public final ObjectBuffer leaseObjectBuffer()
     {
         ObjectBuffer buf = _objectBuffer;
         if (buf == null) {
@@ -70,7 +70,7 @@ public class StdDeserializationContext
     }
 
     @Override
-	public final void returnObjectBuffer(ObjectBuffer buf)
+    public final void returnObjectBuffer(ObjectBuffer buf)
     {
         /* Already have a reusable buffer? Let's retain bigger one
          * (or if equal, favor newer one, shorter life-cycle)
@@ -82,7 +82,7 @@ public class StdDeserializationContext
     }
 
     @Override
-	public final ArrayBuilders getArrayBuilders()
+    public final ArrayBuilders getArrayBuilders()
     {
         if (_arrayBuilders == null) {
             _arrayBuilders = new ArrayBuilders();
