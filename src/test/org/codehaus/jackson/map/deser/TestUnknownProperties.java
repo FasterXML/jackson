@@ -202,7 +202,7 @@ public class TestUnknownProperties
         try {
             m.readValue("{\"a\":1,\"b\":2,\"c\":3,\"d\":4 }", ImplicitIgnores.class);            
         } catch (JsonMappingException e) {
-            verifyException(e, "foo");
+            verifyException(e, "Unrecognized field \"d\"");
         }
     }
 }

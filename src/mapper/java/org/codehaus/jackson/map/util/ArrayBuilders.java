@@ -144,5 +144,14 @@ public final class ArrayBuilders
         }
         return result;
     }
+
+    public static <T> List<T> addToList(List<T> list, T element)
+    {
+        if (list == null) {
+            list = new ArrayList<T>();
+        }
+        list.add(element);
+        return list;
+    }
 }
 

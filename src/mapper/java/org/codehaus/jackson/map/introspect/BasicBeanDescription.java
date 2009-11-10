@@ -408,6 +408,14 @@ public class BasicBeanDescription extends BeanDescription
      */
 
     /**
+     * @param autodetect Whether setter auto-detection is on: if true,
+     *    it is enough for a method to have appropriate signature and
+     *    name ("set[PropertyName]") to qualify; if false, it must have
+     *    an annotation to be considered.
+     * @param ignorable Collection to add names of explicitly ignored
+     *    methods that would otherwise qualify as setters using
+     *    auto-detection rules (independent of whether auto-detection
+     *    is enabled). If null, such methods are just ignored.
      * 
      * @return Ordered Map with logical property name as key, and
      *    matching setter method as value.
@@ -652,7 +660,7 @@ public class BasicBeanDescription extends BeanDescription
     ///////////////////////////////////////////////////////
      */
 
-    protected String okNameForSetter(AnnotatedMethod am)
+    public String okNameForSetter(AnnotatedMethod am)
     {
         String name = am.getName();
 
@@ -674,7 +682,7 @@ public class BasicBeanDescription extends BeanDescription
      * @return Null to indicate that method is not a valid accessor;
      *   otherwise name of the property it is accessor for
      */
-    protected String mangleSetterName(Annotated a, String basename)
+    public String mangleSetterName(Annotated a, String basename)
     {
         return manglePropertyName(basename);
     }

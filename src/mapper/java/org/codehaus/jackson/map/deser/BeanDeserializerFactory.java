@@ -361,7 +361,6 @@ public class BeanDeserializerFactory
      * Method called to figure out settable properties for the
      * deserializer.
      */
-
     protected void addBeanProps(DeserializationConfig config,
                                 BasicBeanDescription beanDesc, BeanDeserializer deser)
         throws JsonMappingException
@@ -376,21 +375,40 @@ public class BeanDeserializerFactory
          */
         //if (setters.isEmpty() && anySetter == null) ...
 
-        // And finally, any specifications for "known ignored"? [JACSON-77]
+        // And finally, things specified as "ok to ignore"? [JACKSON-77]
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        HashSet<String> ignored = ArrayBuilders.arrayToSet(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));
-        for (String propName : ignored) {
-            deser.addIgnorable(propName);
+        boolean ignoreAny = false;
+        {
+            Boolean B = intr.findIgnoreUnknownProperties(beanDesc.getClassInfo());
+            if (B != null) {
+                ignoreAny = B.booleanValue();
+                deser.setIgnoreUnknownProperties(ignoreAny);
+            }
         }
-        Boolean B = intr.findIgnoreUnknownProperties(beanDesc.getClassInfo());
-        if (B != null) {
-            deser.setIgnoreUnknownProperties(B.booleanValue());
+        // Or explicit/implicit definitions?
+        HashSet<String> ignored = ArrayBuilders.arrayToSet(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));        
+        // But let's only add these if we'd otherwise fail with exception (save some memory here)
+        if (!ignoreAny && config.isEnabled(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES)) {
+            for (String propName : ignored) {
+                deser.addIgnorable(propName);
+            }
+            // Implicit ones via @JsonIgnore and equivalent?
+            AnnotatedClass ac = beanDesc.getClassInfo();
+            for (AnnotatedMethod am : ac.ignoredMemberMethods()) {
+                String name = beanDesc.okNameForSetter(am);
+                if (name != null) {
+                    deser.addIgnorable(name);
+                }
+            }
+            for (AnnotatedField af : ac.ignoredFields()) {
+                deser.addIgnorable(af.getName());
+            }
         }
         
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
             String name = en.getKey();            
-            if (!ignored.contains(name)) {
+            if (!ignored.contains(name)) { // explicit ignoral using @JsonIgnoreProperties needs to block entries
                 SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, en.getValue());
                 if (prop != null) {
                     deser.addProperty(prop);

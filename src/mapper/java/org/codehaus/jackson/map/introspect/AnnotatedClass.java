@@ -6,53 +6,12 @@ import java.util.*;
 
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ClassIntrospector.MixInResolver;
+import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedClass
     extends Annotated
 {
-    /*
-    ///////////////////////////////////////////////////////
-    // Helper classes
-    ///////////////////////////////////////////////////////
-     */
-
-    /*
-     * Filter used to only include methods that have signature that is
-     * compatible with "factory" methods: are static, take a single
-     * argument, and returns something.
-     *<p>
-     * <b>NOTE</b>: in future we will probably allow more than one
-     * argument, when multi-arg constructors and factory methods
-     * are supported (with accompanying annotations to bind args
-     * to properties).
-     */
-    // 17-Oct-2009, tatus: Not used any more; will leave commented out for now
-    /*
-    public final static class FactoryMethodFilter
-        implements MethodFilter
-    {
-        public final static FactoryMethodFilter instance = new FactoryMethodFilter();
-
-        public boolean includeMethod(Method m)
-        {
-            if (!Modifier.isStatic(m.getModifiers())) {
-                return false;
-            }
-            int argCount = m.getParameterTypes().length;
-            if (argCount != 1) {
-                return false;
-            }
-            // Can't be a void method
-            Class<?> rt = m.getReturnType();
-            if (rt == Void.TYPE) {
-                return false;
-            }
-            // Otherwise, potentially ok
-            return true;
-        }
-    }
-    */
 
     /*
     ///////////////////////////////////////////////////////
@@ -132,6 +91,20 @@ public final class AnnotatedClass
      */
     List<AnnotatedField> _fields;
 
+    // // // Lists of explicitly ignored entries (optionally populated)
+
+    /**
+     * Optionally populated list that contains member methods that were
+     * excluded from applicable methods due to explicit ignore annotation
+     */
+    List<AnnotatedMethod> _ignoredMethods;
+    
+    /**
+     * Optionally populated list that contains fields that were
+     * excluded from applicable fields due to explicit ignore annotation
+     */
+    List<AnnotatedField> _ignoredFields;
+    
     /*
     ///////////////////////////////////////////////////////
     // Life-cycle
@@ -221,7 +194,16 @@ public final class AnnotatedClass
     {
         return _memberMethods;
     }
-
+ 
+    public Iterable<AnnotatedMethod> ignoredMemberMethods()
+    {
+        if (_ignoredMethods == null) {
+            List<AnnotatedMethod> l = Collections.emptyList();
+            return l;
+        }
+        return _ignoredMethods;
+    }
+ 
     public int getMemberMethodCount()
     {
         return _memberMethods.size();
@@ -245,6 +227,15 @@ public final class AnnotatedClass
         return _fields;
     }
 
+    public Iterable<AnnotatedField> ignoredFields()
+    {
+        if (_ignoredFields == null) {
+            List<AnnotatedField> l = Collections.emptyList();
+            return l;
+        }
+        return _ignoredFields;
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // Methods for resolving class annotations
@@ -498,7 +489,10 @@ public final class AnnotatedClass
     ///////////////////////////////////////////////////////
      */
 
-    public void resolveMemberMethods(MethodFilter methodFilter)
+    /**
+     * @param collectIgnored Whether to collect list of ignored methods for later retrieval
+     */
+    public void resolveMemberMethods(MethodFilter methodFilter, boolean collectIgnored)
     {
         _memberMethods = new AnnotatedMethodMap();
         AnnotatedMethodMap mixins = new AnnotatedMethodMap();
@@ -547,6 +541,9 @@ public final class AnnotatedClass
             AnnotatedMethod am = it.next();
             if (_annotationIntrospector.isIgnorableMethod(am)) {
                 it.remove();
+                if (collectIgnored) {
+                    _ignoredMethods = ArrayBuilders.addToList(_ignoredMethods, am);
+                }
             }
         }
     }
@@ -622,8 +619,10 @@ public final class AnnotatedClass
      * Method that will collect all member (non-static) fields
      * that are either public, or have at least a single annotation
      * associated with them.
+     *
+     * @param collectIgnored Whether to collect list of ignored methods for later retrieval
      */
-    public void resolveFields()
+    public void resolveFields(boolean collectIgnored)
     {
         _fields = new ArrayList<AnnotatedField>();
         _addFields(_fields, _class);
@@ -637,6 +636,9 @@ public final class AnnotatedClass
             AnnotatedField f = it.next();
             if (_annotationIntrospector.isIgnorableField(f)) {
                 it.remove();
+                if (collectIgnored) {
+                    _ignoredFields = ArrayBuilders.addToList(_ignoredFields, f);
+                }
             }
         }
     }

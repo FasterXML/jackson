@@ -1,17 +1,22 @@
 Version: 1.4.0
 
 Release date:
-  xx-Dec-2009
+  xx-Nov-2009
 
 Description:
   Official 1.4 release.
 
   Improvements:
 
+  * [JACKSON-89] Make ignored field/creator-backed properties quietly
+    skippable during deserialization (that is, without having to explicitly
+    declare such properties as ignorable as per [JACKSON-77])
   * [JACKSON-170] Serialize Creator properties before other properties
 
   New features:
 
+  * [JACKSON-77] Add class annotation @JsonIgnoreProperties to allow
+    for ignoring specific set of properties for serialization/deserialization
   * [JACKSON-90] Added @JsonPropertyOrder, which allows for specifying
     order in which properties are serialized.
 
