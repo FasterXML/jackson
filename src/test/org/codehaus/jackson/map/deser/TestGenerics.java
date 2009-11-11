@@ -41,7 +41,7 @@ public class TestGenerics
 
         @Override
         public boolean equals(Object o) {
-            return (o instanceof Wrapper) && (((Wrapper) o).value == value);
+            return (o instanceof Wrapper) && (((Wrapper) o).value.equals(value));
         }
     }
 
