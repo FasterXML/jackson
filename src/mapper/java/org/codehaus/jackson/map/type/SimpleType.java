@@ -14,22 +14,10 @@ public final class SimpleType
     extends JavaType
 {
     /**
-     * This type token is used if the type is unknown due to
-     * type erasure.
-     */
-    public final static SimpleType TYPE_UNSPECIFIED = new SimpleType(Object.class);
-
-    /**
-     * This type token is used if the underlying type is only known as
-     * unqualified wildcard ("?").
-     */
-    public final static SimpleType TYPE_WILDCARD = new SimpleType(Object.class);
-
-    /**
      * For generic types we need to keep track of mapping from formal
      * into actual types, to be able to resolve generic signatures.
      */
-    protected Map<String,JavaType> _typeParameters;
+    protected final LinkedHashMap<String,JavaType> _typeParameters;
     
     /*
     //////////////////////////////////////////////////////////
@@ -42,7 +30,8 @@ public final class SimpleType
     protected SimpleType(Class<?> cls, Map<String,JavaType> typeParams)
     {
         super(cls);
-        _typeParameters = typeParams;
+        _typeParameters = (typeParams == null || typeParams.size() == 0) ?
+            null : new LinkedHashMap<String,JavaType>(typeParams);
     }
 
     protected JavaType _narrow(Class<?> subclass)
@@ -111,12 +100,15 @@ public final class SimpleType
         if (o == null) return false;
         if (o.getClass() != getClass()) return false;
 
-        // Also, we have some canonical instances that do not match
-        if (o == TYPE_UNSPECIFIED || o == TYPE_WILDCARD) return false;
-
         SimpleType other = (SimpleType) o;
 
         // Classes must be identical... 
-        return (other._class == this._class);
+        if (other._class != this._class) return false;
+        // And finally, generic bindings, if any
+
+        if (_typeParameters == null) {
+            return (other._typeParameters == null);
+        }
+        return _typeParameters.equals(other._typeParameters);
     }
 }
