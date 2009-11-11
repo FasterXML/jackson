@@ -14,18 +14,6 @@ public final class SimpleType
     extends JavaType
 {
     /**
-     * This type token is used if the type is unknown due to
-     * type erasure.
-     */
-    public final static SimpleType TYPE_UNSPECIFIED = new SimpleType(Object.class);
-
-    /**
-     * This type token is used if the underlying type is only known as
-     * unqualified wildcard ("?").
-     */
-    public final static SimpleType TYPE_WILDCARD = new SimpleType(Object.class);
-
-    /**
      * For generic types we need to keep track of mapping from formal
      * into actual types, to be able to resolve generic signatures.
      */
@@ -110,9 +98,6 @@ public final class SimpleType
         if (o == this) return true;
         if (o == null) return false;
         if (o.getClass() != getClass()) return false;
-
-        // Also, we have some canonical instances that do not match
-        if (o == TYPE_UNSPECIFIED || o == TYPE_WILDCARD) return false;
 
         SimpleType other = (SimpleType) o;
 

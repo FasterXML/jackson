@@ -34,6 +34,15 @@ public class TestGenerics
     static class Wrapper<T>
     {
         public T value;
+
+        public Wrapper() { }
+
+        public Wrapper(T v) { value = v; }
+
+        @Override
+        public boolean equals(Object o) {
+            return (o instanceof Wrapper) && (((Wrapper) o).value == value);
+        }
     }
 
     /*
@@ -65,6 +74,31 @@ public class TestGenerics
         assertEquals(SimpleBean.class, contents.getClass());
         SimpleBean bean = (SimpleBean) contents;
         assertEquals(13, bean.x);
+    }
+
+    /**
+     * Unit test for verifying that we can use different
+     * type bindings for individual generic types;
+     * problem with [JACKSON-190]
+     */
+    public void testMultipleWrappers() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // First, numeric wrapper
+        Wrapper<Boolean> result = mapper.readValue
+            ("{\"value\": true}", new TypeReference<Wrapper<Boolean>>() { });
+        assertEquals(new Wrapper<Boolean>(Boolean.TRUE), result);
+
+        // Then string one
+        Wrapper<String> result2 = mapper.readValue
+            ("{\"value\": \"abc\"}", new TypeReference<Wrapper<String>>() { });
+        assertEquals(new Wrapper<String>("abc"), result2);
+
+        // And then number
+        Wrapper<Long> result3 = mapper.readValue
+            ("{\"value\": 7}", new TypeReference<Wrapper<Long>>() { });
+        assertEquals(new Wrapper<Long>(7L), result3);
     }
 
     /**
