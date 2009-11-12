@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map.deser;
 
-import java.util.*;
-
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -43,13 +41,8 @@ public class TestGenerics
 
         @Override
         public boolean equals(Object o) {
-            return (o instanceof Wrapper) && (((Wrapper) o).value.equals(value));
+            return (o instanceof Wrapper) && (((Wrapper<?>) o).value.equals(value));
         }
-    }
-
-    static class BoundedWrapper<A extends SimpleBean>
-    {
-        public List<A> values;
     }
 
     /*
@@ -81,22 +74,6 @@ public class TestGenerics
         assertEquals(SimpleBean.class, contents.getClass());
         SimpleBean bean = (SimpleBean) contents;
         assertEquals(13, bean.x);
-    }
-
-    /**
-     * Test related to type bound handling problem within
-     * [JACKSON-190]
-     */
-    public void testBounded() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        BoundedWrapper<SimpleBean> result = mapper.readValue
-            ("{\"values\":[ {\"x\":3} ] } ", new TypeReference<BoundedWrapper<SimpleBean>>() {});
-        List<?> list = result.values;
-        assertEquals(1, list.size());
-        Object ob = list.get(0);
-        assertEquals(BoundedWrapper.class, ob.getClass());
-        assertEquals(3, result.values.get(0).x);
     }
 
     /**
