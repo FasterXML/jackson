@@ -196,3 +196,8 @@ Nick Padgett
   * Reported [JACKSON-183]: Root-level 'JsonDeserialize' annotation
     not handled completely; 'as' setting was not taking effect
    [1.3.0]
+
+Nathan Ching
+  * Reported [JACKSON-190]: Problem deserializing some nested generics
+    types
+   [1.3.1]
