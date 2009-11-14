@@ -24,6 +24,7 @@
  *  can be exposed, without adding direct dependency to implementation.
  *  </li>
  *</ul>
+ * </ul>
  */
 
 package org.codehaus.jackson;

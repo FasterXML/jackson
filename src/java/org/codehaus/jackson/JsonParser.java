@@ -309,7 +309,7 @@ public abstract class JsonParser
      *
      * @since 1.2
      */
-    public final boolean isEnabled(Feature f) {
+    public boolean isEnabled(Feature f) {
         return (_features & f.getMask()) != 0;
     }
 
@@ -425,8 +425,7 @@ public abstract class JsonParser
      *   after end-of-input has been encountered, as well as
      *   if the current token has been explicitly cleared.
      */
-    public final JsonToken getCurrentToken()
-    {
+    public JsonToken getCurrentToken() {
         return _currToken;
     }
 
@@ -441,8 +440,7 @@ public abstract class JsonParser
      *   and returned null from {@link #nextToken}, or the token
      *   has been consumed)
      */
-    public final boolean hasCurrentToken()
-    {
+    public boolean hasCurrentToken() {
         return _currToken != null;
     }
 
@@ -459,8 +457,7 @@ public abstract class JsonParser
      * it has to be able to consume last token used for binding (so that
      * it will not be used again).
      */
-    public final void clearCurrentToken()
-    {
+    public void clearCurrentToken() {
         if (_currToken != null) {
             _lastClearedToken = _currToken;
             _currToken = null;
