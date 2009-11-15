@@ -300,6 +300,14 @@ public class StdSerializerProvider
         _nullKeySerializer = nks;
     }
 
+    public int cachedSerializersCount() {
+        return _serializerCache.size();
+    }
+
+    public void flushCachedSerializers() {
+        _serializerCache.flush();
+    }
+    
     /*
     ////////////////////////////////////////////////////
     // Abstract method impls, locating serializers

@@ -8,7 +8,7 @@ import org.codehaus.jackson.map.type.ClassKey;
 /**
  * Optimized lookup table for accessing {@link JsonSerializer} instances
  * keyed by {@link Class}. Initially this just uses a regular
- * {@link HashMap}, could optimize later on if need be
+ * {@link HashMap} but can be optimize later on if necessary.
  */
 public final class ReadOnlyClassToSerializerMap
 {

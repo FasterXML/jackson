@@ -70,4 +70,17 @@ public final class SerializerCache
             }
         }
     }
+
+    /**
+     * @since 1.4
+     * @return
+     */
+    public synchronized int size() {
+        return _sharedMap.size();
+    }
+
+    public synchronized void flush() {
+        _sharedMap.clear();
+    }
+
 }

@@ -5,7 +5,7 @@ import org.codehaus.jackson.type.JavaType;
 /**
  * Abstract class that defines API used by {@link ObjectMapper} and
  * {@link JsonDeserializer}s to obtain deserializers capable of
- * re-constructing instances of handled type from Json content.
+ * re-constructing instances of handled type from JSON content.
  */
 public abstract class DeserializerProvider
 {
@@ -61,4 +61,37 @@ public abstract class DeserializerProvider
      * through fields or membership in an array or collection)
      */
     public abstract boolean hasValueDeserializerFor(DeserializationConfig config, JavaType type);
+
+    /*
+    //////////////////////////////////////////////////////
+    // Access to caching aspects
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be used to determine how many deserializers this
+     * provider is caching currently 
+     * (if it does caching: default implementation does)
+     * Exact count depends on what kind of deserializers get cached;
+     * default implementation caches only dynamically constructed deserializers,
+     * but not eagerly constructed standard deserializers (which is different
+     * from how serializer provider works).
+     *<p>
+     * The main use case for this method is to allow conditional flushing of
+     * deserializer cache, if certain number of entries is reached.
+     * 
+     * @since 1.4
+     */
+    public abstract int cachedDeserializersCount();
+
+    /**
+     * Method that will drop all dynamically constructed deserializers (ones that
+     * are counted as result value for {@link #cachedDeserializersCount}).
+     * This can be used to remove memory usage (in case some deserializers are
+     * only used once or so), or to force re-construction of deserializers after
+     * configuration changes for mapper than owns the provider.
+     * 
+     * @since 1.4
+     */
+    public abstract void flushCachedDeserializers();
 }

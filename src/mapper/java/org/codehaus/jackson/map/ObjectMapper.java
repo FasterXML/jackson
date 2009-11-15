@@ -243,6 +243,13 @@ public class ObjectMapper
     }
 
     /**
+     * @since 1.4
+     */   
+    public SerializerProvider getSerializerProvider() {
+        return _serializerProvider;
+    }
+    
+    /**
      * Method for setting specific {@link DeserializerProvider} to use
      * for handling caching of {@link JsonDeserializer} instances.
      */
@@ -251,6 +258,13 @@ public class ObjectMapper
         return this;
     }
 
+    /**
+     * @since 1.4
+     */   
+    public DeserializerProvider getDeserializerProvider() {
+        return _deserializerProvider;
+    }
+    
     /**
      * Method for specifying {@link JsonNodeFactory} to use for
      * constructing root level tree nodes (via method

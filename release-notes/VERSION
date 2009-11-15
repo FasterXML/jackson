@@ -24,6 +24,8 @@ Description:
     for ignoring specific set of properties for serialization/deserialization
   * [JACKSON-90] Added @JsonPropertyOrder, which allows for specifying
     order in which properties are serialized.
+  * [JACKSON-191] Add access to basic statistics on number of cached
+    serializers, deserializers (and methods to flush these caches)
   * [JACKSON-192] Added basic delegate implementations (JsonParserDelegate,
     JsonGeneratorDelegate) to make it easier to override core parser and
     generate behavior

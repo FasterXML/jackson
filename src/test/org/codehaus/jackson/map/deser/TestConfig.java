@@ -91,4 +91,21 @@ public class TestConfig
         bean = m.readValue("{ \"x\" : 0 }", AnnoBean.class);
         assertEquals(0, bean.value);
     }
+
+    /**
+     * Test for verifying working of [JACKSON-191]
+     * 
+     * @since 1.4
+     */
+    public void testProviderConfig() throws Exception   
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(0, mapper.getDeserializerProvider().cachedDeserializersCount());
+        // and then should get one constructed for:
+        AnnoBean bean = mapper.readValue("{ \"y\" : 3 }", AnnoBean.class);
+        assertNotNull(bean);
+        assertEquals(1, mapper.getDeserializerProvider().cachedDeserializersCount());
+        mapper.getDeserializerProvider().flushCachedDeserializers();
+        assertEquals(0, mapper.getDeserializerProvider().cachedDeserializersCount());
+    }
 }

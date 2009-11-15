@@ -141,4 +141,25 @@ public class TestConfig
         result = writeAndMap(m, new AnnoBean());
         assertEquals(1, result.size());
     }
+
+    /**
+     * Test for verifying working of [JACKSON-191]
+     * 
+     * @since 1.4
+     */
+    public void testProviderConfig() throws Exception   
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(0, mapper.getSerializerProvider().cachedSerializersCount());
+        // and then should get one constructed for:
+        String value = mapper.writeValueAsString(new AnnoBean());
+        assertEquals("{\"x\":1,\"y\":2}", value);
+        /* Note: it is 2 because we'll also get serializer for basic 'int', not
+         * just AnnoBean
+         */
+        assertEquals(2, mapper.getSerializerProvider().cachedSerializersCount());
+        mapper.getSerializerProvider().flushCachedSerializers();
+        assertEquals(0, mapper.getSerializerProvider().cachedSerializersCount());
+    }
+
 }

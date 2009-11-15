@@ -208,4 +208,36 @@ public abstract class SerializerProvider
      */
     public abstract void defaultSerializeDateValue(Date date, JsonGenerator jgen)
         throws IOException, JsonProcessingException;
+
+    /*
+    //////////////////////////////////////////////////////
+    // Access to caching aspects
+    //////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method that can be used to determine how many serializers this
+     * provider is caching currently
+     * (if it does caching: default implementation does)
+     * Exact count depends on what kind of serializers get cached;
+     * default implementation caches all serializers, including ones that
+     * are eagerly constructed (for optimal access speed)
+     *<p> 
+     * The main use case for this method is to allow conditional flushing of
+     * serializer cache, if certain number of entries is reached.
+     * 
+     * @since 1.4
+     */
+    public abstract int cachedSerializersCount();
+
+    /**
+     * Method that will drop all serializers currently cached by this provider.
+     * This can be used to remove memory usage (in case some serializers are
+     * only used once or so), or to force re-construction of serializers after
+     * configuration changes for mapper than owns the provider.
+     * 
+     * @since 1.4
+     */
+    public abstract void flushCachedSerializers();
+
 }

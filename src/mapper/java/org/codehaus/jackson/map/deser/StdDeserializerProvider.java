@@ -19,8 +19,8 @@ import org.codehaus.jackson.type.JavaType;
 public class StdDeserializerProvider
     extends DeserializerProvider
 {
-    final static JavaType _typeObject = TypeFactory.type(Object.class);
-    final static JavaType _typeString = TypeFactory.type(String.class);
+    private final static JavaType _typeObject = TypeFactory.type(Object.class);
+    private final static JavaType _typeString = TypeFactory.type(String.class);
 
     /*
     ////////////////////////////////////////////////////
@@ -155,6 +155,23 @@ public class StdDeserializerProvider
             }
         }
         return (deser != null);
+    }
+
+    public int cachedDeserializersCount() {
+        return _cachedDeserializers.size();
+    }
+
+    /**
+     * Method that will drop all dynamically constructed deserializers (ones that
+     * are counted as result value for {@link #cachedDeserializersCount}).
+     * This can be used to remove memory usage (in case some deserializers are
+     * only used once or so), or to force re-construction of deserializers after
+     * configuration changes for mapper than owns the provider.
+     * 
+     * @since 1.4
+     */
+    public void flushCachedDeserializers() {
+        _cachedDeserializers.clear();       
     }
 
     /*

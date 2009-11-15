@@ -10,7 +10,7 @@ import org.codehaus.jackson.annotate.NoClass;
 import org.codehaus.jackson.map.JsonSerializer;
 
 /**
- * Annotation use for configuring serialization aspects, by attaching
+ * Annotation used for configuring serialization aspects, by attaching
  * to "getter" methods or fields, or to value classes.
  * When annotating value classes, configuration is used for instances
  * of the value class but can be overridden by more specific annotations
