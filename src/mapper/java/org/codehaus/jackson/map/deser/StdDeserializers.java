@@ -59,15 +59,23 @@ class StdDeserializers
         add(new FromStringDeserializer.URIDeserializer());
         add(new FromStringDeserializer.PatternDeserializer());
 
-        /* 25-Aug-2009, tatu: Chances are that Google's Android and GAE
+        /* 25-Aug-2009, tatu: Looks like Google's Android and GAE
          *   don't have "javax.xml.namespace" even though they are
          *   standard part of JDK 1.5. So let's be defensive here
          */
         try {
-            add(CoreXMLDeserializers.DurationDeserializer.class.newInstance());
-            add(CoreXMLDeserializers.GregorianCalendarDeserializer.class.newInstance());
-            add(CoreXMLDeserializers.QNameDeserializer.class.newInstance());
-        } catch (Throwable t) { }
+            for (String clsName : new String[] {
+                     "DurationDeserializer",
+                     "GregorianCalendarDeserializer",
+                     "QNameDeserializer" }) {
+                Class<?> cls = Class.forName("org.codehaus.jackson.map.deser.CoreXMLDeserializers$"+clsName);
+                StdDeserializer<?> deser = (StdDeserializer<?>) cls.newInstance();
+                add(deser);
+            }
+        }
+        catch (LinkageError e) { }
+        // too many different kinds to enumerate here:
+        catch (Exception e) { }
 
         // And finally some odds and ends
 

@@ -201,3 +201,11 @@ Nathan Ching
   * Reported [JACKSON-190]: Problem deserializing some nested generics
     types
    [1.3.1]
+
+Martin Lauer
+  * Reported [JACKSON-194] ObjectMapper class loading issues on Android
+   [1.3.1]
+
+Edward Thorne
+  * Reported [JACKSON-197]: 2 debug message print out to System.err
+   [1.3.1]

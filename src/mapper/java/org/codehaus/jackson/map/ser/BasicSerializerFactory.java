@@ -155,13 +155,16 @@ public class BasicSerializerFactory
      */
     protected final static Class<?> _classXMLGregorianCalendar;
     protected final static Class<?> _classXMLDuration;
+
     static { // as above, javax.xml appears to be missing from some platforms
         Class<?> greg = null;
         Class<?> dur = null;
         try {
-            greg = XMLGregorianCalendar.class;
-            dur = Duration.class;
-        } catch (Throwable t) { }
+            greg = Class.forName("javax.xml.datatype.XMLGregorianCalendar");
+            dur = Class.forName("javax.xml.datatype.Duration");
+        }
+        catch (LinkageError e) { }
+        catch (ClassNotFoundException e) { }
         _classXMLGregorianCalendar = greg;
         _classXMLDuration = dur;
     }
