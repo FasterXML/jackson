@@ -10,6 +10,10 @@ Description:
 
   * [JACKSON-190] Problems deserializing certain nested generic types
    (reported by Nathan C)
+  * [JACKSON-194] ObjectMapper class loading issues on Android
+   (reported by Martin L)
+  * [JACKSON-197] Remove 2 debug messages that print out to System.err
+   (reported by Edward T)
 
 ------------------------------------------------------------------------
 == History: ==
