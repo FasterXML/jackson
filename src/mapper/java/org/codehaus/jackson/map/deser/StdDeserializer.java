@@ -222,7 +222,7 @@ public abstract class StdDeserializer<T>
                 return new java.util.Date(jp.getLongValue());
             }
             if (t == JsonToken.VALUE_STRING) {
-                return ctxt.parseDate(jp.getText());
+                return ctxt.parseDate(jp.getText().trim());
             }
             throw ctxt.mappingException(_valueClass);
         } catch (IllegalArgumentException iae) {
@@ -705,7 +705,7 @@ public abstract class StdDeserializer<T>
         public SqlDateDeserializer() { super(java.sql.Date.class); }
 
         @Override
-            public java.sql.Date deserialize(JsonParser jp, DeserializationContext ctxt)
+        public java.sql.Date deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -715,7 +715,8 @@ public abstract class StdDeserializer<T>
                     return new java.sql.Date(jp.getLongValue());
                 }
                 if (t == JsonToken.VALUE_STRING) {
-                    return java.sql.Date.valueOf(jp.getText().trim());
+                    java.util.Date d = ctxt.parseDate(jp.getText().trim());
+                    return new java.sql.Date(d.getTime());
                 }
                 throw ctxt.mappingException(_valueClass);
             } catch (IllegalArgumentException iae) {
