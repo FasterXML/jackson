@@ -8,9 +8,6 @@ Description:
 
   Fixes:
 
-  * [JACKSON-190] Problems deserializing certain nested generic types
-   (reported by Nathan C)
-
   Improvements:
 
   * [JACKSON-89] Make ignored field/creator-backed properties quietly

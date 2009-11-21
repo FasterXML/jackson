@@ -209,3 +209,7 @@ Martin Lauer
 Edward Thorne
   * Reported [JACKSON-197]: 2 debug message print out to System.err
    [1.3.1]
+
+Steve Lopex
+  * Reported [JACKSON-200]: java.sql.Date deserialization not working well
+   [1.3.1]
