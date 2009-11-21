@@ -14,6 +14,8 @@ Description:
    (reported by Martin L)
   * [JACKSON-197] Remove 2 debug messages that print out to System.err
    (reported by Edward T)
+  * [JACKSON-200] java.sql.Date deserialization not working well
+   (reported by Steve L)
 
 ------------------------------------------------------------------------
 == History: ==

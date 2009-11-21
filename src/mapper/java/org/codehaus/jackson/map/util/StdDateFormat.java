@@ -31,6 +31,13 @@ public class StdDateFormat
     final static String DATE_FORMAT_STR_ISO8601_Z = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     /**
+     * ISO-8601 with just the Date part, no time
+     *
+     * @since 1.3.1
+     */
+    final static String DATE_FORMAT_STR_PLAIN = "yyyy-MM-dd";
+
+    /**
      * This constant defines the date format specified by
      * RFC 1123.
      */
@@ -42,13 +49,16 @@ public class StdDateFormat
     final static String[] ALL_FORMATS = new String[] {
         DATE_FORMAT_STR_ISO8601,
         DATE_FORMAT_STR_ISO8601_Z,
-        DATE_FORMAT_STR_RFC1123
+        DATE_FORMAT_STR_RFC1123,
+        DATE_FORMAT_STR_PLAIN
     };
 
     final static SimpleDateFormat DATE_FORMAT_RFC1123;
 
     final static SimpleDateFormat DATE_FORMAT_ISO8601;
     final static SimpleDateFormat DATE_FORMAT_ISO8601_Z;
+
+    final static SimpleDateFormat DATE_FORMAT_PLAIN;
 
     /* Let's construct "blueprint" date format instances: can not be used
      * as is, due to thread-safety issues, but can be used for constructing
@@ -65,6 +75,8 @@ public class StdDateFormat
         DATE_FORMAT_ISO8601.setTimeZone(gmt);
         DATE_FORMAT_ISO8601_Z = new SimpleDateFormat(DATE_FORMAT_STR_ISO8601_Z);
         DATE_FORMAT_ISO8601_Z.setTimeZone(gmt);
+        DATE_FORMAT_PLAIN = new SimpleDateFormat(DATE_FORMAT_STR_PLAIN);
+        DATE_FORMAT_PLAIN.setTimeZone(gmt);
     }
 
     /**
@@ -75,6 +87,7 @@ public class StdDateFormat
     transient SimpleDateFormat _formatRFC1123;
     transient SimpleDateFormat _formatISO8601;
     transient SimpleDateFormat _formatISO8601_z;
+    transient SimpleDateFormat _formatPlain;
 
     /*
     /////////////////////////////////////////////////////
@@ -167,7 +180,7 @@ public class StdDateFormat
 
     public Date parse(String dateStr, ParsePosition pos)
     {
-        if (looksLikeISO8601(dateStr)) {
+        if (looksLikeISO8601(dateStr)) { // also includes "plain"
             return parseAsISO8601(dateStr, pos);
         }
         // Otherwise, fall back to using RFC 1123
@@ -219,7 +232,13 @@ public class StdDateFormat
         char c = dateStr.charAt(len-1);
         SimpleDateFormat df;
 
-        if (c == 'Z') {
+        // [JACKSON-200]: need to support "plain" date...
+        if (len <= 10 && Character.isDigit(c)) {
+           df = _formatPlain;
+            if (df == null) {
+                df = _formatPlain = (SimpleDateFormat) DATE_FORMAT_PLAIN.clone();
+            }
+        } else if (c == 'Z') {
             df = _formatISO8601_z;
             if (df == null) {
                 df = _formatISO8601_z = (SimpleDateFormat) DATE_FORMAT_ISO8601_Z.clone();
