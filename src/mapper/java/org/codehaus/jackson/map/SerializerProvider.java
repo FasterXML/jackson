@@ -197,6 +197,8 @@ public abstract class SerializerProvider
      * Method that will handle serialization of Date(-like) values, using
      * {@link SerializationConfig} settings to determine expected serialization
      * behavior.
+     * Note: date here means "full" date, that is, date AND time, as per
+     * Java convention (and not date-only values like in SQL)
      */
     public abstract void defaultSerializeDateValue(long timestamp, JsonGenerator jgen)
         throws IOException, JsonProcessingException;
@@ -205,6 +207,8 @@ public abstract class SerializerProvider
      * Method that will handle serialization of Date(-like) values, using
      * {@link SerializationConfig} settings to determine expected serialization
      * behavior.
+     * Note: date here means "full" date, that is, date AND time, as per
+     * Java convention (and not date-only values like in SQL)
      */
     public abstract void defaultSerializeDateValue(Date date, JsonGenerator jgen)
         throws IOException, JsonProcessingException;

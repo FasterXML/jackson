@@ -5,8 +5,6 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -14,6 +12,7 @@ import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.map.util.Provider;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSerializableSchema;
 
@@ -127,48 +126,37 @@ public class BasicSerializerFactory
         _concrete.put(TreeSet.class.getName(), collectionS);
 
         // Then other standard JDK types:
-        JdkSerializers.addAll(_concrete);
-
-        /* XML/JAXB related types available on JDK 1.5; but that seem
-         * to cause problems
-         * for somewhat limited platforms like Google Android and GAE... (which
-         * are "almost 1.5 but not quite")
-         * As such, need to use bit more caution
-         */
-
-        // not sure if this is exactly right (should use toXMLFormat()?) but:
-        /* 19-Jan-2009, tatu: [JACKSON-37]: This is something Android platform doesn't have
-         *    so need to hard-code name (it is available on standard JDK 1.5 and above)
-         */
-        _concrete.put("javax.xml.namespace.QName", sls);
-
-        /* Finally, couple of oddball types. Not sure if these are
-         * really needed...
-         */
-        final NullSerializer nullS = NullSerializer.instance;
-        _concrete.put(Void.TYPE.getName(), nullS);
-    }
-
-    /* 02-Oct-2009, tatu: Core XML types are actually abstract types,
-     *   can't do direct mappings... But we do need classes, iff
-     *   they are available on running platform
-     */
-    protected final static Class<?> _classXMLGregorianCalendar;
-    protected final static Class<?> _classXMLDuration;
-
-    static { // as above, javax.xml appears to be missing from some platforms
-        Class<?> greg = null;
-        Class<?> dur = null;
-        try {
-            greg = Class.forName("javax.xml.datatype.XMLGregorianCalendar");
-            dur = Class.forName("javax.xml.datatype.Duration");
+        for (Map.Entry<Class<?>,JsonSerializer<?>> en : new JdkSerializers().provide()) {
+            _concrete.put(en.getKey().getName(), en.getValue());
         }
-        catch (LinkageError e) { }
-        catch (ClassNotFoundException e) { }
-        _classXMLGregorianCalendar = greg;
-        _classXMLDuration = dur;
+        // Finally, couple of oddball types. Not sure if these are really needed but...
+        _concrete.put(Void.TYPE.getName(), NullSerializer.instance);
     }
 
+    static {
+        /* 21-Nov-2009, tatu: Also, explicit support for basic Joda DateTime;
+         *    and can use same mechanism for javax.xml.datatype types as well.
+         */
+        for (String provStr : new String[] {
+            "org.codehaus.jackson.map.ext.CoreXMLSerializers"
+            ,"org.codehaus.jackson.map.ext.JodaSerializers"
+        }) {
+            try {
+                Class<?> cls = Class.forName(provStr);
+                Object ob = cls.newInstance();
+                @SuppressWarnings("unchecked")
+                Provider<Map.Entry<Class<?>,JsonSerializer<?>>> prov =
+                    (Provider<Map.Entry<Class<?>,JsonSerializer<?>>>) ob;
+                for (Map.Entry<Class<?>,JsonSerializer<?>> en : prov.provide()) {
+                    _concrete.put(en.getKey().getName(), en.getValue());
+                }
+            }
+            catch (LinkageError e) { }
+            // too many different kinds to enumerate here:
+            catch (Exception e) { }
+        }
+    }
+    
     /*
     ////////////////////////////////////////////////////////////
     // Life cycle
@@ -325,16 +313,6 @@ public class BasicSerializerFactory
         }
         if (java.util.Date.class.isAssignableFrom(type)) {
             return UtilDateSerializer.instance;
-        }
-        /* [JACKSON-150]: Note that 'toString()' does work for gregorian
-         *   calendar too; it just calls the actual method ('toXMLFormat')
-         *   that is really needed.
-         */
-        if (_classXMLGregorianCalendar != null && _classXMLGregorianCalendar.isAssignableFrom(type)) {
-            return ToStringSerializer.instance;
-        }
-        if (_classXMLDuration != null && _classXMLDuration.isAssignableFrom(type)) {
-            return ToStringSerializer.instance;
         }
         if (Collection.class.isAssignableFrom(type)) {
             if (EnumSet.class.isAssignableFrom(type)) {
@@ -661,7 +639,8 @@ public class BasicSerializerFactory
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             //TODO: (ryan) add a format for the date in the schema?
-            return createSchemaNode("string", true);
+            return createSchemaNode(provider.isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS)
+                    ? "number" : "string", true);
         }
     }
 
@@ -685,7 +664,8 @@ public class BasicSerializerFactory
                 throws JsonMappingException
         {
             //todo: (ryan) add a format for the date in the schema?
-            return createSchemaNode("string", true);
+            return createSchemaNode(provider.isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS)
+                    ? "number" : "string", true);
         }
     }
 
@@ -698,7 +678,7 @@ public class BasicSerializerFactory
         extends SerializerBase<java.sql.Date>
     {
         @Override
-		public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.toString());

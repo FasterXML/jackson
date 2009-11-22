@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.ser;
 
 import java.io.*;
 import java.text.*;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -41,6 +42,15 @@ public class TestDateSerialization
         // let's hit epoch start, offset by a bit
         mapper.writeValue(sw, new Date(0L));
         assertEquals("\"1969-12-31X16:00:00\"", sw.toString());
+    }
+
+    @SuppressWarnings("deprecation")
+    public void testSqlDate() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // use date 1999-04-01 (note: months are 0-based, use constant)
+        java.sql.Date date = new java.sql.Date(99, Calendar.APRIL, 1);
+        assertEquals(quote("1999-04-01"), serializeAsString(mapper, date));
     }
 }
 

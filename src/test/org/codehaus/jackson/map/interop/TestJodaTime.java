@@ -9,10 +9,9 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 /**
- * Unit tests for verifying limited interoperability for Joda time
- * (minimal just because Jackson tries to minimize default deps to
- * all non-JDK libs -- Joda is a fine date/time lib, and ideally
- * better integration should be added via extension mechanisms)
+ * Unit tests for verifying limited interoperability for Joda time.
+ * Basic support is added for handling {@link DateTime}; more can be
+ * added over time if and when requested.
  */
 public class TestJodaTime
     extends org.codehaus.jackson.map.BaseMapTest
@@ -26,21 +25,19 @@ public class TestJodaTime
         ObjectMapper m = new ObjectMapper();
         // let's use epoch time (Jan 1, 1970, UTC)
         DateTime dt = new DateTime(0L, DateTimeZone.UTC);
-        Map<String,Object> result = writeAndMap(m, dt);
+        // by default, dates use timestamp, so:
+        assertEquals("0", serializeAsString(m, dt));
 
-        // should verify something here? looks like we get 24 fields...
-        assertEquals(24, result.size());
+        // but if re-configured, as regular ISO-8601 string
+        m = new ObjectMapper();
+        m.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
+        assertEquals(quote("1970-01-01T00:00:00.000Z"), serializeAsString(m, dt));
     }
 
     /**
-     * Ok, then: should be able to convert from number directly, since
-     * DateTime has a single-long-arg ctor
+     * Ok, then: should be able to convert from JSON String or Number,
+     * with standard deserializer we provide.
      */
-    /* 19-Sep-2009, tatu: Alas, the way Jackson currently works, this
-     *   will fail because there's no deserializer for referred type
-     *   Chronology (abstract class)
-     */
-    /*
     public void testDeserFromNumber() throws IOException
     {
         Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
@@ -48,9 +45,13 @@ public class TestJodaTime
         cal.set(Calendar.YEAR, 1972);
         long timepoint = cal.getTime().getTime();
 
-        DateTime dt = new ObjectMapper().readValue(String.valueOf(timepoint), DateTime.class);
+        ObjectMapper mapper = new ObjectMapper();
+        // Ok, first: using JSON number (milliseconds since epoch)
+        DateTime dt = mapper.readValue(String.valueOf(timepoint), DateTime.class);
         assertEquals(timepoint, dt.getMillis());
-        
+
+        // And then ISO-8601 String
+        dt = mapper.readValue(quote("1972-12-28T12:00:01.000+0000"), DateTime.class);
+        assertEquals("1972-12-28T12:00:01.000Z", dt.toString());
     }
-    */
 }

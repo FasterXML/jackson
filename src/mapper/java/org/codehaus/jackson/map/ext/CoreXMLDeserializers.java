@@ -1,4 +1,6 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.ext;
+
+import java.util.*;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -7,6 +9,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.deser.StdDeserializer;
+import org.codehaus.jackson.map.deser.FromStringDeserializer;
+import org.codehaus.jackson.map.util.Provider;
 
 /**
  * Container deserializers that handle "core" XML types: ones included in standard
@@ -16,6 +21,7 @@ import org.codehaus.jackson.map.DeserializationContext;
  * @since 1.3
  */
 public class CoreXMLDeserializers
+    implements Provider<StdDeserializer<?>>
 {
     /**
      * Data type factories are thread-safe after instantiation (and
@@ -30,10 +36,29 @@ public class CoreXMLDeserializers
             throw new RuntimeException(e);
         }
     }
-
+    
     /*
     ////////////////////////////////////////////////////////////////////////
-    // Concrete types
+    // Provider implementation
+    ////////////////////////////////////////////////////////////////////////
+    */
+
+    /**
+     * Method called by {@link org.codehaus.jackson.map.deser.BasicDeserializerFactory}
+     * to register deserializers this class provides.
+     */
+    public Collection<StdDeserializer<?>> provide()
+    {
+        return Arrays.asList(new StdDeserializer<?>[] {
+            new DurationDeserializer(),
+            new GregorianCalendarDeserializer(),
+            new QNameDeserializer()
+        });
+    }
+    
+    /*
+    ////////////////////////////////////////////////////////////////////////
+    // Concrete deserializers
     ////////////////////////////////////////////////////////////////////////
     */
 

@@ -4,6 +4,7 @@ import javax.xml.datatype.*;
 import javax.xml.namespace.QName;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.ext.CoreXMLDeserializers;
 
 public class TestCoreXMLTypes
     extends BaseMapTest

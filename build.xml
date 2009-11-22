@@ -63,6 +63,7 @@
             <!-- For 1.5, need JAXB API jar too (and related) -->
             <include name="jaxb/*.jar" />
             <!-- and some other misc libs for interoperability tests -->
+            <include name="ext/*.jar" />
             <include name="test/*.jar" />
        </fileset>
     </path>
@@ -182,6 +183,10 @@ compile.main, compile.test, compile.extra, compile.perf" />
             <!-- mapper builds on core classes -->
             <classpath>
                <pathelement path="${dir.build.classes.core}"/>  
+               <!-- We support some ext libs (like Joda time) -->
+               <fileset dir="${dir.lib}/ext">
+                    <include name="*.jar" />
+               </fileset>
             </classpath>
         </javac>
     </target>

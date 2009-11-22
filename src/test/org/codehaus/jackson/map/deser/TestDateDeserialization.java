@@ -93,6 +93,7 @@ public class TestDateDeserialization
         assertEquals(30, c.get(Calendar.DAY_OF_MONTH));
     }
 
+    @SuppressWarnings("deprecation")
     public void testDateSql() throws Exception
     {
         java.sql.Date value = new java.sql.Date(0L);

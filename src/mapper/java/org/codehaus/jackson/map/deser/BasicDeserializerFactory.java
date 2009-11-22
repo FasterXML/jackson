@@ -23,7 +23,7 @@ import org.codehaus.jackson.type.JavaType;
  * (such as {@link java.util.Collection}).
  *<p>
  * Since all simple deserializers are eagerly instantiated, and there is
- * no additional introspection or customazibility of these types,
+ * no additional introspection or customizability of these types,
  * this factory is stateless.
  */
 public abstract class BasicDeserializerFactory

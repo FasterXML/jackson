@@ -4,10 +4,11 @@ import java.util.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.map.util.Provider;
 import org.codehaus.jackson.type.JavaType;
 
 /**
- * Helper class used to contain simple/well-known deserializers for JDK types
+ * Helper class used to contain simple/well-known deserializers for core JDK types
  */
 class StdDeserializers
 {
@@ -63,19 +64,26 @@ class StdDeserializers
          *   don't have "javax.xml.namespace" even though they are
          *   standard part of JDK 1.5. So let's be defensive here
          */
-        try {
-            for (String clsName : new String[] {
-                     "DurationDeserializer",
-                     "GregorianCalendarDeserializer",
-                     "QNameDeserializer" }) {
-                Class<?> cls = Class.forName("org.codehaus.jackson.map.deser.CoreXMLDeserializers$"+clsName);
-                StdDeserializer<?> deser = (StdDeserializer<?>) cls.newInstance();
-                add(deser);
+        /* 21-Nov-2009, tatu: Also: we may want to add optional support
+         *   for other well-known non-JDK libs, such as Joda. So:
+         */
+        for (String provStr : new String[] {
+            "org.codehaus.jackson.map.ext.CoreXMLDeserializers",
+            "org.codehaus.jackson.map.ext.JodaDeserializers",
+        }) {
+            try {
+                Class<?> cls = Class.forName(provStr);
+                Object ob = cls.newInstance();
+                @SuppressWarnings("unchecked")
+                Provider<StdDeserializer<?>> prov = (Provider<StdDeserializer<?>>) ob;
+                for (StdDeserializer<?> deser : prov.provide()) {
+                    add(deser);
+                }
             }
+            catch (LinkageError e) { }
+            // too many different kinds to enumerate here:
+            catch (Exception e) { }
         }
-        catch (LinkageError e) { }
-        // too many different kinds to enumerate here:
-        catch (Exception e) { }
 
         // And finally some odds and ends
 
@@ -83,28 +91,24 @@ class StdDeserializers
         add(new StdDeserializer.StackTraceElementDeserializer());
     }
 
-    private HashMap<JavaType, JsonDeserializer<Object>> getDeserializers() {
-        return _deserializers;
-    }
-
+    /**
+     * Public accessor to deserializers for core types.
+     */
     public static HashMap<JavaType, JsonDeserializer<Object>> constructAll()
     {
-        return new StdDeserializers().getDeserializers();
+        return new StdDeserializers()._deserializers;
     }
 
-    void add(StdDeserializer<?> stdDeser)
+    private void add(StdDeserializer<?> stdDeser)
     {
         add(stdDeser, stdDeser.getValueClass());
     }
 
-    void add(StdDeserializer<?> stdDeser, Class<?>... valueClasses)
+    private void add(StdDeserializer<?> stdDeser, Class<?> valueClass)
     {
         // must do some unfortunate casting here...
         @SuppressWarnings("unchecked")
         JsonDeserializer<Object> deser = (JsonDeserializer<Object>) stdDeser;
-
-        for (Class<?> valueClass : valueClasses) {
-            _deserializers.put(TypeFactory.type(valueClass), deser);
-        }
+        _deserializers.put(TypeFactory.type(valueClass), deser);
     }
 }
