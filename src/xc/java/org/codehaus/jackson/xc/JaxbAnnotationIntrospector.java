@@ -513,14 +513,19 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return false;
     }
 
+    @Override
     public String findDeserializablePropertyName(AnnotatedField af)
     {
         if (isInvisible(af)) {
             return null;
         }
         Field field = af.getAnnotated();
-        // "" is the return value to return for unnamed @XmlElement etc
-        return findJaxbPropertyName(field, field.getType(), "");
+        String name = findJaxbPropertyName(field, field.getType(), "");
+        /* This may seem wrong, but since JAXB field auto-detection
+         * needs to find even non-public fields (if enabled by
+         * JAXB access type), we need to return name like so:
+         */
+        return (name == null) ? field.getName() : name;
     }
 
     /*
