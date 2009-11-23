@@ -43,6 +43,14 @@ public class BasicSerializerFactory
      */
     final static HashMap<String, JsonSerializer<?>> _concrete =
         new HashMap<String, JsonSerializer<?>>();
+    /**
+     * There are also standard interfaces and abstract classes
+     * that we need to support without knowing conrecte implementation
+     * classes.
+     */
+    final static ArrayList<SerializerMapping> _abstractSerializers =
+        new ArrayList<SerializerMapping>();
+
     static {
         /* String and string-like types (note: date types explicitly
          * not included -- can use either textual or numeric serialization)
@@ -125,12 +133,13 @@ public class BasicSerializerFactory
         _concrete.put(LinkedHashSet.class.getName(), collectionS);
         _concrete.put(TreeSet.class.getName(), collectionS);
 
-        // Then other standard JDK types:
+        // Finally, couple of oddball types. Not sure if these are really needed but...
+        _concrete.put(Void.TYPE.getName(), NullSerializer.instance);
+
+        // And finally other standard JDK types
         for (Map.Entry<Class<?>,JsonSerializer<?>> en : new JdkSerializers().provide()) {
             _concrete.put(en.getKey().getName(), en.getValue());
         }
-        // Finally, couple of oddball types. Not sure if these are really needed but...
-        _concrete.put(Void.TYPE.getName(), NullSerializer.instance);
     }
 
     static {
@@ -141,19 +150,30 @@ public class BasicSerializerFactory
             "org.codehaus.jackson.map.ext.CoreXMLSerializers"
             ,"org.codehaus.jackson.map.ext.JodaSerializers"
         }) {
+            Object ob = null;
             try {
-                Class<?> cls = Class.forName(provStr);
-                Object ob = cls.newInstance();
-                @SuppressWarnings("unchecked")
-                Provider<Map.Entry<Class<?>,JsonSerializer<?>>> prov =
-                    (Provider<Map.Entry<Class<?>,JsonSerializer<?>>>) ob;
-                for (Map.Entry<Class<?>,JsonSerializer<?>> en : prov.provide()) {
-                    _concrete.put(en.getKey().getName(), en.getValue());
-                }
+                ob = Class.forName(provStr).newInstance();
             }
             catch (LinkageError e) { }
             // too many different kinds to enumerate here:
             catch (Exception e) { }
+
+            if (ob != null) {
+                @SuppressWarnings("unchecked")
+                    Provider<Map.Entry<Class<?>,JsonSerializer<?>>> prov =
+                    (Provider<Map.Entry<Class<?>,JsonSerializer<?>>>) ob;
+                for (Map.Entry<Class<?>,JsonSerializer<?>> en : prov.provide()) {
+                    /* 22-Nov-2009, tatu: For now this check suffices... may need
+                     *   to use other methods in future
+                     */
+                    Class<?> cls = en.getKey();
+                    if (ClassUtil.isConcrete(cls)) {
+                        _concrete.put(en.getKey().getName(), en.getValue());
+                    } else {
+                        _abstractSerializers.add(new SerializerMapping(cls, en.getValue()));
+                    }
+                }
+            }
         }
     }
     
@@ -314,6 +334,12 @@ public class BasicSerializerFactory
         if (java.util.Date.class.isAssignableFrom(type)) {
             return UtilDateSerializer.instance;
         }
+        for (int i = 0, len = _abstractSerializers.size(); i < len; ++i) {
+            SerializerMapping map = _abstractSerializers.get(i);
+            if (map.matches(type)) {
+                return map.getSerializer();
+            }
+        }
         if (Collection.class.isAssignableFrom(type)) {
             if (EnumSet.class.isAssignableFrom(type)) {
                 return new ContainerSerializers.EnumSetSerializer();
@@ -385,6 +411,29 @@ public class BasicSerializerFactory
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         BasicBeanDescription beanDesc = config.introspectClassAnnotations(type);
         return MapSerializer.construct(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));
+    }
+
+    /*
+    /////////////////////////////////////////////////////////////////
+    // Helper classes
+    /////////////////////////////////////////////////////////////////
+     */
+
+    private final static class SerializerMapping
+    {
+        final Class<?> _class;
+        final JsonSerializer<?> _serializer;
+
+        public SerializerMapping(Class<?> c, JsonSerializer<?> ser) {
+            _class = c;
+            _serializer = ser;
+        }
+
+        public boolean matches(Class<?> c) {
+            return _class.isAssignableFrom(c);
+        }
+
+        public JsonSerializer<?> getSerializer() { return _serializer; }
     }
 
     /*
