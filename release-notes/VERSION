@@ -16,6 +16,8 @@ Description:
    (reported by Edward T)
   * [JACKSON-200] java.sql.Date deserialization not working well
    (reported by Steve L)
+  * [JACKSON-203] Date deserializers should map empty String to null
+   (reported by Steve L)
 
 ------------------------------------------------------------------------
 == History: ==

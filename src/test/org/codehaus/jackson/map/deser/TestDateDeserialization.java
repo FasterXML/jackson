@@ -93,6 +93,7 @@ public class TestDateDeserialization
         assertEquals(30, c.get(Calendar.DAY_OF_MONTH));
     }
 
+    @SuppressWarnings("deprecation")
     public void testDateSql() throws Exception
     {
         java.sql.Date value = new java.sql.Date(0L);
@@ -159,6 +160,20 @@ public class TestDateDeserialization
         java.util.Date exp = df.parse(dateStr);
         java.util.Date result = mapper.readValue("\""+dateStr+"\"", java.util.Date.class);
         assertEquals(exp, result);
+    }
+
+    /**
+     * Test for [JACKSON-203]: make empty Strings deserialize as nulls by default,
+     * without need to turn on feature (which may be added in future)
+     */
+    public void testDatesWithEmptyStrings() throws Exception
+    {
+        java.util.Date now = new Date();
+        ObjectMapper mapper = new ObjectMapper();
+
+        assertNull(mapper.readValue(quote(""), java.util.Date.class));
+        assertNull(mapper.readValue(quote(""), java.util.Calendar.class));
+        assertNull(mapper.readValue(quote(""), java.sql.Date.class));
     }
 
     /*
