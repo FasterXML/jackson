@@ -210,8 +210,13 @@ Edward Thorne
   * Reported [JACKSON-197]: 2 debug message print out to System.err
    [1.3.1]
 
-Steve Lopex
+Steve Lopez
   * Reported [JACKSON-200]: java.sql.Date deserialization not working well
    [1.3.1]
   * Reported [JACKSON-203]: Date deserializers should map empty String to null
+   [1.3.1]
+
+Mike Pilone
+  * Reported [JACKSON-202]: Non-public fields not deserialized properly
+    with JAXB annotations
    [1.3.1]
