@@ -1,5 +1,8 @@
 package org.codehaus.jackson.map.introspect;
 
+import java.io.StringWriter;
+import java.util.*;
+
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.*;
@@ -9,9 +12,6 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
-
-import java.io.StringWriter;
-import java.util.*;
 
 /**
  * Tests for verifying that JAXB annotation based introspector

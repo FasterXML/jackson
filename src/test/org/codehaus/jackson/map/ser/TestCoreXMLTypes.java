@@ -14,7 +14,7 @@ public class TestCoreXMLTypes
         assertEquals(quote(qn.toString()), serializeAsString(qn));
     }
 
-    public void testCalendar() throws Exception
+    public void testXMLGregorianCalendar() throws Exception
     {
         DatatypeFactory dtf = DatatypeFactory.newInstance();
         XMLGregorianCalendar cal = dtf.newXMLGregorianCalendar

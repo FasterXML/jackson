@@ -162,6 +162,20 @@ public class TestDateDeserialization
         assertEquals(exp, result);
     }
 
+    /**
+     * Test for [JACKSON-203]: make empty Strings deserialize as nulls by default,
+     * without need to turn on feature (which may be added in future)
+     */
+    public void testDatesWithEmptyStrings() throws Exception
+    {
+        java.util.Date now = new Date();
+        ObjectMapper mapper = new ObjectMapper();
+
+        assertNull(mapper.readValue(quote(""), java.util.Date.class));
+        assertNull(mapper.readValue(quote(""), java.util.Calendar.class));
+        assertNull(mapper.readValue(quote(""), java.sql.Date.class));
+    }
+
     /*
     //////////////////////////////////////////////////////////
     // Helper methods
