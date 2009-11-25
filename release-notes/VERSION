@@ -36,6 +36,24 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+1.3.1 [23-Nov-2009]
+
+  Fixes:
+
+  * [JACKSON-190] Problems deserializing certain nested generic types
+   (reported by Nathan C)
+  * [JACKSON-194] ObjectMapper class loading issues on Android
+   (reported by Martin L)
+  * [JACKSON-197] Remove 2 debug messages that print out to System.err
+   (reported by Edward T)
+  * [JACKSON-200] java.sql.Date deserialization not working well
+   (reported by Steve L)
+  * [JACKSON-202] Non-public fields not deserialized properly with
+    JAXB annotations
+   (reported by Mike P)
+  * [JACKSON-203] Date deserializers should map empty String to null
+   (reported by Steve L)
+
 1.3.0 [30-Oct-2009]
 
   Fixes:

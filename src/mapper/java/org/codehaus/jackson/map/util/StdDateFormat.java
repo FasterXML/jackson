@@ -17,6 +17,11 @@ import java.util.*;
 public class StdDateFormat
     extends DateFormat
 {
+    /* TODO !!! 24-Nov-2009, tatu: Need to rewrite this class soon:
+     * JDK date parsing is awfully brittle, and ISO-8601 is quite
+     * permissive. The two don't mix, need to write a better one.
+     */
+
     /**
      * Defines a commonly used date format that conforms
      * to ISO-8601 date formatting standard, when it includes basic undecorated
@@ -244,21 +249,40 @@ public class StdDateFormat
                 df = _formatISO8601_z = (SimpleDateFormat) DATE_FORMAT_ISO8601_Z.clone();
             }
         } else {
-            c = dateStr.charAt(len-3);
-            if (c == ':') { // remove optional colon
-                // remove colon
-                StringBuilder sb = new StringBuilder(dateStr);
-                sb.delete(len-3, len-2);
-                dateStr = sb.toString();
-            } else if (c == '+' || c == '-') { // missing minutes
-                // let's just append '00'
-                dateStr += "00";
-            }
-            // otherwise regular (or invalid)
+            // Let's see if we have timezone indicator or not...
+            if (hasTimeZone(dateStr)) {
+                c = dateStr.charAt(len-3);
+                if (c == ':') { // remove optional colon
+                    // remove colon
+                    StringBuilder sb = new StringBuilder(dateStr);
+                    sb.delete(len-3, len-2);
+                    dateStr = sb.toString();
+                } else if (c == '+' || c == '-') { // missing minutes
+                    // let's just append '00'
+                    dateStr += "00";
+                }
+                df = _formatISO8601;
+                if (_formatISO8601 == null) {
+                    df = _formatISO8601 = (SimpleDateFormat) DATE_FORMAT_ISO8601.clone();
+                }
+            } else {
+                /* 24-Nov-2009, tatu: Ugh. This is getting pretty
+                 *   ugly. Need to rewrite soon!
+                 */
 
-            df = _formatISO8601;
-            if (_formatISO8601 == null) {
-                df = _formatISO8601 = (SimpleDateFormat) DATE_FORMAT_ISO8601.clone();
+                // If not, plain date. Easiest to just patch 'Z' in the end?
+                StringBuilder sb = new StringBuilder(dateStr);
+                // And possible also millisecond part if missing
+                int timeLen = len - dateStr.lastIndexOf('T') - 1;
+                if (timeLen <= 8) {
+                    sb.append(".000");
+                }
+                sb.append('Z');
+                dateStr = sb.toString();
+                df = _formatISO8601_z;
+                if (df == null) {
+                    df = _formatISO8601_z = (SimpleDateFormat) DATE_FORMAT_ISO8601_Z.clone();
+                }
             }
         }
         return df.parse(dateStr, pos);
@@ -270,6 +294,21 @@ public class StdDateFormat
             _formatRFC1123 = (SimpleDateFormat) DATE_FORMAT_RFC1123.clone();
         }
         return _formatRFC1123.parse(dateStr, pos);
+    }
+
+    private final static boolean hasTimeZone(String str)
+    {
+        // Only accept "+hh", "+hhmm" and "+hh:mm" (and with minus), so
+        int len = str.length();
+        if (len >= 6) {
+            char c = str.charAt(len-6);
+            if (c == '+' || c == '-') return true;
+            c = str.charAt(len-5);
+            if (c == '+' || c == '-') return true;
+            c = str.charAt(len-3);
+            if (c == '+' || c == '-') return true;
+        }
+        return false;
     }
 }
 
