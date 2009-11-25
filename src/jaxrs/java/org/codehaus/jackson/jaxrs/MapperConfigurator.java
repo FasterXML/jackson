@@ -157,7 +157,6 @@ public class MapperConfigurator
 
     protected AnnotationIntrospector _resolveIntrospector(Annotations ann)
     {
-System.err.println("Resolve: "+ann);
         switch (ann) {
         case JACKSON:
             return new JacksonAnnotationIntrospector();

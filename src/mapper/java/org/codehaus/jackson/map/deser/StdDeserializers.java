@@ -64,10 +64,18 @@ class StdDeserializers
          *   standard part of JDK 1.5. So let's be defensive here
          */
         try {
-            add(CoreXMLDeserializers.DurationDeserializer.class.newInstance());
-            add(CoreXMLDeserializers.GregorianCalendarDeserializer.class.newInstance());
-            add(CoreXMLDeserializers.QNameDeserializer.class.newInstance());
-        } catch (Throwable t) { }
+            for (String clsName : new String[] {
+                     "DurationDeserializer",
+                     "GregorianCalendarDeserializer",
+                     "QNameDeserializer" }) {
+                Class<?> cls = Class.forName("org.codehaus.jackson.map.deser.CoreXMLDeserializers$"+clsName);
+                StdDeserializer<?> deser = (StdDeserializer<?>) cls.newInstance();
+                add(deser);
+            }
+        }
+        catch (LinkageError e) { }
+        // too many different kinds to enumerate here:
+        catch (Exception e) { }
 
         // And finally some odds and ends
 

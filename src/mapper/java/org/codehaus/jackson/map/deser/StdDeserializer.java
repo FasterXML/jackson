@@ -222,7 +222,14 @@ public abstract class StdDeserializer<T>
                 return new java.util.Date(jp.getLongValue());
             }
             if (t == JsonToken.VALUE_STRING) {
-                return ctxt.parseDate(jp.getText());
+                /* As per [JACKSON-203], take empty Strings to mean
+                 * null
+                 */
+                String str = jp.getText().trim();
+                if (str.length() == 0) {
+                    return null;
+                }
+                return ctxt.parseDate(str);
             }
             throw ctxt.mappingException(_valueClass);
         } catch (IllegalArgumentException iae) {
@@ -691,7 +698,8 @@ public abstract class StdDeserializer<T>
             public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            return ctxt.constructCalendar(_parseDate(jp, ctxt));
+            Date d = _parseDate(jp, ctxt);
+            return (d == null) ? null : ctxt.constructCalendar(d);
         }
     }
 
@@ -705,22 +713,11 @@ public abstract class StdDeserializer<T>
         public SqlDateDeserializer() { super(java.sql.Date.class); }
 
         @Override
-            public java.sql.Date deserialize(JsonParser jp, DeserializationContext ctxt)
+        public java.sql.Date deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            JsonToken t = jp.getCurrentToken();
-
-            try {
-                if (t == JsonToken.VALUE_NUMBER_INT) {
-                    return new java.sql.Date(jp.getLongValue());
-                }
-                if (t == JsonToken.VALUE_STRING) {
-                    return java.sql.Date.valueOf(jp.getText().trim());
-                }
-                throw ctxt.mappingException(_valueClass);
-            } catch (IllegalArgumentException iae) {
-                throw ctxt.weirdStringException(_valueClass, "not a valid representation (error: "+iae.getMessage()+")");
-            }
+            Date d = _parseDate(jp, ctxt);
+            return (d == null) ? null : new java.sql.Date(d.getTime());
         }
     }
 

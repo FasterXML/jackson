@@ -302,10 +302,14 @@ public class TypeFactory
         // Ok: Map or Collection?
         if (Map.class.isAssignableFrom(rawType)) {
             Type[] args = type.getActualTypeArguments();
-            return MapType.construct(rawType, fromType(args[0]), fromType(args[1]));
+            JavaType keyType = _fromType(args[0], context);
+            JavaType valueType = _fromType(args[1], context);
+            return MapType.construct(rawType, keyType, valueType);
         }
         if (Collection.class.isAssignableFrom(rawType)) {
-            return CollectionType.construct(rawType, fromType(type.getActualTypeArguments()[0]));
+            Type[] args = type.getActualTypeArguments();
+            JavaType valueType = _fromType(args[0], context);
+            return CollectionType.construct(rawType, valueType);
         }
 
         // Maybe a generics version?
@@ -326,7 +330,9 @@ public class TypeFactory
             }
             types = new HashMap<String,JavaType>();
             for (int i = 0, len = args.length; i < len; ++i) {
-                types.put(vars[i].getName(), _fromType(args[i], context));
+                TypeVariable<?> var = vars[i];
+                JavaType varType = _fromType(args[i], context);
+                types.put(var.getName(), varType);
             }
         }
         /* Neither: well, let's just consider it a bean or such;
