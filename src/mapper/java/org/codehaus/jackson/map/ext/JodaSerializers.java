@@ -19,10 +19,13 @@ import org.codehaus.jackson.map.util.Provider;
 public class JodaSerializers
     implements Provider<Map.Entry<Class<?>,JsonSerializer<?>>>
 {
+    final static HashMap<Class<?>,JsonSerializer<?>> _serializers = new HashMap<Class<?>,JsonSerializer<?>>();
+    static {
+        _serializers.put(DateTime.class, new DateTimeSerializer());
+    }
+
     public Collection<Map.Entry<Class<?>,JsonSerializer<?>>> provide() {
-        HashMap<Class<?>,JsonSerializer<?>> sers = new HashMap<Class<?>,JsonSerializer<?>>();
-        sers.put(DateTime.class, new DateTimeSerializer());
-        return sers.entrySet();
+        return _serializers.entrySet();
     }
 
     /*

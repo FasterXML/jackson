@@ -1,10 +1,9 @@
-package org.codehaus.jackson.map.compat;
+package org.codehaus.jackson.map.interop;
 
 import main.BaseTest;
 
-/*
 import java.io.*;
-//import java.lang.reflect.Method;
+import java.lang.reflect.Method;
 import java.util.*;
 
 import org.hibernate.repackage.cglib.proxy.Enhancer;
@@ -12,7 +11,6 @@ import org.hibernate.repackage.cglib.proxy.MethodInterceptor;
 import org.hibernate.repackage.cglib.proxy.MethodProxy;
 
 import org.codehaus.jackson.map.*;
-*/
 
 /**
  * Basic tests covering Hibernate-compatibility features.
@@ -41,9 +39,6 @@ public class TestHibernate
      */
     public void testHibernateCglib() throws Exception
     {
-    /*
-      // 26-Oct-2009, tatu: Alas, won't run well from Ant, at least without restarting JVM... better comment out for now
-
         Enhancer enh = new Enhancer();
         enh.setInterfaces(new Class[] { BeanInterfaceHib.class });
         enh.setCallback(new MethodInterceptor() {
@@ -62,7 +57,6 @@ public class TestHibernate
         Map<String,Object> result = writeAndMap(mapper, bean);
         assertEquals(1, result.size());
         assertEquals(Integer.valueOf(13), result.get("x"));
-    */
     }
 
     /*
@@ -71,7 +65,6 @@ public class TestHibernate
     //////////////////////////////////////////////
      */
 
-    /*
     @SuppressWarnings("unchecked")
 	private Map<String,Object> writeAndMap(ObjectMapper m, Object value)
         throws IOException
@@ -80,6 +73,5 @@ public class TestHibernate
         m.writeValue(sw, value);
         return (Map<String,Object>) m.readValue(sw.toString(), Object.class);
     }
-    */
 }
 

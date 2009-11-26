@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.compat;
+package org.codehaus.jackson.map.interop;
 
 import main.BaseTest;
 
