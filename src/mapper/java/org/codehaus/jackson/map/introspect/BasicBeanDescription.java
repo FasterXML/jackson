@@ -525,7 +525,7 @@ public class BasicBeanDescription extends BeanDescription
                 /* 30-Apr-2009, tatu: [JACKSON-103], need to suppress
                  *    serialization of a cyclic (and useless) reference
                  */
-                if (isGroovyMeta(am)) {
+                if (isGroovyMetaClassGetter(am)) {
                     return null;
                 }
             }
@@ -597,7 +597,20 @@ public class BasicBeanDescription extends BeanDescription
      * Similar to {@link #isCglibGetCallbacks}, need to suppress
      * a cyclic reference to resolve [JACKSON-103]
      */
-    protected boolean isGroovyMeta(AnnotatedMethod am)
+    protected boolean isGroovyMetaClassSetter(AnnotatedMethod am)
+    {
+        Class<?> argType = am.getParameterClass(0);
+        Package pkg = argType.getPackage();
+        if (pkg != null && pkg.getName().startsWith("groovy.lang")) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Another helper method to deal with rest of [JACKSON-103]
+     */
+    protected boolean isGroovyMetaClassGetter(AnnotatedMethod am)
     {
         Class<?> rt = am.getReturnType();
         if (rt == null || rt.isArray()) {
@@ -628,6 +641,12 @@ public class BasicBeanDescription extends BeanDescription
             name = mangleSetterName(am, name.substring(3));
             if (name == null) { // plain old "set" is no good...
                 return null;
+            }
+            if ("metaClass".equals(name)) {
+                // 26-Nov-2009 [JACSON-103], need to suppress this internal groovy method
+                if (isGroovyMetaClassSetter(am)) {
+                    return null;
+                }
             }
             return name;
         }

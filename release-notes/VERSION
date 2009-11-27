@@ -1,7 +1,7 @@
 Version: 1.3.2
 
 Release date:
-  xx-xxx-2009
+  xx-Dec-2009
 
 Description:
   Patch release for 1.3
@@ -9,6 +9,9 @@ Description:
   Fixes:
 
   * [JACKSON-206] Support parsing dates of form "1984-11-13T00:00:00" 
+  * [JACKSON-103] (additional work) Groovy setMetaClass() setter caused
+    problems when deserializing (although serialization was fixed earlier)
+   (reported by Stephen F)
 
 ------------------------------------------------------------------------
 == History: ==
