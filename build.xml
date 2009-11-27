@@ -70,8 +70,7 @@
             <!-- For 1.5, need JAXB API jar too (and related) -->
             <include name="jaxb/*.jar" />
             <!-- and some other misc libs for interoperability tests -->
-            <include name="ext/*.jar" />
-            <include name="test/*.jar" />
+            <include name="ext/**/*.jar" />
        </fileset>
     </path>
 
