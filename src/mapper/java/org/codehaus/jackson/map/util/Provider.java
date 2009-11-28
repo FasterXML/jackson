@@ -15,8 +15,6 @@ public interface Provider<T>
 {
     /**
      * Method used to request provider to provide entries it has
-     * 
-     * @param map Map to add provided values in
      */
     public Collection<T> provide();
 }

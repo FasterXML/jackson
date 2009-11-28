@@ -422,10 +422,6 @@ public class BasicBeanDescription extends BeanDescription
      *    it is enough for a method to have appropriate signature and
      *    name ("set[PropertyName]") to qualify; if false, it must have
      *    an annotation to be considered.
-     * @param ignorable Collection to add names of explicitly ignored
-     *    methods that would otherwise qualify as setters using
-     *    auto-detection rules (independent of whether auto-detection
-     *    is enabled). If null, such methods are just ignored.
      * 
      * @return Ordered Map with logical property name as key, and
      *    matching setter method as value.

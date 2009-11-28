@@ -10,7 +10,6 @@
     <property name="dir.src.java.xc" location="${dir.src}/xc/java" />
     <property name="dir.src.resource.jaxrs" location="${dir.src}/jaxrs/resources" />
     <property name="dir.src.maven" location="${dir.src}/maven" />
-    <property name="dir.src.test" location="${dir.src}/test" />
     <property name="dir.src.sample" location="${dir.src}/sample" />
     <property name="dir.src.tools" location="${dir.src}/tools" />
     <property name="dir.releasenotes" location="${basedir}/release-notes" />
@@ -25,14 +24,6 @@
     <property name="dir.build.classes.xc" location="${dir.build}/classes/xc" />
     <!-- both "sample" and "tools" java code goes under "extra" -->
     <property name="dir.build.classes.extra" location="${dir.build}/classes/extra" />
-    <!-- some support for perf testing -->
-    <property name="dir.build.classes.perf" location="${dir.build}/classes/perf" />
-
-    <!-- Test suite -->
-    <property name="dir.test" location="${basedir}/test" />
-    <property name="dir.test.classes" location="${dir.test}/classes" />
-    <property name="dir.test.results" location="${dir.test}/results" />
-    <property name="dir.test.xmlresults" location="${dir.test.results}/xml" />
 
     <!-- Documentation -->
     <property name="dir.doc" location="${basedir}/doc" />
@@ -56,24 +47,6 @@
     <property name="IMPL_VERSION" value="1.4.0-SNAPSHOT" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
-    <path id="test-libs">
-       <fileset dir="${dir.lib}">
-            <!-- for actual unit testing, junit -->
-            <include name="junit/*.jar" />
-       </fileset>
-    </path>
-    <!-- Libs only needed for tests that check optional interoperability
-         extensions
-      -->
-    <path id="test-libs-ext">
-       <fileset dir="${dir.lib}">
-            <!-- For 1.5, need JAXB API jar too (and related) -->
-            <include name="jaxb/*.jar" />
-            <!-- and some other misc libs for interoperability tests -->
-            <include name="ext/**/*.jar" />
-       </fileset>
-    </path>
-
     <patternset id="dist-all-source-files">
           <include name="README.txt" />
           <include name="build*.xml" />
@@ -96,6 +69,7 @@
     <import file="build-osgi.xml" />
     <import file="build-maven-deploy.xml" />
     <import file="build-coverage.xml" />
+    <import file="build-test.xml" />
 
 
     <!--*********************************************************************-->
@@ -133,12 +107,6 @@
         <mkdir dir="${dir.doc}" />
         <mkdir dir="${dir.javadoc}" />
 
-        <!-- make test output directories -->
-        <mkdir dir="${dir.test}" />
-        <mkdir dir="${dir.test.classes}" />
-        <mkdir dir="${dir.test.results}" />
-        <mkdir dir="${dir.test.xmlresults}" />
-
         <!-- and finally distribution dir -->
         <mkdir dir="${dir.dist}" />
         <mkdir dir="${dir.snapshot}" />
@@ -165,7 +133,7 @@
 
     <target name="compile" depends="compile.all" />
     <target name="compile.all" depends="
-compile.main, compile.test, compile.extra, compile.perf" />
+compile.main, test.compile, compile.extra, compile.perf" />
     <target name="compile.main"
       depends="compile.core, compile.mapper, compile.jaxrs, compile.xc" />
 
@@ -302,6 +270,8 @@ compile.main, compile.test, compile.extra, compile.perf" />
             <link href="http://java.sun.com/javase/6/docs/api" />
             <!-- And JAX-RS (jsr-311) as well -->
             <link href="http://jackson.codehaus.org/javadoc/jax-rs/1.0" />
+            <!-- And Joda time... -->
+            <link href="http://joda-time.sourceforge.net/api-release" />
 
             <group title="Jackson Core" packages="org.codehaus.jackson*" />
             <group title="Jackson Mapper"
@@ -425,115 +395,6 @@ compile.main, compile.test, compile.extra, compile.perf" />
 
     <target name="all" depends="clean,javadoc,test,dist">
         <!-- This target simply depends on others to do its job -->
-    </target>
-
-    <!--*********************************************************************-->
-    <!-- Tasks from here down are in support of junit tests.                 -->
-    <!--*********************************************************************-->
-    <target name="all-tests" depends="test" />
-
-    <!-- Compiling and running test cases
-      -->
-
-    <target name="compile.test" depends="compile.mapper, compile.xc">  
-        <javac srcdir="${dir.src.test}" destdir="${dir.test.classes}"
-            source="1.5" target="1.5"
-            debug="true"
-        >
-            <exclude name="org/codehaus/jackson/map/interop/*.java" />
-            <include name="**/*.java" />
-            <classpath>
-                <pathelement path="${dir.build.classes.core}"/>  
-                <pathelement path="${dir.build.classes.mapper}"/>  
-                <pathelement path="${dir.build.classes.xc}"/>  
-                <path refid="test-libs"/>
-            </classpath>
-        </javac>
-        <javac srcdir="${dir.src.test}" destdir="${dir.test.classes}"
-            source="1.5" target="1.5"
-            debug="true"
-        >
-            <include name="org/codehaus/jackson/map/interop/*.java" />
-            <classpath>
-                <pathelement path="${dir.build.classes.core}"/>
-                <pathelement path="${dir.build.classes.mapper}"/>  
-                <path refid="test-libs"/>
-                <path refid="test-libs-ext"/>
-            </classpath>
-        </javac>
-  </target>
-
-
-    <target name="test" depends="compile.test">
-       <!-- showoutput 'yes' to allow outputting debug msgs... -->
-        <junit fork="no" printsummary="yes" haltonfailure="no"
-         showoutput="yes">
-            <batchtest fork="no" todir="${dir.test.xmlresults}">
-                <fileset dir="${dir.test.classes}">
-                    <!-- Need to exclude inner classes... -->
-                    <exclude name="**/*$*.class"/>
-                    <!-- and also interop tests, run later on -->
-                    <exclude name="org/codehaus/jackson/map/interop/Test*.class"/>
-                    <include name="**/Test*.class"/>
-                </fileset>
-            </batchtest>
-            <formatter type="xml" />
-            <classpath>
-                <pathelement path="${dir.build.classes.core}" />
-                <pathelement path="${dir.build.classes.mapper}" />
-                <pathelement path="${dir.build.classes.xc}" />
-                <pathelement location="${dir.test.classes}" /> 
-                <path refid="test-libs"/>
-            </classpath>     
-        </junit>
-
-        <!-- for interop tests, yes, we need to fork (classloading issues) -->
-        <junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes">
-            <batchtest fork="no" todir="${dir.test.xmlresults}">
-                <fileset dir="${dir.test.classes}">
-                    <exclude name="**/*$*.class"/>
-                    <!-- 25-Nov-2009, tatu: Argh. Looks like classloading
-                        is problematic for this test; works when run
-                        separately as single test... but not in sequence
-                      -->
-                    <exclude name="org/codehaus/jackson/map/interop/TestHibernate.class"/>
-                    <include name="org/codehaus/jackson/map/interop/Test*.class"/>
-                </fileset>
-            </batchtest>
-            <formatter type="xml" />
-            <classpath>
-                <pathelement path="${dir.build.classes.core}" />
-                <pathelement path="${dir.build.classes.mapper}" />
-                <pathelement location="${dir.test.classes}" /> 
-                <path refid="test-libs"/>
-                <path refid="test-libs-ext"/>
-            </classpath>     
-        </junit>
-
-        <junitreport todir="${dir.test.results}">
-            <fileset dir="${dir.test.xmlresults}">
-                <include name="TEST-*.xml" />
-            </fileset>
-            <report todir="${dir.test.results}" />
-        </junitreport>
-    </target>
-
-    <!-- Running a single Unit Test -->
-    <target name="test.single" depends="compile.test">
-         <fail unless="test" message="Must define -Dtest" />
-       <!-- showoutput 'yes' to allow outputting debug msgs... -->
-        <junit fork="no" maxmemory="128M" showoutput="yes" printsummary="yes">
-          <formatter type="plain" usefile="no" />
-          <test name="${test}" />
-          <classpath>
-                <pathelement path="${dir.build.classes.core}" />
-                <pathelement path="${dir.build.classes.mapper}" />
-                <pathelement path="${dir.build.classes.xc}" />
-                <pathelement location="${dir.test.classes}" /> 
-                <path refid="test-libs"/>
-                <path refid="test-libs-ext"/>
-          </classpath>     
-        </junit>
     </target>
 
 

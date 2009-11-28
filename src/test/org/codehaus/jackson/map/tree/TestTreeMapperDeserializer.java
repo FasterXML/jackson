@@ -304,7 +304,7 @@ public class TestTreeMapperDeserializer
             +"\"name\": \"xyz\", \"type\": 1, \"url\" : null }\n  "
             ;
         JsonFactory jf = new JsonFactory();
-        ObjectMapper mapper = new ObjectMapper();
+        TreeMapper mapper = new TreeMapper();
         JsonParser jp = jf.createJsonParser(new StringReader(JSON));
         JsonNode result = mapper.readTree(jp);
 
@@ -319,7 +319,7 @@ public class TestTreeMapperDeserializer
     {
         String JSON = "12  \"string\" [ 1, 2, 3 ]";
         JsonFactory jf = new JsonFactory();
-        ObjectMapper mapper = new ObjectMapper();
+        TreeMapper mapper = new TreeMapper();
         JsonParser jp = jf.createJsonParser(new StringReader(JSON));
         JsonNode result = mapper.readTree(jp);
 

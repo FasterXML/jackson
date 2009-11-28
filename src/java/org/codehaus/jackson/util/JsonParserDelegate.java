@@ -47,12 +47,6 @@ public class JsonParserDelegate extends JsonParser
         return this;
     }
 
-    /**
-     * Method for disabling specified  feature
-     * (check {@link Feature} for list of features)
-     *
-     * @since 1.2
-     */
     public JsonParser disable(Feature f) {
         delegate.disable(f);
         return this;

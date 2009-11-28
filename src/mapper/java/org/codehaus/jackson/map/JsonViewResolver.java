@@ -13,11 +13,6 @@ public interface JsonViewResolver
      * view when processing instance of specified class (as per processing definition:
      * not necessarily actual runtime class instance, if static class information is to
      * be used).
-     * 
-     * @param propertyClass
-     * @param propertyName
-     * @param view
-     * @return
      */
     public boolean includePropertyForView(Class<?> propertyClass, String propertyName, Class<?> view);
 }

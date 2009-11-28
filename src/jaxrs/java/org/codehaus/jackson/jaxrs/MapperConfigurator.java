@@ -162,7 +162,7 @@ public class MapperConfigurator
             return new JacksonAnnotationIntrospector();
         case JAXB:
             /* For this, need to use indirection just so that error occurs
-             * when we get here, and not when this call is being loaded
+             * when we get here, and not when this class is being loaded
              */
             try {
                 if (_jaxbIntrospectorClass == null) {

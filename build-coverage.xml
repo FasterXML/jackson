@@ -14,7 +14,7 @@
 
   <!-- Code coverage using Cobertura: -->
 
-  <target name="build.coverage" depends="compile.test">
+  <target name="build.coverage" depends="test.compile">
       <!-- First, need to instrument classes -->
       <property name="cobertura.instr.dir" value="${dir.build}/cobertura-instr" />
       <cobertura-instrument todir="${cobertura.instr.dir}">
