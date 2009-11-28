@@ -4,13 +4,14 @@ Release date:
   xx-Dec-2009
 
 Description:
-  Patch release for 1.3
+  Second patch release for 1.3
 
   Fixes:
 
   * [JACKSON-103] (additional work) Groovy setMetaClass() setter caused
     problems when deserializing (although serialization was fixed earlier)
    (reported by Stephen F)
+  * [JACKSON-187] Issues with GAE security model, Class.getEnclosingMethod()
   * [JACKSON-188] Jackson not working on Google App Engine (GAE) due to
     unintended dependency from JacksonJsonProvider to JAXB API classes
    (reported by Jeff S)
