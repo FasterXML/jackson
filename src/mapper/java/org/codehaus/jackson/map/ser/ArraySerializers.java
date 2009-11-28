@@ -142,8 +142,7 @@ public final class ArraySerializers
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
-            ObjectNode itemSchema = createSchemaNode("string");
-            o.put("items", itemSchema);
+            o.put("items", createSchemaNode("string"));
             return o;
         }
     }
@@ -166,8 +165,7 @@ public final class ArraySerializers
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
-            ObjectNode itemSchema = createSchemaNode("boolean");
-            o.put("items", itemSchema);
+            o.put("items", createSchemaNode("boolean"));
             return o;
         }
     }
@@ -215,9 +213,9 @@ public final class ArraySerializers
         //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
+            //no "short" type defined by json
             ObjectNode o = createSchemaNode("array", true);
-            ObjectNode itemSchema = createSchemaNode("integer"); //no "short" type defined by json
-            o.put("items", itemSchema);
+            o.put("items", createSchemaNode("integer"));
             return o;
         }
     }
@@ -267,8 +265,7 @@ public final class ArraySerializers
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
-            ObjectNode itemSchema = createSchemaNode("integer");
-            o.put("items", itemSchema);
+            o.put("items", createSchemaNode("integer"));
             return o;
         }
     }
@@ -291,8 +288,7 @@ public final class ArraySerializers
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
-            ObjectNode itemSchema = createSchemaNode("number", true);
-            o.put("items", itemSchema);
+            o.put("items", createSchemaNode("number", true));
             return o;
         }
     }
@@ -315,8 +311,7 @@ public final class ArraySerializers
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
-            ObjectNode itemSchema = createSchemaNode("number");
-            o.put("items", itemSchema);
+            o.put("items", createSchemaNode("number"));
             return o;
         }
     }
@@ -339,8 +334,7 @@ public final class ArraySerializers
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
-            ObjectNode itemSchema = createSchemaNode("number");
-            o.put("items", itemSchema);
+            o.put("items", createSchemaNode("number"));
             return o;
         }
     }

@@ -90,7 +90,15 @@ public class BeanSerializer
             if (hint == null) {
                 hint = prop.getGenericPropertyType();
             }
-            JsonSerializer<Object> ser = provider.findValueSerializer(prop.getSerializationType() == null ? prop.getReturnType() : prop.getSerializationType());
+            // Maybe it already has annotated/statically configured serializer?
+            JsonSerializer<Object> ser = prop.getSerializer();
+            if (ser == null) { // nope
+                Class<?> serType = prop.getSerializationType();
+                if (serType == null) {
+                    serType = prop.getReturnType();
+                }
+                ser = provider.findValueSerializer(serType);
+            }
             JsonNode schemaNode = (ser instanceof SchemaAware) ?
                     ((SchemaAware) ser).getSchema(provider, hint) : 
                     JsonSchema.getDefaultSchemaNode();

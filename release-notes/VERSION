@@ -13,7 +13,11 @@ Description:
   * [JACKSON-89] Make ignored field/creator-backed properties quietly
     skippable during deserialization (that is, without having to explicitly
     declare such properties as ignorable as per [JACKSON-77])
+  * [JACKSON-161] Added basic support for Joda, ser/deser DateTime class
   * [JACKSON-170] Serialize Creator properties before other properties
+  * [JACKSON-196] Schema generation does not respect the annotation
+    configured serializer on a bean property
+   (reported by Gil M)
 
   New features:
 
