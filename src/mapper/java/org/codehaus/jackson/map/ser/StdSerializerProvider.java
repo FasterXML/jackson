@@ -48,12 +48,15 @@ public class StdSerializerProvider
     {
         @Override
         public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
-            throws JsonMappingException
+            throws IOException, JsonMappingException
         {
-            /* 18-Feb-2009, tatu: Let's suggest the most likely reason
-             *   for failure to find a serializer
-             */
-            throw new JsonMappingException("No serializer found for class "+value.getClass().getName()+" (and no bean properties discovered to create bean serializer)");
+            // 27-Nov-2009, tatu: As per [JACKSON-201] may or may not fail...
+            if (provider.isEnabled(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS)) {
+                throw new JsonMappingException("No serializer found for class "+value.getClass().getName()+" and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS) )");
+            }
+            // But if it's fine, we'll just output empty JSON Object:
+            jgen.writeStartObject();
+            jgen.writeEndObject();
         }
     };
 

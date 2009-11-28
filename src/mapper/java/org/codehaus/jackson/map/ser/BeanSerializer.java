@@ -25,16 +25,14 @@ public class BeanSerializer
     extends SerializerBase<Object>
     implements ResolvableSerializer, SchemaAware
 {
+    final static BeanPropertyWriter[] NO_PROPS = new BeanPropertyWriter[0];
+
     final protected String _className;
 
     final protected BeanPropertyWriter[] _props;
 
     public BeanSerializer(Class<?> type, BeanPropertyWriter[] props)
     {
-        // sanity check
-        if (props.length == 0) {
-            throw new IllegalArgumentException("Can not create BeanSerializer for type that has no properties");
-        }
         _props = props;
         // let's store this for debugging
         _className = type.getName();
@@ -43,6 +41,15 @@ public class BeanSerializer
     public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props)
     {
         this(type, props.toArray(new BeanPropertyWriter[props.size()]));
+    }
+
+    /**
+     * Method for constructing dummy bean deserializer; one that
+     * never outputs any properties
+     */
+    public static BeanSerializer createDummy(Class<?> forType)
+    {
+        return new BeanSerializer(forType, NO_PROPS);
     }
 
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider provider)

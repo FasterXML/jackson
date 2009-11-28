@@ -142,7 +142,7 @@ public class BeanSerializerFactory
             ser = findSerializerFromAnnotation(config, valueMethod);
             return new JsonValueSerializer(valueMethod.getAnnotated(), ser);
         }
-        return constructBeanSerializer(type, config, beanDesc);
+        return constructBeanSerializer(config, beanDesc);
     }
 
     /*
@@ -164,20 +164,27 @@ public class BeanSerializerFactory
         return (ClassUtil.canBeABeanType(type) == null) && !ClassUtil.isProxyType(type);
     }
 
-    protected JsonSerializer<Object> constructBeanSerializer(Class<?> type, SerializationConfig config,
+    protected JsonSerializer<Object> constructBeanSerializer(SerializationConfig config,
                                                              BasicBeanDescription beanDesc)
     {
         // First: any detectable (auto-detect, annotations) properties to serialize?
         List<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
         if (props == null || props.size() == 0) {
             // No properties, no serializer
+            /* 27-Nov-2009, tatu: Except that as per [JACKSON-201], we are
+             *   ok with that as long as it has a recognized class annotation
+             *  (which may come from a mix-in too)
+             */
+            if (beanDesc.hasKnownClassAnnotations()) {
+                return BeanSerializer.createDummy(beanDesc.classDescribed());
+            }
             return null;
         }
         // Any properties to suppress?
         props = filterBeanProperties(config, beanDesc, props);
         // And finally: do they need to be sorted in some special way?
         props = sortBeanProperties(config, beanDesc, props);
-        return new BeanSerializer(type, props);
+        return new BeanSerializer(beanDesc.classDescribed(), props);
     }
 
     /**

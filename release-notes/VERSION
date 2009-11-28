@@ -26,6 +26,10 @@ Description:
   * [JACKSON-192] Added basic delegate implementations (JsonParserDelegate,
     JsonGeneratorDelegate) to make it easier to override core parser and
     generate behavior
+  * [JACKSON-201] Allow serialization of "empty beans" (classes without
+    getters), if SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS is
+    disabled; or if class has recognized Jackson annotation
+   (suggested by Mike P)
 
   Other:
 

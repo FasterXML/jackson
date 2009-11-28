@@ -151,6 +151,23 @@ public class SerializationConfig
          */
         ,WRAP_ROOT_VALUE(false)
 
+        /**
+         * Feature that determines what happens when no accessors are
+         * found for a type (and there are no annotations to indicate
+         * it is meant to be serialized). If enabled (default), an
+         * exception is thrown to indicate these as non-serializable
+         * types; if disabled, they are serialized as empty Objects,
+         * i.e. without any properties.
+         *<p>
+         * Note that empty types that this feature has only effect on
+         * those "empty" beans that do not have any recognized annotations
+         * (like <code>@JsonSerialize</code>): ones that do have annotations
+         * do not result in an exception being thrown.
+         *
+         * @since 1.4
+         */
+         ,FAIL_ON_EMPTY_BEANS(true)
+
         // // // Features for datatype-specific serialization
 
         /**

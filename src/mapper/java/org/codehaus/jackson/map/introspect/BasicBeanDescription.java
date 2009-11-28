@@ -49,6 +49,16 @@ public class BasicBeanDescription extends BeanDescription
 
     public AnnotatedClass getClassInfo() { return _classInfo; }
 
+    public Class<?> classDescribed() { return _classInfo.getAnnotated(); }
+
+    /**
+     * Method for checking whether class being described has any
+     * annotations recognized by registered annotation introspector.
+     */
+    public boolean hasKnownClassAnnotations() {
+        return _classInfo.hasAnnotations();
+    }
+
     public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
     {
         return _classInfo.findMethod(name, paramTypes);

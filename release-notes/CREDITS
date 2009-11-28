@@ -217,9 +217,14 @@ Steve Lopez
    [1.3.1]
 
 Mike Pilone
+  * Suggested [JACKSON-201]: Allow serialization of "empty beans" (classes
+    without getters), if SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS is
+    disabled; or if class has recognized Jackson annotation
+   [1.4.0]
   * Reported [JACKSON-202]: Non-public fields not deserialized properly
     with JAXB annotations
    [1.3.1]
+  
 
 Stephen Friedrich
   * Reported additional issues with [JACKSON-203]

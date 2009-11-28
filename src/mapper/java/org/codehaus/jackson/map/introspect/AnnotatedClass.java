@@ -172,6 +172,8 @@ public final class AnnotatedClass
     ///////////////////////////////////////////////////////
      */
 
+    public boolean hasAnnotations() { return _classAnnotations.size() > 0; }
+
     public AnnotatedConstructor getDefaultConstructor() { return _defaultConstructor; }
 
     public List<AnnotatedConstructor> getConstructors()
