@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.tree;
 
 import main.BaseTest;
 import static org.junit.Assert.*;
@@ -6,13 +6,13 @@ import static org.junit.Assert.*;
 import java.io.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.node.*;
 
 /**
- * This unit test suite tries to verify that the "JSON type"
- * mapper constructed JsonNodes can be serialized properly.
+ * This unit test suite tries to verify that the trees ObjectMapper
+ * constructs can be serialized properly.
  */
-@SuppressWarnings("deprecation")
 public class TestTreeMapperSerializer
     extends BaseTest
 {
@@ -94,8 +94,8 @@ public class TestTreeMapperSerializer
     public void testSmallNumbers()
         throws Exception
     {
-        TreeMapper mapper = new TreeMapper();
-        ArrayNode root = mapper.arrayNode();
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode root = mapper.createArrayNode();
         for (int i = -20; i <= 20; ++i) {
             JsonNode n = root.numberNode(i);
             root.add(n);
@@ -111,7 +111,7 @@ public class TestTreeMapperSerializer
                 root.writeTo(gen);
                 gen.close();
             } else {
-                mapper.writeTree(root, sw);
+                mapper.writeValue(sw, root);
             }
             
             String doc = sw.toString();
@@ -130,23 +130,23 @@ public class TestTreeMapperSerializer
 
     public void testNull() throws Exception
     {
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         StringWriter sw = new StringWriter();
-        mapper.writeTree(NullNode.instance, sw);
+        mapper.writeValue(sw, NullNode.instance);
         assertEquals("null", sw.toString());
     }
 
     public void testBinary()
         throws Exception
     {
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         final int LENGTH = 13045;
         byte[] data = new byte[LENGTH];
         for (int i = 0; i < LENGTH; ++i) {
             data[i] = (byte) i;
         }
         StringWriter sw = new StringWriter();
-        mapper.writeTree(BinaryNode.valueOf(data), sw);
+        mapper.writeValue(sw, BinaryNode.valueOf(data));
 
         JsonParser jp = new JsonFactory().createJsonParser(sw.toString());
         // note: can't determine it's binary from json alone:

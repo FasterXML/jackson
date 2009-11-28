@@ -1,24 +1,24 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.tree;
 
 import main.BaseTest;
 
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.node.*;
 
 /**
  * Unit tests to verify that Json Objects map property to Map-like
  * ObjectNodes.
  */
-@SuppressWarnings("deprecation")
 public class TestTreeMapperMaps
     extends BaseTest
 {
     public void testSimpleObject() throws Exception
     {
         String JSON = "{ \"key\" : 1, \"b\" : \"x\" }";
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(JSON);
 
         // basic properties first:
@@ -63,4 +63,15 @@ public class TestTreeMapperMaps
         assertEquals(IntNode.valueOf(1), root.get("key"));
         assertNull(root.get("b"));
     }
+
+    public void testSimplePath() throws Exception
+    {
+        JsonNode root = new ObjectMapper().readTree("{ \"results\" : { \"a\" : 3 } }");
+        assertTrue(root.isObject());
+        JsonNode rnode = root.path("results");
+        assertNotNull(rnode);
+        assertTrue(rnode.isObject());
+        assertEquals(3, rnode.path("a").getIntValue());
+    }
+
 }

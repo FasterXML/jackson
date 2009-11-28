@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.tree;
 
 import main.BaseTest;
 
@@ -7,14 +7,14 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.node.*;
 
 /**
- * This unit test suite tries to verify that the "JSON" type
- * mapper can properly parse JSON and bind contents into appropriate
+ * This unit test suite tries to verify that ObjectMapper
+ * can properly parse JSON and bind contents into appropriate
  * JsonNode instances.
  */
-@SuppressWarnings("deprecation")
 public class TestTreeMapperDeserializer
     extends BaseTest
 {
@@ -23,7 +23,7 @@ public class TestTreeMapperDeserializer
     {
         final String JSON = SAMPLE_DOC_JSON_SPEC;
 
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
 
         for (int type = 0; type < 2; ++type) {
             JsonNode result;
@@ -98,7 +98,7 @@ public class TestTreeMapperDeserializer
     public void testBoolean()
         throws Exception
     {
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         JsonNode result = mapper.readTree("true\n");
         assertFalse(result.isNull());
         assertFalse(result.isNumber());
@@ -117,7 +117,7 @@ public class TestTreeMapperDeserializer
     public void testDouble()
         throws Exception
     {
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         double value = 3.04;
         JsonNode result = mapper.readTree(String.valueOf(value));
         assertTrue(result.isNumber());
@@ -144,7 +144,7 @@ public class TestTreeMapperDeserializer
     public void testInt()
         throws Exception
     {
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         int value = -90184;
         JsonNode result = mapper.readTree(String.valueOf(value));
         assertTrue(result.isNumber());
@@ -171,7 +171,7 @@ public class TestTreeMapperDeserializer
     public void testLong()
         throws Exception
     {
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         // need to use something being 32-bit value space
         long value = 12345678L << 32;
         JsonNode result = mapper.readTree(String.valueOf(value));
@@ -198,7 +198,7 @@ public class TestTreeMapperDeserializer
     public void testNull()
         throws Exception
     {
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         JsonNode result = mapper.readTree("   null ");
         // should not get java null, but NullNode...
         assertNotNull(result);
@@ -241,8 +241,8 @@ public class TestTreeMapperDeserializer
 
     public void testSimpleArray() throws Exception
     {
-        TreeMapper mapper = new TreeMapper();
-        ArrayNode result = mapper.arrayNode();
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
 
         assertTrue(result.isArray());
         assertType(result, ArrayNode.class);
@@ -274,7 +274,7 @@ public class TestTreeMapperDeserializer
         assertTrue(result.path(-100).isMissingNode());
 
         // then construct and compare
-        ArrayNode array2 = mapper.arrayNode();
+        ArrayNode array2 = mapper.createArrayNode();
         array2.addNull();
         array2.add(false);
         assertEquals(result, array2);
@@ -304,7 +304,7 @@ public class TestTreeMapperDeserializer
             +"\"name\": \"xyz\", \"type\": 1, \"url\" : null }\n  "
             ;
         JsonFactory jf = new JsonFactory();
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         JsonParser jp = jf.createJsonParser(new StringReader(JSON));
         JsonNode result = mapper.readTree(jp);
 
@@ -319,7 +319,7 @@ public class TestTreeMapperDeserializer
     {
         String JSON = "12  \"string\" [ 1, 2, 3 ]";
         JsonFactory jf = new JsonFactory();
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         JsonParser jp = jf.createJsonParser(new StringReader(JSON));
         JsonNode result = mapper.readTree(jp);
 
@@ -350,7 +350,7 @@ public class TestTreeMapperDeserializer
         throws Exception
     {
         String JSON = "[ { }, [ ] ]";
-        TreeMapper mapper = new TreeMapper();
+        ObjectMapper mapper = new ObjectMapper();
         JsonNode result = mapper.readTree(new StringReader(JSON));
 
         assertTrue(result.isContainerNode());
