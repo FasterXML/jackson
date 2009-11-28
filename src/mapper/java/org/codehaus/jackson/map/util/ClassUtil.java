@@ -82,20 +82,28 @@ public final class ClassUtil
 
     public static String isLocalType(Class<?> type)
     {
-        // one more: method locals, anonymous, are not good:
-        if (type.getEnclosingMethod() != null) {
-            return "local/anonymous";
-        }
-
-        /* But how about non-static inner classes? Can't construct
-         * easily (theoretically, we could try to check if parent
-         * happens to be enclosing... but that gets convoluted)
+        /* As per [JACKSON-187], GAE seems to throw SecurityExceptions
+         * here and there... and GAE itself has a bug, too
+         * (see []). Bah.
          */
-        if (type.getEnclosingClass() != null) {
-            if (!Modifier.isStatic(type.getModifiers())) {
-                return "non-static member class";
+        try {
+            // one more: method locals, anonymous, are not good:
+            if (type.getEnclosingMethod() != null) {
+                return "local/anonymous";
+            }
+            
+            /* But how about non-static inner classes? Can't construct
+             * easily (theoretically, we could try to check if parent
+             * happens to be enclosing... but that gets convoluted)
+             */
+            if (type.getEnclosingClass() != null) {
+                if (!Modifier.isStatic(type.getModifiers())) {
+                    return "non-static member class";
+                }
             }
         }
+        catch (SecutiryException e) { }
+        catch (NullPointerException e) { }
         return null;
     }
 
