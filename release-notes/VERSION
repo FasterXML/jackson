@@ -8,10 +8,13 @@ Description:
 
   Fixes:
 
-  * [JACKSON-206] Support parsing dates of form "1984-11-13T00:00:00" 
   * [JACKSON-103] (additional work) Groovy setMetaClass() setter caused
     problems when deserializing (although serialization was fixed earlier)
    (reported by Stephen F)
+  * [JACKSON-188] Jackson not working on Google App Engine (GAE) due to
+    unintended dependency from JacksonJsonProvider to JAXB API classes
+   (reported by Jeff S)
+  * [JACKSON-206] Support parsing dates of form "1984-11-13T00:00:00" 
 
 ------------------------------------------------------------------------
 == History: ==
