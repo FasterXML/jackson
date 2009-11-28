@@ -14,6 +14,11 @@ import org.codehaus.jackson.map.ObjectMapper;
  * @since 1.3
  */
 public class JacksonJaxbJsonProvider extends JacksonJsonProvider {
+    /**
+     * Default annotation sets to use, if not explicitly defined during
+     * construction: use Jackson annotations if found; if not, use
+     * JAXB annotations as fallback.
+     */
     public final static Annotations[] DEFAULT_ANNOTATIONS = {
         Annotations.JACKSON, Annotations.JAXB
     };
@@ -44,10 +49,5 @@ public class JacksonJaxbJsonProvider extends JacksonJsonProvider {
     public JacksonJaxbJsonProvider(ObjectMapper mapper, Annotations[] annotationsToUse)
     {
         super(mapper, annotationsToUse);
-    }
-    
-    @Override
-    protected Annotations[] _defaultAnnotations() {
-        return DEFAULT_ANNOTATIONS;
     }
 }
