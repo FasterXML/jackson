@@ -4,14 +4,16 @@ import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.xml.sax.InputSource;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
+import org.w3c.dom.*;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
 public class TestDOM extends org.codehaus.jackson.map.BaseMapTest
 {
-    final static String SIMPLE_XML = "<root attr='3'><leaf>Rock &amp; Roll!</leaf><?proc instr?></root>";
+    final static String SIMPLE_XML =
+        "<root attr='3'><leaf>Rock &amp; Roll!</leaf><?proc instr?></root>";
+    final static String SIMPLE_XML_NS =
+        "<root ns:attr='abc' xmlns:ns='http://foo' />";
     
     public void testSerializeSimpleNonNS() throws Exception
     {
@@ -29,12 +31,53 @@ public class TestDOM extends org.codehaus.jackson.map.BaseMapTest
         assertEquals(SIMPLE_XML, normalizeOutput(output));
     }
 
-    public void testDeserialize() throws Exception
+    public void testDeserializeNonNS() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        Node node = mapper.readValue(SIMPLE_XML, Node.class);
-        assertNotNull(node);
-        // !!! TBI
+        for (int i = 0; i < 2; ++i) {
+            Document doc;
+
+            if (i == 0) {
+                // First, as Document:
+                doc = mapper.readValue(quote(SIMPLE_XML), Document.class);
+            } else {
+                // and then as plain Node (no difference)
+                Node node = mapper.readValue(quote(SIMPLE_XML), Node.class);
+                doc = (Document) node;
+            }
+            Element root = doc.getDocumentElement();
+            assertNotNull(root);
+            // non-ns, simple...
+            assertEquals("root", root.getTagName());
+            assertEquals("3", root.getAttribute("attr"));
+            assertEquals(1, root.getAttributes().getLength());
+            NodeList nodes = root.getChildNodes();
+            assertEquals(2, nodes.getLength());
+            Element leaf = (Element) nodes.item(0);
+            assertEquals("leaf", leaf.getTagName());
+            assertEquals(0, leaf.getAttributes().getLength());
+            //"<root attr='3'><leaf>Rock &amp; Roll!</leaf><?proc instr?></root>";
+            ProcessingInstruction pi = (ProcessingInstruction) nodes.item(1);
+            assertEquals("proc", pi.getTarget());
+            assertEquals("instr", pi.getData());
+        }
+    }
+    
+    public void testDeserializeNS() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Document doc = mapper.readValue(quote(SIMPLE_XML_NS), Document.class);
+        Element root = doc.getDocumentElement();
+        assertNotNull(root);
+        assertEquals("root", root.getTagName());
+        // Not sure if it ought to be "" or null...
+        String uri = root.getNamespaceURI();
+        assertTrue((uri == null) || "".equals(uri));
+        // no child nodes:
+        assertEquals(0, root.getChildNodes().getLength());
+        // DOM is weird, includes ns decls as attributes...
+        assertEquals(2, root.getAttributes().getLength());
+        assertEquals("abc", root.getAttributeNS("http://foo", "attr"));
     }
 
     /*

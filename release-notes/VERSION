@@ -10,6 +10,8 @@ Description:
 
   Improvements:
 
+  * [JACKSON-38] Allow serializing/deserializing DOM trees (Node, Document)
+    (suggested by Scott D)
   * [JACKSON-89] Make ignored field/creator-backed properties quietly
     skippable during deserialization (that is, without having to explicitly
     declare such properties as ignorable as per [JACKSON-77])

@@ -65,6 +65,8 @@ Scott Dixon:
   * Contributed unit test (TestComplexJavaType) for verifying functioning
     of object serialization
     [0.9.5]
+  * Suggested [JACKSON-38] Allow serializing/deserializing DOM trees (Node, Document)
+    [1.4.0]
   * Suggested [JACKSON-45]: adding convenience methods to simplify writing
     custom serializers
     [1.0.0]
