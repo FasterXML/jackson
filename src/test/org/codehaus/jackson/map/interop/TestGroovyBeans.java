@@ -1,11 +1,9 @@
 package org.codehaus.jackson.map.interop;
 
-import java.io.*;
 import java.util.*;
 
 import groovy.lang.GroovyClassLoader;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 /**

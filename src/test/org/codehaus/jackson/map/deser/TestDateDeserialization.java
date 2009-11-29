@@ -192,7 +192,6 @@ public class TestDateDeserialization
      */
     public void testDatesWithEmptyStrings() throws Exception
     {
-        java.util.Date now = new Date();
         ObjectMapper mapper = new ObjectMapper();
 
         assertNull(mapper.readValue(quote(""), java.util.Date.class));

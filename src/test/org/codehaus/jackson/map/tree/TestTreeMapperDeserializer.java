@@ -295,8 +295,8 @@ public class TestTreeMapperDeserializer
      * Type mappers should be able to gracefully deal with end of
      * input.
      */
-    public void testEOF()
-        throws Exception
+    @SuppressWarnings("deprecation")
+    public void testEOF() throws Exception
     {
         String JSON =
             "{ \"key\": [ { \"a\" : { \"name\": \"foo\",  \"type\": 1\n"
@@ -314,8 +314,8 @@ public class TestTreeMapperDeserializer
         assertNull(mapper.readTree(jp));
     }
 
-    public void testMultiple()
-        throws Exception
+    @SuppressWarnings("deprecation")
+    public void testMultiple() throws Exception
     {
         String JSON = "12  \"string\" [ 1, 2, 3 ]";
         JsonFactory jf = new JsonFactory();

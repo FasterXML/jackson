@@ -102,7 +102,7 @@ public final class ClassUtil
                 }
             }
         }
-        catch (SecutiryException e) { }
+        catch (SecurityException e) { }
         catch (NullPointerException e) { }
         return null;
     }

@@ -1,8 +1,5 @@
 package org.codehaus.jackson.jaxrs;
 
-import javax.ws.rs.core.MediaType;
-
-import org.codehaus.jackson.jaxrs.*;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
