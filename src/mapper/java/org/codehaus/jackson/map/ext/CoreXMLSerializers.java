@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.ext;
 import java.util.*;
 import javax.xml.datatype.*;
 import javax.xml.namespace.QName;
+import org.w3c.dom.Node;
 
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.ser.*;
@@ -22,12 +23,20 @@ import org.codehaus.jackson.map.util.Provider;
 public class CoreXMLSerializers
     implements Provider<Map.Entry<Class<?>,JsonSerializer<?>>>
 {
-    public Collection<Map.Entry<Class<?>,JsonSerializer<?>>> provide() {
-        HashMap<Class<?>,JsonSerializer<?>> sers = new HashMap<Class<?>,JsonSerializer<?>>();
+    final static HashMap<Class<?>,JsonSerializer<?>> _serializers = new HashMap<Class<?>,JsonSerializer<?>>();
+    /**
+     * We will construct instances statically, during class loading, to try to
+     * make things fail-fast, i.e. to catch problems as soon as possible.
+     */
+    static {
         ToStringSerializer tss = ToStringSerializer.instance;
-        sers.put(Duration.class, tss);
-        sers.put(XMLGregorianCalendar.class, tss);
-        sers.put(QName.class, tss);
-        return sers.entrySet();
+        _serializers.put(Duration.class, tss);
+        _serializers.put(XMLGregorianCalendar.class, tss);
+        _serializers.put(QName.class, tss);
+        _serializers.put(Node.class, new DOMSerializer());
+    }
+    
+    public Collection<Map.Entry<Class<?>,JsonSerializer<?>>> provide() {
+        return _serializers.entrySet();
     }
 }
