@@ -41,11 +41,15 @@ public class NopAnnotationIntrospector
      */
 
     @Override
-    public String findNamespace(Annotated ann)
-    {
+    public String findNamespace(Annotated ann) {
         return null;
     }
 
+    @Override
+    public String findEnumValue(Enum<?> value) {
+        return null;
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // General Class annotations
@@ -84,6 +88,101 @@ public class NopAnnotationIntrospector
     */
 
     @Override
+    public boolean isIgnorableConstructor(AnnotatedConstructor c) {
+        return false;
+    }
+
+    @Override
+    public boolean isIgnorableMethod(AnnotatedMethod m) {
+        return false;
+    }
+    
+    /*
+    ////////////////////////////////////////////////////
+    // General field annotations
+    ////////////////////////////////////////////////////
+     */
+
+    @Override
+    public boolean isIgnorableField(AnnotatedField f) {
+        return false;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: general annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public Object findSerializer(Annotated am) {
+        return null;
+    }
+
+    @Override
+    public Inclusion findSerializationInclusion(Annotated a, Inclusion defValue) {
+        return Inclusion.ALWAYS;
+    }
+
+    @Override
+    public Class<?> findSerializationType(Annotated a) {
+        return null;
+    }
+
+    @Override
+    public Typing findSerializationTyping(Annotated a) {
+        return null;
+    }
+
+    @Override
+    public Class<?>[] findSerializationViews(Annotated a) {
+        return null;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: class annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    /**
+     * @since 1.3
+     */
+    @Override
+    public Boolean findIsGetterAutoDetection(AnnotatedClass ac) {
+        return null;
+    }
+
+    @Override
+    public Boolean findGetterAutoDetection(AnnotatedClass ac) {
+        return null;
+    }
+    
+    public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
+        return null;
+    }
+
+    public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
+        return null;
+    }
+
+    /*
+    ///////////////////////////////////////////////////////
+    // Serialization: method annotations
+    ///////////////////////////////////////////////////////
+    */
+
+    @Override
+    public String findGettablePropertyName(AnnotatedMethod am) {
+        return null;
+    }
+
+    @Override
+    public boolean hasAsValueAnnotation(AnnotatedMethod am) {
+        return false;
+    }
+    
+    @Override
     public Boolean findCreatorAutoDetection(AnnotatedClass ac) {
         return null;
     }
@@ -117,36 +216,6 @@ public class NopAnnotationIntrospector
     @Override
     public Class<JsonDeserializer<?>> findContentDeserializer(Annotated am) { return null; }
 
-    @Override
-    public String findEnumValue(Enum<?> value) {
-        return null;
-    }
-
-    @Override
-    public String findGettablePropertyName(AnnotatedMethod am) {
-        return null;
-    }
-
-    @Override
-    public Boolean findGetterAutoDetection(AnnotatedClass ac) {
-        return null;
-    }
-
-    public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
-        return null;
-    }
-
-    public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
-        return null;
-    }
-
-    /**
-     * @since 1.3
-     */
-    @Override
-    public Boolean findIsGetterAutoDetection(AnnotatedClass ac) {
-        return null;
-    }
 
     @Override
     public String findPropertyNameForParam(AnnotatedParameter param) {
@@ -158,26 +227,8 @@ public class NopAnnotationIntrospector
         return null;
     }
 
-    @Override
-    public Inclusion findSerializationInclusion(Annotated a, Inclusion defValue) {
-        return Inclusion.ALWAYS;
-    }
 
-    @Override
-    public Class<?> findSerializationType(Annotated a) {
-        return null;
-    }
-
-    @Override
-    public Typing findSerializationTyping(Annotated a) {
-        return null;
-    }
-
-    @Override
-    public Object findSerializer(Annotated am) {
-        return null;
-    }
-
+    
     @Override
     public String findSettablePropertyName(AnnotatedMethod am) {
         return null;
@@ -194,27 +245,7 @@ public class NopAnnotationIntrospector
     }
 
     @Override
-    public boolean hasAsValueAnnotation(AnnotatedMethod am) {
-        return false;
-    }
-
-    @Override
     public boolean hasCreatorAnnotation(Annotated a) {
-        return false;
-    }
-
-    @Override
-    public boolean isIgnorableConstructor(AnnotatedConstructor c) {
-        return false;
-    }
-
-    @Override
-    public boolean isIgnorableField(AnnotatedField f) {
-        return false;
-    }
-
-    @Override
-    public boolean isIgnorableMethod(AnnotatedMethod m) {
         return false;
     }
 

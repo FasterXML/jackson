@@ -14,8 +14,7 @@ import org.codehaus.jackson.map.introspect.*;
  * plugged-in dynamically.
  */
 public abstract class AnnotationIntrospector
-{
-    
+{    
     /*
     ///////////////////////////////////////////////////////
     // Factory methods
@@ -220,6 +219,20 @@ public abstract class AnnotationIntrospector
      */
     public abstract JsonSerialize.Typing findSerializationTyping(Annotated a);
 
+    /**
+     * Method for checking if annotated serializable property (represented by
+     * field or getter method) has definitions for views it is to be included
+     * in. If null is returned, no view definitions exist and property is always
+     * included; otherwise it will only be included for views included in returned
+     * array. View matches are checked using class inheritance rules (sub-classes
+     * inherit inclusions of super-classes)
+     * 
+     * @param a Annotated serializable property (field or getter method)
+     * @return Array of views (represented by classes) that the property is included in;
+     *    if null, always included (same as returning array containing <code>Object.class</code>)
+     */
+    public abstract Class<?>[] findSerializationViews(Annotated a);
+    
     /*
     ///////////////////////////////////////////////////////
     // Serialization: class annotations
@@ -695,6 +708,20 @@ public abstract class AnnotationIntrospector
             return result;
         }
 
+        @Override
+        public Class<?>[] findSerializationViews(Annotated a)
+        {
+            /* Theoretically this could be trickier, if multiple introspectors
+             * return non-null entries. For now, though, we'll just consider
+             * first one to return non-null to win.
+             */
+            Class<?>[] result = _primary.findSerializationViews(a);
+            if (result == null) {
+                result = _secondary.findSerializationViews(a);
+            }
+            return result;
+        }
+        
         // // // Serialization: class annotations
 
         @Override

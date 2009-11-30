@@ -155,6 +155,24 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return ns;
     }
 
+    /**
+     *<p>
+     * !!! 12-Oct-2009, tatu: This is hideously slow implementation,
+     *   called potentially for every single enum value being
+     *   serialized. Need to improve somehow
+     */
+    public String findEnumValue(Enum<?> e)
+    {
+        Class<?> enumClass = e.getDeclaringClass();
+        String enumValue = e.name();
+        try {
+            XmlEnumValue xmlEnumValue = enumClass.getDeclaredField(enumValue).getAnnotation(XmlEnumValue.class);
+            return (xmlEnumValue != null) ? xmlEnumValue.value() : enumValue;
+        } catch (NoSuchFieldException e1) {
+            throw new IllegalStateException("Could not locate Enum entry '"+enumValue+"' (Enum class "+enumClass.getName()+")", e1);
+        }
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // General class annotations
@@ -296,11 +314,19 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return JsonSerialize.Inclusion.NON_NULL;
     }
 
+    @Override
     public JsonSerialize.Typing findSerializationTyping(Annotated a)
     {
         return null;
     }
 
+    @Override
+    public Class<?>[] findSerializationViews(Annotated a)
+    {
+        // no JAXB annotations for views (can use different schemas)
+        return null;
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // Serialization: class annotations
@@ -360,24 +386,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     {
         //since jaxb says @XmlValue can exist with attributes, this won't map as a json value.
         return false;
-    }
-
-    /**
-     *<p>
-     * !!! 12-Oct-2009, tatu: This is hideously slow implementation,
-     *   called potentially for every single enum value being
-     *   serialized. Need to improve somehow
-     */
-    public String findEnumValue(Enum<?> e)
-    {
-        Class<?> enumClass = e.getDeclaringClass();
-        String enumValue = e.name();
-        try {
-            XmlEnumValue xmlEnumValue = enumClass.getDeclaredField(enumValue).getAnnotation(XmlEnumValue.class);
-            return (xmlEnumValue != null) ? xmlEnumValue.value() : enumValue;
-        } catch (NoSuchFieldException e1) {
-            throw new IllegalStateException("Could not locate Enum entry '"+enumValue+"' (Enum class "+enumClass.getName()+")", e1);
-        }
     }
 
     /**

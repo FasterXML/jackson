@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonView;
 
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
@@ -55,6 +56,12 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
+    @Override
+    public String findEnumValue(Enum<?> value)
+    {
+        return value.name();
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // General class annotations
@@ -141,7 +148,6 @@ public class JacksonAnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-
     @SuppressWarnings({ "unchecked", "deprecation" })
     @Override
     public Class<? extends JsonSerializer<?>> findSerializer(Annotated a)
@@ -213,6 +219,13 @@ public class JacksonAnnotationIntrospector
         return (ann == null) ? null : ann.typing();
     }
 
+    @Override
+    public Class<?>[] findSerializationViews(Annotated a)
+    {
+        JsonView ann = a.getAnnotation(JsonView.class);
+        return (ann == null) ? null : ann.value();
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // Serialization: class annotations
@@ -303,12 +316,6 @@ public class JacksonAnnotationIntrospector
         JsonValue ann = am.getAnnotation(JsonValue.class);
         // value of 'false' means disabled...
         return (ann != null && ann.value());
-    }
-
-    @Override
-    public String findEnumValue(Enum<?> value)
-    {
-        return value.name();
     }
 
     /*
