@@ -116,7 +116,7 @@ public class CoreXMLDeserializers
         final static DocumentBuilderFactory _parserFactory;
         static {
             _parserFactory = DocumentBuilderFactory.newInstance();
-            // yup, only cavemen do XML without recognizing namespaces...
+            // yup, only cave men do XML without recognizing namespaces...
             _parserFactory.setNamespaceAware(true);
         }
 

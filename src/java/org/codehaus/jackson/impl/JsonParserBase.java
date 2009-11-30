@@ -585,12 +585,22 @@ public abstract class JsonParserBase
         _reportError(msg);
     }
 
+    /**
+     * Method called to report a problem with unquoted control character.
+     * Note: starting with version 1.4, it is possible to suppress
+     * exception by enabling {@link JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS}.
+     *
+     * @return If space is accepted, space itself (otherwise exception thrown)
+     */
     protected void _throwUnquotedSpace(int i, String ctxtDesc)
         throws JsonParseException
     {
-        char c = (char) i;
-        String msg = "Illegal unquoted character ("+_getCharDesc(c)+"): has to be escaped using backslash to be included in "+ctxtDesc;
-        _reportError(msg);
+        // JACKSON-208; possible to allow unquoted control chars:
+        if (!isEnabled(Feature.ALLOW_UNQUOTED_CONTROL_CHARS) || i >= INT_SPACE) {
+            char c = (char) i;
+            String msg = "Illegal unquoted character ("+_getCharDesc(c)+"): has to be escaped using backslash to be included in "+ctxtDesc;
+            _reportError(msg);
+        }
     }
 
     protected void _reportMismatchedEndMarker(int actCh, char expCh)

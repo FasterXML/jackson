@@ -25,7 +25,6 @@ public class TestJsonParser
         jp.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
         assertFalse(jp.isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE));
 
-        // default should be true here:
         assertTrue(jp.isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES));
         jp.configure(JsonParser.Feature.INTERN_FIELD_NAMES, false);
         assertFalse(jp.isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES));

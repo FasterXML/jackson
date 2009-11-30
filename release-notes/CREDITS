@@ -240,3 +240,8 @@ Gil Markham:
   * Reported [JACKSON-196], suggested fix: Schema generation does not
     respect the annotation configured serializer on a bean property
    [1.4.0]
+
+Mark Stevens:
+  * Requested [JACKSON-208] Aallow unquoted control characters (esp. tabs)
+    in JSON Strings and field names
+   [1.4.0]

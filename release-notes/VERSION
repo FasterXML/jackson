@@ -20,6 +20,10 @@ Description:
   * [JACKSON-196] Schema generation does not respect the annotation
     configured serializer on a bean property
    (reported by Gil M)
+  * [JACKSON-208] Add feature (JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS)
+    to allow unquoted control characters (esp. tabs) in Strings and
+    field names
+   (requested by Mark S)
 
   New features:
 

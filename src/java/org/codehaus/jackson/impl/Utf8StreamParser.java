@@ -466,12 +466,12 @@ public final class Utf8StreamParser
                 }
                 // Unquoted white space?
                 if (ch != INT_BACKSLASH) {
+                    // As per [JACKSON-208], call can now return:
                     _throwUnquotedSpace(ch, "name");
+                } else {
+                    // Nope, escape sequence
+                    ch = _decodeEscaped();
                 }
-
-                // Nope, escape sequence
-
-                ch = _decodeEscaped();
                 /* Oh crap. May need to UTF-8 (re-)encode it, if it's
                  * beyond 7-bit ascii. Gets pretty messy.
                  * If this happens often, may want to use different name
@@ -651,12 +651,12 @@ public final class Utf8StreamParser
             if (ch != INT_QUOTE && codes[ch] != 0) {
                 if (ch != INT_BACKSLASH) {
                     // Unquoted white space?
+                    // As per [JACKSON-208], call can now return:
                     _throwUnquotedSpace(ch, "name");
+                } else {
+                    // Nope, escape sequence
+                    ch = _decodeEscaped();
                 }
-
-                // Nope, escape sequence
-
-                ch = _decodeEscaped();
                 /* Oh crap. May need to UTF-8 (re-)encode it, if it's
                  * beyond 7-bit ascii. Gets pretty messy.
                  * If this happens often, may want to use different name
@@ -974,10 +974,12 @@ public final class Utf8StreamParser
                 break;
             default:
                 if (c < INT_SPACE) {
+                    // As per [JACKSON-208], call can now return:
                     _throwUnquotedSpace(c, "string value");
+                } else {
+                    // Is this good enough error message?
+                    _reportInvalidChar(c);
                 }
-                // Is this good enough error message?
-                _reportInvalidChar(c);
             }
             // Need more room?
             if (outPtr >= outBuf.length) {
@@ -1046,10 +1048,12 @@ public final class Utf8StreamParser
                 break;
             default:
                 if (c < INT_SPACE) {
+                    // As per [JACKSON-208], call can now return:
                     _throwUnquotedSpace(c, "string value");
+                } else {
+                    // Is this good enough error message?
+                    _reportInvalidChar(c);
                 }
-                // Is this good enough error message?
-                _reportInvalidChar(c);
             }
         }
     }

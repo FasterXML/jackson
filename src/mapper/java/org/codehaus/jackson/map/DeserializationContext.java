@@ -27,6 +27,10 @@ public abstract class DeserializationContext
 
     public DeserializationConfig getConfig() { return _config; }
 
+    /**
+     * Convenience method for checking whether specified on/off
+     * feature is enabled
+     */
     public boolean isEnabled(DeserializationConfig.Feature feat) {
     	return _config.isEnabled(feat);
     }
@@ -35,6 +39,10 @@ public abstract class DeserializationContext
         return _config.getBase64Variant();
     }
 
+    /**
+     * Accessor for getting access to the underlying JSON parser used
+     * for deserialization.
+     */
     public abstract JsonParser getParser();
 
     /*
@@ -45,10 +53,18 @@ public abstract class DeserializationContext
 
     /**
      * Method that can be used to get access to a reusable ObjectBuffer,
-     * useful for constructing Object arrays and Lists.
+     * useful for efficiently constructing Object arrays and Lists.
+     * Note that leased buffers should be returned once deserializer
+     * is done, to allow for reuse during same round of deserialization.
      */
     public abstract ObjectBuffer leaseObjectBuffer();
 
+    /**
+     * Method to call to return object buffer previously leased with
+     * {@link #leaseObjectBuffer}.
+     * 
+     * @param buf Returned object buffer
+     */
     public abstract void returnObjectBuffer(ObjectBuffer buf);
 
     /**
@@ -74,15 +90,42 @@ public abstract class DeserializationContext
     //////////////////////////////////////////////////////////////
     */
 
+    /**
+     * Helper method for constructing generic mapping exception for specified type
+     */
     public abstract JsonMappingException mappingException(Class<?> targetClass);
+
+    /**
+     * Helper method for constructing instantiation exception for specified type,
+     * to indicate problem with physically constructing instance of
+     * specified class (missing constructor, exception from constructor)
+     */
     public abstract JsonMappingException instantiationException(Class<?> instClass, Exception e);
     
+    /**
+     * Helper method for constructing exception to indicate that input JSON
+     * String was not in recognized format for deserializing into given type.
+     */
     public abstract JsonMappingException weirdStringException(Class<?> instClass, String msg);
+
+    /**
+     * Helper method for constructing exception to indicate that input JSON
+     * Number was not suitable for deserializing into given type.
+     */
     public abstract JsonMappingException weirdNumberException(Class<?> instClass, String msg);
 
+    /**
+     * Helper method for constructing exception to indicate that given JSON
+     * Object field name was not in format to be able to deserialize specified
+     * key type.
+     */
     public abstract JsonMappingException weirdKeyException(Class<?> keyClass, String keyValue, String msg);
 
     /**
+     * Helper method for constructing exception to indicate that JSON Object
+     * field name did not map to a known property of type being
+     * deserialized.
+     * 
      * @param instanceOrClass Either value being populated (if one has been
      *   instantiated), or Class that indicates type that would be (or
      *   have been) instantiated

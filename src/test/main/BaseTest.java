@@ -254,6 +254,12 @@ public class BaseTest
         return str;
     }
 
+    /*
+    ////////////////////////////////////////////////////////
+    // And other helpers
+    ////////////////////////////////////////////////////////
+     */
+
     protected byte[] encodeInUTF32BE(String input)
     {
         int len = input.length();
@@ -266,5 +272,9 @@ public class BaseTest
             result[ptr+3] = (byte) c;
         }
         return result;
+    }
+
+    public String quote(String str) {
+        return '"'+str+'"';
     }
 }

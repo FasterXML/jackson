@@ -114,6 +114,25 @@ public abstract class JsonParser
         ,ALLOW_SINGLE_QUOTES(false)
 
         /**
+         * Feature that determines whether parser will allow
+         * JSON Strings to contain unquoted control characters
+         * (ascii characters with value less than 32, including
+         * tab and line feed characters) or not.
+         * If feature is set false, an exception is thrown if such a
+         * character is encountered.
+         *<p>
+         * Since JSON specification requires quoting for all
+         * control characters,
+         * this is a non-standard feature, and as such disabled by
+         * default.
+         *<p>
+         * This feature can be changed for parser instances.
+         *
+         * @since 1.4
+         */
+        ,ALLOW_UNQUOTED_CONTROL_CHARS(false)
+
+        /**
          * Feature that determines whether JSON object field names are
          * to be canonicalized using {@link String#intern} or not:
          * if enabled, all field names will be intern()ed (and caller

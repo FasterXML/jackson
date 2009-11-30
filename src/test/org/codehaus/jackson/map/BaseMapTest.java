@@ -117,11 +117,4 @@ public abstract class BaseMapTest
     {
         return serializeAsString(new ObjectMapper(), value);
     }
-
-    public String quote(String str) {
-        return '"'+str+'"';
-    }
 }
-
-
-
