@@ -75,6 +75,8 @@ public abstract class SerializerProvider
         return _config.isEnabled(f);
     }
 
+    public final Class<?> getSerializationView() { return _config.getSerializationView(); }
+    
     /*
     //////////////////////////////////////////////////////
     // General serializer locating method

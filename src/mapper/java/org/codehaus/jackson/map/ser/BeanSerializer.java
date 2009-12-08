@@ -27,10 +27,28 @@ public class BeanSerializer
 {
     final static BeanPropertyWriter[] NO_PROPS = new BeanPropertyWriter[0];
 
+    /**
+     * Class name of the value type (that this serializer is used for);
+     * used for error reporting and debugging.
+     */
     final protected String _className;
 
+    /**
+     * Writers used for outputting actual property values
+     */
     final protected BeanPropertyWriter[] _props;
 
+    /**
+     * Optional filters used to suppress output of properties that
+     * are only to be included in certain views
+     */
+    protected SerializationViewFilter[] _viewFilters;
+    
+    /**
+     * 
+     * @param type Nominal type of values handled by this serializer
+     * @param props Property writers used for actual serialization
+     */
     public BeanSerializer(Class<?> type, BeanPropertyWriter[] props)
     {
         _props = props;
@@ -52,9 +70,32 @@ public class BeanSerializer
         return new BeanSerializer(forType, NO_PROPS);
     }
 
+    /**
+     * Method used for assigning definitions for view-based filtering.
+     * 
+     * @since 1.4
+     */
+    public void setViewFilters(SerializationViewFilter[] filters) {
+        _viewFilters = filters;
+    }
+
+    /*
+    ******************************************************************
+    * JsonSerializer implementation
+    ******************************************************************
+     */
+    
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
+        if (_viewFilters != null) {
+            Class<?> view = provider.getSerializationView();
+            if (view != null) {
+                serializeWithView(bean, jgen, provider, view);
+                return;
+            }
+        }
+        
         jgen.writeStartObject();
 
         int i = 0;
@@ -143,13 +184,49 @@ public class BeanSerializer
 
     /*
     ////////////////////////////////////////////////////////
-    // Std methods
+    // Standard methods
     ////////////////////////////////////////////////////////
      */
 
-    @Override
-    public String toString()
-    {
+    @Override public String toString() {
         return "BeanSerializer for "+_className;
+    }
+
+    /*
+    ***************************************************************8
+    * Internal methods
+    ***************************************************************8
+     */
+    
+    /**
+     * @param view View to use for filtering out properties
+     */
+    protected void serializeWithView(Object bean, JsonGenerator jgen, SerializerProvider provider,
+            Class<?> view)
+        throws IOException, JsonGenerationException
+    {
+        jgen.writeStartObject();
+        int i = 0;
+        final SerializationViewFilter[] filters = _viewFilters;
+        try {
+            for (final int len = _props.length; i < len; ++i) {
+                // Included in this view?
+                SerializationViewFilter filter = filters[i];
+                if (filter == null || filter.includeInView(view)) {
+                    _props[i].serializeAsField(bean, jgen, provider);
+                }
+            }
+            jgen.writeEndObject();
+        } catch (Exception e) {
+            wrapAndThrow(e, bean, _props[i].getName());
+        } catch (StackOverflowError e) {
+            /* 04-Sep-2009, tatu: Dealing with this is tricky, since we do not
+             *   have many stack frames to spare... just one or two; can't
+             *   make many calls.
+             */
+            JsonMappingException mapE = new JsonMappingException("Infinite recursion (StackOverflowError)");
+            mapE.prependPath(new JsonMappingException.Reference(bean, _props[i].getName()));
+            throw mapE;
+        }
     }
 }

@@ -284,6 +284,13 @@ public class SerializationConfig
     protected JsonSerialize.Inclusion _serializationInclusion = null;
 
     /**
+     * View to use for filtering out properties to serialize.
+     * Null if none (will also be assigned null if <code>Object.class</code>
+     * is defined), meaning that all properties are to be included.
+     */
+    protected Class<?> _serializationView;
+
+    /**
      * Mapping that defines how to apply mix-in annotations: key is
      * the type to received additional annotations, and value is the
      * type that has annotations to "mix in".
@@ -328,6 +335,7 @@ public class SerializationConfig
         _featureFlags = src._featureFlags;
         _dateFormat = src._dateFormat;
         _serializationInclusion = src._serializationInclusion;
+        _serializationView = src._serializationView;
         _mixInAnnotations = mixins;
     }
 
@@ -494,6 +502,14 @@ public class SerializationConfig
 
     public DateFormat getDateFormat() { return _dateFormat; }
 
+    /**
+     * Method for checking which serialization view is being used,
+     * if any; null if none.
+     *
+     * @since 1.4
+     */
+    public Class<?> getSerializationView() { return _serializationView; }
+
     public JsonSerialize.Inclusion getSerializationInclusion()
     {
         if (_serializationInclusion != null) {
@@ -592,6 +608,20 @@ public class SerializationConfig
         _dateFormat = df;
         // Also: enable/disable usage of 
         set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
+    }
+
+    /**
+     * Method for checking which serialization view is being used,
+     * if any; null if none.
+     *
+     * @since 1.4
+     */
+    public void setSerializationView(Class<?> view)
+    {
+        if (view == Object.class) {
+            view = null;
+        }
+        _serializationView = view;
     }
 
     /*

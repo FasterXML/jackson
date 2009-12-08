@@ -182,9 +182,12 @@ public class BeanSerializerFactory
         }
         // Any properties to suppress?
         props = filterBeanProperties(config, beanDesc, props);
-        // And finally: do they need to be sorted in some special way?
+        // Do they need to be sorted in some special way?
         props = sortBeanProperties(config, beanDesc, props);
-        return new BeanSerializer(beanDesc.classDescribed(), props);
+        BeanSerializer ser = new BeanSerializer(beanDesc.classDescribed(), props);
+        // One more thing: need to gather view information, if any:
+        handleViews(ser, props);
+        return ser;
     }
 
     /**
@@ -204,7 +207,7 @@ public class BeanSerializerFactory
          */
         LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findSerializableFields(config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_FIELDS), methodsByProp.keySet());
 
-        // nothing? can't proceed
+        // nothing? can't proceed (caller may or may not throw an exception)
         if (methodsByProp.isEmpty() && fieldsByProp.isEmpty()) {
             return null;
         }
@@ -213,6 +216,7 @@ public class BeanSerializerFactory
         PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
 
         // [JACKSON-98]: start with field properties, if any
         for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
@@ -222,7 +226,10 @@ public class BeanSerializerFactory
             }
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, af);
-            props.add(pb.buildProperty(en.getKey(), annotatedSerializer, af, staticTyping));
+            BeanPropertyWriter pbw = pb.buildProperty(en.getKey(), annotatedSerializer, af, staticTyping);
+            // how about views? (1.4+)
+            pbw.setViews(intr.findSerializationViews(af));
+            props.add(pbw);
         }
 
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
@@ -232,7 +239,9 @@ public class BeanSerializerFactory
             }
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, am);
-            props.add(pb.buildProperty(en.getKey(), annotatedSerializer, am, staticTyping));
+            BeanPropertyWriter pbw = pb.buildProperty(en.getKey(), annotatedSerializer, am, staticTyping);
+            pbw.setViews(intr.findSerializationViews(am));
+            props.add(pbw);
         }
         return props;
     }
@@ -287,6 +296,30 @@ public class BeanSerializerFactory
         return props;
     }
 
+    /**
+     * Method called to handle view information for constructed serializer,
+     * based on bean property writers.
+     */
+    protected void handleViews(BeanSerializer ser, List<BeanPropertyWriter> props)
+    {
+        int i = 0;
+        SerializationViewFilter[] filters = null;
+        /* Simple: we have stashed view information within individual writers;
+         * now need combine.
+         */
+        for (BeanPropertyWriter bpw : props) {
+            Class<?>[] views = bpw.getViews();
+            if (views != null) {
+                if (filters == null) {
+                    filters = new SerializationViewFilter[props.size()];
+                }
+                filters[i] = new PropertyFilter(views);
+            }
+            ++i;
+        }
+        ser.setViewFilters(filters);
+    }
+        
     protected PropertyBuilder constructPropertyBuilder(SerializationConfig config,
                                                        BasicBeanDescription beanDesc)
     {
@@ -356,4 +389,33 @@ public class BeanSerializerFactory
         return new ArrayList<BeanPropertyWriter>(ordered.values());
     }
 
+    /*
+     *****************************************************************
+     * Helper classes
+     *****************************************************************
+      */
+
+    /**
+     * Simple implementation of {@link SerializationViewFilter} that will
+     * just construct filter from explicit list of View classes.
+     */
+    public final static class PropertyFilter
+        extends SerializationViewFilter
+    {
+        final Class<?>[] _includedInViews;
+        
+        public PropertyFilter(Class<?>[] views) {
+            _includedInViews = views;
+        }
+    
+        @Override
+        public boolean includeInView(Class<?> activeView) {
+            for (int i = 0, len = _includedInViews.length; i < len; ++i) {
+                if (_includedInViews[i].isAssignableFrom(activeView)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 }

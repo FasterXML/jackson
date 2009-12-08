@@ -107,7 +107,7 @@ public class ObjectMapper
 
     /**
      * Object that manages access to deserializers used for deserializing
-     * Json content into Java objects, including possible caching
+     * JSON content into Java objects, including possible caching
      * of the deserializers. It contains a reference to
      * {@link DeserializerFactory} to use for constructing acutal deserializers.
      */
@@ -176,11 +176,23 @@ public class ObjectMapper
         this(null, null, null);
     }
 
+    /**
+     * Construct mapper that uses specified {@link JsonFactory}
+     * for constructing necessary {@link JsonParser}s and/or
+     * {@link JsonGenerator}s.
+     */
     public ObjectMapper(JsonFactory jf)
     {
         this(jf, null, null);
     }
 
+    /**
+     * Construct mapper that uses specified {@link SerializerFactory}
+     * for constructing necessary serializers.
+     *
+     * @deprecated Use other constructors instead; note that
+     *   you can just set serializer factory with {@link #setSerializerFactory}
+     */
     public ObjectMapper(SerializerFactory sf)
     {
         this(null, null, null);
@@ -387,10 +399,11 @@ public class ObjectMapper
     }
 
     /**
-     * Method that can be used to get hold of Json factory that this
-     * mapper uses if it needs to construct Json parsers and/or generators.
+     * Method that can be used to get hold of {@link Jsonactory} that this
+     * mapper uses if it needs to construct {@link JsonParser}s
+     * and/or {@link JsonGenerator}s.
      *
-     * @return Json factory that this mapper uses when it needs to
+     * @return {@link JsonFactory} that this mapper uses when it needs to
      *   construct Json parser and generators
      */
     public JsonFactory getJsonFactory() { return _jsonFactory; }
@@ -447,7 +460,7 @@ public class ObjectMapper
      */
 
     /**
-     * Method to deserialize Json content into a non-container
+     * Method to deserialize JSON content into a non-container
      * type (it can be an array type, however): typically a bean, array
      * or a wrapper type (like {@link java.lang.Boolean}).
      *<p>
@@ -565,7 +578,7 @@ public class ObjectMapper
     } 
 
     /**
-     * Method to deserialize Json content as tree expressed
+     * Method to deserialize JSON content as tree expressed
      * using set of {@link JsonNode} instances. Returns
      * root of the resulting tree (where root can consist
      * of just a single node if the current event is a
@@ -579,7 +592,7 @@ public class ObjectMapper
     }
 
     /**
-     * Method to deserialize Json content as tree expressed
+     * Method to deserialize JSON content as tree expressed
      * using set of {@link JsonNode} instances. Returns
      * root of the resulting tree (where root can consist
      * of just a single node if the current event is a
@@ -605,6 +618,15 @@ public class ObjectMapper
     }
 
     /**
+     * Method to deserialize JSON content as tree expressed
+     * using set of {@link JsonNode} instances.
+     * Returns root of the resulting tree (where root can consist
+     * of just a single node if the current event is a
+     * value event, not container).
+     *
+     * @param in Input stream used to read JSON content
+     *   for building the JSON tree.
+     *
      * @since 1.3
      */
     public JsonNode readTree(InputStream in)
@@ -615,6 +637,15 @@ public class ObjectMapper
     }
 
     /**
+     * Method to deserialize JSON content as tree expressed
+     * using set of {@link JsonNode} instances.
+     * Returns root of the resulting tree (where root can consist
+     * of just a single node if the current event is a
+     * value event, not container).
+     *
+     * @param r Reader used to read JSON content
+     *   for building the JSON tree.
+     *
      * @since 1.3
      */
     public JsonNode readTree(Reader r)
@@ -625,6 +656,15 @@ public class ObjectMapper
     }
 
     /**
+     * Method to deserialize JSON content as tree expressed
+     * using set of {@link JsonNode} instances.
+     * Returns root of the resulting tree (where root can consist
+     * of just a single node if the current event is a
+     * value event, not container).
+     *
+     * @param content JSON content to parse
+     *   for building the JSON tree.
+     *
      * @since 1.3
      */
     public JsonNode readTree(String content)
@@ -983,11 +1023,76 @@ public class ObjectMapper
      */
     public String writeValueAsString(Object value)
         throws IOException, JsonGenerationException, JsonMappingException
-    {
+    {        
         // alas, we have to pull the recycler directly here...
         SegmentedStringWriter sw = new SegmentedStringWriter(_jsonFactory._getBufferRecycler());
         _configAndWriteValue(_jsonFactory.createJsonGenerator(sw), value);
         return sw.getAndClear();
+    }
+    
+    /*
+    ////////////////////////////////////////////////////
+    // Extended Public API: serialization using Json Views
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Method for serializing given object using specified view.
+     * Note that this method is essentially just a shortcut: view to use is
+     * by {@link SerializationConfig} and so this method just assigns
+     * given view to a copy of default configuration of this
+     * mapper. So to use other kinds of destinations, just call
+     * {@link #copySerializationConfig}, call
+     * {@link SerializationConfig#setSerializationView} method on it,
+     * and pass that configuration to other methods.
+     *
+     * @param jgen Generator to use for writing JSON content
+     * @param value Value to serialize
+     * @param viewClass (optional) Identifier for View to use. If null,
+     *   equivalent to passing <code>Object.class</code>; both of which
+     *   mean "default view" (all properties always included)
+     */
+    public void writeValueUsingView(JsonGenerator jgen, Object value, Class<?> viewClass)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {
+        SerializationConfig cfg = copySerializationConfig();
+        cfg.setSerializationView(viewClass);
+        _serializerProvider.serializeValue(cfg, jgen, value, _serializerFactory);
+        jgen.flush();
+    }
+
+    /**
+     * Method for serializing given object using specified view.
+     * As with {@link #writeValueUsingView(JsonGenerator,Object,Class)},
+     * this is a short-cut method.
+     *
+     * @param w Writer used for writing JSON content
+     * @param value Value to serialize
+     * @param viewClass (optional) Identifier for View to use. If null,
+     *   equivalent to passing <code>Object.class</code>; both of which
+     *   mean "default view" (all properties always included)
+     */
+    public void writeValueUsingView(Writer w, Object value, Class<?> viewClass)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {
+        writeValueUsingView(_jsonFactory.createJsonGenerator(w), value, viewClass);
+    }
+    
+    /**
+     * Method for serializing given object using specified view.
+     * As with {@link #writeValueUsingView(JsonGenerator,Object,Class)},
+     * this is a short-cut method.
+     *
+     * @param out Output stream used for writing JSON content
+     * @param value Value to serialize
+     * @param viewClass (optional) Identifier for View to use. If null,
+     *   equivalent to passing <code>Object.class</code>; both of which
+     *   mean "default view" (all properties always included)
+     */
+    public void writeValueUsingView(OutputStream out, Object value, Class<?> viewClass)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {
+        writeValueUsingView(_jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8), value, viewClass);
     }
 
     /*

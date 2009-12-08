@@ -60,10 +60,23 @@ public class BeanPropertyWriter
      */
     protected final JsonSerializer<Object> _serializer;
 
+    /**
+     * Flag to indicate that null values for this property are not
+     * to be written out. That is, if property has value null,
+     * no entry will be written
+     */
     protected final boolean _suppressNulls;
 
     protected final Object _suppressableValue;
 
+    /**
+     * Definition of views to include value for this property in.
+     * If null, will be included in all views.
+     * 
+     * @since 1.4
+     */
+    protected Class<?>[] _includeInViews;
+    
     /*
     //////////////////////////////////////////////////////
     // Construction, configuration
@@ -101,6 +114,16 @@ public class BeanPropertyWriter
                                       _suppressNulls, _suppressableValue);
     }
 
+    /**
+     * Method for defining which views to included value of this
+     * property in. If left undefined, will always be included;
+     * otherwise active view definition will be checked against
+     * definition list and value is only included if active
+     * view is one of defined views, or its sub-view (as defined
+     * by class/sub-class relationship).
+     */
+    public void setViews(Class<?>[] views) { _includeInViews = views; }
+    
     /*
     //////////////////////////////////////////////////////
     // Accessors
@@ -140,6 +163,8 @@ public class BeanPropertyWriter
         }
         return _field.getGenericType();
     }
+
+    public Class<?>[] getViews() { return _includeInViews; }
 
     /*
     //////////////////////////////////////////////////////

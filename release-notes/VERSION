@@ -31,6 +31,9 @@ Description:
     for ignoring specific set of properties for serialization/deserialization
   * [JACKSON-90] Added @JsonPropertyOrder, which allows for specifying
     order in which properties are serialized.
+  * [JACKSON-138] Implement JsonView; ability to suppress subsets of
+    properties, based on view definition. Views are defined using @JsonView
+    annotation.
   * [JACKSON-191] Add access to basic statistics on number of cached
     serializers, deserializers (and methods to flush these caches)
   * [JACKSON-192] Added basic delegate implementations (JsonParserDelegate,
