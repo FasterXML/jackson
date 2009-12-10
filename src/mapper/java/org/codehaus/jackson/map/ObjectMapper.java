@@ -1055,10 +1055,7 @@ public class ObjectMapper
     public void writeValueUsingView(JsonGenerator jgen, Object value, Class<?> viewClass)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        SerializationConfig cfg = copySerializationConfig();
-        cfg.setSerializationView(viewClass);
-        _serializerProvider.serializeValue(cfg, jgen, value, _serializerFactory);
-        jgen.flush();
+        _configAndWriteValue(jgen, value, viewClass);
     }
 
     /**
@@ -1075,7 +1072,7 @@ public class ObjectMapper
     public void writeValueUsingView(Writer w, Object value, Class<?> viewClass)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        writeValueUsingView(_jsonFactory.createJsonGenerator(w), value, viewClass);
+        _configAndWriteValue(_jsonFactory.createJsonGenerator(w), value, viewClass);
     }
     
     /**
@@ -1092,7 +1089,7 @@ public class ObjectMapper
     public void writeValueUsingView(OutputStream out, Object value, Class<?> viewClass)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        writeValueUsingView(_jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8), value, viewClass);
+        _configAndWriteValue(_jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8), value, viewClass);
     }
 
     /*
@@ -1211,6 +1208,28 @@ public class ObjectMapper
             /* won't try to close twice; also, must catch exception (so it 
              * will not mask exception that is pending)
              */
+            if (!closed) {
+                try {
+                    jgen.close();
+                } catch (IOException ioe) { }
+            }
+        }
+    }
+
+    protected final void _configAndWriteValue(JsonGenerator jgen, Object value, Class<?> viewClass)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {
+        SerializationConfig cfg = copySerializationConfig();
+        if (cfg.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
+            jgen.useDefaultPrettyPrinter();
+        }
+        cfg.setSerializationView(viewClass);
+        boolean closed = false;
+        try {
+            _serializerProvider.serializeValue(cfg, jgen, value, _serializerFactory);
+            closed = true;
+            jgen.close();
+        } finally {
             if (!closed) {
                 try {
                     jgen.close();

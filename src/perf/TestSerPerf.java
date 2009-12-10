@@ -60,7 +60,7 @@ public final class TestSerPerf
     final Object _finalFieldBean = new FinalFieldBean();
     final Object _nonFinalBean = new NonFinalBean();
 
-    public TestSerPerf()
+    private TestSerPerf()
         throws Exception
     {
         _mapper = new ObjectMapper();
