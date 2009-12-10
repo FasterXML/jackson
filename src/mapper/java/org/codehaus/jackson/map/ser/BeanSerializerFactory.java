@@ -186,7 +186,7 @@ public class BeanSerializerFactory
         props = sortBeanProperties(config, beanDesc, props);
         BeanSerializer ser = new BeanSerializer(beanDesc.classDescribed(), props);
         // One more thing: need to gather view information, if any:
-        handleViews(ser, props);
+        ser = processViews(ser, props);
         return ser;
     }
 
@@ -299,8 +299,10 @@ public class BeanSerializerFactory
     /**
      * Method called to handle view information for constructed serializer,
      * based on bean property writers.
+     * 
+     * @return Resulting bean serializer, possibly serializer passed in
      */
-    protected void handleViews(BeanSerializer ser, List<BeanPropertyWriter> props)
+    protected BeanSerializer processViews(BeanSerializer ser, List<BeanPropertyWriter> props)
     {
         int i = 0;
         SerializationViewFilter[] filters = null;
@@ -313,13 +315,21 @@ public class BeanSerializerFactory
                 if (filters == null) {
                     filters = new SerializationViewFilter[props.size()];
                 }
-                filters[i] = new PropertyFilter(views);
+                filters[i] = constructViewFilter(views);
             }
             ++i;
         }
-        ser.setViewFilters(filters);
+        return (filters == null) ? ser : ser.withFilters(filters);
     }
-        
+
+    protected SerializationViewFilter constructViewFilter(Class<?>[] inViews)
+    {
+        if (inViews.length == 1) {
+            return new SingleViewPropertyFilter(inViews[0]);
+        }
+        return new MultiViewPropertyFilter(inViews);
+    }
+    
     protected PropertyBuilder constructPropertyBuilder(SerializationConfig config,
                                                        BasicBeanDescription beanDesc)
     {
@@ -399,12 +409,25 @@ public class BeanSerializerFactory
      * Simple implementation of {@link SerializationViewFilter} that will
      * just construct filter from explicit list of View classes.
      */
-    public final static class PropertyFilter
+    public final static class SingleViewPropertyFilter
+        extends SerializationViewFilter
+    {
+        final Class<?> _view;
+        
+        public SingleViewPropertyFilter(Class<?> view) { _view = view; }
+    
+        @Override
+        public boolean includeInView(Class<?> activeView) {
+            return _view.isAssignableFrom(activeView);
+        }
+    }
+
+    public final static class MultiViewPropertyFilter
         extends SerializationViewFilter
     {
         final Class<?>[] _includedInViews;
         
-        public PropertyFilter(Class<?>[] views) {
+        public MultiViewPropertyFilter(Class<?>[] views) {
             _includedInViews = views;
         }
     

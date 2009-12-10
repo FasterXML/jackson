@@ -28,10 +28,10 @@ public class BeanSerializer
     final static BeanPropertyWriter[] NO_PROPS = new BeanPropertyWriter[0];
 
     /**
-     * Class name of the value type (that this serializer is used for);
+     * Value type of this serializer,
      * used for error reporting and debugging.
      */
-    final protected String _className;
+    final protected Class<?> _class;
 
     /**
      * Writers used for outputting actual property values
@@ -42,18 +42,28 @@ public class BeanSerializer
      * Optional filters used to suppress output of properties that
      * are only to be included in certain views
      */
-    protected SerializationViewFilter[] _viewFilters;
+    final protected SerializationViewFilter[] _viewFilters;
     
     /**
      * 
      * @param type Nominal type of values handled by this serializer
-     * @param props Property writers used for actual serialization
+     * @param writers Property writers used for actual serialization
      */
-    public BeanSerializer(Class<?> type, BeanPropertyWriter[] props)
+    public BeanSerializer(Class<?> type, BeanPropertyWriter[] writers)
+    {
+        this(type, writers, null);
+    }
+
+    /**
+     * @param filters Filters used for implementing Json Views
+     */
+    public BeanSerializer(Class<?> type, BeanPropertyWriter[] props,
+            SerializationViewFilter[] filters)
     {
         _props = props;
         // let's store this for debugging
-        _className = type.getName();
+        _class = type;
+        _viewFilters = filters;
     }
 
     public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props)
@@ -71,12 +81,15 @@ public class BeanSerializer
     }
 
     /**
-     * Method used for assigning definitions for view-based filtering.
-     * 
-     * @since 1.4
+     * Method used for constructing a filtered serializer instance, using this
+     * serializer as the base.
      */
-    public void setViewFilters(SerializationViewFilter[] filters) {
-        _viewFilters = filters;
+    public BeanSerializer withFilters(SerializationViewFilter[] filters) {
+        // if no filters, no need to construct new instance...
+        if (filters == null) {
+            return this;
+        }
+        return new BeanSerializer(_class, _props, filters);
     }
 
     /*
@@ -189,7 +202,7 @@ public class BeanSerializer
      */
 
     @Override public String toString() {
-        return "BeanSerializer for "+_className;
+        return "BeanSerializer for "+_class.getName();
     }
 
     /*
@@ -199,6 +212,9 @@ public class BeanSerializer
      */
     
     /**
+     * Separate serialization method that is called when there is an
+     * active view.
+     * 
      * @param view View to use for filtering out properties
      */
     protected void serializeWithView(Object bean, JsonGenerator jgen, SerializerProvider provider,

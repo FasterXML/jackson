@@ -71,7 +71,9 @@ public class BeanPropertyWriter
 
     /**
      * Definition of views to include value for this property in.
-     * If null, will be included in all views.
+     * If null, will be included in all views. Stored temporarily
+     * within writer, during construction of serializers, but used
+     * by {@link BeanSerializer}, not writer.
      * 
      * @since 1.4
      */
