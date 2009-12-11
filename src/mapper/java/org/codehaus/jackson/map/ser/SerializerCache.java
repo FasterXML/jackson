@@ -73,7 +73,6 @@ public final class SerializerCache
 
     /**
      * @since 1.4
-     * @return
      */
     public synchronized int size() {
         return _sharedMap.size();

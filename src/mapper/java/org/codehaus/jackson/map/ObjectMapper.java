@@ -399,7 +399,7 @@ public class ObjectMapper
     }
 
     /**
-     * Method that can be used to get hold of {@link Jsonactory} that this
+     * Method that can be used to get hold of {@link JsonFactory} that this
      * mapper uses if it needs to construct {@link JsonParser}s
      * and/or {@link JsonGenerator}s.
      *
