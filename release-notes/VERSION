@@ -6,8 +6,6 @@ Release date:
 Description:
   Official 1.4 release.
 
-  Fixes:
-
   Improvements:
 
   * [JACKSON-38] Allow serializing/deserializing DOM trees (Node, Document)
@@ -52,6 +50,19 @@ Description:
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
+
+1.3.2 [02-Dec-2009]
+
+  Fixes:
+
+  * [JACKSON-103] (additional work) Groovy setMetaClass() setter caused
+    problems when deserializing (although serialization was fixed earlier)
+   (reported by Stephen F)
+  * [JACKSON-187] Issues with GAE security model, Class.getEnclosingMethod()
+  * [JACKSON-188] Jackson not working on Google App Engine (GAE) due to
+    unintended dependency from JacksonJsonProvider to JAXB API classes
+   (reported by Jeff S)
+  * [JACKSON-206] Support parsing dates of form "1984-11-13T00:00:00"
 
 1.3.1 [23-Nov-2009]
 
@@ -548,11 +559,20 @@ Description:
   * Internal cleanup of core parsing, to unify handling of Object and
     Array entries
 
-  New features:
+0.8.0 - 0.9.3 [between 17-Oct-2007 and 05-Sep-2008]:
 
+  Changes:
+
+  * [JACKSON-5]: Symbol table construction was not thread-safe for
+    utf-8 encoded content (new bug with 0.9.2, not present with earlier)
+   (reported by Tudor B)
+  * [JACKSON-8]: Serialization of BigDecimal broken with JavaTypeMapper
+   (reported by Johannes L)
   * [JACKSON-9]: Add support for (non-standard) Json comments.
     (requested by Mike G)
   * [JACKSON-11]: Implement base64/binary methods for json generator.
+  * [JACKSON-14]: Problems with generic collections, serializer
+    method signatures (due to lack of covariance wrt collection types)
   * [JACKSON-15]: Add copy-through methods to JsonGenerator for
     pass-through copying of content (copyCurrentEvent, copyCurrentStructure)
   * [JACKSON-23]: Add OSGi manifest headers for jars (to run on OSGi container).
@@ -560,57 +580,21 @@ Description:
     togglable (on/off) things with well-defined default values, implemented
     as Enums.
 
-0.9.3 [05-Sep-2008]:
-
-  Bug fixes:
-
-  * [JACKSON-5]: Symbol table construction was not thread-safe for
-    utf-8 encoded content (new bug with 0.9.2, not present with earlier)
-   (reported by Tudor B)
-  * [JACKSON-8]: Serialization of BigDecimal broken with JavaTypeMapper
-   (reported by Johannes L)
-  * [JACKSON-14]: Problems with generic collections, serializer
-    method signatures (due to lack of covariance wrt collection types)
-  * Implicit conversions for numbers could sometimes lose accuracy,
-    if floating-point number was first accessed as int/long, and then
-    as a BigDecimal.
-  * One Nasty NPE fixed from NameCanonicalizer (which was added in 0.9.2)
-
-  New features:
-
   * [JACKSON-1]: JsonNode now implements Iterable<JsonNode> so that
     it is possible use Java 5 foreach loop over array/object nodes.
    (suggested by Michael M)
   * [JACKSON-4] Added JsonParser.skipChildren() method.
-
-0.9.2 [24-Apr-2008]:
-
-  Bug fixes:
-
   * UTF-16/32 handling was not completely correct, was erroneously
     skipping first 2/4 bytes in some cases (even when no BOM included).
     Also, related unit tests added/fixed.
-
-  Changes:
-
-  * Replace JsonFactory.Encoding enum with JsonEncoding enum
-    (NOTE: this is a backwards-incompatible API change)
-
-  Improvements:
-
-  * New higher performing UTF-8 scanner.
-
-0.9.1 [14-Mar-2008]:
-
-  New features:
-
   * JsonGenerator.useDefaultPrettyPrinter()/.setPrettyPrinter()
     allow for pretty printing (indentation).
    (thanks to Ziad M for suggestion, sample code)
 
-0.8.0 - 0.9.0 [between 17-Oct-2007 and 14-Feb-2008]:
-
-  Bug fixes:
+  * Implicit conversions for numbers could sometimes lose accuracy,
+    if floating-point number was first accessed as int/long, and then
+    as a BigDecimal.
+  * One Nasty NPE fixed from NameCanonicalizer (which was added in 0.9.2)
 
   * Java type mapper had a bug in Collection mapping (mismatched
     calls between writeStartArray and writeEndObject!)

@@ -304,30 +304,44 @@ public class BeanSerializerFactory
      */
     protected BeanSerializer processViews(BeanSerializer ser, List<BeanPropertyWriter> props)
     {
-        int i = 0;
-        SerializationViewFilter[] filters = null;
+        BeanPropertyWriter[] filtered = null;
         /* Simple: we have stashed view information within individual writers;
          * now need combine.
          */
+        int i = 0;
         for (BeanPropertyWriter bpw : props) {
             Class<?>[] views = bpw.getViews();
-            if (views != null) {
-                if (filters == null) {
-                    filters = new SerializationViewFilter[props.size()];
+            if (views != null && views.length > 0) {
+                if (filtered == null) {
+                    filtered = new BeanPropertyWriter[props.size()];
                 }
-                filters[i] = constructViewFilter(views);
+                filtered[i] = constructFilteredBeanWriter(bpw, views);
             }
             ++i;
         }
-        return (filters == null) ? ser : ser.withFilters(filters);
+        // Anything missing? Need to fill in
+        if (filtered != null) {
+            i = 0;
+            for (BeanPropertyWriter bpw : props) {
+                if (filtered[i] == null) {
+                    filtered[i] = bpw;
+                }
+                ++i;
+            }
+            return ser.withFiltered(filtered);
+        }
+        // No views, return as is
+        return ser;
     }
 
-    protected SerializationViewFilter constructViewFilter(Class<?>[] inViews)
+    /**
+     * Method called to construct a filtered writer, for given view
+     * definitions. Default implementation constructs filter that checks
+     * active view type to views property is to be included in.
+     */
+    protected BeanPropertyWriter constructFilteredBeanWriter(BeanPropertyWriter writer, Class<?>[] inViews)
     {
-        if (inViews.length == 1) {
-            return new SingleViewPropertyFilter(inViews[0]);
-        }
-        return new MultiViewPropertyFilter(inViews);
+        return FilteredBeanPropertyWriter.constructViewBased(writer, inViews);
     }
     
     protected PropertyBuilder constructPropertyBuilder(SerializationConfig config,
@@ -397,48 +411,5 @@ public class BeanSerializerFactory
         // And finally whatever is left (trying to put again will not change ordering)
         ordered.putAll(all);
         return new ArrayList<BeanPropertyWriter>(ordered.values());
-    }
-
-    /*
-     *****************************************************************
-     * Helper classes
-     *****************************************************************
-      */
-
-    /**
-     * Simple implementation of {@link SerializationViewFilter} that will
-     * just construct filter from explicit list of View classes.
-     */
-    public final static class SingleViewPropertyFilter
-        extends SerializationViewFilter
-    {
-        final Class<?> _view;
-        
-        public SingleViewPropertyFilter(Class<?> view) { _view = view; }
-    
-        @Override
-        public boolean includeInView(Class<?> activeView) {
-            return _view.isAssignableFrom(activeView);
-        }
-    }
-
-    public final static class MultiViewPropertyFilter
-        extends SerializationViewFilter
-    {
-        final Class<?>[] _includedInViews;
-        
-        public MultiViewPropertyFilter(Class<?>[] views) {
-            _includedInViews = views;
-        }
-    
-        @Override
-        public boolean includeInView(Class<?> activeView) {
-            for (int i = 0, len = _includedInViews.length; i < len; ++i) {
-                if (_includedInViews[i].isAssignableFrom(activeView)) {
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 }

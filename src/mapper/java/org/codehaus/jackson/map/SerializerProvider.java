@@ -20,9 +20,12 @@ public abstract class SerializerProvider
 {
     protected final SerializationConfig _config;
 
+    protected final Class<?> _serializationView;
+
     protected SerializerProvider(SerializationConfig config)
     {
         _config = config;
+        _serializationView = (config == null) ? null : _config.getSerializationView();
     }
 
     /*
@@ -75,7 +78,13 @@ public abstract class SerializerProvider
         return _config.isEnabled(f);
     }
 
-    public final Class<?> getSerializationView() { return _config.getSerializationView(); }
+    /**
+     * Convenience method, equivalent to calling
+     * {@link SerializationConfig#getSerializationView}.
+     *
+     * @since 1.4
+     */
+    public final Class<?> getSerializationView() { return _serializationView; }
     
     /*
     //////////////////////////////////////////////////////

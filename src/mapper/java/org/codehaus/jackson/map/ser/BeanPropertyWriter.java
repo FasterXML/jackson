@@ -70,10 +70,8 @@ public class BeanPropertyWriter
     protected final Object _suppressableValue;
 
     /**
-     * Definition of views to include value for this property in.
-     * If null, will be included in all views. Stored temporarily
-     * within writer, during construction of serializers, but used
-     * by {@link BeanSerializer}, not writer.
+     * Alternate set of property writers used when view-based filtering
+     * is available for the Bean.
      * 
      * @since 1.4
      */
@@ -102,6 +100,20 @@ public class BeanPropertyWriter
         _field = f;
         _suppressNulls = suppressNulls;
         _suppressableValue = suppressableValue;
+    }
+
+    /**
+     * "Copy constructor" to be used by filtering sub-classes
+     */
+    protected BeanPropertyWriter(BeanPropertyWriter base)
+    {
+        _name = base._name;
+        _serializer = base._serializer;
+        _cfgSerializationType = base._cfgSerializationType;
+        _accessorMethod = base._accessorMethod;
+        _field = base._field;
+        _suppressNulls = base._suppressNulls;
+        _suppressableValue = base._suppressableValue;
     }
 
     /**

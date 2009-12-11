@@ -42,7 +42,7 @@ public class BeanSerializer
      * Optional filters used to suppress output of properties that
      * are only to be included in certain views
      */
-    final protected SerializationViewFilter[] _viewFilters;
+    final protected BeanPropertyWriter[] _filteredProps;
     
     /**
      * 
@@ -55,15 +55,19 @@ public class BeanSerializer
     }
 
     /**
-     * @param filters Filters used for implementing Json Views
+     * Alternate constructor used when class being serialized can
+     * have dynamically enabled Json Views
+     *
+     * @param fprops Filtered property writers to use when there is
+     *   an active view.
      */
     public BeanSerializer(Class<?> type, BeanPropertyWriter[] props,
-            SerializationViewFilter[] filters)
+                          BeanPropertyWriter[] fprops)
     {
         _props = props;
         // let's store this for debugging
         _class = type;
-        _viewFilters = filters;
+        _filteredProps = fprops;
     }
 
     public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props)
@@ -84,12 +88,12 @@ public class BeanSerializer
      * Method used for constructing a filtered serializer instance, using this
      * serializer as the base.
      */
-    public BeanSerializer withFilters(SerializationViewFilter[] filters) {
+    public BeanSerializer withFiltered(BeanPropertyWriter[] filtered) {
         // if no filters, no need to construct new instance...
-        if (filters == null) {
+        if (filtered == null) {
             return this;
         }
-        return new BeanSerializer(_class, _props, filters);
+        return new BeanSerializer(_class, _props, filtered);
     }
 
     /*
@@ -101,38 +105,37 @@ public class BeanSerializer
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
-        if (_viewFilters != null) {
-            Class<?> view = provider.getSerializationView();
-            if (view != null) {
-                serializeWithView(bean, jgen, provider, view);
-                return;
-            }
+        final BeanPropertyWriter[] props;
+        if (_filteredProps != null && provider.getSerializationView() != null) {
+            props = _filteredProps;
+        } else {
+            props = _props;
         }
         
         jgen.writeStartObject();
 
         int i = 0;
         try {
-            for (final int len = _props.length; i < len; ++i) {
-                _props[i].serializeAsField(bean, jgen, provider);
+            for (final int len = props.length; i < len; ++i) {
+                props[i].serializeAsField(bean, jgen, provider);
             }
             jgen.writeEndObject();
         } catch (Exception e) {
-            wrapAndThrow(e, bean, _props[i].getName());
+            wrapAndThrow(e, bean, props[i].getName());
         } catch (StackOverflowError e) {
             /* 04-Sep-2009, tatu: Dealing with this is tricky, since we do not
              *   have many stack frames to spare... just one or two; can't
              *   make many calls.
              */
             JsonMappingException mapE = new JsonMappingException("Infinite recursion (StackOverflowError)");
-            mapE.prependPath(new JsonMappingException.Reference(bean, _props[i].getName()));
+            mapE.prependPath(new JsonMappingException.Reference(bean, props[i].getName()));
             throw mapE;
         }
     }
 
     //@Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
+        throws JsonMappingException
     {
         ObjectNode o = createSchemaNode("object", true);
         //todo: should the classname go in the title?
@@ -210,39 +213,5 @@ public class BeanSerializer
     * Internal methods
     ***************************************************************8
      */
-    
-    /**
-     * Separate serialization method that is called when there is an
-     * active view.
-     * 
-     * @param view View to use for filtering out properties
-     */
-    protected void serializeWithView(Object bean, JsonGenerator jgen, SerializerProvider provider,
-            Class<?> view)
-        throws IOException, JsonGenerationException
-    {
-        jgen.writeStartObject();
-        int i = 0;
-        final SerializationViewFilter[] filters = _viewFilters;
-        try {
-            for (final int len = _props.length; i < len; ++i) {
-                // Included in this view?
-                SerializationViewFilter filter = filters[i];
-                if (filter == null || filter.includeInView(view)) {
-                    _props[i].serializeAsField(bean, jgen, provider);
-                }
-            }
-            jgen.writeEndObject();
-        } catch (Exception e) {
-            wrapAndThrow(e, bean, _props[i].getName());
-        } catch (StackOverflowError e) {
-            /* 04-Sep-2009, tatu: Dealing with this is tricky, since we do not
-             *   have many stack frames to spare... just one or two; can't
-             *   make many calls.
-             */
-            JsonMappingException mapE = new JsonMappingException("Infinite recursion (StackOverflowError)");
-            mapE.prependPath(new JsonMappingException.Reference(bean, _props[i].getName()));
-            throw mapE;
-        }
-    }
+
 }
