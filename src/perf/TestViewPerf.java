@@ -22,20 +22,20 @@ public final class TestViewPerf
         @JsonView({ViewA.class, ViewB.class})
         public Bean2 getBean() { return _bean; }
 
-        @JsonView({ViewA.class, ViewB.class})
+        @JsonView({ViewB.class, ViewA.class})
         public String getBean2() { return "abc-def"; }
 
-        @JsonView({ViewA.class, ViewB.class})
+        @JsonView({ViewB.class, ViewA.class})
         public int getBean3() { return 218985; }
 
         @JsonView({ViewA.class, ViewB.class})
         public Bean2 getBean4() { return _bean; }
 
         @JsonView({ViewA.class})
-        public String getText2() { return "abc-def"; }
+        public String getText2() { return "foobar"; }
 
-        @JsonView({ViewB.class})
-        public String getText3() { return "abc-def"; }
+        @JsonView({ViewA.class})
+        public String getText3() { return ".......\n"; }
     }
 
     static class NonViewBean
@@ -46,6 +46,8 @@ public final class TestViewPerf
         public String getBean2() { return "abc-def"; }
         public int getBean3() { return 218985; }
         public Bean2 getBean4() { return _bean; }
+        public String getText2() { return "foobar"; }
+        public String getText3() { return ".......\n"; }
     }
 
     static class Bean2 {
@@ -60,7 +62,7 @@ public final class TestViewPerf
         throws Exception
     {
         _mapper = new ObjectMapper();
-        REPS = 8000;
+        REPS = 2400;
     }
 
     public void test()
@@ -69,7 +71,7 @@ public final class TestViewPerf
         int i = 0;
         int sum = 0;
 
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         final ViewBean viewBean = new ViewBean();
         final NonViewBean nonViewBean = new NonViewBean();
@@ -81,20 +83,21 @@ public final class TestViewPerf
             long curr = System.currentTimeMillis();
             String msg;
             boolean lf = (round == 0);
+            int result;
 
             switch (round) {
 
             case 0:
                 msg = "With view";
-                sum += testViewSer(viewBean, REPS, result, ViewA.class);
+                result = testViewSer(viewBean, REPS, out, ViewA.class);
                 break;
             case 1:
                 msg = "WithOUT view";
-                sum += testViewSer(viewBean, REPS, result, null);
+                result = testViewSer(viewBean, REPS, out, null);
                 break;
             case 2:
                 msg = "NO view";
-                sum += testSer(nonViewBean, REPS, result, null);
+                result = testSer(nonViewBean, REPS, out, null);
                 break;
 
             default:
@@ -106,7 +109,7 @@ public final class TestViewPerf
                 System.out.println();
             }
             System.out.println("Test '"+msg+"' -> "+curr+" msecs ("
-                               +(sum & 0xFF)+").");
+                               +result+").");
         }
     }
 
@@ -116,9 +119,10 @@ public final class TestViewPerf
         for (int i = 0; i < reps; ++i) {
             result.reset();
             _mapper.writeValueUsingView(result, value, view);
-            //_mapper.writeValue(result, value);
+            _mapper.writeValueUsingView(result, value, view);
+            _mapper.writeValueUsingView(result, value, view);
         }
-        return _mapper.hashCode(); // just to get some non-optimizable number
+        return result.size();
     }
 
     protected int testSer(Object value, int reps, ByteArrayOutputStream result, Class<?> dummyView)
@@ -127,8 +131,10 @@ public final class TestViewPerf
         for (int i = 0; i < reps; ++i) {
             result.reset();
             _mapper.writeValue(result, value);
+            _mapper.writeValue(result, value);
+            _mapper.writeValue(result, value);
         }
-        return _mapper.hashCode(); // just to get some non-optimizable number
+        return result.size();
     }
 
     public static void main(String[] args) throws Exception
