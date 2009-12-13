@@ -154,10 +154,8 @@ public class CustomSerializationView
          * configurable part of <code>SerializationConfig</code> or
          * <code>SerializerProvider</code>)
          */
-
-         * Also: if we wanted use 'writeValueAsString', would have to
-         * do 'mapper.getSerializationConfig().setSerializationView(...)'
-         * separately.
+        /* note: if we wanted use 'writeValueAsString', would have to call
+         * 'mapper.getSerializationConfig().setSerializationView(...)' first
          */
         mapper.writeValueUsingView(sw, bean, String.class);
         System.out.println("With custom serializer: "+sw.toString());
