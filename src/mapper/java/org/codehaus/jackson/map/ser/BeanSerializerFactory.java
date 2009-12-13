@@ -186,7 +186,7 @@ public class BeanSerializerFactory
         props = sortBeanProperties(config, beanDesc, props);
         BeanSerializer ser = new BeanSerializer(beanDesc.classDescribed(), props);
         // One more thing: need to gather view information, if any:
-        ser = processViews(ser, props);
+        ser = processViews(config, beanDesc, ser, props);
         return ser;
     }
 
@@ -299,10 +299,17 @@ public class BeanSerializerFactory
     /**
      * Method called to handle view information for constructed serializer,
      * based on bean property writers.
+     *<p>
+     * Note that this method is designed to be overridden by sub-classes
+     * if they want to provide custom view handling. As such it is not
+     * considered an internal implementation detail, and will be supported
+     * as part of API going forward.
      * 
-     * @return Resulting bean serializer, possibly serializer passed in
+     * @return Resulting bean serializer, base implementation returns
+     *    serializer passed in
      */
-    protected BeanSerializer processViews(BeanSerializer ser, List<BeanPropertyWriter> props)
+    protected BeanSerializer processViews(SerializationConfig config, BasicBeanDescription beanDesc,
+                                          BeanSerializer ser, List<BeanPropertyWriter> props)
     {
         BeanPropertyWriter[] filtered = null;
         /* Simple: we have stashed view information within individual writers;

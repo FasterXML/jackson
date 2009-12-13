@@ -117,7 +117,10 @@ public class BeanSerializer
         int i = 0;
         try {
             for (final int len = props.length; i < len; ++i) {
-                props[i].serializeAsField(bean, jgen, provider);
+                BeanPropertyWriter prop = props[i];
+                if (prop != null) { // can have nulls in filtered list
+                    prop.serializeAsField(bean, jgen, provider);
+                }
             }
             jgen.writeEndObject();
         } catch (Exception e) {

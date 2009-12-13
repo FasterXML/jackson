@@ -618,9 +618,6 @@ public class SerializationConfig
      */
     public void setSerializationView(Class<?> view)
     {
-        if (view == Object.class) {
-            view = null;
-        }
         _serializationView = view;
     }
 
