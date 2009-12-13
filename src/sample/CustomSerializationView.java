@@ -92,6 +92,12 @@ public class CustomSerializationView
     {
         public CustomBeanFactory() { }
 
+        /**
+         * Here we will modify serializer such that it has two modes:
+         * default handling when no JsonView is enabled; and other (custom)
+         * when viess are enabled. Note that we could also just have forced
+         * serialization for all cases.
+         */
         @Override
         protected BeanSerializer processViews(SerializationConfig config, BasicBeanDescription beanDesc,
                                               BeanSerializer ser, List<BeanPropertyWriter> props)
@@ -141,6 +147,14 @@ public class CustomSerializationView
         // Then with customized view-handling
         StringWriter sw = new StringWriter();
         /* note: View class being passed is irrelevant since we customize handling)
+         * Also: setting view would not be necessary if we just completely
+         * overrode handling (we didn't, mostly to show more flexible
+         * approach: conceivably you could have another way for passing
+         * your own view id system, using ThreadLocal or some other
+         * configurable part of <code>SerializationConfig</code> or
+         * <code>SerializerProvider</code>)
+         */
+
          * Also: if we wanted use 'writeValueAsString', would have to
          * do 'mapper.getSerializationConfig().setSerializationView(...)'
          * separately.
