@@ -53,6 +53,17 @@ public abstract class BaseMapTest
         }
     }
 
+    /**
+     * Enumeration type with sub-classes per value.
+     */
+    protected enum EnumWithSubClass {
+        A { public void foobar() { } }
+        ,B { public void foobar() { } }
+        ;
+
+        public abstract void foobar();
+    }
+
     protected BaseMapTest() { super(); }
 
     /*

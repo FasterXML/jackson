@@ -84,4 +84,12 @@ public class TestEnumDeserialization
          */
         assertEquals(AnnotatedTestEnum.OK, e);
     }
+
+    // Test [WSTX-214]
+    public void testSubclassedEnums() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        EnumWithSubclass value = mapper.readValue("\"A\"", EnumWithSubclass.class);
+        assertEquals(EnumWithSubClass.A, value);
+    }
 }
