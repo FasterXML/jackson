@@ -61,11 +61,11 @@ public class JacksonJsonProvider
 {
     /**
      * Default annotation sets to use, if not explicitly defined during
-     * construction: Jackson annotations checked first; and if none defined
-     * for property, JAXB annotations as a fallback.
+     * construction: only Jackson annotations are used for the base
+     * class. Sub-classes can use other settings.
      */
-    public final static Annotations[] DEFAULT_ANNOTATIONS = {
-        Annotations.JACKSON, Annotations.JAXB
+    public final static Annotations[] BASIC_ANNOTATIONS = {
+        Annotations.JACKSON
     };
 
     /**
@@ -155,7 +155,7 @@ public class JacksonJsonProvider
      */
     public JacksonJsonProvider()
     {
-        this(null, DEFAULT_ANNOTATIONS);
+        this(null, BASIC_ANNOTATIONS);
     }
 
     /**
@@ -479,17 +479,19 @@ public class JacksonJsonProvider
         ObjectMapper m = _mapperConfig.getConfiguredMapper();
         if (m == null) {
             // If not, maybe we can get one configured via context?
-            ContextResolver<ObjectMapper> resolver = _providers.getContextResolver(ObjectMapper.class, mediaType);
-            /* Above should work as is, but due to this bug
-             *   [https://jersey.dev.java.net/issues/show_bug.cgi?id=288]
-             * in Jersey, it doesn't. But this works until resolution of
-             * the issue:
-             */
-            if (resolver == null) {
-                resolver = _providers.getContextResolver(ObjectMapper.class, null);
-            }
-            if (resolver != null) {
-                m = resolver.getContext(type);
+            if (_providers != null) {
+                ContextResolver<ObjectMapper> resolver = _providers.getContextResolver(ObjectMapper.class, mediaType);
+                /* Above should work as is, but due to this bug
+                 *   [https://jersey.dev.java.net/issues/show_bug.cgi?id=288]
+                 * in Jersey, it doesn't. But this works until resolution of
+                 * the issue:
+                 */
+                if (resolver == null) {
+                    resolver = _providers.getContextResolver(ObjectMapper.class, null);
+                }
+                if (resolver != null) {
+                    m = resolver.getContext(type);
+                }
             }
             if (m == null) {
                 // If not, let's get the fallback default instance
@@ -512,9 +514,5 @@ public class JacksonJsonProvider
     protected JavaType _convertType(Type jdkType)
     {
         return TypeFactory.type(jdkType);
-    }
-
-    protected Annotations[] _defaultAnnotations() {
-        return DEFAULT_ANNOTATIONS;
     }
 }

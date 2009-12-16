@@ -77,14 +77,6 @@ public class TestDateDeserialization
         assertEquals(Calendar.DECEMBER, c.get(Calendar.MONTH));
         assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
 
-        // And finally, plain date (no time)
-        inputStr = "1972-12-28";
-        inputDate = mapper.readValue(quote(inputStr), java.util.Date.class);
-        c.setTime(inputDate);
-        assertEquals(1972, c.get(Calendar.YEAR));
-        assertEquals(Calendar.DECEMBER, c.get(Calendar.MONTH));
-        assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
-
         inputStr = "1984-11-30T00:00:00.000Z";
         inputDate = mapper.readValue(quote(inputStr), java.util.Date.class);
         c.setTime(inputDate);
@@ -92,6 +84,38 @@ public class TestDateDeserialization
         assertEquals(Calendar.NOVEMBER, c.get(Calendar.MONTH));
         assertEquals(30, c.get(Calendar.DAY_OF_MONTH));
     }
+
+    public void testDateUtilISO8601NoTimezone() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // Timezone itself is optional as well... 
+        String inputStr = "1984-11-13T00:00:09";
+        Date inputDate = mapper.readValue(quote(inputStr), java.util.Date.class);
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        c.setTime(inputDate);
+        assertEquals(1984, c.get(Calendar.YEAR));
+        assertEquals(Calendar.NOVEMBER, c.get(Calendar.MONTH));
+        assertEquals(13, c.get(Calendar.DAY_OF_MONTH));
+        assertEquals(0, c.get(Calendar.HOUR_OF_DAY));
+        assertEquals(0, c.get(Calendar.MINUTE));
+        assertEquals(9, c.get(Calendar.SECOND));
+        assertEquals(0, c.get(Calendar.MILLISECOND));
+    }
+
+    public void testDateUtilISO8601JustDate() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // Plain date (no time)
+        String inputStr = "1972-12-28";
+        Date inputDate = mapper.readValue(quote(inputStr), java.util.Date.class);
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        c.setTime(inputDate);
+        assertEquals(1972, c.get(Calendar.YEAR));
+        assertEquals(Calendar.DECEMBER, c.get(Calendar.MONTH));
+        assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
+
+    }
+
 
     @SuppressWarnings("deprecation")
     public void testDateSql() throws Exception
