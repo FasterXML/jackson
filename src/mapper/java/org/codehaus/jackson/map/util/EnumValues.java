@@ -13,14 +13,26 @@ public final class EnumValues
         _values = new EnumMap(v);
     }
 
+    @SuppressWarnings("unchecked")
     public static EnumValues construct(Class<Enum<?>> enumClass, AnnotationIntrospector intr)
     {
-        // Type juggling... unfortunate
-        Map<Enum<?>,String> map = new HashMap<Enum<?>,String>();
-        for (Enum<?> en : enumClass.getEnumConstants()) {
-            map.put(en, intr.findEnumValue(en));
-        }
-        return new EnumValues(map);
+        /* [JACKSON-214]: Enum types with per-instance sub-classes
+         *   need special handling
+         */
+        Class<Enum<?>> curr = enumClass;
+        do {
+            Enum<?>[] values = curr.getEnumConstants();
+            if (values != null) {
+                // Type juggling... unfortunate
+                Map<Enum<?>,String> map = new HashMap<Enum<?>,String>();
+                for (Enum<?> en : values) {
+                    map.put(en, intr.findEnumValue(en));
+                }
+                return new EnumValues(map);
+            }
+            curr = (Class<Enum<?>>)curr.getEnclosingClass();
+        } while (curr != null);
+        throw new IllegalArgumentException("Can not determine enum constants for Class "+enumClass.getName());
     }
 
     public String valueFor(Enum<?> key)

@@ -53,6 +53,17 @@ public abstract class BaseMapTest
         }
     }
 
+    /**
+     * Enumeration type with sub-classes per value.
+     */
+    protected enum EnumWithSubClass {
+        A { public void foobar() { } }
+        ,B { public void foobar() { } }
+        ;
+
+        public abstract void foobar();
+    }
+
     protected BaseMapTest() { super(); }
 
     /*
@@ -86,6 +97,10 @@ public abstract class BaseMapTest
     //////////////////////////////////////////////
      */
 
+    public String quote(String str) {
+        return '"'+str+'"';
+    }
+
     @SuppressWarnings("unchecked")
     protected Map<String,Object> writeAndMap(ObjectMapper m, Object value)
         throws IOException
@@ -117,11 +132,4 @@ public abstract class BaseMapTest
     {
         return serializeAsString(new ObjectMapper(), value);
     }
-
-    public String quote(String str) {
-        return '"'+str+'"';
-    }
 }
-
-
-

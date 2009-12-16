@@ -7,7 +7,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 public class TestEnumDeserialization
-    extends BaseTest
+    extends BaseMapTest
 {
     /*
     //////////////////////////////////////////////////////////
@@ -83,5 +83,13 @@ public class TestEnumDeserialization
          * only works if annotation is used
          */
         assertEquals(AnnotatedTestEnum.OK, e);
+    }
+
+    // Test [WSTX-214]
+    public void testSubclassedEnums() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        EnumWithSubClass value = mapper.readValue("\"A\"", EnumWithSubClass.class);
+        assertEquals(EnumWithSubClass.A, value);
     }
 }
