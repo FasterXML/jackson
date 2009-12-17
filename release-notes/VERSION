@@ -10,6 +10,8 @@ Description:
 
   * [JACKSON-214] Enum types with sub-classes failed to serialize
     (reported by Elliot S)
+  * [JACKSON-215] Add JAX-RS provider annotations on JacksonJaxbJsonProvider
+    (suggested by Matthew R)
 
 ------------------------------------------------------------------------
 == History: ==
