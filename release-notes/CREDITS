@@ -247,7 +247,12 @@ Gil Markham:
    [1.4.0]
 
 Mark Stevens:
-  * Requested [JACKSON-208] Aallow unquoted control characters (esp. tabs)
+  * Requested [JACKSON-208] Allow unquoted control characters (esp. tabs)
     in JSON Strings and field names
+   [1.4.0]
+
+Mike Rheinheimer:
+  * Reported [JACKSON-216] Jackson JAXB annotation handler does not use
+    @XmlElement.type property for figuring out actual type
    [1.4.0]
 

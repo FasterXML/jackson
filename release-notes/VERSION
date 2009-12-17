@@ -22,6 +22,9 @@ Description:
     to allow unquoted control characters (esp. tabs) in Strings and
     field names
    (requested by Mark S)
+  * [JACKSON-216] Jackson JAXB annotation handler does not use @XmlElement.type
+    property for figuring out actual type
+   (reported by Mike R)
 
   New features:
 

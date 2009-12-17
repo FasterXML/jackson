@@ -504,6 +504,13 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public Class<?> findDeserializationType(Annotated am)
     {
+        /* false for class, package, super-class, since annotation can
+         * only be attached to fields and methods
+         */
+        XmlElement annotation = findAnnotation(XmlElement.class, am, false, false, false);
+        if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
+            return annotation.type();
+        }
         return null;
     }
 
@@ -514,10 +521,20 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public Class<?> findDeserializationContentType(Annotated am)
     {
+        /* 16-Dec-2009, tatus: I think this is wrong: annotation
+         *   really refers to type of property itself, not contents.
+         *   Content type can (only?) be effected by @XmlElements (which in
+         *   turn contains instances of @XmlElement)
+         *
+         * TODO: implement support for @XmlElements
+         */
+        /*
         XmlElement annotation = findAnnotation(XmlElement.class, am, false, false, false);
         if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
             return annotation.type();
         }
+        */
+
         return null;
     }
 

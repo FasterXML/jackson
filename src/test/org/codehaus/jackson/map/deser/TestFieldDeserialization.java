@@ -55,7 +55,7 @@ public class TestFieldDeserialization
         public int _z;
     }
 
-    public class DupFieldBean2
+    public static class DupFieldBean2
     {
         @JsonProperty("foo")
         public int _z;
@@ -63,6 +63,19 @@ public class TestFieldDeserialization
         @SuppressWarnings("unused")
         @JsonDeserialize
         private int foo;
+    }
+
+    abstract static class Abstract { }
+    static class Concrete extends Abstract
+    {
+        String value;
+
+        public Concrete(String v) { value = v; }
+    }
+
+    static class AbstractWrapper {
+        @JsonDeserialize(as=Concrete.class)
+        public Abstract value;
     }
 
     /*
@@ -98,6 +111,17 @@ public class TestFieldDeserialization
         NoAutoDetectBean bean = m.readValue("{ \"z\" : 7 }",
                                             NoAutoDetectBean.class);
         assertEquals(7, bean._z);
+    }
+
+    public void testTypeAnnotation() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        AbstractWrapper w = m.readValue("{ \"value\" : \"abc\" }",
+                                        AbstractWrapper.class);
+        Abstract bean = w.value;
+        assertNotNull(bean);
+        assertEquals(Concrete.class, bean.getClass());
+        assertEquals("abc", ((Concrete)bean).value);
     }
 
     public void testFailureDueToDups() throws Exception

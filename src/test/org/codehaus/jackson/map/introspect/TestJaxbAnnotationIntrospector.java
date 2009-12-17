@@ -182,7 +182,7 @@ public class TestJaxbAnnotationIntrospector
         public int a = 1;
         public int b = 2;
     }
-    
+
     /*
     /////////////////////////////////////////////////////
     // Unit tests
@@ -278,8 +278,7 @@ public class TestJaxbAnnotationIntrospector
     // JAXB can specify that properties are to be written in alphabetic order...
     public void testSerializationAlphaOrdering() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        ObjectMapper mapper = getJaxbMapper();
         assertEquals("{\"a\":1,\"b\":2,\"c\":3}", serializeAsString(mapper, new AlphaBean()));
     }
 
@@ -287,8 +286,22 @@ public class TestJaxbAnnotationIntrospector
     // @since 1.4
     public void testSerializationExplicitOrdering() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        ObjectMapper mapper = getJaxbMapper();
         assertEquals("{\"b\":2,\"a\":1,\"c\":3}", serializeAsString(mapper, new AlphaBean2()));
+    }
+
+    /*
+    **************************************************************
+    * Helper methods
+    **************************************************************
+    */
+
+    public ObjectMapper getJaxbMapper()
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        AnnotationIntrospector intr = new JaxbAnnotationIntrospector();
+        mapper.getDeserializationConfig().setAnnotationIntrospector(intr);
+        mapper.getSerializationConfig().setAnnotationIntrospector(intr);
+        return mapper;
     }
 }
