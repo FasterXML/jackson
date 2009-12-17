@@ -174,6 +174,14 @@ public class TestJaxbAnnotationIntrospector
         public int a = 1;
         public int b = 2;
     }
+
+    @XmlType(propOrder={"b", "a", "c"})
+    public static class AlphaBean2
+    {
+        public int c = 3;
+        public int a = 1;
+        public int b = 2;
+    }
     
     /*
     /////////////////////////////////////////////////////
@@ -268,10 +276,19 @@ public class TestJaxbAnnotationIntrospector
     }
 
     // JAXB can specify that properties are to be written in alphabetic order...
-    public void testSerializationOrdering() throws Exception
+    public void testSerializationAlphaOrdering() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         assertEquals("{\"a\":1,\"b\":2,\"c\":3}", serializeAsString(mapper, new AlphaBean()));
+    }
+
+    // And another one for explicit ordering
+    // @since 1.4
+    public void testSerializationExplicitOrdering() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        assertEquals("{\"b\":2,\"a\":1,\"c\":3}", serializeAsString(mapper, new AlphaBean2()));
     }
 }

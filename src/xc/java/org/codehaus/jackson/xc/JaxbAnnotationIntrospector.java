@@ -357,8 +357,9 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
-        // no JAXB annotation that would define this...
-        return null;
+        // @XmlType.propOrder fits the bill here:
+        XmlType type = findAnnotation(XmlType.class, ac, true, true, true);
+        return (type == null) ? null : type.propOrder();
     }
 
     public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
