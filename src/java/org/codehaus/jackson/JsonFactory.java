@@ -104,9 +104,9 @@ public class JsonFactory
      */
     protected ObjectCodec _objectCodec;
 
-    private int _parserFeatures = DEFAULT_PARSER_FEATURE_FLAGS;
+    protected int _parserFeatures = DEFAULT_PARSER_FEATURE_FLAGS;
 
-    private int _generatorFeatures = DEFAULT_GENERATOR_FEATURE_FLAGS;
+    protected int _generatorFeatures = DEFAULT_GENERATOR_FEATURE_FLAGS;
 
     /**
      * Default constructor used to create factory instances.
@@ -150,7 +150,7 @@ public class JsonFactory
      *
      * @since 1.2
      */
-    public final JsonFactory enable(JsonParser.Feature f) {
+    public JsonFactory enable(JsonParser.Feature f) {
         _parserFeatures |= f.getMask();
         return this;
     }
@@ -161,7 +161,7 @@ public class JsonFactory
      *
      * @since 1.2
      */
-    public final JsonFactory disable(JsonParser.Feature f) {
+    public JsonFactory disable(JsonParser.Feature f) {
         _parserFeatures &= ~f.getMask();
         return this;
     }
@@ -233,7 +233,7 @@ public class JsonFactory
      *
      * @since 1.2
      */
-    public final JsonFactory enable(JsonGenerator.Feature f) {
+    public JsonFactory enable(JsonGenerator.Feature f) {
         _generatorFeatures |= f.getMask();
         return this;
     }
@@ -244,7 +244,7 @@ public class JsonFactory
      *
      * @since 1.2
      */
-    public final JsonFactory disable(JsonGenerator.Feature f) {
+    public JsonFactory disable(JsonGenerator.Feature f) {
         _generatorFeatures &= ~f.getMask();
         return this;
     }
@@ -381,37 +381,27 @@ public class JsonFactory
     public final JsonParser createJsonParser(Reader r)
         throws IOException, JsonParseException
     {
-        return new ReaderBasedParser(_createContext(r, false), _parserFeatures, r, _objectCodec,
-                _rootCharSymbols.makeChild(isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES)));
+	return _createJsonParser(r, _createContext(r, false));
     }
 
     public final JsonParser createJsonParser(byte[] data)
         throws IOException, JsonParseException
     {
-        return createJsonParser(data, 0, data.length);
+        return _createJsonParser(data, 0, data.length, _createContext(data, true));
     }
 
     public final JsonParser createJsonParser(byte[] data, int offset, int len)
         throws IOException, JsonParseException
     {
-        // true -> managed (doesn't really matter; we have no stream!)
-        IOContext ctxt = _createContext(data, true);
-        return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
+	return _createJsonParser(data, offset, len, _createContext(data, true));
     }
 
     public final JsonParser createJsonParser(String content)
         throws IOException, JsonParseException
     {
-        StringReader r = new StringReader(content);
-        // true -> must be managed as caller didn't hand Reader
-        return new ReaderBasedParser(_createContext(r, true), _parserFeatures, r, _objectCodec,
-                _rootCharSymbols.makeChild(isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES)));
-    }
-
-    private JsonParser _createJsonParser(InputStream in, IOContext ctxt)
-        throws IOException, JsonParseException
-    {
-        return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
+	// true -> we own the Reader (and must close); not a big deal
+	Reader r = new StringReader(content);
+	return _createJsonParser(r, _createContext(r, true));
     }
 
     /*
@@ -437,15 +427,18 @@ public class JsonFactory
      * @param out OutputStream to use for writing json content 
      * @param enc Character encoding to use
      */
-    public final JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
+    public JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
         throws IOException
     {
         IOContext ctxt = _createContext(out, false);
         ctxt.setEncoding(enc);
+	Writer w;
         if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
-            return new WriterBasedGenerator(ctxt, _generatorFeatures, _objectCodec, new UTF8Writer(ctxt, out));
-        }
-        return new WriterBasedGenerator(ctxt, _generatorFeatures, _objectCodec, new OutputStreamWriter(out, enc.getJavaName()));
+	    w = new UTF8Writer(ctxt, out);
+        } else {
+	    w = new OutputStreamWriter(out, enc.getJavaName());
+	}
+	return _createJsonGenerator(w, ctxt);
     }
 
     /**
@@ -461,11 +454,11 @@ public class JsonFactory
      *
      * @param out Writer to use for writing json content 
      */
-    public final JsonGenerator createJsonGenerator(Writer out)
+    public JsonGenerator createJsonGenerator(Writer out)
         throws IOException
     {
         IOContext ctxt = _createContext(out, false);
-        return new WriterBasedGenerator(ctxt, _generatorFeatures, _objectCodec, out);
+	return _createJsonGenerator(out, ctxt);
     }
 
     /**
@@ -482,7 +475,7 @@ public class JsonFactory
      * @param f File to write contents to
      * @param enc Character encoding to use
      */
-    public final JsonGenerator createJsonGenerator(File f, JsonEncoding enc)
+    public JsonGenerator createJsonGenerator(File f, JsonEncoding enc)
         throws IOException
     {
         return createJsonGenerator(new FileOutputStream(f), enc);
@@ -495,12 +488,43 @@ public class JsonFactory
      */
 
     /**
-     * Method used by the factory to create parsing context for parser
-     * instances.
+     * Overridable construction method that actually instantiates desired generator.
      */
-    protected final IOContext _createContext(Object srcRef, boolean resourceManaged)
+    protected IOContext _createContext(Object srcRef, boolean resourceManaged)
     {
         return new IOContext(_getBufferRecycler(), srcRef, resourceManaged);
+    }
+
+    /**
+     * Overridable construction method that actually instantiates desired parser.
+     */
+    protected JsonParser _createJsonParser(InputStream in, IOContext ctxt)
+        throws IOException, JsonParseException
+    {
+        return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
+    }
+
+    protected JsonParser _createJsonParser(Reader r, IOContext ctxt)
+	throws IOException, JsonParseException
+    {
+        return new ReaderBasedParser(ctxt, _parserFeatures, r, _objectCodec,
+				     _rootCharSymbols.makeChild(isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES)));
+    }
+
+    protected JsonParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
+        throws IOException, JsonParseException
+    {
+        // true -> managed (doesn't really matter; we have no stream!)
+        return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
+    }
+
+    /**
+     * Overridable construction method that actually instantiates desired generator
+     */
+    protected JsonGenerator _createJsonGenerator(Writer out, IOContext ctxt)
+        throws IOException
+    {
+        return new WriterBasedGenerator(ctxt, _generatorFeatures, _objectCodec, out);
     }
 
     /**
@@ -509,7 +533,7 @@ public class JsonFactory
      *<p>
      * Note: only public to give access for <code>ObjectMapper</code>
      */
-    public final BufferRecycler _getBufferRecycler()
+    public BufferRecycler _getBufferRecycler()
     {
         SoftReference<BufferRecycler> ref = _recyclerRef.get();
         BufferRecycler br = (ref == null) ? null : ref.get();
@@ -528,7 +552,7 @@ public class JsonFactory
      * parsers to use, when input is to be read from an URL.
      * This helps when reading file content via URL.
      */
-    protected final static InputStream _optimizedStreamFromURL(URL url)
+    protected InputStream _optimizedStreamFromURL(URL url)
         throws IOException
     {
         if ("file".equals(url.getProtocol())) {
