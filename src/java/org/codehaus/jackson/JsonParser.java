@@ -855,7 +855,7 @@ public abstract class JsonParser
      * The reason is that due to type erasure, key and value types
      * can not be introspected when using this method.
      */
-    public final <T> T readValueAs(Class<T> valueType)
+    public <T> T readValueAs(Class<T> valueType)
         throws IOException, JsonProcessingException
     {
         ObjectCodec codec = getCodec();
@@ -884,7 +884,7 @@ public abstract class JsonParser
      * stream is not advanced.
      */
     @SuppressWarnings("unchecked")
-    public final <T> T readValueAs(TypeReference<?> valueTypeRef)
+    public <T> T readValueAs(TypeReference<?> valueTypeRef)
         throws IOException, JsonProcessingException
     {
         ObjectCodec codec = getCodec();
@@ -904,7 +904,7 @@ public abstract class JsonParser
      * for objects object node (with child nodes), and for other types
      * matching leaf node type
      */
-    public final JsonNode readValueAsTree()
+    public JsonNode readValueAsTree()
         throws IOException, JsonProcessingException
     {
         ObjectCodec codec = getCodec();
@@ -924,7 +924,7 @@ public abstract class JsonParser
      * Helper method for constructing {@link JsonParseException}s
      * based on current state of the parser
      */
-    protected final JsonParseException _constructError(String msg)
+    protected JsonParseException _constructError(String msg)
     {
         return new JsonParseException(msg, getCurrentLocation());
     }

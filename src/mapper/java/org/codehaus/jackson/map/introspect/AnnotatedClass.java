@@ -692,8 +692,8 @@ public final class AnnotatedClass
                 continue;
             }
             String name = f.getName();
-            // anything to mask?
             for (AnnotatedField af : fields) {
+                // anything to mask? (if not, quietly ignore)
                 if (name.equals(af.getName())) {
                     for (Annotation a : f.getDeclaredAnnotations()) {
                         if (_annotationIntrospector.isHandled(a)) {

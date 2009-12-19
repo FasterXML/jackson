@@ -168,9 +168,7 @@
           <classpath>
                 <pathelement path="${dir.build.classes.core}" />
                 <pathelement path="${dir.build.classes.mapper}" />
-<!--
                 <pathelement path="${dir.build.classes.xc}" />
--->
                 <pathelement path="${dir.build.classes.jaxrs}" />
                 <pathelement location="${dir.test.classes}" /> 
                 <path refid="test-libs"/>

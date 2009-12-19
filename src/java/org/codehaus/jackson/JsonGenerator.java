@@ -246,7 +246,7 @@ public abstract class JsonGenerator
      *
      * @return Generator itself (this), to allow chaining
      */
-    public final JsonGenerator setPrettyPrinter(PrettyPrinter pp) {
+    public JsonGenerator setPrettyPrinter(PrettyPrinter pp) {
         _cfgPrettyPrinter = pp;
         return this;
     }
@@ -412,7 +412,7 @@ public abstract class JsonGenerator
      * but default to using the Jackson default Base64 variant 
      * (which is {@link Base64Variants#MIME_NO_LINEFEEDS}).
      */
-    public final void writeBinary(byte[] data, int offset, int len)
+    public void writeBinary(byte[] data, int offset, int len)
         throws IOException, JsonGenerationException
     {
         writeBinary(Base64Variants.getDefaultVariant(), data, offset, len);
@@ -424,7 +424,7 @@ public abstract class JsonGenerator
      * (which is {@link Base64Variants#MIME_NO_LINEFEEDS}). Also
      * assumes that whole byte array is to be output.
      */
-    public final void writeBinary(byte[] data)
+    public void writeBinary(byte[] data)
         throws IOException, JsonGenerationException
     {
         writeBinary(Base64Variants.getDefaultVariant(), data, 0, data.length);
