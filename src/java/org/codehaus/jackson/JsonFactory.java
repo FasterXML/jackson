@@ -319,7 +319,7 @@ public class JsonFactory
      *
      * @param f File that contains JSON content to parse
      */
-    public final JsonParser createJsonParser(File f)
+    public JsonParser createJsonParser(File f)
         throws IOException, JsonParseException
     {
         return _createJsonParser(new FileInputStream(f), _createContext(f, true));
@@ -338,7 +338,7 @@ public class JsonFactory
      *
      * @param url URL pointing to resource that contains JSON content to parse
      */
-    public final JsonParser createJsonParser(URL url)
+    public JsonParser createJsonParser(URL url)
         throws IOException, JsonParseException
     {
         return _createJsonParser(_optimizedStreamFromURL(url), _createContext(url, true));
@@ -359,7 +359,7 @@ public class JsonFactory
      *
      * @param in InputStream to use for reading JSON content to parse
      */
-    public final JsonParser createJsonParser(InputStream in)
+    public JsonParser createJsonParser(InputStream in)
         throws IOException, JsonParseException
     {
         return _createJsonParser(in, _createContext(in, false));
@@ -378,25 +378,25 @@ public class JsonFactory
      *
      * @param r Reader to use for reading JSON content to parse
      */
-    public final JsonParser createJsonParser(Reader r)
+    public JsonParser createJsonParser(Reader r)
         throws IOException, JsonParseException
     {
 	return _createJsonParser(r, _createContext(r, false));
     }
 
-    public final JsonParser createJsonParser(byte[] data)
+    public JsonParser createJsonParser(byte[] data)
         throws IOException, JsonParseException
     {
         return _createJsonParser(data, 0, data.length, _createContext(data, true));
     }
 
-    public final JsonParser createJsonParser(byte[] data, int offset, int len)
+    public JsonParser createJsonParser(byte[] data, int offset, int len)
         throws IOException, JsonParseException
     {
 	return _createJsonParser(data, offset, len, _createContext(data, true));
     }
 
-    public final JsonParser createJsonParser(String content)
+    public JsonParser createJsonParser(String content)
         throws IOException, JsonParseException
     {
 	// true -> we own the Reader (and must close); not a big deal
