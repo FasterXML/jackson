@@ -1,10 +1,19 @@
 Version: 1.4.0
 
 Release date:
-  xx-Dec-2009
+  19-Dec-2009
 
 Description:
-  Official 1.4 release.
+  Official 1.4 release. Main focus is on serialization features, including
+  ability to define ordering or properties output. Filtering functionality
+  also added, both based on listing names of properties to include, and
+  on more generic "Json Views" approach for defining views properties
+  are included in.
+  Additionally there are also significant improvements in interoperability,
+  including improved coverage of JAXB annotations and explicit support
+  for optional external datatypes (like some JodaTime types, DOM trees,
+  parts of javax.xml that some platofmrs omit), and rewritten internal
+  handling dynamic loading of optional functionality.
 
   Improvements:
 
