@@ -143,8 +143,13 @@ public abstract class BasicDeserializerFactory
     {
         Class<?> collectionClass = type.getRawClass();
 
-        // To resolve [JACKSON-167], need to check class annotations
         BasicBeanDescription beanDesc = config.introspectClassAnnotations(collectionClass);
+        // Explicit deserializer to use? (@JsonDeserialize.using)
+        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
+        if (deser != null) {
+            return deser;
+        }
+        // If not, any type modifiers? (@JsonDeserialize.as)
         type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
 
         JavaType contentType = type.getContentType();
@@ -188,10 +193,13 @@ public abstract class BasicDeserializerFactory
     {
         Class<?> mapClass = type.getRawClass();
 
-        /* Ok, to resolve [JACKSON-167], we need to check class annotations
-         * (and later on, may need creator info too)
-         */
         BasicBeanDescription beanDesc = config.introspectForCreation(mapClass);
+        // Explicit deserializer to use? (@JsonDeserialize.using)
+        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
+        if (deser != null) {
+            return deser;
+        }
+        // If not, any type modifiers? (@JsonDeserialize.as)
         type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
         
         JavaType keyType = type.getKeyType();
