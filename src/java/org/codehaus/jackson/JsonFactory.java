@@ -430,15 +430,10 @@ public class JsonFactory
     public JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
         throws IOException
     {
+	// false -> we won't manage the stream unless explicitly directed to
         IOContext ctxt = _createContext(out, false);
         ctxt.setEncoding(enc);
-	Writer w;
-        if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
-	    w = new UTF8Writer(ctxt, out);
-        } else {
-	    w = new OutputStreamWriter(out, enc.getJavaName());
-	}
-	return _createJsonGenerator(w, ctxt);
+	return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
     }
 
     /**
@@ -478,7 +473,11 @@ public class JsonFactory
     public JsonGenerator createJsonGenerator(File f, JsonEncoding enc)
         throws IOException
     {
-        return createJsonGenerator(new FileOutputStream(f), enc);
+	OutputStream out = new FileOutputStream(f);
+	// true -> yes, we have to manage the stream since we created it
+        IOContext ctxt = _createContext(out, true);
+        ctxt.setEncoding(enc);
+	return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
     }
 
     /*
@@ -568,5 +567,14 @@ public class JsonFactory
             }
         }
         return url.openStream();
+    }
+
+    protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException
+    {
+        if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
+	    return new UTF8Writer(ctxt, out);
+	}
+	// not optimal, but should do unless we really care about UTF-16/32 encoding speed
+	return new OutputStreamWriter(out, enc.getJavaName());
     }
 }

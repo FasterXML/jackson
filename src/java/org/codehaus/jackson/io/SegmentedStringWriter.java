@@ -42,14 +42,16 @@ public final class SegmentedStringWriter
     @Override
     public Writer append(CharSequence csq)
     {
-        append(csq.toString());
+	String str = csq.toString();
+	_buffer.append(str, 0, str.length());
         return this;
     }
 
     @Override
     public Writer append(CharSequence csq, int start, int end)
     {
-        append(csq.toString().subSequence(start, end));
+	String str = csq.subSequence(start, end).toString();
+	_buffer.append(str, 0, str.length());
         return this;
     }
 
