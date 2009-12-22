@@ -53,6 +53,6 @@ public class TestMapSerialization
     public void testMapSerializer() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
-        assertEquals("\"{a:b, c:d}\"", m.writeValueAsString(new PseudoMap("a", "b", "c", "d")));
+        assertEquals("\"{a=b, c=d}\"", m.writeValueAsString(new PseudoMap("a", "b", "c", "d")));
     }
 }
