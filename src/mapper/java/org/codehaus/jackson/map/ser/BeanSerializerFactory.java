@@ -85,23 +85,30 @@ public class BeanSerializerFactory
     @SuppressWarnings("unchecked")
     public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
     {
-        // First, fast lookup for exact type:
-        JsonSerializer<?> ser = super.findSerializerByLookup(type, config);
+        /* [JACKSON-220]: Very first thing, let's check annotations to
+         * see if we have explicit definition
+         */
+        BasicBeanDescription beanDesc = config.introspect(type);
+        JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ser == null) {
-            // and then introspect for some safe (?) JDK types
-            ser = super.findSerializerByPrimaryType(type, config);
+            // First, fast lookup for exact type:
+            ser = super.findSerializerByLookup(type, config, beanDesc);
             if (ser == null) {
-                /* And this is where this class comes in: if type is
-                 * not a known "primary JDK type", perhaps it's a bean?
-                 * We can still get a null, if we can't find a single
-                 * suitable bean property.
-                 */
-                ser = this.findBeanSerializer(type, config);
-                /* Finally: maybe we can still deal with it as an
-                 * implementation of some basic JDK interface?
-                 */
+                // and then introspect for some safe (?) JDK types
+                ser = super.findSerializerByPrimaryType(type, config, beanDesc);
                 if (ser == null) {
-                    ser = super.findSerializerByAddonType(type, config);
+                    /* And this is where this class comes in: if type is
+                     * not a known "primary JDK type", perhaps it's a bean?
+                     * We can still get a null, if we can't find a single
+                     * suitable bean property.
+                     */
+                    ser = this.findBeanSerializer(type, config, beanDesc);
+                    /* Finally: maybe we can still deal with it as an
+                     * implementation of some basic JDK interface?
+                     */
+                    if (ser == null) {
+                        ser = super.findSerializerByAddonType(type, config, beanDesc);
+                    }
                 }
             }
         }
@@ -119,18 +126,13 @@ public class BeanSerializerFactory
      * Method that will try to construct a {@link BeanSerializer} for
      * given class. Returns null if no properties are found.
      */
-    public JsonSerializer<Object> findBeanSerializer(Class<?> type, SerializationConfig config)
+    public JsonSerializer<Object> findBeanSerializer(Class<?> type, SerializationConfig config,
+                                                     BasicBeanDescription beanDesc)
     {
         // First things first: we know some types are not beans...
         if (!isPotentialBeanType(type)) {
             return null;
         }
-        BasicBeanDescription beanDesc = config.introspect(type);
-        JsonSerializer<Object> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
-        if (ser != null) {
-            return ser;
-        }
-
         /* [JACKSON-80]: Should support @JsonValue, which is alternative to
          *   actual bean method introspection.
          */
@@ -139,7 +141,7 @@ public class BeanSerializerFactory
             /* Further, method itself may also be annotated to indicate
              * exact JsonSerializer to use for whatever value is returned...
              */
-            ser = findSerializerFromAnnotation(config, valueMethod);
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, valueMethod);
             return new JsonValueSerializer(valueMethod.getAnnotated(), ser);
         }
         return constructBeanSerializer(config, beanDesc);

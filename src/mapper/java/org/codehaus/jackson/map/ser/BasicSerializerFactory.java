@@ -218,18 +218,25 @@ public class BasicSerializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-        public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
+    public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
     {
-        // First, fast lookup for exact type:
-        JsonSerializer<?> ser = findSerializerByLookup(type, config);
+        /* [JACKSON-220]: Very first thing, let's check annotations to
+         * see if we have explicit definition
+         */
+        BasicBeanDescription beanDesc = config.introspect(type);
+        JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ser == null) {
-            /* and should that fail, slower introspection methods; first
-             * one that deals with "primary" types
-             */
-            ser = findSerializerByPrimaryType(type, config);
+            // First, fast lookup for exact type:
+            ser = findSerializerByLookup(type, config, beanDesc);
             if (ser == null) {
-                // And if that fails, one with "secondary" traits:
-                ser = findSerializerByAddonType(type, config);
+                /* and should that fail, slower introspection methods; first
+                 * one that deals with "primary" types
+                 */
+                ser = findSerializerByPrimaryType(type, config, beanDesc);
+                if (ser == null) {
+                    // And if that fails, one with "secondary" traits:
+                    ser = findSerializerByAddonType(type, config, beanDesc);
+                }
             }
         }
         return (JsonSerializer<T>) ser;
@@ -256,7 +263,8 @@ public class BasicSerializerFactory
      * type itself, but not consider super-classes or implemented
      * interfaces.
      */
-    public final JsonSerializer<?> findSerializerByLookup(Class<?> type, SerializationConfig config)
+    public final JsonSerializer<?> findSerializerByLookup(Class<?> type, SerializationConfig config,
+                                                          BasicBeanDescription beanDesc)
     {
         JsonSerializer<?> ser = _concrete.get(type.getName());
         /* 08-Nov-2009, tatus: Some standard types may need customization;
@@ -266,7 +274,7 @@ public class BasicSerializerFactory
          */
         if (ser != null ) {
             if (ser == MapSerializer.instance) {
-                return buildMapSerializer(type, config);
+                return buildMapSerializer(type, config, beanDesc);
             }
         }
         return ser;
@@ -278,7 +286,8 @@ public class BasicSerializerFactory
      * a "primary" interface. Primary here is defined as the main function
      * of the Object; as opposed to "add-on" functionality.
      */
-    public final JsonSerializer<?> findSerializerByPrimaryType(Class<?> type, SerializationConfig config)
+    public final JsonSerializer<?> findSerializerByPrimaryType(Class<?> type, SerializationConfig config,
+                                                          BasicBeanDescription beanDesc)
     {
         /* Some types are final, and hence not checked here (will
          * have been handled by fast method above):
@@ -300,7 +309,7 @@ public class BasicSerializerFactory
             if (EnumMap.class.isAssignableFrom(type)) {
                 return new ContainerSerializers.EnumMapSerializer();
             }
-            return buildMapSerializer(type, config);
+            return buildMapSerializer(type, config, beanDesc);
         }
         if (Object[].class.isAssignableFrom(type)) {
             return ArraySerializers.ObjectArraySerializer.instance;
@@ -315,15 +324,6 @@ public class BasicSerializerFactory
             return NumberSerializer.instance;
         }
         if (Enum.class.isAssignableFrom(type)) {
-            /* 18-Feb-2009, tatu: Sort of related to [JACKSON-58], it
-             *   was found out that annotations do not work with
-             *   Enum classes.
-             */
-            BasicBeanDescription desc = config.introspectClassAnnotations(type);
-            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, desc.getClassInfo());
-            if (ser != null) {
-                return ser;
-            }
             @SuppressWarnings("unchecked")
             Class<Enum<?>> enumClass = (Class<Enum<?>>) type;
             return EnumSerializer.construct(enumClass, config.getAnnotationIntrospector());
@@ -357,7 +357,8 @@ public class BasicSerializerFactory
      * bean classes may implement {@link Iterable}, but their main
      * function is usually something else. The reason for
      */
-    public final JsonSerializer<?> findSerializerByAddonType(Class<?> type, SerializationConfig config)
+    public final JsonSerializer<?> findSerializerByAddonType(Class<?> type, SerializationConfig config,
+                                                             BasicBeanDescription beanDesc)
     {
         // These need to be in decreasing order of specificity...
         if (Iterator.class.isAssignableFrom(type)) {
@@ -406,10 +407,10 @@ public class BasicSerializerFactory
      * Helper method that handles configuration details when constructing serializers for
      * {@link java.util.Map} types.
      */
-    protected JsonSerializer<?> buildMapSerializer(Class<?> type, SerializationConfig config)
+    protected JsonSerializer<?> buildMapSerializer(Class<?> type, SerializationConfig config,
+                                                   BasicBeanDescription beanDesc)
     {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        BasicBeanDescription beanDesc = config.introspectClassAnnotations(type);
         return MapSerializer.construct(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));
     }
 

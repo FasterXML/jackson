@@ -8,6 +8,9 @@ Description:
 
   Improvements:
 
+  * [JACKSON-220] @JsonSerialize.using() was not working properly for
+    non-Bean types (Collections, Maps, wrappers)
+
   New features:
 
   Other:
