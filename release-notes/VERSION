@@ -12,6 +12,8 @@ Description:
     (reported by Elliot S)
   * [JACKSON-215] Add JAX-RS provider annotations on JacksonJaxbJsonProvider
     (suggested by Matthew R)
+  * [JACKSON-220] JsonSerialize.using() not recognized for Collection and
+    Map types
 
 ------------------------------------------------------------------------
 == History: ==
