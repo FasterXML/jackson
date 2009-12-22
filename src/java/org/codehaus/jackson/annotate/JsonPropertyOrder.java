@@ -14,6 +14,14 @@ import java.lang.annotation.Target;
  * guarantee that Creator-properties are serialized before non-creator
  * properties)
  *<p>
+ * Examples:
+ *<pre>
+ *  // ensure that "id" and "name" are output before other properties
+ *  @JsonPropertyOrder({ "id", "name" })
+ *  // order any properties that don't have explicit setting using alphabetic order
+ *  @JsonPropertyOrder(alphabetic=true)
+ *</pre>
+ *<p>
  * This annotation has no effect on deserialization.
  * 
  * @since 1.4
