@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map.deser;
 
-import main.BaseTest;
-
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;

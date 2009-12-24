@@ -1,13 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 
 /**
  * Decorated {@link BeanPropertyWriter} that will filter out

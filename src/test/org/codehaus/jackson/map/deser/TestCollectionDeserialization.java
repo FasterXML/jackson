@@ -15,6 +15,7 @@ public class TestCollectionDeserialization
         KEY1, KEY2, WHATEVER;
     }
 
+    @SuppressWarnings("serial")
     @JsonDeserialize(using=ListDeserializer.class)
     static class CustomList extends LinkedList<String> { }
 

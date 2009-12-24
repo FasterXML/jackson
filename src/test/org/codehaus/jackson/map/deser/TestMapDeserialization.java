@@ -30,6 +30,7 @@ public class TestMapDeserialization
         public BrokenMap(boolean dummy) { super(); }
     }
 
+    @SuppressWarnings("serial")
     @JsonDeserialize(using=MapDeserializer.class)
     static class CustomMap extends LinkedHashMap<String,String> { }
 

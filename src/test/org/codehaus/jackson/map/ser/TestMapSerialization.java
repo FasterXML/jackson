@@ -20,6 +20,7 @@ public class TestMapSerialization
     /**
      * Class needed for testing [JACKSON-220]
      */
+    @SuppressWarnings("serial")
     @JsonSerialize(using=MapSerializer.class)    
     static class PseudoMap extends LinkedHashMap<String,String>
     {

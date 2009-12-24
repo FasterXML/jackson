@@ -59,6 +59,7 @@ public class TestCollectionSerialization
     /**
      * Class needed for testing [JACKSON-220]
      */
+    @SuppressWarnings("serial")
     @JsonSerialize(using=ListSerializer.class)    
     static class PseudoList extends ArrayList<String>
     {
