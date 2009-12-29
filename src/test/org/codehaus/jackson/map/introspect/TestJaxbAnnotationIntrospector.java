@@ -122,7 +122,7 @@ public class TestJaxbAnnotationIntrospector
         @Override
         public String marshal(QName v) throws Exception
         {
-            return v.toString();
+            return (v == null) ? null : v.toString();
         }
     }
 
