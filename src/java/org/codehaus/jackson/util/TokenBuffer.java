@@ -491,7 +491,7 @@ public class TokenBuffer
             ++_appendOffset;
         } else {
             _last = next;
-            _appendOffset = 0;
+            _appendOffset = 1; // since we added first at 0
         }
     }
 
@@ -501,7 +501,7 @@ public class TokenBuffer
             ++_appendOffset;
         } else {
             _last = next;
-            _appendOffset = 0;
+            _appendOffset = 1;
         }
     }
     

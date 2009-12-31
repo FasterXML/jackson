@@ -8,6 +8,8 @@ Description:
 
   Improvements:
 
+  * [JACKSON-175] Add "org.codehaus.jackson.util.TokenBuffer", used for
+    much more efficient type conversions (and other internal buffering)
   * [JACKSON-220] @JsonSerialize.using() was not working properly for
     non-Bean types (Collections, Maps, wrappers)
 
@@ -64,6 +66,17 @@ Description:
 
   * Removed "BasicSerializerFactory.StringLikeSerializer" that was
     deprecated for 1.0, replaced by public "ToStringSerializer"
+
+1.3.3 [21-Dec-2009]
+
+  Fixes:
+
+  * [JACKSON-214] Enum types with sub-classes failed to serialize
+    (reported by Elliot S)
+  * [JACKSON-215] Add JAX-RS provider annotations on JacksonJaxbJsonProvider
+    (suggested by Matthew R)
+  * [JACKSON-220] JsonSerialize.using() not recognized for Collection and
+    Map types (and similarly for JsonDeserialize)
 
 1.3.2 [02-Dec-2009]
 
