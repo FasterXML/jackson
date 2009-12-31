@@ -257,11 +257,38 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
-    public abstract void writeObject(Object value)
-        throws IOException, JsonProcessingException;
+    public void writeObject(Object value)
+        throws IOException, JsonProcessingException
+    {
+        if (value == null) {
+            // important: call method that does check value write:
+            writeNull();
+        } else {
+            /* 02-Mar-2009, tatu: we are NOT to call _verifyValueWrite here,
+             *   because that will be done when codec actually serializes
+             *   contained POJO. If we did call it it would advance state
+             *   causing exception later on
+             */
+            if (_objectCodec == null) {
+                throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize regular Java objects");
+            }
+            _objectCodec.writeValue(this, value);
+        }
+    }
 
-    public abstract void writeTree(JsonNode rootNode)
-        throws IOException, JsonProcessingException;
+    public void writeTree(JsonNode rootNode)
+        throws IOException, JsonProcessingException
+    {
+        // As with 'writeObject()', we are not check if write would work
+        if (rootNode == null) {
+            writeNull();
+        } else {
+            if (_objectCodec == null) {
+                throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize JsonNode-based trees");
+            }
+            _objectCodec.writeTree(this, rootNode);
+        }
+    }
 
     /*
     ////////////////////////////////////////////////////

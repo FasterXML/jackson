@@ -312,6 +312,7 @@ public class TreeTraversingParser extends JsonParser
         JsonNode n = currentNode();
         if (n != null) { // binary node?
             byte[] data = n.getBinaryValue();
+            // (or TextNode, which can also convert automatically!)
             if (data != null) {
                 return data;
             }
@@ -322,9 +323,8 @@ public class TreeTraversingParser extends JsonParser
                     return (byte[]) ob;
                 }
             }
-            // Or perhaps it's a text node? If so, try base64 decode
         }
-
+        // otherwise return null to mark we have no binary content
         return null;
     }
 
