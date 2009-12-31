@@ -587,7 +587,7 @@ public class DeserializationConfig
         }
     }
 
-    //protected int getFeatures() { return _features; }
+    //protected int getFeatures() { return _generatorFeatures; }
 
     /*
     ////////////////////////////////////////////////////

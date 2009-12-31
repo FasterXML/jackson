@@ -348,6 +348,9 @@ public abstract class JsonGeneratorBase
         case VALUE_NULL:
             writeNull();
             break;
+        case VALUE_EMBEDDED_OBJECT:
+            writeObject(jp.getEmbeddedObject());
+            break;
         default:
             _cantHappen();
         }

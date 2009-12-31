@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonReadContext;
 import org.codehaus.jackson.impl.JsonWriteContext;
 
@@ -20,12 +19,43 @@ import org.codehaus.jackson.impl.JsonWriteContext;
  * @since 1.5
  */
 public class TokenBuffer
-    extends JsonGeneratorBase
+/* Won't use JsonGeneratorBase, to minimize overhead for validity
+ * checking
+ */
+    extends JsonGenerator
 {
     final static int DEFAULT_FEATURES = JsonParser.Feature.collectDefaults();
+
+    /*
+    ***********************************************
+    * Configuration
+    ***********************************************
+     */
+
+    /**
+     * @param codec Object codec to use for stream-based object
+     *   conversion through parser/generator interfaces. If null,
+     *   such methods can not be used.
+     */
+    ObjectCodec _objectCodec;
+
+    /**
+     * Bit flag composed of bits that indicate which
+     * {@link org.codehaus.jackson.JsonGenerator.Feature}s
+     * are enabled.
+     *<p>
+     * NOTE: most features have no effect on this class
+     */
+    protected int _generatorFeatures;
+
+    protected boolean _closed;
     
-    ObjectCodec _codec;
-    
+    /*
+    ***********************************************
+    * Token buffering state
+    ***********************************************
+     */
+
     /**
      * First segment, for contents this buffer has
      */
@@ -42,13 +72,30 @@ public class TokenBuffer
      */
     protected int _appendOffset;
 
-    public TokenBuffer() {
-        this(null);
-    }
+    /*
+    ***********************************************
+    * Output state
+    ***********************************************
+     */
 
+    protected JsonWriteContext _writeContext;
+
+    /*
+    ***********************************************
+    * Life-cycle
+    ***********************************************
+     */
+
+    /**
+     * @param codec Object codec to use for stream-based object
+     *   conversion through parser/generator interfaces. If null,
+     *   such methods can not be used.
+     */
     public TokenBuffer(ObjectCodec codec)
     {
-        super(DEFAULT_FEATURES, codec);
+        _objectCodec = codec;
+        _generatorFeatures = DEFAULT_FEATURES;
+        _writeContext = JsonWriteContext.createRootContext();
         // at first we have just one segment
         _first = _last = new Segment();
         _appendOffset = 0;
@@ -56,7 +103,8 @@ public class TokenBuffer
     
     /**
      * Method used to create a {@link JsonParser} that can read contents
-     * stored in this buffer.
+     * stored in this buffer. Will use default {@link #_codec} for
+     * object conversions.
      *<p>
      * Note: instances are not synchronized, that is, they are not thread-safe
      * if there are concurrent appends to the underlying buffer.
@@ -65,9 +113,22 @@ public class TokenBuffer
      */
     public JsonParser asParser()
     {
-        return asParser(_codec);
+        return asParser(_objectCodec);
     }
 
+    /**
+     * Method used to create a {@link JsonParser} that can read contents
+     * stored in this buffer.
+     *<p>
+     * Note: instances are not synchronized, that is, they are not thread-safe
+     * if there are concurrent appends to the underlying buffer.
+     *
+     * @param codec Object codec to use for stream-based object
+     *   conversion through parser/generator interfaces. If null,
+     *   such methods can not be used.
+     * 
+     * @return Parser that can be used for reading contents stored in this buffer
+     */
     public JsonParser asParser(ObjectCodec codec)
     {
         return new Parser(_first, codec);
@@ -75,131 +136,119 @@ public class TokenBuffer
 
     /*
     *****************************************************************
-    * JsonGenerator implementation; first, abstract methods
+    * JsonGenerator implementation: configuration
     *****************************************************************
      */
 
     @Override
-    protected void _releaseBuffers() { /* NOP */ }
+    public JsonGenerator enable(Feature f) {
+        _generatorFeatures |= f.getMask();
+        return this;
+    }
 
     @Override
-    protected void _verifyValueWrite(String typeMsg) throws IOException, JsonGenerationException
+    public JsonGenerator disable(Feature f) {
+        _generatorFeatures &= ~f.getMask();
+        return this;
+    }
+
+    //public JsonGenerator configure(Feature f, boolean state) { }
+
+    @Override
+    public boolean isEnabled(Feature f) {
+        return (_generatorFeatures & f.getMask()) != 0;
+    }
+
+    public JsonGenerator useDefaultPrettyPrinter() {
+        // No-op: we don't indent
+        return this;
+    }
+
+    public JsonGenerator setCodec(ObjectCodec oc) {
+        _objectCodec = oc;
+        return this;
+    }
+
+    public ObjectCodec getCodec() { return _objectCodec; }
+
+    public final JsonWriteContext getOutputContext() { return _writeContext; }
+
+    /*
+    *****************************************************************
+    * JsonGenerator implementation: low-level output handling
+    *****************************************************************
+     */
+
+    public void flush() throws IOException { /* NOP */ }
+
+    public void close() throws IOException {
+        _closed = true;
+    }
+
+    public boolean isClosed() { return _closed; }
+
+    /*
+    *****************************************************************
+    * JsonGenerator implementation: write methods, structural
+    *****************************************************************
+     */
+
+    @Override
+    public final void writeStartArray()
+        throws IOException, JsonGenerationException
     {
-        int status = _writeContext.writeValue();
-        if (status == JsonWriteContext.STATUS_EXPECT_NAME) {
-            _reportError("Can not "+typeMsg+", expecting field name");
+        _append(JsonToken.START_ARRAY);
+        _writeContext = _writeContext.createChildArrayContext();
+    }
+
+    @Override
+    public final void writeEndArray()
+        throws IOException, JsonGenerationException
+    {
+        _append(JsonToken.END_ARRAY);
+        // Let's allow unbalanced tho... i.e. not run out of root level, ever
+        JsonWriteContext c = _writeContext.getParent();
+        if (c != null) {
+            _writeContext = c;
         }
     }
 
     @Override
-    protected void _writeEndArray() throws IOException, JsonGenerationException {
-        _append(JsonToken.END_ARRAY);
-    }
-
-    @Override
-    protected void _writeEndObject() throws IOException, JsonGenerationException {
-        _append(JsonToken.END_OBJECT);
-    }
-
-    @Override
-    protected void _writeFieldName(String name, boolean commaBefore) throws IOException, JsonGenerationException {
-        _append(JsonToken.FIELD_NAME, name);
-    }
-
-    @Override
-    protected void _writeStartArray() throws IOException, JsonGenerationException {
-        _append(JsonToken.START_ARRAY);
-    }
-
-    @Override
-    protected void _writeStartObject() throws IOException,JsonGenerationException {
+    public final void writeStartObject()
+        throws IOException, JsonGenerationException
+    {
         _append(JsonToken.START_OBJECT);
+        _writeContext = _writeContext.createChildObjectContext();
+    }
+
+    public final void writeEndObject()
+        throws IOException, JsonGenerationException
+    {
+        _append(JsonToken.END_OBJECT);
+        // Let's allow unbalanced tho... i.e. not run out of root level, ever
+        JsonWriteContext c = _writeContext.getParent();
+        if (c != null) {
+            _writeContext = c;
+        }
+    }
+
+    public final void writeFieldName(String name)
+        throws IOException, JsonGenerationException
+    {
+        _append(JsonToken.FIELD_NAME, name);
+        _writeContext.writeFieldName(name);
     }
 
     /*
-     *****************************************************************
-     * JsonGenerator implementation; unimplemented JsonGenerator methods
-     *****************************************************************
-      */
-
-    @Override
-    public void flush() throws IOException { /* NOP */ }
-
-    @Override
-    public void writeBoolean(boolean state) throws IOException,JsonGenerationException {
-        _verifyValueWrite("write boolean value");
-        _append(state ? JsonToken.VALUE_TRUE : JsonToken.VALUE_FALSE);
-    }
-
-    @Override
-    public void writeNull() throws IOException, JsonGenerationException {
-        _verifyValueWrite("write null value");
-        _append(JsonToken.VALUE_NULL);
-    }
-
-    @Override
-    public void writeNumber(int i) throws IOException, JsonGenerationException {
-        _verifyValueWrite("write number");
-        _append(JsonToken.VALUE_NUMBER_INT, Integer.valueOf(i));
-    }
-
-    @Override
-    public void writeNumber(long l) throws IOException, JsonGenerationException {
-        _verifyValueWrite("write number");
-        _append(JsonToken.VALUE_NUMBER_INT, Long.valueOf(l));
-    }
-
-    @Override
-    public void writeNumber(double d) throws IOException,JsonGenerationException {
-        _verifyValueWrite("write number");
-        _append(JsonToken.VALUE_NUMBER_FLOAT, Double.valueOf(d));
-    }
-
-    @Override
-    public void writeNumber(float f) throws IOException, JsonGenerationException {
-        _verifyValueWrite("write number");
-        _append(JsonToken.VALUE_NUMBER_FLOAT, Float.valueOf(f));
-    }
-
-    @Override
-    public void writeNumber(BigDecimal dec) throws IOException,JsonGenerationException {
-        _verifyValueWrite("write number");
-        if (dec == null) {
-            _writeNull();
-        } else {
-            _append(JsonToken.VALUE_NUMBER_FLOAT, dec);
-        }
-    }
-
-    @Override
-    public void writeNumber(BigInteger v) throws IOException, JsonGenerationException {
-        _verifyValueWrite("write number");
-        if (v == null) {
-            _writeNull();
-        } else {
-            _append(JsonToken.VALUE_NUMBER_INT, v);
-        }
-    }
-
-    @Override
-    public void writeNumber(String encodedValue) throws IOException, JsonGenerationException {
-        /* Hmmh... let's actually support this as regular String value write:
-         * should work since there is no quoting when buffering
-         */
-        writeString(encodedValue);
-    }
-    
-    @Override
-    public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len)
-        throws IOException, JsonGenerationException
-    {
-        // TODO Auto-generated method stub        
-    }
+    *****************************************************************
+    * JsonGenerator implementation: write methods, textual
+    *****************************************************************
+     */
 
     @Override
     public void writeString(String text) throws IOException,JsonGenerationException {
         if (text == null) {
-            _writeNull();
+            writeNull();
         } else {
             _append(JsonToken.VALUE_STRING, text);
         }
@@ -209,7 +258,7 @@ public class TokenBuffer
     public void writeString(char[] text, int offset, int len) throws IOException, JsonGenerationException {
         writeString(new String(text, offset, len));
     }
-    
+
     @Override
     public void writeRaw(String text) throws IOException, JsonGenerationException {
         _reportUnsupportedOperation();
@@ -246,15 +295,196 @@ public class TokenBuffer
     }
 
     /*
+    *****************************************************************
+    * JsonGenerator implementation: write methods, primitive types
+    *****************************************************************
+     */
+
+    @Override
+    public void writeNumber(int i) throws IOException, JsonGenerationException {
+        _append(JsonToken.VALUE_NUMBER_INT, Integer.valueOf(i));
+    }
+
+    @Override
+    public void writeNumber(long l) throws IOException, JsonGenerationException {
+        _append(JsonToken.VALUE_NUMBER_INT, Long.valueOf(l));
+    }
+
+    @Override
+    public void writeNumber(double d) throws IOException,JsonGenerationException {
+        _append(JsonToken.VALUE_NUMBER_FLOAT, Double.valueOf(d));
+    }
+
+    @Override
+    public void writeNumber(float f) throws IOException, JsonGenerationException {
+        _append(JsonToken.VALUE_NUMBER_FLOAT, Float.valueOf(f));
+    }
+
+    @Override
+    public void writeNumber(BigDecimal dec) throws IOException,JsonGenerationException {
+        if (dec == null) {
+            writeNull();
+        } else {
+            _append(JsonToken.VALUE_NUMBER_FLOAT, dec);
+        }
+    }
+
+    @Override
+    public void writeNumber(BigInteger v) throws IOException, JsonGenerationException {
+        if (v == null) {
+            writeNull();
+        } else {
+            _append(JsonToken.VALUE_NUMBER_INT, v);
+        }
+    }
+
+    @Override
+    public void writeNumber(String encodedValue) throws IOException, JsonGenerationException {
+        /* Hmmh... let's actually support this as regular String value write:
+         * should work since there is no quoting when buffering
+         */
+        writeString(encodedValue);
+    }
+
+    @Override
+    public void writeBoolean(boolean state) throws IOException,JsonGenerationException {
+        _append(state ? JsonToken.VALUE_TRUE : JsonToken.VALUE_FALSE);
+    }
+
+    @Override
+    public void writeNull() throws IOException, JsonGenerationException {
+        _append(JsonToken.VALUE_NULL);
+    }
+
+    /*
+    *****************************************************************
+    * JsonGenerator implementation: write methods for POJOs/trees
+    *****************************************************************
+     */
+
+    public void writeObject(Object value)
+        throws IOException, JsonProcessingException
+    {
+        // embedded means that no conversions should be done...
+        _append(JsonToken.VALUE_EMBEDDED_OBJECT, value);
+    }
+
+    public void writeTree(JsonNode rootNode)
+        throws IOException, JsonProcessingException
+    {
+        /* 31-Dec-2009, tatu: no need to convert trees either is there?
+         *  (note: may need to re-evaluate at some point)
+         */
+        _append(JsonToken.VALUE_EMBEDDED_OBJECT, rootNode);
+    }
+
+    /*
+     *****************************************************************
+     * JsonGenerator implementation; binary
+     *****************************************************************
+      */
+
+    @Override
+    public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len)
+        throws IOException, JsonGenerationException
+    {
+        /* 31-Dec-2009, tatu: can do this using multiple alternatives; but for
+         *   now, let's try to limit number of conversions.
+         *   The only (?) tricky thing is that of whether to preserve variant,
+         *   seems pointless, so let's not worry about it unless there's some
+         *   compelling reason to.
+         */
+        byte[] copy = new byte[len];
+        System.arraycopy(data, offset, copy, 0, len);
+        writeObject(copy);
+    }
+
+    /*
+     *****************************************************************
+     * JsonGenerator implementation; pass-through copy
+     *****************************************************************
+      */
+
+    @Override
+    public void copyCurrentEvent(JsonParser jp) throws IOException, JsonProcessingException {
+        switch(jp.getCurrentToken()) {
+        case START_OBJECT:
+            writeStartObject();
+            break;
+        case END_OBJECT:
+            writeEndObject();
+            break;
+        case START_ARRAY:
+            writeStartArray();
+            break;
+        case END_ARRAY:
+            writeEndArray();
+            break;
+        case FIELD_NAME:
+            writeFieldName(jp.getCurrentName());
+            break;
+        case VALUE_STRING:
+            writeString(jp.getTextCharacters(), jp.getTextOffset(), jp.getTextLength());
+            break;
+        case VALUE_NUMBER_INT:
+            writeNumber(jp.getIntValue());
+            break;
+        case VALUE_NUMBER_FLOAT:
+            writeNumber(jp.getDoubleValue());
+            break;
+        case VALUE_TRUE:
+            writeBoolean(true);
+            break;
+        case VALUE_FALSE:
+            writeBoolean(false);
+            break;
+        case VALUE_NULL:
+            writeNull();
+            break;
+        case VALUE_EMBEDDED_OBJECT:
+            writeObject(jp.getEmbeddedObject());
+            break;
+        default:
+            throw new RuntimeException("Internal error: should never end up through this code path");
+        }
+    }
+
+    @Override
+    public void copyCurrentStructure(JsonParser jp) throws IOException, JsonProcessingException {
+        JsonToken t = jp.getCurrentToken();
+
+        // Let's handle field-name separately first
+        if (t == JsonToken.FIELD_NAME) {
+            writeFieldName(jp.getCurrentName());
+            t = jp.nextToken();
+            // fall-through to copy the associated value
+        }
+
+        switch (t) {
+        case START_ARRAY:
+            writeStartArray();
+            while (jp.nextToken() != JsonToken.END_ARRAY) {
+                copyCurrentStructure(jp);
+            }
+            writeEndArray();
+            break;
+        case START_OBJECT:
+            writeStartObject();
+            while (jp.nextToken() != JsonToken.END_OBJECT) {
+                copyCurrentStructure(jp);
+            }
+            writeEndObject();
+            break;
+        default: // others are simple:
+            copyCurrentEvent(jp);
+        }
+    }
+    
+    /*
      *****************************************************************
      * Internal methods
      *****************************************************************
       */
-
-    protected final void _writeNull() {
-        _append(JsonToken.VALUE_NULL);
-    }
-    
     protected final void _append(JsonToken type) {
         Segment next = _last.append(_appendOffset, type);
         if (next == null) {
@@ -360,13 +590,6 @@ public class TokenBuffer
             // If we are closed, nothing more to do 
             if (_closed || (_segment == null)) return null;
 
-            // Otherwise, may need to "post-process" last returned token
-            if (_currToken == JsonToken.START_OBJECT) {
-                _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
-            } else if (_currToken == JsonToken.START_ARRAY) {
-                _parsingContext = _parsingContext.createChildArrayContext(-1, -1);
-            }
-
             // Ok, then: any more tokens?
             if (++_segmentPtr >= Segment.TOKENS_PER_SEGMENT) {
                 _segment = _segment.next();
@@ -375,14 +598,21 @@ public class TokenBuffer
                 }
             }
             _currToken = _segment.type(_segmentPtr);
-
             // Field name? Need to update context
             if (_currToken == JsonToken.FIELD_NAME) {
                 _parsingContext.setCurrentName((String) _currentObject());
+            } else if (_currToken == JsonToken.START_OBJECT) {
+                _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
+            } else if (_currToken == JsonToken.START_ARRAY) {
+                _parsingContext = _parsingContext.createChildArrayContext(-1, -1);
             } else if (_currToken == JsonToken.END_OBJECT
                     || _currToken == JsonToken.END_ARRAY) {
                 // Closing JSON Object/Array? Close matching context
                 _parsingContext = _parsingContext.getParent();
+                // but allow unbalanced cases too (more close markers)
+                if (_parsingContext == null) {
+                    _parsingContext = JsonReadContext.createRootContext(-1, -1);
+                }
             }
             return _currToken;
         }
@@ -561,11 +791,19 @@ public class TokenBuffer
         
         /*
         ////////////////////////////////////////////////////
-        // Public API, access to token information, binary
+        // Public API, access to token information, other
         ////////////////////////////////////////////////////
          */
 
         private final static int INT_SPACE = 0x0020;
+
+        public Object getEmbeddedObject()
+        {
+            if (_currToken == JsonToken.VALUE_EMBEDDED_OBJECT) {
+                return _currentObject();
+            }
+            return null;
+        }
 
         @Override
         public byte[] getBinaryValue(Base64Variant b64variant) throws IOException, JsonParseException
@@ -580,7 +818,7 @@ public class TokenBuffer
                 // fall through to error case
             }
             if (_currToken != JsonToken.VALUE_STRING) {
-                _reportError("Current token ("+_currToken+") not VALUE_STRING (or VALUE_EMBEDDED_OBJECT with byte[]), can not access as binary");
+                throw _constructError("Current token ("+_currToken+") not VALUE_STRING (or VALUE_EMBEDDED_OBJECT with byte[]), can not access as binary");
             }
             final String str = getText();
             if (str == null) {
@@ -685,8 +923,7 @@ public class TokenBuffer
         protected void _checkIsNumber() throws JsonParseException
         {
             if (_currToken == null || !_currToken.isNumeric()) {
-               throw new JsonParseException("Current token ("+_currToken+") not numeric, can not use numeric value accessors",
-                       getCurrentLocation());
+                throw _constructError("Current token ("+_currToken+") not numeric, can not use numeric value accessors");
             }
         }
 
@@ -711,15 +948,11 @@ public class TokenBuffer
             if (msg != null) {
                 base = base + ": " + msg;
             }
-            throw new JsonParseException(base, getCurrentLocation());
+            throw _constructError(base);
         }
 
         protected void _reportBase64EOF() throws JsonParseException {
-            _reportError("Unexpected end-of-String in base64 content");
-        }
-
-        protected void _reportError(String msg) throws JsonParseException {
-            throw new JsonParseException(msg, getCurrentLocation());
+            throw _constructError("Unexpected end-of-String in base64 content");
         }
     }
     
@@ -832,5 +1065,4 @@ public class TokenBuffer
             _tokenTypes |= typeCode;
         }
     }
-
 }
