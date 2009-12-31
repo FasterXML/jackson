@@ -142,4 +142,24 @@ public class TestTokenBuffer extends main.BaseTest
         assertNull(jp.nextToken());
         jp.close();
     }
+
+    /**
+     * Verify handling of that "standard" test document (from JSON
+     * specification)
+     */
+    public void testWithJSONSampleDoc() throws Exception
+    {
+        // First, copy events from known good source (StringReader)
+        JsonParser jp = createParserUsingReader(SAMPLE_DOC_JSON_SPEC);
+        TokenBuffer tb = new TokenBuffer(null);
+        while (jp.nextToken() != null) {
+            tb.copyCurrentEvent(jp);
+        }
+
+        // And then request verification; first structure only:
+        verifyJsonSpecSampleDoc(tb.asParser(), false);
+
+        // then content check too:
+        verifyJsonSpecSampleDoc(tb.asParser(), true);
+    }
 }

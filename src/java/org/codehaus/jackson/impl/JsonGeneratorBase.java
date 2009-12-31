@@ -2,6 +2,7 @@ package org.codehaus.jackson.impl;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
 
@@ -269,10 +270,11 @@ public abstract class JsonGeneratorBase
              *   contained POJO. If we did call it it would advance state
              *   causing exception later on
              */
-            if (_objectCodec == null) {
-                throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize regular Java objects");
+            if (_objectCodec != null) {
+                _objectCodec.writeValue(this, value);
+                return;
             }
-            _objectCodec.writeValue(this, value);
+            _writeSimpleObject(value);
         }
     }
 
@@ -409,4 +411,48 @@ public abstract class JsonGeneratorBase
     {
         throw new RuntimeException("Internal error: should never end up through this code path");
     }
+
+    /**
+     * Helper method to try to call appropriate write method for given
+     * untyped Object. At this point, no structural conversions should be done,
+     * only simple basic types are to be coerced as necessary.
+     *
+     * @param value Non-null value to write
+     */
+    protected void _writeSimpleObject(Object value) 
+        throws IOException, JsonGenerationException
+    {
+        /* 31-Dec-2009, tatu: Actually, we could just handle some basic
+         *    types even without codec. This can improve interoperability,
+         *    and specifically help with TokenBuffer.
+         */
+        if (value instanceof String) {
+            writeString((String) value);
+            return;
+        }
+        if (value instanceof Number) {
+            Number n = (Number) value;
+            if (n instanceof Integer) {
+                writeNumber(n.intValue());
+                return;
+            } else if (n instanceof Long) {
+                writeNumber(n.longValue());
+                return;
+            } else if (n instanceof Double) {
+                writeNumber(n.doubleValue());
+                return;
+            } else if (n instanceof BigInteger) {
+                writeNumber((BigInteger) n);
+                return;
+            } else if (n instanceof BigDecimal) {
+                writeNumber((BigDecimal) n);
+                return;
+            }
+        } else if (value instanceof byte[]) {
+            writeBinary((byte[]) value);
+        } else if (value instanceof Boolean) {
+            writeBoolean(((Boolean) value).booleanValue());
+        }
+        throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize regular Java objects (except for simple wrappers)");
+    }    
 }

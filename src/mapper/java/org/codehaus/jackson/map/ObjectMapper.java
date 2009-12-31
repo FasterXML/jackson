@@ -21,6 +21,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
+import org.codehaus.jackson.util.TokenBuffer;
 
 /**
  * This mapper (or, data binder, or codec) provides functionality for
@@ -1136,14 +1137,18 @@ public class ObjectMapper
     {
         // sanity check for null first:
         if (fromValue == null) return null;
+        /* Then use TokenBuffer, which is a JsonGenerator:
+         * (see [JACKSON-175])
+         */
+        TokenBuffer buf = new TokenBuffer(this);
         try {
-            /* TODO: [JACKSON-175], use an intermediate token buffer
-             */
-            ByteArrayOutputStream bos = new ByteArrayOutputStream(200);
-            writeValue(bos, fromValue);
-            byte[] data = bos.toByteArray();
-            return readValue(data, 0, data.length, toValueType);
-        } catch (IOException e) {
+            writeValue(buf, fromValue);
+            // and provide as with a JsonParser for contents as well!
+            JsonParser jp = buf.asParser();
+            Object result = readValue(jp, toValueType);
+            jp.close();
+            return result;
+        } catch (IOException e) { // should not occur, no real i/o...
             throw new IllegalArgumentException(e.getMessage(), e);
         }
     }

@@ -89,12 +89,23 @@ public abstract class StdDeserializer<T>
             return jp.getIntValue();
         }
         if (t == JsonToken.VALUE_STRING) { // let's do implicit re-parse
-            // !!! 05-Jan-2009, tatu: Should we try to limit value space, JDK is too lenient?
+            /* 31-Dec-2009, tatus: Should improve handling of overflow
+             *   values... but this'll have to do for now
+             */
             String text = jp.getText().trim();
             try {
-                return Integer.parseInt(text);
+                if (text.length() > 9) {
+                    long l = Long.parseLong(text);
+                    if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+                        throw ctxt.weirdStringException(_valueClass,
+                            "Overflow: numeric value ("+text+") out of range of int ("+Integer.MIN_VALUE+" - "+Integer.MAX_VALUE+")");
+                    }
+                    return (int) l;
+                } else {
+                    return Integer.parseInt(text);
+                }
             } catch (IllegalArgumentException iae) {
-                throw ctxt.weirdStringException(_valueClass, "not a valid representation of integral number value");
+                throw ctxt.weirdStringException(_valueClass, "not a valid int value");
             }
         }
         if (t == JsonToken.VALUE_NULL) {

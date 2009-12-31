@@ -592,6 +592,7 @@ public class TokenBuffer
 
             // Ok, then: any more tokens?
             if (++_segmentPtr >= Segment.TOKENS_PER_SEGMENT) {
+                _segmentPtr = 0;
                 _segment = _segment.next();
                 if (_segment == null) {
                     return null;
