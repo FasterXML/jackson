@@ -89,6 +89,9 @@ class StdDeserializers
 
         // to deserialize Throwable, need stack trace elements:
         add(new StdDeserializer.StackTraceElementDeserializer());
+
+        // Plus TokenBuffer is a core type since 1.5
+        add(new StdDeserializer.TokenBufferDeserializer());
     }
 
     /**

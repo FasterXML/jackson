@@ -807,6 +807,8 @@ public class BasicSerializerFactory
      * and since it is part of core package, it can not implement
      * {@link JsonSerializable} (which is only included in the mapper
      * package)
+     *
+     * @since 1.5
      */
     public final static class TokenBufferSerializer
         extends SerializerBase<TokenBuffer>

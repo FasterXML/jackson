@@ -11,6 +11,7 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.util.TokenBuffer;
 
 /**
  * Base class for common deserializers. Contains shared
@@ -776,6 +777,28 @@ public abstract class StdDeserializer<T>
                 return new StackTraceElement(className, methodName, fileName, lineNumber);
             }
             throw ctxt.mappingException(_valueClass);
+        }
+    }
+
+    /**
+     * We also want to directly support deserialization of
+     * {@link TokenBuffer}.
+     *
+     * @since 1.5
+     */
+    public static class TokenBufferDeserializer
+        extends StdDeserializer<TokenBuffer>
+    {
+        public TokenBufferDeserializer() { super(TokenBuffer.class); }
+
+        @Override
+        public TokenBuffer deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            TokenBuffer tb = new TokenBuffer(jp.getCodec());
+            // quite simple, given that TokenBuffer is a JsonGenerator:
+            tb.copyCurrentStructure(jp);
+            return tb;
         }
     }
 }
