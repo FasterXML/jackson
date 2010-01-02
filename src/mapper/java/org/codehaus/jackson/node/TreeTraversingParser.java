@@ -64,6 +64,7 @@ public class TreeTraversingParser extends JsonParser
 
     public TreeTraversingParser(JsonNode n, ObjectCodec codec)
     {
+        _objectCodec = codec;
         if (n.isArray()) {
             _nextToken = JsonToken.START_ARRAY;
             _nodeCursor = new NodeCursor.Array(n, null);
