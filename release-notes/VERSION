@@ -17,6 +17,10 @@ Description:
 
   Other:
 
+  * Moved following serializers out of BasicSerializerFactory
+    JdkSerializers: ClassSerializer (into JdkSerializers),
+    NullSerializer (separate class)
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

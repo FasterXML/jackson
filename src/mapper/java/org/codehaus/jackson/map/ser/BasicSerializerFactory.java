@@ -15,6 +15,7 @@ import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.Provider;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSerializableSchema;
+import org.codehaus.jackson.util.TokenBuffer;
 
 /**
  * Factory class that can provide serializers for standard JDK classes,
@@ -96,9 +97,6 @@ public class BasicSerializerFactory
         // note: timestamps are very similar to java.util.Date, thus serialized as such
         _concrete.put(java.sql.Timestamp.class.getName(), UtilDateSerializer.instance);
 
-        // Class.class
-        _concrete.put(Class.class.getName(), new ClassSerializer());
-
         // Arrays of various types (including common object types)
         _concrete.put(boolean[].class.getName(), new ArraySerializers.BooleanArraySerializer());
         _concrete.put(byte[].class.getName(), new ArraySerializers.ByteArraySerializer());
@@ -133,13 +131,14 @@ public class BasicSerializerFactory
         _concrete.put(LinkedHashSet.class.getName(), collectionS);
         _concrete.put(TreeSet.class.getName(), collectionS);
 
-        // Finally, couple of oddball types. Not sure if these are really needed but...
-        _concrete.put(Void.TYPE.getName(), NullSerializer.instance);
-
-        // And finally other standard JDK types
+        // And then other standard non-structured JDK types
         for (Map.Entry<Class<?>,JsonSerializer<?>> en : new JdkSerializers().provide()) {
             _concrete.put(en.getKey().getName(), en.getValue());
         }
+
+        // And finally, one specific Jackson type
+        // (Q: can this ever be sub-classes?)
+        _concrete.put(TokenBuffer.class.getName(), new TokenBufferSerializer());
     }
 
     static {
@@ -501,28 +500,6 @@ public class BasicSerializerFactory
         }
     }
 
-    /**
-     * Also: default bean access will not do much good with Class.class. But
-     * we can just serialize the class name and that should be enough.
-     */
-    public final static class ClassSerializer
-        extends SerializerBase<Class<?>>
-    {
-        @Override
-        public void serialize(Class<?> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeString(value.getName());
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
-        {
-            return createSchemaNode("string", true);
-        }
-    }
-
     /*
     ////////////////////////////////////////////////////////////
     // Concrete serializers, numerics
@@ -662,10 +639,9 @@ public class BasicSerializerFactory
         }
     }
 
-
     /*
     ////////////////////////////////////////////////////////////
-    // Other odd-ball special-purpose serializers
+    // Serializers for JDK date datatypes
     ////////////////////////////////////////////////////////////
      */
 
@@ -759,33 +735,18 @@ public class BasicSerializerFactory
         }
     }
 
-    /**
-     * To allow for special handling for null values (in Objects, Arrays,
-     * root-level), handling for nulls is done via serializers too.
-     * This is the default serializer for nulls.
+    /*
+    ////////////////////////////////////////////////////////////
+    // Other serializers
+    ////////////////////////////////////////////////////////////
      */
-    public final static class NullSerializer
-        extends SerializerBase<Object>
-    {
-        public final static NullSerializer instance = new NullSerializer();
 
-        private NullSerializer() { }
-
-        @Override
-            public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeNull();
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
-        {
-            return createSchemaNode("null");
-        }
-    }
-
+    /**
+     * Generic handler for types that implement {@link JsonSerializable}.
+     *<p>
+     * Note: given that this is used for anything that implements
+     * interface, can not be checked for direct class equivalence.
+     */
     public final static class SerializableSerializer
         extends SerializerBase<JsonSerializable>
     {
@@ -838,6 +799,33 @@ public class BasicSerializerFactory
             }
             objectNode.put("optional", true);
             return objectNode;
+        }
+    }
+
+    /**
+     * We also want to directly support serialization of {@link TokenBuffer};
+     * and since it is part of core package, it can not implement
+     * {@link JsonSerializable} (which is only included in the mapper
+     * package)
+     */
+    public final static class TokenBufferSerializer
+        extends SerializerBase<TokenBuffer>
+    {
+        @Override
+        public void serialize(TokenBuffer value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            value.serialize(jgen);
+        }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+        {
+            /* 01-Jan-2010, tatu: Not 100% sure what we should say here:
+             *   type is basically not known. This seems closest
+             *   approximation
+             */
+            return createSchemaNode("any", true);
         }
     }
 }

@@ -336,10 +336,28 @@ public abstract class JsonGeneratorBase
             writeString(jp.getTextCharacters(), jp.getTextOffset(), jp.getTextLength());
             break;
         case VALUE_NUMBER_INT:
-            writeNumber(jp.getIntValue());
+            switch (jp.getNumberType()) {
+            case INT:
+                writeNumber(jp.getIntValue());
+                break;
+            case BIG_INTEGER:
+                writeNumber(jp.getBigIntegerValue());
+                break;
+            default:
+                writeNumber(jp.getLongValue());
+            }
             break;
         case VALUE_NUMBER_FLOAT:
-            writeNumber(jp.getDoubleValue());
+            switch (jp.getNumberType()) {
+            case BIG_DECIMAL:
+                writeNumber(jp.getDecimalValue());
+                break;
+            case FLOAT:
+                writeNumber(jp.getFloatValue());
+                break;
+            default:
+                writeNumber(jp.getDoubleValue());
+            }
             break;
         case VALUE_TRUE:
             writeBoolean(true);

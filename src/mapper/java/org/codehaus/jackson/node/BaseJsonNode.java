@@ -70,7 +70,7 @@ public abstract class BaseJsonNode
 
     /**
      *<p>
-     * Note: this method should probably be deprecated, given that we
+     * Note: this method is deprecated, given that we
      * want to use the standard serialization interface.
      */
     @Override

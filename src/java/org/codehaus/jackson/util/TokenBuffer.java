@@ -136,6 +136,134 @@ public class TokenBuffer
 
     /*
     *****************************************************************
+    * Other custom methods not needed for implementing interfaces
+    *****************************************************************
+     */
+
+    /**
+     * Helper method that will write all contents of this buffer
+     * using given {@link JsonGenerator}.
+     *<p>
+     * Note: this method would be enough to implement
+     * <code>JsonSerializer</code>  for <code>TokenBuffer</code> type;
+     * but we can not have upwards
+     * references (from core to mapper package); and as such we also
+     * can not take second argument.
+     */
+    public void serialize(JsonGenerator jgen)
+        throws IOException, JsonGenerationException
+    {
+        Segment segment = _first;
+        int ptr = -1;
+
+        while (true) {
+            if (++ptr >= Segment.TOKENS_PER_SEGMENT) {
+                ptr = 0;
+                segment = segment.next();
+                if (segment == null) break;
+            }
+            JsonToken t = segment.type(ptr);
+            if (t == null) break;
+
+            // Note: copied from 'copyCurrentEvent'...
+            switch (t) {
+            case START_OBJECT:
+                jgen.writeStartObject();
+                break;
+            case END_OBJECT:
+                jgen.writeEndObject();
+                break;
+            case START_ARRAY:
+                jgen.writeStartArray();
+                break;
+            case END_ARRAY:
+                jgen.writeEndArray();
+                break;
+            case FIELD_NAME:
+                jgen.writeFieldName((String) segment.get(ptr));
+                break;
+            case VALUE_STRING:
+                jgen.writeString((String) segment.get(ptr));
+                break;
+            case VALUE_NUMBER_INT:
+                {
+                    Number n = (Number) segment.get(ptr);
+                    if (n instanceof BigInteger) {
+                        jgen.writeNumber((BigInteger) n);
+                    } else if (n instanceof Long) {
+                        jgen.writeNumber(n.longValue());
+                    } else {
+                        jgen.writeNumber(n.intValue());
+                    }
+                }
+                break;
+            case VALUE_NUMBER_FLOAT:
+                {
+                    Number n = (Number) segment.get(ptr);
+                    if (n instanceof BigDecimal) {
+                        jgen.writeNumber((BigDecimal) n);
+                    } else if (n instanceof Float) {
+                        jgen.writeNumber(n.floatValue());
+                    } else {
+                        jgen.writeNumber(n.doubleValue());
+                    }
+                }
+                break;
+            case VALUE_TRUE:
+                jgen.writeBoolean(true);
+                break;
+            case VALUE_FALSE:
+                jgen.writeBoolean(false);
+                break;
+            case VALUE_NULL:
+                jgen.writeNull();
+                break;
+            case VALUE_EMBEDDED_OBJECT:
+                jgen.writeObject(segment.get(ptr));
+                break;
+            default:
+                throw new RuntimeException("Internal error: should never end up through this code path");
+            }
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        // Let's print up to 100 first tokens...
+        final int MAX_COUNT = 100;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("[TokenBuffer: ");
+        JsonParser jp = asParser();
+        int count = 0;
+
+        while (true) {
+            JsonToken t;
+            try {
+                t = jp.nextToken();
+            } catch (IOException ioe) { // should never occur
+                throw new IllegalStateException(ioe);
+            }
+            if (t == null) break;
+            if (count < MAX_COUNT) {
+                if (count > 0) {
+                    sb.append(", ");
+                }
+                sb.append(t.toString());
+            }
+            ++count;
+        }
+
+        if (count >= MAX_COUNT) {
+            sb.append(" ... (truncated ").append(count-MAX_COUNT).append(" entries)");
+        }
+        sb.append(']');
+        return sb.toString();
+    }
+        
+    /*
+    *****************************************************************
     * JsonGenerator implementation: configuration
     *****************************************************************
      */
@@ -406,8 +534,9 @@ public class TokenBuffer
       */
 
     @Override
-    public void copyCurrentEvent(JsonParser jp) throws IOException, JsonProcessingException {
-        switch(jp.getCurrentToken()) {
+    public void copyCurrentEvent(JsonParser jp) throws IOException, JsonProcessingException
+    {
+        switch (jp.getCurrentToken()) {
         case START_OBJECT:
             writeStartObject();
             break;
@@ -427,10 +556,28 @@ public class TokenBuffer
             writeString(jp.getTextCharacters(), jp.getTextOffset(), jp.getTextLength());
             break;
         case VALUE_NUMBER_INT:
-            writeNumber(jp.getIntValue());
+            switch (jp.getNumberType()) {
+            case INT:
+                writeNumber(jp.getIntValue());
+                break;
+            case BIG_INTEGER:
+                writeNumber(jp.getBigIntegerValue());
+                break;
+            default:
+                writeNumber(jp.getLongValue());
+            }
             break;
         case VALUE_NUMBER_FLOAT:
-            writeNumber(jp.getDoubleValue());
+            switch (jp.getNumberType()) {
+            case BIG_DECIMAL:
+                writeNumber(jp.getDecimalValue());
+                break;
+            case FLOAT:
+                writeNumber(jp.getFloatValue());
+                break;
+            default:
+                writeNumber(jp.getDoubleValue());
+            }
             break;
         case VALUE_TRUE:
             writeBoolean(true);
@@ -587,7 +734,7 @@ public class TokenBuffer
         @Override
         public JsonToken nextToken() throws IOException, JsonParseException
         {
-            // If we are closed, nothing more to do 
+            // If we are closed, nothing more to do
             if (_closed || (_segment == null)) return null;
 
             // Ok, then: any more tokens?
