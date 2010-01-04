@@ -223,8 +223,10 @@ public class ObjectMapper
         /* 02-Mar-2009, tatu: Important: we MUST default to using
          *   the mapping factory, otherwise tree serialization will
          *   have problems with POJONodes.
+         * 03-Jan-2010, tatu: and obviously we also must pass 'this',
+         *    to create actual linking.
          */
-        _jsonFactory = (jf == null) ? new MappingJsonFactory() : jf;
+        _jsonFactory = (jf == null) ? new MappingJsonFactory(this) : jf;
         _serializationConfig = (sconfig == null) ? new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR) : sconfig;
         _deserializationConfig = (dconfig == null) ? new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR) : dconfig;
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
