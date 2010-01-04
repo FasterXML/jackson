@@ -25,7 +25,7 @@ public class BeanSerializer
     extends SerializerBase<Object>
     implements ResolvableSerializer, SchemaAware
 {
-    final static BeanPropertyWriter[] NO_PROPS = new BeanPropertyWriter[0];
+    final protected static BeanPropertyWriter[] NO_PROPS = new BeanPropertyWriter[0];
 
     /**
      * Value type of this serializer,
@@ -87,6 +87,8 @@ public class BeanSerializer
     /**
      * Method used for constructing a filtered serializer instance, using this
      * serializer as the base.
+     *
+     * @since 1.4
      */
     public BeanSerializer withFiltered(BeanPropertyWriter[] filtered) {
         // if no filters, no need to construct new instance...
@@ -101,7 +103,12 @@ public class BeanSerializer
     * JsonSerializer implementation
     ******************************************************************
      */
-    
+
+    /**
+     * Main serialization method that will delegate actual output to
+     * configured
+     * {@link BeanPropertyWriter} instances.
+     */
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
@@ -210,11 +217,4 @@ public class BeanSerializer
     @Override public String toString() {
         return "BeanSerializer for "+_class.getName();
     }
-
-    /*
-    ***************************************************************8
-    * Internal methods
-    ***************************************************************8
-     */
-
 }

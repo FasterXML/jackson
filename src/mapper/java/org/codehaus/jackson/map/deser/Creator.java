@@ -14,7 +14,7 @@ import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Container for different kinds of Creators; objects capable of instantiating
- * (and possibly initializing) POJOs.
+ * (and possibly partially or completely initializing) POJOs.
  */
 abstract class Creator
 {

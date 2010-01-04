@@ -326,7 +326,7 @@ public class BeanDeserializer
 	    if (_delegatingCreator != null) {
 		return _delegatingCreator.deserialize(jp, ctxt);
 	    }
-            throw JsonMappingException.from(jp, "No default constructor found for type "+_beanType+": can not instantiate from Json object");
+            throw JsonMappingException.from(jp, "No default constructor found for type "+_beanType+": can not instantiate from JSON object");
         }
 
         Object bean;
