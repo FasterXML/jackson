@@ -82,6 +82,7 @@ public class TestJacksonTypes
 
         // and ditto for last one
         buf = m.readValue(jp, TokenBuffer.class);
+        @SuppressWarnings("unchecked")
         Map map = m.readValue(buf.asParser(), Map.class);
         assertEquals(1, map.size());
         assertEquals(Boolean.TRUE, map.get("a"));

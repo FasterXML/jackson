@@ -290,7 +290,12 @@ public abstract class StdDeserializer<T>
      * Bean property. Method can deal with the problem as it sees fit (ignore,
      * throw exception); but if it does return, it has to skip the matching
      * Json content parser has.
+     *<p>
+     * NOTE: method signature was changed in version 1.5; explicit JsonParser
+     * <b>must</b> be passed since it may be something other than what
+     * context has. Prior versions did not include the first parameter.
      *
+     * @param jp Parser that points to value of the unknown property
      * @param ctxt Context for deserialization; allows access to the parser,
      *    error reporting functionality
      * @param instanceOrClass Instance that is being populated by this
@@ -298,18 +303,15 @@ public abstract class StdDeserializer<T>
      *   If null, will assume type is what {@link #getValueClass} returns.
      * @param propName Name of the property that can not be mapped
      */
-    protected void handleUnknownProperty(DeserializationContext ctxt, Object instanceOrClass, String propName)
+    protected void handleUnknownProperty(JsonParser jp, DeserializationContext ctxt, Object instanceOrClass, String propName)
         throws IOException, JsonProcessingException
     {
-        LinkedNode<DeserializationProblemHandler> h = ctxt.getConfig().getProblemHandlers();
         if (instanceOrClass == null) {
             instanceOrClass = getValueClass();
         }
-        while (h != null) {
-            // Can bail out if it's handled
-            if (h.value().handleUnknownProperty(ctxt, this, instanceOrClass, propName)) {
-                return;
-            }
+        // Maybe we have configured handler(s) to take care of it?
+        if (ctxt.handleUnknownProperty(jp, this, instanceOrClass, propName)) {
+            return;
         }
         // Nope, not handled. Potentially that's a problem...
         reportUnknownProperty(ctxt, instanceOrClass, propName);
@@ -317,7 +319,7 @@ public abstract class StdDeserializer<T>
         /* If we get this far, need to skip now; we point to first token of
          * value (START_xxx for structured, or the value token for others)
          */
-        ctxt.getParser().skipChildren();
+        jp.skipChildren();
     }
         
     protected void reportUnknownProperty(DeserializationContext ctxt,
@@ -771,7 +773,7 @@ public abstract class StdDeserializer<T>
                     } else if ("nativeMethod".equals(propName)) {
                         // no setter, not passed via constructor: ignore
                     } else {
-                        handleUnknownProperty(ctxt, _valueClass, propName);
+                        handleUnknownProperty(jp, ctxt, _valueClass, propName);
                     }
                 }
                 return new StackTraceElement(className, methodName, fileName, lineNumber);

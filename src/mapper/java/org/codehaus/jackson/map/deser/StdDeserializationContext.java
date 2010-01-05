@@ -1,12 +1,15 @@
 package org.codehaus.jackson.map.deser;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
 
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
+import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 
 /**
@@ -24,8 +27,18 @@ public class StdDeserializationContext
 
     // // // Configuration
 
-    protected final JsonParser _parser;
+    /**
+     * Currently active parser used for deserialization.
+     * May be different from the outermost parser
+     * when content is buffered.
+     */
+    protected JsonParser _parser;
 
+    /**
+     * @since 1.5
+     */
+    protected final DeserializerProvider _deserProvider;
+    
     // // // Helper object recycling
 
     protected ArrayBuilders _arrayBuilders;
@@ -36,10 +49,12 @@ public class StdDeserializationContext
 
     // // // Construction
 
-    public StdDeserializationContext(DeserializationConfig config, JsonParser jp)
+    public StdDeserializationContext(DeserializationConfig config, JsonParser jp,
+            DeserializerProvider prov)
     {
     	super(config);
         _parser = jp;
+        _deserProvider = prov;
     }
 
     /*
@@ -48,6 +63,19 @@ public class StdDeserializationContext
     ///////////////////////////////////////////////////
      */
 
+    @Override
+    public DeserializerProvider getDeserializerProvider() {
+        return _deserProvider;
+    }
+
+    /**
+     * Method for accessing the currently active parser.
+     * May be different from the outermost parser
+     * when content is buffered.
+     *<p>
+     * Use of this method is discouraged: if code has direct access
+     * to the active parser, that should be used instead.
+     */
     @Override
     public JsonParser getParser() { return _parser; }
 
@@ -92,7 +120,7 @@ public class StdDeserializationContext
 
     /*
     //////////////////////////////////////////////////////////////
-    // Parsing methods that may use reusable/-cyclable objects
+    // Parsing methods that may use reusable/recyclable objects
     //////////////////////////////////////////////////////////////
     */
 
@@ -117,14 +145,45 @@ public class StdDeserializationContext
         c.setTime(d);
         return c;
     }
-
     /*
     ///////////////////////////////////////////////////
-    // Public API, problem handling
+    // Public API, problem handling, reporting
     ///////////////////////////////////////////////////
      */
 
+    /**
+     * Method deserializers can call to inform configured {@link DeserializationProblemHandler}s
+     * of an unrecognized property.
+     * 
+     * @since 1.5
+     */
     @Override
+    public boolean handleUnknownProperty(JsonParser jp, JsonDeserializer<?> deser, Object instanceOrClass, String propName)
+        throws IOException, JsonProcessingException
+    {
+        LinkedNode<DeserializationProblemHandler> h = _config.getProblemHandlers();
+        if (h != null) {
+            /* 04-Jan-2009, tatu: Ugh. Need to mess with currently active parser
+             *   since parser is not explicitly passed to handler... that was a mistake
+             */
+            JsonParser oldParser = _parser;
+            _parser = jp;
+            try {
+                while (h != null) {
+                    // Can bail out if it's handled
+                    if (h.value().handleUnknownProperty(this, deser, instanceOrClass, propName)) {
+                        return true;
+                    }
+                    h = h.next();
+                }
+            } finally {
+                _parser = oldParser;
+            }
+        }
+        return false;
+    }
+
+        @Override
     public JsonMappingException mappingException(Class<?> targetClass)
     {
         String clsName = _calcName(targetClass);

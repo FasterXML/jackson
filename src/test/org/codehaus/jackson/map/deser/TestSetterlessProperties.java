@@ -95,7 +95,7 @@ public class TestSetterlessProperties
         // so this should fail now without a setter
         try {
             m.readValue
-                ("{\"values\":{ \"a\",3 }}", MapBean.class);
+                ("{\"values\":{ \"a\":3 }}", MapBean.class);
             fail("Expected an exception");
         } catch (JsonMappingException e) {
             verifyException(e, "Unrecognized field");

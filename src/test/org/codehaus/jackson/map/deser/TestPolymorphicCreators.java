@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map.deser;
 
-import java.util.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
@@ -28,6 +27,7 @@ public class TestPolymorphicCreators
 	 * Creator method that can instantiate instances of
 	 * appropriate polymoprphic type
 	 */
+        @JsonCreator
 	public static Animal create(@JsonProperty("type") String type)
 	{
 	    if ("dog".equals(type)) {

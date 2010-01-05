@@ -1361,6 +1361,7 @@ public class ObjectMapper
 
     protected DeserializationContext _createDeserializationContext(JsonParser jp, DeserializationConfig cfg)
     {
-        return new StdDeserializationContext(cfg, jp);
+        // 04-Jan-2010, tatu: we do actually need the provider too... (for polymorphic deser)
+        return new StdDeserializationContext(cfg, jp, _deserializerProvider);
     }
 }

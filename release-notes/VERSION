@@ -20,6 +20,9 @@ Description:
   * Moved following serializers out of BasicSerializerFactory
     JdkSerializers: ClassSerializer (into JdkSerializers),
     NullSerializer (separate class)
+  * Add one parameter to StdDeserializer.handleUnknownProperty:
+    addition was required for handling polymorphic cases that
+    can use nested JsonParser instances.
 
 ------------------------------------------------------------------------
 == History: ==

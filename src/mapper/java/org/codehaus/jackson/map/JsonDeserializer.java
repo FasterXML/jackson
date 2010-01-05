@@ -41,10 +41,11 @@ public abstract class JsonDeserializer<T>
     /**
      * Alternate deserialization method (compared to the most commonly
      * used, {@link #deserialize(JsonParser, DeserializationContext)}),
-     * which takes in initialized value instance, which is to be
-     * configured and/or populated by deserializer. Method is only
-     * used for subset of all supported types; most commonly just
-     * for Collections and Maps, but potentially also for beans/POJOs.
+     * which takes in initialized value instance, to be
+     * configured and/or populated by deserializer.
+     * Method is not necessarily used for all supported types; most commonly
+     * it is used
+     * for Collections and Maps.
      *<p>
      * Default implementation just throws
      * {@link UnsupportedOperationException}, to indicate that types

@@ -89,7 +89,7 @@ public class ThrowableDeserializer
                 continue;
             }
             // Unknown: let's call handler method
-            handleUnknownProperty(ctxt, throwable, propName);
+            handleUnknownProperty(jp, ctxt, throwable, propName);
         }
         // Sanity check: did we find "message"?
         if (throwable == null) {

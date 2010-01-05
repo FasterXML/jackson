@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -25,8 +26,23 @@ public abstract class DeserializationContext
     //////////////////////////////////////////////////////////////
     */
 
+    /**
+     * Method for accessing configuration setting object for
+     * currently active deserialization.
+     */
     public DeserializationConfig getConfig() { return _config; }
 
+    /**
+     * Returns provider that can be used for dynamically locating
+     * other deserializers during runtime.
+     * 
+     * @since 1.5
+     */
+    public DeserializerProvider getDeserializerProvider() {
+        // will be overridden by impl class
+        return null;
+    }
+    
     /**
      * Convenience method for checking whether specified on/off
      * feature is enabled
@@ -35,6 +51,14 @@ public abstract class DeserializationContext
     	return _config.isEnabled(feat);
     }
 
+    /**
+     * Convenience method for accessing the default Base64 encoding
+     * used for decoding base64 encoded binary content.
+     * Same as calling:
+     *<pre>
+     *  getConfig().getBase64Variant();
+     *</pre>
+     */
     public Base64Variant getBase64Variant() {
         return _config.getBase64Variant();
     }
@@ -86,9 +110,21 @@ public abstract class DeserializationContext
 
     /*
     //////////////////////////////////////////////////////////////
-    // Methods for constructing exceptions
+    // Methods for problem handling, reporting
     //////////////////////////////////////////////////////////////
     */
+
+    /**
+     * Method deserializers can call to inform configured {@link DeserializationProblemHandler}s
+     * of an unrecognized property.
+     * 
+     * @return True if there was a configured problem handler that was able to handle the
+     *   proble
+     * 
+     * @since 1.5
+     */
+    public abstract boolean handleUnknownProperty(JsonParser jp, JsonDeserializer<?> deser, Object instanceOrClass, String propName)
+        throws IOException, JsonProcessingException;
 
     /**
      * Helper method for constructing generic mapping exception for specified type

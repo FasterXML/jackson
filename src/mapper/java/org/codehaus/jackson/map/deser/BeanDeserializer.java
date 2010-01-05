@@ -7,8 +7,11 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
+import org.codehaus.jackson.map.type.ClassKey;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.util.TokenBuffer;
 
 /**
  * Deserializer class that can deserialize instances of
@@ -110,6 +113,18 @@ public class BeanDeserializer
      * If set, will not throw an exception for unknown properties.
      */
     protected boolean _ignoreAllUnknown;
+
+    /*
+    ///////////////////////////////////////////////
+    // Special deserializers needed for sub-types
+    ///////////////////////////////////////////////
+     */
+
+    /**
+     * Lazily constructed map used to contain deserializers needed
+     * for polymorphic subtypes.
+     */
+    protected HashMap<ClassKey, JsonDeserializer<Object>> _subDeserializers;
     
     /*
     /////////////////////////////////////////////////////////
@@ -272,6 +287,9 @@ public class BeanDeserializer
     /////////////////////////////////////////////////////////
      */
 
+    /**
+     * Main deserialization method for bean-based objects (POJOs).
+     */
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
@@ -298,6 +316,34 @@ public class BeanDeserializer
         throw ctxt.mappingException(getBeanClass());
     }
 
+    /**
+     * Secondary deserialization method, called in cases where POJO
+     * instance is created as part of deserialization, potentially
+     * after collecting some or all of the properties to set.
+     */
+    public Object deserialize(JsonParser jp, DeserializationContext ctxt, Object intoValue)
+        throws IOException, JsonProcessingException
+    {
+        while (jp.nextToken() != JsonToken.END_OBJECT) { // otherwise field name
+            String propName = jp.getCurrentName();
+            SettableBeanProperty prop = _props.get(propName);
+
+            if (prop != null) { // normal case
+                prop.deserializeAndSet(jp, ctxt, intoValue);
+                continue;
+            }
+            if (_anySetter != null) {
+                _anySetter.deserializeAndSet(jp, ctxt, intoValue, propName);
+                continue;
+            }
+            // need to process or skip the following token
+            /*JsonToken t =*/ jp.nextToken();
+            // Unknown: let's call handler method
+            handleUnknownProperty(jp, ctxt, intoValue, propName);
+        }
+        return intoValue;
+    }
+        
     /*
     /////////////////////////////////////////////////////////
     // Other public accessors
@@ -354,7 +400,7 @@ public class BeanDeserializer
             // need to process or skip the following token
             /*JsonToken t =*/ jp.nextToken();
             // Unknown: let's call handler method
-            handleUnknownProperty(ctxt, bean, propName);
+            handleUnknownProperty(jp, ctxt, bean, propName);         
         }
         return bean;
     }
@@ -413,19 +459,30 @@ public class BeanDeserializer
         final Creator.PropertyBased creator = _propertyBasedCreator;
         PropertyValueBuffer buffer = creator.startBuilding(jp, ctxt);
 
+        // 04-Jan-2010, tatu: May need to collect unknown properties for polymorphic cases
+        TokenBuffer unknown = null;
+        
         while (true) {
             // end of JSON object?
             if (jp.nextToken() == JsonToken.END_OBJECT) {
                 // if so, can just construct and leave...
-                return creator.build(buffer);
+                Object bean =  creator.build(buffer);
+                if (unknown != null) {
+                    bean = handleUnknownProperties(ctxt, bean, unknown);
+                }
+                return bean;
             }
             String propName = jp.getCurrentName();
             // creator property?
             SettableBeanProperty prop = creator.findCreatorProperty(propName);
             if (prop != null) {
-                // Last property to set?
+                // Last creator property to set?
                 if (buffer.assignParameter(prop.getCreatorIndex(), prop.deserialize(jp, ctxt))) {
-                    return _deserializeProperties(jp, ctxt, creator.build(buffer));
+                    Object bean = creator.build(buffer);
+                    if (unknown != null) {
+                        bean = handleUnknownProperties(ctxt, bean, unknown);
+                    }
+                    return deserialize(jp, ctxt, bean);
                 }
                 continue;
             }
@@ -440,43 +497,12 @@ public class BeanDeserializer
                 buffer.bufferAnyProperty(_anySetter, propName, _anySetter.deserialize(jp, ctxt));
                 continue;
             }
-            // Unknown? This is trickiest to deal with...
-            /* !!! 25-Jul-2009, tatu: This should be improved, once we
-             *   have a better way dealing with unknown properties
-             */
-            // need to process or skip the following token
-            /*JsonToken t =*/ jp.nextToken();
-            // Unknown: let's call handler method
-            handleUnknownProperty(ctxt, getBeanClass(), propName);
-        }
-    }
-
-    /**
-     * Method that will process "extra" properties that follow
-     * Creator-bound properties (if any).
-     */
-    protected Object _deserializeProperties(final JsonParser jp, final DeserializationContext ctxt,
-                                            Object bean)
-        throws IOException, JsonProcessingException
-    {
-        while (jp.nextToken() != JsonToken.END_OBJECT) { // otherwise field name
-            String propName = jp.getCurrentName();
-            SettableBeanProperty prop = _props.get(propName);
-
-            if (prop != null) { // normal case
-                prop.deserializeAndSet(jp, ctxt, bean);
-                continue;
+            // Ok then, let's collect the whole field; name and value
+            if (unknown == null) {
+                unknown = new TokenBuffer(jp.getCodec());
             }
-            if (_anySetter != null) {
-                _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
-                continue;
-            }
-            // need to process or skip the following token
-            /*JsonToken t =*/ jp.nextToken();
-            // Unknown: let's call handler method
-            handleUnknownProperty(ctxt, bean, propName);
+            unknown.copyCurrentStructure(jp);
         }
-        return bean;
     }
 
     /*
@@ -490,18 +516,80 @@ public class BeanDeserializer
      * setter, any-setter or field, and thus can not be assigned.
      */
     @Override
-    protected void handleUnknownProperty(DeserializationContext ctxt, Object beanOrClass, String propName)
+    protected void handleUnknownProperty(JsonParser jp, DeserializationContext ctxt, Object beanOrClass, String propName)
         throws IOException, JsonProcessingException
     {
         // If registered as ignorable, skip
         if (_ignoreAllUnknown ||
             (_ignorableProps != null && _ignorableProps.contains(propName))) {
-            ctxt.getParser().skipChildren();
+            jp.skipChildren();
             return;
         }
         /* Otherwise use default handling (call handler(s); if not
          * handled, throw exception or skip depending on settings)
          */
-        super.handleUnknownProperty(ctxt, beanOrClass, propName);
+        super.handleUnknownProperty(jp, ctxt, beanOrClass, propName);
+    }
+
+    /**
+     * Method called to handle set of one or more unknown properties, stored in their entirety in
+     * given {@link TokenBuffer} (as field entries, name and value).
+     */
+    protected Object handleUnknownProperties(DeserializationContext ctxt, Object bean, TokenBuffer unknownTokens)
+        throws IOException, JsonProcessingException
+    {
+        // First: add closing END_OBJECT as marker
+        unknownTokens.writeEndObject();
+        
+        // First things first: maybe there is a more specific deserializer available?
+        if (bean.getClass() != _beanType.getRawClass()) {
+            JsonDeserializer<Object> subDeser = _findSubclassDeserializer(ctxt, bean, unknownTokens);
+            if (subDeser != null) {
+                return subDeser.deserialize(unknownTokens.asParser(), ctxt, bean);
+            }
+        }
+        // note: buffer does NOT have starting START_OBJECT
+        JsonParser jp = unknownTokens.asParser();
+        while (jp.nextToken() != JsonToken.END_OBJECT) {
+            String propName = jp.getCurrentName();
+            // Unknown: let's call handler method
+            jp.nextToken();
+            handleUnknownProperty(jp, ctxt, bean, propName);
+        }
+        return bean;
+    }
+
+    /**
+     * Helper method called to (try to) locate deserializer for given sub-type of
+     * type that this deserializer handles.
+     */
+    protected JsonDeserializer<Object> _findSubclassDeserializer(DeserializationContext ctxt, Object bean, TokenBuffer unknownTokens)
+        throws IOException, JsonProcessingException
+    {  
+        JsonDeserializer<Object> subDeser;
+
+        // First: maybe we have already created sub-type deserializer?
+        synchronized (this) {
+            subDeser = (_subDeserializers == null) ? null : _subDeserializers.get(new ClassKey(bean.getClass()));
+        }
+        if (subDeser != null) {
+            return subDeser;
+        }
+        // If not, maybe we can locate one. First, need provider
+        DeserializerProvider deserProv = ctxt.getDeserializerProvider();
+        if (deserProv != null) {
+            JavaType type = TypeFactory.type(bean.getClass());
+            subDeser = deserProv.findValueDeserializer(ctxt.getConfig(), type, null, "*this*");
+            // Also, need to cache it
+            if (subDeser != null) {
+                synchronized (this) {
+                    if (_subDeserializers == null) {
+                        _subDeserializers = new HashMap<ClassKey,JsonDeserializer<Object>>();;
+                    }
+                    _subDeserializers.put(new ClassKey(bean.getClass()), subDeser);
+                }            
+            }
+        }
+        return subDeser;
     }
 }
