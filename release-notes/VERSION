@@ -8,6 +8,8 @@ Description:
 
   Improvements:
 
+  * [JACKSON-160] Factory Creator methods now handle polymorphic
+    construction correctly, allowing manual polymorphic deserialization
   * [JACKSON-175] Add "org.codehaus.jackson.util.TokenBuffer", used for
     much more efficient type conversions (and other internal buffering)
   * [JACKSON-220] @JsonSerialize.using() was not working properly for

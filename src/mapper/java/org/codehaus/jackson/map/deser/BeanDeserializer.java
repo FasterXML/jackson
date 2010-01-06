@@ -468,7 +468,12 @@ public class BeanDeserializer
                 // if so, can just construct and leave...
                 Object bean =  creator.build(buffer);
                 if (unknown != null) {
-                    bean = handleUnknownProperties(ctxt, bean, unknown);
+		    // polymorphic?
+		    if (bean.getClass() != _beanType.getRawClass()) {
+			return handlePolymorphic(null, ctxt, bean, unknown);
+		    }
+		    // no, just some extra unknown properties
+                    return handleUnknownProperties(ctxt, bean, unknown);
                 }
                 return bean;
             }
@@ -479,9 +484,14 @@ public class BeanDeserializer
                 // Last creator property to set?
                 if (buffer.assignParameter(prop.getCreatorIndex(), prop.deserialize(jp, ctxt))) {
                     Object bean = creator.build(buffer);
-                    if (unknown != null) {
-                        bean = handleUnknownProperties(ctxt, bean, unknown);
-                    }
+		    //  polymorphic?
+		    if (bean.getClass() != _beanType.getRawClass()) {
+			return handlePolymorphic(jp, ctxt, bean, unknown);
+		    }
+                    if (unknown != null) { // nope, just extra unknown stuff...
+                        return handleUnknownProperties(ctxt, bean, unknown);
+		    }
+		    // or just clean?
                     return deserialize(jp, ctxt, bean);
                 }
                 continue;
@@ -532,8 +542,9 @@ public class BeanDeserializer
     }
 
     /**
-     * Method called to handle set of one or more unknown properties, stored in their entirety in
-     * given {@link TokenBuffer} (as field entries, name and value).
+     * Method called to handle set of one or more unknown properties,
+     * stored in their entirety in given {@link TokenBuffer}
+     * (as field entries, name and value).
      */
     protected Object handleUnknownProperties(DeserializationContext ctxt, Object bean, TokenBuffer unknownTokens)
         throws IOException, JsonProcessingException
@@ -541,22 +552,55 @@ public class BeanDeserializer
         // First: add closing END_OBJECT as marker
         unknownTokens.writeEndObject();
         
-        // First things first: maybe there is a more specific deserializer available?
-        if (bean.getClass() != _beanType.getRawClass()) {
-            JsonDeserializer<Object> subDeser = _findSubclassDeserializer(ctxt, bean, unknownTokens);
-            if (subDeser != null) {
-                return subDeser.deserialize(unknownTokens.asParser(), ctxt, bean);
-            }
-        }
         // note: buffer does NOT have starting START_OBJECT
-        JsonParser jp = unknownTokens.asParser();
-        while (jp.nextToken() != JsonToken.END_OBJECT) {
-            String propName = jp.getCurrentName();
+        JsonParser bufferParser = unknownTokens.asParser();
+        while (bufferParser.nextToken() != JsonToken.END_OBJECT) {
+            String propName = bufferParser.getCurrentName();
             // Unknown: let's call handler method
-            jp.nextToken();
-            handleUnknownProperty(jp, ctxt, bean, propName);
+            bufferParser.nextToken();
+            handleUnknownProperty(bufferParser, ctxt, bean, propName);
         }
         return bean;
+    }
+
+    /**
+     * Method called in cases where we may have polymorphic deserialization
+     * case: that is, type of Creator-constructed bean is not the type
+     * of deserializer itself. It should be a sub-class or implementation
+     * class; either way, we may have more specific deserializer to use
+     * for handling it.
+     *
+     * @param jp (optional) If not null, parser that has more properties to handle
+     *   (in addition to buffered properties); if null, all properties are passed
+     *   in buffer
+     */
+    protected Object handlePolymorphic(JsonParser jp, DeserializationContext ctxt,
+				       Object bean, TokenBuffer unknownTokens)
+        throws IOException, JsonProcessingException
+    {  
+        // First things first: maybe there is a more specific deserializer available?
+	JsonDeserializer<Object> subDeser = _findSubclassDeserializer(ctxt, bean, unknownTokens);
+	if (subDeser != null) {
+	    if (unknownTokens != null) {
+		// need to add END_OBJECT marker first
+		unknownTokens.writeEndObject();
+		bean = subDeser.deserialize(unknownTokens.asParser(), ctxt, bean);
+	    }
+	    // Original parser may also have some leftovers
+	    if (jp != null) {
+		bean = subDeser.deserialize(jp, ctxt, bean);
+	    }
+	    return bean;
+	}
+	// nope; need to use this deserializer. Unknowns we've seen so far?
+	if (unknownTokens != null) {
+	    bean = handleUnknownProperties(ctxt, bean, unknownTokens);
+	}
+	// and/or things left to process via main parser?
+	if (jp != null) {
+	    bean = deserialize(jp, ctxt, bean);
+	}
+	return bean;
     }
 
     /**

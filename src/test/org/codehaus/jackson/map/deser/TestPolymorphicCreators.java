@@ -50,6 +50,7 @@ public class TestPolymorphicCreators
     static class Cat extends Animal
     {
 	boolean likesCream;
+	public int lives;
 	public Cat() { }
 	public void setLikesCream(boolean likesCreamSurely) { likesCream = likesCreamSurely; }
     }
@@ -76,8 +77,18 @@ public class TestPolymorphicCreators
 	// Then cat; shuffle order to mandate buffering
 	animal = mapper.readValue("{ \"likesCream\":true, \"name\" : \"Venla\", \"type\":\"cat\" }", Animal.class);
 	assertEquals(Cat.class, animal.getClass());
-	assertEquals("Venl", animal.name);
+	assertEquals("Venla", animal.name);
 	// bah, of course cats like cream. But let's ensure Jackson won't mess with laws of nature!
 	assertTrue(((Cat) animal).likesCream);
+
+
+	// and finally, lactose-intolerant, but otherwise robust super-cat:
+	animal = mapper.readValue("{ \"name\" : \"Macavity\", \"type\":\"cat\", \"lives\":18, \"likesCream\":false }", Animal.class);
+	assertEquals(Cat.class, animal.getClass());
+	assertEquals("Macavity", animal.name); // ... there's no one like Macavity!
+	Cat cat = (Cat) animal;
+	assertEquals(18, cat.lives);
+	// ok, he can't drink dairy products. Let's verify:
+	assertEquals(false, cat.likesCream);
     }
 }
