@@ -66,7 +66,7 @@ public abstract class ContainerNode
     public final NumericNode numberNode(long v) { return _nodeFactory.numberNode(v); }
     public final NumericNode numberNode(float v) { return _nodeFactory.numberNode(v); }
     public final NumericNode numberNode(double v) { return _nodeFactory.numberNode(v); }
-    public final NumericNode numberNode(BigDecimal v) { return _nodeFactory.numberNode(v); }
+    public final NumericNode numberNode(BigDecimal v) { return (_nodeFactory.numberNode(v)); }
 
     public final TextNode textNode(String text) { return _nodeFactory.textNode(text); }
 

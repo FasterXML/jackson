@@ -181,7 +181,11 @@ public class ObjectNode
         Iterator<Map.Entry<String, JsonNode>> it = properties.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String,JsonNode> en = it.next();
-            _children.put(en.getKey(), en.getValue());
+            JsonNode n = en.getValue();
+            if (n == null) {
+                n = nullNode();
+            }
+            _children.put(en.getKey(), n);
         }
         return this;
     }
@@ -273,12 +277,24 @@ public class ObjectNode
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void put(String fieldName, BigDecimal v) { _put(fieldName, numberNode(v)); }
+    public void put(String fieldName, BigDecimal v) {
+        if (v == null) {
+            putNull(fieldName);
+        } else {
+            _put(fieldName, numberNode(v));
+        }
+    }
 
     /**
      * Method for setting value of a field to specified String value.
      */
-    public void put(String fieldName, String v) { _put(fieldName, textNode(v)); }
+    public void put(String fieldName, String v) {
+        if (v == null) {
+            putNull(fieldName);
+        } else {
+            _put(fieldName, textNode(v));
+        }
+    }
 
     /**
      * Method for setting value of a field to specified String value.
@@ -288,7 +304,13 @@ public class ObjectNode
     /**
      * Method for setting value of a field to specified binary value
      */
-    public void put(String fieldName, byte[] v) { _put(fieldName, binaryNode(v)); }
+    public void put(String fieldName, byte[] v) {
+        if (v == null) {
+            putNull(fieldName);
+        } else {
+            _put(fieldName, binaryNode(v));
+        }
+    }
 
     /*
     ////////////////////////////////////////////////////////

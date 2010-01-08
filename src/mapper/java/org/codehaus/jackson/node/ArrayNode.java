@@ -151,7 +151,12 @@ public final class ArrayNode
      */
     public JsonNode addAll(Collection<JsonNode> nodes)
     {
-        _children.addAll(nodes);
+        for (JsonNode n : nodes) {
+            if (n == null) {
+                n = nullNode();
+            }
+            _children.add(n);
+        }
         return this;
     }
     
@@ -227,7 +232,11 @@ public final class ArrayNode
      */
     public void addPOJO(Object value)
     {
-        _add(POJONode(value));
+        if (value == null) {
+            addNull();
+        } else {
+            _add(POJONode(value));
+        }
     }
 
     public void addNull()
@@ -258,12 +267,24 @@ public final class ArrayNode
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void add(BigDecimal v) { _add(numberNode(v)); }
+    public void add(BigDecimal v) {
+        if (v == null) {
+            addNull();
+        } else {
+            _add(numberNode(v));
+        }
+    }
 
     /**
      * Method for setting value of a field to specified String value.
      */
-    public void add(String v) { _add(textNode(v)); }
+    public void add(String v) {
+        if (v == null) {
+            addNull();
+        } else {
+            _add(textNode(v));
+        }
+    }
 
     /**
      * Method for setting value of a field to specified String value.
@@ -273,7 +294,13 @@ public final class ArrayNode
     /**
      * Method for setting value of a field to specified binary value
      */
-    public void add(byte[] v) { _add(binaryNode(v)); }
+    public void add(byte[] v) {
+        if (v == null) {
+            addNull();
+        } else {
+            _add(binaryNode(v));
+        }
+    }
 
     public ArrayNode insertArray(int index)
     {
@@ -301,7 +328,11 @@ public final class ArrayNode
      */
     public void insertPOJO(int index, Object value)
     {
-        _insert(index, POJONode(value));
+        if (value == null) {
+            insertNull(index);
+        } else {
+            _insert(index, POJONode(value));
+        }
     }
 
     public void insertNull(int index)
@@ -332,12 +363,24 @@ public final class ArrayNode
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void insert(int index, BigDecimal v) { _insert(index, numberNode(v)); }
+    public void insert(int index, BigDecimal v) {
+        if (v == null) {
+            insertNull(index);
+        } else {
+            _insert(index, numberNode(v));
+        }
+    }
 
     /**
      * Method for setting value of a field to specified String value.
      */
-    public void insert(int index, String v) { _insert(index, textNode(v)); }
+    public void insert(int index, String v) {
+        if (v == null) {
+            insertNull(index);
+        } else {
+            _insert(index, textNode(v));
+        }
+    }
 
     /**
      * Method for setting value of a field to specified String value.
@@ -347,7 +390,13 @@ public final class ArrayNode
     /**
      * Method for setting value of a field to specified binary value
      */
-    public void insert(int index, byte[] v) { _insert(index, binaryNode(v)); }
+    public void insert(int index, byte[] v) {
+        if (v == null) {
+            insertNull(index);
+        } else {
+            _insert(index, binaryNode(v));
+        }
+    }
 
     /*
     ////////////////////////////////////////////////////////
