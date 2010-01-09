@@ -94,6 +94,23 @@ public class TestArrayNode
         assertEquals(10, n.size());
     }
 
+    /**
+     * Test to verify [JACKSON-227]
+     */
+    public void testNullChecking()
+    {
+        ArrayNode a1 = JsonNodeFactory.instance.arrayNode();
+        ArrayNode a2 = JsonNodeFactory.instance.arrayNode();
+        // used to throw NPE before fix:
+        a1.addAll(a2);
+        assertEquals(0, a1.size());
+        assertEquals(0, a2.size());
+
+        a2.addAll(a1);
+        assertEquals(0, a1.size());
+        assertEquals(0, a2.size());
+    }
+
     public void testParser() throws Exception
     {
         ArrayNode n = new ArrayNode(JsonNodeFactory.instance);
