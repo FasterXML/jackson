@@ -89,7 +89,7 @@ public class JsonMappingException
 
         @Override public String toString() {
             StringBuilder sb = new StringBuilder();
-            Class<?> cls = (_from instanceof Class) ?
+            Class<?> cls = (_from instanceof Class<?>) ?
                 ((Class<?>)_from) : _from.getClass();
             /* Hmmh. Although Class.getName() is mostly ok, it does look
              * butt-ugly for arrays. So let's use getSimpleName() instead;

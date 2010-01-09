@@ -73,7 +73,7 @@ public class TestReflection
         if (type == null) {
             System.out.println("[null]");
         }
-        else if (type instanceof Class) {
+        else if (type instanceof Class<?>) {
             System.out.println("simple class: "+((Class<?>) type).getName());
         }
         else if (type instanceof GenericArrayType) {
@@ -100,7 +100,7 @@ public class TestReflection
                 printType(indent+1, t2);
             }
         }
-        else if (type instanceof TypeVariable) {
+        else if (type instanceof TypeVariable<?>) {
             TypeVariable<?> v = (TypeVariable<?>) type;
             System.out.println("type variable '"+v.getName()+"'");
         }

@@ -262,7 +262,7 @@ public class TypeFactory
     public JavaType _fromType(Type type, JavaType context)
     {
         // may still be a simple type...
-        if (type instanceof Class) {
+        if (type instanceof Class<?>) {
             return _fromClass((Class<?>) type, null);
         }
         // But if not, need to start resolving.
@@ -272,7 +272,7 @@ public class TypeFactory
         if (type instanceof GenericArrayType) {
             return _fromArrayType((GenericArrayType) type, context);
         }
-        if (type instanceof TypeVariable) {
+        if (type instanceof TypeVariable<?>) {
             return _fromVariable((TypeVariable<?>) type, context);
         }
         if (type instanceof WildcardType) {

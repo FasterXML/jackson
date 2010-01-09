@@ -238,7 +238,7 @@ public class StdDeserializationContext
         if (instance == null) {
             return "unknown";
         }
-        Class<?> cls = (instance instanceof Class) ?
+        Class<?> cls = (instance instanceof Class<?>) ?
             (Class<?>) instance : instance.getClass();
         return cls.getName();
     }

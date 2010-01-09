@@ -34,6 +34,7 @@ public class TestBeanMapper
         new TestBeanMapper().test();
     }
 
+    @SuppressWarnings("unused")
     private final class MyObject
     {
         final int _x, _y;

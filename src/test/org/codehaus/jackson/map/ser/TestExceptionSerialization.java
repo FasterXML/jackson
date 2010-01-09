@@ -30,7 +30,7 @@ public class TestExceptionSerialization
 
         // hmmh. what should we get for stack traces?
         Object traces = result.get("stackTrace");
-        if (!(traces instanceof List)) {
+        if (!(traces instanceof List<?>)) {
             fail("Expected a List for exception member 'stackTrace', got: "+traces);
         }
     }

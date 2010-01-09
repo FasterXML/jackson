@@ -42,7 +42,7 @@ public class TestCollectionDeserialization
          */
         Object value = mapper.readValue(JSON, Object.class);
         assertNotNull(value);
-        assertTrue(value instanceof ArrayList);
+        assertTrue(value instanceof ArrayList<?>);
         List<?> result = (List<?>) value;
 
         assertEquals(4, result.size());

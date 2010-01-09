@@ -828,14 +828,14 @@ public class BasicBeanDescription extends BeanDescription
      */
     public static String descFor(AnnotatedElement elem)
     {
-        if (elem instanceof Class) {
+        if (elem instanceof Class<?>) {
             return "class "+((Class<?>) elem).getName();
         }
         if (elem instanceof Method) {
             Method m = (Method) elem;
             return "method "+m.getName()+" (from class "+m.getDeclaringClass().getName()+")";
         }
-        if (elem instanceof Constructor) {
+        if (elem instanceof Constructor<?>) {
             Constructor<?> ctor = (Constructor<?>) elem;
             // should indicate number of args?
             return "constructor() (from class "+ctor.getDeclaringClass().getName()+")";

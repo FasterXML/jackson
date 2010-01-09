@@ -62,7 +62,7 @@ public class TestMapDeserialization
         @SuppressWarnings("unchecked")
         Map<String,Object> result = (Map<String,Object>)mapper.readValue(JSON, Object.class);
         assertNotNull(result);
-        assertTrue(result instanceof Map);
+        assertTrue(result instanceof Map<?,?>);
 
         assertEquals(3, result.size());
 
@@ -88,7 +88,7 @@ public class TestMapDeserialization
         @SuppressWarnings("unchecked")
         HashMap<String,Object> result = /*(HashMap<String,Object>)*/ mapper.readValue(JSON, HashMap.class);
         assertNotNull(result);
-        assertTrue(result instanceof Map);
+        assertTrue(result instanceof Map<?,?>);
 
         assertEquals(1, result.size());
 
@@ -103,7 +103,7 @@ public class TestMapDeserialization
         String JSON = "{\"a\":[{\"a\":\"b\"},\"value\"]}";
         ObjectMapper m = new ObjectMapper();
         Map<?,?> result = m.readValue(JSON, Map.class);
-        assertTrue(result instanceof Map);
+        assertTrue(result instanceof Map<?,?>);
         assertEquals(1, result.size());
         Object ob = result.get("a");
         assertNotNull(ob);
@@ -117,7 +117,7 @@ public class TestMapDeserialization
             +" }"
             ;
         result = m.readValue(JSON, Map.class);
-        assertTrue(result instanceof Map);
+        assertTrue(result instanceof Map<?,?>);
         assertEquals(3, result.size());
     }
 
@@ -234,7 +234,7 @@ public class TestMapDeserialization
         Map<String,Integer> result = mapper.readValue
             (JSON, new TypeReference<Map<String,Integer>>() { });
         assertNotNull(result);
-        assertTrue(result instanceof Map);
+        assertTrue(result instanceof Map<?,?>);
         assertEquals(3, result.size());
 
         assertEquals(Integer.valueOf(-99), result.get("c"));
@@ -283,7 +283,7 @@ public class TestMapDeserialization
             (JSON, new TypeReference<Map<Key,Key>>() { });
 
         assertNotNull(result);
-        assertTrue(result instanceof Map);
+        assertTrue(result instanceof Map<?,?>);
         assertEquals(1, result.size());
 
         assertEquals(Key.WHATEVER, result.get(Key.KEY2));

@@ -14,9 +14,9 @@ import java.lang.annotation.Target;
  *<pre>
  * // to prevent specified fields from being serialized or deserialized
  * // (i.e. not include in JSON output; or being set even if they were included)
- * @JsonIgnoreProperties({ "internalId", "secretKey" })
+ * \@JsonIgnoreProperties({ "internalId", "secretKey" })
  * // To ignore any unknown properties in JSON input without exception:
- * @JsonIgnoreProperties(ignoreUnknown=true)
+ * \@JsonIgnoreProperties(ignoreUnknown=true)
  *</pre>
  *<p>
  * Only applicable to classes, not for properties (getters, setters, fields).

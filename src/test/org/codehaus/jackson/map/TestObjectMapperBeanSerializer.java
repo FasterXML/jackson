@@ -130,7 +130,9 @@ public class TestObjectMapperBeanSerializer
         THIS_IS_AN_ENUM_VALUE_1,
         THIS_IS_AN_ENUM_VALUE_2,
         THIS_IS_AN_ENUM_VALUE_3,
-    };
+    }
+
+    @SuppressWarnings("unused")
     private static class FixtureObjectBase
     {
         public static final String       VALUE_STRING = "foobar";
@@ -219,12 +221,14 @@ EFixtureEnum.THIS_IS_AN_ENUM_VALUE_2;
         {
             return new StringBuffer(VALUE_STRING);
         }
-    };
+    }
+
+    @SuppressWarnings("unused")
     private static class FixtureObject extends FixtureObjectBase
     {
         public Exception getTestError()
         {
             return new Exception(VALUE_ERRTXT);
         }
-    };
+    }
 }
