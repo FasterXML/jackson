@@ -8,6 +8,10 @@ Description:
 
   Fixes:
 
+  * [JACKSON-225], [JACKSON-227], missing null checks/conversions when
+    adding entries to ArrayNode and ObjectNode
+   (reported by Kenny M)
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
