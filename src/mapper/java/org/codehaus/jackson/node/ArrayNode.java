@@ -134,8 +134,10 @@ public final class ArrayNode
     public JsonNode addAll(ArrayNode other)
     {
         ArrayList<JsonNode> contents = other._children;
-        for (int i = 0, len = contents.size(); i < len; ++i) {
-            _children.add(contents.get(i));
+        if (contents != null) {
+            for (int i = 0, len = contents.size(); i < len; ++i) {
+                _children.add(contents.get(i));
+            }
         }
         return this;
     }
@@ -190,7 +192,7 @@ public final class ArrayNode
 
     public ArrayNode removeAll()
     {
-        _children.clear();
+        _children = null;
         return this;
     }
     

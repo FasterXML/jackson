@@ -40,10 +40,10 @@ public class ObjectNode
     }
 
     @Override
-        public JsonNode get(int index) { return null; }
+    public JsonNode get(int index) { return null; }
 
     @Override
-        public JsonNode get(String fieldName)
+    public JsonNode get(String fieldName)
     {
         if (_children != null) {
             return _children.get(fieldName);
@@ -162,7 +162,7 @@ public class ObjectNode
 
     public ObjectNode removeAll()
     {
-        _children.clear();
+        _children = null;
         return this;
     }
 
@@ -178,9 +178,7 @@ public class ObjectNode
      */
     public JsonNode putAll(Map<String,JsonNode> properties)
     {
-        Iterator<Map.Entry<String, JsonNode>> it = properties.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String,JsonNode> en = it.next();
+        for (Map.Entry<String, JsonNode> en : properties.entrySet()) {
             JsonNode n = en.getValue();
             if (n == null) {
                 n = nullNode();
@@ -319,7 +317,7 @@ public class ObjectNode
      */
 
     @Override
-	public boolean equals(Object o)
+    public boolean equals(Object o)
     {
         if (o == this) return true;
         if (o == null) return false;
