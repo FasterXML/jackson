@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class TestCollectionSerialization
     extends BaseMapTest
@@ -55,6 +56,28 @@ public class TestCollectionSerialization
         }
     }
 
+    /**
+     * Class needed for testing [JACKSON-220]
+     */
+    @JsonSerialize(using=ListSerializer.class)    
+    static class PseudoList extends ArrayList<String>
+    {
+        public PseudoList(String... values) {
+            super(Arrays.asList(values));
+        }
+    }
+
+    static class ListSerializer extends JsonSerializer<List<String>>
+    {
+        public void serialize(List<String> value,
+                              JsonGenerator jgen,
+                              SerializerProvider provider)
+            throws IOException
+        {
+            // just use standard List.toString(), output as JSON String
+            jgen.writeString(value.toString());
+        }
+    }
     /*
     ////////////////////////////////////////////////////////////////
     // Test methods
@@ -252,5 +275,14 @@ public class TestCollectionSerialization
         assertEquals(1, result.size());
         assertTrue(result.containsKey("map"));
         assertNull(result.get("map"));
+    }
+
+    /**
+     * Test [JACKSON-220]
+     */
+    public void testListSerializer() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        assertEquals("\"[ab, cd, ef]\"", m.writeValueAsString(new PseudoList("ab", "cd", "ef")));
     }
 }

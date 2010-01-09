@@ -1,5 +1,11 @@
 package org.codehaus.jackson.xc;
 
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.schema.SchemaAware;
@@ -7,11 +13,6 @@ import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 
 /**
  * @author Ryan Heaton
@@ -34,10 +35,13 @@ public class XmlAdapterJsonSerializer extends JsonSerializer<Object>
         try {
             adapted = this.xmlAdapter.marshal(value);
         } catch (Exception e) {
-            throw new JsonMappingException("Unable to use an XmlAdapter.", e);
+            throw new JsonMappingException("Unable to marshal: "+e.getMessage(), e);
         }
-        JsonSerializer<Object> jsonSerializer = provider.findValueSerializer(adapted.getClass());
-        jsonSerializer.serialize(adapted, jgen, provider);
+        if (adapted == null) {
+            provider.getNullValueSerializer().serialize(null, jgen, provider);
+        } else {
+            provider.findValueSerializer(adapted.getClass()).serialize(adapted, jgen, provider);
+        }
     }
 
     //@Override

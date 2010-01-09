@@ -110,4 +110,11 @@ public class TestEnumSerialization
         mapper.writeValue(sw, TestEnum.A);
         assertEquals("\"a\"", sw.toString());
     }
+
+    // Test [WSTX-214]
+    public void testSubclassedEnums() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals("\"B\"", mapper.writeValueAsString(EnumWithSubClass.B));
+    }
 }
