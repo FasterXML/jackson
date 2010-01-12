@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
@@ -113,6 +114,19 @@ public class JacksonAnnotationIntrospector
     public Boolean findIgnoreUnknownProperties(AnnotatedClass ac) {
         JsonIgnoreProperties ignore = ac.getAnnotation(JsonIgnoreProperties.class);
         return (ignore == null) ? null : ignore.ignoreUnknown();
+    }
+
+    @Override
+    public JsonTypeResolverBuilder findTypeResolver(AnnotatedClass ac)
+    {
+        // @TODO
+        return null;
+    }
+
+    @Override
+    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder b)
+    {
+        // @TODO
     }
     
     /*

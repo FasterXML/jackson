@@ -6,6 +6,7 @@ import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
+import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 
 /**
  * Abstract class that defines API used for introspecting annotation-based
@@ -127,6 +128,26 @@ public abstract class AnnotationIntrospector
      * @since 1.4
      */
     public abstract Boolean findIgnoreUnknownProperties(AnnotatedClass ac);
+
+    /**
+     * Method for checking if given class has annotations that indicate
+     * that specific type resolver is to be used. This includes not only
+     * instantiating resolver builder, but also configuring it based on
+     * relevant annotations (not including ones checked with a call to
+     * {@link #findAndAddSubtypes}
+     * 
+     * @param ac Annotated class to check for annotations
+     * @return Type resolver builder for given type, if one found; null if none
+     * 
+     * @since 1.5
+     */
+    public abstract JsonTypeResolverBuilder findTypeResolver(AnnotatedClass ac);
+
+    /**
+     * Method for locating annotation-specified subtypes of given class, and
+     * passing them to given type resolver builder.
+     */
+    public abstract void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder b);
     
     /*
     ///////////////////////////////////////////////////////
@@ -630,6 +651,27 @@ public abstract class AnnotationIntrospector
             }
             return result;
         }        
+
+        @Override
+        public JsonTypeResolverBuilder findTypeResolver(AnnotatedClass ac)
+        {
+            JsonTypeResolverBuilder b = _primary.findTypeResolver(ac);
+            if (b == null) {
+                b = _secondary.findTypeResolver(ac);
+            }
+            return b;
+        }
+
+        /**
+         * Method for locating annotation-specified subtypes of given class, and
+         * passing them to given type resolver builder.
+         */
+        public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder b)
+        {
+            _primary.findAndAddSubtypes(ac, b);
+            _secondary.findAndAddSubtypes(ac, b);
+        }
+        
         // // // General method annotations
 
         @Override

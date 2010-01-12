@@ -1,16 +1,5 @@
 package org.codehaus.jackson.xc;
 
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.KeyDeserializer;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.introspect.*;
-
-import javax.xml.bind.annotation.*;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -20,6 +9,18 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
+
+import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.KeyDeserializer;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.introspect.*;
+import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -219,6 +220,17 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
          * is in effect. May need to revisit this issue in future
          */
         return null;
+    }
+
+    @Override
+    public JsonTypeResolverBuilder findTypeResolver(AnnotatedClass ac) {
+        // @TODO
+        return null;
+    }
+
+    @Override
+    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder b) {
+        // @TODO
     }
     
     /*
@@ -502,6 +514,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return null;
     }
 
+    /**
+     * JAXB does allow specifying (more) concrete class for
+     * deserialization by using \@XmlElement annotation.
+     */
     public Class<?> findDeserializationType(Annotated am)
     {
         /* false for class, package, super-class, since annotation can
@@ -525,8 +541,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
          *   really refers to type of property itself, not contents.
          *   Content type can (only?) be effected by @XmlElements (which in
          *   turn contains instances of @XmlElement)
-         *
-         * TODO: implement support for @XmlElements
          */
         /*
         XmlElement annotation = findAnnotation(XmlElement.class, am, false, false, false);
@@ -561,7 +575,8 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     {
         //(ryan) JAXB has @XmlAnyAttribute and @XmlAnyElement annotations, but they're not applicable in this case
         // because JAXB says those annotations are only applicable to methods with specific signatures
-        // that Jackson doesn't support. Yet.
+        // that Jackson doesn't support (Jackson's any setter needs 2 arguments, name and value, whereas
+        // JAXB expects use of Map
         return false;
     }
 
