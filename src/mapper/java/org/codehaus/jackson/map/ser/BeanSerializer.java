@@ -64,6 +64,7 @@ public class BeanSerializer
     public BeanSerializer(Class<?> type, BeanPropertyWriter[] props,
                           BeanPropertyWriter[] fprops)
     {
+        super(type, false);
         _props = props;
         // let's store this for debugging
         _class = type;
@@ -109,7 +110,16 @@ public class BeanSerializer
      * configured
      * {@link BeanPropertyWriter} instances.
      */
-    public void serialize(Object bean, JsonGenerator jgen, SerializerProvider provider)
+    public final void serialize(Object bean, JsonGenerator jgen, SerializerProvider provider)
+        throws IOException, JsonGenerationException
+    {
+        jgen.writeStartObject();
+        serializeFields(bean, jgen, provider);
+        jgen.writeEndObject();
+    }
+
+    @Override
+    public void serializeFields(Object bean, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         final BeanPropertyWriter[] props;
@@ -118,8 +128,6 @@ public class BeanSerializer
         } else {
             props = _props;
         }
-        
-        jgen.writeStartObject();
 
         int i = 0;
         try {
@@ -129,7 +137,6 @@ public class BeanSerializer
                     prop.serializeAsField(bean, jgen, provider);
                 }
             }
-            jgen.writeEndObject();
         } catch (Exception e) {
             wrapAndThrow(e, bean, props[i].getName());
         } catch (StackOverflowError e) {
@@ -142,7 +149,7 @@ public class BeanSerializer
             throw mapE;
         }
     }
-
+    
     //@Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException
@@ -164,7 +171,7 @@ public class BeanSerializer
                 if (serType == null) {
                     serType = prop.getReturnType();
                 }
-                ser = provider.findValueSerializer(serType);
+                ser = provider.findTypedValueSerializer(serType, serType, true);
             }
             JsonNode schemaNode = (ser instanceof SchemaAware) ?
                     ((SchemaAware) ser).getSchema(provider, hint) : 
@@ -204,7 +211,8 @@ public class BeanSerializer
                 }
                 type = rt;
             }
-            _props[i] = prop.withSerializer(provider.findValueSerializer(type));
+            // false -> no need to cache fully resolved typed one
+            _props[i] = prop.withSerializer(provider.findTypedValueSerializer(type, type, false));
         }
     }
 

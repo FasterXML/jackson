@@ -18,6 +18,8 @@ public final class StdKeySerializer
     extends SerializerBase<Object>
 {
     final static StdKeySerializer instace = new StdKeySerializer();
+
+    public StdKeySerializer() { super(Object.class); }
     
     @Override
     public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)

@@ -18,7 +18,7 @@ public class NullSerializer
 {
     public final static NullSerializer instance = new NullSerializer();
     
-    private NullSerializer() { }
+    private NullSerializer() { super(Object.class); }
     
     @Override
     public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)

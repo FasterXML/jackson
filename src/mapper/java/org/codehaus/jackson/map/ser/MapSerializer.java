@@ -36,6 +36,7 @@ public class MapSerializer
     
     protected MapSerializer(String[] ignoredEntries)
     {
+        super(Map.class, false);
         if (ignoredEntries == null || ignoredEntries.length == 0) {
             _ignoredEntries = null;
         } else {
@@ -70,36 +71,20 @@ public class MapSerializer
     {
         jgen.writeStartObject();
         if (!value.isEmpty()) {
-            if (_ignoredEntries == null) {
-                serializeEntries(value, jgen, provider);
-            } else {
-                serializeSomeEntries(value, jgen, provider, _ignoredEntries);
-            }
+            serializeFields(value, jgen, provider);
         }        
         jgen.writeEndObject();
     }
 
-    //@Override
-    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-    {
-        ObjectNode o = createSchemaNode("object", true);
-        //(ryan) even though it's possible to statically determine the "value" type of the map,
-        // there's no way to statically determine the keys, so the "Entries" can't be determined.
-        return o;
-    }
-    
-    /*
-     ***********************************************************************
-     * Internal helper methods
-     ***********************************************************************
-     */
-    
-    /**
-     * Helper method that will write all entries of given non-empty Map
-     */
-    protected final void serializeEntries(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider)
+    @Override
+    public void serializeFields(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
+        if (_ignoredEntries != null) {
+            serializeSomeFields(value, jgen, provider, _ignoredEntries);
+            return;
+        }
+
         final JsonSerializer<Object> keySerializer = provider.getKeySerializer();
         JsonSerializer<Object> prevValueSerializer = null;
         Class<?> prevValueClass = null;
@@ -123,7 +108,7 @@ public class MapSerializer
                 if (cc == prevValueClass) {
                     currSerializer = prevValueSerializer;
                 } else {
-                    currSerializer = provider.findValueSerializer(cc);
+                    currSerializer = provider.findTypedValueSerializer(cc, cc, true);
                     prevValueSerializer = currSerializer;
                     prevValueClass = cc;
                 }
@@ -138,11 +123,26 @@ public class MapSerializer
         }
     }
 
+    //@Override
+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+    {
+        ObjectNode o = createSchemaNode("object", true);
+        //(ryan) even though it's possible to statically determine the "value" type of the map,
+        // there's no way to statically determine the keys, so the "Entries" can't be determined.
+        return o;
+    }
+    
+    /*
+     ***********************************************************************
+     * Internal helper methods
+     ***********************************************************************
+     */
+
     /**
      * Helper method that will write all entries of the given non-empty map, except
      * for specified set of ignorable entries, filtered based on entry key.
      */
-    protected final void serializeSomeEntries(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider,
+    protected final void serializeSomeFields(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider,
             HashSet<String> ignored)
         throws IOException, JsonGenerationException
     {
@@ -171,7 +171,7 @@ public class MapSerializer
                 if (cc == prevValueClass) {
                     currSerializer = prevValueSerializer;
                 } else {
-                    currSerializer = provider.findValueSerializer(cc);
+                    currSerializer = provider.findTypedValueSerializer(cc, cc, true);
                     prevValueSerializer = currSerializer;
                     prevValueClass = cc;
                 }

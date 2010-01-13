@@ -445,9 +445,6 @@ public class BasicSerializerFactory
     public final static class BooleanSerializer
         extends SerializerBase<Boolean>
     {
-        @Deprecated
-        final static BooleanSerializer instance = new BooleanSerializer(false);
-
         /**
          * Whether type serialized is primitive (boolean) or wrapper
          * (java.lang.Boolean); if true, former, if false, latter.
@@ -456,6 +453,7 @@ public class BasicSerializerFactory
 
         public BooleanSerializer(boolean forPrimitive)
         {
+            super(Boolean.class);
             _forPrimitive = forPrimitive;
         }
 
@@ -486,6 +484,8 @@ public class BasicSerializerFactory
     public final static class StringSerializer
         extends SerializerBase<String>
     {
+        public StringSerializer() { super(String.class); }
+
         @Override
         public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -509,6 +509,8 @@ public class BasicSerializerFactory
     public final static class IntegerSerializer
         extends SerializerBase<Integer>
     {
+        public IntegerSerializer() { super(Integer.class); }
+
         @Override
         public void serialize(Integer value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -534,6 +536,8 @@ public class BasicSerializerFactory
     {
         final static IntLikeSerializer instance = new IntLikeSerializer();
 
+        public IntLikeSerializer() { super(Number.class); }
+        
         @Override
         public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -554,6 +558,8 @@ public class BasicSerializerFactory
     {
         final static LongSerializer instance = new LongSerializer();
 
+        public LongSerializer() { super(Long.class); }
+        
         @Override
         public void serialize(Long value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -573,8 +579,10 @@ public class BasicSerializerFactory
     {
         final static FloatSerializer instance = new FloatSerializer();
 
+        public FloatSerializer() { super(Float.class); }
+        
         @Override
-		public void serialize(Float value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Float value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.floatValue());
@@ -592,8 +600,10 @@ public class BasicSerializerFactory
     {
         final static DoubleSerializer instance = new DoubleSerializer();
 
+        public DoubleSerializer() { super(Double.class); }
+
         @Override
-		public void serialize(Double value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Double value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeNumber(value.doubleValue());
@@ -614,6 +624,8 @@ public class BasicSerializerFactory
         extends SerializerBase<Number>
     {
         public final static NumberSerializer instance = new NumberSerializer();
+
+        public NumberSerializer() { super(Number.class); }
 
         @Override
         public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
@@ -654,8 +666,11 @@ public class BasicSerializerFactory
         extends SerializerBase<Calendar>
     {
         public final static CalendarSerializer instance = new CalendarSerializer();
+
+        public CalendarSerializer() { super(Calendar.class); }
+        
         @Override
-		public void serialize(Calendar value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Calendar value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             provider.defaultSerializeDateValue(value.getTimeInMillis(), jgen);
@@ -678,6 +693,9 @@ public class BasicSerializerFactory
         extends SerializerBase<java.util.Date>
     {
         public final static UtilDateSerializer instance = new UtilDateSerializer();
+
+        public UtilDateSerializer() { super(java.util.Date.class); }
+
         @Override
         public void serialize(java.util.Date value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -703,6 +721,8 @@ public class BasicSerializerFactory
     public final static class SqlDateSerializer
         extends SerializerBase<java.sql.Date>
     {
+        public SqlDateSerializer() { super(java.sql.Date.class); }
+
         @Override
         public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -721,6 +741,8 @@ public class BasicSerializerFactory
     public final static class SqlTimeSerializer
         extends SerializerBase<java.sql.Time>
     {
+        public SqlTimeSerializer() { super(java.sql.Time.class); }
+
         @Override
         public void serialize(java.sql.Time value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -752,7 +774,7 @@ public class BasicSerializerFactory
     {
         final static SerializableSerializer instance = new SerializableSerializer();
 
-        private SerializableSerializer() { }
+        private SerializableSerializer() { super(JsonSerializable.class); }
 
         @Override
         public void serialize(JsonSerializable value, JsonGenerator jgen, SerializerProvider provider)
@@ -813,6 +835,8 @@ public class BasicSerializerFactory
     public final static class TokenBufferSerializer
         extends SerializerBase<TokenBuffer>
     {
+        public TokenBufferSerializer() { super(TokenBuffer.class); }
+
         @Override
         public void serialize(TokenBuffer value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException

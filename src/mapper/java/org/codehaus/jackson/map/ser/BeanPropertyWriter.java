@@ -212,7 +212,8 @@ public class BeanPropertyWriter
         }
         JsonSerializer<Object> ser = _serializer;
         if (ser == null) {
-            ser = prov.findValueSerializer(value.getClass());
+            Class<?> c = value.getClass();
+            ser = prov.findTypedValueSerializer(c, c, true);
         }
         jgen.writeFieldName(_name);
         ser.serialize(value, jgen, prov);

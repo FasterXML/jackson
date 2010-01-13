@@ -1,6 +1,5 @@
 import java.io.*;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonView;
 
@@ -69,7 +68,6 @@ public final class TestViewPerf
         throws Exception
     {
         int i = 0;
-        int sum = 0;
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 

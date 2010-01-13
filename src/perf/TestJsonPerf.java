@@ -261,6 +261,7 @@ public final class TestJsonPerf
         return ob.hashCode(); // just to get some non-optimizable number
     }
 
+    @SuppressWarnings("deprecation")
     protected int testJacksonJsonTypes(int reps)
         throws Exception
     {

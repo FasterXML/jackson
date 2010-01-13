@@ -48,7 +48,7 @@ public final class TestCopyPerf
         while (--reps >= 0) {
             bos.reset();
             jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF8);
-            _tree.writeTo(jg);
+            jg.writeTree(_tree);
             jg.close();
         }
         return jg.hashCode();

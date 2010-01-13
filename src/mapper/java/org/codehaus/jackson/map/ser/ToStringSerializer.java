@@ -30,7 +30,7 @@ public final class ToStringSerializer
      * when using explicit serializer annotations like
      * {@link org.codehaus.jackson.map.annotate.JsonSerialize#using}.
      */
-    public ToStringSerializer() { }
+    public ToStringSerializer() { super(Object.class); }
     
     @Override
     public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)

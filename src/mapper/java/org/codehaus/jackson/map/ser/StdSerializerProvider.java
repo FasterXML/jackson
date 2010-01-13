@@ -58,6 +58,8 @@ public class StdSerializerProvider
             jgen.writeStartObject();
             jgen.writeEndObject();
         }
+
+        public Class<Object> handledType() { return Object.class; }
     };
 
     /*
@@ -185,7 +187,7 @@ public class StdSerializerProvider
 
     /*
     ////////////////////////////////////////////////////
-    // Methods to be called by JavaTypeMapper
+    // Methods to be called by ObjectMapper
     ////////////////////////////////////////////////////
      */
 
@@ -229,7 +231,10 @@ public class StdSerializerProvider
         if (inst.getClass() != getClass()) {
             throw new IllegalStateException("Broken serializer provider: createInstance returned instance of type "+inst.getClass()+"; blueprint of type "+getClass());
         }
-        JsonSerializer<Object> ser = inst.findValueSerializer(type);
+        /* no need for embedded type information for JSON schema generation (all
+         * type information it needs is accessible via "untyped" serializer)
+         */
+        JsonSerializer<Object> ser = inst.findNonTypedValueSerializer(type);
         JsonNode schemaNode = (ser instanceof SchemaAware) ?
                 ((SchemaAware) ser).getSchema(inst, null) : 
                 JsonSchema.getDefaultSchemaNode();
@@ -244,7 +249,7 @@ public class StdSerializerProvider
     public boolean hasSerializerFor(SerializationConfig config,
                                     Class<?> cls, SerializerFactory jsf)
     {
-        return createInstance(config, jsf)._findExplicitSerializer(cls) != null;
+        return createInstance(config, jsf)._findExplicitUntypedSerializer(cls) != null;
     }
 
     /**
@@ -254,8 +259,14 @@ public class StdSerializerProvider
     protected  void _serializeValue(JsonGenerator jgen, Object value)
         throws IOException, JsonProcessingException
     {
-        JsonSerializer<Object> ser = (value == null) ?
-            getNullValueSerializer() : findValueSerializer(value.getClass());
+        JsonSerializer<Object> ser;
+        if (value == null) {
+            ser = getNullValueSerializer();
+        } else {
+            Class<?> cls = value.getClass();
+            // true, since we do want to cache root-level typed serializers
+            ser = findTypedValueSerializer(cls, cls, true);
+        }
         try {
             ser.serialize(value, jgen, this);
         } catch (IOException ioe) {
@@ -274,9 +285,9 @@ public class StdSerializerProvider
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration methods
-    ////////////////////////////////////////////////////
+    ****************************************************************
+    * Configuration methods
+    ****************************************************************
      */
 
     public void setKeySerializer(JsonSerializer<Object> ks)
@@ -312,42 +323,112 @@ public class StdSerializerProvider
     }
     
     /*
-    ////////////////////////////////////////////////////
-    // Abstract method impls, locating serializers
-    ////////////////////////////////////////////////////
+    ****************************************************************
+    * Abstract method implementations, value/type serializers
+    ****************************************************************
      */
 
     @Override
-    public JsonSerializer<Object> findValueSerializer(Class<?> type)
+    public JsonSerializer<Object> findNonTypedValueSerializer(Class<?> runtimeType)
         throws JsonMappingException
     {
         // Fast lookup from local lookup thingy works?
-        JsonSerializer<Object> ser = _knownSerializers.get(type);
+        JsonSerializer<Object> ser = _knownSerializers.untypedValueSerializer(runtimeType);
         if (ser != null) {
             return ser;
         }
         // If not, maybe shared map already has it?
-        ser = _serializerCache.findSerializer(type);
+        ser = _serializerCache.untypedValueSerializer(runtimeType);
         if (ser != null) {
             return ser;
         }
 
         // If neither, must create
-        ser = _createAndCacheSerializer(type);
+        ser = _createAndCacheUntypedSerializer(runtimeType);
         // Not found? Must use the unknown type serializer
         /* Couldn't create? Need to return the fallback serializer, which
          * most likely will report an error: but one question is whether
          * we should cache it?
          */
         if (ser == null) {
-            ser = getUnknownTypeSerializer(type);
+            ser = getUnknownTypeSerializer(runtimeType);
             // Should this be added to lookups?
             if (CACHE_UNKNOWN_MAPPINGS) {
-                _serializerCache.addSerializer(type, ser);
+                _serializerCache.addUntypedSerializer(runtimeType, ser);
             }
         }
         return ser;
     }
+    
+    @Override
+    public TypeSerializer findTypeSerializer(Class<?> declaredType) throws JsonMappingException
+    {
+        /* Two-phase lookups; local non-shared cache, then shared. But we
+         * do actually store nulls, so need little bit different access
+         */
+        SerializerAndType st = _knownSerializers.typeSerializer(declaredType);
+        if (st != null) {
+            return st.typeSerializer;
+        }
+        st = _serializerCache.typeSerializer(declaredType);
+        if (st != null) {
+            return st.typeSerializer;
+        }
+        // If neither, must create and cache
+        // !!! @TODO
+        TypeSerializer typeSer = null;
+        _serializerCache.addTypeSerializer(declaredType, typeSer);
+        return typeSer;
+    }
+
+    /**
+     */
+    @Override
+    public JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType, Class<?> declaredType)
+        throws JsonMappingException
+    {
+        // false -> do not cache
+        return findTypedValueSerializer(runtimeType, declaredType, false);
+    }
+
+    /**
+     * @param cache Whether resulting value serializer should be cached or not; this is just
+     *    a hint 
+     */
+    @Override
+    public JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType, Class<?> declaredType,
+            boolean cache)
+        throws JsonMappingException
+    {
+        // Two-phase lookups; local non-shared cache, then shared:
+        JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(runtimeType, declaredType);
+        if (ser != null) {
+            return ser;
+        }
+        // If not, maybe shared map already has it?
+        ser = _serializerCache.typedValueSerializer(runtimeType, declaredType);
+        if (ser != null) {
+            return ser;
+        }
+
+        // Well, let's just compose from pieces:
+        TypeSerializer typeSer = findTypeSerializer(declaredType);
+        ser = findNonTypedValueSerializer(runtimeType);
+
+        if (typeSer != null) {
+            ser = new WrappedSerializer(typeSer, ser);
+        }
+        if (cache) {
+            _serializerCache.addTypedSerializer(runtimeType, declaredType, ser);
+        }
+        return ser;
+    }
+    
+    /*
+    ////////////////////////////////////////////////////
+    // Abstract method implementations, other serializers
+    ////////////////////////////////////////////////////
+     */
 
     @Override
     public JsonSerializer<Object> getKeySerializer()
@@ -425,20 +506,20 @@ public class StdSerializerProvider
      *
      * @return Serializer if one can be found, null if not.
      */
-    protected JsonSerializer<Object> _findExplicitSerializer(Class<?> type)
+    protected JsonSerializer<Object> _findExplicitUntypedSerializer(Class<?> runtimeType)
     {        
         // Fast lookup from local lookup thingy works?
-        JsonSerializer<Object> ser = _knownSerializers.get(type);
+        JsonSerializer<Object> ser = _knownSerializers.untypedValueSerializer(runtimeType);
         if (ser != null) {
             return ser;
         }
         // If not, maybe shared map already has it?
-        ser = _serializerCache.findSerializer(type);
+        ser = _serializerCache.untypedValueSerializer(runtimeType);
         if (ser != null) {
             return ser;
         }
         try {
-            return _createAndCacheSerializer(type);
+            return _createAndCacheUntypedSerializer(runtimeType);
         } catch (Exception e) {
             return null;
         }
@@ -448,12 +529,12 @@ public class StdSerializerProvider
      * Method that will try to construct a value aerializer; and if
      * one is succesfully created, cache it for reuse.
      */
-    protected JsonSerializer<Object> _createAndCacheSerializer(Class<?> type)
+    protected JsonSerializer<Object> _createAndCacheUntypedSerializer(Class<?> type)
         throws JsonMappingException
     {        
         JsonSerializer<Object> ser;
         try {
-            ser = _createSerializer(type);
+            ser = _createUntypedSerializer(type);
         } catch (IllegalArgumentException iae) {
             /* We better only expose checked exceptions, since those
              * are what caller is expected to handle
@@ -462,7 +543,7 @@ public class StdSerializerProvider
         }
 
         if (ser != null) {
-            _serializerCache.addSerializer(type, ser);
+            _serializerCache.addUntypedSerializer(type, ser);
             /* Finally: some serializers want to do post-processing, after
              * getting registered (to handle cyclic deps).
              */
@@ -474,7 +555,7 @@ public class StdSerializerProvider
     }
 
     @SuppressWarnings("unchecked")
-    protected JsonSerializer<Object> _createSerializer(Class<?> type)
+    protected JsonSerializer<Object> _createUntypedSerializer(Class<?> type)
         throws JsonMappingException
     {
         /* 10-Dec-2008, tatu: Is there a possibility of infinite loops
@@ -491,5 +572,41 @@ public class StdSerializerProvider
     {
         ser.resolve(this);
     }
+
+    /*
+     ***************************************************************
+     *  Helper classes
+     ***************************************************************
+     */
+
+    /**
+     * Simple serializer that will call configured type serializer, passing
+     * in configured data serializer, and exposing it all as a simple
+     * serializer.
+     */
+    private final static class WrappedSerializer
+        extends JsonSerializer<Object>
+    {
+        final TypeSerializer _typeSerializer;
+        final JsonSerializer<Object> _serializer;
+
+        public WrappedSerializer(TypeSerializer typeSer, JsonSerializer<Object> ser)
+        {
+            super();
+            _typeSerializer = typeSer;
+            _serializer = ser;
+        }
+
+        @Override
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonProcessingException
+        {
+            _typeSerializer.serializeAsValue(value, jgen, provider, _serializer);
+        }
+
+        @Override
+        public Class<Object> handledType() { return Object.class; }
+    }
+
 }
 

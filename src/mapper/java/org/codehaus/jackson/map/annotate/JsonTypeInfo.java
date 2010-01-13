@@ -107,7 +107,7 @@ public @interface JsonTypeInfo
     public enum As {
         /**
          * Inclusion mechanism that uses a single configurable property, included
-         * along with actual data (POJO properties).
+         * along with actual data (POJO properties) as a separate meta-property.
          * <p>
          * Default choice for inclusion.
          */
@@ -132,7 +132,16 @@ public @interface JsonTypeInfo
          * type information, and second element the serialized POJO
          * as JSON Object.
          */
-        ARRAY
+        ARRAY,
+        
+        /**
+         * Inclusion mechanism where actual field name associated with
+         * typed value is modified based on type.
+         * This is similar to how JAXB handles typing, and is included
+         * for interoperability (it is used as the implied inclusion
+         * mechanism for JAXB type extension annotations).
+         */
+        NAME_OF_PROPERTY
         ;
     }
     

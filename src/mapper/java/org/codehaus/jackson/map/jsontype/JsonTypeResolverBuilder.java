@@ -1,12 +1,14 @@
 package org.codehaus.jackson.map.jsontype;
 
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 
 /**
- * Type resolver builders are objects that are configured based on
- * annotations (like {@link JsonTypeInfo} or JAXB annotations)
- * and linked to be used by
- * {@link JsonTypeInfo#typeResolver()}.
+ * Interfaces builders that are configured based on
+ * annotations (like {@link JsonTypeInfo} or JAXB annotations),
+ * linked to be used by
+ * {@link JsonTypeInfo#typeResolver()}, and produce type
+ * serializers and deserializers.
  *<p>
  * Builder is first initialized by calling {@link #init} method, and then
  * configured using <code>setXxx</code> (and <code>registerXxx</code>)
@@ -32,11 +34,15 @@ public interface JsonTypeResolverBuilder
       */
 
     /**
-     * Method for building resolver based on current configuration
+     * Method for building type serializer based on current configuration
      * of this builder.
+     * 
+     * @param baseType Declared base type of types that will be serialized.
      */
-    public JsonTypeResolver build();
+    public TypeSerializer buildTypeSerializer(Class<?> baseType);
 
+    //public TypeDeserializer buildTypeDeserializer();
+    
     /*
      ***********************************************************
      * Initialization method(s) that must be called before other

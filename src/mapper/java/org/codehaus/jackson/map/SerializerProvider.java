@@ -20,6 +20,9 @@ public abstract class SerializerProvider
 {
     protected final SerializationConfig _config;
 
+    /**
+     * View used for currently active serialization
+     */
     protected final Class<?> _serializationView;
 
     protected SerializerProvider(SerializationConfig config)
@@ -88,7 +91,7 @@ public abstract class SerializerProvider
     
     /*
     //////////////////////////////////////////////////////
-    // General serializer locating method
+    // General serializer locating functionality
     //////////////////////////////////////////////////////
      */
 
@@ -100,12 +103,61 @@ public abstract class SerializerProvider
      *<p>
      * Note: this method is only called for non-null values; not for keys
      * or null values. For these, check out other accessor methods.
+     *<p>
+     * Note: since version 1.5, this method will delegate to
+     * {@link #findTypedValueSerializer(Class,Class)}, and should usually
+     * not be called directly.
      *
      * @throws JsonMappingException if there are fatal problems with
      *   accessing suitable serializer; including that of not
      *   finding any serializer
+     *   
+     * @deprecated Use {@link #findTypedValueSerializer(Class,Class)} instead.
      */
-    public abstract JsonSerializer<Object> findValueSerializer(Class<?> type)
+    public JsonSerializer<Object> findValueSerializer(Class<?> type)
+        throws JsonMappingException
+    {
+        return findTypedValueSerializer(type, type);
+    }
+
+    /**
+     * Method called to locate serializer and type serializer (if necessary),
+     * and return fully constructed serializer that will output everything
+     * needed for proper type-safe (polymorphic) operation.
+     * 
+     * @since 1.5
+     */
+    public abstract JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType, Class<?> declaredType)
+        throws JsonMappingException;
+
+    /**
+     * @param cache Whether resulting value serializer should be cached or not; this is just
+     *    a hint 
+     */
+    public abstract JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType,
+            Class<?> declaredType, boolean cache)
+        throws JsonMappingException;
+    
+    /**
+     * Method called to locate serializer that does not do any type handling.
+     * Used when type handler needs to be dynamically combined with serializer.
+     * 
+     * @since 1.5
+     */
+    public abstract JsonSerializer<Object> findNonTypedValueSerializer(Class<?> runtimeType)
+        throws JsonMappingException;
+
+    /**
+     * Accessor method for locating type serializer for given type, if one
+     * should be used for serialization
+     * 
+     * @param declaredType Declared used for determining what type information
+     *   (if any) needs to be serialized
+     * 
+     * @return Null if no type information is to be serialized for given type;
+     *    appropriate type serializer otherwise
+     */
+    public abstract TypeSerializer findTypeSerializer(Class<?> declaredType)
         throws JsonMappingException;
 
     /*

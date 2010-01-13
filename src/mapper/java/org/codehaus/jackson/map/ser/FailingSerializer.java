@@ -1,10 +1,12 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.SerializerProvider;
 
 /**
@@ -15,15 +17,24 @@ import org.codehaus.jackson.map.SerializerProvider;
  * as Map/Object key).
  */
 public final class FailingSerializer
-    extends JsonSerializer<Object>
+    extends SerializerBase<Object>
 {
     final String _msg;
     
-    public FailingSerializer(String msg) { _msg = msg; }
+    public FailingSerializer(String msg) {
+        super(Object.class);
+        _msg = msg;
+    }
     
     public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         throw new JsonGenerationException(_msg);
+    }
+
+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+        throws JsonMappingException
+    {
+        return null;
     }
 }

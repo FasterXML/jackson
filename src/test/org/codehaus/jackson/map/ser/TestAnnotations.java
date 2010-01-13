@@ -113,7 +113,6 @@ public class TestAnnotations
         {
             jgen.writeBoolean(true);
         }
-
     }
 
     private final static class StringSerializer extends JsonSerializer<Object>

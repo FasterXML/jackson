@@ -23,6 +23,41 @@ public abstract class JsonSerializer<T>
     public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonProcessingException;
 
+    /**
+     * Alternate serialization method that is to work like {@link #serialize} except
+     * that if results are output as a JSON Object, START_OBJECT/END_OBJECT
+     * markers are not to be output. Note that this only affects this serializer,
+     * and not recursive calls serializer may make.
+     *<p>
+     * Default implementation simply calls {@link #serialize}; sub-classes that would
+     * output
+     * 
+     * @param value Value to serialize; can <b>not</b> be null.
+     * @param jgen Generator used to output resulting Json content
+     * @param provider Provider that can be used to get serializers for
+     *   serializing Objects value contains, if any.
+     */
+    public void serializeFields(T value, JsonGenerator jgen, SerializerProvider provider)
+        throws IOException, JsonProcessingException
+    {
+        serialize(value, jgen, provider);
+    }
+    
+    /*
+    ************************************************************
+    * Introspection methods needed for type handling 
+    ************************************************************
+     */
+    
+    /**
+     * Method for accessing type of Objects this serializer can handle.
+     *<p>
+     * Default implementation will return null, which essentially means
+     * same as returning <code>Object.class</code> would; that is, that
+     * nothing is known about handled type.
+     */
+    public Class<T> handledType() { return null; }
+    
     /*
     //////////////////////////////////////////////////////
     // Helper class(es)

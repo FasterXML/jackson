@@ -22,6 +22,25 @@ public abstract class SerializerBase<T>
     extends JsonSerializer<T>
     implements SchemaAware
 {
+    protected final Class<T> _handledType;
+    
+    protected SerializerBase(Class<T> t) {
+        _handledType = t;
+    }
+
+    /**
+     * Alternate constructor that is (alas!) needed to work
+     * around kinks of generic type handling
+     * 
+     * @param t
+     */
+    @SuppressWarnings("unchecked")
+    protected SerializerBase(Class<?> t, boolean dummy) {
+        _handledType = (Class<T>) t;
+    }
+
+    public final Class<T> handledType() { return _handledType; }
+    
     public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException;
 

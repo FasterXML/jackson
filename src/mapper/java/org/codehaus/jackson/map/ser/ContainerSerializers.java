@@ -46,8 +46,10 @@ public final class ContainerSerializers
     {
         public final static IndexedListSerializer instance = new IndexedListSerializer();
 
+        public IndexedListSerializer() { super(List.class, false); }
+        
         @Override
-		public void serialize(List<?> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(List<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -71,7 +73,7 @@ public final class ContainerSerializers
                             if (cc == prevClass) {
                                 currSerializer = prevSerializer;
                             } else {
-                                currSerializer = provider.findValueSerializer(cc);
+                                currSerializer = provider.findTypedValueSerializer(cc, cc, true);
                                 prevSerializer = currSerializer;
                                 prevClass = cc;
                             }
@@ -96,7 +98,7 @@ public final class ContainerSerializers
                 JavaType javaType = TypeFactory.type(typeHint);
                 if (javaType instanceof CollectionType) {
                     Class<?> componentType = ((CollectionType) javaType).getContentType().getRawClass();
-                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
+                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(componentType);
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
                             JsonSchema.getDefaultSchemaNode();
@@ -119,6 +121,8 @@ public final class ContainerSerializers
     {
         public final static CollectionSerializer instance = new CollectionSerializer();
 
+        public CollectionSerializer() { super(Collection.class, false); }
+        
         @Override
         public void serialize(Collection<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -144,7 +148,7 @@ public final class ContainerSerializers
                             if (cc == prevClass) {
                                 currSerializer = prevSerializer;
                             } else {
-                                currSerializer = provider.findValueSerializer(cc);
+                                currSerializer = provider.findTypedValueSerializer(cc, cc, true);
                                 prevSerializer = currSerializer;
                                 prevClass = cc;
                             }
@@ -169,7 +173,7 @@ public final class ContainerSerializers
                 JavaType javaType = TypeFactory.type(typeHint);
                 if (javaType instanceof CollectionType) {
                     Class<?> componentType = ((CollectionType) javaType).getContentType().getRawClass();
-                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
+                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(componentType);
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
                             JsonSchema.getDefaultSchemaNode();
@@ -185,8 +189,10 @@ public final class ContainerSerializers
     {
         public final static IteratorSerializer instance = new IteratorSerializer();
 
+        public IteratorSerializer() { super(Iterator.class, false); }
+        
         @Override
-            public void serialize(Iterator<?> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Iterator<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -204,7 +210,7 @@ public final class ContainerSerializers
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = provider.findValueSerializer(cc);
+                            currSerializer = provider.findTypedValueSerializer(cc, cc, true);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -224,7 +230,7 @@ public final class ContainerSerializers
                 Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
                 if (typeArgs.length == 1) {
                     JavaType javaType = TypeFactory.type(typeArgs[0]);
-                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
+                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(javaType.getRawClass());
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
                             JsonSchema.getDefaultSchemaNode();
@@ -240,8 +246,10 @@ public final class ContainerSerializers
     {
         public final static IterableSerializer instance = new IterableSerializer();
 
+        public IterableSerializer() { super(Iterable.class, false); }
+        
         @Override
-            public void serialize(Iterable<?> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Iterable<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeStartArray();
@@ -260,7 +268,7 @@ public final class ContainerSerializers
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = provider.findValueSerializer(cc);
+                            currSerializer = provider.findTypedValueSerializer(cc, cc, true);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -280,7 +288,7 @@ public final class ContainerSerializers
                 Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
                 if (typeArgs.length == 1) {
                     JavaType javaType = TypeFactory.type(typeArgs[0]);
-                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
+                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(javaType.getRawClass());
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
                             JsonSchema.getDefaultSchemaNode();
@@ -294,7 +302,7 @@ public final class ContainerSerializers
     public final static class EnumSetSerializer
         extends SerializerBase<EnumSet<? extends Enum<?>>>
     {
-        public final static CollectionSerializer instance = new CollectionSerializer();
+        public EnumSetSerializer() { super(EnumSet.class, false); }
 
         @Override
         public void serialize(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, SerializerProvider provider)
@@ -308,7 +316,10 @@ public final class ContainerSerializers
              */
             for (Enum<?> en : value) {
                 if (enumSer == null) {
-                    enumSer = provider.findValueSerializer(en.getDeclaringClass());
+                    /* 12-Jan-2010, tatu: Since enums can not be polymorphic, let's
+                     *   not bother with typed serializer variant here
+                     */
+                    enumSer = provider.findNonTypedValueSerializer(en.getDeclaringClass());
                 }
                 enumSer.serialize(en, jgen, provider);
             }
@@ -324,7 +335,7 @@ public final class ContainerSerializers
                 Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
                 if (typeArgs.length == 1) {
                     JavaType javaType = TypeFactory.type(typeArgs[0]);
-                    JsonSerializer<Object> ser = provider.findValueSerializer(javaType.getRawClass());
+                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(javaType.getRawClass());
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
                             JsonSchema.getDefaultSchemaNode();
@@ -355,6 +366,8 @@ s     */
     public final static class EnumMapSerializer
         extends SerializerBase<EnumMap<? extends Enum<?>, ?>>
     {
+        public EnumMapSerializer() { super(EnumMap.class, false); }
+
         @Override
         public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -377,7 +390,8 @@ s     */
                      * tho -- so ideally code should be rewritten)
                      */
                     // ... and lovely two-step casting process too...
-                    SerializerBase<?> ser = (SerializerBase<?>) provider.findValueSerializer(key.getDeclaringClass());
+                    // and as earlier, enums can not be polymorphic, can use non-typed variants
+                    SerializerBase<?> ser = (SerializerBase<?>) provider.findNonTypedValueSerializer(key.getDeclaringClass());
                     enumValues = ((EnumSerializer) ser).getEnumValues();
                 }
                 jgen.writeFieldName(enumValues.valueFor(key));
@@ -391,7 +405,7 @@ s     */
                     if (cc == prevClass) {
                         currSerializer = prevSerializer;
                     } else {
-                        currSerializer = provider.findValueSerializer(cc);
+                        currSerializer = provider.findTypedValueSerializer(cc, cc, true);
                         prevSerializer = currSerializer;
                         prevClass = cc;
                     }
@@ -420,7 +434,7 @@ s     */
                     ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
                     Class<Enum<?>> enumClass = (Class<Enum<?>>) enumType.getRawClass();
                     for (Enum<?> enumValue : enumClass.getEnumConstants()) {
-                        JsonSerializer<Object> ser = provider.findValueSerializer(valueType.getRawClass());
+                        JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(valueType.getRawClass());
                         JsonNode schemaNode = (ser instanceof SchemaAware) ?
                                 ((SchemaAware) ser).getSchema(provider, null) :
                                 JsonSchema.getDefaultSchemaNode();

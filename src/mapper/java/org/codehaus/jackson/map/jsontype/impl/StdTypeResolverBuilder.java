@@ -1,7 +1,7 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolver;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 
 /**
@@ -39,9 +39,9 @@ public class StdTypeResolverBuilder
         // Let's also initialize property name as per idType default
         _typeProperty = idType.getDefaultPropertyName();
     }
-
-    public JsonTypeResolver build() {
         // sanity checks
+
+    public TypeSerializer buildTypeSerializer(Class<?> baseType) {
         if (_idType == null) {
             throw new IllegalStateException("Can not build, 'init()' not yet called");
         }
@@ -74,6 +74,7 @@ public class StdTypeResolverBuilder
         }
         _typeProperty = propName;
     }
+
 
     /*
      ********************************************************

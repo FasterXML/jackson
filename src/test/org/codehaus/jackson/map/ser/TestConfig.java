@@ -154,10 +154,17 @@ public class TestConfig
         // and then should get one constructed for:
         String value = mapper.writeValueAsString(new AnnoBean());
         assertEquals("{\"x\":1,\"y\":2}", value);
+
         /* Note: it is 2 because we'll also get serializer for basic 'int', not
          * just AnnoBean
          */
-        assertEquals(2, mapper.getSerializerProvider().cachedSerializersCount());
+        /* 12-Jan-2010, tatus: Actually, probably more, if and when we typing
+         *   aspects are considered (depending on what is cached)
+         */
+        int count = mapper.getSerializerProvider().cachedSerializersCount();
+        if (count < 2) {
+            fail("Should have at least 2 cached serializers, got "+count);
+        }
         mapper.getSerializerProvider().flushCachedSerializers();
         assertEquals(0, mapper.getSerializerProvider().cachedSerializersCount());
     }

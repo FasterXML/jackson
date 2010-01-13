@@ -22,6 +22,7 @@ public class EnumSerializer
     protected final EnumValues _values;
 
     public EnumSerializer(EnumValues v) {
+        super(Enum.class, false);
         _values = v;
     }
 

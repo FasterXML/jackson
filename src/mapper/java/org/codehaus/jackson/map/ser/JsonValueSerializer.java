@@ -26,7 +26,7 @@ import org.codehaus.jackson.map.*;
  * otherwise we could end up with an infinite loop.
  */
 public final class JsonValueSerializer
-    extends JsonSerializer<Object>
+    extends SerializerBase<Object>
     implements ResolvableSerializer, SchemaAware
 {
     final Method _accessorMethod;
@@ -41,6 +41,7 @@ public final class JsonValueSerializer
      */
     public JsonValueSerializer(Method valueMethod, JsonSerializer<Object> ser)
     {
+        super(Object.class);
         _accessorMethod = valueMethod;
         _serializer = ser;
     }
@@ -57,7 +58,9 @@ public final class JsonValueSerializer
             } else {
                 ser = _serializer;
                 if (ser == null) {
-                    ser = prov.findValueSerializer(value.getClass());
+                    Class<?> c = value.getClass();
+                    // let's cache it, may be needed soon again
+                    ser = prov.findTypedValueSerializer(c, c, true);
                 }
             }
             ser.serialize(value, jgen, prov);
@@ -107,7 +110,8 @@ public final class JsonValueSerializer
              * the actual type until we get the instance.
              */
             if (Modifier.isFinal(rt.getModifiers())) {
-                _serializer = provider.findValueSerializer(rt);
+                // false -> no need to cache
+                _serializer = provider.findTypedValueSerializer(rt, rt, false);
             }
         }
     }

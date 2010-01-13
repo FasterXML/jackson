@@ -17,7 +17,9 @@ public class DOMSerializer
 {
     final DOMImplementationLS _domImpl;
 
-    public DOMSerializer() {
+    public DOMSerializer()
+    {
+        super(Node.class);
         DOMImplementationRegistry registry;
         try {
             registry = DOMImplementationRegistry.newInstance();

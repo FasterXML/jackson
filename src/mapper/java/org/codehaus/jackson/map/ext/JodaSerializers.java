@@ -37,6 +37,8 @@ public class JodaSerializers
     public final static class DateTimeSerializer
         extends SerializerBase<DateTime>
     {
+        public DateTimeSerializer() { super(DateTime.class); }
+
         @Override
         public void serialize(DateTime value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException

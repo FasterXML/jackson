@@ -37,6 +37,8 @@ public final class ArraySerializers
     {
         public final static ObjectArraySerializer instance = new ObjectArraySerializer();
 
+        public ObjectArraySerializer() { super(Object[].class); }
+
         @Override
         public void serialize(Object[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -58,7 +60,8 @@ public final class ArraySerializers
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = provider.findValueSerializer(cc);
+                            // true -> do cache
+                            currSerializer = provider.findTypedValueSerializer(cc, cc, true);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -96,7 +99,7 @@ public final class ArraySerializers
                 JavaType javaType = TypeFactory.type(typeHint);
                 if (javaType.isArrayType()) {
                     Class<?> componentType = ((ArrayType) javaType).getContentType().getRawClass();
-                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
+                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(componentType);
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
                             JsonSchema.getDefaultSchemaNode();
@@ -110,6 +113,8 @@ public final class ArraySerializers
     public final static class StringArraySerializer
         extends SerializerBase<String[]>
     {
+        public StringArraySerializer() { super(String[].class); }
+
         @Override
         public void serialize(String[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -150,6 +155,8 @@ public final class ArraySerializers
     public final static class BooleanArraySerializer
         extends SerializerBase<boolean[]>
     {
+        public BooleanArraySerializer() { super(boolean[].class); }
+        
         @Override
 	public void serialize(boolean[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -178,6 +185,8 @@ public final class ArraySerializers
     public final static class ByteArraySerializer
         extends SerializerBase<byte[]>
     {
+        public ByteArraySerializer() { super(byte[].class); }
+
         @Override
         public void serialize(byte[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -198,6 +207,8 @@ public final class ArraySerializers
     public final static class ShortArraySerializer
         extends SerializerBase<short[]>
     {
+        public ShortArraySerializer() { super(short[].class); }
+
         @SuppressWarnings("cast")
         @Override
         public void serialize(short[] value, JsonGenerator jgen, SerializerProvider provider)
@@ -228,6 +239,8 @@ public final class ArraySerializers
     public final static class CharArraySerializer
         extends SerializerBase<char[]>
     {
+        public CharArraySerializer() { super(char[].class); }
+        
         @Override
         public void serialize(char[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -250,6 +263,8 @@ public final class ArraySerializers
     public final static class IntArraySerializer
         extends SerializerBase<int[]>
     {
+        public IntArraySerializer() { super(int[].class); }
+
         @Override
         public void serialize(int[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -273,6 +288,8 @@ public final class ArraySerializers
     public final static class LongArraySerializer
         extends SerializerBase<long[]>
     {
+        public LongArraySerializer() { super(long[].class); }
+
         @Override
         public void serialize(long[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -296,6 +313,8 @@ public final class ArraySerializers
     public final static class FloatArraySerializer
         extends SerializerBase<float[]>
     {
+        public FloatArraySerializer() { super(float[].class); }
+
         @Override
         public void serialize(float[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -319,6 +338,8 @@ public final class ArraySerializers
     public final static class DoubleArraySerializer
         extends SerializerBase<double[]>
     {
+        public DoubleArraySerializer() { super(double[].class); }
+        
         @Override
         public void serialize(double[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
