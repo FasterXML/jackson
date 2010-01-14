@@ -4,6 +4,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -76,6 +77,15 @@ public class BeanPropertyWriter
      * @since 1.4
      */
     protected Class<?>[] _includeInViews;
+
+    /**
+     * If property being serialized needs type information to be
+     * included this is the type serializer to use.
+     * Declared type (possibly augmented with annotations) of property
+     * is used for determining exact mechanism to use (compared to
+     * actual runtime type used for serializing actual state).
+     */
+    protected TypeSerializer _typeSerializer;
     
     /*
     //////////////////////////////////////////////////////
@@ -87,7 +97,7 @@ public class BeanPropertyWriter
      *
      * @param suppressableValue Value to suppress
      */
-    public BeanPropertyWriter(String name, JsonSerializer<Object> ser,
+    public BeanPropertyWriter(String name, JsonSerializer<Object> ser, TypeSerializer typeSer,
                               Class<?> serType,
                               Method acc, Field f,
                               boolean suppressNulls,
@@ -95,6 +105,7 @@ public class BeanPropertyWriter
     {
         _name = name;
         _serializer = ser;
+        _typeSerializer = typeSer;
         _cfgSerializationType = serType;
         _accessorMethod = acc;
         _field = f;
@@ -109,6 +120,7 @@ public class BeanPropertyWriter
     {
         _name = base._name;
         _serializer = base._serializer;
+        _typeSerializer = base._typeSerializer;
         _cfgSerializationType = base._cfgSerializationType;
         _accessorMethod = base._accessorMethod;
         _field = base._field;
@@ -123,7 +135,7 @@ public class BeanPropertyWriter
      */
     public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
     {
-        return new BeanPropertyWriter(_name, ser, _cfgSerializationType,
+        return new BeanPropertyWriter(_name, ser, _typeSerializer, _cfgSerializationType,
                                       _accessorMethod, _field,
                                       _suppressNulls, _suppressableValue);
     }
@@ -212,11 +224,14 @@ public class BeanPropertyWriter
         }
         JsonSerializer<Object> ser = _serializer;
         if (ser == null) {
-            Class<?> c = value.getClass();
-            ser = prov.findTypedValueSerializer(c, c, true);
+            ser = prov.findNonTypedValueSerializer(value.getClass());
         }
-        jgen.writeFieldName(_name);
-        ser.serialize(value, jgen, prov);
+        if (_typeSerializer != null) {
+            _typeSerializer.serializeAsField(value, jgen, prov, ser, _name);            
+        } else {
+            jgen.writeFieldName(_name);
+            ser.serialize(value, jgen, prov);
+        }
     }
 
     /**

@@ -14,6 +14,8 @@ public class StdTypeResolverBuilder
     implements JsonTypeResolverBuilder
 {
     // Configuration settings:
+
+    protected Class<?> _baseType;
     
     protected JsonTypeInfo.Id _idType;
 
@@ -30,7 +32,9 @@ public class StdTypeResolverBuilder
     public StdTypeResolverBuilder() {
     }
     
-    public void init(Class<?> baseType, JsonTypeInfo.Id idType) {
+    public void init(Class<?> baseType, JsonTypeInfo.Id idType)
+    {
+        _baseType = baseType;
         // sanity checks
         if (idType == null) {
             throw new IllegalArgumentException("idType can not be null");
@@ -41,12 +45,25 @@ public class StdTypeResolverBuilder
     }
         // sanity checks
 
-    public TypeSerializer buildTypeSerializer(Class<?> baseType) {
+    public TypeSerializer buildTypeSerializer() {
         if (_idType == null) {
             throw new IllegalStateException("Can not build, 'init()' not yet called");
         }
-        // TODO Auto-generated method stub
-        return null;
+        switch (_idType) {
+        case CLASS:
+            return new ClassNameTypeSerializer(_includeAs, _typeProperty);            
+        case MINIMAL_CLASS:
+            return new MinimalClassNameTypeSerializer(_includeAs, _typeProperty, _baseType);            
+        case NAME:
+            // @TODO
+            throw new IllegalStateException("Id type of NAME not yet implemented");
+
+        case NONE: // hmmh. should never get this far with 'none'
+        case CUSTOM: // need custom resolver...
+        default:
+            // fall through
+        }
+        throw new IllegalStateException("Do not know how to construct standard type serializer for idType: "+_idType);
     }
 
     /*
@@ -55,6 +72,10 @@ public class StdTypeResolverBuilder
      ********************************************************
       */
 
+    /**
+     * Method used to add name/class bindings for "Id.NAME" type
+     * id method
+     */
     public void registerSubtype(Class<?> type, String name) {
         // TODO Auto-generated method stub
         
@@ -74,12 +95,5 @@ public class StdTypeResolverBuilder
         }
         _typeProperty = propName;
     }
-
-
-    /*
-     ********************************************************
-     * Internal methods
-     ********************************************************
-      */
 
 }

@@ -48,7 +48,7 @@ public abstract class TypeSerializerBase extends TypeSerializer
         case NAME_OF_PROPERTY:
             // Can do this properly, since we are writing JSON Object property
             jgen.writeFieldName(typeAsString(value));
-            ser.serialize(value, jgen, provider);
+            ser.serializeFields(value, jgen, provider);
             break;
         case WRAPPER:
             jgen.writeObjectFieldStart(fieldName);
@@ -77,7 +77,7 @@ public abstract class TypeSerializerBase extends TypeSerializer
             case PROPERTY:
                 jgen.writeStartObject();
                 jgen.writeStringField(_propertyName, typeAsString(value));
-                ser.serialize(value, jgen, provider);
+                ser.serializeFields(value, jgen, provider);
                 jgen.writeEndObject();
                 break;
             case NAME_OF_PROPERTY:

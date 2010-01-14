@@ -147,19 +147,6 @@ public abstract class SerializerProvider
     public abstract JsonSerializer<Object> findNonTypedValueSerializer(Class<?> runtimeType)
         throws JsonMappingException;
 
-    /**
-     * Accessor method for locating type serializer for given type, if one
-     * should be used for serialization
-     * 
-     * @param declaredType Declared used for determining what type information
-     *   (if any) needs to be serialized
-     * 
-     * @return Null if no type information is to be serialized for given type;
-     *    appropriate type serializer otherwise
-     */
-    public abstract TypeSerializer findTypeSerializer(Class<?> declaredType)
-        throws JsonMappingException;
-
     /*
     //////////////////////////////////////////////////////
     // Accessors for specialized serializers
@@ -233,7 +220,8 @@ public abstract class SerializerProvider
         if (value == null) {
             getNullValueSerializer().serialize(null, jgen, this);
         } else {
-            findValueSerializer(value.getClass()).serialize(value, jgen, this);
+            Class<?> cls = value.getClass();
+            findTypedValueSerializer(cls, cls, true).serialize(value, jgen, this);
         }
     }
 
@@ -252,7 +240,8 @@ public abstract class SerializerProvider
              */
             getNullValueSerializer().serialize(null, jgen, this);
         } else {
-            findValueSerializer(value.getClass()).serialize(value, jgen, this);
+            Class<?> cls = value.getClass();
+            findTypedValueSerializer(cls, cls, true).serialize(value, jgen, this);
         }
     }
 

@@ -2,10 +2,7 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
@@ -133,9 +130,7 @@ public class BeanSerializerFactory
         if (!isPotentialBeanType(type)) {
             return null;
         }
-        /* [JACKSON-80]: Should support @JsonValue, which is alternative to
-         *   actual bean method introspection.
-         */
+        // [JACKSON-80]: Support @JsonValue, alternative to bean method introspection.
         AnnotatedMethod valueMethod = beanDesc.findJsonValueMethod();
         if (valueMethod != null) {
             /* Further, method itself may also be annotated to indicate
@@ -228,7 +223,9 @@ public class BeanSerializerFactory
             }
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, af);
-            BeanPropertyWriter pbw = pb.buildProperty(en.getKey(), annotatedSerializer, af, staticTyping);
+            // And how about polymorphic typing?
+            TypeSerializer ts = createTypeSerializer(af.getType(), config);
+            BeanPropertyWriter pbw = pb.buildProperty(en.getKey(), annotatedSerializer, ts, af, staticTyping);
             // how about views? (1.4+)
             pbw.setViews(intr.findSerializationViews(af));
             props.add(pbw);
@@ -241,7 +238,9 @@ public class BeanSerializerFactory
             }
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, am);
-            BeanPropertyWriter pbw = pb.buildProperty(en.getKey(), annotatedSerializer, am, staticTyping);
+            // And how about polymorphic typing?
+            TypeSerializer ts = createTypeSerializer(am.getType(), config);
+            BeanPropertyWriter pbw = pb.buildProperty(en.getKey(), annotatedSerializer, ts, am, staticTyping);
             pbw.setViews(intr.findSerializationViews(am));
             props.add(pbw);
         }

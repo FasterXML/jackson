@@ -26,6 +26,10 @@ import org.codehaus.jackson.map.*;
  * instance has same class as the blueprint
  * (<code>instance.getClass() == blueprint.getClass()</code>).
  * Check is done to prevent weird bugs that would otherwise occur.
+ *<p>
+ * Starting with version 1.5, provider is also responsible for
+ * some parts of type serialization; specifically for locating
+ * proper type serializers to use for types.
  */
 public class StdSerializerProvider
     extends SerializerProvider
@@ -186,9 +190,9 @@ public class StdSerializerProvider
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Methods to be called by ObjectMapper
-    ////////////////////////////////////////////////////
+    *******************************************************
+    * Methods to be called by ObjectMapper
+    *******************************************************
      */
 
     @Override
@@ -354,31 +358,10 @@ public class StdSerializerProvider
             ser = getUnknownTypeSerializer(runtimeType);
             // Should this be added to lookups?
             if (CACHE_UNKNOWN_MAPPINGS) {
-                _serializerCache.addUntypedSerializer(runtimeType, ser);
+                _serializerCache.addNonTypedSerializer(runtimeType, ser);
             }
         }
         return ser;
-    }
-    
-    @Override
-    public TypeSerializer findTypeSerializer(Class<?> declaredType) throws JsonMappingException
-    {
-        /* Two-phase lookups; local non-shared cache, then shared. But we
-         * do actually store nulls, so need little bit different access
-         */
-        SerializerAndType st = _knownSerializers.typeSerializer(declaredType);
-        if (st != null) {
-            return st.typeSerializer;
-        }
-        st = _serializerCache.typeSerializer(declaredType);
-        if (st != null) {
-            return st.typeSerializer;
-        }
-        // If neither, must create and cache
-        // !!! @TODO
-        TypeSerializer typeSer = null;
-        _serializerCache.addTypeSerializer(declaredType, typeSer);
-        return typeSer;
     }
 
     /**
@@ -412,7 +395,7 @@ public class StdSerializerProvider
         }
 
         // Well, let's just compose from pieces:
-        TypeSerializer typeSer = findTypeSerializer(declaredType);
+        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(declaredType, _config);
         ser = findNonTypedValueSerializer(runtimeType);
 
         if (typeSer != null) {
@@ -543,7 +526,7 @@ public class StdSerializerProvider
         }
 
         if (ser != null) {
-            _serializerCache.addUntypedSerializer(type, ser);
+            _serializerCache.addNonTypedSerializer(type, ser);
             /* Finally: some serializers want to do post-processing, after
              * getting registered (to handle cyclic deps).
              */

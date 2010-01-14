@@ -36,10 +36,8 @@ public interface JsonTypeResolverBuilder
     /**
      * Method for building type serializer based on current configuration
      * of this builder.
-     * 
-     * @param baseType Declared base type of types that will be serialized.
      */
-    public TypeSerializer buildTypeSerializer(Class<?> baseType);
+    public TypeSerializer buildTypeSerializer();
 
     //public TypeDeserializer buildTypeDeserializer();
     

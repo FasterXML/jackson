@@ -486,7 +486,6 @@ public class SerializationConfig
         return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
     }
 
-
     /*
     ///////////////////////////////////////////////////////////
     // Accessors

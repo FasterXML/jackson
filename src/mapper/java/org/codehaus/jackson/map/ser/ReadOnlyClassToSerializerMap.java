@@ -6,11 +6,12 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.type.ClassPairKey;
 
 /**
- * Optimized lookup table for accessing various kinds of serializers.
+ * Optimized lookup table for accessing two types of serializers; typed
+ * and non-typed.
  */
 public final class ReadOnlyClassToSerializerMap
 {
-    final HashMap<ClassPairKey, SerializerAndType> _map;
+    final HashMap<ClassPairKey, JsonSerializer<Object>> _map;
 
     /**
      * We'll reuse key class to avoid unnecessary instantiations; since
@@ -19,7 +20,7 @@ public final class ReadOnlyClassToSerializerMap
      */
     final ClassPairKey _key;
 
-    private ReadOnlyClassToSerializerMap(HashMap<ClassPairKey, SerializerAndType> map, ClassPairKey key)
+    private ReadOnlyClassToSerializerMap(HashMap<ClassPairKey, JsonSerializer<Object>> map, ClassPairKey key)
     {
         _map = map;
         _key = key;
@@ -36,29 +37,20 @@ public final class ReadOnlyClassToSerializerMap
      * instance, {@link #instance} has to be called first.
      */
     @SuppressWarnings("unchecked")
-    public static ReadOnlyClassToSerializerMap from(HashMap<ClassPairKey, SerializerAndType> src)
+    public static ReadOnlyClassToSerializerMap from(HashMap<ClassPairKey, JsonSerializer<Object>> src)
     {
-        return new ReadOnlyClassToSerializerMap((HashMap<ClassPairKey, SerializerAndType>)src.clone(), null);
+        return new ReadOnlyClassToSerializerMap((HashMap<ClassPairKey, JsonSerializer<Object>>)src.clone(), null);
     }
 
     public JsonSerializer<Object> typedValueSerializer(Class<?> runtimeType, Class<?> declaredType)
     { 
         _key.reset(runtimeType, declaredType);
-        SerializerAndType st = _map.get(_key);
-        return (st == null) ? null : st.serializer;
+        return _map.get(_key);
     }
 
     public JsonSerializer<Object> untypedValueSerializer(Class<?> runtimeType)
     { 
         _key.reset(runtimeType, null);
-        SerializerAndType st = _map.get(_key);
-        return (st == null) ? null : st.serializer;
-    }
-
-    public SerializerAndType typeSerializer(Class<?> declaredType)
-    { 
-        _key.reset(null, declaredType);
-        SerializerAndType st = _map.get(_key);
-        return st;
+        return _map.get(_key);
     }
 }

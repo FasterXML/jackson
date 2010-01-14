@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.introspect.Annotated;
@@ -57,10 +58,11 @@ public class PropertyBuilder
      *   by annotation related to property itself
      */
     public BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
+            TypeSerializer typeSer,
                                             AnnotatedMethod am,
                                             boolean defaultUseStaticTyping)
     {
-        return _buildProperty(name, ser, defaultUseStaticTyping, am, am.getAnnotated(), null);
+        return _buildProperty(name, ser, typeSer, defaultUseStaticTyping, am, am.getAnnotated(), null);
     }
 
     /**
@@ -72,18 +74,20 @@ public class PropertyBuilder
      *   by annotation related to property itself
      */
     public BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
-                                            AnnotatedField af,
-                                            boolean defaultUseStaticTyping)
+            TypeSerializer typeSer,
+            AnnotatedField af,
+            boolean defaultUseStaticTyping)
     {
-        return _buildProperty(name, ser, defaultUseStaticTyping, af, null, af.getAnnotated());
+        return _buildProperty(name, ser, typeSer, defaultUseStaticTyping, af, null, af.getAnnotated());
     }
 
     protected BeanPropertyWriter _buildProperty(String name, JsonSerializer<Object> ser,
-                                               boolean defaultUseStaticTyping,
-                                               Annotated a, Method m, Field f)
+            TypeSerializer typeSer,
+            boolean defaultUseStaticTyping,
+            Annotated a, Method m, Field f)
     {
+        // do we have annotation that forces type to use (to declared type or its super type)?
         Class<?> serializationType = findSerializationType(a, defaultUseStaticTyping);
-
         Object suppValue = null;
         boolean suppressNulls = false;
 
@@ -102,7 +106,7 @@ public class PropertyBuilder
                 break;
             }
         }
-        return new BeanPropertyWriter(name, ser, serializationType, m, f, suppressNulls, suppValue);
+        return new BeanPropertyWriter(name, ser, typeSer, serializationType, m, f, suppressNulls, suppValue);
     }
 
     /*
@@ -111,8 +115,13 @@ public class PropertyBuilder
     //////////////////////////////////////////////////
      */
 
-    protected Class<?> findSerializationType(Annotated a,
-                                             boolean useStaticTyping)
+    /**
+     * Method that will try to determine statically defined type of property
+     * being serialized, based on annotations (for overrides), and alternatively
+     * declared type (if static typing for serialization is enabled).
+     * If neither can be used (no annotations, dynamic typing), returns null.
+     */
+    protected Class<?> findSerializationType(Annotated a, boolean useStaticTyping)
     {
         // [JACKSON-120]: Check to see if serialization type is fixed
         Class<?> serializationType = _annotationIntrospector.findSerializationType(a);

@@ -9,7 +9,9 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.Provider;
@@ -241,6 +243,14 @@ public class BasicSerializerFactory
         return (JsonSerializer<T>) ser;
     }
 
+    public TypeSerializer createTypeSerializer(Class<?> baseType, SerializationConfig config)
+    {
+        BasicBeanDescription bean = config.introspectClassAnnotations(baseType);
+        AnnotatedClass ac = bean.getClassInfo();
+        JsonTypeResolverBuilder b = config.getAnnotationIntrospector().findTypeResolver(ac, baseType);
+        return (b == null) ? null : b.buildTypeSerializer();
+    }
+    
     /*
     ////////////////////////////////////////////////////////////
     // Other public methods

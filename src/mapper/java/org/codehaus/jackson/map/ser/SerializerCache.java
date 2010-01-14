@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.ser;
 import java.util.*;
 
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.type.ClassPairKey;
 
 /**
@@ -26,7 +25,7 @@ public final class SerializerCache
     /**
      * Shared, modifiable map; all access needs to be through synchronized blocks.
      */
-    private HashMap<ClassPairKey, SerializerAndType> _sharedMap = new HashMap<ClassPairKey, SerializerAndType>(64);
+    private HashMap<ClassPairKey, JsonSerializer<Object>> _sharedMap = new HashMap<ClassPairKey, JsonSerializer<Object>>(64);
 
     /**
      * Most recent read-only instance, created from _sharedMap, if any.
@@ -57,27 +56,17 @@ public final class SerializerCache
     public JsonSerializer<Object> untypedValueSerializer(Class<?> type)
     {
         synchronized (this) {
-            SerializerAndType st = _sharedMap.get(new ClassPairKey(type, null));
-            return (st == null) ? null : st.serializer;
+            return _sharedMap.get(new ClassPairKey(type, null));
         }
     }
 
     public JsonSerializer<Object> typedValueSerializer(Class<?> runtimeType, Class<?> declaredType)
     {
         synchronized (this) {
-            SerializerAndType st = _sharedMap.get(new ClassPairKey(runtimeType, declaredType));
-            return (st == null) ? null : st.serializer;
+            return _sharedMap.get(new ClassPairKey(runtimeType, declaredType));
         }
     }
 
-    public SerializerAndType typeSerializer(Class<?> declaredType)
-    {
-        synchronized (this) {
-            SerializerAndType st = _sharedMap.get(new ClassPairKey(null, declaredType));
-            return st;
-        }        
-    }
-    
     /**
      * Method called if none of lookups succeeded, and caller had to construct
      * a serializer. If so, we will update the shared lookup map so that it
@@ -87,33 +76,17 @@ public final class SerializerCache
             JsonSerializer<Object> ser)
     {
         synchronized (this) {
-            SerializerAndType st = new SerializerAndType(ser, null);
-            ClassPairKey key = new ClassPairKey(runtimeType, declaredType);
-            if (_sharedMap.put(key, st) == null) {
+            if (_sharedMap.put(new ClassPairKey(runtimeType, declaredType), ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
         }
     }
 
-    public void addUntypedSerializer(Class<?> type, JsonSerializer<Object> ser)
+    public void addNonTypedSerializer(Class<?> type, JsonSerializer<Object> ser)
     {
         synchronized (this) {
-            SerializerAndType st = new SerializerAndType(ser, null);
-            ClassPairKey key = new ClassPairKey(type, null);
-            if (_sharedMap.put(key, st) == null) {
-                // let's invalidate the read-only copy, too, to get it updated
-                _readOnlyMap = null;
-            }
-        }
-    }
-
-    public void addTypeSerializer(Class<?> declaredType, TypeSerializer typeSer)
-    {
-        synchronized (this) {
-            SerializerAndType st = new SerializerAndType(null, typeSer);
-            ClassPairKey key = new ClassPairKey(declaredType, null);
-            if (_sharedMap.put(key, st) == null) {
+            if (_sharedMap.put(new ClassPairKey(type, null), ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
@@ -130,17 +103,4 @@ public final class SerializerCache
     public synchronized void flush() {
         _sharedMap.clear();
     }
-
-    /*
-    ********************************************************
-    * Helper classes
-    ********************************************************
-     */
-
-    /**
-     * Key class used to allow essentially storing three kinds
-     * of entries; untyped value serializers, type serializers,
-     * and typed value serializers (combinations of the other
-     * two types)
-     */
 }

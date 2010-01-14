@@ -10,8 +10,11 @@ import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
+import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
@@ -116,11 +119,34 @@ public class JacksonAnnotationIntrospector
         return (ignore == null) ? null : ignore.ignoreUnknown();
     }
 
+    
     @Override
-    public JsonTypeResolverBuilder findTypeResolver(AnnotatedClass ac)
+    public JsonTypeResolverBuilder findTypeResolver(Annotated a, Class<?> baseType)
     {
-        // @TODO
-        return null;
+        JsonTypeInfo info = a.getAnnotation(JsonTypeInfo.class);
+        /* if no type info designation, or explicitly disabled (by override mix-in, maybe),
+         * nothing to hand out
+         */
+        if (info == null || info.use() == JsonTypeInfo.Id.NONE) {
+            return null;
+        }
+        // Custom or standard one?
+        JsonTypeResolverBuilder b;
+        
+        Class<? extends JsonTypeResolverBuilder> bc = info.typeResolver();
+        if (bc == JsonTypeResolverBuilder.NONE.class) { // use standard
+            b = new StdTypeResolverBuilder();
+        } else {
+            /* let's not try to force access override (would need to pass
+             * settings through if we did, since that's not doable on some
+             * platforms)
+             */
+            b = ClassUtil.createInstance(bc, false);
+        }
+        b.init(baseType, info.use());
+        b.setInclusion(info.include());
+        b.setTypeProperty(info.property());
+        return b;
     }
 
     @Override

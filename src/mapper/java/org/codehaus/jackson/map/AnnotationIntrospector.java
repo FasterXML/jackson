@@ -136,12 +136,15 @@ public abstract class AnnotationIntrospector
      * relevant annotations (not including ones checked with a call to
      * {@link #findAndAddSubtypes}
      * 
-     * @param ac Annotated class to check for annotations
+     * @param typeClass Base type used for type resolution; often class that
+     *   has annotations, but not always
+     * @param ac Annotated entity (class, field/method) to check for annotations
+     * 
      * @return Type resolver builder for given type, if one found; null if none
      * 
      * @since 1.5
      */
-    public abstract JsonTypeResolverBuilder findTypeResolver(AnnotatedClass ac);
+    public abstract JsonTypeResolverBuilder findTypeResolver(Annotated a, Class<?> baseType);
 
     /**
      * Method for locating annotation-specified subtypes of given class, and
@@ -653,11 +656,11 @@ public abstract class AnnotationIntrospector
         }        
 
         @Override
-        public JsonTypeResolverBuilder findTypeResolver(AnnotatedClass ac)
+        public JsonTypeResolverBuilder findTypeResolver(Annotated a, Class<?> baseType)
         {
-            JsonTypeResolverBuilder b = _primary.findTypeResolver(ac);
+            JsonTypeResolverBuilder b = _primary.findTypeResolver(a, baseType);
             if (b == null) {
-                b = _secondary.findTypeResolver(ac);
+                b = _secondary.findTypeResolver(a, baseType);
             }
             return b;
         }
