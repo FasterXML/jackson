@@ -326,7 +326,8 @@ public final class ContainerSerializers
             jgen.writeEndArray();
         }
 
-        //@Override
+        
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
             throws JsonMappingException
         {
@@ -373,6 +374,27 @@ s     */
             throws IOException, JsonGenerationException
         {
             jgen.writeStartObject();
+            if (!value.isEmpty()) {
+                serializeFields(value, jgen, provider);
+            }        
+            jgen.writeEndObject();
+        }
+
+        @Override
+        public void serializeWithType(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider,
+                TypeSerializer typeSer)
+            throws IOException, JsonGenerationException
+        {
+            typeSer.writeTypePrefixForValue(value, jgen);
+            if (!value.isEmpty()) {
+                serializeFields(value, jgen, provider);
+            }
+            typeSer.writeTypeSuffixForValue(value, jgen);
+        }
+        
+        protected void serializeFields(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
             JsonSerializer<Object> prevSerializer = null;
             Class<?> prevClass = null;
 
@@ -417,7 +439,6 @@ s     */
                     }
                 }
             }
-            jgen.writeEndObject();
         }
 
         @SuppressWarnings("unchecked")

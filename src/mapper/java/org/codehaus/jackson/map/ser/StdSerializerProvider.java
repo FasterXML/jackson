@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -48,7 +49,7 @@ public class StdSerializerProvider
 
     public final static JsonSerializer<Object> DEFAULT_KEY_SERIALIZER = new StdKeySerializer();
 
-    public final static JsonSerializer<Object> DEFAULT_UNKNOWN_SERIALIZER = new JsonSerializer<Object>()
+    public final static JsonSerializer<Object> DEFAULT_UNKNOWN_SERIALIZER = new SerializerBase<Object>(Object.class)
     {
         @Override
         public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
@@ -63,7 +64,10 @@ public class StdSerializerProvider
             jgen.writeEndObject();
         }
 
-        public Class<Object> handledType() { return Object.class; }
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) throws JsonMappingException {
+            return null;
+        }
     };
 
     /*
@@ -584,9 +588,20 @@ public class StdSerializerProvider
         public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonProcessingException
         {
-            _typeSerializer.serializeAsValue(value, jgen, provider, _serializer);
+            _serializer.serializeWithType(value, jgen, provider, _typeSerializer);
         }
 
+        @Override
+        public void serializeWithType(Object value, JsonGenerator jgen, SerializerProvider provider,
+                TypeSerializer typeSer)
+            throws IOException, JsonProcessingException
+        {
+            /* Is this an erroneous call? For now, let's assume it is not, and
+             * that type serializer is just overridden if so
+             */
+            _serializer.serializeWithType(value, jgen, provider, typeSer);
+        }
+        
         @Override
         public Class<Object> handledType() { return Object.class; }
     }

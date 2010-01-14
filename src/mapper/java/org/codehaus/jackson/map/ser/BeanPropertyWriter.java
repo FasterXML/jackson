@@ -226,11 +226,13 @@ public class BeanPropertyWriter
         if (ser == null) {
             ser = prov.findNonTypedValueSerializer(value.getClass());
         }
-        if (_typeSerializer != null) {
-            _typeSerializer.serializeAsField(value, jgen, prov, ser, _name);            
-        } else {
+        if (_typeSerializer == null) {
             jgen.writeFieldName(_name);
             ser.serialize(value, jgen, prov);
+        } else {
+            _typeSerializer.writeTypePrefixForField(value, jgen, _name);
+            ser.serialize(value, jgen, prov);
+            _typeSerializer.writeTypeSuffixForField(value, jgen);
         }
     }
 

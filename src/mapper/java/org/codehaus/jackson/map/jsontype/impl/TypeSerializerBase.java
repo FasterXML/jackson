@@ -1,103 +1,81 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 
 public abstract class TypeSerializerBase extends TypeSerializer
 {
-    protected final JsonTypeInfo.As _includeAs;
-
-    protected final String _propertyName;
+    protected final TypeConverter _typeConverter;
     
-    protected TypeSerializerBase(JsonTypeInfo.As includeAs, String propName)
+    protected TypeSerializerBase(TypeConverter conv)
     {
-        if (includeAs == null) {
-            throw new IllegalArgumentException("Invalid value for includeAs: "+includeAs);
-        }
-        _includeAs = includeAs;
-        // ok to have empty/null property name for some combinations
-        _propertyName = propName;
+        _typeConverter = conv;
     }
 
-    /**
-     * Method called to serialize given Object specifically as JSON Object field value.
-     */
-    public void serializeAsField(Object value, JsonGenerator jgen, SerializerProvider provider,
-            JsonSerializer<Object> ser, String fieldName)
-        throws IOException, JsonProcessingException
-    {
-        switch (_includeAs) {
-        case ARRAY:
-            jgen.writeArrayFieldStart(fieldName);
-            jgen.writeString(typeAsString(value));
-            ser.serialize(value, jgen, provider);
-            jgen.writeEndArray();
-            break;
-        case PROPERTY:
-            jgen.writeObjectFieldStart(fieldName);
-            jgen.writeStringField(_propertyName, typeAsString(value));
-            ser.serialize(value, jgen, provider);
-            jgen.writeEndObject();
-            break;
-        case NAME_OF_PROPERTY:
-            // Can do this properly, since we are writing JSON Object property
-            jgen.writeFieldName(typeAsString(value));
-            ser.serializeFields(value, jgen, provider);
-            break;
-        case WRAPPER:
-            jgen.writeObjectFieldStart(fieldName);
-            jgen.writeObjectFieldStart(typeAsString(value));
-            jgen.writeStringField(_propertyName, typeAsString(value));
-            jgen.writeEndObject();
-            jgen.writeEndObject();
-            jgen.writeStartObject();
-        }
-    }
+    @Override
+    public abstract JsonTypeInfo.As getTypeInclusion();
 
-    /**
-     * Method called to serialize given Object as JSON Value (but not as a field value)
-     */
-    public void serializeAsValue(Object value, JsonGenerator jgen, SerializerProvider provider,
-        JsonSerializer<Object> ser)
-        throws IOException, JsonProcessingException
-    {
-            switch (_includeAs) {
-            case ARRAY:
-                jgen.writeStartArray();
-                jgen.writeString(typeAsString(value));
-                ser.serialize(value, jgen, provider);
-                jgen.writeEndArray();
-                break;
-            case PROPERTY:
-                jgen.writeStartObject();
-                jgen.writeStringField(_propertyName, typeAsString(value));
-                ser.serializeFields(value, jgen, provider);
-                jgen.writeEndObject();
-                break;
-            case NAME_OF_PROPERTY:
-                /* Since we are specifically not writing an object field value,
-                 * need to do something else: for now, let's use extra wrappign
-                 */
-                // fall through
-            case WRAPPER:
-                jgen.writeStartObject();
-                jgen.writeFieldName(typeAsString(value));
-                ser.serialize(value, jgen, provider);
-                jgen.writeEndObject();
-            }
-    }
-    
+    @Override
+    public JsonTypeInfo.Id getTypeId() { return _typeConverter.idType(); }
+
+    // base implementation returns null; ones that use property name need to override
+    @Override
+    public String propertyName() { return null; }
+
     /*
     ************************************************************
-    * Methods for sub-classes to implement
+    * Helper classes
     ************************************************************
      */
 
-    protected abstract String typeAsString(Object value);
+    /**
+     * Interface used for concrete type information converters
+     */
+    public abstract static class TypeConverter {
+        public abstract String typeAsString(Object value);
+        public abstract JsonTypeInfo.Id idType();
+    }
+
+    public final static class ClassNameConverter extends TypeConverter
+    {
+        public final static ClassNameConverter instance = new ClassNameConverter();
+
+        public JsonTypeInfo.Id idType() { return JsonTypeInfo.Id.CLASS; }
+        public String typeAsString(Object value) {
+            return value.getClass().getName();
+        }
+    }
+
+    public final static class MinimalClassNameConverter extends TypeConverter
+    {
+        /**
+         * Package name of the base class, to be used for determining common
+         * prefix that can be omitted from included type id.
+         * Does include the trailing dot.
+         */
+        protected final String _basePackageName;
+
+        protected MinimalClassNameConverter(Class<?> baseClass)
+        {
+            String base = baseClass.getName();
+            int ix = base.lastIndexOf('.');
+            if (ix < 0) { // can this ever occur?
+                _basePackageName = ".";
+            } else {
+                _basePackageName = base.substring(0, ix+1);
+            }
+        }
+
+        public JsonTypeInfo.Id idType() { return JsonTypeInfo.Id.MINIMAL_CLASS; }
+
+        @Override
+        public final String typeAsString(Object value) {
+            String n = value.getClass().getName();
+            if (n.startsWith(_basePackageName)) {
+                // note: we will leave the leading dot in there
+                return n.substring(_basePackageName.length()-1);
+            }
+            return n;
+        }
+    }
 }

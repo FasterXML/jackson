@@ -118,8 +118,16 @@ public class BeanSerializer
         jgen.writeEndObject();
     }
 
-    @Override
-    public void serializeFields(Object bean, JsonGenerator jgen, SerializerProvider provider)
+    public final void serializeWithType(Object bean, JsonGenerator jgen, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonGenerationException
+    {
+        typeSer.writeTypePrefixForValue(bean, jgen);
+        serializeFields(bean, jgen, provider);
+        typeSer.writeTypeSuffixForValue(bean, jgen);
+    }
+    
+    protected void serializeFields(Object bean, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         final BeanPropertyWriter[] props;
@@ -150,7 +158,7 @@ public class BeanSerializer
         }
     }
     
-    //@Override
+    @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException
     {

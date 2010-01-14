@@ -77,7 +77,18 @@ public class MapSerializer
     }
 
     @Override
-    public void serializeFields(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider)
+    public final void serializeWithType(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonGenerationException
+    {
+        typeSer.writeTypePrefixForValue(value, jgen);
+        if (!value.isEmpty()) {
+            serializeFields(value, jgen, provider);
+        }
+        typeSer.writeTypeSuffixForValue(value, jgen);
+    }
+    
+    protected void serializeFields(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         if (_ignoredEntries != null) {
@@ -123,7 +134,7 @@ public class MapSerializer
         }
     }
 
-    //@Override
+    @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
     {
         ObjectNode o = createSchemaNode("object", true);
