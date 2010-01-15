@@ -37,7 +37,7 @@ public class TestTypedArraySerialization
     @SuppressWarnings("serial")
     @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.WRAPPER)
     static class TypedListAsWrapper<T> extends LinkedList<T> { }
-
+    
     // Mix-in to force wrapper for things like primitive arrays
     @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.WRAPPER)
     interface WrapperMixIn { }

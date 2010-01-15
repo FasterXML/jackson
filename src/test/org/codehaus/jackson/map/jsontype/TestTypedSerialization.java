@@ -123,6 +123,28 @@ public class TestTypedSerialization
         assertEquals("Amadeus", doggie.get("name"));
         assertEquals(Integer.valueOf(7), doggie.get("boneCount"));
     }
+
+    /**
+     * Use basic Animal via regural List
+     */
+    public void testInArray() throws Exception
+    {
+        Animal[] animals = new Animal[] { new Cat("Miuku", "white"), new Dog("Murre", 9) };
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("a", animals);
+        Map<String,Object> result = writeAndMap(map);
+        assertEquals(1, result.size());
+        List<?> l = (List<?>)result.get("a");
+        assertNotNull(l);
+        assertEquals(2, l.size());
+        Map<?,?> a1 = (Map<?,?>) l.get(0);
+        assertEquals(3, a1.size());
+        String classProp = Id.CLASS.getDefaultPropertyName();
+        assertEquals(Cat.class.getName(), a1.get(classProp));
+        Map<?,?> a2 = (Map<?,?>) l.get(1);
+        assertEquals(3, a2.size());
+        assertEquals(Dog.class.getName(), a2.get(classProp));
+    }
 }
 
 
