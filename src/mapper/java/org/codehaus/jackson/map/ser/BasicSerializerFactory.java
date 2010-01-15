@@ -17,6 +17,7 @@ import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.Provider;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSerializableSchema;
+import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
 
 /**
@@ -221,10 +222,17 @@ public class BasicSerializerFactory
     @SuppressWarnings("unchecked")
     public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
     {
+        return (JsonSerializer<T>) createSerializer(TypeFactory.type(type), config);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config)
+    {
         /* [JACKSON-220]: Very first thing, let's check annotations to
          * see if we have explicit definition
          */
-        BasicBeanDescription beanDesc = config.introspect(type);
+        BasicBeanDescription beanDesc = config.introspect(type.getRawClass());
         JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ser == null) {
             // First, fast lookup for exact type:
@@ -240,7 +248,7 @@ public class BasicSerializerFactory
                 }
             }
         }
-        return (JsonSerializer<T>) ser;
+        return (JsonSerializer<Object>)ser;
     }
 
     public TypeSerializer createTypeSerializer(Class<?> baseType, SerializationConfig config)
@@ -272,10 +280,10 @@ public class BasicSerializerFactory
      * type itself, but not consider super-classes or implemented
      * interfaces.
      */
-    public final JsonSerializer<?> findSerializerByLookup(Class<?> type, SerializationConfig config,
+    public final JsonSerializer<?> findSerializerByLookup(JavaType type, SerializationConfig config,
                                                           BasicBeanDescription beanDesc)
     {
-        JsonSerializer<?> ser = _concrete.get(type.getName());
+        JsonSerializer<?> ser = _concrete.get(type.getRawClass().getName());
         /* 08-Nov-2009, tatus: Some standard types may need customization;
          *    for now that just means Maps, but in future probably other
          *    collections as well. For strictly standard types this is
@@ -283,7 +291,7 @@ public class BasicSerializerFactory
          */
         if (ser != null ) {
             if (ser == MapSerializer.instance) {
-                return buildMapSerializer(type, config, beanDesc);
+                return buildMapSerializer(type.getRawClass(), config, beanDesc);
             }
         }
         return ser;
@@ -295,9 +303,11 @@ public class BasicSerializerFactory
      * a "primary" interface. Primary here is defined as the main function
      * of the Object; as opposed to "add-on" functionality.
      */
-    public final JsonSerializer<?> findSerializerByPrimaryType(Class<?> type, SerializationConfig config,
+    public final JsonSerializer<?> findSerializerByPrimaryType(JavaType type, SerializationConfig config,
                                                           BasicBeanDescription beanDesc)
     {
+        Class<?> cls = type.getRawClass();
+
         /* Some types are final, and hence not checked here (will
          * have been handled by fast method above):
          *
@@ -311,46 +321,46 @@ public class BasicSerializerFactory
          * - Most collection types
          * - java.lang.Number (but is that integral or not?)
          */
-        if (JsonSerializable.class.isAssignableFrom(type)) {
+        if (JsonSerializable.class.isAssignableFrom(cls)) {
             return SerializableSerializer.instance;
         }
-        if (Map.class.isAssignableFrom(type)) {
-            if (EnumMap.class.isAssignableFrom(type)) {
+        if (Map.class.isAssignableFrom(cls)) {
+            if (EnumMap.class.isAssignableFrom(cls)) {
                 return new ContainerSerializers.EnumMapSerializer();
             }
-            return buildMapSerializer(type, config, beanDesc);
+            return buildMapSerializer(cls, config, beanDesc);
         }
-        if (Object[].class.isAssignableFrom(type)) {
+        if (Object[].class.isAssignableFrom(cls)) {
             return ArraySerializers.ObjectArraySerializer.instance;
         }
-        if (List.class.isAssignableFrom(type)) {
-            if (RandomAccess.class.isAssignableFrom(type)) {
+        if (List.class.isAssignableFrom(cls)) {
+            if (RandomAccess.class.isAssignableFrom(cls)) {
                 return ContainerSerializers.IndexedListSerializer.instance;
             }
             return ContainerSerializers.CollectionSerializer.instance;
         }
-        if (Number.class.isAssignableFrom(type)) {
+        if (Number.class.isAssignableFrom(cls)) {
             return NumberSerializer.instance;
         }
-        if (Enum.class.isAssignableFrom(type)) {
+        if (Enum.class.isAssignableFrom(cls)) {
             @SuppressWarnings("unchecked")
-            Class<Enum<?>> enumClass = (Class<Enum<?>>) type;
+            Class<Enum<?>> enumClass = (Class<Enum<?>>) cls;
             return EnumSerializer.construct(enumClass, config.getAnnotationIntrospector());
         }
-        if (Calendar.class.isAssignableFrom(type)) {
+        if (Calendar.class.isAssignableFrom(cls)) {
             return CalendarSerializer.instance;
         }
-        if (java.util.Date.class.isAssignableFrom(type)) {
+        if (java.util.Date.class.isAssignableFrom(cls)) {
             return UtilDateSerializer.instance;
         }
         for (int i = 0, len = _abstractSerializers.size(); i < len; ++i) {
             SerializerMapping map = _abstractSerializers.get(i);
-            if (map.matches(type)) {
+            if (map.matches(cls)) {
                 return map.getSerializer();
             }
         }
-        if (Collection.class.isAssignableFrom(type)) {
-            if (EnumSet.class.isAssignableFrom(type)) {
+        if (Collection.class.isAssignableFrom(cls)) {
+            if (EnumSet.class.isAssignableFrom(cls)) {
                 return new ContainerSerializers.EnumSetSerializer();
             }
             return ContainerSerializers.CollectionSerializer.instance;
@@ -366,9 +376,11 @@ public class BasicSerializerFactory
      * bean classes may implement {@link Iterable}, but their main
      * function is usually something else. The reason for
      */
-    public final JsonSerializer<?> findSerializerByAddonType(Class<?> type, SerializationConfig config,
+    public final JsonSerializer<?> findSerializerByAddonType(JavaType javaType, SerializationConfig config,
                                                              BasicBeanDescription beanDesc)
     {
+        Class<?> type = javaType.getRawClass();
+
         // These need to be in decreasing order of specificity...
         if (Iterator.class.isAssignableFrom(type)) {
             return ContainerSerializers.IteratorSerializer.instance;

@@ -541,7 +541,7 @@ public class StdSerializerProvider
         return ser;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     protected JsonSerializer<Object> _createUntypedSerializer(Class<?> type)
         throws JsonMappingException
     {

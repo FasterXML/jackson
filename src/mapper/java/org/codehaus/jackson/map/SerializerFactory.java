@@ -1,5 +1,8 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
+
 /**
  * Abstract class that defines API used by {@link SerializerProvider}
  * to obtain actual
@@ -14,14 +17,34 @@ public abstract class SerializerFactory
      */
 
     /**
-     * Method called to create (or, for completely immutable serializers,
-     * reuse) a serializer for given type.
+     * Method called to create (or, for immutable serializers, reuse)
+     * a serializer for given type.
+     *
+     * @param type Type to be serialized
+     * @param config Generic serialization configuration
+     * 
+     * @deprecated Use {@link #createSerializer(JavaType,SerializationConfig)} instead
+     */
+    @SuppressWarnings("unchecked")
+    public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config) {
+        return (JsonSerializer<T>) createSerializer(TypeFactory.type(type), config);        
+    }
+
+    /**
+     * Method called to create (or, for immutable serializers, reuse)
+     * a serializer for given type.
+     *<p>
+     * Default implementation just calls {@link #createSerializer(Class, SerializationConfig)};
+     * sub-classes need to override method
      *
      * @param type Type to be serialized
      * @param config Generic serialization configuration
      */
-    public abstract <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config);
-
+    @SuppressWarnings("unchecked")
+    public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config) {
+        return (JsonSerializer<Object>) createSerializer(type.getRawClass(), config);
+    }
+    
     /**
      * Method called to create a type information serializer for given base type,
      * if one is needed. If not needed (no polymorphic handling configured), should

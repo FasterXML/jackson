@@ -10,7 +10,8 @@ import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
-
+import org.codehaus.jackson.type.JavaType;
+ 
 /**
  * Factory class that can provide serializers for any regular Java beans
  * (as defined by "having at least one get method recognizable as bean
@@ -80,12 +81,12 @@ public class BeanSerializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
+    public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config)
     {
         /* [JACKSON-220]: Very first thing, let's check annotations to
          * see if we have explicit definition
          */
-        BasicBeanDescription beanDesc = config.introspect(type);
+        BasicBeanDescription beanDesc = config.introspect(type.getRawClass());
         JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ser == null) {
             // First, fast lookup for exact type:
@@ -109,7 +110,7 @@ public class BeanSerializerFactory
                 }
             }
         }
-        return (JsonSerializer<T>) ser;
+        return (JsonSerializer<Object>) ser;
     }
 
     /*
@@ -123,11 +124,11 @@ public class BeanSerializerFactory
      * Method that will try to construct a {@link BeanSerializer} for
      * given class. Returns null if no properties are found.
      */
-    public JsonSerializer<Object> findBeanSerializer(Class<?> type, SerializationConfig config,
+    public JsonSerializer<Object> findBeanSerializer(JavaType type, SerializationConfig config,
                                                      BasicBeanDescription beanDesc)
     {
         // First things first: we know some types are not beans...
-        if (!isPotentialBeanType(type)) {
+        if (!isPotentialBeanType(type.getRawClass())) {
             return null;
         }
         // [JACKSON-80]: Support @JsonValue, alternative to bean method introspection.
