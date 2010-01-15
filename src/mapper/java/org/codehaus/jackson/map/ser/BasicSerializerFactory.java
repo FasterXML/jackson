@@ -8,6 +8,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -291,7 +292,7 @@ public class BasicSerializerFactory
          */
         if (ser != null ) {
             if (ser == MapSerializer.instance) {
-                return buildMapSerializer(type.getRawClass(), config, beanDesc);
+                return buildMapSerializer(type, config, beanDesc);
             }
         }
         return ser;
@@ -328,7 +329,7 @@ public class BasicSerializerFactory
             if (EnumMap.class.isAssignableFrom(cls)) {
                 return new ContainerSerializers.EnumMapSerializer();
             }
-            return buildMapSerializer(cls, config, beanDesc);
+            return buildMapSerializer(type, config, beanDesc);
         }
         if (Object[].class.isAssignableFrom(cls)) {
             return ArraySerializers.ObjectArraySerializer.instance;
@@ -428,13 +429,37 @@ public class BasicSerializerFactory
      * Helper method that handles configuration details when constructing serializers for
      * {@link java.util.Map} types.
      */
-    protected JsonSerializer<?> buildMapSerializer(Class<?> type, SerializationConfig config,
+    protected JsonSerializer<?> buildMapSerializer(JavaType type, SerializationConfig config,
                                                    BasicBeanDescription beanDesc)
     {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        return MapSerializer.construct(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));
+        boolean staticTyping = usesStaticTyping(config, beanDesc);
+        JavaType valueType = type.getContentType();
+        TypeSerializer typeSer = createTypeSerializer(valueType.getRawClass(), config);
+        if (typeSer != null) {
+            return MapSerializer.constructTyped(intr.findPropertiesToIgnore(beanDesc.getClassInfo()),
+                type, staticTyping, typeSer);
+        }
+        return MapSerializer.constructNonTyped(intr.findPropertiesToIgnore(beanDesc.getClassInfo()),
+                type, staticTyping);
     }
 
+    /**
+     * Helper method to check whether global settings and/or class
+     * annotations for the bean class indicate that static typing
+     * (declared types)  should be used for properties.
+     * (instead of dynamic runtime types).
+     */
+    protected boolean usesStaticTyping(SerializationConfig config,
+                                       BasicBeanDescription beanDesc)
+    {
+        JsonSerialize.Typing t = config.getAnnotationIntrospector().findSerializationTyping(beanDesc.getClassInfo());
+        if (t != null) {
+            return (t == JsonSerialize.Typing.STATIC);
+        }
+        return config.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING);
+    }
+    
     /*
     /////////////////////////////////////////////////////////////////
     // Helper classes

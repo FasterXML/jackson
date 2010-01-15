@@ -161,6 +161,8 @@ public abstract class JavaType
 
     public final boolean isPrimitive() { return _class.isPrimitive(); }
 
+    public final boolean isFinal() { return Modifier.isFinal(_class.getModifiers()); }
+    
     /**
      * Method that can be called to see if this type has generic type
      * binding information for type variables, for given formal

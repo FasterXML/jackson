@@ -192,9 +192,9 @@ public class BeanSerializer
     }
 
     /*
-   ////////////////////////////////////////////////////////
-   // ResolvableSerializer impl
-   ////////////////////////////////////////////////////////
+    ********************************************************
+    * ResolvableSerializer impl
+    ********************************************************
     */
 
     public void resolve(SerializerProvider provider)
