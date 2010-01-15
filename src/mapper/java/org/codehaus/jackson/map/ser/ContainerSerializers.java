@@ -29,6 +29,24 @@ public final class ContainerSerializers
 {
     private ContainerSerializers() { }
 
+    /*
+     ****************************************************************
+     * Factory methods
+     ****************************************************************
+     */
+    
+    public static JsonSerializer<?> indexedListSerializer(JavaType elemType, boolean staticTyping,
+            TypeSerializer typeSer)
+    {
+        return new IndexedListSerializer(elemType, staticTyping, typeSer);
+    }
+    
+    /*
+     ****************************************************************
+     * Base classes
+     ****************************************************************
+     */
+
     /**
      * Base class for serializers that will output contents as JSON
      * arrays.
@@ -104,25 +122,59 @@ public final class ContainerSerializers
      */
     public final static class IndexedListSerializer
         extends AsArraySerializer<List<?>>
+        implements ResolvableSerializer
     {
         public final static IndexedListSerializer instance = new IndexedListSerializer();
 
-        public IndexedListSerializer() { super(List.class); }
+        protected final boolean _staticTyping;
+
+        protected final JavaType _elementType;
+        
+        /**
+         * Type serializer used for values, if any.
+         * 
+         * @since 1.5
+         */
+        protected final TypeSerializer _elementTypeSerializer;
+
+        /**
+         * Value serializer to use, if it can be statically determined
+         * 
+         * @since 1.5
+         */
+        protected JsonSerializer<Object> _elementSerializer;
+        
+        public IndexedListSerializer() { this(null, false, null); }
+
+        public IndexedListSerializer(JavaType elemType, boolean staticTyping,
+                TypeSerializer typeSer)
+        {
+            super(List.class);
+            _elementType = elemType;
+            // static if explicitly requested, or we got final type
+            _staticTyping = staticTyping || (elemType != null && elemType.isFinal());
+            _elementTypeSerializer = typeSer;
+        }
         
         @Override
         public void serializeContents(List<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
+            if (_elementSerializer != null) {
+                serializeContentsUsing(value, jgen, provider, _elementSerializer);
+                return;
+            }
+            if (_elementTypeSerializer != null) {
+                serializeTypedContents(value, jgen, provider);
+                return;
+            }
             final int len = value.size();
-
             if (len > 0) {
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
-                int i = 0;
-
-                try {
-                    for (; i < len; ++i) {
-                        Object elem = value.get(i);
+                for (int i = 0; i < len; ++i) {
+                    Object elem = value.get(i);
+                    try {
                         if (elem == null) {
                             provider.getNullValueSerializer().serialize(null, jgen, provider);
                         } else {
@@ -132,18 +184,88 @@ public final class ContainerSerializers
                             if (cc == prevClass) {
                                 currSerializer = prevSerializer;
                             } else {
-                                currSerializer = provider.findTypedValueSerializer(cc, cc, true);
+                                currSerializer = provider.findNonTypedValueSerializer(cc);
                                 prevSerializer = currSerializer;
                                 prevClass = cc;
                             }
                             currSerializer.serialize(elem, jgen, provider);
                         }
+                    } catch (Exception e) {
+                        // [JACKSON-55] Need to add reference information
+                        wrapAndThrow(e, value, i);
                     }
-                } catch (Exception e) {
-                    // [JACKSON-55] Need to add reference information
-                    wrapAndThrow(e, value, i);
                 }
              }
+        }
+
+        public void serializeContentsUsing(List<?> value, JsonGenerator jgen, SerializerProvider provider,
+                JsonSerializer<Object> ser)
+            throws IOException, JsonGenerationException
+        {
+            final int len = value.size();
+            if (len > 0) {
+                final TypeSerializer typeSer = _elementTypeSerializer;
+                for (int i = 0; i < len; ++i) {
+                    Object elem = value.get(i);
+                    try {
+                        if (elem == null) {
+                            provider.getNullValueSerializer().serialize(null, jgen, provider);
+                        } else if (typeSer == null) {
+                            ser.serialize(elem, jgen, provider);
+                        } else {
+                            ser.serializeWithType(elem, jgen, provider, typeSer);
+                        }
+                    } catch (Exception e) {
+                        // [JACKSON-55] Need to add reference information
+                        wrapAndThrow(e, value, i);
+                    }
+                }
+             }
+        }
+
+        public void serializeTypedContents(List<?> value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            final int len = value.size();
+            if (len > 0) {
+                JsonSerializer<Object> prevSerializer = null;
+                Class<?> prevClass = null;
+                final TypeSerializer typeSer = _elementTypeSerializer;
+                for (int i = 0; i < len; ++i) {
+                    Object elem = value.get(i);
+                    try {
+                        if (elem == null) {
+                            provider.getNullValueSerializer().serialize(null, jgen, provider);
+                        } else {
+                            Class<?> cc = elem.getClass();
+                            JsonSerializer<Object> currSerializer;
+                            if (cc == prevClass) {
+                                currSerializer = prevSerializer;
+                            } else {
+                                currSerializer = provider.findNonTypedValueSerializer(cc);
+                                prevSerializer = currSerializer;
+                                prevClass = cc;
+                            }
+                            currSerializer.serializeWithType(elem, jgen, provider, typeSer);
+                        }
+                    } catch (Exception e) {
+                        // [JACKSON-55] Need to add reference information
+                        wrapAndThrow(e, value, i);
+                    }
+                }
+             }
+        }        
+
+        /**
+         * Need to get callback to resolve value serializer, if static typing
+         * is used (either being forced, or because value type is final)
+         */
+        public void resolve(SerializerProvider provider)
+            throws JsonMappingException
+        {
+            if (_staticTyping) {
+                _elementSerializer = provider.findNonTypedValueSerializer(_elementType.getRawClass());
+            }
         }
     }
 
@@ -184,7 +306,7 @@ public final class ContainerSerializers
                             if (cc == prevClass) {
                                 currSerializer = prevSerializer;
                             } else {
-                                currSerializer = provider.findTypedValueSerializer(cc, cc, true);
+                                currSerializer = provider.findNonTypedValueSerializer(cc);
                                 prevSerializer = currSerializer;
                                 prevClass = cc;
                             }
@@ -225,7 +347,7 @@ public final class ContainerSerializers
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = provider.findTypedValueSerializer(cc, cc, true);
+                            currSerializer = provider.findNonTypedValueSerializer(cc);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -262,7 +384,7 @@ public final class ContainerSerializers
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = provider.findTypedValueSerializer(cc, cc, true);
+                            currSerializer = provider.findNonTypedValueSerializer(cc);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -307,7 +429,7 @@ public final class ContainerSerializers
 
     /**
      * Deprecated map serializer; starting with version 1.4, there
-     * is non-inner class version
+     * is a non-inner class version
      * 
      * @deprecated Since 1.4, please use the non-inner class
      *    {@link org.codehaus.jackson.map.ser.MapSerializer} instead.
@@ -379,7 +501,7 @@ s     */
                     if (cc == prevClass) {
                         currSerializer = prevSerializer;
                     } else {
-                        currSerializer = provider.findTypedValueSerializer(cc, cc, true);
+                        currSerializer = provider.findNonTypedValueSerializer(cc);
                         prevSerializer = currSerializer;
                         prevClass = cc;
                     }

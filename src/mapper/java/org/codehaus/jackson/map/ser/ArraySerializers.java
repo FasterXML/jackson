@@ -23,6 +23,24 @@ public final class ArraySerializers
 {
     private ArraySerializers() { }
 
+    /*
+     ****************************************************************
+     * Factory methods
+     ****************************************************************
+     */
+
+    public static JsonSerializer<?> objectArraySerializer(JavaType elementType, boolean staticTyping,
+            TypeSerializer ets)
+    {
+        return new ObjectArraySerializer(elementType, staticTyping, ets);
+    }
+
+    /*
+     ****************************************************************
+     * Base classes
+     ****************************************************************
+     */
+    
     /**
      * Base class for serializers that will output contents as JSON
      * arrays.
@@ -99,12 +117,6 @@ public final class ArraySerializers
             _elementType = elemType;
             _staticTyping = staticTyping;
             _elementTypeSerializer = ets;
-        }
-
-        public static ObjectArraySerializer construct(JavaType elementType, boolean staticTyping,
-                TypeSerializer ets)
-        {
-            return new ObjectArraySerializer(elementType, staticTyping, ets);
         }
         
         @Override

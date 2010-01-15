@@ -297,6 +297,9 @@ public class BasicSerializerFactory
             if (ser == ArraySerializers.ObjectArraySerializer.instance) {
                 return buildObjectArraySerializer(type, config, beanDesc);
             }
+            if (ser == ContainerSerializers.IndexedListSerializer.instance) {
+                return buildIndexedListSerializer(type, config, beanDesc);
+            }
         }
         return ser;
     }
@@ -339,7 +342,7 @@ public class BasicSerializerFactory
         }
         if (List.class.isAssignableFrom(cls)) {
             if (RandomAccess.class.isAssignableFrom(cls)) {
-                return ContainerSerializers.IndexedListSerializer.instance;
+                return buildIndexedListSerializer(type, config, beanDesc);
             }
             return ContainerSerializers.CollectionSerializer.instance;
         }
@@ -454,12 +457,20 @@ public class BasicSerializerFactory
     protected JsonSerializer<?> buildObjectArraySerializer(JavaType type, SerializationConfig config,
                                                    BasicBeanDescription beanDesc)
     {
-        boolean staticTyping = usesStaticTyping(config, beanDesc);
         JavaType valueType = type.getContentType();
+        boolean staticTyping = usesStaticTyping(config, beanDesc);
         TypeSerializer typeSer = createTypeSerializer(valueType.getRawClass(), config);
-        return ArraySerializers.ObjectArraySerializer.construct(valueType, staticTyping, typeSer);
+        return ArraySerializers.objectArraySerializer(valueType, staticTyping, typeSer);
     }
 
+    protected JsonSerializer<?> buildIndexedListSerializer(JavaType type, SerializationConfig config,
+            BasicBeanDescription beanDesc)
+    {
+        JavaType elemType = type.getContentType();
+        return ContainerSerializers.indexedListSerializer(elemType,
+                usesStaticTyping(config, beanDesc), createTypeSerializer(elemType.getRawClass(), config));
+    }
+    
     /**
      * Helper method to check whether global settings and/or class
      * annotations for the bean class indicate that static typing
