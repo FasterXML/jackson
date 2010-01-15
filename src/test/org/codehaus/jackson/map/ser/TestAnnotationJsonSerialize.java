@@ -168,7 +168,7 @@ public class TestAnnotationJsonSerialize
     {
         ObjectMapper m = new ObjectMapper();
         m.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
-        ValueClass[] array = new ValueClass[] { new ValueClass() };
+        ValueInterface[] array = new ValueInterface[] { new ValueClass() };
         assertEquals("[{\"x\":3}]", serializeAsString(m, array));
     }
     

@@ -40,8 +40,6 @@ public class MapSerializer
      * (if not, dynamic runtime type is used)
      */
     protected final boolean _staticTyping;
-    
-    protected final JavaType _keyType;
 
     protected final JavaType _valueType;
 
@@ -73,12 +71,9 @@ public class MapSerializer
                 _ignoredEntries.add(prop);
             }
         }
-        _keyType = (mapType == null) ? sTypeObject : mapType.getKeyType();
         _valueType = (mapType == null) ? sTypeObject : mapType.getContentType();
         _valueTypeSerializer = vts;
-        /* Actually: if value type is final, it's same as forcing static value
-         * typing...
-         */
+        // If value type is final, it's same as forcing static value typing:
         _staticTyping = staticTyping || (_valueType != null && _valueType.isFinal());
     }
 

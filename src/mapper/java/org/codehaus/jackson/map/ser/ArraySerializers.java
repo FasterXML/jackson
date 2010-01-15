@@ -68,60 +68,185 @@ public final class ArraySerializers
      */
     public final static class ObjectArraySerializer
         extends AsArraySerializer<Object[]>
+        implements ResolvableSerializer
     {
         public final static ObjectArraySerializer instance = new ObjectArraySerializer();
 
-        public ObjectArraySerializer() { super(Object[].class); }
+        protected final boolean _staticTyping;
 
+        protected final JavaType _elementType;
+        
+        /**
+         * Type serializer used for values, if any.
+         */
+        protected final TypeSerializer _elementTypeSerializer;
+
+        /**
+         * Value serializer to use, if it can be statically determined
+         * 
+         * @since 1.5
+         */
+        protected JsonSerializer<Object> _elementSerializer;
+        
+        public ObjectArraySerializer() {
+            this(null, false, null);
+        }
+
+        public ObjectArraySerializer(JavaType elemType, boolean staticTyping,
+            TypeSerializer ets)
+        {
+            super(Object[].class);
+            _elementType = elemType;
+            _staticTyping = staticTyping;
+            _elementTypeSerializer = ets;
+        }
+
+        public static ObjectArraySerializer construct(JavaType elementType, boolean staticTyping,
+                TypeSerializer ets)
+        {
+            return new ObjectArraySerializer(elementType, staticTyping, ets);
+        }
+        
         @Override
         public void serializeContents(Object[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
+            if (_elementSerializer != null) {
+                serializeContentsUsing(value, jgen, provider, _elementSerializer);
+                return;
+            }
+            if (_elementTypeSerializer != null) {
+                serializeTypedContents(value, jgen, provider);
+                return;
+            }
             final int len = value.length;
-            if (len > 0) {
-                JsonSerializer<Object> prevSerializer = null;
-                Class<?> prevClass = null;
-                int i = 0;
-                for (; i < len; ++i) {
-                    Object elem = value[i];
-                    if (elem == null) {
-                        provider.getNullValueSerializer().serialize(null, jgen, provider);
+            if (len == 0) {
+                return;
+            }
+            JsonSerializer<Object> prevSerializer = null;
+            Class<?> prevClass = null;
+            int i = 0;
+            for (; i < len; ++i) {
+                Object elem = value[i];
+                if (elem == null) {
+                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                } else {
+                    // Minor optimization to avoid most lookups:
+                    Class<?> cc = elem.getClass();
+                    JsonSerializer<Object> currSerializer;
+                    if (cc == prevClass) {
+                        currSerializer = prevSerializer;
                     } else {
-                        // Minor optimization to avoid most lookups:
-                        Class<?> cc = elem.getClass();
-                        JsonSerializer<Object> currSerializer;
-                        if (cc == prevClass) {
-                            currSerializer = prevSerializer;
-                        } else {
-                            // true -> do cache
-                            currSerializer = provider.findTypedValueSerializer(cc, cc, true);
-                            prevSerializer = currSerializer;
-                            prevClass = cc;
+                        // true -> do cache
+                        currSerializer = provider.findNonTypedValueSerializer(cc);
+                        prevSerializer = currSerializer;
+                        prevClass = cc;
+                    }
+                    try {
+                        currSerializer.serialize(elem, jgen, provider);
+                    } catch (IOException ioe) {
+                        throw ioe;
+                    } catch (Exception e) {
+                        // [JACKSON-55] Need to add reference information
+                        /* 05-Mar-2009, tatu: But one nasty edge is when we get
+                         *   StackOverflow: usually due to infinite loop. But that gets
+                         *   hidden within an InvocationTargetException...
+                         */
+                        Throwable t = e;
+                        while (t instanceof InvocationTargetException && t.getCause() != null) {
+                            t = t.getCause();
                         }
-                        try {
-                            currSerializer.serialize(elem, jgen, provider);
-                        } catch (IOException ioe) {
-                            throw ioe;
-                        } catch (Exception e) {
-                            // [JACKSON-55] Need to add reference information
-                            /* 05-Mar-2009, tatu: But one nasty edge is when we get
-                             *   StackOverflow: usually due to infinite loop. But that gets
-                             *   hidden within an InvocationTargetException...
-                             */
-                            Throwable t = e;
-                            while (t instanceof InvocationTargetException && t.getCause() != null) {
-                                t = t.getCause();
-                            }
-                            if (t instanceof Error) {
-                                throw (Error) t;
-                            }
-                            throw JsonMappingException.wrapWithPath(t, elem, i);
+                        if (t instanceof Error) {
+                            throw (Error) t;
                         }
+                        throw JsonMappingException.wrapWithPath(t, elem, i);
                     }
                 }
             }
         }
 
+        public void serializeContentsUsing(Object[] value, JsonGenerator jgen, SerializerProvider provider,
+                JsonSerializer<Object> ser)
+            throws IOException, JsonGenerationException
+        {
+            final int len = value.length;
+            final TypeSerializer typeSer = _elementTypeSerializer;
+            for (int i = 0; i < len; ++i) {
+                Object elem = value[i];
+                if (elem == null) {
+                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                } else {
+                    try {
+                        if (typeSer == null) {
+                            ser.serialize(elem, jgen, provider);
+                        } else {
+                            ser.serializeWithType(elem, jgen, provider, typeSer);
+                        }
+                    } catch (IOException ioe) {
+                        throw ioe;
+                    } catch (Exception e) {
+                        // [JACKSON-55] Need to add reference information
+                        /* 05-Mar-2009, tatu: But one nasty edge is when we get
+                         *   StackOverflow: usually due to infinite loop. But that gets
+                         *   hidden within an InvocationTargetException...
+                         */
+                        Throwable t = e;
+                        while (t instanceof InvocationTargetException && t.getCause() != null) {
+                            t = t.getCause();
+                        }
+                        if (t instanceof Error) {
+                            throw (Error) t;
+                        }
+                        throw JsonMappingException.wrapWithPath(t, elem, i);
+                    }
+                }
+            }
+        }
+
+        public void serializeTypedContents(Object[] value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            final int len = value.length;
+            if (len == 0) {
+                return;
+            }
+            final TypeSerializer typeSer = _elementTypeSerializer;
+            JsonSerializer<Object> prevSerializer = null;
+            Class<?> prevClass = null;
+            int i = 0;
+            for (; i < len; ++i) {
+                Object elem = value[i];
+                if (elem == null) {
+                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                    continue;
+                }
+                // Minor optimization to avoid most lookups:
+                Class<?> cc = elem.getClass();
+                JsonSerializer<Object> currSerializer;
+                if (cc == prevClass) {
+                    currSerializer = prevSerializer;
+                } else {
+                    currSerializer = provider.findNonTypedValueSerializer(cc);
+                    prevSerializer = currSerializer;
+                    prevClass = cc;
+                }
+                try {
+                    currSerializer.serializeWithType(elem, jgen, provider, typeSer);
+                } catch (IOException ioe) {
+                    throw ioe;
+                } catch (Exception e) {
+                    Throwable t = e;
+                    while (t instanceof InvocationTargetException && t.getCause() != null) {
+                        t = t.getCause();
+                    }
+                    if (t instanceof Error) {
+                        throw (Error) t;
+                    }
+                    throw JsonMappingException.wrapWithPath(t, elem, i);
+                }
+            }
+        }
+        
         //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
             throws JsonMappingException
@@ -140,6 +265,18 @@ public final class ArraySerializers
             }
             return o;
         }
+
+        /**
+         * Need to get callback to resolve value serializer, if static typing
+         * is used (either being forced, or because value type is final)
+         */
+        public void resolve(SerializerProvider provider)
+            throws JsonMappingException
+        {
+            if (_staticTyping) {
+                _elementSerializer = provider.findNonTypedValueSerializer(_elementType.getRawClass());
+            }
+        }        
     }
 
     public final static class StringArraySerializer

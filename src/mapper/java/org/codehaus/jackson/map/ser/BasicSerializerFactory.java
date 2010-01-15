@@ -294,6 +294,9 @@ public class BasicSerializerFactory
             if (ser == MapSerializer.instance) {
                 return buildMapSerializer(type, config, beanDesc);
             }
+            if (ser == ArraySerializers.ObjectArraySerializer.instance) {
+                return buildObjectArraySerializer(type, config, beanDesc);
+            }
         }
         return ser;
     }
@@ -332,7 +335,7 @@ public class BasicSerializerFactory
             return buildMapSerializer(type, config, beanDesc);
         }
         if (Object[].class.isAssignableFrom(cls)) {
-            return ArraySerializers.ObjectArraySerializer.instance;
+            return buildObjectArraySerializer(type, config, beanDesc);
         }
         if (List.class.isAssignableFrom(cls)) {
             if (RandomAccess.class.isAssignableFrom(cls)) {
@@ -442,6 +445,19 @@ public class BasicSerializerFactory
         }
         return MapSerializer.constructNonTyped(intr.findPropertiesToIgnore(beanDesc.getClassInfo()),
                 type, staticTyping);
+    }
+
+    /**
+     * Helper method that handles configuration details when constructing serializers for
+     * <code>Object[]</code> (and subtypes).
+     */
+    protected JsonSerializer<?> buildObjectArraySerializer(JavaType type, SerializationConfig config,
+                                                   BasicBeanDescription beanDesc)
+    {
+        boolean staticTyping = usesStaticTyping(config, beanDesc);
+        JavaType valueType = type.getContentType();
+        TypeSerializer typeSer = createTypeSerializer(valueType.getRawClass(), config);
+        return ArraySerializers.ObjectArraySerializer.construct(valueType, staticTyping, typeSer);
     }
 
     /**
