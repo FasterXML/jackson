@@ -133,15 +133,6 @@ public @interface JsonTypeInfo
          * as JSON Object.
          */
         ARRAY,
-        
-        /**
-         * Inclusion mechanism where actual field name associated with
-         * typed value is modified based on type.
-         * This is similar to how JAXB handles typing, and is included
-         * for interoperability (it is used as the implied inclusion
-         * mechanism for JAXB type extension annotations).
-         */
-        NAME_OF_PROPERTY
         ;
     }
     

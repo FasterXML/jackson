@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map.jsontype;
 
-import java.io.*;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
@@ -57,13 +56,6 @@ public class TestTypedSerialization
         
         public AnimalWrapper(Animal a) { animal = a; }
     }
-    
-    /**
-     * Mix-ins for trying out different type serialization
-     * mechanisms
-     */
-    @JsonTypeInfo(use=Id.CLASS, include=As.NAME_OF_PROPERTY)
-    interface TypeWithMinimalClass { }
 
     @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.WRAPPER)
     interface TypeWithWrapper { }
@@ -90,32 +82,6 @@ public class TestTypedSerialization
         // should we try customized class name?
         String classProp = Id.CLASS.getDefaultPropertyName();
         assertEquals(Cat.class.getName(), result.get(classProp));
-    }
-
-    /**
-     * Then another combination, including minimal class, but as property name
-     */
-    public void testMinimalClassAsPropertyName() throws IOException
-    {
-        ObjectMapper m = new ObjectMapper();
-        m.getSerializationConfig().addMixInAnnotations(Animal.class, TypeWithMinimalClass.class);
-        Object bean = new AnimalWrapper(new Dog("Dug", 13));
-        
-        StringWriter sb = new StringWriter();
-        try {
-            m.writeValue(sb, bean);
-        } finally {
-            System.err.println("Doc = '"+sb+"'");
-        }
-        Map<String,Object> result = writeAndMap(m, bean);
-        assertEquals(1, result.size());
-        // twist: here we should actually get subtype name as key
-        String cls = Dog.class.getName();
-        Map<?,?> doggie = (Map<?,?>) result.get(cls);
-        assertNotNull(doggie);
-        assertEquals(2, doggie.size());
-        assertEquals("Dug", doggie.get("name"));
-        assertEquals(Integer.valueOf(13), doggie.get("boneCount"));
     }
 
     /**

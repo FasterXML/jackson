@@ -9,7 +9,6 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.CollectionType;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.node.JsonNodeFactory;
@@ -30,10 +29,72 @@ public final class ContainerSerializers
 {
     private ContainerSerializers() { }
 
+    /**
+     * Base class for serializers that will output contents as JSON
+     * arrays.
+     */
+     private abstract static class AsArraySerializer<T>
+        extends SerializerBase<T>
+    {
+        protected AsArraySerializer(Class<?> cls) {
+            // typing with generics is messy... have to resort to this:
+            super(cls, false);
+        }
+
+        @Override
+        public final void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeStartArray();
+            serializeContents(value, jgen, provider);
+            jgen.writeEndArray();
+        }
+        
+        @Override
+        public final void serializeWithType(T value, JsonGenerator jgen, SerializerProvider provider,
+                TypeSerializer typeSer)
+            throws IOException, JsonGenerationException
+        {
+            typeSer.writeTypePrefixForArray(value, jgen);
+            serializeContents(value, jgen, provider);
+            typeSer.writeTypeSuffixForArray(value, jgen);
+        }
+
+        protected abstract void serializeContents(T value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException;
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+            throws JsonMappingException
+        {
+            ObjectNode o = createSchemaNode("array", true);
+            if (typeHint != null) {
+                JavaType javaType = TypeFactory.type(typeHint);
+                JavaType contentType = javaType.getContentType();
+                if (contentType == null) { // could still be parametrized (Iterators)
+                    if (typeHint instanceof ParameterizedType) {
+                        Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
+                        if (typeArgs.length == 1) {
+                            contentType = TypeFactory.type(typeArgs[0]);
+                        }
+                    }
+                }
+                if (contentType != null) {
+                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(contentType.getRawClass());
+                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                            ((SchemaAware) ser).getSchema(provider, null) :
+                            JsonSchema.getDefaultSchemaNode();
+                    o.put("items", schemaNode);
+                }
+            }
+            return o;
+        }
+    }
+    
     /*
-    ////////////////////////////////////////////////////////////
-    // Concrete serializers, Lists/collections
-    ////////////////////////////////////////////////////////////
+    ************************************************************
+    * Concrete serializers, Lists/collections
+    ************************************************************
      */
 
     /**
@@ -42,18 +103,16 @@ public final class ContainerSerializers
      * that can not}.
      */
     public final static class IndexedListSerializer
-        extends SerializerBase<List<?>>
+        extends AsArraySerializer<List<?>>
     {
         public final static IndexedListSerializer instance = new IndexedListSerializer();
 
-        public IndexedListSerializer() { super(List.class, false); }
+        public IndexedListSerializer() { super(List.class); }
         
         @Override
-        public void serialize(List<?> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(List<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
-
             final int len = value.size();
 
             if (len > 0) {
@@ -84,28 +143,7 @@ public final class ContainerSerializers
                     // [JACKSON-55] Need to add reference information
                     wrapAndThrow(e, value, i);
                 }
-              }
-
-            jgen.writeEndArray();
-        }
-
-        //@Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
-            ObjectNode o = createSchemaNode("array", true);
-            if (typeHint != null) {
-                JavaType javaType = TypeFactory.type(typeHint);
-                if (javaType instanceof CollectionType) {
-                    Class<?> componentType = ((CollectionType) javaType).getContentType().getRawClass();
-                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(componentType);
-                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
-                            ((SchemaAware) ser).getSchema(provider, null) :
-                            JsonSchema.getDefaultSchemaNode();
-                    o.put("items", schemaNode);
-                }
-            }
-            return o;
+             }
         }
     }
 
@@ -117,18 +155,16 @@ public final class ContainerSerializers
      * to iterate over elements.
      */
     public final static class CollectionSerializer
-        extends SerializerBase<Collection<?>>
+        extends AsArraySerializer<Collection<?>>
     {
         public final static CollectionSerializer instance = new CollectionSerializer();
 
-        public CollectionSerializer() { super(Collection.class, false); }
+        public CollectionSerializer() { super(Collection.class); }
         
         @Override
-        public void serialize(Collection<?> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(Collection<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
-
             Iterator<?> it = value.iterator();
             if (it.hasNext()) {
                 JsonSerializer<Object> prevSerializer = null;
@@ -161,41 +197,20 @@ public final class ContainerSerializers
                     wrapAndThrow(e, value, i);
                 }
             }
-            jgen.writeEndArray();
-        }
-
-        //@Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
-        {
-            ObjectNode o = createSchemaNode("array", true);
-            if (typeHint != null) {
-                JavaType javaType = TypeFactory.type(typeHint);
-                if (javaType instanceof CollectionType) {
-                    Class<?> componentType = ((CollectionType) javaType).getContentType().getRawClass();
-                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(componentType);
-                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
-                            ((SchemaAware) ser).getSchema(provider, null) :
-                            JsonSchema.getDefaultSchemaNode();
-                    o.put("items", schemaNode);
-                }
-            }
-            return o;
         }
     }
 
     public final static class IteratorSerializer
-        extends SerializerBase<Iterator<?>>
+        extends AsArraySerializer<Iterator<?>>
     {
         public final static IteratorSerializer instance = new IteratorSerializer();
 
-        public IteratorSerializer() { super(Iterator.class, false); }
+        public IteratorSerializer() { super(Iterator.class); }
         
         @Override
-        public void serialize(Iterator<?> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(Iterator<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             if (value.hasNext()) {
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
@@ -218,41 +233,20 @@ public final class ContainerSerializers
                     }
                 } while (value.hasNext());
             }
-            jgen.writeEndArray();
-        }
-
-        //@Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
-            ObjectNode o = createSchemaNode("array", true);
-            if (typeHint instanceof ParameterizedType) {
-                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
-                if (typeArgs.length == 1) {
-                    JavaType javaType = TypeFactory.type(typeArgs[0]);
-                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(javaType.getRawClass());
-                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
-                            ((SchemaAware) ser).getSchema(provider, null) :
-                            JsonSchema.getDefaultSchemaNode();
-                    o.put("items", schemaNode);
-                }
-            }
-            return o;
         }
     }
 
     public final static class IterableSerializer
-        extends SerializerBase<Iterable<?>>
+        extends AsArraySerializer<Iterable<?>>
     {
         public final static IterableSerializer instance = new IterableSerializer();
 
-        public IterableSerializer() { super(Iterable.class, false); }
+        public IterableSerializer() { super(Iterable.class); }
         
         @Override
-        public void serialize(Iterable<?> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(Iterable<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             Iterator<?> it = value.iterator();
             if (it.hasNext()) {
                 JsonSerializer<Object> prevSerializer = null;
@@ -276,39 +270,18 @@ public final class ContainerSerializers
                     }
                 } while (it.hasNext());
             }
-            jgen.writeEndArray();
-        }
-
-        //@Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
-            ObjectNode o = createSchemaNode("array", true);
-            if (typeHint instanceof ParameterizedType) {
-                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
-                if (typeArgs.length == 1) {
-                    JavaType javaType = TypeFactory.type(typeArgs[0]);
-                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(javaType.getRawClass());
-                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
-                            ((SchemaAware) ser).getSchema(provider, null) :
-                            JsonSchema.getDefaultSchemaNode();
-                    o.put("items", schemaNode);
-                }
-            }
-            return o;
         }
     }
 
     public final static class EnumSetSerializer
-        extends SerializerBase<EnumSet<? extends Enum<?>>>
+        extends AsArraySerializer<EnumSet<? extends Enum<?>>>
     {
-        public EnumSetSerializer() { super(EnumSet.class, false); }
+        public EnumSetSerializer() { super(EnumSet.class); }
 
         @Override
-        public void serialize(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             JsonSerializer<Object> enumSer = null;
             /* Need to dynamically find instance serializer; unfortunately
              * that seems to be the only way to figure out type (no accessors
@@ -323,27 +296,6 @@ public final class ContainerSerializers
                 }
                 enumSer.serialize(en, jgen, provider);
             }
-            jgen.writeEndArray();
-        }
-
-        
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
-            ObjectNode o = createSchemaNode("array", true);
-            if (typeHint instanceof ParameterizedType) {
-                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
-                if (typeArgs.length == 1) {
-                    JavaType javaType = TypeFactory.type(typeArgs[0]);
-                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(javaType.getRawClass());
-                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
-                            ((SchemaAware) ser).getSchema(provider, null) :
-                            JsonSchema.getDefaultSchemaNode();
-                    o.put("items", schemaNode);
-                }
-            }
-            return o;
         }
     }
 
@@ -375,7 +327,7 @@ s     */
         {
             jgen.writeStartObject();
             if (!value.isEmpty()) {
-                serializeFields(value, jgen, provider);
+                serializeContents(value, jgen, provider);
             }        
             jgen.writeEndObject();
         }
@@ -385,14 +337,14 @@ s     */
                 TypeSerializer typeSer)
             throws IOException, JsonGenerationException
         {
-            typeSer.writeTypePrefixForValue(value, jgen);
+            typeSer.writeTypePrefixForObject(value, jgen);
             if (!value.isEmpty()) {
-                serializeFields(value, jgen, provider);
+                serializeContents(value, jgen, provider);
             }
-            typeSer.writeTypeSuffixForValue(value, jgen);
+            typeSer.writeTypeSuffixForObject(value, jgen);
         }
         
-        protected void serializeFields(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
+        protected void serializeContents(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             JsonSerializer<Object> prevSerializer = null;

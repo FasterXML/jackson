@@ -3,6 +3,10 @@ package org.codehaus.jackson.map.jsontype.impl;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 
+/**
+ * @since 1.5
+ * @author tatus
+ */
 public abstract class TypeSerializerBase extends TypeSerializer
 {
     protected final TypeConverter _typeConverter;
@@ -30,12 +34,16 @@ public abstract class TypeSerializerBase extends TypeSerializer
 
     /**
      * Interface used for concrete type information converters
+     * that convert Java class to JSON String based type ids.
      */
     public abstract static class TypeConverter {
         public abstract String typeAsString(Object value);
         public abstract JsonTypeInfo.Id idType();
     }
 
+    /**
+     * Converter that produces fully-qualified class names as type ids.
+     */
     public final static class ClassNameConverter extends TypeConverter
     {
         public final static ClassNameConverter instance = new ClassNameConverter();
@@ -46,6 +54,10 @@ public abstract class TypeSerializerBase extends TypeSerializer
         }
     }
 
+    /**
+     * Converter that produces "minimal" class names (unique suffixes, relative
+     * to fully-qualified base class name) as type ids.
+     */
     public final static class MinimalClassNameConverter extends TypeConverter
     {
         /**
@@ -76,6 +88,26 @@ public abstract class TypeSerializerBase extends TypeSerializer
                 return n.substring(_basePackageName.length()-1);
             }
             return n;
+        }
+    }
+
+    /**
+     * Converter that uses externally configured (but simple) mapping
+     * from classes to type names. In case of an unrecognized class,
+     * will revert to using simple non-qualified class name as
+     * type name.
+     */
+    public final static class TypeNameConverter extends TypeConverter
+    {
+        public JsonTypeInfo.Id idType() { return JsonTypeInfo.Id.NAME; }
+
+        // !!! @TODO
+        @Override
+        public final String typeAsString(Object value) {
+            // !!! Placeholder impl
+            String n = value.getClass().getName();
+            int ix = n.lastIndexOf('.');
+            return (ix < 0) ? n : n.substring(ix+1);
         }
     }
 }

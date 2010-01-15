@@ -23,6 +23,40 @@ public final class ArraySerializers
 {
     private ArraySerializers() { }
 
+    /**
+     * Base class for serializers that will output contents as JSON
+     * arrays.
+     */
+     private abstract static class AsArraySerializer<T>
+        extends SerializerBase<T>
+    {
+        protected AsArraySerializer(Class<T> cls) {
+            super(cls);
+        }
+
+        @Override
+        public final void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeStartArray();
+            serializeContents(value, jgen, provider);
+            jgen.writeEndArray();
+        }
+        
+        @Override
+        public final void serializeWithType(T value, JsonGenerator jgen, SerializerProvider provider,
+                TypeSerializer typeSer)
+            throws IOException, JsonGenerationException
+        {
+            typeSer.writeTypePrefixForArray(value, jgen);
+            serializeContents(value, jgen, provider);
+            typeSer.writeTypeSuffixForArray(value, jgen);
+        }
+
+        protected abstract void serializeContents(T value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException;
+    }
+    
     /*
     ////////////////////////////////////////////////////////////
     // Concrete serializers, arrays
@@ -33,17 +67,16 @@ public final class ArraySerializers
      * Generic serializer for Object arrays (<code>Object[]</code>).
      */
     public final static class ObjectArraySerializer
-        extends SerializerBase<Object[]>
+        extends AsArraySerializer<Object[]>
     {
         public final static ObjectArraySerializer instance = new ObjectArraySerializer();
 
         public ObjectArraySerializer() { super(Object[].class); }
 
         @Override
-        public void serialize(Object[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(Object[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             final int len = value.length;
             if (len > 0) {
                 JsonSerializer<Object> prevSerializer = null;
@@ -87,7 +120,6 @@ public final class ArraySerializers
                     }
                 }
             }
-            jgen.writeEndArray();
         }
 
         //@Override
@@ -111,15 +143,14 @@ public final class ArraySerializers
     }
 
     public final static class StringArraySerializer
-        extends SerializerBase<String[]>
+        extends AsArraySerializer<String[]>
     {
         public StringArraySerializer() { super(String[].class); }
 
         @Override
-        public void serialize(String[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(String[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             final int len = value.length;
             if (len > 0) {
                 /* 08-Dec-2008, tatus: If we want this to be fully overridable
@@ -140,7 +171,6 @@ public final class ArraySerializers
                     }
                 }
             }
-            jgen.writeEndArray();
         }
 
         //@Override
@@ -153,19 +183,17 @@ public final class ArraySerializers
     }
 
     public final static class BooleanArraySerializer
-        extends SerializerBase<boolean[]>
+        extends AsArraySerializer<boolean[]>
     {
         public BooleanArraySerializer() { super(boolean[].class); }
         
         @Override
-	public void serialize(boolean[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(boolean[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             for (int i = 0, len = value.length; i < len; ++i) {
                 jgen.writeBoolean(value[i]);
             }
-            jgen.writeEndArray();
         }
 
         //@Override
@@ -181,6 +209,8 @@ public final class ArraySerializers
      * Unlike other integral number array serializers, we do not just print out byte values
      * as numbers. Instead, we assume that it would make more sense to output content
      * as base64 encoded bytes (using default base64 encoding).
+     *<p>
+     * NOTE: since it is NOT serialized as an array, can not use AsArraySerializer as base
      */
     public final static class ByteArraySerializer
         extends SerializerBase<byte[]>
@@ -194,6 +224,15 @@ public final class ArraySerializers
             jgen.writeBinary(value);
         }
 
+        public void serializeWithType(byte[] value, JsonGenerator jgen, SerializerProvider provider,
+                TypeSerializer typeSer)
+            throws IOException, JsonGenerationException
+        {
+            typeSer.writeTypePrefixForScalar(value, jgen);
+            jgen.writeBinary(value);
+            typeSer.writeTypeSuffixForScalar(value, jgen);
+        }
+        
         //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
@@ -205,20 +244,18 @@ public final class ArraySerializers
     }
 
     public final static class ShortArraySerializer
-        extends SerializerBase<short[]>
+        extends AsArraySerializer<short[]>
     {
         public ShortArraySerializer() { super(short[].class); }
 
         @SuppressWarnings("cast")
         @Override
-        public void serialize(short[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(short[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             for (int i = 0, len = value.length; i < len; ++i) {
                 jgen.writeNumber((int)value[i]);
             }
-            jgen.writeEndArray();
         }
 
         //@Override
@@ -235,6 +272,8 @@ public final class ArraySerializers
      * Character arrays are different from other integral number arrays in that
      * they are most likely to be textual data, and should be written as
      * Strings, not arrays of entries.
+     *<p>
+     * NOTE: since it is NOT serialized as an array, can not use AsArraySerializer as base
      */
     public final static class CharArraySerializer
         extends SerializerBase<char[]>
@@ -248,6 +287,16 @@ public final class ArraySerializers
             jgen.writeString(value, 0, value.length);
         }
 
+        @Override
+        public void serializeWithType(char[] value, JsonGenerator jgen, SerializerProvider provider,
+                TypeSerializer typeSer)
+            throws IOException, JsonGenerationException
+        {
+            typeSer.writeTypePrefixForScalar(value, jgen);
+            jgen.writeString(value, 0, value.length);
+            typeSer.writeTypeSuffixForScalar(value, jgen);
+        }
+        
         //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
@@ -261,19 +310,17 @@ public final class ArraySerializers
 
 
     public final static class IntArraySerializer
-        extends SerializerBase<int[]>
+        extends AsArraySerializer<int[]>
     {
         public IntArraySerializer() { super(int[].class); }
 
         @Override
-        public void serialize(int[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(int[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             for (int i = 0, len = value.length; i < len; ++i) {
                 jgen.writeNumber(value[i]);
             }
-            jgen.writeEndArray();
         }
 
         //@Override
@@ -286,19 +333,17 @@ public final class ArraySerializers
     }
 
     public final static class LongArraySerializer
-        extends SerializerBase<long[]>
+        extends AsArraySerializer<long[]>
     {
         public LongArraySerializer() { super(long[].class); }
 
         @Override
-        public void serialize(long[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(long[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             for (int i = 0, len = value.length; i < len; ++i) {
                 jgen.writeNumber(value[i]);
             }
-            jgen.writeEndArray();
         }
 
         //@Override
@@ -311,19 +356,17 @@ public final class ArraySerializers
     }
 
     public final static class FloatArraySerializer
-        extends SerializerBase<float[]>
+        extends AsArraySerializer<float[]>
     {
         public FloatArraySerializer() { super(float[].class); }
 
         @Override
-        public void serialize(float[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(float[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             for (int i = 0, len = value.length; i < len; ++i) {
                 jgen.writeNumber(value[i]);
             }
-            jgen.writeEndArray();
         }
 
         //@Override
@@ -336,19 +379,17 @@ public final class ArraySerializers
     }
 
     public final static class DoubleArraySerializer
-        extends SerializerBase<double[]>
+        extends AsArraySerializer<double[]>
     {
         public DoubleArraySerializer() { super(double[].class); }
         
         @Override
-        public void serialize(double[] value, JsonGenerator jgen, SerializerProvider provider)
+        public void serializeContents(double[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeStartArray();
             for (int i = 0, len = value.length; i < len; ++i) {
                 jgen.writeNumber(value[i]);
             }
-            jgen.writeEndArray();
         }
 
         //@Override

@@ -60,8 +60,9 @@ public class StdTypeResolverBuilder
             idConv = new TypeSerializerBase.MinimalClassNameConverter(_baseType);
             break;
         case NAME:
-            // @TODO
-            throw new IllegalStateException("Id type of NAME not yet implemented");
+            // !!! @TODO: add name bindings
+            idConv = new TypeSerializerBase.TypeNameConverter();
+            break;
 
         case NONE: // hmmh. should never get this far with 'none'
         case CUSTOM: // need custom resolver...
@@ -75,8 +76,6 @@ public class StdTypeResolverBuilder
             return new AsArrayTypeSerializer(idConv);
         case PROPERTY:
             return new AsPropertyTypeSerializer(idConv, _typeProperty);
-        case NAME_OF_PROPERTY:
-            return new AsPropertyNameTypeSerializer(idConv, _typeProperty);
         case WRAPPER:
             return new AsWrapperTypeSerializer(idConv);
         default:

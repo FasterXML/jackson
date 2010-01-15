@@ -25,33 +25,54 @@ public class AsArrayTypeSerializer
     public JsonTypeInfo.As getTypeInclusion() { return JsonTypeInfo.As.ARRAY; }
     
     @Override
-    public void writeTypePrefixForField(Object value, JsonGenerator jgen, String fieldName)
+    public void writeTypePrefixForObject(Object value, JsonGenerator jgen)
         throws IOException, JsonProcessingException
     {
-        jgen.writeArrayFieldStart(fieldName);
+        jgen.writeStartArray();
         jgen.writeString(_typeConverter.typeAsString(value));
+        jgen.writeStartObject();
     }
 
     @Override
-    public void writeTypePrefixForValue(Object value, JsonGenerator jgen)
+    public void writeTypePrefixForArray(Object value, JsonGenerator jgen)
+        throws IOException, JsonProcessingException
+    {
+        jgen.writeStartArray();
+        jgen.writeString(_typeConverter.typeAsString(value));
+        jgen.writeStartArray();
+    }
+
+    @Override
+    public void writeTypePrefixForScalar(Object value, JsonGenerator jgen)
             throws IOException, JsonProcessingException
     {
+        // only need the wrapper array
         jgen.writeStartArray();
         jgen.writeString(_typeConverter.typeAsString(value));
     }
 
     @Override
-    public void writeTypeSuffixForValue(Object value, JsonGenerator jgen)
+    public void writeTypeSuffixForObject(Object value, JsonGenerator jgen)
             throws IOException, JsonProcessingException
     {
+        jgen.writeEndObject();
         jgen.writeEndArray();
     }
 
     @Override
-    public void writeTypeSuffixForField(Object value, JsonGenerator jgen)
+    public void writeTypeSuffixForArray(Object value, JsonGenerator jgen)
             throws IOException, JsonProcessingException
     {
+        // wrapper array first, and then array caller needs to close
+        jgen.writeEndArray();
         jgen.writeEndArray();
     }
 
+    @Override
+    public void writeTypeSuffixForScalar(Object value, JsonGenerator jgen)
+            throws IOException, JsonProcessingException
+    {
+        // just the wrapper array to close
+        jgen.writeEndArray();
+    }
 }

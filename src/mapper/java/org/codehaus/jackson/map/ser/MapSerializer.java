@@ -81,11 +81,11 @@ public class MapSerializer
             TypeSerializer typeSer)
         throws IOException, JsonGenerationException
     {
-        typeSer.writeTypePrefixForValue(value, jgen);
+        typeSer.writeTypePrefixForObject(value, jgen);
         if (!value.isEmpty()) {
             serializeFields(value, jgen, provider);
         }
-        typeSer.writeTypeSuffixForValue(value, jgen);
+        typeSer.writeTypeSuffixForObject(value, jgen);
     }
     
     protected void serializeFields(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider)

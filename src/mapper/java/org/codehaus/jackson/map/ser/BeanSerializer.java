@@ -122,9 +122,9 @@ public class BeanSerializer
             TypeSerializer typeSer)
         throws IOException, JsonGenerationException
     {
-        typeSer.writeTypePrefixForValue(bean, jgen);
+        typeSer.writeTypePrefixForObject(bean, jgen);
         serializeFields(bean, jgen, provider);
-        typeSer.writeTypeSuffixForValue(bean, jgen);
+        typeSer.writeTypeSuffixForObject(bean, jgen);
     }
     
     protected void serializeFields(Object bean, JsonGenerator jgen, SerializerProvider provider)
