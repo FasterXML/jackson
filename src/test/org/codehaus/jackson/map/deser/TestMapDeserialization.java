@@ -1,6 +1,8 @@
 package org.codehaus.jackson.map.deser;
 
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,6 +30,21 @@ public class TestMapDeserialization
         public BrokenMap(boolean dummy) { super(); }
     }
 
+    @JsonDeserialize(using=MapDeserializer.class)
+    static class CustomMap extends LinkedHashMap<String,String> { }
+
+    static class MapDeserializer extends JsonDeserializer<CustomMap>
+    {
+        @Override
+        public CustomMap deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException
+        {
+            CustomMap result = new CustomMap();
+            result.put("x", jp.getText());
+            return result;
+        }
+    }
+    
     /*
     ***************************************************
     * Test methods, untyped (Object valued) maps
@@ -271,6 +288,24 @@ public class TestMapDeserialization
         assertEquals(Key.WHATEVER, result.get(Key.KEY2));
         assertNull(result.get(Key.WHATEVER));
         assertNull(result.get(Key.KEY1));
+    }
+
+    /*
+    ***************************************************
+    * Test methods, annotated Maps
+    ***************************************************
+     */
+
+    /**
+     * Simple test to ensure that @JsonDeserialize.using is
+     * recognized
+     */
+    public void testMapWithDeserializer() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        CustomMap result = mapper.readValue(quote("xyz"), CustomMap.class);
+        assertEquals(1, result.size());
+        assertEquals("xyz", result.get("x"));
     }
 
     /*

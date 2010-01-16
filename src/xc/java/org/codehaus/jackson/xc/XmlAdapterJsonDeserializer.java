@@ -37,13 +37,13 @@ public class XmlAdapterJsonDeserializer
 
     @Override
     public Object deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
+        throws IOException, JsonProcessingException
     {
         Object boundObject = jp.readValueAs(valueClass);
         try {
             return this.xmlAdapter.unmarshal(boundObject);
         } catch (Exception e) {
-            throw new JsonMappingException("Unable to unmarshal.", e);
+            throw new JsonMappingException("Unable to unmarshal: "+e.getMessage(), e);
         }
     }
 

@@ -297,19 +297,23 @@ public class BasicSerializerFactory
             return SerializableSerializer.instance;
         }
         if (Map.class.isAssignableFrom(type)) {
-            if (EnumMap.class.isAssignableFrom(type)) {
-                return new ContainerSerializers.EnumMapSerializer();
-            }
             return buildMapSerializer(type, config);
         }
         if (Object[].class.isAssignableFrom(type)) {
             return ArraySerializers.ObjectArraySerializer.instance;
         }
         if (List.class.isAssignableFrom(type)) {
-            if (RandomAccess.class.isAssignableFrom(type)) {
-                return ContainerSerializers.IndexedListSerializer.instance;
+            // [JACKSON-220]: need to check for explicit serializer first:
+            BasicBeanDescription desc = config.introspectClassAnnotations(type);
+            JsonSerializer<?> ser = findSerializerFromAnnotation(config, desc.getClassInfo());
+            if (ser == null) {
+                if (RandomAccess.class.isAssignableFrom(type)) {
+                    ser = ContainerSerializers.IndexedListSerializer.instance;
+                } else {
+                    ser = ContainerSerializers.CollectionSerializer.instance;
+                }
             }
-            return ContainerSerializers.CollectionSerializer.instance;
+            return ser;
         }
         if (Number.class.isAssignableFrom(type)) {
             return NumberSerializer.instance;
@@ -341,10 +345,17 @@ public class BasicSerializerFactory
             }
         }
         if (Collection.class.isAssignableFrom(type)) {
-            if (EnumSet.class.isAssignableFrom(type)) {
-                return new ContainerSerializers.EnumSetSerializer();
+            // [JACKSON-220]: need to check for explicit serializer first:
+            BasicBeanDescription desc = config.introspectClassAnnotations(type);
+            JsonSerializer<?> ser = findSerializerFromAnnotation(config, desc.getClassInfo());
+            if (ser == null) {
+                if (EnumSet.class.isAssignableFrom(type)) {
+                    ser = new ContainerSerializers.EnumSetSerializer();
+                } else {
+                    ser = ContainerSerializers.CollectionSerializer.instance;
+                }
             }
-            return ContainerSerializers.CollectionSerializer.instance;
+            return ser;
         }
         return null;
     }
@@ -410,7 +421,16 @@ public class BasicSerializerFactory
     {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         BasicBeanDescription beanDesc = config.introspectClassAnnotations(type);
-        return MapSerializer.construct(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));
+        // [JACKSON-220]: 
+        JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
+        if (ser == null) {
+            if (EnumMap.class.isAssignableFrom(type)) {
+                ser = new ContainerSerializers.EnumMapSerializer();
+            } else {
+                ser = MapSerializer.construct(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));
+            }
+        }
+        return ser;
     }
 
     /*

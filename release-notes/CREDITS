@@ -241,6 +241,11 @@ Elliot Shepherd:
     fail to serialize
    [1.3.3]
 
+Kenny MacLeod:
+  * Reported [JACKSON-225] and [JACKSON-227]: missing null checks/conversions
+    when adding entries to ArrayNode and ObjectNode
+   [1.3.4 / 1.4.1]
+
 Gil Markham:
   * Reported [JACKSON-196], suggested fix: Schema generation does not
     respect the annotation configured serializer on a bean property
