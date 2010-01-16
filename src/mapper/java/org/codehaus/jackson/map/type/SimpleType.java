@@ -81,6 +81,19 @@ public final class SimpleType
         return null;
     }
 
+    public int containedTypeCount() {
+        return (_typeParameters == null) ? 0 : _typeParameters.size();
+    }
+    public JavaType containedType(int index)
+    {
+        if (index < 0 || _typeParameters == null) return null;
+        for (Iterator<JavaType> it = _typeParameters.values().iterator(); it.hasNext(); --index) {
+            JavaType t = it.next();
+            if (index == 0) return t;
+        }
+        return null;
+    }
+    
     /*
     //////////////////////////////////////////////////////////
     // Standard methods
@@ -90,7 +103,21 @@ public final class SimpleType
     @Override
     public String toString()
     {
-        return "[simple type, class "+_class.getName()+"]";
+        StringBuilder sb = new StringBuilder(40);
+        sb.append("[simple type, class ").append(_class.getName());
+        if (_typeParameters != null) {
+            sb.append('<');
+            int count = 0;
+            for (JavaType t : _typeParameters.values()) {
+                if (++count > 1) {
+                    sb.append(',');
+                }
+                sb.append(t.toString());
+            }
+            sb.append('>');
+        }
+        sb.append("]");
+        return sb.toString();
     }
 
     @Override

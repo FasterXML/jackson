@@ -82,6 +82,8 @@ public class TestAnnotationJsonSerialize
     static class ValueMap extends HashMap<String,ValueInterface> { }
     @SuppressWarnings("serial")
     static class ValueList extends ArrayList<ValueInterface> { }
+    @SuppressWarnings("serial")
+    static class ValueLinkedList extends LinkedList<ValueInterface> { }
     
     /*
     //////////////////////////////////////////////
@@ -155,7 +157,7 @@ public class TestAnnotationJsonSerialize
         assertEquals("{\"a\":{\"x\":3}}", serializeAsString(m, map));
     }
 
-    public void testStaticTypingWithList() throws Exception
+    public void testStaticTypingWithArrayList() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
         m.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
@@ -164,6 +166,15 @@ public class TestAnnotationJsonSerialize
         assertEquals("[{\"x\":3}]", serializeAsString(m, list));
     }
 
+    public void testStaticTypingWithLinkedList() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
+        ValueLinkedList list = new ValueLinkedList();
+        list.add(new ValueClass());
+        assertEquals("[{\"x\":3}]", serializeAsString(m, list));
+    }
+    
     public void testStaticTypingWithArray() throws Exception
     {
         ObjectMapper m = new ObjectMapper();

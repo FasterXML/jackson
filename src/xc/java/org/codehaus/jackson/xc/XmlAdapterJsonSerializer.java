@@ -53,7 +53,7 @@ public class XmlAdapterJsonSerializer extends SerializerBase<Object>
             throws JsonMappingException
     {
         // no type resolver needed for schema
-        JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(findValueClass());
+        JsonSerializer<Object> ser = provider.findValueSerializer(findValueClass());
         JsonNode schemaNode = (ser instanceof SchemaAware) ?
                 ((SchemaAware) ser).getSchema(provider, null) :
                 JsonSchema.getDefaultSchemaNode();

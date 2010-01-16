@@ -187,6 +187,26 @@ public abstract class JavaType
     public JavaType getContentType() { return null; }
 
     /**
+     * Method for checking how many contained types this type
+     * has. Contained types are usually generic types, so that
+     * generic Maps have 2 contained types.
+     * 
+     * @since 1.5
+     */
+    public int containedTypeCount() { return 0; }
+
+    /**
+     * Method for accessing definitions of contained ("child")
+     * types.
+     * 
+     * @param index Index of contained type to return
+     * 
+     * @return Contained type at index, or null if no such type
+     *    exists (no exception thrown)
+     */
+    public JavaType containedType(int index) { return null; }
+    
+    /**
      * Method for accessing handler associated with this type, if any
      * 
      * @since 1.3

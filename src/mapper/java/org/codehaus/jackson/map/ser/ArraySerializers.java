@@ -150,7 +150,7 @@ public final class ArraySerializers
                         currSerializer = prevSerializer;
                     } else {
                         // true -> do cache
-                        currSerializer = provider.findNonTypedValueSerializer(cc);
+                        currSerializer = provider.findValueSerializer(cc);
                         prevSerializer = currSerializer;
                         prevClass = cc;
                     }
@@ -238,7 +238,7 @@ public final class ArraySerializers
                 if (cc == prevClass) {
                     currSerializer = prevSerializer;
                 } else {
-                    currSerializer = provider.findNonTypedValueSerializer(cc);
+                    currSerializer = provider.findValueSerializer(cc);
                     prevSerializer = currSerializer;
                     prevClass = cc;
                 }
@@ -268,7 +268,7 @@ public final class ArraySerializers
                 JavaType javaType = TypeFactory.type(typeHint);
                 if (javaType.isArrayType()) {
                     Class<?> componentType = ((ArrayType) javaType).getContentType().getRawClass();
-                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(componentType);
+                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
                             JsonSchema.getDefaultSchemaNode();
@@ -286,7 +286,7 @@ public final class ArraySerializers
             throws JsonMappingException
         {
             if (_staticTyping) {
-                _elementSerializer = provider.findNonTypedValueSerializer(_elementType.getRawClass());
+                _elementSerializer = provider.findValueSerializer(_elementType.getRawClass());
             }
         }        
     }

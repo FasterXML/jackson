@@ -224,7 +224,7 @@ public class BeanPropertyWriter
         }
         JsonSerializer<Object> ser = _serializer;
         if (ser == null) {
-            ser = prov.findNonTypedValueSerializer(value.getClass());
+            ser = prov.findValueSerializer(value.getClass());
         }
         jgen.writeFieldName(_name);
         if (_typeSerializer == null) {

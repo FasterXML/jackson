@@ -33,7 +33,7 @@ public class TestTypedArraySerialization
     @SuppressWarnings("serial")
     @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY)
     static class TypedListAsProp<T> extends ArrayList<T> { }
-
+    
     @SuppressWarnings("serial")
     @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.WRAPPER)
     static class TypedListAsWrapper<T> extends LinkedList<T> { }

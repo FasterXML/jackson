@@ -242,7 +242,7 @@ public class StdSerializerProvider
         /* no need for embedded type information for JSON schema generation (all
          * type information it needs is accessible via "untyped" serializer)
          */
-        JsonSerializer<Object> ser = inst.findNonTypedValueSerializer(type);
+        JsonSerializer<Object> ser = inst.findValueSerializer(type);
         JsonNode schemaNode = (ser instanceof SchemaAware) ?
                 ((SchemaAware) ser).getSchema(inst, null) : 
                 JsonSchema.getDefaultSchemaNode();
@@ -337,7 +337,7 @@ public class StdSerializerProvider
      */
 
     @Override
-    public JsonSerializer<Object> findNonTypedValueSerializer(Class<?> runtimeType)
+    public JsonSerializer<Object> findValueSerializer(Class<?> runtimeType)
         throws JsonMappingException
     {
         // Fast lookup from local lookup thingy works?
@@ -369,16 +369,6 @@ public class StdSerializerProvider
     }
 
     /**
-     */
-    @Override
-    public JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType, Class<?> declaredType)
-        throws JsonMappingException
-    {
-        // false -> do not cache
-        return findTypedValueSerializer(runtimeType, declaredType, false);
-    }
-
-    /**
      * @param cache Whether resulting value serializer should be cached or not; this is just
      *    a hint 
      */
@@ -400,7 +390,7 @@ public class StdSerializerProvider
 
         // Well, let's just compose from pieces:
         TypeSerializer typeSer = _serializerFactory.createTypeSerializer(declaredType, _config);
-        ser = findNonTypedValueSerializer(runtimeType);
+        ser = findValueSerializer(runtimeType);
 
         if (typeSer != null) {
             ser = new WrappedSerializer(typeSer, ser);

@@ -29,17 +29,17 @@ public class BeanDeserializer
     implements ResolvableDeserializer
 {
     /*
-    ///////////////////////////////////////////////
-    // Information regarding type being deserialized
-    ///////////////////////////////////////////////
+    /*************************************************
+    /* Information regarding type being deserialized
+    /*************************************************
      */
 
     final protected JavaType _beanType;
 
     /*
-    ///////////////////////////////////////////////
-    // Construction configuration
-    ///////////////////////////////////////////////
+    /*************************************************
+    /* Construction configuration
+    /*************************************************
      */
 
     /**
@@ -268,11 +268,11 @@ public class BeanDeserializer
             _anySetter.setValueDeserializer(findDeserializer(config, provider, _anySetter.getType(), "[any]", seen));
         }
 
-	// as well as delegate-based constructor:
-	if (_delegatingCreator != null) {
+        // as well as delegate-based constructor:
+        if (_delegatingCreator != null) {
             JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingCreator.getValueType(), "[constructor-arg[0]]", seen);
-	    _delegatingCreator.setDeserializer(deser);
-	}
+            _delegatingCreator.setDeserializer(deser);
+        }
         // or property-based one
         if (_propertyBasedCreator != null) {
             for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
@@ -282,9 +282,9 @@ public class BeanDeserializer
     }
 
     /*
-    /////////////////////////////////////////////////////////
-    // JsonDeserializer implementation
-    /////////////////////////////////////////////////////////
+    /********************************************************
+    /* JsonDeserializer implementation
+    /********************************************************
      */
 
     /**
@@ -368,10 +368,10 @@ public class BeanDeserializer
             if (_propertyBasedCreator != null) {
                 return _deserializeUsingPropertyBased(jp, ctxt);
             }
-	    // 07-Jul-2009, tatu: let's allow delegate-based approach too
-	    if (_delegatingCreator != null) {
-		return _delegatingCreator.deserialize(jp, ctxt);
-	    }
+    	    // 07-Jul-2009, tatu: let's allow delegate-based approach too
+    	    if (_delegatingCreator != null) {
+        		return _delegatingCreator.deserialize(jp, ctxt);
+    	    }
             throw JsonMappingException.from(jp, "No default constructor found for type "+_beanType+": can not instantiate from JSON object");
         }
 
@@ -408,39 +408,39 @@ public class BeanDeserializer
     public Object deserializeFromString(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-	if (_stringCreator != null) {
-	    return _stringCreator.construct(jp.getText());
+    	if (_stringCreator != null) {
+    	    return _stringCreator.construct(jp.getText());
         }
-	if (_delegatingCreator != null) {
-	    return _delegatingCreator.deserialize(jp, ctxt);
-	}
+    	if (_delegatingCreator != null) {
+    	    return _delegatingCreator.deserialize(jp, ctxt);
+    	}
         throw ctxt.mappingException(getBeanClass());
     }
 
     public Object deserializeFromNumber(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-	if (_numberCreator != null) {
-            switch (jp.getNumberType()) {
-            case INT:
-		return _numberCreator.construct(jp.getIntValue());
-            case LONG:
-		return _numberCreator.construct(jp.getLongValue());
-            }
-	}
-	if (_delegatingCreator != null) {
-	    return _delegatingCreator.deserialize(jp, ctxt);
-	}
-	throw ctxt.mappingException(getBeanClass());
+    	if (_numberCreator != null) {
+                switch (jp.getNumberType()) {
+                case INT:
+    		return _numberCreator.construct(jp.getIntValue());
+                case LONG:
+    		return _numberCreator.construct(jp.getLongValue());
+                }
+    	}
+    	if (_delegatingCreator != null) {
+    	    return _delegatingCreator.deserialize(jp, ctxt);
+    	}
+    	throw ctxt.mappingException(getBeanClass());
     }
 
     public Object deserializeUsingCreator(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-	if (_delegatingCreator != null) {
-	    return _delegatingCreator.deserialize(jp, ctxt);
-	}
-	throw ctxt.mappingException(getBeanClass());
+    	if (_delegatingCreator != null) {
+    	    return _delegatingCreator.deserialize(jp, ctxt);
+    	}
+    	throw ctxt.mappingException(getBeanClass());
     }
 
     /**

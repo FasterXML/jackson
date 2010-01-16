@@ -15,6 +15,7 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.map.util.Provider;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSerializableSchema;
@@ -300,6 +301,9 @@ public class BasicSerializerFactory
             if (ser == ContainerSerializers.IndexedListSerializer.instance) {
                 return buildIndexedListSerializer(type, config, beanDesc);
             }
+            if (ser == ContainerSerializers.CollectionSerializer.instance) {
+                return buildCollectionSerializer(type, config, beanDesc);
+            }
         }
         return ser;
     }
@@ -333,7 +337,7 @@ public class BasicSerializerFactory
         }
         if (Map.class.isAssignableFrom(cls)) {
             if (EnumMap.class.isAssignableFrom(cls)) {
-                return new ContainerSerializers.EnumMapSerializer();
+                return buildEnumMapSerializer(type, config, beanDesc);
             }
             return buildMapSerializer(type, config, beanDesc);
         }
@@ -344,7 +348,7 @@ public class BasicSerializerFactory
             if (RandomAccess.class.isAssignableFrom(cls)) {
                 return buildIndexedListSerializer(type, config, beanDesc);
             }
-            return ContainerSerializers.CollectionSerializer.instance;
+            return buildCollectionSerializer(type, config, beanDesc);
         }
         if (Number.class.isAssignableFrom(cls)) {
             return NumberSerializer.instance;
@@ -368,9 +372,9 @@ public class BasicSerializerFactory
         }
         if (Collection.class.isAssignableFrom(cls)) {
             if (EnumSet.class.isAssignableFrom(cls)) {
-                return new ContainerSerializers.EnumSetSerializer();
+                return buildEnumSetSerializer(type, config, beanDesc);
             }
-            return ContainerSerializers.CollectionSerializer.instance;
+            return buildCollectionSerializer(type, config, beanDesc);
         }
         return null;
     }
@@ -390,10 +394,10 @@ public class BasicSerializerFactory
 
         // These need to be in decreasing order of specificity...
         if (Iterator.class.isAssignableFrom(type)) {
-            return ContainerSerializers.IteratorSerializer.instance;
+            return buildIteratorSerializer(javaType, config, beanDesc);
         }
         if (Iterable.class.isAssignableFrom(type)) {
-            return ContainerSerializers.IterableSerializer.instance;
+            return buildIterableSerializer(javaType, config, beanDesc);
         }
         if (CharSequence.class.isAssignableFrom(type)) {
             return ToStringSerializer.instance;
@@ -450,6 +454,23 @@ public class BasicSerializerFactory
                 type, staticTyping);
     }
 
+    protected JsonSerializer<?> buildEnumMapSerializer(JavaType type, SerializationConfig config,
+                                                   BasicBeanDescription beanDesc)
+    {
+        JavaType keyType = type.getKeyType();
+        JavaType valueType = type.getContentType();
+        // Need to find key enum values...
+        EnumValues enums = null;
+        if (keyType.isEnumType()) { // non-enum if we got it as type erased class (from instance)
+            @SuppressWarnings("unchecked")
+            Class<Enum<?>> enumClass = (Class<Enum<?>>) keyType.getRawClass();
+            enums = EnumValues.construct(enumClass, config.getAnnotationIntrospector());
+        }
+        return ContainerSerializers.enumMapSerializer(valueType,
+                usesStaticTyping(config, beanDesc), createTypeSerializer(valueType.getRawClass(), config),
+                enums);
+    }
+
     /**
      * Helper method that handles configuration details when constructing serializers for
      * <code>Object[]</code> (and subtypes).
@@ -469,6 +490,46 @@ public class BasicSerializerFactory
         JavaType elemType = type.getContentType();
         return ContainerSerializers.indexedListSerializer(elemType,
                 usesStaticTyping(config, beanDesc), createTypeSerializer(elemType.getRawClass(), config));
+    }
+
+    protected JsonSerializer<?> buildCollectionSerializer(JavaType type, SerializationConfig config,
+            BasicBeanDescription beanDesc)
+    {
+        JavaType elemType = type.getContentType();
+        return ContainerSerializers.collectionSerializer(elemType,
+                usesStaticTyping(config, beanDesc), createTypeSerializer(elemType.getRawClass(), config));
+    }
+
+    protected JsonSerializer<?> buildIteratorSerializer(JavaType type, SerializationConfig config,
+            BasicBeanDescription beanDesc)
+    {
+        // if there's generic type, it'll be the first contained type
+        JavaType elemType = type.containedType(0);
+        TypeSerializer typeSer = (elemType == null) ? null : createTypeSerializer(elemType.getRawClass(), config);
+        return ContainerSerializers.iteratorSerializer(elemType,
+                usesStaticTyping(config, beanDesc), typeSer);
+    }
+    
+    protected JsonSerializer<?> buildIterableSerializer(JavaType type, SerializationConfig config,
+            BasicBeanDescription beanDesc)
+    {
+        // if there's generic type, it'll be the first contained type
+        JavaType elemType = type.containedType(0);
+        TypeSerializer typeSer = (elemType == null) ? null : createTypeSerializer(elemType.getRawClass(), config);
+        return ContainerSerializers.iterableSerializer(elemType,
+                usesStaticTyping(config, beanDesc), typeSer);
+    }
+
+    protected JsonSerializer<?> buildEnumSetSerializer(JavaType type, SerializationConfig config,
+                                                   BasicBeanDescription beanDesc)
+    {
+        // this may or may not be available (Class doesn't; type of field/method does)
+        JavaType enumType = type.getContentType();
+        // and even if nominally there is something, only use if it really is enum
+        if (!enumType.isEnumType()) {
+            enumType = null;
+        }
+        return ContainerSerializers.enumSetSerializer(enumType);
     }
     
     /**

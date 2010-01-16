@@ -54,6 +54,10 @@ public final class CollectionType
      */
 
     public JavaType getContentType() { return _elementType; }
+    public int containedTypeCount() { return 1; }
+    public JavaType containedType(int index) {
+            return (index == 0) ? _elementType : null;
+    }
 
     /*
     //////////////////////////////////////////////////////////

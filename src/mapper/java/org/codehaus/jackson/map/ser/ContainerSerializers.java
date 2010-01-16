@@ -40,6 +40,35 @@ public final class ContainerSerializers
     {
         return new IndexedListSerializer(elemType, staticTyping, typeSer);
     }
+
+    public static JsonSerializer<?> collectionSerializer(JavaType elemType, boolean staticTyping,
+            TypeSerializer typeSer)
+    {
+        return new CollectionSerializer(elemType, staticTyping, typeSer);
+    }
+
+    public static JsonSerializer<?> iteratorSerializer(JavaType elemType, boolean staticTyping,
+            TypeSerializer typeSer)
+    {
+        return new IteratorSerializer(elemType, staticTyping, typeSer);
+    }
+
+    public static JsonSerializer<?> iterableSerializer(JavaType elemType, boolean staticTyping,
+            TypeSerializer typeSer)
+    {
+        return new IterableSerializer(elemType, staticTyping, typeSer);
+    }
+
+    public static JsonSerializer<?> enumSetSerializer(JavaType enumType)
+    {
+        return new EnumSetSerializer(enumType);
+    }
+
+    public static JsonSerializer<?> enumMapSerializer(JavaType valueType, boolean staticTyping,
+            TypeSerializer valueTypeSer, EnumValues keyEnums)
+    {
+        return new EnumMapSerializer(valueType, staticTyping, valueTypeSer, keyEnums);
+    }
     
     /*
      ****************************************************************
@@ -53,10 +82,35 @@ public final class ContainerSerializers
      */
      private abstract static class AsArraySerializer<T>
         extends SerializerBase<T>
+        implements ResolvableSerializer
     {
-        protected AsArraySerializer(Class<?> cls) {
+        protected final boolean _staticTyping;
+
+        protected final JavaType _elementType;
+        
+        /**
+         * Type serializer used for values, if any.
+         * 
+         * @since 1.5
+         */
+        protected final TypeSerializer _elementTypeSerializer;
+
+        /**
+         * Value serializer to use, if it can be statically determined
+         * 
+         * @since 1.5
+         */
+        protected JsonSerializer<Object> _elementSerializer;
+
+        protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping,
+                TypeSerializer typeSer)
+        {
             // typing with generics is messy... have to resort to this:
             super(cls, false);
+            _elementType = et;
+            // static if explicitly requested, or we got final type
+            _staticTyping = staticTyping || (et != null && et.isFinal());
+            _elementTypeSerializer = typeSer;
         }
 
         @Override
@@ -85,10 +139,16 @@ public final class ContainerSerializers
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
             throws JsonMappingException
         {
+            /* 15-Jan-2010, tatu: This should probably be rewritten, given that
+             *    more information about content type is actually being explicitly
+             *    passed. So there should be less need to try to re-process that
+             *    information.
+             */
             ObjectNode o = createSchemaNode("array", true);
+            JavaType contentType = null;
             if (typeHint != null) {
                 JavaType javaType = TypeFactory.type(typeHint);
-                JavaType contentType = javaType.getContentType();
+                contentType = javaType.getContentType();
                 if (contentType == null) { // could still be parametrized (Iterators)
                     if (typeHint instanceof ParameterizedType) {
                         Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
@@ -97,15 +157,31 @@ public final class ContainerSerializers
                         }
                     }
                 }
-                if (contentType != null) {
-                    JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(contentType.getRawClass());
-                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
-                            ((SchemaAware) ser).getSchema(provider, null) :
-                            JsonSchema.getDefaultSchemaNode();
-                    o.put("items", schemaNode);
-                }
+            }
+            if (contentType == null && _elementType != null) {
+                contentType = _elementType;
+            }
+            if (contentType != null) {
+                JsonSerializer<Object> ser = provider.findValueSerializer(contentType.getRawClass());
+                JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                        ((SchemaAware) ser).getSchema(provider, null) :
+                        JsonSchema.getDefaultSchemaNode();
+                o.put("items", schemaNode);
             }
             return o;
+        }
+
+        /**
+         * Need to get callback to resolve value serializer, if static typing
+         * is used (either being forced, or because value type is final)
+         */
+        @Override
+        public void resolve(SerializerProvider provider)
+            throws JsonMappingException
+        {
+            if (_staticTyping && _elementType != null) {
+                _elementSerializer = provider.findValueSerializer(_elementType.getRawClass());
+            }
         }
     }
     
@@ -122,38 +198,12 @@ public final class ContainerSerializers
      */
     public final static class IndexedListSerializer
         extends AsArraySerializer<List<?>>
-        implements ResolvableSerializer
     {
-        public final static IndexedListSerializer instance = new IndexedListSerializer();
+        public final static IndexedListSerializer instance = new IndexedListSerializer(null, false, null);
 
-        protected final boolean _staticTyping;
-
-        protected final JavaType _elementType;
-        
-        /**
-         * Type serializer used for values, if any.
-         * 
-         * @since 1.5
-         */
-        protected final TypeSerializer _elementTypeSerializer;
-
-        /**
-         * Value serializer to use, if it can be statically determined
-         * 
-         * @since 1.5
-         */
-        protected JsonSerializer<Object> _elementSerializer;
-        
-        public IndexedListSerializer() { this(null, false, null); }
-
-        public IndexedListSerializer(JavaType elemType, boolean staticTyping,
-                TypeSerializer typeSer)
+        public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer typeSer)
         {
-            super(List.class);
-            _elementType = elemType;
-            // static if explicitly requested, or we got final type
-            _staticTyping = staticTyping || (elemType != null && elemType.isFinal());
-            _elementTypeSerializer = typeSer;
+            super(List.class, elemType, staticTyping, typeSer);
         }
         
         @Override
@@ -184,7 +234,7 @@ public final class ContainerSerializers
                             if (cc == prevClass) {
                                 currSerializer = prevSerializer;
                             } else {
-                                currSerializer = provider.findNonTypedValueSerializer(cc);
+                                currSerializer = provider.findValueSerializer(cc);
                                 prevSerializer = currSerializer;
                                 prevClass = cc;
                             }
@@ -242,7 +292,7 @@ public final class ContainerSerializers
                             if (cc == prevClass) {
                                 currSerializer = prevSerializer;
                             } else {
-                                currSerializer = provider.findNonTypedValueSerializer(cc);
+                                currSerializer = provider.findValueSerializer(cc);
                                 prevSerializer = currSerializer;
                                 prevClass = cc;
                             }
@@ -254,18 +304,6 @@ public final class ContainerSerializers
                     }
                 }
              }
-        }        
-
-        /**
-         * Need to get callback to resolve value serializer, if static typing
-         * is used (either being forced, or because value type is final)
-         */
-        public void resolve(SerializerProvider provider)
-            throws JsonMappingException
-        {
-            if (_staticTyping) {
-                _elementSerializer = provider.findNonTypedValueSerializer(_elementType.getRawClass());
-            }
         }
     }
 
@@ -279,24 +317,31 @@ public final class ContainerSerializers
     public final static class CollectionSerializer
         extends AsArraySerializer<Collection<?>>
     {
-        public final static CollectionSerializer instance = new CollectionSerializer();
+        public final static CollectionSerializer instance = new CollectionSerializer(null, false, null);
 
-        public CollectionSerializer() { super(Collection.class); }
+        public CollectionSerializer(JavaType elemType, boolean staticTyping, TypeSerializer typeSer)
+        {
+            super(Collection.class, elemType, staticTyping, typeSer);
+        }
         
         @Override
         public void serializeContents(Collection<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
+            if (_elementSerializer != null) {
+                serializeContentsUsing(value, jgen, provider, _elementSerializer);
+                return;
+            }
             Iterator<?> it = value.iterator();
             if (it.hasNext()) {
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
-
+                TypeSerializer typeSer = _elementTypeSerializer;
+    
                 int i = 0;
-
-                try {
-                    do {
-                        Object elem = it.next();
+                do {
+                    Object elem = it.next();
+                    try {
                         if (elem == null) {
                             provider.getNullValueSerializer().serialize(null, jgen, provider);
                         } else {
@@ -306,18 +351,51 @@ public final class ContainerSerializers
                             if (cc == prevClass) {
                                 currSerializer = prevSerializer;
                             } else {
-                                currSerializer = provider.findNonTypedValueSerializer(cc);
+                                currSerializer = provider.findValueSerializer(cc);
                                 prevSerializer = currSerializer;
                                 prevClass = cc;
                             }
-                            currSerializer.serialize(elem, jgen, provider);
+                            if (typeSer == null) {
+                                currSerializer.serialize(elem, jgen, provider);
+                            } else {
+                                currSerializer.serializeWithType(elem, jgen, provider, typeSer);
+                            }
+                        }
+                    } catch (Exception e) {
+                        // [JACKSON-55] Need to add reference information
+                        wrapAndThrow(e, value, i);
+                    }
+                    ++i;
+                } while (it.hasNext());
+            }
+        }
+
+        public void serializeContentsUsing(Collection<?> value, JsonGenerator jgen, SerializerProvider provider,
+                JsonSerializer<Object> ser)
+            throws IOException, JsonGenerationException
+        {
+            Iterator<?> it = value.iterator();
+            if (it.hasNext()) {
+                TypeSerializer typeSer = _elementTypeSerializer;
+                int i = 0;
+                do {
+                    Object elem = it.next();
+                    try {
+                        if (elem == null) {
+                            provider.getNullValueSerializer().serialize(null, jgen, provider);
+                        } else {
+                            if (typeSer == null) {
+                                ser.serialize(elem, jgen, provider);
+                            } else {
+                                ser.serializeWithType(elem, jgen, provider, typeSer);
+                            }
                         }
                         ++i;
-                    } while (it.hasNext());
-                } catch (Exception e) {
-                    // [JACKSON-55] Need to add reference information
-                    wrapAndThrow(e, value, i);
-                }
+                    } catch (Exception e) {
+                        // [JACKSON-55] Need to add reference information
+                        wrapAndThrow(e, value, i);
+                    }
+                } while (it.hasNext());
             }
         }
     }
@@ -327,7 +405,12 @@ public final class ContainerSerializers
     {
         public final static IteratorSerializer instance = new IteratorSerializer();
 
-        public IteratorSerializer() { super(Iterator.class); }
+        public IteratorSerializer() { this(null, false, null); }
+
+        public IteratorSerializer(JavaType elemType, boolean staticTyping, TypeSerializer typeSer)
+        {
+            super(Iterator.class, elemType, staticTyping, typeSer);
+        }
         
         @Override
         public void serializeContents(Iterator<?> value, JsonGenerator jgen, SerializerProvider provider)
@@ -347,7 +430,7 @@ public final class ContainerSerializers
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = provider.findNonTypedValueSerializer(cc);
+                            currSerializer = provider.findValueSerializer(cc);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -361,9 +444,12 @@ public final class ContainerSerializers
     public final static class IterableSerializer
         extends AsArraySerializer<Iterable<?>>
     {
-        public final static IterableSerializer instance = new IterableSerializer();
+        public final static IterableSerializer instance = new IterableSerializer(null, false, null);
 
-        public IterableSerializer() { super(Iterable.class); }
+        public IterableSerializer(JavaType elemType, boolean staticTyping, TypeSerializer typeSer)
+        {
+            super(Iterable.class, elemType, staticTyping, typeSer);
+        }
         
         @Override
         public void serializeContents(Iterable<?> value, JsonGenerator jgen, SerializerProvider provider)
@@ -373,6 +459,7 @@ public final class ContainerSerializers
             if (it.hasNext()) {
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
+                
                 do {
                     Object elem = it.next();
                     if (elem == null) {
@@ -384,7 +471,7 @@ public final class ContainerSerializers
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = provider.findNonTypedValueSerializer(cc);
+                            currSerializer = provider.findValueSerializer(cc);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -398,13 +485,16 @@ public final class ContainerSerializers
     public final static class EnumSetSerializer
         extends AsArraySerializer<EnumSet<? extends Enum<?>>>
     {
-        public EnumSetSerializer() { super(EnumSet.class); }
+        public EnumSetSerializer(JavaType elemType)
+        {
+            super(EnumSet.class, elemType, true, null);
+        }
 
         @Override
         public void serializeContents(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            JsonSerializer<Object> enumSer = null;
+            JsonSerializer<Object> enumSer = _elementSerializer;
             /* Need to dynamically find instance serializer; unfortunately
              * that seems to be the only way to figure out type (no accessors
              * to the enum class that set knows)
@@ -414,7 +504,7 @@ public final class ContainerSerializers
                     /* 12-Jan-2010, tatu: Since enums can not be polymorphic, let's
                      *   not bother with typed serializer variant here
                      */
-                    enumSer = provider.findNonTypedValueSerializer(en.getDeclaringClass());
+                    enumSer = provider.findValueSerializer(en.getDeclaringClass());
                 }
                 enumSer.serialize(en, jgen, provider);
             }
@@ -429,7 +519,7 @@ public final class ContainerSerializers
 
     /**
      * Deprecated map serializer; starting with version 1.4, there
-     * is a non-inner class version
+     * is a non-inner class version.
      * 
      * @deprecated Since 1.4, please use the non-inner class
      *    {@link org.codehaus.jackson.map.ser.MapSerializer} instead.
@@ -438,10 +528,48 @@ s     */
     public final static class MapSerializer
         extends org.codehaus.jackson.map.ser.MapSerializer { }
 
+    /**
+     * Specialized serializer for {@link EnumMap}s. Somewhat tricky to
+     * implement because actual Enum value type may not be available;
+     * and if not, it can only be gotten from actual instance.
+     */
     public final static class EnumMapSerializer
         extends SerializerBase<EnumMap<? extends Enum<?>, ?>>
+        implements ResolvableSerializer
     {
-        public EnumMapSerializer() { super(EnumMap.class, false); }
+        protected final boolean _staticTyping;
+
+        /**
+         * If we know enumeration used as key, this will contain
+         * value set to use for serialization
+         */
+        protected final EnumValues _keyEnums;
+
+        protected final JavaType _valueType;
+        
+        /**
+         * Type serializer used for values, if any.
+         * 
+         * @since 1.5
+         */
+        protected final TypeSerializer _valueTypeSerializer;
+
+        /**
+         * Value serializer to use, if it can be statically determined
+         * 
+         * @since 1.5
+         */
+        protected JsonSerializer<Object> _valueSerializer;
+
+        public EnumMapSerializer(JavaType valueType, boolean staticTyping, TypeSerializer typeSer,
+                EnumValues keyEnums)
+        {
+            super(EnumMap.class, false);
+            _staticTyping = staticTyping || (valueType != null && valueType.isFinal());
+            _valueType = valueType;
+            _valueTypeSerializer = typeSer;
+            _keyEnums = keyEnums;
+        }
 
         @Override
         public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
@@ -469,28 +597,27 @@ s     */
         protected void serializeContents(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
+            if (_valueSerializer != null) {
+                serializeContentsUsing(value, jgen, provider, _valueSerializer);
+                return;
+            }
             JsonSerializer<Object> prevSerializer = null;
             Class<?> prevClass = null;
-
-            // for efficient key serialization, we need this:
-            EnumValues enumValues = null;
+            EnumValues keyEnums = _keyEnums;
 
             for (Map.Entry<? extends Enum<?>,?> entry : value.entrySet()) {
                 // First, serialize key
                 Enum<?> key = entry.getKey();
-                if (enumValues == null) {
-                    /* 15-Oct-2009, tatu: This is bit clumsy, but still the
-                     * simplest efficient way to do it currently,
-                     * as Serializers get cached.
-                     * (it does assume we'll always use default serializer
-                     * tho -- so ideally code should be rewritten)
+                if (keyEnums == null) {
+                    /* 15-Oct-2009, tatu: This is clumsy, but still the simplest efficient
+                     * way to do it currently, as Serializers get cached. (it does assume we'll always use
+                     * default serializer tho -- so ideally code should be rewritten)
                      */
                     // ... and lovely two-step casting process too...
-                    // and as earlier, enums can not be polymorphic, can use non-typed variants
-                    SerializerBase<?> ser = (SerializerBase<?>) provider.findNonTypedValueSerializer(key.getDeclaringClass());
-                    enumValues = ((EnumSerializer) ser).getEnumValues();
+                    SerializerBase<?> ser = (SerializerBase<?>) provider.findValueSerializer(key.getDeclaringClass());
+                    keyEnums = ((EnumSerializer) ser).getEnumValues();
                 }
-                jgen.writeFieldName(enumValues.valueFor(key));
+                jgen.writeFieldName(keyEnums.valueFor(key));
                 // And then value
                 Object valueElem = entry.getValue();
                 if (valueElem == null) {
@@ -501,7 +628,7 @@ s     */
                     if (cc == prevClass) {
                         currSerializer = prevSerializer;
                     } else {
-                        currSerializer = provider.findNonTypedValueSerializer(cc);
+                        currSerializer = provider.findValueSerializer(cc);
                         prevSerializer = currSerializer;
                         prevClass = cc;
                     }
@@ -515,6 +642,41 @@ s     */
             }
         }
 
+        protected void serializeContentsUsing(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider,
+                JsonSerializer<Object> valueSer)
+            throws IOException, JsonGenerationException
+        {
+            EnumValues keyEnums = _keyEnums;
+            for (Map.Entry<? extends Enum<?>,?> entry : value.entrySet()) {
+                Enum<?> key = entry.getKey();
+                if (keyEnums == null) {
+                    // clumsy, but has to do for now:
+                    SerializerBase<?> ser = (SerializerBase<?>) provider.findValueSerializer(key.getDeclaringClass());
+                    keyEnums = ((EnumSerializer) ser).getEnumValues();
+                }
+                jgen.writeFieldName(keyEnums.valueFor(key));
+                Object valueElem = entry.getValue();
+                if (valueElem == null) {
+                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                } else {
+                    try {
+                        valueSer.serialize(valueElem, jgen, provider);
+                    } catch (Exception e) {
+                        wrapAndThrow(e, value, entry.getKey().name());
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void resolve(SerializerProvider provider)
+            throws JsonMappingException
+        {
+            if (_staticTyping) {
+                _valueSerializer = provider.findValueSerializer(_valueType.getRawClass());
+            }
+        }
+        
         @SuppressWarnings("unchecked")
         //@Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
@@ -529,7 +691,7 @@ s     */
                     ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
                     Class<Enum<?>> enumClass = (Class<Enum<?>>) enumType.getRawClass();
                     for (Enum<?> enumValue : enumClass.getEnumConstants()) {
-                        JsonSerializer<Object> ser = provider.findNonTypedValueSerializer(valueType.getRawClass());
+                        JsonSerializer<Object> ser = provider.findValueSerializer(valueType.getRawClass());
                         JsonNode schemaNode = (ser instanceof SchemaAware) ?
                                 ((SchemaAware) ser).getSchema(provider, null) :
                                 JsonSchema.getDefaultSchemaNode();

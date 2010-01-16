@@ -78,6 +78,16 @@ public final class MapType
     @Override
     public JavaType getContentType() { return _valueType; }
 
+    @Override
+    public int containedTypeCount() { return 2; }
+    
+    @Override
+    public JavaType containedType(int index) {
+        if (index == 0) return _keyType;
+        if (index == 1) return _valueType;
+        return null;
+    }
+    
     /*
     //////////////////////////////////////////////////////////
     // Standard methods

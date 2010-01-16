@@ -179,7 +179,7 @@ public class BeanSerializer
                 if (serType == null) {
                     serType = prop.getReturnType();
                 }
-                ser = provider.findNonTypedValueSerializer(serType);
+                ser = provider.findValueSerializer(serType);
             }
             JsonNode schemaNode = (ser instanceof SchemaAware) ?
                     ((SchemaAware) ser).getSchema(provider, hint) : 
@@ -222,7 +222,7 @@ public class BeanSerializer
             /* non-typed means that it won't be wrapped with type resolver: this
              * is important since we will be adding type resolver separately
              */
-            _props[i] = prop.withSerializer(provider.findNonTypedValueSerializer(type));
+            _props[i] = prop.withSerializer(provider.findValueSerializer(type));
         }
     }
 

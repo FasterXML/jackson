@@ -95,6 +95,11 @@ public final class ArrayType
     @Override
     public JavaType getContentType() { return  _componentType; }
 
+    public int containedTypeCount() { return 1; }
+    public JavaType containedType(int index) {
+            return (index == 0) ? _componentType : null;
+    }
+    
     /*
     //////////////////////////////////////////////////////////
     // Standard methods

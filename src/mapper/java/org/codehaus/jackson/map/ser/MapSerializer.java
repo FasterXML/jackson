@@ -187,7 +187,7 @@ public class MapSerializer
                 if (cc == prevValueClass) {
                     currSerializer = prevValueSerializer;
                 } else {
-                    currSerializer = provider.findNonTypedValueSerializer(cc);
+                    currSerializer = provider.findValueSerializer(cc);
                     prevValueSerializer = currSerializer;
                     prevValueClass = cc;
                 }
@@ -271,7 +271,7 @@ public class MapSerializer
                 if (cc == prevValueClass) {
                     currSerializer = prevValueSerializer;
                 } else {
-                    currSerializer = provider.findNonTypedValueSerializer(cc);
+                    currSerializer = provider.findValueSerializer(cc);
                     prevValueSerializer = currSerializer;
                     prevValueClass = cc;
                 }
@@ -303,7 +303,7 @@ public class MapSerializer
         throws JsonMappingException
     {
         if (_staticTyping) {
-            _valueSerializer = provider.findNonTypedValueSerializer(_valueType.getRawClass());
+            _valueSerializer = provider.findValueSerializer(_valueType.getRawClass());
         }
     }
 }

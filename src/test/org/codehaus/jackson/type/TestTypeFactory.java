@@ -99,4 +99,14 @@ public class TestTypeFactory
         assertSame(String.class, ((MapType) t).getKeyType().getRawClass());
         assertSame(Integer.class, ((MapType) t).getContentType().getRawClass());
     }
+
+    public void testIterator()
+    {
+        JavaType t = TypeFactory.type(new TypeReference<Iterator<String>>() { });
+        assertEquals(SimpleType.class, t.getClass());
+        assertSame(Iterator.class, t.getRawClass());
+        assertEquals(1, t.containedTypeCount());
+        assertEquals(TypeFactory.type(String.class), t.containedType(0));
+        assertNull(t.containedType(1));
+    }
 }
