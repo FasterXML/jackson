@@ -211,6 +211,7 @@ public class JsonParserDelegate extends JsonParser
 
     @Override
     public JsonParser skipChildren() throws IOException, JsonParseException {
+        delegate.skipChildren();
         // NOTE: must NOT delegate this method to delegate, has to be self-reference for chaining
         return this;
     }
