@@ -175,7 +175,7 @@ public final class ContainerSerializers
          * Need to get callback to resolve value serializer, if static typing
          * is used (either being forced, or because value type is final)
          */
-        @Override
+        //@Override
         public void resolve(SerializerProvider provider)
             throws JsonMappingException
         {
@@ -668,7 +668,7 @@ s     */
             }
         }
 
-        @Override
+        //@Override
         public void resolve(SerializerProvider provider)
             throws JsonMappingException
         {
@@ -678,7 +678,7 @@ s     */
         }
         
         @SuppressWarnings("unchecked")
-        //@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
             throws JsonMappingException
         {

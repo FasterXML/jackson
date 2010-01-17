@@ -8,7 +8,7 @@ import org.codehaus.jackson.*;
 
 /**
  * Helper class that implements
- * <a href="">delegate pattern</a> for {@link JsonParser},
+ * <a href="http://en.wikipedia.org/wiki/Delegation_pattern">delegation pattern</a> for {@link JsonParser},
  * to allow for simple overridability of basic parsing functionality.
  * The idea is that any functionality to be modified can be simply
  * overridden; and anything else will be delegated by default.
@@ -27,9 +27,9 @@ public class JsonParserDelegate extends JsonParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, configuration
-    ////////////////////////////////////////////////////
+    /**************************************************
+    /* Public API, configuration
+    /**************************************************
      */
 
     @Override
@@ -57,9 +57,9 @@ public class JsonParserDelegate extends JsonParser
     }
     
     /*
-    ////////////////////////////////////////////////////
-    // Closeable impl
-    ////////////////////////////////////////////////////
+    /**************************************************
+    /* Closeable impl
+    /**************************************************
      */
 
     @Override
@@ -73,9 +73,9 @@ public class JsonParserDelegate extends JsonParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, token accessors
-    ////////////////////////////////////////////////////
+    /**************************************************
+    /* Public API, token accessors
+    /**************************************************
      */
 
     public JsonToken getCurrentToken() {
@@ -111,9 +111,9 @@ public class JsonParserDelegate extends JsonParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, access to token information, text
-    ////////////////////////////////////////////////////
+    /**************************************************
+    /* Public API, access to token information, text
+    /**************************************************
      */
 
     @Override
@@ -138,9 +138,9 @@ public class JsonParserDelegate extends JsonParser
 
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, access to token information, numeric
-    ////////////////////////////////////////////////////
+    /**************************************************
+    /* Public API, access to token information, numeric
+    /**************************************************
      */
     
     @Override
@@ -203,7 +203,6 @@ public class JsonParserDelegate extends JsonParser
         return delegate.getTokenLocation();
     }
 
-
     @Override
     public JsonToken nextToken() throws IOException, JsonParseException {
         return delegate.nextToken();
@@ -211,8 +210,8 @@ public class JsonParserDelegate extends JsonParser
 
     @Override
     public JsonParser skipChildren() throws IOException, JsonParseException {
-        // NOTE: must NOT delegate this method to delegate, has to be self-reference for chaining
+        delegate.skipChildren();
+        // NOTE: must NOT delegate this method to delegate, needs to be self-reference for chaining
         return this;
     }
-
 }

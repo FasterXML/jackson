@@ -272,7 +272,7 @@ public abstract class SettableBeanProperty
         public final void set(Object instance, Object value)
             throws IOException
         {
-            throw new UnsupportedOperationException("Should never call 'set' onn setterless property");
+            throw new UnsupportedOperationException("Should never call 'set' on setterless property");
         }
     }
 
