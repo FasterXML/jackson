@@ -261,3 +261,6 @@ Mike Rheinheimer:
     @XmlElement.type property for figuring out actual type
    [1.4.0]
 
+Henning Schmiedehausen:
+  * Reported [JACKSON-230]: wrong NumberType reported for big ints, longs
+   [1.4.2]

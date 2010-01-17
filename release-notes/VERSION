@@ -1,21 +1,31 @@
 Version: 1.4.1
 
+  * [JACKSON-230]: wrong NumberType reported for big ints, longs
+   (reported by Henning S)
+
 Release date:
-  10-Jan-2009
+  10-Jan-2010
 
 Description:
-  First patch release for 1.4; also includes concurrent fixes from
-  trunk (which were also included in 1.3.3)
+  Second patch release for 1.4.
+
+  Fixes:
+
+  * [JACKSON-230]: wrong NumberType reported for big ints, longs
+   (reported by Henning S)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.4.1 [10-Jan-2010]
 
   Fixes:
 
   * [JACKSON-225], [JACKSON-227], missing null checks/conversions when
     adding entries to ArrayNode and ObjectNode
    (reported by Kenny M)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
+(plus others from 1.3.x branch that were not 1.4.0)
 
 1.4.0 [19-Dec-2009]
 

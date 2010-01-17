@@ -53,7 +53,7 @@ public abstract class Utf8NumericParser
      * part of processing.
      */
     @Override
-	protected final JsonToken parseNumberText(int c)
+    protected final JsonToken parseNumberText(int c)
         throws IOException, JsonParseException
     {
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
