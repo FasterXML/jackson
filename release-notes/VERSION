@@ -1,4 +1,4 @@
-Version: 1.3.3
+Version: 1.3.4
 
 Release date:
   xx-Jan-2010
@@ -9,6 +9,8 @@ Description:
   * [JACKSON-225], [JACKSON-227], missing null checks/conversions when
     adding entries to ArrayNode and ObjectNode
    (reported by Kenny M)
+  * [JACKSON-230]: wrong NumberType reported for big ints, longs
+   (reported by Henning S)
 
 ------------------------------------------------------------------------
 == History: ==
