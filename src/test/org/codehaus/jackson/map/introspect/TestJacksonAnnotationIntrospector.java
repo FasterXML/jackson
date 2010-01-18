@@ -6,6 +6,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.StdDeserializer;
 
 import javax.xml.namespace.QName;
 import java.io.IOException;
@@ -134,9 +135,9 @@ public class TestJacksonAnnotationIntrospector
     }
 
 
-    public static class QNameDeserializer extends JsonDeserializer<QName>
+    public static class QNameDeserializer extends StdDeserializer<QName>
     {
-
+        public QNameDeserializer() { super(QName.class); }
         @Override
         public QName deserialize(JsonParser jp, DeserializationContext ctxt)
                 throws IOException, JsonProcessingException

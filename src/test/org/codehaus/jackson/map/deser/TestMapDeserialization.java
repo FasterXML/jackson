@@ -34,8 +34,9 @@ public class TestMapDeserialization
     @JsonDeserialize(using=MapDeserializer.class)
     static class CustomMap extends LinkedHashMap<String,String> { }
 
-    static class MapDeserializer extends JsonDeserializer<CustomMap>
+    static class MapDeserializer extends StdDeserializer<CustomMap>
     {
+        public MapDeserializer() { super(CustomMap.class); }
         @Override
         public CustomMap deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException

@@ -168,5 +168,5 @@ public @interface JsonTypeInfo
      */
     public String property() default "";
 
-    public Class<? extends JsonTypeResolverBuilder> typeResolver() default JsonTypeResolverBuilder.NONE.class;
+    public Class<? extends JsonTypeResolverBuilder<?>> typeResolver() default JsonTypeResolverBuilder.NONE.class;
 }

@@ -20,16 +20,40 @@ import org.codehaus.jackson.util.TokenBuffer;
 public abstract class StdDeserializer<T>
     extends JsonDeserializer<T>
 {
-    final Class<?> _valueClass;
+    final protected Class<?> _valueClass;
 
     protected StdDeserializer(Class<?> vc) {
         _valueClass = vc;
     }
 
+    /*
+    /****************************************************
+    /* Extended API
+    /****************************************************
+    */
+
     public Class<?> getValueClass() { return _valueClass; }
 
     public JavaType getValueType() { return null; }
 
+    /*
+    /****************************************************
+    /* Partial JsonDeserializer implementation 
+    /****************************************************
+    */
+    
+    /**
+     * Base implementation will call type deserializer to extract
+     * type information
+     */
+    public T deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+        throws IOException, JsonProcessingException
+    {
+        // !!! TBI
+        return deserialize(jp, ctxt);
+    }
+    
     /*
     /////////////////////////////////////////////////////////////
     // Helper methods for sub-classes, parsing
@@ -341,7 +365,7 @@ public abstract class StdDeserializer<T>
     */
 
     protected abstract static class PrimitiveOrWrapperDeserializer<T>
-        extends StdDeserializer<T>
+        extends StdScalarDeserializer<T>
     {
         final T _nullValue;
         
@@ -361,7 +385,7 @@ public abstract class StdDeserializer<T>
     */
 
     public final static class StringDeserializer
-        extends StdDeserializer<String>
+        extends StdScalarDeserializer<String>
     {
         public StringDeserializer() { super(String.class); }
 
@@ -383,7 +407,7 @@ public abstract class StdDeserializer<T>
     }
 
     public final static class ClassDeserializer
-        extends StdDeserializer<Class<?>>
+        extends StdScalarDeserializer<Class<?>>
     {
         public ClassDeserializer() { super(Class.class); }
 
@@ -566,7 +590,7 @@ public abstract class StdDeserializer<T>
      * mappings that plain {@link JsonParser#getNumberValue} returns.
      */
     public final static class NumberDeserializer
-        extends StdDeserializer<Number>
+        extends StdScalarDeserializer<Number>
     {
         public NumberDeserializer() { super(Number.class); }
 
@@ -629,7 +653,7 @@ public abstract class StdDeserializer<T>
     */
 
     public static class BigDecimalDeserializer
-        extends StdDeserializer<BigDecimal>
+        extends StdScalarDeserializer<BigDecimal>
     {
         public BigDecimalDeserializer() { super(BigDecimal.class); }
 
@@ -661,7 +685,7 @@ public abstract class StdDeserializer<T>
      * overflow problems.
      */
     public static class BigIntegerDeserializer
-        extends StdDeserializer<BigInteger>
+        extends StdScalarDeserializer<BigInteger>
     {
         public BigIntegerDeserializer() { super(BigInteger.class); }
 
@@ -703,7 +727,7 @@ public abstract class StdDeserializer<T>
     */
 
     public static class CalendarDeserializer
-        extends StdDeserializer<Calendar>
+        extends StdScalarDeserializer<Calendar>
     {
         public CalendarDeserializer() { super(Calendar.class); }
 
@@ -721,7 +745,7 @@ public abstract class StdDeserializer<T>
      * to deal with: mostly because it is more limited.
      */
     public static class SqlDateDeserializer
-        extends StdDeserializer<java.sql.Date>
+        extends StdScalarDeserializer<java.sql.Date>
     {
         public SqlDateDeserializer() { super(java.sql.Date.class); }
 

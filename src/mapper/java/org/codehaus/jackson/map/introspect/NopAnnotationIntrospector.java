@@ -83,12 +83,12 @@ public class NopAnnotationIntrospector
     }
 
     @Override
-    public JsonTypeResolverBuilder findTypeResolver(Annotated a, Class<?> baseType) {
+    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, Class<?> baseType) {
         return null;
     }
 
     @Override
-    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder b) {
+    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder<?> b) {
         // nothing to do
     }
     

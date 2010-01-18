@@ -3,8 +3,8 @@ package org.codehaus.jackson.xc;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.deser.StdDeserializer;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import java.io.IOException;
@@ -15,13 +15,14 @@ import java.lang.reflect.Type;
  * @author Ryan Heaton
  */
 public class XmlAdapterJsonDeserializer
-        extends JsonDeserializer<Object>
+    extends StdDeserializer<Object>
 {
     private final XmlAdapter<Object,Object> xmlAdapter;
     private final Class<?> valueClass;
 
     public XmlAdapterJsonDeserializer(XmlAdapter<Object,Object> xmlAdapter)
     {
+        super(Object.class); // type not really known, not passed
         this.xmlAdapter = xmlAdapter;
         this.valueClass = findValueClass();
     }

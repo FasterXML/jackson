@@ -17,7 +17,7 @@ import org.codehaus.jackson.map.DeserializationContext;
  * values as the source.
  */
 public abstract class FromStringDeserializer<T>
-    extends StdDeserializer<T>
+    extends StdScalarDeserializer<T>
 {
     protected FromStringDeserializer(Class<?> vc) {
         super(vc);

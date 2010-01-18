@@ -83,8 +83,9 @@ public class TestBasicAnnotations
      */
 
     @SuppressWarnings("unused")
-	private final static class IntsDeserializer extends JsonDeserializer<int[]>
+    private final static class IntsDeserializer extends StdDeserializer<int[]>
     {
+        public IntsDeserializer() { super(int[].class); }
         public int[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {

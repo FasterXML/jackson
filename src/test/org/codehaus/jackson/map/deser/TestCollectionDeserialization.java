@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.deser.StdDeserializer;
 import org.codehaus.jackson.type.TypeReference;
 
 public class TestCollectionDeserialization
@@ -19,8 +20,10 @@ public class TestCollectionDeserialization
     @JsonDeserialize(using=ListDeserializer.class)
     static class CustomList extends LinkedList<String> { }
 
-    static class ListDeserializer extends JsonDeserializer<CustomList>
+    static class ListDeserializer extends StdDeserializer<CustomList>
     {
+        public ListDeserializer() { super(CustomList.class); }
+
         @Override
         public CustomList deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException

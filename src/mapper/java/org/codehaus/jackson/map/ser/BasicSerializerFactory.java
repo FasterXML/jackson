@@ -257,7 +257,7 @@ public class BasicSerializerFactory
     {
         BasicBeanDescription bean = config.introspectClassAnnotations(baseType);
         AnnotatedClass ac = bean.getClassInfo();
-        JsonTypeResolverBuilder b = config.getAnnotationIntrospector().findTypeResolver(ac, baseType);
+        JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac, baseType);
         return (b == null) ? null : b.buildTypeSerializer();
     }
     

@@ -18,7 +18,7 @@ import org.codehaus.jackson.map.annotate.JsonCachable;
  * absolutely safe to cache them as well (no generic variations etc).
  */
 public class EnumDeserializer
-    extends StdDeserializer<Enum<?>>
+    extends StdScalarDeserializer<Enum<?>>
 {
     final EnumResolver<?> _resolver;
     

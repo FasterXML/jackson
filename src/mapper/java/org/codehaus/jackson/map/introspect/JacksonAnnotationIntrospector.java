@@ -121,7 +121,7 @@ public class JacksonAnnotationIntrospector
 
     
     @Override
-    public JsonTypeResolverBuilder findTypeResolver(Annotated a, Class<?> baseType)
+    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, Class<?> baseType)
     {
         JsonTypeInfo info = a.getAnnotation(JsonTypeInfo.class);
         /* if no type info designation, or explicitly disabled (by override mix-in, maybe),
@@ -131,9 +131,9 @@ public class JacksonAnnotationIntrospector
             return null;
         }
         // Custom or standard one?
-        JsonTypeResolverBuilder b;
+        JsonTypeResolverBuilder<?> b;
         
-        Class<? extends JsonTypeResolverBuilder> bc = info.typeResolver();
+        Class<? extends JsonTypeResolverBuilder<?>> bc = info.typeResolver();
         if (bc == JsonTypeResolverBuilder.NONE.class) { // use standard
             b = new StdTypeResolverBuilder();
         } else {
@@ -144,13 +144,13 @@ public class JacksonAnnotationIntrospector
             b = ClassUtil.createInstance(bc, false);
         }
         b.init(baseType, info.use());
-        b.setInclusion(info.include());
-        b.setTypeProperty(info.property());
+        b.inclusion(info.include());
+        b.typeProperty(info.property());
         return b;
     }
 
     @Override
-    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder b)
+    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder<?> b)
     {
         // @TODO
     }

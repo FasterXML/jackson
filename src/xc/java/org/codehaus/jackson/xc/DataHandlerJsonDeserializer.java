@@ -8,17 +8,19 @@ import java.io.ByteArrayInputStream;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.deser.StdDeserializer;
 
 /**
  * @author Ryan Heaton
  */
 public class DataHandlerJsonDeserializer
-    extends JsonDeserializer<DataHandler>
+    extends StdDeserializer<DataHandler>
 {
+    public DataHandlerJsonDeserializer() { super(DataHandler.class); }
+
     public DataHandler deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {

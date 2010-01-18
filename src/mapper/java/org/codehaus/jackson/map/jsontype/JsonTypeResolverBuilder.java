@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.jsontype;
 
+import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 
@@ -20,12 +21,12 @@ import org.codehaus.jackson.map.annotate.JsonTypeInfo;
  * @since 1.5
  * @author tatu
  */
-public interface JsonTypeResolverBuilder
+public interface JsonTypeResolverBuilder<T extends JsonTypeResolverBuilder<T>>
 {
     /**
      * Marker in annotations to denote that no resolver builder is defined.
      */
-    public abstract class NONE implements JsonTypeResolverBuilder { }
+    public abstract class NONE implements JsonTypeResolverBuilder<NONE> { }
 
     /*
      ***********************************************************
@@ -39,7 +40,11 @@ public interface JsonTypeResolverBuilder
      */
     public TypeSerializer buildTypeSerializer();
 
-    //public TypeDeserializer buildTypeDeserializer();
+    /**
+     * Method for building type deserializer based on current configuration
+     * of this builder.
+     */
+    public TypeDeserializer buildTypeDeserializer();
     
     /*
      ***********************************************************
@@ -55,8 +60,11 @@ public interface JsonTypeResolverBuilder
      * @param baseType Base type that constructed resolver will
      *    handle; super type of all types it will be used for.
      * @param idType Which type metadata is used
+     * 
+     * @return Resulting builder instance (usually this builder,
+     *   but not necessarily)
      */
-    public void init(Class<?> baseType, JsonTypeInfo.Id idType);
+    public T init(Class<?> baseType, JsonTypeInfo.Id idType);
     
     /*
     ***********************************************************
@@ -71,8 +79,11 @@ public interface JsonTypeResolverBuilder
      * {@link JsonTypeInfo.As#PROPERTY}.
      * 
      * @param includeAs Mechanism used for including type metadata in JSON
+     * 
+     * @return Resulting builder instance (usually this builder,
+     *   but not necessarily)
      */
-    public void setInclusion(JsonTypeInfo.As includeAs);
+    public T inclusion(JsonTypeInfo.As includeAs);
 
     /**
      * Method for specifying name of property used for including type
@@ -84,8 +95,11 @@ public interface JsonTypeResolverBuilder
      * 
      * @param propName Name of JSON property to use for including
      *    type information
+     * 
+     * @return Resulting builder instance (usually this builder,
+     *   but not necessarily)
      */
-    public void setTypeProperty(String propName);
+    public T typeProperty(String propName);
 
     /**
      * Method for adding relationship between type builder handles, and
@@ -102,6 +116,9 @@ public interface JsonTypeResolverBuilder
      * @param name (optional) Name to use, if non-null and non-empty;
      *    if null or empty String, default name determination mechanism
      *    is used (usually just uses non-qualified type name)
+     * 
+     * @return Resulting builder instance (usually this builder,
+     *   but not necessarily)
      */
-    public void registerSubtype(Class<?> type, String name);
+    public T registerSubtype(Class<?> type, String name);
 }

@@ -59,6 +59,21 @@ public abstract class JsonDeserializer<T>
     }
 
     /**
+     * Deserialization called when type being deserialized is defined to
+     * contain additional type identifier, to allow for correctly
+     * instantiating correct subtype. This can be due to annotation on
+     * type (or its supertype), or due to global settings without
+     * annotations.
+     * 
+     * @param typeDeserializer Deserializer to use for handling type information
+     * 
+     * @since 1.5
+     */
+    public abstract T deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+        throws IOException, JsonProcessingException;
+    
+    /**
      * Method that can be called to determine value to be used for
      * representing null values (values deserialized when Json token
      * is {@link JsonToken#VALUE_NULL}). Usually this is simply

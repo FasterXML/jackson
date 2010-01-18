@@ -2,11 +2,8 @@ package org.codehaus.jackson.main;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.io.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.annotate.*;
-import org.codehaus.jackson.map.*;
 
 /**
  * Set of basic unit tests for verifying that the basic parser

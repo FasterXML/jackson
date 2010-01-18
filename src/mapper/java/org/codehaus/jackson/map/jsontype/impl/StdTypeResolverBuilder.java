@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
+import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
@@ -11,7 +12,7 @@ import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
  * @since 1.5
  */
 public class StdTypeResolverBuilder
-    implements JsonTypeResolverBuilder
+    implements JsonTypeResolverBuilder<StdTypeResolverBuilder>
 {
     // Configuration settings:
 
@@ -32,7 +33,7 @@ public class StdTypeResolverBuilder
     public StdTypeResolverBuilder() {
     }
     
-    public void init(Class<?> baseType, JsonTypeInfo.Id idType)
+    public StdTypeResolverBuilder init(Class<?> baseType, JsonTypeInfo.Id idType)
     {
         _baseType = baseType;
         // sanity checks
@@ -42,10 +43,11 @@ public class StdTypeResolverBuilder
         _idType = idType;
         // Let's also initialize property name as per idType default
         _typeProperty = idType.getDefaultPropertyName();
+        return this;
     }
-        // sanity checks
-
-    public TypeSerializer buildTypeSerializer() {
+    
+    public TypeSerializer buildTypeSerializer()
+    {
         if (_idType == null) {
             throw new IllegalStateException("Can not build, 'init()' not yet called");
         }
@@ -83,6 +85,15 @@ public class StdTypeResolverBuilder
         }
     }
 
+    public TypeDeserializer buildTypeDeserializer()
+    {
+        if (_idType == null) {
+            throw new IllegalStateException("Can not build, 'init()' not yet called");
+        }
+        // !!! TBI
+        return null;
+    }
+    
     /*
      ********************************************************
      * Construction, configuration
@@ -93,24 +104,26 @@ public class StdTypeResolverBuilder
      * Method used to add name/class bindings for "Id.NAME" type
      * id method
      */
-    public void registerSubtype(Class<?> type, String name) {
+    public StdTypeResolverBuilder registerSubtype(Class<?> type, String name) {
         // TODO Auto-generated method stub
-        
+        return this;
     }
 
-    public void setInclusion(JsonTypeInfo.As includeAs) {
+    public StdTypeResolverBuilder inclusion(JsonTypeInfo.As includeAs) {
         if (includeAs == null) {
             throw new IllegalArgumentException("includeAs can not be null");
         }
         _includeAs = includeAs;
+        return this;
     }
-
-    public void setTypeProperty(String propName) {
+    
+    public StdTypeResolverBuilder typeProperty(String propName)
+    {
         // ok to have null/empty; will restore to use defaults
         if (propName == null || propName.length() == 0) {
             propName = _idType.getDefaultPropertyName();
         }
         _typeProperty = propName;
+        return this;
     }
-
 }

@@ -144,13 +144,13 @@ public abstract class AnnotationIntrospector
      * 
      * @since 1.5
      */
-    public abstract JsonTypeResolverBuilder findTypeResolver(Annotated a, Class<?> baseType);
+    public abstract JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, Class<?> baseType);
 
     /**
      * Method for locating annotation-specified subtypes of given class, and
      * passing them to given type resolver builder.
      */
-    public abstract void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder b);
+    public abstract void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder<?> b);
     
     /*
     ///////////////////////////////////////////////////////
@@ -656,9 +656,9 @@ public abstract class AnnotationIntrospector
         }        
 
         @Override
-        public JsonTypeResolverBuilder findTypeResolver(Annotated a, Class<?> baseType)
+        public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, Class<?> baseType)
         {
-            JsonTypeResolverBuilder b = _primary.findTypeResolver(a, baseType);
+            JsonTypeResolverBuilder<?> b = _primary.findTypeResolver(a, baseType);
             if (b == null) {
                 b = _secondary.findTypeResolver(a, baseType);
             }
@@ -669,7 +669,7 @@ public abstract class AnnotationIntrospector
          * Method for locating annotation-specified subtypes of given class, and
          * passing them to given type resolver builder.
          */
-        public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder b)
+        public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder<?> b)
         {
             _primary.findAndAddSubtypes(ac, b);
             _secondary.findAndAddSubtypes(ac, b);

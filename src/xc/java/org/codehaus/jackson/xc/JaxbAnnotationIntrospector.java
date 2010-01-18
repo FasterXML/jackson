@@ -223,13 +223,13 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public JsonTypeResolverBuilder findTypeResolver(Annotated a, Class<?> baseType) {
+    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, Class<?> baseType) {
         // @TODO
         return null;
     }
 
     @Override
-    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder b) {
+    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder<?> b) {
         // @TODO
     }
     
