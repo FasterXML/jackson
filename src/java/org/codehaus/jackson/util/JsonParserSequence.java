@@ -51,7 +51,7 @@ public class JsonParserSequence extends JsonParserDelegate
      * within sequences. This is done to minimize delegation depth,
      * ideally only having just a single level of delegation.
      */
-    public static JsonParser createFlattened(JsonParser first, JsonParser second)
+    public static JsonParserSequence createFlattened(JsonParser first, JsonParser second)
     {
         if (!(first instanceof JsonParserSequence || second instanceof JsonParserSequence)) {
             // simple:
@@ -108,6 +108,21 @@ public class JsonParserSequence extends JsonParserDelegate
             if (t != null) return t;
         }
         return null;
+    }
+
+    /*
+    /*******************************************************
+    /* Additional extended API
+    /*******************************************************
+     */
+
+    /**
+     * Method that is most useful for debugging or testing;
+     * returns actual number of underlying parsers sequence
+     * was constructed with (nor just ones remaining active)
+     */
+    public int containedParsersCount() {
+        return _parsers.length;
     }
     
     /*
