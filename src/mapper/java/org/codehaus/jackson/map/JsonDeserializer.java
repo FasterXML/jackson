@@ -69,7 +69,7 @@ public abstract class JsonDeserializer<T>
      * 
      * @since 1.5
      */
-    public abstract T deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+    public abstract Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException;
     

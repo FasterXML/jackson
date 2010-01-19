@@ -20,6 +20,12 @@ import org.codehaus.jackson.util.TokenBuffer;
 public abstract class StdDeserializer<T>
     extends JsonDeserializer<T>
 {
+    /**
+     * Type of values this deserializer handles: sometimes
+     * exact types, other time most specific supertype of
+     * types deserializer handles (which may be as generic
+     * as {@link Object} in some case)
+     */
     final protected Class<?> _valueClass;
 
     protected StdDeserializer(Class<?> vc) {
@@ -34,6 +40,12 @@ public abstract class StdDeserializer<T>
 
     public Class<?> getValueClass() { return _valueClass; }
 
+    /**
+     * Exact structured type deserializer handles, if known;
+     * null for non-structured (scalar) types.
+     *<p>
+     * Default implementation just returns null.
+     */
     public JavaType getValueType() { return null; }
 
     /*
@@ -46,12 +58,11 @@ public abstract class StdDeserializer<T>
      * Base implementation will call type deserializer to extract
      * type information
      */
-    public T deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException
     {
-        // !!! TBI
-        return deserialize(jp, ctxt);
+        return typeDeserializer.deserializeTyped(jp, ctxt);
     }
     
     /*

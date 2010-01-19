@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.LinkedNode;
@@ -226,6 +227,12 @@ public class StdDeserializationContext
         return JsonMappingException.from(_parser, "Can not construct Map key of type "+keyClass.getName()+" from String \""+_desc(keyValue)+"\": "+msg);
     }
 
+    @Override
+    public JsonMappingException wrongTokenException(JsonParser jp, JsonToken expToken, String msg)
+    {
+        return JsonMappingException.from(jp, "Unexpected token ("+jp.getCurrentToken()+"), expected "+expToken+": "+msg);
+    }
+    
     @Override
     public JsonMappingException unknownFieldException(Object instanceOrClass, String fieldName)
     {

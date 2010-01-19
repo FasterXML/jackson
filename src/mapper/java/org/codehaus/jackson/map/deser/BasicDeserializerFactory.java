@@ -8,10 +8,12 @@ import java.util.concurrent.*;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
@@ -297,6 +299,16 @@ public abstract class BasicDeserializerFactory
         return _simpleDeserializers.get(type);
     }
 
+    @Override
+    public TypeDeserializer createTypeDeserializer(DeserializationConfig config, JavaType baseType)
+    {
+        Class<?> cls = baseType.getRawClass();
+        BasicBeanDescription bean = config.introspectClassAnnotations(cls);
+        AnnotatedClass ac = bean.getClassInfo();
+        JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac, cls);
+        return (b == null) ? null : b.buildTypeDeserializer();
+    }    
+    
     /*
     ////////////////////////////////////////////////////////////
     // Helper methods, value/content/key type introspection

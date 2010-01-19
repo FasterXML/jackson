@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.ArrayType;
 import org.codehaus.jackson.map.util.ObjectBuffer;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Basic serializer that can serialize non-primitive arrays.
@@ -17,7 +18,7 @@ public class ArrayDeserializer
 {
     // // Configuration
 
-    final Class<?> _arrayClass;
+    final JavaType _arrayType;
 
     /**
      * Flag that indicates whether the component type is Object or not.
@@ -39,12 +40,14 @@ public class ArrayDeserializer
     public ArrayDeserializer(ArrayType arrayType, JsonDeserializer<Object> elemDeser)
     {
         super(Object[].class);
-        _arrayClass = arrayType.getRawClass();
+        _arrayType = arrayType;
         _elementClass = arrayType.getContentType().getRawClass();
         _untyped = (_elementClass == Object.class);
         _elementDeserializer = elemDeser;
     }
 
+    public JavaType getValueType() { return null; }
+    
     public Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
@@ -57,7 +60,7 @@ public class ArrayDeserializer
                 && _elementClass == Byte.class) {
                 return deserializeFromBase64(jp, ctxt);
             }
-            throw ctxt.mappingException(_arrayClass);
+            throw ctxt.mappingException(_arrayType.getRawClass());
         }
 
         final ObjectBuffer buffer = ctxt.leaseObjectBuffer();

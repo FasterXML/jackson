@@ -134,6 +134,17 @@ public class TokenBuffer
         return new Parser(_first, codec);
     }
 
+    /**
+     * @param src Parser to use for accessing source information
+     *    like location, configured codec
+     */
+    public JsonParser asParser(JsonParser src)
+    {
+        Parser p = new Parser(_first, src.getCodec());
+        p.setLocation(src.getTokenLocation());
+        return p;
+    }
+    
     /*
     *****************************************************************
     * Other custom methods not needed for implementing interfaces
@@ -692,6 +703,8 @@ public class TokenBuffer
         protected boolean _closed;
 
         protected transient ByteArrayBuilder _byteBuilder;
+
+        protected JsonLocation _location = null;
         
         /*
         ////////////////////////////////////////////////////
@@ -706,6 +719,10 @@ public class TokenBuffer
             _parsingContext = JsonReadContext.createRootContext(-1, -1);
         }
 
+        public void setLocation(JsonLocation l) {
+            _location = l;
+        }
+        
         @Override
         public ObjectCodec getCodec() { return _codec; }
 
@@ -810,10 +827,12 @@ public class TokenBuffer
         public JsonStreamContext getParsingContext() { return _parsingContext; }
 
         @Override
-        public JsonLocation getTokenLocation() { return JsonLocation.NA; }
+        public JsonLocation getTokenLocation() { return getCurrentLocation(); }
 
         @Override
-        public JsonLocation getCurrentLocation() { return JsonLocation.NA; }
+        public JsonLocation getCurrentLocation() {
+            return (_location == null) ? JsonLocation.NA : _location;
+        }
 
         @Override
         public String getCurrentName() { return _parsingContext.getCurrentName(); }

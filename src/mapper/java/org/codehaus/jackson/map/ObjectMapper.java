@@ -150,6 +150,10 @@ public class ObjectMapper
      * Given that we don't expect much concurrency for additions
      * (should very quickly converge to zero after startup), let's
      * explicitly define a low concurrency setting.
+     *<p>
+     * Since version 1.5, these may are either "raw" deserializers (when
+     * no type information is needed for base type), or type-wrapped
+     * deserializers (if it is needed)
      */
     final protected ConcurrentHashMap<JavaType, JsonDeserializer<Object>> _rootDeserializers
         = new ConcurrentHashMap<JavaType, JsonDeserializer<Object>>(64, 0.6f, 2);
@@ -1351,7 +1355,7 @@ public class ObjectMapper
         }
 
         // Nope: need to ask provider to resolve it
-        deser = _deserializerProvider.findValueDeserializer(_deserializationConfig, valueType, null, null);
+        deser = _deserializerProvider.findTypedValueDeserializer(_deserializationConfig, valueType);
         if (deser == null) { // can this happen?
             throw new JsonMappingException("Can not find a deserializer for type "+valueType);
         }

@@ -158,6 +158,12 @@ public abstract class DeserializationContext
     public abstract JsonMappingException weirdKeyException(Class<?> keyClass, String keyValue, String msg);
 
     /**
+     * Helper method for indicating that the current token was expected to be another
+     * token.
+     */
+    public abstract JsonMappingException wrongTokenException(JsonParser jp, JsonToken expToken, String msg);
+    
+    /**
      * Helper method for constructing exception to indicate that JSON Object
      * field name did not map to a known property of type being
      * deserialized.

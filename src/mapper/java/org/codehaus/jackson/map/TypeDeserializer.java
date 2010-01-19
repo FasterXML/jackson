@@ -1,5 +1,8 @@
 package org.codehaus.jackson.map;
 
+import java.io.IOException;
+
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 
 /**
@@ -42,5 +45,14 @@ public abstract class TypeDeserializer
     /* Type deserialization methods
     /**********************************************************
      */
+
+    /**
+     * Method called to let this type deserializer figure out intended
+     * polymorphic type, locate {@link JsonDeserializer} to use, and
+     * call it with JSON data to deserializer (which does not contain
+     * type information).
+     */
+    public abstract Object deserializeTyped(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException;
 }
     

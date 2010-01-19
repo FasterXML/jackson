@@ -53,6 +53,11 @@ public abstract class SerializerFactory
      * @param baseType Declared type to use as the base type for type information serializer
      * 
      * @return Type serializer to use for the base type, if one is needed; null if not.
+     * 
+     * @since 1.5
      */
-    public abstract TypeSerializer createTypeSerializer(Class<?> baseType, SerializationConfig config);
+    public TypeSerializer createTypeSerializer(Class<?> baseType, SerializationConfig config) {
+        // Default implementation returns null for backwards compatibility reasons.
+        return null;
+    }
 }

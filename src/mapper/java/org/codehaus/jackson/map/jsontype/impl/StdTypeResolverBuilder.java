@@ -90,8 +90,37 @@ public class StdTypeResolverBuilder
         if (_idType == null) {
             throw new IllegalStateException("Can not build, 'init()' not yet called");
         }
-        // !!! TBI
-        return null;
+        // First, method for converting type info to type id:
+        TypeDeserializerBase.TypeConverter idConv;
+        switch (_idType) {
+        case CLASS:
+            idConv = new TypeDeserializerBase.ClassNameConverter();
+            break;
+        case MINIMAL_CLASS:
+            idConv = new TypeDeserializerBase.MinimalClassNameConverter(_baseType);
+            break;
+        case NAME:
+            // !!! @TODO: add name bindings
+            idConv = new TypeDeserializerBase.TypeNameConverter();
+            break;
+
+        case NONE: // hmmh. should never get this far with 'none'
+        case CUSTOM: // need custom resolver...
+        default:
+            throw new IllegalStateException("Do not know how to construct standard type serializer for idType: "+_idType);
+        }
+
+        // And then inclusion mechanism
+        switch (_includeAs) {
+        case ARRAY:
+            return new AsArrayTypeDeserializer(_baseType, idConv);
+        case PROPERTY:
+            return new AsPropertyTypeDeserializer(_baseType, idConv, _typeProperty);
+        case WRAPPER:
+            return new AsWrapperTypeDeserializer(_baseType, idConv);
+        default:
+            throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
+        }
     }
     
     /*

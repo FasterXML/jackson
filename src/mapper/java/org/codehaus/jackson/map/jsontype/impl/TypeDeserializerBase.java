@@ -1,7 +1,9 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
+import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.type.TypeFactory;
 
 /**
  * @since 1.5
@@ -10,9 +12,12 @@ import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 public abstract class TypeDeserializerBase extends TypeDeserializer
 {
     protected final TypeConverter _typeConverter;
+
+    protected final Class<?> _baseType;
     
-    protected TypeDeserializerBase(TypeConverter conv)
+    protected TypeDeserializerBase(Class<?> baseType, TypeConverter conv)
     {
+        _baseType = baseType;
         _typeConverter = conv;
     }
 
@@ -26,11 +31,23 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
     @Override
     public String propertyName() { return null; }
 
+    public String baseTypeName() { return _baseType.getName(); }
+
+    /*
+     ************************************************************
+     * Helper methods for sub-classes
+     ************************************************************
+     */
+
+    protected final JavaType resolveType(String typeId) {
+        return _typeConverter.typeFromString(typeId);
+    }
+    
     /*
      ************************************************************
      * Helper classes
      ************************************************************
-      */
+     */
 
      /**
       * Interface used for concrete type information converters
@@ -48,7 +65,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
           * @throws IllegalArgumentException If no class can be located
           *    for given type id
           */
-         public abstract Class<?> typeFromString(String typeId)
+         public abstract JavaType typeFromString(String typeId)
              throws IllegalArgumentException;
 
          public abstract JsonTypeInfo.Id idType();
@@ -57,17 +74,23 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
      /**
       * Converter that produces fully-qualified class names as type ids.
       */
-     public final static class ClassNameConverter extends TypeConverter
+     public static class ClassNameConverter extends TypeConverter
      {
          public final static ClassNameConverter instance = new ClassNameConverter();
 
          public JsonTypeInfo.Id idType() { return JsonTypeInfo.Id.CLASS; }
 
-         public Class<?> typeFromString(String typeId)
+         public JavaType typeFromString(String typeId)
              throws IllegalArgumentException
          {
-             // !!! TBI
-             return null;
+             try {
+                 Class<?> cls = Class.forName(typeId);
+                 return TypeFactory.type(cls);
+             } catch (ClassNotFoundException e) {
+                 throw new IllegalArgumentException("Invalid type id '"+typeId+"' (for id type 'Id.class'): no such class found");
+             } catch (Exception e) {
+                 throw new IllegalArgumentException("Invalid type id '"+typeId+"' (for id type 'Id.class'): "+e.getMessage());
+             }
          }
      }
 
@@ -75,7 +98,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
       * Converter that produces "minimal" class names (unique suffixes, relative
       * to fully-qualified base class name) as type ids.
       */
-     public final static class MinimalClassNameConverter extends TypeConverter
+     public final static class MinimalClassNameConverter extends ClassNameConverter
      {
          /**
           * Package name of the base class, to be used for determining common
@@ -98,11 +121,15 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
          public JsonTypeInfo.Id idType() { return JsonTypeInfo.Id.MINIMAL_CLASS; }
 
          @Override
-         public Class<?> typeFromString(String typeId)
+         public JavaType typeFromString(String typeId)
              throws IllegalArgumentException
          {
-             // !!! TBI
-             return null;
+             if (typeId.startsWith(".")) {
+                 StringBuilder sb = new StringBuilder(typeId.length() + _basePackageName.length());
+                 sb.append(_basePackageName).append(typeId);
+                 typeId = sb.toString();
+             }
+             return super.typeFromString(typeId);
          }
      }
 
@@ -118,7 +145,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
 
          // !!! @TODO
          @Override
-         public Class<?> typeFromString(String typeId)
+         public JavaType typeFromString(String typeId)
              throws IllegalArgumentException
          {
              // !!! TBI

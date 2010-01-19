@@ -128,4 +128,20 @@ public abstract class BaseMapTest
     {
         return serializeAsString(new ObjectMapper(), value);
     }
+
+    protected String asJSONObjectValueString(String... args)
+        throws IOException
+    {
+        return asJSONObjectValueString(new ObjectMapper(), args);
+    }
+
+    protected String asJSONObjectValueString(ObjectMapper m, String... args)
+        throws IOException
+    {
+        LinkedHashMap<Object,Object> map = new LinkedHashMap<Object,Object>();
+        for (int i = 0, len = args.length; i < len; i += 2) {
+            map.put(args[i], args[i+1]);
+        }
+        return m.writeValueAsString(map);
+    }
 }

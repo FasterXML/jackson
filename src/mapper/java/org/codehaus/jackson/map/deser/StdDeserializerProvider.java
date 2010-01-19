@@ -1,9 +1,12 @@
 package org.codehaus.jackson.map.deser;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.type.*;
@@ -19,9 +22,6 @@ import org.codehaus.jackson.type.JavaType;
 public class StdDeserializerProvider
     extends DeserializerProvider
 {
-    private final static JavaType _typeObject = TypeFactory.type(Object.class);
-    private final static JavaType _typeString = TypeFactory.type(String.class);
-
     /*
     ////////////////////////////////////////////////////
     // Caching
@@ -109,12 +109,27 @@ public class StdDeserializerProvider
     }
 
     @Override
+    public JsonDeserializer<Object> findTypedValueDeserializer(DeserializationConfig config,
+            JavaType type)
+        throws JsonMappingException
+    {
+        JsonDeserializer<Object> deser = findValueDeserializer(config, type, null, null);
+        TypeDeserializer typeDeser = _factory.createTypeDeserializer(config, type);
+        if (typeDeser != null) {
+            return new WrappedDeserializer(typeDeser, deser);
+        }
+        return deser;
+    }
+    
+    
+    @Override
     public KeyDeserializer findKeyDeserializer(DeserializationConfig config,
                                                JavaType type)
         throws JsonMappingException
     {
         // No serializer needed if it's plain old String, or Object/untyped
-        if (_typeString.equals(type) || _typeObject.equals(type)) {
+        Class<?> raw = type.getRawClass();
+        if (raw == String.class || raw == Object.class) {
             return null;
         }
         // Most other keys are of limited number of static types
@@ -296,4 +311,46 @@ public class StdDeserializerProvider
     {
         throw new JsonMappingException("Can not find a (Map) Key deserializer for type "+type);
     }
+
+    /*
+     ***************************************************************
+     *  Helper classes
+     ***************************************************************
+     */
+
+    /**
+     * Simple deserializer that will call configured type deserializer, passing
+     * in configured data deserializer, and exposing it all as a simple
+     * deserializer.
+     */
+    protected final static class WrappedDeserializer
+        extends JsonDeserializer<Object>
+    {
+        final TypeDeserializer _typeDeserializer;
+        final JsonDeserializer<Object> _deserializer;
+
+        public WrappedDeserializer(TypeDeserializer typeDeser, JsonDeserializer<Object> deser)
+        {
+            super();
+            _typeDeserializer = typeDeser;
+            _deserializer = deser;
+        }
+
+        @Override
+        public Object deserialize(JsonParser jp, DeserializationContext ctxt)
+                throws IOException, JsonProcessingException
+        {
+            return _typeDeserializer.deserializeTyped(jp, ctxt);
+        }
+
+        @Override
+        public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+                throws IOException, JsonProcessingException
+        {
+            // should never happen...
+            throw new IllegalStateException("Type-wrapped deserializer's deserializeWithType should never get called");
+        }
+    }
+
 }
