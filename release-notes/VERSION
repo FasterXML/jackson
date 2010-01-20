@@ -1,10 +1,7 @@
 Version: 1.4.1
 
-  * [JACKSON-230]: wrong NumberType reported for big ints, longs
-   (reported by Henning S)
-
 Release date:
-  10-Jan-2010
+  xx-Jan-2010
 
 Description:
   Second patch release for 1.4.
@@ -13,6 +10,8 @@ Description:
 
   * [JACKSON-230]: wrong NumberType reported for big ints, longs
    (reported by Henning S)
+  * [JACKSON-231]: ArrayDeserializer for byte[] should be able to
+    use VALUE_EMBEDDED_OBJECT (if Object is byte[])
 
 ------------------------------------------------------------------------
 == History: ==
