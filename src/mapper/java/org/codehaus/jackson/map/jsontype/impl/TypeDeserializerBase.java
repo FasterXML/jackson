@@ -40,7 +40,9 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
      */
 
     protected final JavaType resolveType(String typeId) {
-        return _typeConverter.typeFromString(typeId);
+        JavaType t = _typeConverter.typeFromString(typeId);
+        //if (t == null) throw new IllegalStateException();
+        return t;
     }
     
     /*
@@ -149,8 +151,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
          public JavaType typeFromString(String typeId)
              throws IllegalArgumentException
          {
-             // !!! TBI
-             return null;
+             throw new IllegalStateException("Not Yet Implemented");
          }
      }    
 }

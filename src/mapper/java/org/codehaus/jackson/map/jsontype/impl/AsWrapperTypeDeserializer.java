@@ -9,8 +9,8 @@ import org.codehaus.jackson.type.JavaType;
 
 public class AsWrapperTypeDeserializer extends TypeDeserializerBase
 {
-    public AsWrapperTypeDeserializer(Class<?> bt, TypeConverter c)
-    { super(bt, c);
+    public AsWrapperTypeDeserializer(Class<?> bt, TypeConverter c) {
+        super(bt, c);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
             throw ctxt.wrongTokenException(jp, JsonToken.FIELD_NAME,
                     "need JSON String that contains type id (for subtype of "+baseTypeName()+")");
         }
-        JavaType type = this.resolveType(jp.getText());
+        JavaType type = resolveType(jp.getText());
         JsonDeserializer<Object> deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, null, null);
         jp.nextToken();
         Object value = deser.deserialize(jp, ctxt);
