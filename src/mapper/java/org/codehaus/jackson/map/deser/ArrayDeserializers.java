@@ -173,7 +173,14 @@ public class ArrayDeserializers
             if (t == JsonToken.VALUE_STRING) {
                 return jp.getBinaryValue(ctxt.getBase64Variant());
             }
-
+            // 31-Dec-2009, tatu: Also may be hidden as embedded Object
+            if (t == JsonToken.VALUE_EMBEDDED_OBJECT) {
+                Object ob = jp.getEmbeddedObject();
+                if (ob == null) return null;
+                if (ob instanceof byte[]) {
+                    return (byte[]) ob;
+                }
+            }            
             if (t != JsonToken.START_ARRAY) {
                 throw ctxt.mappingException(_valueClass);
             }

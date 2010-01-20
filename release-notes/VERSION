@@ -11,6 +11,8 @@ Description:
    (reported by Kenny M)
   * [JACKSON-230]: wrong NumberType reported for big ints, longs
    (reported by Henning S)
+  * [JACKSON-231]: ArrayDeserializer for byte[] should be able to
+    use VALUE_EMBEDDED_OBJECT (if Object is byte[])
 
 ------------------------------------------------------------------------
 == History: ==
