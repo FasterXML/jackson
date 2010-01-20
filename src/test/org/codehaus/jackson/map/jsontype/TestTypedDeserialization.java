@@ -1,8 +1,12 @@
 package org.codehaus.jackson.map.jsontype;
 
+import java.util.*;
+
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.*;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 import static org.codehaus.jackson.map.annotate.JsonTypeInfo.*;
 
@@ -21,7 +25,7 @@ public class TestTypedDeserialization
     /**
      * Polymorphic base class
      */
-    @JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="#cls")
+    @JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="@classy")
     static class Animal {
         public String name;
         
@@ -55,10 +59,8 @@ public class TestTypedDeserialization
         public void setName(String n) { name = n; }
     }
 
-    public class AnimalWrapper {
+    static class AnimalContainer {
         public Animal animal;
-        
-        public AnimalWrapper(Animal a) { animal = a; }
     }
 
     @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.WRAPPER)
@@ -80,7 +82,7 @@ public class TestTypedDeserialization
     public void testSimpleClassAsProperty() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        Animal a = m.readValue(asJSONObjectValueString("#cls", Cat.class.getName(),
+        Animal a = m.readValue(asJSONObjectValueString("@classy", Cat.class.getName(),
                 "furColor", "tabby", "name", "Garfield"), Animal.class);
         assertNotNull(a);
         assertEquals(Cat.class, a.getClass());
@@ -92,70 +94,73 @@ public class TestTypedDeserialization
     /**
      * Test inclusion using wrapper style
      */
-    /*
     public void testTypeAsWrapper() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        m.getSerializationConfig().addMixInAnnotations(Animal.class, TypeWithWrapper.class);
-        Map<String,Object> result = writeAndMap(m, new Cat("Venla", "black"));
-        // should get a wrapper; keyed by minimal class name ("Cat" here)
-        assertEquals(1, result.size());
-        // minimal class name is prefixed by dot, and for inner classes it's bit longer
-        Map<?,?> cat = (Map<?,?>) result.get(".TestTypedSerialization$Cat");
-        assertNotNull(cat);
-        assertEquals(2, cat.size());
-        assertEquals("Venla", cat.get("name"));
-        assertEquals("black", cat.get("furColor"));
+        m.getDeserializationConfig().addMixInAnnotations(Animal.class, TypeWithWrapper.class);
+        String JSON = "{\".TestTypedDeserialization$Dog\" : "
+            +asJSONObjectValueString(m, "name", "Scooby", "boneCount", "6")+" }";
+        Animal a = m.readValue(JSON, Animal.class);
+        assertTrue(a instanceof Animal);
+        assertEquals(Dog.class, a.getClass());
+        Dog d = (Dog) a;
+        assertEquals("Scooby", d.name);
+        assertEquals(6, d.boneCount);
     }
-    */
 
     /**
      * Test inclusion using 2-element array
      */
-    /*
     public void testTypeAsArray() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        m.getSerializationConfig().addMixInAnnotations(Animal.class, TypeWithArray.class);
+        m.getDeserializationConfig().addMixInAnnotations(Animal.class, TypeWithArray.class);
         // hmmh. Not good idea to rely on exact output, order may change. But...
-        Map<String,Object> result = writeAndMap(m, new AnimalWrapper(new Dog("Amadeus", 7)));
-        // First level, wrapper
-        assertEquals(1, result.size());
-        List<?> l = (List<?>) result.get("animal");
-        assertNotNull(l);
-        assertEquals(2, l.size());
-        assertEquals(Dog.class.getName(), l.get(0));
-        Map<?,?> doggie = (Map<?,?>) l.get(1);
-        assertNotNull(doggie);
-        assertEquals(2, doggie.size());
-        assertEquals("Amadeus", doggie.get("name"));
-        assertEquals(Integer.valueOf(7), doggie.get("boneCount"));
+        String JSON = "[\""+Dog.class.getName()+"\", "
+            +asJSONObjectValueString(m, "name", "Martti", "boneCount", "11")+" ]";
+        Animal a = m.readValue(JSON, Animal.class);
+        assertEquals(Dog.class, a.getClass());
+        Dog d = (Dog) a;
+        assertEquals("Martti", d.name);
+        assertEquals(11, d.boneCount);
     }
-    */
 
     /**
-     * Use basic Animal via regural List
+     * Use basic Animal as contents of a regular List
      */
-    /*
-    public void testInArray() throws Exception
+    public void testListAsArray() throws Exception
     {
-        Animal[] animals = new Animal[] { new Cat("Miuku", "white"), new Dog("Murre", 9) };
-        Map<String,Object> map = new HashMap<String,Object>();
-        map.put("a", animals);
-        Map<String,Object> result = writeAndMap(map);
-        assertEquals(1, result.size());
-        List<?> l = (List<?>)result.get("a");
-        assertNotNull(l);
-        assertEquals(2, l.size());
-        Map<?,?> a1 = (Map<?,?>) l.get(0);
-        assertEquals(3, a1.size());
-        String classProp = Id.CLASS.getDefaultPropertyName();
-        assertEquals(Cat.class.getName(), a1.get(classProp));
-        Map<?,?> a2 = (Map<?,?>) l.get(1);
-        assertEquals(3, a2.size());
-        assertEquals(Dog.class.getName(), a2.get(classProp));
+        ObjectMapper m = new ObjectMapper();
+        // This time using PROPERTY style (default) again
+        String JSON = "["
+            +asJSONObjectValueString(m, "@classy", Cat.class.getName(), "name", "Hello", "furColor", "white")
+            +","
+            +asJSONObjectValueString(m, "@classy", Dog.class.getName(), "name", "Bob", "boneCount", "1")
+            +"]";
+        JavaType expType = TypeFactory.collectionType(ArrayList.class, Animal.class);
+        List<Animal> animals = m.readValue(JSON, expType);
+        assertNotNull(animals);
+        assertEquals(2, animals.size());
+        Cat c = (Cat) animals.get(0);
+        assertEquals("Hello", c.name);
+        assertEquals("white", c.furColor);
+        Dog d = (Dog) animals.get(1);
+        assertEquals("Bob", d.name);
+        assertEquals(1, d.boneCount);
     }
-    */
+
+    public void testCagedAnimal() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        String jsonCat = asJSONObjectValueString(m, "@classy", Cat.class.getName(), "name", "Nilson", "furColor", "black");
+        AnimalContainer cont = m.readValue("{\"animal\":"+jsonCat+"}", AnimalContainer.class);
+        assertNotNull(cont);
+        Animal a = cont.animal;
+        assertNotNull(a);
+        Cat c = (Cat) a;
+        assertEquals("Nilson", c.name);
+        assertEquals("black", c.furColor);
+    }
 }
 
 

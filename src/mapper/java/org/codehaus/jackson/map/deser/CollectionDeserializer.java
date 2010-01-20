@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.TypeDeserializer;
 
 /**
  * Basic serializer that can take Json "Array" structure and
@@ -30,12 +31,26 @@ public class CollectionDeserializer
      */
     final JsonDeserializer<Object> _valueDeserializer;
 
-    @SuppressWarnings("unchecked") 
+    /**
+     * If element instances have polymorphic type information, this
+     * is the type deserializer that can handle it
+     */
+    final TypeDeserializer _valueTypeDeserializer;
+    
+    @Deprecated
     public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser)
+    {
+        this(collectionClass, valueDeser, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser,
+            TypeDeserializer valueTypeDeser)
     {
         super(collectionClass);
         _collectionClass = (Class<Collection<Object>>) collectionClass;
         _valueDeserializer = valueDeser;
+        _valueTypeDeserializer = valueTypeDeser;
     }
 
     @Override
@@ -63,9 +78,18 @@ public class CollectionDeserializer
 
         JsonDeserializer<Object> valueDes = _valueDeserializer;
         JsonToken t;
+        final TypeDeserializer typeDeser = _valueTypeDeserializer;
 
         while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
-            Object value = (t == JsonToken.VALUE_NULL) ? null : valueDes.deserialize(jp, ctxt);
+            Object value;
+            
+            if (t == JsonToken.VALUE_NULL) {
+                value = null;
+            } else if (typeDeser == null) {
+                value = valueDes.deserialize(jp, ctxt);
+            } else {
+                value = typeDeser.deserializeTyped(jp, ctxt);
+            }
             result.add(value);
         }
         return result;

@@ -112,9 +112,10 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
              String base = baseClass.getName();
              int ix = base.lastIndexOf('.');
              if (ix < 0) { // can this ever occur?
-                 _basePackageName = ".";
+                 _basePackageName = ""; // won't really work...
              } else {
-                 _basePackageName = base.substring(0, ix+1);
+                 // note: no trailing dot
+                 _basePackageName = base.substring(0, ix);
              }
          }
 

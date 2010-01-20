@@ -37,13 +37,27 @@ public class ArrayDeserializer
      */
     final JsonDeserializer<Object> _elementDeserializer;
 
+    /**
+     * If element instances have polymorphic type information, this
+     * is the type deserializer that can handle it
+     */
+    final TypeDeserializer _elementTypeDeserializer;
+    
+    @Deprecated
     public ArrayDeserializer(ArrayType arrayType, JsonDeserializer<Object> elemDeser)
+    {
+        this(arrayType, elemDeser, null);
+    }
+
+    public ArrayDeserializer(ArrayType arrayType, JsonDeserializer<Object> elemDeser,
+            TypeDeserializer elemTypeDeser)
     {
         super(Object[].class);
         _arrayType = arrayType;
         _elementClass = arrayType.getContentType().getRawClass();
         _untyped = (_elementClass == Object.class);
         _elementDeserializer = elemDeser;
+        _elementTypeDeserializer = elemTypeDeser;
     }
 
     public JavaType getValueType() { return null; }
@@ -67,10 +81,19 @@ public class ArrayDeserializer
         Object[] chunk = buffer.resetAndStart();
         int ix = 0;
         JsonToken t;
+        final TypeDeserializer typeDeser = _elementTypeDeserializer;
 
         while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
             // Note: must handle null explicitly here; value deserializers won't
-            Object value = (t == JsonToken.VALUE_NULL) ? null : _elementDeserializer.deserialize(jp, ctxt);
+            Object value;
+            
+            if (t == JsonToken.VALUE_NULL) {
+                value = null;
+            } else if (typeDeser == null) {
+                value = _elementDeserializer.deserialize(jp, ctxt);
+            } else {
+                value = typeDeser.deserializeTyped(jp, ctxt);
+            }
             if (ix >= chunk.length) {
                 chunk = buffer.appendCompletedChunk(chunk);
                 ix = 0;

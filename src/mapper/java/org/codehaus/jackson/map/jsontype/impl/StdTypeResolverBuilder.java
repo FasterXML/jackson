@@ -90,6 +90,7 @@ public class StdTypeResolverBuilder
         if (_idType == null) {
             throw new IllegalStateException("Can not build, 'init()' not yet called");
         }
+        
         // First, method for converting type info to type id:
         TypeDeserializerBase.TypeConverter idConv;
         switch (_idType) {

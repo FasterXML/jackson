@@ -129,13 +129,13 @@ public abstract class BaseMapTest
         return serializeAsString(new ObjectMapper(), value);
     }
 
-    protected String asJSONObjectValueString(String... args)
+    protected String asJSONObjectValueString(Object... args)
         throws IOException
     {
         return asJSONObjectValueString(new ObjectMapper(), args);
     }
 
-    protected String asJSONObjectValueString(ObjectMapper m, String... args)
+    protected String asJSONObjectValueString(ObjectMapper m, Object... args)
         throws IOException
     {
         LinkedHashMap<Object,Object> map = new LinkedHashMap<Object,Object>();

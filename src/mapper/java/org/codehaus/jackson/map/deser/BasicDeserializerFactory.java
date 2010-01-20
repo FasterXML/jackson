@@ -136,7 +136,8 @@ public abstract class BasicDeserializerFactory
             // 'null' -> arrays have no referring fields
             contentDeser = p.findValueDeserializer(config, elemType, type, null);
         }
-        return new ArrayDeserializer(type, contentDeser);
+        TypeDeserializer elemTypeDeser = createTypeDeserializer(config, elemType);
+        return new ArrayDeserializer(type, contentDeser, elemTypeDeser);
     }
 
     @Override
@@ -186,7 +187,8 @@ public abstract class BasicDeserializerFactory
             }
             collectionClass = fallback;
         }
-        return new CollectionDeserializer(collectionClass, contentDeser);
+        TypeDeserializer contentTypeDeser = createTypeDeserializer(config, contentType);
+        return new CollectionDeserializer(collectionClass, contentDeser, contentTypeDeser);
     }
 
     @Override
