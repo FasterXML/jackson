@@ -109,4 +109,27 @@ public class TestTypeFactory
         assertEquals(TypeFactory.type(String.class), t.containedType(0));
         assertNull(t.containedType(1));
     }
+
+    /**
+     * @since 1.5
+     */
+    public void testParametricTypes()
+    {
+        // first, simple class based
+        JavaType t = TypeFactory.parametricType(ArrayList.class, String.class); // ArrayList<String>
+        assertEquals(CollectionType.class, t.getClass());
+        JavaType strC = TypeFactory.type(String.class);
+        assertEquals(1, t.containedTypeCount());
+        assertEquals(strC, t.containedType(0));
+        assertNull(t.containedType(1));
+
+        // Then using JavaType
+        JavaType t2 = TypeFactory.parametricType(Map.class, strC, t); // Map<String,ArrayList<String>>
+        // should actually produce a MapType
+        assertEquals(MapType.class, t2.getClass());
+        assertEquals(2, t2.containedTypeCount());
+        assertEquals(strC, t2.containedType(0));
+        assertEquals(t, t2.containedType(1));
+        assertNull(t2.containedType(2));
+    }
 }

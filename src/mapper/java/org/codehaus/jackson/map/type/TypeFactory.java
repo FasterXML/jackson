@@ -15,7 +15,7 @@ import org.codehaus.jackson.type.TypeReference;
  * types, especially {@link Collection} and {@link Map} types
  * to represent generic types. For example
  *<pre>
- * mapType(Integer.class)
+ * mapType(String.class, Integer.class)
  *</pre>
  * to represent
  *<pre>
@@ -157,6 +157,69 @@ public class TypeFactory
         return MapType.construct(mapType, keyType, valueType);
     }
 
+    /**
+     * Factory method for constructing {@link JavaType} that
+     * represents a parameterized type. For example, to represent
+     * type <code>Iterator&lt;String></code>, you could
+     * call
+     *<pre>
+     *  TypeFactory.parametricType(Iterator.class, String.class)
+     *</pre>
+     *
+     * @since 1.5
+     */
+    public static JavaType parametricType(Class<?> parametrized, Class<?>... parameterClasses)
+    {
+        int len = parameterClasses.length;
+        JavaType[] pt = new JavaType[len];
+        for (int i = 0; i < len; ++i) {
+            pt[i] = instance._fromClass(parameterClasses[i], null);
+        }
+        return parametricType(parametrized, pt);
+    }
+
+    /**
+     * Factory method for constructing {@link JavaType} that
+     * represents a parameterized type. For example, to represent
+     * type <code>List&lt;Set&lt;Integer>></code>, you could
+     * call
+     *<pre>
+     *  JavaType inner = TypeFactory.parametricType(Set.class, Integer.class);
+     *  TypeFactory.parametricType(List.class, inner);
+     *</pre>
+     *
+     * @since 1.5
+     */
+    public static JavaType parametricType(Class<?> parametrized, JavaType... parameterTypes)
+    {
+        // Need to check kind of class we are dealing with...
+        HashMap<String,JavaType> params = new HashMap<String,JavaType>();
+        if (parametrized.isArray()) {
+            // 19-Jan-2010, tatus: should we support multi-dimensional arrays directly?
+            if (parameterTypes.length != 1) {
+                throw new IllegalArgumentException("Need exactly 1 parameter type for arrays ("+parametrized.getName()+")");
+            }
+            return ArrayType.construct(parameterTypes[0]);
+        }
+        if (Map.class.isAssignableFrom(parametrized)) {
+            if (parameterTypes.length != 2) {
+                throw new IllegalArgumentException("Need exactly 2 parameter types for Map types ("+parametrized.getName()+")");
+            }
+            return MapType.construct(parametrized, parameterTypes[0], parameterTypes[1]);
+        }
+        if (Collection.class.isAssignableFrom(parametrized)) {
+            if (parameterTypes.length != 1) {
+                throw new IllegalArgumentException("Need exactly 1 parameter type for Collection types ("+parametrized.getName()+")");
+            }
+            return CollectionType.construct(parametrized, parameterTypes[0]);
+        }
+        int i = 0;
+        for (JavaType t : parameterTypes) {
+            params.put(String.valueOf(++i), t);
+        }
+        return new SimpleType(parametrized, params);
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // Legacy methods

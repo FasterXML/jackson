@@ -17,6 +17,9 @@ Description:
 
   New features:
 
+  * [JACKSON-229] TypeFactory should have methods to construct parametric
+     types programmatically (TypeFactory.parametricType())
+
   Other:
 
   * Moved following serializers out of BasicSerializerFactory
