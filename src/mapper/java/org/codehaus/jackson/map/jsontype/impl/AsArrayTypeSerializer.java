@@ -22,7 +22,7 @@ public class AsArrayTypeSerializer
     }
 
     @Override
-    public JsonTypeInfo.As getTypeInclusion() { return JsonTypeInfo.As.ARRAY; }
+    public JsonTypeInfo.As getTypeInclusion() { return JsonTypeInfo.As.WRAPPER_ARRAY; }
     
     @Override
     public void writeTypePrefixForObject(Object value, JsonGenerator jgen)

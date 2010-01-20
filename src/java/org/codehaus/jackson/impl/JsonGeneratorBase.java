@@ -150,7 +150,7 @@ public abstract class JsonGeneratorBase
         throws IOException, JsonGenerationException
     {
         if (!_writeContext.inArray()) {
-            _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
+            _reportError("Current context not an WRAPPER_ARRAY but "+_writeContext.getTypeDesc());
         }
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());

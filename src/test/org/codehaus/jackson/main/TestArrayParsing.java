@@ -33,7 +33,7 @@ public class TestArrayParsing
             jp.nextToken();
             fail("Expected a parsing error for missing array close marker");
         } catch (JsonParseException jex) {
-            verifyException(jex, "expected close marker for ARRAY");
+            verifyException(jex, "expected close marker for WRAPPER_ARRAY");
         }
     }
 

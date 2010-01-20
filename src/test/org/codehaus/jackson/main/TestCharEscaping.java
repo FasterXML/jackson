@@ -77,7 +77,7 @@ public class TestCharEscaping
         try {
             jp.nextToken();
             jp.getText();
-            fail("Expected an exception for unclosed ARRAY");
+            fail("Expected an exception for unclosed WRAPPER_ARRAY");
         } catch (JsonParseException jpe) {
             verifyException(jpe, "for character escape");
         }

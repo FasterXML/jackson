@@ -10,7 +10,7 @@ import org.codehaus.jackson.map.annotate.JsonTypeInfo;
  * Type serializer that preferably embeds type information as an additional
  * JSON Object property, if possible (when resulting serialization would
  * use JSON Object); and if not, uses an array wrapper (similar to how
- * {@link JsonTypeInfo.As.ARRAY} always works) as a fallback.
+ * {@link JsonTypeInfo.As.WRAPPER_ARRAY} always works) as a fallback.
  * 
  * @since 1.5
  * @author tatus

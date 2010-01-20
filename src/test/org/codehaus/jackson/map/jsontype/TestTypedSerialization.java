@@ -57,10 +57,10 @@ public class TestTypedSerialization
         public AnimalWrapper(Animal a) { animal = a; }
     }
 
-    @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.WRAPPER)
+    @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.WRAPPER_OBJECT)
     interface TypeWithWrapper { }
 
-    @JsonTypeInfo(use=Id.CLASS, include=As.ARRAY)
+    @JsonTypeInfo(use=Id.CLASS, include=As.WRAPPER_ARRAY)
     interface TypeWithArray { }
     
     /*

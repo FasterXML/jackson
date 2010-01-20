@@ -16,11 +16,11 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
 
     @Override
     public JsonTypeInfo.As getTypeInclusion() {
-        return JsonTypeInfo.As.ARRAY;
+        return JsonTypeInfo.As.WRAPPER_ARRAY;
     }
 
     /**
-     * Deserializing with 'ARRAY' inclusion mechanism is easy; just
+     * Deserializing with 'WRAPPER_ARRAY' inclusion mechanism is easy; just
      * need to find the 2 element array.
      */
     public Object deserializeTyped(JsonParser jp, DeserializationContext ctxt)
@@ -28,7 +28,7 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
     {
         if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
             throw ctxt.wrongTokenException(jp, JsonToken.START_ARRAY,
-                    "need JSON Array to contain As.ARRAY type information for class "+baseTypeName());
+                    "need JSON Array to contain As.WRAPPER_ARRAY type information for class "+baseTypeName());
         }
         // And then type id as a String
         if (jp.nextToken() != JsonToken.VALUE_STRING) {

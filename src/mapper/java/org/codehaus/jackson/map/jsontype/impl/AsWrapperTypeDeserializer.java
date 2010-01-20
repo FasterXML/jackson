@@ -15,11 +15,11 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
 
     @Override
     public JsonTypeInfo.As getTypeInclusion() {
-        return JsonTypeInfo.As.WRAPPER;
+        return JsonTypeInfo.As.WRAPPER_OBJECT;
     }
 
     /**
-     * Deserializing type id enclosed using WRAPPER style is straightforward
+     * Deserializing type id enclosed using WRAPPER_OBJECT style is straightforward
      */
     public Object deserializeTyped(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
@@ -27,7 +27,7 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
         // first, sanity checks
         if (jp.getCurrentToken() != JsonToken.START_OBJECT) {
             throw ctxt.wrongTokenException(jp, JsonToken.START_OBJECT,
-                    "need JSON Object to contain As.WRAPPER type information for class "+baseTypeName());
+                    "need JSON Object to contain As.WRAPPER_OBJECT type information for class "+baseTypeName());
         }
         // should always get field name, but just in case...
         if (jp.nextToken() != JsonToken.FIELD_NAME) {

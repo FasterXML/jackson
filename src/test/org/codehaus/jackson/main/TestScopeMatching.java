@@ -21,9 +21,9 @@ public class TestScopeMatching
 
         try {
             jp.nextToken();
-            fail("Expected an exception for unclosed ARRAY");
+            fail("Expected an exception for unclosed WRAPPER_ARRAY");
         } catch (JsonParseException jpe) {
-            verifyException(jpe, "expected close marker for ARRAY");
+            verifyException(jpe, "expected close marker for WRAPPER_ARRAY");
         }
     }
 
@@ -89,7 +89,7 @@ public class TestScopeMatching
             assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
             try {
                 jp.nextToken();
-                fail("Expected an exception for incorrectly closed ARRAY");
+                fail("Expected an exception for incorrectly closed WRAPPER_ARRAY");
             } catch (JsonParseException jpe) {
                 verifyException(jpe, "Unexpected close marker '}': expected ']'");
             }

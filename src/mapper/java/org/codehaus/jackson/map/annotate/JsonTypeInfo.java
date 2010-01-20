@@ -18,11 +18,11 @@ import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
  *  \@JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="class")
  *  
  *  // Include logical type name (defined in impl classes) as wrapper; 2 annotations
- *  \@JsonTypeInfo(use=Id.NAME, include=As.WRAPPER)
+ *  \@JsonTypeInfo(use=Id.NAME, include=As.WRAPPER_OBJECT)
  *  \@JsonSubTypes({com.myemp.Impl1.class, com.myempl.Impl2.class})
  *  
  *  // Or fully customized handling
- *  \@JsonTypeInfo(use=Id.CUSTOM, handler=com.myempl.handlers.CustomTypeHandler.class)
+ *  \@JsonTypeInfo(use=Id.CUSTOM, typeResolver=com.myempl.handlers.MyTypeResolverBuilder.class)
  *</pre>
  * 
  * @since 1.5
@@ -114,25 +114,26 @@ public @interface JsonTypeInfo
         PROPERTY,
 
         /**
-         * Inclusion mechanism that wraps JSON Object (that contains
-         * serialized POJO) in
-         * another JSON Object that has a single entry,
-         * where field name is serialized type information String.
+         * Inclusion mechanism that wraps typed JSON value (POJO
+         * serialized as JSON) in
+         * a JSON Object that has a single entry,
+         * where field name is serialized type identifier,
+         * and value is the actual JSON value.
          *<p>
          * Note: can only be used if type information can be serialized as
          * String. This is true for standard type metadata types, but not
          * necessarily for custom types.
          */
-        WRAPPER,
+        WRAPPER_OBJECT,
 
         /**
-         * Inclusion mechanism that wraps JSON Object (that contains
-         * serialized POJO) in
+         * Inclusion mechanism that wraps typed JSON value (POJO
+         * serialized as JSON) in
          * a 2-element JSON array: first element is the serialized
-         * type information, and second element the serialized POJO
+         * type identifier, and second element the serialized POJO
          * as JSON Object.
          */
-        ARRAY,
+        WRAPPER_ARRAY,
         ;
     }
     

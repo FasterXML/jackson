@@ -27,7 +27,7 @@ public class TestTypedArraySerialization
      * really use any sub-classes)
      */
     @SuppressWarnings("serial")
-    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.ARRAY)
+    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.WRAPPER_ARRAY)
     static class TypedList<T> extends ArrayList<T> { }
 
     @SuppressWarnings("serial")
@@ -35,11 +35,11 @@ public class TestTypedArraySerialization
     static class TypedListAsProp<T> extends ArrayList<T> { }
     
     @SuppressWarnings("serial")
-    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.WRAPPER)
+    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.WRAPPER_OBJECT)
     static class TypedListAsWrapper<T> extends LinkedList<T> { }
     
     // Mix-in to force wrapper for things like primitive arrays
-    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.WRAPPER)
+    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.WRAPPER_OBJECT)
     interface WrapperMixIn { }
     
     /*

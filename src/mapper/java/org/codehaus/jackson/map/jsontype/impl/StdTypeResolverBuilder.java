@@ -74,11 +74,11 @@ public class StdTypeResolverBuilder
 
         // And then inclusion mechanism
         switch (_includeAs) {
-        case ARRAY:
+        case WRAPPER_ARRAY:
             return new AsArrayTypeSerializer(idConv);
         case PROPERTY:
             return new AsPropertyTypeSerializer(idConv, _typeProperty);
-        case WRAPPER:
+        case WRAPPER_OBJECT:
             return new AsWrapperTypeSerializer(idConv);
         default:
             throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
@@ -113,11 +113,11 @@ public class StdTypeResolverBuilder
 
         // And then inclusion mechanism
         switch (_includeAs) {
-        case ARRAY:
+        case WRAPPER_ARRAY:
             return new AsArrayTypeDeserializer(_baseType, idConv);
         case PROPERTY:
             return new AsPropertyTypeDeserializer(_baseType, idConv, _typeProperty);
-        case WRAPPER:
+        case WRAPPER_OBJECT:
             return new AsWrapperTypeDeserializer(_baseType, idConv);
         default:
             throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
