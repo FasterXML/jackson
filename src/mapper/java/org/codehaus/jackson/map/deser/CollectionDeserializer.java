@@ -106,7 +106,7 @@ public class CollectionDeserializer
             } else if (typeDeser == null) {
                 value = valueDes.deserialize(jp, ctxt);
             } else {
-                value = typeDeser.deserializeTyped(jp, ctxt);
+                value = typeDeser.deserializeTypedArray(jp, ctxt);
             }
             result.add(value);
         }

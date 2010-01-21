@@ -125,7 +125,7 @@ public class TestTypedSerialization
     }
 
     /**
-     * Use basic Animal via regural List
+     * Use basic Animal via regular List
      */
     public void testInArray() throws Exception
     {

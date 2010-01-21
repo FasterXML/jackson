@@ -340,7 +340,7 @@ public class StdDeserializerProvider
         public Object deserialize(JsonParser jp, DeserializationContext ctxt)
                 throws IOException, JsonProcessingException
         {
-            return _typeDeserializer.deserializeTyped(jp, ctxt);
+            return _deserializer.deserializeWithType(jp, ctxt, _typeDeserializer);
         }
 
         @Override
@@ -348,7 +348,7 @@ public class StdDeserializerProvider
             TypeDeserializer typeDeserializer)
                 throws IOException, JsonProcessingException
         {
-            // should never happen...
+            // should never happen? (if it can, could call on that object)
             throw new IllegalStateException("Type-wrapped deserializer's deserializeWithType should never get called");
         }
     }

@@ -114,7 +114,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
              String base = baseClass.getName();
              int ix = base.lastIndexOf('.');
              if (ix < 0) { // can this ever occur?
-                 _basePackageName = ""; // won't really work...
+                 _basePackageName = "";
              } else {
                  // note: no trailing dot
                  _basePackageName = base.substring(0, ix);
@@ -129,7 +129,13 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
          {
              if (typeId.startsWith(".")) {
                  StringBuilder sb = new StringBuilder(typeId.length() + _basePackageName.length());
-                 sb.append(_basePackageName).append(typeId);
+                 if  (_basePackageName.length() == 0) {
+                     // no package; must remove leading '.' from id
+                     sb.append(typeId.substring(1));
+                 } else {
+                     // otherwise just concatenate package, with leading-dot-partial name
+                     sb.append(_basePackageName).append(typeId);
+                 }
                  typeId = sb.toString();
              }
              return super.typeFromString(typeId);

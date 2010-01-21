@@ -9,14 +9,15 @@ import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 /**
  * Type serializer that preferably embeds type information as an additional
  * JSON Object property, if possible (when resulting serialization would
- * use JSON Object); and if not, uses an array wrapper (similar to how
+ * use JSON Object). If this is not possible (for JSON Arrays, scalars),
+ * uses a JSON Array wrapper (similar to how
  * {@link JsonTypeInfo.As.WRAPPER_ARRAY} always works) as a fallback.
  * 
  * @since 1.5
  * @author tatus
  */
 public class AsPropertyTypeSerializer
-    extends TypeSerializerBase
+    extends AsArrayTypeSerializer
 {
     protected final String _propertyName;
 
@@ -40,22 +41,8 @@ public class AsPropertyTypeSerializer
         jgen.writeStringField(_propertyName, _typeConverter.typeAsString(value));
     }
 
-    @Override
-    public void writeTypePrefixForArray(Object value, JsonGenerator jgen)
-        throws IOException, JsonProcessingException
-    {
-        jgen.writeStartArray();
-        jgen.writeString(_typeConverter.typeAsString(value));
-        jgen.writeStartArray();
-    }
-    
-    @Override
-    public void writeTypePrefixForScalar(Object value, JsonGenerator jgen)
-            throws IOException, JsonProcessingException
-    {
-        jgen.writeStartArray();
-        jgen.writeString(_typeConverter.typeAsString(value));
-    }
+    //public void writeTypePrefixForArray(Object value, JsonGenerator jgen)
+    //public void writeTypePrefixForScalar(Object value, JsonGenerator jgen)
 
     @Override
     public void writeTypeSuffixForObject(Object value, JsonGenerator jgen)
@@ -64,21 +51,6 @@ public class AsPropertyTypeSerializer
         jgen.writeEndObject();
     }
 
-    @Override
-    public void writeTypeSuffixForArray(Object value, JsonGenerator jgen)
-        throws IOException, JsonProcessingException
-    {
-        // first wrapping array
-        jgen.writeEndArray();
-        // then array caller wants
-        jgen.writeEndArray();
-    }
-    
-    @Override
-    public void writeTypeSuffixForScalar(Object value, JsonGenerator jgen)
-        throws IOException, JsonProcessingException
-    {
-        // just have the wrapper array
-        jgen.writeEndArray();
-    }
+    //public void writeTypeSuffixForArray(Object value, JsonGenerator jgen)
+    //public void writeTypeSuffixForScalar(Object value, JsonGenerator jgen)
 }

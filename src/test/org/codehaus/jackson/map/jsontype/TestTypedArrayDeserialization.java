@@ -46,7 +46,6 @@ public class TestTypedArrayDeserialization
     public void testIntList() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        //TypedList<Integer> input = new TypedList<Integer>();
         // uses WRAPPER_OBJECT inclusion
         String JSON = "{\""+TypedListAsWrapper.class.getName()+"\":[4,5, 6]}";
         JavaType type = TypeFactory.collectionType(TypedListAsWrapper.class, Integer.class);        
@@ -63,16 +62,18 @@ public class TestTypedArrayDeserialization
      * as property. That would not work (since there's no JSON Object to
      * add property in), so it will basically be same as using WRAPPER_ARRAY
      */
-    /*
     public void testStringListAsProp() throws Exception
     {
-        TypedListAsProp<String> input = new TypedListAsProp<String>();
-        input.add("a");
-        input.add("b");
-        assertEquals("[\""+TypedListAsProp.class.getName()+"\",[\"a\",\"b\"]]",
-                serializeAsString(input));
+        ObjectMapper m = new ObjectMapper();
+        // uses try to use PROPERTY inclusion; but for ARRAYS (and scalars) will become OBJECT_WRAPPER
+        String JSON = "[\""+TypedListAsProp.class.getName()+"\",[true, false]]";
+        JavaType type = TypeFactory.collectionType(TypedListAsProp.class, Boolean.class);        
+        TypedListAsProp<String> result = m.readValue(JSON, type);
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(Boolean.TRUE, result.get(0));
+        assertEquals(Boolean.FALSE, result.get(1));
     }
-    */
 
     /*
     public void testStringListAsWrapper() throws Exception

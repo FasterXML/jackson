@@ -53,13 +53,15 @@ public class TestTypedArraySerialization
         TypedList<Integer> input = new TypedList<Integer>();
         input.add(5);
         input.add(13);
+        // uses WRAPPER_ARRAY inclusion:
         assertEquals("[\""+TypedList.class.getName()+"\",[5,13]]", serializeAsString(input));
     }
 
     /**
      * Similar to above, but this time let's request adding type info
      * as property. That would not work (since there's no JSON Object to
-     * add property in), so it should revert to same as Array
+     * add property in), so it should revert to method used with
+     * ARRAY_WRAPPER method.
      */
     public void testStringListAsProp() throws Exception
     {
@@ -70,7 +72,7 @@ public class TestTypedArraySerialization
                 serializeAsString(input));
     }
 
-    public void testStringListAsWrapper() throws Exception
+    public void testStringListAsObjectWrapper() throws Exception
     {
         TypedListAsWrapper<Boolean> input = new TypedListAsWrapper<Boolean>();
         input.add(true);

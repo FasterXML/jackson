@@ -21,7 +21,8 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
     /**
      * Deserializing type id enclosed using WRAPPER_OBJECT style is straightforward
      */
-    public Object deserializeTyped(JsonParser jp, DeserializationContext ctxt)
+    @Override
+    public Object deserializeTypedObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // first, sanity checks
@@ -45,4 +46,18 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
         }
         return value;
     }    
+
+    @Override
+    public Object deserializeTypedArray(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return deserializeTypedObject(jp, ctxt);
+    }
+
+    @Override
+    public Object deserializeTypedScalar(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return deserializeTypedObject(jp, ctxt);
+    }
 }

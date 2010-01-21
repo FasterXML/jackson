@@ -62,7 +62,17 @@ public abstract class StdDeserializer<T>
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException
     {
-        return typeDeserializer.deserializeTyped(jp, ctxt);
+        /* 20-Jan-2010, tatu: Is this sufficient for checking? Or do we
+         *   need explicit type introspection method?
+         */
+        JsonToken t = jp.getCurrentToken();
+        if (t == JsonToken.START_ARRAY) {
+            return typeDeserializer.deserializeTypedArray(jp, ctxt);
+        }
+        if (t == JsonToken.START_OBJECT) {
+            return typeDeserializer.deserializeTypedObject(jp, ctxt);
+        }
+        return typeDeserializer.deserializeTypedScalar(jp, ctxt);
     }
     
     /*

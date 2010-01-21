@@ -9,7 +9,17 @@ import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.JsonParserSequence;
 import org.codehaus.jackson.util.TokenBuffer;
 
-public class AsPropertyTypeDeserializer extends TypeDeserializerBase
+/**
+ * Type deserialialization used when inclusion mechanism is
+ * {@link JsonTypeInfo.As#PROPERTY}.
+ * Uses regular form when typed object is expressed as JSON
+ * Object; otherwise behaves similar to how
+ * {@link JsonTypeInfo.As#WRAPPER_ARRAY} works.
+ * 
+ * @since 1.5
+ * @author tatu
+ */
+public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
 {
     protected final String _propertyName;
 
@@ -27,7 +37,8 @@ public class AsPropertyTypeDeserializer extends TypeDeserializerBase
      * This is the trickiest thing to handle, since property we are looking
      * for may be anywhere...
      */
-    public Object deserializeTyped(JsonParser jp, DeserializationContext ctxt)
+    @Override
+    public Object deserializeTypedObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // but first, sanity check to ensure we have START_OBJECT...
@@ -53,4 +64,8 @@ public class AsPropertyTypeDeserializer extends TypeDeserializerBase
         throw ctxt.wrongTokenException(jp, JsonToken.FIELD_NAME,
                 "missing property '"+_propertyName+"' that is to contain type id  (for class "+baseTypeName()+")");
     }
+
+    // These are fine from base class:
+    //public Object deserializeTypedArray(JsonParser jp, DeserializationContext ctxt)
+    //public Object deserializeTypedScalar(JsonParser jp, DeserializationContext ctxt)    
 }

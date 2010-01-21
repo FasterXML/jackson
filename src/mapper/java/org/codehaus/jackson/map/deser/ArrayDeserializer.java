@@ -92,7 +92,7 @@ public class ArrayDeserializer
             } else if (typeDeser == null) {
                 value = _elementDeserializer.deserialize(jp, ctxt);
             } else {
-                value = typeDeser.deserializeTyped(jp, ctxt);
+                value = typeDeser.deserializeTypedArray(jp, ctxt);
             }
             if (ix >= chunk.length) {
                 chunk = buffer.appendCompletedChunk(chunk);

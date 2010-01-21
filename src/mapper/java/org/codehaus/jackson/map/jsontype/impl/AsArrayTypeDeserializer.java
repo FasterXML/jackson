@@ -23,7 +23,8 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
      * Deserializing with 'WRAPPER_ARRAY' inclusion mechanism is easy; just
      * need to find the 2 element array.
      */
-    public Object deserializeTyped(JsonParser jp, DeserializationContext ctxt)
+    @Override
+    public Object deserializeTypedObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
@@ -45,5 +46,19 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
                     "expected closing END_ARRAY after type information and deserialized value");
         }
         return value;
+    }    
+
+    @Override
+    public Object deserializeTypedArray(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return deserializeTypedObject(jp, ctxt);
+    }
+
+    @Override
+    public Object deserializeTypedScalar(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return deserializeTypedObject(jp, ctxt);
     }    
 }

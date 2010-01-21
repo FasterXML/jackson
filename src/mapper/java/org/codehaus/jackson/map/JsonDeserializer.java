@@ -87,7 +87,7 @@ public abstract class JsonDeserializer<T>
      * Default implementation simply returns null.
      */
     public T getNullValue() { return null; }
-
+    
     /*
     //////////////////////////////////////////////////////
     // Helper class(es)
