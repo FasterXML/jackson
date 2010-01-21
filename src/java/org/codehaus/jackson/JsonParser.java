@@ -408,7 +408,7 @@ public abstract class JsonParser
      * If not, it will do nothing.
      * After skipping, stream will point to <b>matching</b>
      * {@link JsonToken#END_OBJECT} or {@link JsonToken#END_ARRAY}
-     * (possibly skipping nested pairs of START/END OBJECT/WRAPPER_ARRAY tokens
+     * (possibly skipping nested pairs of START/END OBJECT/ARRAY tokens
      * as well as value tokens).
      * The idea is that after calling this method, application
      * will call {@link #nextToken} to point to the next

@@ -36,7 +36,7 @@
     <!-- Version information -->
 
     <!-- Version -->
-    <property name="JSON_TITLE" value="Json - JavaScript Object Notation" />
+    <property name="JSON_TITLE" value="JSON - JavaScript Object Notation" />
     <property name="JSON_VERSION" value="1.0" />
     <property name="JSON_VENDOR" value="http://www.ietf.org/rfc/rfc4627.txt" />
     <property name="IMPL_TITLE_CORE" value="Jackson JSON processor" />

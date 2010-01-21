@@ -33,7 +33,7 @@ public class TestBlocking
         try {
             jp.nextToken();
         } catch (IOException ioe) {
-            verifyException(ioe, "Unexpected end-of-input: expected close marker for WRAPPER_ARRAY");
+            verifyException(ioe, "Unexpected end-of-input: expected close marker for ARRAY");
         }
     }
 }

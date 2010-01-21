@@ -86,7 +86,7 @@ public abstract class JsonStreamContext
     public final String getTypeDesc() {
         switch (_type) {
         case TYPE_ROOT: return "ROOT";
-        case TYPE_ARRAY: return "WRAPPER_ARRAY";
+        case TYPE_ARRAY: return "ARRAY";
         case TYPE_OBJECT: return "OBJECT";
         }
         return "?";

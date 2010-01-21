@@ -713,7 +713,7 @@ public abstract class JsonGenerator
 
     /**
      * Convenience method for outputting a field entry ("member")
-     * (that will contain a Json Array value), and the START-WRAPPER_ARRAY marker.
+     * (that will contain a Json Array value), and the START_ARRAY marker.
      * Equivalent to:
      *<pre>
      *  writeFieldName(fieldName);
@@ -733,7 +733,7 @@ public abstract class JsonGenerator
 
     /**
      * Convenience method for outputting a field entry ("member")
-     * (that will contain a Json Object value), and the START-OBJECT marker.
+     * (that will contain a Json Object value), and the START_OBJECT marker.
      * Equivalent to:
      *<pre>
      *  writeFieldName(fieldName);
