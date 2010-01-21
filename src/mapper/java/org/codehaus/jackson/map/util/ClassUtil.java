@@ -229,24 +229,9 @@ public final class ClassUtil
     public static <T> T createInstance(Class<T> cls, boolean canFixAccess)
         throws IllegalArgumentException
     {
-        Constructor<T> ctor = null;
-        try {
-            ctor = cls.getDeclaredConstructor();
-        } catch (NoSuchMethodException e) {
-            ;
-        } catch (Exception e) {
-            ClassUtil.unwrapAndThrowAsIAE(e, "Failed to find default constructor of class "+cls.getName()+", problem: "+e.getMessage());
-        }
+        Constructor<T> ctor = findConstructor(cls, canFixAccess);
         if (ctor == null) {
             throw new IllegalArgumentException("Class "+cls.getName()+" has no default (no arg) constructor");
-        }
-        if (canFixAccess) {
-            checkAndFixAccess(ctor);
-        } else {
-            // Has to be public...
-            if (!Modifier.isPublic(ctor.getModifiers())) {
-                throw new IllegalArgumentException("Default constructor for "+cls.getName()+" is not accessible (non-public?): not allowed to try modify access via Reflection: can not instantiate type");
-            }
         }
         try {
             return ctor.newInstance();
@@ -254,6 +239,28 @@ public final class ClassUtil
             ClassUtil.unwrapAndThrowAsIAE(e, "Failed to instantiate class "+cls.getName()+", problem: "+e.getMessage());
             return null;
         }
+    }
+
+    public static <T> Constructor<T> findConstructor(Class<T> cls, boolean canFixAccess)
+        throws IllegalArgumentException
+    {
+        try {
+            Constructor<T> ctor = cls.getDeclaredConstructor();
+            if (canFixAccess) {
+                checkAndFixAccess(ctor);
+            } else {
+                // Has to be public...
+                if (!Modifier.isPublic(ctor.getModifiers())) {
+                    throw new IllegalArgumentException("Default constructor for "+cls.getName()+" is not accessible (non-public?): not allowed to try modify access via Reflection: can not instantiate type");
+                }
+            }
+            return ctor;
+        } catch (NoSuchMethodException e) {
+            ;
+        } catch (Exception e) {
+            ClassUtil.unwrapAndThrowAsIAE(e, "Failed to find default constructor of class "+cls.getName()+", problem: "+e.getMessage());
+        }
+        return null;
     }
 
     /*

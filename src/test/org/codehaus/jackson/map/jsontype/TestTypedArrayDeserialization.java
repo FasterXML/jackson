@@ -47,8 +47,8 @@ public class TestTypedArrayDeserialization
     {
         ObjectMapper m = new ObjectMapper();
         //TypedList<Integer> input = new TypedList<Integer>();
-        // uses WRAPPER_ARRAY inclusion        
-        String JSON = "{\""+TypedList.class.getName()+"\":[4,5, 6]]";
+        // uses WRAPPER_OBJECT inclusion
+        String JSON = "{\""+TypedListAsWrapper.class.getName()+"\":[4,5, 6]}";
         JavaType type = TypeFactory.collectionType(TypedListAsWrapper.class, Integer.class);        
         TypedListAsWrapper<Integer> result = m.readValue(JSON, type);
         assertNotNull(result);

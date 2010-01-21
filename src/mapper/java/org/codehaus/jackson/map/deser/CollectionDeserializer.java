@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.*;
 
 import org.codehaus.jackson.JsonProcessingException;
@@ -9,6 +10,7 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.TypeDeserializer;
+import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Basic serializer that can take Json "Array" structure and
@@ -36,6 +38,12 @@ public class CollectionDeserializer
      * is the type deserializer that can handle it
      */
     final TypeDeserializer _valueTypeDeserializer;
+
+    /**
+     * We will use the default constructor of the class for
+     * instantiation
+     */
+    final Constructor<Collection<Object>> _defaultCtor;
     
     @Deprecated
     public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser)
@@ -47,10 +55,20 @@ public class CollectionDeserializer
     public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser,
             TypeDeserializer valueTypeDeser)
     {
+        this(collectionClass, valueDeser, valueTypeDeser,
+             ClassUtil.findConstructor((Class<Collection<Object>>) collectionClass, true));
+    }
+
+    @SuppressWarnings("unchecked")
+    public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser,
+                                  TypeDeserializer valueTypeDeser,
+                                  Constructor<Collection<Object>> ctor)
+    {
         super(collectionClass);
         _collectionClass = (Class<Collection<Object>>) collectionClass;
         _valueDeserializer = valueDeser;
         _valueTypeDeserializer = valueTypeDeser;
+        _defaultCtor = ctor;
     }
 
     @Override
@@ -59,7 +77,7 @@ public class CollectionDeserializer
     {
         Collection<Object> result;
         try {
-            result = _collectionClass.newInstance();
+            result = _defaultCtor.newInstance();
         } catch (Exception e) {
             throw ctxt.instantiationException(_collectionClass, e);
         }
