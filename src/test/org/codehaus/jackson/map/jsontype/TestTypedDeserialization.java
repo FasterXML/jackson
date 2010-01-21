@@ -132,11 +132,12 @@ public class TestTypedDeserialization
     {
         ObjectMapper m = new ObjectMapper();
         // This time using PROPERTY style (default) again
-        String JSON = "["
+        String JSON = "[\n"
             +asJSONObjectValueString(m, "@classy", Cat.class.getName(), "name", "Hello", "furColor", "white")
-            +","
+            +",\n"
             +asJSONObjectValueString(m, "@classy", Dog.class.getName(), "name", "Bob", "boneCount", "1")
-            +"]";
+            +"\n]";
+        
         JavaType expType = TypeFactory.collectionType(ArrayList.class, Animal.class);
         List<Animal> animals = m.readValue(JSON, expType);
         assertNotNull(animals);
