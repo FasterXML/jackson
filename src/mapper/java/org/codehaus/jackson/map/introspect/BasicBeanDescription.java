@@ -328,7 +328,7 @@ public class BasicBeanDescription extends BeanDescription
          * (i.e. allowed to be sub-class, although usually is the same
          * class)
          */
-        Class<?> rt = am.getReturnType();
+        Class<?> rt = am.getRawType();
         if (!getBeanClass().isAssignableFrom(rt)) {
             return false;
         }
@@ -588,7 +588,7 @@ public class BasicBeanDescription extends BeanDescription
     {
         if (name.startsWith("is")) {
             // plus, must return boolean...
-            Class<?> rt = am.getReturnType();
+            Class<?> rt = am.getRawType();
             if (rt != Boolean.class && rt != Boolean.TYPE) {
                 return null;
             }
@@ -620,7 +620,7 @@ public class BasicBeanDescription extends BeanDescription
      */
     protected boolean isCglibGetCallbacks(AnnotatedMethod am)
     {
-        Class<?> rt = am.getReturnType();
+        Class<?> rt = am.getRawType();
         // Ok, first: must return an array type
         if (rt == null || !rt.isArray()) {
             return false;
@@ -662,7 +662,7 @@ public class BasicBeanDescription extends BeanDescription
      */
     protected boolean isGroovyMetaClassGetter(AnnotatedMethod am)
     {
-        Class<?> rt = am.getReturnType();
+        Class<?> rt = am.getRawType();
         if (rt == null || rt.isArray()) {
             return false;
         }

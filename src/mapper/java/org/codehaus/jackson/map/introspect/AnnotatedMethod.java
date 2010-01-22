@@ -45,10 +45,14 @@ public final class AnnotatedMethod
      * useful with getters (setters do not return anything; hence "void"
      * type is returned here)
      */
-    public Class<?> getType() {
-        return getReturnType();
+    public Type getGenericType() {
+        return _method.getGenericReturnType();
     }
 
+    public Class<?> getRawType() {
+        return _method.getReturnType();
+    }
+    
     /*
     //////////////////////////////////////////////////////
     // Extended API, generic
@@ -87,9 +91,9 @@ public final class AnnotatedMethod
         return _paramTypes;
     }
 
-    public Type getGenericReturnType() { return _method.getGenericReturnType(); }
+    //public Type getGenericReturnType() { return _method.getGenericReturnType(); }
 
-    public Class<?> getReturnType() { return _method.getReturnType(); }
+    //public Class<?> getReturnType() { return _method.getReturnType(); }
 
     public Class<?> getDeclaringClass() { return _method.getDeclaringClass(); }
 

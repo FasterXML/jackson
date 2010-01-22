@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.jsontype.impl;
 
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * @since 1.5
@@ -67,9 +68,9 @@ public abstract class TypeSerializerBase extends TypeSerializer
          */
         protected final String _basePackageName;
 
-        protected MinimalClassNameConverter(Class<?> baseClass)
+        protected MinimalClassNameConverter(JavaType baseType)
         {
-            String base = baseClass.getName();
+            String base = baseType.getRawClass().getName();
             int ix = base.lastIndexOf('.');
             if (ix < 0) { // can this ever occur?
                 _basePackageName = ".";

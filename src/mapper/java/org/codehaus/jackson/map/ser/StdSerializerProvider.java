@@ -6,6 +6,7 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.schema.SchemaAware;
@@ -389,7 +390,7 @@ public class StdSerializerProvider
         }
 
         // Well, let's just compose from pieces:
-        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(declaredType, _config);
+        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(TypeFactory.type(declaredType), _config);
         ser = findValueSerializer(runtimeType);
 
         if (typeSer != null) {

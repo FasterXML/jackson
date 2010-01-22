@@ -15,6 +15,7 @@ import org.codehaus.jackson.map.annotate.JsonView;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
@@ -121,7 +122,7 @@ public class JacksonAnnotationIntrospector
 
     
     @Override
-    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, Class<?> baseType)
+    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType)
     {
         JsonTypeInfo info = a.getAnnotation(JsonTypeInfo.class);
         /* if no type info designation, or explicitly disabled (by override mix-in, maybe),

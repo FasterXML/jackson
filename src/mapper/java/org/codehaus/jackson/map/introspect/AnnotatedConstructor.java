@@ -38,7 +38,11 @@ public final class AnnotatedConstructor
 
     public String getName() { return _constructor.getName(); }
 
-    public Class<?> getType() {
+    public Type getGenericType() {
+        return getRawType();
+    }
+
+    public Class<?> getRawType() {
         return _constructor.getDeclaringClass();
     }
 

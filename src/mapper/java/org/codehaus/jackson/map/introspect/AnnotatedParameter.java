@@ -51,14 +51,18 @@ public final class AnnotatedParameter
         return _annotations.get(acls);
     }
 
-    /* Hmmh. Could figure out real type (require it to be passed).
-     * But for now, let's assume we don't really need this method.
-     */
-    public Class<?> getType() {
+    public Type getGenericType() {
+        /* Hmmh. Could figure out real type (require it to be passed).
+         * But for now, let's assume we don't really need this method.
+         */
+        return getRawType();
+    }
+
+    public Class<?> getRawType() {
         // should never be called
         throw new IllegalStateException();
     }
-
+    
     /*
     //////////////////////////////////////////////////////
     // Extended API

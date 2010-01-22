@@ -21,6 +21,7 @@ import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -223,7 +224,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, Class<?> baseType) {
+    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType) {
         // @TODO
         return null;
     }
@@ -281,7 +282,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         /* [JACKSON-150]: add support for additional core XML
          * types needed by JAXB
          */
-        Class<?> type = am.getType();
+        Class<?> type = am.getRawType();
         if (type != null) {
             if (_dataHandlerSerializer != null && isDataHandler(type)) {
                 return _dataHandlerSerializer;
@@ -492,7 +493,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         /* [JACKSON-150]: add support for additional core XML
          * types needed by JAXB
          */
-        Class<?> type = am.getType();
+        Class<?> type = am.getRawType();
         if (type != null) {
             if (_dataHandlerDeserializer != null && isDataHandler(type)) {
                 return _dataHandlerDeserializer;

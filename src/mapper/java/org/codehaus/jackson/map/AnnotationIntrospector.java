@@ -7,6 +7,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Abstract class that defines API used for introspecting annotation-based
@@ -144,7 +145,7 @@ public abstract class AnnotationIntrospector
      * 
      * @since 1.5
      */
-    public abstract JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, Class<?> baseType);
+    public abstract JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType);
 
     /**
      * Method for locating annotation-specified subtypes of given class, and
@@ -656,7 +657,7 @@ public abstract class AnnotationIntrospector
         }        
 
         @Override
-        public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, Class<?> baseType)
+        public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType)
         {
             JsonTypeResolverBuilder<?> b = _primary.findTypeResolver(a, baseType);
             if (b == null) {

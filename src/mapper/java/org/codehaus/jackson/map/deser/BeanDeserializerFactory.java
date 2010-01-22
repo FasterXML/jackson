@@ -433,7 +433,7 @@ public class BeanDeserializerFactory
             for (Map.Entry<String,AnnotatedMethod> en : getters.entrySet()) {
                 AnnotatedMethod getter = en.getValue();
                 // should only consider Collections and Maps, for now?
-                Class<?> rt = getter.getReturnType();
+                Class<?> rt = getter.getRawType();
                 if (Collection.class.isAssignableFrom(rt)
                     || Map.class.isAssignableFrom(rt)) {
                     String name = en.getKey();
@@ -576,8 +576,7 @@ public class BeanDeserializerFactory
             getter.fixAccess();
         }
 
-        // note: this works since we know there's exactly one arg for methods
-        JavaType type = TypeFactory.type(getter.getGenericReturnType());
+        JavaType type = getter.getType();
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */

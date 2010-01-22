@@ -18,7 +18,7 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class AsArrayTypeDeserializer extends TypeDeserializerBase
 {
-    public AsArrayTypeDeserializer(Class<?> bt, TypeConverter conv)
+    public AsArrayTypeDeserializer(JavaType bt, TypeConverter conv)
     {
         super(bt, conv);
     }
@@ -76,8 +76,7 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
     private final Object _deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        JavaType type = resolveType(_locateTypeId(jp, ctxt));
-        JsonDeserializer<Object> deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, null, null);
+        JsonDeserializer<Object> deser = _findDeserializer(ctxt, _locateTypeId(jp, ctxt));
         Object value = deser.deserialize(jp, ctxt);
         // And then need the closing END_ARRAY
         if (jp.nextToken() != JsonToken.END_ARRAY) {

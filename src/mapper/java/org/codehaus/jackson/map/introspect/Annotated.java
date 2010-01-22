@@ -3,6 +3,10 @@ package org.codehaus.jackson.map.introspect;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
+
+import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.map.type.TypeFactory;
 
 /**
  * Shared base class used for anything on which annotations (included
@@ -27,8 +31,19 @@ public abstract class Annotated
 
     public abstract String getName();
 
+    public JavaType getType() {
+        return TypeFactory.type(getGenericType());
+    }
+
     /**
-     * Method used with annotated things that have class type.
+     * @since 1.5
      */
-    public abstract Class<?> getType();
+    public abstract Type getGenericType();
+
+    /**
+     * @since 1.5
+     */
+    public abstract Class<?> getRawType();
+
 }
+

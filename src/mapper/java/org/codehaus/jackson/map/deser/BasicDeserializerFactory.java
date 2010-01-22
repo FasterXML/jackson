@@ -167,7 +167,7 @@ public abstract class BasicDeserializerFactory
             }
             // But otherwise we can just use a generic value deserializer:
             // 'null' -> collections have no referring fields
-            contentDeser = p.findValueDeserializer(config, contentType, type, null);
+            contentDeser = p.findValueDeserializer(config, contentType, type, null);            
         }
 
         /* One twist: if we are being asked to instantiate an interface or
@@ -310,7 +310,7 @@ public abstract class BasicDeserializerFactory
         Class<?> cls = baseType.getRawClass();
         BasicBeanDescription bean = config.introspectClassAnnotations(cls);
         AnnotatedClass ac = bean.getClassInfo();
-        JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac, cls);
+        JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac, baseType);
         return (b == null) ? null : b.buildTypeDeserializer();
     }    
     

@@ -18,7 +18,7 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class AsWrapperTypeDeserializer extends TypeDeserializerBase
 {
-    public AsWrapperTypeDeserializer(Class<?> bt, TypeConverter c) {
+    public AsWrapperTypeDeserializer(JavaType bt, TypeConverter c) {
         super(bt, c);
     }
 
@@ -82,8 +82,7 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
             throw ctxt.wrongTokenException(jp, JsonToken.FIELD_NAME,
                     "need JSON String that contains type id (for subtype of "+baseTypeName()+")");
         }
-        JavaType type = resolveType(jp.getText());
-        JsonDeserializer<Object> deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, null, null);
+        JsonDeserializer<Object> deser = _findDeserializer(ctxt, jp.getText());
         jp.nextToken();
         Object value = deser.deserialize(jp, ctxt);
         // And then need the closing END_OBJECT

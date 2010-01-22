@@ -1,9 +1,14 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
-import org.codehaus.jackson.type.JavaType;
+import java.io.IOException;
+import java.util.HashMap;
+
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * @since 1.5
@@ -13,12 +18,19 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
 {
     protected final TypeConverter _typeConverter;
 
-    protected final Class<?> _baseType;
+    protected final JavaType _baseType;
+
+    /**
+     * For efficient operation we will lazily build mappings from type ids
+     * to actual deserializers, once needed.
+     */
+    protected final HashMap<String,JsonDeserializer<Object>> _deserializers;
     
-    protected TypeDeserializerBase(Class<?> baseType, TypeConverter conv)
+    protected TypeDeserializerBase(JavaType baseType, TypeConverter conv)
     {
         _baseType = baseType;
         _typeConverter = conv;
+        _deserializers = new HashMap<String,JsonDeserializer<Object>>();
     }
 
     @Override
@@ -31,7 +43,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
     @Override
     public String propertyName() { return null; }
 
-    public String baseTypeName() { return _baseType.getName(); }
+    public String baseTypeName() { return _baseType.getRawClass().getName(); }
 
     /*
      ************************************************************
@@ -39,10 +51,19 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
      ************************************************************
      */
 
-    protected final JavaType resolveType(String typeId) {
-        JavaType t = _typeConverter.typeFromString(typeId);
-        //if (t == null) throw new IllegalStateException();
-        return t;
+    protected final JsonDeserializer<Object> _findDeserializer(DeserializationContext ctxt, String typeId)
+        throws IOException, JsonProcessingException
+    {
+        JsonDeserializer<Object> deser;
+        synchronized (_deserializers) {
+            deser = _deserializers.get(typeId);
+            if (deser == null) {
+                JavaType type = _typeConverter.typeFromString(typeId, _baseType);
+                deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, null, null);
+                _deserializers.put(typeId, deser);
+            }
+        }
+        return deser;
     }
     
     /*
@@ -67,7 +88,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
           * @throws IllegalArgumentException If no class can be located
           *    for given type id
           */
-         public abstract JavaType typeFromString(String typeId)
+         public abstract JavaType typeFromString(String typeId, JavaType baseType)
              throws IllegalArgumentException;
 
          public abstract JsonTypeInfo.Id idType();
@@ -82,12 +103,12 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
 
          public JsonTypeInfo.Id idType() { return JsonTypeInfo.Id.CLASS; }
 
-         public JavaType typeFromString(String typeId)
+         public JavaType typeFromString(String typeId, JavaType baseType)
              throws IllegalArgumentException
          {
              try {
                  Class<?> cls = Class.forName(typeId);
-                 return TypeFactory.type(cls);
+                 return baseType.narrowBy(cls);
              } catch (ClassNotFoundException e) {
                  throw new IllegalArgumentException("Invalid type id '"+typeId+"' (for id type 'Id.class'): no such class found");
              } catch (Exception e) {
@@ -109,9 +130,9 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
           */
          protected final String _basePackageName;
 
-         protected MinimalClassNameConverter(Class<?> baseClass)
+         protected MinimalClassNameConverter(JavaType baseType)
          {
-             String base = baseClass.getName();
+             String base = baseType.getRawClass().getName();
              int ix = base.lastIndexOf('.');
              if (ix < 0) { // can this ever occur?
                  _basePackageName = "";
@@ -124,7 +145,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
          public JsonTypeInfo.Id idType() { return JsonTypeInfo.Id.MINIMAL_CLASS; }
 
          @Override
-         public JavaType typeFromString(String typeId)
+         public JavaType typeFromString(String typeId, JavaType baseType)
              throws IllegalArgumentException
          {
              if (typeId.startsWith(".")) {
@@ -138,7 +159,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
                  }
                  typeId = sb.toString();
              }
-             return super.typeFromString(typeId);
+             return super.typeFromString(typeId, baseType);
          }
      }
 
@@ -154,7 +175,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
 
          // !!! @TODO
          @Override
-         public JavaType typeFromString(String typeId)
+         public JavaType typeFromString(String typeId, JavaType baseType)
              throws IllegalArgumentException
          {
              throw new IllegalStateException("Not Yet Implemented");

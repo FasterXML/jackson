@@ -4,6 +4,7 @@ import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Default {@link JsonTypeResolverBuilder} implementation.
@@ -16,7 +17,7 @@ public class StdTypeResolverBuilder
 {
     // Configuration settings:
 
-    protected Class<?> _baseType;
+    protected JavaType _baseType;
     
     protected JsonTypeInfo.Id _idType;
 
@@ -33,7 +34,7 @@ public class StdTypeResolverBuilder
     public StdTypeResolverBuilder() {
     }
     
-    public StdTypeResolverBuilder init(Class<?> baseType, JsonTypeInfo.Id idType)
+    public StdTypeResolverBuilder init(JavaType baseType, JsonTypeInfo.Id idType)
     {
         _baseType = baseType;
         // sanity checks

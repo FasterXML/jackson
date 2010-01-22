@@ -28,7 +28,7 @@ import org.codehaus.jackson.util.TokenBuffer;
  * one of "well-known" interfaces (such as {@link java.util.Collection}).
  *<p>
  * Since all the serializers are eagerly instantiated, and there is
- * no additional introspection or customazibility of these types,
+ * no additional introspection or customizability of these types,
  * this factory is stateless. This means that other delegating
  * factories (or {@link SerializerProvider}s) can just use the
  * shared singleton instance via static {@link #instance} field.
@@ -253,9 +253,9 @@ public class BasicSerializerFactory
         return (JsonSerializer<Object>)ser;
     }
 
-    public TypeSerializer createTypeSerializer(Class<?> baseType, SerializationConfig config)
+    public TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config)
     {
-        BasicBeanDescription bean = config.introspectClassAnnotations(baseType);
+        BasicBeanDescription bean = config.introspectClassAnnotations(baseType.getRawClass());
         AnnotatedClass ac = bean.getClassInfo();
         JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac, baseType);
         return (b == null) ? null : b.buildTypeSerializer();
@@ -445,7 +445,7 @@ public class BasicSerializerFactory
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean staticTyping = usesStaticTyping(config, beanDesc);
         JavaType valueType = type.getContentType();
-        TypeSerializer typeSer = createTypeSerializer(valueType.getRawClass(), config);
+        TypeSerializer typeSer = createTypeSerializer(valueType, config);
         if (typeSer != null) {
             return MapSerializer.constructTyped(intr.findPropertiesToIgnore(beanDesc.getClassInfo()),
                 type, staticTyping, typeSer);
@@ -467,7 +467,7 @@ public class BasicSerializerFactory
             enums = EnumValues.construct(enumClass, config.getAnnotationIntrospector());
         }
         return ContainerSerializers.enumMapSerializer(valueType,
-                usesStaticTyping(config, beanDesc), createTypeSerializer(valueType.getRawClass(), config),
+                usesStaticTyping(config, beanDesc), createTypeSerializer(valueType, config),
                 enums);
     }
 
@@ -480,7 +480,7 @@ public class BasicSerializerFactory
     {
         JavaType valueType = type.getContentType();
         boolean staticTyping = usesStaticTyping(config, beanDesc);
-        TypeSerializer typeSer = createTypeSerializer(valueType.getRawClass(), config);
+        TypeSerializer typeSer = createTypeSerializer(valueType, config);
         return ArraySerializers.objectArraySerializer(valueType, staticTyping, typeSer);
     }
 
@@ -489,7 +489,7 @@ public class BasicSerializerFactory
     {
         JavaType elemType = type.getContentType();
         return ContainerSerializers.indexedListSerializer(elemType,
-                usesStaticTyping(config, beanDesc), createTypeSerializer(elemType.getRawClass(), config));
+                usesStaticTyping(config, beanDesc), createTypeSerializer(elemType, config));
     }
 
     protected JsonSerializer<?> buildCollectionSerializer(JavaType type, SerializationConfig config,
@@ -497,7 +497,7 @@ public class BasicSerializerFactory
     {
         JavaType elemType = type.getContentType();
         return ContainerSerializers.collectionSerializer(elemType,
-                usesStaticTyping(config, beanDesc), createTypeSerializer(elemType.getRawClass(), config));
+                usesStaticTyping(config, beanDesc), createTypeSerializer(elemType, config));
     }
 
     protected JsonSerializer<?> buildIteratorSerializer(JavaType type, SerializationConfig config,
@@ -505,7 +505,7 @@ public class BasicSerializerFactory
     {
         // if there's generic type, it'll be the first contained type
         JavaType elemType = type.containedType(0);
-        TypeSerializer typeSer = (elemType == null) ? null : createTypeSerializer(elemType.getRawClass(), config);
+        TypeSerializer typeSer = (elemType == null) ? null : createTypeSerializer(elemType, config);
         return ContainerSerializers.iteratorSerializer(elemType,
                 usesStaticTyping(config, beanDesc), typeSer);
     }
@@ -515,7 +515,7 @@ public class BasicSerializerFactory
     {
         // if there's generic type, it'll be the first contained type
         JavaType elemType = type.containedType(0);
-        TypeSerializer typeSer = (elemType == null) ? null : createTypeSerializer(elemType.getRawClass(), config);
+        TypeSerializer typeSer = (elemType == null) ? null : createTypeSerializer(elemType, config);
         return ContainerSerializers.iterableSerializer(elemType,
                 usesStaticTyping(config, beanDesc), typeSer);
     }

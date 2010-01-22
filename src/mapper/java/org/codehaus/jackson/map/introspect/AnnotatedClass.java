@@ -162,10 +162,14 @@ public final class AnnotatedClass
         return _classAnnotations.get(acls);
     }
 
-    public Class<?> getType() {
+    public Type getGenericType() {
         return _class;
     }
 
+    public Class<?> getRawType() {
+        return _class;
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // Public API, generic accessors

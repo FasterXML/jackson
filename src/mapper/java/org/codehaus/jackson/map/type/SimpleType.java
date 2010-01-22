@@ -36,6 +36,7 @@ public final class SimpleType
 
     protected JavaType _narrow(Class<?> subclass)
     {
+        // Should we check that there is a sub-class relationship?
         return new SimpleType(subclass);
     }
 

@@ -24,7 +24,7 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
 {
     protected final String _propertyName;
 
-    public AsPropertyTypeDeserializer(Class<?> bt, TypeConverter conv, String propName) {
+    public AsPropertyTypeDeserializer(JavaType bt, TypeConverter conv, String propName) {
         super(bt, conv);
         _propertyName = propName;
     }
@@ -52,8 +52,7 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
         tb.writeStartObject();
         while (jp.nextValue() != JsonToken.END_OBJECT) {
             if (_propertyName.equals(jp.getCurrentName())) { // gotcha!
-                JavaType type = this.resolveType(jp.getText());
-                JsonDeserializer<Object> deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, null, null);
+                JsonDeserializer<Object> deser = _findDeserializer(ctxt, jp.getText());
                 jp = JsonParserSequence.createFlattened(tb.asParser(jp), jp);
                 jp.nextToken(); // will be START_OBJECT from TokenBuffer
                 // deserializer should take care of closing END_OBJECT as well

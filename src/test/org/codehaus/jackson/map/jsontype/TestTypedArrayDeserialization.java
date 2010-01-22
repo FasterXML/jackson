@@ -3,6 +3,8 @@ package org.codehaus.jackson.map.jsontype;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import static org.junit.Assert.assertArrayEquals;
+
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -34,7 +36,7 @@ public class TestTypedArrayDeserialization
     static class TypedListAsWrapper<T> extends LinkedList<T> { }
     
     // Mix-in to force wrapper for things like primitive arrays
-    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.WRAPPER_OBJECT)
+    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.WRAPPER_OBJECT)
     interface WrapperMixIn { }
 
     /*
@@ -62,48 +64,51 @@ public class TestTypedArrayDeserialization
      * as property. That would not work (since there's no JSON Object to
      * add property in), so it will basically be same as using WRAPPER_ARRAY
      */
-    public void testStringListAsProp() throws Exception
+    public void testBooleanListAsProp() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        // uses try to use PROPERTY inclusion; but for ARRAYS (and scalars) will become OBJECT_WRAPPER
+        // tries to use PROPERTY inclusion; but for ARRAYS (and scalars) will become ARRAY_WRAPPER
         String JSON = "[\""+TypedListAsProp.class.getName()+"\",[true, false]]";
         JavaType type = TypeFactory.collectionType(TypedListAsProp.class, Boolean.class);        
-        TypedListAsProp<String> result = m.readValue(JSON, type);
+        TypedListAsProp<Object> result = m.readValue(JSON, type);
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(Boolean.TRUE, result.get(0));
         assertEquals(Boolean.FALSE, result.get(1));
     }
 
-    /*
-    public void testStringListAsWrapper() throws Exception
+    public void testLongListAsWrapper() throws Exception
     {
-        TypedListAsWrapper<Boolean> input = new TypedListAsWrapper<Boolean>();
-        input.add(true);
-        input.add(null);
-        input.add(false);
-        // Can wrap in JSON Object for wrapped style... also, will use
-        // non-qualified class name as type name, since there are no
-        // annotations
-        String expName = "TestTypedArraySerialization$TypedListAsWrapper";
-        assertEquals("{\""+expName+"\":[true,null,false]}",
-                serializeAsString(input));
+        ObjectMapper m = new ObjectMapper();
+        // uses OBJECT_ARRAY, works just fine
+        
+        String JSON = "{\""+TypedListAsWrapper.class.getName()+"\":[1, 3]}";
+        JavaType type = TypeFactory.collectionType(TypedListAsWrapper.class, Long.class);        
+        TypedListAsWrapper<Object> result = m.readValue(JSON, type);
+        assertNotNull(result);
+        assertEquals(2, result.size());
+
+        assertEquals(Long.class, result.get(0).getClass());
+        assertEquals(Long.valueOf(1), result.get(0));
+        assertEquals(Long.class, result.get(1).getClass());
+        assertEquals(Long.valueOf(3), result.get(1));
     }
-*/
+
     /*
      ****************************************************** 
      * Unit tests, primitive arrays
      ****************************************************** 
      */
 
-    /*
-    public void testIntArray() throws Exception
+    public void testLongArray() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        m.getSerializationConfig().addMixInAnnotations(int[].class, WrapperMixIn.class);
-        int[] input = new int[] { 1, 2, 3 };
-        String clsName = int[].class.getName();
-        assertEquals("{\""+clsName+"\":[1,2,3]}", serializeAsString(m, input));
+        // use class name, WRAPPER_OBJECT
+        m.getDeserializationConfig().addMixInAnnotations(long[].class, WrapperMixIn.class);
+        String JSON = "{\""+long[].class.getName()+"\":[5, 6, 7]}";
+        long[] value = m.readValue(JSON, long[].class);
+        assertNotNull(value);
+        assertEquals(3, value.length);
+        assertArrayEquals(new long[] { 5L, 6L, 7L} , value);
     }
-*/    
 }

@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.jsontype;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Interfaces builders that are configured based on
@@ -64,7 +65,7 @@ public interface JsonTypeResolverBuilder<T extends JsonTypeResolverBuilder<T>>
      * @return Resulting builder instance (usually this builder,
      *   but not necessarily)
      */
-    public T init(Class<?> baseType, JsonTypeInfo.Id idType);
+    public T init(JavaType baseType, JsonTypeInfo.Id idType);
     
     /*
     ***********************************************************

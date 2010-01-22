@@ -127,7 +127,7 @@ public class PropertyBuilder
         Class<?> serializationType = _annotationIntrospector.findSerializationType(a);
         if (serializationType != null) {
             // Must be a super type...
-            Class<?> type = a.getType();
+            Class<?> type = a.getRawType();
             if (!serializationType.isAssignableFrom(type)) {
                 throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+a.getName()+"': class "+serializationType.getName()+" not a super-type of (declared) class "+type.getName());
             }
@@ -141,7 +141,7 @@ public class PropertyBuilder
             useStaticTyping = (typing == JsonSerialize.Typing.STATIC);
         }
         if (useStaticTyping) {
-            return a.getType();
+            return a.getRawType();
         }
         return null;
     }
