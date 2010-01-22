@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.TypeDeserializer;
 
 /**
  * 
@@ -59,6 +60,15 @@ public final class EnumMapDeserializer
         return result;
     }
 
+    @Override
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+        throws IOException, JsonProcessingException
+    {
+        // In future could check current token... for now this should be enough:
+        return typeDeserializer.deserializeTypedFromObject(jp, ctxt);
+    }
+    
     @SuppressWarnings("unchecked") 
     private EnumMap<?,?> constructMap()
     {

@@ -34,7 +34,7 @@ public class JsonNodeDeserializer
         // For others, generic one works fine
         return JsonNodeDeserializer.instance;
     }
-
+    
     /*
     /////////////////////////////////////////////////////
     // Actual deserializer implementations
@@ -117,6 +117,17 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
     public JsonNodeFactory getNodeFactory() { return _nodeFactory; }
     public void setNodeFactory(JsonNodeFactory nf) { _nodeFactory = nf; }
     
+    @Override
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+        throws IOException, JsonProcessingException
+    {
+        /* Output can be as JSON Object, Array or scalar: no way to know
+         * a priori. So:
+         */
+        return typeDeserializer.deserializeTypedFromAny(jp, ctxt);
+    }
+
     /*
     /////////////////////////////////////////////////////
     // Overridable methods

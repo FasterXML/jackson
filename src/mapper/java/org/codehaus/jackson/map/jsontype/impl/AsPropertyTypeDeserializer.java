@@ -10,11 +10,12 @@ import org.codehaus.jackson.util.JsonParserSequence;
 import org.codehaus.jackson.util.TokenBuffer;
 
 /**
- * Type deserialialization used when inclusion mechanism is
- * {@link JsonTypeInfo.As#PROPERTY}.
- * Uses regular form when typed object is expressed as JSON
- * Object; otherwise behaves similar to how
+ * Type deserializer used with {@link JsonTypeInfo.As#PROPERTY}
+ * inclusion mechanism.
+ * Uses regular form (additional key/value entry before actual data)
+ * when typed object is expressed as JSON Object; otherwise behaves similar to how
  * {@link JsonTypeInfo.As#WRAPPER_ARRAY} works.
+ * Latter is used if JSON representation is polymorphic
  * 
  * @since 1.5
  * @author tatu
@@ -38,7 +39,7 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
      * for may be anywhere...
      */
     @Override
-    public Object deserializeTypedObject(JsonParser jp, DeserializationContext ctxt)
+    public Object deserializeTypedFromObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // but first, sanity check to ensure we have START_OBJECT...
@@ -68,4 +69,5 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
     // These are fine from base class:
     //public Object deserializeTypedArray(JsonParser jp, DeserializationContext ctxt)
     //public Object deserializeTypedScalar(JsonParser jp, DeserializationContext ctxt)    
+    //public Object deserializeTypedUnknown(JsonParser jp, DeserializationContext ctxt)    
 }

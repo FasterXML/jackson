@@ -525,16 +525,13 @@ public class BeanDeserializerFactory
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, setter);
         
         Method m = setter.getAnnotated();
-        if (propDeser != null) {
-            SettableBeanProperty prop = new SettableBeanProperty.MethodProperty(name, type, m);
-            prop.setValueDeserializer(propDeser);
-            return prop;
-        }
-        /* Otherwise, method may specify more specific (sub-)class for
-         * value (no need to check if explicit deser was specified):
-         */
         type = modifyTypeByAnnotation(config, setter, type);
-        return new SettableBeanProperty.MethodProperty(name, type, m);
+        TypeDeserializer typeDeser = createTypeDeserializer(config, type);
+        SettableBeanProperty prop = new SettableBeanProperty.MethodProperty(name, type, typeDeser, m);
+        if (propDeser != null) {
+            prop.setValueDeserializer(propDeser);
+        }
+        return prop;
     }
 
     protected SettableBeanProperty constructSettableProperty(DeserializationConfig config,
@@ -552,17 +549,14 @@ public class BeanDeserializerFactory
          * If so, let's use it.
          */
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, field);
-        
         Field f = field.getAnnotated();
-        if (propDeser != null) {
-            SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(name, type, f);
-            prop.setValueDeserializer(propDeser);
-            return prop;
-        }
-        // Otherwise, method may specify more specific (sub-)class for
-        // value (no need to check if explicit deser was specified):
         type = modifyTypeByAnnotation(config, field, type);
-        return new SettableBeanProperty.FieldProperty(name, type, f);
+        TypeDeserializer typeDeser = createTypeDeserializer(config, type);
+        SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(name, type, typeDeser, f);
+        if (propDeser != null) {
+            prop.setValueDeserializer(propDeser);
+        }
+        return prop;
     }
 
     /**
@@ -587,19 +581,15 @@ public class BeanDeserializerFactory
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */
-        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, getter);
-        
+        JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, getter);        
         Method m = getter.getAnnotated();
-        if (propDeser != null) {
-            SettableBeanProperty prop = new SettableBeanProperty.SetterlessProperty(name, type, m);
-            prop.setValueDeserializer(propDeser);
-            return prop;
-        }
-        /* Otherwise, method may specify more specific (sub-)class for
-         * value (no need to check if explicit deser was specified):
-         */
         type = modifyTypeByAnnotation(config, getter, type);
-        return new SettableBeanProperty.SetterlessProperty(name, type, m);
+        TypeDeserializer typeDeser = createTypeDeserializer(config, type);
+        SettableBeanProperty prop = new SettableBeanProperty.SetterlessProperty(name, type, typeDeser, m);
+        if (propDeser != null) {
+            prop.setValueDeserializer(propDeser);
+        }
+        return prop;
     }
 
     /*

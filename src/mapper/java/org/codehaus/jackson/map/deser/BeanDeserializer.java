@@ -152,8 +152,7 @@ public class BeanDeserializer
      {
         _stringCreator = creators.stringCreator();
         _numberCreator = creators.numberCreator();
-        /**
-         * Delegating constructor means that
+        /* Delegating constructor means that
          * the JSON Object is first deserialized into delegated type, and
          * then resulting value is passed as the argument to delegating
          * constructor.
@@ -164,12 +163,12 @@ public class BeanDeserializer
         _delegatingCreator = creators.delegatingCreator();
         _propertyBasedCreator = creators.propertyBasedCreator();
 
-	/* important: ensure we do not hold on to default constructor,
+        /* important: ensure we do not hold on to default constructor,
          * if delegating OR property-based creator is found
          */
-	if (_delegatingCreator != null || _propertyBasedCreator != null) {
+        if (_delegatingCreator != null || _propertyBasedCreator != null) {
             _defaultConstructor = null;
-	}
+        }
     }
     
     /**
@@ -343,7 +342,16 @@ public class BeanDeserializer
         }
         return intoValue;
     }
-        
+
+    @Override
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+        throws IOException, JsonProcessingException
+    {
+        // In future could check current token... for now this should be enough:
+        return typeDeserializer.deserializeTypedFromObject(jp, ctxt);
+    }
+    
     /*
     /////////////////////////////////////////////////////////
     // Other public accessors

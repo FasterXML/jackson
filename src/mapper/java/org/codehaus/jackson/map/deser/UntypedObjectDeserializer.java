@@ -9,6 +9,7 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.TypeDeserializer;
 
 /**
  * This deserializer is only used if it is necessary to bind content of
@@ -19,6 +20,12 @@ public class UntypedObjectDeserializer
     extends StdDeserializer<Object>
 {
     public UntypedObjectDeserializer() { super(Object.class); }
+
+    /*
+    /*************************************************************
+    /* Deserializer API
+    /*************************************************************
+     */
     
     @Override
     public Object deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -74,6 +81,23 @@ public class UntypedObjectDeserializer
         throw ctxt.mappingException(Object.class);
     }
 
+    @Override
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+        throws IOException, JsonProcessingException
+    {
+        /* Output can be as JSON Object, Array or scalar: no way to know
+         * a priori. So:
+         */
+        return typeDeserializer.deserializeTypedFromAny(jp, ctxt);
+    }
+
+    /*
+    /*************************************************************
+    /* Internal methods
+    /*************************************************************
+     */
+    
     protected List<Object> mapArray(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {

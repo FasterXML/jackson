@@ -55,24 +55,15 @@ public abstract class StdDeserializer<T>
     */
     
     /**
-     * Base implementation will call type deserializer to extract
-     * type information
+     * Base implementation that does not assume specific type
+     * inclusion mechanism. Sub-classes are expected to override
+     * this method if they are to handle type information.
      */
     public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException
     {
-        /* 20-Jan-2010, tatu: Is this sufficient for checking? Or do we
-         *   need explicit type introspection method?
-         */
-        JsonToken t = jp.getCurrentToken();
-        if (t == JsonToken.START_ARRAY) {
-            return typeDeserializer.deserializeTypedArray(jp, ctxt);
-        }
-        if (t == JsonToken.START_OBJECT) {
-            return typeDeserializer.deserializeTypedObject(jp, ctxt);
-        }
-        return typeDeserializer.deserializeTypedScalar(jp, ctxt);
+        return typeDeserializer.deserializeTypedFromAny(jp, ctxt);
     }
     
     /*
@@ -786,7 +777,7 @@ public abstract class StdDeserializer<T>
     */
 
     public static class StackTraceElementDeserializer
-        extends StdDeserializer<StackTraceElement>
+        extends StdScalarDeserializer<StackTraceElement>
     {
         public StackTraceElementDeserializer() { super(StackTraceElement.class); }
 
@@ -833,7 +824,7 @@ public abstract class StdDeserializer<T>
      * @since 1.5
      */
     public static class TokenBufferDeserializer
-        extends StdDeserializer<TokenBuffer>
+        extends StdScalarDeserializer<TokenBuffer>
     {
         public TokenBufferDeserializer() { super(TokenBuffer.class); }
 

@@ -57,6 +57,38 @@ public class ArrayDeserializers
                               (JsonDeserializer<Object>) deser);
     }
 
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+        throws IOException, JsonProcessingException
+    {
+        /* Should there be separate handling for base64 stuff?
+         * for now this should be enough:
+         */
+        return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
+    }
+
+    /*
+    /********************************************************
+    /* Intermediate base class
+    /********************************************************
+     */
+    
+    static abstract class ArrayDeser<T>
+        extends StdDeserializer<T>
+    {
+        protected ArrayDeser(Class<T> cls) {
+            super(cls);
+        }
+
+        @Override
+        public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+            throws IOException, JsonProcessingException
+        {
+            return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
+        }
+    }
+    
     /*
     /////////////////////////////////////////////////////////////
     // Actual deserializers: efficient String[], char[] deserializers
@@ -64,7 +96,7 @@ public class ArrayDeserializers
     */
 
     final static class StringDeser
-        extends StdDeserializer<String[]>
+        extends ArrayDeser<String[]>
     {
         public StringDeser() { super(String[].class); }
 
@@ -96,7 +128,7 @@ public class ArrayDeserializers
     }
 
     final static class CharDeser
-        extends StdDeserializer<char[]>
+        extends ArrayDeser<char[]>
     {
         public CharDeser() { super(char[].class); }
 
@@ -128,7 +160,7 @@ public class ArrayDeserializers
     */
 
     final static class BooleanDeser
-        extends StdDeserializer<boolean[]>
+        extends ArrayDeser<boolean[]>
     {
         public BooleanDeser() { super(boolean[].class); }
 
@@ -160,7 +192,7 @@ public class ArrayDeserializers
      * to int/long/shorts): base64 encoded data.
      */
     final static class ByteDeser
-        extends StdDeserializer<byte[]>
+        extends ArrayDeser<byte[]>
     {
         public ByteDeser() { super(byte[].class); }
 
@@ -212,7 +244,7 @@ public class ArrayDeserializers
     }
 
     final static class ShortDeser
-        extends StdDeserializer<short[]>
+        extends ArrayDeser<short[]>
     {
         public ShortDeser() { super(short[].class); }
 
@@ -239,7 +271,7 @@ public class ArrayDeserializers
     }
 
     final static class IntDeser
-        extends StdDeserializer<int[]>
+        extends ArrayDeser<int[]>
     {
         public IntDeser() { super(int[].class); }
 
@@ -267,7 +299,7 @@ public class ArrayDeserializers
     }
 
     final static class LongDeser
-        extends StdDeserializer<long[]>
+        extends ArrayDeser<long[]>
     {
         public LongDeser() { super(long[].class); }
 
@@ -294,7 +326,7 @@ public class ArrayDeserializers
     }
 
     final static class FloatDeser
-        extends StdDeserializer<float[]>
+        extends ArrayDeser<float[]>
     {
         public FloatDeser() { super(float[].class); }
 
@@ -322,7 +354,7 @@ public class ArrayDeserializers
     }
 
     final static class DoubleDeser
-        extends StdDeserializer<double[]>
+        extends ArrayDeser<double[]>
     {
         public DoubleDeser() { super(double[].class); }
 

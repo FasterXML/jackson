@@ -4,6 +4,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.deser.StdDeserializer;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
@@ -48,6 +49,14 @@ public class XmlAdapterJsonDeserializer
         }
     }
 
-
-
+    @Override
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+        throws IOException, JsonProcessingException
+    {
+        /* Output can be as JSON Object, Array or scalar: no way to know
+         * a priori. So:
+         */
+        return typeDeserializer.deserializeTypedFromAny(jp, ctxt);
+    }
 }

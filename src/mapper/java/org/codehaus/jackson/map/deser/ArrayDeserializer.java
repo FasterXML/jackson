@@ -112,6 +112,16 @@ public class ArrayDeserializer
         return result;
     }
 
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+        throws IOException, JsonProcessingException
+    {
+        /* Should there be separate handling for base64 stuff?
+         * for now this should be enough:
+         */
+        return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
+    }
+    
     protected Byte[] deserializeFromBase64(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {

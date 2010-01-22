@@ -530,13 +530,13 @@ public abstract class BasicDeserializerFactory
         // Is there an annotation that specifies exact deserializer?
         JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, param);
         // If yes, we are mostly done:
-        if (deser != null) {
-            SettableBeanProperty.CreatorProperty prop = new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), index);
-            prop.setValueDeserializer(deser);
-            return prop;
-        }
-        // Otherwise may have other type specifying annotations
         type = modifyTypeByAnnotation(config, param, type);
-       return new SettableBeanProperty.CreatorProperty(name, type, beanDesc.getBeanClass(), index);
+        TypeDeserializer typeDeser = createTypeDeserializer(config, type);
+        SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(name, type, typeDeser,
+                beanDesc.getBeanClass(), index);
+        if (deser != null) {
+            prop.setValueDeserializer(deser);
+        }
+       return prop;
     }
 }

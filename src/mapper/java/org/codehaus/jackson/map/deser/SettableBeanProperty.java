@@ -27,6 +27,13 @@ public abstract class SettableBeanProperty
     protected JsonDeserializer<Object> _valueDeserializer;
 
     /**
+     * If value will contain type information (to support
+     * polymorphic handling), this is the type deserializer
+     * used to handle type resolution.
+     */
+    protected TypeDeserializer _valueTypeDeserializer;
+    
+    /**
      * Value to be used when 'null' literal is encountered in Json.
      * For most types simply Java null, but for primitive types must
      * be a non-null value (like Integer.valueOf(0) for int).
@@ -39,7 +46,8 @@ public abstract class SettableBeanProperty
     ////////////////////////////////////////////////////////
      */
 
-    public SettableBeanProperty(String propName, JavaType type)
+    protected SettableBeanProperty(String propName, JavaType type,
+            TypeDeserializer typeDeser)
     {
         /* 09-Jan-2009, tatu: Intern()ing makes sense since Jackson parsed
          *   field names are (usually) interned too, hence lookups will be faster.
@@ -51,6 +59,7 @@ public abstract class SettableBeanProperty
             _propName = InternCache.instance.intern(propName);
         }
         _type = type;
+        _valueTypeDeserializer = typeDeser;
     }
 
     public void setValueDeserializer(JsonDeserializer<Object> deser)
@@ -112,6 +121,9 @@ public abstract class SettableBeanProperty
         JsonToken t = jp.nextToken();
         if (t == JsonToken.VALUE_NULL) {
             return _nullValue;
+        }
+        if (_valueTypeDeserializer != null) {
+            return _valueTypeDeserializer.deserializeTypedFromObject(jp, ctxt);
         }
         return _valueDeserializer.deserialize(jp, ctxt);
     }
@@ -183,10 +195,10 @@ public abstract class SettableBeanProperty
          */
         protected final Method _setter;
 
-        public MethodProperty(String propName, JavaType type,
-                              Method setter)
+        public MethodProperty(String propName, JavaType type, TypeDeserializer typeDeser,
+                Method setter)
         {
-            super(propName, type);
+            super(propName, type, typeDeser);
             _setter = setter;
         }
 
@@ -226,10 +238,10 @@ public abstract class SettableBeanProperty
          */
         protected final Method _getter;
 
-        public SetterlessProperty(String propName, JavaType type,
+        public SetterlessProperty(String propName, JavaType type, TypeDeserializer typeDeser,
                                   Method getter)
         {
-            super(propName, type);
+            super(propName, type, typeDeser);
             _getter = getter;
         }
 
@@ -288,10 +300,10 @@ public abstract class SettableBeanProperty
          */
         protected final Field _field;
 
-        public FieldProperty(String propName, JavaType type,
+        public FieldProperty(String propName, JavaType type, TypeDeserializer typeDeser,
                              Field f)
         {
-            super(propName, type);
+            super(propName, type, typeDeser);
             _field = f;
         }
 
@@ -333,9 +345,10 @@ public abstract class SettableBeanProperty
         final int _index;
 
         public CreatorProperty(String propName, JavaType type,
+                               TypeDeserializer typeDeser,
                                Class<?> declaringClass, int index)
         {
-            super(propName, type);
+            super(propName, type, typeDeser);
             _declaringClass = declaringClass;
             _index = index;
         }

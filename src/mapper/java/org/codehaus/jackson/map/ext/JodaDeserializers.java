@@ -9,6 +9,7 @@ import org.joda.time.DateTimeZone;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.StdDeserializer;
+import org.codehaus.jackson.map.deser.StdScalarDeserializer;
 import org.codehaus.jackson.map.util.Provider;
 
 /**
@@ -38,7 +39,7 @@ public class JodaDeserializers
      * Does not (yet?) support JSON object; support can be added if desired.
      */
     public static class DateTimeDeserializer
-        extends StdDeserializer<DateTime>
+        extends StdScalarDeserializer<DateTime>
     {
         public DateTimeDeserializer() { super(DateTime.class); }
 

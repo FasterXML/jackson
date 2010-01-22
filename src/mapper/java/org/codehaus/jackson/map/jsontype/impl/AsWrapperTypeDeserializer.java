@@ -7,6 +7,15 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.type.JavaType;
 
+/**
+ * Type deserializer used with {@link JsonTypeInfo.As#WRAPPER_OBJECT}
+ * inclusion mechanism. Simple since JSON structure used is always
+ * the same, regardless of structure used for actual value: wrapping
+ * is done using a single-element JSON Object where type id is the key,
+ * and actual object data as the value.
+ * 
+ * @author tatus
+ */
 public class AsWrapperTypeDeserializer extends TypeDeserializerBase
 {
     public AsWrapperTypeDeserializer(Class<?> bt, TypeConverter c) {
@@ -22,7 +31,45 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
      * Deserializing type id enclosed using WRAPPER_OBJECT style is straightforward
      */
     @Override
-    public Object deserializeTypedObject(JsonParser jp, DeserializationContext ctxt)
+    public Object deserializeTypedFromObject(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return _deserialize(jp, ctxt);
+    }    
+
+    @Override
+    public Object deserializeTypedFromArray(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return _deserialize(jp, ctxt);
+    }
+
+    @Override
+    public Object deserializeTypedFromScalar(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return _deserialize(jp, ctxt);
+    }
+
+    @Override
+    public Object deserializeTypedFromAny(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return _deserialize(jp, ctxt);
+    }
+    
+    /*
+    /***************************************************************
+    /* Internal methods
+    /***************************************************************
+     */
+
+    /**
+     * Method that handles type information wrapper, locates actual
+     * subtype deserializer to use, and calls it to do actual
+     * deserialization.
+     */
+    private final Object _deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // first, sanity checks
@@ -45,19 +92,5 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
                     "expected closing END_OBJECT after type information and deserialized value");
         }
         return value;
-    }    
-
-    @Override
-    public Object deserializeTypedArray(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
-        return deserializeTypedObject(jp, ctxt);
-    }
-
-    @Override
-    public Object deserializeTypedScalar(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
-        return deserializeTypedObject(jp, ctxt);
     }
 }

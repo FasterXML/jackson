@@ -7,6 +7,15 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.type.JavaType;
 
+/**
+ * Type deserializer used with {@link JsonTypeInfo.As#WRAPPER_ARRAY}
+ * inclusion mechanism. Simple since JSON structure used is always
+ * the same, regardless of structure used for actual value: wrapping
+ * is done using a 2-element JSON Array where type id is the first
+ * element, and actual object data as second element.
+ * 
+ * @author tatus
+ */
 public class AsArrayTypeDeserializer extends TypeDeserializerBase
 {
     public AsArrayTypeDeserializer(Class<?> bt, TypeConverter conv)
@@ -20,51 +29,55 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
     }
 
     /**
-     * Deserializing with 'WRAPPER_ARRAY' inclusion mechanism is easy; just
-     * need to find the 2 element array.
+     * Method called when actual object is serialized as JSON Array.
      */
     @Override
-    public Object deserializeTypedArray(JsonParser jp, DeserializationContext ctxt)
+    public Object deserializeTypedFromArray(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        String typeId = _locateTypeId(jp, ctxt);
-        JavaType type = resolveType(typeId);
-        JsonDeserializer<Object> deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, null, null);
-        jp.nextToken();
-        Object value = deser.deserialize(jp, ctxt);
-        // And then need the closing END_ARRAY
-        if (jp.nextToken() != JsonToken.END_ARRAY) {
-            throw ctxt.wrongTokenException(jp, JsonToken.END_ARRAY,
-                    "expected closing END_ARRAY after type information and deserialized value");
-        }
-        return value;
-    }    
-
-    @Override
-    public Object deserializeTypedObject(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
-        String typeId = _locateTypeId(jp, ctxt);
-        JavaType type = resolveType(typeId);
-        JsonDeserializer<Object> deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, null, null);
-        jp.nextToken();
-        Object value = deser.deserialize(jp, ctxt);
-        // And then need the closing END_ARRAY
-        if (jp.nextToken() != JsonToken.END_ARRAY) {
-            throw ctxt.wrongTokenException(jp, JsonToken.END_ARRAY,
-                    "expected closing END_ARRAY after type information and deserialized value");
-        }
-        return value;
+        return _deserialize(jp, ctxt);
     }
 
+    /**
+     * Method called when actual object is serialized as JSON Object
+     */
     @Override
-    public Object deserializeTypedScalar(JsonParser jp, DeserializationContext ctxt)
+    public Object deserializeTypedFromObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        String typeId = _locateTypeId(jp, ctxt);
-        JavaType type = resolveType(typeId);
+        return _deserialize(jp, ctxt);
+    }
+    
+    @Override
+    public Object deserializeTypedFromScalar(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return _deserialize(jp, ctxt);
+    }    
+
+    @Override
+    public Object deserializeTypedFromAny(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return _deserialize(jp, ctxt);
+    }    
+    
+    /*
+    /***************************************************************
+    /* Internal methods
+    /***************************************************************
+     */
+
+    /**
+     * Method that handles type information wrapper, locates actual
+     * subtype deserializer to use, and calls it to do actual
+     * deserialization.
+     */
+    private final Object _deserialize(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        JavaType type = resolveType(_locateTypeId(jp, ctxt));
         JsonDeserializer<Object> deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, null, null);
-        jp.nextToken();
         Object value = deser.deserialize(jp, ctxt);
         // And then need the closing END_ARRAY
         if (jp.nextToken() != JsonToken.END_ARRAY) {
@@ -73,7 +86,7 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
         }
         return value;
     }    
-
+    
     protected final String _locateTypeId(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
@@ -86,6 +99,8 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
             throw ctxt.wrongTokenException(jp, JsonToken.VALUE_STRING,
                     "need JSON String that contains type id (for subtype of "+baseTypeName()+")");
         }
-        return jp.getText();
+        String result = jp.getText();
+        jp.nextToken();
+        return result;
     }
 }
