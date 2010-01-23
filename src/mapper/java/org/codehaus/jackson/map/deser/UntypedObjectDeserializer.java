@@ -69,12 +69,12 @@ public class UntypedObjectDeserializer
             return mapArray(jp, ctxt);
 
         case START_OBJECT:
+        case FIELD_NAME:
             return mapObject(jp, ctxt);
 
             // and finally, invalid types
         case END_ARRAY:
         case END_OBJECT:
-        case FIELD_NAME:
             break;
         }
 
@@ -112,15 +112,18 @@ public class UntypedObjectDeserializer
         throws IOException, JsonProcessingException
     {
         LinkedHashMap<String, Object> result = new LinkedHashMap<String, Object>();
-        JsonToken currToken;
-        
-        while ((currToken = jp.nextToken()) != JsonToken.END_OBJECT) {
-            if (currToken != JsonToken.FIELD_NAME) {
-                throw JsonMappingException.from(jp, "Unexpected token ("+currToken+"), expected FIELD_NAME");
-            }
+        JsonToken t = jp.getCurrentToken();
+        if (t == JsonToken.START_OBJECT) {
+            t = jp.nextToken();
+        }
+        for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String fieldName = jp.getText();
             jp.nextToken();
             result.put(fieldName, deserialize(jp, ctxt));
+        }
+        // sanity check
+        if (t != JsonToken.END_OBJECT) {
+                throw JsonMappingException.from(jp, "Unexpected token ("+t+"), expected END_OBJECT after JSON Object");
         }
         return result;
     }

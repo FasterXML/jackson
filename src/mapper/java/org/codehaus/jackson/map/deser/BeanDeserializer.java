@@ -295,6 +295,7 @@ public class BeanDeserializer
         JsonToken t = jp.getCurrentToken();
         // common case first:
         if (t == JsonToken.START_OBJECT) {
+            jp.nextToken();
             return deserializeFromObject(jp, ctxt);
         }
         // and then others, generally requiring use of @JsonCreator
@@ -311,6 +312,8 @@ public class BeanDeserializer
         case START_ARRAY:
             // these only work if there's a (delegating) creator...
             return deserializeUsingCreator(jp, ctxt);
+        case FIELD_NAME:
+            return deserializeFromObject(jp, ctxt);
 	}
         throw ctxt.mappingException(getBeanClass());
     }
@@ -320,27 +323,27 @@ public class BeanDeserializer
      * instance is created as part of deserialization, potentially
      * after collecting some or all of the properties to set.
      */
-    public Object deserialize(JsonParser jp, DeserializationContext ctxt, Object intoValue)
+    public Object deserialize(JsonParser jp, DeserializationContext ctxt, Object bean)
         throws IOException, JsonProcessingException
     {
-        while (jp.nextToken() != JsonToken.END_OBJECT) { // otherwise field name
+        JsonToken t = jp.getCurrentToken();
+        for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String propName = jp.getCurrentName();
             SettableBeanProperty prop = _props.get(propName);
-
+            jp.nextToken(); // skip field, returns value token
+            
             if (prop != null) { // normal case
-                prop.deserializeAndSet(jp, ctxt, intoValue);
+                prop.deserializeAndSet(jp, ctxt, bean);
                 continue;
             }
             if (_anySetter != null) {
-                _anySetter.deserializeAndSet(jp, ctxt, intoValue, propName);
+                _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
                 continue;
-            }
-            // need to process or skip the following token
-            /*JsonToken t =*/ jp.nextToken();
+                }
             // Unknown: let's call handler method
-            handleUnknownProperty(jp, ctxt, intoValue, propName);
+            handleUnknownProperty(jp, ctxt, bean, propName);
         }
-        return intoValue;
+        return bean;
     }
 
     @Override
@@ -390,10 +393,11 @@ public class BeanDeserializer
             ClassUtil.unwrapAndThrowAsIAE(e);
             return null; // never gets here
         }
-        while (jp.nextToken() != JsonToken.END_OBJECT) { // otherwise field name
+        for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
+            // Skip field name:
+            jp.nextToken();
             SettableBeanProperty prop = _props.get(propName);
-
             if (prop != null) { // normal case
                 prop.deserializeAndSet(jp, ctxt, bean);
                 continue;
@@ -405,8 +409,6 @@ public class BeanDeserializer
                 _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
                 continue;
             }
-            // need to process or skip the following token
-            /*JsonToken t =*/ jp.nextToken();
             // Unknown: let's call handler method
             handleUnknownProperty(jp, ctxt, bean, propName);         
         }
@@ -469,28 +471,18 @@ public class BeanDeserializer
 
         // 04-Jan-2010, tatu: May need to collect unknown properties for polymorphic cases
         TokenBuffer unknown = null;
-        
-        while (true) {
-            // end of JSON object?
-            if (jp.nextToken() == JsonToken.END_OBJECT) {
-                // if so, can just construct and leave...
-                Object bean =  creator.build(buffer);
-                if (unknown != null) {
-		    // polymorphic?
-		    if (bean.getClass() != _beanType.getRawClass()) {
-			return handlePolymorphic(null, ctxt, bean, unknown);
-		    }
-		    // no, just some extra unknown properties
-                    return handleUnknownProperties(ctxt, bean, unknown);
-                }
-                return bean;
-            }
+
+        JsonToken t = jp.getCurrentToken();
+        for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String propName = jp.getCurrentName();
+            jp.nextToken(); // to point to value
             // creator property?
             SettableBeanProperty prop = creator.findCreatorProperty(propName);
             if (prop != null) {
                 // Last creator property to set?
-                if (buffer.assignParameter(prop.getCreatorIndex(), prop.deserialize(jp, ctxt))) {
+                Object value = prop.deserialize(jp, ctxt);
+                if (buffer.assignParameter(prop.getCreatorIndex(), value)) {
+                    jp.nextToken(); // to move to following FIELD_NAME/END_OBJECT
                     Object bean = creator.build(buffer);
 		    //  polymorphic?
 		    if (bean.getClass() != _beanType.getRawClass()) {
@@ -519,8 +511,21 @@ public class BeanDeserializer
             if (unknown == null) {
                 unknown = new TokenBuffer(jp.getCodec());
             }
+            unknown.writeFieldName(propName);
             unknown.copyCurrentStructure(jp);
         }
+
+        // We hit END_OBJECT, so:
+        Object bean =  creator.build(buffer);
+        if (unknown != null) {
+            // polymorphic?
+            if (bean.getClass() != _beanType.getRawClass()) {
+                return handlePolymorphic(null, ctxt, bean, unknown);
+            }
+            // no, just some extra unknown properties
+            return handleUnknownProperties(ctxt, bean, unknown);
+        }
+        return bean;
     }
 
     /*
@@ -592,7 +597,9 @@ public class BeanDeserializer
 	    if (unknownTokens != null) {
 		// need to add END_OBJECT marker first
 		unknownTokens.writeEndObject();
-		bean = subDeser.deserialize(unknownTokens.asParser(), ctxt, bean);
+                JsonParser p2 = unknownTokens.asParser();
+                p2.nextToken(); // to get to first data field
+		bean = subDeser.deserialize(p2, ctxt, bean);
 	    }
 	    // Original parser may also have some leftovers
 	    if (jp != null) {

@@ -65,7 +65,7 @@ public class TestPolymorphicCreators
      * Simple test to verify that it is possible to implement polymorphic
      * deserialization manually.
      */
-    public void testManualPolymorphic() throws Exception
+    public void testManualPolymorphicDog() throws Exception
     {
 	ObjectMapper mapper = new ObjectMapper();
 	// first, a dog, start with type
@@ -73,22 +73,29 @@ public class TestPolymorphicCreators
 	assertEquals(Dog.class, animal.getClass());
 	assertEquals("Fido", animal.name);
 	assertEquals(95.0, ((Dog) animal).barkVolume);
+    }
 
-	// Then cat; shuffle order to mandate buffering
-	animal = mapper.readValue("{ \"likesCream\":true, \"name\" : \"Venla\", \"type\":\"cat\" }", Animal.class);
-	assertEquals(Cat.class, animal.getClass());
-	assertEquals("Venla", animal.name);
-	// bah, of course cats like cream. But let's ensure Jackson won't mess with laws of nature!
-	assertTrue(((Cat) animal).likesCream);
-
-
+    public void testManualPolymorphicCatBasic() throws Exception
+    {
+	ObjectMapper mapper = new ObjectMapper();
 	// and finally, lactose-intolerant, but otherwise robust super-cat:
-	animal = mapper.readValue("{ \"name\" : \"Macavity\", \"type\":\"cat\", \"lives\":18, \"likesCream\":false }", Animal.class);
+	Animal animal = mapper.readValue("{ \"name\" : \"Macavity\", \"type\":\"cat\", \"lives\":18, \"likesCream\":false }", Animal.class);
 	assertEquals(Cat.class, animal.getClass());
 	assertEquals("Macavity", animal.name); // ... there's no one like Macavity!
 	Cat cat = (Cat) animal;
 	assertEquals(18, cat.lives);
 	// ok, he can't drink dairy products. Let's verify:
 	assertEquals(false, cat.likesCream);
+    }
+
+    public void testManualPolymorphicCatWithReorder() throws Exception
+    {
+	ObjectMapper mapper = new ObjectMapper();
+	// Then cat; shuffle order to mandate buffering
+	Animal animal = mapper.readValue("{ \"likesCream\":true, \"name\" : \"Venla\", \"type\":\"cat\" }", Animal.class);
+	assertEquals(Cat.class, animal.getClass());
+	assertEquals("Venla", animal.name);
+	// bah, of course cats like cream. But let's ensure Jackson won't mess with laws of nature!
+	assertTrue(((Cat) animal).likesCream);
     }
 }

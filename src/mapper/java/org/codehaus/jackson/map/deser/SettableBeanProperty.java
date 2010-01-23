@@ -102,7 +102,10 @@ public abstract class SettableBeanProperty
 
     /**
      * Method called to deserialize appropriate value, given parser (and
-     * context), and set it using appropriate mechanism
+     * context), and set it using appropriate mechanism.
+     * Pre-condition is that passed parser must point to the first token
+     * that should be consumed to produce the value (the only value for
+     * scalars, multiple for Objects and Arrays).
      */
     public abstract void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
                                            Object instance)
@@ -114,11 +117,15 @@ public abstract class SettableBeanProperty
     /**
      * This method is needed by some specialized bean deserializers,
      * and also called by some {@link #deserializeAndSet} implementations.
+     *<p>
+     * Pre-condition is that passed parser must point to the first token
+     * that should be consumed to produce the value (the only value for
+     * scalars, multiple for Objects and Arrays).
      */
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        JsonToken t = jp.nextToken();
+        JsonToken t = jp.getCurrentToken();
         if (t == JsonToken.VALUE_NULL) {
             return _nullValue;
         }
@@ -254,7 +261,7 @@ public abstract class SettableBeanProperty
                                             Object instance)
             throws IOException, JsonProcessingException
         {
-            JsonToken t = jp.nextToken();
+            JsonToken t = jp.getCurrentToken();
             if (t == JsonToken.VALUE_NULL) {
                 /* Hmmh. Is this a problem? We won't be setting anything, so it's
                  * equivalent of empty Collection/Map in this case

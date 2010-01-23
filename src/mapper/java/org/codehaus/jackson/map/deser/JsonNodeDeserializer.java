@@ -72,6 +72,10 @@ public class JsonNodeDeserializer
             throws IOException, JsonProcessingException
         {
             if (jp.getCurrentToken() == JsonToken.START_OBJECT) {
+                jp.nextToken();
+                return deserializeObject(jp, ctxt);
+            }
+            if (jp.getCurrentToken() == JsonToken.FIELD_NAME) {
                 return deserializeObject(jp, ctxt);
             }
             throw ctxt.mappingException(ObjectNode.class);
@@ -171,7 +175,11 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
         throws IOException, JsonProcessingException
     {
         ObjectNode node = _nodeFactory.objectNode();
-        while (jp.nextToken() != JsonToken.END_OBJECT) {
+        JsonToken t = jp.getCurrentToken();
+        if (t == JsonToken.START_OBJECT) {
+            t = jp.nextToken();
+        }
+        for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String fieldName = jp.getCurrentName();
             jp.nextToken();
             JsonNode value = deserializeAny(jp, ctxt);
@@ -198,6 +206,7 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
     {
         switch (jp.getCurrentToken()) {
         case START_OBJECT:
+        case FIELD_NAME:
             return deserializeObject(jp, ctxt);
 
         case START_ARRAY:
@@ -241,7 +250,6 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
             // These states can not be mapped; input stream is
             // off by an event or two
 
-        case FIELD_NAME:
         case END_OBJECT:
         case END_ARRAY:
         default:

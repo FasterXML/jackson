@@ -53,9 +53,10 @@ public class ThrowableDeserializer
         Object[] pending = null;
         int pendingIx = 0;
 
-        while (jp.nextToken() != JsonToken.END_OBJECT) { // otherwise field name
+        for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             SettableBeanProperty prop = _props.get(propName);
+            jp.nextToken(); // to point to field value
 
             if (prop != null) { // normal case
                 if (throwable != null) {
@@ -71,9 +72,6 @@ public class ThrowableDeserializer
                 pending[pendingIx++] = prop.deserialize(jp, ctxt);
                 continue;
             }
-
-            @SuppressWarnings("unused")
-			JsonToken t = jp.nextToken();
 
             // Maybe it's "message"?
             if (PROP_NAME_MESSAGE.equals(propName)) {

@@ -91,9 +91,7 @@ public class TestTypedDeserialization
         assertEquals("tabby", c.furColor);
     }
 
-    /**
-     * Test inclusion using wrapper style
-     */
+    // Test inclusion using wrapper style
     public void testTypeAsWrapper() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -108,9 +106,7 @@ public class TestTypedDeserialization
         assertEquals(6, d.boneCount);
     }
 
-    /**
-     * Test inclusion using 2-element array
-     */
+    // Test inclusion using 2-element array
     public void testTypeAsArray() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -125,9 +121,7 @@ public class TestTypedDeserialization
         assertEquals(11, d.boneCount);
     }
 
-    /**
-     * Use basic Animal as contents of a regular List
-     */
+    // Use basic Animal as contents of a regular List
     public void testListAsArray() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -135,26 +129,34 @@ public class TestTypedDeserialization
         String JSON = "[\n"
             +asJSONObjectValueString(m, "@classy", Cat.class.getName(), "name", "Hello", "furColor", "white")
             +",\n"
-            +asJSONObjectValueString(m, "@classy", Dog.class.getName(), "name", "Bob", "boneCount", "1")
-            +"\n]";
+            // let's shuffle doggy's fields a bit for testing
+            +asJSONObjectValueString(m,
+                                     "boneCount", Integer.valueOf(1),
+                                     "@classy", Dog.class.getName(),
+                                     "name", "Bob"
+                                     )
+            +", null\n]";
         
         JavaType expType = TypeFactory.collectionType(ArrayList.class, Animal.class);
         List<Animal> animals = m.readValue(JSON, expType);
         assertNotNull(animals);
-        assertEquals(2, animals.size());
+        assertEquals(3, animals.size());
         Cat c = (Cat) animals.get(0);
         assertEquals("Hello", c.name);
         assertEquals("white", c.furColor);
         Dog d = (Dog) animals.get(1);
         assertEquals("Bob", d.name);
         assertEquals(1, d.boneCount);
+        assertNull(animals.get(2));
     }
 
     public void testCagedAnimal() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
         String jsonCat = asJSONObjectValueString(m, "@classy", Cat.class.getName(), "name", "Nilson", "furColor", "black");
-        AnimalContainer cont = m.readValue("{\"animal\":"+jsonCat+"}", AnimalContainer.class);
+        String JSON = "{\"animal\":"+jsonCat+"}";
+
+        AnimalContainer cont = m.readValue(JSON, AnimalContainer.class);
         assertNotNull(cont);
         Animal a = cont.animal;
         assertNotNull(a);

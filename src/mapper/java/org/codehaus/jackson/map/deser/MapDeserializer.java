@@ -129,8 +129,9 @@ public class MapDeserializer
     public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        // Ok: must point to START_OBJECT
-        if (jp.getCurrentToken() != JsonToken.START_OBJECT) {
+        // Ok: must point to START_OBJECT, or FIELD_NAME
+        JsonToken t = jp.getCurrentToken();
+        if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME) {
             throw ctxt.mappingException(getMapClass());
         }
         if (_propertyBasedCreator != null) {
@@ -151,8 +152,9 @@ public class MapDeserializer
                                           Map<Object,Object> result)
         throws IOException, JsonProcessingException
     {
-        // Ok: must point to START_OBJECT
-        if (jp.getCurrentToken() != JsonToken.START_OBJECT) {
+        // Ok: must point to START_OBJECT or FIELD_NAME
+        JsonToken t = jp.getCurrentToken();
+        if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME) {
             throw ctxt.mappingException(getMapClass());
         }
         _readAndBind(jp, ctxt, result);
@@ -183,12 +185,16 @@ public class MapDeserializer
         KeyDeserializer keyDes = _keyDeserializer;
         JsonDeserializer<Object> valueDes = _valueDeserializer;
 
-        while ((jp.nextToken()) != JsonToken.END_OBJECT) {
+        JsonToken t = jp.getCurrentToken();
+        if (t == JsonToken.START_OBJECT) {
+            t = jp.nextToken();
+        }
+        for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             // Must point to field name
             String fieldName = jp.getCurrentName();
             Object key = (keyDes == null) ? fieldName : keyDes.deserializeKey(fieldName, ctxt);
             // And then the value...
-            JsonToken t = jp.nextToken();
+            t = jp.nextToken();
             if (_ignorableProperties != null && _ignorableProperties.contains(fieldName)) {
                 jp.skipChildren();
                 continue;
@@ -210,15 +216,14 @@ public class MapDeserializer
         final Creator.PropertyBased creator = _propertyBasedCreator;
         PropertyValueBuffer buffer = creator.startBuilding(jp, ctxt);
 
-        while (true) {
-            // end of JSON object?
-            if (jp.nextToken() == JsonToken.END_OBJECT) {
-                // if so, can just construct and leave...
-                return (Map<Object,Object>)creator.build(buffer);
-            }
+        JsonToken t = jp.getCurrentToken();
+        if (t == JsonToken.START_OBJECT) {
+            t = jp.nextToken();
+        }
+        for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String propName = jp.getCurrentName();
+            t = jp.nextToken(); // to get to value
             if (_ignorableProperties != null && _ignorableProperties.contains(propName)) {
-                jp.nextToken(); // to get to value
                 jp.skipChildren(); // and skip it (in case of array/object)
                 continue;
             }
@@ -226,7 +231,9 @@ public class MapDeserializer
             SettableBeanProperty prop = creator.findCreatorProperty(propName);
             if (prop != null) {
                 // Last property to set?
-                if (buffer.assignParameter(prop.getCreatorIndex(), prop.deserialize(jp, ctxt))) {
+                Object value = prop.deserialize(jp, ctxt);
+                if (buffer.assignParameter(prop.getCreatorIndex(), value)) {
+                    jp.nextToken();
                     Map<Object,Object> result = (Map<Object,Object>)creator.build(buffer);
                     _readAndBind(jp, ctxt, result);
                     return result;
@@ -236,12 +243,13 @@ public class MapDeserializer
             // other property? needs buffering
             String fieldName = jp.getCurrentName();
             Object key = (_keyDeserializer == null) ? fieldName : _keyDeserializer.deserializeKey(fieldName, ctxt);
-            // And then the value...
-            JsonToken t = jp.nextToken();
             // Note: must handle null explicitly here; value deserializers won't
             Object value = (t == JsonToken.VALUE_NULL) ? null : _valueDeserializer.deserialize(jp, ctxt);
             buffer.bufferMapProperty(key, value);
         }
+        // end of JSON object?
+        // if so, can just construct and leave...
+        return (Map<Object,Object>)creator.build(buffer);
     }
 
     @Override
