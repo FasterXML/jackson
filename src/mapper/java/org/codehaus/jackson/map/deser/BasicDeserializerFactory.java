@@ -266,7 +266,6 @@ public abstract class BasicDeserializerFactory
         MapDeserializer md = new MapDeserializer(type, defaultCtor, keyDes, contentDeser);
         md.setIgnorableProperties(config.getAnnotationIntrospector().findPropertiesToIgnore(beanDesc.getClassInfo()));
         md.setCreators(findMapCreators(config, beanDesc));
-        md.validateCreators();
         return md;
     }
 

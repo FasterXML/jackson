@@ -21,7 +21,7 @@ public class TestTypedSerialization
      * Polymorphic base class
      */
     @JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY)
-    static class Animal {
+    static abstract class Animal {
         public String name;
         
         protected Animal(String n)  { name = n; }

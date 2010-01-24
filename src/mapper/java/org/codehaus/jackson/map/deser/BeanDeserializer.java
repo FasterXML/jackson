@@ -45,7 +45,11 @@ public class BeanDeserializer
     /**
      * Default constructor used to instantiate the bean when mapping
      * from Json object, and only using setters for initialization
-     * (not specific constructors)
+     * (not specific constructors).
+     *<p>
+     * Note: may be null, if deserializer is constructed for abstract
+     * types (which is only useful if additional type information will
+     * allow construction of concrete subtype).
      */
     protected Constructor<?> _defaultConstructor;
 
@@ -220,23 +224,6 @@ public class BeanDeserializer
      */
 
     /**
-     * Method called to ensure that there is at least one constructor
-     * that could be used to construct an instance.
-     */
-    public void validateCreators()
-        throws JsonMappingException
-    {
-        // sanity check: must have a constructor of one type or another
-        if ((_defaultConstructor == null)
-            && (_numberCreator == null)
-            && (_stringCreator == null)
-            && (_delegatingCreator == null)
-            && (_propertyBasedCreator == null)) {
-            throw new JsonMappingException("Can not create Bean deserializer for ("+_beanType+"): neither default/delegating constructor nor factory methods found");
-        }
-    }
-
-    /**
      * Method called to finalize setup of this deserializer,
      * after deserializer itself has been registered. This
      * is needed to handle recursive and transitive dependencies.
@@ -373,7 +360,7 @@ public class BeanDeserializer
 
     public Object deserializeFromObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
-    {
+    {        
         if (_defaultConstructor == null) {
             // 25-Jul-2009, tatu: finally, can also use "non-default" constructor (or factory method)
             if (_propertyBasedCreator != null) {
@@ -381,9 +368,10 @@ public class BeanDeserializer
             }
     	    // 07-Jul-2009, tatu: let's allow delegate-based approach too
     	    if (_delegatingCreator != null) {
-        		return _delegatingCreator.deserialize(jp, ctxt);
+    	        return _delegatingCreator.deserialize(jp, ctxt);
     	    }
-            throw JsonMappingException.from(jp, "No default constructor found for type "+_beanType+": can not instantiate from JSON object");
+    	    // should only occur for abstract types...
+            throw JsonMappingException.from(jp, "No default constructor found for type "+_beanType+": can not instantiate from JSON object (need to add/enable type information?)");
         }
 
         Object bean;

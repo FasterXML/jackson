@@ -92,15 +92,6 @@ public class MapDeserializer
     /////////////////////////////////////////////////////////
      */
 
-    public void validateCreators()
-        throws JsonMappingException
-    {
-        if (_defaultCtor == null
-            && _propertyBasedCreator == null) {
-            throw new JsonMappingException("Can not create deserializer for Map type "+getMapClass().getName()+": no default/delegating constructor or factory methods found");
-        }
-    }
-
     /**
      * Method called to finalize setup of this deserializer,
      * after deserializer itself has been registered. This
@@ -138,6 +129,9 @@ public class MapDeserializer
             return _deserializeUsingCreator(jp, ctxt);
         }
         Map<Object,Object> result;
+        if (_defaultCtor == null) {
+            throw ctxt.instantiationException(getMapClass(), "No default constructor found");
+        }
         try {
             result = _defaultCtor.newInstance();
         } catch (Exception e) {

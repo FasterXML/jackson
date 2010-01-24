@@ -137,6 +137,8 @@ public abstract class DeserializationContext
      * specified class (missing constructor, exception from constructor)
      */
     public abstract JsonMappingException instantiationException(Class<?> instClass, Exception e);
+
+    public abstract JsonMappingException instantiationException(Class<?> instClass, String msg);
     
     /**
      * Helper method for constructing exception to indicate that input JSON

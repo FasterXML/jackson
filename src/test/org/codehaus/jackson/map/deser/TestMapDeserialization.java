@@ -337,7 +337,7 @@ public class TestMapDeserialization
             assertNull(result);
         } catch (JsonMappingException e) {
             // instead, should get this exception:
-            verifyException(e, "no default/delegating constructor or factory method");
+            verifyException(e, "no default constructor found");
         }
     }
 }

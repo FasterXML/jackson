@@ -77,9 +77,14 @@ public class BeanDeserializerFactory
         /* 02-Mar-2009, tatu: Can't instantiate abstract classes or interfaces
          *   so now might be a good time to catch that problem...
          */
-        if (!type.isConcrete()) {
-            return null;
-        }
+        /* 23-Jan-2010, tatu: ... except that 1.5 it is useful, in cases where we do
+         *   have actual type information: we still need intermediate deserializer
+         *   for locating type information (as a sort of placeholder). So can not
+         *   quite do the check here.
+         */
+        /*
+        if (!type.isConcrete()) return null;
+        */
 
         /* One more thing to check: do we have an exception type
          * (Throwable or its sub-classes)? If so, need slightly
@@ -119,7 +124,10 @@ public class BeanDeserializerFactory
         // First: add constructors
         addDeserializerCreators(config, beanDesc, deser);
         // and check that there are enough
-        deser.validateCreators();
+        /* 23-Jan-2010, tatu: can not do that any more, must allow partial
+         *   handling of abstract classes with polymorphic types
+         */
+        //deser.validateCreators();
 
          // And then setters for deserializing from Json Object
         addBeanProps(config, beanDesc, deser);
@@ -137,7 +145,10 @@ public class BeanDeserializerFactory
          */
         BeanDeserializer deser = constructThrowableDeserializerInstance(config, type, beanDesc);
         addDeserializerCreators(config, beanDesc, deser);
-        deser.validateCreators();
+        /* 23-Jan-2010, tatu: can not do that any more, must allow partial
+         *   handling of abstract classes with polymorphic types
+         */
+        //deser.validateCreators();
         addBeanProps(config, beanDesc, deser);
 
         /* But then let's decorate things a bit
@@ -203,13 +214,16 @@ public class BeanDeserializerFactory
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
 
         // First, let's figure out constructor/factor- based instantation
-        Constructor<?> defaultCtor = beanDesc.findDefaultConstructor();
-        if (defaultCtor != null) {
-            if (fixAccess) {
-                ClassUtil.checkAndFixAccess(defaultCtor);
+        // 23-Jan-2010, tatus: but only for concrete types
+        if (beanDesc.getType().isConcrete()) {
+            Constructor<?> defaultCtor = beanDesc.findDefaultConstructor();
+            if (defaultCtor != null) {
+                if (fixAccess) {
+                    ClassUtil.checkAndFixAccess(defaultCtor);
+                }
+    
+                deser.setDefaultConstructor(defaultCtor);
             }
-
-            deser.setDefaultConstructor(defaultCtor);
         }
 
         CreatorContainer creators =  new CreatorContainer(beanDesc.getBeanClass(), fixAccess);

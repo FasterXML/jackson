@@ -200,11 +200,17 @@ public class StdDeserializationContext
     }
 
     @Override
-	public JsonMappingException instantiationException(Class<?> instClass, Exception e)
+    public JsonMappingException instantiationException(Class<?> instClass, Exception e)
     {
         return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+", problem: "+e.getMessage());
     }
 
+    @Override
+    public JsonMappingException instantiationException(Class<?> instClass, String msg)
+    {
+        return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+", problem: "+msg);
+    }
+    
     /**
      * Method that will construct an exception suitable for throwing when
      * some String values are acceptable, but the one encountered is not
