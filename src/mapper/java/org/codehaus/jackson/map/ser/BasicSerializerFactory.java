@@ -1,12 +1,9 @@
 package org.codehaus.jackson.map.ser;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
@@ -17,8 +14,6 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.map.util.Provider;
-import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.schema.JsonSerializableSchema;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
 
@@ -61,7 +56,7 @@ public class BasicSerializerFactory
         /* String and string-like types (note: date types explicitly
          * not included -- can use either textual or numeric serialization)
          */
-        _concrete.put(String.class.getName(), new StringSerializer());
+        _concrete.put(String.class.getName(), new StdSerializers.StringSerializer());
         final ToStringSerializer sls = ToStringSerializer.instance;
         _concrete.put(StringBuffer.class.getName(), sls);
         _concrete.put(StringBuilder.class.getName(), sls);
@@ -69,38 +64,38 @@ public class BasicSerializerFactory
         _concrete.put(Character.TYPE.getName(), sls);
 
         // Primitives/wrappers for primitives (primitives needed for Beans)
-        _concrete.put(Boolean.TYPE.getName(), new BooleanSerializer(true));
-        _concrete.put(Boolean.class.getName(), new BooleanSerializer(false));
-        final IntegerSerializer intS = new IntegerSerializer();
+        _concrete.put(Boolean.TYPE.getName(), new StdSerializers.BooleanSerializer(true));
+        _concrete.put(Boolean.class.getName(), new StdSerializers.BooleanSerializer(false));
+        final JsonSerializer<?> intS = new StdSerializers.IntegerSerializer();
         _concrete.put(Integer.class.getName(), intS);
         _concrete.put(Integer.TYPE.getName(), intS);
-        _concrete.put(Long.class.getName(), LongSerializer.instance);
-        _concrete.put(Long.TYPE.getName(), LongSerializer.instance);
-        _concrete.put(Byte.class.getName(), IntLikeSerializer.instance);
-        _concrete.put(Byte.TYPE.getName(), IntLikeSerializer.instance);
-        _concrete.put(Short.class.getName(), IntLikeSerializer.instance);
-        _concrete.put(Short.TYPE.getName(), IntLikeSerializer.instance);
+        _concrete.put(Long.class.getName(), StdSerializers.LongSerializer.instance);
+        _concrete.put(Long.TYPE.getName(), StdSerializers.LongSerializer.instance);
+        _concrete.put(Byte.class.getName(), StdSerializers.IntLikeSerializer.instance);
+        _concrete.put(Byte.TYPE.getName(), StdSerializers.IntLikeSerializer.instance);
+        _concrete.put(Short.class.getName(), StdSerializers.IntLikeSerializer.instance);
+        _concrete.put(Short.TYPE.getName(), StdSerializers.IntLikeSerializer.instance);
 
         // Numbers, limited length floating point
-        _concrete.put(Float.class.getName(), FloatSerializer.instance);
-        _concrete.put(Float.TYPE.getName(), FloatSerializer.instance);
-        _concrete.put(Double.class.getName(), DoubleSerializer.instance);
-        _concrete.put(Double.TYPE.getName(), DoubleSerializer.instance);
+        _concrete.put(Float.class.getName(), StdSerializers.FloatSerializer.instance);
+        _concrete.put(Float.TYPE.getName(), StdSerializers.FloatSerializer.instance);
+        _concrete.put(Double.class.getName(), StdSerializers.DoubleSerializer.instance);
+        _concrete.put(Double.TYPE.getName(), StdSerializers.DoubleSerializer.instance);
 
         // Other numbers, more complicated
-        final NumberSerializer ns = new NumberSerializer();
+        final JsonSerializer<?> ns = new StdSerializers.NumberSerializer();
         _concrete.put(BigInteger.class.getName(), ns);
         _concrete.put(BigDecimal.class.getName(), ns);
 
         /* Other discrete non-container types:
          * first, Date/Time zoo:
          */
-        _concrete.put(Calendar.class.getName(), CalendarSerializer.instance);
-        _concrete.put(java.util.Date.class.getName(), UtilDateSerializer.instance);
-        _concrete.put(java.sql.Date.class.getName(), new SqlDateSerializer());
-        _concrete.put(java.sql.Time.class.getName(), new SqlTimeSerializer());
+        _concrete.put(Calendar.class.getName(), StdSerializers.CalendarSerializer.instance);
+        _concrete.put(java.util.Date.class.getName(), StdSerializers.UtilDateSerializer.instance);
+        _concrete.put(java.sql.Date.class.getName(), new StdSerializers.SqlDateSerializer());
+        _concrete.put(java.sql.Time.class.getName(), new StdSerializers.SqlTimeSerializer());
         // note: timestamps are very similar to java.util.Date, thus serialized as such
-        _concrete.put(java.sql.Timestamp.class.getName(), UtilDateSerializer.instance);
+        _concrete.put(java.sql.Timestamp.class.getName(), StdSerializers.UtilDateSerializer.instance);
 
         // Arrays of various types (including common object types)
         _concrete.put(boolean[].class.getName(), new ArraySerializers.BooleanArraySerializer());
@@ -143,7 +138,7 @@ public class BasicSerializerFactory
 
         // And finally, one specific Jackson type
         // (Q: can this ever be sub-classes?)
-        _concrete.put(TokenBuffer.class.getName(), new TokenBufferSerializer());
+        _concrete.put(TokenBuffer.class.getName(), new StdSerializers.TokenBufferSerializer());
     }
 
     static {
@@ -253,12 +248,19 @@ public class BasicSerializerFactory
         return (JsonSerializer<Object>)ser;
     }
 
+    @Override
     public TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config)
     {
         BasicBeanDescription bean = config.introspectClassAnnotations(baseType.getRawClass());
         AnnotatedClass ac = bean.getClassInfo();
-        JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac, baseType);
-        return (b == null) ? null : b.buildTypeSerializer();
+        JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac);
+        /* Ok: if there is no explicit type info handler, we may want to
+         * use a default. If so, config object knows what to use.
+         */
+        if (b == null) {
+            b = config.getDefaultTyper(baseType);
+        }
+        return (b == null) ? null : b.buildTypeSerializer(baseType);
     }
     
     /*
@@ -333,7 +335,7 @@ public class BasicSerializerFactory
          * - java.lang.Number (but is that integral or not?)
          */
         if (JsonSerializable.class.isAssignableFrom(cls)) {
-            return SerializableSerializer.instance;
+            return StdSerializers.SerializableSerializer.instance;
         }
         if (Map.class.isAssignableFrom(cls)) {
             if (EnumMap.class.isAssignableFrom(cls)) {
@@ -351,7 +353,7 @@ public class BasicSerializerFactory
             return buildCollectionSerializer(type, config, beanDesc);
         }
         if (Number.class.isAssignableFrom(cls)) {
-            return NumberSerializer.instance;
+            return StdSerializers.NumberSerializer.instance;
         }
         if (Enum.class.isAssignableFrom(cls)) {
             @SuppressWarnings("unchecked")
@@ -359,10 +361,10 @@ public class BasicSerializerFactory
             return EnumSerializer.construct(enumClass, config.getAnnotationIntrospector());
         }
         if (Calendar.class.isAssignableFrom(cls)) {
-            return CalendarSerializer.instance;
+            return StdSerializers.CalendarSerializer.instance;
         }
         if (java.util.Date.class.isAssignableFrom(cls)) {
-            return UtilDateSerializer.instance;
+            return StdSerializers.UtilDateSerializer.instance;
         }
         for (int i = 0, len = _abstractSerializers.size(); i < len; ++i) {
             SerializerMapping map = _abstractSerializers.get(i);
@@ -445,13 +447,12 @@ public class BasicSerializerFactory
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean staticTyping = usesStaticTyping(config, beanDesc);
         JavaType valueType = type.getContentType();
+        MapSerializer mapSer = MapSerializer.construct(intr.findPropertiesToIgnore(beanDesc.getClassInfo()), type, staticTyping);
         TypeSerializer typeSer = createTypeSerializer(valueType, config);
         if (typeSer != null) {
-            return MapSerializer.constructTyped(intr.findPropertiesToIgnore(beanDesc.getClassInfo()),
-                type, staticTyping, typeSer);
+            mapSer.setValueTypeSerializer(typeSer);
         }
-        return MapSerializer.constructNonTyped(intr.findPropertiesToIgnore(beanDesc.getClassInfo()),
-                type, staticTyping);
+        return mapSer;
     }
 
     protected JsonSerializer<?> buildEnumMapSerializer(JavaType type, SerializationConfig config,
@@ -466,9 +467,12 @@ public class BasicSerializerFactory
             Class<Enum<?>> enumClass = (Class<Enum<?>>) keyType.getRawClass();
             enums = EnumValues.construct(enumClass, config.getAnnotationIntrospector());
         }
-        return ContainerSerializers.enumMapSerializer(valueType,
-                usesStaticTyping(config, beanDesc), createTypeSerializer(valueType, config),
-                enums);
+        ContainerSerializerBase<?> ser = new EnumMapSerializer(valueType, usesStaticTyping(config, beanDesc), enums);
+        TypeSerializer typeSer = createTypeSerializer(valueType, config);
+        if (typeSer != null) {
+            ser.setValueTypeSerializer(typeSer);
+        }
+        return ser;
     }
 
     /**
@@ -479,45 +483,48 @@ public class BasicSerializerFactory
                                                    BasicBeanDescription beanDesc)
     {
         JavaType valueType = type.getContentType();
-        boolean staticTyping = usesStaticTyping(config, beanDesc);
-        TypeSerializer typeSer = createTypeSerializer(valueType, config);
-        return ArraySerializers.objectArraySerializer(valueType, staticTyping, typeSer);
+        return withType(config, valueType,
+                ArraySerializers.objectArraySerializer(valueType, usesStaticTyping(config, beanDesc)));
     }
 
     protected JsonSerializer<?> buildIndexedListSerializer(JavaType type, SerializationConfig config,
             BasicBeanDescription beanDesc)
     {
-        JavaType elemType = type.getContentType();
-        return ContainerSerializers.indexedListSerializer(elemType,
-                usesStaticTyping(config, beanDesc), createTypeSerializer(elemType, config));
+        JavaType valueType = type.getContentType();
+        return withType(config, valueType,
+                ContainerSerializers.indexedListSerializer(valueType, usesStaticTyping(config, beanDesc)));
     }
 
     protected JsonSerializer<?> buildCollectionSerializer(JavaType type, SerializationConfig config,
             BasicBeanDescription beanDesc)
     {
-        JavaType elemType = type.getContentType();
-        return ContainerSerializers.collectionSerializer(elemType,
-                usesStaticTyping(config, beanDesc), createTypeSerializer(elemType, config));
+        JavaType valueType = type.getContentType();
+        return withType(config, valueType, 
+                ContainerSerializers.collectionSerializer(valueType, usesStaticTyping(config, beanDesc)));
     }
 
     protected JsonSerializer<?> buildIteratorSerializer(JavaType type, SerializationConfig config,
             BasicBeanDescription beanDesc)
     {
         // if there's generic type, it'll be the first contained type
-        JavaType elemType = type.containedType(0);
-        TypeSerializer typeSer = (elemType == null) ? null : createTypeSerializer(elemType, config);
-        return ContainerSerializers.iteratorSerializer(elemType,
-                usesStaticTyping(config, beanDesc), typeSer);
+        JavaType valueType = type.containedType(0);
+        if (valueType == null) {
+            valueType = TypeFactory.type(Object.class);
+        }
+        return withType(config, valueType,
+                ContainerSerializers.iteratorSerializer(valueType, usesStaticTyping(config, beanDesc)));
     }
     
     protected JsonSerializer<?> buildIterableSerializer(JavaType type, SerializationConfig config,
             BasicBeanDescription beanDesc)
     {
         // if there's generic type, it'll be the first contained type
-        JavaType elemType = type.containedType(0);
-        TypeSerializer typeSer = (elemType == null) ? null : createTypeSerializer(elemType, config);
-        return ContainerSerializers.iterableSerializer(elemType,
-                usesStaticTyping(config, beanDesc), typeSer);
+        JavaType valueType = type.containedType(0);
+        if (valueType == null) {
+            valueType = TypeFactory.type(Object.class);
+        }
+        return withType(config, valueType,
+                ContainerSerializers.iterableSerializer(valueType, usesStaticTyping(config, beanDesc)));
     }
 
     protected JsonSerializer<?> buildEnumSetSerializer(JavaType type, SerializationConfig config,
@@ -547,6 +554,15 @@ public class BasicSerializerFactory
         }
         return config.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING);
     }
+
+    protected JsonSerializer<?> withType(SerializationConfig config, JavaType valueType, ContainerSerializerBase<?> ser)
+    {
+        TypeSerializer typeSer = createTypeSerializer(valueType, config);
+        if (typeSer != null) {
+            ser.setValueTypeSerializer(typeSer);
+        }
+        return ser;
+    }    
     
     /*
     /////////////////////////////////////////////////////////////////
@@ -569,424 +585,5 @@ public class BasicSerializerFactory
         }
 
         public JsonSerializer<?> getSerializer() { return _serializer; }
-    }
-
-    /*
-    /////////////////////////////////////////////////////////////////
-    // Concrete serializers, non-numeric primitives, Strings, Classes
-    /////////////////////////////////////////////////////////////////
-     */
-
-    public final static class BooleanSerializer
-        extends SerializerBase<Boolean>
-    {
-        /**
-         * Whether type serialized is primitive (boolean) or wrapper
-         * (java.lang.Boolean); if true, former, if false, latter.
-         */
-        final boolean _forPrimitive;
-
-        public BooleanSerializer(boolean forPrimitive)
-        {
-            super(Boolean.class);
-            _forPrimitive = forPrimitive;
-        }
-
-        @Override
-        public void serialize(Boolean value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeBoolean(value.booleanValue());
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
-            /*(ryan) it may not, in fact, be optional, but there's no way
-             * to tell whether we're referencing a boolean or java.lang.Boolean.
-             */
-            /* 27-Jun-2009, tatu: Now we can tell, after passing
-             *   'forPrimitive' flag...
-             */
-            return createSchemaNode("boolean", !_forPrimitive);
-        }
-    }
-
-    /**
-     * This is the special serializer for regular {@link java.lang.String}s.
-     */
-    public final static class StringSerializer
-        extends SerializerBase<String>
-    {
-        public StringSerializer() { super(String.class); }
-
-        @Override
-        public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeString(value);
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            return createSchemaNode("string", true);
-        }
-    }
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Concrete serializers, numerics
-    ////////////////////////////////////////////////////////////
-     */
-
-    public final static class IntegerSerializer
-        extends SerializerBase<Integer>
-    {
-        public IntegerSerializer() { super(Integer.class); }
-
-        @Override
-        public void serialize(Integer value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeNumber(value.intValue());
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
-        {
-            return createSchemaNode("integer", true);
-        }
-    }
-
-    /**
-     * Similar to {@link IntegerSerializer}, but will not cast to Integer:
-     * instead, cast is to {@link java.lang.Number}, and conversion is
-     * by calling {@link java.lang.Number#intValue}.
-     */
-    public final static class IntLikeSerializer
-        extends SerializerBase<Number>
-    {
-        final static IntLikeSerializer instance = new IntLikeSerializer();
-
-        public IntLikeSerializer() { super(Number.class); }
-        
-        @Override
-        public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeNumber(value.intValue());
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
-        {
-            return createSchemaNode("integer", true);
-        }
-    }
-
-    public final static class LongSerializer
-        extends SerializerBase<Long>
-    {
-        final static LongSerializer instance = new LongSerializer();
-
-        public LongSerializer() { super(Long.class); }
-        
-        @Override
-        public void serialize(Long value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeNumber(value.longValue());
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            return createSchemaNode("number", true);
-        }
-    }
-
-    public final static class FloatSerializer
-        extends SerializerBase<Float>
-    {
-        final static FloatSerializer instance = new FloatSerializer();
-
-        public FloatSerializer() { super(Float.class); }
-        
-        @Override
-        public void serialize(Float value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeNumber(value.floatValue());
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            return createSchemaNode("number", true);
-        }
-    }
-
-    public final static class DoubleSerializer
-        extends SerializerBase<Double>
-    {
-        final static DoubleSerializer instance = new DoubleSerializer();
-
-        public DoubleSerializer() { super(Double.class); }
-
-        @Override
-        public void serialize(Double value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeNumber(value.doubleValue());
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            return createSchemaNode("number", true);
-        }
-    }
-
-    /**
-     * As a fallback, we may need to use this serializer for other
-     * types of {@link Number}s (custom types).
-     */
-    public final static class NumberSerializer
-        extends SerializerBase<Number>
-    {
-        public final static NumberSerializer instance = new NumberSerializer();
-
-        public NumberSerializer() { super(Number.class); }
-
-        @Override
-        public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            /* These shouldn't match (as there are more specific ones),
-             * but just to be sure:
-             */
-            if (value instanceof Double) {
-                jgen.writeNumber(((Double) value).doubleValue());
-            } else if (value instanceof Float) {
-                jgen.writeNumber(((Float) value).floatValue());
-            } else {
-                // We'll have to use fallback "untyped" number write method
-                jgen.writeNumber(value.toString());
-            }
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            return createSchemaNode("number", true);
-        }
-    }
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Serializers for JDK date datatypes
-    ////////////////////////////////////////////////////////////
-     */
-
-    /**
-     * For time values we should use timestamp, since that is about the only
-     * thing that can be reliably converted between date-based objects
-     * and json.
-     */
-    public final static class CalendarSerializer
-        extends SerializerBase<Calendar>
-    {
-        public final static CalendarSerializer instance = new CalendarSerializer();
-
-        public CalendarSerializer() { super(Calendar.class); }
-        
-        @Override
-        public void serialize(Calendar value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            provider.defaultSerializeDateValue(value.getTimeInMillis(), jgen);
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            //TODO: (ryan) add a format for the date in the schema?
-            return createSchemaNode(provider.isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS)
-                    ? "number" : "string", true);
-        }
-    }
-
-    /**
-     * For efficiency, we will serialize Dates as longs, instead of
-     * potentially more readable Strings.
-     */
-    public final static class UtilDateSerializer
-        extends SerializerBase<java.util.Date>
-    {
-        public final static UtilDateSerializer instance = new UtilDateSerializer();
-
-        public UtilDateSerializer() { super(java.util.Date.class); }
-
-        @Override
-        public void serialize(java.util.Date value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            provider.defaultSerializeDateValue(value, jgen);
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
-        {
-            //todo: (ryan) add a format for the date in the schema?
-            return createSchemaNode(provider.isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS)
-                    ? "number" : "string", true);
-        }
-    }
-
-    /**
-     * Compared to regular {@link UtilDateSerializer}, we do use String
-     * representation here. Why? Basically to truncate of time part, since
-     * that should not be used by plain SQL date.
-     */
-    public final static class SqlDateSerializer
-        extends SerializerBase<java.sql.Date>
-    {
-        public SqlDateSerializer() { super(java.sql.Date.class); }
-
-        @Override
-        public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeString(value.toString());
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            //todo: (ryan) add a format for the date in the schema?
-            return createSchemaNode("string", true);
-        }
-    }
-
-    public final static class SqlTimeSerializer
-        extends SerializerBase<java.sql.Time>
-    {
-        public SqlTimeSerializer() { super(java.sql.Time.class); }
-
-        @Override
-        public void serialize(java.sql.Time value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeString(value.toString());
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            return createSchemaNode("string", true);
-        }
-    }
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Other serializers
-    ////////////////////////////////////////////////////////////
-     */
-
-    /**
-     * Generic handler for types that implement {@link JsonSerializable}.
-     *<p>
-     * Note: given that this is used for anything that implements
-     * interface, can not be checked for direct class equivalence.
-     */
-    public final static class SerializableSerializer
-        extends SerializerBase<JsonSerializable>
-    {
-        final static SerializableSerializer instance = new SerializableSerializer();
-
-        private SerializableSerializer() { super(JsonSerializable.class); }
-
-        @Override
-        public void serialize(JsonSerializable value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            value.serialize(jgen, provider);
-        }
-        
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
-            ObjectNode objectNode = createObjectNode();
-            String schemaType = "any";
-            String objectProperties = null;
-            String itemDefinition = null;
-            if (typeHint != null) {
-                Class<?> rawClass = TypeFactory.type(typeHint).getRawClass();
-                if (rawClass.isAnnotationPresent(JsonSerializableSchema.class)) {
-                    JsonSerializableSchema schemaInfo = rawClass.getAnnotation(JsonSerializableSchema.class);
-                    schemaType = schemaInfo.schemaType();
-                    if (!"##irrelevant".equals(schemaInfo.schemaObjectPropertiesDefinition())) {
-                        objectProperties = schemaInfo.schemaObjectPropertiesDefinition();
-                    }
-                    if (!"##irrelevant".equals(schemaInfo.schemaItemDefinition())) {
-                        itemDefinition = schemaInfo.schemaItemDefinition();
-                    }
-                }
-            }
-            objectNode.put("type", schemaType);
-            if (objectProperties != null) {
-                try {
-                    objectNode.put("properties", new ObjectMapper().readValue(objectProperties, JsonNode.class));
-                } catch (IOException e) {
-                    throw new IllegalStateException(e);
-                }
-            }
-            if (itemDefinition != null) {
-                try {
-                    objectNode.put("items", new ObjectMapper().readValue(itemDefinition, JsonNode.class));
-                } catch (IOException e) {
-                    throw new IllegalStateException(e);
-                }
-            }
-            objectNode.put("optional", true);
-            return objectNode;
-        }
-    }
-
-    /**
-     * We also want to directly support serialization of {@link TokenBuffer};
-     * and since it is part of core package, it can not implement
-     * {@link JsonSerializable} (which is only included in the mapper
-     * package)
-     *
-     * @since 1.5
-     */
-    public final static class TokenBufferSerializer
-        extends SerializerBase<TokenBuffer>
-    {
-        public TokenBufferSerializer() { super(TokenBuffer.class); }
-
-        @Override
-        public void serialize(TokenBuffer value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            value.serialize(jgen);
-        }
-
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
-            /* 01-Jan-2010, tatu: Not 100% sure what we should say here:
-             *   type is basically not known. This seems closest
-             *   approximation
-             */
-            return createSchemaNode("any", true);
-        }
     }
 }

@@ -7,7 +7,6 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
-import org.codehaus.jackson.type.JavaType;
 
 /**
  * Abstract class that defines API used for introspecting annotation-based
@@ -137,15 +136,13 @@ public abstract class AnnotationIntrospector
      * relevant annotations (not including ones checked with a call to
      * {@link #findAndAddSubtypes}
      * 
-     * @param typeClass Base type used for type resolution; often class that
-     *   has annotations, but not always
-     * @param ac Annotated entity (class, field/method) to check for annotations
+     * @param a Annotated entity (class, field/method) to check for annotations
      * 
      * @return Type resolver builder for given type, if one found; null if none
      * 
      * @since 1.5
      */
-    public abstract JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType);
+    public abstract JsonTypeResolverBuilder<?> findTypeResolver(Annotated a);
 
     /**
      * Method for locating annotation-specified subtypes of given class, and
@@ -657,11 +654,11 @@ public abstract class AnnotationIntrospector
         }        
 
         @Override
-        public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType)
+        public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a)
         {
-            JsonTypeResolverBuilder<?> b = _primary.findTypeResolver(a, baseType);
+            JsonTypeResolverBuilder<?> b = _primary.findTypeResolver(a);
             if (b == null) {
-                b = _secondary.findTypeResolver(a, baseType);
+                b = _secondary.findTypeResolver(a);
             }
             return b;
         }

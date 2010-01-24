@@ -85,13 +85,16 @@ public abstract class DeserializerFactory
      * if one is needed. If not needed (no polymorphic handling configured for type),
      * should return null.
      *
-     * @param baseType Declared type to use as the base type for type information serializer
+     * @param baseType Declared base type of the value to deserializer (actual
+     *    deserializer type will be this type or its subtype)
+     * @param deser Deserializer used for base type deserialization 
      * 
      * @return Type deserializer to use for given base type, if one is needed; null if not.
      * 
      * @since 1.5
      */
-    public TypeDeserializer createTypeDeserializer(DeserializationConfig config, JavaType baseType) {
+    public TypeDeserializer createTypeDeserializer(DeserializationConfig config, JavaType baseType)
+    {
         // Default implementation returns null for backwards compatibility reasons
         return null;
     }

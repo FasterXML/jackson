@@ -56,7 +56,8 @@ public abstract class SerializerFactory
      * 
      * @since 1.5
      */
-    public TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config) {
+    public TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config)
+    {
         // Default implementation returns null for backwards compatibility reasons.
         return null;
     }

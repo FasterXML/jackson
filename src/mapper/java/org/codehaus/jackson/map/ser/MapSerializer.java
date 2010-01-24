@@ -19,11 +19,9 @@ import org.codehaus.jackson.type.JavaType;
  * entries with specified names.
  */
 public class MapSerializer
-    extends SerializerBase<Map<?,?>>
+    extends ContainerSerializerBase<Map<?,?>>
     implements ResolvableSerializer
 {
-    private final static JavaType sTypeObject = TypeFactory.type(Object.class);
-
     /**
      * Default instance that can be used for Map types that have
      * no specific custom annotations.
@@ -39,7 +37,7 @@ public class MapSerializer
      * Whether static types should be used for serialization or not
      * (if not, dynamic runtime type is used)
      */
-    protected final boolean _staticTyping;
+    protected boolean _staticTyping;
 
     protected final JavaType _valueType;
 
@@ -50,11 +48,6 @@ public class MapSerializer
      */
     protected JsonSerializer<Object> _valueSerializer;
 
-    /**
-     * Type serializer used for values, if any.
-     */
-    protected final TypeSerializer _valueTypeSerializer;
-    
     protected MapSerializer() {
         this(null, null, false, null);
     }
@@ -71,15 +64,13 @@ public class MapSerializer
                 _ignoredEntries.add(prop);
             }
         }
-        _valueType = (mapType == null) ? sTypeObject : mapType.getContentType();
-        _valueTypeSerializer = vts;
+        _valueType = (mapType == null) ? TypeFactory.type(Object.class) : mapType.getContentType();
         // If value type is final, it's same as forcing static value typing:
         _staticTyping = staticTyping || (_valueType != null && _valueType.isFinal());
     }
 
     /**
-     * Factory method used to construct serializer for Maps where value
-     * entries need to be serialized with type information.
+     * Factory method used to construct Map serializers.
      * 
      * @param ignoredEntries Array of entry names that are to be filtered on
      *    serialization; null if none
@@ -87,23 +78,7 @@ public class MapSerializer
      *    Map (which includes its contents)
      * @param mapType Declared type information (needed for static typing)
      */
-    public static MapSerializer constructTyped(String[] ignoredEntries, JavaType mapType,
-            boolean staticTyping, TypeSerializer typeSer)
-    {
-        return new MapSerializer(ignoredEntries, mapType, staticTyping, typeSer);
-    }
-
-    /**
-     * Factory method used to construct serializer for Maps where value
-     * entries can be serialized without type information.
-     * 
-     * @param ignoredEntries Array of entry names that are to be filtered on
-     *    serialization; null if none
-     * @param useStaticTyping Whether static typing should be used for the
-     *    Map (which includes its contents)
-     * @param mapType Declared type information (needed for static typing)
-     */
-    public static MapSerializer constructNonTyped(String[] ignoredEntries, JavaType mapType,
+    public static MapSerializer construct(String[] ignoredEntries, JavaType mapType,
             boolean staticTyping)
     {
         // for plain vanilla case can return singleton

@@ -39,7 +39,7 @@ public class StdDeserializationContext
      * @since 1.5
      */
     protected final DeserializerProvider _deserProvider;
-    
+
     // // // Helper object recycling
 
     protected ArrayBuilders _arrayBuilders;

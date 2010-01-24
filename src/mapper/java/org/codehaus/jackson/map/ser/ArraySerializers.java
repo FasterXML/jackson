@@ -29,10 +29,9 @@ public final class ArraySerializers
      ****************************************************************
      */
 
-    public static JsonSerializer<?> objectArraySerializer(JavaType elementType, boolean staticTyping,
-            TypeSerializer ets)
+    public static ContainerSerializerBase<?> objectArraySerializer(JavaType elementType, boolean staticTyping)
     {
-        return new ObjectArraySerializer(elementType, staticTyping, ets);
+        return new ObjectArraySerializer(elementType, staticTyping);
     }
 
     /*
@@ -46,7 +45,7 @@ public final class ArraySerializers
      * arrays.
      */
      private abstract static class AsArraySerializer<T>
-        extends SerializerBase<T>
+        extends ContainerSerializerBase<T>
     {
         protected AsArraySerializer(Class<T> cls) {
             super(cls);
@@ -88,16 +87,11 @@ public final class ArraySerializers
         extends AsArraySerializer<Object[]>
         implements ResolvableSerializer
     {
-        public final static ObjectArraySerializer instance = new ObjectArraySerializer();
+        public final static ObjectArraySerializer instance = new ObjectArraySerializer(null, false);
 
         protected final boolean _staticTyping;
 
         protected final JavaType _elementType;
-        
-        /**
-         * Type serializer used for values, if any.
-         */
-        protected final TypeSerializer _elementTypeSerializer;
 
         /**
          * Value serializer to use, if it can be statically determined
@@ -105,18 +99,12 @@ public final class ArraySerializers
          * @since 1.5
          */
         protected JsonSerializer<Object> _elementSerializer;
-        
-        public ObjectArraySerializer() {
-            this(null, false, null);
-        }
 
-        public ObjectArraySerializer(JavaType elemType, boolean staticTyping,
-            TypeSerializer ets)
+        public ObjectArraySerializer(JavaType elemType, boolean staticTyping)
         {
             super(Object[].class);
             _elementType = elemType;
             _staticTyping = staticTyping;
-            _elementTypeSerializer = ets;
         }
         
         @Override
@@ -127,7 +115,7 @@ public final class ArraySerializers
                 serializeContentsUsing(value, jgen, provider, _elementSerializer);
                 return;
             }
-            if (_elementTypeSerializer != null) {
+            if (_valueTypeSerializer != null) {
                 serializeTypedContents(value, jgen, provider);
                 return;
             }
@@ -182,7 +170,7 @@ public final class ArraySerializers
             throws IOException, JsonGenerationException
         {
             final int len = value.length;
-            final TypeSerializer typeSer = _elementTypeSerializer;
+            final TypeSerializer typeSer = _valueTypeSerializer;
             for (int i = 0; i < len; ++i) {
                 Object elem = value[i];
                 if (elem == null) {
@@ -222,7 +210,7 @@ public final class ArraySerializers
             if (len == 0) {
                 return;
             }
-            final TypeSerializer typeSer = _elementTypeSerializer;
+            final TypeSerializer typeSer = _valueTypeSerializer;
             JsonSerializer<Object> prevSerializer = null;
             Class<?> prevClass = null;
             int i = 0;

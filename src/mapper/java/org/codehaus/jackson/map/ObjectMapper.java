@@ -6,12 +6,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.SegmentedStringWriter;
+import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
+import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
@@ -47,7 +50,80 @@ import org.codehaus.jackson.util.TokenBuffer;
 public class ObjectMapper
     extends ObjectCodec
 {
-    final static JavaType JSON_NODE_TYPE = TypeFactory.type(JsonNode.class);
+    /*
+    /************************************************* 
+    /* Helper classes, enums
+    /************************************************* 
+     */
+
+    /**
+     * Enumeration used with {@link ObjectMapper#enableDefaultTyping()}
+     * to specify what kinda of types (classes) default typing should
+     * be used for. It will only be used if no explicit type information
+     * is found, but this enumeration further limits subset of those
+     * types.
+     * 
+     * @since 1.5
+     */
+    public enum DefaultTyping {
+        /**
+         * This value means that only properties that have
+         * {@link java.lang.Object} as declared type (including
+         * generic types without explicit type) will use default
+         * typing.
+         */
+        JAVA_LANG_OBJECT,
+        
+        /**
+         * Value that means that default typing will be used for
+         * properties with declared type of {@link java.lang.Object}
+         * or an abstract type (abstract class or interface).
+         */
+        OBJECT_AND_NON_CONCRETE
+    }
+
+    /**
+     * Customized {@link JsonTypeResolverBuilder} that provides
+     * resolver builders based on its configuration. It is used
+     * when default typing is enabled (see
+     * {@link ObjectMapper#enableDefaultTyping()} for details).
+     */
+    public static class DefaultTypeResolverBuilder
+        extends StdTypeResolverBuilder
+    {
+        /**
+         * Definition of what types is this default typer valid for.
+         */
+        protected final DefaultTyping _appliesFor;
+
+        public DefaultTypeResolverBuilder(DefaultTyping t) {
+            _appliesFor = t;
+        }
+        
+        public TypeDeserializer buildTypeDeserializer(JavaType baseType) {
+            return useForType(baseType) ? super.buildTypeDeserializer(baseType) : null;
+        }
+
+        public TypeSerializer buildTypeSerializer(JavaType baseType) {
+            return useForType(baseType) ? super.buildTypeSerializer(baseType) : null;            
+        }
+
+        /**
+         * Method called to check if the default type handler should be
+         * used for given type.
+         */
+        public boolean useForType(JavaType t) {
+            return true;
+        }
+    }
+    
+    /*
+    /************************************************* 
+    /* Internal constants, singletons
+    /************************************************* 
+     */
+    
+    private final static JavaType JSON_NODE_TYPE = TypeFactory.type(JsonNode.class);
 
     /* !!! 03-Apr-2009, tatu: Should try to avoid direct reference... but not
      *   sure what'd be simple and elegant way. So until then:
@@ -69,6 +145,18 @@ public class ObjectMapper
      */
     protected final JsonFactory _jsonFactory;
 
+    /**
+     * Object that defines how to add type information for types that do not
+     * have explicit type information settings (which are usually
+     * indicated by {@link org.codehaus.jackson.map.annotate.JsonTypeInfo})
+     * If set to null, no type information will be added unless annotations
+     * are used; if set to non-null, resolver builder is used to check
+     * which type serializers and deserializers are to be used (if any)
+     * 
+     * @since 1.5
+     */
+    protected JsonTypeResolverBuilder<?> _defaultTyper;
+    
     /*
     ////////////////////////////////////////////////////
     // Configuration settings, serialization
@@ -231,8 +319,8 @@ public class ObjectMapper
          *    to create actual linking.
          */
         _jsonFactory = (jf == null) ? new MappingJsonFactory(this) : jf;
-        _serializationConfig = (sconfig == null) ? new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR) : sconfig;
-        _deserializationConfig = (dconfig == null) ? new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR) : dconfig;
+        _serializationConfig = (sconfig == null) ? new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, null) : sconfig;
+        _deserializationConfig = (dconfig == null) ? new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, null) : dconfig;
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -458,6 +546,50 @@ public class ObjectMapper
         return _nodeFactory;
     }
 
+    /*
+    ////////////////////////////////////////////////////
+    // Type information configuration (1.5+)
+    ////////////////////////////////////////////////////
+     */
+
+    /**
+     * Convenience method that is equivalant to calling
+     *<pre>
+     *  enableObjectTyping(DefaultTyping.OBJECT_AND_NON_CONCRETE);
+     *</pre>
+     */
+    public ObjectMapper enableDefaultTyping() {
+        return enableDefaultTyping(DefaultTyping.OBJECT_AND_NON_CONCRETE);
+    }
+
+    /**
+     * Convenience method that is equivalant to calling
+     *<pre>
+     *  enableObjectTyping(dti, JsonTypeInfo.As.WRAPPER_ARRAY);
+     *</pre>
+     */
+    public ObjectMapper enableDefaultTyping(DefaultTyping dti) {
+        return enableDefaultTyping(dti, JsonTypeInfo.As.WRAPPER_ARRAY);
+    }
+
+    public ObjectMapper enableDefaultTyping(DefaultTyping dti, JsonTypeInfo.As includeAs)
+    {
+        JsonTypeResolverBuilder<?> typer = new DefaultTypeResolverBuilder(dti);
+        // we'll always use full class name, when using defaulting
+        typer = typer.init(JsonTypeInfo.Id.CLASS);
+        typer = typer.inclusion(includeAs);
+        return setDefaltTyping(typer);
+    }
+    
+    public ObjectMapper disableDefaultTyping() {
+        return setDefaltTyping(null);
+    }
+
+    public ObjectMapper setDefaltTyping(JsonTypeResolverBuilder<?> typer) {
+        _defaultTyper = typer;
+        return this;
+    }
+    
     /*
     ////////////////////////////////////////////////////
     // Public API (from ObjectCodec): deserialization

@@ -11,11 +11,11 @@ import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.annotate.JsonTypeResolver;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.util.ClassUtil;
-import org.codehaus.jackson.type.JavaType;
 
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
@@ -122,31 +122,27 @@ public class JacksonAnnotationIntrospector
 
     
     @Override
-    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType)
+    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a)
     {
-        JsonTypeInfo info = a.getAnnotation(JsonTypeInfo.class);
-        /* if no type info designation, or explicitly disabled (by override mix-in, maybe),
-         * nothing to hand out
-         */
-        if (info == null || info.use() == JsonTypeInfo.Id.NONE) {
-            return null;
-        }
-        // Custom or standard one?
+        // First: maybe we have explicit type resolver?
         JsonTypeResolverBuilder<?> b;
-        
-        Class<? extends JsonTypeResolverBuilder<?>> bc = info.typeResolver();
-        if (bc == JsonTypeResolverBuilder.NONE.class) { // use standard
-            b = new StdTypeResolverBuilder();
-        } else {
+        JsonTypeInfo info = a.getAnnotation(JsonTypeInfo.class);
+        JsonTypeResolver resAnn = a.getAnnotation(JsonTypeResolver.class);
+        if (resAnn != null && resAnn.value() != JsonTypeResolverBuilder.NONE.class) {
             /* let's not try to force access override (would need to pass
              * settings through if we did, since that's not doable on some
              * platforms)
              */
-            b = ClassUtil.createInstance(bc, false);
+            b = ClassUtil.createInstance(resAnn.value(), false);
+        } else { // if not, use standard one, if indicated by annotations
+            if (info == null || info.use() == JsonTypeInfo.Id.NONE) {
+                return null;
+            }
+            b = new StdTypeResolverBuilder();
         }
-        b.init(baseType, info.use());
-        b.inclusion(info.include());
-        b.typeProperty(info.property());
+        b = b.init(info.use());
+        b = b.inclusion(info.include());
+        b = b.typeProperty(info.property());
         return b;
     }
 

@@ -163,7 +163,7 @@ public class TestAnnotationJsonSerialize
         m.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
         ValueList list = new ValueList();
         list.add(new ValueClass());
-        assertEquals("[{\"x\":3}]", serializeAsString(m, list));
+        assertEquals("[{\"x\":3}]", m.writeValueAsString(list));
     }
 
     public void testStaticTypingWithLinkedList() throws Exception

@@ -7,8 +7,10 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion; // for javadocs
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.StdDateFormat;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Object that contains baseline configuration for serialization
@@ -314,6 +316,14 @@ public class SerializationConfig
      */
     protected boolean _mixInAnnotationsShared;
 
+    /**
+     * Type information handler used for "untyped" values (ones declared
+     * to have type <code>Object.class</code>)
+     * 
+     * @since 1.5
+     */
+    protected final JsonTypeResolverBuilder<?> _typer;
+    
     /*
     ///////////////////////////////////////////////////////////
     // Life-cycle
@@ -321,10 +331,12 @@ public class SerializationConfig
      */
 
     public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr,
-                               AnnotationIntrospector annIntr)
+                               AnnotationIntrospector annIntr,
+                               JsonTypeResolverBuilder<?> typer)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
+        _typer = typer;
     }
 
     protected SerializationConfig(SerializationConfig src,
@@ -337,6 +349,7 @@ public class SerializationConfig
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
         _mixInAnnotations = mixins;
+        _typer = src._typer;
     }
 
     /*
@@ -536,6 +549,25 @@ public class SerializationConfig
         return (T) _classIntrospector.forClassAnnotations(this, cls, this);
     }
 
+    /**
+     * Method called to locate a type info handler for types that do not have
+     * one explicitly declared via annotations (or other configuration).
+     * If such default handler is configured, it is returned; otherwise
+     * null is returned.
+     * 
+     * @since 1.5
+     */
+    public JsonTypeResolverBuilder<?> getDefaultTyper(JavaType baseType)
+    {
+        /* 23-Jan-2010, tatus: Initially we will only every apply this to
+         *   plain old Object.class -- could expand in future
+         */
+        if (baseType.getRawClass() == Object.class) {
+            return _typer;
+        }
+        return null;
+    }
+    
     /*
     ////////////////////////////////////////////////////
     // Configuration: on/off features

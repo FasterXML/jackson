@@ -21,7 +21,6 @@ import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
-import org.codehaus.jackson.type.JavaType;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -224,7 +223,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType) {
+    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a) {
         // @TODO
         return null;
     }

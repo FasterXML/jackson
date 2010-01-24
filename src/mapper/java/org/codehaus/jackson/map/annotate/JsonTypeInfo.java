@@ -6,11 +6,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.codehaus.jackson.annotate.JacksonAnnotation;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
 
 /**
  * Annotation used for configuring details of if and how type information is
- * used with JSON serialization and deserialization.
+ * used with JSON serialization and deserialization, to preserve information
+ * about actual class of Object instances. This is necessarily for polymorphic
+ * types, and may also be needed to link abstract declared types and matching
+ * concrete implementation.
  *<p>
  * Some examples of typical annotations:
  *<pre>
@@ -20,11 +22,11 @@ import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
  *  // Include logical type name (defined in impl classes) as wrapper; 2 annotations
  *  \@JsonTypeInfo(use=Id.NAME, include=As.WRAPPER_OBJECT)
  *  \@JsonSubTypes({com.myemp.Impl1.class, com.myempl.Impl2.class})
- *  
- *  // Or fully customized handling
- *  \@JsonTypeInfo(use=Id.CUSTOM, typeResolver=com.myempl.handlers.MyTypeResolverBuilder.class)
  *</pre>
+ * Alternatively you can also define fully customized type handling by using
+ * {@link org.codehaus.jackson.map.annotate.JsonTypeResolver} annotation.
  * 
+ * @see org.codehaus.jackson.map.annotate.JsonTypeResolver
  * @since 1.5
  * 
  * @author tatu
@@ -168,6 +170,4 @@ public @interface JsonTypeInfo
      * type metadata type ({@link #use}) used.
      */
     public String property() default "";
-
-    public Class<? extends JsonTypeResolverBuilder<?>> typeResolver() default JsonTypeResolverBuilder.NONE.class;
 }

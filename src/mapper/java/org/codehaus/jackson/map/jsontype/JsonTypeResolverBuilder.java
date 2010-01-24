@@ -38,14 +38,20 @@ public interface JsonTypeResolverBuilder<T extends JsonTypeResolverBuilder<T>>
     /**
      * Method for building type serializer based on current configuration
      * of this builder.
+     * 
+     * @param baseType Base type that constructed resolver will
+     *    handle; super type of all types it will be used for.
      */
-    public TypeSerializer buildTypeSerializer();
+    public TypeSerializer buildTypeSerializer(JavaType baseType);
 
     /**
      * Method for building type deserializer based on current configuration
      * of this builder.
+     * 
+     * @param baseType Base type that constructed resolver will
+     *    handle; super type of all types it will be used for.
      */
-    public TypeDeserializer buildTypeDeserializer();
+    public TypeDeserializer buildTypeDeserializer(JavaType baseType);
     
     /*
      ***********************************************************
@@ -58,14 +64,12 @@ public interface JsonTypeResolverBuilder<T extends JsonTypeResolverBuilder<T>>
      * Initialization method that is called right after constructing
      * the builder instance.
      *
-     * @param baseType Base type that constructed resolver will
-     *    handle; super type of all types it will be used for.
      * @param idType Which type metadata is used
      * 
      * @return Resulting builder instance (usually this builder,
      *   but not necessarily)
      */
-    public T init(JavaType baseType, JsonTypeInfo.Id idType);
+    public T init(JsonTypeInfo.Id idType);
     
     /*
     ***********************************************************

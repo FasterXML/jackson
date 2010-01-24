@@ -10,8 +10,6 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.map.util.EnumValues;
-import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.schema.SchemaAware;
@@ -35,39 +33,29 @@ public final class ContainerSerializers
      ****************************************************************
      */
     
-    public static JsonSerializer<?> indexedListSerializer(JavaType elemType, boolean staticTyping,
-            TypeSerializer typeSer)
+    public static ContainerSerializerBase<?> indexedListSerializer(JavaType elemType, boolean staticTyping)
     {
-        return new IndexedListSerializer(elemType, staticTyping, typeSer);
+        return new IndexedListSerializer(elemType, staticTyping);
     }
 
-    public static JsonSerializer<?> collectionSerializer(JavaType elemType, boolean staticTyping,
-            TypeSerializer typeSer)
+    public static ContainerSerializerBase<?> collectionSerializer(JavaType elemType, boolean staticTyping)
     {
-        return new CollectionSerializer(elemType, staticTyping, typeSer);
+        return new CollectionSerializer(elemType, staticTyping);
     }
 
-    public static JsonSerializer<?> iteratorSerializer(JavaType elemType, boolean staticTyping,
-            TypeSerializer typeSer)
+    public static ContainerSerializerBase<?> iteratorSerializer(JavaType elemType, boolean staticTyping)
     {
-        return new IteratorSerializer(elemType, staticTyping, typeSer);
+        return new IteratorSerializer(elemType, staticTyping);
     }
 
-    public static JsonSerializer<?> iterableSerializer(JavaType elemType, boolean staticTyping,
-            TypeSerializer typeSer)
+    public static ContainerSerializerBase<?> iterableSerializer(JavaType elemType, boolean staticTyping)
     {
-        return new IterableSerializer(elemType, staticTyping, typeSer);
+        return new IterableSerializer(elemType, staticTyping);
     }
 
     public static JsonSerializer<?> enumSetSerializer(JavaType enumType)
     {
         return new EnumSetSerializer(enumType);
-    }
-
-    public static JsonSerializer<?> enumMapSerializer(JavaType valueType, boolean staticTyping,
-            TypeSerializer valueTypeSer, EnumValues keyEnums)
-    {
-        return new EnumMapSerializer(valueType, staticTyping, valueTypeSer, keyEnums);
     }
     
     /*
@@ -81,19 +69,12 @@ public final class ContainerSerializers
      * arrays.
      */
      private abstract static class AsArraySerializer<T>
-        extends SerializerBase<T>
+        extends ContainerSerializerBase<T>
         implements ResolvableSerializer
     {
         protected final boolean _staticTyping;
 
         protected final JavaType _elementType;
-        
-        /**
-         * Type serializer used for values, if any.
-         * 
-         * @since 1.5
-         */
-        protected final TypeSerializer _elementTypeSerializer;
 
         /**
          * Value serializer to use, if it can be statically determined
@@ -102,15 +83,13 @@ public final class ContainerSerializers
          */
         protected JsonSerializer<Object> _elementSerializer;
 
-        protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping,
-                TypeSerializer typeSer)
+        protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping)
         {
             // typing with generics is messy... have to resort to this:
             super(cls, false);
             _elementType = et;
             // static if explicitly requested, or we got final type
             _staticTyping = staticTyping || (et != null && et.isFinal());
-            _elementTypeSerializer = typeSer;
         }
 
         @Override
@@ -199,11 +178,11 @@ public final class ContainerSerializers
     public final static class IndexedListSerializer
         extends AsArraySerializer<List<?>>
     {
-        public final static IndexedListSerializer instance = new IndexedListSerializer(null, false, null);
+        public final static IndexedListSerializer instance = new IndexedListSerializer(null, false);
 
-        public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer typeSer)
+        public IndexedListSerializer(JavaType elemType, boolean staticTyping)
         {
-            super(List.class, elemType, staticTyping, typeSer);
+            super(List.class, elemType, staticTyping);
         }
         
         @Override
@@ -214,7 +193,7 @@ public final class ContainerSerializers
                 serializeContentsUsing(value, jgen, provider, _elementSerializer);
                 return;
             }
-            if (_elementTypeSerializer != null) {
+            if (_valueTypeSerializer != null) {
                 serializeTypedContents(value, jgen, provider);
                 return;
             }
@@ -254,7 +233,7 @@ public final class ContainerSerializers
         {
             final int len = value.size();
             if (len > 0) {
-                final TypeSerializer typeSer = _elementTypeSerializer;
+                final TypeSerializer typeSer = _valueTypeSerializer;
                 for (int i = 0; i < len; ++i) {
                     Object elem = value.get(i);
                     try {
@@ -280,7 +259,7 @@ public final class ContainerSerializers
             if (len > 0) {
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
-                final TypeSerializer typeSer = _elementTypeSerializer;
+                final TypeSerializer typeSer = _valueTypeSerializer;
                 for (int i = 0; i < len; ++i) {
                     Object elem = value.get(i);
                     try {
@@ -317,11 +296,11 @@ public final class ContainerSerializers
     public final static class CollectionSerializer
         extends AsArraySerializer<Collection<?>>
     {
-        public final static CollectionSerializer instance = new CollectionSerializer(null, false, null);
+        public final static CollectionSerializer instance = new CollectionSerializer(null, false);
 
-        public CollectionSerializer(JavaType elemType, boolean staticTyping, TypeSerializer typeSer)
+        public CollectionSerializer(JavaType elemType, boolean staticTyping)
         {
-            super(Collection.class, elemType, staticTyping, typeSer);
+            super(Collection.class, elemType, staticTyping);
         }
         
         @Override
@@ -336,7 +315,7 @@ public final class ContainerSerializers
             if (it.hasNext()) {
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
-                TypeSerializer typeSer = _elementTypeSerializer;
+                TypeSerializer typeSer = _valueTypeSerializer;
     
                 int i = 0;
                 do {
@@ -376,7 +355,7 @@ public final class ContainerSerializers
         {
             Iterator<?> it = value.iterator();
             if (it.hasNext()) {
-                TypeSerializer typeSer = _elementTypeSerializer;
+                TypeSerializer typeSer = _valueTypeSerializer;
                 int i = 0;
                 do {
                     Object elem = it.next();
@@ -403,13 +382,11 @@ public final class ContainerSerializers
     public final static class IteratorSerializer
         extends AsArraySerializer<Iterator<?>>
     {
-        public final static IteratorSerializer instance = new IteratorSerializer();
+        public final static IteratorSerializer instance = new IteratorSerializer(null, false);
 
-        public IteratorSerializer() { this(null, false, null); }
-
-        public IteratorSerializer(JavaType elemType, boolean staticTyping, TypeSerializer typeSer)
+        public IteratorSerializer(JavaType elemType, boolean staticTyping)
         {
-            super(Iterator.class, elemType, staticTyping, typeSer);
+            super(Iterator.class, elemType, staticTyping);
         }
         
         @Override
@@ -444,11 +421,11 @@ public final class ContainerSerializers
     public final static class IterableSerializer
         extends AsArraySerializer<Iterable<?>>
     {
-        public final static IterableSerializer instance = new IterableSerializer(null, false, null);
+        public final static IterableSerializer instance = new IterableSerializer(null, false);
 
-        public IterableSerializer(JavaType elemType, boolean staticTyping, TypeSerializer typeSer)
+        public IterableSerializer(JavaType elemType, boolean staticTyping)
         {
-            super(Iterable.class, elemType, staticTyping, typeSer);
+            super(Iterable.class, elemType, staticTyping);
         }
         
         @Override
@@ -487,7 +464,7 @@ public final class ContainerSerializers
     {
         public EnumSetSerializer(JavaType elemType)
         {
-            super(EnumSet.class, elemType, true, null);
+            super(EnumSet.class, elemType, true);
         }
 
         @Override
@@ -508,199 +485,6 @@ public final class ContainerSerializers
                 }
                 enumSer.serialize(en, jgen, provider);
             }
-        }
-    }
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Concrete serializers, Maps
-    ////////////////////////////////////////////////////////////
-     */
-
-    /**
-     * Deprecated map serializer; starting with version 1.4, there
-     * is a non-inner class version.
-     * 
-     * @deprecated Since 1.4, please use the non-inner class
-     *    {@link org.codehaus.jackson.map.ser.MapSerializer} instead.
-s     */
-    @Deprecated
-    public final static class MapSerializer
-        extends org.codehaus.jackson.map.ser.MapSerializer { }
-
-    /**
-     * Specialized serializer for {@link EnumMap}s. Somewhat tricky to
-     * implement because actual Enum value type may not be available;
-     * and if not, it can only be gotten from actual instance.
-     */
-    public final static class EnumMapSerializer
-        extends SerializerBase<EnumMap<? extends Enum<?>, ?>>
-        implements ResolvableSerializer
-    {
-        protected final boolean _staticTyping;
-
-        /**
-         * If we know enumeration used as key, this will contain
-         * value set to use for serialization
-         */
-        protected final EnumValues _keyEnums;
-
-        protected final JavaType _valueType;
-        
-        /**
-         * Type serializer used for values, if any.
-         * 
-         * @since 1.5
-         */
-        protected final TypeSerializer _valueTypeSerializer;
-
-        /**
-         * Value serializer to use, if it can be statically determined
-         * 
-         * @since 1.5
-         */
-        protected JsonSerializer<Object> _valueSerializer;
-
-        public EnumMapSerializer(JavaType valueType, boolean staticTyping, TypeSerializer typeSer,
-                EnumValues keyEnums)
-        {
-            super(EnumMap.class, false);
-            _staticTyping = staticTyping || (valueType != null && valueType.isFinal());
-            _valueType = valueType;
-            _valueTypeSerializer = typeSer;
-            _keyEnums = keyEnums;
-        }
-
-        @Override
-        public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeStartObject();
-            if (!value.isEmpty()) {
-                serializeContents(value, jgen, provider);
-            }        
-            jgen.writeEndObject();
-        }
-
-        @Override
-        public void serializeWithType(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider,
-                TypeSerializer typeSer)
-            throws IOException, JsonGenerationException
-        {
-            typeSer.writeTypePrefixForObject(value, jgen);
-            if (!value.isEmpty()) {
-                serializeContents(value, jgen, provider);
-            }
-            typeSer.writeTypeSuffixForObject(value, jgen);
-        }
-        
-        protected void serializeContents(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            if (_valueSerializer != null) {
-                serializeContentsUsing(value, jgen, provider, _valueSerializer);
-                return;
-            }
-            JsonSerializer<Object> prevSerializer = null;
-            Class<?> prevClass = null;
-            EnumValues keyEnums = _keyEnums;
-
-            for (Map.Entry<? extends Enum<?>,?> entry : value.entrySet()) {
-                // First, serialize key
-                Enum<?> key = entry.getKey();
-                if (keyEnums == null) {
-                    /* 15-Oct-2009, tatu: This is clumsy, but still the simplest efficient
-                     * way to do it currently, as Serializers get cached. (it does assume we'll always use
-                     * default serializer tho -- so ideally code should be rewritten)
-                     */
-                    // ... and lovely two-step casting process too...
-                    SerializerBase<?> ser = (SerializerBase<?>) provider.findValueSerializer(key.getDeclaringClass());
-                    keyEnums = ((EnumSerializer) ser).getEnumValues();
-                }
-                jgen.writeFieldName(keyEnums.valueFor(key));
-                // And then value
-                Object valueElem = entry.getValue();
-                if (valueElem == null) {
-                    provider.getNullValueSerializer().serialize(null, jgen, provider);
-                } else {
-                    Class<?> cc = valueElem.getClass();
-                    JsonSerializer<Object> currSerializer;
-                    if (cc == prevClass) {
-                        currSerializer = prevSerializer;
-                    } else {
-                        currSerializer = provider.findValueSerializer(cc);
-                        prevSerializer = currSerializer;
-                        prevClass = cc;
-                    }
-                    try {
-                        currSerializer.serialize(valueElem, jgen, provider);
-                    } catch (Exception e) {
-                        // [JACKSON-55] Need to add reference information
-                        wrapAndThrow(e, value, entry.getKey().name());
-                    }
-                }
-            }
-        }
-
-        protected void serializeContentsUsing(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider,
-                JsonSerializer<Object> valueSer)
-            throws IOException, JsonGenerationException
-        {
-            EnumValues keyEnums = _keyEnums;
-            for (Map.Entry<? extends Enum<?>,?> entry : value.entrySet()) {
-                Enum<?> key = entry.getKey();
-                if (keyEnums == null) {
-                    // clumsy, but has to do for now:
-                    SerializerBase<?> ser = (SerializerBase<?>) provider.findValueSerializer(key.getDeclaringClass());
-                    keyEnums = ((EnumSerializer) ser).getEnumValues();
-                }
-                jgen.writeFieldName(keyEnums.valueFor(key));
-                Object valueElem = entry.getValue();
-                if (valueElem == null) {
-                    provider.getNullValueSerializer().serialize(null, jgen, provider);
-                } else {
-                    try {
-                        valueSer.serialize(valueElem, jgen, provider);
-                    } catch (Exception e) {
-                        wrapAndThrow(e, value, entry.getKey().name());
-                    }
-                }
-            }
-        }
-
-        //@Override
-        public void resolve(SerializerProvider provider)
-            throws JsonMappingException
-        {
-            if (_staticTyping) {
-                _valueSerializer = provider.findValueSerializer(_valueType.getRawClass());
-            }
-        }
-        
-        @SuppressWarnings("unchecked")
-        @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
-            ObjectNode o = createSchemaNode("object", true);
-            if (typeHint instanceof ParameterizedType) {
-                Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
-                if (typeArgs.length == 2) {
-                    JavaType enumType = TypeFactory.type(typeArgs[0]);
-                    JavaType valueType = TypeFactory.type(typeArgs[1]);
-                    ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
-                    Class<Enum<?>> enumClass = (Class<Enum<?>>) enumType.getRawClass();
-                    for (Enum<?> enumValue : enumClass.getEnumConstants()) {
-                        JsonSerializer<Object> ser = provider.findValueSerializer(valueType.getRawClass());
-                        JsonNode schemaNode = (ser instanceof SchemaAware) ?
-                                ((SchemaAware) ser).getSchema(provider, null) :
-                                JsonSchema.getDefaultSchemaNode();
-                        propsNode.put(provider.getConfig().getAnnotationIntrospector().findEnumValue((Enum<?>)enumValue), schemaNode);
-                    }
-                    o.put("properties", propsNode);
-                }
-            }
-            return o;
         }
     }
 }

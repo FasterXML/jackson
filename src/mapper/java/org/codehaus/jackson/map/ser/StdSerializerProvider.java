@@ -390,9 +390,8 @@ public class StdSerializerProvider
         }
 
         // Well, let's just compose from pieces:
-        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(TypeFactory.type(declaredType), _config);
         ser = findValueSerializer(runtimeType);
-
+        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(TypeFactory.type(declaredType), _config);
         if (typeSer != null) {
             ser = new WrappedSerializer(typeSer, ser);
         }

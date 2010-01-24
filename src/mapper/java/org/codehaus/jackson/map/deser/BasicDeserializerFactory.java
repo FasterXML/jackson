@@ -310,8 +310,14 @@ public abstract class BasicDeserializerFactory
         Class<?> cls = baseType.getRawClass();
         BasicBeanDescription bean = config.introspectClassAnnotations(cls);
         AnnotatedClass ac = bean.getClassInfo();
-        JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac, baseType);
-        return (b == null) ? null : b.buildTypeDeserializer();
+        JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac);
+        /* Ok: if there is no explicit type info handler, we may want to
+         * use a default. If so, config object knows what to use.
+         */
+        if (b == null) {
+            b = config.getDefaultTyper(baseType);
+        }
+        return (b == null) ? null : b.buildTypeDeserializer(baseType);
     }    
     
     /*

@@ -17,8 +17,6 @@ public class StdTypeResolverBuilder
 {
     // Configuration settings:
 
-    protected JavaType _baseType;
-    
     protected JsonTypeInfo.Id _idType;
 
     protected JsonTypeInfo.As _includeAs;
@@ -34,9 +32,8 @@ public class StdTypeResolverBuilder
     public StdTypeResolverBuilder() {
     }
     
-    public StdTypeResolverBuilder init(JavaType baseType, JsonTypeInfo.Id idType)
+    public StdTypeResolverBuilder init(JsonTypeInfo.Id idType)
     {
-        _baseType = baseType;
         // sanity checks
         if (idType == null) {
             throw new IllegalArgumentException("idType can not be null");
@@ -47,7 +44,7 @@ public class StdTypeResolverBuilder
         return this;
     }
     
-    public TypeSerializer buildTypeSerializer()
+    public TypeSerializer buildTypeSerializer(JavaType baseType)
     {
         if (_idType == null) {
             throw new IllegalStateException("Can not build, 'init()' not yet called");
@@ -60,7 +57,7 @@ public class StdTypeResolverBuilder
             idConv = new TypeSerializerBase.ClassNameConverter();
             break;
         case MINIMAL_CLASS:
-            idConv = new TypeSerializerBase.MinimalClassNameConverter(_baseType);
+            idConv = new TypeSerializerBase.MinimalClassNameConverter(baseType);
             break;
         case NAME:
             // !!! @TODO: add name bindings
@@ -86,7 +83,7 @@ public class StdTypeResolverBuilder
         }
     }
 
-    public TypeDeserializer buildTypeDeserializer()
+    public TypeDeserializer buildTypeDeserializer(JavaType baseType)
     {
         if (_idType == null) {
             throw new IllegalStateException("Can not build, 'init()' not yet called");
@@ -99,7 +96,7 @@ public class StdTypeResolverBuilder
             idConv = new TypeDeserializerBase.ClassNameConverter();
             break;
         case MINIMAL_CLASS:
-            idConv = new TypeDeserializerBase.MinimalClassNameConverter(_baseType);
+            idConv = new TypeDeserializerBase.MinimalClassNameConverter(baseType);
             break;
         case NAME:
             // !!! @TODO: add name bindings
@@ -115,11 +112,11 @@ public class StdTypeResolverBuilder
         // And then inclusion mechanism
         switch (_includeAs) {
         case WRAPPER_ARRAY:
-            return new AsArrayTypeDeserializer(_baseType, idConv);
+            return new AsArrayTypeDeserializer(baseType, idConv);
         case PROPERTY:
-            return new AsPropertyTypeDeserializer(_baseType, idConv, _typeProperty);
+            return new AsPropertyTypeDeserializer(baseType, idConv, _typeProperty);
         case WRAPPER_OBJECT:
-            return new AsWrapperTypeDeserializer(_baseType, idConv);
+            return new AsWrapperTypeDeserializer(baseType, idConv);
         default:
             throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
         }
