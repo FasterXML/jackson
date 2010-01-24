@@ -623,7 +623,7 @@ public class ObjectMapper
     public <T> T readValue(JsonParser jp, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(jp, TypeFactory.type(valueType), copyDeserializationConfig());
+        return (T) _readValue(copyDeserializationConfig(), jp, TypeFactory.type(valueType));
     } 
 
     /**
@@ -648,7 +648,7 @@ public class ObjectMapper
                            DeserializationConfig cfg)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(jp, TypeFactory.type(valueType), cfg);
+        return (T) _readValue(cfg, jp, TypeFactory.type(valueType));
     } 
 
     /**
@@ -663,8 +663,7 @@ public class ObjectMapper
     public <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(jp, TypeFactory.type(valueTypeRef),
-                              copyDeserializationConfig());
+        return (T) _readValue(copyDeserializationConfig(), jp, TypeFactory.type(valueTypeRef));
     } 
 
     /**
@@ -687,7 +686,7 @@ public class ObjectMapper
                            DeserializationConfig cfg)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(jp, TypeFactory.type(valueTypeRef), cfg);
+        return (T) _readValue(cfg, jp, TypeFactory.type(valueTypeRef));
     } 
 
     /**
@@ -701,7 +700,7 @@ public class ObjectMapper
     public <T> T readValue(JsonParser jp, JavaType valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(jp, valueType, copyDeserializationConfig());
+        return (T) _readValue(copyDeserializationConfig(), jp, valueType);
     } 
 
     /**
@@ -723,7 +722,7 @@ public class ObjectMapper
                            DeserializationConfig cfg)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(jp, valueType, cfg);
+        return (T) _readValue(cfg, jp, valueType);
     } 
 
     /**
@@ -762,7 +761,7 @@ public class ObjectMapper
          *   will map Json null straight into Java null. But what
          *   we want to return is the "null node" instead.
          */
-        JsonNode n = (JsonNode) _readValue(jp, JSON_NODE_TYPE, cfg);
+        JsonNode n = (JsonNode) _readValue(cfg, jp, JSON_NODE_TYPE);
         return (n == null) ? NullNode.instance : n;
     }
 
@@ -1394,8 +1393,7 @@ public class ObjectMapper
     /**
      * Actual implementation of value reading+binding operation.
      */
-    protected Object _readValue(JsonParser jp, JavaType valueType,
-                                DeserializationConfig cfg)
+    protected Object _readValue(DeserializationConfig cfg, JsonParser jp, JavaType valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
         /* First: may need to read the next token, to initialize
@@ -1411,7 +1409,7 @@ public class ObjectMapper
         } else { // pointing to event other than null
             DeserializationContext ctxt = _createDeserializationContext(jp, cfg);
             // ok, let's get the value
-            result = _findRootDeserializer(valueType).deserialize(jp, ctxt);
+            result = _findRootDeserializer(cfg, valueType).deserialize(jp, ctxt);
         }
         // Need to consume the token too
         jp.clearCurrentToken();
@@ -1429,8 +1427,9 @@ public class ObjectMapper
                 || t == JsonToken.END_OBJECT) {
                 result = null;
             } else {
-                DeserializationContext ctxt = _createDeserializationContext(jp, copyDeserializationConfig());
-                result = _findRootDeserializer(valueType).deserialize(jp, ctxt);
+                DeserializationConfig cfg = copyDeserializationConfig();
+                DeserializationContext ctxt = _createDeserializationContext(jp, cfg);
+                result = _findRootDeserializer(cfg, valueType).deserialize(jp, ctxt);
             }
             // Need to consume the token too
             jp.clearCurrentToken();
@@ -1487,7 +1486,7 @@ public class ObjectMapper
     /**
      * Method called to locate deserializer for the passed root-level value.
      */
-    protected JsonDeserializer<Object> _findRootDeserializer(JavaType valueType)
+    protected JsonDeserializer<Object> _findRootDeserializer(DeserializationConfig cfg, JavaType valueType)
         throws JsonMappingException
     {
         // First: have we already seen it?
@@ -1497,7 +1496,7 @@ public class ObjectMapper
         }
 
         // Nope: need to ask provider to resolve it
-        deser = _deserializerProvider.findTypedValueDeserializer(_deserializationConfig, valueType);
+        deser = _deserializerProvider.findTypedValueDeserializer(cfg, valueType);
         if (deser == null) { // can this happen?
             throw new JsonMappingException("Can not find a deserializer for type "+valueType);
         }
