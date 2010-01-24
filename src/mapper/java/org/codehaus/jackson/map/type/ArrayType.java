@@ -86,6 +86,31 @@ public final class ArrayType
 
     /*
     //////////////////////////////////////////////////////////
+    // Overridden methods
+    //////////////////////////////////////////////////////////
+     */
+
+    @Override
+    public boolean isArrayType() { return true; }
+    
+    /**
+     * For some odd reason, modifiers for array classes would
+     * claim they are abstract types. Not so, at least for our
+     * purposes.
+     */
+    @Override
+    public boolean isAbstract() { return false; }
+
+    /**
+     * For some odd reason, modifiers for array classes would
+     * claim they are abstract types. Not so, at least for our
+     * purposes.
+     */
+    @Override
+    public boolean isConcrete() { return true; }
+    
+    /*
+    //////////////////////////////////////////////////////////
     // Public API
     //////////////////////////////////////////////////////////
      */

@@ -25,7 +25,7 @@ import org.codehaus.jackson.type.JavaType;
  * cached first time they are needed.
  */
 public class SerializationConfig
-    implements MapperConfig
+    implements MapperConfig<SerializationConfig>
 {
     /**
      * Enumeration that defines togglable features that guide
@@ -331,16 +331,16 @@ public class SerializationConfig
      */
 
     public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr,
-                               AnnotationIntrospector annIntr,
-                               JsonTypeResolverBuilder<?> typer)
+                               AnnotationIntrospector annIntr)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
-        _typer = typer;
+        _typer = null;
     }
 
     protected SerializationConfig(SerializationConfig src,
-                                  HashMap<ClassKey,Class<?>> mixins)
+                                  HashMap<ClassKey,Class<?>> mixins,
+                                  JsonTypeResolverBuilder<?> typer)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -349,7 +349,7 @@ public class SerializationConfig
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
         _mixInAnnotations = mixins;
-        _typer = src._typer;
+        _typer = typer;
     }
 
     /*
@@ -418,11 +418,11 @@ public class SerializationConfig
      * instance.
      */
     //@Override
-    public SerializationConfig createUnshared()
+    public SerializationConfig createUnshared(JsonTypeResolverBuilder<?> typer)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-    	return new SerializationConfig(this, mixins);
+    	return new SerializationConfig(this, mixins, typer);
     }
 
     //@Override
@@ -549,23 +549,10 @@ public class SerializationConfig
         return (T) _classIntrospector.forClassAnnotations(this, cls, this);
     }
 
-    /**
-     * Method called to locate a type info handler for types that do not have
-     * one explicitly declared via annotations (or other configuration).
-     * If such default handler is configured, it is returned; otherwise
-     * null is returned.
-     * 
-     * @since 1.5
-     */
+    //@Override
     public JsonTypeResolverBuilder<?> getDefaultTyper(JavaType baseType)
     {
-        /* 23-Jan-2010, tatus: Initially we will only every apply this to
-         *   plain old Object.class -- could expand in future
-         */
-        if (baseType.getRawClass() == Object.class) {
-            return _typer;
-        }
-        return null;
+        return _typer;
     }
     
     /*

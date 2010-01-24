@@ -2,6 +2,9 @@ package org.codehaus.jackson.map;
 
 import java.util.Map;
 
+import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.type.JavaType;
+
 /**
  * Interface that defines functionality accessible through both
  * serialization and deserialization configuration objects;
@@ -10,7 +13,7 @@ import java.util.Map;
  *
  * @since 1.2
  */
-public interface MapperConfig
+public interface MapperConfig<T extends MapperConfig<T>>
     extends ClassIntrospector.MixInResolver
 {
     // // // Accessors
@@ -31,7 +34,7 @@ public interface MapperConfig
      * Method to use for constructing an instance that is not shared
      * between multiple operations but only used for a single one.
      */
-    public MapperConfig createUnshared();
+    public T createUnshared(JsonTypeResolverBuilder<?> typer);
 
     // // // Configuration
 
@@ -78,4 +81,14 @@ public interface MapperConfig
      * annotations) for given class
      */
     public Class<?> findMixInClassFor(Class<?> cls);
+
+    /**
+     * Method called to locate a type info handler for types that do not have
+     * one explicitly declared via annotations (or other configuration).
+     * If such default handler is configured, it is returned; otherwise
+     * null is returned.
+     * 
+     * @since 1.5
+     */
+    public JsonTypeResolverBuilder<?> getDefaultTyper(JavaType baseType);
 }

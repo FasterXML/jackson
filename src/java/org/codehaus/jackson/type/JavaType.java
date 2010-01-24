@@ -139,7 +139,7 @@ public abstract class JavaType
      */
     public abstract boolean isContainerType();
 
-    public final boolean isAbstract() {
+    public boolean isAbstract() {
         return Modifier.isAbstract(_class.getModifiers());
     }
 
@@ -153,7 +153,7 @@ public abstract class JavaType
         return Throwable.class.isAssignableFrom(_class);
     }
 
-    public final boolean isArrayType() { return _class.isArray(); }
+    public boolean isArrayType() { return false; }
 
     public final boolean isEnumType() { return _class.isEnum(); }
 

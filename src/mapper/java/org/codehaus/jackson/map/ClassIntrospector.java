@@ -67,7 +67,7 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      * information regarding annotations class itself has, but nothing
      * on methods or constructors.
      */
-    public abstract T forClassAnnotations(MapperConfig cfg, Class<?> c,
+    public abstract T forClassAnnotations(MapperConfig<?> cfg, Class<?> c,
                                           MixInResolver r);
 }
 

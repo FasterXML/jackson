@@ -112,8 +112,18 @@ public class ObjectMapper
          * Method called to check if the default type handler should be
          * used for given type.
          */
-        public boolean useForType(JavaType t) {
-            return true;
+        public boolean useForType(JavaType t)
+        {
+            // Always applicable for Object.class
+            if (t.getRawClass() == Object.class) {
+                return true;
+            }
+            // Also, can be applicable for non-concrete types (abstract class, interface)
+            if (!t.isConcrete() && _appliesFor == DefaultTyping.OBJECT_AND_NON_CONCRETE) {
+                return true;
+            }
+            // otherwise, not used
+            return false;
         }
     }
     
@@ -319,8 +329,8 @@ public class ObjectMapper
          *    to create actual linking.
          */
         _jsonFactory = (jf == null) ? new MappingJsonFactory(this) : jf;
-        _serializationConfig = (sconfig == null) ? new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, null) : sconfig;
-        _deserializationConfig = (dconfig == null) ? new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, null) : dconfig;
+        _serializationConfig = (sconfig == null) ? new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR) : sconfig;
+        _deserializationConfig = (dconfig == null) ? new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR) : dconfig;
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -416,7 +426,7 @@ public class ObjectMapper
      * (like date format being used, see {@link SerializationConfig#setDateFormat}).
      */
     public SerializationConfig copySerializationConfig() {
-        return _serializationConfig.createUnshared();
+        return _serializationConfig.createUnshared(_defaultTyper);
     }
 
     /**
@@ -468,7 +478,7 @@ public class ObjectMapper
      * see {@link DeserializationConfig#addHandler})
      */
     public DeserializationConfig copyDeserializationConfig() {
-        return _deserializationConfig.createUnshared();
+        return _deserializationConfig.createUnshared(_defaultTyper);
     }
 
     /**

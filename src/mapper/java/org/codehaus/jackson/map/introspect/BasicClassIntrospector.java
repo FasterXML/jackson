@@ -157,8 +157,7 @@ public class BasicClassIntrospector
 
     @Override
     public BasicBeanDescription forCreation(DeserializationConfig cfg,
-                                            Class<?> c,
-                                            MixInResolver r)
+            Class<?> c, MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, ai, r);
@@ -167,9 +166,8 @@ public class BasicClassIntrospector
     }
 
     @Override
-    public BasicBeanDescription forClassAnnotations(MapperConfig cfg,
-                                                    Class<?> c,
-                                                   MixInResolver r)
+    public BasicBeanDescription forClassAnnotations(MapperConfig<?> cfg,
+            Class<?> c, MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, ai, r);
