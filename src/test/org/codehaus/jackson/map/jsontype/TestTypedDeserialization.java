@@ -63,6 +63,18 @@ public class TestTypedDeserialization
         public Animal animal;
     }
 
+    // base class with no useful info
+    @JsonTypeInfo(use=Id.CLASS, include=As.WRAPPER_ARRAY)
+    static abstract class DummyBase {
+        protected DummyBase(boolean foo) { }
+    }
+
+    static class DummyImpl extends DummyBase {
+        public int x;
+
+        public DummyImpl() { super(true); }
+    }
+    
     @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.WRAPPER_OBJECT)
     interface TypeWithWrapper { }
 
@@ -163,6 +175,19 @@ public class TestTypedDeserialization
         Cat c = (Cat) a;
         assertEquals("Nilson", c.name);
         assertEquals("black", c.furColor);
+    }
+
+    /**
+     * Test that verifies that there are few limitations on polymorphic
+     * base class.
+     */
+    public void testAbstractEmptyBaseClass() throws Exception
+    {
+        DummyBase result = new ObjectMapper().readValue(
+                "[\""+DummyImpl.class.getName()+"\",{\"x\":3}]", DummyBase.class);
+        assertNotNull(result);
+        assertEquals(DummyImpl.class, result.getClass());
+        assertEquals(3, ((DummyImpl) result).x);
     }
 }
 
