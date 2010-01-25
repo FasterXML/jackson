@@ -24,6 +24,35 @@ public class StdSerializers
     protected StdSerializers() { }
 
     /*
+    /***********************************************************
+    /* Abstract base classes
+    /***********************************************************
+     */
+
+    /**
+     * Intermediate base class for limited number of scalar types
+     * that should never include type information. These are "native"
+     * types that are default mappings for corresponding JSON scalar
+     * types: String, Integer, Double and Boolean.
+     */
+    protected abstract static class NonTypedScalarSerializer<T>
+        extends ScalarSerializerBase<T>
+    {
+        protected NonTypedScalarSerializer(Class<T> t) {
+            super(t);
+        }
+
+        @Override
+        public final void serializeWithType(T value, JsonGenerator jgen, SerializerProvider provider,
+                TypeSerializer typeSer)
+            throws IOException, JsonGenerationException
+        {
+            // no type info, just regular serialization
+            serialize(value, jgen, provider);            
+        }
+    }
+    
+    /*
     /////////////////////////////////////////////////////////////////
     // Concrete serializers, non-numeric primitives, Strings, Classes
     /////////////////////////////////////////////////////////////////
@@ -31,10 +60,13 @@ public class StdSerializers
     
     /**
      * Serializer used for primitive boolean, as well as java.util.Boolean
-     * wrapper type
+     * wrapper type.
+     *<p>
+     * Since this is one of "native" types, no type information is ever
+     * included on serialization (unlike for most scalar types as of 1.5)
      */
     public final static class BooleanSerializer
-        extends SerializerBase<Boolean>
+        extends NonTypedScalarSerializer<Boolean>
     {
         /**
          * Whether type serialized is primitive (boolean) or wrapper
@@ -71,9 +103,12 @@ public class StdSerializers
 
     /**
      * This is the special serializer for regular {@link java.lang.String}s.
+     *<p>
+     * Since this is one of "native" types, no type information is ever
+     * included on serialization (unlike for most scalar types as of 1.5)
      */
     public final static class StringSerializer
-        extends SerializerBase<String>
+        extends NonTypedScalarSerializer<String>
     {
         public StringSerializer() { super(String.class); }
 
@@ -96,9 +131,16 @@ public class StdSerializers
     // Concrete serializers, numerics
     ////////////////////////////////////////////////////////////
      */
-    
+
+    /**
+     * This is the special serializer for regular {@link java.lang.Integer}s
+     * (and primitive ints)
+     *<p>
+     * Since this is one of "native" types, no type information is ever
+     * included on serialization (unlike for most scalar types as of 1.5)
+     */
     public final static class IntegerSerializer
-        extends SerializerBase<Integer>
+        extends NonTypedScalarSerializer<Integer>
     {
         public IntegerSerializer() { super(Integer.class); }
     
@@ -123,7 +165,7 @@ public class StdSerializers
      * by calling {@link java.lang.Number#intValue}.
      */
     public final static class IntLikeSerializer
-        extends SerializerBase<Number>
+        extends ScalarSerializerBase<Number>
     {
         final static IntLikeSerializer instance = new IntLikeSerializer();
     
@@ -145,7 +187,7 @@ public class StdSerializers
     }
 
     public final static class LongSerializer
-        extends SerializerBase<Long>
+        extends ScalarSerializerBase<Long>
     {
         final static LongSerializer instance = new LongSerializer();
     
@@ -166,7 +208,7 @@ public class StdSerializers
     }
     
     public final static class FloatSerializer
-        extends SerializerBase<Float>
+        extends ScalarSerializerBase<Float>
     {
         final static FloatSerializer instance = new FloatSerializer();
     
@@ -185,9 +227,16 @@ public class StdSerializers
             return createSchemaNode("number", true);
         }
     }
-    
+
+    /**
+     * This is the special serializer for regular {@link java.lang.Double}s
+     * (and primitive doubles)
+     *<p>
+     * Since this is one of "native" types, no type information is ever
+     * included on serialization (unlike for most scalar types as of 1.5)
+     */
     public final static class DoubleSerializer
-        extends SerializerBase<Double>
+        extends NonTypedScalarSerializer<Double>
     {
         final static DoubleSerializer instance = new DoubleSerializer();
     
@@ -212,7 +261,7 @@ public class StdSerializers
      * types of {@link Number}s (custom types).
      */
     public final static class NumberSerializer
-        extends SerializerBase<Number>
+        extends ScalarSerializerBase<Number>
     {
         public final static NumberSerializer instance = new NumberSerializer();
     
@@ -254,7 +303,7 @@ public class StdSerializers
      * and json.
      */
     public final static class CalendarSerializer
-        extends SerializerBase<Calendar>
+        extends ScalarSerializerBase<Calendar>
     {
         public final static CalendarSerializer instance = new CalendarSerializer();
 
@@ -281,7 +330,7 @@ public class StdSerializers
      * potentially more readable Strings.
      */
     public final static class UtilDateSerializer
-        extends SerializerBase<java.util.Date>
+        extends ScalarSerializerBase<java.util.Date>
     {
         public final static UtilDateSerializer instance = new UtilDateSerializer();
 
@@ -310,7 +359,7 @@ public class StdSerializers
      * that should not be used by plain SQL date.
      */
     public final static class SqlDateSerializer
-        extends SerializerBase<java.sql.Date>
+        extends ScalarSerializerBase<java.sql.Date>
     {
         public SqlDateSerializer() { super(java.sql.Date.class); }
 
@@ -330,7 +379,7 @@ public class StdSerializers
     }
 
     public final static class SqlTimeSerializer
-        extends SerializerBase<java.sql.Time>
+        extends ScalarSerializerBase<java.sql.Time>
     {
         public SqlTimeSerializer() { super(java.sql.Time.class); }
 
@@ -361,6 +410,7 @@ public class StdSerializers
      * Note: given that this is used for anything that implements
      * interface, can not be checked for direct class equivalence.
      */
+    @SuppressWarnings("deprecation")
     public final static class SerializableSerializer
         extends SerializerBase<JsonSerializable>
     {
@@ -373,6 +423,22 @@ public class StdSerializers
             throws IOException, JsonGenerationException
         {
             value.serialize(jgen, provider);
+        }
+
+        @Override
+        public final void serializeWithType(JsonSerializable value, JsonGenerator jgen, SerializerProvider provider,
+                TypeSerializer typeSer)
+            throws IOException, JsonGenerationException
+        {
+            /* 24-Jan-2009, tatus: This is not quite optimal (perhaps we should
+             *   just create separate serializer...), but works until 2.0 will
+             *   deprecate non-typed interface
+             */
+            if (value instanceof JsonSerializableWithType) {
+                ((JsonSerializableWithType) value).serializeWithType(jgen, provider, typeSer);
+            } else {
+                this.serialize(value, jgen, provider);
+            }
         }
         
         @Override
@@ -436,6 +502,22 @@ public class StdSerializers
             value.serialize(jgen);
         }
 
+        /**
+         * Implementing typed output for contents of a TokenBuffer is very tricky,
+         * since we do not know for sure what its contents might look like.
+         * One possibility would be to check the current token, and use that to
+         * determine if we would output Json Array, Object or scalar value.
+         * That might or might now work,
+         * so for now (as of 1.5), let's not output any type information.
+         */
+        @Override
+        public final void serializeWithType(TokenBuffer value, JsonGenerator jgen, SerializerProvider provider,
+                TypeSerializer typeSer)
+            throws IOException, JsonGenerationException
+        {
+            serialize(value, jgen, provider);
+        }
+        
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {

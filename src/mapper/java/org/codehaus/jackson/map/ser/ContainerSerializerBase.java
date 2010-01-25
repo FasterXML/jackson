@@ -18,9 +18,9 @@ public abstract class ContainerSerializerBase<T>
     protected TypeSerializer _valueTypeSerializer;    
 
     /*
-    /********************************************* 
-    /* Construction
-    /********************************************* 
+    /*********************************************
+    /* Construction, initialization
+    /*********************************************
      */
     
     protected ContainerSerializerBase(Class<T> t) {
@@ -40,11 +40,4 @@ public abstract class ContainerSerializerBase<T>
     public void setValueTypeSerializer(TypeSerializer valueTypeSer) {
         _valueTypeSerializer = valueTypeSer;
     }
-    
-    /*
-    /********************************************* 
-    /* Construction
-    /********************************************* 
-     */
-    
 }

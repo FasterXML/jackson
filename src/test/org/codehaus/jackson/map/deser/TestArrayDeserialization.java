@@ -415,6 +415,7 @@ public class TestArrayDeserialization
      * Deserialization from String value will be done via single-arg
      * constructor.
      */
+    @SuppressWarnings("deprecation")
     public final static class Bean2
         implements JsonSerializable // so we can output as simple String
     {

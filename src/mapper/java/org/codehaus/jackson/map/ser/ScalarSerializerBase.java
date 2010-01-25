@@ -1,0 +1,33 @@
+package org.codehaus.jackson.map.ser;
+
+import java.io.IOException;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
+
+public abstract class ScalarSerializerBase<T>
+    extends SerializerBase<T>
+{
+    protected ScalarSerializerBase(Class<T> t) {
+        super(t);
+    }
+
+    /**
+     * Default implementation will write type prefix, call regular serialization
+     * method (since assumption is that value itself does not need JSON
+     * Array or Object start/end markers), and then write type suffix.
+     * This should work for most cases; some sub-classes may want to
+     * change this behavior.
+     */
+    @Override
+    public void serializeWithType(T value, JsonGenerator jgen, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonGenerationException
+    {
+        typeSer.writeTypePrefixForScalar(value, jgen);
+        serialize(value, jgen, provider);
+        typeSer.writeTypeSuffixForScalar(value, jgen);
+    }
+}

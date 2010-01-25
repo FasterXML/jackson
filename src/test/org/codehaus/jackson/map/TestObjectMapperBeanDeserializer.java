@@ -20,6 +20,7 @@ public class TestObjectMapperBeanDeserializer
     /////////////////////////////////////////////////
      */
 
+    @SuppressWarnings("deprecation")
     final static class CtorValueBean
         implements JsonSerializable // so we can output as simple String
     {

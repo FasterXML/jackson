@@ -13,7 +13,9 @@ public class TestDefaultForObject
      ****************************************************** 
      */
 
-    static class StringBean { // ha, punny!
+    static abstract class AbstractBean { }
+    
+    static class StringBean extends AbstractBean { // ha, punny!
         public String name;
 
         public StringBean() { this(null); }
@@ -25,7 +27,12 @@ public class TestDefaultForObject
      * Unit tests
      ****************************************************** 
      */
-    
+
+    /**
+     * Unit test that verifies that a bean is stored with type information,
+     * when declared type is <code>Object.class</code> (since it is within
+     * Object[]), and default type information is enabled.
+     */
     public void testBeanAsObject() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -33,11 +40,9 @@ public class TestDefaultForObject
         // note: need to wrap, to get declared as Object
         String str = m.writeValueAsString(new Object[] { new StringBean("abc") });
 
-        verifySerializationAsMap(str);
+        _verifySerializationAsMap(str);
         
         // Ok: serialization seems to work as expected. Now deserialize:
-        //System.err.println("DEBUG: json = "+str);
-        
         Object ob = m.readValue(str, Object[].class);
         assertNotNull(ob);
         Object[] result = (Object[]) ob;
@@ -47,7 +52,7 @@ public class TestDefaultForObject
     }
 
     @SuppressWarnings("unchecked")
-    private void verifySerializationAsMap(String str) throws Exception
+    private void _verifySerializationAsMap(String str) throws Exception
     {
         // First: validate that structure looks correct (as Map etc)
         // note: should look something like:
@@ -68,4 +73,33 @@ public class TestDefaultForObject
         assertEquals(1, map.size());
         assertEquals("abc", map.get("name"));
     }
+
+    /**
+     * Unit test that verifies that an abstract bean is stored with type information
+     * if default type information is enabled for non-concrete types.
+     */
+    public void testAbstractBean() throws Exception
+    {
+        // First, let's verify that we'd fail without enabling default type info
+        ObjectMapper m = new ObjectMapper();
+        AbstractBean[] input = new AbstractBean[] { new StringBean("xyz") };
+        String serial = m.writeValueAsString(input);
+        try {
+            m.readValue(serial, AbstractBean[].class);
+            fail("Should have failed");
+        } catch (JsonMappingException e) {
+            // let's use whatever is currently thrown exception... may change tho
+            verifyException(e, "can not instantiate from JSON object");
+        }
+        
+        // and then that we will succeed with default type info
+        m = new ObjectMapper();
+        m.enableDefaultTyping(ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE);
+        serial = m.writeValueAsString(input);
+        AbstractBean[] beans = m.readValue(serial, AbstractBean[].class);
+        assertEquals(1, beans.length);
+        assertEquals(StringBean.class, beans[0].getClass());
+        assertEquals("xyz", ((StringBean) beans[0]).name);
+    }
+
 }

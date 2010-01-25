@@ -53,6 +53,11 @@ class StdDeserializers
         add(new DateDeserializer());
         add(new StdDeserializer.SqlDateDeserializer());
         add(new StdDeserializer.CalendarDeserializer());
+        /* 24-Jan-2010, tatu: When including type information, we may
+         *    know that we specifically need GregorianCalendar...
+         */
+        add(new StdDeserializer.CalendarDeserializer(GregorianCalendar.class),
+                GregorianCalendar.class);
         
         // Then other simple types:
         add(new FromStringDeserializer.UUIDDeserializer());

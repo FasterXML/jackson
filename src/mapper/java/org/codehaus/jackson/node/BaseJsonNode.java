@@ -3,8 +3,9 @@ package org.codehaus.jackson.node;
 import java.io.IOException;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.JsonSerializable;
+import org.codehaus.jackson.map.JsonSerializableWithType;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 
 /**
  * Abstract base class common to all standard {@link JsonNode}
@@ -15,7 +16,7 @@ import org.codehaus.jackson.map.SerializerProvider;
  */
 public abstract class BaseJsonNode
     extends JsonNode
-    implements JsonSerializable
+    implements JsonSerializableWithType
 {
     protected BaseJsonNode() { }
 
@@ -61,6 +62,17 @@ public abstract class BaseJsonNode
     public abstract void serialize(JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonProcessingException;
 
+    /**
+     * Since JSON node typing is only based on JSON values,
+     * there is no need to include type information. So, serialize
+     * the same way as when no typing is enabled.
+     */
+    public void serializeWithType(JsonGenerator jgen, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonProcessingException
+    {
+        serialize(jgen, provider);
+    }
 
     /*
      *********************************************

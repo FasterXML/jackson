@@ -316,6 +316,7 @@ public class BasicSerializerFactory
      * a "primary" interface. Primary here is defined as the main function
      * of the Object; as opposed to "add-on" functionality.
      */
+    @SuppressWarnings("deprecation")
     public final JsonSerializer<?> findSerializerByPrimaryType(JavaType type, SerializationConfig config,
                                                           BasicBeanDescription beanDesc)
     {

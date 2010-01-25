@@ -741,14 +741,36 @@ public abstract class StdDeserializer<T>
     public static class CalendarDeserializer
         extends StdScalarDeserializer<Calendar>
     {
-        public CalendarDeserializer() { super(Calendar.class); }
+        /**
+         * We may know actual expected type; if so, it will be
+         * used for instantiation.
+         */
+        Class<? extends Calendar> _calendarClass;
+        
+        public CalendarDeserializer() { this(null); }
+        public CalendarDeserializer(Class<? extends Calendar> cc) {
+            super(Calendar.class);
+            _calendarClass = cc;
+        }
 
         @Override
-            public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
+        public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             Date d = _parseDate(jp, ctxt);
-            return (d == null) ? null : ctxt.constructCalendar(d);
+            if (d == null) {
+                return null;
+            }
+            if (_calendarClass == null) {
+                return ctxt.constructCalendar(d);
+            }
+            try {
+                Calendar c = _calendarClass.newInstance();            
+                c.setTimeInMillis(d.getTime());
+                return c;
+            } catch (Exception e) {
+                throw ctxt.instantiationException(_calendarClass, e);
+            }
         }
     }
 

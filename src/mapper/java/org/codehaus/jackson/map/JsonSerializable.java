@@ -13,6 +13,16 @@ import org.codehaus.jackson.*;
  * closely to Jackson API, and that it is often not necessary to do
  * so -- if class is a bean, it can be serialized without
  * implementing this interface.
+ *<p>
+ * NOTE: as of version 1.5, this interface is missing one crucial
+ * aspect, that of dealing with type information embedding.
+ * Because of this, this interface is deprecated, although will be
+ * fully supported for all 1.x releases.
+ *
+ * @see org.codehaus.jackson.map.JsonSerializableWithType
+ *
+ * @since 1.5
+ * @deprecated Use {@link JsonSerializableWithType} instead
  */
 public interface JsonSerializable
 {

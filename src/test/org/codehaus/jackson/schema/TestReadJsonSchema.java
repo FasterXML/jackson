@@ -27,7 +27,7 @@ public class TestReadJsonSchema
         public double[] doubles;
 
         public Object[] objects;
-        public JsonSerializable someSerializable;
+        public JsonSerializableWithType someSerializable;
 
         public Iterable<Object> iterableOhYeahBaby;
 
