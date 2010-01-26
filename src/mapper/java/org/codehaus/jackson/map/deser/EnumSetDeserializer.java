@@ -65,7 +65,6 @@ public final class EnumSetDeserializer
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException
     {
-        // should never actually get called (enums are not polymorphic), but...
         return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
     }
     

@@ -145,7 +145,6 @@ public abstract class BasicDeserializerFactory
         throws JsonMappingException
     {
         Class<?> collectionClass = type.getRawClass();
-
         BasicBeanDescription beanDesc = config.introspectClassAnnotations(collectionClass);
         // Explicit deserializer to use? (@JsonDeserialize.using)
         JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());

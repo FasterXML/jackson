@@ -11,8 +11,16 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.type.JavaType;
 
+/**
+ * Standard serializer used for all enum types.
+ *<p>
+ * Based on {@link ScalarSerializerBase} since the JSON value is
+ * scalar (String).
+ * 
+ * @author tatu
+ */
 public class EnumSerializer
-    extends SerializerBase<Enum<?>>
+    extends ScalarSerializerBase<Enum<?>>
 {
     /**
      * This map contains pre-resolved values (since there are ways

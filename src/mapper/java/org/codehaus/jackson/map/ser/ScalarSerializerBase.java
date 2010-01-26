@@ -15,6 +15,15 @@ public abstract class ScalarSerializerBase<T>
     }
 
     /**
+     * Alternate constructor that is (alas!) needed to work
+     * around kinks of generic type handling
+     */
+    @SuppressWarnings("unchecked")
+    protected ScalarSerializerBase(Class<?> t, boolean dummy) {
+        super((Class<T>) t);
+    }
+    
+    /**
      * Default implementation will write type prefix, call regular serialization
      * method (since assumption is that value itself does not need JSON
      * Array or Object start/end markers), and then write type suffix.

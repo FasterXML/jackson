@@ -12,13 +12,13 @@ import org.codehaus.jackson.type.JavaType;
  * Since there are multiple broad categories of deserializers, there are 
  * multiple factory methods:
  *<ul>
- * <li>There is one method to support Json scalar types: here access is
+ * <li>There is one method to support JSON scalar types: here access is
  *   by declared value type
  *  </li>
- * <li>For Json "Array" type, we need 2 methods: one to deal with expected
+ * <li>For JSON "Array" type, we need 2 methods: one to deal with expected
  *   Java arrays; and the other for other Java containers (Lists, Sets)
  *  </li>
- * <li>For Json "Object" type, we need 2 methods: one to deal with
+ * <li>For JSON "Object" type, we need 2 methods: one to deal with
  *   expected Java {@link java.util.Map}s, and another for actual
  *   Java objects (beans)
  *  </li>

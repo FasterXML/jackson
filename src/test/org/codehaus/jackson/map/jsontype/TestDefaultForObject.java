@@ -22,6 +22,8 @@ public class TestDefaultForObject
         protected StringBean(String n)  { name = n; }
     }
 
+    enum Choice { YES, NO; }
+    
     /*
      ****************************************************** 
      * Unit tests
@@ -102,4 +104,40 @@ public class TestDefaultForObject
         assertEquals("xyz", ((StringBean) beans[0]).name);
     }
 
+    public void testEnumAsObject() throws Exception
+    {
+        // wrapping to be declared as object
+        Object[] input = new Object[] { Choice.YES };
+        // first, without type info:
+        assertEquals("[\"YES\"]", serializeAsString(input));
+
+        // and then with it
+        ObjectMapper m = new ObjectMapper();
+        m.enableDefaultTyping();
+        String json = m.writeValueAsString(input);
+        assertEquals("[[\""+Choice.class.getName()+"\",\"YES\"]]", json);
+
+        // which we should get back same way
+        Object[] output = m.readValue(json, Object[].class);
+        assertEquals(1, output.length);
+        assertEquals(Choice.YES, output[0]);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void testEnumSet() throws Exception
+    {
+        EnumSet<Choice> set = EnumSet.of(Choice.NO);
+        Object[] input = new Object[] { set };
+        ObjectMapper m = new ObjectMapper();
+        m.enableDefaultTyping();
+        String json = m.writeValueAsString(input);
+        Object[] output = m.readValue(json, Object[].class);
+        assertEquals(1, output.length);
+        Object ob = output[0];
+        assertEquals(EnumSet.class, ob.getClass());
+        EnumSet<Choice> set2 = (EnumSet<Choice>) ob;
+        assertEquals(1, set2.size());
+        assertTrue(set2.contains(Choice.NO));
+        assertFalse(set2.contains(Choice.YES));
+    }
 }

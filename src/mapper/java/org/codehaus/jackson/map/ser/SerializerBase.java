@@ -31,8 +31,6 @@ public abstract class SerializerBase<T>
     /**
      * Alternate constructor that is (alas!) needed to work
      * around kinks of generic type handling
-     * 
-     * @param t
      */
     @SuppressWarnings("unchecked")
     protected SerializerBase(Class<?> t, boolean dummy) {

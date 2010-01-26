@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
+import java.util.*;
+
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.type.JavaType;
@@ -48,10 +50,21 @@ public abstract class TypeSerializerBase extends TypeSerializer
     public final static class ClassNameConverter extends TypeConverter
     {
         public final static ClassNameConverter instance = new ClassNameConverter();
-
+        
         public JsonTypeInfo.Id idType() { return JsonTypeInfo.Id.CLASS; }
-        public String typeAsString(Object value) {
-            return value.getClass().getName();
+        public String typeAsString(Object value)
+        {
+            String str = value.getClass().getName();
+            /* 25-Jan-2009, tatus: There are some internal classes that
+             *   we can not access as is. We need better mechanism; for
+             *   now this has to do...
+             */
+            if (str.startsWith("java.")) {
+                if (value instanceof EnumSet<?>) { // Regular- and JumboEnumSet...
+                    str = EnumSet.class.getName();
+                }
+            }
+            return str;
         }
     }
 
