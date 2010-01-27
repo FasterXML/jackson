@@ -23,6 +23,19 @@ public class TestDefaultForObject
     }
 
     enum Choice { YES, NO; }
+
+    /**
+     * Another enum type, but this time forcing sub-classing
+     */
+    enum ComplexChoice {
+    	MAYBE(true), PROBABLY_NOT(false);
+
+    	private boolean state;
+    	
+    	private ComplexChoice(boolean b) { state = b; }
+    	
+    	public String toString() { return String.valueOf(state); }
+    }
     
     /*
      ****************************************************** 
@@ -108,12 +121,15 @@ public class TestDefaultForObject
     {
         // wrapping to be declared as object
         Object[] input = new Object[] { Choice.YES };
+        Object[] input2 = new Object[] { ComplexChoice.MAYBE};
         // first, without type info:
         assertEquals("[\"YES\"]", serializeAsString(input));
+        assertEquals("[\"MAYBE\"]", serializeAsString(input2));
 
         // and then with it
         ObjectMapper m = new ObjectMapper();
         m.enableDefaultTyping();
+
         String json = m.writeValueAsString(input);
         assertEquals("[[\""+Choice.class.getName()+"\",\"YES\"]]", json);
 
@@ -121,6 +137,13 @@ public class TestDefaultForObject
         Object[] output = m.readValue(json, Object[].class);
         assertEquals(1, output.length);
         assertEquals(Choice.YES, output[0]);
+
+        // ditto for more complicated enum
+        json = m.writeValueAsString(input2);
+        assertEquals("[[\""+ComplexChoice.class.getName()+"\",\"MAYBE\"]]", json);
+        output = m.readValue(json, Object[].class);
+        assertEquals(1, output.length);
+        assertEquals(ComplexChoice.MAYBE, output[0]);
     }
 
     @SuppressWarnings("unchecked")

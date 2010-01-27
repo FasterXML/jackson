@@ -10,7 +10,7 @@ import org.codehaus.jackson.type.JavaType;
  * legal {@link JavaType}.
  */
 public final class ArrayType
-    extends JavaType
+    extends TypeBase
 {
     /**
      * Type of elements in the array.
@@ -23,7 +23,7 @@ public final class ArrayType
      * it is essentially immutable and thus can be shared.
      */
     final Object _emptyArray;
-
+    
     private ArrayType(JavaType componentType, Object emptyInstance)
     {
         super(emptyInstance.getClass());
@@ -44,6 +44,10 @@ public final class ArrayType
         return new ArrayType(componentType, emptyInstance);
     }                                   
 
+	protected String buildCanonicalName() {
+		return _class.getName();
+	}
+    
     /*
     //////////////////////////////////////////////////////////
     // Methods for narrowing conversions
@@ -132,7 +136,7 @@ public final class ArrayType
      */
 
     @Override
-        public String toString()
+    public String toString()
     {
         return "[array type, component type: "+_componentType+"]";
     }

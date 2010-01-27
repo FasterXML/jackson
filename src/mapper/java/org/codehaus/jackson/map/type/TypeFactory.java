@@ -219,11 +219,51 @@ public class TypeFactory
         }
         return new SimpleType(parametrized, params);
     }
-    
+
     /*
-    ///////////////////////////////////////////////////////
-    // Legacy methods
-    ///////////////////////////////////////////////////////
+    /****************************************************
+    /* Type conversions
+    /****************************************************
+     */
+
+    /**
+     * Method that tries to create specialized type given base type, and
+     * a sub-class thereof (which is assumed to use same parametrization
+     * as supertype). Similar to calling {@link JavaType#narrowBy(Class)},
+     * but can change underlying {@link JavaType} (from simple to Map, for
+     * example), unliked <code>narrowBy</code> which assumes same logical
+     * type.
+     */
+    public static JavaType specialize(JavaType baseType, Class<?> subclass)
+    {
+        // Currently only SimpleType instances can become something else
+    	if (baseType instanceof SimpleType) {
+            // and only if subclass is an array, Collection or Map
+            if (subclass.isArray()
+                || Map.class.isAssignableFrom(subclass)
+                || Collection.class.isAssignableFrom(subclass)) {
+                // need to assert type compatibility...
+                if (!baseType.getRawClass().isAssignableFrom(subclass)) {
+                    throw new IllegalArgumentException("Class "+subclass.getClass().getName()+" not subtype of "+baseType);
+                }
+                // this _should_ work, right?
+                JavaType subtype = instance._fromClass(subclass, null);
+                // one more thing: handler to copy?
+                Object h = baseType.getHandler();
+                if (h != null) {
+                    subtype.setHandler(h);
+                }
+                return subtype;
+            }
+        }
+        // otherwise regular narrowing should work just fine
+        return baseType.narrowBy(subclass);
+    }
+
+    /*
+    /****************************************************
+    /* Legacy methods
+    /****************************************************
      */
 
     /**

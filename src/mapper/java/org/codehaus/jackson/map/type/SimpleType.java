@@ -11,7 +11,7 @@ import org.codehaus.jackson.type.JavaType;
  * with generic types other than Collections and Maps.
  */
 public final class SimpleType
-    extends JavaType
+    extends TypeBase
 {
     /**
      * For generic types we need to keep track of mapping from formal
@@ -64,6 +64,25 @@ public final class SimpleType
         return new SimpleType(cls, typeParams);
     }
 
+	protected String buildCanonicalName() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(_class.getName());
+		if (_typeParameters != null && _typeParameters.size() > 0) {
+			sb.append('<');
+			boolean first = true;
+			for (JavaType t : _typeParameters.values()) {
+				if (first) {
+					first = false;
+				} else {
+					sb.append(',');
+				}
+				sb.append(t.toCanonical());
+			}
+			sb.append('>');
+		}
+		return sb.toString();
+	}
+    
     /*
     //////////////////////////////////////////////////////////
     // Public API

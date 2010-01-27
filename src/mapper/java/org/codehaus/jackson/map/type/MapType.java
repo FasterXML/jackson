@@ -6,7 +6,7 @@ import org.codehaus.jackson.type.JavaType;
  * Type that represents Java Map types.
  */
 public final class MapType
-    extends JavaType
+    extends TypeBase
 {
     /**
      * Type of keys of Map.
@@ -54,6 +54,19 @@ public final class MapType
         return new MapType(_class, _keyType, newValueType);
     }
 
+	protected String buildCanonicalName() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(_class.getName());
+		if (_keyType != null) {
+			sb.append('<');
+			sb.append(_keyType.toCanonical());
+			sb.append(',');
+			sb.append(_valueType.toCanonical());
+			sb.append('>');
+		}
+		return sb.toString();
+	}
+    
     /*
     //////////////////////////////////////////////////////////
     // Public API

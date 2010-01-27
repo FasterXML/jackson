@@ -213,6 +213,18 @@ public abstract class JavaType
      */
     public Object getHandler() { return _handler; }
 
+    /**
+     * Method that can be used to serialize type into form from which
+     * it can be fully deserialized from at a later point (using
+     * <code>TypeFactory</code> from mapper package).
+     * For simple types this is same as calling
+     * {@link Class#getName}, but for structured types it may additionally
+     * contain type information about contents.
+     * 
+     * @since 1.5
+     */
+    public abstract String toCanonical();
+    
     /*
     ///////////////////////////////////////////////////////////////
     // Helper methods

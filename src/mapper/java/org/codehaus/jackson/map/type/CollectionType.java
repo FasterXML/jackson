@@ -6,7 +6,7 @@ import org.codehaus.jackson.type.JavaType;
  * Type that represents Java Collection types (Lists, Sets).
  */
 public final class CollectionType
-    extends JavaType
+    extends TypeBase
 {
     /**
      * Type of elements in collection
@@ -47,6 +47,17 @@ public final class CollectionType
         return new CollectionType(rawType, elemT);
     }
 
+	protected String buildCanonicalName() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(_class.getName());
+		if (_elementType != null) {
+			sb.append('<');
+			sb.append(_elementType.toCanonical());
+			sb.append('>');
+		}
+		return sb.toString();
+	}
+    
     /*
     //////////////////////////////////////////////////////////
     // Public API

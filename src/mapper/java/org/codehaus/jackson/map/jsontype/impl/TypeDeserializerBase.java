@@ -8,6 +8,7 @@ import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -108,7 +109,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
          {
              try {
                  Class<?> cls = Class.forName(typeId);
-                 return baseType.narrowBy(cls);
+                 return TypeFactory.specialize(baseType, cls);
              } catch (ClassNotFoundException e) {
                  throw new IllegalArgumentException("Invalid type id '"+typeId+"' (for id type 'Id.class'): no such class found");
              } catch (Exception e) {
