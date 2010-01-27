@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
  * Type serializer that will embed type information in an array,
@@ -16,9 +17,9 @@ import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 public class AsArrayTypeSerializer
     extends TypeSerializerBase
 {
-    public AsArrayTypeSerializer(TypeConverter conv)
+    public AsArrayTypeSerializer(JsonTypeInfo.Id idType, TypeIdResolver idRes)
     {
-        super(conv);
+        super(idType, idRes);
     }
 
     @Override
@@ -29,7 +30,7 @@ public class AsArrayTypeSerializer
         throws IOException, JsonProcessingException
     {
         jgen.writeStartArray();
-        jgen.writeString(_typeConverter.typeAsString(value));
+        jgen.writeString(_idResolver.idFromValue(value));
         jgen.writeStartObject();
     }
 
@@ -38,7 +39,7 @@ public class AsArrayTypeSerializer
         throws IOException, JsonProcessingException
     {
         jgen.writeStartArray();
-        jgen.writeString(_typeConverter.typeAsString(value));
+        jgen.writeString(_idResolver.idFromValue(value));
         jgen.writeStartArray();
     }
 
@@ -48,7 +49,7 @@ public class AsArrayTypeSerializer
     {
         // only need the wrapper array
         jgen.writeStartArray();
-        jgen.writeString(_typeConverter.typeAsString(value));
+        jgen.writeString(_idResolver.idFromValue(value));
     }
 
     @Override

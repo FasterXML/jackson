@@ -6,11 +6,11 @@ import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.type.JavaType;
 
 /**
- * Interfaces builders that are configured based on
+ * Interface that defines builders that are configured based on
  * annotations (like {@link JsonTypeInfo} or JAXB annotations),
- * linked to be used by
- * {@link JsonTypeInfo#typeResolver()}, and produce type
- * serializers and deserializers.
+ * and produce type serializers and deserializers used for
+ * handling type information embedded in JSON to allow for safe
+ * polymorphic type handling.
  *<p>
  * Builder is first initialized by calling {@link #init} method, and then
  * configured using <code>setXxx</code> (and <code>registerXxx</code>)
@@ -22,12 +22,12 @@ import org.codehaus.jackson.type.JavaType;
  * @since 1.5
  * @author tatu
  */
-public interface JsonTypeResolverBuilder<T extends JsonTypeResolverBuilder<T>>
+public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
 {
     /**
      * Marker in annotations to denote that no resolver builder is defined.
      */
-    public abstract class NONE implements JsonTypeResolverBuilder<NONE> { }
+    public abstract class NONE implements TypeResolverBuilder<NONE> { }
 
     /*
      ***********************************************************
@@ -65,11 +65,12 @@ public interface JsonTypeResolverBuilder<T extends JsonTypeResolverBuilder<T>>
      * the builder instance.
      *
      * @param idType Which type metadata is used
+     * @param (optional) Custom type id resolver used, if any
      * 
      * @return Resulting builder instance (usually this builder,
      *   but not necessarily)
      */
-    public T init(JsonTypeInfo.Id idType);
+    public T init(JsonTypeInfo.Id idType, TypeIdResolver res);
     
     /*
     ***********************************************************
@@ -108,9 +109,10 @@ public interface JsonTypeResolverBuilder<T extends JsonTypeResolverBuilder<T>>
 
     /**
      * Method for adding relationship between type builder handles, and
-     * one of its subtypes. Relationship itself is only needed for
-     * deserialization; but additionally type name to use for type may
+     * one of its subtypes. Relationship between type and subtype is only
+     * needed for deserialization; but additionally type name to use for type may
      * also be specified, and this names is used for serialization as well.
+     * If type name is passed as null, d
      *<p>
      * Calling this method is useful for type id mechanism of
      * {@link JsonTypeInfo.Id#NAME}; other types generally ignore it
@@ -119,8 +121,8 @@ public interface JsonTypeResolverBuilder<T extends JsonTypeResolverBuilder<T>>
      * @param type Subtype in question (must be a sub-class of class that
      *   this builder was constructed for
      * @param name (optional) Name to use, if non-null and non-empty;
-     *    if null or empty String, default name determination mechanism
-     *    is used (usually just uses non-qualified type name)
+     *    if null or empty String, default naming strategy is used (which
+     *    usually creates name based on class name)
      * 
      * @return Resulting builder instance (usually this builder,
      *   but not necessarily)

@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
  * Type serializer that preferably embeds type information as an additional
@@ -21,9 +22,9 @@ public class AsPropertyTypeSerializer
 {
     protected final String _propertyName;
 
-    public AsPropertyTypeSerializer(TypeConverter conv, String propName)
+    public AsPropertyTypeSerializer(JsonTypeInfo.Id idType, TypeIdResolver idRes, String propName)
     {
-        super(conv);
+        super(idType, idRes);
         _propertyName = propName;
     }
 
@@ -38,7 +39,7 @@ public class AsPropertyTypeSerializer
         throws IOException, JsonProcessingException
     {
         jgen.writeStartObject();
-        jgen.writeStringField(_propertyName, _typeConverter.typeAsString(value));
+        jgen.writeStringField(_propertyName, _idResolver.idFromValue(value));
     }
 
     //public void writeTypePrefixForArray(Object value, JsonGenerator jgen)

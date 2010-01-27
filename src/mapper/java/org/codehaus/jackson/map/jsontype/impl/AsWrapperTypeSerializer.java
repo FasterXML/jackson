@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
  * Type wrapper that tries to use an extra JSON Object, with a single
@@ -20,9 +21,9 @@ import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 public class AsWrapperTypeSerializer
     extends TypeSerializerBase
 {
-    public AsWrapperTypeSerializer(TypeConverter conv)
+    public AsWrapperTypeSerializer(JsonTypeInfo.Id idType, TypeIdResolver idRes)
     {
-        super(conv);
+        super(idType, idRes);
     }
 
     @Override
@@ -35,7 +36,7 @@ public class AsWrapperTypeSerializer
         // wrapper
         jgen.writeStartObject();
         // and then JSON Object start caller wants
-        jgen.writeObjectFieldStart(_typeConverter.typeAsString(value));
+        jgen.writeObjectFieldStart(_idResolver.idFromValue(value));
     }
 
     @Override
@@ -45,7 +46,7 @@ public class AsWrapperTypeSerializer
         // can still wrap ok
         jgen.writeStartObject();
         // and then JSON Array start caller wants
-        jgen.writeArrayFieldStart(_typeConverter.typeAsString(value));
+        jgen.writeArrayFieldStart(_idResolver.idFromValue(value));
     }
     
     @Override
@@ -54,7 +55,7 @@ public class AsWrapperTypeSerializer
     {
         // can still wrap ok
         jgen.writeStartObject();
-        jgen.writeFieldName(_typeConverter.typeAsString(value));
+        jgen.writeFieldName(_idResolver.idFromValue(value));
     }
     
     @Override

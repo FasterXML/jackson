@@ -8,7 +8,7 @@ import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.StdDateFormat;
@@ -303,7 +303,7 @@ public class DeserializationConfig
      * 
      * @since 1.5
      */
-    protected final JsonTypeResolverBuilder<?> _typer;
+    protected final TypeResolverBuilder<?> _typer;
     
     /*
     ///////////////////////////////////////////////////////////
@@ -321,7 +321,7 @@ public class DeserializationConfig
 
     protected DeserializationConfig(DeserializationConfig src,
                                     HashMap<ClassKey,Class<?>> mixins,
-                                    JsonTypeResolverBuilder<?> typer)
+                                    TypeResolverBuilder<?> typer)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -390,7 +390,7 @@ public class DeserializationConfig
      * instance.
      */
     //@Override
-    public DeserializationConfig createUnshared(JsonTypeResolverBuilder<?> typer)
+    public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer)
 
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
@@ -569,7 +569,7 @@ public class DeserializationConfig
     }
 
     //@Override
-    public JsonTypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
+    public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
         return _typer;
     }
     

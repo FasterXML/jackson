@@ -3,17 +3,18 @@ package org.codehaus.jackson.map.jsontype.impl;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeIdResolver;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;
 
 /**
- * Default {@link JsonTypeResolverBuilder} implementation.
+ * Default {@link TypeResolverBuilder} implementation.
  *
  * @author tatu
  * @since 1.5
  */
 public class StdTypeResolverBuilder
-    implements JsonTypeResolverBuilder<StdTypeResolverBuilder>
+    implements TypeResolverBuilder<StdTypeResolverBuilder>
 {
     // Configuration settings:
 
@@ -22,6 +23,10 @@ public class StdTypeResolverBuilder
     protected JsonTypeInfo.As _includeAs;
 
     protected String _typeProperty;
+
+    // Objects
+    
+    protected TypeIdResolver _customIdResolver;
     
     /*
     ********************************************************
@@ -29,16 +34,16 @@ public class StdTypeResolverBuilder
     ********************************************************
      */
 
-    public StdTypeResolverBuilder() {
-    }
+    public StdTypeResolverBuilder() { }
     
-    public StdTypeResolverBuilder init(JsonTypeInfo.Id idType)
+    public StdTypeResolverBuilder init(JsonTypeInfo.Id idType, TypeIdResolver idRes)
     {
         // sanity checks
         if (idType == null) {
             throw new IllegalArgumentException("idType can not be null");
         }
         _idType = idType;
+        _customIdResolver = idRes;
         // Let's also initialize property name as per idType default
         _typeProperty = idType.getDefaultPropertyName();
         return this;
@@ -46,38 +51,14 @@ public class StdTypeResolverBuilder
     
     public TypeSerializer buildTypeSerializer(JavaType baseType)
     {
-        if (_idType == null) {
-            throw new IllegalStateException("Can not build, 'init()' not yet called");
-        }
-
-        // First, method for converting type info to type id:
-        TypeSerializerBase.TypeConverter idConv;
-        switch (_idType) {
-        case CLASS:
-            idConv = new TypeSerializerBase.ClassNameConverter();
-            break;
-        case MINIMAL_CLASS:
-            idConv = new TypeSerializerBase.MinimalClassNameConverter(baseType);
-            break;
-        case NAME:
-            // !!! @TODO: add name bindings
-            idConv = new TypeSerializerBase.TypeNameConverter();
-            break;
-
-        case NONE: // hmmh. should never get this far with 'none'
-        case CUSTOM: // need custom resolver...
-        default:
-            throw new IllegalStateException("Do not know how to construct standard type serializer for idType: "+_idType);
-        }
-
-        // And then inclusion mechanism
+        TypeIdResolver idRes = idResolver(baseType);
         switch (_includeAs) {
         case WRAPPER_ARRAY:
-            return new AsArrayTypeSerializer(idConv);
+            return new AsArrayTypeSerializer(_idType, idRes);
         case PROPERTY:
-            return new AsPropertyTypeSerializer(idConv, _typeProperty);
+            return new AsPropertyTypeSerializer(_idType, idRes, _typeProperty);
         case WRAPPER_OBJECT:
-            return new AsWrapperTypeSerializer(idConv);
+            return new AsWrapperTypeSerializer(_idType, idRes);
         default:
             throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
         }
@@ -85,38 +66,16 @@ public class StdTypeResolverBuilder
 
     public TypeDeserializer buildTypeDeserializer(JavaType baseType)
     {
-        if (_idType == null) {
-            throw new IllegalStateException("Can not build, 'init()' not yet called");
-        }
+        TypeIdResolver idRes = idResolver(baseType);
         
         // First, method for converting type info to type id:
-        TypeDeserializerBase.TypeConverter idConv;
-        switch (_idType) {
-        case CLASS:
-            idConv = new TypeDeserializerBase.ClassNameConverter();
-            break;
-        case MINIMAL_CLASS:
-            idConv = new TypeDeserializerBase.MinimalClassNameConverter(baseType);
-            break;
-        case NAME:
-            // !!! @TODO: add name bindings
-            idConv = new TypeDeserializerBase.TypeNameConverter();
-            break;
-
-        case NONE: // hmmh. should never get this far with 'none'
-        case CUSTOM: // need custom resolver...
-        default:
-            throw new IllegalStateException("Do not know how to construct standard type serializer for idType: "+_idType);
-        }
-
-        // And then inclusion mechanism
         switch (_includeAs) {
         case WRAPPER_ARRAY:
-            return new AsArrayTypeDeserializer(baseType, idConv);
+            return new AsArrayTypeDeserializer(baseType, _idType, idRes);
         case PROPERTY:
-            return new AsPropertyTypeDeserializer(baseType, idConv, _typeProperty);
+            return new AsPropertyTypeDeserializer(baseType, _idType, idRes, _typeProperty);
         case WRAPPER_OBJECT:
-            return new AsWrapperTypeDeserializer(baseType, idConv);
+            return new AsWrapperTypeDeserializer(baseType, _idType, idRes);
         default:
             throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
         }
@@ -154,4 +113,40 @@ public class StdTypeResolverBuilder
         _typeProperty = propName;
         return this;
     }
+
+    /*
+     ********************************************************
+     * Internal methods
+     ********************************************************
+      */
+
+    /**
+     * Helper method that will either return configured custom
+     * type id resolver, or construct a standard resolver
+     * given configuration.
+     */
+    protected TypeIdResolver idResolver(JavaType baseType)
+    {
+        // Custom id resolver?
+        if (_customIdResolver != null) {
+            return _customIdResolver;
+        }
+        if (_idType == null) {
+            throw new IllegalStateException("Can not build, 'init()' not yet called");
+        }
+        switch (_idType) {
+        case CLASS:
+            return new ClassNameIdResolver(baseType);
+        case MINIMAL_CLASS:
+            return new MinimalClassNameIdResolver(baseType);
+        case NAME:
+            // !!! @TODO: add name bindings
+            return new TypeNameIdResolver(baseType);
+
+        case CUSTOM: // need custom resolver...
+        case NONE: // hmmh. should never get this far with 'none'
+        }
+        throw new IllegalStateException("Do not know how to construct standard type id resolver for idType: "+_idType);
+    }
+    
 }

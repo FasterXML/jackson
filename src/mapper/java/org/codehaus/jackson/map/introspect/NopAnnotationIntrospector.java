@@ -7,7 +7,7 @@ import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Typing;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 
 /**
  * Dummy, "no-operation" implementation of {@link AnnotationIntrospector}.
@@ -83,12 +83,12 @@ public class NopAnnotationIntrospector
     }
 
     @Override
-    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a) {
+    public TypeResolverBuilder<?> findTypeResolver(Annotated a) {
         return null;
     }
 
     @Override
-    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder<?> b) {
+    public void findAndAddSubtypes(AnnotatedClass ac, TypeResolverBuilder<?> b) {
         // nothing to do
     }
     

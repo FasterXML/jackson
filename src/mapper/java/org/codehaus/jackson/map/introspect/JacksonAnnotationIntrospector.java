@@ -7,13 +7,9 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
-import org.codehaus.jackson.map.annotate.JsonCachable;
-import org.codehaus.jackson.map.annotate.JsonDeserialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.annotate.JsonTypeResolver;
-import org.codehaus.jackson.map.annotate.JsonView;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.annotate.*;
+import org.codehaus.jackson.map.jsontype.TypeIdResolver;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.util.ClassUtil;
 
@@ -122,13 +118,13 @@ public class JacksonAnnotationIntrospector
 
     
     @Override
-    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a)
+    public TypeResolverBuilder<?> findTypeResolver(Annotated a)
     {
         // First: maybe we have explicit type resolver?
-        JsonTypeResolverBuilder<?> b;
+        TypeResolverBuilder<?> b;
         JsonTypeInfo info = a.getAnnotation(JsonTypeInfo.class);
         JsonTypeResolver resAnn = a.getAnnotation(JsonTypeResolver.class);
-        if (resAnn != null && resAnn.value() != JsonTypeResolverBuilder.NONE.class) {
+        if (resAnn != null && resAnn.value() != TypeResolverBuilder.NONE.class) {
             /* let's not try to force access override (would need to pass
              * settings through if we did, since that's not doable on some
              * platforms)
@@ -140,14 +136,18 @@ public class JacksonAnnotationIntrospector
             }
             b = new StdTypeResolverBuilder();
         }
-        b = b.init(info.use());
+        // Does it define a custom type id resolver?
+        JsonTypeIdResolver idResInfo = a.getAnnotation(JsonTypeIdResolver.class);
+        TypeIdResolver idRes = (idResInfo == null) ? null
+                : ClassUtil.createInstance(idResInfo.value(), false);
+        b = b.init(info.use(), idRes);
         b = b.inclusion(info.include());
         b = b.typeProperty(info.property());
         return b;
     }
 
     @Override
-    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder<?> b)
+    public void findAndAddSubtypes(AnnotatedClass ac, TypeResolverBuilder<?> b)
     {
         // @TODO
     }

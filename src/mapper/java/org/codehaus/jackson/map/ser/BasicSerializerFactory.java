@@ -9,7 +9,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
@@ -253,7 +253,7 @@ public class BasicSerializerFactory
     {
         BasicBeanDescription bean = config.introspectClassAnnotations(baseType.getRawClass());
         AnnotatedClass ac = bean.getClassInfo();
-        JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac);
+        TypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac);
         /* Ok: if there is no explicit type info handler, we may want to
          * use a default. If so, config object knows what to use.
          */

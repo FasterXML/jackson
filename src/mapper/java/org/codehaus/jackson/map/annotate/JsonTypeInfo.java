@@ -150,8 +150,8 @@ public @interface JsonTypeInfo
      * type information for instances of annotated type (and its subtypes
      * unless overridden)
      */
-    public Id use();
-
+    public Id use();    
+    
     /**
      * What mechanism is used for including type metadata (if any; for
      * {@link Id#NONE} nothing is included). Default

@@ -13,7 +13,7 @@ import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
@@ -308,7 +308,7 @@ public abstract class BasicDeserializerFactory
         Class<?> cls = baseType.getRawClass();
         BasicBeanDescription bean = config.introspectClassAnnotations(cls);
         AnnotatedClass ac = bean.getClassInfo();
-        JsonTypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac);
+        TypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac);
         /* Ok: if there is no explicit type info handler, we may want to
          * use a default. If so, config object knows what to use.
          */

@@ -13,7 +13,7 @@ import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ArrayNode;
@@ -83,7 +83,7 @@ public class ObjectMapper
     }
 
     /**
-     * Customized {@link JsonTypeResolverBuilder} that provides
+     * Customized {@link TypeResolverBuilder} that provides
      * resolver builders based on its configuration. It is used
      * when default typing is enabled (see
      * {@link ObjectMapper#enableDefaultTyping()} for details).
@@ -165,7 +165,7 @@ public class ObjectMapper
      * 
      * @since 1.5
      */
-    protected JsonTypeResolverBuilder<?> _defaultTyper;
+    protected TypeResolverBuilder<?> _defaultTyper;
     
     /*
     ////////////////////////////////////////////////////
@@ -584,9 +584,9 @@ public class ObjectMapper
 
     public ObjectMapper enableDefaultTyping(DefaultTyping dti, JsonTypeInfo.As includeAs)
     {
-        JsonTypeResolverBuilder<?> typer = new DefaultTypeResolverBuilder(dti);
+        TypeResolverBuilder<?> typer = new DefaultTypeResolverBuilder(dti);
         // we'll always use full class name, when using defaulting
-        typer = typer.init(JsonTypeInfo.Id.CLASS);
+        typer = typer.init(JsonTypeInfo.Id.CLASS, null);
         typer = typer.inclusion(includeAs);
         return setDefaltTyping(typer);
     }
@@ -595,7 +595,7 @@ public class ObjectMapper
         return setDefaltTyping(null);
     }
 
-    public ObjectMapper setDefaltTyping(JsonTypeResolverBuilder<?> typer) {
+    public ObjectMapper setDefaltTyping(TypeResolverBuilder<?> typer) {
         _defaultTyper = typer;
         return this;
     }

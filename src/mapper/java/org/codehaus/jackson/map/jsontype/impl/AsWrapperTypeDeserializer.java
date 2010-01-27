@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -18,8 +19,10 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class AsWrapperTypeDeserializer extends TypeDeserializerBase
 {
-    public AsWrapperTypeDeserializer(JavaType bt, TypeConverter c) {
-        super(bt, c);
+    public AsWrapperTypeDeserializer(JavaType bt, JsonTypeInfo.Id idType,
+            TypeIdResolver idRes)
+    {
+        super(bt, idType, idRes);
     }
 
     @Override

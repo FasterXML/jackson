@@ -1,6 +1,6 @@
 package org.codehaus.jackson.map.annotate;
 
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 
 /**
  * Annotation that can be used to explicitly define custom resolver
@@ -11,5 +11,5 @@ import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
  * @since 1.5
  */
 public @interface JsonTypeResolver {
-    public Class<? extends JsonTypeResolverBuilder<?>> value() default JsonTypeResolverBuilder.NONE.class;
+    public Class<? extends TypeResolverBuilder<?>> value() default TypeResolverBuilder.NONE.class;
 }

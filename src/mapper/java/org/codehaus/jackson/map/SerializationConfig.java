@@ -7,7 +7,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion; // for javadocs
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.type.JavaType;
@@ -322,7 +322,7 @@ public class SerializationConfig
      * 
      * @since 1.5
      */
-    protected final JsonTypeResolverBuilder<?> _typer;
+    protected final TypeResolverBuilder<?> _typer;
     
     /*
     ///////////////////////////////////////////////////////////
@@ -340,7 +340,7 @@ public class SerializationConfig
 
     protected SerializationConfig(SerializationConfig src,
                                   HashMap<ClassKey,Class<?>> mixins,
-                                  JsonTypeResolverBuilder<?> typer)
+                                  TypeResolverBuilder<?> typer)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -418,7 +418,7 @@ public class SerializationConfig
      * instance.
      */
     //@Override
-    public SerializationConfig createUnshared(JsonTypeResolverBuilder<?> typer)
+    public SerializationConfig createUnshared(TypeResolverBuilder<?> typer)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
@@ -550,7 +550,7 @@ public class SerializationConfig
     }
 
     //@Override
-    public JsonTypeResolverBuilder<?> getDefaultTyper(JavaType baseType)
+    public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType)
     {
         return _typer;
     }

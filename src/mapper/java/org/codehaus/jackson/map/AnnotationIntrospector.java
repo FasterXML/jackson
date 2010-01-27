@@ -6,7 +6,7 @@ import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 
 /**
  * Abstract class that defines API used for introspecting annotation-based
@@ -142,13 +142,13 @@ public abstract class AnnotationIntrospector
      * 
      * @since 1.5
      */
-    public abstract JsonTypeResolverBuilder<?> findTypeResolver(Annotated a);
+    public abstract TypeResolverBuilder<?> findTypeResolver(Annotated a);
 
     /**
      * Method for locating annotation-specified subtypes of given class, and
      * passing them to given type resolver builder.
      */
-    public abstract void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder<?> b);
+    public abstract void findAndAddSubtypes(AnnotatedClass ac, TypeResolverBuilder<?> b);
     
     /*
     ///////////////////////////////////////////////////////
@@ -654,9 +654,9 @@ public abstract class AnnotationIntrospector
         }        
 
         @Override
-        public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a)
+        public TypeResolverBuilder<?> findTypeResolver(Annotated a)
         {
-            JsonTypeResolverBuilder<?> b = _primary.findTypeResolver(a);
+            TypeResolverBuilder<?> b = _primary.findTypeResolver(a);
             if (b == null) {
                 b = _secondary.findTypeResolver(a);
             }
@@ -667,7 +667,7 @@ public abstract class AnnotationIntrospector
          * Method for locating annotation-specified subtypes of given class, and
          * passing them to given type resolver builder.
          */
-        public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder<?> b)
+        public void findAndAddSubtypes(AnnotatedClass ac, TypeResolverBuilder<?> b)
         {
             _primary.findAndAddSubtypes(ac, b);
             _secondary.findAndAddSubtypes(ac, b);

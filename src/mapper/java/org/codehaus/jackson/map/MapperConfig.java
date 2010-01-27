@@ -2,7 +2,7 @@ package org.codehaus.jackson.map;
 
 import java.util.Map;
 
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -34,7 +34,7 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * Method to use for constructing an instance that is not shared
      * between multiple operations but only used for a single one.
      */
-    public T createUnshared(JsonTypeResolverBuilder<?> typer);
+    public T createUnshared(TypeResolverBuilder<?> typer);
 
     // // // Configuration
 
@@ -90,5 +90,5 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * 
      * @since 1.5
      */
-    public JsonTypeResolverBuilder<?> getDefaultTyper(JavaType baseType);
+    public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType);
 }

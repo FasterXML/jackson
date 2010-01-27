@@ -20,7 +20,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
-import org.codehaus.jackson.map.jsontype.JsonTypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -223,13 +223,13 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public JsonTypeResolverBuilder<?> findTypeResolver(Annotated a) {
+    public TypeResolverBuilder<?> findTypeResolver(Annotated a) {
         // @TODO
         return null;
     }
 
     @Override
-    public void findAndAddSubtypes(AnnotatedClass ac, JsonTypeResolverBuilder<?> b) {
+    public void findAndAddSubtypes(AnnotatedClass ac, TypeResolverBuilder<?> b) {
         // @TODO
     }
     
