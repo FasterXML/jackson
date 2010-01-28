@@ -253,7 +253,7 @@ public class BasicSerializerFactory
     {
         BasicBeanDescription bean = config.introspectClassAnnotations(baseType.getRawClass());
         AnnotatedClass ac = bean.getClassInfo();
-        TypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac);
+        TypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac, baseType);
         /* Ok: if there is no explicit type info handler, we may want to
          * use a default. If so, config object knows what to use.
          */

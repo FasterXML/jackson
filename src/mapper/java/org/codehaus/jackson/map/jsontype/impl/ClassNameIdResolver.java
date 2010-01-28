@@ -14,6 +14,10 @@ public class ClassNameIdResolver
     }
 
     public JsonTypeInfo.Id getMechanism() { return JsonTypeInfo.Id.CLASS; }
+
+    public void registerSubtype(Class<?> type, String name) {
+        // not used with class name - based resolvers
+    }
     
     public String idFromValue(Object value)
     {

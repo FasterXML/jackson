@@ -2,6 +2,7 @@ package org.codehaus.jackson.map;
 
 import java.lang.annotation.Annotation;
 
+import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -137,18 +138,21 @@ public abstract class AnnotationIntrospector
      * {@link #findAndAddSubtypes}
      * 
      * @param a Annotated entity (class, field/method) to check for annotations
+     * @param baseType Base java type of property for which resolver is to be found
      * 
      * @return Type resolver builder for given type, if one found; null if none
      * 
      * @since 1.5
      */
-    public abstract TypeResolverBuilder<?> findTypeResolver(Annotated a);
+    public abstract TypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType);
 
     /**
      * Method for locating annotation-specified subtypes of given class, and
      * passing them to given type resolver builder.
+     * 
+     * @param a Annotated entity (class, field/method) to check for annotations
      */
-    public abstract void findAndAddSubtypes(AnnotatedClass ac, TypeResolverBuilder<?> b);
+    public abstract void findAndAddSubtypes(Annotated a, TypeResolverBuilder<?> b);
     
     /*
     ///////////////////////////////////////////////////////
@@ -654,23 +658,20 @@ public abstract class AnnotationIntrospector
         }        
 
         @Override
-        public TypeResolverBuilder<?> findTypeResolver(Annotated a)
+        public TypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType)
         {
-            TypeResolverBuilder<?> b = _primary.findTypeResolver(a);
+            TypeResolverBuilder<?> b = _primary.findTypeResolver(a, baseType);
             if (b == null) {
-                b = _secondary.findTypeResolver(a);
+                b = _secondary.findTypeResolver(a, baseType);
             }
             return b;
         }
 
-        /**
-         * Method for locating annotation-specified subtypes of given class, and
-         * passing them to given type resolver builder.
-         */
-        public void findAndAddSubtypes(AnnotatedClass ac, TypeResolverBuilder<?> b)
+        @Override
+        public void findAndAddSubtypes(Annotated a, TypeResolverBuilder<?> b)
         {
-            _primary.findAndAddSubtypes(ac, b);
-            _secondary.findAndAddSubtypes(ac, b);
+            _primary.findAndAddSubtypes(a, b);
+            _secondary.findAndAddSubtypes(a, b);
         }
         
         // // // General method annotations

@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.introspect;
 
+import java.util.HashSet;
 import java.lang.annotation.Annotation;
 
 import org.codehaus.jackson.annotate.*;
@@ -12,6 +13,7 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
@@ -118,7 +120,7 @@ public class JacksonAnnotationIntrospector
 
     
     @Override
-    public TypeResolverBuilder<?> findTypeResolver(Annotated a)
+    public TypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType)
     {
         // First: maybe we have explicit type resolver?
         TypeResolverBuilder<?> b;
@@ -147,9 +149,30 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public void findAndAddSubtypes(AnnotatedClass ac, TypeResolverBuilder<?> b)
+    public void findAndAddSubtypes(Annotated a, TypeResolverBuilder<?> b)
     {
-        // @TODO
+        JsonSubTypes t = a.getAnnotation(JsonSubTypes.class);
+        if (t != null) {
+            HashSet<String> seen = new HashSet<String>();
+            for (JsonSubTypes.Type type : t.value()) {
+                _addSubtypes(b, type, seen);
+            }
+        }
+    }
+
+    protected void _addSubtypes(TypeResolverBuilder<?> b, JsonSubTypes.Type typeDef,
+            HashSet<String> seen)
+    {
+        /*
+        Class<?> cls = typeDef.value();
+        // already seen? If so, skip
+        if (seen.contains(e)) return;
+        // otherwise find name, if we can
+        String name = typeDef.name();
+        if (name == null || name.length() == 0) {
+            
+        }
+        */
     }
     
     /*

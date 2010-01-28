@@ -16,6 +16,12 @@ import org.codehaus.jackson.type.JavaType;
  */
 public interface TypeIdResolver
 {
+    /*
+    /*********************************************** 
+    /* Initialization/configuration methods
+    /*********************************************** 
+     */
+
     /**
      * Method that will be called once before any type resolution calls;
      * used to initialize instance with configuration. This is necessary
@@ -26,6 +32,14 @@ public interface TypeIdResolver
      *   used
      */
     public void init(JavaType baseType);
+
+    public void registerSubtype(Class<?> type, String name);
+
+    /*
+    /*********************************************** 
+    /* Conversions between types and type ids
+    /*********************************************** 
+     */
     
     /**
      * Method called to serialize type of the type of given value

@@ -8,9 +8,9 @@ import java.lang.annotation.Target;
 import org.codehaus.jackson.annotate.JacksonAnnotation;
 
 /**
- * Annotation used with {@link JsonTypeInfo} to indicate subtypes that
- * can be serialized, so that type names can be resolved (as indicated by
- * {@link JsonTypeName})
+ * Annotation used with {@link JsonTypeInfo} to indicate sub types of serializable
+ * polymorphic types, and to associate logical names used within JSON content
+ * (which is more portable than using physical Java class names).
  * 
  * @since 1.5
  */
@@ -18,5 +18,29 @@ import org.codehaus.jackson.annotate.JacksonAnnotation;
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonSubTypes {
-    public Class<?>[] value();
+    /**
+     * Subtypes of the annotated type (annotated class, or property value type
+     * associated with the annotated method). These will be checked recursively
+     * so that types can be defined by only including direct subtypes.
+     */
+    public Type[] value();
+
+    /**
+     * Definition of a subtype, along with optional name. If name is missing, class
+     * of the type will be checked for {@link JsonTypeName} annotation; and if that
+     * is also missing or empty, a default
+     * name will be constructed by type id mechanism.
+     * Default name is usually based on actual class name.
+     */
+    public @interface Type {
+        /**
+         * Class of the subtype
+         */
+        public Class<?> value();
+
+        /**
+         * Logical type name used as the type identifier for the class
+         */
+        public String name() default "";
+    }
 }

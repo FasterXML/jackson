@@ -11,6 +11,10 @@ public class TypeNameIdResolver
         super(baseType);
     }
 
+    public void registerSubtype(Class<?> type, String name) {
+        // !!! TBI
+    }
+    
     public JsonTypeInfo.Id getMechanism() { return JsonTypeInfo.Id.NAME; }
     
     public String idFromValue(Object value)
