@@ -24,11 +24,6 @@ import org.codehaus.jackson.type.JavaType;
  */
 public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
 {
-    /**
-     * Marker in annotations to denote that no resolver builder is defined.
-     */
-    public abstract class NONE implements TypeResolverBuilder<NONE> { }
-
     /*
      ***********************************************************
      * Actual builder methods

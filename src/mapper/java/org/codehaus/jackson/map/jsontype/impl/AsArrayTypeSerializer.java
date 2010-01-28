@@ -17,9 +17,9 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 public class AsArrayTypeSerializer
     extends TypeSerializerBase
 {
-    public AsArrayTypeSerializer(JsonTypeInfo.Id idType, TypeIdResolver idRes)
+    public AsArrayTypeSerializer(TypeIdResolver idRes)
     {
-        super(idType, idRes);
+        super(idRes);
     }
 
     @Override

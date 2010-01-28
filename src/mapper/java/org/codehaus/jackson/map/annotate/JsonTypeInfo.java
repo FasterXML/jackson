@@ -51,6 +51,8 @@ public @interface JsonTypeInfo
          * This means that no explicit type metadata is included, and typing is
          * purely done using contextual information possibly augmented with other
          * annotations.
+         *<p>
+         * Note: no {@link TypeIdResolver} is constructed if this value is used.
          */
         NONE(null),
 
@@ -87,7 +89,7 @@ public @interface JsonTypeInfo
         /**
          * Means that typing mechanism uses customized handling, with possibly
          * custom configuration. This means that semantics of other properties is
-         * not defined by Jackson package, but by custom implementation.
+         * not defined by Jackson package, but by the custom implementation.
          */
         CUSTOM(null)
         ;

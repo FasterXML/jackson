@@ -54,11 +54,11 @@ public class StdTypeResolverBuilder
         TypeIdResolver idRes = idResolver(baseType);
         switch (_includeAs) {
         case WRAPPER_ARRAY:
-            return new AsArrayTypeSerializer(_idType, idRes);
+            return new AsArrayTypeSerializer(idRes);
         case PROPERTY:
-            return new AsPropertyTypeSerializer(_idType, idRes, _typeProperty);
+            return new AsPropertyTypeSerializer(idRes, _typeProperty);
         case WRAPPER_OBJECT:
-            return new AsWrapperTypeSerializer(_idType, idRes);
+            return new AsWrapperTypeSerializer(idRes);
         default:
             throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
         }
@@ -71,11 +71,11 @@ public class StdTypeResolverBuilder
         // First, method for converting type info to type id:
         switch (_includeAs) {
         case WRAPPER_ARRAY:
-            return new AsArrayTypeDeserializer(baseType, _idType, idRes);
+            return new AsArrayTypeDeserializer(baseType, idRes);
         case PROPERTY:
-            return new AsPropertyTypeDeserializer(baseType, _idType, idRes, _typeProperty);
+            return new AsPropertyTypeDeserializer(baseType, idRes, _typeProperty);
         case WRAPPER_OBJECT:
-            return new AsWrapperTypeDeserializer(baseType, _idType, idRes);
+            return new AsWrapperTypeDeserializer(baseType, idRes);
         default:
             throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
         }

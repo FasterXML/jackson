@@ -11,5 +11,5 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
  * @since 1.5
  */
 public @interface JsonTypeResolver {
-    public Class<? extends TypeResolverBuilder<?>> value() default TypeResolverBuilder.NONE.class;
+    public Class<? extends TypeResolverBuilder<?>> value();
 }

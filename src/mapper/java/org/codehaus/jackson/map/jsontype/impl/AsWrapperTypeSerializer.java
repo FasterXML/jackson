@@ -21,9 +21,9 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 public class AsWrapperTypeSerializer
     extends TypeSerializerBase
 {
-    public AsWrapperTypeSerializer(JsonTypeInfo.Id idType, TypeIdResolver idRes)
+    public AsWrapperTypeSerializer(TypeIdResolver idRes)
     {
-        super(idType, idRes);
+        super(idRes);
     }
 
     @Override

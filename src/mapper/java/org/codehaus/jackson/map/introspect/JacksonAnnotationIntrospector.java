@@ -124,7 +124,7 @@ public class JacksonAnnotationIntrospector
         TypeResolverBuilder<?> b;
         JsonTypeInfo info = a.getAnnotation(JsonTypeInfo.class);
         JsonTypeResolver resAnn = a.getAnnotation(JsonTypeResolver.class);
-        if (resAnn != null && resAnn.value() != TypeResolverBuilder.NONE.class) {
+        if (resAnn != null) {
             /* let's not try to force access override (would need to pass
              * settings through if we did, since that's not doable on some
              * platforms)

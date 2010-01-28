@@ -10,12 +10,10 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
  */
 public abstract class TypeSerializerBase extends TypeSerializer
 {
-    protected final JsonTypeInfo.Id _idType;
     protected final TypeIdResolver _idResolver;
     
-    protected TypeSerializerBase(JsonTypeInfo.Id idType, TypeIdResolver idRes)
+    protected TypeSerializerBase(TypeIdResolver idRes)
     {
-        _idType = idType;
         _idResolver = idRes;
     }
 
@@ -23,9 +21,7 @@ public abstract class TypeSerializerBase extends TypeSerializer
     public abstract JsonTypeInfo.As getTypeInclusion();
 
     @Override
-    public JsonTypeInfo.Id getTypeId() { return _idType; }
-
-    // base implementation returns null; ones that use property name need to override
-    @Override
-    public String propertyName() { return null; }
+    public String getPropertyName() { return null; }
+    
+    public TypeIdResolver getTypeIdResolver() { return _idResolver; }
 }

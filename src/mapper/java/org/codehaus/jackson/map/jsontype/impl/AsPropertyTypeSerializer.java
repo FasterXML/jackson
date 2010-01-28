@@ -22,14 +22,14 @@ public class AsPropertyTypeSerializer
 {
     protected final String _propertyName;
 
-    public AsPropertyTypeSerializer(JsonTypeInfo.Id idType, TypeIdResolver idRes, String propName)
+    public AsPropertyTypeSerializer(TypeIdResolver idRes, String propName)
     {
-        super(idType, idRes);
+        super(idRes);
         _propertyName = propName;
     }
 
     @Override
-    public String propertyName() { return _propertyName; }
+    public String getPropertyName() { return _propertyName; }
 
     @Override
     public JsonTypeInfo.As getTypeInclusion() { return JsonTypeInfo.As.PROPERTY; }

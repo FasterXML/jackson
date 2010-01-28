@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.jsontype;
 
+import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -36,4 +37,16 @@ public interface TypeIdResolver
      * Method called to resolve type from given type identifier.
      */
     public JavaType typeFromId(String id);
+
+    /*
+    /*********************************************** 
+    /* Accessors for metadata
+    /*********************************************** 
+     */
+
+     /**
+      * Accessor for mechanism that this resolver uses for determining
+      * type id from type.
+      */
+     public JsonTypeInfo.Id getMechanism();
 }

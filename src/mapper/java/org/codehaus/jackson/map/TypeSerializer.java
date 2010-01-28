@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
  * Interface for serializing type information regarding instances of specified
@@ -32,13 +33,16 @@ public abstract class TypeSerializer
     public abstract JsonTypeInfo.As getTypeInclusion();
 
     /**
-     * Accessor for type information id method, what is the
-     * serialization method for type information (i.e. what
-     * is embedded in resulting JSON)
+     * Name of property that contains type information, if
+     * property-based inclusion is used.
      */
-    public abstract JsonTypeInfo.Id getTypeId();
-
-    public abstract String propertyName();
+    public abstract String getPropertyName();
+    
+    /**
+     * Accessor for object that handles conversions between
+     * types and matching type ids.
+     */
+    public abstract TypeIdResolver getTypeIdResolver();
     
     /*
      **********************************************************

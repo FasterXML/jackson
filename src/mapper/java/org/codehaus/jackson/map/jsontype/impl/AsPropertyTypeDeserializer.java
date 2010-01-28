@@ -25,10 +25,9 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
 {
     protected final String _propertyName;
 
-    public AsPropertyTypeDeserializer(JavaType bt, JsonTypeInfo.Id idType,
-            TypeIdResolver idRes, String propName)
+    public AsPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes, String propName)
     {
-        super(bt, idType, idRes);
+        super(bt, idRes);
         _propertyName = propName;
     }
 
@@ -36,6 +35,9 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
     public JsonTypeInfo.As getTypeInclusion() {
         return JsonTypeInfo.As.PROPERTY;
     }
+
+    @Override
+    public String getPropertyName() { return _propertyName; }
 
     /**
      * This is the trickiest thing to handle, since property we are looking

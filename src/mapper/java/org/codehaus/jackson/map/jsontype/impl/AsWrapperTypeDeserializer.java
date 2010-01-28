@@ -19,10 +19,9 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class AsWrapperTypeDeserializer extends TypeDeserializerBase
 {
-    public AsWrapperTypeDeserializer(JavaType bt, JsonTypeInfo.Id idType,
-            TypeIdResolver idRes)
+    public AsWrapperTypeDeserializer(JavaType bt, TypeIdResolver idRes)
     {
-        super(bt, idType, idRes);
+        super(bt, idRes);
     }
 
     @Override

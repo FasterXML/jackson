@@ -18,8 +18,6 @@ import org.codehaus.jackson.type.JavaType;
 public abstract class TypeDeserializerBase extends TypeDeserializer
 {
     protected final TypeIdResolver _idResolver;
-
-    protected final JsonTypeInfo.Id _idType;
     
     protected final JavaType _baseType;
 
@@ -29,27 +27,24 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
      */
     protected final HashMap<String,JsonDeserializer<Object>> _deserializers;
     
-    protected TypeDeserializerBase(JavaType baseType, JsonTypeInfo.Id idType,
-            TypeIdResolver idRes)
+    protected TypeDeserializerBase(JavaType baseType, TypeIdResolver idRes)
     {
         _baseType = baseType;
-        _idType = idType;
         _idResolver = idRes;
         _deserializers = new HashMap<String,JsonDeserializer<Object>>();
     }
 
     @Override
     public abstract JsonTypeInfo.As getTypeInclusion();
-    
-    @Override
-    public final JsonTypeInfo.Id getTypeId() { return _idType; }
-
-    // base implementation returns null; ones that use property name need to override
-    @Override
-    public String propertyName() { return null; }
 
     public String baseTypeName() { return _baseType.getRawClass().getName(); }
 
+    @Override
+    public String getPropertyName() { return null; }
+    
+    @Override    
+    public TypeIdResolver getTypeIdResolver() { return _idResolver; }
+    
     /*
      ************************************************************
      * Helper methods for sub-classes
