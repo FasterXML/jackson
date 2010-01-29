@@ -33,8 +33,6 @@ public interface TypeIdResolver
      */
     public void init(JavaType baseType);
 
-    public void registerSubtype(Class<?> type, String name);
-
     /*
     /*********************************************** 
     /* Conversions between types and type ids

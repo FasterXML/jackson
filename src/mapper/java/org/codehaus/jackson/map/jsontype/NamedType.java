@@ -10,20 +10,26 @@ package org.codehaus.jackson.map.jsontype;
 public final class NamedType
 {
     protected final Class<?> _class;
-    protected final String _name;
     protected final int _hashCode;
+
+    protected String _name;
     
     public NamedType(Class<?> c) { this(c, null); }
     
     public NamedType(Class<?> c, String name)
     {
         _class = c;
-        _name = (name == null || name.length() == 0) ? null : name;
         _hashCode = c.getName().hashCode();
+        setName(name);
     }
 
     public Class<?> getType() { return _class; }
     public String getName() { return _name; }
+    public void setName(String name) {
+        _name = (name == null || name.length() == 0) ? null : name;
+    }
+
+    public boolean hasName() { return _name != null; }
     
     /**
      * Equality is defined based on class only, not on name

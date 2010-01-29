@@ -64,10 +64,21 @@ public abstract class ClassIntrospector<T extends BeanDescription>
 
     /**
      * Factory method that constructs an introspector that only has
-     * information regarding annotations class itself has, but nothing
-     * on methods or constructors.
+     * information regarding annotations class itself (or its supertypes) has,
+     * but nothing on methods or constructors.
      */
     public abstract T forClassAnnotations(MapperConfig<?> cfg, Class<?> c,
                                           MixInResolver r);
+
+    /**
+     * Factory method that constructs an introspector that only has
+     * information regarding annotations class itself has (but NOT including
+     * its supertypes), but nothing on methods or constructors.
+     * 
+     * @since 1.5
+     */
+    public abstract T forDirectClassAnnotations(MapperConfig<?> cfg, Class<?> c,
+            MixInResolver r);
+
 }
 

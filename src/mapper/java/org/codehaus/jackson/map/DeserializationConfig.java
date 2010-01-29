@@ -568,6 +568,16 @@ public class DeserializationConfig
         return (T) _classIntrospector.forClassAnnotations(this, cls, this);
     }
 
+    /**
+     * Accessor for getting bean description that only contains immediate class
+     * annotations: ones from the class, and its direct mix-in, if any, but
+     * not from super types.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
+        return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
+    }
+    
     //@Override
     public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
         return _typer;

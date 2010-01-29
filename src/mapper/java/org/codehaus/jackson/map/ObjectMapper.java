@@ -2,6 +2,7 @@ package org.codehaus.jackson.map;
 
 import java.io.*;
 import java.net.URL;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
@@ -13,6 +14,7 @@ import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
+import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -99,13 +101,19 @@ public class ObjectMapper
         public DefaultTypeResolverBuilder(DefaultTyping t) {
             _appliesFor = t;
         }
-        
-        public TypeDeserializer buildTypeDeserializer(JavaType baseType) {
-            return useForType(baseType) ? super.buildTypeDeserializer(baseType) : null;
+
+        @Override
+        public TypeDeserializer buildTypeDeserializer(JavaType baseType,
+                Collection<NamedType> subtypes)
+        {
+            return useForType(baseType) ? super.buildTypeDeserializer(baseType, subtypes) : null;
         }
 
-        public TypeSerializer buildTypeSerializer(JavaType baseType) {
-            return useForType(baseType) ? super.buildTypeSerializer(baseType) : null;            
+        @Override
+        public TypeSerializer buildTypeSerializer(JavaType baseType,
+                Collection<NamedType> subtypes)
+        {
+            return useForType(baseType) ? super.buildTypeSerializer(baseType, subtypes) : null;            
         }
 
         /**

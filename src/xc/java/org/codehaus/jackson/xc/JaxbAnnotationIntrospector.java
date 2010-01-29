@@ -21,9 +21,11 @@ import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -227,9 +229,21 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public TypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType) {
-        // @TODO
-        return null;
+    public TypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType)
+    {
+        /* Assumption: existence of @XmlElements implies need to add
+         * type information.
+         */
+        XmlElements elems = findAnnotation(XmlElements.class, a, false, false, false);
+        if (elems == null) {
+            return null;
+        }
+        TypeResolverBuilder<?> b = new StdTypeResolverBuilder();
+        // JAXB always uses type name as id
+        b = b.init(JsonTypeInfo.Id.NAME, null);
+        // and let's consider WRAPPER_OBJECT to be canonical inclusion method
+        b = b.inclusion(JsonTypeInfo.As.WRAPPER_OBJECT);
+        return b;        
     }
 
     @Override

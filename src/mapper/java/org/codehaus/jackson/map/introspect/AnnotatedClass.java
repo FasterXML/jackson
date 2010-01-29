@@ -12,7 +12,6 @@ import org.codehaus.jackson.map.util.ClassUtil;
 public final class AnnotatedClass
     extends Annotated
 {
-
     /*
     ///////////////////////////////////////////////////////
     // Configuration
@@ -142,6 +141,21 @@ public final class AnnotatedClass
         return ac;
     }
 
+    /**
+     * Method similar to {@link #construct}, but that will NOT include
+     * information from supertypes; only class itself and any direct
+     * mix-ins it may have.
+     */
+    public static AnnotatedClass constructWithoutSuperTypes(Class<?> cls,
+            AnnotationIntrospector aintr,
+            MixInResolver mir)
+    {
+        List<Class<?>> empty = Collections.emptyList();
+        AnnotatedClass ac = new AnnotatedClass(cls, empty, aintr, mir);
+        ac.resolveClassAnnotations();
+        return ac;
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // Annotated impl 

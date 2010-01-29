@@ -1,8 +1,11 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
+import java.util.Collection;
+
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;
@@ -49,9 +52,10 @@ public class StdTypeResolverBuilder
         return this;
     }
     
-    public TypeSerializer buildTypeSerializer(JavaType baseType)
+    public TypeSerializer buildTypeSerializer(JavaType baseType,
+            Collection<NamedType> subtypes)
     {
-        TypeIdResolver idRes = idResolver(baseType);
+        TypeIdResolver idRes = idResolver(baseType, subtypes, true, false);
         switch (_includeAs) {
         case WRAPPER_ARRAY:
             return new AsArrayTypeSerializer(idRes);
@@ -64,9 +68,10 @@ public class StdTypeResolverBuilder
         }
     }
 
-    public TypeDeserializer buildTypeDeserializer(JavaType baseType)
+    public TypeDeserializer buildTypeDeserializer(JavaType baseType,
+            Collection<NamedType> subtypes)
     {
-        TypeIdResolver idRes = idResolver(baseType);
+        TypeIdResolver idRes = idResolver(baseType, subtypes, false, true);
         
         // First, method for converting type info to type id:
         switch (_includeAs) {
@@ -86,15 +91,6 @@ public class StdTypeResolverBuilder
      * Construction, configuration
      ********************************************************
       */
-
-    /**
-     * Method used to add name/class bindings for "Id.NAME" type
-     * id method
-     */
-    public StdTypeResolverBuilder registerSubtype(Class<?> type, String name) {
-        // TODO Auto-generated method stub
-        return this;
-    }
 
     public StdTypeResolverBuilder inclusion(JsonTypeInfo.As includeAs) {
         if (includeAs == null) {
@@ -125,7 +121,8 @@ public class StdTypeResolverBuilder
      * type id resolver, or construct a standard resolver
      * given configuration.
      */
-    protected TypeIdResolver idResolver(JavaType baseType)
+    protected TypeIdResolver idResolver(JavaType baseType, Collection<NamedType> subtypes,
+            boolean forSer, boolean forDeser)
     {
         // Custom id resolver?
         if (_customIdResolver != null) {
@@ -140,8 +137,7 @@ public class StdTypeResolverBuilder
         case MINIMAL_CLASS:
             return new MinimalClassNameIdResolver(baseType);
         case NAME:
-            // !!! @TODO: add name bindings
-            return new TypeNameIdResolver(baseType);
+            return TypeNameIdResolver.construct(baseType, subtypes, forSer, forDeser);
 
         case CUSTOM: // need custom resolver...
         case NONE: // hmmh. should never get this far with 'none'

@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.jsontype;
 
+import java.util.Collection;
+
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonTypeInfo;
@@ -37,7 +39,8 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
      * @param baseType Base type that constructed resolver will
      *    handle; super type of all types it will be used for.
      */
-    public TypeSerializer buildTypeSerializer(JavaType baseType);
+    public TypeSerializer buildTypeSerializer(JavaType baseType,
+            Collection<NamedType> subtypes);
 
     /**
      * Method for building type deserializer based on current configuration
@@ -45,8 +48,10 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
      * 
      * @param baseType Base type that constructed resolver will
      *    handle; super type of all types it will be used for.
+     * @param subtypes Known subtypes of the base type.
      */
-    public TypeDeserializer buildTypeDeserializer(JavaType baseType);
+    public TypeDeserializer buildTypeDeserializer(JavaType baseType,
+            Collection<NamedType> subtypes);
     
     /*
      ***********************************************************
@@ -101,26 +106,4 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
      *   but not necessarily)
      */
     public T typeProperty(String propName);
-
-    /**
-     * Method for adding relationship between type builder handles, and
-     * one of its subtypes. Relationship between type and subtype is only
-     * needed for deserialization; but additionally type name to use for type may
-     * also be specified, and this names is used for serialization as well.
-     * If type name is passed as null, d
-     *<p>
-     * Calling this method is useful for type id mechanism of
-     * {@link JsonTypeInfo.Id#NAME}; other types generally ignore it
-     * (although {@link JsonTypeInfo.Id#CUSTOM} can use it).
-     *
-     * @param type Subtype in question (must be a sub-class of class that
-     *   this builder was constructed for
-     * @param name (optional) Name to use, if non-null and non-empty;
-     *    if null or empty String, default naming strategy is used (which
-     *    usually creates name based on class name)
-     * 
-     * @return Resulting builder instance (usually this builder,
-     *   but not necessarily)
-     */
-    public T registerSubtype(Class<?> type, String name);
 }

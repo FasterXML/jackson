@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -253,14 +254,47 @@ public class BasicSerializerFactory
     {
         BasicBeanDescription bean = config.introspectClassAnnotations(baseType.getRawClass());
         AnnotatedClass ac = bean.getClassInfo();
-        TypeResolverBuilder<?> b = config.getAnnotationIntrospector().findTypeResolver(ac, baseType);
+        AnnotationIntrospector ai = config.getAnnotationIntrospector();
+        TypeResolverBuilder<?> b = ai.findTypeResolver(ac, baseType);
         /* Ok: if there is no explicit type info handler, we may want to
          * use a default. If so, config object knows what to use.
          */
+        Collection<NamedType> subtypes = null;
         if (b == null) {
             b = config.getDefaultTyper(baseType);
+        } else {
+            // Otherwise may need to know subtypes:
+            Collection<NamedType> st = ai.findSubtypes(ac);
+            if (st != null && st.size() > 0) {
+                subtypes = _collectAndResolveSubtypes(config, ai, st);
+            }
         }
-        return (b == null) ? null : b.buildTypeSerializer(baseType);
+        return (b == null) ? null : b.buildTypeSerializer(baseType, subtypes);
+    }
+
+    protected Collection<NamedType> _collectAndResolveSubtypes(MapperConfig<?> config,
+            AnnotationIntrospector ai, Collection<NamedType> subtypeList)
+    {
+        LinkedHashSet<NamedType> subtypes = new LinkedHashSet<NamedType>(subtypeList);
+        // collect all subtypes recursively
+        for (NamedType type : subtypes) {
+            AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(type.getType(), ai, config);
+            // but first: does type have a name already?
+            if (!type.hasName()) { // if not, let's see if annotations define it
+                type.setName(ai.findTypeName(ac));
+            }
+            // and see if annotations list more subtypes
+            List<NamedType> moreTypes = ai.findSubtypes(ac);
+            if (moreTypes != null) {
+                for (NamedType t2 : moreTypes) {
+                    // we want to keep the first reference (may have name)
+                    if (!subtypes.contains(t2)) {
+                        subtypes.add(t2);
+                    }
+                }
+            }
+        }
+        return null;
     }
     
     /*

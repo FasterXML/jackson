@@ -174,6 +174,15 @@ public class BasicClassIntrospector
         return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
     }
 
+    @Override
+    public BasicBeanDescription forDirectClassAnnotations(MapperConfig<?> cfg,
+            Class<?> c, MixInResolver r)
+    {
+        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(c, ai, r);
+        return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
+    }
+    
     /*
     ///////////////////////////////////////////////////////
     // Overridable helper methods

@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ObjectBuffer;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Context for deserialization process. Used to allow passing in configuration
@@ -175,4 +176,12 @@ public abstract class DeserializationContext
      *   have been) instantiated
      */
     public abstract JsonMappingException unknownFieldException(Object instanceOrClass, String fieldName);
+
+    /**
+     * Helper method for constructing exception to indicate that given
+     * type id (parsed from JSON) could not be converted to a Java type.
+     * 
+     * @since 1.5
+     */
+    public abstract JsonMappingException unknownTypeException(JavaType baseType, String id);
 }

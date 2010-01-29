@@ -12,6 +12,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.ObjectBuffer;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Default implementation of {@link DeserializationContext}.
@@ -246,6 +247,12 @@ public class StdDeserializationContext
         return JsonMappingException.from(_parser, "Unrecognized field \""+fieldName+"\" (Class "+clsName+"), not marked as ignorable");
     }
 
+    @Override
+    public JsonMappingException unknownTypeException(JavaType type, String id)
+    {
+        return JsonMappingException.from(_parser, "Could not resolve type id '"+id+"' into a subtype of "+type);
+    }
+   
     protected String determineClassName(Object instance)
     {
         if (instance == null) {
