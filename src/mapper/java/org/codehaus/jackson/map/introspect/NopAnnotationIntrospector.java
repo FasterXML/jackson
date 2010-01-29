@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.introspect;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.JsonDeserializer;
@@ -8,6 +9,7 @@ import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Typing;
+import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 
 /**
@@ -89,8 +91,13 @@ public class NopAnnotationIntrospector
     }
 
     @Override
-    public void findAndAddSubtypes(Annotated a, TypeResolverBuilder<?> b) {
-        // nothing to do
+    public List<NamedType> findSubtypes(Annotated a) {
+        return null;
+    }
+
+    @Override
+    public String findTypeName(AnnotatedClass ac) {
+        return null;
     }
     
     /*

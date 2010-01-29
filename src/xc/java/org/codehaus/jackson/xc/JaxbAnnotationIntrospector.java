@@ -9,6 +9,8 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.util.*;
+
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -20,6 +22,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
+import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;
 
@@ -230,8 +233,27 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public void findAndAddSubtypes(Annotated a, TypeResolverBuilder<?> b) {
-        // @TODO
+    public List<NamedType> findSubtypes(Annotated a) {
+        // No package/superclass defaulting (only used with fields, methods)
+        XmlElements elems = findAnnotation(XmlElements.class, a, false, false, false);
+        if (elems == null) return null;
+        ArrayList<NamedType> result = new ArrayList<NamedType>();
+        for (XmlElement elem : elems.value()) {
+            String name = elem.name();
+            if (MARKER_FOR_DEFAULT.equals(name)) name = null;
+            result.add(new NamedType(elem.type(), name));
+        }
+        return result;
+    }
+
+    @Override
+    public String findTypeName(AnnotatedClass ac) {
+        XmlType type = findAnnotation(XmlType.class, ac, false, false, false);
+        if (type != null) {
+            String name = type.name();
+            if (!MARKER_FOR_DEFAULT.equals(name)) return name;
+        }
+        return null;
     }
     
     /*

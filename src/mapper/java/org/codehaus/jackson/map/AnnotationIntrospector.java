@@ -1,12 +1,14 @@
 package org.codehaus.jackson.map;
 
 import java.lang.annotation.Annotation;
+import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
+import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 
 /**
@@ -130,6 +132,12 @@ public abstract class AnnotationIntrospector
      */
     public abstract Boolean findIgnoreUnknownProperties(AnnotatedClass ac);
 
+    /*
+    /****************************************************
+    /* Class annotations for PM type handling (1.5+)
+    /****************************************************
+    */
+
     /**
      * Method for checking if given class has annotations that indicate
      * that specific type resolver is to be used. This includes not only
@@ -147,12 +155,22 @@ public abstract class AnnotationIntrospector
     public abstract TypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType);
 
     /**
-     * Method for locating annotation-specified subtypes of given class, and
-     * passing them to given type resolver builder.
+     * Method for locating annotation-specified subtypes of given class.
      * 
      * @param a Annotated entity (class, field/method) to check for annotations
+     * 
+     * @since 1.5
      */
-    public abstract void findAndAddSubtypes(Annotated a, TypeResolverBuilder<?> b);
+    public abstract List<NamedType> findSubtypes(Annotated a);
+
+    /**
+     * Method for checking if specified type has explicit name.
+     * 
+     * @param ac Class to check for type name annotations
+     * 
+     * @since 1.5
+     */
+    public abstract String findTypeName(AnnotatedClass ac);
     
     /*
     ///////////////////////////////////////////////////////
@@ -668,10 +686,26 @@ public abstract class AnnotationIntrospector
         }
 
         @Override
-        public void findAndAddSubtypes(Annotated a, TypeResolverBuilder<?> b)
+        public List<NamedType> findSubtypes(Annotated a)
         {
-            _primary.findAndAddSubtypes(a, b);
-            _secondary.findAndAddSubtypes(a, b);
+            List<NamedType> types1 = _primary.findSubtypes(a);
+            List<NamedType> types2 = _secondary.findSubtypes(a);
+            if (types1 == null || types1.isEmpty()) return types2;
+            if (types2 == null || types2.isEmpty()) return types1;
+            ArrayList<NamedType> result = new ArrayList<NamedType>(types1.size() + types2.size());
+            result.addAll(types1);
+            result.addAll(types2);
+            return result;
+        }
+
+        @Override        
+        public String findTypeName(AnnotatedClass ac)
+        {
+            String name = _primary.findTypeName(ac);
+            if (name == null || name.length() == 0) {
+                name = _secondary.findTypeName(ac);                
+            }
+            return name;
         }
         
         // // // General method annotations

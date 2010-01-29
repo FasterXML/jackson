@@ -1,6 +1,6 @@
 package org.codehaus.jackson.map.introspect;
 
-import java.util.HashSet;
+import java.util.*;
 import java.lang.annotation.Annotation;
 
 import org.codehaus.jackson.annotate.*;
@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.*;
+import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
@@ -149,32 +150,25 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public void findAndAddSubtypes(Annotated a, TypeResolverBuilder<?> b)
+    public List<NamedType> findSubtypes(Annotated a)
     {
         JsonSubTypes t = a.getAnnotation(JsonSubTypes.class);
-        if (t != null) {
-            HashSet<String> seen = new HashSet<String>();
-            for (JsonSubTypes.Type type : t.value()) {
-                _addSubtypes(b, type, seen);
-            }
+        if (t == null) return null;
+        JsonSubTypes.Type[] types = t.value();
+        ArrayList<NamedType> result = new ArrayList<NamedType>(types.length);
+        for (JsonSubTypes.Type type : types) {
+            result.add(new NamedType(type.value(), type.name()));
         }
+        return result;
     }
 
-    protected void _addSubtypes(TypeResolverBuilder<?> b, JsonSubTypes.Type typeDef,
-            HashSet<String> seen)
+    @Override        
+    public String findTypeName(AnnotatedClass ac)
     {
-        /*
-        Class<?> cls = typeDef.value();
-        // already seen? If so, skip
-        if (seen.contains(e)) return;
-        // otherwise find name, if we can
-        String name = typeDef.name();
-        if (name == null || name.length() == 0) {
-            
-        }
-        */
+        JsonTypeName tn = ac.getAnnotation(JsonTypeName.class);
+        return (tn == null) ? null : tn.value();
     }
-    
+
     /*
     ///////////////////////////////////////////////////////
     // General method annotations
