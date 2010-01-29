@@ -34,7 +34,7 @@ public class TestTypeNames {
     }
 
     @JsonSubTypes({
-        @Type(value=MaineCoon.class, name="hairyBeast"),
+        @Type(value=MaineCoon.class, name="hairyBeast")
     })
     abstract static class Cat extends Animal {
         public boolean purrs;
