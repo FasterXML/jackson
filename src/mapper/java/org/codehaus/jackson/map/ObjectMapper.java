@@ -81,7 +81,15 @@ public class ObjectMapper
          * properties with declared type of {@link java.lang.Object}
          * or an abstract type (abstract class or interface).
          */
-        OBJECT_AND_NON_CONCRETE
+        OBJECT_AND_NON_CONCRETE,
+        
+        /**
+         * Value that means that default typing will be used for
+         * all non-final types, with exception of small number of
+         * "natural" types (String, Boolean, Integer, Double), which
+         * can be correctly inferred from JSON.
+         */        
+        NON_FINAL
     }
 
     /**
@@ -119,16 +127,24 @@ public class ObjectMapper
         /**
          * Method called to check if the default type handler should be
          * used for given type.
+         * Note: "natural types" (String, Boolean, Integer, Double) will never
+         * use typing; that is both due to them being concrete and final,
+         * and since actual serializers and deserializers will also ignore any
+         * attempts to enforce typing.
          */
         public boolean useForType(JavaType t)
         {
-            // Always applicable for Object.class
+            // Always applicable for Object.class, when enabled
             if (t.getRawClass() == Object.class) {
                 return true;
             }
             // Also, can be applicable for non-concrete types (abstract class, interface)
-            if (!t.isConcrete() && _appliesFor == DefaultTyping.OBJECT_AND_NON_CONCRETE) {
-                return true;
+            // or non-final types
+            switch (_appliesFor) {
+            case OBJECT_AND_NON_CONCRETE:
+                return !t.isConcrete();
+            case NON_FINAL:
+                return !t.isFinal();
             }
             // otherwise, not used
             return false;

@@ -117,6 +117,24 @@ public class TestDefaultForObject
         assertEquals("xyz", ((StringBean) beans[0]).name);
     }
 
+    /**
+     * Unit test to verify that type information is included for
+     * all non-final types, if default typing suitably configured
+     */
+    public void testNonFinalBean() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        // first: use "object or abstract" typing: should produce no type info:        
+        m.enableDefaultTyping(ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE);
+        StringBean bean = new StringBean("x");
+        assertEquals("{\"name\":\"x\"}", m.writeValueAsString(bean));
+        // then non-final, and voila:
+        m = new ObjectMapper();
+        m.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        assertEquals("[\""+StringBean.class.getName()+"\",{\"name\":\"x\"}]",
+            m.writeValueAsString(bean));
+    }
+    
     public void testEnumAsObject() throws Exception
     {
         // wrapping to be declared as object

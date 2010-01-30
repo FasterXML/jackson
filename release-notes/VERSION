@@ -28,6 +28,8 @@ Description:
   * Add one parameter to StdDeserializer.handleUnknownProperty:
     addition was required for handling polymorphic cases that
     can use nested JsonParser instances.
+  * Fixed issues in generic type handling (was not resolving all named
+    types completely)
 
 ------------------------------------------------------------------------
 == History: ==

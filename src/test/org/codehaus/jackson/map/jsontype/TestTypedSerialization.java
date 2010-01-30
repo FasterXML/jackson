@@ -124,15 +124,24 @@ public class TestTypedSerialization
         assertEquals(Integer.valueOf(7), doggie.get("boneCount"));
     }
 
-    /**
-     * Use basic Animal via regular List
+    /* !!! 30-Jan-2010, tatus: I am not completely sure below works as it should
+     *    Problem is, context of "untyped" map should prevent type information
+     *    being added to Animal entries, because Object.class has no type.
+     *    If type information is inluded, it will not be useful for deserialization,
+     *    since static type does not carry through (unlike in serialization).
+     *    
+     *    But it is not quite clear how type information should be pushed through
+     *    array types...
      */
     public void testInArray() throws Exception
     {
+        // ensure we'll use mapper with default configs
+        ObjectMapper m = new ObjectMapper();
+        
         Animal[] animals = new Animal[] { new Cat("Miuku", "white"), new Dog("Murre", 9) };
         Map<String,Object> map = new HashMap<String,Object>();
         map.put("a", animals);
-        Map<String,Object> result = writeAndMap(map);
+        Map<String,Object> result = writeAndMap(m, map);
         assertEquals(1, result.size());
         List<?> l = (List<?>)result.get("a");
         assertNotNull(l);
