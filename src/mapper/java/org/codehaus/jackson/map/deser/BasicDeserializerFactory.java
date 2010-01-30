@@ -263,7 +263,8 @@ public abstract class BasicDeserializerFactory
                 ClassUtil.checkAndFixAccess(defaultCtor);
             }
         }
-        MapDeserializer md = new MapDeserializer(type, defaultCtor, keyDes, contentDeser);
+        TypeDeserializer contentTypeDeser = createTypeDeserializer(config, contentType);
+        MapDeserializer md = new MapDeserializer(type, defaultCtor, keyDes, contentDeser, contentTypeDeser);
         md.setIgnorableProperties(config.getAnnotationIntrospector().findPropertiesToIgnore(beanDesc.getClassInfo()));
         md.setCreators(findMapCreators(config, beanDesc));
         return md;
@@ -321,7 +322,7 @@ public abstract class BasicDeserializerFactory
             // Otherwise may need to know subtypes:
             Collection<NamedType> st = ai.findSubtypes(ac);
             if (st != null && st.size() > 0) {
-                subtypes = _collectAndResolveSubtypes(config, ai, subtypes);
+                subtypes = _collectAndResolveSubtypes(config, ai, st);
             }
         }
         return (b == null) ? null : b.buildTypeDeserializer(baseType, subtypes);
@@ -349,7 +350,7 @@ public abstract class BasicDeserializerFactory
                 }
             }
         }
-        return null;
+        return subtypes;
     }
     
     /*

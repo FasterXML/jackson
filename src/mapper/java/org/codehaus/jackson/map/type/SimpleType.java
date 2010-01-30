@@ -17,7 +17,7 @@ public final class SimpleType
      * For generic types we need to keep track of mapping from formal
      * into actual types, to be able to resolve generic signatures.
      */
-    protected final LinkedHashMap<String,JavaType> _typeParameters;
+    protected LinkedHashMap<String,JavaType> _typeParameters;
     
     /*
     //////////////////////////////////////////////////////////
@@ -25,13 +25,10 @@ public final class SimpleType
     //////////////////////////////////////////////////////////
      */
 
-    private SimpleType(Class<?> cls) { this(cls, null); }
-
-    protected SimpleType(Class<?> cls, Map<String,JavaType> typeParams)
+    protected SimpleType(Class<?> cls)
     {
         super(cls);
-        _typeParameters = (typeParams == null || typeParams.size() == 0) ?
-            null : new LinkedHashMap<String,JavaType>(typeParams);
+        _typeParameters = null;
     }
 
     protected JavaType _narrow(Class<?> subclass)
@@ -46,7 +43,7 @@ public final class SimpleType
         throw new IllegalArgumentException("Internal error: SimpleType.narrowContentsBy() should never be called");
     }
 
-    public static SimpleType construct(Class<?> cls, Map<String,JavaType> typeParams)
+    public static SimpleType construct(Class<?> cls)
     {
         /* Let's add sanity checks, just to ensure no
          * Map/Collection entries are constructed
@@ -61,10 +58,10 @@ public final class SimpleType
         if (cls.isArray()) {
             throw new IllegalArgumentException("Can not construct SimpleType for an array (class: "+cls.getName()+")");
         }
-        return new SimpleType(cls, typeParams);
+        return new SimpleType(cls);
     }
 
-	protected String buildCanonicalName() {
+    protected String buildCanonicalName() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(_class.getName());
 		if (_typeParameters != null && _typeParameters.size() > 0) {
@@ -81,8 +78,17 @@ public final class SimpleType
 			sb.append('>');
 		}
 		return sb.toString();
-	}
+    }
     
+    @Override
+    public void bindVariableType(String name, JavaType type)
+    {
+        if (_typeParameters == null) {
+            _typeParameters = new LinkedHashMap<String,JavaType>();
+        }
+        _typeParameters.put(name, type);
+    }
+	
     /*
     //////////////////////////////////////////////////////////
     // Public API
@@ -128,11 +134,13 @@ public final class SimpleType
         if (_typeParameters != null) {
             sb.append('<');
             int count = 0;
-            for (JavaType t : _typeParameters.values()) {
+            for (Map.Entry<String,JavaType> en : _typeParameters.entrySet()) {
                 if (++count > 1) {
                     sb.append(',');
                 }
-                sb.append(t.toString());
+                sb.append(en.getKey());
+                sb.append('=');
+                sb.append(en.getValue().toString());
             }
             sb.append('>');
         }

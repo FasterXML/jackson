@@ -60,7 +60,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
             if (deser == null) {
                 JavaType type = _idResolver.typeFromId(typeId);
                 if (type == null) {
-                    throw ctxt.unknownTypeException(type, typeId);
+                    throw ctxt.unknownTypeException(_baseType, typeId);
                 }
                 deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, null, null);
                 _deserializers.put(typeId, deser);

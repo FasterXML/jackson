@@ -116,6 +116,13 @@ public abstract class JavaType
         _handler = h;
     }
 
+    /**
+     * Method used to explicit bind specified name with a Type.
+     * Usually used to mark "unbound" type variables to allow
+     * partial resolution.
+     */
+    public void bindVariableType(String name, JavaType type) { }
+    
     /*
     ///////////////////////////////////////////////////////////////
     // Public API

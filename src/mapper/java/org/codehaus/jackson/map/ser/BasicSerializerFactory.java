@@ -294,7 +294,7 @@ public class BasicSerializerFactory
                 }
             }
         }
-        return null;
+        return subtypes;
     }
     
     /*

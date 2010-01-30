@@ -82,7 +82,7 @@ public class TestJavaType
 
         // Also, must use map type constructor, not simple...
         try {
-            SimpleType.construct(HashMap.class, null);
+            SimpleType.construct(HashMap.class);
         } catch (IllegalArgumentException e) {
             verifyException(e, "for a Map");
         }
@@ -108,7 +108,7 @@ public class TestJavaType
 
         // Also, must NOT try to create using simple type
         try {
-            SimpleType.construct(String[].class, null);
+            SimpleType.construct(String[].class);
         } catch (IllegalArgumentException e) {
             verifyException(e, "for an array");
         }
@@ -135,7 +135,7 @@ public class TestJavaType
 
         // Also, must NOT try to create using simple type
         try {
-            SimpleType.construct(ArrayList.class, null);
+            SimpleType.construct(ArrayList.class);
         } catch (IllegalArgumentException e) {
             verifyException(e, "for a Collection");
         }

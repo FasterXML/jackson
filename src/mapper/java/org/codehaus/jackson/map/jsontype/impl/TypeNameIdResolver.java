@@ -62,7 +62,6 @@ public class TypeNameIdResolver
                 }
             }
         }
-        
         return new TypeNameIdResolver(baseType, typeToId, idToType);
     }
 

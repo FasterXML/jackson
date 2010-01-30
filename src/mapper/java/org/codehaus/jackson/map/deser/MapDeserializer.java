@@ -39,6 +39,12 @@ public class MapDeserializer
      */
     final JsonDeserializer<Object> _valueDeserializer;
 
+    /**
+     * If value instances have polymorphic type information, this
+     * is the type deserializer that can handle it
+     */
+    final TypeDeserializer _valueTypeDeserializer;
+    
     // // Instance construction settings:
 
     final Constructor<Map<Object,Object>> _defaultCtor;
@@ -62,13 +68,15 @@ public class MapDeserializer
      */
 
     public MapDeserializer(JavaType mapType, Constructor<Map<Object,Object>> defCtor,
-                           KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser)
+                           KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser,
+                           TypeDeserializer valueTypeDeser)
     {
         super(Map.class);
         _mapType = mapType;
         _defaultCtor = defCtor;
         _keyDeserializer = keyDeser;
         _valueDeserializer = valueDeser;
+        _valueTypeDeserializer = valueTypeDeser;
     }
 
     /**
@@ -155,6 +163,15 @@ public class MapDeserializer
         return result;
     }
 
+    @Override
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer)
+        throws IOException, JsonProcessingException
+    {
+        // In future could check current token... for now this should be enough:
+        return typeDeserializer.deserializeTypedFromObject(jp, ctxt);
+    }
+    
     /*
     /////////////////////////////////////////////////////////
     // Other public accessors
@@ -176,13 +193,13 @@ public class MapDeserializer
                                       Map<Object,Object> result)
         throws IOException, JsonProcessingException
     {
-        KeyDeserializer keyDes = _keyDeserializer;
-        JsonDeserializer<Object> valueDes = _valueDeserializer;
-
         JsonToken t = jp.getCurrentToken();
         if (t == JsonToken.START_OBJECT) {
             t = jp.nextToken();
         }
+        final KeyDeserializer keyDes = _keyDeserializer;
+        final JsonDeserializer<Object> valueDes = _valueDeserializer;
+        final TypeDeserializer typeDeser = _valueTypeDeserializer;
         for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             // Must point to field name
             String fieldName = jp.getCurrentName();
@@ -194,7 +211,14 @@ public class MapDeserializer
                 continue;
             }
             // Note: must handle null explicitly here; value deserializers won't
-            Object value = (t == JsonToken.VALUE_NULL) ? null : valueDes.deserialize(jp, ctxt);
+            Object value;            
+            if (t == JsonToken.VALUE_NULL) {
+                value = null;
+            } else if (typeDeser == null) {
+                value = valueDes.deserialize(jp, ctxt);
+            } else {
+                value = valueDes.deserializeWithType(jp, ctxt, typeDeser);
+            }
             /* !!! 23-Dec-2008, tatu: should there be an option to verify
              *   that there are no duplicate field names? (and/or what
              *   to do, keep-first or keep-last)
@@ -214,6 +238,8 @@ public class MapDeserializer
         if (t == JsonToken.START_OBJECT) {
             t = jp.nextToken();
         }
+        final JsonDeserializer<Object> valueDes = _valueDeserializer;
+        final TypeDeserializer typeDeser = _valueTypeDeserializer;
         for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String propName = jp.getCurrentName();
             t = jp.nextToken(); // to get to value
@@ -237,21 +263,18 @@ public class MapDeserializer
             // other property? needs buffering
             String fieldName = jp.getCurrentName();
             Object key = (_keyDeserializer == null) ? fieldName : _keyDeserializer.deserializeKey(fieldName, ctxt);
-            // Note: must handle null explicitly here; value deserializers won't
-            Object value = (t == JsonToken.VALUE_NULL) ? null : _valueDeserializer.deserialize(jp, ctxt);
+            Object value;            
+            if (t == JsonToken.VALUE_NULL) {
+                value = null;
+            } else if (typeDeser == null) {
+                value = valueDes.deserialize(jp, ctxt);
+            } else {
+                value = valueDes.deserializeWithType(jp, ctxt, typeDeser);
+            }
             buffer.bufferMapProperty(key, value);
         }
         // end of JSON object?
         // if so, can just construct and leave...
         return (Map<Object,Object>)creator.build(buffer);
-    }
-
-    @Override
-    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
-            TypeDeserializer typeDeserializer)
-        throws IOException, JsonProcessingException
-    {
-        // In future could check current token... for now this should be enough:
-        return typeDeserializer.deserializeTypedFromObject(jp, ctxt);
     }
 }
