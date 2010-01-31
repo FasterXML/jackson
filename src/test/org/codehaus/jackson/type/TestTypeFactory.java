@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.type.*;
  */
 public class TestTypeFactory
     extends BaseTest
-{
+{    
     public void testSimpleTypes()
     {
         Class<?>[] classes = new Class<?>[] {
@@ -111,6 +111,9 @@ public class TestTypeFactory
     }
 
     /**
+     * Test for verifying that parametric types can be constructed
+     * programmatically
+     * 
      * @since 1.5
      */
     public void testParametricTypes()
@@ -132,4 +135,38 @@ public class TestTypeFactory
         assertEquals(t, t2.containedType(1));
         assertNull(t2.containedType(2));
     }
+
+    /**
+     * Test for checking that canonical name handling works ok
+     * 
+     * @since 1.5
+     */
+    public void testCanonicalNames()
+    {
+        JavaType t = TypeFactory.type(java.util.Calendar.class);
+        String can = t.toCanonical();
+        assertEquals("java.util.Calendar", can);
+        assertEquals(t, TypeFactory.fromCanonical(can));
+
+        // Generic maps and collections will default to Object.class if type-erased
+        t = TypeFactory.type(java.util.ArrayList.class);
+        can = t.toCanonical();
+        assertEquals("java.util.ArrayList<java.lang.Object>", can);
+        assertEquals(t, TypeFactory.fromCanonical(can));
+
+        t = TypeFactory.type(java.util.TreeMap.class);
+        can = t.toCanonical();
+        assertEquals("java.util.TreeMap<java.lang.Object,java.lang.Object>", can);
+        assertEquals(t, TypeFactory.fromCanonical(can));
+
+        // And then EnumMap (actual use case for us)
+        t = TypeFactory.mapType(EnumMap.class, TestEnum.class, String.class);
+        can = t.toCanonical();
+        assertEquals("java.util.EnumMap<org.codehaus.jackson.type.TestEnum,java.lang.String>",
+                can);
+        assertEquals(t, TypeFactory.fromCanonical(can));
+        
+    }
 }
+
+enum TestEnum { YES, NO; }

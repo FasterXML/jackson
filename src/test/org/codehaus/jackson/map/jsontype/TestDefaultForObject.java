@@ -175,10 +175,29 @@ public class TestDefaultForObject
         Object[] output = m.readValue(json, Object[].class);
         assertEquals(1, output.length);
         Object ob = output[0];
-        assertEquals(EnumSet.class, ob.getClass());
+        assertTrue(ob instanceof EnumSet<?>);
         EnumSet<Choice> set2 = (EnumSet<Choice>) ob;
         assertEquals(1, set2.size());
         assertTrue(set2.contains(Choice.NO));
         assertFalse(set2.contains(Choice.YES));
+    }
+
+    @SuppressWarnings("unchecked")
+    public void testEnumMap() throws Exception
+    {
+        EnumMap<Choice,String> map = new EnumMap<Choice,String>(Choice.class);
+        map.put(Choice.NO, "maybe");
+        Object[] input = new Object[] { map };
+        ObjectMapper m = new ObjectMapper();
+        m.enableDefaultTyping();
+        String json = m.writeValueAsString(input);
+        Object[] output = m.readValue(json, Object[].class);
+        assertEquals(1, output.length);
+        Object ob = output[0];
+        assertTrue(ob instanceof EnumMap<?,?>);
+        EnumMap<Choice,String> map2 = (EnumMap<Choice,String>) ob;
+        assertEquals(1, map2.size());
+        assertEquals("maybe", map2.get(Choice.NO));
+        assertNull(map2.get(Choice.YES));
     }
 }

@@ -35,6 +35,8 @@ public class TypeFactory
      * Marker to use for unbound references.
      */
     public final static JavaType UNBOUND = new SimpleType(Object.class);
+
+    protected final TypeParser _parser;
     
     /*
     //////////////////////////////////////////////////
@@ -42,12 +44,14 @@ public class TypeFactory
     //////////////////////////////////////////////////
      */
 
-    private TypeFactory() { }
+    private TypeFactory() {
+        _parser = new TypeParser(this);
+    }
 
     /*
-    //////////////////////////////////////////////////
-    // Public factory methods
-    //////////////////////////////////////////////////
+    /*************************************************
+    /* Public factory methods
+    /*************************************************
      */
 
     /**
@@ -178,7 +182,7 @@ public class TypeFactory
         int len = parameterClasses.length;
         JavaType[] pt = new JavaType[len];
         for (int i = 0; i < len; ++i) {
-            pt[i] = instance._fromClass(parameterClasses[i]);
+            pt[i] = instance._fromClass(parameterClasses[i], null);
         }
         return parametricType(parametrized, pt);
     }
@@ -225,6 +229,24 @@ public class TypeFactory
         return bean;
     }
 
+    /**
+     * Factory method for constructing a {@link JavaType} out of its canonical
+     * representation (see {@link JavaType#toCanonical()}).
+     * 
+     * @param canonical
+     * @return
+     * @throws IllegalArgumentException If canonical representation is malformed,
+     *   or class that type represents (including its generic parameters) is
+     *   not found
+     * 
+     * @since 1.5
+     */
+    public static JavaType fromCanonical(String canonical)
+        throws IllegalArgumentException
+    {
+        return instance._parser.parse(canonical);
+    }
+    
     /*
     /****************************************************
     /* Type conversions
@@ -252,7 +274,7 @@ public class TypeFactory
                     throw new IllegalArgumentException("Class "+subclass.getClass().getName()+" not subtype of "+baseType);
                 }
                 // this _should_ work, right?
-                JavaType subtype = instance._fromClass(subclass);
+                JavaType subtype = instance._fromClass(subclass, baseType);
                 // one more thing: handler to copy?
                 Object h = baseType.getHandler();
                 if (h != null) {
@@ -284,7 +306,7 @@ public class TypeFactory
      */
     public static JavaType fromClass(Class<?> clz)
     {
-        return instance._fromClass(clz);
+        return instance._fromClass(clz, null);
     }
 
     /**
@@ -329,11 +351,6 @@ public class TypeFactory
     // Internal methods
     ///////////////////////////////////////////////////////
      */
-
-    protected JavaType _fromClass(Class<?> clz)
-    {
-        return _fromClass(clz, null);
-    }
     
     /**
      * @param genericParams Mapping of formal parameter declarations (for generic
@@ -344,6 +361,12 @@ public class TypeFactory
         // First: do we have an array type?
         if (clz.isArray()) {
             return ArrayType.construct(_fromType(clz.getComponentType(), null));
+        }
+        /* Also: although enums can also be fully resolved, there's little
+         * point in doing so (T extends Enum<T>) etc.
+         */
+        if (clz.isEnum()) {
+            return new SimpleType(clz);
         }
         /* Maps and Collections aren't quite as hot; problem is, due
          * to type erasure we often do not know typing and can only assume
@@ -361,9 +384,7 @@ public class TypeFactory
             CollectionType parentType = _findParentType(clz, CollectionType.class);
             return CollectionType.construct(clz, (parentType == null) ? _unknownType() : parentType.getContentType());
         }
-        /* Otherwise, consider it a Bean; and due to type
-         * erasure it must be simple (no generics available)
-         */
+        // Otherwise, consider it a Bean
         SimpleType beanType = new SimpleType(clz);
         /* 29-Jan-2010, tatus: One more thing: we may be able to find
          *    (more) bound type parameters now
@@ -380,6 +401,54 @@ public class TypeFactory
         return beanType;
     }
 
+    /**
+     * Method used by {@link TypeParser} when generics-aware version
+     * is constructed.
+     */
+    protected JavaType _fromParameterizedClass(Class<?> clz, List<JavaType> paramTypes)
+    {
+        if (clz.isArray()) { // ignore generics (should never have any)
+            return ArrayType.construct(_fromType(clz.getComponentType(), null));
+        }
+        if (clz.isEnum()) { // ditto for enums
+            return new SimpleType(clz);
+        }
+        if (Map.class.isAssignableFrom(clz)) {
+            // First: if we do have param types, use them
+            JavaType keyType, contentType;
+            if (paramTypes.size() > 0) {
+                keyType = paramTypes.get(0);
+                contentType = (paramTypes.size() >= 2) ?
+                        paramTypes.get(1) : _unknownType();
+            } else {
+                // and only if not available, check super type
+                MapType parentType = _findParentType(clz, MapType.class);
+                if (parentType == null) {                
+                    keyType = contentType = _unknownType();
+                } else {
+                    keyType = parentType.getKeyType();
+                    contentType = parentType.getContentType();
+                }
+            }
+            return MapType.construct(clz, keyType, contentType);
+        }
+        if (Collection.class.isAssignableFrom(clz)) {
+            JavaType contentType;
+            if (paramTypes.size() >= 1) {
+                contentType = paramTypes.get(0);
+            } else {
+                CollectionType parentType = _findParentType(clz, CollectionType.class);
+                contentType = (parentType == null) ? _unknownType() : parentType.getContentType();
+            }
+            return CollectionType.construct(clz, contentType);
+        }
+        SimpleType beanType = new SimpleType(clz);
+        if (paramTypes.size() > 0) {
+            beanType.addTypeParameters(paramTypes);
+        }
+        return beanType;
+    }
+    
     /**
      * Factory method that can be used if type information is passed
      * as Java typing returned from <code>getGenericXxx</code> methods
@@ -557,6 +626,6 @@ public class TypeFactory
     }
 
     protected JavaType _unknownType() {
-        return _fromClass(Object.class);
+        return _fromClass(Object.class, null);
     }
 }

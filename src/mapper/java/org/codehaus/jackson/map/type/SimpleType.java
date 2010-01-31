@@ -61,23 +61,24 @@ public final class SimpleType
         return new SimpleType(cls);
     }
 
-    protected String buildCanonicalName() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(_class.getName());
-		if (_typeParameters != null && _typeParameters.size() > 0) {
-			sb.append('<');
-			boolean first = true;
-			for (JavaType t : _typeParameters.values()) {
-				if (first) {
-					first = false;
-				} else {
-					sb.append(',');
-				}
-				sb.append(t.toCanonical());
-			}
-			sb.append('>');
-		}
-		return sb.toString();
+    protected String buildCanonicalName()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(_class.getName());
+        if (_typeParameters != null && _typeParameters.size() > 0) {
+            sb.append('<');
+            boolean first = true;
+            for (JavaType t : _typeParameters.values()) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append(',');
+                }
+                sb.append(t.toCanonical());
+            }
+            sb.append('>');
+        }
+        return sb.toString();
     }
     
     @Override
@@ -88,7 +89,15 @@ public final class SimpleType
         }
         _typeParameters.put(name, type);
     }
-	
+
+    public void addTypeParameters(Collection<JavaType> params)
+    {
+        // use index number as dummy name
+        for (JavaType param : params) {
+            _typeParameters.put(String.valueOf(_typeParameters.size()), param);
+        }
+    }
+    
     /*
     //////////////////////////////////////////////////////////
     // Public API

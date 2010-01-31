@@ -314,7 +314,7 @@ public final class ClassUtil
      * 
      * @since 1.5
      */
-	public static Class<? extends Enum<?>> findEnumType(EnumSet<?> s)
+    public static Class<? extends Enum<?>> findEnumType(EnumSet<?> s)
 	{
     	// First things first: if not empty, easy to determine
     	if (!s.isEmpty()) {
@@ -322,7 +322,7 @@ public final class ClassUtil
     	}
     	// Otherwise need to locate using an internal field
     	return EnumTypeLocator.instance.enumTypeFor(s);
-	}
+    }
 
     /**
      * Helper method that can be used to dynamically figure out
@@ -333,13 +333,13 @@ public final class ClassUtil
      * @since 1.5
      */
     public static Class<? extends Enum<?>> findEnumType(EnumMap<?,?> m)
-	{
+    {
     	if (!m.isEmpty()) {
     		return findEnumType(m.keySet().iterator().next());
     	}
     	// Otherwise need to locate using an internal field
     	return EnumTypeLocator.instance.enumTypeFor(m);
-	}
+    }
 
     /**
      * Helper method that can be used to dynamically figure out formal
