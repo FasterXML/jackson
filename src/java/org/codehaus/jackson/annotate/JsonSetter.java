@@ -7,9 +7,14 @@ import java.lang.annotation.Target;
 
 /**
  * Marker annotation that can be used to define a non-static,
- * single-argument method to be used as a "setter" for a logical property.
+ * single-argument method to be used as a "setter" for a logical property
+ * as an alternative to recommended
+ * {@link JsonProperty} annotation (which was introduced in version 1.1).
+ *<p>
  * Setter means that when a property with matching name is encountered in
- * Json content, this method will be used to set value of the property.
+ * JSON content, this method will be used to set value of the property.
+ * 
+ * @deprecated Use {@link JsonProperty} instead (deprecated since version 1.5)
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

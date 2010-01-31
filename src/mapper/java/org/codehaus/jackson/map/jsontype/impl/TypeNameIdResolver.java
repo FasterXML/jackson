@@ -2,7 +2,7 @@ package org.codehaus.jackson.map.jsontype.impl;
 
 import java.util.*;
 
-import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;

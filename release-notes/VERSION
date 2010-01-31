@@ -20,7 +20,7 @@ Description:
   * [JACKSON-229] TypeFactory should have methods to construct parametric
      types programmatically (TypeFactory.parametricType())
 
-  Other:
+  Backwards incompatible changes:
 
   * Moved following serializers out of BasicSerializerFactory
     JdkSerializers: ClassSerializer (into JdkSerializers),
@@ -30,6 +30,13 @@ Description:
     can use nested JsonParser instances.
   * Fixed issues in generic type handling (was not resolving all named
     types completely)
+  * Annotation changes:
+     * Moved "NoClass" into "org.codehaus.jackson.map.annotate" package
+     * Removed @JsonUseSerializer and @JsonUseDeserializer annotations
+       (which has been deprecated for 1.1; replaced by
+       @JsonSerialize.using and @JsonDeserialize.using, respectively)
+     * @JsonGetter and @JsonSetter are marked as deprecated, since
+       @JsonProperty can (and should) be used instead.
 
 ------------------------------------------------------------------------
 == History: ==

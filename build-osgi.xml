@@ -89,9 +89,9 @@ org.codehaus.jackson.map;version=${IMPL_VERSION},
 org.codehaus.jackson.map.annotate;version=${IMPL_VERSION},
 org.codehaus.jackson.map.deser;version=${IMPL_VERSION},
 org.codehaus.jackson.map.introspect;version=${IMPL_VERSION},
+org.codehaus.jackson.map.jsontype;version=${IMPL_VERSION},
 org.codehaus.jackson.map.ser;version=${IMPL_VERSION},
 org.codehaus.jackson.map.type;version=${IMPL_VERSION},
-org.codehaus.jackson.map.typeinfo;version=${IMPL_VERSION},
 org.codehaus.jackson.node;version=${IMPL_VERSION},
 org.codehaus.jackson.schema;version=${IMPL_VERSION}
 "
@@ -100,6 +100,7 @@ org.codehaus.jackson.schema;version=${IMPL_VERSION}
 !org.codehaus.jackson.map.annotate,
 !org.codehaus.jackson.map.deser,
 !org.codehaus.jackson.map.introspect,
+!org.codehaus.jackson.map.jsontype,
 !org.codehaus.jackson.map.ser,
 !org.codehaus.jackson.map.type,
 !org.codehaus.jackson.node,
@@ -186,9 +187,9 @@ org.codehaus.jackson.map;version=${IMPL_VERSION},
 org.codehaus.jackson.map.annotate;version=${IMPL_VERSION},
 org.codehaus.jackson.map.deser;version=${IMPL_VERSION},
 org.codehaus.jackson.map.introspect;version=${IMPL_VERSION},
+org.codehaus.jackson.map.jsontype;version=${IMPL_VERSION},
 org.codehaus.jackson.map.ser;version=${IMPL_VERSION},
 org.codehaus.jackson.map.type;version=${IMPL_VERSION},
-org.codehaus.jackson.map.typeinfo;version=${IMPL_VERSION},
 org.codehaus.jackson.node;version=${IMPL_VERSION},
 org.codehaus.jackson.schema;version=${IMPL_VERSION}
 "
@@ -196,6 +197,7 @@ org.codehaus.jackson.schema;version=${IMPL_VERSION}
 !org.codehaus.jackson.map.annotate,
 !org.codehaus.jackson.map.deser,
 !org.codehaus.jackson.map.introspect,
+!org.codehaus.jackson.map.jsontype,
 !org.codehaus.jackson.map.ser,
 !org.codehaus.jackson.map.type,
 !org.codehaus.jackson.node,
@@ -280,12 +282,17 @@ javax.activation
 ,javax.xml.bind.annotation
 ,javax.xml.bind.annotation.adapters
 ,org.codehaus.jackson;version='${IMPL_VERSION}'
+,org.codehaus.jackson.annotate;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.annotate;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.deser;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.introspect;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.jsontype;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.jsontype.impl;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.ser;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.node;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.schema;version='${IMPL_VERSION}'
+,org.codehaus.jackson.type;version='${IMPL_VERSION}'
 "
          exportpackage="
 org.codehaus.jackson.xc;version=${IMPL_VERSION}"

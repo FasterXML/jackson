@@ -202,7 +202,6 @@ public class JacksonAnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    @SuppressWarnings({ "unchecked", "deprecation" })
     @Override
     public Class<? extends JsonSerializer<?>> findSerializer(Annotated a)
     {
@@ -216,22 +215,8 @@ public class JacksonAnnotationIntrospector
                 return serClass;
             }
         }
-        JsonUseSerializer oldAnn = a.getAnnotation(JsonUseSerializer.class);
-        if (oldAnn == null) {
-            return null;
-        }
-        Class<?> serClass = oldAnn.value();
-        /* 21-Feb-2009, tatu: There is now a way to indicate "no class"
-         *   (to essentially denote a 'dummy' annotation, needed for
-         *   overriding in some cases), need to check:
-         */
-        if (serClass == NoClass.class || serClass == JsonSerializer.None.class) {
-            return null;
-        }
-        if (!JsonSerializer.class.isAssignableFrom(serClass)) {
-            throw new IllegalArgumentException("Invalid @JsonUseSerializer annotation: Class "+serClass.getName()+" not a JsonSerializer");
-        }
-        return (Class<? extends JsonSerializer<?>>)serClass;
+        // 31-Jan-2010, tatus: @JsonUseSerializer removed as of 1.5
+        return null;
     }
 
     @Override
@@ -338,6 +323,7 @@ public class JacksonAnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
+    @SuppressWarnings("deprecation")
     @Override
     public String findGettablePropertyName(AnnotatedMethod am)
     {
@@ -398,7 +384,6 @@ public class JacksonAnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    @SuppressWarnings({ "unchecked", "deprecation" })
     @Override
     public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a)
     {
@@ -412,18 +397,8 @@ public class JacksonAnnotationIntrospector
                 return deserClass;
             }
         }
-        JsonUseDeserializer oldAnn = a.getAnnotation(JsonUseDeserializer.class);
-        if (oldAnn == null) {
-            return null;
-        }
-        Class<?> deserClass = oldAnn.value();
-        if (deserClass == NoClass.class || deserClass == JsonDeserializer.None.class) {
-            return null;
-        }
-        if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
-            throw new IllegalArgumentException("Invalid @JsonUseDeserializer annotation: Class "+deserClass.getName()+" not a JsonDeserializer");
-        }
-        return (Class<? extends JsonDeserializer<?>>)deserClass;
+        // 31-Jan-2010, tatus: @JsonUseDeserializer removed as of 1.5
+        return null;
     }
 
     @Override
@@ -577,6 +552,7 @@ public class JacksonAnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
+    @SuppressWarnings("deprecation")
     @Override
     public String findSettablePropertyName(AnnotatedMethod am)
     {

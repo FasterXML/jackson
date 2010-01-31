@@ -1,11 +1,10 @@
-package org.codehaus.jackson.map.annotate;
+package org.codehaus.jackson.annotate;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.codehaus.jackson.annotate.JacksonAnnotation;
 
 /**
  * Annotation used for binding logical name that the annotated class

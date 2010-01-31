@@ -1,7 +1,7 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
 import org.codehaus.jackson.type.JavaType;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 public class MinimalClassNameIdResolver
     extends ClassNameIdResolver

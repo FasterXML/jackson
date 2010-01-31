@@ -6,6 +6,8 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.deser.StdDeserializer;
 
 import javax.xml.namespace.QName;
@@ -56,7 +58,6 @@ public class TestJacksonAnnotationIntrospector
         VALUE1
     }
 
-    @SuppressWarnings("deprecation")
     public static class JacksonExample
     {
         private String attributeProperty;
@@ -65,49 +66,49 @@ public class TestJacksonAnnotationIntrospector
         private EnumExample enumProperty;
         private QName qname;
 
-		@JsonUseSerializer(QNameSerializer.class)
+        @JsonSerialize(using=QNameSerializer.class)
         public QName getQname()
         {
             return qname;
         }
 
-		@JsonUseDeserializer(QNameDeserializer.class)
+        @JsonDeserialize(using=QNameDeserializer.class)
         public void setQname(QName qname)
         {
             this.qname = qname;
         }
 
-        @JsonGetter("myattribute")
+        @JsonProperty("myattribute")
         public String getAttributeProperty()
         {
             return attributeProperty;
         }
 
-        @JsonSetter("myattribute")
+        @JsonProperty("myattribute")
         public void setAttributeProperty(String attributeProperty)
         {
             this.attributeProperty = attributeProperty;
         }
 
-        @JsonGetter("myelement")
+        @JsonProperty("myelement")
         public String getElementProperty()
         {
             return elementProperty;
         }
 
-        @JsonSetter("myelement")
+        @JsonProperty("myelement")
         public void setElementProperty(String elementProperty)
         {
             this.elementProperty = elementProperty;
         }
 
-        @JsonGetter("mywrapped")
+        @JsonProperty("mywrapped")
         public List<String> getWrappedElementProperty()
         {
             return wrappedElementProperty;
         }
 
-        @JsonSetter("mywrapped")
+        @JsonProperty("mywrapped")
         public void setWrappedElementProperty(List<String> wrappedElementProperty)
         {
             this.wrappedElementProperty = wrappedElementProperty;

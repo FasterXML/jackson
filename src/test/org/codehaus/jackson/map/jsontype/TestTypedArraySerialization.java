@@ -2,8 +2,8 @@ package org.codehaus.jackson.map.jsontype;
 
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 
 /**
  * Unit tests for verifying that types that serialize as JSON Arrays

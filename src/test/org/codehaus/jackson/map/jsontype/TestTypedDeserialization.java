@@ -4,11 +4,10 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.annotate.*;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
-import static org.codehaus.jackson.map.annotate.JsonTypeInfo.*;
+import static org.codehaus.jackson.annotate.JsonTypeInfo.*;
 
 /**
  * @since 1.5

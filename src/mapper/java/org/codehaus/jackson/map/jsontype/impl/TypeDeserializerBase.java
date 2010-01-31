@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.TypeDeserializer;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
 

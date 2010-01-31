@@ -2,9 +2,9 @@ package org.codehaus.jackson.map.jsontype.impl;
 
 import java.util.Collection;
 
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;

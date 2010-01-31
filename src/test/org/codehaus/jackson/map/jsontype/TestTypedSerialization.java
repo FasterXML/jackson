@@ -2,11 +2,11 @@ package org.codehaus.jackson.map.jsontype;
 
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.annotate.JsonTypeName;
 
-import static org.codehaus.jackson.map.annotate.JsonTypeInfo.*;
+import static org.codehaus.jackson.annotate.JsonTypeInfo.*;
 
 public class TestTypedSerialization
     extends BaseMapTest

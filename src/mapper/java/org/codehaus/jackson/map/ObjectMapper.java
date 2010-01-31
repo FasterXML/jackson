@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.io.SegmentedStringWriter;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
@@ -182,7 +182,7 @@ public class ObjectMapper
     /**
      * Object that defines how to add type information for types that do not
      * have explicit type information settings (which are usually
-     * indicated by {@link org.codehaus.jackson.map.annotate.JsonTypeInfo})
+     * indicated by {@link org.codehaus.jackson.annotate.JsonTypeInfo})
      * If set to null, no type information will be added unless annotations
      * are used; if set to non-null, resolver builder is used to check
      * which type serializers and deserializers are to be used (if any)

@@ -1,11 +1,9 @@
-package org.codehaus.jackson.map.annotate;
+package org.codehaus.jackson.annotate;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.codehaus.jackson.annotate.JacksonAnnotation;
 
 /**
  * Annotation used for configuring details of if and how type information is
@@ -52,7 +50,8 @@ public @interface JsonTypeInfo
          * purely done using contextual information possibly augmented with other
          * annotations.
          *<p>
-         * Note: no {@link TypeIdResolver} is constructed if this value is used.
+         * Note: no {@link org.codehaus.jackson.map.jsontype.TypeIdResolver}
+         * is constructed if this value is used.
          */
         NONE(null),
 

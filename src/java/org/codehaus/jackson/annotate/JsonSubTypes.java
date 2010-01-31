@@ -1,11 +1,10 @@
-package org.codehaus.jackson.map.annotate;
+package org.codehaus.jackson.annotate;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.codehaus.jackson.annotate.JacksonAnnotation;
 
 /**
  * Annotation used with {@link JsonTypeInfo} to indicate sub types of serializable
@@ -30,7 +29,7 @@ public @interface JsonSubTypes {
      * of the type will be checked for {@link JsonTypeName} annotation; and if that
      * is also missing or empty, a default
      * name will be constructed by type id mechanism.
-     * Default name is usually based on actual class name.
+     * Default name is usually based on class name.
      */
     public @interface Type {
         /**

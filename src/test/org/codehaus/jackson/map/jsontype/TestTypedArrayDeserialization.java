@@ -5,8 +5,8 @@ import java.util.LinkedList;
 
 import static org.junit.Assert.assertArrayEquals;
 
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 

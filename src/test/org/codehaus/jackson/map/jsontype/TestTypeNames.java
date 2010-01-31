@@ -2,13 +2,13 @@ package org.codehaus.jackson.map.jsontype;
 
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeName;
+import org.codehaus.jackson.annotate.JsonSubTypes.Type;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
+import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.annotate.JsonSubTypes;
-import org.codehaus.jackson.map.annotate.JsonSubTypes.Type;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo.As;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo.Id;
-import org.codehaus.jackson.map.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.annotate.JsonTypeName;
 import org.codehaus.jackson.map.type.TypeFactory;
 
 /**

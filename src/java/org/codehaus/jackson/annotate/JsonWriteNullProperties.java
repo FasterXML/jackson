@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Annotation that can be used to define whether object properties
  * that have null values are to be written out when serializing
- * content as Json. This affects Bean and Map serialization.
+ * content as JSON. This affects Bean and Map serialization.
  *<p>
  * Annotation can be used with Classes (all instances of
  * given class) and Methods.
