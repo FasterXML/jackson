@@ -52,7 +52,9 @@ public class ClassNameIdResolver
          *    to do translation when necessary
          */
         if (id.indexOf('<') > 0) {
-            return TypeFactory.fromCanonical(id);
+            JavaType t = TypeFactory.fromCanonical(id);
+            // note: may want to try combining with specialization (esp for EnumMap)
+            return t;
         }
         try {
             Class<?> cls = Class.forName(id);

@@ -13,6 +13,8 @@ import org.codehaus.jackson.map.type.*;
 public class TestTypeFactory
     extends BaseTest
 {    
+    enum EnumForCanonical { YES, NO; }
+
     public void testSimpleTypes()
     {
         Class<?>[] classes = new Class<?>[] {
@@ -160,13 +162,11 @@ public class TestTypeFactory
         assertEquals(t, TypeFactory.fromCanonical(can));
 
         // And then EnumMap (actual use case for us)
-        t = TypeFactory.mapType(EnumMap.class, TestEnum.class, String.class);
+        t = TypeFactory.mapType(EnumMap.class, EnumForCanonical.class, String.class);
         can = t.toCanonical();
-        assertEquals("java.util.EnumMap<org.codehaus.jackson.type.TestEnum,java.lang.String>",
+        assertEquals("java.util.EnumMap<org.codehaus.jackson.type.TestTypeFactory$EnumForCanonical,java.lang.String>",
                 can);
         assertEquals(t, TypeFactory.fromCanonical(can));
         
     }
 }
-
-enum TestEnum { YES, NO; }

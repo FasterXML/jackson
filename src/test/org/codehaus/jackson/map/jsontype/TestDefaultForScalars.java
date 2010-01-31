@@ -2,6 +2,8 @@ package org.codehaus.jackson.map.jsontype;
 
 import java.util.*;
 
+import static org.junit.Assert.*;
+
 import org.codehaus.jackson.map.*;
 
 /**
@@ -61,5 +63,24 @@ public class TestDefaultForScalars
         // no typing for Strings, booleans
         assertEquals("[\"abc\"]", m.writeValueAsString(new Object[] { "abc" }));
         assertEquals("[true,null,false]", m.writeValueAsString(new Boolean[] { true, null, false }));
+    }
+
+    /**
+     * Test for verifying that contents of "untyped" homogenous arrays are properly
+     * handled,
+     */
+    public void testScalarArrays() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.enableDefaultTyping(ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
+        Object[] input = new Object[] {
+                "abc", new Date(1234567), null, Integer.valueOf(456)
+        };
+        String json = m.writeValueAsString(input);
+        assertEquals("[\"abc\",[\"java.util.Date\",1234567],null,456]", json);
+
+        // and should deserialize back as well:
+        Object[] output = m.readValue(json, Object[].class);
+        assertArrayEquals(input, output);
     }
 }

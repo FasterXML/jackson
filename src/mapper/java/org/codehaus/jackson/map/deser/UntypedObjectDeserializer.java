@@ -59,8 +59,10 @@ public class UntypedObjectDeserializer
             return Boolean.TRUE;
         case VALUE_FALSE:
             return Boolean.FALSE;
+        case VALUE_EMBEDDED_OBJECT:
+            return jp.getEmbeddedObject();
 
-        case VALUE_NULL:
+        case VALUE_NULL: // should not get this but...
             return null;
             
             // Then structured types:
@@ -86,10 +88,48 @@ public class UntypedObjectDeserializer
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException
     {
-        /* Output can be as JSON Object, Array or scalar: no way to know
-         * a priori. So:
+        JsonToken t = jp.getCurrentToken();
+        switch (t) {
+        // First: does it look like we had type id wrapping of some kind?
+        case START_ARRAY:
+        case START_OBJECT:
+        case FIELD_NAME:
+            /* Output can be as JSON Object, Array or scalar: no way to know
+             * a this point:
+             */
+            return typeDeserializer.deserializeTypedFromAny(jp, ctxt);
+
+        /* Otherwise we probably got a "native" type (ones that map
+         * naturally and thus do not need or use type ids)
          */
-        return typeDeserializer.deserializeTypedFromAny(jp, ctxt);
+        case VALUE_STRING:
+            return jp.getText();
+
+        case VALUE_NUMBER_INT:
+            // For [JACKSON-100], see above:
+            if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS)) {
+                return jp.getBigIntegerValue();
+            }
+            return jp.getIntValue();
+
+        case VALUE_NUMBER_FLOAT:
+            // For [JACKSON-72], see above
+            if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
+                return jp.getDecimalValue();
+            }
+            return Double.valueOf(jp.getDoubleValue());
+
+        case VALUE_TRUE:
+            return Boolean.TRUE;
+        case VALUE_FALSE:
+            return Boolean.FALSE;
+        case VALUE_EMBEDDED_OBJECT:
+            return jp.getEmbeddedObject();
+
+        case VALUE_NULL: // should not get this far really but...
+            return null;
+        }
+        throw ctxt.mappingException(Object.class);
     }
 
     /*
