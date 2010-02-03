@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
@@ -61,4 +62,12 @@ public abstract class SerializerFactory
         // Default implementation returns null for backwards compatibility reasons.
         return null;
     }
+
+    public TypeSerializer createPropertyTypeSerializer(JavaType baseType, SerializationConfig config,
+            AnnotatedMember property)
+    {
+        // Default implementation returns null for backwards compatibility reasons.
+        return null;
+    }
+
 }

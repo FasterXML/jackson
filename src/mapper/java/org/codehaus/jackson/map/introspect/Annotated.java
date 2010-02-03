@@ -14,6 +14,8 @@ import org.codehaus.jackson.map.type.TypeFactory;
  */
 public abstract class Annotated
 {
+    protected Annotated() { }
+    
     public abstract <A extends Annotation> A getAnnotation(Class<A> acls);
 
     public final <A extends Annotation> boolean hasAnnotation(Class<A> acls)
@@ -31,19 +33,30 @@ public abstract class Annotated
 
     public abstract String getName();
 
+    /**
+     * Full generic type of the annotated element; definition
+     * of what exactly this means depends on sub-class.
+     * 
+     * @return
+     */
     public JavaType getType() {
         return TypeFactory.type(getGenericType());
     }
 
     /**
+     * Full generic type of the annotated element; definition
+     * of what exactly this means depends on sub-class.
+     * 
      * @since 1.5
      */
     public abstract Type getGenericType();
 
     /**
+     * "Raw" type (type-erased class) of the annotated element; definition
+     * of what exactly this means depends on sub-class.
+     * 
      * @since 1.5
      */
     public abstract Class<?> getRawType();
-
 }
 

@@ -6,12 +6,18 @@ import java.lang.reflect.Type;
 
 import org.codehaus.jackson.map.util.ClassUtil;
 
+/**
+ * Object that represents non-static (and usually non-transient/volatile)
+ * fields of a class.
+ * 
+ * @author tatu
+ */
 public final class AnnotatedField
-    extends Annotated
+    extends AnnotatedMember
 {
-    final Field _field;
+    protected final Field _field;
 
-    final AnnotationMap _annotations;
+    protected final AnnotationMap _annotations;
 
     /*
     //////////////////////////////////////////////////////

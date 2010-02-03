@@ -120,7 +120,7 @@ public final class AnnotatedMethod
 
     public String toString()
     {
-        return "[method "+getName()+", annotations: "+_classAnnotations+"]";
+        return "[method "+getName()+", annotations: "+_annotations+"]";
     }
 }
 

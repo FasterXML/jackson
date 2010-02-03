@@ -110,7 +110,7 @@ public class MapSerializer
     }
 
     @Override
-    public final void serializeWithType(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider,
+    public void serializeWithType(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider,
             TypeSerializer typeSer)
         throws IOException, JsonGenerationException
     {

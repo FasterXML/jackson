@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 
@@ -84,6 +85,9 @@ public abstract class DeserializerFactory
      * Method called to create a type information deserializer for given base type,
      * if one is needed. If not needed (no polymorphic handling configured for type),
      * should return null.
+     *<p>
+     * Note that this method is only called for values of container (Collection, array, Map)
+     * types and root values, but not for bean property values.
      *
      * @param baseType Declared base type of the value to deserializer (actual
      *    deserializer type will be this type or its subtype)
@@ -98,4 +102,28 @@ public abstract class DeserializerFactory
         // Default implementation returns null for backwards compatibility reasons
         return null;
     }
+
+    /**
+     * Method called to create a type information deserializer for given property entity,
+     * if one is needed. If not needed (no polymorphic handling configured for property),
+     * should return null.
+     *<p>
+     * Note that this method is only called for bean properties, and not for values in
+     * container types or root values.
+     *
+     * @param baseType Declared base type of the value to deserializer (actual
+     *    deserializer type will be this type or its subtype)
+     * @param deser Deserializer used for base type deserialization 
+     * 
+     * @return Type deserializer to use for given base type, if one is needed; null if not.
+     * 
+     * @since 1.5
+     */
+    public TypeDeserializer createPropertyTypeDeserializer(DeserializationConfig config, JavaType baseType,
+            AnnotatedMember propertyEntity)
+    {
+        // Default implementation returns null for backwards compatibility reasons
+        return null;
+    }
+
 }

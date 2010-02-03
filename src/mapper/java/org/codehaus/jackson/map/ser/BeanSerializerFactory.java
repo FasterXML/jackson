@@ -224,7 +224,7 @@ public class BeanSerializerFactory
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, af);
             // And how about polymorphic typing?
-            TypeSerializer ts = createTypeSerializer(af.getType(), config);
+            TypeSerializer ts = createPropertyTypeSerializer(af.getType(), config, af);
             BeanPropertyWriter pbw = pb.buildProperty(en.getKey(), annotatedSerializer, ts, af, staticTyping);
             // how about views? (1.4+)
             pbw.setViews(intr.findSerializationViews(af));
@@ -239,7 +239,7 @@ public class BeanSerializerFactory
             // Does Method specify a serializer? If so, let's use it.
             JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, am);
             // And how about polymorphic typing?
-            TypeSerializer ts = createTypeSerializer(am.getType(), config);
+            TypeSerializer ts = createPropertyTypeSerializer(am.getType(), config, am);
             BeanPropertyWriter pbw = pb.buildProperty(en.getKey(), annotatedSerializer, ts, am, staticTyping);
             pbw.setViews(intr.findSerializationViews(am));
             props.add(pbw);

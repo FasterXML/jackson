@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -328,6 +329,30 @@ public abstract class BasicDeserializerFactory
         return (b == null) ? null : b.buildTypeDeserializer(baseType, subtypes);
     }    
 
+    
+    /**
+     * Method called to construct a type serializer for property values with given declared
+     * base type. This is only called for bean property values.
+     */
+    @Override
+    public TypeDeserializer createPropertyTypeDeserializer(DeserializationConfig config, JavaType baseType,
+            AnnotatedMember propertyEntity)
+    {
+        AnnotationIntrospector ai = config.getAnnotationIntrospector();
+        TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(propertyEntity, baseType);        
+        Collection<NamedType> subtypes = null;
+        // Defaulting: if no annotations on member, check value class
+        if (b == null) {
+            return createTypeDeserializer(config, baseType);
+        }
+        // but if annotations found, may need to resolve subtypes:
+        Collection<NamedType> st = ai.findSubtypes(propertyEntity);
+        if (st != null && st.size() > 0) {
+            subtypes = _collectAndResolveSubtypes(config, ai, st);
+        }
+        return b.buildTypeDeserializer(baseType, subtypes);
+    }
+    
     protected Collection<NamedType> _collectAndResolveSubtypes(MapperConfig<?> config,
             AnnotationIntrospector ai, Collection<NamedType> subtypeList)
     {

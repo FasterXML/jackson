@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.introspect;
+package org.codehaus.jackson.jaxb;
 
 import java.util.*;
 
@@ -6,6 +6,8 @@ import javax.xml.bind.annotation.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 /**

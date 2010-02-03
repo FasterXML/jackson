@@ -1,15 +1,14 @@
-package org.codehaus.jackson.map.introspect;
+package org.codehaus.jackson.jaxb;
 
 import javax.xml.bind.annotation.*;
 
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 /**
  * Tests for handling of type-related JAXB annotations 
  */
 public class TestJaxbTypes
-    extends org.codehaus.jackson.map.BaseMapTest
+    extends BaseJaxbTest
 {
     /*
     **************************************************************
@@ -52,20 +51,5 @@ public class TestJaxbTypes
         AbstractBeanImpl bean = (AbstractBeanImpl) wrapper.wrapped;
         assertEquals(13, bean.a);
         assertEquals("...", bean.b);
-    }
-
-    /*
-    **************************************************************
-    * Helper methods
-    **************************************************************
-    */
-
-    public ObjectMapper getJaxbMapper()
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        AnnotationIntrospector intr = new JaxbAnnotationIntrospector();
-        mapper.getDeserializationConfig().setAnnotationIntrospector(intr);
-        mapper.getSerializationConfig().setAnnotationIntrospector(intr);
-        return mapper;
     }
 }

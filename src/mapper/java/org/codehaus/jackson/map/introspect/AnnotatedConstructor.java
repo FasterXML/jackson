@@ -91,7 +91,7 @@ public final class AnnotatedConstructor
 
     public String toString()
     {
-        return "[constructor for "+getName()+", annotations: "+_classAnnotations+"]";
+        return "[constructor for "+getName()+", annotations: "+_annotations+"]";
     }
 }
 

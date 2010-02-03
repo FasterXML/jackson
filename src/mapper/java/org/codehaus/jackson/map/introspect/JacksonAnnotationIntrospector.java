@@ -119,14 +119,19 @@ public class JacksonAnnotationIntrospector
         return (ignore == null) ? null : ignore.ignoreUnknown();
     }
 
+    /*
+    /****************************************************
+    /* Class annotations for PM type handling (1.5+)
+    /****************************************************
+    */
     
     @Override
-    public TypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType)
+    public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType)
     {
         // First: maybe we have explicit type resolver?
         TypeResolverBuilder<?> b;
-        JsonTypeInfo info = a.getAnnotation(JsonTypeInfo.class);
-        JsonTypeResolver resAnn = a.getAnnotation(JsonTypeResolver.class);
+        JsonTypeInfo info = ac.getAnnotation(JsonTypeInfo.class);
+        JsonTypeResolver resAnn = ac.getAnnotation(JsonTypeResolver.class);
         if (resAnn != null) {
             /* let's not try to force access override (would need to pass
              * settings through if we did, since that's not doable on some
@@ -140,7 +145,7 @@ public class JacksonAnnotationIntrospector
             b = new StdTypeResolverBuilder();
         }
         // Does it define a custom type id resolver?
-        JsonTypeIdResolver idResInfo = a.getAnnotation(JsonTypeIdResolver.class);
+        JsonTypeIdResolver idResInfo = ac.getAnnotation(JsonTypeIdResolver.class);
         TypeIdResolver idRes = (idResInfo == null) ? null
                 : ClassUtil.createInstance(idResInfo.value(), false);
         b = b.init(info.use(), idRes);
@@ -149,6 +154,13 @@ public class JacksonAnnotationIntrospector
         return b;
     }
 
+    @Override
+    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType)
+    {
+        // No per-member type overrides (yet)
+        return null;
+    }
+    
     @Override
     public List<NamedType> findSubtypes(Annotated a)
     {

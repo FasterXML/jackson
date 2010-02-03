@@ -88,7 +88,7 @@ public final class ContainerSerializers
             // typing with generics is messy... have to resort to this:
             super(cls, false);
             _elementType = et;
-            // static if explicitly requested, or we got final type
+            // static if explicitly requested, or if element type is final
             _staticTyping = staticTyping || (et != null && et.isFinal());
         }
 

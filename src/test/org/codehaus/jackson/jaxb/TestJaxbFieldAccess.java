@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.introspect;
+package org.codehaus.jackson.jaxb;
 
 import java.io.IOException;
 

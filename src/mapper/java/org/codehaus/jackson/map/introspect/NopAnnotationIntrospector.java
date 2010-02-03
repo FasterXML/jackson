@@ -85,8 +85,19 @@ public class NopAnnotationIntrospector
         return null;
     }
 
+    /*
+    /****************************************************
+    /* Class annotations for PM type handling (1.5+)
+    /****************************************************
+    */
+
     @Override
-    public TypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType) {
+    public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType) {
+        return null;
+    }
+
+    @Override
+    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType) {
         return null;
     }
 

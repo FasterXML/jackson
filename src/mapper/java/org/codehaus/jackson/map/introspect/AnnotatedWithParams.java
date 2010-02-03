@@ -8,10 +8,18 @@ import java.lang.reflect.Type;
  * constructors and methods share.
  */
 public abstract class AnnotatedWithParams
-    extends Annotated
+    extends AnnotatedMember
 {
-    protected final AnnotationMap _classAnnotations;
+    /**
+     * Annotations directly associated with the annotated
+     * entity.
+     */
+    protected final AnnotationMap _annotations;
 
+    /**
+     * Annotations associated with parameters of the annotated
+     * entity (method or constructor parameters)
+     */
     protected final AnnotationMap[] _paramAnnotations;
 
     /*
@@ -22,7 +30,7 @@ public abstract class AnnotatedWithParams
 
     protected AnnotatedWithParams(AnnotationMap classAnn, AnnotationMap[] paramAnn)
     {
-        _classAnnotations = classAnn;
+        _annotations = classAnn;
         _paramAnnotations = paramAnn;
     }
 
@@ -32,7 +40,7 @@ public abstract class AnnotatedWithParams
      */
     public final void addOrOverride(Annotation a)
     {
-        _classAnnotations.add(a);
+        _annotations.add(a);
     }
 
     /**
@@ -58,7 +66,7 @@ public abstract class AnnotatedWithParams
      */
     public final void addIfNotPresent(Annotation a)
     {
-        _classAnnotations.addIfNotPresent(a);
+        _annotations.addIfNotPresent(a);
     }
 
     /*
@@ -69,7 +77,7 @@ public abstract class AnnotatedWithParams
 
     public final <A extends Annotation> A getAnnotation(Class<A> acls)
     {
-        return _classAnnotations.get(acls);
+        return _annotations.get(acls);
     }
 
     /*
@@ -96,5 +104,5 @@ public abstract class AnnotatedWithParams
 
     public abstract Type getParameterType(int index);
 
-    public final int getAnnotationCount() { return _classAnnotations.size(); }
+    public final int getAnnotationCount() { return _annotations.size(); }
 }

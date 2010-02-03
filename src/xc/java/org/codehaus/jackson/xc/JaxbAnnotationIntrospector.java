@@ -228,13 +228,26 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return null;
     }
 
+    /*
+    /****************************************************
+    /* Class annotations for PM type handling (1.5+)
+    /****************************************************
+    */
+    
     @Override
-    public TypeResolverBuilder<?> findTypeResolver(Annotated a, JavaType baseType)
+    public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType)
+    {
+        // no per-class type resolvers, right?
+        return null;
+    }
+
+    @Override
+    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType)
     {
         /* Assumption: existence of @XmlElements implies need to add
          * type information.
          */
-        XmlElements elems = findAnnotation(XmlElements.class, a, false, false, false);
+        XmlElements elems = findAnnotation(XmlElements.class, am, false, false, false);
         if (elems == null) {
             return null;
         }
