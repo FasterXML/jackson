@@ -244,9 +244,27 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     @Override
     public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType)
     {
-        /* Assumption: existence of @XmlElements implies need to add
-         * type information.
+        /* First: @XmlElements only applies type for immediate property, if it
+         * is NOT a structured type.
          */
+        if (baseType.isContainerType()) return null;
+        return _typeResolverFromXmlElements(am, baseType);
+    }
+
+
+    @Override
+    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType)
+    {
+        /* First: let's ensure property is a container type: caller should have
+         * verified but just to be sure
+         */
+        if (!baseType.isContainerType()) return null;
+        return _typeResolverFromXmlElements(am, baseType);
+    }
+
+    protected TypeResolverBuilder<?> _typeResolverFromXmlElements(AnnotatedMember am, JavaType baseType)
+    {
+        // if simple type, @XmlElements is applicable
         XmlElements elems = findAnnotation(XmlElements.class, am, false, false, false);
         if (elems == null) {
             return null;
@@ -258,7 +276,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         b = b.inclusion(JsonTypeInfo.As.WRAPPER_OBJECT);
         return b;        
     }
-
+    
     @Override
     public List<NamedType> findSubtypes(Annotated a) {
         // No package/superclass defaulting (only used with fields, methods)

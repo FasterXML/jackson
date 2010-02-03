@@ -104,12 +104,12 @@ public abstract class DeserializerFactory
     }
 
     /**
-     * Method called to create a type information deserializer for given property entity,
-     * if one is needed. If not needed (no polymorphic handling configured for property),
-     * should return null.
+     * Method called to create a type information deserializer for values of
+     * given non-container property, if one is needed.
+     * If not needed (no polymorphic handling configured for property), should return null.
      *<p>
-     * Note that this method is only called for bean properties, and not for values in
-     * container types or root values.
+     * Note that this method is only called for non-container bean properties,
+     * and not for values in container types or root values (or container properties)
      *
      * @param baseType Declared base type of the value to deserializer (actual
      *    deserializer type will be this type or its subtype)
@@ -126,4 +126,20 @@ public abstract class DeserializerFactory
         return null;
     }
 
+    /**
+     * Method called to create a type information deserializer for values of
+     * given container property, if one is needed.
+     * If not needed (no polymorphic handling configured for property), should return null.
+     *<p>
+     * Note that this method is only called for container bean properties,
+     * and not for values in container types or root values (or non-container properties)
+     * 
+     * @since 1.5
+     */
+    public TypeDeserializer createPropertyContentTypeDeserializer(DeserializationConfig config, JavaType baseType,
+            AnnotatedMember propertyEntity)
+    {
+        // Default implementation returns null for backwards compatibility reasons
+        return null;
+    }
 }

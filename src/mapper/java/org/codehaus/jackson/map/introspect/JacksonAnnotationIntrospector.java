@@ -160,6 +160,13 @@ public class JacksonAnnotationIntrospector
         // No per-member type overrides (yet)
         return null;
     }
+
+    @Override
+    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType)
+    {
+        // No per-member type overrides (yet)
+        return null;
+    }
     
     @Override
     public List<NamedType> findSubtypes(Annotated a)

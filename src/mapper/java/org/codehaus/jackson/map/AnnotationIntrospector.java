@@ -172,7 +172,27 @@ public abstract class AnnotationIntrospector
      * @since 1.5
      */
     public abstract TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType);
-    
+
+    /**
+     * Method for checking if given structured property entity (field or method that
+     * has nominal value of Map, Collection or array type) has annotations
+     * that indicate that specific type resolver is to be used for handling type
+     * information of contained values.
+     * This includes not only
+     * instantiating resolver builder, but also configuring it based on
+     * relevant annotations (not including ones checked with a call to
+     * {@link #findSubtypes}
+     * 
+     * @param am Annotated member (field or method) to check for annotations
+     * @param baseType Base java type of property for which resolver is to be found
+     * 
+     * @return Type resolver builder for values contained in properties of given entity,
+     *    if one found; null if none
+     * 
+     * @since 1.5
+     */    
+    public abstract TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType);
+
     /**
      * Method for locating annotation-specified subtypes related to annotated
      * entity (class, method, field)
@@ -711,6 +731,16 @@ public abstract class AnnotationIntrospector
             TypeResolverBuilder<?> b = _primary.findPropertyTypeResolver(am, baseType);
             if (b == null) {
                 b = _secondary.findPropertyTypeResolver(am, baseType);
+            }
+            return b;
+        }
+
+        @Override
+        public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType)
+        {
+            TypeResolverBuilder<?> b = _primary.findPropertyContentTypeResolver(am, baseType);
+            if (b == null) {
+                b = _secondary.findPropertyContentTypeResolver(am, baseType);
             }
             return b;
         }

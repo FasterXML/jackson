@@ -331,8 +331,10 @@ public abstract class BasicDeserializerFactory
 
     
     /**
-     * Method called to construct a type serializer for property values with given declared
-     * base type. This is only called for bean property values.
+     * Method called to construct a type serializer for non-container property values
+     * with given declared
+     * base type.
+     * This is only called for non-container bean properties.
      */
     @Override
     public TypeDeserializer createPropertyTypeDeserializer(DeserializationConfig config, JavaType baseType,
@@ -340,6 +342,30 @@ public abstract class BasicDeserializerFactory
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
         TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(propertyEntity, baseType);        
+        Collection<NamedType> subtypes = null;
+        // Defaulting: if no annotations on member, check value class
+        if (b == null) {
+            return createTypeDeserializer(config, baseType);
+        }
+        // but if annotations found, may need to resolve subtypes:
+        Collection<NamedType> st = ai.findSubtypes(propertyEntity);
+        if (st != null && st.size() > 0) {
+            subtypes = _collectAndResolveSubtypes(config, ai, st);
+        }
+        return b.buildTypeDeserializer(baseType, subtypes);
+    }
+
+    /**
+     * Method called to construct a type serializer for container property values
+     * with given declared
+     * base type. This is only called for container (list, array, map) bean properties
+     */
+    @Override
+    public TypeDeserializer createPropertyContentTypeDeserializer(DeserializationConfig config, JavaType baseType,
+            AnnotatedMember propertyEntity)
+    {
+        AnnotationIntrospector ai = config.getAnnotationIntrospector();
+        TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(propertyEntity, baseType);        
         Collection<NamedType> subtypes = null;
         // Defaulting: if no annotations on member, check value class
         if (b == null) {

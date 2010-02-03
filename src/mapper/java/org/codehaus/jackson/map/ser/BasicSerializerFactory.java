@@ -300,6 +300,30 @@ public class BasicSerializerFactory
         }
         return b.buildTypeSerializer(baseType, subtypes);
     }
+
+    /**
+     * Method called to construct a type serializer for contents of
+     * container (list, array, map) properties with given declared base type.
+     * This is only called for bean property values with container types.
+     */
+    @Override
+    public TypeSerializer createPropertyContentTypeSerializer(JavaType baseType, SerializationConfig config,
+            AnnotatedMember propertyEntity)
+    {
+        AnnotationIntrospector ai = config.getAnnotationIntrospector();
+        TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(propertyEntity, baseType);        
+        Collection<NamedType> subtypes = null;
+        // Defaulting: if no annotations on member, check value class
+        if (b == null) {
+            return createTypeSerializer(baseType, config);
+        }
+        // but if annotations found, may need to resolve subtypes:
+        Collection<NamedType> st = ai.findSubtypes(propertyEntity);
+        if (st != null && st.size() > 0) {
+            subtypes = _collectAndResolveSubtypes(config, ai, st);
+        }
+        return b.buildTypeSerializer(baseType, subtypes);
+    }
     
     protected Collection<NamedType> _collectAndResolveSubtypes(MapperConfig<?> config,
             AnnotationIntrospector ai, Collection<NamedType> subtypeList)

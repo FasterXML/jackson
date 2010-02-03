@@ -59,8 +59,8 @@ public class PropertyBuilder
      */
     public BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
             TypeSerializer typeSer,
-                                            AnnotatedMethod am,
-                                            boolean defaultUseStaticTyping)
+            AnnotatedMethod am,
+            boolean defaultUseStaticTyping)
     {
         return _buildProperty(name, ser, typeSer, defaultUseStaticTyping, am, am.getAnnotated(), null);
     }

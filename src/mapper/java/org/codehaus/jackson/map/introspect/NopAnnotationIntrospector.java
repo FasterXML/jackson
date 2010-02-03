@@ -102,6 +102,11 @@ public class NopAnnotationIntrospector
     }
 
     @Override
+    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType) {
+        return null;
+    }
+    
+    @Override
     public List<NamedType> findSubtypes(Annotated a) {
         return null;
     }
