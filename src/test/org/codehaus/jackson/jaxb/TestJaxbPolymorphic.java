@@ -116,7 +116,7 @@ public class TestJaxbPolymorphic
          ListBean input = new ListBean(new Whale("bluey", 150),
                  new Buffalo("Bob", "black"));
          String str = mapper.writeValueAsString(input);
-System.out.println("DEBUG: json == "+str);         
+//System.out.println("DEBUG: json == "+str);
          // Let's assume it's ok, and try deserialize right away:         
          ListBean result = mapper.readValue(str, ListBean.class);
          assertEquals(2, result.animals.size());

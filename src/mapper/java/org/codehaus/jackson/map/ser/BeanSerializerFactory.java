@@ -236,7 +236,17 @@ public class BeanSerializerFactory
         }
         // Does member specify a serializer? If so, let's use it.
         JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, propertyMember);
-        // And how about polymorphic typing?
+        // And how about polymorphic typing? First special to cover JAXB per-field settings:
+        // !!! @TODO 03-Feb-2010, tatu: Need to figure out proper way to pipe this in
+        /*
+        if (ClassUtil.isCollectionOrArray(propertyMember.getRawType())) {
+            TypeSerializer cts = createPropertyContentTypeSerializer(propertyMember.getType(), config, propertyMember);
+            if (cts != null) {                
+            }
+        }
+        */
+
+        // and if not JAXB collection/array with annotations, maybe regular type info?
         TypeSerializer ts = createPropertyTypeSerializer(propertyMember.getType(), config, propertyMember);
         BeanPropertyWriter pbw = pb.buildProperty(name, annotatedSerializer, ts, propertyMember, staticTyping);
         // how about views? (1.4+)

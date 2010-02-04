@@ -221,9 +221,6 @@ public class BeanSerializer
                 }
                 type = TypeFactory.type(prop.getGenericPropertyType());
             }
-            /* non-typed means that it won't be wrapped with type resolver: this
-             * is important since we will be adding type resolver separately
-             */
             _props[i] = prop.withSerializer(provider.findValueSerializer(type.getRawClass()));
         }
     }

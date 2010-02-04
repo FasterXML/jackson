@@ -69,6 +69,10 @@ public class BeanPropertyWriter
      */
     protected final boolean _suppressNulls;
 
+    /**
+     * Value that is considered default value of the property; used for
+     * default-value-suppression if enabled.
+     */
     protected final Object _suppressableValue;
 
     /**
