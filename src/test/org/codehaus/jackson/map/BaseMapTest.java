@@ -101,8 +101,8 @@ public abstract class BaseMapTest
     protected Map<String,Object> writeAndMap(ObjectMapper m, Object value)
         throws IOException
     {
-        String str = serializeAsString(m, value);
-        return (Map<String,Object>) m.readValue(str, Object.class);
+        String str = m.writeValueAsString(value);
+        return (Map<String,Object>) m.readValue(str, Map.class);
     }
 
     protected Map<String,Object> writeAndMap(Object value)

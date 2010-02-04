@@ -564,8 +564,8 @@ public class StdSerializerProvider
     private final static class WrappedSerializer
         extends JsonSerializer<Object>
     {
-        final TypeSerializer _typeSerializer;
-        final JsonSerializer<Object> _serializer;
+        final protected TypeSerializer _typeSerializer;
+        final protected JsonSerializer<Object> _serializer;
 
         public WrappedSerializer(TypeSerializer typeSer, JsonSerializer<Object> ser)
         {

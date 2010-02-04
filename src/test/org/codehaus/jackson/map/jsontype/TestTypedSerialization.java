@@ -137,13 +137,21 @@ public class TestTypedSerialization
     {
         // ensure we'll use mapper with default configs
         ObjectMapper m = new ObjectMapper();
+        // ... so this should NOT be needed...
+        m.disableDefaultTyping();
         
         Animal[] animals = new Animal[] { new Cat("Miuku", "white"), new Dog("Murre", 9) };
         Map<String,Object> map = new HashMap<String,Object>();
         map.put("a", animals);
-        Map<String,Object> result = writeAndMap(m, map);
+        String json = m.writeValueAsString(map);
+        Map<String,Object> result = m.readValue(json, Map.class);
         assertEquals(1, result.size());
-        List<?> l = (List<?>)result.get("a");
+        Object ob = result.get("a");
+        if (!(ob instanceof List<?>)) {
+            // 03-Feb-2010, tatu: Weird; seems to fail sometimes...
+            fail("Did not map to entry with 'a' as List (but as "+ob.getClass().getName()+"): JSON == '"+json+"'");
+        }
+        List<?> l = (List<?>)ob;
         assertNotNull(l);
         assertEquals(2, l.size());
         Map<?,?> a1 = (Map<?,?>) l.get(0);

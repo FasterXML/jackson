@@ -205,7 +205,7 @@ public class BeanPropertyWriter
 
     /**
      * Method called to access property that this bean stands for, from
-     * within given bean, and to serialize it as a Json Object field
+     * within given bean, and to serialize it as a JSON Object field
      * using appropriate serializer.
      */
     public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
