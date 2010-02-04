@@ -13,6 +13,8 @@ import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Helper class for {@link BeanSerializerFactory} that is used to
@@ -87,7 +89,7 @@ public class PropertyBuilder
             Annotated a, Method m, Field f)
     {
         // do we have annotation that forces type to use (to declared type or its super type)?
-        Class<?> serializationType = findSerializationType(a, defaultUseStaticTyping);
+        JavaType serializationType = findSerializationType(a, defaultUseStaticTyping);
         Object suppValue = null;
         boolean suppressNulls = false;
 
@@ -121,17 +123,17 @@ public class PropertyBuilder
      * declared type (if static typing for serialization is enabled).
      * If neither can be used (no annotations, dynamic typing), returns null.
      */
-    protected Class<?> findSerializationType(Annotated a, boolean useStaticTyping)
+    protected JavaType findSerializationType(Annotated a, boolean useStaticTyping)
     {
         // [JACKSON-120]: Check to see if serialization type is fixed
         Class<?> serializationType = _annotationIntrospector.findSerializationType(a);
         if (serializationType != null) {
             // Must be a super type...
-            Class<?> type = a.getRawType();
-            if (!serializationType.isAssignableFrom(type)) {
-                throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+a.getName()+"': class "+serializationType.getName()+" not a super-type of (declared) class "+type.getName());
+            Class<?> raw = a.getRawType();
+            if (!serializationType.isAssignableFrom(raw)) {
+                throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+a.getName()+"': class "+serializationType.getName()+" not a super-type of (declared) class "+raw.getName());
             }
-            return serializationType;
+            return TypeFactory.type(serializationType);
         }
         /* [JACKSON-114]: if using static typing, declared type is known
          * to be the type...
@@ -141,7 +143,7 @@ public class PropertyBuilder
             useStaticTyping = (typing == JsonSerialize.Typing.STATIC);
         }
         if (useStaticTyping) {
-            return a.getRawType();
+            return TypeFactory.type(a.getGenericType());
         }
         return null;
     }

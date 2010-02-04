@@ -12,6 +12,8 @@ import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Serializer class that can serialize arbitrary bean objects.
@@ -168,16 +170,16 @@ public class BeanSerializer
         ObjectNode propertiesNode = o.objectNode();
         for (int i = 0; i < _props.length; i++) {
             BeanPropertyWriter prop = _props[i];
-            Type hint = prop.getSerializationType();
+            Type hint = prop.getRawSerializationType();
             if (hint == null) {
                 hint = prop.getGenericPropertyType();
             }
             // Maybe it already has annotated/statically configured serializer?
             JsonSerializer<Object> ser = prop.getSerializer();
             if (ser == null) { // nope
-                Class<?> serType = prop.getSerializationType();
+                Class<?> serType = prop.getRawSerializationType();
                 if (serType == null) {
-                    serType = prop.getReturnType();
+                    serType = prop.getPropertyType();
                 }
                 ser = provider.findValueSerializer(serType);
             }
@@ -207,22 +209,22 @@ public class BeanSerializer
                 continue;
             }
             // Was the serialization type hard-coded? If so, use it
-            Class<?> type = prop.getSerializationType();
+            JavaType type = prop.getSerializationType();
             /* It not, we can use declared return type if and only if
              * declared type is final -- if not, we don't really know
              * the actual type until we get the instance.
              */
             if (type == null) {
-                Class<?> rt = prop.getReturnType();
+                Class<?> rt = prop.getPropertyType();
                 if (!Modifier.isFinal(rt.getModifiers())) {
                     continue;
                 }
-                type = rt;
+                type = TypeFactory.type(prop.getGenericPropertyType());
             }
             /* non-typed means that it won't be wrapped with type resolver: this
              * is important since we will be adding type resolver separately
              */
-            _props[i] = prop.withSerializer(provider.findValueSerializer(type));
+            _props[i] = prop.withSerializer(provider.findValueSerializer(type.getRawClass()));
         }
     }
 

@@ -5,6 +5,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
+import org.codehaus.jackson.type.JavaType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -53,7 +54,7 @@ public class BeanPropertyWriter
      * Type to use for locating serializer; normally same as return
      * type of the accessor method, but may be overridden by annotations.
      */
-    protected final Class<?> _cfgSerializationType;
+    protected final JavaType _cfgSerializationType;
 
     /**
      * Serializer to use for writing out the value: null if it can not
@@ -98,7 +99,7 @@ public class BeanPropertyWriter
      * @param suppressableValue Value to suppress
      */
     public BeanPropertyWriter(String name, JsonSerializer<Object> ser, TypeSerializer typeSer,
-                              Class<?> serType,
+                              JavaType serType,
                               Method acc, Field f,
                               boolean suppressNulls,
                               Object suppressableValue)
@@ -156,6 +157,8 @@ public class BeanPropertyWriter
     //////////////////////////////////////////////////////
      */
 
+    public final String getName() { return _name; }
+
     public boolean hasSerializer() { return _serializer != null; }
     
     // Needed by BeanSerializer#getSchema
@@ -163,19 +166,21 @@ public class BeanPropertyWriter
         return _serializer;
     }
 
-    public Class<?> getSerializationType() {
+    public JavaType getSerializationType() {
         return _cfgSerializationType;
     }
 
-    public Class<?> getReturnType() 
+    public Class<?> getRawSerializationType() {
+        return (_cfgSerializationType == null) ? null : _cfgSerializationType.getRawClass();
+    }
+    
+    public Class<?> getPropertyType() 
     {
         if (_accessorMethod != null) {
             return _accessorMethod.getReturnType();
         }
         return _field.getType();
     }
-
-    public final String getName() { return _name; }
 
     /**
      * Get the generic property type of this property writer.
