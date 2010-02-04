@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -51,49 +52,26 @@ public class PropertyBuilder
     //////////////////////////////////////////////////
      */
 
-    /**
-     * Factory method for constructor a {@link BeanPropertyWriter}
-     * that uses specified method as the accessors.
-     *
-     * @param defaultUseStaticTyping Whether default typing mode is
-     *   'static' or not (if not, it's 'dynamic'); can be overridden
-     *   by annotation related to property itself
-     */
-    public BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
-            TypeSerializer typeSer,
-            AnnotatedMethod am,
+    protected BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
+            TypeSerializer typeSer, AnnotatedMember am,
             boolean defaultUseStaticTyping)
     {
-        return _buildProperty(name, ser, typeSer, defaultUseStaticTyping, am, am.getAnnotated(), null);
-    }
+        Field f;
+        Method m;
+        if (am instanceof AnnotatedField) {
+            m = null;
+            f = ((AnnotatedField) am).getAnnotated();
+        } else {
+            m = ((AnnotatedMethod) am).getAnnotated();
+            f = null;
+        }
 
-    /**
-     * Factory method for constructor a {@link BeanPropertyWriter}
-     * that uses specified method as the accessors.
-     *
-     * @param defaultUseStaticTyping Whether default typing mode is
-     *   'static' or not (if not, it's 'dynamic'); can be overridden
-     *   by annotation related to property itself
-     */
-    public BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
-            TypeSerializer typeSer,
-            AnnotatedField af,
-            boolean defaultUseStaticTyping)
-    {
-        return _buildProperty(name, ser, typeSer, defaultUseStaticTyping, af, null, af.getAnnotated());
-    }
-
-    protected BeanPropertyWriter _buildProperty(String name, JsonSerializer<Object> ser,
-            TypeSerializer typeSer,
-            boolean defaultUseStaticTyping,
-            Annotated a, Method m, Field f)
-    {
         // do we have annotation that forces type to use (to declared type or its super type)?
-        JavaType serializationType = findSerializationType(a, defaultUseStaticTyping);
+        JavaType serializationType = findSerializationType(am, defaultUseStaticTyping);
         Object suppValue = null;
         boolean suppressNulls = false;
 
-        JsonSerialize.Inclusion methodProps = _annotationIntrospector.findSerializationInclusion(a, _outputProps);
+        JsonSerialize.Inclusion methodProps = _annotationIntrospector.findSerializationInclusion(am, _outputProps);
 
         if (methodProps != null) {
             switch (methodProps) {

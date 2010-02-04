@@ -2,9 +2,8 @@ package org.codehaus.jackson.map.introspect;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Type;
-
-import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Object that represents non-static (and usually non-transient/volatile)
@@ -68,27 +67,25 @@ public final class AnnotatedField
     
     /*
     //////////////////////////////////////////////////////
-    // Extended API, generic
+    // AnnotatedMember impl
     //////////////////////////////////////////////////////
      */
 
     public Class<?> getDeclaringClass() { return _field.getDeclaringClass(); }
+
+    public Member getMember() { return _field; }
+    
+    /*
+    //////////////////////////////////////////////////////
+    // Extended API, generic
+    //////////////////////////////////////////////////////
+     */
 
     public String getFullName() {
         return getDeclaringClass().getName() + "#" + getName();
     }
 
     public int getAnnotationCount() { return _annotations.size(); }
-
-    /**
-     * Method that can be called to modify access rights, by calling
-     * {@link java.lang.reflect.AccessibleObject#setAccessible} on
-     * the underlying annotated element.
-     */
-    public void fixAccess()
-    {
-        ClassUtil.checkAndFixAccess(_field);
-    }
 
     public String toString()
     {

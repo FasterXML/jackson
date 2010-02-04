@@ -133,6 +133,7 @@ public class TestTypedSerialization
      *    But it is not quite clear how type information should be pushed through
      *    array types...
      */
+    @SuppressWarnings("unchecked")
     public void testInArray() throws Exception
     {
         // ensure we'll use mapper with default configs

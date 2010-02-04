@@ -5,6 +5,7 @@ import java.util.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.util.ArrayBuilders;
@@ -208,44 +209,42 @@ public class BeanSerializerFactory
         if (methodsByProp.isEmpty() && fieldsByProp.isEmpty()) {
             return null;
         }
-        boolean fixAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         boolean staticTyping = usesStaticTyping(config, beanDesc);
         PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
-        AnnotationIntrospector intr = config.getAnnotationIntrospector();
-
         // [JACKSON-98]: start with field properties, if any
-        for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
-            AnnotatedField af = en.getValue();
-            if (fixAccess) {
-                af.fixAccess();
-            }
-            // Does Method specify a serializer? If so, let's use it.
-            JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, af);
-            // And how about polymorphic typing?
-            TypeSerializer ts = createPropertyTypeSerializer(af.getType(), config, af);
-            BeanPropertyWriter pbw = pb.buildProperty(en.getKey(), annotatedSerializer, ts, af, staticTyping);
-            // how about views? (1.4+)
-            pbw.setViews(intr.findSerializationViews(af));
-            props.add(pbw);
+        for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {            
+            props.add(_constructWriter(config, pb, staticTyping, en.getKey(), en.getValue()));
         }
-
+        // and then add member properties
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
-            AnnotatedMethod am = en.getValue();
-            if (fixAccess) {
-                am.fixAccess();
-            }
-            // Does Method specify a serializer? If so, let's use it.
-            JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, am);
-            // And how about polymorphic typing?
-            TypeSerializer ts = createPropertyTypeSerializer(am.getType(), config, am);
-            BeanPropertyWriter pbw = pb.buildProperty(en.getKey(), annotatedSerializer, ts, am, staticTyping);
-            pbw.setViews(intr.findSerializationViews(am));
-            props.add(pbw);
+            props.add(_constructWriter(config, pb, staticTyping, en.getKey(), en.getValue()));
         }
         return props;
     }
+
+    /**
+     * Secondary helper method for constructing {@link BeanPropertyWriter} for
+     * given member (field or method).
+     */
+    protected BeanPropertyWriter _constructWriter(SerializationConfig config, PropertyBuilder pb,
+            boolean staticTyping, String name, AnnotatedMember propertyMember)
+    {
+        if (config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+            propertyMember.fixAccess();
+        }
+        // Does member specify a serializer? If so, let's use it.
+        JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, propertyMember);
+        // And how about polymorphic typing?
+        TypeSerializer ts = createPropertyTypeSerializer(propertyMember.getType(), config, propertyMember);
+        BeanPropertyWriter pbw = pb.buildProperty(name, annotatedSerializer, ts, propertyMember, staticTyping);
+        // how about views? (1.4+)
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        pbw.setViews(intr.findSerializationViews(propertyMember));
+        return pbw;
+    }
+
     /**
      * Overridable method that can filter out properties. Default implementation
      * checks annotations class may have.
