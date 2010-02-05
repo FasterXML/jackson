@@ -31,7 +31,7 @@ public class TestJavaType
 
         assertNull(baseType.findVariableType("foobar"));
         assertNull(baseType.getContentType());
-        assertNull(baseType.getHandler());
+        assertNull(baseType.getValueHandler());
 
         /* both narrow and widen just return type itself (exact, not just
          * equal)
@@ -49,12 +49,23 @@ public class TestJavaType
         }
 
         // Also, let's try assigning bogus handler
-        baseType.setHandler("xyz"); // untyped
-        assertEquals("xyz", baseType.getHandler());
+        baseType.setValueHandler("xyz"); // untyped
+        assertEquals("xyz", baseType.getValueHandler());
         // illegal to re-set
         try {
-            baseType.setHandler("foobar");
-            fail("Shouldn't allow re-setting handler");
+            baseType.setValueHandler("foobar");
+            fail("Shouldn't allow re-setting value handler");
+        } catch (IllegalStateException iae) {
+            verifyException(iae, "Trying to reset");
+        }
+
+        // and similarly for 1.5...
+        baseType.setTypeHandler("abc"); // untyped
+        assertEquals("abc", baseType.getTypeHandler());
+        // illegal to re-set
+        try {
+            baseType.setTypeHandler("foobar");
+            fail("Shouldn't allow re-setting type handler");
         } catch (IllegalStateException iae) {
             verifyException(iae, "Trying to reset");
         }

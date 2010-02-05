@@ -3,7 +3,7 @@ package org.codehaus.jackson.jaxb;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
-public class BaseJaxbTest
+public abstract class BaseJaxbTest
     extends org.codehaus.jackson.map.BaseMapTest
 {
     protected BaseJaxbTest() { }

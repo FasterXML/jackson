@@ -15,7 +15,7 @@ public abstract class ContainerSerializerBase<T>
     /**
      * Type serializer used for values, if any.
      */
-    protected TypeSerializer _valueTypeSerializer;    
+    protected TypeSerializer _valueTypeSerializer;
 
     /*
     /*********************************************

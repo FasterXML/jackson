@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map;
 
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
@@ -62,43 +61,4 @@ public abstract class SerializerFactory
         // Default implementation returns null for backwards compatibility reasons.
         return null;
     }
-
-    /**
-     * Method called to create a type information serializer for values of given
-     * non-container property
-     * if one is needed. If not needed (no polymorphic handling configured), should
-     * return null.
-     *
-     * @param baseType Declared type to use as the base type for type information serializer
-     * 
-     * @return Type serializer to use for property values, if one is needed; null if not.
-     * 
-     * @since 1.5
-     */
-    public TypeSerializer createPropertyTypeSerializer(JavaType baseType, SerializationConfig config,
-            AnnotatedMember property)
-    {
-        // Default implementation returns null for backwards compatibility reasons.
-        return null;
-    }
-
-    /**
-     * Method called to create a type information serializer for values of given
-     * container property
-     * if one is needed. If not needed (no polymorphic handling configured), should
-     * return null.
-     *
-     * @param baseType Declared type to use as the base type for type information serializer
-     * 
-     * @return Type serializer to use for property value contents, if one is needed; null if not.
-     * 
-     * @since 1.5
-     */    
-    public TypeSerializer createPropertyContentTypeSerializer(JavaType baseType, SerializationConfig config,
-            AnnotatedMember propertyEntity)
-    {
-        // Default implementation returns null for backwards compatibility reasons.
-        return null;
-    }
-    
 }

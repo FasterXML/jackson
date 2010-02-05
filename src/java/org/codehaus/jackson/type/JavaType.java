@@ -24,15 +24,27 @@ public abstract class JavaType
 
     /**
      * Optional handler (codec) that can be attached to indicate 
-     * what to use for this specific type.
+     * what to use for handling (serializing, deserializing) values of
+     * this specific type.
      *<p>
      * Note: untyped (i.e. caller has to cast) because it is used for
      * different kinds of handlers, with unrelated types.
      *
      * @since 1.3
      */
-    Object _handler;
+    protected Object _valueHandler;
 
+    /**
+     * Optional handler that can be attached to indicate how to handle
+     * additional type metadata associated with this type.
+     *<p>
+     * Note: untyped (i.e. caller has to cast) because it is used for
+     * different kinds of handlers, with unrelated types.
+     *
+     * @since 1.5
+     */
+    protected Object _typeHandler;
+    
     /*
     ///////////////////////////////////////////////////////////////
     // Life-cycle
@@ -63,8 +75,11 @@ public abstract class JavaType
         // Otherwise, ensure compatibility
         _assertSubclass(subclass, _class);
         JavaType result = _narrow(subclass);
-        if (_handler != null) {
-            result.setHandler(_handler);
+        if (_valueHandler != null) {
+            result.setValueHandler(_valueHandler);
+        }
+        if (_typeHandler != null) {
+            result.setTypeHandler(_typeHandler);
         }
         return result;
     }
@@ -108,14 +123,30 @@ public abstract class JavaType
      * 
      * @since 1.3
      */
-    public void setHandler(Object h) {
+    public void setValueHandler(Object h) {
         // sanity check, should be assigned just once
-        if (h != null && _handler != null) {
-            throw new IllegalStateException("Trying to reset handler for type ["+toString()+"]; old handler of type "+_handler.getClass().getName()+", new handler of type "+h.getClass().getName());
+        if (h != null && _valueHandler != null) {
+            throw new IllegalStateException("Trying to reset value handler for type ["+toString()
+            		+"]; old handler of type "+_valueHandler.getClass().getName()+", new handler of type "+h.getClass().getName());
         }
-        _handler = h;
+        _valueHandler = h;
     }
 
+    /**
+     * Method for assigning type handler to associate with this type; or
+     * if null passed, to remove such assignment
+     * 
+     * @since 1.5
+     */
+    public void setTypeHandler(Object h) {
+        // sanity check, should be assigned just once
+        if (h != null && _typeHandler != null) {
+            throw new IllegalStateException("Trying to reset type handler for type ["+toString()
+            		+"]; old handler of type "+_typeHandler.getClass().getName()+", new handler of type "+h.getClass().getName());
+        }
+        _typeHandler = h;
+    }
+    
     /**
      * Method used to explicit bind specified name with a Type.
      * Usually used to mark "unbound" type variables to allow
@@ -214,12 +245,21 @@ public abstract class JavaType
     public JavaType containedType(int index) { return null; }
     
     /**
-     * Method for accessing handler associated with this type, if any
+     * Method for accessing value handler associated with this type, if any
      * 
      * @since 1.3
      */
-    public Object getHandler() { return _handler; }
+    @SuppressWarnings("unchecked")
+    public <T> T getValueHandler() { return (T) _valueHandler; }
 
+    /**
+     * Method for accessing type handler associated with this type, if any
+     * 
+     * @since 1.5
+     */
+    @SuppressWarnings("unchecked")
+	public <T> T getTypeHandler() { return (T) _typeHandler; }
+    
     /**
      * Method that can be used to serialize type into form from which
      * it can be fully deserialized from at a later point (using

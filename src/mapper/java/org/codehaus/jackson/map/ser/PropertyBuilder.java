@@ -53,8 +53,8 @@ public class PropertyBuilder
      */
 
     protected BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
-            TypeSerializer typeSer, AnnotatedMember am,
-            boolean defaultUseStaticTyping)
+            TypeSerializer typeSer, TypeSerializer contentTypeSer,
+            AnnotatedMember am, boolean defaultUseStaticTyping)
     {
         Field f;
         Method m;
@@ -68,6 +68,17 @@ public class PropertyBuilder
 
         // do we have annotation that forces type to use (to declared type or its super type)?
         JavaType serializationType = findSerializationType(am, defaultUseStaticTyping);
+        // Container types can have separate type serializers for content (value / element) type
+        if (contentTypeSer != null) {
+        	/* 04-Feb-2010, tatu: Let's force static typing for collection, if there is
+        	 *    type information for contents. Should work well (for JAXB case); can be
+        	 *    revisited if this causes problems.
+        	 */
+        	if (serializationType == null) {
+        		serializationType = TypeFactory.type(am.getGenericType());
+        	}
+        	serializationType.getContentType().setTypeHandler(contentTypeSer);
+        }
         Object suppValue = null;
         boolean suppressNulls = false;
 

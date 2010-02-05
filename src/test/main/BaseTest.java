@@ -8,7 +8,7 @@ import org.codehaus.jackson.*;
 
 //import static org.junit.Assert.*;
 
-public class BaseTest
+public abstract class BaseTest
     extends TestCase
 {
     /*

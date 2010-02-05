@@ -114,7 +114,7 @@ public class StdDeserializerProvider
         throws JsonMappingException
     {
         JsonDeserializer<Object> deser = findValueDeserializer(config, type, null, null);
-        TypeDeserializer typeDeser = _factory.createTypeDeserializer(config, type);
+        TypeDeserializer typeDeser = _factory.findTypeDeserializer(config, type);
         if (typeDeser != null) {
             return new WrappedDeserializer(typeDeser, deser);
         }

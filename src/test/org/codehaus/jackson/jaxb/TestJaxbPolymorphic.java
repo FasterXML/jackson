@@ -49,14 +49,13 @@ public class TestJaxbPolymorphic
      static abstract class Animal {
          public String nickname;
 
-         protected Animal() { }
          protected Animal(String n) { nickname = n; }
      }
 
      static class Buffalo extends Animal {
          public String hairColor;
 
-         public Buffalo() { }
+         public Buffalo() { this(null, null); }
          public Buffalo(String name, String hc) {
              super(name);
              hairColor = hc;
@@ -64,8 +63,8 @@ public class TestJaxbPolymorphic
      }
 
      static class Whale extends Animal {
-         int weightInTons;
-         public Whale() { }
+         public int weightInTons;
+         public Whale() { this(null, 0); }
          public Whale(String n, int w) {
              super(n);
              weightInTons = w;
@@ -114,9 +113,9 @@ public class TestJaxbPolymorphic
      {
          ObjectMapper mapper = getJaxbMapper();
          ListBean input = new ListBean(new Whale("bluey", 150),
-                 new Buffalo("Bob", "black"));
+                 new Buffalo("Bob", "black")
+         );
          String str = mapper.writeValueAsString(input);
-//System.out.println("DEBUG: json == "+str);
          // Let's assume it's ok, and try deserialize right away:         
          ListBean result = mapper.readValue(str, ListBean.class);
          assertEquals(2, result.animals.size());

@@ -210,6 +210,7 @@ public class BeanSerializer
             }
             // Was the serialization type hard-coded? If so, use it
             JavaType type = prop.getSerializationType();
+            
             /* It not, we can use declared return type if and only if
              * declared type is final -- if not, we don't really know
              * the actual type until we get the instance.
@@ -221,7 +222,20 @@ public class BeanSerializer
                 }
                 type = TypeFactory.type(prop.getGenericPropertyType());
             }
-            _props[i] = prop.withSerializer(provider.findValueSerializer(type.getRawClass()));
+            JsonSerializer<Object> ser = provider.findValueSerializer(type.getRawClass());
+            /* 04-Feb-2010, tatu: We may have stashed type serializer for content types
+             *   too, earlier; if so, it's time to connect the dots here:
+             */
+            if (type.isContainerType()) {
+            	TypeSerializer typeSer = type.getContentType().getTypeHandler();
+	            if (typeSer != null) {
+	            	// for now, can do this only for standard containers...
+	            	if (ser instanceof ContainerSerializerBase<?>) {
+	            		((ContainerSerializerBase<?>) ser).setValueTypeSerializer(typeSer);
+	            	}
+	            }
+            }
+            _props[i] = prop.withSerializer(ser);
         }
     }
 

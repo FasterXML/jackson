@@ -540,7 +540,7 @@ public class BeanDeserializerFactory
         
         Method m = setter.getAnnotated();
         type = modifyTypeByAnnotation(config, setter, type);
-        TypeDeserializer typeDeser = createPropertyTypeDeserializer(config, type, setter);
+        TypeDeserializer typeDeser = type.getTypeHandler();
         SettableBeanProperty prop = new SettableBeanProperty.MethodProperty(name, type, typeDeser, m);
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);
@@ -565,7 +565,7 @@ public class BeanDeserializerFactory
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, field);
         Field f = field.getAnnotated();
         type = modifyTypeByAnnotation(config, field, type);
-        TypeDeserializer typeDeser = createPropertyTypeDeserializer(config, type, field);
+        TypeDeserializer typeDeser = type.getTypeHandler();
         SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(name, type, typeDeser, f);
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);
@@ -597,7 +597,7 @@ public class BeanDeserializerFactory
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, getter);        
         Method m = getter.getAnnotated();
         type = modifyTypeByAnnotation(config, getter, type);
-        TypeDeserializer typeDeser = createTypeDeserializer(config, type);
+        TypeDeserializer typeDeser = type.getTypeHandler();
         SettableBeanProperty prop = new SettableBeanProperty.SetterlessProperty(name, type, typeDeser, m);
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);

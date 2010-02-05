@@ -275,10 +275,14 @@ public class TypeFactory
                 }
                 // this _should_ work, right?
                 JavaType subtype = instance._fromClass(subclass, baseType);
-                // one more thing: handler to copy?
-                Object h = baseType.getHandler();
+                // one more thing: handlers to copy?
+                Object h = baseType.getValueHandler();
                 if (h != null) {
-                    subtype.setHandler(h);
+                    subtype.setValueHandler(h);
+                }
+                h = baseType.getTypeHandler();
+                if (h != null) {
+                    subtype.setTypeHandler(h);
                 }
                 return subtype;
             }

@@ -248,21 +248,22 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
          * is NOT a structured type.
          */
         if (baseType.isContainerType()) return null;
-        return _typeResolverFromXmlElements(am, baseType);
+        return _typeResolverFromXmlElements(am);
     }
 
-
     @Override
-    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType)
+    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType containerType)
     {
         /* First: let's ensure property is a container type: caller should have
          * verified but just to be sure
          */
-        if (!baseType.isContainerType()) return null;
-        return _typeResolverFromXmlElements(am, baseType);
+        if (!containerType.isContainerType()) {
+        	throw new IllegalArgumentException("Must call method with a container type (got "+containerType+")");
+        }
+        return _typeResolverFromXmlElements(am);
     }
 
-    protected TypeResolverBuilder<?> _typeResolverFromXmlElements(AnnotatedMember am, JavaType baseType)
+    protected TypeResolverBuilder<?> _typeResolverFromXmlElements(AnnotatedMember am)
     {
         // if simple type, @XmlElements is applicable
         XmlElements elems = findAnnotation(XmlElements.class, am, false, false, false);

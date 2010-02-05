@@ -184,14 +184,14 @@ public abstract class AnnotationIntrospector
      * {@link #findSubtypes}
      * 
      * @param am Annotated member (field or method) to check for annotations
-     * @param baseType Base java type of property for which resolver is to be found
+     * @param baseType Type of property for which resolver is to be found (must be a container type)
      * 
      * @return Type resolver builder for values contained in properties of given entity,
      *    if one found; null if none
      * 
      * @since 1.5
      */    
-    public abstract TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType);
+    public abstract TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType containerType);
 
     /**
      * Method for locating annotation-specified subtypes related to annotated

@@ -8,6 +8,8 @@ import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.jsontype.NamedType;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
@@ -143,6 +145,66 @@ public class BeanSerializerFactory
         return constructBeanSerializer(config, beanDesc);
     }
 
+    /**
+     * Method called to create a type information serializer for values of given
+     * non-container property
+     * if one is needed. If not needed (no polymorphic handling configured), should
+     * return null.
+     *
+     * @param baseType Declared type to use as the base type for type information serializer
+     * 
+     * @return Type serializer to use for property values, if one is needed; null if not.
+     * 
+     * @since 1.5
+     */
+    public TypeSerializer findPropertyTypeSerializer(JavaType baseType, SerializationConfig config,
+            AnnotatedMember propertyEntity)
+    {
+        AnnotationIntrospector ai = config.getAnnotationIntrospector();
+        TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(propertyEntity, baseType);        
+        Collection<NamedType> subtypes = null;
+        // Defaulting: if no annotations on member, check value class
+        if (b == null) {
+            return createTypeSerializer(baseType, config);
+        }
+        // but if annotations found, may need to resolve subtypes:
+        Collection<NamedType> st = ai.findSubtypes(propertyEntity);
+        if (st != null && st.size() > 0) {
+            subtypes = _collectAndResolveSubtypes(config, ai, st);
+        }
+        return b.buildTypeSerializer(baseType, subtypes);
+    }
+
+    /**
+     * Method called to create a type information serializer for values of given
+     * container property
+     * if one is needed. If not needed (no polymorphic handling configured), should
+     * return null.
+     *
+     * @param baseType Declared type to use as the base type for type information serializer
+     * 
+     * @return Type serializer to use for property value contents, if one is needed; null if not.
+     * 
+     * @since 1.5
+     */    
+    public TypeSerializer findPropertyContentTypeSerializer(JavaType baseType, SerializationConfig config,
+            AnnotatedMember propertyEntity)
+    {
+        AnnotationIntrospector ai = config.getAnnotationIntrospector();
+        TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(propertyEntity, baseType);        
+        Collection<NamedType> subtypes = null;
+        // Defaulting: if no annotations on member, check value class
+        if (b == null) {
+            return createTypeSerializer(baseType, config);
+        }
+        // but if annotations found, may need to resolve subtypes:
+        Collection<NamedType> st = ai.findSubtypes(propertyEntity);
+        if (st != null && st.size() > 0) {
+            subtypes = _collectAndResolveSubtypes(config, ai, st);
+        }
+        return b.buildTypeSerializer(baseType, subtypes);
+    }
+    
     /*
     ////////////////////////////////////////////////////////////
     // Overridable non-public methods
@@ -237,18 +299,15 @@ public class BeanSerializerFactory
         // Does member specify a serializer? If so, let's use it.
         JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, propertyMember);
         // And how about polymorphic typing? First special to cover JAXB per-field settings:
-        // !!! @TODO 03-Feb-2010, tatu: Need to figure out proper way to pipe this in
-        /*
+        TypeSerializer contentTypeSer = null;
         if (ClassUtil.isCollectionOrArray(propertyMember.getRawType())) {
-            TypeSerializer cts = createPropertyContentTypeSerializer(propertyMember.getType(), config, propertyMember);
-            if (cts != null) {                
-            }
+            contentTypeSer = findPropertyContentTypeSerializer(propertyMember.getType(), config, propertyMember);
         }
-        */
 
         // and if not JAXB collection/array with annotations, maybe regular type info?
-        TypeSerializer ts = createPropertyTypeSerializer(propertyMember.getType(), config, propertyMember);
-        BeanPropertyWriter pbw = pb.buildProperty(name, annotatedSerializer, ts, propertyMember, staticTyping);
+        TypeSerializer typeSer = findPropertyTypeSerializer(propertyMember.getType(), config, propertyMember);
+        BeanPropertyWriter pbw = pb.buildProperty(name, annotatedSerializer,
+        		typeSer, contentTypeSer, propertyMember, staticTyping);
         // how about views? (1.4+)
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         pbw.setViews(intr.findSerializationViews(propertyMember));
