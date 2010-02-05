@@ -54,4 +54,18 @@ public class TestObjectNode
         n.removeAll();
         assertEquals(0, n.size());
     }
+
+    /**
+     * Verify null handling
+     */
+    public void testNullChecking()
+    {
+        ObjectNode o1 = JsonNodeFactory.instance.objectNode();
+        ObjectNode o2 = JsonNodeFactory.instance.objectNode();
+        // used to throw NPE before fix:
+        o1.putAll(o2);
+        assertEquals(0, o1.size());
+        assertEquals(0, o2.size());
+
+    }
 }

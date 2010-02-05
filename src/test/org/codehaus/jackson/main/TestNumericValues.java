@@ -1,8 +1,12 @@
 package org.codehaus.jackson.main;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.io.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.map.*;
 
 /**
  * Set of basic unit tests for verifying that the basic parser
@@ -19,6 +23,7 @@ public class TestNumericValues
         JsonParser jp = createParserUsingReader("[ "+EXP_I+" ]");
         assertToken(JsonToken.START_ARRAY, jp.nextToken());
         assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(JsonParser.NumberType.INT, jp.getNumberType());
         assertEquals(""+EXP_I, jp.getText());
 
         assertEquals(EXP_I, jp.getIntValue());
@@ -27,6 +32,29 @@ public class TestNumericValues
         assertEquals(BigDecimal.valueOf((long) EXP_I), jp.getDecimalValue());
     }
 
+    public void testIntRange()
+        throws Exception
+    {
+        // let's test with readers and streams, separate code paths:
+        for (int i = 0; i < 2; ++i) {
+            String input = "[ "+Integer.MAX_VALUE+","+Integer.MIN_VALUE+" ]";
+            JsonParser jp;
+            if (i == 0) {
+                jp = createParserUsingReader(input);                
+            } else {
+                jp = this.createParserUsingStream(input, "UTF-8");
+            }
+            assertToken(JsonToken.START_ARRAY, jp.nextToken());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(JsonParser.NumberType.INT, jp.getNumberType());
+            assertEquals(Integer.MAX_VALUE, jp.getIntValue());
+    
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(JsonParser.NumberType.INT, jp.getNumberType());
+            assertEquals(Integer.MIN_VALUE, jp.getIntValue());
+        }
+    }
+    
     public void testInvalidIntAccess()
         throws Exception
     {
@@ -49,6 +77,8 @@ public class TestNumericValues
         JsonParser jp = createParserUsingReader("[ "+EXP_L+" ]");
         assertToken(JsonToken.START_ARRAY, jp.nextToken());
         assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        // beyond int, should be long
+        assertEquals(JsonParser.NumberType.LONG, jp.getNumberType());
         assertEquals(""+EXP_L, jp.getText());
 
         assertEquals(EXP_L, jp.getLongValue());
@@ -62,6 +92,70 @@ public class TestNumericValues
         assertEquals(BigDecimal.valueOf((long) EXP_L), jp.getDecimalValue());
     }
 
+    public void testLongRange()
+        throws Exception
+    {
+        for (int i = 0; i < 2; ++i) {
+            long belowMinInt = -1L + Integer.MIN_VALUE;
+            long aboveMaxInt = 1L + Integer.MAX_VALUE;
+            String input = "[ "+Long.MAX_VALUE+","+Long.MIN_VALUE+","+aboveMaxInt+", "+belowMinInt+" ]";
+            JsonParser jp;
+            if (i == 0) {
+                jp = createParserUsingReader(input);                
+            } else {
+                jp = this.createParserUsingStream(input, "UTF-8");
+            }
+            assertToken(JsonToken.START_ARRAY, jp.nextToken());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(JsonParser.NumberType.LONG, jp.getNumberType());
+            assertEquals(Long.MAX_VALUE, jp.getLongValue());
+        
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(JsonParser.NumberType.LONG, jp.getNumberType());
+            assertEquals(Long.MIN_VALUE, jp.getLongValue());
+
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(JsonParser.NumberType.LONG, jp.getNumberType());
+            assertEquals(aboveMaxInt, jp.getLongValue());
+
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(JsonParser.NumberType.LONG, jp.getNumberType());
+            assertEquals(belowMinInt, jp.getLongValue());
+
+            
+            assertToken(JsonToken.END_ARRAY, jp.nextToken());        
+            jp.close();
+        }
+    }
+
+    public void testBigDecimalRange()
+        throws Exception
+    {
+        for (int i = 0; i < 2; ++i) {
+            // let's test first values outside of Long range
+            BigInteger small = new BigDecimal(Long.MIN_VALUE).toBigInteger();
+            small = small.subtract(BigInteger.ONE);
+            BigInteger big = new BigDecimal(Long.MAX_VALUE).toBigInteger();
+            big = big.add(BigInteger.ONE);
+            String input = "[ "+small+"  ,  "+big+"]";
+            JsonParser jp;
+            if (i == 0) {
+                jp = createParserUsingReader(input);                
+            } else {
+                jp = this.createParserUsingStream(input, "UTF-8");
+            }
+            assertToken(JsonToken.START_ARRAY, jp.nextToken());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(JsonParser.NumberType.BIG_INTEGER, jp.getNumberType());
+            assertEquals(small, jp.getBigIntegerValue());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(JsonParser.NumberType.BIG_INTEGER, jp.getNumberType());
+            assertEquals(big, jp.getBigIntegerValue());
+            assertToken(JsonToken.END_ARRAY, jp.nextToken());        
+            jp.close();
+        }
+}
+    
     public void testSimpleDouble()
         throws Exception
     {

@@ -45,15 +45,18 @@ public abstract class JsonNumericParserBase
     final static BigDecimal BD_MIN_INT = new BigDecimal(Long.MIN_VALUE);
     final static BigDecimal BD_MAX_INT = new BigDecimal(Long.MAX_VALUE);
 
-    // These are not very accurate, but have to do...
-    // (note: non-final to prevent inlining)
+    final static long MIN_INT_L = (long) Integer.MIN_VALUE;
+    final static long MAX_INT_L = (long) Integer.MAX_VALUE;
+
+    // These are not very accurate, but have to do... (for bounds checks)
 
     final static double MIN_LONG_D = (double) Long.MIN_VALUE;
     final static double MAX_LONG_D = (double) Long.MAX_VALUE;
 
     final static double MIN_INT_D = (double) Integer.MIN_VALUE;
     final static double MAX_INT_D = (double) Integer.MAX_VALUE;
-
+    
+    
     // Digits, numeric
     final protected static int INT_0 = '0';
     final protected static int INT_1 = '1';
@@ -344,23 +347,51 @@ public abstract class JsonNumericParserBase
             if (_currToken == JsonToken.VALUE_NUMBER_INT) {
                 char[] buf = _textBuffer.getTextBuffer();
                 int offset = _textBuffer.getTextOffset();
+                int len = mIntLength;
                 if (_numberNegative) {
                     ++offset;
                 }
-                if (mIntLength <= 9) { // definitely fits in int
-                    int i = NumberInput.parseInt(buf, offset, mIntLength);
+                if (len <= 9) { // definitely fits in int
+                    int i = NumberInput.parseInt(buf, offset, len);
                     _numberInt = _numberNegative ? -i : i;
                     _numTypesValid = NR_INT;
                     return;
                 }
-                if (mIntLength <= 18) { // definitely fits AND is easy to parse using 2 int parse calls
-                    long l = NumberInput.parseLong(buf, offset, mIntLength);
-                    _numberLong = _numberNegative ? -l : l;
+                if (len <= 18) { // definitely fits AND is easy to parse using 2 int parse calls
+                    long l = NumberInput.parseLong(buf, offset, len);
+                    if (_numberNegative) {
+                        l = -l;
+                    }
+                    // [JACKSON-230] Could still fit in int, need to check
+                    if (len == 10) {
+                        if (_numberNegative) {
+                            if (l >= MIN_INT_L) {
+                                _numberInt = (int) l;
+                                _numTypesValid = NR_INT;
+                                return;
+                            }
+                        } else {
+                            if (l <= MAX_INT_L) {
+                                _numberInt = (int) l;
+                                _numTypesValid = NR_INT;
+                                return;
+                            }
+                        }
+                    }
+                    _numberLong = l;
+                    _numTypesValid = NR_LONG;
+                    return;
+                }
+                String numStr = _textBuffer.contentsAsString();
+                // [JACKSON-230] Some long cases still...
+                if (NumberInput.inLongRange(buf, offset, len, _numberNegative)) {
+                    // Probably faster to construct a String, call parse, than to use BigInteger
+                    _numberLong = Long.parseLong(numStr);
                     _numTypesValid = NR_LONG;
                     return;
                 }
                 // nope, need the heavy guns... (rare case)
-                _numberBigInt = new BigInteger(_textBuffer.contentsAsString());
+                _numberBigInt = new BigInteger(numStr);
                 _numTypesValid = NR_BIGINT;
                 return;
             }
