@@ -300,7 +300,7 @@ public class BeanSerializerFactory
         JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, propertyMember);
         // And how about polymorphic typing? First special to cover JAXB per-field settings:
         TypeSerializer contentTypeSer = null;
-        if (ClassUtil.isCollectionOrArray(propertyMember.getRawType())) {
+        if (ClassUtil.isCollectionMapOrArray(propertyMember.getRawType())) {
             contentTypeSer = findPropertyContentTypeSerializer(propertyMember.getType(), config, propertyMember);
         }
 

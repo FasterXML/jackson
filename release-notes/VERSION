@@ -8,6 +8,9 @@ Description:
 
   Improvements:
 
+  * [JACKSON-91] Polymorphic Type Handling: automatic handling of
+    polymorphic types, based on annotations (@JsonTypeInfo) and/or
+    global settings (ObjectMapper.enableDefaultTyping()) 
   * [JACKSON-160] Factory Creator methods now handle polymorphic
     construction correctly, allowing manual polymorphic deserialization
   * [JACKSON-175] Add "org.codehaus.jackson.util.TokenBuffer", used for

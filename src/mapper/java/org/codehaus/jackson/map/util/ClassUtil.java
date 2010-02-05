@@ -138,10 +138,11 @@ public final class ClassUtil
         return (mod & (Modifier.INTERFACE | Modifier.ABSTRACT)) == 0;
     }
 
-    public static boolean isCollectionOrArray(Class<?> type)
+    public static boolean isCollectionMapOrArray(Class<?> type)
     {
         if (type.isArray()) return true;
         if (Collection.class.isAssignableFrom(type)) return true;
+        if (Map.class.isAssignableFrom(type)) return true;
         return false;
     }
     
