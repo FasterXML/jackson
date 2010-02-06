@@ -264,3 +264,8 @@ Mike Rheinheimer:
 Henning Schmiedehausen:
   * Reported [JACKSON-230]: wrong NumberType reported for big ints, longs
    [1.4.2]
+
+Pablo I. Lalloni:
+  * Reported [JACKSON-238]: Problems with DOM/Joda serializers; could not
+    override default serializers
+   [1.4.3]
