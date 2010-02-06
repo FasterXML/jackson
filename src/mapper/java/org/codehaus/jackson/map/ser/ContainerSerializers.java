@@ -41,7 +41,7 @@ public final class ContainerSerializers
      * traversed by index (as opposed to others, such as {@link LinkedList}
      * that can not}.
      */
-    public final static class IndexedListSerializer
+    public static class IndexedListSerializer
         extends SerializerBase<List<?>>
     {
         public final static IndexedListSerializer instance = new IndexedListSerializer();
@@ -114,7 +114,7 @@ public final class ContainerSerializers
      * If so, we will just construct an {@link java.util.Iterator}
      * to iterate over elements.
      */
-    public final static class CollectionSerializer
+    public static class CollectionSerializer
         extends SerializerBase<Collection<?>>
     {
         public final static CollectionSerializer instance = new CollectionSerializer();
@@ -180,7 +180,7 @@ public final class ContainerSerializers
         }
     }
 
-    public final static class IteratorSerializer
+    public static class IteratorSerializer
         extends SerializerBase<Iterator<?>>
     {
         public final static IteratorSerializer instance = new IteratorSerializer();
@@ -235,7 +235,7 @@ public final class ContainerSerializers
         }
     }
 
-    public final static class IterableSerializer
+    public static class IterableSerializer
         extends SerializerBase<Iterable<?>>
     {
         public final static IterableSerializer instance = new IterableSerializer();
@@ -291,7 +291,7 @@ public final class ContainerSerializers
         }
     }
 
-    public final static class EnumSetSerializer
+    public static class EnumSetSerializer
         extends SerializerBase<EnumSet<? extends Enum<?>>>
     {
         public final static CollectionSerializer instance = new CollectionSerializer();
@@ -341,7 +341,7 @@ public final class ContainerSerializers
     ////////////////////////////////////////////////////////////
      */
 
-    public final static class MapSerializer
+    public static class MapSerializer
         extends SerializerBase<Map<?,?>>
     {
         public final static MapSerializer instance = new MapSerializer();
@@ -406,7 +406,7 @@ public final class ContainerSerializers
         }
     }
 
-    public final static class EnumMapSerializer
+    public static class EnumMapSerializer
         extends SerializerBase<EnumMap<? extends Enum<?>, ?>>
     {
         @Override

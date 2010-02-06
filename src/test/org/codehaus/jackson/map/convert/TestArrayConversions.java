@@ -102,10 +102,11 @@ public class TestArrayConversions
             verifyException(e, OVERFLOW_MSG);
         }
         // Int overflow
+        String INT_MSG = "out of range of int";
         try {
             mapper.convertValue(new long[] { Long.MAX_VALUE }, int[].class);
         } catch (IllegalArgumentException e) {
-            verifyException(e, OVERFLOW_MSG);
+            verifyException(e, INT_MSG);
         }
         // Longs need help of BigInteger...
         BigInteger biggie = BigInteger.valueOf(Long.MAX_VALUE);
@@ -115,7 +116,7 @@ public class TestArrayConversions
         try {
             mapper.convertValue(l, int[].class);
         } catch (IllegalArgumentException e) {
-            verifyException(e, OVERFLOW_MSG);
+            verifyException(e, INT_MSG);
         }
         
     }
