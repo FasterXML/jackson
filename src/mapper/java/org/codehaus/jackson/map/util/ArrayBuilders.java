@@ -6,8 +6,8 @@ import java.util.*;
  * Helper class that contains set of distinct builders for different
  * arrays of primitive values. It also provides trivially simple
  * reuse scheme, which assumes that caller knows not to use instances
- * concurrently (which works ok with primitive arrays since there can
- * be done recursions).
+ * concurrently (which works ok with primitive arrays since they can
+ * not contain other non-primitive types).
  */
 public final class ArrayBuilders
 {

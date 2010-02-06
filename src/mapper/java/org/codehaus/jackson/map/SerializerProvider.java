@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.schema.JsonSchema;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Abstract class that defines API used by {@link ObjectMapper} and
@@ -118,6 +119,12 @@ public abstract class SerializerProvider
         throws JsonMappingException;
 
     /**
+     * @since 1.5
+     */
+    public abstract JsonSerializer<Object> findValueSerializer(JavaType serializationType)
+        throws JsonMappingException;
+    
+    /**
      * Method called to locate regular serializer, matching type serializer,
      * and if both found, wrap them in a serializer that calls both in correct
      * sequence. This method is currently only used for root-level serializer
@@ -133,6 +140,13 @@ public abstract class SerializerProvider
             Class<?> declaredType, boolean cache)
         throws JsonMappingException;
 
+    /**
+     * @since 1.5
+     */
+    public abstract JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType,
+            JavaType declaredType, boolean cache)
+        throws JsonMappingException;
+    
     /*
     //////////////////////////////////////////////////////
     // Accessors for specialized serializers
@@ -211,6 +225,25 @@ public abstract class SerializerProvider
         }
     }
 
+    /**
+     * Alternative to {@link #defaultSerializeValue(Object,JsonGenerator)}
+     * which allows specifying declared type of value to serialize.
+     * 
+     * @since 1.5
+     */
+    public final void defaultSerializeValue(Object value, JsonGenerator jgen,
+            JavaType serializationType)
+        throws IOException, JsonProcessingException
+    {
+        if (value == null) {
+            getNullValueSerializer().serialize(null, jgen, this);
+        } else {
+            Class<?> cls = value.getClass();
+            Class<?> declaredCls = serializationType.getRawClass();
+            findTypedValueSerializer(cls, declaredCls, true).serialize(value, jgen, this);
+        }
+    }
+    
     /**
      * Convenience method that will serialize given field with specified
      * value. Value may be null. Serializer is done using the usual

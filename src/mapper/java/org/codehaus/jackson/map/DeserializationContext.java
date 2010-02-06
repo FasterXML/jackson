@@ -23,7 +23,7 @@ public abstract class DeserializationContext
 
     /*
     /************************************************************
-    /* Config methods
+    /* Configuration methods
     /************************************************************
      */
 

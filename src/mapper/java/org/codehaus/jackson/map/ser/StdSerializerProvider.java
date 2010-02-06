@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.schema.SchemaAware;
+import org.codehaus.jackson.type.JavaType;
 
 import org.codehaus.jackson.map.*;
 
@@ -370,12 +371,25 @@ public class StdSerializerProvider
     }
 
     /**
+     * Current implementation simply delegates to
+     * {@link #findValueSerializer(Class, boolean)}. In future,
+     * should improve to allow proper efficient handling of typed structured
+     * types
+     */    
+    @Override
+    public JsonSerializer<Object> findValueSerializer(JavaType declaredType)
+        throws JsonMappingException
+    {
+        return findValueSerializer(declaredType.getRawClass());
+    }
+    
+    /**
      * @param cache Whether resulting value serializer should be cached or not; this is just
      *    a hint 
      */
     @Override
-    public JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType, Class<?> declaredType,
-            boolean cache)
+    public JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType,
+            Class<?> declaredType, boolean cache)
         throws JsonMappingException
     {
         // Two-phase lookups; local non-shared cache, then shared:
@@ -399,6 +413,20 @@ public class StdSerializerProvider
             _serializerCache.addTypedSerializer(runtimeType, declaredType, ser);
         }
         return ser;
+    }
+
+    /**
+     * Current implementation simply delegates to
+     * {@link #findTypedValueSerializer(Class, Class, boolean)}. In future,
+     * should improve to allow proper efficient handling of typed structured
+     * types
+     */
+    @Override
+    public JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType,
+            JavaType declaredType, boolean cache)
+        throws JsonMappingException
+    {
+        return findTypedValueSerializer(runtimeType, declaredType.getRawClass(), cache);
     }
     
     /*
