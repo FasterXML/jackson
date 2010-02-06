@@ -29,17 +29,13 @@ public class TestFromJavaType
         doc.add(Boolean.FALSE);
 
         ObjectMapper mapper = new ObjectMapper();
+        JsonFactory f =  new JsonFactory();
 
         // loop more than once, just to ensure caching works ok (during second round)
         for (int i = 0; i < 3; ++i) {
-            StringWriter sw = new StringWriter();
-            JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-
-            mapper.writeValue(gen, doc);
-
-            gen.close();
+            String str = mapper.writeValueAsString(doc);
             
-            JsonParser jp = new JsonFactory().createJsonParser(new StringReader(sw.toString()));
+            JsonParser jp = f.createJsonParser(str);
             assertEquals(JsonToken.START_ARRAY, jp.nextToken());
             
             assertEquals(JsonToken.VALUE_STRING, jp.nextToken());
@@ -115,15 +111,10 @@ public class TestFromJavaType
     public void testBigDecimal()
         throws Exception
     {
-        StringWriter sw = new StringWriter();
-        JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-
         Map<String, Object> map = new HashMap<String, Object>();
         String PI_STR = "3.14159265";
         map.put("pi", new BigDecimal(PI_STR));
-        new ObjectMapper().writeValue(gen, map);
-        gen.close();
-
-        assertEquals("{\"pi\":3.14159265}", sw.toString());
+        String str = new ObjectMapper().writeValueAsString(map);
+        assertEquals("{\"pi\":3.14159265}", str);
     }
 }

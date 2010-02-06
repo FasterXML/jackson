@@ -72,10 +72,14 @@ public class JSONPObject
         // First, wrapping:
         jgen.writeRaw(_function);
         jgen.writeRaw('(');
-        if (_serializationType != null) {
-            provider.defaultSerializeValue(_value, jgen, _serializationType);
+        if (_value == null) {
+            provider.getNullValueSerializer().serialize(null, jgen, provider);
+        } else if (_serializationType != null) {
+            Class<?> cls = _value.getClass();
+            provider.findTypedValueSerializer(_serializationType, cls, true).serialize(_value, jgen, provider);
         } else {
-            provider.defaultSerializeValue(_value, jgen);
+            Class<?> cls = _value.getClass();
+            provider.findTypedValueSerializer(cls, cls, true).serialize(_value, jgen, provider);
         }
         jgen.writeRaw(')');
     }

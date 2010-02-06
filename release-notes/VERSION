@@ -22,6 +22,8 @@ Description:
 
   * [JACKSON-229] TypeFactory should have methods to construct parametric
      types programmatically (TypeFactory.parametricType())
+  * [JACKSON-234] Add support for JSONP, by adding JSONPObject wrapper
+    that serializes as expected.
 
   Backwards incompatible changes:
 

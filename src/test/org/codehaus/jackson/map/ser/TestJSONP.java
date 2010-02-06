@@ -20,19 +20,32 @@ public class TestJSONP
     
     public void testSimpleScalars() throws Exception
     {
+        ObjectMapper m = new ObjectMapper();
         assertEquals("callback(\"abc\")",
-                serializeAsString(new JSONPObject("callback", "abc")));
+                serializeAsString(m, new JSONPObject("callback", "abc")));
         assertEquals("calc(123)",
-                serializeAsString(new JSONPObject("calc", Integer.valueOf(123))));
+                serializeAsString(m, new JSONPObject("calc", Integer.valueOf(123))));
         assertEquals("dummy(null)",
-                serializeAsString(new JSONPObject("dummy", null)));
+                serializeAsString(m, new JSONPObject("dummy", null)));
     }
 
+    public void testSimpleBean() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        assertEquals("xxx({\"a\":\"123\",\"b\":\"456\"})",
+                serializeAsString(m, new JSONPObject("xxx",
+                        new Impl("123", "456"))));
+    }
+    
+    /**
+     * Test to ensure that it is possible to force a static type for wrapped
+     * value.
+     */
     public void testWithType() throws Exception
     {
+        ObjectMapper m = new ObjectMapper();
         Object ob = new Impl("abc", "def");
         assertEquals("do({\"a\":\"abc\"})",
-                serializeAsString(new JSONPObject("do", ob, Base.class)));
-        
+                serializeAsString(m, new JSONPObject("do", ob, Base.class)));
     }
 }

@@ -339,32 +339,32 @@ public class StdSerializerProvider
      */
 
     @Override
-    public JsonSerializer<Object> findValueSerializer(Class<?> runtimeType)
+    public JsonSerializer<Object> findValueSerializer(Class<?> valueType)
         throws JsonMappingException
     {
         // Fast lookup from local lookup thingy works?
-        JsonSerializer<Object> ser = _knownSerializers.untypedValueSerializer(runtimeType);
+        JsonSerializer<Object> ser = _knownSerializers.untypedValueSerializer(valueType);
         if (ser != null) {
             return ser;
         }
         // If not, maybe shared map already has it?
-        ser = _serializerCache.untypedValueSerializer(runtimeType);
+        ser = _serializerCache.untypedValueSerializer(valueType);
         if (ser != null) {
             return ser;
         }
 
         // If neither, must create
-        ser = _createAndCacheUntypedSerializer(runtimeType);
+        ser = _createAndCacheUntypedSerializer(valueType);
         // Not found? Must use the unknown type serializer
         /* Couldn't create? Need to return the fallback serializer, which
          * most likely will report an error: but one question is whether
          * we should cache it?
          */
         if (ser == null) {
-            ser = getUnknownTypeSerializer(runtimeType);
+            ser = getUnknownTypeSerializer(valueType);
             // Should this be added to lookups?
             if (CACHE_UNKNOWN_MAPPINGS) {
-                _serializerCache.addNonTypedSerializer(runtimeType, ser);
+                _serializerCache.addNonTypedSerializer(valueType, ser);
             }
         }
         return ser;
@@ -377,10 +377,10 @@ public class StdSerializerProvider
      * types
      */    
     @Override
-    public JsonSerializer<Object> findValueSerializer(JavaType declaredType)
+    public JsonSerializer<Object> findValueSerializer(JavaType valueType)
         throws JsonMappingException
     {
-        return findValueSerializer(declaredType.getRawClass());
+        return findValueSerializer(valueType.getRawClass());
     }
     
     /**
@@ -388,29 +388,29 @@ public class StdSerializerProvider
      *    a hint 
      */
     @Override
-    public JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType,
+    public JsonSerializer<Object> findTypedValueSerializer(Class<?> valueType,
             Class<?> declaredType, boolean cache)
         throws JsonMappingException
     {
         // Two-phase lookups; local non-shared cache, then shared:
-        JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(runtimeType, declaredType);
+        JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(valueType, declaredType);
         if (ser != null) {
             return ser;
         }
         // If not, maybe shared map already has it?
-        ser = _serializerCache.typedValueSerializer(runtimeType, declaredType);
+        ser = _serializerCache.typedValueSerializer(valueType, declaredType);
         if (ser != null) {
             return ser;
         }
 
         // Well, let's just compose from pieces:
-        ser = findValueSerializer(runtimeType);
+        ser = findValueSerializer(valueType);
         TypeSerializer typeSer = _serializerFactory.createTypeSerializer(TypeFactory.type(declaredType), _config);
         if (typeSer != null) {
             ser = new WrappedSerializer(typeSer, ser);
         }
         if (cache) {
-            _serializerCache.addTypedSerializer(runtimeType, declaredType, ser);
+            _serializerCache.addTypedSerializer(valueType, declaredType, ser);
         }
         return ser;
     }
@@ -422,11 +422,11 @@ public class StdSerializerProvider
      * types
      */
     @Override
-    public JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType,
-            JavaType declaredType, boolean cache)
+    public JsonSerializer<Object> findTypedValueSerializer(JavaType valueType,
+            Class<?> declaredType, boolean cache)
         throws JsonMappingException
     {
-        return findTypedValueSerializer(runtimeType, declaredType.getRawClass(), cache);
+        return findTypedValueSerializer(valueType.getRawClass(), declaredType, cache);
     }
     
     /*

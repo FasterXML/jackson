@@ -131,20 +131,25 @@ public abstract class SerializerProvider
      * handling to allow for simpler caching. A call can always be replaced
      * by equivalent calls to access serializer and type serializer separately.
      * 
+     * @param valueType Type for purpose of locating a serializer; either dynamic
+     *   runtime type, or static declared type, depending on configuration
+     * @param declaredType Declared type, used for figuring out what type information
+     *    (if any) is to be included in output
+     * 
      * @param cache Whether resulting value serializer should be cached or not; this is just
      *    a hint 
      *    
      * @since 1.5
      */
-    public abstract JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType,
+    public abstract JsonSerializer<Object> findTypedValueSerializer(Class<?> valueType,
             Class<?> declaredType, boolean cache)
         throws JsonMappingException;
 
     /**
      * @since 1.5
      */
-    public abstract JsonSerializer<Object> findTypedValueSerializer(Class<?> runtimeType,
-            JavaType declaredType, boolean cache)
+    public abstract JsonSerializer<Object> findTypedValueSerializer(JavaType valueType,
+            Class<?> declaredType, boolean cache)
         throws JsonMappingException;
     
     /*
@@ -222,25 +227,6 @@ public abstract class SerializerProvider
         } else {
             Class<?> cls = value.getClass();
             findTypedValueSerializer(cls, cls, true).serialize(value, jgen, this);
-        }
-    }
-
-    /**
-     * Alternative to {@link #defaultSerializeValue(Object,JsonGenerator)}
-     * which allows specifying declared type of value to serialize.
-     * 
-     * @since 1.5
-     */
-    public final void defaultSerializeValue(Object value, JsonGenerator jgen,
-            JavaType serializationType)
-        throws IOException, JsonProcessingException
-    {
-        if (value == null) {
-            getNullValueSerializer().serialize(null, jgen, this);
-        } else {
-            Class<?> cls = value.getClass();
-            Class<?> declaredCls = serializationType.getRawClass();
-            findTypedValueSerializer(cls, declaredCls, true).serialize(value, jgen, this);
         }
     }
     
