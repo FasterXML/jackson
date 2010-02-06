@@ -175,7 +175,7 @@ public final class ContainerSerializers
      * traversed by index (as opposed to others, such as {@link LinkedList}
      * that can not}.
      */
-    public final static class IndexedListSerializer
+    public static class IndexedListSerializer
         extends AsArraySerializer<List<?>>
     {
         public final static IndexedListSerializer instance = new IndexedListSerializer(null, false);
@@ -293,7 +293,7 @@ public final class ContainerSerializers
      * If so, we will just construct an {@link java.util.Iterator}
      * to iterate over elements.
      */
-    public final static class CollectionSerializer
+    public static class CollectionSerializer
         extends AsArraySerializer<Collection<?>>
     {
         public final static CollectionSerializer instance = new CollectionSerializer(null, false);
@@ -379,7 +379,7 @@ public final class ContainerSerializers
         }
     }
 
-    public final static class IteratorSerializer
+    public static class IteratorSerializer
         extends AsArraySerializer<Iterator<?>>
     {
         public final static IteratorSerializer instance = new IteratorSerializer(null, false);
@@ -418,7 +418,7 @@ public final class ContainerSerializers
         }
     }
 
-    public final static class IterableSerializer
+    public static class IterableSerializer
         extends AsArraySerializer<Iterable<?>>
     {
         public final static IterableSerializer instance = new IterableSerializer(null, false);
@@ -459,7 +459,7 @@ public final class ContainerSerializers
         }
     }
 
-    public final static class EnumSetSerializer
+    public static class EnumSetSerializer
         extends AsArraySerializer<EnumSet<? extends Enum<?>>>
     {
         public EnumSetSerializer(JavaType elemType)
