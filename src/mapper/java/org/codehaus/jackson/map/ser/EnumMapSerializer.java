@@ -41,18 +41,25 @@ public class EnumMapSerializer
      */
     protected JsonSerializer<Object> _valueSerializer;
 
-    public EnumMapSerializer(JavaType valueType, boolean staticTyping, EnumValues keyEnums)
+    /**
+     * Type serializer used for values, if any.
+     */
+    protected final TypeSerializer _valueTypeSerializer;
+    
+    public EnumMapSerializer(JavaType valueType, boolean staticTyping, EnumValues keyEnums,
+            TypeSerializer vts)
     {
         super(EnumMap.class, false);
         _staticTyping = staticTyping || (valueType != null && valueType.isFinal());
         _valueType = valueType;
         _keyEnums = keyEnums;
+        _valueTypeSerializer = vts;
     }
-   
-    public static ContainerSerializerBase<?> enumMapSerializer(JavaType valueType, boolean staticTyping,
-            EnumValues keyEnums)
+
+    @Override
+    public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
     {
-        return new EnumMapSerializer(valueType, staticTyping, keyEnums);
+        return new EnumMapSerializer(_valueType, _staticTyping, _keyEnums, vts);
     }
     
     @Override

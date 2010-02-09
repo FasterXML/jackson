@@ -34,11 +34,14 @@ public class MapSerializer
     protected final HashSet<String> _ignoredEntries;
 
     /**
-     * Whether static types should be used for serialization or not
-     * (if not, dynamic runtime type is used)
+     * Whether static types should be used for serialization of values
+     * or not (if not, dynamic runtime type is used)
      */
-    protected boolean _staticTyping;
+    protected final boolean _valueTypeIsStatic;
 
+    /**
+     * Declared type of contained values
+     */
     protected final JavaType _valueType;
 
     /**
@@ -48,44 +51,73 @@ public class MapSerializer
      */
     protected JsonSerializer<Object> _valueSerializer;
 
+    /**
+     * Type serializer used for values, if any.
+     */
+    protected final TypeSerializer _valueTypeSerializer;
+    
     protected MapSerializer() {
-        this(null, null, false, null);
+        this((HashSet<String>)null, null, false, null);
     }
     
-    protected MapSerializer(String[] ignoredEntries, JavaType mapType, boolean staticTyping,
+    protected MapSerializer(HashSet<String> ignoredEntries, JavaType valueType, boolean valueTypeIsStatic,
             TypeSerializer vts)
     {
         super(Map.class, false);
-        if (ignoredEntries == null || ignoredEntries.length == 0) {
-            _ignoredEntries = null;
-        } else {
-            _ignoredEntries = new HashSet<String>(ignoredEntries.length);
-            for (String prop : ignoredEntries) {
-                _ignoredEntries.add(prop);
-            }
-        }
-        _valueType = (mapType == null) ? TypeFactory.type(Object.class) : mapType.getContentType();
-        // If value type is final, it's same as forcing static value typing:
-        _staticTyping = staticTyping || (_valueType != null && _valueType.isFinal());
+        _ignoredEntries = ignoredEntries;
+        _valueType = valueType;
+        _valueTypeIsStatic = valueTypeIsStatic;
+        _valueTypeSerializer = vts;
     }
-
+    
+    @Override
+    public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
+    {
+        MapSerializer ms = new MapSerializer(_ignoredEntries, _valueType, _valueTypeIsStatic, vts);
+        if (_valueSerializer != null) {
+            ms._valueSerializer = _valueSerializer;
+        }
+        return ms;
+    }
+    
     /**
      * Factory method used to construct Map serializers.
      * 
-     * @param ignoredEntries Array of entry names that are to be filtered on
+     * @param ignoredList Array of entry names that are to be filtered on
      *    serialization; null if none
-     * @param useStaticTyping Whether static typing should be used for the
-     *    Map (which includes its contents)
      * @param mapType Declared type information (needed for static typing)
+     * @param staticValueType Whether static typing should be used for the
+     *    Map (which includes its contents)
+     * @param vts Type serializer to use for map entry values, if any
      */
-    public static MapSerializer construct(String[] ignoredEntries, JavaType mapType,
-            boolean staticTyping)
+    public static MapSerializer construct(String[] ignoredList, JavaType mapType,
+            boolean staticValueType, TypeSerializer vts)
     {
-        // for plain vanilla case can return singleton
-        if ((ignoredEntries == null || ignoredEntries.length == 0) && !staticTyping) {
+        HashSet<String> ignoredEntries = toSet(ignoredList);
+        JavaType valueType = (mapType == null) ? TypeFactory.type(Object.class) : mapType.getContentType();
+        // If value type is final, it's same as forcing static value typing:
+        if (!staticValueType) {
+            staticValueType = (valueType != null && valueType.isFinal());
+        }
+        /* for plain vanilla case can return singleton; plain meaning that there are
+         * no ignored entries (no view), non-static type (can not statically determine
+         * value serializer) and no assigned value type serializer.
+         */
+        if (!staticValueType && (ignoredEntries == null) && (vts == null)) {
             return instance;
         }
-        return new MapSerializer(ignoredEntries, mapType, staticTyping, null);
+        return new MapSerializer(ignoredEntries, valueType, staticValueType, vts);
+    }
+
+    private static HashSet<String> toSet(String[] ignoredEntries) {
+        if (ignoredEntries == null || ignoredEntries.length == 0) {
+            return null;
+        }
+        HashSet<String> result = new HashSet<String>(ignoredEntries.length);
+        for (String prop : ignoredEntries) {
+            result.add(prop);
+        }
+        return result;
     }
     
     /*
@@ -277,7 +309,7 @@ public class MapSerializer
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {
-        if (_staticTyping) {
+        if (_valueTypeIsStatic) {
             _valueSerializer = provider.findValueSerializer(_valueType.getRawClass());
         }
     }

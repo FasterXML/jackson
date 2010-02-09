@@ -33,24 +33,28 @@ public final class ContainerSerializers
      ****************************************************************
      */
     
-    public static ContainerSerializerBase<?> indexedListSerializer(JavaType elemType, boolean staticTyping)
+    public static ContainerSerializerBase<?> indexedListSerializer(JavaType elemType,
+            boolean staticTyping, TypeSerializer vts)
     {
-        return new IndexedListSerializer(elemType, staticTyping);
+        return new IndexedListSerializer(elemType, staticTyping, vts);
     }
 
-    public static ContainerSerializerBase<?> collectionSerializer(JavaType elemType, boolean staticTyping)
+    public static ContainerSerializerBase<?> collectionSerializer(JavaType elemType,
+            boolean staticTyping, TypeSerializer vts)
     {
-        return new CollectionSerializer(elemType, staticTyping);
+        return new CollectionSerializer(elemType, staticTyping, vts);
     }
 
-    public static ContainerSerializerBase<?> iteratorSerializer(JavaType elemType, boolean staticTyping)
+    public static ContainerSerializerBase<?> iteratorSerializer(JavaType elemType,
+            boolean staticTyping, TypeSerializer vts)
     {
-        return new IteratorSerializer(elemType, staticTyping);
+        return new IteratorSerializer(elemType, staticTyping, vts);
     }
 
-    public static ContainerSerializerBase<?> iterableSerializer(JavaType elemType, boolean staticTyping)
+    public static ContainerSerializerBase<?> iterableSerializer(JavaType elemType,
+            boolean staticTyping, TypeSerializer vts)
     {
-        return new IterableSerializer(elemType, staticTyping);
+        return new IterableSerializer(elemType, staticTyping, vts);
     }
 
     public static JsonSerializer<?> enumSetSerializer(JavaType enumType)
@@ -77,19 +81,26 @@ public final class ContainerSerializers
         protected final JavaType _elementType;
 
         /**
+         * Type serializer used for values, if any.
+         */
+        protected final TypeSerializer _valueTypeSerializer;
+        
+        /**
          * Value serializer to use, if it can be statically determined
          * 
          * @since 1.5
          */
         protected JsonSerializer<Object> _elementSerializer;
 
-        protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping)
+        protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping,
+                TypeSerializer vts)
         {
             // typing with generics is messy... have to resort to this:
             super(cls, false);
             _elementType = et;
             // static if explicitly requested, or if element type is final
             _staticTyping = staticTyping || (et != null && et.isFinal());
+            _valueTypeSerializer = vts;
         }
 
         @Override
@@ -178,11 +189,16 @@ public final class ContainerSerializers
     public static class IndexedListSerializer
         extends AsArraySerializer<List<?>>
     {
-        public final static IndexedListSerializer instance = new IndexedListSerializer(null, false);
+        public final static IndexedListSerializer instance = new IndexedListSerializer(null, false, null);
 
-        public IndexedListSerializer(JavaType elemType, boolean staticTyping)
+        public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts)
         {
-            super(List.class, elemType, staticTyping);
+            super(List.class, elemType, staticTyping, vts);
+        }
+
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
+            return new IndexedListSerializer(_elementType, _staticTyping, vts);
         }
         
         @Override
@@ -296,11 +312,17 @@ public final class ContainerSerializers
     public static class CollectionSerializer
         extends AsArraySerializer<Collection<?>>
     {
-        public final static CollectionSerializer instance = new CollectionSerializer(null, false);
+        public final static CollectionSerializer instance = new CollectionSerializer(null, false, null);
 
-        public CollectionSerializer(JavaType elemType, boolean staticTyping)
+        public CollectionSerializer(JavaType elemType, boolean staticTyping,
+                TypeSerializer vts)
         {
-            super(Collection.class, elemType, staticTyping);
+            super(Collection.class, elemType, staticTyping, vts);
+        }
+
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
+            return new CollectionSerializer(_elementType, _staticTyping, vts);
         }
         
         @Override
@@ -382,11 +404,16 @@ public final class ContainerSerializers
     public static class IteratorSerializer
         extends AsArraySerializer<Iterator<?>>
     {
-        public final static IteratorSerializer instance = new IteratorSerializer(null, false);
+        public final static IteratorSerializer instance = new IteratorSerializer(null, false, null);
 
-        public IteratorSerializer(JavaType elemType, boolean staticTyping)
+        public IteratorSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts)
         {
-            super(Iterator.class, elemType, staticTyping);
+            super(Iterator.class, elemType, staticTyping, vts);
+        }
+
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
+            return new IteratorSerializer(_elementType, _staticTyping, vts);
         }
         
         @Override
@@ -421,11 +448,16 @@ public final class ContainerSerializers
     public static class IterableSerializer
         extends AsArraySerializer<Iterable<?>>
     {
-        public final static IterableSerializer instance = new IterableSerializer(null, false);
+        public final static IterableSerializer instance = new IterableSerializer(null, false, null);
 
-        public IterableSerializer(JavaType elemType, boolean staticTyping)
+        public IterableSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts)
         {
-            super(Iterable.class, elemType, staticTyping);
+            super(Iterable.class, elemType, staticTyping, vts);
+        }
+
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
+            return new IterableSerializer(_elementType, _staticTyping, vts);
         }
         
         @Override
@@ -464,9 +496,15 @@ public final class ContainerSerializers
     {
         public EnumSetSerializer(JavaType elemType)
         {
-            super(EnumSet.class, elemType, true);
+            super(EnumSet.class, elemType, true, null);
         }
 
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
+            // no typing for enums (always "hard" type)
+            return this;
+        }
+        
         @Override
         public void serializeContents(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException

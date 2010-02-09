@@ -231,7 +231,10 @@ public class BeanSerializer
 	            if (typeSer != null) {
 	            	// for now, can do this only for standard containers...
 	            	if (ser instanceof ContainerSerializerBase<?>) {
-	            		((ContainerSerializerBase<?>) ser).setValueTypeSerializer(typeSer);
+	            	    // ugly casts... but necessary
+	            	    @SuppressWarnings("unchecked")
+	            	    JsonSerializer<Object> ser2 = (JsonSerializer<Object>)((ContainerSerializerBase<?>) ser).withValueTypeSerializer(typeSer);
+                            ser = ser2;
 	            	}
 	            }
             }

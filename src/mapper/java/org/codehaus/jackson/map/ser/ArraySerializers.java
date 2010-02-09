@@ -29,9 +29,10 @@ public final class ArraySerializers
      ****************************************************************
      */
 
-    public static ContainerSerializerBase<?> objectArraySerializer(JavaType elementType, boolean staticTyping)
+    public static ContainerSerializerBase<?> objectArraySerializer(JavaType elementType, boolean staticTyping,
+            TypeSerializer vts)
     {
-        return new ObjectArraySerializer(elementType, staticTyping);
+        return new ObjectArraySerializer(elementType, staticTyping, vts);
     }
 
     /*
@@ -47,10 +48,16 @@ public final class ArraySerializers
      private abstract static class AsArraySerializer<T>
         extends ContainerSerializerBase<T>
     {
-        protected AsArraySerializer(Class<T> cls) {
-            super(cls);
-        }
+        /**
+         * Type serializer used for values, if any.
+         */
+        protected final TypeSerializer _valueTypeSerializer;
 
+        protected AsArraySerializer(Class<T> cls, TypeSerializer vts) {
+            super(cls);
+            _valueTypeSerializer = vts;
+        }
+        
         @Override
         public final void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -73,7 +80,7 @@ public final class ArraySerializers
         protected abstract void serializeContents(T value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException;
     }
-    
+
     /*
     ////////////////////////////////////////////////////////////
     // Concrete serializers, arrays
@@ -87,7 +94,7 @@ public final class ArraySerializers
         extends AsArraySerializer<Object[]>
         implements ResolvableSerializer
     {
-        public final static ObjectArraySerializer instance = new ObjectArraySerializer(null, false);
+        public final static ObjectArraySerializer instance = new ObjectArraySerializer(null, false, null);
 
         protected final boolean _staticTyping;
 
@@ -100,11 +107,18 @@ public final class ArraySerializers
          */
         protected JsonSerializer<Object> _elementSerializer;
 
-        public ObjectArraySerializer(JavaType elemType, boolean staticTyping)
+        public ObjectArraySerializer(JavaType elemType, boolean staticTyping,
+                TypeSerializer vts)
         {
-            super(Object[].class);
+            super(Object[].class, vts);
             _elementType = elemType;
             _staticTyping = staticTyping;
+        }
+
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
+        {
+            return new ObjectArraySerializer(_elementType, _staticTyping, vts);
         }
         
         @Override
@@ -282,8 +296,18 @@ public final class ArraySerializers
     public final static class StringArraySerializer
         extends AsArraySerializer<String[]>
     {
-        public StringArraySerializer() { super(String[].class); }
+        public StringArraySerializer() { super(String[].class, null); }
 
+        /**
+         * Strings never add type info; hence, even if type serializer is suggested,
+         * we'll ignore it...
+         */
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
+        {
+            return this;
+        }
+        
         @Override
         public void serializeContents(String[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -322,7 +346,17 @@ public final class ArraySerializers
     public final static class BooleanArraySerializer
         extends AsArraySerializer<boolean[]>
     {
-        public BooleanArraySerializer() { super(boolean[].class); }
+        public BooleanArraySerializer() { super(boolean[].class, null); }
+
+        /**
+         * Booleans never add type info; hence, even if type serializer is suggested,
+         * we'll ignore it...
+         */
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
+        {
+            return this;
+        }
         
         @Override
         public void serializeContents(boolean[] value, JsonGenerator jgen, SerializerProvider provider)
@@ -352,8 +386,10 @@ public final class ArraySerializers
     public final static class ByteArraySerializer
         extends SerializerBase<byte[]>
     {
-        public ByteArraySerializer() { super(byte[].class); }
-
+        public ByteArraySerializer() {
+            super(byte[].class);
+        }
+        
         @Override
         public void serialize(byte[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -383,8 +419,14 @@ public final class ArraySerializers
     public final static class ShortArraySerializer
         extends AsArraySerializer<short[]>
     {
-        public ShortArraySerializer() { super(short[].class); }
+        public ShortArraySerializer() { this(null); }
+        public ShortArraySerializer(TypeSerializer vts) { super(short[].class, vts); }
 
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
+            return new ShortArraySerializer(vts);
+        }
+        
         @SuppressWarnings("cast")
         @Override
         public void serializeContents(short[] value, JsonGenerator jgen, SerializerProvider provider)
@@ -449,8 +491,18 @@ public final class ArraySerializers
     public final static class IntArraySerializer
         extends AsArraySerializer<int[]>
     {
-        public IntArraySerializer() { super(int[].class); }
+        public IntArraySerializer() { super(int[].class, null); }
 
+        /**
+         * Ints never add type info; hence, even if type serializer is suggested,
+         * we'll ignore it...
+         */
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
+        {
+            return this;
+        }        
+        
         @Override
         public void serializeContents(int[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -472,8 +524,14 @@ public final class ArraySerializers
     public final static class LongArraySerializer
         extends AsArraySerializer<long[]>
     {
-        public LongArraySerializer() { super(long[].class); }
+        public LongArraySerializer() { this(null); }
+        public LongArraySerializer(TypeSerializer vts) { super(long[].class, vts); }
 
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
+            return new LongArraySerializer(vts);
+        }
+        
         @Override
         public void serializeContents(long[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -495,8 +553,14 @@ public final class ArraySerializers
     public final static class FloatArraySerializer
         extends AsArraySerializer<float[]>
     {
-        public FloatArraySerializer() { super(float[].class); }
+        public FloatArraySerializer() { this(null); }
+        public FloatArraySerializer(TypeSerializer vts) { super(float[].class, vts); }
 
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
+            return new FloatArraySerializer(vts);
+        }
+        
         @Override
         public void serializeContents(float[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
@@ -518,7 +582,17 @@ public final class ArraySerializers
     public final static class DoubleArraySerializer
         extends AsArraySerializer<double[]>
     {
-        public DoubleArraySerializer() { super(double[].class); }
+        public DoubleArraySerializer() { super(double[].class, null); }
+
+        /**
+         * Doubles never add type info; hence, even if type serializer is suggested,
+         * we'll ignore it...
+         */
+        @Override
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
+        {
+            return this;
+        }
         
         @Override
         public void serializeContents(double[] value, JsonGenerator jgen, SerializerProvider provider)

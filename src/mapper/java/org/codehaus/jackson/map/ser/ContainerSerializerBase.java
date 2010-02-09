@@ -12,21 +12,16 @@ import org.codehaus.jackson.map.TypeSerializer;
 public abstract class ContainerSerializerBase<T>
     extends SerializerBase<T>
 {
-    /**
-     * Type serializer used for values, if any.
-     */
-    protected TypeSerializer _valueTypeSerializer;
-
     /*
     /*********************************************
     /* Construction, initialization
     /*********************************************
      */
-    
+
     protected ContainerSerializerBase(Class<T> t) {
         super(t);
     }
-
+    
     /**
      * Alternate constructor that is (alas!) needed to work
      * around kinks of generic type handling
@@ -37,7 +32,20 @@ public abstract class ContainerSerializerBase<T>
         super(t, dummy);
     }
 
-    public void setValueTypeSerializer(TypeSerializer valueTypeSer) {
-        _valueTypeSerializer = valueTypeSer;
+    /**
+     * Factory(-like) method that can be used to construct a new container
+     * serializer that uses specified {@link TypeSerializer} for decorating
+     * contained values with additiona type information.
+     * 
+     * @param vts Type serializer to use for contained values; can be null,
+     *    in which case 'this' serializer is returned as is
+     * @return Serializer instance that uses given type serializer for values if
+     *    that is possible (or if not, just 'this' serializer)
+     */
+    public ContainerSerializerBase<?> withValueTypeSerializer(TypeSerializer vts) {
+        if (vts == null) return this;
+        return _withValueTypeSerializer(vts);
     }
+
+    public abstract ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts);
 }
