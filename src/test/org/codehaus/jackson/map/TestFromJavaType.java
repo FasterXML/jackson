@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map;
 
-import java.io.*;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -52,7 +51,9 @@ public class TestFromJavaType
             assertEquals(JsonToken.FIELD_NAME, jp.nextToken());
             assertEquals("Second", getAndVerifyText(jp));
             
-            assertEquals(JsonToken.START_ARRAY, jp.nextToken());
+            if (jp.nextToken() != JsonToken.START_ARRAY) {
+                fail("Expected START_ARRAY: JSON == '"+str+"'");
+            }
             assertEquals(JsonToken.END_ARRAY, jp.nextToken());
             assertEquals(JsonToken.END_OBJECT, jp.nextToken());
             
@@ -67,6 +68,7 @@ public class TestFromJavaType
         throws Exception
     {
         LinkedHashMap<String,Object> doc = new LinkedHashMap<String,Object>();
+        JsonFactory f =  new JsonFactory();
 
         doc.put("a1", "\"text\"");
         doc.put("int", Integer.valueOf(137));
@@ -74,13 +76,8 @@ public class TestFromJavaType
 
         ObjectMapper mapper = new ObjectMapper();
         for (int i = 0; i < 3; ++i) {
-
-            StringWriter sw = new StringWriter();
-            JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-            mapper.writeValue(gen, doc);
-            gen.close();
-
-            JsonParser jp = new JsonFactory().createJsonParser(new StringReader(sw.toString()));
+            String str = mapper.writeValueAsString(doc);
+            JsonParser jp = f.createJsonParser(str);
             
             assertEquals(JsonToken.START_OBJECT, jp.nextToken());
             

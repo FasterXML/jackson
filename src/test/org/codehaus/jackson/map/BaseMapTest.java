@@ -12,7 +12,7 @@ import main.BaseTest;
 public abstract class BaseMapTest
     extends BaseTest
 {
-    final static Object SINGLETON_OBJECT = new Object();
+    private final static Object SINGLETON_OBJECT = new Object();
 
     /*
     //////////////////////////////////////////////
