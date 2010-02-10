@@ -4,7 +4,20 @@ Release date:
   31-Jan-2010
 
 Description:
-  Fourth patch release for 1.3.
+  Fifth patch release for 1.3.
+
+  Fixes:
+
+  * [JACKSON-237]: NPE in deserialization due to race condition
+   (reported by Benjamin D)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.3.4 [31-Jan-2010]
+
+  Fixes:
 
   * [JACKSON-225], [JACKSON-227], missing null checks/conversions when
     adding entries to ArrayNode and ObjectNode
@@ -13,10 +26,6 @@ Description:
    (reported by Henning S)
   * [JACKSON-231]: ArrayDeserializer for byte[] should be able to
     use VALUE_EMBEDDED_OBJECT (if Object is byte[])
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.3.3 [21-Dec-2009]
 

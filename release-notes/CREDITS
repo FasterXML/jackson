@@ -156,6 +156,8 @@ Benjamin Darfler:
    [1.3.0]
   * Suggested [JACKSON-165]: Add JsonParser.getBooleanValue() convenience method
    [1.3.0]
+  * Reported [JACKSON-237]: NPE in deserialization due to race condition
+   [1.3.5, 1.4.3]
 
 Troy Waldrep:
   * Reported [JACKSON-162]: OSGi packaging problems for xc package.
@@ -239,3 +241,7 @@ Kenny MacLeod:
   * Reported [JACKSON-225] and [JACKSON-227]: missing null checks/conversions
     when adding entries to ArrayNode and ObjectNode
    [1.3.4]
+
+Henning Schmiedehausen:
+  * Reported [JACKSON-230]: wrong NumberType reported for big ints, longs
+   [1.3.4, 1.4.2]
