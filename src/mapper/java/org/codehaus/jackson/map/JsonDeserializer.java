@@ -64,15 +64,25 @@ public abstract class JsonDeserializer<T>
      * instantiating correct subtype. This can be due to annotation on
      * type (or its supertype), or due to global settings without
      * annotations.
+     *<p>
+     * Default implementation may work for some types, but ideally subclasses
+     * should not rely on current default implementation.
+     * Implementation is mostly provided to avoid compilation errors with older
+     * code.
      * 
      * @param typeDeserializer Deserializer to use for handling type information
      * 
      * @since 1.5
      */
-    public abstract Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+    @SuppressWarnings("unchecked")
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
             TypeDeserializer typeDeserializer)
-        throws IOException, JsonProcessingException;
-    
+        throws IOException, JsonProcessingException
+    {
+        // We could try calling 
+        return (T) typeDeserializer.deserializeTypedFromAny(jp, ctxt);
+    }
+
     /**
      * Method that can be called to determine value to be used for
      * representing null values (values deserialized when Json token

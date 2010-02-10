@@ -41,12 +41,6 @@ public class TestJsonNode
         // path is never null; but does point to missing node
         assertNotNull(n.path("xyz"));
         assertTrue(n.path("xyz").isMissingNode());
-
-        try {
-            n.append();
-        } catch (IllegalStateException e) {
-            verifyException(e, "non-container type");
-        }
     }
 
     public void testText()

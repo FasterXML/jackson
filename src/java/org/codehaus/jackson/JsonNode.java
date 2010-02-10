@@ -393,18 +393,6 @@ public abstract class JsonNode
      */
     public abstract JsonParser traverse();
 
-    /**
-     * Method for constructing a {@link JsonGenerator} instance that
-     * allows modifying contents of this JSON node by appending
-     * JSON content using streaming API.
-     * Note that this only works for container nodes: calling method
-     * on non-container nodes will throw an {@link IllegalStateException}
-     */
-    public JsonGenerator append() {
-        // to be overridden by container classes
-        throw new IllegalStateException("Can not call method on a non-container type ("+getClass().getName()+")");
-    }
-
     /*
     ////////////////////////////////////////////////////
     // Overridden standard methods
