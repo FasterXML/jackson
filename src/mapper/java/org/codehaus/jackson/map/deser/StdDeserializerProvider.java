@@ -1,7 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.JsonNode;
@@ -29,7 +29,9 @@ public class StdDeserializerProvider
      */
 
     /**
-     * Similarly, key deserializers are only for simple types.
+     * Set of available key deserializers is currently limited
+     * to standard types; and all known instances are storing
+     * in this map.
      */
     final static HashMap<JavaType, KeyDeserializer> _keyDeserializers = StdKeyDeserializers.constructAll();
 
@@ -46,6 +48,14 @@ public class StdDeserializerProvider
     final protected ConcurrentHashMap<JavaType, JsonDeserializer<Object>> _cachedDeserializers
         = new ConcurrentHashMap<JavaType, JsonDeserializer<Object>>(64, 0.75f, 2);
 
+    /**
+     * During deserializer construction process we may need to keep track of partially
+     * completed deserializers, to resolve cyclic dependencies. This is the
+     * map used for storing deserializers before they are fully complete.
+     */
+    final protected HashMap<JavaType, JsonDeserializer<Object>> _incompleteDeserializers
+        = new HashMap<JavaType, JsonDeserializer<Object>>(8);
+    
     /*
     ////////////////////////////////////////////////////
     // Configuration
@@ -56,7 +66,7 @@ public class StdDeserializerProvider
      * Factory responsible for constructing actual deserializers, if not
      * one of pre-configured types.
      */
-    DeserializerFactory _factory;
+    protected DeserializerFactory _factory;
 
     /*
     ////////////////////////////////////////////////////
@@ -204,8 +214,46 @@ public class StdDeserializerProvider
      * Method that will try to create a deserializer for given type,
      * and resolve and cache it if necessary
      */
-    protected JsonDeserializer<Object>_createAndCacheValueDeserializer(DeserializationConfig config, JavaType type,
-                                                                       JavaType referrer, String refPropName)
+    protected JsonDeserializer<Object>_createAndCacheValueDeserializer(DeserializationConfig config,
+            JavaType type, JavaType referrer, String refPropName)
+        throws JsonMappingException
+    {
+        /* Only one thread to construct deserializers at any given point in time;
+         * limitations necessary to ensure that only completely initialized ones
+         * are visible and used.
+         */
+        synchronized (_incompleteDeserializers) {
+            // Ok, then: could it be that due to a race condition, deserializer can now be found?
+            JsonDeserializer<Object> deser = _findCachedDeserializer(type);
+            if (deser != null) {
+                return deser;
+            }
+            int count = _incompleteDeserializers.size();
+            // Or perhaps being resolved right now?
+            if (count > 0) {
+                deser = _incompleteDeserializers.get(type);
+                if (deser != null) {
+                    return deser;
+                }
+            }
+            // Nope: need to create and possibly cache
+            try {
+                return _createAndCache2(config, type, referrer, refPropName);
+            } finally {
+                // also: any deserializers that have been created are complete by now
+                if (count == 0 && _incompleteDeserializers.size() > 0) {
+                    _incompleteDeserializers.clear();
+                }
+            }
+        }
+    }
+
+    /**
+     * Method that handles actual construction (via factory) and caching (both
+     * intermediate and eventual)
+     */
+    protected JsonDeserializer<Object> _createAndCache2(DeserializationConfig config, JavaType type,
+            JavaType referrer, String refPropName)
         throws JsonMappingException
     {
         JsonDeserializer<Object> deser;
@@ -217,33 +265,34 @@ public class StdDeserializerProvider
              */
             throw new JsonMappingException(iae.getMessage(), null, iae);
         }
-        /* Finally: some deserializers want to do post-processing.
-         * Those types also must be added to the lookup map, to prevent
-         * problems due to cyclic dependencies (which are completely
-         * legal).
-         */
-        if (deser != null) {
+        if (deser == null) {
+            return null;
+        }
+        boolean isResolvable = (deser instanceof ResolvableDeserializer);
+        // cache resulting deserializer? always true for resolvables (beans)
+        boolean addToCache = isResolvable;
+        if (!addToCache) {
             AnnotationIntrospector aintr = config.getAnnotationIntrospector();
             // note: pass 'null' to prevent mix-ins from being used
             AnnotatedClass ac = AnnotatedClass.construct(deser.getClass(), aintr, null);
-            boolean isResolvable = (deser instanceof ResolvableDeserializer);
-            /* Caching? (yes for bean and enum deserializers)
-             /* Also: since caching also serves to prevent infinite recursion
-             * for self-referential types, we really need to cache if
-             * deserializer is resolvable
-             * (see [JACKSON-171] for details on why)
-             */
-            Boolean needToCache = isResolvable ? null : aintr.findCachability(ac);
-            if (isResolvable || (needToCache != null && needToCache.booleanValue())) {
-                _cachedDeserializers.put(type, deser);
+            Boolean cacheAnn = aintr.findCachability(ac);
+            if (cacheAnn != null) {
+                addToCache = cacheAnn.booleanValue();
             }
-            /* Need to resolve? Mostly done for bean deserializers; allows
-             * resolving of cyclic types, which can not yet be done during
-             * construction:
-             */
-            if (isResolvable) {
-                _resolveDeserializer(config, (ResolvableDeserializer)deser);
-            }
+        }
+        /* we will temporarily hold on to all created deserializers (to
+         * handle cyclic references, and possibly reuse non-cached
+         * deserializers (list, map))
+         */
+        _incompleteDeserializers.put(type, deser);
+        /* Need to resolve? Mostly done for bean deserializers; required for
+         * resolving cyclic references.
+         */
+        if (isResolvable) {
+            _resolveDeserializer(config, (ResolvableDeserializer)deser);
+        }
+        if (addToCache) {
+            _cachedDeserializers.put(type, deser);
         }
         return deser;
     }
