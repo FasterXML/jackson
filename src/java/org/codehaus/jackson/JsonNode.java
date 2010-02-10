@@ -399,10 +399,13 @@ public abstract class JsonNode
      * JSON content using streaming API.
      * Note that this only works for container nodes: calling method
      * on non-container nodes will throw an {@link IllegalStateException}
+     *
+     * @deprecated Method was never properly implemented, will be removed
+     *   in version 1.5
      */
     public JsonGenerator append() {
         // to be overridden by container classes
-        throw new IllegalStateException("Can not call method on a non-container type ("+getClass().getName()+")");
+        throw new IllegalStateException("Method not implemented");
     }
 
     /*
