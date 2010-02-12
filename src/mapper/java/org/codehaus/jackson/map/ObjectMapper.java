@@ -26,6 +26,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
+import org.codehaus.jackson.util.ByteArrayBuilder;
 import org.codehaus.jackson.util.TokenBuffer;
 
 /**
@@ -168,9 +169,9 @@ public class ObjectMapper
     protected final static AnnotationIntrospector DEFAULT_ANNOTATION_INTROSPECTOR = new JacksonAnnotationIntrospector();
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration settings, shared
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Configuration settings, shared
+    /************************************************* 
      */
 
     /**
@@ -192,9 +193,9 @@ public class ObjectMapper
     protected TypeResolverBuilder<?> _defaultTyper;
     
     /*
-    ////////////////////////////////////////////////////
-    // Configuration settings, serialization
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Configuration settings, serialization
+    /************************************************* 
      */
 
     /**
@@ -217,9 +218,9 @@ public class ObjectMapper
     protected SerializerFactory _serializerFactory;
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration settings, deserialization
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Configuration settings, deserialization
+    /************************************************* 
      */
 
     /**
@@ -237,9 +238,9 @@ public class ObjectMapper
     protected DeserializerProvider _deserializerProvider;
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration settings, other
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Configuration settings, other
+    /************************************************* 
      */
 
     /**
@@ -250,9 +251,9 @@ public class ObjectMapper
     protected JsonNodeFactory _nodeFactory;
 
     /*
-    ////////////////////////////////////////////////////
-    // Caching
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Caching
+    /************************************************* 
      */
 
     /* Note: handling of serializers and deserializers is not symmetric;
@@ -281,9 +282,9 @@ public class ObjectMapper
         = new ConcurrentHashMap<JavaType, JsonDeserializer<Object>>(64, 0.6f, 2);
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle (construction, configuration)
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Life-cycle (construction, configuration)
+    /************************************************* 
      */
 
     /**
@@ -1202,10 +1203,29 @@ public class ObjectMapper
         return sw.getAndClear();
     }
     
+    /**
+     * Method that can be used to serialize any Java value as
+     * a byte array. Functionally equivalent to calling
+     * {@link #writeValue(Writer,Object)} with {@link java.io.ByteArrayOutputStream}
+     * and getting bytes, but more efficient.
+     * Encoding used will be UTF-8.
+     *
+     * @since 1.5
+     */
+    public byte[] writeValueAsBytes(Object value)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {        
+        ByteArrayBuilder bb = new ByteArrayBuilder(_jsonFactory._getBufferRecycler());
+        _configAndWriteValue(_jsonFactory.createJsonGenerator(bb, JsonEncoding.UTF8), value);
+        byte[] result = bb.toByteArray();
+        bb.release();
+        return result;
+    }
+
     /*
-    ////////////////////////////////////////////////////
-    // Extended Public API: serialization using Json Views
-    ////////////////////////////////////////////////////
+    /*******************************************************
+    /* Extended Public API: serialization using JSON Views
+    /*******************************************************
      */
 
     /**

@@ -149,9 +149,8 @@ public class TestCollectionSerialization
             switch (mode) {
             case 0:
                 {
-                    ByteArrayOutputStream out = new ByteArrayOutputStream(value.size());
-                    mapper.writeValue(out, value);
-                    jp = new JsonFactory().createJsonParser(out.toByteArray());
+                    byte[] data = mapper.writeValueAsBytes(value);
+                    jp = new JsonFactory().createJsonParser(data);
                 }
                 break;
             case 1:

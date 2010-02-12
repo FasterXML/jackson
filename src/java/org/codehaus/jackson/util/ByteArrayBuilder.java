@@ -15,6 +15,8 @@
 
 package org.codehaus.jackson.util;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 
 /**
@@ -24,8 +26,14 @@ import java.util.*;
  * backing buffer, can avoid reallocs, copying), as well API
  * not based on {@link java.io.OutputStream}. In short, a very much
  * specialized builder object.
+ *<p>
+ * Since version 1.5, also implements {@link OutputStream} to allow
+ * efficient aggregation of output content as a byte array, similar
+ * to how {@link ByteArrayOutputStream} works, but somewhat more
+ * efficiently for many use cases.
  */
 public final class ByteArrayBuilder
+    extends OutputStream
 {
     private final static byte[] NO_BYTES = new byte[0];
     
@@ -42,7 +50,15 @@ public final class ByteArrayBuilder
     
     final static int DEFAULT_BLOCK_ARRAY_SIZE = 40;
 
-    private LinkedList<byte[]> _pastBlocks = new LinkedList<byte[]>();
+    /**
+     * Optional buffer recycler instance that we can use for allocating
+     * the first block.
+     * 
+     * @since 1.5
+     */
+    private final BufferRecycler _bufferRecycler;
+    
+    private final LinkedList<byte[]> _pastBlocks = new LinkedList<byte[]>();
     
     /**
      * Number of bytes within byte arrays in {@link _pastBlocks}.
@@ -53,10 +69,20 @@ public final class ByteArrayBuilder
 
     private int _currBlockPtr;
     
-    public ByteArrayBuilder() { this(INITIAL_BLOCK_SIZE); }
+    public ByteArrayBuilder() { this(null); }
 
-    public ByteArrayBuilder(int firstBlockSize) {
-        _currBlock = new byte[firstBlockSize];
+    public ByteArrayBuilder(BufferRecycler br) { this(br, INITIAL_BLOCK_SIZE); }
+
+    public ByteArrayBuilder(int firstBlockSize) { this(null, firstBlockSize); }
+
+    public ByteArrayBuilder(BufferRecycler br, int firstBlockSize)
+    {
+        _bufferRecycler = br;
+        if (br == null) {
+            _currBlock = new byte[firstBlockSize];
+        } else {
+            _currBlock = br.allocByteBuffer(BufferRecycler.ByteBufferType.WRITE_CONCAT_BUFFER);
+        }
     }
 
     public void reset()
@@ -69,15 +95,26 @@ public final class ByteArrayBuilder
             _pastBlocks.clear();
         }
     }
-    
+
+    /**
+     * Clean up method to call to release all buffers this object may be
+     * using. After calling the method, no other accessors can be used (and
+     * attempt to do so may result in an exception)
+     */
+    public void release() {
+        reset();
+        if (_bufferRecycler != null && _currBlock != null) {
+            _bufferRecycler.releaseByteBuffer(BufferRecycler.ByteBufferType.WRITE_CONCAT_BUFFER, _currBlock);
+        }
+    }
+
     public void append(int i)
     {
         byte b = (byte) i;
-        if (_currBlockPtr < _currBlock.length) {
-            _currBlock[_currBlockPtr++] = b;
-        } else { // let's off-line the longer part
-            _allocMoreAndAppend(b);
+        if (_currBlockPtr >= _currBlock.length) {
+            _allocMore();
         }
+        _currBlock[_currBlockPtr++] = b;
     }
 
     public void appendTwoBytes(int b16)
@@ -135,8 +172,8 @@ public final class ByteArrayBuilder
         }
         return result;
     }
-
-    private void _allocMoreAndAppend(byte b)
+    
+    private void _allocMore()
     {
         _pastLen += _currBlock.length;
 
@@ -154,7 +191,43 @@ public final class ByteArrayBuilder
         _pastBlocks.add(_currBlock);
         _currBlock = new byte[newSize];
         _currBlockPtr = 0;
-        _currBlock[_currBlockPtr++] = b;
     }
+
+    /*
+    /*******************************************************
+    /* OutputStream implementation
+    /*******************************************************
+     */
+    
+    @Override
+    public void write(byte[] b) {
+        write(b, 0, b.length);
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len)
+    {
+        while (true) {
+            int max = _currBlock.length - _currBlockPtr;
+            int toCopy = Math.min(max, len);
+            if (toCopy > 0) {
+                System.arraycopy(b, off, _currBlock, _currBlockPtr, toCopy);
+                off += toCopy;
+                _currBlockPtr += toCopy;
+                len -= toCopy;
+            }
+            if (len <= 0) break;
+            _allocMore();
+        }
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+        append(b);
+    }
+
+    @Override public void close() { /* NOP */ }
+
+    @Override public void flush() { /* NOP */ }
 }
 

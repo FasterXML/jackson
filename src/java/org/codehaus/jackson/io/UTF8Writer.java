@@ -33,7 +33,7 @@ public final class UTF8Writer
         mContext = ctxt;
         mOut = out;
 
-        mOutBuffer = ctxt.allocWriteIOBuffer();
+        mOutBuffer = ctxt.allocWriteEncodingBuffer();
         /* Max. expansion for a single char (in unmodified UTF-8) is
          * 4 bytes (or 3 depending on how you view it -- 4 when recombining
          * surrogate pairs)
@@ -65,7 +65,7 @@ public final class UTF8Writer
             byte[] buf = mOutBuffer;
             if (buf != null) {
                 mOutBuffer = null;
-                mContext.releaseWriteIOBuffer(buf);
+                mContext.releaseWriteEncodingBuffer(buf);
             }
 
             out.close();

@@ -20,6 +20,8 @@ Description:
 
   New features:
 
+  * [JACKSON-221] Add 'ObjectMapper.writeValueAsBytes()' convenience
+    method to simplify a common usage pattern
   * [JACKSON-229] TypeFactory should have methods to construct parametric
      types programmatically (TypeFactory.parametricType())
   * [JACKSON-234] Add support for JSONP, by adding JSONPObject wrapper

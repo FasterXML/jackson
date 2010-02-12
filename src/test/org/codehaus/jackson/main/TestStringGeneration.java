@@ -212,5 +212,4 @@ public class TestStringGeneration
         assertEquals(JsonToken.END_ARRAY, jp.getCurrentToken());
         jp.close();
     }
-
 }

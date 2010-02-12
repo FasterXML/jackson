@@ -10,9 +10,22 @@ package org.codehaus.jackson.util;
  */
 public final class BufferRecycler
 {
+    public final static int DEFAULT_WRITE_CONCAT_BUFFER_LEN = 2000;
+    
     public enum ByteBufferType {
         READ_IO_BUFFER(4000)
-            ,WRITE_IO_BUFFER(4000);
+        /**
+         * Buffer used for temporarily storing encoded content; used
+         * for example by UTF-8 encoding writer
+         */
+        ,WRITE_ENCODING_BUFFER(4000)
+
+        /**
+         * Buffer used for temporarily concatenating output; used for
+         * example when requesting output as byte array.
+         */
+        ,WRITE_CONCAT_BUFFER(2000)
+        ;
             
         private final int size;
 
