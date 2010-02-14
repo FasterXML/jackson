@@ -87,9 +87,9 @@ public class BeanDeserializer
     protected Creator.PropertyBased _propertyBasedCreator;
 
     /*
-    ///////////////////////////////////////////////
-    // Property information, setters
-    ///////////////////////////////////////////////
+    /********************************************************
+    /* Property information, setters
+    /********************************************************
      */
 
     /**
@@ -119,9 +119,9 @@ public class BeanDeserializer
     protected boolean _ignoreAllUnknown;
 
     /*
-    ///////////////////////////////////////////////
-    // Special deserializers needed for sub-types
-    ///////////////////////////////////////////////
+    /********************************************************
+    /* Special deserializers needed for sub-types
+    /********************************************************
      */
 
     /**
@@ -131,9 +131,9 @@ public class BeanDeserializer
     protected HashMap<ClassKey, JsonDeserializer<Object>> _subDeserializers;
     
     /*
-    /////////////////////////////////////////////////////////
-    // Life-cycle, construction, initialization
-    /////////////////////////////////////////////////////////
+    /********************************************************
+    /* Life-cycle, construction, initialization
+    /********************************************************
      */
 
     public BeanDeserializer(JavaType type) 
@@ -218,9 +218,9 @@ public class BeanDeserializer
     }
 
     /*
-    /////////////////////////////////////////////////////////
-    // Validation, post-processing
-    /////////////////////////////////////////////////////////
+    /********************************************************
+    /* Validation, post-processing
+    /********************************************************
      */
 
     /**

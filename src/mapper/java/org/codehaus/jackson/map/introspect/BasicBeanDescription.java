@@ -11,6 +11,11 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
+/**
+ * Default {@link BeanDescription} implementation.
+ * Can theoretically be subclassed to customize
+ * some aspects of property introspection.
+ */
 public class BasicBeanDescription extends BeanDescription
 {
     /*
@@ -22,9 +27,9 @@ public class BasicBeanDescription extends BeanDescription
     /**
      * Information collected about the class introspected.
      */
-    final AnnotatedClass _classInfo;
+    final protected AnnotatedClass _classInfo;
 
-    final AnnotationIntrospector _annotationIntrospector;
+    final protected AnnotationIntrospector _annotationIntrospector;
 
     /*
     ///////////////////////////////////////////////////////
@@ -102,7 +107,7 @@ public class BasicBeanDescription extends BeanDescription
 
     /*
     ///////////////////////////////////////////////////////
-    // Introspection for serialization (write Json), getters
+    // Introspection for serialization (write JSON), getters
     ///////////////////////////////////////////////////////
      */
     

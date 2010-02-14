@@ -373,7 +373,7 @@ public class BeanDeserializerFactory
     
     /**
      * Method called to figure out settable properties for the
-     * deserializer.
+     * bean deserializer to use.
      */
     protected void addBeanProps(DeserializationConfig config,
                                 BasicBeanDescription beanDesc, BeanDeserializer deser)

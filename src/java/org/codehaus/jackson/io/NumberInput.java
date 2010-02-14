@@ -62,6 +62,9 @@ public final class NumberInput
      * an integral number would fit in 64-bit Java long or not.
      * Note that input String must NOT contain leading minus sign (even
      * if 'negative' is set to true).
+     *
+     * @param negative Whether original number had a minus sign (which is
+     *    NOT passed to this method) or not
      */
     public final static boolean inLongRange(char[] digitChars, int offset, int len,
             boolean negative)
@@ -73,6 +76,32 @@ public final class NumberInput
 
         for (int i = 0; i < cmpLen; ++i) {
             if (digitChars[offset+i] > cmpStr.charAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Similar to {@link #inLongRange(char[],int,int,boolean), but
+     * with String argument
+     *
+     * @param negative Whether original number had a minus sign (which is
+     *    NOT passed to this method) or not
+     *
+     * @since 1.5.0
+     */
+    public final static boolean inLongRange(String numberStr, boolean negative)
+    {
+        String cmpStr = negative ? MIN_LONG_STR_NO_SIGN : MAX_LONG_STR;
+        int cmpLen = cmpStr.length();
+        int actualLen = numberStr.length();
+        if (actualLen < cmpLen) return true;
+        if (actualLen > cmpLen) return false;
+
+        // could perhaps just use String.compareTo()?
+        for (int i = 0; i < cmpLen; ++i) {
+            if (numberStr.charAt(i) > cmpStr.charAt(i)) {
                 return false;
             }
         }

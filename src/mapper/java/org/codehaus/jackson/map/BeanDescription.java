@@ -42,7 +42,12 @@ public abstract class BeanDescription
     ///////////////////////////////////////////////////////
      */
 
+    /**
+     * Method for accessing declared type of bean being introspected,
+     * including full generic type information (from declaration)
+     */
     public JavaType getType() { return _type; }
+
     public Class<?> getBeanClass() { return _type.getRawClass(); }
    
     /*

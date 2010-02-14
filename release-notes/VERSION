@@ -17,6 +17,9 @@ Description:
     much more efficient type conversions (and other internal buffering)
   * [JACKSON-220] @JsonSerialize.using() was not working properly for
     non-Bean types (Collections, Maps, wrappers)
+  * [JACKSON-236] Allow deserialization of timestamps-as-Strings (not
+    just timestamps as JSON integer numbers).
+   (requested by Chris C)
 
   New features:
 
