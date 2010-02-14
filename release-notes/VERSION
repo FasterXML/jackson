@@ -49,6 +49,21 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+1.4.2 [31-Jan-2010]
+
+  Fixes:
+
+  * [JACKSON-238]: Fix to ensure custom serializers can override
+    default serializers (like DOM, Joda serializers)
+   (reported by Pablo L)
+  * other fixes from 1.3.4 release
+
+1.4.1 [10-Jan-2010]
+
+  Fixes:
+
+   fixes from 1.3.x branch up to 1.3.3.
+
 1.4.0 [19-Dec-2009]
 
   Improvements:
@@ -94,6 +109,18 @@ Description:
 
   * Removed "BasicSerializerFactory.StringLikeSerializer" that was
     deprecated for 1.0, replaced by public "ToStringSerializer"
+
+1.3.4 [31-Jan-2010]
+
+  Fixes:
+
+  * [JACKSON-225], [JACKSON-227], missing null checks/conversions when
+    adding entries to ArrayNode and ObjectNode
+   (reported by Kenny M)
+  * [JACKSON-230]: wrong NumberType reported for big ints, longs
+   (reported by Henning S)
+  * [JACKSON-231]: ArrayDeserializer for byte[] should be able to
+    use VALUE_EMBEDDED_OBJECT (if Object is byte[])
 
 1.3.3 [21-Dec-2009]
 
