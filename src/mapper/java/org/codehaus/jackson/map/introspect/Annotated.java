@@ -36,8 +36,6 @@ public abstract class Annotated
     /**
      * Full generic type of the annotated element; definition
      * of what exactly this means depends on sub-class.
-     * 
-     * @return
      */
     public JavaType getType() {
         return TypeFactory.type(getGenericType());

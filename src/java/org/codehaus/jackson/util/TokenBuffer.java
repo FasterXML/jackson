@@ -33,11 +33,11 @@ public class TokenBuffer
      */
 
     /**
-     * @param codec Object codec to use for stream-based object
+     * Object codec to use for stream-based object
      *   conversion through parser/generator interfaces. If null,
      *   such methods can not be used.
      */
-    ObjectCodec _objectCodec;
+    protected ObjectCodec _objectCodec;
 
     /**
      * Bit flag composed of bits that indicate which
@@ -103,7 +103,7 @@ public class TokenBuffer
     
     /**
      * Method used to create a {@link JsonParser} that can read contents
-     * stored in this buffer. Will use default {@link #_codec} for
+     * stored in this buffer. Will use default {@link #_objectCodec} for
      * object conversions.
      *<p>
      * Note: instances are not synchronized, that is, they are not thread-safe

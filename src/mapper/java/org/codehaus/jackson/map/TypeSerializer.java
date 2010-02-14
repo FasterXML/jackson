@@ -94,7 +94,7 @@ public abstract class TypeSerializer
     
     /**
      * Method called after value has been serialized, to close any scopes opened
-     * by earlier matching call to {@link #writeTypePrefixForValue}.
+     * by earlier matching call to {@link #writeTypePrefixForScalar}.
      * It needs to write closing END_OBJECT marker, and any other decoration
      * that needs to be matched.
      */
@@ -103,7 +103,7 @@ public abstract class TypeSerializer
 
     /**
      * Method called after value has been serialized, to close any scopes opened
-     * by earlier matching call to {@link #writeTypePrefixForField}.
+     * by earlier matching call to {@link #writeTypePrefixForObject}.
      * It needs to write closing END_OBJECT marker, and any other decoration
      * that needs to be matched.
      */

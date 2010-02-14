@@ -110,7 +110,6 @@ public abstract class JsonDeserializer<T>
      *<p>
      * Specifically, this class is to be used as the marker for
      * annotation {@link org.codehaus.jackson.map.annotate.JsonDeserialize}
-     * (and deprecated {@link org.codehaus.jackson.annotate.JsonUseDeserializer}).
      */
     public abstract static class None
         extends JsonDeserializer<Object> { }

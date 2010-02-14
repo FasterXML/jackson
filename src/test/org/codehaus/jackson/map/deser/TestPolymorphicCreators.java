@@ -5,7 +5,7 @@ import org.codehaus.jackson.map.*;
 
 /**
  * Unit tests for verifying that it is possible to annotate
- * various kinds of things with {@link @JsonCreator} annotation.
+ * various kinds of things with {@link JsonCreator} annotation.
  */
 public class TestPolymorphicCreators
     extends BaseMapTest

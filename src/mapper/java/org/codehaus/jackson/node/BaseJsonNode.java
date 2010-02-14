@@ -11,7 +11,8 @@ import org.codehaus.jackson.map.TypeSerializer;
  * Abstract base class common to all standard {@link JsonNode}
  * implementations.
  * The main addition here is that we declare that sub-classes must
- * implement {@link JsonSerializable}. This simplifies object mapping
+ * implement {@link JsonSerializableWithType}.
+ * This simplifies object mapping
  * aspects a bit, as no external serializers are needed.
  */
 public abstract class BaseJsonNode

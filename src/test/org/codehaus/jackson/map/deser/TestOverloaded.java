@@ -1,10 +1,5 @@
 package org.codehaus.jackson.map.deser;
 
-import java.util.*;
-
-import static org.junit.Assert.*;
-
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 
 /**

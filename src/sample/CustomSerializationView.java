@@ -62,7 +62,7 @@ public class CustomSerializationView
         final BeanPropertyWriter _writer;
 
         /**
-         * @param Original unmodified bean property writer that
+         * @param w Original unmodified bean property writer that
          *   we delegate some calls to
          */
         public UpperCasingWriter(BeanPropertyWriter w) {

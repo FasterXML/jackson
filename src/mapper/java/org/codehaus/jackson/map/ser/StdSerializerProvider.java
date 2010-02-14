@@ -371,8 +371,8 @@ public class StdSerializerProvider
     }
 
     /**
-     * Current implementation simply delegates to
-     * {@link #findValueSerializer(Class, boolean)}. In future,
+     * NOTE: current implementation simply delegates to
+     * {@link #findValueSerializer(Class)}. In future,
      * should improve to allow proper efficient handling of typed structured
      * types
      */    

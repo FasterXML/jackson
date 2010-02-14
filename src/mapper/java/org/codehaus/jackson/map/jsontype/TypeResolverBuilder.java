@@ -17,7 +17,8 @@ import org.codehaus.jackson.type.JavaType;
  * Builder is first initialized by calling {@link #init} method, and then
  * configured using <code>setXxx</code> (and <code>registerXxx</code>)
  * methods. Finally, after calling all configuration methods,
- * {@link #build} will be called to get actual type resolver constructed
+ * {@link #buildTypeSerializer} or {@link #buildTypeDeserializer}
+ * will be called to get actual type resolver constructed
  * and used for resolving types for configured base type and its
  * subtypes.
  * 
@@ -65,7 +66,7 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
      * the builder instance.
      *
      * @param idType Which type metadata is used
-     * @param (optional) Custom type id resolver used, if any
+     * @param res (optional) Custom type id resolver used, if any
      * 
      * @return Resulting builder instance (usually this builder,
      *   but not necessarily)

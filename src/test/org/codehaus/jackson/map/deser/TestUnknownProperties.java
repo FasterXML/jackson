@@ -109,7 +109,7 @@ public class TestUnknownProperties
 
     /**
      * Test that verifies that it is possible to ignore unknown properties using
-     * {@link UnknownPropertyHandler}.
+     * {@link DeserializationProblemHandler}.
      */
     public void testUnknownHandlingIgnoreWithHandler()
         throws Exception
@@ -187,7 +187,7 @@ public class TestUnknownProperties
     }
 
     /**
-     * Test that verifies that use of {@link @JsonIgnore} will add implicit
+     * Test that verifies that use of {@link JsonIgnore} will add implicit
      * skipping of matching properties.
      */
     public void testClassWithUnknownAndIgnore() throws Exception

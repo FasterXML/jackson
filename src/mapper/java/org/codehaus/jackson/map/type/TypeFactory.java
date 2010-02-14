@@ -233,8 +233,8 @@ public class TypeFactory
      * Factory method for constructing a {@link JavaType} out of its canonical
      * representation (see {@link JavaType#toCanonical()}).
      * 
-     * @param canonical
-     * @return
+     * @param canonical Canonical string representation of a type
+     * 
      * @throws IllegalArgumentException If canonical representation is malformed,
      *   or class that type represents (including its generic parameters) is
      *   not found

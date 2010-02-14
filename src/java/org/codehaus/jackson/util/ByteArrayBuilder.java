@@ -29,7 +29,7 @@ import java.util.*;
  *<p>
  * Since version 1.5, also implements {@link OutputStream} to allow
  * efficient aggregation of output content as a byte array, similar
- * to how {@link ByteArrayOutputStream} works, but somewhat more
+ * to how {@link java.io.ByteArrayOutputStream} works, but somewhat more
  * efficiently for many use cases.
  */
 public final class ByteArrayBuilder

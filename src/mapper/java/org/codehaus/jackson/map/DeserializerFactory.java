@@ -90,7 +90,6 @@ public abstract class DeserializerFactory
      *
      * @param baseType Declared base type of the value to deserializer (actual
      *    deserializer type will be this type or its subtype)
-     * @param deser Deserializer used for base type deserialization 
      * 
      * @return Type deserializer to use for given base type, if one is needed; null if not.
      * 

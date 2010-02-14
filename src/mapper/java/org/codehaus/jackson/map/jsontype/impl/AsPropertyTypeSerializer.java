@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
  * JSON Object property, if possible (when resulting serialization would
  * use JSON Object). If this is not possible (for JSON Arrays, scalars),
  * uses a JSON Array wrapper (similar to how
- * {@link JsonTypeInfo.As.WRAPPER_ARRAY} always works) as a fallback.
+ * {@link JsonTypeInfo.As#WRAPPER_ARRAY} always works) as a fallback.
  * 
  * @since 1.5
  * @author tatus

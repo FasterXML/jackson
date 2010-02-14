@@ -184,7 +184,7 @@ public abstract class AnnotationIntrospector
      * {@link #findSubtypes}
      * 
      * @param am Annotated member (field or method) to check for annotations
-     * @param baseType Type of property for which resolver is to be found (must be a container type)
+     * @param containerType Type of property for which resolver is to be found (must be a container type)
      * 
      * @return Type resolver builder for values contained in properties of given entity,
      *    if one found; null if none

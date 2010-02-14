@@ -27,7 +27,7 @@ public final class LinkedNode<T>
      * with given head node (which may be null to indicate empty list)
      * contains given value
      * 
-     * @param <ST>
+     * @param <ST> Type argument that defines contents of the linked list parameter
      * @param node Head node of the linked list
      * @param value Value to look for
      * @return True if linked list contains the value, false otherwise

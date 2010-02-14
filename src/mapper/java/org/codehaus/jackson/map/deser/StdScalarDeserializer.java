@@ -12,8 +12,6 @@ import org.codehaus.jackson.map.TypeDeserializer;
  * as JSON scalars (non-structured, i.e. non-Object, non-Array, values).
  * 
  * @author tatu
- *
- * @param <T>
  */
 public abstract class StdScalarDeserializer<T> extends StdDeserializer<T>
 {

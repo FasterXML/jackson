@@ -83,7 +83,7 @@ public final class NumberInput
     }
 
     /**
-     * Similar to {@link #inLongRange(char[],int,int,boolean), but
+     * Similar to {@link #inLongRange(char[],int,int,boolean)}, but
      * with String argument
      *
      * @param negative Whether original number had a minus sign (which is
