@@ -26,8 +26,13 @@ public class TestOverloaded
      */
     public void testSimpleOverload() throws Exception
     {
-        OverloadBean bean = new ObjectMapper().readValue
-            ("{ \"a\" : 13 }", OverloadBean.class);
+        OverloadBean bean;
+        try {
+            bean = new ObjectMapper().readValue("{ \"a\" : 13 }", OverloadBean.class);
+        } catch (JsonMappingException e) {
+            fail("Did not expect an exception, got: "+e.getMessage());
+            return;
+        }
         assertEquals("13", bean.a);
     }
 }

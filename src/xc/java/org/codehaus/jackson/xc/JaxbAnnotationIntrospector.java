@@ -38,22 +38,22 @@ import org.codehaus.jackson.type.JavaType;
  * <li>{@link javax.xml.bind.annotation.XmlAttachmentRef}
  * <li>{@link XmlElementDecl}
  * <li>{@link XmlElementRefs} because Jackson doesn't have any support for 'named' collection items.
- * <li>{@link XmlElements} because Jackson doesn't have any support for 'named' collection items.
- *    <br />NOTE: it is possible that this annotation will be supported in future.
- *   </li>
- * <li>{@link XmlID} because jackson' doesn't support referential integrity.
- * <li>{@link XmlIDREF} because jackson' doesn't support referential integrity.
- * <li>{@link javax.xml.bind.annotation.XmlInlineBinaryData}
- * <li>{@link javax.xml.bind.annotation.XmlList} because jackson doesn't support serializing collections to a single string.
+ * <li>{@link XmlID} because Jackson' doesn't support referential integrity.
+ * <li>{@link XmlIDREF} because the is no JSON support for referential integrity.
+ * <li>{@link javax.xml.bind.annotation.XmlInlineBinaryData} since the underlying concepts
+ *    (like XOP) do not exist in JSON
+ * <li>{@link javax.xml.bind.annotation.XmlList} because JSON does have (or necessarily need)
+ *    method of serializing list of values as space-separated Strings
  * <li>{@link javax.xml.bind.annotation.XmlMimeType}
- * <li>{@link javax.xml.bind.annotation.XmlMixed}
- * <li>{@link XmlNs}
+ * <li>{@link javax.xml.bind.annotation.XmlMixed} since JSON has no concept of mixed content
+ * <li>{@link XmlNs} not (yet?) used, may be used in future for XML compatibility
  * <li>{@link XmlRegistry}
  * <li>{@link XmlRootElement} is not currently used, but it may be used in future for XML compatibility features
  * <li>{@link XmlSchema}
  * <li>{@link XmlSchemaType}
  * <li>{@link XmlSchemaTypes}
- * <li>{@link XmlSeeAlso}
+ * <li>{@link XmlSeeAlso} not needed for anything currently (could theoretically be useful
+ *    for locating subtypes for Polymorphic Type Handling)
  * </ul>
  *
  * Note also the following limitations:
@@ -63,6 +63,7 @@ import org.codehaus.jackson.type.JavaType;
  * </ul>
  *
  * @author Ryan Heaton
+ * @author Tatu Saloranta
  */
 public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 {
@@ -265,11 +266,15 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     protected TypeResolverBuilder<?> _typeResolverFromXmlElements(AnnotatedMember am)
     {
-        // if simple type, @XmlElements is applicable
+        /* If simple type, @XmlElements is applicable. Note: @XmlElement is NOT
+         * handled here, since it is handled specifically as non-polymorphic indication
+         * of the actual type
+         */
         XmlElements elems = findAnnotation(XmlElements.class, am, false, false, false);
         if (elems == null) {
             return null;
         }
+
         TypeResolverBuilder<?> b = new StdTypeResolverBuilder();
         // JAXB always uses type name as id
         b = b.init(JsonTypeInfo.Id.NAME, null);
@@ -279,17 +284,20 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
     
     @Override
-    public List<NamedType> findSubtypes(Annotated a) {
+    public List<NamedType> findSubtypes(Annotated a)
+    {
         // No package/superclass defaulting (only used with fields, methods)
         XmlElements elems = findAnnotation(XmlElements.class, a, false, false, false);
-        if (elems == null) return null;
-        ArrayList<NamedType> result = new ArrayList<NamedType>();
-        for (XmlElement elem : elems.value()) {
-            String name = elem.name();
-            if (MARKER_FOR_DEFAULT.equals(name)) name = null;
-            result.add(new NamedType(elem.type(), name));
+        if (elems != null) {
+            ArrayList<NamedType> result = new ArrayList<NamedType>();
+            for (XmlElement elem : elems.value()) {
+                String name = elem.name();
+                if (MARKER_FOR_DEFAULT.equals(name)) name = null;
+                result.add(new NamedType(elem.type(), name));
+            }
+            return result;
         }
-        return result;
+        return null;
     }
 
     @Override
@@ -377,6 +385,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public Class<?> findSerializationType(Annotated a)
     {
+        /* 15-Feb-2010, tatu: May need to support in future; if so, would make use of
+         *    @XmlElement annotation. Reason it is not (yet) needed is that serialization
+         *    uses dynamic runtime types
+         */
         return null;
     }
 
@@ -571,12 +583,14 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return null;
     }
 
+    @Override
     public Class<KeyDeserializer> findKeyDeserializer(Annotated am)
     {
         // Is there something like this in JAXB?
         return null;
     }
 
+    @Override
     public Class<JsonDeserializer<?>> findContentDeserializer(Annotated am)
     {
         // Is there something like this in JAXB?
@@ -587,37 +601,44 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
      * JAXB does allow specifying (more) concrete class for
      * deserialization by using \@XmlElement annotation.
      */
-    public Class<?> findDeserializationType(Annotated am)
+    @Override
+    public Class<?> findDeserializationType(Annotated am, JavaType baseType)
     {
-        /* false for class, package, super-class, since annotation can
-         * only be attached to fields and methods
+        /* First: only applicable for non-structured types (yes, JAXB annotations
+         * are tricky)
+         */
+        if (!baseType.isContainerType()) {
+            /* false for class, package, super-class, since annotation can
+             * only be attached to fields and methods
+             */
+            //
+            XmlElement annotation = findAnnotation(XmlElement.class, am, false, false, false);
+            if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
+                return annotation.type();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType)
+    {
+        return null;
+    }
+
+    @Override
+    public Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType)
+    {
+        /* 15-Feb-2010, tatus: JAXB usage of XmlElement/XmlElements is really
+         *   confusing: sometimes it's for type (non-container types), sometimes for
+         *   contents (container) types. I guess it's frugal to reuse these... but
+         *   I think it's rather short-sighted. Whatever, it is what it is, and here
+         *   we are being given content type explicitly.
          */
         XmlElement annotation = findAnnotation(XmlElement.class, am, false, false, false);
         if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
             return annotation.type();
         }
-        return null;
-    }
-
-    public Class<?> findDeserializationKeyType(Annotated am)
-    {
-        return null;
-    }
-
-    public Class<?> findDeserializationContentType(Annotated am)
-    {
-        /* 16-Dec-2009, tatus: I think this is wrong: annotation
-         *   really refers to type of property itself, not contents.
-         *   Content type can (only?) be effected by @XmlElements (which in
-         *   turn contains instances of @XmlElement)
-         */
-        /*
-        XmlElement annotation = findAnnotation(XmlElement.class, am, false, false, false);
-        if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
-            return annotation.type();
-        }
-        */
-
         return null;
     }
 

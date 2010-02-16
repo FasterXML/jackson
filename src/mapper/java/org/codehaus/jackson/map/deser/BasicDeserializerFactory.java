@@ -504,7 +504,7 @@ public abstract class BasicDeserializerFactory
     {
         // first: let's check class for the instance itself:
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        Class<?> subclass = intr.findDeserializationType(a);
+        Class<?> subclass = intr.findDeserializationType(a, type);
         if (subclass != null) {
             try {
                 type = (T) type.narrowBy(subclass);
@@ -515,7 +515,7 @@ public abstract class BasicDeserializerFactory
 
         // then key class
         if (type.isContainerType()) {
-            Class<?> keyClass = intr.findDeserializationKeyType(a);
+            Class<?> keyClass = intr.findDeserializationKeyType(a, type.getKeyType());
             if (keyClass != null) {
                 // illegal to use on non-Maps
                 if (!(type instanceof MapType)) {
@@ -529,7 +529,7 @@ public abstract class BasicDeserializerFactory
             }
             
             // and finally content class; only applicable to structured types
-            Class<?> cc = intr.findDeserializationContentType(a);
+            Class<?> cc = intr.findDeserializationContentType(a, type.getContentType());
             if (cc != null) {
                 try {
                     type = (T) type.narrowContentsBy(cc);

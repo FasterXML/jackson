@@ -28,9 +28,9 @@ public class NopAnnotationIntrospector
     public final static NopAnnotationIntrospector instance = new NopAnnotationIntrospector();
 
     /*
-    ////////////////////////////////////////////////////
-    // General annotation properties
-    ////////////////////////////////////////////////////
+    /****************************************************
+    /* General annotation properties
+    /****************************************************
      */
 
     @Override
@@ -39,9 +39,9 @@ public class NopAnnotationIntrospector
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // General annotations
-    ////////////////////////////////////////////////////
+    /****************************************************
+    /* General annotations
+    /****************************************************
      */
 
     @Override
@@ -228,17 +228,17 @@ public class NopAnnotationIntrospector
     }
 
     @Override
-    public Class<?> findDeserializationContentType(Annotated am) {
+    public Class<?> findDeserializationContentType(Annotated am, JavaType t) {
         return null;
     }
 
     @Override
-    public Class<?> findDeserializationKeyType(Annotated am) {
+    public Class<?> findDeserializationKeyType(Annotated am, JavaType t) {
         return null;
     }
 
     @Override
-    public Class<?> findDeserializationType(Annotated am) {
+    public Class<?> findDeserializationType(Annotated am, JavaType t) {
         return null;
     }
 

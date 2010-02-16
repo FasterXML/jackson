@@ -8,6 +8,8 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 /**
@@ -266,9 +268,10 @@ public class TestIntrospectorPair
         assertEquals(Boolean.TRUE, ann.findSetterAutoDetection(testClass));
         assertEquals(Boolean.TRUE, ann.findGetterAutoDetection(testClass));
 
-        assertNull(ann.findDeserializationType(testClass));
-        assertNull(ann.findDeserializationContentType(testClass));
-        assertNull(ann.findDeserializationKeyType(testClass));
+        JavaType type = TypeFactory.type(Object.class);
+        assertNull(ann.findDeserializationType(testClass, type));
+        assertNull(ann.findDeserializationContentType(testClass, type));
+        assertNull(ann.findDeserializationKeyType(testClass, type));
         assertNull(ann.findSerializationType(testClass));
 
         assertNull(ann.findDeserializer(testClass));

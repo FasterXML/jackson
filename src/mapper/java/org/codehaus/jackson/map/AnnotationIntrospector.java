@@ -473,30 +473,36 @@ public abstract class AnnotationIntrospector
      * (i.e.subtype of declared type).
      * Declared return type of the method is also considered acceptable.
      *
+     * @param baseType Assumed type before considering annotations
+     *
      * @return Class to use for deserialization instead of declared type
      */
-    public abstract Class<?> findDeserializationType(Annotated am);
+    public abstract Class<?> findDeserializationType(Annotated am, JavaType baseType);
 
     /**
      * Method for accessing additional narrowing type definition that a
      * method can have, to define more specific key type to use.
      * It should be only be used with {@link java.util.Map} types.
+     * 
+     * @param baseKeyType Assumed key type before considering annotations
      *
      * @return Class specifying more specific type to use instead of
      *   declared type, if annotation found; null if not
      */
-    public abstract Class<?> findDeserializationKeyType(Annotated am);
+    public abstract Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType);
 
     /**
      * Method for accessing additional narrowing type definition that a
      * method can have, to define more specific content type to use;
      * content refers to Map values and Collection/array elements.
      * It should be only be used with Map, Collection and array types.
+     * 
+     * @param baseContentType Assumed content (value) type before considering annotations
      *
      * @return Class specifying more specific type to use instead of
      *   declared type, if annotation found; null if not
      */
-    public abstract Class<?> findDeserializationContentType(Annotated am);
+    public abstract Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType);
 
     /*
     ///////////////////////////////////////////////////////
@@ -992,31 +998,31 @@ public abstract class AnnotationIntrospector
         }
         
         @Override
-        public Class<?> findDeserializationType(Annotated am)
+        public Class<?> findDeserializationType(Annotated am, JavaType baseType)
         {
-            Class<?> result = _primary.findDeserializationType(am);
+            Class<?> result = _primary.findDeserializationType(am, baseType);
             if (result == null) {
-                result = _secondary.findDeserializationType(am);
+                result = _secondary.findDeserializationType(am, baseType);
             }
             return result;
         }
 
         @Override
-        public Class<?> findDeserializationKeyType(Annotated am)
+        public Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType)
         {
-            Class<?> result = _primary.findDeserializationKeyType(am);
+            Class<?> result = _primary.findDeserializationKeyType(am, baseKeyType);
             if (result == null) {
-                result = _secondary.findDeserializationKeyType(am);
+                result = _secondary.findDeserializationKeyType(am, baseKeyType);
             }
             return result;
         }
 
         @Override
-        public Class<?> findDeserializationContentType(Annotated am)
+        public Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType)
         {
-            Class<?> result = _primary.findDeserializationContentType(am);
+            Class<?> result = _primary.findDeserializationContentType(am, baseContentType);
             if (result == null) {
-                result = _secondary.findDeserializationContentType(am);
+                result = _secondary.findDeserializationContentType(am, baseContentType);
             }
             return result;
         }

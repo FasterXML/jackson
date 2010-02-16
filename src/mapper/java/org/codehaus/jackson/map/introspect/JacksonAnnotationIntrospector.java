@@ -448,7 +448,7 @@ public class JacksonAnnotationIntrospector
 
     @SuppressWarnings("deprecation")
     @Override
-    public Class<?> findDeserializationType(Annotated am)
+    public Class<?> findDeserializationType(Annotated am, JavaType baseType)
     {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
@@ -473,7 +473,7 @@ public class JacksonAnnotationIntrospector
     }
 
     @SuppressWarnings("deprecation")
-    public Class<?> findDeserializationKeyType(Annotated am)
+    public Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType)
     {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
@@ -499,7 +499,7 @@ public class JacksonAnnotationIntrospector
 
     @SuppressWarnings("deprecation")
 	@Override
-    public Class<?> findDeserializationContentType(Annotated am)
+    public Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType)
     {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
