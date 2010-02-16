@@ -5,7 +5,7 @@ import org.codehaus.jackson.map.DeserializationContext;
 
 /**
  * Simple container used for temporarily buffering a set of
- * {@link PropertyValue}s.
+ * <code>PropertyValue</code>s.
  * Using during construction of beans (and Maps) that use Creators, 
  * and hence need buffering before instance (that will have properties
  * to assign values to) is constructed.

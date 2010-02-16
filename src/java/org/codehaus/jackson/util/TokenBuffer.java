@@ -103,7 +103,7 @@ public class TokenBuffer
     
     /**
      * Method used to create a {@link JsonParser} that can read contents
-     * stored in this buffer. Will use default {@link #_objectCodec} for
+     * stored in this buffer. Will use default <code>_objectCodec</code> for
      * object conversions.
      *<p>
      * Note: instances are not synchronized, that is, they are not thread-safe
