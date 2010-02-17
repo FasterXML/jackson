@@ -32,7 +32,7 @@ public class TestJaxbTypes
         implements AbstractBean
     {
         public int a;
-        private String b;
+        protected String b;
 
         public BeanImpl() { this(0, null); }
         public BeanImpl(int a, String b) {
@@ -51,8 +51,39 @@ public class TestJaxbTypes
         @XmlElement(type=BeanImpl.class)
         private List<AbstractBean> beans;
 
+        public ListBean() { }
+        public ListBean(AbstractBean ... beans) {
+            this.beans = Arrays.asList(beans);
+        }
+        public ListBean(List<AbstractBean> beans) {
+            this.beans = beans;
+        }
+
         public List<AbstractBean> getBeans() { return beans; }
         public void setBeans(List<AbstractBean> b) { beans = b; }
+
+        public int size() { return beans.size(); }
+        public BeanImpl get(int index) { return (BeanImpl) beans.get(index); }
+    }
+
+    /* And then mix'n match, to try end-to-end
+     */
+    static class ComboBean
+    {
+        private AbstractBean bean;
+
+        public ListBean beans;
+
+        public ComboBean() { }
+        public ComboBean(AbstractBean bean, ListBean beans)
+        {
+            this.bean = bean;
+            this.beans = beans;
+        }
+
+        @XmlElement(type=BeanImpl.class)
+        public AbstractBean getBean() { return bean; }
+        public void setBean(AbstractBean bean) { this.bean = bean; }
     }
     
     /*
@@ -101,6 +132,25 @@ public class TestJaxbTypes
         assertEquals("b", bean.b);
     }
 
+    public void testXmlElementListArrayDeser() throws Exception
+    {
+        ObjectMapper mapper = getJaxbMapper();
+        ListBean[] listBeans = mapper.readValue
+            ("[{\"beans\": [{\"a\":1,\"b\":\"a\"}, {\"a\":7,\"b\":\"b\" }]}]",
+             ListBean[].class);
+        assertNotNull(listBeans);
+        assertEquals(1, listBeans.length);
+        List<AbstractBean> beans = listBeans[0].beans;
+        assertNotNull(beans);
+        assertEquals(2, beans.size());
+        BeanImpl bean = (BeanImpl) beans.get(0);
+        assertEquals(1, bean.a);
+        assertEquals("a", bean.b);
+        bean = (BeanImpl) beans.get(1);
+        assertEquals(7, bean.a);
+        assertEquals("b", bean.b);
+    }
+
     public void testXmlElementListTypeSer() throws Exception
     {
         ObjectMapper mapper = getJaxbMapper();
@@ -112,5 +162,28 @@ public class TestJaxbTypes
         
         assertEquals("{\"beans\":[{\"a\":1,\"b\":\"a\"},{\"a\":2,\"b\":\"b\"}]}",
                      mapper.writeValueAsString(bean));
+    }
+
+    public void testRoundTrip() throws Exception
+    {
+        ComboBean input = new ComboBean(new BeanImpl(3, "abc"),
+                                        new ListBean(new BeanImpl(1, "a"),
+                                                     new BeanImpl(2, "b"),
+                                                     new BeanImpl(3, "c")));
+        ObjectMapper mapper = getJaxbMapper();
+        String str = mapper.writeValueAsString(input);
+
+        ComboBean result = mapper.readValue(str, ComboBean.class);
+
+        assertEquals(3, ((BeanImpl)result.bean).a);
+        assertEquals("abc", ((BeanImpl)result.bean).b);
+
+        assertEquals(3, result.beans.size());
+        assertEquals(1, (result.beans.get(0)).a);
+        assertEquals("a", (result.beans.get(0)).b);
+        assertEquals(2, (result.beans.get(1)).a);
+        assertEquals("b", (result.beans.get(1)).b);
+        assertEquals(3, (result.beans.get(2)).a);
+        assertEquals("c", (result.beans.get(2)).b);
     }
 }
