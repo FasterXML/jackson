@@ -474,10 +474,13 @@ public abstract class AnnotationIntrospector
      * Declared return type of the method is also considered acceptable.
      *
      * @param baseType Assumed type before considering annotations
+     * @param propName Logical property name of the property that uses
+     *    type, if known; null for types not associated with property
      *
      * @return Class to use for deserialization instead of declared type
      */
-    public abstract Class<?> findDeserializationType(Annotated am, JavaType baseType);
+    public abstract Class<?> findDeserializationType(Annotated am, JavaType baseType,
+            String propName);
 
     /**
      * Method for accessing additional narrowing type definition that a
@@ -485,11 +488,14 @@ public abstract class AnnotationIntrospector
      * It should be only be used with {@link java.util.Map} types.
      * 
      * @param baseKeyType Assumed key type before considering annotations
+     * @param propName Logical property name of the property that uses
+     *    type, if known; null for types not associated with property
      *
      * @return Class specifying more specific type to use instead of
      *   declared type, if annotation found; null if not
      */
-    public abstract Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType);
+    public abstract Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType,
+            String propName);
 
     /**
      * Method for accessing additional narrowing type definition that a
@@ -498,16 +504,19 @@ public abstract class AnnotationIntrospector
      * It should be only be used with Map, Collection and array types.
      * 
      * @param baseContentType Assumed content (value) type before considering annotations
+     * @param propName Logical property name of the property that uses
+     *    type, if known; null for types not associated with property
      *
      * @return Class specifying more specific type to use instead of
      *   declared type, if annotation found; null if not
      */
-    public abstract Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType);
+    public abstract Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType,
+            String propName);
 
     /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: class annotations
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Deserialization: class annotations
+    /******************************************************
     */
 
     /**
@@ -998,31 +1007,34 @@ public abstract class AnnotationIntrospector
         }
         
         @Override
-        public Class<?> findDeserializationType(Annotated am, JavaType baseType)
+        public Class<?> findDeserializationType(Annotated am, JavaType baseType,
+                String propName)
         {
-            Class<?> result = _primary.findDeserializationType(am, baseType);
+            Class<?> result = _primary.findDeserializationType(am, baseType, propName);
             if (result == null) {
-                result = _secondary.findDeserializationType(am, baseType);
+                result = _secondary.findDeserializationType(am, baseType, propName);
             }
             return result;
         }
 
         @Override
-        public Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType)
+        public Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType,
+                String propName)
         {
-            Class<?> result = _primary.findDeserializationKeyType(am, baseKeyType);
+            Class<?> result = _primary.findDeserializationKeyType(am, baseKeyType, propName);
             if (result == null) {
-                result = _secondary.findDeserializationKeyType(am, baseKeyType);
+                result = _secondary.findDeserializationKeyType(am, baseKeyType, propName);
             }
             return result;
         }
 
         @Override
-        public Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType)
+        public Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType,
+                String propName)
         {
-            Class<?> result = _primary.findDeserializationContentType(am, baseContentType);
+            Class<?> result = _primary.findDeserializationContentType(am, baseContentType, propName);
             if (result == null) {
-                result = _secondary.findDeserializationContentType(am, baseContentType);
+                result = _secondary.findDeserializationContentType(am, baseContentType, propName);
             }
             return result;
         }

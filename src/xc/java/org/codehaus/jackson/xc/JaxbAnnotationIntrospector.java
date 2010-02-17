@@ -35,10 +35,11 @@ import org.codehaus.jackson.type.JavaType;
  * <ul>
  * <li>{@link XmlAnyAttribute} because it applies only to Map<QName, String>, which jackson can't serialize
  * <li>{@link XmlAnyElement} because it applies only to JAXBElement, which jackson can't serialize
- * <li>{@link javax.xml.bind.annotation.XmlAttachmentRef}
+ * <li>{@link javax.xml.bind.annotation.XmlAttachmentRef}: JSON does not support
+ *  external attachments
  * <li>{@link XmlElementDecl}
  * <li>{@link XmlElementRefs} because Jackson doesn't have any support for 'named' collection items.
- * <li>{@link XmlID} because Jackson' doesn't support referential integrity.
+ * <li>{@link XmlID} because Jackson doesn't support referential integrity.
  * <li>{@link XmlIDREF} because the is no JSON support for referential integrity.
  * <li>{@link javax.xml.bind.annotation.XmlInlineBinaryData} since the underlying concepts
  *    (like XOP) do not exist in JSON
@@ -90,9 +91,9 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // General annotation properties
-    ////////////////////////////////////////////////////
+    /************************************************
+    /* General annotation properties
+    /************************************************
      */
 
     /**
@@ -118,9 +119,9 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // General annotations
-    ////////////////////////////////////////////////////
+    /************************************************
+    /* General annotations
+    /************************************************
      */
 
     @Override
@@ -602,32 +603,26 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
      * deserialization by using \@XmlElement annotation.
      */
     @Override
-    public Class<?> findDeserializationType(Annotated am, JavaType baseType)
+    public Class<?> findDeserializationType(Annotated a, JavaType baseType, String propName)
     {
         /* First: only applicable for non-structured types (yes, JAXB annotations
          * are tricky)
          */
         if (!baseType.isContainerType()) {
-            /* false for class, package, super-class, since annotation can
-             * only be attached to fields and methods
-             */
-            //
-            XmlElement annotation = findAnnotation(XmlElement.class, am, false, false, false);
-            if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
-                return annotation.type();
-            }
+            return _doFindDeserializationType(a, baseType, propName);
         }
         return null;
     }
 
     @Override
-    public Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType)
+    public Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType,
+            String propName)
     {
         return null;
     }
 
     @Override
-    public Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType)
+    public Class<?> findDeserializationContentType(Annotated a, JavaType baseContentType, String propName)
     {
         /* 15-Feb-2010, tatus: JAXB usage of XmlElement/XmlElements is really
          *   confusing: sometimes it's for type (non-container types), sometimes for
@@ -635,9 +630,28 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
          *   I think it's rather short-sighted. Whatever, it is what it is, and here
          *   we are being given content type explicitly.
          */
-        XmlElement annotation = findAnnotation(XmlElement.class, am, false, false, false);
+        return _doFindDeserializationType(a, baseContentType, propName);
+    }
+
+    protected Class<?> _doFindDeserializationType(Annotated a, JavaType baseType, String propName)
+    {
+        /* false for class, package, super-class, since annotation can
+         * only be attached to fields and methods
+         */
+        //
+        XmlElement annotation = findAnnotation(XmlElement.class, a, false, false, false);
         if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
             return annotation.type();
+        }
+        /* 16-Feb-2010, tatu: May also have annotation associated with field, not method
+         *    itself... and findAnnotation() won't find that (nor property descriptor)
+         */
+        if ((a instanceof AnnotatedMethod) && propName != null) {
+            AnnotatedMethod am = (AnnotatedMethod) a;
+            annotation = this.findFieldAnnotation(XmlElement.class, am.getDeclaringClass(), propName);
+            if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
+                return annotation.type();
+            }
         }
         return null;
     }
@@ -703,13 +717,15 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Helper methods (non-API)
-    ///////////////////////////////////////////////////////
+    /**************************************************
+    /* Helper methods (non-API)
+    /**************************************************
     */
 
     /**
-     * Finds an annotation.
+     * Finds an annotation associated with given annotatable thing; or if
+     * not found, a default annotation it may have (from super class, package
+     * and so on)
      *
      * @param annotationClass the annotation class.
      * @param annotated The annotated element.
@@ -765,6 +781,29 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /**
+     * Helper method for locating field on given class, checking if
+     * it has specified annotation, and returning it if found.
+     * 
+     * @since 1.5
+     */
+    protected <A extends Annotation> A findFieldAnnotation(Class<A> annotationType, Class<?> cls,
+                                                      String fieldName)
+    {
+        do {
+            for (Field f : cls.getDeclaredFields()) {
+                if (fieldName.equals(f.getName())) {
+                    return f.getAnnotation(annotationType);
+                }
+            }
+            if (cls.isInterface() || cls == Object.class) {
+                break;
+            }
+            cls = cls.getSuperclass();
+        } while (cls != null);
+        return null;
+    }
+
+    /**
      * Whether properties are accessible to this class.
      *
      * @param ac The annotated class.
@@ -809,7 +848,8 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /**
-     * Finds the property descriptor (adapted to AnnotatedElement) for the specified method.
+     * Finds the property descriptor (adapted to AnnotatedElement) for the specified
+     * method.
      *
      * @param m The method.
      * @return The property descriptor, or null if not found.

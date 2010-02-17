@@ -104,9 +104,9 @@ public abstract class BasicDeserializerFactory
     final static HashMap<JavaType,JsonDeserializer<Object>> _arrayDeserializers = ArrayDeserializers.getAll();
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Life cycle
-    ////////////////////////////////////////////////////////////
+    /****************************************************
+    /* Life cycle
+    /****************************************************
      */
 
     protected BasicDeserializerFactory() { }
@@ -160,7 +160,7 @@ public abstract class BasicDeserializerFactory
             return deser;
         }
         // If not, any type modifiers? (@JsonDeserialize.as)
-        type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
+        type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type, null);
 
         JavaType contentType = type.getContentType();
         // Very first thing: is deserializer hard-coded for elements?
@@ -221,7 +221,7 @@ public abstract class BasicDeserializerFactory
             return deser;
         }
         // If not, any type modifiers? (@JsonDeserialize.as)
-        type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
+        type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type, null);
         
         JavaType keyType = type.getKeyType();
         JavaType contentType = type.getContentType();
@@ -491,6 +491,9 @@ public abstract class BasicDeserializerFactory
      *
      * @param a Method or field that the type is associated with
      * @param type Type derived from the setter argument
+     * @param propName Name of property that refers to type, if any; null
+     *   if no property information available (when modify type declaration
+     *   of a class, for example)
      *
      * @return Original type if no annotations are present; or a more
      *   specific type derived from it if type annotation(s) was found
@@ -499,12 +502,13 @@ public abstract class BasicDeserializerFactory
      */
     @SuppressWarnings("unchecked")
     protected <T extends JavaType> T modifyTypeByAnnotation(DeserializationConfig config,
-                                              Annotated a, T type)
+                                                            Annotated a, T type,
+                                                            String propName)
         throws JsonMappingException
     {
         // first: let's check class for the instance itself:
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        Class<?> subclass = intr.findDeserializationType(a, type);
+        Class<?> subclass = intr.findDeserializationType(a, type, propName);
         if (subclass != null) {
             try {
                 type = (T) type.narrowBy(subclass);
@@ -515,7 +519,7 @@ public abstract class BasicDeserializerFactory
 
         // then key class
         if (type.isContainerType()) {
-            Class<?> keyClass = intr.findDeserializationKeyType(a, type.getKeyType());
+            Class<?> keyClass = intr.findDeserializationKeyType(a, type.getKeyType(), propName);
             if (keyClass != null) {
                 // illegal to use on non-Maps
                 if (!(type instanceof MapType)) {
@@ -529,7 +533,7 @@ public abstract class BasicDeserializerFactory
             }
             
             // and finally content class; only applicable to structured types
-            Class<?> cc = intr.findDeserializationContentType(a, type.getContentType());
+            Class<?> cc = intr.findDeserializationContentType(a, type.getContentType(), propName);
             if (cc != null) {
                 try {
                     type = (T) type.narrowContentsBy(cc);
@@ -601,9 +605,9 @@ public abstract class BasicDeserializerFactory
     }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Helper methods, dealing with Creators
-    ////////////////////////////////////////////////////////////
+    /****************************************************
+    /* Helper methods, dealing with Creators
+    /****************************************************
      */
 
     /**
@@ -680,7 +684,7 @@ public abstract class BasicDeserializerFactory
         // Is there an annotation that specifies exact deserializer?
         JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, param);
         // If yes, we are mostly done:
-        type = modifyTypeByAnnotation(config, param, type);
+        type = modifyTypeByAnnotation(config, param, type, name);
         TypeDeserializer typeDeser = findTypeDeserializer(config, type);
         SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(name, type, typeDeser,
                 beanDesc.getBeanClass(), index);

@@ -228,17 +228,17 @@ public class NopAnnotationIntrospector
     }
 
     @Override
-    public Class<?> findDeserializationContentType(Annotated am, JavaType t) {
+    public Class<?> findDeserializationContentType(Annotated am, JavaType t, String propName) {
         return null;
     }
 
     @Override
-    public Class<?> findDeserializationKeyType(Annotated am, JavaType t) {
+    public Class<?> findDeserializationKeyType(Annotated am, JavaType t, String propName) {
         return null;
     }
 
     @Override
-    public Class<?> findDeserializationType(Annotated am, JavaType t) {
+    public Class<?> findDeserializationType(Annotated am, JavaType t, String propName) {
         return null;
     }
 

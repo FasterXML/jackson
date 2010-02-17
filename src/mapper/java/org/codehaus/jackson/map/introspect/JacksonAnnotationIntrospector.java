@@ -446,9 +446,9 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public Class<?> findDeserializationType(Annotated am, JavaType baseType)
+    public Class<?> findDeserializationType(Annotated am, JavaType baseType,
+            String propName)
     {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
@@ -462,8 +462,10 @@ public class JacksonAnnotationIntrospector
         /* TODO: !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
          *    drop support at a later point (for 2.0?)
          */
+        @SuppressWarnings("deprecation")
         JsonClass oldAnn = am.getAnnotation(JsonClass.class);
         if (oldAnn != null) {
+            @SuppressWarnings("deprecation")
             Class<?> cls = oldAnn.value();
             if(cls != NoClass.class) {
                 return cls;
@@ -472,8 +474,9 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
-    @SuppressWarnings("deprecation")
-    public Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType)
+    @Override
+    public Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType,
+            String propName)
     {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
@@ -487,8 +490,10 @@ public class JacksonAnnotationIntrospector
         /* !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
          *    drop support at a later point (for 2.0?)
          */
+        @SuppressWarnings("deprecation")
         JsonKeyClass oldAnn = am.getAnnotation(JsonKeyClass.class);
         if (oldAnn != null) {
+            @SuppressWarnings("deprecation")
             Class<?> cls = oldAnn.value();
             if(cls != NoClass.class) {
                 return cls;
@@ -498,8 +503,9 @@ public class JacksonAnnotationIntrospector
     }
 
     @SuppressWarnings("deprecation")
-	@Override
-    public Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType)
+    @Override
+    public Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType,
+            String propName)
     {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
@@ -524,9 +530,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Deserialization: class annotations
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Deserialization: class annotations
+    /***************************************************
      */
 
     @Override

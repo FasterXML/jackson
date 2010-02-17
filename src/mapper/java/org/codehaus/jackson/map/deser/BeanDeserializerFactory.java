@@ -68,7 +68,7 @@ public class BeanDeserializerFactory
             return ad;
         }
         // or has value annotation for redirection?
-        JavaType newType =  modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type);
+        JavaType newType =  modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type, null);
         if (newType.getRawClass() != type.getRawClass()) {
             type = newType;
             beanDesc = config.introspect(type);
@@ -505,7 +505,7 @@ public class BeanDeserializerFactory
         /* Otherwise, method may specify more specific (sub-)class for
          * value (no need to check if explicit deser was specified):
          */
-        type = modifyTypeByAnnotation(config, am, type);
+        type = modifyTypeByAnnotation(config, am, type, null);
         return new SettableAnyProperty(type, m);
     }
 
@@ -539,7 +539,7 @@ public class BeanDeserializerFactory
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, setter);
         
         Method m = setter.getAnnotated();
-        type = modifyTypeByAnnotation(config, setter, type);
+        type = modifyTypeByAnnotation(config, setter, type, name);
         TypeDeserializer typeDeser = type.getTypeHandler();
         SettableBeanProperty prop = new SettableBeanProperty.MethodProperty(name, type, typeDeser, m);
         if (propDeser != null) {
@@ -564,7 +564,7 @@ public class BeanDeserializerFactory
          */
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, field);
         Field f = field.getAnnotated();
-        type = modifyTypeByAnnotation(config, field, type);
+        type = modifyTypeByAnnotation(config, field, type, name);
         TypeDeserializer typeDeser = type.getTypeHandler();
         SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(name, type, typeDeser, f);
         if (propDeser != null) {
@@ -596,7 +596,7 @@ public class BeanDeserializerFactory
          */
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, getter);        
         Method m = getter.getAnnotated();
-        type = modifyTypeByAnnotation(config, getter, type);
+        type = modifyTypeByAnnotation(config, getter, type, name);
         TypeDeserializer typeDeser = type.getTypeHandler();
         SettableBeanProperty prop = new SettableBeanProperty.SetterlessProperty(name, type, typeDeser, m);
         if (propDeser != null) {

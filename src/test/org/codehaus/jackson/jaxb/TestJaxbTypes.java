@@ -45,8 +45,14 @@ public class TestJaxbTypes
     }
 
     static class ListBean {
+        /* Note: here we rely on implicit linking between the field
+         * and accessors. 
+         */
         @XmlElement(type=BeanImpl.class)
-        public List<AbstractBean> beans;
+        private List<AbstractBean> beans;
+
+        public List<AbstractBean> getBeans() { return beans; }
+        public void setBeans(List<AbstractBean> b) { beans = b; }
     }
     
     /*
