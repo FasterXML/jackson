@@ -33,7 +33,8 @@ public class TestLoading extends main.BaseTest
             prov.locateMapper(Bean.class, null);
             fail("Expected exception due to missing 'xc' module");
         } catch (NoClassDefFoundError e) {
-            verifyException(e, "org/codehaus/jackson/xc/JaxbAnnotationIntrospector");
+            // as per [JACKSON-243], JVM messages differ here, should still have class name tho:
+            verifyException(e, "JaxbAnnotationIntrospector");
         }
     }
 }

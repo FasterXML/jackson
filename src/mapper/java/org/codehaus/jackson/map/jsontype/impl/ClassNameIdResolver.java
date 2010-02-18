@@ -40,6 +40,15 @@ public class ClassNameIdResolver
                 Class<?> enumClass = ClassUtil.findEnumType((EnumMap<?,?>) value);
                 Class<?> valueClass = Object.class;
                 str = TypeFactory.mapType(EnumMap.class, enumClass, valueClass).toCanonical();
+            } else if (str.startsWith("java.util.Arrays$")
+                       && str.indexOf("List") >= 0) {
+                /* 17-Feb-2010, tatus: Another such case: result of
+                 *    Arrays.asList() is named like so in Sun JDK...
+                 *   Let's just plain old ArrayList in its place
+                 * NOTE: chances are there are plenty of similar cases
+                 * for other wrappers... (immutable, singleton, synced etc)
+                 */
+                str = "java.util.ArrayList";
             }
         }
         return str;

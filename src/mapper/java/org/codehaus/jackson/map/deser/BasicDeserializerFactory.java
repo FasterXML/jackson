@@ -195,11 +195,11 @@ public abstract class BasicDeserializerFactory
             collectionClass = fallback;
         }
         // Then optional type info (1.5): if type has been resolved, we may already know type deserializer:
-        // if type has been resolved, we may already know type deserializer
+        
         TypeDeserializer contentTypeDeser = contentType.getTypeHandler();
         // but if not, may still be possible to find:
         if (contentTypeDeser == null) {
-        	contentTypeDeser = findTypeDeserializer(config, contentType);
+            contentTypeDeser = findTypeDeserializer(config, contentType);
         }
 
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
@@ -429,9 +429,10 @@ public abstract class BasicDeserializerFactory
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
         TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(propertyEntity, containerType);        
+        JavaType contentType = containerType.getContentType();
         // Defaulting: if no annotations on member, check class
         if (b == null) {
-            return findTypeDeserializer(config, containerType);
+            return findTypeDeserializer(config, contentType);
         }
         // but if annotations found, may need to resolve subtypes:
         Collection<NamedType> st = ai.findSubtypes(propertyEntity);
@@ -439,13 +440,13 @@ public abstract class BasicDeserializerFactory
         if (st != null && st.size() > 0) {
             subtypes = _collectAndResolveSubtypes(config, ai, st);
         }
-        return b.buildTypeDeserializer(containerType, subtypes);
+        return b.buildTypeDeserializer(contentType, subtypes);
     }
     
     /*
-    ////////////////////////////////////////////////////////////
-    // Helper methods, value/content/key type introspection
-    ////////////////////////////////////////////////////////////
+    /*********************************************************
+    /* Helper methods, value/content/key type introspection
+    /*********************************************************
      */
 
     /**
@@ -584,22 +585,21 @@ public abstract class BasicDeserializerFactory
              *    ... but only applies to members (fields, methods), not classes
              */
             if (a instanceof AnnotatedMember) {
-            	TypeDeserializer contentTypeDeser = findPropertyContentTypeDeserializer(config,
-            			type, (AnnotatedMember) a);            	
+            	TypeDeserializer contentTypeDeser = findPropertyContentTypeDeserializer(config, type, (AnnotatedMember) a);            	
             	if (contentTypeDeser != null) {
-            		type.getContentType().setTypeHandler(contentTypeDeser);
+            	    type.getContentType().setTypeHandler(contentTypeDeser);
             	}
             }
         }
     	TypeDeserializer valueTypeDeser;
     	
         if (a instanceof AnnotatedMember) { // JAXB allows per-property annotations
-        	valueTypeDeser = findPropertyTypeDeserializer(config, type, (AnnotatedMember) a);
+            valueTypeDeser = findPropertyTypeDeserializer(config, type, (AnnotatedMember) a);
         } else { // classes just have Jackson annotations
-        	valueTypeDeser = findTypeDeserializer(config, type);
-        }    	
+            valueTypeDeser = findTypeDeserializer(config, type);
+        }
     	if (valueTypeDeser != null) {
-    		type.setTypeHandler(valueTypeDeser);
+            type.setTypeHandler(valueTypeDeser);
     	}
         return type;
     }

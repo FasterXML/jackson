@@ -186,4 +186,23 @@ public class TestJaxbTypes
         assertEquals(3, (result.beans.get(2)).a);
         assertEquals("c", (result.beans.get(2)).b);
     }
+
+    public void testListWithDefaultTyping() throws Exception
+    {
+        Object input = new ListBean(new BeanImpl(1, "a"));
+        ObjectMapper mapper = getJaxbMapper();
+        mapper.enableDefaultTyping();
+        String str = mapper.writeValueAsString(input);
+//System.err.println("DEBUG: json == '"+str+"'");
+
+        ListBean listBean = mapper.readValue(str, ListBean.class);
+        assertNotNull(listBean);
+        List<AbstractBean> beans = listBean.beans;
+        assertNotNull(beans);
+        assertEquals(1, beans.size());
+        assertNotNull(beans.get(0));
+        BeanImpl bean = (BeanImpl) beans.get(0);
+        assertEquals(1, bean.a);
+        assertEquals("a", bean.b);
+    }
 }
