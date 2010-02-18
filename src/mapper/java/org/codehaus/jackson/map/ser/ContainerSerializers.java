@@ -152,7 +152,7 @@ public final class ContainerSerializers
                 contentType = _elementType;
             }
             if (contentType != null) {
-                JsonSerializer<Object> ser = provider.findValueSerializer(contentType.getRawClass());
+                JsonSerializer<Object> ser = provider.findValueSerializer(contentType);
                 JsonNode schemaNode = (ser instanceof SchemaAware) ?
                         ((SchemaAware) ser).getSchema(provider, null) :
                         JsonSchema.getDefaultSchemaNode();
@@ -170,7 +170,7 @@ public final class ContainerSerializers
             throws JsonMappingException
         {
             if (_staticTyping && _elementType != null) {
-                _elementSerializer = provider.findValueSerializer(_elementType.getRawClass());
+                _elementSerializer = provider.findValueSerializer(_elementType);
             }
         }
     }

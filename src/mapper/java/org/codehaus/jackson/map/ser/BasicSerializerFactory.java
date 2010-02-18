@@ -33,9 +33,9 @@ public class BasicSerializerFactory
     extends SerializerFactory
 {
     /*
-    ////////////////////////////////////////////////////////////
-    // Configuration, lookup tables/maps
-    ////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration, lookup tables/maps
+    /**********************************************************
      */
 
     /**
@@ -176,25 +176,19 @@ public class BasicSerializerFactory
             }
         }
     }
-    
-    /*
-    ////////////////////////////////////////////////////////////
-    // Life cycle
-    ////////////////////////////////////////////////////////////
-     */
 
+    /*
+    /***********************************************************
+    /* Life cycle
+    /***********************************************************
+     */
+    
     /**
      * Stateless global singleton instance that should be used
      * for factories that want to use delegation to access
      * standard serializers.
      */
     public final static BasicSerializerFactory instance = new BasicSerializerFactory();
-
-    /*
-    ////////////////////////////////////////////////////////////
-    // Life cycle
-    ////////////////////////////////////////////////////////////
-     */
 
     /**
      * We will provide default constructor to allow sub-classing,
@@ -387,7 +381,7 @@ public class BasicSerializerFactory
             return buildObjectArraySerializer(type, config, beanDesc);
         }
         if (List.class.isAssignableFrom(cls)) {
-            if (RandomAccess.class.isAssignableFrom(cls)) {
+            if (cls == List.class || cls == AbstractList.class || RandomAccess.class.isAssignableFrom(cls)) {
                 return buildIndexedListSerializer(type, config, beanDesc);
             }
             return buildCollectionSerializer(type, config, beanDesc);

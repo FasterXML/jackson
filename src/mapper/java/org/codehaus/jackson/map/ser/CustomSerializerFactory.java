@@ -5,6 +5,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.ClassKey;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Serializer factory implementation that allows for configuring
@@ -186,14 +187,40 @@ public class CustomSerializerFactory
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // JsonSerializerFactory impl
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* JsonSerializerFactory impl
+    /***************************************************
      */
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")    
     public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
+    {
+        JsonSerializer<?> ser = findCustomSerializer(type, config);
+        if (ser != null) {
+            return (JsonSerializer<T>) ser;
+        }
+        return super.createSerializer(type, config);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")    
+    public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config)
+    {
+        JsonSerializer<?> ser = findCustomSerializer(type.getRawClass(), config);
+        if (ser != null) {
+            return (JsonSerializer<Object>) ser;
+        }
+        return super.createSerializer(type, config);
+    }
+
+    /*
+    /***************************************************
+    /* Internal methods
+    /***************************************************
+     */
+    
+    protected JsonSerializer<?> findCustomSerializer(Class<?> type, SerializationConfig config)
     {
         JsonSerializer<?> ser = null;
         ClassKey key = new ClassKey(type);
@@ -202,14 +229,14 @@ public class CustomSerializerFactory
         if (_directClassMappings != null) {
             ser = _directClassMappings.get(key);
             if (ser != null) {
-                return (JsonSerializer<T>) ser;
+                return ser;
             }
         }
 
         // No match? Perhaps we can use the enum serializer?
         if (type.isEnum()) {
             if (_enumSerializerOverride != null) {
-                return (JsonSerializer<T>) _enumSerializerOverride;
+                return _enumSerializerOverride;
             }
         }
 
@@ -220,7 +247,7 @@ public class CustomSerializerFactory
                 key.reset(curr);
                 ser = _transitiveClassMappings.get(key);
                 if (ser != null) {
-                    return (JsonSerializer<T>) ser;
+                    return ser;
                 }
             }
         }
@@ -232,15 +259,12 @@ public class CustomSerializerFactory
                     key.reset(iface);
                     ser = _interfaceMappings.get(key);
                     if (ser != null) {
-                        return (JsonSerializer<T>) ser;
+                        return ser;
                     }
                 }
             }
         }
-        /* And barring any other complications, let's just let
-         * bean (or basic) serializer factory handle construction.
-         */
-        return super.createSerializer(type, config);
+        return null;
     }
 }
 

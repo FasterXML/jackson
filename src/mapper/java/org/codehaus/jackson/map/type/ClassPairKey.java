@@ -1,9 +1,9 @@
 package org.codehaus.jackson.map.type;
 
 /**
- * Key class, used as an efficient and accurate key that
- * consists of one or two Classes; usually combination
- * of runtime and declared types.
+ * Key class, used as an versatile and efficient key that
+ * consists of one or two Classes,
+ * usually combination of runtime and declared types.
  *<p>
  * Specialized key class is used for two reasons: first is
  * performance (pre-computing hash code), and the other

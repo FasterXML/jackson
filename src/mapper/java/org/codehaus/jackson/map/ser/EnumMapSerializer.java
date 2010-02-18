@@ -164,7 +164,7 @@ public class EnumMapSerializer
         throws JsonMappingException
     {
         if (_staticTyping) {
-            _valueSerializer = provider.findValueSerializer(_valueType.getRawClass());
+            _valueSerializer = provider.findValueSerializer(_valueType);
         }
     }
     

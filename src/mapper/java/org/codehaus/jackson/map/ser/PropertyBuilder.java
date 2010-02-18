@@ -70,14 +70,20 @@ public class PropertyBuilder
         JavaType serializationType = findSerializationType(am, defaultUseStaticTyping);
         // Container types can have separate type serializers for content (value / element) type
         if (contentTypeSer != null) {
-        	/* 04-Feb-2010, tatu: Let's force static typing for collection, if there is
-        	 *    type information for contents. Should work well (for JAXB case); can be
-        	 *    revisited if this causes problems.
-        	 */
-        	if (serializationType == null) {
-        		serializationType = TypeFactory.type(am.getGenericType());
-        	}
-        	serializationType.getContentType().setTypeHandler(contentTypeSer);
+            /* 04-Feb-2010, tatu: Let's force static typing for collection, if there is
+             *    type information for contents. Should work well (for JAXB case); can be
+             *    revisited if this causes problems.
+             */
+            if (serializationType == null) {
+                serializationType = TypeFactory.type(am.getGenericType());
+            }
+            /* 17-Feb-2010, tatu: Heh. Seems to cause problems... Need to add more
+             *    checks, not 100% it all clicks, stills
+             */
+            JavaType ct = serializationType.getContentType();
+            if (ct.getTypeHandler() == null) {
+                //ct.setTypeHandler(contentTypeSer);
+            }
         }
         Object suppValue = null;
         boolean suppressNulls = false;

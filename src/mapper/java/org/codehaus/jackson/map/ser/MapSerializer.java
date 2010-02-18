@@ -310,7 +310,7 @@ public class MapSerializer
         throws JsonMappingException
     {
         if (_valueTypeIsStatic) {
-            _valueSerializer = provider.findValueSerializer(_valueType.getRawClass());
+            _valueSerializer = provider.findValueSerializer(_valueType);
         }
     }
 }

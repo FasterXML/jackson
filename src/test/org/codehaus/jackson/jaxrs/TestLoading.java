@@ -38,4 +38,3 @@ public class TestLoading extends main.BaseTest
         }
     }
 }
-

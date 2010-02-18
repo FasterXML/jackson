@@ -288,7 +288,7 @@ public final class ArraySerializers
             throws JsonMappingException
         {
             if (_staticTyping) {
-                _elementSerializer = provider.findValueSerializer(_elementType.getRawClass());
+                _elementSerializer = provider.findValueSerializer(_elementType);
             }
         }        
     }

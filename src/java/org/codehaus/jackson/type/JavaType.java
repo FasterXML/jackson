@@ -258,7 +258,7 @@ public abstract class JavaType
      * @since 1.5
      */
     @SuppressWarnings("unchecked")
-	public <T> T getTypeHandler() { return (T) _typeHandler; }
+    public <T> T getTypeHandler() { return (T) _typeHandler; }
     
     /**
      * Method that can be used to serialize type into form from which

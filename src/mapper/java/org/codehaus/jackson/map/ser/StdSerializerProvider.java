@@ -73,9 +73,9 @@ public class StdSerializerProvider
     };
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration, factories
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Configuration, factories
+    /***************************************************
      */
 
     final protected SerializerFactory _serializerFactory;
@@ -83,9 +83,9 @@ public class StdSerializerProvider
     final protected SerializerCache _serializerCache;
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration, specialized serializers
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Configuration, specialized serializers
+    /***************************************************
      */
 
     /**
@@ -120,9 +120,9 @@ public class StdSerializerProvider
     protected JsonSerializer<Object> _nullKeySerializer = DEFAULT_NULL_KEY_SERIALIZER;
 
     /*
-    ////////////////////////////////////////////////////
-    // State, for non-blueprint instances
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* State, for non-blueprint instances
+    /***************************************************
      */
 
     /**
@@ -139,9 +139,9 @@ public class StdSerializerProvider
     protected DateFormat _dateFormat;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Life-cycle
+    /***************************************************
      */
 
     /**
@@ -344,14 +344,15 @@ public class StdSerializerProvider
     {
         // Fast lookup from local lookup thingy works?
         JsonSerializer<Object> ser = _knownSerializers.untypedValueSerializer(valueType);
-        if (ser != null) {
-            return ser;
-        }
+        if (ser != null) return ser;
+
         // If not, maybe shared map already has it?
         ser = _serializerCache.untypedValueSerializer(valueType);
-        if (ser != null) {
-            return ser;
-        }
+        if (ser != null) return ser;
+
+        // ... possibly as fully typed?
+        ser = _serializerCache.untypedValueSerializer(TypeFactory.type(valueType));
+        if (ser != null) return ser;
 
         // If neither, must create
         ser = _createAndCacheUntypedSerializer(valueType);
@@ -371,16 +372,40 @@ public class StdSerializerProvider
     }
 
     /**
-     * NOTE: current implementation simply delegates to
-     * {@link #findValueSerializer(Class)}. In future,
-     * should improve to allow proper efficient handling of typed structured
-     * types
+     * This variant was added in 1.5, to allow for efficient access using full
+     * structured types, not just classes. This is necessary for accurate
+     * handling of external type information, to handle polymorphic types.
      */    
     @Override
     public JsonSerializer<Object> findValueSerializer(JavaType valueType)
         throws JsonMappingException
     {
-        return findValueSerializer(valueType.getRawClass());
+        // Fast lookup from local lookup thingy works?
+        JsonSerializer<Object> ser = _knownSerializers.untypedValueSerializer(valueType);
+        if (ser != null) {
+            return ser;
+        }
+        // If not, maybe shared map already has it?
+        ser = _serializerCache.untypedValueSerializer(valueType);
+        if (ser != null) {
+            return ser;
+        }
+
+        // If neither, must create
+        ser = _createAndCacheUntypedSerializer(valueType);
+        // Not found? Must use the unknown type serializer
+        /* Couldn't create? Need to return the fallback serializer, which
+         * most likely will report an error: but one question is whether
+         * we should cache it?
+         */
+        if (ser == null) {
+            ser = getUnknownTypeSerializer(valueType.getRawClass());
+            // Should this be added to lookups?
+            if (CACHE_UNKNOWN_MAPPINGS) {
+                _serializerCache.addNonTypedSerializer(valueType, ser);
+            }
+        }
+        return ser;
     }
     
     /**
@@ -531,7 +556,7 @@ public class StdSerializerProvider
     }
 
     /**
-     * Method that will try to construct a value aerializer; and if
+     * Method that will try to construct a value serializer; and if
      * one is succesfully created, cache it for reuse.
      */
     protected JsonSerializer<Object> _createAndCacheUntypedSerializer(Class<?> type)
@@ -539,7 +564,7 @@ public class StdSerializerProvider
     {        
         JsonSerializer<Object> ser;
         try {
-            ser = _createUntypedSerializer(type);
+            ser = _createUntypedSerializer(TypeFactory.type(type));
         } catch (IllegalArgumentException iae) {
             /* We better only expose checked exceptions, since those
              * are what caller is expected to handle
@@ -559,8 +584,35 @@ public class StdSerializerProvider
         return ser;
     }
 
-    @SuppressWarnings({ "unchecked", "deprecation" })
-    protected JsonSerializer<Object> _createUntypedSerializer(Class<?> type)
+    /**
+     * @since 1.5
+]     */
+    protected JsonSerializer<Object> _createAndCacheUntypedSerializer(JavaType type)
+        throws JsonMappingException
+    {        
+        JsonSerializer<Object> ser;
+        try {
+            ser = _createUntypedSerializer(type);
+        } catch (IllegalArgumentException iae) {
+            /* We better only expose checked exceptions, since those
+             * are what caller is expected to handle
+             */
+            throw new JsonMappingException(iae.getMessage(), null, iae);
+        }
+    
+        if (ser != null) {
+            _serializerCache.addNonTypedSerializer(type, ser);
+            /* Finally: some serializers want to do post-processing, after
+             * getting registered (to handle cyclic deps).
+             */
+            if (ser instanceof ResolvableSerializer) {
+                _resolveSerializer((ResolvableSerializer)ser);
+            }
+        }
+        return ser;
+    }
+
+    protected JsonSerializer<Object> _createUntypedSerializer(JavaType type)
         throws JsonMappingException
     {
         /* 10-Dec-2008, tatu: Is there a possibility of infinite loops

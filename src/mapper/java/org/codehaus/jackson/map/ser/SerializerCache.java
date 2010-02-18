@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
+import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.type.ClassPairKey;
 
@@ -24,8 +25,11 @@ public final class SerializerCache
 {
     /**
      * Shared, modifiable map; all access needs to be through synchronized blocks.
+     *<p>
+     * NOTE: keys are {@link ClassPairKey}s (for "typed" serializers) and
+     *    {@link JavaType}s (untyped)
      */
-    private HashMap<ClassPairKey, JsonSerializer<Object>> _sharedMap = new HashMap<ClassPairKey, JsonSerializer<Object>>(64);
+    private HashMap<Object, JsonSerializer<Object>> _sharedMap = new HashMap<Object, JsonSerializer<Object>>(64);
 
     /**
      * Most recent read-only instance, created from _sharedMap, if any.
@@ -60,6 +64,16 @@ public final class SerializerCache
         }
     }
 
+    /**
+     * @since 1.5
+     */
+    public JsonSerializer<Object> untypedValueSerializer(JavaType type)
+    {
+        synchronized (this) {
+            return _sharedMap.get(type);
+        }
+    }
+
     public JsonSerializer<Object> typedValueSerializer(Class<?> runtimeType, Class<?> declaredType)
     {
         synchronized (this) {
@@ -72,8 +86,7 @@ public final class SerializerCache
      * a serializer. If so, we will update the shared lookup map so that it
      * can be resolved via it next time.
      */
-    public void addTypedSerializer(Class<?> runtimeType, Class<?> declaredType,
-            JsonSerializer<Object> ser)
+    public void addTypedSerializer(Class<?> runtimeType, Class<?> declaredType, JsonSerializer<Object> ser)
     {
         synchronized (this) {
             if (_sharedMap.put(new ClassPairKey(runtimeType, declaredType), ser) == null) {
@@ -87,6 +100,19 @@ public final class SerializerCache
     {
         synchronized (this) {
             if (_sharedMap.put(new ClassPairKey(type, null), ser) == null) {
+                // let's invalidate the read-only copy, too, to get it updated
+                _readOnlyMap = null;
+            }
+        }
+    }
+
+    /**
+     * @since 1.5
+     */
+    public void addNonTypedSerializer(JavaType type, JsonSerializer<Object> ser)
+    {
+        synchronized (this) {
+            if (_sharedMap.put(type, ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }

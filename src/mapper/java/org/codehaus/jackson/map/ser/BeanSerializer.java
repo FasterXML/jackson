@@ -222,7 +222,7 @@ public class BeanSerializer
                 }
                 type = TypeFactory.type(prop.getGenericPropertyType());
             }
-            JsonSerializer<Object> ser = provider.findValueSerializer(type.getRawClass());
+            JsonSerializer<Object> ser = provider.findValueSerializer(type);
             /* 04-Feb-2010, tatu: We may have stashed type serializer for content types
              *   too, earlier; if so, it's time to connect the dots here:
              */
