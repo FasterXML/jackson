@@ -47,11 +47,16 @@ public class PropertyBuilder
     }
 
     /*
-    //////////////////////////////////////////////////
-    // Public API
-    //////////////////////////////////////////////////
+    /************************************************
+    /* Public API
+    /************************************************
      */
 
+    /**
+     * @param contentTypeSer Optional explicit type information serializer
+     *    to use for contained values (only used for properties that are
+     *    of container type)
+     */
     protected BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
             TypeSerializer typeSer, TypeSerializer contentTypeSer,
             AnnotatedMember am, boolean defaultUseStaticTyping)
@@ -77,13 +82,8 @@ public class PropertyBuilder
             if (serializationType == null) {
                 serializationType = TypeFactory.type(am.getGenericType());
             }
-            /* 17-Feb-2010, tatu: Heh. Seems to cause problems... Need to add more
-             *    checks, not 100% it all clicks, stills
-             */
             JavaType ct = serializationType.getContentType();
-            if (ct.getTypeHandler() == null) {
-                //ct.setTypeHandler(contentTypeSer);
-            }
+            ct.setTypeHandler(contentTypeSer);
         }
         Object suppValue = null;
         boolean suppressNulls = false;

@@ -279,4 +279,3 @@ public class BeanPropertyWriter
         throw new JsonMappingException("Direct self-reference leading to cycle");
     }
 }
-

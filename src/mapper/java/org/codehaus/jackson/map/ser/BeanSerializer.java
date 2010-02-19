@@ -228,7 +228,7 @@ public class BeanSerializer
              */
             if (type.isContainerType()) {
             	TypeSerializer typeSer = type.getContentType().getTypeHandler();
-	            if (typeSer != null) {
+                if (typeSer != null) {
 	            	// for now, can do this only for standard containers...
 	            	if (ser instanceof ContainerSerializerBase<?>) {
 	            	    // ugly casts... but necessary
