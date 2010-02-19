@@ -85,6 +85,28 @@ public abstract class JavaType
     }
 
     /**
+     * More efficient version of {@link #narrowBy}, called by
+     * internal framework in cases where compatibility checks
+     * are to be skipped.
+     *
+     * @since 1.5
+     */
+    public final JavaType forcedNarrowBy(Class<?> subclass)
+    {
+        if (subclass == _class) { // can still optimize for simple case
+            return this;
+        }
+        JavaType result = _narrow(subclass);
+        if (_valueHandler != null) {
+            result.setValueHandler(_valueHandler);
+        }
+        if (_typeHandler != null) {
+            result.setTypeHandler(_typeHandler);
+        }
+        return result;
+    }
+
+    /**
      * Method that can be called to do a "widening" conversions; that is,
      * to return a type with a raw class that could be assigned from this
      * type.

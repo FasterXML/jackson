@@ -26,5 +26,4 @@ public abstract class StdScalarDeserializer<T> extends StdDeserializer<T>
     {
         return typeDeserializer.deserializeTypedFromScalar(jp, ctxt);
     }
-
 }

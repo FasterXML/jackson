@@ -19,9 +19,9 @@ import java.lang.reflect.Type;
 public class BeanPropertyWriter
 {
     /*
-    //////////////////////////////////////////////////////
-    // Settings for accessing property value to serialize
-    //////////////////////////////////////////////////////
+    /*****************************************************
+    /* Settings for accessing property value to serialize
+    /*****************************************************
      */
 
     /**
@@ -39,9 +39,9 @@ public class BeanPropertyWriter
     protected final Field _field;
 
     /*
-    //////////////////////////////////////////////////////
-    // Serialization settings
-    //////////////////////////////////////////////////////
+    /*****************************************************
+    /* Serialization settings
+    /*****************************************************
      */
 
     /**
@@ -92,10 +92,21 @@ public class BeanPropertyWriter
      */
     protected TypeSerializer _typeSerializer;
     
+    /**
+     * Base type of the property, if the declared type is "non-trivial";
+     * meaning it is either a structured type (collection, map, array),
+     * or parametrized. Used to retain type information about contained
+     * type, which is mostly necessary if type metadata is to be
+     * included.
+     *
+     * @since 1.5
+     */
+    protected JavaType _nonTrivialBaseType;
+
     /*
-    //////////////////////////////////////////////////////
-    // Construction, configuration
-    //////////////////////////////////////////////////////
+    /*****************************************************
+    /* Construction, configuration
+    /*****************************************************
      */
 
     /**
@@ -154,11 +165,22 @@ public class BeanPropertyWriter
      * by class/sub-class relationship).
      */
     public void setViews(Class<?>[] views) { _includeInViews = views; }
+
+    /**
+     * Method called to define type to consider as "non-trivial" basetype,
+     * needed for dynamic serialization resolution for complex (usually container)
+     * types
+     *
+     * @since 1.5
+     */
+    public void setNonTrivialBaseType(JavaType t) {
+        _nonTrivialBaseType = t;
+    }
     
     /*
-    //////////////////////////////////////////////////////
-    // Accessors
-    //////////////////////////////////////////////////////
+    /*****************************************************
+    /* Accessors
+    /*****************************************************
      */
 
     public final String getName() { return _name; }
@@ -202,10 +224,10 @@ public class BeanPropertyWriter
     public Class<?>[] getViews() { return _includeInViews; }
 
     /*
-    //////////////////////////////////////////////////////
-    // Serialization functionality
-    //////////////////////////////////////////////////////
-     */
+    /*****************************************************
+    /* Serialization functionality
+    /*****************************************************
+    */
 
     /**
      * Method called to access property that this bean stands for, from
@@ -233,7 +255,13 @@ public class BeanPropertyWriter
         }
         JsonSerializer<Object> ser = _serializer;
         if (ser == null) {
-            ser = prov.findValueSerializer(value.getClass());
+            Class<?> cls = value.getClass();
+            if (_nonTrivialBaseType != null) {
+                JavaType t = _nonTrivialBaseType.forcedNarrowBy(cls);
+                ser = prov.findValueSerializer(t);
+            } else {
+                ser = prov.findValueSerializer(cls);
+            }
         }
         jgen.writeFieldName(_name);
         if (_typeSerializer == null) {

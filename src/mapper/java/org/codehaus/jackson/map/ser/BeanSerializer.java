@@ -194,10 +194,10 @@ public class BeanSerializer
     }
 
     /*
-    ********************************************************
-    * ResolvableSerializer impl
-    ********************************************************
-    */
+    /********************************************************
+    /* ResolvableSerializer impl
+    /********************************************************
+     */
 
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
@@ -216,11 +216,18 @@ public class BeanSerializer
              * the actual type until we get the instance.
              */
             if (type == null) {
-                Class<?> rt = prop.getPropertyType();
-                if (!Modifier.isFinal(rt.getModifiers())) {
+                type = TypeFactory.type(prop.getGenericPropertyType());
+                if (!type.isFinal()) {
+                    /* 18-Feb-2010, tatus: But even if it is non-final,
+                     *    we may need to retain some of type information
+                     *    so that we can accurately handle contained
+                     *    types
+                     */
+                    if (type.isContainerType() || type.containedTypeCount() > 0) {
+                        prop.setNonTrivialBaseType(type);
+                    }
                     continue;
                 }
-                type = TypeFactory.type(prop.getGenericPropertyType());
             }
             JsonSerializer<Object> ser = provider.findValueSerializer(type);
             /* 04-Feb-2010, tatu: We may have stashed type serializer for content types
@@ -229,23 +236,23 @@ public class BeanSerializer
             if (type.isContainerType()) {
             	TypeSerializer typeSer = type.getContentType().getTypeHandler();
                 if (typeSer != null) {
-	            	// for now, can do this only for standard containers...
-	            	if (ser instanceof ContainerSerializerBase<?>) {
-	            	    // ugly casts... but necessary
-	            	    @SuppressWarnings("unchecked")
+                    // for now, can do this only for standard containers...
+                    if (ser instanceof ContainerSerializerBase<?>) {
+                        // ugly casts... but necessary
+                        @SuppressWarnings("unchecked")
 	            	    JsonSerializer<Object> ser2 = (JsonSerializer<Object>)((ContainerSerializerBase<?>) ser).withValueTypeSerializer(typeSer);
-                            ser = ser2;
-	            	}
-	            }
+                        ser = ser2;
+                    }
+                }
             }
             _props[i] = prop.withSerializer(ser);
         }
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Standard methods
-    ////////////////////////////////////////////////////////
+    /********************************************************
+    /* Standard methods
+    /********************************************************
      */
 
     @Override public String toString() {

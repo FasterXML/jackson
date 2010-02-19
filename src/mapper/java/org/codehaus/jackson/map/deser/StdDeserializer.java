@@ -67,9 +67,9 @@ public abstract class StdDeserializer<T>
     }
     
     /*
-    /////////////////////////////////////////////////////////////
-    // Helper methods for sub-classes, parsing
-    /////////////////////////////////////////////////////////////
+    /****************************************************
+    /* Helper methods for sub-classes, parsing
+    /****************************************************
     */
 
     protected final boolean _parseBoolean(JsonParser jp, DeserializationContext ctxt)
@@ -410,7 +410,7 @@ public abstract class StdDeserializer<T>
             if (curr == JsonToken.VALUE_STRING) {
                 return jp.getText();
             }
-            // Can deserialize any scaler value, but not markers
+            // Can deserialize any scalar value, but not markers
             if (curr.isScalarValue()) {
                 return jp.getText();
             }
@@ -600,6 +600,12 @@ public abstract class StdDeserializer<T>
     /**
      * For type <code>Number.class</code>, we can just rely on type
      * mappings that plain {@link JsonParser#getNumberValue} returns.
+     *<p>
+     * Since 1.5, there is one additional complication: some numeric
+     * types (specifically, int/Integer and double/Double) are "non-typed";
+     * meaning that they will NEVER be output with type information.
+     * But other numeric types may need such type information.
+     * This is why {@link #deserializeWithType} must be overridden.
      */
     public final static class NumberDeserializer
         extends StdScalarDeserializer<Number>
@@ -655,13 +661,34 @@ public abstract class StdDeserializer<T>
             // Otherwise, no can do:
             throw ctxt.mappingException(_valueClass);
         }
+
+        /**
+         * As mentioned in class Javadoc, there is additional complexity in
+         * handling potentially mixed type information here. Because of this,
+         * we must actually check for "raw" integers and doubles first, before
+         * calling type deserializer.
+         */
+        @Override
+        public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+                                          TypeDeserializer typeDeserializer)
+            throws IOException, JsonProcessingException
+        {
+            switch (jp.getCurrentToken()) {
+            case VALUE_NUMBER_INT:
+            case VALUE_NUMBER_FLOAT:
+            case VALUE_STRING:
+                // can not point to type information: hence must be non-typed (int/double)
+                return deserialize(jp, ctxt);
+            }
+            return typeDeserializer.deserializeTypedFromScalar(jp, ctxt);
+        }
     }
 
     /*
-    /////////////////////////////////////////////////////////////
-    // And then bit more complicated (but non-structured) number
-    // types
-    /////////////////////////////////////////////////////////////
+    /*************************************************************
+    /* And then bit more complicated (but non-structured) number
+    /* types
+    /*************************************************************
     */
 
     public static class BigDecimalDeserializer
