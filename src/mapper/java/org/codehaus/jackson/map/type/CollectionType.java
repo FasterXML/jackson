@@ -38,7 +38,7 @@ public final class CollectionType
             return this;
         }
         JavaType newElementType = _elementType.narrowBy(contentClass);
-        return new CollectionType(_class, newElementType);
+        return new CollectionType(_class, newElementType).copyHandlers(this);
     }
 
     public static CollectionType construct(Class<?> rawType, JavaType elemT)
@@ -47,16 +47,16 @@ public final class CollectionType
         return new CollectionType(rawType, elemT);
     }
 
-	protected String buildCanonicalName() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(_class.getName());
-		if (_elementType != null) {
-			sb.append('<');
-			sb.append(_elementType.toCanonical());
-			sb.append('>');
-		}
-		return sb.toString();
-	}
+    protected String buildCanonicalName() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(_class.getName());
+        if (_elementType != null) {
+            sb.append('<');
+            sb.append(_elementType.toCanonical());
+            sb.append('>');
+        }
+        return sb.toString();
+    }
     
     /*
     //////////////////////////////////////////////////////////

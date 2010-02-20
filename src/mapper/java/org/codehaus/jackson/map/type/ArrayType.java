@@ -71,7 +71,7 @@ public final class ArrayType
          */
         Class<?> newCompClass = subclass.getComponentType();
         JavaType newCompType = TypeFactory.type(newCompClass);
-        return construct(newCompType);
+        return construct(newCompType).copyHandlers(this);
     }
 
     /**

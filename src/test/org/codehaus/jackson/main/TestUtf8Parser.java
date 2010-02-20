@@ -164,17 +164,6 @@ public class TestUtf8Parser
         assertToken(JsonToken.VALUE_STRING, jp.nextToken());
         String act = jp.getText();
 
-        /*
-        for (int i = 0; i < act.length(); ++i) {
-            char c1 = act.charAt(i);
-            char c2 = VALUE.charAt(i);
-            if (c1 != c2) {
-                System.err.println("Differ at "+i+", "+((int) c1)+" vs "+((int) c2)+"");
-                break;
-            }
-        }
-        */
-
         assertEquals(VALUE.length(), act.length());
         assertEquals(VALUE, act);
         jp.close();

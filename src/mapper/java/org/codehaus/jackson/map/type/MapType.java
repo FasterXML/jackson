@@ -51,29 +51,8 @@ public final class MapType
             return this;
         }
         JavaType newValueType = _valueType.narrowBy(contentClass);
-        return new MapType(_class, _keyType, newValueType);
+        return new MapType(_class, _keyType, newValueType).copyHandlers(this);
     }
-
-	protected String buildCanonicalName() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(_class.getName());
-		if (_keyType != null) {
-			sb.append('<');
-			sb.append(_keyType.toCanonical());
-			sb.append(',');
-			sb.append(_valueType.toCanonical());
-			sb.append('>');
-		}
-		return sb.toString();
-	}
-    
-    /*
-    //////////////////////////////////////////////////////////
-    // Public API
-    //////////////////////////////////////////////////////////
-     */
-
-    public boolean isContainerType() { return true; }
 
     public JavaType narrowKey(Class<?> keySubclass)
     {
@@ -82,8 +61,29 @@ public final class MapType
             return this;
         }
         JavaType newKeyType = _keyType.narrowBy(keySubclass);
-        return new MapType(_class, newKeyType, _valueType);
+        return new MapType(_class, newKeyType, _valueType).copyHandlers(this);
     }
+
+    protected String buildCanonicalName() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(_class.getName());
+        if (_keyType != null) {
+            sb.append('<');
+            sb.append(_keyType.toCanonical());
+            sb.append(',');
+            sb.append(_valueType.toCanonical());
+            sb.append('>');
+        }
+        return sb.toString();
+    }
+    
+    /*
+    //////////////////////////////////////////////////////////
+    // Public API
+    //////////////////////////////////////////////////////////
+     */
+
+    public boolean isContainerType() { return true; }
 
     @Override
     public JavaType getKeyType() { return _keyType; }

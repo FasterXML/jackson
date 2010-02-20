@@ -294,7 +294,7 @@ public class BeanDeserializerFactory
                 String name = (param == null) ? null : intr.findPropertyNameForParam(param);
                 // At this point, name annotation is NOT optional
                 if (name == null || name.length() == 0) {
-                    throw new IllegalArgumentException("Argument #"+i+" of constructor "+ctor+" has no property name annotation; must have when multiple-paramater constructor annotated as Creator");
+                    throw new IllegalArgumentException("Argument #"+i+" of constructor "+ctor+" has no property name annotation; must have name when multiple-paramater constructor annotated as Creator");
                 }
                 properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
             }

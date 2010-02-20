@@ -41,9 +41,9 @@ public abstract class SettableBeanProperty
     protected Object _nullValue;
 
     /*
-    ////////////////////////////////////////////////////////
-    // Life-cycle (construct & configure)
-    ////////////////////////////////////////////////////////
+    /******************************************************
+    /* Life-cycle (construct & configure)
+    /******************************************************
      */
 
     protected SettableBeanProperty(String propName, JavaType type,
@@ -74,9 +74,9 @@ public abstract class SettableBeanProperty
     protected abstract Class<?> getDeclaringClass();
 
     /*
-    ////////////////////////////////////////////////////////
-    // Accessors
-    ////////////////////////////////////////////////////////
+    /******************************************************
+    /* Accessors
+    /******************************************************
      */
 
     public String getPropertyName() { return _propName; }
@@ -95,9 +95,9 @@ public abstract class SettableBeanProperty
     public int getCreatorIndex() { return -1; }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Public API
-    ////////////////////////////////////////////////////////
+    /******************************************************
+    /* Public API
+    /******************************************************
      */
 
     /**

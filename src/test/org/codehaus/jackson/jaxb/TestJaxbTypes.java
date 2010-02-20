@@ -193,7 +193,6 @@ public class TestJaxbTypes
         ObjectMapper mapper = getJaxbMapper();
         mapper.enableDefaultTyping();
         String str = mapper.writeValueAsString(input);
-//System.err.println("DEBUG: json == '"+str+"'");
 
         ListBean listBean = mapper.readValue(str, ListBean.class);
         assertNotNull(listBean);

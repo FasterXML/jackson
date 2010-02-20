@@ -398,6 +398,7 @@ public abstract class BasicDeserializerFactory
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
         TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(propertyEntity, baseType);        
+
         // Defaulting: if no annotations on member, check value class
         if (b == null) {
             return findTypeDeserializer(config, baseType);
@@ -553,7 +554,7 @@ public abstract class BasicDeserializerFactory
      * using generic type passed as type reference), which is
      * needed in some cases.
      *<p>
-     * Starting with version 1.3, this method will also instances
+     * Starting with version 1.3, this method will also resolve instances
      * of key and content deserializers if defined by annotations.
      */
     protected JavaType resolveType(DeserializationConfig config,

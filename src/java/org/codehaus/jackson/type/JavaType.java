@@ -46,9 +46,9 @@ public abstract class JavaType
     protected Object _typeHandler;
     
     /*
-    ///////////////////////////////////////////////////////////////
+    /*************************************************
     // Life-cycle
-    ///////////////////////////////////////////////////////////////
+    /*************************************************
      */
 
     protected JavaType(Class<?> clz)
@@ -177,9 +177,9 @@ public abstract class JavaType
     public void bindVariableType(String name, JavaType type) { }
     
     /*
-    ///////////////////////////////////////////////////////////////
-    // Public API
-    ///////////////////////////////////////////////////////////////
+    /*************************************************
+    /* Public API
+    /*************************************************
      */
 
     public final Class<?> getRawClass() { return _class; }
@@ -203,10 +203,21 @@ public abstract class JavaType
         return Modifier.isAbstract(_class.getModifiers());
     }
 
-    /// @since 1.3
+    /**
+     * @since 1.3
+     */
     public boolean isConcrete() {
         int mod = _class.getModifiers();
-        return (mod & (Modifier.INTERFACE | Modifier.ABSTRACT)) == 0;
+        if ((mod & (Modifier.INTERFACE | Modifier.ABSTRACT)) == 0) {
+            return true;
+        }
+        /* 19-Feb-2010, tatus: Holy mackarel; primitive types
+         *    have 'abstract' flag set...
+         */
+        if (_class.isPrimitive()) {
+            return true;
+        }
+        return false;
     }
 
     public boolean isThrowable() {
@@ -295,9 +306,9 @@ public abstract class JavaType
     public abstract String toCanonical();
     
     /*
-    ///////////////////////////////////////////////////////////////
-    // Helper methods
-    ///////////////////////////////////////////////////////////////
+    /*************************************************
+    /* Helper methods
+    /*************************************************
      */
 
     protected void _assertSubclass(Class<?> subclass, Class<?> superClass)
@@ -308,9 +319,9 @@ public abstract class JavaType
     }
 
     /*
-    ///////////////////////////////////////////////////////////////
-    // Standard methods; let's make them abstract to force override
-    ///////////////////////////////////////////////////////////////
+    /**************************************************************
+    /* Standard methods; let's make them abstract to force override
+    /**************************************************************
      */
 
     public abstract String toString();
