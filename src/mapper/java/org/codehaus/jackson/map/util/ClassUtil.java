@@ -49,7 +49,7 @@ public final class ClassUtil
         }
         _addSuperTypes(cls.getSuperclass(), endBefore, result, true);
     }
-
+    
     /*
     /***************************************************
     /* Class type detection methods

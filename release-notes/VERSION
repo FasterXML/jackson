@@ -29,6 +29,9 @@ Description:
      types programmatically (TypeFactory.parametricType())
   * [JACKSON-234] Add support for JSONP, by adding JSONPObject wrapper
     that serializes as expected.
+  * [JACKSON-241] Add a mechanism for adding new "untouchable" types for
+    JAX-RS JSON provider, to allow excluding types from being handled
+    (added method "JacksonJsonProvider.addUntouchable()")
 
   Backwards incompatible changes:
 
