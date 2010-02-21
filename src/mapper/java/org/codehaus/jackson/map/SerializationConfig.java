@@ -176,9 +176,12 @@ public class SerializationConfig
          * Feature that determines whether {@link java.util.Date}s
          * (and Date-based things like {@link java.util.Calendar}s) are to be
          * serialized as numeric timestamps (true; the default),
-         * or as textual representation (false).
+         * or as something else (usually textual representation).
          * If textual representation is used, the actual format is
          * one returned by a call to {@link #getDateFormat}.
+         *<p>
+         * Note: whether this feature affects handling of other date-related
+         * types depend on handlers of those types.
          */
         ,WRITE_DATES_AS_TIMESTAMPS(true)
 

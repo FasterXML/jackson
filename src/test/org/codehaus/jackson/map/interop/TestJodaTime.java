@@ -5,8 +5,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.*;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.joda.time.*;
 
 /**
  * Unit tests for verifying limited interoperability for Joda time.
@@ -53,5 +52,29 @@ public class TestJodaTime
         // And then ISO-8601 String
         dt = mapper.readValue(quote("1972-12-28T12:00:01.000+0000"), DateTime.class);
         assertEquals("1972-12-28T12:00:01.000Z", dt.toString());
+    }
+
+    // @since 1.5
+    public void testDateMidnightSer() throws IOException
+    {
+        DateMidnight date = new DateMidnight(2001, 5, 25);
+        ObjectMapper mapper = new ObjectMapper();
+        // default format is that of JSON array...
+        assertEquals("[2001,5,25]", mapper.writeValueAsString(date));
+        // but we can force it to be a String as well (note: here we assume this is
+        // dynamically changeable)
+        mapper.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);        
+        assertEquals(quote("2001-05-25"), mapper.writeValueAsString(date));
+    }
+
+    // @since 1.5
+    public void testDateMidnightDeser() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // couple of acceptable formats, so:
+        DateMidnight date = mapper.readValue("[2001,5,25]", DateMidnight.class);
+        assertEquals(2001, date.getYear());
+        assertEquals(5, date.getMonthOfYear());
+        assertEquals(25, date.getDayOfMonth());
     }
 }
