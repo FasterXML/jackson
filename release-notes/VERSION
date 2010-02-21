@@ -20,6 +20,9 @@ Description:
   * [JACKSON-236] Allow deserialization of timestamps-as-Strings (not
     just timestamps as JSON integer numbers).
    (requested by Chris C)
+  * [JACKSON-218] Extended support for Joda date/time types like
+    LocalDate, LocalDateTime and DateMidnight
+   
 
   New features:
 

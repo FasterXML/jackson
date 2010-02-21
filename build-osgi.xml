@@ -83,7 +83,9 @@ org.codehaus.jackson;version='${IMPL_VERSION}'
 ,org.xml.sax,org.w3c.dom
 ,javax.xml.datatype, javax.xml.namespace, javax.xml.parsers
 "
-         dynamicImportPackage="org.joda.time, org.w3c.dom.ls, org.w3c.dom.bootstrap"
+         dynamicImportPackage="
+org.joda.time, org.joda.time.format,
+org.w3c.dom.ls, org.w3c.dom.bootstrap"
          exportpackage="
 org.codehaus.jackson.map;version=${IMPL_VERSION},
 org.codehaus.jackson.map.annotate;version=${IMPL_VERSION},
@@ -181,7 +183,9 @@ org.codehaus.jackson;version='${IMPL_VERSION}'
 ,org.xml.sax, org.w3c.dom
 ,javax.xml.datatype, javax.xml.namespace, javax.xml.parsers
 "
-         dynamicImportPackage="org.joda.time, org.w3c.dom.ls, org.w3c.dom.bootstrap"
+         dynamicImportPackage="
+org.joda.time, org.joda.time.format,
+org.w3c.dom.ls, org.w3c.dom.bootstrap"
          exportpackage="
 org.codehaus.jackson.map;version=${IMPL_VERSION},
 org.codehaus.jackson.map.annotate;version=${IMPL_VERSION},
@@ -248,6 +252,7 @@ javax.ws.rs
 ,org.codehaus.jackson.map;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.introspect;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.type;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.util;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.type;version='${IMPL_VERSION}'
 "
          dynamicImportPackage="org.codehaus.jackson.xc"

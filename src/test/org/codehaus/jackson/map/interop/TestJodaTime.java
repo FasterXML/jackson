@@ -54,6 +54,12 @@ public class TestJodaTime
         assertEquals("1972-12-28T12:00:01.000Z", dt.toString());
     }
 
+    /*
+    /**************************************************************8 
+    /* Tests for DateMidnight type
+    /**************************************************************8 
+     */
+    
     // @since 1.5
     public void testDateMidnightSer() throws IOException
     {
@@ -76,5 +82,91 @@ public class TestJodaTime
         assertEquals(2001, date.getYear());
         assertEquals(5, date.getMonthOfYear());
         assertEquals(25, date.getDayOfMonth());
+
+        DateMidnight date2 = mapper.readValue(quote("2005-07-13"), DateMidnight.class);
+        assertEquals(2005, date2.getYear());
+        assertEquals(7, date2.getMonthOfYear());
+        assertEquals(13, date2.getDayOfMonth());
+    }
+
+    /*
+    /**************************************************************8 
+    /* Tests for DateMidnight type
+    /**************************************************************8 
+     */
+    
+    // @since 1.5
+    public void testLocalDateSer() throws IOException
+    {
+        LocalDate date = new LocalDate(2001, 5, 25);
+        ObjectMapper mapper = new ObjectMapper();
+        // default format is that of JSON array...
+        assertEquals("[2001,5,25]", mapper.writeValueAsString(date));
+        // but we can force it to be a String as well (note: here we assume this is
+        // dynamically changeable)
+        mapper.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);        
+        assertEquals(quote("2001-05-25"), mapper.writeValueAsString(date));
+    }
+
+    // @since 1.5
+    public void testLocalDateDeser() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // couple of acceptable formats, so:
+        LocalDate date = mapper.readValue("[2001,5,25]", LocalDate.class);
+        assertEquals(2001, date.getYear());
+        assertEquals(5, date.getMonthOfYear());
+        assertEquals(25, date.getDayOfMonth());
+
+        LocalDate date2 = mapper.readValue(quote("2005-07-13"), LocalDate.class);
+        assertEquals(2005, date2.getYear());
+        assertEquals(7, date2.getMonthOfYear());
+        assertEquals(13, date2.getDayOfMonth());
+    }
+
+    /*
+    /**************************************************************8 
+    /* Tests for LocalDateTime type
+    /**************************************************************8 
+     */
+    
+    // @since 1.5
+    public void testLocalDateTimeSer() throws IOException
+    {
+        LocalDateTime date = new LocalDateTime(2001, 5, 25,
+                10, 15, 30, 37);
+        ObjectMapper mapper = new ObjectMapper();
+        // default format is that of JSON array...
+        assertEquals("[2001,5,25,10,15,30,37]", mapper.writeValueAsString(date));
+        // but we can force it to be a String as well (note: here we assume this is
+        // dynamically changeable)
+        mapper.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);        
+        assertEquals(quote("2001-05-25T10:15:30.037"), mapper.writeValueAsString(date));
+    }
+
+    // @since 1.5
+    public void testLocalDateTimeDeser() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // couple of acceptable formats again:
+        LocalDateTime date = mapper.readValue("[2001,5,25,10,15,30,37]", LocalDateTime.class);
+        assertEquals(2001, date.getYear());
+        assertEquals(5, date.getMonthOfYear());
+        assertEquals(25, date.getDayOfMonth());
+
+        assertEquals(10, date.getHourOfDay());
+        assertEquals(15, date.getMinuteOfHour());
+        assertEquals(30, date.getSecondOfMinute());
+        assertEquals(37, date.getMillisOfSecond());
+
+        LocalDateTime date2 = mapper.readValue(quote("2007-06-30T08:34:09.001"), LocalDateTime.class);
+        assertEquals(2007, date2.getYear());
+        assertEquals(6, date2.getMonthOfYear());
+        assertEquals(30, date2.getDayOfMonth());
+
+        assertEquals(8, date2.getHourOfDay());
+        assertEquals(34, date2.getMinuteOfHour());
+        assertEquals(9, date2.getSecondOfMinute());
+        assertEquals(1, date2.getMillisOfSecond());
     }
 }

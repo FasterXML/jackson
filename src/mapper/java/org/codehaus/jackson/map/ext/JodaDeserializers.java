@@ -104,7 +104,6 @@ public class JodaDeserializers
             case VALUE_STRING:
                 return parseLocal(jp).toLocalDate();
             case START_ARRAY:
-                jp.nextToken(); // START_ARRAY
                 jp.nextToken(); // VALUE_NUMBER_INT 
                 int year = jp.getIntValue(); 
                 jp.nextToken(); // VALUE_NUMBER_INT
@@ -140,7 +139,6 @@ public class JodaDeserializers
             case VALUE_STRING:
                 return parseLocal(jp).toLocalDateTime();
             case START_ARRAY:
-                jp.nextToken(); // START_ARRAY
                 jp.nextToken(); // VALUE_NUMBER_INT
                 int year = jp.getIntValue();
                 jp.nextToken(); // VALUE_NUMBER_INT
@@ -203,5 +201,4 @@ public class JodaDeserializers
             return null;
         }
     }
-
 }
