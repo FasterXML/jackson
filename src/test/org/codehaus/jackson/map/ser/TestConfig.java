@@ -60,6 +60,12 @@ public class TestConfig
 
         // since 1.3:
         assertTrue(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS));
+        // since 1.4
+        
+        assertTrue(cfg.isEnabled(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS));
+        // since 1.5
+        assertTrue(cfg.isEnabled(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION));
+
     }
 
     public void testOverrideIntrospectors()

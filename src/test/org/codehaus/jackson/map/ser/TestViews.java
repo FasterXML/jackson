@@ -33,6 +33,19 @@ public class TestViews
         public String getB() { return "3"; }
     }
 
+    /**
+     * Bean with mix of explicitly annotated
+     * properties, and implicit ones that may or may
+     * not be included in views.
+     */
+    static class MixedBean
+    {
+        @JsonView(ViewA.class)
+        public String a = "1";
+
+        public String getB() { return "2"; }
+    }
+    
     @SuppressWarnings("unchecked")
     public void testSimple() throws IOException
     {
@@ -73,5 +86,32 @@ public class TestViews
         assertEquals(2, map.size());
         assertEquals("2", map.get("aa"));
         assertEquals("3", map.get("b"));
+    }
+
+    /**
+     * Unit test to verify implementation of [JACKSON-232], to
+     * allow "opt-in" handling for JSON Views: that is, that
+     * default for properties is to exclude unless included in
+     * a view.
+     */
+    public void testDefaultExclusion() throws IOException
+    {
+        MixedBean bean = new MixedBean();
+
+        ObjectMapper mapper = new ObjectMapper();
+        // default setting: both fields will get included
+        Map<String,Object> map = writeAndMap(mapper, bean);
+        assertEquals(2, map.size());
+        assertEquals("1", map.get("a"));
+        assertEquals("2", map.get("b"));
+
+        // but can also change (but not necessarily on the fly...)
+        mapper = new ObjectMapper();
+        mapper.configure(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION, false);
+        // with this setting, only explicit inclusions count:
+        map = writeAndMap(mapper, bean);
+        assertEquals(1, map.size());
+        assertEquals("1", map.get("a"));
+        assertNull(map.get("b"));
     }
 }

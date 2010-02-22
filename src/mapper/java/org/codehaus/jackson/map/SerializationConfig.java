@@ -148,6 +148,9 @@ public class SerializationConfig
          * Feature is mostly intended for JAXB compatibility.
          *<p>
          * Default setting is false, meaning root value is not wrapped.
+         *<p>
+         *<b>NOTE</b>: Support for this feature has <b>NOT</b> been
+         * implemented -- it is reserved for future expansion.
          *
          * @since 1.3
          */
@@ -170,6 +173,24 @@ public class SerializationConfig
          */
          ,FAIL_ON_EMPTY_BEANS(true)
 
+         /**
+          * Feature that determines whether properties that have no view
+          * annotations are included in JSON serialization views (see
+          * {@link org.codehaus.jackson.map.annotate.JsonView} for more
+          * details on JSON Views).
+          * If enabled, non-annotated properties will be included;
+          * when disabled, they will be excluded. So this feature
+          * changes between "opt-in" (feature disabled) and
+          * "opt-out" (feature enabled) modes.
+          *<p>
+          * Default value is enabled, meaning that non-annotated
+          * properties are included in all views if there is no
+          * {@link org.codehaus.jackson.map.annotate.JsonView} annotation.
+          * 
+          * @since 1.5
+          */
+         ,DEFAULT_VIEW_INCLUSION(true)
+         
         // // // Features for datatype-specific serialization
 
         /**
