@@ -65,6 +65,15 @@ public class TestFieldDeserialization
         private int foo;
     }
 
+    public static class OkDupFieldBean
+        extends SimpleFieldBean
+    {
+        @JsonProperty("x")
+        protected int myX = 10;
+
+        public int y = 11;
+    }
+    
     abstract static class Abstract { }
     static class Concrete extends Abstract
     {
@@ -140,5 +149,15 @@ public class TestFieldDeserialization
         } catch (JsonMappingException e) {
             verifyException(e, "Multiple fields representing property");
         }
+    }
+
+    // For [JACKSON-226], acceptable field overrides
+    public void testOkFieldOverride() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        OkDupFieldBean result = m.readValue("{ \"x\" : 1, \"y\" : 2 }",
+                OkDupFieldBean.class);
+        assertEquals(1, result.myX);
+        assertEquals(2, result.y);
     }
 }

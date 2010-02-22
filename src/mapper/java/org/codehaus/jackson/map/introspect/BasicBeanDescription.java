@@ -748,7 +748,9 @@ public class BasicBeanDescription extends BeanDescription
         LinkedHashMap<String,AnnotatedField> results = new LinkedHashMap<String,AnnotatedField>();
         for (AnnotatedField af : _classInfo.fields()) {
             /* note: some pre-filtering has been; no static or transient fields 
-             * included; nor anything marked as ignorable (@JsonIgnore)
+             * included; nor anything marked as ignorable (@JsonIgnore).
+             * Field masking has also been resolved, but it is still possible
+             * to get conflicts due to logical name overwrites.
              */
 
             /* So far so good: final check, then; has to either
@@ -782,9 +784,20 @@ public class BasicBeanDescription extends BeanDescription
              */
             AnnotatedField old = results.put(propName, af);
             if (old != null) {
-                String oldDesc = old.getFullName();
-                String newDesc = af.getFullName();
-                throw new IllegalArgumentException("Multiple fields representing property \""+propName+"\": "+oldDesc+" vs "+newDesc);
+                /* 21-Feb-2010, tatus: Not necessarily a conflict, still; only
+                 *    conflict if these are declared in same class (in future, might
+                 *    not even be conflict then, if types are different? That would
+                 *    allow "union" types. But for now, let's consider that illegale
+                 *    to keep things simple.
+                 */
+                /* Note: we assume that fields are ordered from "oldest" (super-class) to
+                 * "newest" (sub-classes); this should guarantee proper ordering
+                 */
+                if (old.getDeclaringClass() == af.getDeclaringClass()) {
+                    String oldDesc = old.getFullName();
+                    String newDesc = af.getFullName();
+                    throw new IllegalArgumentException("Multiple fields representing property \""+propName+"\": "+oldDesc+" vs "+newDesc);
+                }
             }
         }
         return results;

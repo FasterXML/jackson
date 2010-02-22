@@ -724,9 +724,11 @@ public final class AnnotatedClass
             String name = mixinField.getName();
             // anything to mask? (if not, quietly ignore)
             AnnotatedField maskedField = fields.get(name);
-            for (Annotation a : mixinField.getDeclaredAnnotations()) {
-                if (_annotationIntrospector.isHandled(a)) {
-                    maskedField.addOrOverride(a);
+            if (maskedField != null) {
+                for (Annotation a : mixinField.getDeclaredAnnotations()) {
+                    if (_annotationIntrospector.isHandled(a)) {
+                        maskedField.addOrOverride(a);
+                    }
                 }
             }
         }
