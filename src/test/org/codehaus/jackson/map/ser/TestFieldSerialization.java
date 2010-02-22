@@ -61,9 +61,13 @@ public class TestFieldSerialization
 
     /**
      * Let's test invalid bean too: can't have 2 logical properties
-     * with same name
+     * with same name.
+     *<p>
+     * 21-Feb-2010, tatus: That is, not within same class.
+     *    As per [JACKSON-226] it is acceptable to "override"
+     *    field definitions in sub-classes.
      */
-    public class DupFieldBean
+    public static class DupFieldBean
     {
         @JsonProperty("foo")
         public int _z;
@@ -73,7 +77,7 @@ public class TestFieldSerialization
             private int foo;
     }
 
-    public class DupFieldBean2
+    public static class DupFieldBean2
     {
         public int z;
 
@@ -81,12 +85,26 @@ public class TestFieldSerialization
         public int _z;
     }
 
+    public static class OkDupFieldBean
+        extends SimpleFieldBean
+    {
+        @JsonProperty("x")
+        protected int myX;
+
+        public int y;
+
+        public OkDupFieldBean(int x, int y) {
+            this.myX = x;
+            this.y = y;
+        }
+    }
+
     /**
      * It is ok to have a method-based and field-based property
      * introspectable: only one should be serialized, and since
      * methods have precedence, it should be the method one.
      */
-    public class FieldAndMethodBean
+    public static class FieldAndMethodBean
     {
         @JsonProperty public int z;
 
@@ -154,6 +172,19 @@ public class TestFieldSerialization
         bean.z = 9;
         assertEquals(10, bean.getZ());
         assertEquals("{\"z\":10}", serializeAsString(bean));
+    }
+
+    /**
+     * Testing [JACKSON-226]: it is ok to have "field override",
+     * as long as there are no intra-class conflicts.
+     */
+    public void testOkDupFields() throws Exception
+    {
+        OkDupFieldBean bean = new OkDupFieldBean(1, 2);
+        Map<String,Object> json = writeAndMap(new ObjectMapper(), bean);
+        assertEquals(2, json.size());
+        assertEquals(Integer.valueOf(1), json.get("x"));
+        assertEquals(Integer.valueOf(2), json.get("y"));
     }
 
     /*

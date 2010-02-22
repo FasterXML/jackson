@@ -145,6 +145,18 @@ public final class ArrayBuilders
         return result;
     }
 
+    /**
+     * Helper method for adding specified element to a List, but also
+     * considering case where the List may not have been yet constructed
+     * (that is, null is passed instead).
+     * 
+     * @param list List to add to; may be null to indicate that a new
+     *    List is to be constructed
+     * @param element Element to add to list
+     * 
+     * @return List in which element was added; either <code>list</code>
+     *   (if it was not null), or a newly constructed List.
+     */
     public static <T> List<T> addToList(List<T> list, T element)
     {
         if (list == null) {

@@ -19,9 +19,9 @@ import org.codehaus.jackson.type.JavaType;
 public class BasicBeanDescription extends BeanDescription
 {
     /*
-    ///////////////////////////////////////////////////////
-    // Configuration
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Configuration
+    /******************************************************
      */
 
     /**
@@ -32,9 +32,9 @@ public class BasicBeanDescription extends BeanDescription
     final protected AnnotationIntrospector _annotationIntrospector;
 
     /*
-    ///////////////////////////////////////////////////////
-    // Life-cycle
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Life-cycle
+    /******************************************************
      */
 
     public BasicBeanDescription(JavaType type, AnnotatedClass ac,
@@ -47,9 +47,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Simple accessors
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Simple accessors
+    /******************************************************
      */
 
     public AnnotatedClass getClassInfo() { return _classInfo; }
@@ -100,15 +100,15 @@ public class BasicBeanDescription extends BeanDescription
     }
     
     /*
-    ///////////////////////////////////////////////////////
-    // Basic API
-    ///////////////////////////////////////////////////////
+    /*********************************************************
+    /* Basic API
+    /*********************************************************
      */
 
     /*
-    ///////////////////////////////////////////////////////
-    // Introspection for serialization (write JSON), getters
-    ///////////////////////////////////////////////////////
+    /*********************************************************
+    /* Introspection for serialization (write JSON), getters
+    /*********************************************************
      */
     
     /**
@@ -234,9 +234,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Introspection for serialization, factories
-    ///////////////////////////////////////////////////////
+    /*********************************************************
+    /* Introspection for serialization, factories
+    /*********************************************************
      */
 
     /**
@@ -388,9 +388,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Introspection for serialization, fields
-    ///////////////////////////////////////////////////////
+    /*********************************************************
+    /* Introspection for serialization, fields
+    /*********************************************************
      */
 
     public LinkedHashMap<String,AnnotatedField> findSerializableFields(boolean autodetect,
@@ -400,9 +400,9 @@ public class BasicBeanDescription extends BeanDescription
     }
     
     /*
-    ///////////////////////////////////////////////////////
-    // Introspection for serialization, other
-    ///////////////////////////////////////////////////////
+    /*********************************************************
+    /* Introspection for serialization, other
+    /*********************************************************
      */
 
     /**
@@ -417,9 +417,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Introspection for deserialization, setters:
-    ///////////////////////////////////////////////////////
+    /*********************************************************
+    /* Introspection for deserialization, setters:
+    /*********************************************************
      */
 
     /**
@@ -536,9 +536,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Introspection for deserialization, fields:
-    ///////////////////////////////////////////////////////
+    /*********************************************************
+    /* Introspection for deserialization, fields:
+    /*********************************************************
      */
 
     public LinkedHashMap<String,AnnotatedField> findDeserializableFields(boolean autodetect,
@@ -548,9 +548,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Helper methods for getters
-    ///////////////////////////////////////////////////////
+    /*********************************************************
+    /* Helper methods for getters
+    /*********************************************************
      */
 
     public String okNameForAnyGetter(AnnotatedMethod am, String name)
@@ -679,9 +679,9 @@ public class BasicBeanDescription extends BeanDescription
     }
  
     /*
-    ///////////////////////////////////////////////////////
-    // Helper methods for setters
-    ///////////////////////////////////////////////////////
+    /*********************************************************
+    /* Helper methods for setters
+    /*********************************************************
      */
 
     public String okNameForSetter(AnnotatedMethod am)
@@ -718,9 +718,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Helper methods for field introspection
-    ///////////////////////////////////////////////////////
+    /*********************************************************
+    /* Helper methods for field introspection
+    /*********************************************************
      */
 
     /**
@@ -747,7 +747,7 @@ public class BasicBeanDescription extends BeanDescription
 
         LinkedHashMap<String,AnnotatedField> results = new LinkedHashMap<String,AnnotatedField>();
         for (AnnotatedField af : _classInfo.fields()) {
-            /* note: some prefiltering has been; no static or transient fields 
+            /* note: some pre-filtering has been; no static or transient fields 
              * included; nor anything marked as ignorable (@JsonIgnore)
              */
 
@@ -791,9 +791,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    //////////////////////////////////////////////////////////
-    // Property name mangling (getFoo -> foo)
-    //////////////////////////////////////////////////////////
+    /*********************************************************
+    /* Property name mangling (getFoo -> foo)
+    /*********************************************************
      */
 
     /**
