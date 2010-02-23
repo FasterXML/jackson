@@ -30,6 +30,9 @@ Description:
     method to simplify a common usage pattern
   * [JACKSON-229] TypeFactory should have methods to construct parametric
      types programmatically (TypeFactory.parametricType())
+  * [JACKSON-232] Add 'SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION'
+    to disable inclusion of non-annotated properties with explicit views
+    (suggested by Andrei V)
   * [JACKSON-234] Add support for JSONP, by adding JSONPObject wrapper
     that serializes as expected.
   * [JACKSON-241] Add a mechanism for adding new "untouchable" types for

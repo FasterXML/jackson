@@ -94,22 +94,27 @@ public class TestViews
      * default for properties is to exclude unless included in
      * a view.
      */
+    @SuppressWarnings("unchecked")
     public void testDefaultExclusion() throws IOException
     {
         MixedBean bean = new MixedBean();
+        StringWriter sw = new StringWriter();
 
         ObjectMapper mapper = new ObjectMapper();
         // default setting: both fields will get included
-        Map<String,Object> map = writeAndMap(mapper, bean);
+        mapper.writeValueUsingView(sw, bean, ViewA.class);
+        Map<String,Object> map = mapper.readValue(sw.toString(), Map.class);
         assertEquals(2, map.size());
         assertEquals("1", map.get("a"));
         assertEquals("2", map.get("b"));
 
         // but can also change (but not necessarily on the fly...)
         mapper = new ObjectMapper();
+        sw = new StringWriter();
         mapper.configure(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION, false);
         // with this setting, only explicit inclusions count:
-        map = writeAndMap(mapper, bean);
+        mapper.writeValueUsingView(sw, bean, ViewA.class);
+        map = mapper.readValue(sw.toString(), Map.class);
         assertEquals(1, map.size());
         assertEquals("1", map.get("a"));
         assertNull(map.get("b"));

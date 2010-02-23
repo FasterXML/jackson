@@ -260,3 +260,8 @@ Chris Carrier:
   * Suggested [JACKSON-236]: Allow deserialization of timestamps-as-Strings
     (not just timestamps as JSON integer numbers).
    [1.5.0]
+
+Andrei Voden:
+  * Suggested [JACKSON-232]: Add 'SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION'
+    to disable inclusion of non-annotated properties with explicit views
+   [1.5.0]

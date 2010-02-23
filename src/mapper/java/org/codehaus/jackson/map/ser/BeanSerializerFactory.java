@@ -382,34 +382,44 @@ public class BeanSerializerFactory
     protected BeanSerializer processViews(SerializationConfig config, BasicBeanDescription beanDesc,
                                           BeanSerializer ser, List<BeanPropertyWriter> props)
     {
-        BeanPropertyWriter[] filtered = null;
-        /* Simple: we have stashed view information within individual writers;
-         * now need combine.
-         */
-        int i = 0;
+        // [JACKSON-232]: whether non-annotated fields are included by default or not is configurable
+        boolean includeByDefault = config.isEnabled(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION);
+        if (includeByDefault) { // non-annotated are included
+            final int propCount = props.size();
+            BeanPropertyWriter[] filtered = null;        
+            // Simple: view information is stored within individual writers, need to combine:
+            for (int i = 0; i < propCount; ++i) {
+                BeanPropertyWriter bpw = props.get(i);
+                Class<?>[] views = bpw.getViews();
+                if (views != null) {
+                    if (filtered == null) {
+                        filtered = new BeanPropertyWriter[props.size()];
+                    }
+                    filtered[i] = constructFilteredBeanWriter(bpw, views);
+                }
+            }        
+            // Anything missing? Need to fill in
+            if (filtered != null) {
+                for (int i = 0; i < propCount; ++i) {
+                    if (filtered[i] == null) {
+                        filtered[i] = props.get(i);
+                    }
+                }
+                return ser.withFiltered(filtered);
+            }        
+            // No views, return as is
+            return ser;
+        }
+        // Otherwise: only include fields with view definitions.
+        ArrayList<BeanPropertyWriter> explicit = new ArrayList<BeanPropertyWriter>(props.size());
         for (BeanPropertyWriter bpw : props) {
             Class<?>[] views = bpw.getViews();
-            if (views != null && views.length > 0) {
-                if (filtered == null) {
-                    filtered = new BeanPropertyWriter[props.size()];
-                }
-                filtered[i] = constructFilteredBeanWriter(bpw, views);
-            }
-            ++i;
+            if (views != null) {
+                explicit.add(constructFilteredBeanWriter(bpw, views));
+            }            
         }
-        // Anything missing? Need to fill in
-        if (filtered != null) {
-            i = 0;
-            for (BeanPropertyWriter bpw : props) {
-                if (filtered[i] == null) {
-                    filtered[i] = bpw;
-                }
-                ++i;
-            }
-            return ser.withFiltered(filtered);
-        }
-        // No views, return as is
-        return ser;
+        BeanPropertyWriter[] filtered = explicit.toArray(new BeanPropertyWriter[explicit.size()]);
+        return ser.withFiltered(filtered);
     }
 
     /**
