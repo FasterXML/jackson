@@ -38,6 +38,19 @@ public class TestGenericMapDeser
     @JsonDeserialize(keyAs=StringWrapper.class, contentAs=BooleanWrapper.class)
         static class AnnotatedMap extends HashMap<Object,Object> { }
 
+    interface MapWrapper<K,V> extends java.io.Serializable {
+        public abstract Map<K,V> getEntries();
+    }
+
+    static class StringMap implements MapWrapper<String,Long>
+    {
+        private Map<String,Long> entries = new LinkedHashMap<String,Long>();
+
+        public StringMap() { }
+
+        public Map<String,Long> getEntries() { return entries; }
+    }
+
     /*
     ***************************************************
     * Test methods for sub-classing
@@ -57,6 +70,15 @@ public class TestGenericMapDeser
         assertEquals(BooleanWrapper.class, value.getClass());
         BooleanWrapper bw = (BooleanWrapper) value;
         assertEquals(Boolean.TRUE, bw.b);
+    }
+
+    public void testMapWrapper() throws Exception
+    {
+        StringMap value = new ObjectMapper().readValue
+            ("{\"entries\":{\"a\":9} }", StringMap.class);
+        assertNotNull(value.getEntries());
+        assertEquals(1, value.getEntries().size());
+        assertEquals(Long.valueOf(9), value.getEntries().get("a"));
     }
 
     /*

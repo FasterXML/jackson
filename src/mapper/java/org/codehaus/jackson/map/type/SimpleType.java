@@ -168,11 +168,23 @@ public final class SimpleType
 
         // Classes must be identical... 
         if (other._class != this._class) return false;
-        // And finally, generic bindings, if any
 
-        if (_typeParameters == null) {
-            return (other._typeParameters == null);
+        // And finally, generic bindings, if any
+        LinkedHashMap<String,JavaType> p1 = _typeParameters;
+        LinkedHashMap<String,JavaType> p2 = other._typeParameters;
+        if (p1 == null) {
+            return (p2 == null) || p2.isEmpty();
         }
-        return _typeParameters.equals(other._typeParameters);
+        if (p2 == null) return false;
+
+        if (p1.size() != p2.size()) return false;
+        // names don't really have to match, types do
+        Iterator<JavaType> it = p1.values().iterator();
+        for (JavaType t : p2.values()) {
+            if (!t.equals(it.next())) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -328,5 +328,6 @@ public abstract class JavaType
 
     public abstract boolean equals(Object o);
 
+    @Override
     public final int hashCode() { return _hashCode; }
 }
