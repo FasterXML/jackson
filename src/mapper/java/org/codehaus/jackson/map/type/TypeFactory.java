@@ -31,17 +31,12 @@ public class TypeFactory
 {
     public final static TypeFactory instance = new TypeFactory();
 
-    /**
-     * Marker to use for unbound references.
-     */
-    public final static JavaType UNBOUND = new SimpleType(Object.class);
-
     protected final TypeParser _parser;
     
     /*
-    //////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////
+    /*************************************************
+    /* Life-cycle
+    /*************************************************
      */
 
     private TypeFactory() {
@@ -70,13 +65,13 @@ public class TypeFactory
      * Factory method that can use given context to resolve
      * named generic types.
      *
-     * @param context Type context that can be used for binding
-     *   named formal type parameters, if any (if null, no context
-     *   is used)
+     * @param context Class used for resolving generic types; for example,
+     *    for bean properties the actual bean class (not necessarily class
+     *    that contains method or field, may be a sub-class thereof)
      */
-    public static JavaType type(Type type, JavaType context)
+    public static JavaType type(Type type, Class<?> context)
     {
-        return instance._fromType(type, context);
+        return instance._fromType(type, new TypeBindings(context));
     }
 
     /**
@@ -221,7 +216,7 @@ public class TypeFactory
             }
             return CollectionType.construct(parametrized, parameterTypes[0]);
         }
-        SimpleType bean = new SimpleType(parametrized);
+        SimpleType bean = new SimpleType(parametrized, parameterTypes);
         int i = 0;
         for (JavaType t : parameterTypes) {
             bean.bindVariableType(String.valueOf(++i), t);
@@ -274,7 +269,7 @@ public class TypeFactory
                     throw new IllegalArgumentException("Class "+subclass.getClass().getName()+" not subtype of "+baseType);
                 }
                 // this _should_ work, right?
-                JavaType subtype = instance._fromClass(subclass, baseType);
+                JavaType subtype = instance._fromClass(subclass, new TypeBindings(baseType.getRawClass()));
                 // one more thing: handlers to copy?
                 Object h = baseType.getValueHandler();
                 if (h != null) {
@@ -338,29 +333,17 @@ public class TypeFactory
         return instance._fromType(type, null);
     }
 
-    /**
-     * @param context Type context that can be used for binding
-     *   named formal type parameters, if any (if null, no context
-     *   is used)
-     *
-     * @deprecated Use {@link #type(Type,JavaType)} instead
-     */
-    public static JavaType fromType(Type type, JavaType context)
-    {
-        return instance._fromType(type, context);
-    }
-
     /*
-    ///////////////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////////////
+    /*************************************************
+    /* Internal methods
+    /*************************************************
      */
     
     /**
      * @param genericParams Mapping of formal parameter declarations (for generic
      *   types) into actual types
      */
-    protected JavaType _fromClass(Class<?> clz, JavaType context)
+    protected JavaType _fromClass(Class<?> clz, TypeBindings context)
     {
         // First: do we have an array type?
         if (clz.isArray()) {
@@ -370,7 +353,7 @@ public class TypeFactory
          * point in doing so (T extends Enum<T>) etc.
          */
         if (clz.isEnum()) {
-            return new SimpleType(clz);
+            return new SimpleType(clz, null);
         }
         /* Maps and Collections aren't quite as hot; problem is, due
          * to type erasure we often do not know typing and can only assume
@@ -388,21 +371,7 @@ public class TypeFactory
             CollectionType parentType = _findParentType(clz, CollectionType.class);
             return CollectionType.construct(clz, (parentType == null) ? _unknownType() : parentType.getContentType());
         }
-        // Otherwise, consider it a Bean
-        SimpleType beanType = new SimpleType(clz);
-        /* 29-Jan-2010, tatus: One more thing: we may be able to find
-         *    (more) bound type parameters now
-         */
-        Type superType = clz.getGenericSuperclass();
-        if (superType instanceof ParameterizedType) {
-            addBindings((ParameterizedType) superType,
-                    (context == null) ? beanType : context);
-        }
-
-        /* Neither: well, let's just consider it a bean or such;
-         * may or not may not be a problem.
-         */
-        return beanType;
+        return new SimpleType(clz, null);
     }
 
     /**
@@ -415,7 +384,7 @@ public class TypeFactory
             return ArrayType.construct(_fromType(clz.getComponentType(), null));
         }
         if (clz.isEnum()) { // ditto for enums
-            return new SimpleType(clz);
+            return new SimpleType(clz, null);
         }
         if (Map.class.isAssignableFrom(clz)) {
             // First: if we do have param types, use them
@@ -446,11 +415,7 @@ public class TypeFactory
             }
             return CollectionType.construct(clz, contentType);
         }
-        SimpleType beanType = new SimpleType(clz);
-        if (paramTypes.size() > 0) {
-            beanType.addTypeParameters(paramTypes);
-        }
-        return beanType;
+        return SimpleType.construct(clz, paramTypes);
     }
     
     /**
@@ -458,7 +423,7 @@ public class TypeFactory
      * as Java typing returned from <code>getGenericXxx</code> methods
      * (usually for a return or argument type).
      */
-    public JavaType _fromType(Type type, JavaType context)
+    public JavaType _fromType(Type type, TypeBindings context)
     {
         // may still be a simple type...
         if (type instanceof Class<?>) {
@@ -488,7 +453,7 @@ public class TypeFactory
      * Since version 1.2, this resolves all generics types, not just
      * Maps or Collections.
      */
-    protected JavaType _fromParamType(ParameterizedType type, JavaType context)
+    protected JavaType _fromParamType(ParameterizedType type, TypeBindings context)
     {
         /* First: what is the actual base type? One odd thing
          * is that 'getRawType' returns Type, not Class<?> as
@@ -497,63 +462,41 @@ public class TypeFactory
          * it to Class.
          */
         Class<?> rawType = (Class<?>) type.getRawType();
+        Type[] args = type.getActualTypeArguments();
 
         // Ok: Map or Collection?
         if (Map.class.isAssignableFrom(rawType)) {
-            Type[] args = type.getActualTypeArguments();
             JavaType keyType = _fromType(args[0], context);
             JavaType valueType = _fromType(args[1], context);
             return MapType.construct(rawType, keyType, valueType);
         }
         if (Collection.class.isAssignableFrom(rawType)) {
-            Type[] args = type.getActualTypeArguments();
             JavaType valueType = _fromType(args[0], context);
             return CollectionType.construct(rawType, valueType);
         }
-        // Maybe a generics version?
-        SimpleType beanType = new SimpleType(rawType);
-        addBindings(type, (context == null) ? beanType : context);
-        return beanType;
+        return _constructSimple(rawType, context, args);
     }
-        
-    protected void addBindings(ParameterizedType type, JavaType context)
-    {
-        Type[] args = type.getActualTypeArguments();
-        if (args  == null || args.length == 0) {
-            return;
-        }
-        /* If so, need mapping from name to type, to allow resolving
-         * of generic types
-         */
-        TypeVariable<?>[] vars;
-        Class<?> rawType = (Class<?>) type.getRawType();
 
-        vars = rawType.getTypeParameters();
-        // Sanity check:
-        if (vars.length != args.length) {
-            throw new IllegalArgumentException
-                ("Strange parametrized type (raw: "+rawType+"): number of type arguments != number of type parameters ("+args.length+" vs "+vars.length+")");
+    protected SimpleType _constructSimple(Class<?> rawType, TypeBindings context, Type[] typeArgs)
+    {
+        // Maybe a generics version?
+        if (typeArgs == null || typeArgs.length == 0) {
+            return new SimpleType(rawType, null);
         }
-        for (int i = 0, len = args.length; i < len; ++i) {
-            TypeVariable<?> var = vars[i];
-            String name = var.getName();
-            // Already have type? No need to do again
-            if (context.findVariableType(name) != null) continue;
-            // also: recursive types are a bitch; must use placeholders:
-            context.bindVariableType(name, UNBOUND);
-            JavaType varType = _fromType(args[i], context);
-            // and then overwrite when we know the real type
-            context.bindVariableType(name, varType);
+        JavaType[] paramTypes = new JavaType[typeArgs.length];
+        for (int i = 0, len = typeArgs.length; i < len; ++i) {
+            paramTypes[i] = _fromType(typeArgs[i], context);
         }
-    }
+        return new SimpleType(rawType, paramTypes);
+    } 
     
-    protected JavaType _fromArrayType(GenericArrayType type, JavaType context)
+    protected JavaType _fromArrayType(GenericArrayType type, TypeBindings context)
     {
         JavaType compType = _fromType(type.getGenericComponentType(), context);
         return ArrayType.construct(compType);
     }
 
-    protected JavaType _fromVariable(TypeVariable<?> type, JavaType context)
+    protected JavaType _fromVariable(TypeVariable<?> type, TypeBindings context)
     {
         /* 26-Sep-2009, tatus: It should be possible to try "partial"
          *  resolution; meaning that it is ok not to find bindings.
@@ -565,7 +508,7 @@ public class TypeFactory
 
         // Ok: here's where context might come in handy!
         String name = type.getName();
-        JavaType actualType = context.findVariableType(name);
+        JavaType actualType = context.findType(name);
         if (actualType != null) {
             return actualType;
         }
@@ -590,11 +533,11 @@ public class TypeFactory
          *   (T extends Comparable<T>). Need to add "placeholder"
          *   for resolution to catch those.
          */
-        context.bindVariableType(name, UNBOUND);        
+        context._addPlaceholder(name);        
         return _fromType(bounds[0], context);
     }
 
-    protected JavaType _fromWildcard(WildcardType type, JavaType context)
+    protected JavaType _fromWildcard(WildcardType type, TypeBindings context)
     {
         /* Similar to challenges with TypeVariable, we may have
          * multiple upper bounds. But it is also possible that if

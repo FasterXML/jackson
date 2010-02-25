@@ -23,9 +23,9 @@ public class StdDeserializerProvider
     extends DeserializerProvider
 {
     /*
-    ////////////////////////////////////////////////////
-    // Caching
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Caching
+    /***************************************************
      */
 
     /**
@@ -57,9 +57,9 @@ public class StdDeserializerProvider
         = new HashMap<JavaType, JsonDeserializer<Object>>(8);
     
     /*
-    ////////////////////////////////////////////////////
-    // Configuration
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Configuration
+    /***************************************************
      */
 
     /**
@@ -69,9 +69,9 @@ public class StdDeserializerProvider
     protected DeserializerFactory _factory;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Life-cycle
+    /***************************************************
      */
 
     /**
@@ -88,9 +88,9 @@ public class StdDeserializerProvider
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Abstract methods impls
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Abstract methods impls
+    /***************************************************
      */
 
     @Override
@@ -200,9 +200,9 @@ public class StdDeserializerProvider
     }
 
     /*
-    ////////////////////////////////////////////////////////////////
-    // Overridable helper methods
-    ////////////////////////////////////////////////////////////////
+    /***************************************************
+    /* Overridable helper methods
+    /***************************************************
      */
 
     protected JsonDeserializer<Object> _findCachedDeserializer(JavaType type)
@@ -337,9 +337,9 @@ public class StdDeserializerProvider
     }
 
     /*
-    ////////////////////////////////////////////////////////////////
-    // Overridable error reporting methods
-    ////////////////////////////////////////////////////////////////
+    /***************************************************
+    /* Overridable error reporting methods
+    /***************************************************
      */
 
     protected JsonDeserializer<Object> _handleUnknownValueDeserializer(JavaType type)

@@ -92,16 +92,13 @@ public class TestCyclicTypes
         assertNull(link.next);
     }
 
-
-    /* Added to check for [JACKSON-171]
-     */
+    // Added to check for [JACKSON-171]
     public void testWithJAXB() throws Exception
     {
         String jsonData = "{\"id\":1}";
         ObjectMapper mapper = new ObjectMapper();
         mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         mapper.readValue(jsonData, JaxbBean.class);
-
     }
 
     public void testCycleWith2Classes() throws Exception

@@ -1,5 +1,11 @@
 package org.codehaus.jackson.map.type;
 
+/*
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+*/
+
 import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
@@ -14,10 +20,9 @@ public final class SimpleType
     extends TypeBase
 {
     /**
-     * For generic types we need to keep track of mapping from formal
-     * into actual types, to be able to resolve generic signatures.
+     * Need to keep track of generic type parametrization as well.
      */
-    protected LinkedHashMap<String,JavaType> _typeParameters;
+    protected JavaType[] _typeParameters;
     
     /*
     //////////////////////////////////////////////////////////
@@ -25,16 +30,27 @@ public final class SimpleType
     //////////////////////////////////////////////////////////
      */
 
-    protected SimpleType(Class<?> cls)
-    {
+    protected SimpleType(Class<?> cls, JavaType[] typeParams) {
         super(cls);
-        _typeParameters = null;
+        _typeParameters = (typeParams == null || typeParams.length == 0)
+            ? null : typeParams;
     }
 
+    protected static SimpleType construct(Class<?> cls, Collection<JavaType> paramTypes)
+    {
+        JavaType[] tp;
+        if (paramTypes == null || paramTypes.isEmpty()) {
+            tp = null;
+        } else {
+            tp = paramTypes.toArray(new JavaType[paramTypes.size()]);
+        }
+        return new SimpleType(cls, tp);
+    }
+    
     protected JavaType _narrow(Class<?> subclass)
     {
         // Should we check that there is a sub-class relationship?
-        return new SimpleType(subclass);
+        return new SimpleType(subclass, _typeParameters);
     }
 
     public JavaType narrowContentsBy(Class<?> subclass)
@@ -58,17 +74,17 @@ public final class SimpleType
         if (cls.isArray()) {
             throw new IllegalArgumentException("Can not construct SimpleType for an array (class: "+cls.getName()+")");
         }
-        return new SimpleType(cls);
+        return new SimpleType(cls, null);
     }
 
     protected String buildCanonicalName()
     {
         StringBuilder sb = new StringBuilder();
         sb.append(_class.getName());
-        if (_typeParameters != null && _typeParameters.size() > 0) {
+        if (_typeParameters != null && _typeParameters.length > 0) {
             sb.append('<');
             boolean first = true;
-            for (JavaType t : _typeParameters.values()) {
+            for (JavaType t : _typeParameters) {
                 if (first) {
                     first = false;
                 } else {
@@ -81,23 +97,6 @@ public final class SimpleType
         return sb.toString();
     }
     
-    @Override
-    public void bindVariableType(String name, JavaType type)
-    {
-        if (_typeParameters == null) {
-            _typeParameters = new LinkedHashMap<String,JavaType>();
-        }
-        _typeParameters.put(name, type);
-    }
-
-    public void addTypeParameters(Collection<JavaType> params)
-    {
-        // use index number as dummy name
-        for (JavaType param : params) {
-            _typeParameters.put(String.valueOf(_typeParameters.size()), param);
-        }
-    }
-    
     /*
     //////////////////////////////////////////////////////////
     // Public API
@@ -107,26 +106,16 @@ public final class SimpleType
     @Override
     public boolean isContainerType() { return false; }
 
-    @Override
-    public JavaType findVariableType(String name)
-    {
-        if (_typeParameters != null) {
-            return _typeParameters.get(name);
-        }
-        return null;
+    public int containedTypeCount() {
+        return (_typeParameters == null) ? 0 : _typeParameters.length;
     }
 
-    public int containedTypeCount() {
-        return (_typeParameters == null) ? 0 : _typeParameters.size();
-    }
     public JavaType containedType(int index)
     {
-        if (index < 0 || _typeParameters == null) return null;
-        for (Iterator<JavaType> it = _typeParameters.values().iterator(); it.hasNext(); --index) {
-            JavaType t = it.next();
-            if (index == 0) return t;
+        if (index < 0 || _typeParameters == null || index >= _typeParameters.length) {
+            return null;
         }
-        return null;
+        return _typeParameters[index];
     }
     
     /*
@@ -139,21 +128,7 @@ public final class SimpleType
     public String toString()
     {
         StringBuilder sb = new StringBuilder(40);
-        sb.append("[simple type, class ").append(_class.getName());
-        if (_typeParameters != null) {
-            sb.append('<');
-            int count = 0;
-            for (Map.Entry<String,JavaType> en : _typeParameters.entrySet()) {
-                if (++count > 1) {
-                    sb.append(',');
-                }
-                sb.append(en.getKey());
-                sb.append('=');
-                sb.append(en.getValue().toString());
-            }
-            sb.append('>');
-        }
-        sb.append("]");
+        sb.append("[simple type, class ").append(buildCanonicalName()).append(']');
         return sb.toString();
     }
 
@@ -170,18 +145,16 @@ public final class SimpleType
         if (other._class != this._class) return false;
 
         // And finally, generic bindings, if any
-        LinkedHashMap<String,JavaType> p1 = _typeParameters;
-        LinkedHashMap<String,JavaType> p2 = other._typeParameters;
+        JavaType[] p1 = _typeParameters;
+        JavaType[] p2 = other._typeParameters;
         if (p1 == null) {
-            return (p2 == null) || p2.isEmpty();
+            return (p2 == null) || p2.length == 0;
         }
         if (p2 == null) return false;
 
-        if (p1.size() != p2.size()) return false;
-        // names don't really have to match, types do
-        Iterator<JavaType> it = p1.values().iterator();
-        for (JavaType t : p2.values()) {
-            if (!t.equals(it.next())) {
+        if (p1.length != p2.length) return false;
+        for (int i = 0, len = p1.length; i < len; ++i) {
+            if (!p1[i].equals(p2[i])) {
                 return false;
             }
         }

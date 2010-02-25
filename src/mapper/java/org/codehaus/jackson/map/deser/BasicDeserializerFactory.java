@@ -561,7 +561,7 @@ public abstract class BasicDeserializerFactory
                                    BasicBeanDescription beanDesc, Type rawType,
                                    Annotated a)
     {
-        JavaType type = TypeFactory.type(rawType, beanDesc.getType());
+        JavaType type = TypeFactory.type(rawType, beanDesc.getBeanClass());
         // [JACKSON-154]: Also need to handle keyUsing, contentUsing
         if (type.isContainerType()) {
             AnnotationIntrospector intr = config.getAnnotationIntrospector();

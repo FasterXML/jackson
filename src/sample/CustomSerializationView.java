@@ -110,7 +110,7 @@ public class CustomSerializationView
              * some name -- this would be less work than having separate
              * custom serializer for all classes)
              */
-            if (beanDesc.classDescribed() == ViewBean.class) {
+            if (beanDesc.getBeanClass() == ViewBean.class) {
                 BeanPropertyWriter[] writers = props.toArray(new BeanPropertyWriter[props.size()]);
                 for (int i = 0; i < writers.length; ++i) {
                     String pname = writers[i].getName();

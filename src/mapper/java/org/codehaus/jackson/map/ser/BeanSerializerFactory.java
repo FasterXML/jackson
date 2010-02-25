@@ -237,7 +237,7 @@ public class BeanSerializerFactory
              *  (which may come from a mix-in too)
              */
             if (beanDesc.hasKnownClassAnnotations()) {
-                return BeanSerializer.createDummy(beanDesc.classDescribed());
+                return BeanSerializer.createDummy(beanDesc.getBeanClass());
             }
             return null;
         }
@@ -245,7 +245,7 @@ public class BeanSerializerFactory
         props = filterBeanProperties(config, beanDesc, props);
         // Do they need to be sorted in some special way?
         props = sortBeanProperties(config, beanDesc, props);
-        BeanSerializer ser = new BeanSerializer(beanDesc.classDescribed(), props);
+        BeanSerializer ser = new BeanSerializer(beanDesc.getBeanClass(), props);
         // One more thing: need to gather view information, if any:
         ser = processViews(config, beanDesc, ser, props);
         return ser;
