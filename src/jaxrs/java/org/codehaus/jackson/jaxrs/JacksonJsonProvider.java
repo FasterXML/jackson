@@ -186,6 +186,11 @@ public class JacksonJsonProvider
     {
         this(null, annotationsToUse);
     }
+
+    public JacksonJsonProvider(ObjectMapper mapper)
+    {
+        this(mapper, BASIC_ANNOTATIONS);
+    }
     
     /**
      * Constructor to use when a custom mapper (usually components
