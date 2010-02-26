@@ -20,37 +20,42 @@ public final class SimpleType
     extends TypeBase
 {
     /**
-     * Need to keep track of generic type parametrization as well.
+     * Generic type arguments for this type.
      */
-    protected JavaType[] _typeParameters;
+    protected final JavaType[] _typeParameters;
+
+    /**
+     * Names of generic type arguments for this type; will
+     * match values in {@link #_typeParameters}
+     */
+    protected final String[] _typeNames;
     
     /*
-    //////////////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////////////
+    /*********************************************************
+    /* Life-cycle
+    /*********************************************************
      */
 
-    protected SimpleType(Class<?> cls, JavaType[] typeParams) {
-        super(cls);
-        _typeParameters = (typeParams == null || typeParams.length == 0)
-            ? null : typeParams;
+    protected SimpleType(Class<?> cls) {
+        this(cls, null, null);
     }
 
-    protected static SimpleType construct(Class<?> cls, Collection<JavaType> paramTypes)
-    {
-        JavaType[] tp;
-        if (paramTypes == null || paramTypes.isEmpty()) {
-            tp = null;
+    protected SimpleType(Class<?> cls,
+                         String[] typeNames, JavaType[] typeParams) {
+        super(cls);
+        if (typeNames == null || typeNames.length == 0) {
+            _typeNames = null;
+            _typeParameters = null;
         } else {
-            tp = paramTypes.toArray(new JavaType[paramTypes.size()]);
+            _typeNames = typeNames;
+            _typeParameters = typeParams;
         }
-        return new SimpleType(cls, tp);
     }
     
     protected JavaType _narrow(Class<?> subclass)
     {
         // Should we check that there is a sub-class relationship?
-        return new SimpleType(subclass, _typeParameters);
+        return new SimpleType(subclass, _typeNames, _typeParameters);
     }
 
     public JavaType narrowContentsBy(Class<?> subclass)
@@ -74,7 +79,7 @@ public final class SimpleType
         if (cls.isArray()) {
             throw new IllegalArgumentException("Can not construct SimpleType for an array (class: "+cls.getName()+")");
         }
-        return new SimpleType(cls, null);
+        return new SimpleType(cls);
     }
 
     protected String buildCanonicalName()
@@ -98,18 +103,20 @@ public final class SimpleType
     }
     
     /*
-    //////////////////////////////////////////////////////////
-    // Public API
-    //////////////////////////////////////////////////////////
+    /*********************************************************
+    /* Public API
+    /*********************************************************
      */
 
     @Override
     public boolean isContainerType() { return false; }
 
+    @Override
     public int containedTypeCount() {
         return (_typeParameters == null) ? 0 : _typeParameters.length;
     }
 
+    @Override
     public JavaType containedType(int index)
     {
         if (index < 0 || _typeParameters == null || index >= _typeParameters.length) {
@@ -117,11 +124,19 @@ public final class SimpleType
         }
         return _typeParameters[index];
     }
+
+    public String containedTypeName(int index)
+    {
+        if (index < 0 || _typeNames == null || index >= _typeNames.length) {
+            return null;
+        }
+        return _typeNames[index];
+    }
     
     /*
-    //////////////////////////////////////////////////////////
-    // Standard methods
-    //////////////////////////////////////////////////////////
+    /*********************************************************
+    /* Standard methods
+    /*********************************************************
      */
 
     @Override

@@ -29,7 +29,6 @@ public class TestJavaType
         assertFalse(baseType.isInterface());
         assertFalse(baseType.isPrimitive());
 
-        assertNull(baseType.findVariableType("foobar"));
         assertNull(baseType.getContentType());
         assertNull(baseType.getValueHandler());
 

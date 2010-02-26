@@ -8,6 +8,7 @@ import java.util.*;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanDescription;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.type.TypeBindings;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
@@ -30,6 +31,12 @@ public class BasicBeanDescription extends BeanDescription
     final protected AnnotatedClass _classInfo;
 
     final protected AnnotationIntrospector _annotationIntrospector;
+
+    /**
+     * We may need type bindings for the bean type. If so, we'll
+     * construct it lazily
+     */
+    protected TypeBindings _bindings;
 
     /*
     /******************************************************
@@ -95,6 +102,14 @@ public class BasicBeanDescription extends BeanDescription
             if (t instanceof RuntimeException) throw (RuntimeException) t;
             throw new IllegalArgumentException("Failed to instantiate bean of type "+_classInfo.getAnnotated().getName()+": ("+t.getClass().getName()+") "+t.getMessage(), t);
         }
+    }
+
+    public TypeBindings bindingsForBeanType()
+    {
+        if (_bindings == null) {
+            _bindings = new TypeBindings(_type);
+        }
+        return _bindings;
     }
     
     /*

@@ -169,13 +169,6 @@ public abstract class JavaType
         _typeHandler = h;
     }
     
-    /**
-     * Method used to explicit bind specified name with a Type.
-     * Usually used to mark "unbound" type variables to allow
-     * partial resolution.
-     */
-    public void bindVariableType(String name, JavaType type) { }
-    
     /*
     /*************************************************
     /* Public API
@@ -233,16 +226,6 @@ public abstract class JavaType
     public final boolean isPrimitive() { return _class.isPrimitive(); }
 
     public final boolean isFinal() { return Modifier.isFinal(_class.getModifiers()); }
-    
-    /**
-     * Method that can be called to see if this type has generic type
-     * binding information for type variables, for given formal
-     * type parameter name.
-     *
-     * @return Type given formal type parameter name maps to, if any;
-     *   null if this type knows of no binding for name
-     */
-    public JavaType findVariableType(String name) { return null; }
 
     /**
      * Method for accessing key type for this type, assuming type
@@ -274,9 +257,26 @@ public abstract class JavaType
      * 
      * @return Contained type at index, or null if no such type
      *    exists (no exception thrown)
+     * 
+     * @since 1.5
      */
     public JavaType containedType(int index) { return null; }
     
+    /**
+     * Method for accessing name of type variable in indicated
+     * position. If no name is bound, will use placeholders (derived
+     * from 0-based index); if no type variable or argument exists
+     * with given index, null is returned.
+     * 
+     * @param index Index of contained type to return
+     * 
+     * @return Contained type at index, or null if no such type
+     *    exists (no exception thrown)
+     * 
+     * @since 1.5
+     */
+    public String containedTypeName(int index) { return null; }
+
     /**
      * Method for accessing value handler associated with this type, if any
      * 

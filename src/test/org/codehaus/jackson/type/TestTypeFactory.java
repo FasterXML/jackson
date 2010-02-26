@@ -15,6 +15,8 @@ public class TestTypeFactory
 {    
     enum EnumForCanonical { YES, NO; }
 
+    static class SingleArgGeneric<X> { }
+
     public void testSimpleTypes()
     {
         Class<?>[] classes = new Class<?>[] {
@@ -136,6 +138,30 @@ public class TestTypeFactory
         assertEquals(strC, t2.containedType(0));
         assertEquals(t, t2.containedType(1));
         assertNull(t2.containedType(2));
+
+        // and then custom generic type as well
+        JavaType custom = TypeFactory.parametricType(SingleArgGeneric.class, String.class);
+        assertEquals(SimpleType.class, custom.getClass());
+        assertEquals(1, custom.containedTypeCount());
+        assertEquals(strC, custom.containedType(0));
+        assertNull(custom.containedType(1));
+        // should also be able to access variable name:
+        assertEquals("X", custom.containedTypeName(0));
+
+        // And finally, ensure that we can't create invalid combinations
+        try {
+            // Maps must take 2 type parameters, not just one
+            TypeFactory.parametricType(Map.class, strC);
+        } catch (IllegalArgumentException e) {
+            verifyException(e, "Need exactly 2 parameter types for Map types");
+        }
+
+        try {
+            // Type only accepts one type param
+            TypeFactory.parametricType(SingleArgGeneric.class, strC, strC);
+        } catch (IllegalArgumentException e) {
+            verifyException(e, "expected 1 parameters, was given 2");
+        }
     }
 
     /**

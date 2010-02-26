@@ -70,6 +70,15 @@ public final class CollectionType
             return (index == 0) ? _elementType : null;
     }
 
+    /**
+     * Not sure if we should count on this, but type names
+     * for core interfaces use "E" for element type
+     */
+    public String containedTypeName(int index) {
+        if (index == 0) return "E";
+        return null;
+    }
+
     /*
     //////////////////////////////////////////////////////////
     // Extended API

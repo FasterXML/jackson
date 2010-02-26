@@ -15,7 +15,13 @@ public class TypeBindings
     /**
      * Marker to use for (temporarily) unbound references.
      */
-    public final static JavaType UNBOUND = new SimpleType(Object.class, null);
+    public final static JavaType UNBOUND = new SimpleType(Object.class);
+
+    /**
+     * Context type used for resolving all types, if specified. May be null,
+     * in which case {@link _contextClass} is used instead.
+     */
+    protected final JavaType _contextType;
 
     /**
      * Specific class to use for resolving all types, for methods and fields
@@ -37,6 +43,13 @@ public class TypeBindings
     
     public TypeBindings(Class<?> cc) {
         _contextClass = cc;
+        _contextType = null;
+    }
+
+    public TypeBindings(JavaType type)
+    {
+        _contextType = type;
+        _contextClass = type.getRawClass();
     }
 
     public int getBindingCount() {
@@ -74,6 +87,22 @@ public class TypeBindings
     protected void _resolve()
     {
         _resolveBindings(_contextClass);
+
+        // finally: may have root level type info too
+        if (_contextType != null) {
+            int count = _contextType.containedTypeCount();
+            if (count > 0) {
+                if (_bindings == null) {
+                    _bindings = new HashMap<String,JavaType>();
+                }
+                for (int i = 0; i < count; ++i) {
+                    String name = _contextType.containedTypeName(i);
+                    JavaType type = _contextType.containedType(i);
+                    _bindings.put(name, type);
+                }
+            }
+        }
+
         // nothing bound? mark with empty map to prevent further calls
         if (_bindings == null) {
             _bindings = Collections.emptyMap();

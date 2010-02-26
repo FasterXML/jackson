@@ -71,7 +71,12 @@ public class TypeFactory
      */
     public static JavaType type(Type type, Class<?> context)
     {
-        return instance._fromType(type, new TypeBindings(context));
+        return type(type, new TypeBindings(context));
+    }
+
+    public static JavaType type(Type type, TypeBindings bindings)
+    {
+        return instance._fromType(type, bindings);
     }
 
     /**
@@ -216,12 +221,7 @@ public class TypeFactory
             }
             return CollectionType.construct(parametrized, parameterTypes[0]);
         }
-        SimpleType bean = new SimpleType(parametrized, parameterTypes);
-        int i = 0;
-        for (JavaType t : parameterTypes) {
-            bean.bindVariableType(String.valueOf(++i), t);
-        }
-        return bean;
+        return _constructSimple(parametrized, parameterTypes);
     }
 
     /**
@@ -353,7 +353,7 @@ public class TypeFactory
          * point in doing so (T extends Enum<T>) etc.
          */
         if (clz.isEnum()) {
-            return new SimpleType(clz, null);
+            return new SimpleType(clz);
         }
         /* Maps and Collections aren't quite as hot; problem is, due
          * to type erasure we often do not know typing and can only assume
@@ -371,7 +371,7 @@ public class TypeFactory
             CollectionType parentType = _findParentType(clz, CollectionType.class);
             return CollectionType.construct(clz, (parentType == null) ? _unknownType() : parentType.getContentType());
         }
-        return new SimpleType(clz, null);
+        return new SimpleType(clz);
     }
 
     /**
@@ -384,7 +384,7 @@ public class TypeFactory
             return ArrayType.construct(_fromType(clz.getComponentType(), null));
         }
         if (clz.isEnum()) { // ditto for enums
-            return new SimpleType(clz, null);
+            return new SimpleType(clz);
         }
         if (Map.class.isAssignableFrom(clz)) {
             // First: if we do have param types, use them
@@ -415,7 +415,11 @@ public class TypeFactory
             }
             return CollectionType.construct(clz, contentType);
         }
-        return SimpleType.construct(clz, paramTypes);
+        if (paramTypes.size() == 0) {
+            return new SimpleType(clz);
+        }
+        JavaType[] pt = paramTypes.toArray(new JavaType[paramTypes.size()]);
+        return _constructSimple(clz, pt);
     }
     
     /**
@@ -474,20 +478,30 @@ public class TypeFactory
             JavaType valueType = _fromType(args[0], context);
             return CollectionType.construct(rawType, valueType);
         }
-        return _constructSimple(rawType, context, args);
+        int len = (args == null) ? 0 : args.length;
+        if (len == 0) { // no generics
+            return new SimpleType(rawType);
+        }
+        JavaType[] pt = new JavaType[len];
+        for (int i = 0; i < len; ++i) {
+            pt[i] = _fromType(args[i], context);
+        }
+        return _constructSimple(rawType, pt);
     }
 
-    protected SimpleType _constructSimple(Class<?> rawType, TypeBindings context, Type[] typeArgs)
+    protected static SimpleType _constructSimple(Class<?> rawType, JavaType[] parameterTypes)
     {
-        // Maybe a generics version?
-        if (typeArgs == null || typeArgs.length == 0) {
-            return new SimpleType(rawType, null);
+        // Quick sanity check: must match numbers of types with expected...
+        TypeVariable<?>[] typeVars = rawType.getTypeParameters();
+        if (typeVars.length != parameterTypes.length) {
+            throw new IllegalArgumentException("Parameter type mismatch for "+rawType.getName()
+                    +": expected "+typeVars.length+" parameters, was given "+parameterTypes.length);
         }
-        JavaType[] paramTypes = new JavaType[typeArgs.length];
-        for (int i = 0, len = typeArgs.length; i < len; ++i) {
-            paramTypes[i] = _fromType(typeArgs[i], context);
+        String[] names = new String[typeVars.length];
+        for (int i = 0, len = typeVars.length; i < len; ++i) {
+            names[i] = typeVars[i].getName();
         }
-        return new SimpleType(rawType, paramTypes);
+        return new SimpleType(rawType, names, parameterTypes);
     } 
     
     protected JavaType _fromArrayType(GenericArrayType type, TypeBindings context)

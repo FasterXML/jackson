@@ -100,6 +100,17 @@ public final class MapType
         if (index == 1) return _valueType;
         return null;
     }
+
+    /**
+     * Not sure if we should count on this, but type names
+     * for core interfaces are "K" and "V" respectively.
+     * For now let's assume this should work.
+     */
+    public String containedTypeName(int index) {
+        if (index == 0) return "K";
+        if (index == 1) return "V";
+        return null;
+    }
     
     /*
     //////////////////////////////////////////////////////////

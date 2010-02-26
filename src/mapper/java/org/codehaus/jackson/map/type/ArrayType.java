@@ -112,6 +112,17 @@ public final class ArrayType
      */
     @Override
     public boolean isConcrete() { return true; }
+
+    /**
+     * Not sure what symbolic name is used internally, if any;
+     * let's follow naming of Collection types here.
+     * Should not really matter since array types have no
+     * super types.
+     */
+    public String containedTypeName(int index) {
+        if (index == 0) return "E";
+        return null;
+    }
     
     /*
     //////////////////////////////////////////////////////////
