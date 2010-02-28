@@ -237,7 +237,9 @@ public class TestJaxbAnnotationIntrospector
         //make sure the json is written out correctly.
         JsonNode node = mapper.readValue(json, JsonNode.class);
         assertEquals(qname.toString(), node.get("qname").getValueAsText());
-        assertEquals("attributeValue", node.get("myattribute").getValueAsText());
+        JsonNode attr = node.get("myattribute");
+        assertNotNull(attr);
+        assertEquals("attributeValue", attr.getValueAsText());
         assertEquals("elementValue", node.get("myelement").getValueAsText());
         assertEquals(1, node.get("mywrapped").size());
         assertEquals("wrappedElementValue", node.get("mywrapped").get(0).getValueAsText());

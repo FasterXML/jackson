@@ -6,6 +6,11 @@ Release date:
 Description:
   Official 1.5 release.
 
+  Fixes:
+
+  * [JACKSON-246] JAXB property name determination not working correctly.
+    (reported by Lars C)
+
   Improvements:
 
   * [JACKSON-91] Polymorphic Type Handling: automatic handling of

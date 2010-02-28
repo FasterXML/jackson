@@ -20,9 +20,9 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 public abstract class AnnotationIntrospector
 {    
     /*
-    ///////////////////////////////////////////////////////
-    // Factory methods
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Factory methods
+    /******************************************************
      */
     
     /**
@@ -41,9 +41,9 @@ public abstract class AnnotationIntrospector
     }
     
     /*
-    ///////////////////////////////////////////////////////
-    // Generic annotation properties, lookup
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Generic annotation properties, lookup
+    /******************************************************
     */
 
     /**
@@ -53,9 +53,9 @@ public abstract class AnnotationIntrospector
     public abstract boolean isHandled(Annotation ann);
 
     /*
-    ///////////////////////////////////////////////////////
-    // General annotations for serialization+deserialization
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* General annotations for serialization+deserialization
+    /******************************************************
     */
 
     /**
@@ -72,9 +72,9 @@ public abstract class AnnotationIntrospector
     public abstract String findNamespace(Annotated ann);
 
     /*
-    ///////////////////////////////////////////////////////
-    // General class annotations
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* General class annotations
+    /******************************************************
     */
 
     /**
@@ -213,9 +213,9 @@ public abstract class AnnotationIntrospector
     public abstract String findTypeName(AnnotatedClass ac);
     
     /*
-    ///////////////////////////////////////////////////////
-    // General method annotations
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* General method annotations
+    /******************************************************
     */
 
     /**
@@ -238,9 +238,9 @@ public abstract class AnnotationIntrospector
     public abstract boolean isIgnorableConstructor(AnnotatedConstructor c);
 
     /*
-    ////////////////////////////////////////////////////
-    // General field annotations
-    ////////////////////////////////////////////////////
+    /******************************************************
+    /* General field annotations
+    /******************************************************
      */
 
     /**
@@ -254,9 +254,9 @@ public abstract class AnnotationIntrospector
     public abstract boolean isIgnorableField(AnnotatedField f);
 
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: general annotations
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Serialization: general annotations
+    /******************************************************
     */
 
     /**

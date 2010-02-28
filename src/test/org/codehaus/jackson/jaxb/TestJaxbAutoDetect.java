@@ -35,6 +35,17 @@ public class TestJaxbAutoDetect
         public void setB(String str) { }
     }
 
+    static class Identified
+    {
+        Object id;
+        
+        @XmlAttribute(name="id")
+        public Object getIdObject() {
+            return id;
+        }
+        public void setId(Object id) { this.id = id; }
+    }
+
     /*
     /////////////////////////////////////////////////////
     // Unit tests
@@ -62,5 +73,15 @@ public class TestJaxbAutoDetect
         assertEquals(1, result.size());
         assertNull(result.get("a"));
         assertEquals("b", result.get("b"));
+    }
+
+    // @since 1.5
+    public void testBug246() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        Identified id = new Identified();
+        id.id = "123";
+        assertEquals("{\"id\":\"123\"}", mapper.writeValueAsString(id));
     }
 }
