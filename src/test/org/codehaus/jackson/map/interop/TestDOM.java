@@ -17,10 +17,11 @@ public class TestDOM extends org.codehaus.jackson.map.BaseMapTest
     
     public void testSerializeSimpleNonNS() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
         // Let's just parse first, easiest
         Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse
             (new InputSource(new StringReader(SIMPLE_XML)));
+        assertNotNull(doc);
+        ObjectMapper mapper = new ObjectMapper();
         // need to strip xml declaration, if any
         String outputRaw = mapper.writeValueAsString(doc);
         // And re-parse as String, since JSON has quotes...

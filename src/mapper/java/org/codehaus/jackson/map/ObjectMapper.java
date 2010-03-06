@@ -12,6 +12,7 @@ import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
+import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.jsontype.NamedType;
@@ -61,7 +62,7 @@ public class ObjectMapper
 
     /**
      * Enumeration used with {@link ObjectMapper#enableDefaultTyping()}
-     * to specify what kinda of types (classes) default typing should
+     * to specify what kind of types (classes) default typing should
      * be used for. It will only be used if no explicit type information
      * is found, but this enumeration further limits subset of those
      * types.
@@ -168,6 +169,9 @@ public class ObjectMapper
     // 16-May-2009, tatu: Ditto ^^^
     protected final static AnnotationIntrospector DEFAULT_ANNOTATION_INTROSPECTOR = new JacksonAnnotationIntrospector();
 
+    // @since 1.5
+    protected final static VisibilityChecker<?> STD_VISIBILITY_CHECKER = new VisibilityChecker.Std();
+    
     /*
     /************************************************* 
     /* Configuration settings, shared
@@ -191,6 +195,19 @@ public class ObjectMapper
      * @since 1.5
      */
     protected TypeResolverBuilder<?> _defaultTyper;
+
+    /**
+     * Object used for determining whether specific property elements
+     * (method, constructors, fields) can be auto-detected based on
+     * their visibility (access modifiers). Can be changed to allow
+     * different minimum visibility levels for auto-detection. Note
+     * that this is the global handler; individual types (classes)
+     * can further override active checker used (using
+     * {@link JsonAutoDetect} annotation)
+     * 
+     * @since 1.5
+     */
+    protected VisibilityChecker<?> _visibilityChecker;
     
     /*
     /************************************************* 
@@ -244,7 +261,9 @@ public class ObjectMapper
      */
 
     /**
-     * Node factory to use for creating 
+     * Node factory to use for creating {@link JsonNode}s
+     * for tree model instances when binding JSON content
+     * as JSON trees.
      *
      * @since 1.2
      */
@@ -364,6 +383,9 @@ public class ObjectMapper
 
         // and use standard JsonNodeFactory initially
         _nodeFactory = JsonNodeFactory.instance;
+
+        // and finally, visibility checker; usually default
+        _visibilityChecker = STD_VISIBILITY_CHECKER;
     }
 
     /**
@@ -419,10 +441,34 @@ public class ObjectMapper
         return this;
     }
 
+    /**
+     * Method for accessing currently configured visibility checker;
+     * object used for determining whether given property element
+     * (method, field, constructor) can be auto-detected or not.
+     * 
+     * @since 1.5
+     */
+    public VisibilityChecker<?> getVisibilityChecker() {
+    	return _visibilityChecker;
+    }
+
+    /**
+     * Method for setting currently configured visibility checker;
+     * object used for determining whether given property element
+     * (method, field, constructor) can be auto-detected or not.
+     * This default checker is used if no per-class overrides
+     * are defined.
+     * 
+     * @since 1.5
+     */    
+    public void setVisibilityChecker(VisibilityChecker<?> vc) {
+        _visibilityChecker = vc;
+    }
+    
     /*
-    ////////////////////////////////////////////////////
-    // Access to configuration settings
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Access to configuration settings
+    /************************************************* 
      */
 
     /**
@@ -451,7 +497,7 @@ public class ObjectMapper
      * (like date format being used, see {@link SerializationConfig#setDateFormat}).
      */
     public SerializationConfig copySerializationConfig() {
-        return _serializationConfig.createUnshared(_defaultTyper);
+        return _serializationConfig.createUnshared(_defaultTyper, _visibilityChecker);
     }
 
     /**
@@ -503,7 +549,7 @@ public class ObjectMapper
      * see {@link DeserializationConfig#addHandler})
      */
     public DeserializationConfig copyDeserializationConfig() {
-        return _deserializationConfig.createUnshared(_defaultTyper);
+        return _deserializationConfig.createUnshared(_defaultTyper, _visibilityChecker);
     }
 
     /**
@@ -582,9 +628,9 @@ public class ObjectMapper
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Type information configuration (1.5+)
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Type information configuration (1.5+)
+    /************************************************* 
      */
 
     /**
@@ -626,11 +672,11 @@ public class ObjectMapper
     }
     
     /*
-    ////////////////////////////////////////////////////
-    // Public API (from ObjectCodec): deserialization
-    // (mapping from Json to Java types);
-    // main methods
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Public API (from ObjectCodec): deserialization
+    /* (mapping from Json to Java types);
+    /* main methods
+    /************************************************* 
      */
 
     /**
@@ -848,10 +894,10 @@ public class ObjectMapper
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API (from ObjectCodec): serialization
-    // (mapping from Java types to Json)
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Public API (from ObjectCodec): serialization
+    /* (mapping from Java types to Json)
+    /************************************************* 
      */
 
     /**
@@ -906,9 +952,9 @@ public class ObjectMapper
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API (from ObjectCodec): Tree Model support
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Public API (from ObjectCodec): Tree Model support
+    /************************************************* 
      */
 
     /**
@@ -965,9 +1011,9 @@ public class ObjectMapper
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Extended Public API, accessors
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Extended Public API, accessors
+    /************************************************* 
      */
 
     /**
@@ -1001,10 +1047,10 @@ public class ObjectMapper
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Extended Public API, deserialization,
-    // convenience methods
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Extended Public API, deserialization,
+    /* convenience methods
+    /************************************************* 
      */
 
     @SuppressWarnings("unchecked")
@@ -1137,10 +1183,10 @@ public class ObjectMapper
     } 
 
     /*
-    ////////////////////////////////////////////////////
-    // Extended Public API: serialization
-    // (mapping from Java types to Json)
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Extended Public API: serialization
+    /* (mapping from Java types to Json)
+    /************************************************* 
      */
 
     /**
@@ -1285,9 +1331,9 @@ public class ObjectMapper
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Extended Public API: convenience type conversion
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Extended Public API: convenience type conversion
+    /************************************************* 
      */
    
     /**
@@ -1345,9 +1391,9 @@ public class ObjectMapper
     }
         
     /*
-    ////////////////////////////////////////////////////
-    // Extended Public API: JSON Schema generation
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Extended Public API: JSON Schema generation
+    /************************************************* 
      */
 
     /**
@@ -1378,9 +1424,9 @@ public class ObjectMapper
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Internal methods, overridable
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Internal methods, overridable
+    /************************************************* 
      */
 
     /**
@@ -1522,9 +1568,9 @@ public class ObjectMapper
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Internal methods, other
-    ////////////////////////////////////////////////////
+    /************************************************* 
+    /* Internal methods, other
+    /************************************************* 
      */
 
     /**

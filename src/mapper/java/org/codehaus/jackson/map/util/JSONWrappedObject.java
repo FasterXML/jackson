@@ -7,23 +7,32 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
+
 /**
- * Container class that can be used to wrap any Object instances (including
- * nulls), and will serialize embedded in
- * <a href="http://en.wikipedia.org/wiki/JSONP">JSONP</a> wrapping.
+ * General-purpose wrapper class that can be used to decorate serialized
+ * value with arbitrary literal prefix and suffix. This can be used for
+ * example to construct arbitrary Javascript values (similar to how basic
+ * function name and parenthesis are used with JSONP).
  * 
- * @see org.codehaus.jackson.map.util.JSONWrappedObject
+ * @see org.codehaus.jackson.map.util.JSONPObject
  * 
  * @author tatu
  * @since 1.5
  */
-public class JSONPObject
+public class JSONWrappedObject
     implements JsonSerializableWithType
 {
     /**
-     * JSONP function name to use for serialization
+     * Literal String to output before serialized value.
+     * Will not be quoted when serializing value.
      */
-    protected final String _function;
+    protected final String _prefix;
+
+    /**
+     * Literal String to output after serialized value.
+     * Will not be quoted when serializing value.
+     */
+    protected final String _suffix;
     
     /**
      * Value to be serialized as JSONP padded; can be null.
@@ -38,19 +47,21 @@ public class JSONPObject
      */
     protected final JavaType _serializationType;
     
-    public JSONPObject(String function, Object value) {
-        this(function, value, (JavaType) null);
+    public JSONWrappedObject(String prefix, String suffix, Object value) {
+        this(prefix, suffix, value, (JavaType) null);
     }
 
-    public JSONPObject(String function, Object value, JavaType asType)
+    public JSONWrappedObject(String prefix, String suffix, Object value, JavaType asType)
     {
-        _function = function;
+        _prefix = prefix;
+        _suffix = suffix;
         _value = value;
         _serializationType = asType;
     }
 
-    public JSONPObject(String function, Object value, Class<?> rawType) {
-        _function = function;
+    public JSONWrappedObject(String prefix, String suffix, Object value, Class<?> rawType) {
+        _prefix = prefix;
+        _suffix = suffix;
         _value = value;
         _serializationType = (rawType == null) ? null : TypeFactory.type(rawType);
     }
@@ -72,8 +83,7 @@ public class JSONPObject
             throws IOException, JsonProcessingException
     {
         // First, wrapping:
-        jgen.writeRaw(_function);
-        jgen.writeRaw('(');
+    	if (_prefix != null) jgen.writeRaw(_prefix);
         if (_value == null) {
             provider.getNullValueSerializer().serialize(null, jgen, provider);
         } else if (_serializationType != null) {
@@ -83,7 +93,7 @@ public class JSONPObject
             Class<?> cls = _value.getClass();
             provider.findTypedValueSerializer(cls, cls, true).serialize(_value, jgen, provider);
         }
-        jgen.writeRaw(')');
+        if (_suffix != null) jgen.writeRaw(_suffix);
     }
 
     /*
@@ -92,7 +102,9 @@ public class JSONPObject
     /**************************************************************
      */
     
-    public String getFunction() { return _function; }
+    public String getPrefix() { return _prefix; }
+    public String getSuffix() { return _suffix; }
     public Object getValue() { return _value; }
     public JavaType getSerializationType() { return _serializationType; }
+
 }

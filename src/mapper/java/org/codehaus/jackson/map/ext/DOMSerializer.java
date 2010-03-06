@@ -33,6 +33,7 @@ public class DOMSerializer
     public void serialize(Node value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
+        if (_domImpl == null) throw new IllegalStateException("Could not find DOM LS");    	
         LSSerializer writer = _domImpl.createLSSerializer();
         jgen.writeString(writer.writeToString(value));
     }

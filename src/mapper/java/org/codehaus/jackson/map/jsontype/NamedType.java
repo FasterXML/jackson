@@ -45,4 +45,9 @@ public final class NamedType
 
     @Override
     public int hashCode() { return _hashCode; }
+
+    @Override
+    public String toString() {
+    	return "[NamedType, class "+_class.getName()+", name: "+(_name == null ? "null" :("'"+_name+"'"))+"]";
+    }
 }

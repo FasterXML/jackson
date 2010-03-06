@@ -8,6 +8,7 @@ import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
+import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.LinkedNode;
@@ -234,9 +235,9 @@ public class DeserializationConfig
     protected final static DateFormat DEFAULT_DATE_FORMAT = StdDateFormat.instance;
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Configuration settings
-    ///////////////////////////////////////////////////////////
+    /***************************************************
+    /* Configuration settings
+    /***************************************************
      */
 
     /**
@@ -252,7 +253,7 @@ public class DeserializationConfig
     protected AnnotationIntrospector _annotationIntrospector;
 
     /**
-     * Bitset that contains all enabled features
+     * Bit set that contains all enabled features
      */
     protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
 
@@ -304,11 +305,24 @@ public class DeserializationConfig
      * @since 1.5
      */
     protected final TypeResolverBuilder<?> _typer;
+
+    /**
+     * Object used for determining whether specific property elements
+     * (method, constructors, fields) can be auto-detected based on
+     * their visibility (access modifiers). Can be changed to allow
+     * different minimum visibility levels for auto-detection. Note
+     * that this is the global handler; individual types (classes)
+     * can further override active checker used (using
+     * {@link JsonAutoDetect} annotation)
+     * 
+     * @since 1.5
+     */
+    protected final VisibilityChecker<?> _visibilityChecker;
     
     /*
-    ///////////////////////////////////////////////////////////
-    // Life-cycle
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public DeserializationConfig(ClassIntrospector<? extends BeanDescription> intr,
@@ -317,11 +331,13 @@ public class DeserializationConfig
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
         _typer = null;
+        _visibilityChecker = null;
     }
 
     protected DeserializationConfig(DeserializationConfig src,
                                     HashMap<ClassKey,Class<?>> mixins,
-                                    TypeResolverBuilder<?> typer)
+                                    TypeResolverBuilder<?> typer,
+                                    VisibilityChecker<?> vc)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -330,12 +346,13 @@ public class DeserializationConfig
         _dateFormat = src._dateFormat;
         _mixInAnnotations = mixins;
         _typer = typer;
+        _visibilityChecker = vc;
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // MapperConfig implementation
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* MapperConfig implementation
+    /**********************************************************
      */
 
     /**
@@ -390,12 +407,13 @@ public class DeserializationConfig
      * instance.
      */
     //@Override
-    public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer)
+    public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer,
+    		VisibilityChecker<?> vc)
 
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-    	return new DeserializationConfig(this, mixins, typer);
+    	return new DeserializationConfig(this, mixins, typer, vc);
     }
 
 
@@ -475,9 +493,9 @@ public class DeserializationConfig
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Adding problem handlers
-    ///////////////////////////////////////////////////////////
+    /***************************************************
+    /* Adding problem handlers
+    /***************************************************
      */
 
     /**
@@ -506,9 +524,9 @@ public class DeserializationConfig
     }
         
     /*
-    ///////////////////////////////////////////////////////////
-    // Accessors
-    ///////////////////////////////////////////////////////////
+    /***************************************************
+    /* Accessors
+    /***************************************************
      */
 
     /**
@@ -582,11 +600,16 @@ public class DeserializationConfig
     public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
         return _typer;
     }
+
+    //@Override
+    public VisibilityChecker<?> getDefaultVisibilityChecker() {
+    	return _visibilityChecker;
+    }
     
     /*
-    ////////////////////////////////////////////////////
-    // Configuration: on/off features
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Configuration: on/off features
+    /***************************************************
      */
 
     /**
@@ -618,9 +641,9 @@ public class DeserializationConfig
     //protected int getFeatures() { return _generatorFeatures; }
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration: other
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Configuration: other
+    /***************************************************
      */
 
     /**

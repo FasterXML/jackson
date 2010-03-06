@@ -4,6 +4,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
 
 /**
  * Class annotation that can be used to define which kinds of Methods
@@ -22,15 +24,98 @@ import java.lang.annotation.Target;
  *<p>
  * The default value is <code>ALWAYS</code>: that is, by default, auto-detection
  * is enabled for all classes unless instructed otherwise.
+ *<p>
+ * Starting with version 1.5, it is also possible to use more fine-grained
+ * definitions, to basically define minimum visibility level needed. Defaults
+ * are different for different types (getters need to be public; setters can
+ * have any access modifier, for example).
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonAutoDetect
 {
+	/**
+	 * Enumeration for possible visibility thresholds (minimum visibility)
+	 * that can be used to limit which methods (and fields) are
+	 * auto-detected.
+	 * 
+	 * @since 1.5
+	 */
+	public enum Visibility {
+		/**
+		 * Value that means that all kinds of access modifiers are acceptable,
+		 * from private to public.
+		 */
+		ANY,
+		/**
+		 * Value that means that any other access modifier other than 'private'
+		 * is considered auto-detectable.
+		 */
+		NON_PRIVATE,
+		/**
+		 * Value that means access modifiers 'protected' and 'public' are
+		 * auto-detectable (and 'private' and "package access" == no modifiers
+		 * are not)
+		 */
+		PROTECTED_AND_PUBLIC,
+		/**
+		 * Value to indicate that only 'public' access modifier is considered
+		 * auto-detectable.
+		 */
+		PUBLIC_ONLY,
+		/**
+		 * Value that indicates that no access modifiers are auto-detectable:
+		 * this can be essentially used to disable auto-detection for specified
+		 * types.
+		 */
+		NONE;
+
+		public boolean isVisible(Member m) {
+			switch (this) {
+			case ANY:
+				return true;
+			case NONE:
+				return false;
+			case NON_PRIVATE:
+				return !Modifier.isPrivate(m.getModifiers());
+			case PROTECTED_AND_PUBLIC:
+				if (Modifier.isProtected(m.getModifiers())) {
+					return true;
+				}
+				// fall through to public case:
+			case PUBLIC_ONLY:
+				return Modifier.isPublic(m.getModifiers());
+			}
+			return false;
+		}
+	}
+	
     /**
      * Optional default argument that defines logical property this
      * method is used to access ("get").
      */
     JsonMethod[] value() default { JsonMethod.ALL };
+    
+    /**
+     * Minimum visibility required for auto-detecting getter methods.
+     */
+    Visibility getterVisibility() default Visibility.PUBLIC_ONLY;
+
+    /**
+     * Minimum visibility required for auto-detecting setter methods.
+     */    
+    Visibility setterVisibility() default Visibility.ANY;
+
+    /**
+     * Minimum visibility required for auto-detecting member fields.
+     */ 
+    Visibility fieldVisibility() default Visibility.PUBLIC_ONLY;
+
+    /**
+     * Minimum visibility required for auto-detecting Creator methods,
+     * except for no-argument constructors (which are always detected
+     * no matter what).
+     */
+    Visibility creatorVisibility() default Visibility.PUBLIC_ONLY;
 }

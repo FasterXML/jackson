@@ -7,6 +7,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion; // for javadocs
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.StdDateFormat;
@@ -263,9 +264,9 @@ public class SerializationConfig
     protected final static int DEFAULT_FEATURE_FLAGS = Feature.collectDefaults();
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Configuration settings
-    ///////////////////////////////////////////////////////////
+    /***************************************************
+    /* Configuration settings
+    /***************************************************
      */
 
 
@@ -347,11 +348,24 @@ public class SerializationConfig
      * @since 1.5
      */
     protected final TypeResolverBuilder<?> _typer;
+
+    /**
+     * Object used for determining whether specific property elements
+     * (method, constructors, fields) can be auto-detected based on
+     * their visibility (access modifiers). Can be changed to allow
+     * different minimum visibility levels for auto-detection. Note
+     * that this is the global handler; individual types (classes)
+     * can further override active checker used (using
+     * {@link JsonAutoDetect} annotation)
+     * 
+     * @since 1.5
+     */
+    protected VisibilityChecker<?> _visibilityChecker;
     
     /*
-    ///////////////////////////////////////////////////////////
-    // Life-cycle
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr,
@@ -360,11 +374,13 @@ public class SerializationConfig
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
         _typer = null;
+        _visibilityChecker = null;
     }
 
     protected SerializationConfig(SerializationConfig src,
                                   HashMap<ClassKey,Class<?>> mixins,
-                                  TypeResolverBuilder<?> typer)
+                                  TypeResolverBuilder<?> typer,
+                                  VisibilityChecker<?> vc)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -374,12 +390,13 @@ public class SerializationConfig
         _serializationView = src._serializationView;
         _mixInAnnotations = mixins;
         _typer = typer;
+        _visibilityChecker = vc;
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // MapperConfig implementation
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* MapperConfig implementation
+    /**********************************************************
      */
 
     /**
@@ -442,11 +459,12 @@ public class SerializationConfig
      * instance.
      */
     //@Override
-    public SerializationConfig createUnshared(TypeResolverBuilder<?> typer)
+    public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
+    		VisibilityChecker<?> vc)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-    	return new SerializationConfig(this, mixins, typer);
+    	return new SerializationConfig(this, mixins, typer, vc);
     }
 
     //@Override
@@ -524,9 +542,9 @@ public class SerializationConfig
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Accessors
-    ///////////////////////////////////////////////////////////
+    /***************************************************
+    /* Accessors
+    /***************************************************
      */
 
     /**
@@ -584,15 +602,19 @@ public class SerializationConfig
     }
     
     //@Override
-    public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType)
-    {
+    public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
         return _typer;
+    }
+
+    //@Override
+    public VisibilityChecker<?> getDefaultVisibilityChecker() {
+    	return _visibilityChecker;
     }
     
     /*
-    ////////////////////////////////////////////////////
-    // Configuration: on/off features
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Configuration: on/off features
+    /***************************************************
      */
 
     /**
@@ -624,9 +646,9 @@ public class SerializationConfig
     //protected int getFeatures() { return _generatorFeatures; }
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration: other
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Configuration: other
+    /***************************************************
      */
 
     /**
@@ -674,9 +696,9 @@ public class SerializationConfig
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Debug support
-    ///////////////////////////////////////////////////////////
+    /***************************************************
+    /* Debug support
+    /***************************************************
      */
 
     @Override public String toString()

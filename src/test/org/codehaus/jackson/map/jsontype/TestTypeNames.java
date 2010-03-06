@@ -32,10 +32,9 @@ public class TestTypeNames extends BaseMapTest
     {
         ObjectMapper m = new ObjectMapper();
 
-        /* Note: need to use wrapper array just so that we can define
-         * static type on serialization. If we had root static types,
-         * could use those; but at the moment root type is dynamic
-         */
+        // Note: need to use wrapper array just so that we can define
+        // static type on serialization. If we had root static types,
+        // could use those; but at the moment root type is dynamic
         
         assertEquals("[{\"doggy\":{\"name\":\"Spot\",\"ageInYears\":3}}]",
                 m.writeValueAsString(new Animal[] { new Dog("Spot", 3) }));

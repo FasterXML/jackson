@@ -20,6 +20,7 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.map.util.JSONPObject;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -126,11 +127,17 @@ public class JacksonJsonProvider
      * @since 1.5
      */
     protected HashSet<ClassKey> _cfgCustomUntouchables;
+
+    /**
+     * JSONP function name to use for automatic JSONP wrapping, if any;
+     * if null, no JSONP wrapping is done.
+     */
+    protected String _jsonpFunctionName;
     
     /*
-    ///////////////////////////////////////////////////////
-    // Context configuration
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Context configuration
+    /******************************************************
      */
 
     /**
@@ -142,9 +149,9 @@ public class JacksonJsonProvider
     protected Providers _providers;
 
     /*
-    ///////////////////////////////////////////////////////
-    // Configuration
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Configuration
+    /******************************************************
      */
 
     /**
@@ -164,9 +171,9 @@ public class JacksonJsonProvider
     protected boolean _cfgCheckCanDeserialize = false;
 
     /*
-    ///////////////////////////////////////////////////////
-    // Construction
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Construction
+    /******************************************************
      */
 
     /**
@@ -203,9 +210,9 @@ public class JacksonJsonProvider
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Configuring
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Configuring
+    /******************************************************
      */
 
     /**
@@ -321,11 +328,15 @@ public class JacksonJsonProvider
         }
         _cfgCustomUntouchables.add(new ClassKey(type));
     }
+
+    public void setJSONPFunctionName(String fname) {
+    	this._jsonpFunctionName = fname;
+    }
     
     /*
-    ////////////////////////////////////////////////////
-    // MessageBodyReader impl
-    ////////////////////////////////////////////////////
+    /******************************************************
+    /* MessageBodyReader impl
+    /******************************************************
      */
 
     /**
@@ -388,9 +399,9 @@ public class JacksonJsonProvider
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // MessageBodyWriter impl
-    ////////////////////////////////////////////////////
+    /******************************************************
+    /* MessageBodyWriter impl
+    /******************************************************
      */
 
     /**
@@ -460,7 +471,7 @@ public class JacksonJsonProvider
         throws IOException
     {
         /* 27-Feb-2009, tatu: Where can we find desired encoding? Within
-         *   http headers?
+         *   HTTP headers?
          */
         ObjectMapper mapper = locateMapper(type, mediaType);
         JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(entityStream, JsonEncoding.UTF8);
@@ -470,13 +481,27 @@ public class JacksonJsonProvider
         if (mapper.getSerializationConfig().isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
             jg.useDefaultPrettyPrinter();
         }
-        mapper.writeValue(jg, value);
+        // 04-Mar-2010, tatu: How about type we were given? (if any)
+        JavaType rootType = null;
+        
+        if (genericType != null && value != null) {
+        	if (genericType != value.getClass()) {
+        		rootType = TypeFactory.type(genericType);
+        	}
+        }
+        // [JACKSON-245] Allow automatic JSONP wrapping
+        if (_jsonpFunctionName != null) {
+        	mapper.writeValue(jg, new JSONPObject(_jsonpFunctionName, value, rootType));
+        } else {
+        	// !!! TODO: 04-Mar-2010, tatus: As per [JACKSON-195], use root type!
+        	mapper.writeValue(jg, value);
+        }
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public helper methods
-    ////////////////////////////////////////////////////
+    /******************************************************
+    /* Public helper methods
+    /******************************************************
      */
 
     /**
@@ -554,9 +579,9 @@ public class JacksonJsonProvider
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Private/sub-class helper methods
-    ////////////////////////////////////////////////////
+    /******************************************************
+    /* Private/sub-class helper methods
+    /******************************************************
      */
 
     /**

@@ -2,6 +2,8 @@ package org.codehaus.jackson.map;
 
 import java.util.Map;
 
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;
 
@@ -34,7 +36,7 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * Method to use for constructing an instance that is not shared
      * between multiple operations but only used for a single one.
      */
-    public T createUnshared(TypeResolverBuilder<?> typer);
+    public T createUnshared(TypeResolverBuilder<?> typer, VisibilityChecker<?> vc);
 
     // // // Configuration
 
@@ -91,4 +93,17 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * @since 1.5
      */
     public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType);
+
+    /**
+     * Accessor for object used for determining whether specific property elements
+     * (method, constructors, fields) can be auto-detected based on
+     * their visibility (access modifiers). Can be changed to allow
+     * different minimum visibility levels for auto-detection. Note
+     * that this is the global handler; individual types (classes)
+     * can further override active checker used (using
+     * {@link JsonAutoDetect} annotation)
+     * 
+     * @since 1.5
+     */    
+    public VisibilityChecker<?> getDefaultVisibilityChecker();
 }

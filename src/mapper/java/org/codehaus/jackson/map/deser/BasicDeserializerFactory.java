@@ -350,9 +350,12 @@ public abstract class BasicDeserializerFactory
     protected Collection<NamedType> _collectAndResolveSubtypes(MapperConfig<?> config,
             AnnotationIntrospector ai, Collection<NamedType> subtypeList)
     {
-        LinkedHashSet<NamedType> subtypes = new LinkedHashSet<NamedType>(subtypeList);
-        // collect all subtypes recursively
-        for (NamedType type : subtypes) {
+    	// Hmmh. Can't iterate over collection and modify it, so:
+    	HashSet<NamedType> seen = new HashSet<NamedType>(subtypeList);
+    	ArrayList<NamedType> subtypes = new ArrayList<NamedType>(subtypeList);
+        // collect all subtypes iteratively
+    	for (int i = 0; i < subtypes.size(); ++i) {
+    		NamedType type = subtypes.get(i);
             AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(type.getType(), ai, config);
             // but first: does type have a name already?
             if (!type.hasName()) { // if not, let's see if annotations define it
@@ -363,7 +366,7 @@ public abstract class BasicDeserializerFactory
             if (moreTypes != null) {
                 for (NamedType t2 : moreTypes) {
                     // we want to keep the first reference (may have name)
-                    if (!subtypes.contains(t2)) {
+                    if (seen.add(t2)) {
                         subtypes.add(t2);
                     }
                 }
