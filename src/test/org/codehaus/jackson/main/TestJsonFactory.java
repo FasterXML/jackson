@@ -71,7 +71,7 @@ public class TestJsonFactory
         jp.close();
 
         // Then via URL:
-        jp = f.createJsonParser(file.toURL());
+        jp = f.createJsonParser(file.toURI().toURL());
         assertToken(JsonToken.START_OBJECT, jp.nextToken());
         assertToken(JsonToken.END_OBJECT, jp.nextToken());
         assertNull(jp.nextToken());

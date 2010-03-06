@@ -43,6 +43,8 @@ Description:
   * [JACKSON-241] Add a mechanism for adding new "untouchable" types for
     JAX-RS JSON provider, to allow excluding types from being handled
     (added method "JacksonJsonProvider.addUntouchable()")
+  * [JACKSON-245] Add configuration setting in JAX-RS provider to allow
+    automatic JSONP wrapping (provider.setJSONPFunctionName())
 
   Backwards incompatible changes:
 
