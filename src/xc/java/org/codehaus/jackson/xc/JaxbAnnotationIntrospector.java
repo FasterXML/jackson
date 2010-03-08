@@ -275,7 +275,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         XmlAccessType at = findAccessType(ac);
         if (at == null) return checker;
 
-        // Note: JAXB does not do creator auto-detection, can ignore
+        // Note: JAXB does not do creator auto-detection, can (and should) ignore
         switch (at) {
         case FIELD: // all fields, independent of visibility; no methods
             return checker.withFieldVisibility(Visibility.ANY)

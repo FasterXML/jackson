@@ -55,10 +55,10 @@ public class NopAnnotationIntrospector
     }
     
     /*
-    ///////////////////////////////////////////////////////
-    // General Class annotations
-    ///////////////////////////////////////////////////////
-    */
+    /****************************************************
+    /* General Class annotations
+    /****************************************************
+     */
 
     @Override
     public Boolean findCachability(AnnotatedClass ac) {
@@ -85,6 +85,32 @@ public class NopAnnotationIntrospector
         return null;
     }
 
+    /*
+    /******************************************************
+    /* Property auto-detection
+    /******************************************************
+     */
+    
+    @Override
+    public Boolean findIsGetterAutoDetection(AnnotatedClass ac) {
+        return null;
+    }
+
+    @Override
+    public Boolean findGetterAutoDetection(AnnotatedClass ac) {
+        return null;
+    }
+    
+    @Override
+    public Boolean findCreatorAutoDetection(AnnotatedClass ac) {
+        return null;
+    }
+
+    @Override
+    public Boolean findSetterAutoDetection(AnnotatedClass ac) {
+        return null;
+    }
+    
     @Override
     public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac, VisibilityChecker<?> checker) {
         return checker;
@@ -185,19 +211,6 @@ public class NopAnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    /**
-     * @since 1.3
-     */
-    @Override
-    public Boolean findIsGetterAutoDetection(AnnotatedClass ac) {
-        return null;
-    }
-
-    @Override
-    public Boolean findGetterAutoDetection(AnnotatedClass ac) {
-        return null;
-    }
-    
     public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
         return null;
     }
@@ -222,11 +235,6 @@ public class NopAnnotationIntrospector
         return false;
     }
     
-    @Override
-    public Boolean findCreatorAutoDetection(AnnotatedClass ac) {
-        return null;
-    }
-
     @Override
     public String findDeserializablePropertyName(AnnotatedField af) {
         return null;
@@ -271,11 +279,6 @@ public class NopAnnotationIntrospector
     
     @Override
     public String findSettablePropertyName(AnnotatedMethod am) {
-        return null;
-    }
-
-    @Override
-    public Boolean findSetterAutoDetection(AnnotatedClass ac) {
         return null;
     }
 
