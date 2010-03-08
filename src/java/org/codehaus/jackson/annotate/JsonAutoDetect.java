@@ -69,7 +69,14 @@ public @interface JsonAutoDetect
 		 * this can be essentially used to disable auto-detection for specified
 		 * types.
 		 */
-		NONE;
+		NONE,
+		
+		/**
+		 * Value that indicates that default visibility level (whatever it is,
+		 * depends on context) is to be used. This usually means that inherited
+		 * value (from parent visibility settings) is to be used.
+		 */
+		DEFAULT;
 
 		public boolean isVisible(Member m) {
 			switch (this) {
@@ -98,24 +105,39 @@ public @interface JsonAutoDetect
     JsonMethod[] value() default { JsonMethod.ALL };
     
     /**
-     * Minimum visibility required for auto-detecting getter methods.
+     * Minimum visibility required for auto-detecting regular getter methods.
+     * 
+     * @since 1.5
      */
     Visibility getterVisibility() default Visibility.PUBLIC_ONLY;
 
     /**
+     * Minimum visibility required for auto-detecting is-getter methods.
+     * 
+     * @since 1.5
+     */
+    Visibility isGetterVisibility() default Visibility.PUBLIC_ONLY;
+    
+    /**
      * Minimum visibility required for auto-detecting setter methods.
+     * 
+     * @since 1.5
      */    
     Visibility setterVisibility() default Visibility.ANY;
-
-    /**
-     * Minimum visibility required for auto-detecting member fields.
-     */ 
-    Visibility fieldVisibility() default Visibility.PUBLIC_ONLY;
 
     /**
      * Minimum visibility required for auto-detecting Creator methods,
      * except for no-argument constructors (which are always detected
      * no matter what).
+     * 
+     * @since 1.5
      */
     Visibility creatorVisibility() default Visibility.PUBLIC_ONLY;
+
+    /**
+     * Minimum visibility required for auto-detecting member fields.
+     * 
+     * @since 1.5
+     */ 
+    Visibility fieldVisibility() default Visibility.PUBLIC_ONLY;
 }

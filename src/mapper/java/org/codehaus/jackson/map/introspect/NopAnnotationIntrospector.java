@@ -85,6 +85,11 @@ public class NopAnnotationIntrospector
         return null;
     }
 
+    @Override
+    public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac, VisibilityChecker<?> checker) {
+        return checker;
+    }
+    
     /*
     /****************************************************
     /* Class annotations for PM type handling (1.5+)

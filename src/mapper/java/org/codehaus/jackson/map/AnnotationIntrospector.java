@@ -95,15 +95,6 @@ public abstract class AnnotationIntrospector
     public abstract Boolean findCachability(AnnotatedClass ac);
 
     /**
-     * Method for checking whether there is a class annotation that
-     * indicates whether field auto detection should be enabled.
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findFieldAutoDetection(AnnotatedClass ac);
-
-    /**
      * Method for locating name used as "root name" (for use by
      * some serializers when outputting root-level object -- mostly
      * for XML compatibility purposes) for given class, if one
@@ -132,6 +123,79 @@ public abstract class AnnotationIntrospector
      */
     public abstract Boolean findIgnoreUnknownProperties(AnnotatedClass ac);
 
+    /*
+    /******************************************************
+    /* Property auto-detection
+    /******************************************************
+    */
+
+    /**
+     * Method for checking whether there is a class annotation that
+     * indicates whether field auto detection should be enabled.
+     *
+     * @return null if no relevant annotation is located; Boolean.TRUE
+     *   if enabling annotation found, Boolean.FALSE if disabling annotation
+     */
+    public abstract Boolean findFieldAutoDetection(AnnotatedClass ac);
+
+
+    /**
+     * Method for checking whether there is a class annotation that
+     * indicates whether (regular) getter-method auto detection
+     * should be enabled.
+     * Getter methods are methods with name "getXxx()" (for property "xxx");
+     * "isXxx()" are not included (instead those are considered
+     * "is getters")
+     *
+     * @return null if no relevant annotation is located; Boolean.TRUE
+     *   if enabling annotation found, Boolean.FALSE if disabling annotation
+     */
+    public abstract Boolean findGetterAutoDetection(AnnotatedClass ac);
+
+    /**
+     * Method for checking whether there is a class annotation that
+     * indicates whether getter-method auto-detection for "is getters"
+     * should be enabled.
+     * Is-getter methods are methods with name "isXxx()" (for property "xxx").
+     *
+     * @since 1.3
+     *
+     * @return null if no relevant annotation is located; Boolean.TRUE
+     *   if enabling annotation found, Boolean.FALSE if disabling annotation
+     */
+    public abstract Boolean findIsGetterAutoDetection(AnnotatedClass ac);
+    
+    /**
+     * Method for checking whether there is a class annotation that
+     * indicates whether creator-method auto detection should be enabled.
+     *
+     * @return null if no relevant annotation is located; Boolean.TRUE
+     *   if enabling annotation found, Boolean.FALSE if disabling annotation
+     */
+    public abstract Boolean findCreatorAutoDetection(AnnotatedClass ac);
+
+    /**
+     * Method for checking whether there is a class annotation that
+     * indicates whether setter-method auto detection should be enabled.
+     *
+     * @return null if no relevant annotation is located; Boolean.TRUE
+     *   if enabling annotation found, Boolean.FALSE if disabling annotation
+     */
+    public abstract Boolean findSetterAutoDetection(AnnotatedClass ac);
+
+
+    /**
+     * Method for checking if annotations indicate changes to minimum visibility levels
+     * needed for auto-detecting property elements (fields, methods, constructors).
+     * A baseline checker is given, and introspector is to either return it as is (if
+     * no annotations are found), or build and return a derived instance (using checker's build
+     * methods).
+     *
+     *  @since 1.5
+     */
+    public abstract VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac,
+            VisibilityChecker<?> baseChecker);
+    
     /*
     /****************************************************
     /* Class annotations for PM type handling (1.5+)
@@ -324,34 +388,6 @@ public abstract class AnnotationIntrospector
     */
 
     /**
-     * Method for checking whether there is a class annotation that
-     * indicates whether (regular) getter-method auto detection
-     * should be enabled.
-     * Getter methods are methods with name "getXxx()" (for property "xxx");
-     * "isXxx()" are not included (instead those are considered
-     * "is getters")
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findGetterAutoDetection(AnnotatedClass ac);
-
-    /**
-     * Method for checking whether there is a class annotation that
-     * indicates whether (regular) getter-method auto detection
-     * should be enabled.
-     * Getter methods are methods with name "getXxx()" (for property "xxx");
-     * "isXxx()" are not included (instead those are considered
-     * "is getters")
-     *
-     * @since 1.3
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findIsGetterAutoDetection(AnnotatedClass ac);
-
-    /**
      * Method for accessing defined property serialization order (which may be
      * partial). May return null if no ordering is defined.
      * 
@@ -519,24 +555,6 @@ public abstract class AnnotationIntrospector
     /******************************************************
     */
 
-    /**
-     * Method for checking whether there is a class annotation that
-     * indicates whether creator-method auto detection should be enabled.
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findCreatorAutoDetection(AnnotatedClass ac);
-
-    /**
-     * Method for checking whether there is a class annotation that
-     * indicates whether setter-method auto detection should be enabled.
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findSetterAutoDetection(AnnotatedClass ac);
-
     /*
     ///////////////////////////////////////////////////////
     // Deserialization: method annotations
@@ -685,16 +703,6 @@ public abstract class AnnotationIntrospector
             }
             return result;
         }
-        
-        @Override
-        public Boolean findFieldAutoDetection(AnnotatedClass ac)
-        {
-            Boolean result = _primary.findFieldAutoDetection(ac);
-            if (result == null) {
-                result = _secondary.findFieldAutoDetection(ac);
-            }
-            return result;
-        }
 
         @Override
         public String findRootName(AnnotatedClass ac)
@@ -730,6 +738,79 @@ public abstract class AnnotationIntrospector
             return result;
         }        
 
+        /*
+        /******************************************************
+        /* Property auto-detection
+        /******************************************************
+        */
+        
+        @Override
+        public Boolean findFieldAutoDetection(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findFieldAutoDetection(ac);
+            if (result == null) {
+                result = _secondary.findFieldAutoDetection(ac);
+            }
+            return result;
+        }
+
+        @Override
+        public Boolean findGetterAutoDetection(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findGetterAutoDetection(ac);
+            if (result == null) {
+                result = _secondary.findGetterAutoDetection(ac);
+            }
+            return result;
+        }
+
+        @Override
+        public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findIsGetterAutoDetection(ac);
+            if (result == null) {
+                result = _secondary.findIsGetterAutoDetection(ac);
+            }
+            return result;
+        }
+
+        @Override
+        public Boolean findCreatorAutoDetection(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findCreatorAutoDetection(ac);
+            if (result == null) {
+                result = _secondary.findCreatorAutoDetection(ac);
+            }
+            return result;
+        }
+
+        @Override
+        public Boolean findSetterAutoDetection(AnnotatedClass ac)
+        {
+            Boolean result = _primary.findSetterAutoDetection(ac);
+            if (result == null) {
+                result = _secondary.findSetterAutoDetection(ac);
+            }
+            return result;
+        }
+        
+        @Override
+        public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac,
+            VisibilityChecker<?> checker)
+        {
+            /* Note: to have proper priorities, we must actually call delegatees
+             * in reverse order:
+             */
+            checker = _secondary.findAutoDetectVisibility(ac, checker);
+            return _primary.findAutoDetectVisibility(ac, checker);
+        }
+
+        /*
+        /******************************************************
+        /* Type handling
+        /******************************************************
+        */
+        
         @Override
         public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType)
         {
@@ -877,25 +958,6 @@ public abstract class AnnotationIntrospector
         
         // // // Serialization: class annotations
 
-        @Override
-        public Boolean findGetterAutoDetection(AnnotatedClass ac)
-        {
-            Boolean result = _primary.findGetterAutoDetection(ac);
-            if (result == null) {
-                result = _secondary.findGetterAutoDetection(ac);
-            }
-            return result;
-        }
-
-        @Override
-        public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
-        {
-            Boolean result = _primary.findIsGetterAutoDetection(ac);
-            if (result == null) {
-                result = _secondary.findIsGetterAutoDetection(ac);
-            }
-            return result;
-        }
 
         public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
             String[] result = _primary.findSerializationPropertyOrder(ac);
@@ -1039,27 +1101,6 @@ public abstract class AnnotationIntrospector
             return result;
         }
         
-        // // // Deserialization: class annotations
-        
-        @Override
-        public Boolean findCreatorAutoDetection(AnnotatedClass ac)
-        {
-            Boolean result = _primary.findCreatorAutoDetection(ac);
-            if (result == null) {
-                result = _secondary.findCreatorAutoDetection(ac);
-            }
-            return result;
-        }
-
-        @Override
-        public Boolean findSetterAutoDetection(AnnotatedClass ac)
-        {
-            Boolean result = _primary.findSetterAutoDetection(ac);
-            if (result == null) {
-                result = _secondary.findSetterAutoDetection(ac);
-            }
-            return result;
-        }
 
         // // // Deserialization: method annotations
 

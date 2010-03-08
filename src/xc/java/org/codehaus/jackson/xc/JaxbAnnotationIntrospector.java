@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
 
+import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
@@ -28,18 +29,19 @@ import org.codehaus.jackson.type.JavaType;
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
  * <p/>
- * The following JAXB annotations were determined to be not-applicable:
+ * The following JAXB annotations are not supported yet (but some may be supported in future)
  * <ul>
- * <li>{@link XmlAnyAttribute} because it applies only to Map<QName, String>, which jackson can't serialize
- * <li>{@link XmlAnyElement} because it applies only to JAXBElement, which jackson can't serialize
- * <li>{@link javax.xml.bind.annotation.XmlAttachmentRef}: JSON does not support
- *  external attachments
+ * <li>{@link XmlAnyAttribute} not yet used (as of 1.5) but may be in future (as an alias for @JsonAnySetter?)
+ * <li>{@link XmlAnyElement} not yet used, may be as per [JACKSON-253]
+ * <li>{@link javax.xml.bind.annotation.XmlAttachmentRef}: JSON does not support external attachments
  * <li>{@link XmlElementDecl}
- * <li>{@link XmlElementRefs} because Jackson doesn't have any support for 'named' collection items.
- * <li>{@link XmlID} because Jackson doesn't support referential integrity.
- * <li>{@link XmlIDREF} because the is no JSON support for referential integrity.
+ * <li>{@link XmlElementRefs} because Jackson doesn't have any support for 'named' collection items -- however,
+ *    this may become partially supported as per [JACKSON-253].
+ * <li>{@link XmlID} because Jackson doesn't support referential integrity. NOTE: this too may be supported
+ *   in future if/when id references are handled
+ * <li>{@link XmlIDREF} same as <code>XmlID</code>
  * <li>{@link javax.xml.bind.annotation.XmlInlineBinaryData} since the underlying concepts
- *    (like XOP) do not exist in JSON
+ *    (like XOP) do not exist in JSON -- Jackson will always use inline base64 encoding as the method
  * <li>{@link javax.xml.bind.annotation.XmlList} because JSON does have (or necessarily need)
  *    method of serializing list of values as space-separated Strings
  * <li>{@link javax.xml.bind.annotation.XmlMimeType}
@@ -227,6 +229,45 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return null;
     }
 
+    @Override
+    public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac,
+        VisibilityChecker<?> checker)
+    {
+        XmlAccessType at = findAccessType(ac);
+        if (at == null) return checker;
+
+        // Note: JAXB does not do creator auto-detection, can ignore
+        switch (at) {
+        case FIELD: // all fields, independent of visibility; no methods
+            return checker.withFieldVisibility(Visibility.ANY)
+                .withSetterVisibility(Visibility.NONE)
+                .withGetterVisibility(Visibility.NONE)
+                .withIsGetterVisibility(Visibility.NONE)
+                ;
+        case NONE: // no auto-detection
+            return checker.withFieldVisibility(Visibility.NONE)
+            .withSetterVisibility(Visibility.NONE)
+            .withGetterVisibility(Visibility.NONE)
+            .withIsGetterVisibility(Visibility.NONE)
+            ;
+        case PROPERTY:
+            return checker.withFieldVisibility(Visibility.NONE)
+            .withSetterVisibility(Visibility.PUBLIC_ONLY)
+            .withGetterVisibility(Visibility.PUBLIC_ONLY)
+            .withIsGetterVisibility(Visibility.PUBLIC_ONLY)
+            ;
+        case PUBLIC_MEMBER:       
+            return checker.withFieldVisibility(Visibility.PUBLIC_ONLY)
+            .withSetterVisibility(Visibility.PUBLIC_ONLY)
+            .withGetterVisibility(Visibility.PUBLIC_ONLY)
+            .withIsGetterVisibility(Visibility.PUBLIC_ONLY)
+            ;
+            //boolean enabled = (at == XmlAccessType.PUBLIC_MEMBER) || (at == XmlAccessType.PROPERTY);
+            //return enabled ? Boolean.TRUE : Boolean.FALSE;
+        }
+        return checker;
+    }
+    
     /*
     /****************************************************
     /* Class annotations for PM type handling (1.5+)

@@ -119,6 +119,14 @@ public class JacksonAnnotationIntrospector
         return (ignore == null) ? null : ignore.ignoreUnknown();
     }
 
+    @Override
+    public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac,
+        VisibilityChecker<?> checker)
+    {
+        JsonAutoDetect ann = ac.getAnnotation(JsonAutoDetect.class);
+        return (ann == null) ? checker : checker.with(ann);
+    }
+    
     /*
     /****************************************************
     /* Class annotations for PM type handling (1.5+)
