@@ -195,12 +195,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     @Override
-    public Boolean findFieldAutoDetection(AnnotatedClass ac)
-    {
-        return isFieldsAccessible(ac);
-    }
-
-    @Override
     public String findRootName(AnnotatedClass ac)
     {
         XmlRootElement elem = findRootElementAnnotation(ac);
@@ -229,6 +223,51 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return null;
     }
 
+    /*
+    /******************************************************
+    /* Property auto-detection
+    /******************************************************
+     */
+
+    @Override
+    public Boolean findFieldAutoDetection(AnnotatedClass ac)
+    {
+        return isFieldsAccessible(ac);
+    }
+
+    public Boolean findGetterAutoDetection(AnnotatedClass ac)
+    {
+        /* Ok: should only return non-null if there is explicit
+         * definition; default (of "PUBLIC_MEMBER") should
+         * be indicated as null return value
+         */
+        XmlAccessType at = findAccessType(ac);
+        if (at != null) {
+            boolean enabled = (at == XmlAccessType.PUBLIC_MEMBER) || (at == XmlAccessType.PROPERTY);
+            return enabled ? Boolean.TRUE : Boolean.FALSE;
+        }
+        return null;
+    }
+
+    /**
+     * @since 1.3
+     */
+    public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
+    {
+        // No difference between regular getters, "is getters"
+        return findGetterAutoDetection(ac);
+    }
+
+    public Boolean findSetterAutoDetection(AnnotatedClass ac)
+    {
+        return isPropertiesAccessible(ac);
+    }
+
+    public Boolean findCreatorAutoDetection(AnnotatedClass ac)
+    {
+        return null;
+    }
+    
     @Override
     public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac,
         VisibilityChecker<?> checker)
@@ -465,29 +504,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    public Boolean findGetterAutoDetection(AnnotatedClass ac)
-    {
-        /* Ok: should only return non-null if there is explicit
-         * definition; default (of "PUBLIC_MEMBER") should
-         * be indicated as null return value
-         */
-        XmlAccessType at = findAccessType(ac);
-        if (at != null) {
-            boolean enabled = (at == XmlAccessType.PUBLIC_MEMBER) || (at == XmlAccessType.PROPERTY);
-            return enabled ? Boolean.TRUE : Boolean.FALSE;
-        }
-        return null;
-    }
-
-    /**
-     * @since 1.3
-     */
-    public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
-    {
-        // No difference between regular getters, "is getters"
-        return findGetterAutoDetection(ac);
-    }
-
     public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
         // @XmlType.propOrder fits the bill here:
         XmlType type = findAnnotation(XmlType.class, ac, true, true, true);
@@ -691,16 +707,6 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
                 return annotation.type();
             }
         }
-        return null;
-    }
-
-    public Boolean findSetterAutoDetection(AnnotatedClass ac)
-    {
-        return isPropertiesAccessible(ac);
-    }
-
-    public Boolean findCreatorAutoDetection(AnnotatedClass ac)
-    {
         return null;
     }
 

@@ -127,7 +127,7 @@ public abstract class AnnotationIntrospector
     /******************************************************
     /* Property auto-detection
     /******************************************************
-    */
+     */
 
     /**
      * Method for checking whether there is a class annotation that

@@ -26,9 +26,9 @@ public class JacksonAnnotationIntrospector
     public JacksonAnnotationIntrospector() { }
 
     /*
-    ////////////////////////////////////////////////////
-    // General annotation properties
-    ////////////////////////////////////////////////////
+    /****************************************************
+    /* General annotation properties
+    /****************************************************
      */
 
     @Override
@@ -48,9 +48,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // General annotations
-    ////////////////////////////////////////////////////
+    /****************************************************
+    /* General annotations
+    /****************************************************
      */
 
     @Override
@@ -67,10 +67,10 @@ public class JacksonAnnotationIntrospector
     }
     
     /*
-    ///////////////////////////////////////////////////////
-    // General class annotations
-    ///////////////////////////////////////////////////////
-    */
+    /****************************************************
+    /* General class annotations
+    /****************************************************
+     */
 
     @Override
     public Boolean findCachability(AnnotatedClass ac)
@@ -119,12 +119,90 @@ public class JacksonAnnotationIntrospector
         return (ignore == null) ? null : ignore.ignoreUnknown();
     }
 
+    /*
+    /******************************************************
+    /* Property auto-detection
+    /******************************************************
+     */
+    
     @Override
     public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac,
         VisibilityChecker<?> checker)
     {
         JsonAutoDetect ann = ac.getAnnotation(JsonAutoDetect.class);
         return (ann == null) ? checker : checker.with(ann);
+    }
+
+    @Override
+    public Boolean findGetterAutoDetection(AnnotatedClass ac)
+    {
+        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                for (JsonMethod jm : methods) {
+                    if (jm.getterEnabled()) {
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
+    @Override
+    public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
+    {
+        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                for (JsonMethod jm : methods) {
+                    if (jm.isGetterEnabled()) {
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
+    @Override
+    public Boolean findCreatorAutoDetection(AnnotatedClass ac)
+    {
+        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                for (JsonMethod jm : methods) {
+                    if (jm.creatorEnabled()) {
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
+    @Override
+    public Boolean findSetterAutoDetection(AnnotatedClass ac)
+    {
+        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
+        if (cann != null) {
+            JsonMethod[] methods = cann.value();
+            if (methods != null) {
+                for (JsonMethod jm : methods) {
+                    if (jm.setterEnabled()) {
+                        return Boolean.TRUE;
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+        return null;
     }
     
     /*
@@ -298,41 +376,6 @@ public class JacksonAnnotationIntrospector
     ///////////////////////////////////////////////////////
     */
 
-    @Override
-    public Boolean findGetterAutoDetection(AnnotatedClass ac)
-    {
-        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
-        if (cann != null) {
-            JsonMethod[] methods = cann.value();
-            if (methods != null) {
-                for (JsonMethod jm : methods) {
-                    if (jm.getterEnabled()) {
-                        return Boolean.TRUE;
-                    }
-                }
-            }
-            return Boolean.FALSE;
-        }
-        return null;
-    }
-
-    @Override
-    public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
-    {
-        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
-        if (cann != null) {
-            JsonMethod[] methods = cann.value();
-            if (methods != null) {
-                for (JsonMethod jm : methods) {
-                    if (jm.isGetterEnabled()) {
-                        return Boolean.TRUE;
-                    }
-                }
-            }
-            return Boolean.FALSE;
-        }
-        return null;
-    }
 
     public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
         JsonPropertyOrder order = ac.getAnnotation(JsonPropertyOrder.class);
@@ -539,51 +582,9 @@ public class JacksonAnnotationIntrospector
 
     /*
     /***************************************************
-    /* Deserialization: class annotations
+    /* Deserialization: Method annotations
     /***************************************************
      */
-
-    @Override
-    public Boolean findCreatorAutoDetection(AnnotatedClass ac)
-    {
-        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
-        if (cann != null) {
-            JsonMethod[] methods = cann.value();
-            if (methods != null) {
-                for (JsonMethod jm : methods) {
-                    if (jm.creatorEnabled()) {
-                        return Boolean.TRUE;
-                    }
-                }
-            }
-            return Boolean.FALSE;
-        }
-        return null;
-    }
-
-    @Override
-    public Boolean findSetterAutoDetection(AnnotatedClass ac)
-    {
-        JsonAutoDetect cann = ac.getAnnotation(JsonAutoDetect.class);
-        if (cann != null) {
-            JsonMethod[] methods = cann.value();
-            if (methods != null) {
-                for (JsonMethod jm : methods) {
-                    if (jm.setterEnabled()) {
-                        return Boolean.TRUE;
-                    }
-                }
-            }
-            return Boolean.FALSE;
-        }
-        return null;
-    }
-
-    /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: Method annotations
-    ///////////////////////////////////////////////////////
-    */
 
     @SuppressWarnings("deprecation")
     @Override
