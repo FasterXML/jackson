@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.lang.reflect.*;
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.type.*;
@@ -379,8 +380,19 @@ public class BeanDeserializerFactory
                                 BasicBeanDescription beanDesc, BeanDeserializer deser)
         throws JsonMappingException
     {
-        boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS);
-        Map<String,AnnotatedMethod> setters = beanDesc.findSetters(autodetect);
+        // Ok: let's aggregate visibility settings: first, baseline:
+        VisibilityChecker<?> vchecker = config.getDefaultVisibilityChecker();
+        // then global overrides (disabling)
+        if (!config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS)) {
+            vchecker = vchecker.withSetterVisibility(Visibility.NONE);
+        }
+        if (!config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_FIELDS)) {
+            vchecker = vchecker.withFieldVisibility(Visibility.NONE);
+        }
+        // and finally per-class overrides:
+        vchecker = config.getAnnotationIntrospector().findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
+
+        Map<String,AnnotatedMethod> setters = beanDesc.findSetters(vchecker);
         // Also, do we have a fallback "any" setter?
         AnnotatedMethod anySetter = beanDesc.findAnySetter();
 
@@ -443,7 +455,7 @@ public class BeanDeserializerFactory
              * need to add AUTO_DETECT_GETTERS to deser config too, not
              * just ser config)
              */
-            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(true, false, addedProps);
+            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(vchecker, addedProps);
             for (Map.Entry<String,AnnotatedMethod> en : getters.entrySet()) {
                 AnnotatedMethod getter = en.getValue();
                 // should only consider Collections and Maps, for now?
@@ -463,7 +475,7 @@ public class BeanDeserializerFactory
          *   (second arg passed to ignore anything for which there is a getter
          *   method)
          */
-        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_FIELDS), addedProps);
+        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(vchecker, addedProps);
         for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
             String name = en.getKey();
             if (!ignored.contains(name)) {

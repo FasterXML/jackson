@@ -16,9 +16,9 @@ public class TestFeatures
     extends BaseMapTest
 {
     /*
-    *********************************************************
-    * Helper classes
-    *********************************************************
+    /********************************************************
+    /* Helper classes
+    /*********************************************************
      */
 
     /**
@@ -68,9 +68,9 @@ public class TestFeatures
     }
 
     /*
-    *********************************************************
-    * Test methods
-    *********************************************************
+    /*********************************************************
+    /* Test methods
+    /*********************************************************
      */
 
     public void testGlobalAutoDetection() throws IOException
@@ -82,9 +82,8 @@ public class TestFeatures
         assertEquals(Integer.valueOf(-2), result.get("x"));
         assertEquals(Integer.valueOf(1), result.get("y"));
 
-        /* Then auto-detection disabled. But note: we MUST create a new
-         * mapper, since old version of serializer may be cached by now
-         */
+        // Then auto-detection disabled. But note: we MUST create a new
+        // mapper, since old version of serializer may be cached by now
         m = new ObjectMapper();
         m.configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
         result = writeAndMap(m, new GetterClass());

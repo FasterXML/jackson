@@ -66,11 +66,6 @@ public class NopAnnotationIntrospector
     }
 
     @Override
-    public Boolean findFieldAutoDetection(AnnotatedClass ac) {
-        return null;
-    }
-
-    @Override
     public String findRootName(AnnotatedClass ac) {
         return null;
     }
@@ -90,26 +85,6 @@ public class NopAnnotationIntrospector
     /* Property auto-detection
     /******************************************************
      */
-    
-    @Override
-    public Boolean findIsGetterAutoDetection(AnnotatedClass ac) {
-        return null;
-    }
-
-    @Override
-    public Boolean findGetterAutoDetection(AnnotatedClass ac) {
-        return null;
-    }
-    
-    @Override
-    public Boolean findCreatorAutoDetection(AnnotatedClass ac) {
-        return null;
-    }
-
-    @Override
-    public Boolean findSetterAutoDetection(AnnotatedClass ac) {
-        return null;
-    }
     
     @Override
     public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac, VisibilityChecker<?> checker) {

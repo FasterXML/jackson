@@ -2,12 +2,14 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.util.ArrayBuilders;
@@ -257,16 +259,23 @@ public class BeanSerializerFactory
      */
     protected List<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
     {
-        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters
-            (config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS),
-             config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS),
-             null);
+        // Ok: let's aggregate visibility settings: first, baseline:
+        VisibilityChecker<?> vchecker = config.getDefaultVisibilityChecker();
+        if (!config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS)) {
+            vchecker = vchecker.withGetterVisibility(Visibility.NONE);
+        }
+        // then global overrides (disabling)
+        if (!config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS)) {
+            vchecker = vchecker.withIsGetterVisibility(Visibility.NONE);
+        }
+        if (!config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_FIELDS)) {
+            vchecker = vchecker.withFieldVisibility(Visibility.NONE);
+        }
+        // and finally per-class overrides:
+        vchecker = config.getAnnotationIntrospector().findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
 
-        /* [JACKSON-98]: also include field-backed properties:
-         *   (second arg passed to ignore anything for which there is a getter
-         *   method)
-         */
-        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findSerializableFields(config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_FIELDS), methodsByProp.keySet());
+        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(vchecker, null);
+        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findSerializableFields(vchecker, methodsByProp.keySet());
 
         // nothing? can't proceed (caller may or may not throw an exception)
         if (methodsByProp.isEmpty() && fieldsByProp.isEmpty()) {

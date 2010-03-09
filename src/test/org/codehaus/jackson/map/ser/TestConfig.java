@@ -96,9 +96,13 @@ public class TestConfig
          * subset of features affected this way
          */
         cfg.fromAnnotations(ConfigLegacy.class);
+        assertFalse(cfg.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
+
+        /* 08-Mar-2010, tatu: the way auto-detection is handled was changed; these
+         *    tests are not correct any more:
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
         assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS));
-        assertFalse(cfg.isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
+         */
     }
 
     public void testFromAnnotations()
@@ -116,10 +120,14 @@ public class TestConfig
          * subset of features affected this way
          */
         cfg.fromAnnotations(Config.class);
-        assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
-        assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS));
         assertEquals(JsonSerialize.Inclusion.NON_DEFAULT, cfg.getSerializationInclusion());
         assertTrue(cfg.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING));
+
+        /* 08-Mar-2010, tatu: the way auto-detection is handled was changed; these
+         *    tests are not correct any more:
+        assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
+        assertFalse(cfg.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS));
+        */
     }
 
     public void testIndentation() throws Exception

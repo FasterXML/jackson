@@ -263,10 +263,6 @@ public class TestIntrospectorPair
         AnnotatedClass testClass = AnnotatedClass.construct(NamedBean.class, ann, null);
         assertNull(ann.findCachability(testClass));
         //assertNull(ann.findSerializationInclusion(testClass, null));
-        assertNull(ann.findCreatorAutoDetection(testClass));
-
-        assertEquals(Boolean.TRUE, ann.findSetterAutoDetection(testClass));
-        assertEquals(Boolean.TRUE, ann.findGetterAutoDetection(testClass));
 
         JavaType type = TypeFactory.type(Object.class);
         assertNull(ann.findDeserializationType(testClass, type, null));

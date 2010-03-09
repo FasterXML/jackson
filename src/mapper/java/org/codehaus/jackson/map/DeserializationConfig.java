@@ -317,7 +317,7 @@ public class DeserializationConfig
      * 
      * @since 1.5
      */
-    protected final VisibilityChecker<?> _visibilityChecker;
+    protected VisibilityChecker<?> _visibilityChecker;
     
     /*
     /**********************************************************
@@ -326,12 +326,12 @@ public class DeserializationConfig
      */
 
     public DeserializationConfig(ClassIntrospector<? extends BeanDescription> intr,
-                               AnnotationIntrospector annIntr)
+                               AnnotationIntrospector annIntr, VisibilityChecker<?> vc)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
         _typer = null;
-        _visibilityChecker = null;
+        _visibilityChecker = vc;
     }
 
     protected DeserializationConfig(DeserializationConfig src,
@@ -386,16 +386,8 @@ public class DeserializationConfig
          *    'MixInResolver'; no mix-ins set at this point
          */
         AnnotatedClass ac = AnnotatedClass.construct(cls, _annotationIntrospector, null);
-
-        // Auto-detect setters, creators?
-        Boolean ad = _annotationIntrospector.findSetterAutoDetection(ac);
-        if (ad != null) {
-            set(Feature.AUTO_DETECT_SETTERS, ad.booleanValue());
-    	}
-        ad = _annotationIntrospector.findCreatorAutoDetection(ac);
-        if (ad != null) {
-            set(Feature.AUTO_DETECT_CREATORS, ad.booleanValue());
-    	}
+        // visibility checks handled via separate checker object...
+        _visibilityChecker = _annotationIntrospector.findAutoDetectVisibility(ac, _visibilityChecker);
     }
 
     /**

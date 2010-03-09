@@ -3,20 +3,21 @@ package org.codehaus.jackson.map;
 import java.util.*;
 
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.type.JavaType;
 
 /**
  * Basic container for information gathered by {@link ClassIntrospector} to
  * help in constructing serializers and deserializers.
  * 
- * @author tsaloranta
+ * @author tatu
  */
 public abstract class BeanDescription
 {
     /*
-    ///////////////////////////////////////////////////////
-    // Configuration
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Configuration
+    /******************************************************
      */
 
     /**
@@ -26,9 +27,9 @@ public abstract class BeanDescription
     protected final JavaType _type;
 
     /*
-    ///////////////////////////////////////////////////////
-    // Life-cycle
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Life-cycle
+    /******************************************************
      */
 
     protected BeanDescription(JavaType type)
@@ -37,9 +38,9 @@ public abstract class BeanDescription
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Simple accesors
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Simple accesors
+    /******************************************************
      */
 
     /**
@@ -51,16 +52,30 @@ public abstract class BeanDescription
     public Class<?> getBeanClass() { return _type.getRawClass(); }
    
     /*
-    ///////////////////////////////////////////////////////
-    // Basic API
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Basic API
+    /******************************************************
      */
 
     /**
+     * @param visibilityChecker Object that determines whether
+     *    methods have enough visibility to be auto-detectable as getters
      * @param ignoredProperties (optional, may be null) Names of properties
      *   to ignore; getters for these properties are not to be returned.
+     *   
+     * @return Ordered Map with logical property name as key, and
+     *    matching getter method as value.
      */
-    public abstract LinkedHashMap<String,AnnotatedMethod> findGetters(boolean autoDetectGetters, boolean autoDetectIsGetters, Collection<String> ignoredProperties);
+    public abstract LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
+            Collection<String> ignoredProperties);
 
-    public abstract LinkedHashMap<String,AnnotatedMethod> findSetters(boolean autoDetect);
+    /**
+     * @param vchecker (optional) Object that determines whether specific methods
+     *   have enough visibility to be considered as auto-detectable setters.
+     *   If null, auto-detection is disabled
+     * 
+     * @return Ordered Map with logical property name as key, and
+     *    matching setter method as value.
+     */
+    public abstract LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> vchecker);
 }

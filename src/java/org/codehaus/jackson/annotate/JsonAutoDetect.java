@@ -81,26 +81,31 @@ public @interface JsonAutoDetect
 		public boolean isVisible(Member m) {
 			switch (this) {
 			case ANY:
-				return true;
+			    return true;
 			case NONE:
-				return false;
+			    return false;
 			case NON_PRIVATE:
-				return !Modifier.isPrivate(m.getModifiers());
+			    return !Modifier.isPrivate(m.getModifiers());
 			case PROTECTED_AND_PUBLIC:
-				if (Modifier.isProtected(m.getModifiers())) {
-					return true;
-				}
-				// fall through to public case:
+			    if (Modifier.isProtected(m.getModifiers())) {
+			        return true;
+			    }
+			    // fall through to public case:
 			case PUBLIC_ONLY:
-				return Modifier.isPublic(m.getModifiers());
+			    return Modifier.isPublic(m.getModifiers());
 			}
 			return false;
 		}
 	}
 	
     /**
-     * Optional default argument that defines logical property this
-     * method is used to access ("get").
+     * Types of property elements (getters, setters, fields, creators) that
+     * can be auto-detected.
+     * NOTE: as of 1.5, it is recommended that instead of defining this property,
+     * distinct visibility properties are used instead. This because levels
+     * used with this method are not explicit, but global defaults that differ for different
+     * methods. As such, this property can be considered <b>deprecated</b> and
+     * only retained for backwards compatibility.
      */
     JsonMethod[] value() default { JsonMethod.ALL };
     
@@ -109,21 +114,21 @@ public @interface JsonAutoDetect
      * 
      * @since 1.5
      */
-    Visibility getterVisibility() default Visibility.PUBLIC_ONLY;
+    Visibility getterVisibility() default Visibility.DEFAULT;
 
     /**
      * Minimum visibility required for auto-detecting is-getter methods.
      * 
      * @since 1.5
      */
-    Visibility isGetterVisibility() default Visibility.PUBLIC_ONLY;
+    Visibility isGetterVisibility() default Visibility.DEFAULT;
     
     /**
      * Minimum visibility required for auto-detecting setter methods.
      * 
      * @since 1.5
      */    
-    Visibility setterVisibility() default Visibility.ANY;
+    Visibility setterVisibility() default Visibility.DEFAULT;
 
     /**
      * Minimum visibility required for auto-detecting Creator methods,
@@ -132,12 +137,12 @@ public @interface JsonAutoDetect
      * 
      * @since 1.5
      */
-    Visibility creatorVisibility() default Visibility.PUBLIC_ONLY;
+    Visibility creatorVisibility() default Visibility.DEFAULT;
 
     /**
      * Minimum visibility required for auto-detecting member fields.
      * 
      * @since 1.5
      */ 
-    Visibility fieldVisibility() default Visibility.PUBLIC_ONLY;
+    Visibility fieldVisibility() default Visibility.DEFAULT;
 }

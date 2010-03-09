@@ -63,6 +63,10 @@ public class TestConfig
         ObjectMapper m = new ObjectMapper();
         DeserializationConfig cfg = m.getDeserializationConfig();
 
+        /* 08-Mar-2010, tatu: Due to change in the way visibility checks are done,
+         *    following checks are not valid any more.
+         */
+
         // First: without any annotations
         cfg.fromAnnotations(EmptyDummy.class);
         assertTrue(cfg.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS));
@@ -71,9 +75,11 @@ public class TestConfig
         /* Then configure using annotations from dummy object that
          * does have annotations; only subset of features affected this way
          */
+        /*
         cfg.fromAnnotations(Dummy.class);
         assertFalse(cfg.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS));
         assertFalse(cfg.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS));
+        */
     }
         
     public void testAnnotationsDisabled() throws Exception

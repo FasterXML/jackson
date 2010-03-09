@@ -369,12 +369,12 @@ public class SerializationConfig
      */
 
     public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr,
-                               AnnotationIntrospector annIntr)
+                               AnnotationIntrospector annIntr, VisibilityChecker<?> vc)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
         _typer = null;
-        _visibilityChecker = null;
+        _visibilityChecker = vc;
     }
 
     protected SerializationConfig(SerializationConfig src,
@@ -427,16 +427,7 @@ public class SerializationConfig
          *    specifically requested annotations to be added with this call
          */
         AnnotatedClass ac = AnnotatedClass.construct(cls, _annotationIntrospector, null);
-
-        // Should we enable/disable setter auto-detection?
-        Boolean ad = _annotationIntrospector.findGetterAutoDetection(ac);
-        if (ad != null) {
-            set(Feature.AUTO_DETECT_GETTERS, ad.booleanValue());
-    	}
-        ad = _annotationIntrospector.findIsGetterAutoDetection(ac);
-        if (ad != null) {
-            set(Feature.AUTO_DETECT_IS_GETTERS, ad.booleanValue());
-    	}
+        _visibilityChecker = _annotationIntrospector.findAutoDetectVisibility(ac, _visibilityChecker);
 
         // How about writing null property values?
         JsonSerialize.Inclusion incl = _annotationIntrospector.findSerializationInclusion(ac, null);

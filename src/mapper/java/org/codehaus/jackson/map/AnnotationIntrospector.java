@@ -130,61 +130,6 @@ public abstract class AnnotationIntrospector
      */
 
     /**
-     * Method for checking whether there is a class annotation that
-     * indicates whether field auto detection should be enabled.
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findFieldAutoDetection(AnnotatedClass ac);
-
-
-    /**
-     * Method for checking whether there is a class annotation that
-     * indicates whether (regular) getter-method auto detection
-     * should be enabled.
-     * Getter methods are methods with name "getXxx()" (for property "xxx");
-     * "isXxx()" are not included (instead those are considered
-     * "is getters")
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findGetterAutoDetection(AnnotatedClass ac);
-
-    /**
-     * Method for checking whether there is a class annotation that
-     * indicates whether getter-method auto-detection for "is getters"
-     * should be enabled.
-     * Is-getter methods are methods with name "isXxx()" (for property "xxx").
-     *
-     * @since 1.3
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findIsGetterAutoDetection(AnnotatedClass ac);
-    
-    /**
-     * Method for checking whether there is a class annotation that
-     * indicates whether creator-method auto detection should be enabled.
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findCreatorAutoDetection(AnnotatedClass ac);
-
-    /**
-     * Method for checking whether there is a class annotation that
-     * indicates whether setter-method auto detection should be enabled.
-     *
-     * @return null if no relevant annotation is located; Boolean.TRUE
-     *   if enabling annotation found, Boolean.FALSE if disabling annotation
-     */
-    public abstract Boolean findSetterAutoDetection(AnnotatedClass ac);
-
-
-    /**
      * Method for checking if annotations indicate changes to minimum visibility levels
      * needed for auto-detecting property elements (fields, methods, constructors).
      * A baseline checker is given, and introspector is to either return it as is (if
@@ -743,56 +688,6 @@ public abstract class AnnotationIntrospector
         /* Property auto-detection
         /******************************************************
         */
-        
-        @Override
-        public Boolean findFieldAutoDetection(AnnotatedClass ac)
-        {
-            Boolean result = _primary.findFieldAutoDetection(ac);
-            if (result == null) {
-                result = _secondary.findFieldAutoDetection(ac);
-            }
-            return result;
-        }
-
-        @Override
-        public Boolean findGetterAutoDetection(AnnotatedClass ac)
-        {
-            Boolean result = _primary.findGetterAutoDetection(ac);
-            if (result == null) {
-                result = _secondary.findGetterAutoDetection(ac);
-            }
-            return result;
-        }
-
-        @Override
-        public Boolean findIsGetterAutoDetection(AnnotatedClass ac)
-        {
-            Boolean result = _primary.findIsGetterAutoDetection(ac);
-            if (result == null) {
-                result = _secondary.findIsGetterAutoDetection(ac);
-            }
-            return result;
-        }
-
-        @Override
-        public Boolean findCreatorAutoDetection(AnnotatedClass ac)
-        {
-            Boolean result = _primary.findCreatorAutoDetection(ac);
-            if (result == null) {
-                result = _secondary.findCreatorAutoDetection(ac);
-            }
-            return result;
-        }
-
-        @Override
-        public Boolean findSetterAutoDetection(AnnotatedClass ac)
-        {
-            Boolean result = _primary.findSetterAutoDetection(ac);
-            if (result == null) {
-                result = _secondary.findSetterAutoDetection(ac);
-            }
-            return result;
-        }
         
         @Override
         public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac,

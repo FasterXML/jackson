@@ -170,7 +170,7 @@ public class ObjectMapper
     protected final static AnnotationIntrospector DEFAULT_ANNOTATION_INTROSPECTOR = new JacksonAnnotationIntrospector();
 
     // @since 1.5
-    protected final static VisibilityChecker<?> STD_VISIBILITY_CHECKER = new VisibilityChecker.Std();
+    protected final static VisibilityChecker<?> STD_VISIBILITY_CHECKER = VisibilityChecker.Std.defaultInstance();
     
     /*
     /************************************************* 
@@ -373,8 +373,12 @@ public class ObjectMapper
          *    to create actual linking.
          */
         _jsonFactory = (jf == null) ? new MappingJsonFactory(this) : jf;
-        _serializationConfig = (sconfig == null) ? new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR) : sconfig;
-        _deserializationConfig = (dconfig == null) ? new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR) : dconfig;
+        // visibility checker; usually default
+        _visibilityChecker = STD_VISIBILITY_CHECKER;
+        _serializationConfig = (sconfig != null) ? sconfig :
+            new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker);
+        _deserializationConfig = (dconfig != null) ? dconfig :
+            new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker);
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -384,8 +388,6 @@ public class ObjectMapper
         // and use standard JsonNodeFactory initially
         _nodeFactory = JsonNodeFactory.instance;
 
-        // and finally, visibility checker; usually default
-        _visibilityChecker = STD_VISIBILITY_CHECKER;
     }
 
     /**

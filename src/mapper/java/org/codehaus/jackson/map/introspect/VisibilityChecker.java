@@ -132,21 +132,20 @@ public interface VisibilityChecker<T extends VisibilityChecker<T>>
     public static class Std
         implements VisibilityChecker<Std>
     {
+        /**
+         * This is the canonical base instance, configured with default
+         * visibility values
+         */
+        protected final static Std DEFAULT = new Std(Std.class.getAnnotation(JsonAutoDetect.class));
+        
         protected final Visibility _getterMinLevel;
         protected final Visibility _isGetterMinLevel;
         protected final Visibility _setterMinLevel;
         protected final Visibility _creatorMinLevel;
         protected final Visibility _fieldMinLevel;
 		
-        /**
-         * Default constructor; will construct an instance that uses default
-         * Jackson visibility limits, as indicated by {@link JsonAutoDetect}
-         * settings for this class.
-         */
-        public Std() {
-            this(Std.class.getAnnotation(JsonAutoDetect.class));
-        }
-
+        public static Std defaultInstance() { return DEFAULT; }
+        
         /**
          * Constructor used for building instance that has minumum visibility
          * levels as indicated by given annotation instance
@@ -205,27 +204,32 @@ public interface VisibilityChecker<T extends VisibilityChecker<T>>
 	}
 
 	public Std withGetterVisibility(Visibility v) {
-            if (_getterMinLevel == v || v == Visibility.DEFAULT) return this;
+	    if (v == Visibility.DEFAULT)  v = DEFAULT._getterMinLevel;
+            if (_getterMinLevel == v) return this;
 	    return new Std(v, _isGetterMinLevel, _setterMinLevel, _creatorMinLevel, _fieldMinLevel);
 	}
 
         public Std withIsGetterVisibility(Visibility v) {
-            if (_isGetterMinLevel == v || v == Visibility.DEFAULT) return this;
+            if (v == Visibility.DEFAULT)  v = DEFAULT._isGetterMinLevel;
+            if (_isGetterMinLevel == v) return this;
             return new Std(_getterMinLevel, v, _setterMinLevel, _creatorMinLevel, _fieldMinLevel);
         }
 		
 	public Std withSetterVisibility(Visibility v) {
-	    if (_setterMinLevel == v || v == Visibility.DEFAULT) return this;
+            if (v == Visibility.DEFAULT)  v = DEFAULT._setterMinLevel;
+            if (_setterMinLevel == v) return this;
             return new Std(_getterMinLevel, _isGetterMinLevel, v, _creatorMinLevel, _fieldMinLevel);
 	}
 
 	public Std withCreatorVisibility(Visibility v) {
-            if (_creatorMinLevel == v || v == Visibility.DEFAULT) return this;
+            if (v == Visibility.DEFAULT)  v = DEFAULT._creatorMinLevel;
+            if (_creatorMinLevel == v) return this;
 	    return new Std(_getterMinLevel, _isGetterMinLevel, _setterMinLevel, v, _fieldMinLevel);
 	}
 
 	public Std withFieldVisibility(Visibility v) {
-            if (_fieldMinLevel == v || v == Visibility.DEFAULT) return this;
+            if (v == Visibility.DEFAULT)  v = DEFAULT._fieldMinLevel;
+            if (_fieldMinLevel == v) return this;
 	    return new Std(_getterMinLevel, _isGetterMinLevel, _setterMinLevel, _creatorMinLevel, v);
 	}
 		
@@ -286,6 +290,22 @@ public interface VisibilityChecker<T extends VisibilityChecker<T>>
                 if (curr == method || curr == JsonMethod.ALL) return true;
             }
             return false;
+        }
+
+        /*
+        /********************************************************
+        /* Standard methods
+        /********************************************************
+         */
+        @Override
+        public String toString() {
+            return new StringBuilder("[Visibility:")
+                .append(" getter: ").append(_getterMinLevel)
+                .append(", isGetter: ").append(_isGetterMinLevel)
+                .append(", setter: ").append(_setterMinLevel)
+                .append(", creator: ").append(_creatorMinLevel)
+                .append(", field: ").append(_fieldMinLevel)
+                .append("]").toString();
         }
     }
 }
