@@ -904,7 +904,7 @@ public class ObjectMapper
 
     /**
      * Method that can be used to serialize any Java value as
-     * Json output, using provided {@link JsonGenerator}.
+     * JSON output, using provided {@link JsonGenerator}.
      */
     @Override
     public void writeValue(JsonGenerator jgen, Object value)
@@ -916,7 +916,7 @@ public class ObjectMapper
 
     /**
      * Method that can be used to serialize any Java value as
-     * Json output, using provided {@link JsonGenerator},
+     * JSON output, using provided {@link JsonGenerator},
      * configured as per passed configuration object.
      *
      * @since 1.1
@@ -929,7 +929,7 @@ public class ObjectMapper
     }
 
     /**
-     * Method to serialize given Json Tree, using generator
+     * Method to serialize given JSON Tree, using generator
      * provided.
      */
     public void writeTree(JsonGenerator jgen, JsonNode rootNode)
@@ -1193,7 +1193,7 @@ public class ObjectMapper
 
     /**
      * Method that can be used to serialize any Java value as
-     * Json output, written to File provided.
+     * JSON output, written to File provided.
      */
     public void writeValue(File resultFile, Object value)
         throws IOException, JsonGenerationException, JsonMappingException
@@ -1203,7 +1203,7 @@ public class ObjectMapper
 
     /**
      * Method that can be used to serialize any Java value as
-     * Json output, using output stream provided (using encoding
+     * JSON output, using output stream provided (using encoding
      * {@link JsonEncoding#UTF8}).
      *<p>
      * Note: method does not close the underlying stream explicitly
@@ -1220,7 +1220,7 @@ public class ObjectMapper
 
     /**
      * Method that can be used to serialize any Java value as
-     * Json output, using Writer provided.
+     * JSON output, using Writer provided.
      *<p>
      * Note: method does not close the underlying stream explicitly
      * here; however, {@link JsonFactory} this mapper uses may choose
