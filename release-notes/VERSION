@@ -1,7 +1,7 @@
 Version: 1.5.0
 
 Release date:
-  xx-Jan-2010
+  xx-Mar-2010
 
 Description:
   Official 1.5 release.
@@ -43,6 +43,9 @@ Description:
   * [JACKSON-241] Add a mechanism for adding new "untouchable" types for
     JAX-RS JSON provider, to allow excluding types from being handled
     (added method "JacksonJsonProvider.addUntouchable()")
+  * [JACKSON-244] Allow specifying specific minimum visibility levels for
+    auto-detecting getters, setters, fields and creators
+    (requested by Pierre-Yves R)
   * [JACKSON-245] Add configuration setting in JAX-RS provider to allow
     automatic JSONP wrapping (provider.setJSONPFunctionName())
 

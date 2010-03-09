@@ -2,7 +2,6 @@ package org.codehaus.jackson.map.ser;
 
 import org.codehaus.jackson.map.BaseMapTest;
 
-import java.io.IOException;
 import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
@@ -22,6 +21,7 @@ public class TestAutoDetect
     {
         public String p1 = "public";
         protected String p2 = "protected";
+        @SuppressWarnings("unused")
         private String p3 = "private";
     }
 
@@ -32,6 +32,7 @@ public class TestAutoDetect
     {
         public String getA() { return "a"; }
         protected String getB() { return "b"; }
+        @SuppressWarnings("unused")
         private String getC() { return "c"; }
     }
 

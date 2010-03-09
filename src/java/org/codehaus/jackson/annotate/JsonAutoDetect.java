@@ -66,7 +66,7 @@ public @interface JsonAutoDetect
 		PUBLIC_ONLY,
 		/**
 		 * Value that indicates that no access modifiers are auto-detectable:
-		 * this can be essentially used to disable auto-detection for specified
+		 * this can be used to explicitly disable auto-detection for specified
 		 * types.
 		 */
 		NONE,

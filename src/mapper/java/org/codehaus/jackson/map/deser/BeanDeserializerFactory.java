@@ -227,20 +227,25 @@ public class BeanDeserializerFactory
             }
         }
 
+        // need to construct suitable visibility checker:
+        VisibilityChecker<?> vchecker = config.getDefaultVisibilityChecker();
+        if (!config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS)) {
+            vchecker = vchecker.withCreatorVisibility(Visibility.NONE);
+        }
+        vchecker = config.getAnnotationIntrospector().findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
+
         CreatorContainer creators =  new CreatorContainer(beanDesc.getBeanClass(), fixAccess);
-        _addDeserializerConstructors(config, beanDesc, deser, intr, creators);
-        _addDeserializerFactoryMethods(config, beanDesc, deser, intr, creators);
+        _addDeserializerConstructors(config, beanDesc, vchecker, deser, intr, creators);
+        _addDeserializerFactoryMethods(config, beanDesc, vchecker, deser, intr, creators);
         deser.setCreators(creators);
     }
 
     protected void _addDeserializerConstructors
-        (DeserializationConfig config, BasicBeanDescription beanDesc,
+        (DeserializationConfig config, BasicBeanDescription beanDesc, VisibilityChecker<?> vchecker,
          BeanDeserializer deser, AnnotationIntrospector intr,
          CreatorContainer creators)
         throws JsonMappingException
     {
-        boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS);
-
         for (AnnotatedConstructor ctor : beanDesc.getConstructors()) {
             int argCount = ctor.getParameterCount();
             if (argCount < 1) {
@@ -256,19 +261,19 @@ public class BeanDeserializerFactory
                 if (name == null || name.length() == 0) { // not property based
                     Class<?> type = ctor.getParameterClass(0);
                     if (type == String.class) {
-                        if (autodetect || isCreator) {
+                        if (isCreator || vchecker.isCreatorVisible(ctor)) {
                             creators.addStringConstructor(ctor);
                         }
                         continue;
                     }
                     if (type == int.class || type == Integer.class) {
-                        if (autodetect || isCreator) {
+                        if (isCreator || vchecker.isCreatorVisible(ctor)) {
                             creators.addIntConstructor(ctor);
                         }
                         continue;
                     }
                     if (type == long.class || type == Long.class) {
-                        if (autodetect || isCreator) {
+                        if (isCreator || vchecker.isCreatorVisible(ctor)) {
                             creators.addLongConstructor(ctor);
                         }
                         continue;
@@ -304,13 +309,11 @@ public class BeanDeserializerFactory
     }
 
     protected void _addDeserializerFactoryMethods
-        (DeserializationConfig config, BasicBeanDescription beanDesc,
+        (DeserializationConfig config, BasicBeanDescription beanDesc, VisibilityChecker<?> vchecker,
          BeanDeserializer deser, AnnotationIntrospector intr,
          CreatorContainer creators)
         throws JsonMappingException
     {
-        // and/or single-arg static methods
-        boolean autodetect = config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS);
 
         for (AnnotatedMethod factory : beanDesc.getFactoryMethods()) {
             int argCount = factory.getParameterCount();
@@ -327,19 +330,19 @@ public class BeanDeserializerFactory
                 if (name == null || name.length() == 0) { // not property based
                     Class<?> type = factory.getParameterClass(0);
                     if (type == String.class) {
-                        if (autodetect || isCreator) {
+                        if (isCreator || vchecker.isCreatorVisible(factory)) {
                             creators.addStringFactory(factory);
                         }
                         continue;
                     }
                     if (type == int.class || type == Integer.class) {
-                        if (autodetect || isCreator) {
+                        if (isCreator || vchecker.isCreatorVisible(factory)) {
                             creators.addIntFactory(factory);
                         }
                         continue;
                     }
                     if (type == long.class || type == Long.class) {
-                        if (autodetect || isCreator) {
+                        if (isCreator || vchecker.isCreatorVisible(factory)) {
                             creators.addLongFactory(factory);
                         }
                         continue;

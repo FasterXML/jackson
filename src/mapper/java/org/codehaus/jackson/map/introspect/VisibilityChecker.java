@@ -126,7 +126,13 @@ public interface VisibilityChecker<T extends VisibilityChecker<T>>
         getterVisibility = Visibility.PUBLIC_ONLY,
         isGetterVisibility = Visibility.PUBLIC_ONLY,
         setterVisibility = Visibility.ANY,
-        creatorVisibility = Visibility.PUBLIC_ONLY,
+        /**
+         * By default, all matching single-arg constructed are found,
+         * regardless of visibility. Does not apply to factory methods,
+         * they can not be auto-detected; ditto for multiple-argument
+         * constructors.
+         */
+        creatorVisibility = Visibility.ANY,
         fieldVisibility = Visibility.PUBLIC_ONLY
     )
     public static class Std

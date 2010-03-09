@@ -234,12 +234,16 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         VisibilityChecker<?> checker)
     {
         XmlAccessType at = findAccessType(ac);
-        // JAXB default is "PUBLIC_MEMBER"
         if (at == null) {
-            //return checker;
-            at = XmlAccessType.PUBLIC_MEMBER;
+            /* JAXB default is "PUBLIC_MEMBER"; however, here we should not
+             * override settings if there is no annotation -- that would mess
+             * up global baseline. Fortunately Jackson defaults are very close
+             * to JAXB 'PUBLIC_MEMBER' settings (considering that setters and
+             * getters must come in pairs)
+             */
+            return checker;
         }
-
+        
         // Note: JAXB does not do creator auto-detection, can (and should) ignore
         switch (at) {
         case FIELD: // all fields, independent of visibility; no methods

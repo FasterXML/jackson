@@ -412,24 +412,24 @@ public class BeanDeserializer
     	if (_delegatingCreator != null) {
     	    return _delegatingCreator.deserialize(jp, ctxt);
     	}
-        throw ctxt.mappingException(getBeanClass());
+        throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found");
     }
 
     public Object deserializeFromNumber(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
     	if (_numberCreator != null) {
-                switch (jp.getNumberType()) {
-                case INT:
-    		return _numberCreator.construct(jp.getIntValue());
-                case LONG:
-    		return _numberCreator.construct(jp.getLongValue());
-                }
+            switch (jp.getNumberType()) {
+            case INT:
+		return _numberCreator.construct(jp.getIntValue());
+            case LONG:
+		return _numberCreator.construct(jp.getLongValue());
+            }
     	}
     	if (_delegatingCreator != null) {
     	    return _delegatingCreator.deserialize(jp, ctxt);
     	}
-    	throw ctxt.mappingException(getBeanClass());
+        throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found");
     }
 
     public Object deserializeUsingCreator(JsonParser jp, DeserializationContext ctxt)

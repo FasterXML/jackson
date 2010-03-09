@@ -272,3 +272,7 @@ Lars Clausen:
   * Reported [JACKSON-251]: Concurrency bug in pre-1.5.0 version of
     @JsonSubTypes handling (NOTE: new code so did not affect 1.4 or prior)
    [1.5.0]
+
+Pierre-Yves Ricay:
+  * Requested [JACKSON-244]: allow private fields processing without having to annotate them
+   [1.5.0]
