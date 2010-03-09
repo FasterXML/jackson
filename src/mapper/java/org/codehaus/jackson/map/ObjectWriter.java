@@ -151,18 +151,6 @@ public class ObjectWriter
         jgen.flush();
     }
 
-    /**
-     * Method that can be used to serialize any Java value as
-     * JSON output, using provided {@link JsonGenerator},
-     * configured as per passed configuration object.
-     */
-    public void writeValue(JsonGenerator jgen, Object value, SerializationConfig config)
-        throws IOException, JsonGenerationException, JsonMappingException
-    {
-        _provider.serializeValue(_config, jgen, value, _serializerFactory);
-        jgen.flush();
-    }
-
     /*
     /***************************************************
     /* Serialization methods, others
