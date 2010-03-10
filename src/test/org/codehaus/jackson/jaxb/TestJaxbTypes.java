@@ -4,6 +4,7 @@ import java.util.*;
 
 import javax.xml.bind.annotation.*;
 
+import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -84,6 +85,25 @@ public class TestJaxbTypes
         @XmlElement(type=BeanImpl.class)
         public AbstractBean getBean() { return bean; }
         public void setBean(AbstractBean bean) { this.bean = bean; }
+    }
+
+    /**
+     * Unit test for [JACKSON-250]
+     */
+    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY)
+    @JsonTypeName("Name")
+    @XmlType    
+    static class P2
+    {
+    	String id;
+    	public P2(String id) { this.id = id; }
+    	public P2() { }
+
+    	@XmlID
+    	@XmlAttribute(name="id")
+    	public String getId() { return id; }
+
+    	public void setId(String id) { this.id = id; }
     }
     
     /*
@@ -203,5 +223,14 @@ public class TestJaxbTypes
         BeanImpl bean = (BeanImpl) beans.get(0);
         assertEquals(1, bean.a);
         assertEquals("a", bean.b);
+    }
+
+    public void testIssue250() throws Exception
+    {
+        ObjectMapper mapper = getJaxbAndJacksonMapper();
+        P2 bean = new P2("myId");
+        String str = mapper.writeValueAsString(bean);
+        assertEquals("{\"@type\":\"Name\",\"id\":\"myId\"}", str);
+
     }
 }

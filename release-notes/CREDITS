@@ -269,8 +269,10 @@ Andrei Voden:
 Lars Clausen:
   * Reported [JACKSON-246]: JAXB property name determination not working correctly.
    [1.5.0]
+  * Reported [JACKSON-250]: Type name not always detected 
+   [1.5.0]
   * Reported [JACKSON-251]: Concurrency bug in pre-1.5.0 version of
-    @JsonSubTypes handling (NOTE: new code so did not affect 1.4 or prior)
+    @JsonSubTypes handling
    [1.5.0]
 
 Pierre-Yves Ricay:

@@ -14,6 +14,7 @@ import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.map.util.SubTypeHelper;
 import org.codehaus.jackson.type.JavaType;
  
 /**
@@ -164,16 +165,11 @@ public class BeanSerializerFactory
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
         TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(propertyEntity, baseType);        
-        Collection<NamedType> subtypes = null;
         // Defaulting: if no annotations on member, check value class
         if (b == null) {
             return createTypeSerializer(baseType, config);
         }
-        // but if annotations found, may need to resolve subtypes:
-        Collection<NamedType> st = ai.findSubtypes(propertyEntity);
-        if (st != null && st.size() > 0) {
-            subtypes = _collectAndResolveSubtypes(config, ai, st);
-        }
+        Collection<NamedType> subtypes = SubTypeHelper.collectAndResolveSubtypes(propertyEntity, config, ai);
         return b.buildTypeSerializer(baseType, subtypes);
     }
 
@@ -199,12 +195,7 @@ public class BeanSerializerFactory
         if (b == null) {
             return createTypeSerializer(contentType, config);
         }
-        Collection<NamedType> subtypes = null;
-        // but if annotations found, may need to resolve subtypes:
-        Collection<NamedType> st = ai.findSubtypes(propertyEntity);
-        if (st != null && st.size() > 0) {
-            subtypes = _collectAndResolveSubtypes(config, ai, st);
-        }
+        Collection<NamedType> subtypes = SubTypeHelper.collectAndResolveSubtypes(propertyEntity, config, ai);
         return b.buildTypeSerializer(contentType, subtypes);
     }
     

@@ -20,14 +20,15 @@ Description:
     construction correctly, allowing manual polymorphic deserialization
   * [JACKSON-175] Add "org.codehaus.jackson.util.TokenBuffer", used for
     much more efficient type conversions (and other internal buffering)
+  * [JACKSON-218] Extended support for Joda date/time types like
+    LocalDate, LocalDateTime and DateMidnight
   * [JACKSON-220] @JsonSerialize.using() was not working properly for
     non-Bean types (Collections, Maps, wrappers)
   * [JACKSON-236] Allow deserialization of timestamps-as-Strings (not
     just timestamps as JSON integer numbers).
    (requested by Chris C)
-  * [JACKSON-218] Extended support for Joda date/time types like
-    LocalDate, LocalDateTime and DateMidnight
-   
+  * [JACKSON-255] Allow setter override even with incompatible type
+    (as long as only one setter per class, so there is no ambiguity)
 
   New features:
 

@@ -204,7 +204,10 @@ public abstract class AnnotationIntrospector
 
     /**
      * Method for locating annotation-specified subtypes related to annotated
-     * entity (class, method, field)
+     * entity (class, method, field). Note that this is only guaranteed to be
+     * a list of directly
+     * declared subtypes, no recursive processing is guarantees (i.e. caller
+     * has to do it if/as necessary)
      * 
      * @param a Annotated entity (class, field/method) to check for annotations
      * 

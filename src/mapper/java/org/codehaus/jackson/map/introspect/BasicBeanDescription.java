@@ -452,9 +452,18 @@ public class BasicBeanDescription extends BeanDescription
              */
             AnnotatedMethod old = results.put(propName, am);
             if (old != null) {
-                String oldDesc = old.getFullName();
-                String newDesc = am.getFullName();
-                throw new IllegalArgumentException("Conflicting setter definitions for property \""+propName+"\": "+oldDesc+" vs "+newDesc);
+            	/* [JACKSON-255] Only throw exception if they are in same class. Must
+            	 *   be careful to choose "correct" one; first one should actually
+            	 *   have priority
+            	 * 
+            	 */
+            	if (old.getDeclaringClass() == am.getDeclaringClass()) {
+	                String oldDesc = old.getFullName();
+	                String newDesc = am.getFullName();
+	                throw new IllegalArgumentException("Conflicting setter definitions for property \""+propName+"\": "+oldDesc+" vs "+newDesc);
+            	}
+            	// to put earlier one back
+            	results.put(propName, old);
             }
         }
 

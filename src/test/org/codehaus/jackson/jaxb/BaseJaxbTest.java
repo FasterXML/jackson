@@ -1,6 +1,7 @@
 package org.codehaus.jackson.jaxb;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 public abstract class BaseJaxbTest
@@ -22,4 +23,15 @@ public abstract class BaseJaxbTest
          mapper.getSerializationConfig().setAnnotationIntrospector(intr);
          return mapper;
      }
+
+     protected ObjectMapper getJaxbAndJacksonMapper()
+     {
+         ObjectMapper mapper = new ObjectMapper();
+         AnnotationIntrospector intr = new AnnotationIntrospector.Pair(new JaxbAnnotationIntrospector(),
+        		 new JacksonAnnotationIntrospector());
+         mapper.getDeserializationConfig().setAnnotationIntrospector(intr);
+         mapper.getSerializationConfig().setAnnotationIntrospector(intr);
+         return mapper;
+     }
+
 }

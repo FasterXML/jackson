@@ -1,14 +1,13 @@
 package org.codehaus.jackson.map.ser;
+
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.w3c.dom.Element;
 
@@ -16,12 +15,18 @@ import org.w3c.dom.Element;
  * Test for verifying [JACKSON-238]
  *
  * @author Pablo Lalloni <plalloni@gmail.com>
- * @since 04/02/2010 19:50:00
+ * @author tatu
  */
 public class TestCustomSerializers
     extends org.codehaus.jackson.map.BaseMapTest
 {
-    static class ElementSerializer extends JsonSerializer<Element>
+	/*
+	/***********************************************
+	/* Helper beans
+	/***********************************************
+	 */
+
+	static class ElementSerializer extends JsonSerializer<Element>
     {
         @Override
         public void serialize(Element value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
@@ -32,6 +37,12 @@ public class TestCustomSerializers
     @JsonSerialize(using = ElementSerializer.class)
     public static class ElementMixin {}
 
+	/*
+	/***********************************************
+	/* Unit tests
+	/***********************************************
+	 */
+    
     public void testCustomization() throws Exception
     {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -40,5 +51,25 @@ public class TestCustomSerializers
         StringWriter sw = new StringWriter();
         objectMapper.writeValue(sw, element);
         assertEquals(sw.toString(), "\"element\"");
+    }
+
+    @SuppressWarnings("unchecked")
+	public void testCustomLists() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();    	
+        CustomSerializerFactory sf = new CustomSerializerFactory();
+        sf.addGenericMapping(Collection.class, new JsonSerializer<Collection>() {
+            @Override
+            public void serialize(Collection value, JsonGenerator jgen, SerializerProvider provider)
+                    throws IOException, JsonProcessingException {
+                if (value.size() != 0) {
+                    ContainerSerializers.CollectionSerializer.instance.serialize(value, jgen, provider);
+                } else {
+                	jgen.writeNull();
+                }
+            }
+        });
+        mapper.setSerializerFactory(sf);
+        assertEquals("null", mapper.writeValueAsString(new ArrayList<Object>()));
     }
 }

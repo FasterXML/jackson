@@ -42,6 +42,26 @@ public class TestOverloaded
     }
     */
 
+    static class NumberBean {
+    	Object value;
+    	
+    	public void setValue(Number n) { value = n; }
+    }
+
+    static class WasNumberBean extends NumberBean {
+    	Object value;
+    	
+    	public void setValue(String str) { value = str; }
+    }
+
+    /**
+     * And then a Bean that is conflicting and should not work
+     */
+    static class ConflictBean {
+    	public void setA(ArrayList<Object> a) { }
+    	public void setA(LinkedList<Object> a) { }
+    }
+    
     /*
     /************************************************************
     /* Unit tests
@@ -81,4 +101,29 @@ public class TestOverloaded
         assertEquals("b", bean.list.get(1));
         assertEquals("c", bean.list.get(2));
     }
+
+    /**
+     * As per [JACKSON-255], should also allow more general overriding,
+     * as long as there are no in-class conflicts.
+     */
+    public void testOverride() throws Exception
+    {
+        WasNumberBean bean = new ObjectMapper().readValue
+            ("{\"value\" : \"abc\"}", WasNumberBean.class);
+        assertNotNull(bean);
+        assertEquals("abc", bean.value);
+    }
+
+    /**
+     * For genuine setter conflict, an exception is to be thrown.
+     */
+    public void testSetterConflict() throws Exception
+    {
+    	try {    		
+    		new ObjectMapper().readValue("{ }", ConflictBean.class);
+    	} catch (Exception e) {
+    		verifyException(e, "Conflicting setter definitions");
+    	}
+    }
+    
 }

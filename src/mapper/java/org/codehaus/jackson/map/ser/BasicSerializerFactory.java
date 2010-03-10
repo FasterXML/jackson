@@ -15,6 +15,7 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.map.util.Provider;
+import org.codehaus.jackson.map.util.SubTypeHelper;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
 
@@ -262,42 +263,11 @@ public class BasicSerializerFactory
         if (b == null) {
             b = config.getDefaultTyper(baseType);
         } else {
-            // Otherwise may need to know subtypes:
-            Collection<NamedType> st = ai.findSubtypes(ac);
-            if (st != null && st.size() > 0) {
-                subtypes = _collectAndResolveSubtypes(config, ai, st);
-            }
+            subtypes = SubTypeHelper.collectAndResolveSubtypes(ac, config, ai);
         }
         return (b == null) ? null : b.buildTypeSerializer(baseType, subtypes);
     }
 
-    protected List<NamedType> _collectAndResolveSubtypes(MapperConfig<?> config,
-            AnnotationIntrospector ai, Collection<NamedType> subtypeList)
-    {
-    	// Hmmh. Can't iterate over collection and modify it, so:
-    	HashSet<NamedType> seen = new HashSet<NamedType>(subtypeList);
-    	ArrayList<NamedType> subtypes = new ArrayList<NamedType>(subtypeList);
-        // collect all subtypes iteratively
-    	for (int i = 0; i < subtypes.size(); ++i) {
-    		NamedType type = subtypes.get(i);
-            AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(type.getType(), ai, config);
-            // but first: does type have a name already?
-            if (!type.hasName()) { // if not, let's see if annotations define it
-                type.setName(ai.findTypeName(ac));
-            }
-            // and see if annotations list more subtypes
-            List<NamedType> moreTypes = ai.findSubtypes(ac);
-            if (moreTypes != null) {
-                for (NamedType t2 : moreTypes) {
-                    // we want to keep the first reference (may have name)
-                    if (seen.add(t2)) {
-                        subtypes.add(t2);
-                    }
-                }
-            }
-        }
-        return subtypes;
-    }
     
     /*
     /***********************************************************
