@@ -278,3 +278,8 @@ Lars Clausen:
 Pierre-Yves Ricay:
   * Requested [JACKSON-244]: allow private fields processing without having to annotate them
    [1.5.0]
+
+John Lister:
+  * Reported [JACKSON-256]: incorrect combining of serialization inclusion
+    values; suggested better way to do it
+   [1.5.0]

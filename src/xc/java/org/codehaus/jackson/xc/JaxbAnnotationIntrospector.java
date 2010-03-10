@@ -478,18 +478,24 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /**
-     * By default only non-null properties are written (per the JAXB spec.)
-     *
-     * @return JsonSerialize.Inclusion.NON_NULL
+     * Implementation of this method is slightly tricky, given that JAXB defaults differ
+     * from Jackson defaults. As of version 1.5 and above, this is resolved by honoring
+     * Jackson defaults (which are configurable), and only using JAXB explicit annotations.
      */
     public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue)
     {
-        if ((a instanceof AnnotatedField) || (a instanceof AnnotatedMethod)) {
-            boolean nillable = a.getAnnotation(XmlElementWrapper.class) != null ? a.getAnnotation(XmlElementWrapper.class).nillable() :
-                    a.getAnnotation(XmlElement.class) != null && a.getAnnotation(XmlElement.class).nillable();
-            return nillable ? JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
+        XmlElementWrapper w = a.getAnnotation(XmlElementWrapper.class);
+        if (w != null) {
+            return w.nillable() ? JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
         }
-        return JsonSerialize.Inclusion.NON_NULL;
+        XmlElement e = a.getAnnotation(XmlElement.class);
+        if (e != null) {
+            return e.nillable() ? JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
+        }
+        /* [JACKSON-256]: better pass default value through, if no explicit direction indicating
+         * otherwise
+         */
+        return null;
     }
 
     @Override

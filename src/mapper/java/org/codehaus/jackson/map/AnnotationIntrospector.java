@@ -809,15 +809,13 @@ public abstract class AnnotationIntrospector
              * works: largest value is the last one, which is the most
              * restrictive value as well.
              */
-            JsonSerialize.Inclusion v1 = _primary.findSerializationInclusion(a, defValue);
-            JsonSerialize.Inclusion v2 = _secondary.findSerializationInclusion(a, defValue);
-            if (v1 == null) {
-                return v2;
-            }
-            if (v2 == null) {
-                return v1;
-            }
-            return (v1.compareTo(v2) < 0) ? v2 : v1;
+            /* 09-Mar-2010, tatu: Actually, as per [JACKSON-256], it is probably better to just
+             *    use strict overriding. Simpler, easier to understand.
+             */
+            // note: call secondary first, to give lower priority
+            defValue = _secondary.findSerializationInclusion(a, defValue);
+            defValue = _primary.findSerializationInclusion(a, defValue);
+            return defValue;
         }
         
         @Override

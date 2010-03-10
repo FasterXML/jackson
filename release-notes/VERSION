@@ -29,6 +29,9 @@ Description:
    (requested by Chris C)
   * [JACKSON-255] Allow setter override even with incompatible type
     (as long as only one setter per class, so there is no ambiguity)
+  * [JACKSON-256] AnnotationIntrospector.findSerializationInclusion
+    was not combining values correctly for JAXB annotations.
+   (reported by John L)
 
   New features:
 

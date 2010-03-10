@@ -76,7 +76,7 @@ public class TestJaxbAutoDetect
     }
 
     // @since 1.5
-    public void testBug246() throws Exception
+    public void testIssue246() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());

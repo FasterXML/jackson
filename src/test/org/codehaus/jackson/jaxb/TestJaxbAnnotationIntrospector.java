@@ -21,12 +21,12 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
  * @author Tatu Saloranta
  */
 public class TestJaxbAnnotationIntrospector
-    extends org.codehaus.jackson.map.BaseMapTest
+    extends BaseJaxbTest
 {
     /*
-    /////////////////////////////////////////////////////
-    // Helper beans
-    /////////////////////////////////////////////////////
+    /****************************************************
+    /* Helper beans
+    /****************************************************
      */
 
     public static enum EnumExample {
@@ -183,10 +183,23 @@ public class TestJaxbAnnotationIntrospector
         public int b = 2;
     }
 
+    // Beans for [JACKSON-256]
+    
+    @XmlRootElement
+    static class BeanWithNillable {
+        public Nillable X;
+    }
+
+    @XmlRootElement
+    static class Nillable {
+        @XmlElement (name="Z", nillable=true)
+        Integer Z;
+    } 
+
     /*
-    /////////////////////////////////////////////////////
-    // Unit tests
-    /////////////////////////////////////////////////////
+    /****************************************************
+    /* Unit tests
+    /****************************************************
      */
 
     public void testDetection() throws Exception
@@ -292,18 +305,13 @@ public class TestJaxbAnnotationIntrospector
         assertEquals("{\"b\":2,\"a\":1,\"c\":3}", serializeAsString(mapper, new AlphaBean2()));
     }
 
-    /*
-    **************************************************************
-    * Helper methods
-    **************************************************************
-    */
-
-    public ObjectMapper getJaxbMapper()
+    // Test for [JACKSON-256], thanks John.
+    // @since 1.5
+    public void testWriteNulls() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        AnnotationIntrospector intr = new JaxbAnnotationIntrospector();
-        mapper.getDeserializationConfig().setAnnotationIntrospector(intr);
-        mapper.getSerializationConfig().setAnnotationIntrospector(intr);
-        return mapper;
+        ObjectMapper mapper = getJaxbMapper();
+        BeanWithNillable bean = new BeanWithNillable();
+        bean.X = new Nillable();
+        assertEquals("{\"X\":{\"Z\":null}}", serializeAsString(mapper, bean));
     }
 }
