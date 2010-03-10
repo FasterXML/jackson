@@ -58,31 +58,29 @@ public class TestViews
 
         // Then with "ViewA", just one property
         sw = new StringWriter();
-        mapper.writeValueUsingView(sw, bean, ViewA.class);
+        mapper.viewWriter(ViewA.class).writeValue(sw, bean);
         map = mapper.readValue(sw.toString(), Map.class);
         assertEquals(1, map.size());
         assertEquals("1", map.get("a"));
 
         // "ViewAA", 2 properties
         sw = new StringWriter();
-        mapper.writeValueUsingView(sw, bean, ViewAA.class);
+        mapper.viewWriter(ViewAA.class).writeValue(sw, bean);
         map = mapper.readValue(sw.toString(), Map.class);
         assertEquals(2, map.size());
         assertEquals("1", map.get("a"));
         assertEquals("2", map.get("aa"));
 
         // "ViewB", 2 prop2
-        sw = new StringWriter();
-        mapper.writeValueUsingView(sw, bean, ViewB.class);
-        map = mapper.readValue(sw.toString(), Map.class);
+        String json = mapper.viewWriter(ViewB.class).writeValueAsString(bean);
+        map = mapper.readValue(json, Map.class);
         assertEquals(2, map.size());
         assertEquals("2", map.get("aa"));
         assertEquals("3", map.get("b"));
 
         // and "ViewBB", 2 as well
-        sw = new StringWriter();
-        mapper.writeValueUsingView(sw, bean, ViewBB.class);
-        map = mapper.readValue(sw.toString(), Map.class);
+        json = mapper.viewWriter(ViewBB.class).writeValueAsString(bean);
+        map = mapper.readValue(json, Map.class);
         assertEquals(2, map.size());
         assertEquals("2", map.get("aa"));
         assertEquals("3", map.get("b"));
@@ -102,7 +100,7 @@ public class TestViews
 
         ObjectMapper mapper = new ObjectMapper();
         // default setting: both fields will get included
-        mapper.writeValueUsingView(sw, bean, ViewA.class);
+        mapper.viewWriter(ViewA.class).writeValue(sw, bean);
         Map<String,Object> map = mapper.readValue(sw.toString(), Map.class);
         assertEquals(2, map.size());
         assertEquals("1", map.get("a"));
@@ -113,7 +111,7 @@ public class TestViews
         sw = new StringWriter();
         mapper.configure(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION, false);
         // with this setting, only explicit inclusions count:
-        mapper.writeValueUsingView(sw, bean, ViewA.class);
+        mapper.viewWriter(ViewA.class).writeValue(sw, bean);
         map = mapper.readValue(sw.toString(), Map.class);
         assertEquals(1, map.size());
         assertEquals("1", map.get("a"));

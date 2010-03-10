@@ -225,6 +225,21 @@ public class StdSerializerProvider
     }
 
     @Override
+    public final void serializeValue(SerializationConfig config, JsonGenerator jgen,
+            Object value, JavaType rootType, SerializerFactory jsf)
+        throws IOException, JsonGenerationException
+    {
+        if (jsf == null) {
+            throw new IllegalArgumentException("Can not pass null serializerFactory");
+        }
+        StdSerializerProvider inst = createInstance(config, jsf);
+        if (inst.getClass() != getClass()) {
+            throw new IllegalStateException("Broken serializer provider: createInstance returned instance of type "+inst.getClass()+"; blueprint of type "+getClass());
+        }
+        inst._serializeValue(jgen, value, rootType);
+    }
+    
+    @Override
     public JsonSchema generateJsonSchema(Class<?> type, SerializationConfig config, SerializerFactory jsf)
             throws JsonMappingException
     {
@@ -294,6 +309,36 @@ public class StdSerializerProvider
         }
     }
 
+    /**
+     * Method called on the actual non-blueprint provider instance object,
+     * to kick off the serialization, when root type is explicitly
+     * specified and not determined from value.
+     */
+    protected  void _serializeValue(JsonGenerator jgen, Object value, JavaType rootType)
+        throws IOException, JsonProcessingException
+    {
+        JsonSerializer<Object> ser;
+        if (value == null) {
+            ser = getNullValueSerializer();
+        } else {
+            /* 09-Mar-2010, tatu: there's something funny about two types, and
+             *   especially having to use raw type... should improve in future
+             */
+            ser = findTypedValueSerializer(rootType, rootType.getRawClass(), true);
+        }
+        try {
+            ser.serialize(value, jgen, this);
+        } catch (IOException ioe) { // no wrapping for IO (and derived)
+            throw ioe;
+        } catch (Exception e) { // but others do need to be, to get path etc
+            String msg = e.getMessage();
+            if (msg == null) {
+                msg = "[no message for "+e.getClass().getName()+"]";
+            }
+            throw new JsonMappingException(msg, e);
+        }
+    }
+    
     /*
     ****************************************************************
     * Configuration methods

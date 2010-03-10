@@ -33,9 +33,9 @@ public abstract class SerializerProvider
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Methods that ObjectMapper will call
-    //////////////////////////////////////////////////////
+    /********************************************************
+    /* Methods that ObjectMapper will call
+    /********************************************************
      */
 
     /**
@@ -46,11 +46,25 @@ public abstract class SerializerProvider
      * @param jsf Underlying factory object used for creating serializers
      *    as needed
      */
-    public abstract void serializeValue(SerializationConfig cfg,
-                                        JsonGenerator jgen, Object value,
-                                        SerializerFactory jsf)
+    public abstract void serializeValue(SerializationConfig cfg, JsonGenerator jgen,
+            Object value, SerializerFactory jsf)
         throws IOException, JsonGenerationException;
 
+    /**
+     * The method to be called by {@link ObjectMapper} to
+     * execute recursive serialization, using serializers that
+     * this provider has access to; and using specified root type
+     * for locating first-level serializer.
+     * 
+     * @param rootType Type to use for locating serializer to use, instead of actual
+     *    runtime type. Must be actual type, or one of its super types
+     *    
+     * @since 1.5
+     */
+    public abstract void serializeValue(SerializationConfig cfg, JsonGenerator jgen,
+            Object value, JavaType rootType, SerializerFactory jsf)
+        throws IOException, JsonGenerationException;
+    
     /**
      * Generate <a href="http://json-schema.org/">Json-schema</a> for
      * given type.
@@ -71,9 +85,9 @@ public abstract class SerializerProvider
                                              Class<?> cls, SerializerFactory jsf);
 
     /*
-    //////////////////////////////////////////////////////
-    // Access to configuration
-    //////////////////////////////////////////////////////
+    /********************************************************
+    /* Access to configuration
+    /********************************************************
      */
 
     public final SerializationConfig getConfig() { return _config; }
@@ -91,9 +105,9 @@ public abstract class SerializerProvider
     public final Class<?> getSerializationView() { return _serializationView; }
     
     /*
-    //////////////////////////////////////////////////////
-    // General serializer locating functionality
-    //////////////////////////////////////////////////////
+    /********************************************************
+    /* General serializer locating functionality
+    /********************************************************
      */
 
     /**
@@ -153,9 +167,9 @@ public abstract class SerializerProvider
         throws JsonMappingException;
     
     /*
-    //////////////////////////////////////////////////////
-    // Accessors for specialized serializers
-    //////////////////////////////////////////////////////
+    /********************************************************
+    /* Accessors for specialized serializers
+    /********************************************************
      */
 
     /**
@@ -207,9 +221,9 @@ public abstract class SerializerProvider
     public abstract JsonSerializer<Object> getUnknownTypeSerializer(Class<?> unknownType);
 
     /*
-    //////////////////////////////////////////////////////
-    // Convenience methods
-    //////////////////////////////////////////////////////
+    /********************************************************
+    /* Convenience methods
+    /********************************************************
      */
 
     /**
@@ -271,9 +285,9 @@ public abstract class SerializerProvider
         throws IOException, JsonProcessingException;
 
     /*
-    //////////////////////////////////////////////////////
-    // Access to caching aspects
-    //////////////////////////////////////////////////////
+    /********************************************************
+    /* Access to caching details
+    /********************************************************
      */
 
     /**

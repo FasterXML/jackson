@@ -1273,6 +1273,10 @@ public class ObjectMapper
     /*
     /*******************************************************
     /* Extended Public API: serialization using JSON Views
+    /* (since version 1.4)
+    /* 
+    /* NOTE: as of version 1.5, should use ObjectWriter
+    /* instead 
     /*******************************************************
      */
 
@@ -1291,6 +1295,8 @@ public class ObjectMapper
      * @param viewClass (optional) Identifier for View to use. If null,
      *   equivalent to passing <code>Object.class</code>; both of which
      *   mean "default view" (all properties always included)
+     *   
+     * @deprecated Use {@link #viewWriter} instead
      */
     public void writeValueUsingView(JsonGenerator jgen, Object value, Class<?> viewClass)
         throws IOException, JsonGenerationException, JsonMappingException
@@ -1308,6 +1314,8 @@ public class ObjectMapper
      * @param viewClass (optional) Identifier for View to use. If null,
      *   equivalent to passing <code>Object.class</code>; both of which
      *   mean "default view" (all properties always included)
+     *   
+     * @deprecated Use {@link #viewWriter} instead
      */
     public void writeValueUsingView(Writer w, Object value, Class<?> viewClass)
         throws IOException, JsonGenerationException, JsonMappingException
@@ -1325,6 +1333,8 @@ public class ObjectMapper
      * @param viewClass (optional) Identifier for View to use. If null,
      *   equivalent to passing <code>Object.class</code>; both of which
      *   mean "default view" (all properties always included)
+     *   
+     * @deprecated Use {@link #viewWriter} instead
      */
     public void writeValueUsingView(OutputStream out, Object value, Class<?> viewClass)
         throws IOException, JsonGenerationException, JsonMappingException
@@ -1332,6 +1342,48 @@ public class ObjectMapper
         _configAndWriteValue(_jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8), value, viewClass);
     }
 
+    /*
+    /************************************************* 
+    /* Extended Public API: constructing ObjectWriters
+    /* for more advanced configuration
+    /************************************************* 
+     */
+
+    /**
+     * Factory method for constructing {@link ObjectWriter} that will
+     * serialize objects using specified JSON View (filter).
+     * 
+     * @since 1.5
+     */
+    public ObjectWriter viewWriter(Class<?> serializationView) {
+        return new ObjectWriter(this, serializationView, /*type*/ null);
+    }
+
+    /**
+     * Factory method for constructing {@link ObjectWriter} that will
+     * serialize objects using specified root type, instead of actual
+     * runtime type of value. Type must be a super-type of runtime
+     * type.
+     * 
+     * @since 1.5
+     */
+    public ObjectWriter typedWriter(Class<?> rootType) {
+        JavaType t = (rootType == null) ? null : TypeFactory.type(rootType);
+        return new ObjectWriter(this, null, t);
+    }
+
+    /**
+     * Factory method for constructing {@link ObjectWriter} that will
+     * serialize objects using specified root type, instead of actual
+     * runtime type of value. Type must be a super-type of runtime
+     * type.
+     * 
+     * @since 1.5
+     */
+    public ObjectWriter typedWriter(JavaType rootType) {
+        return new ObjectWriter(this, null, rootType);
+    }
+    
     /*
     /************************************************* 
     /* Extended Public API: convenience type conversion

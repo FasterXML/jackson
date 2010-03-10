@@ -62,7 +62,7 @@ public class ObjectWriter
     /**
      * View to use for serialization
      */
-    protected final Object _serializationView;
+    protected final Class<?> _serializationView;
 
     /**
      * Specified root serialization type to use; can be same
@@ -80,12 +80,13 @@ public class ObjectWriter
      * Constructor used by {@link ObjectMapper} for initial instantiation
      */
     protected ObjectWriter(ObjectMapper mapper, 
-            Object view, JavaType rootType)
+            Class<?> view, JavaType rootType)
     {
         _defaultTyper = mapper._defaultTyper;
         _visibilityChecker = mapper._visibilityChecker;
         // must make a copy at this point, to prevent further changes from trickling down
         _config = mapper._serializationConfig.createUnshared(_defaultTyper, _visibilityChecker);
+        _config.setSerializationView(view);
 
         _provider = mapper._serializerProvider;
         _serializerFactory = mapper._serializerFactory;
@@ -100,7 +101,7 @@ public class ObjectWriter
      * Copy constructor used for building variations.
      */
     protected ObjectWriter(ObjectWriter base, SerializationConfig config,
-            Object view, JavaType rootType)
+            Class<?> view, JavaType rootType)
     {
         _config = config;
         _provider = base._provider;
@@ -114,11 +115,12 @@ public class ObjectWriter
         _rootType = rootType;
     }
     
-    public ObjectWriter withView(Object view)
+    public ObjectWriter withView(Class<?> view)
     {
         if (view == _serializationView) return this;
         // View is included in config, must make immutable version
         SerializationConfig config = _config.createUnshared(_defaultTyper, _visibilityChecker);
+        config.setSerializationView(view);
         return new ObjectWriter(this, config, view, _rootType);
     }    
     
@@ -266,7 +268,11 @@ public class ObjectWriter
         }
         boolean closed = false;
         try {
-            _provider.serializeValue(_config, jgen, value, _serializerFactory);
+            if (_rootType == null) {
+                _provider.serializeValue(_config, jgen, value, _serializerFactory);
+            } else {
+                _provider.serializeValue(_config, jgen, value, _rootType, _serializerFactory);                
+            }
             closed = true;
             jgen.close();
         } finally {

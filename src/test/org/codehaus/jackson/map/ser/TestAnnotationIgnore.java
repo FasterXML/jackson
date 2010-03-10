@@ -15,9 +15,9 @@ public class TestAnnotationIgnore
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes
-    //////////////////////////////////////////////
+    /***********************************************
+    /* Annotated helper classes
+    /***********************************************
      */
 
     /// Class for testing enabled {@link JsonIgnore} annotation
@@ -61,10 +61,9 @@ public class TestAnnotationIgnore
     }
 
     /*
-    /*
-    //////////////////////////////////////////////
-    // Main tests
-    //////////////////////////////////////////////
+    /***********************************************
+    /* Main tests
+    /***********************************************
      */
 
     public void testSimpleIgnore() throws Exception
