@@ -321,10 +321,12 @@ public class StdSerializerProvider
         if (value == null) {
             ser = getNullValueSerializer();
         } else {
-            /* 09-Mar-2010, tatu: there's something funny about two types, and
-             *   especially having to use raw type... should improve in future
-             */
-            ser = findTypedValueSerializer(rootType, rootType.getRawClass(), true);
+            // Let's ensure types are compatible at this point
+            if (!rootType.getRawClass().isAssignableFrom(value.getClass())) {
+                throw new JsonMappingException("Incompatible types: declared root type ("+rootType+") vs "
+                        +value.getClass().getName());
+            }
+            ser = findTypedValueSerializer(rootType, true);
         }
         try {
             ser.serialize(value, jgen, this);
@@ -485,18 +487,36 @@ public class StdSerializerProvider
         return ser;
     }
 
-    /**
-     * Current implementation simply delegates to
-     * {@link #findTypedValueSerializer(Class, Class, boolean)}. In future,
-     * should improve to allow proper efficient handling of typed structured
-     * types
-     */
     @Override
     public JsonSerializer<Object> findTypedValueSerializer(JavaType valueType,
-            Class<?> declaredType, boolean cache)
+            boolean cache)
         throws JsonMappingException
     {
-        return findTypedValueSerializer(valueType.getRawClass(), declaredType, cache);
+        // Two-phase lookups; local non-shared cache, then shared:
+        Class<?> rawValueType = valueType.getRawClass();
+        /* 10-Mar-2010, tatu: This looks suspicious; could this not lead to problems for
+         *    generic type variations?
+         */
+        JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(rawValueType, rawValueType);
+        if (ser != null) {
+            return ser;
+        }
+        // If not, maybe shared map already has it?
+        ser = _serializerCache.typedValueSerializer(rawValueType, rawValueType);
+        if (ser != null) {
+            return ser;
+        }
+
+        // Well, let's just compose from pieces:
+        ser = findValueSerializer(valueType);
+        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(valueType, _config);
+        if (typeSer != null) {
+            ser = new WrappedSerializer(typeSer, ser);
+        }
+        if (cache) {
+            _serializerCache.addTypedSerializer(rawValueType, rawValueType, ser);
+        }
+        return ser;
     }
     
     /*

@@ -77,8 +77,7 @@ public class JSONPObject
         if (_value == null) {
             provider.getNullValueSerializer().serialize(null, jgen, provider);
         } else if (_serializationType != null) {
-            Class<?> cls = _value.getClass();
-            provider.findTypedValueSerializer(_serializationType, cls, true).serialize(_value, jgen, provider);
+            provider.findTypedValueSerializer(_serializationType, true).serialize(_value, jgen, provider);
         } else {
             Class<?> cls = _value.getClass();
             provider.findTypedValueSerializer(cls, cls, true).serialize(_value, jgen, provider);

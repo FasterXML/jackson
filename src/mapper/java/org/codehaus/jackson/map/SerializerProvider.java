@@ -160,10 +160,23 @@ public abstract class SerializerProvider
         throws JsonMappingException;
 
     /**
+     * Method called to locate regular serializer, matching type serializer,
+     * and if both found, wrap them in a serializer that calls both in correct
+     * sequence. This method is currently only used for root-level serializer
+     * handling to allow for simpler caching. A call can always be replaced
+     * by equivalent calls to access serializer and type serializer separately.
+     * 
+     * @param valueType Declared type of value being serialized (which may not
+     *    be actual runtime type); used for finding both value serializer and
+     *    type serializer to use for adding polymorphic type (if any)
+     * 
+     * @param cache Whether resulting value serializer should be cached or not; this is just
+     *    a hint 
+     *    
      * @since 1.5
      */
     public abstract JsonSerializer<Object> findTypedValueSerializer(JavaType valueType,
-            Class<?> declaredType, boolean cache)
+            boolean cache)
         throws JsonMappingException;
     
     /*

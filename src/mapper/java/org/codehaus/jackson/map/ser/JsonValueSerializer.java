@@ -9,9 +9,11 @@ import java.lang.reflect.Type;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.schema.JsonSchema;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Serializer class that can serialize Object that have a
@@ -104,14 +106,14 @@ public final class JsonValueSerializer
             throws JsonMappingException
     {
         if (_serializer == null) {
-            Class<?> rt = _accessorMethod.getReturnType();
             /* Note: we can only assign serializer statically if the
              * declared type is final -- if not, we don't really know
              * the actual type until we get the instance.
              */
-            if (Modifier.isFinal(rt.getModifiers())) {
+            if (Modifier.isFinal(_accessorMethod.getReturnType().getModifiers())) {
+                JavaType t = TypeFactory.type(_accessorMethod.getGenericReturnType());
                 // false -> no need to cache
-                _serializer = provider.findTypedValueSerializer(rt, rt, false);
+                _serializer = provider.findTypedValueSerializer(t, false);
             }
         }
     }
