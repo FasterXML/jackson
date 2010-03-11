@@ -4,7 +4,7 @@ import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.type.ClassPairKey;
+import org.codehaus.jackson.map.ser.SerializerCache.*;
 
 /**
  * Optimized lookup table for accessing two types of serializers; typed
@@ -24,17 +24,20 @@ public final class ReadOnlyClassToSerializerMap
      * this is not shared between threads, we can just reuse single
      * instance.
      */
-    final ClassPairKey _key;
+    final TypedKeyRaw _typedKeyRaw = new TypedKeyRaw(getClass());
 
-    private ReadOnlyClassToSerializerMap(HashMap<Object, JsonSerializer<Object>> map, ClassPairKey key)
+    final TypedKeyFull _typedKeyFull = new TypedKeyFull(null);
+
+    final UntypedKeyRaw _untypedKeyRaw = new UntypedKeyRaw(getClass());
+    
+    private ReadOnlyClassToSerializerMap(HashMap<Object, JsonSerializer<Object>> map)
     {
         _map = map;
-        _key = key;
     }
 
     public ReadOnlyClassToSerializerMap instance()
     {
-        return new ReadOnlyClassToSerializerMap(_map, new ClassPairKey(null, null));
+        return new ReadOnlyClassToSerializerMap(_map);
     }
 
     /**
@@ -45,19 +48,25 @@ public final class ReadOnlyClassToSerializerMap
     @SuppressWarnings("unchecked")
     public static ReadOnlyClassToSerializerMap from(HashMap<Object, JsonSerializer<Object>> src)
     {
-        return new ReadOnlyClassToSerializerMap((HashMap<Object, JsonSerializer<Object>>)src.clone(), null);
+        return new ReadOnlyClassToSerializerMap((HashMap<Object, JsonSerializer<Object>>)src.clone());
     }
 
-    public JsonSerializer<Object> typedValueSerializer(Class<?> runtimeType, Class<?> declaredType)
+    public JsonSerializer<Object> typedValueSerializer(JavaType type)
     { 
-        _key.reset(runtimeType, declaredType);
-        return _map.get(_key);
+        _typedKeyFull.reset(type);
+        return _map.get(_typedKeyFull);
     }
 
-    public JsonSerializer<Object> untypedValueSerializer(Class<?> runtimeType)
+    public JsonSerializer<Object> typedValueSerializer(Class<?> cls)
     { 
-        _key.reset(runtimeType, null);
-        return _map.get(_key);
+        _typedKeyRaw.reset(cls);
+        return _map.get(_typedKeyRaw);
+    }
+    
+    public JsonSerializer<Object> untypedValueSerializer(Class<?> cls)
+    { 
+        _untypedKeyRaw.reset(cls);
+        return _map.get(_untypedKeyRaw);
     }
 
     /**

@@ -465,12 +465,12 @@ public class StdSerializerProvider
         throws JsonMappingException
     {
         // Two-phase lookups; local non-shared cache, then shared:
-        JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(valueType, valueType);
+        JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(valueType);
         if (ser != null) {
             return ser;
         }
         // If not, maybe shared map already has it?
-        ser = _serializerCache.typedValueSerializer(valueType, valueType);
+        ser = _serializerCache.typedValueSerializer(valueType);
         if (ser != null) {
             return ser;
         }
@@ -482,7 +482,7 @@ public class StdSerializerProvider
             ser = new WrappedSerializer(typeSer, ser);
         }
         if (cache) {
-            _serializerCache.addTypedSerializer(valueType, valueType, ser);
+            _serializerCache.addTypedSerializer(valueType, ser);
         }
         return ser;
     }
@@ -493,16 +493,15 @@ public class StdSerializerProvider
         throws JsonMappingException
     {
         // Two-phase lookups; local non-shared cache, then shared:
-        Class<?> rawValueType = valueType.getRawClass();
         /* 10-Mar-2010, tatu: This looks suspicious; could this not lead to problems for
          *    generic type variations?
          */
-        JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(rawValueType, rawValueType);
+        JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(valueType);
         if (ser != null) {
             return ser;
         }
         // If not, maybe shared map already has it?
-        ser = _serializerCache.typedValueSerializer(rawValueType, rawValueType);
+        ser = _serializerCache.typedValueSerializer(valueType);
         if (ser != null) {
             return ser;
         }
@@ -514,15 +513,15 @@ public class StdSerializerProvider
             ser = new WrappedSerializer(typeSer, ser);
         }
         if (cache) {
-            _serializerCache.addTypedSerializer(rawValueType, rawValueType, ser);
+            _serializerCache.addTypedSerializer(valueType, ser);
         }
         return ser;
     }
     
     /*
-    ////////////////////////////////////////////////////
-    // Abstract method implementations, other serializers
-    ////////////////////////////////////////////////////
+    /*******************************************************
+    /* Abstract method implementations, other serializers
+    /*******************************************************
      */
 
     @Override

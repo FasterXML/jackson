@@ -166,8 +166,10 @@ public class TestConfig
         ObjectMapper mapper = new ObjectMapper();
         assertEquals(0, mapper.getSerializerProvider().cachedSerializersCount());
         // and then should get one constructed for:
-        String value = mapper.writeValueAsString(new AnnoBean());
-        assertEquals("{\"x\":1,\"y\":2}", value);
+        Map<String,Object> result = this.writeAndMap(mapper, new AnnoBean());
+        assertEquals(2, result.size());
+        assertEquals(Integer.valueOf(1), result.get("x"));
+        assertEquals(Integer.valueOf(2), result.get("y"));
 
         /* Note: it is 2 because we'll also get serializer for basic 'int', not
          * just AnnoBean

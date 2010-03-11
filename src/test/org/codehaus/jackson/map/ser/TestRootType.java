@@ -81,6 +81,17 @@ public class TestRootType
         assertEquals(1, result.size());
         assertEquals(Integer.valueOf(3), result.get("b"));
     }
+
+    public void testInArray() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // must force static typing, otherwise won't matter a lot
+        mapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
+        SubType[] ob = new SubType[] { new SubType() };
+        String json = mapper.typedWriter(BaseInterface[].class).writeValueAsString(ob);
+        // should propagate interface type through due to root declaration; static typing
+        assertEquals("[{\"b\":3}]", json);
+    }
     
     /**
      * Unit test to ensure that proper exception is thrown if declared

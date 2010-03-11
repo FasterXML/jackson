@@ -4,7 +4,6 @@ import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.type.ClassPairKey;
 
 /**
  * Simple cache object that allows for doing 2-level lookups: first level is
@@ -26,8 +25,8 @@ public final class SerializerCache
     /**
      * Shared, modifiable map; all access needs to be through synchronized blocks.
      *<p>
-     * NOTE: keys are {@link ClassPairKey}s (for "typed" serializers) and
-     *    {@link JavaType}s (untyped)
+     * NOTE: keys are of various types (see below for key types), in addition to
+     * basic {@link JavaType} used for "untyped" serializers.
      */
     private HashMap<Object, JsonSerializer<Object>> _sharedMap = new HashMap<Object, JsonSerializer<Object>>(64);
 
@@ -60,7 +59,7 @@ public final class SerializerCache
     public JsonSerializer<Object> untypedValueSerializer(Class<?> type)
     {
         synchronized (this) {
-            return _sharedMap.get(new ClassPairKey(type, null));
+            return _sharedMap.get(new UntypedKeyRaw(type));
         }
     }
 
@@ -74,32 +73,49 @@ public final class SerializerCache
         }
     }
 
-    public JsonSerializer<Object> typedValueSerializer(Class<?> runtimeType, Class<?> declaredType)
+    public JsonSerializer<Object> typedValueSerializer(JavaType type)
     {
         synchronized (this) {
-            return _sharedMap.get(new ClassPairKey(runtimeType, declaredType));
+            return _sharedMap.get(new TypedKeyFull(type));
         }
     }
 
+    public JsonSerializer<Object> typedValueSerializer(Class<?> cls)
+    {
+        synchronized (this) {
+            return _sharedMap.get(new TypedKeyRaw(cls));
+        }
+    }
+    
     /**
      * Method called if none of lookups succeeded, and caller had to construct
      * a serializer. If so, we will update the shared lookup map so that it
      * can be resolved via it next time.
      */
-    public void addTypedSerializer(Class<?> runtimeType, Class<?> declaredType, JsonSerializer<Object> ser)
+    public void addTypedSerializer(JavaType type, JsonSerializer<Object> ser)
     {
         synchronized (this) {
-            if (_sharedMap.put(new ClassPairKey(runtimeType, declaredType), ser) == null) {
+            if (_sharedMap.put(new TypedKeyFull(type), ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
         }
     }
 
+    public void addTypedSerializer(Class<?> cls, JsonSerializer<Object> ser)
+    {
+        synchronized (this) {
+            if (_sharedMap.put(new TypedKeyRaw(cls), ser) == null) {
+                // let's invalidate the read-only copy, too, to get it updated
+                _readOnlyMap = null;
+            }
+        }
+    }
+    
     public void addNonTypedSerializer(Class<?> type, JsonSerializer<Object> ser)
     {
         synchronized (this) {
-            if (_sharedMap.put(new ClassPairKey(type, null), ser) == null) {
+            if (_sharedMap.put(new UntypedKeyRaw(type), ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
@@ -128,5 +144,94 @@ public final class SerializerCache
 
     public synchronized void flush() {
         _sharedMap.clear();
+    }
+
+    /*
+    /**************************************************************
+    /* Helper class(es)
+    /**************************************************************
+     */
+
+    /**
+     * Key object used for "typed" serializers (type serializer wrapping
+     * value serializer). These are only used
+     * for root-level (and similar) access.
+     */
+    public final static class TypedKeyRaw
+    {
+         Class<?> _type;
+
+        int _hashCode;
+
+        public TypedKeyRaw(Class<?> cls) {
+            reset(cls);
+        }
+
+        public void reset(Class<?> cls) {
+            _type = cls;
+            _hashCode = cls.getName().hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (o == this) return true;
+            if (o == null) return false;
+            if (o.getClass() != getClass()) return false;
+            return ((TypedKeyRaw) o)._type == _type;
+        }
+
+        @Override public int hashCode() { return _hashCode; }
+    }
+
+    public final static class TypedKeyFull
+    {
+        JavaType _type;
+
+        public TypedKeyFull(JavaType type) {
+            _type = type;
+        }
+
+        public void reset(JavaType type) {
+            _type = type;
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (o == this) return true;
+            if (o == null) return false;
+            if (o.getClass() != getClass()) return false;
+            return ((TypedKeyFull) o)._type.equals(_type);
+        }
+
+        @Override public int hashCode() { return _type.hashCode(); }
+    }
+
+    public final static class UntypedKeyRaw
+    {
+         Class<?> _type;
+
+        int _hashCode;
+
+        public UntypedKeyRaw(Class<?> cls) {
+            reset(cls);
+        }
+
+        public void reset(Class<?> cls) {
+            _type = cls;
+            _hashCode = cls.getName().hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (o == this) return true;
+            if (o == null) return false;
+            if (o.getClass() != getClass()) return false;
+            return ((UntypedKeyRaw) o)._type == _type;
+        }
+
+        @Override public int hashCode() { return _hashCode; }
     }
 }
