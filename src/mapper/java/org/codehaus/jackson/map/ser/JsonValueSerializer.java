@@ -33,8 +33,8 @@ public final class JsonValueSerializer
 {
     final Method _accessorMethod;
 
-    JsonSerializer<Object> _serializer;
-
+    protected JsonSerializer<Object> _valueSerializer;
+    
     /**
      * @param ser Explicit serializer to use, if caller knows it (which
      *            occurs if and only if the "value method" was annotated with
@@ -45,7 +45,7 @@ public final class JsonValueSerializer
     {
         super(Object.class);
         _accessorMethod = valueMethod;
-        _serializer = ser;
+        _valueSerializer = ser;
     }
 
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider prov)
@@ -58,11 +58,15 @@ public final class JsonValueSerializer
             if (value == null) {
                 ser = prov.getNullValueSerializer();
             } else {
-                ser = _serializer;
+                ser = _valueSerializer;
                 if (ser == null) {
                     Class<?> c = value.getClass();
+                    /* 10-Mar-2010, tatu: Ideally we would actually separate out type
+                     *   serializer from value serializer; but, alas, there's no access
+                     *   to serializer factory at this point... 
+                     */
                     // let's cache it, may be needed soon again
-                    ser = prov.findTypedValueSerializer(c, c, true);
+                    ser = prov.findTypedValueSerializer(c, true);
                 }
             }
             ser.serialize(value, jgen, prov);
@@ -87,15 +91,15 @@ public final class JsonValueSerializer
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException
     {
-        return (_serializer instanceof SchemaAware) ?
-                ((SchemaAware) _serializer).getSchema(provider, null) :
+        return (_valueSerializer instanceof SchemaAware) ?
+                ((SchemaAware) _valueSerializer).getSchema(provider, null) :
                 JsonSchema.getDefaultSchemaNode();
     }
     
     /*
-    ////////////////////////////////////////////////////////
-    // ResolvableSerializer impl
-    ////////////////////////////////////////////////////////
+    /*******************************************************
+    /* ResolvableSerializer impl
+    /*******************************************************
      */
 
     /**
@@ -103,25 +107,31 @@ public final class JsonValueSerializer
      * statically figure out what the result type must be.
      */
     public void resolve(SerializerProvider provider)
-            throws JsonMappingException
+        throws JsonMappingException
     {
-        if (_serializer == null) {
+        if (_valueSerializer == null) {
             /* Note: we can only assign serializer statically if the
              * declared type is final -- if not, we don't really know
              * the actual type until we get the instance.
              */
-            if (Modifier.isFinal(_accessorMethod.getReturnType().getModifiers())) {
+            // 10-Mar-2010, tatu: Except if static typing is to be used
+            if (provider.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING)
+                    || Modifier.isFinal(_accessorMethod.getReturnType().getModifiers())) {
                 JavaType t = TypeFactory.type(_accessorMethod.getGenericReturnType());
                 // false -> no need to cache
-                _serializer = provider.findTypedValueSerializer(t, false);
+                /* 10-Mar-2010, tatu: Ideally we would actually separate out type
+                 *   serializer from value serializer; but, alas, there's no access
+                 *   to serializer factory at this point... 
+                 */
+                _valueSerializer = provider.findTypedValueSerializer(t, false);
             }
         }
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Other methods
-    ////////////////////////////////////////////////////////
+    /*******************************************************
+    /* Other methods
+    /*******************************************************
      */
 
     @Override

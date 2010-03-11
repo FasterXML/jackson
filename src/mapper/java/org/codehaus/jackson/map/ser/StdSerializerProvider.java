@@ -290,7 +290,7 @@ public class StdSerializerProvider
         } else {
             Class<?> cls = value.getClass();
             // true, since we do want to cache root-level typed serializers
-            ser = findTypedValueSerializer(cls, cls, true);
+            ser = findTypedValueSerializer(cls, true);
         }
         try {
             ser.serialize(value, jgen, this);
@@ -461,28 +461,28 @@ public class StdSerializerProvider
      */
     @Override
     public JsonSerializer<Object> findTypedValueSerializer(Class<?> valueType,
-            Class<?> declaredType, boolean cache)
+            boolean cache)
         throws JsonMappingException
     {
         // Two-phase lookups; local non-shared cache, then shared:
-        JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(valueType, declaredType);
+        JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(valueType, valueType);
         if (ser != null) {
             return ser;
         }
         // If not, maybe shared map already has it?
-        ser = _serializerCache.typedValueSerializer(valueType, declaredType);
+        ser = _serializerCache.typedValueSerializer(valueType, valueType);
         if (ser != null) {
             return ser;
         }
 
         // Well, let's just compose from pieces:
         ser = findValueSerializer(valueType);
-        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(TypeFactory.type(declaredType), _config);
+        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(TypeFactory.type(valueType), _config);
         if (typeSer != null) {
             ser = new WrappedSerializer(typeSer, ser);
         }
         if (cache) {
-            _serializerCache.addTypedSerializer(valueType, declaredType, ser);
+            _serializerCache.addTypedSerializer(valueType, valueType, ser);
         }
         return ser;
     }

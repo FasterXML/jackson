@@ -14,9 +14,9 @@ public class TestAnnotationJsonValue
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Helper bean classes
-    //////////////////////////////////////////////
+    /******************************************************
+    /* Helper bean classes
+    /******************************************************
      */
 
     static class ValueClass<T>
@@ -61,10 +61,24 @@ public class TestAnnotationJsonValue
         public String[] getSomethingElse() { return new String[] { "1", "a" }; }
     }
 
+    static class ValueBase {
+        public String a = "a";
+    }
+
+    static class ValueType extends ValueBase {
+        public String b = "b";
+    }
+    
+    // Finally, let's also test static vs dynamic type
+    static class ValueWrapper {
+        @JsonValue
+        public ValueBase getX() { return new ValueType(); }
+    }
+    
     /*
-    //////////////////////////////////////////////
-    // Test cases
-    //////////////////////////////////////////////
+    /******************************************************
+    /* Test cases
+    /******************************************************
      */
 
     public void testSimpleJsonValue() throws Exception
@@ -89,5 +103,17 @@ public class TestAnnotationJsonValue
         ObjectMapper m = new ObjectMapper();
         String result = serializeAsString(m, new ToStringValueClass2("xyz"));
         assertEquals("\"xyz\"", result);
+    }
+
+    public void testValueWithStaticType() throws Exception
+    {
+        // Ok; first, with dynamic type:
+        ObjectMapper m = new ObjectMapper();
+        assertEquals("{\"a\":\"a\",\"b\":\"b\"}", serializeAsString(m, new ValueWrapper()));
+
+        // then static
+        m = new ObjectMapper();
+        m.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
+        assertEquals("{\"a\":\"a\"}", serializeAsString(m, new ValueWrapper()));
     }
 }

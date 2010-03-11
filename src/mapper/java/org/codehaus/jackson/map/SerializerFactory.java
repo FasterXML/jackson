@@ -11,9 +11,9 @@ import org.codehaus.jackson.type.JavaType;
 public abstract class SerializerFactory
 {
     /*
-    /////////////////////////////////////////////////////////
-    // Basic SerializerFactory API:
-    /////////////////////////////////////////////////////////
+    /********************************************************
+    /* Basic SerializerFactory API:
+    /********************************************************
      */
 
     /**

@@ -145,10 +145,8 @@ public abstract class SerializerProvider
      * handling to allow for simpler caching. A call can always be replaced
      * by equivalent calls to access serializer and type serializer separately.
      * 
-     * @param valueType Type for purpose of locating a serializer; either dynamic
-     *   runtime type, or static declared type, depending on configuration
-     * @param declaredType Declared type, used for figuring out what type information
-     *    (if any) is to be included in output
+     * @param valueType Type for purpose of locating a serializer; usually dynamic
+     *   runtime type, but can also be static declared type, depending on configuration
      * 
      * @param cache Whether resulting value serializer should be cached or not; this is just
      *    a hint 
@@ -156,7 +154,7 @@ public abstract class SerializerProvider
      * @since 1.5
      */
     public abstract JsonSerializer<Object> findTypedValueSerializer(Class<?> valueType,
-            Class<?> declaredType, boolean cache)
+            boolean cache)
         throws JsonMappingException;
 
     /**
@@ -253,7 +251,7 @@ public abstract class SerializerProvider
             getNullValueSerializer().serialize(null, jgen, this);
         } else {
             Class<?> cls = value.getClass();
-            findTypedValueSerializer(cls, cls, true).serialize(value, jgen, this);
+            findTypedValueSerializer(cls, true).serialize(value, jgen, this);
         }
     }
     
@@ -273,7 +271,7 @@ public abstract class SerializerProvider
             getNullValueSerializer().serialize(null, jgen, this);
         } else {
             Class<?> cls = value.getClass();
-            findTypedValueSerializer(cls, cls, true).serialize(value, jgen, this);
+            findTypedValueSerializer(cls, true).serialize(value, jgen, this);
         }
     }
 

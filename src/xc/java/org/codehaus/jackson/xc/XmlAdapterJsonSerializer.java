@@ -44,7 +44,7 @@ public class XmlAdapterJsonSerializer extends SerializerBase<Object>
         } else {
             Class<?> c = adapted.getClass();
             // true -> do cache for future lookups
-            provider.findTypedValueSerializer(c, c, true).serialize(adapted, jgen, provider);
+            provider.findTypedValueSerializer(c, true).serialize(adapted, jgen, provider);
         }
     }
 
