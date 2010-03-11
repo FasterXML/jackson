@@ -44,9 +44,9 @@ public final class ArrayType
         return new ArrayType(componentType, emptyInstance);
     }                                   
 
-	protected String buildCanonicalName() {
-		return _class.getName();
-	}
+    protected String buildCanonicalName() {
+        return _class.getName();
+    }
     
     /*
     //////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ public final class ArrayType
          */
         Class<?> newCompClass = subclass.getComponentType();
         JavaType newCompType = TypeFactory.type(newCompClass);
-        return construct(newCompType).copyHandlers(this);
+        return construct(newCompType);
     }
 
     /**
@@ -85,7 +85,7 @@ public final class ArrayType
             return this;
         }
         JavaType newComponentType = _componentType.narrowBy(contentClass);
-        return construct(newComponentType);
+        return construct(newComponentType).copyHandlers(this);
     }
 
     /*

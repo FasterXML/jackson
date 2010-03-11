@@ -140,6 +140,16 @@ public class ObjectMapper
             if (t.getRawClass() == Object.class) {
                 return true;
             }
+            /* 10-Mar-2010, tatu: Array types are special; they actually
+             * require checking element type (but not recursively, I think?)
+             */
+            if (t.isArrayType()) {
+                t = t.getContentType();
+                if (t.getRawClass() == Object.class) {
+                    return true;
+                }
+            }
+
             // Also, can be applicable for non-concrete types (abstract class, interface)
             // or non-final types
             switch (_appliesFor) {

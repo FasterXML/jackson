@@ -10,7 +10,7 @@ public class TestDefaultForLists
     /**
      * Wrapper bean needed before there is a way to force
      * type of the root value. Long is used because it is a final
-     * type, but not one of "untypable" ones.
+     * type, but not one of "untypeable" ones.
      */
     static class ListOfLongs {
         public List<Long> longs;

@@ -71,7 +71,7 @@ public class ClassNameIdResolver
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): no such class found");
         } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): "+e.getMessage());
+            throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): "+e.getMessage(), e);
         }
     }
 
