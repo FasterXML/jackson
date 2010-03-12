@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.jsontype;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.ObjectMapper.DefaultTyping;
 
 public class TestDefaultForArrays
     extends BaseMapTest
@@ -31,7 +32,7 @@ public class TestDefaultForArrays
     public void testArrayTypingSimple() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        m.enableDefaultTyping();
+        m.enableDefaultTyping(DefaultTyping.NON_CONCRETE_AND_ARRAYS);
         ArrayBean bean = new ArrayBean(new String[0]);
         String json = m.writeValueAsString(bean);
         ArrayBean result = m.readValue(json, ArrayBean.class);
@@ -43,7 +44,7 @@ public class TestDefaultForArrays
     public void testArrayTypingNested() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        m.enableDefaultTyping();
+        m.enableDefaultTyping(DefaultTyping.NON_CONCRETE_AND_ARRAYS);
         ArrayBean bean = new ArrayBean(new String[0][0]);
         String json = m.writeValueAsString(bean);
         ArrayBean result = m.readValue(json, ArrayBean.class);

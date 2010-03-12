@@ -82,15 +82,24 @@ public class ObjectMapper
          * Value that means that default typing will be used for
          * properties with declared type of {@link java.lang.Object}
          * or an abstract type (abstract class or interface).
+         * Note that this does <b>not</b> include array types.
          */
         OBJECT_AND_NON_CONCRETE,
+
+        /**
+         * Value that means that default typing will be used for
+         * all types covered by {@link #OBJECT_AND_NON_CONCRETE}
+         * plus all array types for them.
+         */
+        NON_CONCRETE_AND_ARRAYS,
         
         /**
          * Value that means that default typing will be used for
          * all non-final types, with exception of small number of
          * "natural" types (String, Boolean, Integer, Double), which
-         * can be correctly inferred from JSON.
-         */        
+         * can be correctly inferred from JSON; as well as for
+         * all arrays of non-final types.
+         */
         NON_FINAL
     }
 
@@ -136,33 +145,26 @@ public class ObjectMapper
          */
         public boolean useForType(JavaType t)
         {
-            // Always applicable for Object.class, when enabled
-            if (t.getRawClass() == Object.class) {
-                return true;
-            }
-            /* 10-Mar-2010, tatu: Array types are special; they actually
-             * require checking element type (but not recursively, I think?)
-             */
-            if (t.isArrayType()) {
-                t = t.getContentType();
-                if (t.getRawClass() == Object.class) {
-                    return true;
-                }
-            }
-
-            // Also, can be applicable for non-concrete types (abstract class, interface)
-            // or non-final types
             switch (_appliesFor) {
+            case NON_CONCRETE_AND_ARRAYS:
+                if (t.isArrayType()) {
+                    t = t.getContentType();
+                }
+                // fall through
             case OBJECT_AND_NON_CONCRETE:
-                return !t.isConcrete();
+                return (t.getRawClass() == Object.class) || !t.isConcrete();
             case NON_FINAL:
-                return !t.isFinal();
+                if (t.isArrayType()) {
+                    t = t.getContentType();
+                }
+                return !t.isFinal(); // includes Object.class
+            default:
+            //case JAVA_LANG_OBJECT:
+                return (t.getRawClass() == Object.class);
             }
-            // otherwise, not used
-            return false;
         }
     }
-    
+
     /*
     /************************************************* 
     /* Internal constants, singletons
