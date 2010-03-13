@@ -17,20 +17,20 @@ import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
 public final class ByteSourceBootstrapper
 {
     /*
-    ////////////////////////////////////////
-    // Configuration
-    ////////////////////////////////////////
-    */
+    /*********************************************
+    /* Configuration
+    /*********************************************
+     */
 
     final IOContext _context;
 
     final InputStream _in;
 
     /*
-    ///////////////////////////////////////////////////////////////
-    // Input buffering
-    ///////////////////////////////////////////////////////////////
-    */
+    /*********************************************
+    /* Input buffering
+    /*********************************************
+     */
 
     final byte[] _inputBuffer;
 
@@ -45,10 +45,10 @@ public final class ByteSourceBootstrapper
     private final boolean _bufferRecyclable;
 
     /*
-    ///////////////////////////////////////////////////////////////
-    // Input location
-    ///////////////////////////////////////////////////////////////
-    */
+    /*********************************************
+    /* Input location
+    /*********************************************
+     */
 
     /**
      * Current number of input units (bytes or chars) that were processed in
@@ -60,18 +60,18 @@ public final class ByteSourceBootstrapper
     protected int _inputProcessed;
 
     /*
-    ///////////////////////////////////////////////////////////////
-    // Data gathered
-    ///////////////////////////////////////////////////////////////
-    */
+    /*********************************************
+    /* Data gathered
+    /*********************************************
+     */
 
     boolean _bigEndian = true;
     int _bytesPerChar = 0; // 0 means "dunno yet"
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /*********************************************
+    /* Life-cycle
+    /*********************************************
      */
 
     public ByteSourceBootstrapper(IOContext ctxt, InputStream in)
@@ -170,6 +170,7 @@ public final class ByteSourceBootstrapper
 
         case UTF16_BE:
         case UTF16_LE:
+        case UTF8: // only in non-common case where we don't want to do direct mapping
             {
                 // First: do we have a Stream? If not, need to create one:
                 InputStream in = _in;
@@ -186,15 +187,6 @@ public final class ByteSourceBootstrapper
                 }
                 return new InputStreamReader(in, enc.getJavaName());
             }
-
-        case UTF8:
-            /* 25-Nov-2008, tatu: We used to use specialized UTF-8
-             *    Reader; but now that we have even better UTF-8
-             *    integrated codec, we don't need the Reader
-             *   (and reader source has been moved to "obsolete-src")
-             */
-            //return new UTF8Reader(_context, _in, _inputBuffer, _inputPtr, _inputEnd);
-            throw new RuntimeException("Internal error: should be using Utf8StreamParser directly"); // should never get here
         }
         throw new RuntimeException("Internal error"); // should never get here
     }
@@ -203,18 +195,27 @@ public final class ByteSourceBootstrapper
         throws IOException, JsonParseException
     {
         JsonEncoding enc = detectEncoding();
+
+        // As per [JACKSON-259], may want to fully disable canonicalization:
+        boolean canonicalize = JsonParser.Feature.CANONICALIZE_FIELD_NAMES.enabledIn(features);
         boolean intern = JsonParser.Feature.INTERN_FIELD_NAMES.enabledIn(features);
         if (enc == JsonEncoding.UTF8) {
-            return new Utf8StreamParser(_context, features, _in, codec, rootByteSymbols.makeChild(intern), _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
+            /* and without canonicalization, byte-based approach is not performance; just use std UTF-8 reader
+             * (which is ok for larger input; not so hot for smaller; but this is not a common case)
+             */
+            if (canonicalize) {
+                BytesToNameCanonicalizer can = rootByteSymbols.makeChild(canonicalize, intern);
+                return new Utf8StreamParser(_context, features, _in, codec, can, _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
+            }
         }
-        return new ReaderBasedParser(_context, features, constructReader(), codec, rootCharSymbols.makeChild(intern));
+        return new ReaderBasedParser(_context, features, constructReader(), codec, rootCharSymbols.makeChild(canonicalize, intern));
     }
 
     /*
-    /////////////////////////////////////////////////////////////////
-    // Internal methods, parsing
-    /////////////////////////////////////////////////////////////////
-    */
+    /*********************************************
+    /* Internal methods, parsing
+    /*********************************************
+     */
 
     /**
      * @return True if a BOM was succesfully found, and encoding
@@ -306,10 +307,10 @@ public final class ByteSourceBootstrapper
     }
 
     /*
-    /////////////////////////////////////////////////////////////////
-    // Internal methods, problem reporting
-    /////////////////////////////////////////////////////////////////
-    */
+    /*********************************************
+    /* Internal methods, problem reporting
+    /*********************************************
+     */
 
     private void reportWeirdUCS4(String type)
         throws IOException
@@ -318,9 +319,9 @@ public final class ByteSourceBootstrapper
     }
 
     /*
-    /////////////////////////////////////////////////////////////////
-    // Internal methods, raw input access
-    /////////////////////////////////////////////////////////////////
+    /*********************************************
+    /* Internal methods, raw input access
+    /*********************************************
     */
 
     protected boolean ensureLoaded(int minimum)

@@ -140,10 +140,24 @@ public abstract class JsonParser
          * no intern()ing is done. There may still be basic
          * canonicalization (that is, same String will be used to represent
          * all identical object property names for a single document).
+         *<p>
+         * Note: this setting only has effect if
+         * {@link #CANONICALIZE_FIELD_NAMES} is true -- otherwise no
+         * canonicalization of any sort is done.
          *
          * @since 1.3
          */
          ,INTERN_FIELD_NAMES(true)
+
+        /**
+         * Feature that determines whether JSON object field names are
+         * to be canonicalized (details of how canonicalization is done
+         * then further specified by
+         * {@link #INTERN_FIELD_NAMES}).
+         *
+         * @since 1.5
+         */
+         ,CANONICALIZE_FIELD_NAMES(true)
 
             // 14-Sep-2009, Tatu: This would be [JACKSON-142] implementation:
         /*
@@ -195,9 +209,9 @@ public abstract class JsonParser
     };
 
     /*
-    ////////////////////////////////////////////////////
-    // Minimal configuration state
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Minimal configuration state
+    /***************************************************
      */
 
     /**
@@ -208,9 +222,9 @@ public abstract class JsonParser
     protected int _features;
 
     /*
-    ////////////////////////////////////////////////////
-    // Minimal generic state
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Minimal generic state
+    /***************************************************
      */
 
     /**
@@ -228,9 +242,9 @@ public abstract class JsonParser
     protected JsonToken _lastClearedToken;
 
     /*
-    ////////////////////////////////////////////////////
-    // Construction, init
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Construction, init
+    /***************************************************
      */
 
     protected JsonParser() { }
@@ -254,9 +268,9 @@ public abstract class JsonParser
     public abstract void setCodec(ObjectCodec c);
 
     /*
-    ////////////////////////////////////////////////////
-    // Closeable implementation
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Closeable implementation
+    /***************************************************
      */
 
     /**
@@ -277,9 +291,9 @@ public abstract class JsonParser
     public abstract void close() throws IOException;
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, configuration
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Public API, configuration
+    /***************************************************
      */
 
     /**
@@ -350,9 +364,9 @@ public abstract class JsonParser
 
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, traversal
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Public API, traversal
+    /***************************************************
      */
 
     /**
@@ -428,9 +442,9 @@ public abstract class JsonParser
     public abstract boolean isClosed();
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, token accessors
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Public API, token accessors
+    /***************************************************
      */
 
     /**
@@ -530,9 +544,9 @@ public abstract class JsonParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, access to token information, text
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Public API, access to token information, text
+    /***************************************************
      */
 
     /**
@@ -595,9 +609,9 @@ public abstract class JsonParser
         throws IOException, JsonParseException;
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, access to token information, numeric
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Public API, access to token information, numeric
+    /***************************************************
      */
 
     /**
@@ -789,9 +803,9 @@ public abstract class JsonParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, access to token information, binary
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Public API, access to token information, binary
+    /***************************************************
      */
 
     /**
@@ -829,9 +843,9 @@ public abstract class JsonParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, optional data binding functionality
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Public API, optional data binding functionality
+    /***************************************************
      */
 
     /**
@@ -915,9 +929,9 @@ public abstract class JsonParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Internal methods
+    /***************************************************
      */
 
     /**

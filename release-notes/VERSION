@@ -52,6 +52,8 @@ Description:
     (requested by Pierre-Yves R)
   * [JACKSON-245] Add configuration setting in JAX-RS provider to allow
     automatic JSONP wrapping (provider.setJSONPFunctionName())
+  * [JACKSON-259] Add JsonParser.Feature to allow disabling field name
+    canonicalization (JsonParser.Feature.CANONICALIZE_FIELD_NAMES)
 
   Backwards incompatible changes:
 

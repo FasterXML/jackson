@@ -61,9 +61,9 @@ public class JsonFactory
     final static int DEFAULT_GENERATOR_FEATURE_FLAGS = JsonGenerator.Feature.collectDefaults();
 
     /*
-    ///////////////////////////////////////////////////////
-    // Buffer, symbol table management
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Buffer, symbol table management
+    /******************************************************
      */
 
     /**
@@ -78,7 +78,7 @@ public class JsonFactory
      * It should not be linked back to the original blueprint, to
      * avoid contents from leaking between factories.
      */
-    protected CharsToNameCanonicalizer _rootCharSymbols = CharsToNameCanonicalizer.createRoot(true);
+    protected CharsToNameCanonicalizer _rootCharSymbols = CharsToNameCanonicalizer.createRoot();
 
     /**
      * Alternative to the basic symbol table, some stream-based
@@ -90,9 +90,9 @@ public class JsonFactory
     protected BytesToNameCanonicalizer _rootByteSymbols = BytesToNameCanonicalizer.createRoot();
 
     /*
-    ///////////////////////////////////////////////////////
-    // Configuration
-    ///////////////////////////////////////////////////////
+    /******************************************************
+    /* Configuration
+    /******************************************************
      */
 
     /**
@@ -123,9 +123,9 @@ public class JsonFactory
     public JsonFactory(ObjectCodec oc) { _objectCodec = oc; }
 
     /*
-    //////////////////////////////////////////////////////
-    // Configuration, parser settings
-    //////////////////////////////////////////////////////
+    /******************************************************
+    /* Configuration, parser settings
+    /******************************************************
      */
 
     /**
@@ -507,8 +507,9 @@ public class JsonFactory
 	throws IOException, JsonParseException
     {
         return new ReaderBasedParser(ctxt, _parserFeatures, r, _objectCodec,
-				     _rootCharSymbols.makeChild(isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES)));
-    }
+                _rootCharSymbols.makeChild(isEnabled(JsonParser.Feature.CANONICALIZE_FIELD_NAMES),
+                    isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES)));
+        }
 
     protected JsonParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
         throws IOException, JsonParseException
