@@ -1,20 +1,27 @@
-Version: 1.4.3
+Version: 1.4.4
 
 Release date:
-  18-Feb-2010
+  xx-Mar-2010
 
 Description:
-  Third patch release for 1.4; contains one critical patch for a rare
-  race condition which can cause a NullPointerException on deserialization.
+  Fourth patch release for 1.4.
+
+  Fixes:
+
+  * [JACKSON-263] BooleNode.asToken() incorrectly returns 'true' token
+    for all nodes (not just 'false' ones)
+   (reported by Gennadiy S)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.4.3 [18-Feb-2010]
 
   Fixes:
 
  * [JACKSON-237]: NPE in deserialization due to race condition
    (reported by Benjamin D)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.4.2 [31-Jan-2010]
 

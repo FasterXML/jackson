@@ -271,3 +271,8 @@ Pablo I. Lalloni:
   * Reported [JACKSON-238]: Problems with DOM/Joda serializers; could not
     override default serializers
    [1.4.3]
+
+Gennadiy Shafranovich:
+  * Reported [JACKSON-263] BooleNode.asToken() incorrectly returns 'true'
+    token for all nodes (not just 'false' ones)
+   [1.4.4]
