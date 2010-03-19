@@ -14,6 +14,8 @@ public class TestParser
             System.exit(1);
         }
         JsonFactory f = new JsonFactory();
+        // [JACKSON-259]: ability to suppress canonicalization
+        f.disable(JsonParser.Feature.CANONICALIZE_FIELD_NAMES);
 
         JsonParser jp = f.createJsonParser(new File(args[0]));
         //JsonParser jp = f.createJsonParser(new InputStreamReader(new FileInputStream(args[0]), "UTF-8"));

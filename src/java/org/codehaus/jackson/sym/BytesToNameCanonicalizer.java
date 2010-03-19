@@ -1,5 +1,7 @@
 package org.codehaus.jackson.sym;
 
+import java.util.Arrays;
+
 import org.codehaus.jackson.util.InternCache;
 
 /**
@@ -14,11 +16,20 @@ public final class BytesToNameCanonicalizer
     protected static final int DEFAULT_TABLE_SIZE = 64;
 
     /**
-     * Let's limit max size to 3/4 of 8k; this corresponds
-     * to 32k main hash index. This should allow for enough distinct
+     * Let's not expand symbol tables past some maximum size;
+     * this should protected against OOMEs caused by large documents
+     * with uniquer (~= random) names.
+     * 
+     * @since 1.5
+     */
+    protected static final int MAX_TABLE_SIZE = 0x10000; // 64k entries == 256k mem
+    
+    /**
+     * Let's only share reasonably sized symbol tables. Max size set to 3/4 of 16k;
+     * this corresponds to 64k main hash index. This should allow for enough distinct
      * names for almost any case.
      */
-    final static int MAX_TABLE_SIZE = 6000;
+    final static int MAX_ENTRIES_FOR_REUSE = 6000;
 
     final static int MIN_HASH_SIZE = 16;
 
@@ -31,17 +42,17 @@ public final class BytesToNameCanonicalizer
     final static int LAST_VALID_BUCKET = 0xFE;
     
     /*
-    /////////////////////////////////////////////////////
-    // Linkage, needed for merging symbol tables
-    /////////////////////////////////////////////////////    
+    /****************************************************
+    /* Linkage, needed for merging symbol tables
+    /****************************************************
      */
 
     final BytesToNameCanonicalizer _parent;
 
     /*
-    /////////////////////////////////////////////////////
-    // Main table state
-    /////////////////////////////////////////////////////    
+    /****************************************************
+    /* Main table state
+    /****************************************************
      */
 
     /**
@@ -112,9 +123,9 @@ public final class BytesToNameCanonicalizer
     private transient boolean _needRehash;
 
     /*
-    /////////////////////////////////////////////////////
-    // Sharing, versioning
-    /////////////////////////////////////////////////////    
+    /****************************************************
+    /* Sharing, versioning
+    /****************************************************
      */
 
     // // // Which of the buffers may be shared (and are copy-on-write)?
@@ -146,9 +157,9 @@ public final class BytesToNameCanonicalizer
     private boolean _collListShared;
 
     /*
-    /////////////////////////////////////////////////////
-    // Construction, merging
-    /////////////////////////////////////////////////////
+    /****************************************************
+    /* Construction, merging
+    /****************************************************
      */
 
     public static BytesToNameCanonicalizer createRoot()
@@ -160,7 +171,8 @@ public final class BytesToNameCanonicalizer
      * @param intern Whether canonical symbol Strings should be interned
      *   or not
      */
-    public synchronized BytesToNameCanonicalizer makeChild(boolean intern)
+    public synchronized BytesToNameCanonicalizer makeChild(boolean canonicalize,
+        boolean intern)
     {
         return new BytesToNameCanonicalizer(this, intern);
     }
@@ -261,7 +273,7 @@ public final class BytesToNameCanonicalizer
          * One way to do this is to just purge tables if they grow
          * too large, and that's what we'll do here.
          */
-        if (child.size() > MAX_TABLE_SIZE) {
+        if (child.size() > MAX_ENTRIES_FOR_REUSE) {
             /* Should there be a way to get notified about this
              * event, to log it or such? (as it's somewhat abnormal
              * thing to happen)
@@ -289,9 +301,9 @@ public final class BytesToNameCanonicalizer
     }
 
     /*
-    /////////////////////////////////////////////////////
-    // API, accessors
-    /////////////////////////////////////////////////////
+    /****************************************************
+    /* API, accessors
+    /****************************************************
      */
 
     public int size() { return _count; }
@@ -460,9 +472,9 @@ public final class BytesToNameCanonicalizer
     }
 
     /*
-    /////////////////////////////////////////////////////
-    // API, mutators
-    /////////////////////////////////////////////////////
+    /****************************************
+    /* API, mutators
+    /****************************************
      */
 
     public Name addName(String symbolStr, int[] quads, int qlen)
@@ -477,9 +489,9 @@ public final class BytesToNameCanonicalizer
     }
 
     /*
-    /////////////////////////////////////////////////////
-    // Helper methods
-    /////////////////////////////////////////////////////
+    /****************************************
+    /* Helper methods
+    /****************************************
      */
 
     public final static int calcHash(int firstQuad)
@@ -543,16 +555,17 @@ public final class BytesToNameCanonicalizer
     */
 
     /*
-    /////////////////////////////////////////////////////
-    // Standard methods
-    /////////////////////////////////////////////////////
+    /****************************************
+    /* Standard methods
+    /****************************************
      */
 
+    /*
     @Override
-	public String toString()
+    public String toString()
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("[NameCanonicalizer, size: ");
+        sb.append("[BytesToNameCanonicalizer, size: ");
         sb.append(_count);
         sb.append('/');
         sb.append(_mainHash.length);
@@ -560,9 +573,8 @@ public final class BytesToNameCanonicalizer
         sb.append(_collCount);
         sb.append(" coll; avg length: ");
 
-        /* Average length: minimum of 1 for all (1 == primary hit);
-         * and then 1 per each traversal for collisions/buckets
-         */
+        // Average length: minimum of 1 for all (1 == primary hit);
+        // and then 1 per each traversal for collisions/buckets
         //int maxDist = 1;
         int pathCount = _count;
         for (int i = 0; i < _collEnd; ++i) {
@@ -585,11 +597,12 @@ public final class BytesToNameCanonicalizer
         sb.append(']');
         return sb.toString();
     }
+    */
 
     /*
-    /////////////////////////////////////////////////////
-    // Internal methods
-    /////////////////////////////////////////////////////
+    /****************************************
+    /* Internal methods
+    /****************************************
      */
 
     private void _addSymbol(int hash, Name symbol)
@@ -667,7 +680,7 @@ public final class BytesToNameCanonicalizer
 
     private void rehash()
     {
-        _needRehash = false;
+        _needRehash = false;        
         // Note: since we'll make copies, no need to unshare, can just mark as such:
         _mainNamesShared = false;
 
@@ -675,13 +688,23 @@ public final class BytesToNameCanonicalizer
          * are expanding linearly (double up), we know there'll be no
          * collisions during this phase.
          */
-        int symbolsSeen = 0; // let's do a sanity check
         int[] oldMainHash = _mainHash;
         int len = oldMainHash.length;
-        _mainHash = new int[len + len];
-        _mainHashMask = (len + len - 1);
+        int newLen = len+len;
+
+        /* 13-Mar-2010, tatu: Let's guard against OOME that could be caused by
+         *    large documents with unique (or mostly so) names
+         */
+        if (newLen > MAX_TABLE_SIZE) {
+            nukeSymbols();
+            return;
+        }
+        
+        _mainHash = new int[newLen];
+        _mainHashMask = (newLen - 1);
         Name[] oldNames = _mainNames;
-        _mainNames = new Name[len + len];
+        _mainNames = new Name[newLen];
+        int symbolsSeen = 0; // let's do a sanity check
         for (int i = 0; i < len; ++i) {
             Name symbol = oldNames[i];
             if (symbol != null) {
@@ -748,6 +771,20 @@ public final class BytesToNameCanonicalizer
         }
     }
 
+    /**
+     * Helper method called to empty all shared symbols, but to leave
+     * arrays allocated
+     */
+    private void nukeSymbols()
+    {
+        _count = 0;
+        Arrays.fill(_mainHash, 0);
+        Arrays.fill(_mainNames, null);
+        Arrays.fill(_collList, null);
+        _collCount = 0;
+        _collEnd = 0;
+    }
+    
     /**
      * Method called to find the best bucket to spill a Name over to:
      * usually the first bucket that has only one entry, but in general
@@ -820,9 +857,9 @@ public final class BytesToNameCanonicalizer
 
 
     /*
-    /////////////////////////////////////////////////////
-    // Constructing name objects
-    /////////////////////////////////////////////////////
+    /****************************************
+    /* Constructing name objects
+    /****************************************
      */
 
     /*
@@ -857,9 +894,9 @@ public final class BytesToNameCanonicalizer
     }
 
     /*
-    /////////////////////////////////////////////////////
-    // Helper classes
-    /////////////////////////////////////////////////////
+    /****************************************
+    /* Helper classes
+    /****************************************
      */
 
     final static class Bucket

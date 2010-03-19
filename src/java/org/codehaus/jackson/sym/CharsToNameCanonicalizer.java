@@ -1,5 +1,7 @@
 package org.codehaus.jackson.sym;
 
+import java.util.Arrays;
+
 import org.codehaus.jackson.util.InternCache;
 
 /**
@@ -50,21 +52,30 @@ public final class CharsToNameCanonicalizer
     protected static final int DEFAULT_TABLE_SIZE = 64;
 
     /**
-     * Let's limit max size to 3/4 of 8k; this corresponds
-     * to 32k main hash index. This should allow for enough distinct
+     * Let's not expand symbol tables past some maximum size;
+     * this should protected against OOMEs caused by large documents
+     * with uniquer (~= random) names.
+     * 
+     * @since 1.5
+     */
+    protected static final int MAX_TABLE_SIZE = 0x10000; // 64k entries == 256k mem
+
+    /**
+     * Let's only share reasonably sized symbol tables. Max size set to 3/4 of 16k;
+     * this corresponds to 64k main hash index. This should allow for enough distinct
      * names for almost any case.
      */
-    final static int MAX_SYMBOL_TABLE_SIZE = 6000;
+    final static int MAX_ENTRIES_FOR_REUSE = 12000;
 
     final static CharsToNameCanonicalizer sBootstrapSymbolTable;
     static {
-        sBootstrapSymbolTable = new CharsToNameCanonicalizer(DEFAULT_TABLE_SIZE, true);
+        sBootstrapSymbolTable = new CharsToNameCanonicalizer();
     }
 
     /*
-    ////////////////////////////////////////
-    // Configuration:
-    ////////////////////////////////////////
+    /****************************************
+    /* Configuration:
+    /****************************************
      */
 
     /**
@@ -79,12 +90,18 @@ public final class CharsToNameCanonicalizer
      * Whether canonical symbol Strings are to be intern()ed before added
      * to the table or not
      */
-    final boolean _intern;
+    final protected boolean _intern;
+
+    /**
+     * Whether any canonicalization should be attempted (whether using
+     * intern or not)
+     */
+    final protected boolean _canonicalize;
     
     /*
-    ////////////////////////////////////////
-    // Actual symbol table data:
-    ////////////////////////////////////////
+    /****************************************
+    /* Actual symbol table data:
+    /****************************************
      */
 
     /**
@@ -123,9 +140,9 @@ public final class CharsToNameCanonicalizer
     protected int _indexMask;
 
     /*
-    ////////////////////////////////////////
-    // Information about concurrency
-    ////////////////////////////////////////
+    /****************************************
+    /* State regarding shared arrays
+    /****************************************
      */
 
     /**
@@ -137,45 +154,35 @@ public final class CharsToNameCanonicalizer
     protected boolean _dirty;
 
     /*
-    ////////////////////////////////////////
-    // Life-cycle:
-    ////////////////////////////////////////
+    /****************************************
+    /* Life-cycle
+    /****************************************
      */
 
-    public static CharsToNameCanonicalizer createRoot(boolean intern)
+    /**
+     * Method called to create root canonicalizer for a {@link org.codehaus.jackson.JsonFactory}
+     * instance. Root instance is never used directly; its main use is for
+     * storing and sharing underlying symbol arrays as needed.
+     */
+    public static CharsToNameCanonicalizer createRoot()
     {
-        return sBootstrapSymbolTable.makeOrphan(intern);
+        return sBootstrapSymbolTable.makeOrphan();
     }
 
     /**
-     * Main method for constructing a master symbol table instance; will
-     * be called by other public constructors.
+     * Main method for constructing a master symbol table instance.
      *
      * @param initialSize Minimum initial size for bucket array; internally
      *   will always use a power of two equal to or bigger than this value.
      */
-    public CharsToNameCanonicalizer(int initialSize, boolean intern)
+    private CharsToNameCanonicalizer()
     {
-        _intern = intern;
+        // these settings don't really matter for the bootstrap instance
+        _canonicalize = true;
+        _intern = true;
         // And we'll also set flags so no copying of buckets is needed:
         _dirty = true;
-
-        // No point in requesting funny initial sizes...
-        if (initialSize < 1) {
-            throw new IllegalArgumentException("Can not use negative/zero initial size: "+initialSize);
-        }
-        /* Initial size has to be a power of two. And it shouldn't
-         * be ridiculously small either
-         */
-        {
-            int currSize = 4;
-            while (currSize < initialSize) {
-                currSize += currSize;
-            }
-            initialSize = currSize;
-        }
-
-        initTables(initialSize);
+        initTables(DEFAULT_TABLE_SIZE);
     }
 
     private void initTables(int initialSize)
@@ -192,10 +199,12 @@ public final class CharsToNameCanonicalizer
     /**
      * Internal constructor used when creating child instances.
      */
-    private CharsToNameCanonicalizer(CharsToNameCanonicalizer parent, boolean intern,
-                        String[] symbols, Bucket[] buckets, int size)
+    private CharsToNameCanonicalizer(CharsToNameCanonicalizer parent,
+            boolean canonicalize, boolean intern,
+            String[] symbols, Bucket[] buckets, int size)
     {
         _parent = parent;
+        _canonicalize = canonicalize;
         _intern = intern;
 
         _symbols = symbols;
@@ -222,14 +231,14 @@ public final class CharsToNameCanonicalizer
      * on which only makeChild/mergeChild are called, but instance itself
      * is not used as a symbol table.
      */
-    public synchronized CharsToNameCanonicalizer makeChild(boolean intern)
+    public synchronized CharsToNameCanonicalizer makeChild(boolean canonicalize, boolean intern)
     {
-        return new CharsToNameCanonicalizer(this, intern, _symbols, _buckets, _size);
+        return new CharsToNameCanonicalizer(this, canonicalize, intern, _symbols, _buckets, _size);
     }
 
-    private CharsToNameCanonicalizer makeOrphan(boolean intern)
+    private CharsToNameCanonicalizer makeOrphan()
     {
-        return new CharsToNameCanonicalizer(null, intern, _symbols, _buckets, _size);
+        return new CharsToNameCanonicalizer(null, true, true, _symbols, _buckets, _size);
     }
 
     /**
@@ -247,7 +256,7 @@ public final class CharsToNameCanonicalizer
          * One way to do this is to just purge tables if they grow
          * too large, and that's what we'll do here.
          */
-        if (child.size() > MAX_SYMBOL_TABLE_SIZE) {
+        if (child.size() > MAX_ENTRIES_FOR_REUSE) {
             /* Should there be a way to get notified about this
              * event, to log it or such? (as it's somewhat abnormal
              * thing to happen)
@@ -293,9 +302,9 @@ public final class CharsToNameCanonicalizer
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, generic accessors:
-    ////////////////////////////////////////////////////
+    /****************************************
+    /* Public API, generic accessors:
+    /****************************************
      */
 
     public int size() { return _size; }
@@ -303,15 +312,18 @@ public final class CharsToNameCanonicalizer
     public boolean maybeDirty() { return _dirty; }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, accessing symbols:
-    ////////////////////////////////////////////////////
+    /****************************************
+    /* Public API, accessing symbols:
+    /****************************************
      */
 
     public String findSymbol(char[] buffer, int start, int len, int hash)
     {
         if (len < 1) { // empty Strings are simplest to handle up front
             return "";
+        }
+        if (!_canonicalize) { // [JACKSON-259]
+            return new String(buffer, start, len);
         }
 
         hash &= _indexMask;
@@ -397,9 +409,9 @@ public final class CharsToNameCanonicalizer
     }
 
     /*
-    //////////////////////////////////////////////////////////
-    // Internal methods
-    //////////////////////////////////////////////////////////
+    /****************************************
+    /* Internal methods
+    /****************************************
      */
 
     /**
@@ -428,6 +440,23 @@ public final class CharsToNameCanonicalizer
     {
         int size = _symbols.length;
         int newSize = size + size;
+
+        /* 12-Mar-2010, tatu: Let's actually limit maximum size we are
+         *    prepared to use, to guard against OOME in case of unbounded
+         *    name sets (unique [non-repeating] names)
+         */
+        if (newSize > MAX_TABLE_SIZE) {
+            /* If this happens, there's no point in either growing or
+             * shrinking hash areas. Rather, it's better to just clean
+             * them up for reuse.
+             */
+            _size = 0;
+            Arrays.fill(_symbols, null);
+            Arrays.fill(_buckets, null);
+            _dirty = true;
+            return;
+        }
+        
         String[] oldSyms = _symbols;
         Bucket[] oldBuckets = _buckets;
         _symbols = new String[newSize];
@@ -438,7 +467,7 @@ public final class CharsToNameCanonicalizer
         
         int count = 0; // let's do sanity check
 
-        /* Need to do two loops, unfortunately, since spillover area is
+        /* Need to do two loops, unfortunately, since spill-over area is
          * only half the size:
          */
         for (int i = 0; i < size; ++i) {
@@ -478,9 +507,9 @@ public final class CharsToNameCanonicalizer
     }
 
     /*
-    //////////////////////////////////////////////////////////
-    // Bucket class
-    //////////////////////////////////////////////////////////
+    /****************************************
+    /* Bucket class
+    /****************************************
      */
 
     /**

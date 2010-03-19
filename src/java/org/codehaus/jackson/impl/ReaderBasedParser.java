@@ -16,9 +16,9 @@ public final class ReaderBasedParser
     extends ReaderBasedNumericParser
 {
     /*
-    ////////////////////////////////////////////////////
-    // Configuration, state
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Configuration, state
+    /***************************************************
      */
 
     protected ObjectCodec _objectCodec;
@@ -26,9 +26,9 @@ public final class ReaderBasedParser
     final protected CharsToNameCanonicalizer _symbols;
     
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Life-cycle
+    /***************************************************
      */
 
     public ReaderBasedParser(IOContext ioCtxt, int features, Reader r,
@@ -48,9 +48,9 @@ public final class ReaderBasedParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, traversal
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Public API, traversal
+    /***************************************************
      */
 
     /**
@@ -223,9 +223,9 @@ public final class ReaderBasedParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Internal methods, secondary parsing
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Internal methods, secondary parsing
+    /***************************************************
      */
 
     protected final String _parseFieldName(int i)
@@ -706,9 +706,9 @@ public final class ReaderBasedParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Internal methods, other parsing
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Internal methods, other parsing
+    /***************************************************
      */
     
     /**
@@ -907,9 +907,9 @@ public final class ReaderBasedParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Binary access
-    ////////////////////////////////////////////////////
+    /***************************************************
+    /* Binary access
+    /***************************************************
      */
 
     @Override
