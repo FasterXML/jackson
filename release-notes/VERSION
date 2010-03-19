@@ -1,10 +1,25 @@
 Version: 1.5.0
 
 Release date:
-  xx-Mar-2010
+  14-Mar-2010
 
 Description:
-  Official 1.5 release.
+  Official 1.5 release. Main feature is [JACKSON-91], fully automated
+  and configurable handling of polymorphic types; along with related
+  improvements and features (like ability to explicitly define root
+  serialization type [JACKSON-195]).
+
+  Fixes:
+
+  * [JACKSON-263] BooleNode.asToken() incorrectly returns 'true' token
+    for all nodes (not just 'false' ones)
+   (reported by Gennadiy S)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.5.0 [14-Mar-2010]
 
   Fixes:
 
@@ -13,13 +28,8 @@ Description:
 
   Improvements:
 
-  * [JACKSON-91] Polymorphic Type Handling: automatic handling of
-    polymorphic types, based on annotations (@JsonTypeInfo) and/or
-    global settings (ObjectMapper.enableDefaultTyping()) 
   * [JACKSON-160] Factory Creator methods now handle polymorphic
     construction correctly, allowing manual polymorphic deserialization
-  * [JACKSON-175] Add "org.codehaus.jackson.util.TokenBuffer", used for
-    much more efficient type conversions (and other internal buffering)
   * [JACKSON-218] Extended support for Joda date/time types like
     LocalDate, LocalDateTime and DateMidnight
   * [JACKSON-220] @JsonSerialize.using() was not working properly for
@@ -35,6 +45,13 @@ Description:
 
   New features:
 
+  * [JACKSON-91] Polymorphic Type Handling: automatic handling of
+    polymorphic types, based on annotations (@JsonTypeInfo) and/or
+    global settings (ObjectMapper.enableDefaultTyping()) 
+  * [JACKSON-175] Add "org.codehaus.jackson.util.TokenBuffer", used for
+    much more efficient type conversions (and other internal buffering)
+  * [JACKSON-195] Add methods to ObjectMapper to allow specification of
+    root object serialization type.
   * [JACKSON-221] Add 'ObjectMapper.writeValueAsBytes()' convenience
     method to simplify a common usage pattern
   * [JACKSON-229] TypeFactory should have methods to construct parametric
@@ -73,9 +90,13 @@ Description:
      * @JsonGetter and @JsonSetter are marked as deprecated, since
        @JsonProperty can (and should) be used instead.
 
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
+1.4.3 [18-Feb-2010]
+
+  Fixes:
+
+ * [JACKSON-237]: NPE in deserialization due to race condition
+   (reported by Benjamin D)
+
 
 1.4.2 [31-Jan-2010]
 

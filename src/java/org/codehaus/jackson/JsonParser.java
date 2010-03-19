@@ -116,7 +116,7 @@ public abstract class JsonParser
         /**
          * Feature that determines whether parser will allow
          * JSON Strings to contain unquoted control characters
-         * (ascii characters with value less than 32, including
+         * (ASCII characters with value less than 32, including
          * tab and line feed characters) or not.
          * If feature is set false, an exception is thrown if such a
          * character is encountered.
