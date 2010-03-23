@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testSuite name="XPathpex" xmlns="http://www.sun.com/japex/testSuite"
+           xmlns:xi="http://www.w3.org/2001/XInclude">
+    
+    <description>
+        <div xmlns="">
+            <p>Micro-benchmark for JSON processors.</p>
+        </div>
+    </description>
+
+<!--
+    <param name="japex.warmupTime" value="7"/>
+    <param name="japex.runTime" value="25"/>
+    <param name="japex.warmupsPerDriver" value="1"/>
+    <param name="japex.runsPerDriver" value="3"/>    
+-->
+<!-- For quickie testing of correctness etc. of inputs: -->
+    <param name="japex.warmupTime" value="3"/>
+    <param name="japex.runTime" value="7"/>
+    <param name="japex.warmupsPerDriver" value="1"/>
+    <param name="japex.runsPerDriver" value="1"/>    
+
+    <param name="japex.reportsDirectory" value="reports"/>
+    
+    <xi:include href="entities/JacksonDriver.xml"/>    
+    <xi:include href="entities/NoggitDriver.xml"/>    
+    <xi:include href="entities/JsonOrgDriver.xml"/>    
+    <xi:include href="entities/StringTreeDriver.xml"/>    
+    <xi:include href="entities/JsonToolsDriver.xml"/>    
+    <xi:include href="entities/JsonSimpleDriver.xml"/>    
+
+    <testCase name="twitter-search">
+        <param name="japex.inputFile" value="testcases/twitter-search.jsn"/>
+    </testCase>
+
+</testSuite>
