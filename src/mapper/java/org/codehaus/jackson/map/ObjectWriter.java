@@ -1,9 +1,6 @@
 package org.codehaus.jackson.map;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
+import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.SegmentedStringWriter;
@@ -17,10 +14,10 @@ import org.codehaus.jackson.util.ByteArrayBuilder;
  * Builder object that can be used for per-serialization configuration of
  * serialization parameters, such as JSON View and root type to use.
  * Uses "fluid" (aka builder) pattern so that instances are immutable
- * (and thus fully thread-safe); new instances are constructed for
- * different configurations.
- * Instances are initially constructed by {@link ObjectMapper}, and can
- * be similarly reused.
+ * (and thus fully thread-safe with no external synchronization);
+ * new instances are constructed for different configurations.
+ * Instances are initially constructed by {@link ObjectMapper} and can be
+ * reused.
  * 
  * @author tatu
  * @since 1.5

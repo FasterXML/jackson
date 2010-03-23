@@ -286,6 +286,20 @@ public class TypeFactory
         return baseType.narrowBy(subclass);
     }
 
+    /**
+     * Method that can be used if it is known for sure that given type
+     * is not a structured type (array, Map, Collection).
+     * NOTE: use of this method is discourage due to its potential
+     * non-safety; in most cases you should just use basic
+     * {@link #type(Type)} instead.
+     * 
+     * @since 1.6
+     */
+    public static JavaType fastSimpleType(Class<?> cls)
+    {
+        return new SimpleType(cls, null, null);
+    }
+    
     /*
     /****************************************************
     /* Legacy methods

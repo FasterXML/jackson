@@ -314,6 +314,10 @@ public class BeanDeserializer
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.getCurrentToken();
+        // 23-Mar-2010, tatu: In some cases, we start with full JSON object too...
+        if (t == JsonToken.START_OBJECT) {
+            t = jp.nextToken();
+        }
         for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String propName = jp.getCurrentName();
             SettableBeanProperty prop = _props.get(propName);

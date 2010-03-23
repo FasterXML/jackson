@@ -32,7 +32,7 @@ import org.codehaus.jackson.util.TokenBuffer;
 
 /**
  * This mapper (or, data binder, or codec) provides functionality for
- * conversting between Java objects (instances of JDK provided core classes,
+ * converting between Java objects (instances of JDK provided core classes,
  * beans), and matching JSON constructs.
  * It will use instances of {@link JsonParser} and {@link JsonGenerator}
  * for implementing actual reading/writing of JSON.
@@ -658,7 +658,7 @@ public class ObjectMapper
     }
 
     /**
-     * Convenience method that is equivalant to calling
+     * Convenience method that is equivalent to calling
      *<pre>
      *  enableObjectTyping(dti, JsonTypeInfo.As.WRAPPER_ARRAY);
      *</pre>
@@ -667,19 +667,40 @@ public class ObjectMapper
         return enableDefaultTyping(dti, JsonTypeInfo.As.WRAPPER_ARRAY);
     }
 
-    public ObjectMapper enableDefaultTyping(DefaultTyping dti, JsonTypeInfo.As includeAs)
+    /**
+     * Method for enabling automatic inclusion of type information, needed
+     * for proper deserialization of polymorphic types (unless types
+     * have been annotated with {@link org.codehaus.jackson.annotate.JsonTypeInfo}).
+     * 
+     * @param applicability Defines kinds of types for which additional type information
+     *    is added; see {@link DefaultTyping} for more information.
+     */
+    public ObjectMapper enableDefaultTyping(DefaultTyping applicability, JsonTypeInfo.As includeAs)
     {
-        TypeResolverBuilder<?> typer = new DefaultTypeResolverBuilder(dti);
+        TypeResolverBuilder<?> typer = new DefaultTypeResolverBuilder(applicability);
         // we'll always use full class name, when using defaulting
         typer = typer.init(JsonTypeInfo.Id.CLASS, null);
         typer = typer.inclusion(includeAs);
         return setDefaltTyping(typer);
     }
-    
+
+    /**
+     * Method for disabling automatic inclusion of type information; if so, only
+     * explicitly annotated types (ones with
+     * {@link org.codehaus.jackson.annotate.JsonTypeInfo}) will have
+     * additional embedded type information.
+     */
     public ObjectMapper disableDefaultTyping() {
         return setDefaltTyping(null);
     }
 
+    /**
+     * Method for enabling automatic inclusion of type information, using
+     * specified handler object for determining which types this affects,
+     * as well as details of how information is embedded.
+     * 
+     * @param typer Type information inclusion handler
+     */
     public ObjectMapper setDefaltTyping(TypeResolverBuilder<?> typer) {
         _defaultTyper = typer;
         return this;
@@ -1395,6 +1416,58 @@ public class ObjectMapper
     public ObjectWriter typedWriter(JavaType rootType) {
         return new ObjectWriter(this, null, rootType);
     }
+
+    /*
+    /************************************************* 
+    /* Extended Public API: constructing ObjectReaders
+    /* for more advanced configuration
+    /************************************************* 
+     */
+
+    /**
+     * Factory method for constructing {@link ObjectReader} that will
+     * update given Object (usually Bean, but can be a Collection or Map
+     * as well, but NOT an array) with JSON data. Deserialization occurs
+     * normally except that the root-level value in JSON is not used for
+     * instantiating a new object; instead give updateable object is used
+     * as root.
+     * Runtime type of value object is used for locating deserializer,
+     * unless overridden by other factory methods of {@link ObjectReader}
+     * 
+     * @since 1.6
+     */
+    public ObjectReader updatingReader(Object valueToUpdate)
+    {
+        JavaType t = TypeFactory.type(valueToUpdate.getClass());
+        return new ObjectReader(this, t, valueToUpdate);
+    }
+
+    /**
+     * Factory method for constructing {@link ObjectReader} that will
+     * read or update instances of specified type
+     */
+    public ObjectReader reader(JavaType type)
+    {
+        return new ObjectReader(this, type, null);
+    }
+
+    /**
+     * Factory method for constructing {@link ObjectReader} that will
+     * read or update instances of specified type
+     */
+    public ObjectReader reader(Class<?> type)
+    {
+        return reader(TypeFactory.type(type));
+    }
+
+    /**
+     * Factory method for constructing {@link ObjectReader} that will
+     * read or update instances of specified type
+     */
+    public ObjectReader reader(TypeReference<?> type)
+    {
+        return reader(TypeFactory.type(type));
+    }
     
     /*
     /************************************************* 
@@ -1558,9 +1631,7 @@ public class ObjectMapper
          */
         Object result;
         JsonToken t = _initForReading(jp);
-        if (t == JsonToken.VALUE_NULL
-            || t == JsonToken.END_ARRAY
-            || t == JsonToken.END_OBJECT) {
+        if (t == JsonToken.VALUE_NULL || t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
             result = null;
         } else { // pointing to event other than null
             DeserializationContext ctxt = _createDeserializationContext(jp, cfg);
@@ -1572,15 +1643,14 @@ public class ObjectMapper
         return result;
     }
 
+    
     protected Object _readMapAndClose(JsonParser jp, JavaType valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
         try {
             Object result;
             JsonToken t = _initForReading(jp);
-            if (t == JsonToken.VALUE_NULL
-                || t == JsonToken.END_ARRAY
-                || t == JsonToken.END_OBJECT) {
+            if (t == JsonToken.VALUE_NULL || t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
                 result = null;
             } else {
                 DeserializationConfig cfg = copyDeserializationConfig();

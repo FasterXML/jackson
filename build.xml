@@ -44,7 +44,7 @@
     <property name="IMPL_TITLE_JAXRS" value="JAX-RS provider for Json content type, using Jackson data binding" />
     <property name="IMPL_TITLE_XC" value="XML Compatibility extensions for Jackson data binding" />
 
-    <property name="IMPL_VERSION" value="1.5.0" />
+    <property name="IMPL_VERSION" value="1.6.0" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
     <patternset id="dist-all-source-files">

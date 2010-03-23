@@ -1,19 +1,20 @@
-Version: 1.5.0
+Version: 1.6.0
 
 Release date:
-  14-Mar-2010
+  xx-Apr-2010
 
 Description:
-  Official 1.5 release. Main feature is [JACKSON-91], fully automated
-  and configurable handling of polymorphic types; along with related
-  improvements and features (like ability to explicitly define root
-  serialization type [JACKSON-195]).
+  Version 1.6
 
   Fixes:
 
-  * [JACKSON-263] BooleNode.asToken() incorrectly returns 'true' token
-    for all nodes (not just 'false' ones)
-   (reported by Gennadiy S)
+  Improvements:
+
+  New features:
+
+  * [JACKSON-264] Ability to "update" values; to read and bind JSON
+    content as properties of existing beans. This is done by using
+    "ObjectMapper.updatingReader()" (and "reader.readValue(source)")
 
 ------------------------------------------------------------------------
 == History: ==
