@@ -1,0 +1,383 @@
+### Eclipse Workspace Patch 1.0
+#P jackson-trunk
+Index: src/java/org/codehaus/jackson/map/ClassIntrospector.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/ClassIntrospector.java	(revision 321)
++++ src/java/org/codehaus/jackson/map/ClassIntrospector.java	(working copy)
+@@ -1,5 +1,7 @@
+ package org.codehaus.jackson.map;
+ 
++import java.util.Set;
++
+ /**
+  * Helper class used to introspect features of POJO value classes
+  * used with Jackson. The main use is for finding out
+@@ -21,7 +23,7 @@
+      * Factory method that constructs an introspector that has all
+      * information needed for serialization purposes.
+      */
+-    public abstract T forSerialization(SerializationConfig cfg, Class<?> c);
++    public abstract T forSerialization(SerializationConfig cfg, Class<?> c, Set<Class<?>> mixins);
+ 
+     /**
+      * Factory method that constructs an introspector that has all
+@@ -42,6 +44,6 @@
+      * information regarding annotations class itself has, but nothing
+      * on methods or constructors.
+      */
+-    public abstract T forClassAnnotations(Class<?> c);
++    public abstract T forClassAnnotations(Class<?> c, Set<Class<?>> mixins);
+ }
+ 
+Index: src/java/org/codehaus/jackson/map/SerializationConfig.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/SerializationConfig.java	(revision 321)
++++ src/java/org/codehaus/jackson/map/SerializationConfig.java	(working copy)
+@@ -1,6 +1,7 @@
+ package org.codehaus.jackson.map;
+ 
+ import java.text.DateFormat;
++import java.util.Set;
+ 
+ import org.codehaus.jackson.annotate.*;
+ import org.codehaus.jackson.map.util.StdDateFormat;
+@@ -243,8 +244,9 @@
+      * of building a bean serializer
+      */
+     @SuppressWarnings("unchecked")
+-	public <T extends BeanDescription> T introspect(Class<?> cls) {
+-        return (T) _classIntrospector.forSerialization(this, cls);
++	public <T extends BeanDescription> T introspect(Class<?> cls, Set<Class<?>> mixins) {
++    	System.out.println("1111 " + cls + ", " + mixins);
++        return (T) _classIntrospector.forSerialization(this, cls, mixins);
+     }
+ 
+     /**
+@@ -252,8 +254,8 @@
+      * annotations: useful if no getter/setter/creator information is needed.
+      */
+     @SuppressWarnings("unchecked")
+-	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
+-        return (T) _classIntrospector.forClassAnnotations(cls);
++	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls, Set<Class<?>> mixins) {
++        return (T) _classIntrospector.forClassAnnotations(cls, mixins);
+     }
+ 
+     /*
+@@ -287,6 +289,8 @@
+             disable(f);
+         }
+     }
++    
++    
+ 
+     //protected int getFeatures() { return _features; }
+ 
+Index: src/java/org/codehaus/jackson/map/ObjectMapper.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/ObjectMapper.java	(revision 321)
++++ src/java/org/codehaus/jackson/map/ObjectMapper.java	(working copy)
+@@ -161,6 +161,7 @@
+     public ObjectMapper(SerializerFactory sf)
+     {
+         this(null, null, null);
++        System.out.println("hello world");
+         setSerializerFactory(sf);
+     }
+ 
+Index: src/java/org/codehaus/jackson/map/DeserializationConfig.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/DeserializationConfig.java	(revision 321)
++++ src/java/org/codehaus/jackson/map/DeserializationConfig.java	(working copy)
+@@ -340,7 +340,7 @@
+      */
+     @SuppressWarnings("unchecked")
+ 	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
+-        return (T) _classIntrospector.forClassAnnotations(cls);
++        return (T) _classIntrospector.forClassAnnotations(cls, null);
+     }
+ 
+     /*
+Index: src/java/org/codehaus/jackson/map/introspect/BasicClassIntrospector.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/introspect/BasicClassIntrospector.java	(revision 321)
++++ src/java/org/codehaus/jackson/map/introspect/BasicClassIntrospector.java	(working copy)
+@@ -111,15 +111,17 @@
+      */
+ 
+     public BasicBeanDescription forSerialization(SerializationConfig cfg,
+-                                                 Class<?> c)
++                                                 Class<?> c, Set<Class<?>> mixins)
+     {
+         /* Simpler for serialization; just need class annotations
+          * and setters, not creators.
+          */
++    	System.out.println("forSerialization");
++    	System.out.println("ugh " + c + ", " + mixins);
+     	MethodFilter mf = getSerializationMethodFilter(cfg);
+         AnnotatedClass ac = AnnotatedClass.constructFull
+             (c, JacksonAnnotationFilter.instance, false, mf);
+-        return new BasicBeanDescription(c, ac);
++        return new BasicBeanDescription(c, ac, mixins);
+     }
+ 
+     @Override
+@@ -129,10 +131,11 @@
+         /* More info needed than with serialization, also need creator
+          * info
+          */
++    	System.out.println("forDeserialization");
+     	MethodFilter mf = getDeserializationMethodFilter(cfg);
+         AnnotatedClass ac = AnnotatedClass.constructFull
+             (c, JacksonAnnotationFilter.instance, true, mf);
+-        return new BasicBeanDescription(c, ac);
++        return new BasicBeanDescription(c, ac, null);
+     }
+ 
+     @Override
+@@ -142,20 +145,22 @@
+         /* Just need constructors and factory methods, but no
+          * member methods
+          */
++    	System.out.println("forCreation");
+         AnnotatedClass ac = AnnotatedClass.constructFull
+             (c, JacksonAnnotationFilter.instance, true, null);
+-        return new BasicBeanDescription(c, ac);
++        return new BasicBeanDescription(c, ac, null);
+     }
+ 
+     @Override
+-    public BasicBeanDescription forClassAnnotations(Class<?> c)
++    public BasicBeanDescription forClassAnnotations(Class<?> c, Set<Class<?>> mixins)
+     {
+         /* More infor for serialization, also need creator
+          * info
+          */
++    	System.out.println("forClassAnnotation");
+         AnnotatedClass ac = AnnotatedClass.constructFull
+             (c, JacksonAnnotationFilter.instance, false, null);
+-        return new BasicBeanDescription(c, ac);
++        return new BasicBeanDescription(c, ac, mixins);
+     }
+ 
+     /*
+Index: src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java	(revision 321)
++++ src/java/org/codehaus/jackson/map/ser/BasicSerializerFactory.java	(working copy)
+@@ -145,6 +145,8 @@
+         final NullSerializer nullS = NullSerializer.instance;
+         _concrete.put(Void.TYPE.getName(), nullS);
+     }
++    
++    protected Map<Class<?>, Set<Class<?>>> _mixins = new HashMap<Class<?>, Set<Class<?>>>();
+ 
+     /*
+     ////////////////////////////////////////////////////////////
+@@ -189,6 +191,7 @@
+     @SuppressWarnings("unchecked")
+         public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
+     {
++    	System.out.println("hello");
+         // First, fast lookup for exact type:
+         JsonSerializer<?> ser = findSerializerByLookup(type);
+         if (ser == null) {
+@@ -201,6 +204,7 @@
+                 ser = findSerializerByAddonType(type);
+             }
+         }
++        
+         return (JsonSerializer<T>) ser;
+     }
+ 
+@@ -274,7 +278,7 @@
+              *   was found out that annotations do not work with
+              *   Enum classes.
+              */
+-            BasicBeanDescription desc = config.introspectClassAnnotations(type);
++            BasicBeanDescription desc = config.introspectClassAnnotations(type, _mixins.get(type));
+             JsonSerializer<Object> ser = findSerializerFromAnnotation(desc.getClassInfo());
+             if (ser != null) {
+                 return ser;
+@@ -629,4 +633,18 @@
+             value.serialize(jgen, provider);
+         }
+     }
++
++	@Override
++	public final void addMixIn(Class<?> type, Class<?> mixin) {
++		synchronized(_mixins) {
++			Set<Class<?>> m = _mixins.get(type);
++			if (m == null) {
++				m = new HashSet<Class<?>>();
++			}
++			
++			m.add(mixin);
++			_mixins.put(type, m);
++		}
++		
++	}
+ }
+Index: src/java/org/codehaus/jackson/map/introspect/BasicBeanDescription.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/introspect/BasicBeanDescription.java	(revision 321)
++++ src/java/org/codehaus/jackson/map/introspect/BasicBeanDescription.java	(working copy)
+@@ -16,6 +16,7 @@
+ import org.codehaus.jackson.annotate.JsonValue;
+ import org.codehaus.jackson.annotate.JsonWriteNullProperties;
+ import org.codehaus.jackson.map.BeanDescription;
++import org.codehaus.jackson.map.introspect.BasicClassIntrospector.GetterMethodFilter;
+ 
+ public class BasicBeanDescription extends BeanDescription
+ {
+@@ -29,6 +30,8 @@
+      * Information collected about the class introspected.
+      */
+     final AnnotatedClass _classInfo;
++    
++    final Set<BasicBeanDescription> _mixinInfos;
+ 
+     /*
+     ///////////////////////////////////////////////////////
+@@ -36,11 +39,21 @@
+     ///////////////////////////////////////////////////////
+      */
+ 
+-    public BasicBeanDescription(Class<?> forClass, AnnotatedClass ac)
++    public BasicBeanDescription(Class<?> forClass, AnnotatedClass ac, Set<Class<?>> mixins)
+ 
+     {
+     	super(forClass);
+     	_classInfo = ac;
++    	System.out.println(mixins);
++    	if (mixins != null && !mixins.isEmpty()) {
++    		_mixinInfos = new HashSet<BasicBeanDescription>();
++    		for (Class<?> m : mixins) {
++    			AnnotatedClass mac = AnnotatedClass.constructFull(m, JacksonAnnotationFilter.instance, false, GetterMethodFilter.instance);
++    			_mixinInfos.add(new BasicBeanDescription(m, mac, null));
++    		}
++    	} else {
++    		_mixinInfos = null;
++    	}
+     }
+ 
+     /*
+@@ -416,6 +429,7 @@
+     protected String okNameForGetter(AnnotatedMethod am)
+     {
+         String name = am.getName();
++        
+         if (name.startsWith("get")) {
+             /* 16-Feb-2009, tatus: To handle [JACKSON-53], need to block
+              *   CGLib-provided method "getCallbacks". Not sure of exact
+@@ -428,7 +442,14 @@
+                 if (isCglibGetCallbacks(am)) {
+                     return null;
+                 }
++            } else if ("getMetaClass".equals(name)) {
++            	if (isGroovyMeta(am)) {
++            		return null;
++            	}
+             }
++            
++            System.out.println(name);
++            
+             return mangleGetterName(am, name.substring(3));
+         }
+         if (name.startsWith("is")) {
+@@ -479,6 +500,23 @@
+         }
+         return false;
+     }
++    
++    protected boolean isGroovyMeta(AnnotatedMethod am)
++    {
++    	System.out.println(am.getDeclaringClass().getName());
++        Class<?> rt = am.getReturnType();
++        
++        if (rt == null || rt.isArray()) {
++            return false;
++        }
++
++        Package pkg = rt.getPackage();
++        
++        if (pkg != null && pkg.getName().startsWith("groovy.lang")) {
++            return true;
++        }
++        return false;
++    }
+ 
+     /*
+     ///////////////////////////////////////////////////////
+@@ -547,7 +585,21 @@
+     protected boolean isIgnored(AnnotatedMethod am)
+     {
+         JsonIgnore ann = am.getAnnotation(JsonIgnore.class);
+-        return (ann != null && ann.value());
++        if (ann != null)
++        	return ann.value();
++        if (_mixinInfos != null) {
++        	for (BasicBeanDescription mbd : _mixinInfos) {
++        		AnnotatedMethod mam = mbd.findMethod(am.getName(), am.getParameterTypes());
++        		if (mam == null)
++        			return false;
++        		JsonIgnore mann = mam.getAnnotation(JsonIgnore.class);
++        		if (mann != null && mann.value())
++        			return true;
++        	}
++        	return false;
++        }
++        
++        return false;
+     }
+ 
+ 
+Index: src/java/org/codehaus/jackson/map/ser/BeanSerializerFactory.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/ser/BeanSerializerFactory.java	(revision 321)
++++ src/java/org/codehaus/jackson/map/ser/BeanSerializerFactory.java	(working copy)
+@@ -2,6 +2,7 @@
+ 
+ import java.util.*;
+ 
++import java.beans.BeanDescriptor;
+ import java.lang.reflect.Method;
+ 
+ import org.codehaus.jackson.map.JsonSerializer;
+@@ -102,6 +103,8 @@
+                 }
+             }
+         }
++        
++        System.out.println(ser.getClass().getName());
+         return (JsonSerializer<T>) ser;
+     }
+ 
+@@ -122,7 +125,8 @@
+         if (!isPotentialBeanType(type)) {
+             return null;
+         }
+-        BasicBeanDescription beanDesc = config.introspect(type);
++        System.out.println("..... "+ type + ", "+ _mixins);
++        BasicBeanDescription beanDesc = config.introspect(type, _mixins.get(type));
+         JsonSerializer<Object> ser = findSerializerFromAnnotation(beanDesc.getClassInfo());
+         if (ser != null) {
+             return ser;
+@@ -202,6 +206,7 @@
+             boolean methodNulls = am.willWriteNullProperties(writeNulls);
+             props.add(new BeanPropertyWriter(en.getKey(), m, ser, methodNulls));
+         }
++        
+         return props;
+     }
+ }
+Index: src/java/org/codehaus/jackson/map/SerializerFactory.java
+===================================================================
+--- src/java/org/codehaus/jackson/map/SerializerFactory.java	(revision 321)
++++ src/java/org/codehaus/jackson/map/SerializerFactory.java	(working copy)
+@@ -21,4 +21,5 @@
+      * @param config Generic serialization configuration
+      */
+     public abstract <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config);
++    public abstract void addMixIn(Class<?> type, Class<?> mixin);
+ }
