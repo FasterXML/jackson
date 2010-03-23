@@ -114,11 +114,12 @@ public final class TestViewPerf
     protected int testViewSer(Object value, int reps, ByteArrayOutputStream result, Class<?> view)
         throws Exception
     {
+    	ObjectWriter w = _mapper.viewWriter(view);
         for (int i = 0; i < reps; ++i) {
             result.reset();
-            _mapper.writeValueUsingView(result, value, view);
-            _mapper.writeValueUsingView(result, value, view);
-            _mapper.writeValueUsingView(result, value, view);
+            w.writeValue(result, value);
+            w.writeValue(result, value);
+            w.writeValue(result, value);
         }
         return result.size();
     }
