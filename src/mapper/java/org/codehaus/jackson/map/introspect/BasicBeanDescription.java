@@ -176,7 +176,7 @@ public class BasicBeanDescription extends BeanDescription
                     continue;
                 }
             }
-
+            
             /* Yup, it is a valid name. But now... do we have a conflict?
              * If so, should throw an exception
              */

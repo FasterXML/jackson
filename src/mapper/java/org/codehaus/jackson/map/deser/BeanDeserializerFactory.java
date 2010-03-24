@@ -467,7 +467,7 @@ public class BeanDeserializerFactory
                     || Map.class.isAssignableFrom(rt)) {
                     String name = en.getKey();
                     if (!ignored.contains(name)) {
-                        deser.addProperty(constructSetterlessProperty(config, name, getter));
+                        deser.addProperty(constructSetterlessProperty(config, beanDesc, name, getter));
                         addedProps.add(name);
                     }
                 }
@@ -596,8 +596,7 @@ public class BeanDeserializerFactory
      *    none. Non-null for "setterless" properties.
      */
     protected SettableBeanProperty constructSetterlessProperty(DeserializationConfig config,
-                                                               String name,
-                                                               AnnotatedMethod getter)
+            BasicBeanDescription beanDesc, String name, AnnotatedMethod getter)
         throws JsonMappingException
     {
         // need to ensure it is callable now:
@@ -605,7 +604,7 @@ public class BeanDeserializerFactory
             getter.fixAccess();
         }
 
-        JavaType type = getter.getType();
+        JavaType type = getter.getType(beanDesc.bindingsForBeanType());
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */

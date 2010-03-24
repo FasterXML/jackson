@@ -443,9 +443,16 @@ public class TypeFactory
      */
     public JavaType _fromType(Type type, TypeBindings context)
     {
-        // may still be a simple type...
+        // simple class?
         if (type instanceof Class<?>) {
-            return _fromClass((Class<?>) type, context);
+            Class<?> cls = (Class<?>) type;
+            /* 24-Mar-2010, tatu: Better create context if one was not passed;
+             *   mostly matters for root serialization types
+             */
+            if (context == null) {             
+                context = new TypeBindings(cls);
+            }
+            return _fromClass(cls, context);
         }
         // But if not, need to start resolving.
         if (type instanceof ParameterizedType) {
@@ -468,7 +475,7 @@ public class TypeFactory
      * This method deals with parameterized types, that is,
      * first class generic classes.
      *<p>
-     * Since version 1.2, this resolves all generics types, not just
+     * Since version 1.2, this resolves all parameterized types, not just
      * Maps or Collections.
      */
     protected JavaType _fromParamType(ParameterizedType type, TypeBindings context)

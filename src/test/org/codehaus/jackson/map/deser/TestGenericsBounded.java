@@ -53,6 +53,25 @@ public class TestGenericsBounded
         public int x;
     }
 
+    static class IntBeanWrapper<T extends IntBean> {
+        public T wrapped;
+    }
+    
+    /*
+    /*******************************************************
+    /* Unit tests
+    /*******************************************************
+     */
+
+    public void testLowerBound() throws Exception
+    {
+        IntBeanWrapper<?> result = new ObjectMapper().readValue("{\"wrapped\":{\"x\":3}}",
+                IntBeanWrapper.class);
+        assertNotNull(result);
+        assertEquals(IntBean.class, result.wrapped.getClass());
+        assertEquals(3, result.wrapped.x);
+    }
+    
     /**
      * Test related to type bound handling problem within
      * [JACKSON-190]
