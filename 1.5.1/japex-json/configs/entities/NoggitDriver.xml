@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<driver name="NoggitDriver" xmlns="http://www.sun.com/japex/testSuite">
+    <description>
+        <div xmlns="">
+            <p>Driver for Noggit.
+</p>
+        </div>
+    </description>
+    <param name="japex.driverClass" value="org.codehaus.jsonpex.NoggitDriver"/>    
+    <param name="japex.classPath" value="dist/classes"/>
+    <param name="japex.classPath" value="lib/noggit*.jar"/>
+</driver>
