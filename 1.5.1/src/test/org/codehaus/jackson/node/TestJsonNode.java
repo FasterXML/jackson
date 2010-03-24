@@ -51,6 +51,28 @@ public class TestJsonNode
         assertSame(TextNode.EMPTY_STRING_NODE, empty);
     }
 
+    public void testBoolean()
+    {
+        BooleanNode f = BooleanNode.getFalse();
+        assertNotNull(f);
+        assertTrue(f.isBoolean());
+        assertSame(f, BooleanNode.valueOf(false));
+        assertStandardEquals(f);
+        assertFalse(f.getBooleanValue());
+        assertEquals("false", f.getValueAsText());
+        assertEquals(JsonToken.VALUE_FALSE, f.asToken());
+
+        // and ditto for true
+        BooleanNode t = BooleanNode.getTrue();
+        assertNotNull(t);
+        assertTrue(t.isBoolean());
+        assertSame(t, BooleanNode.valueOf(true));
+        assertStandardEquals(t);
+        assertTrue(t.getBooleanValue());
+        assertEquals("true", t.getValueAsText());
+        assertEquals(JsonToken.VALUE_TRUE, t.asToken());
+    }
+
     public void testInt()
     {
         IntNode n = IntNode.valueOf(1);
