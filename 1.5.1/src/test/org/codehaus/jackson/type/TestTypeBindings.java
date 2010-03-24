@@ -20,11 +20,14 @@ public class TestTypeBindings
 
     public void testAbstract() throws Exception
     {
-        /* Abstract type does declare type parameters, but they can't
-         * be extacted...
+        /* Abstract type does declare type parameters, but they are only
+         * known as 'Object.class' (via lower bound)
          */
         TypeBindings b = new TypeBindings(AbstractType.class);
-        assertEquals(0, b.getBindingCount());
+        assertEquals(2, b.getBindingCount());
+        JavaType obType = TypeFactory.type(Object.class);
+        assertEquals(obType, b.findType("A"));
+        assertEquals(obType, b.findType("B"));
     }
 
     public void testSimple() throws Exception

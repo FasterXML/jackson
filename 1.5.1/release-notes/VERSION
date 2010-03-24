@@ -11,6 +11,8 @@ Description:
   * [JACKSON-263] BooleNode.asToken() incorrectly returns 'true' token
     for all nodes (not just 'false' ones)
    (reported by Gennadiy S)
+  * [JACKSON-264]: problems with generic type handling for serialization
+    (reported by Fabrice D)
 
 ------------------------------------------------------------------------
 == History: ==

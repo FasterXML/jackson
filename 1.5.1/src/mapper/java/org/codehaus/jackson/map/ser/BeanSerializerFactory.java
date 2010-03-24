@@ -12,6 +12,7 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.type.TypeBindings;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.SubTypeHelper;
@@ -276,13 +277,14 @@ public class BeanSerializerFactory
         PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
+        TypeBindings typeBind = beanDesc.bindingsForBeanType();
         // [JACKSON-98]: start with field properties, if any
         for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {            
-            props.add(_constructWriter(config, pb, staticTyping, en.getKey(), en.getValue()));
+            props.add(_constructWriter(config, typeBind, pb, staticTyping, en.getKey(), en.getValue()));
         }
         // and then add member properties
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
-            props.add(_constructWriter(config, pb, staticTyping, en.getKey(), en.getValue()));
+            props.add(_constructWriter(config, typeBind, pb, staticTyping, en.getKey(), en.getValue()));
         }
         return props;
     }
@@ -291,8 +293,8 @@ public class BeanSerializerFactory
      * Secondary helper method for constructing {@link BeanPropertyWriter} for
      * given member (field or method).
      */
-    protected BeanPropertyWriter _constructWriter(SerializationConfig config, PropertyBuilder pb,
-            boolean staticTyping, String name, AnnotatedMember propertyMember)
+    protected BeanPropertyWriter _constructWriter(SerializationConfig config, TypeBindings typeContext,
+            PropertyBuilder pb, boolean staticTyping, String name, AnnotatedMember propertyMember)
     {
         if (config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
             propertyMember.fixAccess();
@@ -301,7 +303,7 @@ public class BeanSerializerFactory
         JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, propertyMember);
         // And how about polymorphic typing? First special to cover JAXB per-field settings:
         TypeSerializer contentTypeSer = null;
-        JavaType type = propertyMember.getType();
+        JavaType type = propertyMember.getType(typeContext);
         if (ClassUtil.isCollectionMapOrArray(type.getRawClass())) {
             contentTypeSer = findPropertyContentTypeSerializer(type, config, propertyMember);
         }

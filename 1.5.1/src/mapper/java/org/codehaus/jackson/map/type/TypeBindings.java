@@ -119,6 +119,7 @@ public class TypeBindings
     protected void _resolveBindings(Type t)
     {
         if (t == null) return;
+        
         Class<?> raw;
         if (t instanceof ParameterizedType) {
             ParameterizedType pt = (ParameterizedType) t;
@@ -134,6 +135,11 @@ public class TypeBindings
                     String name = var.getName();
                     if (_bindings == null) {
                         _bindings = new HashMap<String,JavaType>();
+                    } else {
+                        /* 24-Mar-2010, tatu: Better ensure that we do not overwrite something
+                         *  collected earlier (since we descend towards super-classes):
+                         */
+                        if (_bindings.containsKey(name)) continue;
                     }
                     // first: add a placeholder to prevent infinite loops
                     _addPlaceholder(name);
@@ -144,17 +150,51 @@ public class TypeBindings
             raw = (Class<?>)pt.getRawType();
         } else if (t instanceof Class<?>) {
             raw = (Class<?>) t;
-        } else {
+            /* 24-Mar-2010, tatu: Can not have true generics definitions, but can
+             *   have lower bounds ("<T extends BeanBase>") in declaration itself
+             */
+            TypeVariable<?>[] vars = raw.getTypeParameters();
+            if (vars != null && vars.length > 0) {
+                for (TypeVariable<?> var : vars) {
+                    String name = var.getName();
+                    Type varType = var.getBounds()[0];
+                    if (varType != null) {
+                        if (_bindings == null) {
+                            _bindings = new HashMap<String,JavaType>();
+                        } else { // and no overwriting...
+                            if (_bindings.containsKey(name)) continue;
+                        }
+                        _addPlaceholder(name); // to prevent infinite loops
+                        _bindings.put(name, TypeFactory.instance._fromType(varType, this));
+                    }
+                }
+            }
+        } else { // probably can't be any of these... so let's skip for now
             //if (type instanceof GenericArrayType) {
             //if (type instanceof TypeVariable<?>) {
             // if (type instanceof WildcardType) {
             return;
         }
-
         // but even if it's not a parameterized type, its super types may be:
         _resolveBindings(raw.getGenericSuperclass());
         for (Type intType : raw.getGenericInterfaces()) {
             _resolveBindings(intType);
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        if (_bindings == null) {
+            _resolve();
+        }
+        StringBuilder sb = new StringBuilder("[TypeBindings for ");
+        if (_contextType != null) {
+            sb.append(_contextType.toString());
+        } else {
+            sb.append(_contextClass.getName());
+        }
+        sb.append(": ").append(_bindings).append("]");
+        return sb.toString();
     }
 }
