@@ -13,9 +13,9 @@ public class TestSerializationOrder
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes
-    //////////////////////////////////////////////
+    /*********************************************
+    /* Annotated helper classes
+    /*********************************************
      */
 
     static class BeanWithCreator
@@ -57,11 +57,19 @@ public class TestSerializationOrder
         "c"
     })
     static class OrderMixIn { }
+
+    @JsonPropertyOrder(value={"a","b","x","z"})
+    static class BeanFor268 { // testing [JACKSON-268]
+    	@JsonProperty("a") public String xA = "a";
+    	@JsonProperty("z") public String aZ = "z";
+    	@JsonProperty("b") public String xB() { return "b"; }
+    	@JsonProperty("x") public String aX() { return "x"; }
+    }
     
     /*
-    //////////////////////////////////////////////
-    // Unit tests
-    //////////////////////////////////////////////
+    /*********************************************
+    /* Unit tests
+    /*********************************************
      */
 
     // Test for [JACKSON-170]
@@ -87,4 +95,12 @@ public class TestSerializationOrder
         m.getSerializationConfig().addMixInAnnotations(BeanWithOrder.class, OrderMixIn.class);
         assertEquals("{\"b\":2,\"a\":1,\"c\":3,\"d\":4}", serializeAsString(m, new BeanWithOrder(1, 2, 3, 4)));
     }
+
+    // Test for [JACKSON-268]
+    public void testOrderWrt268() throws Exception
+    {
+        assertEquals("{\"a\":\"a\",\"b\":\"b\",\"x\":\"x\",\"z\":\"z\"}",
+        		serializeAsString(new BeanFor268()));
+    }
+    
 }
