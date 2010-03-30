@@ -13,6 +13,9 @@ Description:
    (reported by Gennadiy S)
   * [JACKSON-264]: problems with generic type handling for serialization
     (reported by Fabrice D)
+  * [JACKSON-269]: missing OSGi export by mapper (o.c.j.m.jsontype.impl),
+    needed by jackson-xc module
+    (reported by Raymond F)
 
 ------------------------------------------------------------------------
 == History: ==
