@@ -408,10 +408,25 @@ public class TestTreeMapperDeserializer
         assertTrue(dummyNode3.isMissingNode());
     }
 
+    public void testArray() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        final String JSON = "[[[-0.027512,51.503221],[-0.008497,51.503221],[-0.008497,51.509744],[-0.027512,51.509744]]]";
+
+        JsonNode n = mapper.readTree(JSON);
+        assertNotNull(n);
+        assertTrue(n.isArray());
+        ArrayNode an = (ArrayNode) n;
+        assertEquals(1, an.size());
+        ArrayNode an2 = (ArrayNode) n.get(0);
+        assertTrue(an2.isArray());
+        assertEquals(4, an2.size());
+    }
+    
     /*
-    //////////////////////////////////////////////
-    // Helper methods
-    //////////////////////////////////////////////
+    /**********************************************
+    /* Helper methods
+    /**********************************************
      */
 
     private int calcLength(Iterator<JsonNode> it)

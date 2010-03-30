@@ -18,10 +18,89 @@ import org.codehaus.jackson.type.TypeReference;
 public class TestArrayDeserialization
     extends BaseMapTest
 {
+	   /*
+    /*****************************************
+    /* Helper classes
+    /*****************************************
+     */
+
+    public final static class Bean1
+    {
+        int _x, _y;
+        List<Bean2> _beans;
+
+        // Just for deserialization:
+        @SuppressWarnings("unused")
+		private Bean1() { }
+
+        public Bean1(int x, int y, List<Bean2> beans)
+        {
+            _x = x;
+            _y = y;
+            _beans = beans;
+        }
+
+        public int getX() { return _x; }
+        public int getY() { return _y; }
+        public List<Bean2> getBeans() { return _beans; }
+
+        public void setX(int x) { _x = x; }
+        public void setY(int y) { _y = y; }
+        public void setBeans(List<Bean2> b) { _beans = b; }
+
+        @Override public boolean equals(Object o) {
+            if (!(o instanceof Bean1)) return false;
+            Bean1 other = (Bean1) o;
+            return (_x == other._x)
+                && (_y == other._y)
+                && _beans.equals(other._beans)
+                ;
+        }
+    }
+
+    /**
+     * Simple bean that just gets serialized as a String value.
+     * Deserialization from String value will be done via single-arg
+     * constructor.
+     */
+    @SuppressWarnings("deprecation")
+    public final static class Bean2
+        implements JsonSerializable // so we can output as simple String
+    {
+        final String _desc;
+
+        public Bean2(String d)
+        {
+            _desc = d;
+        }
+
+        public void serialize(JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeString(_desc);
+        }
+
+        @Override public String toString() { return _desc; }
+
+        @Override public boolean equals(Object o) {
+            if (!(o instanceof Bean2)) return false;
+            Bean2 other = (Bean2) o;
+            return _desc.equals(other._desc);
+        }
+    }	
+
+    static class ObjectWrapper {
+    	public Object wrapped;
+    }
+
+    static class ObjectArrayWrapper {
+    	public Object[] wrapped;
+    }
+    
     /*
-    //////////////////////////////////////////
-    // Tests for "untyped" arrays, Object[]
-    //////////////////////////////////////////
+    /*****************************************
+    /* Tests for "untyped" arrays, Object[]
+    /*****************************************
      */
 
     public void testUntypedArray() throws Exception
@@ -70,9 +149,43 @@ public class TestArrayDeserialization
     }
 
     /*
-    //////////////////////////////////////////
-    // Tests for String arrays, char[]
-    //////////////////////////////////////////
+    /*****************************************
+    /* Arrays of arrays...
+    /*****************************************
+     */
+
+    public void testUntypedArrayOfArrays() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // to get "untyped" default map-to-map, pass Object[].class
+        final String JSON = "[[[-0.027512,51.503221],[-0.008497,51.503221],[-0.008497,51.509744],[-0.027512,51.509744]]]";
+
+        Object result = mapper.readValue(JSON, Object.class);
+        assertEquals(ArrayList.class, result.getClass());
+        assertNotNull(result);
+
+        // Should be able to get it as an Object array as well
+
+        Object[] array = mapper.readValue(JSON, Object[].class);
+        assertNotNull(array);
+        assertEquals(Object[].class, array.getClass());
+
+        // and as wrapped variants too
+        ObjectWrapper w = mapper.readValue("{\"wrapped\":"+JSON+"}", ObjectWrapper.class);
+        assertNotNull(w);
+        assertNotNull(w.wrapped);
+        assertEquals(ArrayList.class, w.wrapped.getClass());
+
+        ObjectArrayWrapper aw = mapper.readValue("{\"wrapped\":"+JSON+"}", ObjectArrayWrapper.class);
+        assertNotNull(aw);
+        assertNotNull(aw.wrapped);
+    }    
+    
+    /*
+    /*****************************************
+    /* Tests for String arrays, char[]
+    /*****************************************
      */
 
     public void testStringArray() throws Exception
@@ -339,9 +452,9 @@ public class TestArrayDeserialization
     }
 
     /*
-    //////////////////////////////////////////
-    // Tests for Bean arrays
-    //////////////////////////////////////////
+    /*****************************************
+    /* Tests for Bean arrays
+    /*****************************************
      */
 
     public void testBeanArray()
@@ -368,76 +481,5 @@ public class TestArrayDeserialization
         List<Bean1> result = mapper.readValue(sw.toString(), new TypeReference<List<Bean1>>() { });
         assertNotNull(result);
         assertEquals(src, result);
-    }
-
-    /*
-    //////////////////////////////////////////
-    // Helper classes
-    //////////////////////////////////////////
-     */
-
-    public final static class Bean1
-    {
-        int _x, _y;
-        List<Bean2> _beans;
-
-        // Just for deserialization:
-        @SuppressWarnings("unused")
-		private Bean1() { }
-
-        public Bean1(int x, int y, List<Bean2> beans)
-        {
-            _x = x;
-            _y = y;
-            _beans = beans;
-        }
-
-        public int getX() { return _x; }
-        public int getY() { return _y; }
-        public List<Bean2> getBeans() { return _beans; }
-
-        public void setX(int x) { _x = x; }
-        public void setY(int y) { _y = y; }
-        public void setBeans(List<Bean2> b) { _beans = b; }
-
-        @Override public boolean equals(Object o) {
-            if (!(o instanceof Bean1)) return false;
-            Bean1 other = (Bean1) o;
-            return (_x == other._x)
-                && (_y == other._y)
-                && _beans.equals(other._beans)
-                ;
-        }
-    }
-
-    /**
-     * Simple bean that just gets serialized as a String value.
-     * Deserialization from String value will be done via single-arg
-     * constructor.
-     */
-    @SuppressWarnings("deprecation")
-    public final static class Bean2
-        implements JsonSerializable // so we can output as simple String
-    {
-        final String _desc;
-
-        public Bean2(String d)
-        {
-            _desc = d;
-        }
-
-        public void serialize(JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
-            jgen.writeString(_desc);
-        }
-
-        @Override public String toString() { return _desc; }
-
-        @Override public boolean equals(Object o) {
-            if (!(o instanceof Bean2)) return false;
-            Bean2 other = (Bean2) o;
-            return _desc.equals(other._desc);
-        }
     }
 }
