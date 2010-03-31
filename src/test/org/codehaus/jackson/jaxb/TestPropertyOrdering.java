@@ -1,7 +1,5 @@
 package org.codehaus.jackson.jaxb;
 
-import java.util.*;
-
 import javax.xml.bind.annotation.*;
 
 import org.codehaus.jackson.map.ObjectMapper;

@@ -13,16 +13,16 @@ import org.codehaus.jackson.util.TextBuffer;
 public final class IOContext
 {
     /*
-    //////////////////////////////////////////////////////
-    // Configuration
-    //////////////////////////////////////////////////////
+    /*****************************************************
+    /* Configuration
+    /*****************************************************
      */
 
     /**
      * Reference to the source object, which can be used for displaying
      * location information
      */
-    final Object _sourceRef;
+    protected final Object _sourceRef;
 
     /**
      * Encoding used by the underlying stream, if known.
@@ -40,15 +40,15 @@ public final class IOContext
     protected final boolean _managedResource;
 
     /*
-    //////////////////////////////////////////////////////
-    // Buffer handling, recycling
-    //////////////////////////////////////////////////////
+    /*****************************************************
+    /* Buffer handling, recycling
+    /*****************************************************
      */
 
     /**
      * Recycler used for actual allocation/deallocation/reuse
      */
-    final BufferRecycler _bufferRecycler;
+    protected final BufferRecycler _bufferRecycler;
 
     /**
      * Reference to the allocated I/O buffer for low-level input reading,
@@ -85,9 +85,9 @@ public final class IOContext
     protected char[] _nameCopyBuffer = null;
 
     /*
-    //////////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////////
+    /*****************************************************
+    /* Life-cycle
+    /*****************************************************
      */
 
     public IOContext(BufferRecycler br, Object sourceRef, boolean managedResource)
