@@ -15,7 +15,13 @@ import org.codehaus.jackson.map.annotate.JsonView;
 public class TestViews
     extends BaseMapTest
 {
-    // Classes that represent views
+    /*
+     ****************************************************** 
+     * Helper types
+     ****************************************************** 
+     */
+
+	// Classes that represent views
     static class ViewA { }
     static class ViewAA extends ViewA { }
     static class ViewB { }
@@ -45,6 +51,23 @@ public class TestViews
 
         public String getB() { return "2"; }
     }
+
+    /**
+     * As indicated by [JACKSON-261], @JsonView should imply
+     * that associated element (method, field) is to be considered
+     * a property
+     */
+    static class ImplicitBean {
+    	@SuppressWarnings("unused")
+		@JsonView(ViewA.class)
+    	private int a = 1;
+    }
+    
+    /*
+     ****************************************************** 
+     * Unit tests
+     ****************************************************** 
+     */    
     
     @SuppressWarnings("unchecked")
     public void testSimple() throws IOException
@@ -116,5 +139,14 @@ public class TestViews
         assertEquals(1, map.size());
         assertEquals("1", map.get("a"));
         assertNull(map.get("b"));
+    }
+
+    /**
+     * As per [JACKSON-261], @JsonView annotation should imply that associated
+     * method/field does indicate a property.
+     */
+    public void testImplicitAutoDetection() throws Exception
+    {
+    	assertEquals("{\"a\":1}", serializeAsString(new ImplicitBean()));
     }
 }
