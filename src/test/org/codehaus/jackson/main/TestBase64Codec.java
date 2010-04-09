@@ -1,6 +1,6 @@
 package org.codehaus.jackson.main;
 
-import static org.junit.Assert.*;
+import org.junit.Assert;
 
 import org.codehaus.jackson.*;
 
@@ -44,7 +44,7 @@ public class TestBase64Codec
         byte[] exp = EXP_STR.getBytes("UTF-8");
         byte[] act = new byte[exp.length];
         std.encodeBase64Chunk(TRIPLET, act, 0);
-        assertArrayEquals(exp, act);
+        Assert.assertArrayEquals(exp, act);
     }
 
     public void testErrors() throws Exception
