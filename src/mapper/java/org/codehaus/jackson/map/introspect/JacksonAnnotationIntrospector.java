@@ -185,9 +185,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // General method annotations
-    ///////////////////////////////////////////////////////
+    /****************************************************
+    /* General method annotations
+    /****************************************************
     */
 
     @Override
@@ -201,9 +201,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // General field annotations
-    ////////////////////////////////////////////////////
+    /****************************************************
+    /* General field annotations
+    /****************************************************
      */
 
     @Override
@@ -212,9 +212,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: general annotations
-    ///////////////////////////////////////////////////////
+    /****************************************************
+    /* Serialization: general annotations
+    /****************************************************
     */
 
     @Override
@@ -281,9 +281,9 @@ public class JacksonAnnotationIntrospector
     }
     
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: class annotations
-    ///////////////////////////////////////////////////////
+    /****************************************************
+    /* Serialization: class annotations
+    /****************************************************
     */
 
 
@@ -298,9 +298,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: method annotations
-    ///////////////////////////////////////////////////////
+    /****************************************************
+    /* Serialization: method annotations
+    /****************************************************
     */
 
     @SuppressWarnings("deprecation")
@@ -324,7 +324,8 @@ public class JacksonAnnotationIntrospector
         /* 22-May-2009, tatu: And finally, JsonSerialize implies
          *   that there is a property, although doesn't define name
          */
-        if (am.hasAnnotation(JsonSerialize.class)) {
+        // 09-Apr-2010, tatu: Ditto for JsonView
+        if (am.hasAnnotation(JsonSerialize.class) || am.hasAnnotation(JsonView.class)) {
             return "";
         }
         return null;
@@ -339,9 +340,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: field annotations
-    ///////////////////////////////////////////////////////
+    /****************************************************
+    /* Serialization: field annotations
+    /****************************************************
     */
 
     @Override
@@ -352,16 +353,17 @@ public class JacksonAnnotationIntrospector
             return pann.value();
         }
         // Also: having JsonSerialize implies it is such a property
-        if (af.hasAnnotation(JsonSerialize.class)) {
+        // 09-Apr-2010, tatu: Ditto for JsonView
+        if (af.hasAnnotation(JsonSerialize.class) || af.hasAnnotation(JsonView.class)) {
             return "";
         }
         return null;
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: general annotations
-    ///////////////////////////////////////////////////////
+    /****************************************************
+    /* Deserialization: general annotations
+    /****************************************************
     */
 
     @Override
@@ -517,7 +519,8 @@ public class JacksonAnnotationIntrospector
         /* 22-May-2009, tatu: And finally, JsonSerialize implies
          *   that there is a property, although doesn't define name
          */
-        if (am.hasAnnotation(JsonDeserialize.class)) {
+        // 09-Apr-2010, tatu: Ditto for JsonView
+    	if (am.hasAnnotation(JsonDeserialize.class) || am.hasAnnotation(JsonView.class)) {
             return "";
         }
         return null;
@@ -544,9 +547,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: field annotations
-    ///////////////////////////////////////////////////////
+    /****************************************************
+    /* Deserialization: field annotations
+    /****************************************************
     */
 
     @Override
@@ -557,16 +560,17 @@ public class JacksonAnnotationIntrospector
             return pann.value();
         }
         // Also: having JsonDeserialize implies it is such a property
-        if (af.hasAnnotation(JsonDeserialize.class)) {
+        // 09-Apr-2010, tatu: Ditto for JsonView
+        if (af.hasAnnotation(JsonDeserialize.class) || af.hasAnnotation(JsonView.class)) {
             return "";
         }
         return null;
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: parameters annotations
-    ///////////////////////////////////////////////////////
+    /****************************************************
+    /* Deserialization: parameters annotations
+    /****************************************************
     */
 
     @Override
@@ -586,9 +590,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Helper methods
-    ////////////////////////////////////////////////////
+    /****************************************************
+    /* Helper methods
+    /****************************************************
      */
 
     protected boolean _isIgnorable(Annotated a)
