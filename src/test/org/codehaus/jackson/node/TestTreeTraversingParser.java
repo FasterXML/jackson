@@ -78,6 +78,63 @@ public class TestTreeTraversingParser
         assertTrue(jp.isClosed());
     }
 
+    public void testArray() throws Exception
+    {
+        // For convenience, parse tree from JSON first
+        ObjectMapper m = new ObjectMapper();
+
+        JsonParser jp = m.readTree("[]").traverse();
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        jp.close();
+
+        jp = m.readTree("[[]]").traverse();
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        jp.close();
+
+        jp = m.readTree("[[ 12.1 ]]").traverse();
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        jp.close();
+    }
+    
+    public void testNested() throws Exception
+    {
+        // For convenience, parse tree from JSON first
+        final String JSON =
+            "{\"coordinates\":[[[-3,\n1],[179.859681,51.175092]]]}"
+            ;
+        ObjectMapper m = new ObjectMapper();
+        JsonNode tree = m.readTree(JSON);
+        JsonParser jp = tree.traverse();
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+
+        assertToken(JsonToken.END_OBJECT, jp.nextToken());
+    }
+    
     /**
      * Unit test that verifies that we can (re)parse sample document
      * from JSON specification.
@@ -150,12 +207,6 @@ public class TestTreeTraversingParser
         }
     }
 
-    static class Person {
-        public String name;
-        public int magicNumber;
-        public List<String> kids;
-    }
-
     /**
      * Very simple test case to verify that tree-to-POJO
      * conversion works ok
@@ -177,6 +228,12 @@ public class TestTreeTraversingParser
         assertEquals("Leo", tatu.kids.get(0));
         assertEquals("Lila", tatu.kids.get(1));
         assertEquals("Leia", tatu.kids.get(2));
+    }
+
+    static class Person {
+        public String name;
+        public int magicNumber;
+        public List<String> kids;
     }
 }
 

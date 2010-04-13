@@ -347,9 +347,9 @@ public class BeanDeserializer
     }
     
     /*
-    /////////////////////////////////////////////////////////
-    // Other public accessors
-    /////////////////////////////////////////////////////////
+    /********************************************************
+    /* Other public accessors
+    /********************************************************
      */
 
     public final Class<?> getBeanClass() { return _beanType.getRawClass(); }
@@ -357,9 +357,9 @@ public class BeanDeserializer
     @Override public JavaType getValueType() { return _beanType; }
 
     /*
-    /////////////////////////////////////////////////////////
-    // Concrete deserialization methods
-    /////////////////////////////////////////////////////////
+    /********************************************************
+    /* Concrete deserialization methods
+    /********************************************************
      */
 
     public Object deserializeFromObject(JsonParser jp, DeserializationContext ctxt)

@@ -1,9 +1,12 @@
 package org.codehaus.jackson.map.deser;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 /**
  * Unit tests for verifying that {@link JsonAnySetter} annotation
@@ -13,9 +16,9 @@ public class TestAnyProperties
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes
-    //////////////////////////////////////////////
+    /*********************************************
+    /* Annotated helper classes
+    /*********************************************
      */
 
     static class MapImitator
@@ -62,9 +65,9 @@ public class TestAnyProperties
     }
 
     /*
-    //////////////////////////////////////////////
-    // Test methods
-    //////////////////////////////////////////////
+    /*********************************************
+    /* Test methods
+    /*********************************************
      */
 
     public void testSimpleMapImitation() throws Exception

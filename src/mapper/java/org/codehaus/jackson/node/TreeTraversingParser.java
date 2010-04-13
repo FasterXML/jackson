@@ -13,6 +13,8 @@ import org.codehaus.jackson.*;
  * functionality.
  * 
  * @author tatu
+ * 
+ * @since 1.3
  */
 public class TreeTraversingParser extends JsonParser
 {
@@ -124,7 +126,11 @@ public class TreeTraversingParser extends JsonParser
                 return _currToken;
             }
             _nodeCursor = _nodeCursor.iterateChildren();
-            return (_currToken = _nodeCursor.nextToken());
+            _currToken = _nodeCursor.nextToken();
+            if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
+                _startContainer = true;
+            }
+            return _currToken;
         }
         // No more content?
         if (_nodeCursor == null) {
