@@ -273,6 +273,10 @@ Pablo I. Lalloni:
    [1.4.3]
 
 Gennadiy Shafranovich:
-  * Reported [JACKSON-263] BooleNode.asToken() incorrectly returns 'true'
+  * Reported [JACKSON-263] BooleanNode.asToken() incorrectly returns 'true'
     token for all nodes (not just 'false' ones)
+   [1.4.4]
+
+Martin Tomko:
+  * Reported [JACKSON-266] Deserialization from JsonNode fails
    [1.4.4]

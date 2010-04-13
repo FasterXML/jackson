@@ -13,6 +13,8 @@ import org.codehaus.jackson.*;
  * functionality.
  * 
  * @author tatu
+ * 
+ * @since 1.3
  */
 public class TreeTraversingParser extends JsonParser
 {
@@ -124,7 +126,11 @@ public class TreeTraversingParser extends JsonParser
                 return _currToken;
             }
             _nodeCursor = _nodeCursor.iterateChildren();
-            return (_currToken = _nodeCursor.nextToken());
+            _currToken = _nodeCursor.nextToken();
+            if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
+                _startContainer = true;
+            }
+            return _currToken;
         }
         // No more content?
         if (_nodeCursor == null) {
@@ -313,6 +319,7 @@ public class TreeTraversingParser extends JsonParser
         JsonNode n = currentNode();
         if (n != null) { // binary node?
             byte[] data = n.getBinaryValue();
+            // (or TextNode, which can also convert automatically!)
             if (data != null) {
                 return data;
             }
@@ -323,9 +330,8 @@ public class TreeTraversingParser extends JsonParser
                     return (byte[]) ob;
                 }
             }
-            // Or perhaps it's a text node? If so, try base64 decode
         }
-
+        // otherwise return null to mark we have no binary content
         return null;
     }
 

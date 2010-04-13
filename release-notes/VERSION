@@ -1,16 +1,18 @@
 Version: 1.4.4
 
 Release date:
-  xx-Mar-2010
+  xx-Apr-2010
 
 Description:
   Fourth patch release for 1.4.
 
   Fixes:
 
-  * [JACKSON-263] BooleNode.asToken() incorrectly returns 'true' token
+  * [JACKSON-263] BooleanNode.asToken() incorrectly returns 'true' token
     for all nodes (not just 'false' ones)
    (reported by Gennadiy S)
+  * [JACKSON-266] Deserialization issues when binding data from JsonNode
+   (reported by Martin T)
 
 ------------------------------------------------------------------------
 == History: ==
