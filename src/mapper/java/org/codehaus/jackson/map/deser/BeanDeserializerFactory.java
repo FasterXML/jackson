@@ -37,9 +37,9 @@ public class BeanDeserializerFactory
     protected BeanDeserializerFactory() { super(); }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // DeserializerFactory API implementation
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* DeserializerFactory API implementation
+    /**********************************************************
      */
 
     /**
@@ -78,10 +78,10 @@ public class BeanDeserializerFactory
         /* 02-Mar-2009, tatu: Can't instantiate abstract classes or interfaces
          *   so now might be a good time to catch that problem...
          */
-        /* 23-Jan-2010, tatu: ... except that 1.5 it is useful, in cases where we do
+        /* 23-Jan-2010, tatu: ... except that with 1.5 it is useful, in cases where we do
          *   have actual type information: we still need intermediate deserializer
          *   for locating type information (as a sort of placeholder). So can not
-         *   quite do the check here.
+         *   fail yet with non-concrete types.
          */
         /*
         if (!type.isConcrete()) return null;
@@ -102,11 +102,11 @@ public class BeanDeserializerFactory
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Public construction method beyond DeserializerFactory API:
-    // can be called from outside as well as overridden by
-    // sub-classes
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public construction method beyond DeserializerFactory API:
+    /* can be called from outside as well as overridden by
+    /* sub-classes
+    /**********************************************************
      */
 
     /**
@@ -178,10 +178,10 @@ public class BeanDeserializerFactory
     }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Helper methods for Bean deserializer construction,
-    // overridable by sub-classes
-    ////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods for Bean deserializer construction,
+    /* overridable by sub-classes
+    /**********************************************************
      */
 
     /**
@@ -620,9 +620,9 @@ public class BeanDeserializerFactory
     }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Helper methods for Bean deserializer, other
-    ////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods for Bean deserializer, other
+    /**********************************************************
      */
 
     /**
