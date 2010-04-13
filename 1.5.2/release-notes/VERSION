@@ -1,10 +1,21 @@
-Version: 1.5.1
+Version: 1.5.2
 
 Release date:
-  09-Apr-2010
+  xx-Apr-2010
 
 Description:
-  First patch release for 1.5
+  Second patch release for 1.5
+
+  Fixes:
+
+  * [JACKSON-266] Deserialization issues when binding data from JsonNode
+   (reported by Martin T)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.5.1 [09-Apr-2010]
 
   Fixes:
 
@@ -16,10 +27,6 @@ Description:
   * [JACKSON-269]: missing OSGi export by mapper (o.c.j.m.jsontype.impl),
     needed by jackson-xc module
     (reported by Raymond F)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.5.0 [14-Mar-2010]
 
