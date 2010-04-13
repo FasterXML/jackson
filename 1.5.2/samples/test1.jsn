@@ -1,0 +1,9 @@
+{ "test key" : true,
+"null":null,
+"foo":1,
+"foo2":3,
+ "a\u00E3b" :  -323,
+ "2" : "3",
+  "\"foo\"" : "foo\nbar"
+}
+
