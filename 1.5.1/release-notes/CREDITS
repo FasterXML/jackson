@@ -290,7 +290,7 @@ Gennadiy Shafranovich:
    [1.4.4, 1.5.0]
 
 Fabrice Delhoste:
-  * Reported [JACKSON-264]: problems with generic type handling for
+  * Reported [JACKSON-265]: problems with generic type handling for
     serialization
    [1.5.1]
 
