@@ -30,14 +30,14 @@ import org.codehaus.jackson.type.JavaType;
 public abstract class DeserializerFactory
 {
     /*
-    /////////////////////////////////////////////////////////
-    // Basic DeserializerFactory API:
-    /////////////////////////////////////////////////////////
+    /*********************************************************
+    /* Basic DeserializerFactory API:
+    /*********************************************************
      */
 
     /**
      * Method called to create (or, for completely immutable deserializers,
-     * reuse) a deserializer that can convert Json content into values of
+     * reuse) a deserializer that can convert JSON content into values of
      * specified Java "bean" (POJO) type.
      * At this point it is known that the type is not otherwise recognized
      * as one of structured types (array, Collection, Map) or a well-known
@@ -54,7 +54,7 @@ public abstract class DeserializerFactory
 
     /**
      * Method called to create (or, for completely immutable deserializers,
-     * reuse) a deserializer that can convert Json content into values of
+     * reuse) a deserializer that can convert JSON content into values of
      * specified Java type.
      *
      * @param type Type to be deserialized
@@ -75,7 +75,7 @@ public abstract class DeserializerFactory
 
     /**
      * Method called to create and return a deserializer that can construct
-     * JsonNode(s) from Json content.
+     * JsonNode(s) from JSON content.
      */
     public abstract JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p)
         throws JsonMappingException;
