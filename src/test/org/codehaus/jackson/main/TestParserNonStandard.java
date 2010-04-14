@@ -190,7 +190,9 @@ public class TestParserNonStandard
     {
         JsonFactory f = new JsonFactory();
         f.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-        String JSON = "{ @type : \"mytype\", #color : 123, *error* : true }";
+        String JSON = "{ @type : \"mytype\", #color : 123, *error* : true, "
+            +" hyphen-ated : \"yes\", me+my : null"
+            +"}";
         JsonParser jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
                 : createParserUsingReader(f, JSON);
 
@@ -209,6 +211,15 @@ public class TestParserNonStandard
         assertToken(JsonToken.FIELD_NAME, jp.nextToken());
         assertEquals("*error*", jp.getText());
         assertToken(JsonToken.VALUE_TRUE, jp.nextToken());
+
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("hyphen-ated", jp.getText());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("yes", jp.getText());
+
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("me+my", jp.getText());
+        assertToken(JsonToken.VALUE_NULL, jp.nextToken());
     
         assertToken(JsonToken.END_OBJECT, jp.nextToken());
         jp.close();

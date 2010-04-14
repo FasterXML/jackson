@@ -74,10 +74,14 @@ public final class CharTypes
                 table[i] = 0;
             }
         }
-        // As per [JACKSON-267], '@', '#' and '*' are also to be accepted as well
+        /* As per [JACKSON-267], '@', '#' and '*' are also to be accepted as well.
+         * And '-' (for hyphenated names); and '+' for sake of symmetricity...
+         */
         table['@'] = 0;
         table['#'] = 0;
         table['*'] = 0;
+        table['-'] = 0;
+        table['+'] = 0;
         sInputCodesJsNames = table;
     }
 
