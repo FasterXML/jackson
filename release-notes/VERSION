@@ -21,6 +21,10 @@ Description:
     "ObjectMapper.updatingReader()" (and "reader.readValue(source)")
   * [JACKSON-265] Problems with generic wildcard type, type info.
    (reported by Fabrice D)
+  * [JACKSON-267] Allow unquoted field names to start with '@' in
+    (when unquoted name support is enabled, to support polymorphic
+    typing (which defaults to property names like "@class")
+   (requested by Michel G)
 
 ------------------------------------------------------------------------
 == History: ==

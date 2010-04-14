@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone='yes'?>
 
-  <project name="Jackson JSON parser" basedir="." default="readme">
+  <project name="Jackson JSON processor" basedir="." default="readme">
 
     <!-- Source directories -->
     <property name="dir.src" location="${basedir}/src" />
