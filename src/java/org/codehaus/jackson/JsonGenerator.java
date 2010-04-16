@@ -143,9 +143,9 @@ public abstract class JsonGenerator
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, configuration
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, configuration
+    /**********************************************************
      */
 
     /**
@@ -230,9 +230,9 @@ public abstract class JsonGenerator
 
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuring generator
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuring generator
+    /**********************************************************
       */
 
     /**
@@ -261,9 +261,9 @@ public abstract class JsonGenerator
     public abstract JsonGenerator useDefaultPrettyPrinter();
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, write methods, structural
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, write methods, structural
+    /**********************************************************
      */
 
     /**
@@ -327,9 +327,9 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, write methods, textual/binary
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, write methods, textual/binary
+    /**********************************************************
      */
 
     /**
@@ -538,9 +538,9 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, write methods, serializing Java objects
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, write methods, serializing Java objects
+    /**********************************************************
      */
 
     /**
@@ -569,9 +569,9 @@ public abstract class JsonGenerator
         throws IOException, JsonProcessingException;
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, convenience field write methods
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, convenience field write methods
+    /**********************************************************
      */
 
     /**
@@ -768,9 +768,9 @@ public abstract class JsonGenerator
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, copy-through methods
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, copy-through methods
+    /**********************************************************
      */
 
     /**
@@ -820,9 +820,9 @@ public abstract class JsonGenerator
         throws IOException, JsonProcessingException;
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, context access
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, context access
+    /**********************************************************
      */
 
     /**
@@ -832,9 +832,9 @@ public abstract class JsonGenerator
     public abstract JsonStreamContext getOutputContext();
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, buffer handling
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, buffer handling
+    /**********************************************************
      */
 
     /**
@@ -852,9 +852,9 @@ public abstract class JsonGenerator
     public abstract boolean isClosed();
 
     /*
-    ////////////////////////////////////////////////////
-    // Closeable implementation
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Closeable implementation
+    /**********************************************************
      */
 
     /**
@@ -871,5 +871,4 @@ public abstract class JsonGenerator
      */
     public abstract void close()
         throws IOException;
-
 }

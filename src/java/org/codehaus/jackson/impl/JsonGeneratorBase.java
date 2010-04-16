@@ -15,9 +15,9 @@ public abstract class JsonGeneratorBase
     extends JsonGenerator
 {
     /*
-    ////////////////////////////////////////////////////
-    // Configuration
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration
+    /**********************************************************
      */
 
     protected ObjectCodec _objectCodec;
@@ -37,9 +37,9 @@ public abstract class JsonGeneratorBase
     protected boolean _cfgNumbersAsStrings;
 
     /*
-    ////////////////////////////////////////////////////
-    // State
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* State
+    /**********************************************************
      */
 
     /**
@@ -56,9 +56,9 @@ public abstract class JsonGeneratorBase
     protected boolean _closed;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     protected JsonGeneratorBase(int features, ObjectCodec codec)
@@ -71,9 +71,9 @@ public abstract class JsonGeneratorBase
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration
+    /**********************************************************
      */
 
     @Override
@@ -114,9 +114,9 @@ public abstract class JsonGeneratorBase
     public final ObjectCodec getCodec() { return _objectCodec; }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, accessors
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, accessors
+    /**********************************************************
      */
 
     /**
@@ -125,9 +125,9 @@ public abstract class JsonGeneratorBase
     public final JsonWriteContext getOutputContext() { return _writeContext; }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, write methods, structural
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, write methods, structural
+    /**********************************************************
      */
 
     public final void writeStartArray()
@@ -210,9 +210,9 @@ public abstract class JsonGeneratorBase
         throws IOException, JsonGenerationException;
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, write methods, textual
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, write methods, textual
+    /**********************************************************
      */
 
     //public abstract void writeString(String text) throws IOException, JsonGenerationException;
@@ -226,9 +226,9 @@ public abstract class JsonGeneratorBase
     //public abstract void writeBinary(byte[] data, int offset, int len, boolean includeLFs) throws IOException, JsonGenerationException;
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, write methods, primitive
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, write methods, primitive
+    /**********************************************************
      */
 
     public abstract void writeNumber(int i)
@@ -253,9 +253,9 @@ public abstract class JsonGeneratorBase
         throws IOException, JsonGenerationException;
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, write methods, POJOs, trees
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, write methods, POJOs, trees
+    /**********************************************************
      */
 
     public void writeObject(Object value)
@@ -293,9 +293,9 @@ public abstract class JsonGeneratorBase
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, low-level output handling
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, low-level output handling
+    /**********************************************************
      */
 
     public abstract void flush() throws IOException;
@@ -308,9 +308,9 @@ public abstract class JsonGeneratorBase
     public boolean isClosed() { return _closed; }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, copy-through methods
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, copy-through methods
+    /**********************************************************
      */
 
     public final void copyCurrentEvent(JsonParser jp)
@@ -409,9 +409,9 @@ public abstract class JsonGeneratorBase
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Package methods for this, sub-classes
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Package methods for this, sub-classes
+    /**********************************************************
      */
 
     protected abstract void _releaseBuffers();

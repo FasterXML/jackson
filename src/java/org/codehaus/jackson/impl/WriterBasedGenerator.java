@@ -16,9 +16,9 @@ public final class WriterBasedGenerator
     final static char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration
+    /**********************************************************
      */
 
     final protected IOContext _ioContext;
@@ -26,9 +26,9 @@ public final class WriterBasedGenerator
     final protected Writer _writer;
     
     /*
-    ////////////////////////////////////////////////////
-    // Output buffering
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Output buffering
+    /**********************************************************
      */
 
     /**
@@ -61,9 +61,9 @@ public final class WriterBasedGenerator
     protected char[] _entityBuffer;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public WriterBasedGenerator(IOContext ctxt, int features, ObjectCodec codec,
@@ -77,9 +77,9 @@ public final class WriterBasedGenerator
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Output method implementations, structural
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Output method implementations, structural
+    /**********************************************************
      */
 
     @Override
@@ -186,9 +186,9 @@ public final class WriterBasedGenerator
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Output method implementations, textual
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Output method implementations, textual
+    /**********************************************************
      */
 
     @Override
@@ -230,9 +230,9 @@ public final class WriterBasedGenerator
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Output method implementations, unprocessed ("raw")
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Output method implementations, unprocessed ("raw")
+    /**********************************************************
      */
 
     @Override
@@ -356,9 +356,9 @@ public final class WriterBasedGenerator
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Output method implementations, base64-encoded binary
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Output method implementations, base64-encoded binary
+    /**********************************************************
      */
 
     @Override
@@ -380,9 +380,9 @@ public final class WriterBasedGenerator
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Output method implementations, primitive
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Output method implementations, primitive
+    /**********************************************************
      */
 
     @Override
@@ -558,9 +558,9 @@ public final class WriterBasedGenerator
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Implementations for other methods
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Implementations for other methods
+    /**********************************************************
      */
 
     @Override
@@ -627,9 +627,9 @@ public final class WriterBasedGenerator
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Low-level output handling
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Low-level output handling
+    /**********************************************************
      */
 
     @Override
@@ -692,9 +692,9 @@ public final class WriterBasedGenerator
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Internal methods, low-level writing
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Internal methods, low-level writing
+    /**********************************************************
      */
 
     private void _writeString(String text)

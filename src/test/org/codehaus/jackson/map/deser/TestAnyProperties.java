@@ -1,12 +1,9 @@
 package org.codehaus.jackson.map.deser;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 /**
  * Unit tests for verifying that {@link JsonAnySetter} annotation
