@@ -10,8 +10,9 @@ Description:
 
   * [JACKSON-266] Deserialization issues when binding data from JsonNode
    (reported by Martin T)
-  * Yet another OSGi issue, this time "org.codehaus.jackson.map.util" not
-    exported by mapper module, needed by jax-rs module.
+  * [JACKSON-273] Yet another OSGi issue, "org.codehaus.jackson.map.util"
+    not exported by mapper module, needed by jax-rs module.
+   (reported by Lukasz D)
 
 ------------------------------------------------------------------------
 == History: ==
