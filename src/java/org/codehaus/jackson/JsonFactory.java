@@ -40,7 +40,7 @@ import org.codehaus.jackson.util.BufferRecycler;
  *<p>
  * Creation of a factory instance is a light-weight operation,
  * and since there is no need for pluggable alternative implementations
- * (as there is no "standard" json processor API to implement),
+ * (as there is no "standard" JSON processor API to implement),
  * the default constructor is used for constructing factory
  * instances.
  *
@@ -97,7 +97,7 @@ public class JsonFactory
 
     /**
      * Object that implements conversion functionality between
-     * Java objects and Json content. For base JsonFactory implementation
+     * Java objects and JSON content. For base JsonFactory implementation
      * usually not set by default, but can be explicitly set.
      * Sub-classes (like @link org.codehaus.jackson.map.MappingJsonFactory}
      * usually provide an implementation.

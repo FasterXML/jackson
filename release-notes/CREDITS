@@ -293,3 +293,17 @@ Fabrice Delhoste:
   * Reported [JACKSON-265]: problems with generic type handling for
     serialization
    [1.5.1]
+
+Raymond Feng:
+  * Reported [JACKSON-269]: missing OSGi export by mapper (o.c.j.m.jsontype.impl)
+    needed by jackson-xc module
+   [1.5.1]
+
+Martin Tomko:
+  * Reported [JACKSON-266] Deserialization from JsonNode fails
+   [1.4.4, 1.5.2]
+
+Lukasz Dywicki:
+  * Reported [JACKSON-273] Problems with OSGi dependency declarations
+   [1.5.2]
+
