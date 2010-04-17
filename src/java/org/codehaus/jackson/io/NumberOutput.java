@@ -50,9 +50,9 @@ public final class NumberOutput
     };
 
     /*
-    ////////////////////////////////////////////////////
-    // Efficient serialization methods using raw buffers
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Efficient serialization methods using raw buffers
+    /**********************************************************
      */
 
     /**
@@ -177,9 +177,9 @@ public final class NumberOutput
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Secondary convenience serialization methods
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Secondary convenience serialization methods
+    /**********************************************************
      */
 
     /* !!! 05-Aug-2008, tatus: Any ways to further optimize
@@ -216,9 +216,9 @@ public final class NumberOutput
     }
 
     /*
-    ////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
      */
 
     private static int outputLeadingTriplet(int triplet, char[] buffer, int offset)
