@@ -498,20 +498,19 @@ public class JacksonAnnotationIntrospector
     /***************************************************
      */
 
-    @SuppressWarnings("deprecation")
     @Override
     public String findSettablePropertyName(AnnotatedMethod am)
     {
-        /* 22-May-2009, tatu: JsonProperty is the primary annotation
-         *   to check for
+        /* 16-Apr-2010, tatu: Existing priority (since 1.1) is that
+         *   @JsonProperty is checked first; and @JsonSetter next.
+         *   This is not quite optimal now that @JsonSetter is un-deprecated.
+         *   However, it is better to have stable behavior rather than
+         *   cause compatibility problems by fine-tuning.
          */
         JsonProperty pann = am.getAnnotation(JsonProperty.class);
         if (pann != null) {
             return pann.value();
         }
-        /* 22-May-2009, tatu: JsonSetter is deprecated as of 1.1
-         *    but still supported
-         */
         JsonSetter ann = am.getAnnotation(JsonSetter.class);
         if (ann != null) {
             return ann.value();

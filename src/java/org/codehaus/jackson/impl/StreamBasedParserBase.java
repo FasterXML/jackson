@@ -18,9 +18,9 @@ public abstract class StreamBasedParserBase
     extends JsonNumericParserBase
 {
     /*
-    ////////////////////////////////////////////////////
-    // Configuration
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration
+    /**********************************************************
      */
 
     /**
@@ -31,9 +31,9 @@ public abstract class StreamBasedParserBase
     protected InputStream _inputStream;
 
     /*
-    ////////////////////////////////////////////////////
-    // Current input data
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Current input data
+    /**********************************************************
      */
 
     /**
@@ -50,9 +50,9 @@ public abstract class StreamBasedParserBase
     protected boolean _bufferRecyclable;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     protected StreamBasedParserBase(IOContext ctxt, int features,
@@ -69,9 +69,9 @@ public abstract class StreamBasedParserBase
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Low-level reading, other
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Low-level reading, other
+    /**********************************************************
      */
 
     @Override
@@ -102,7 +102,7 @@ public abstract class StreamBasedParserBase
     protected void _closeInput() throws IOException
     {
         /* 25-Nov-2008, tatus: As per [JACKSON-16] we are not to call close()
-         *   on the underlying Reader, unless we "own" it, or auto-closing
+         *   on the underlying InputStream, unless we "own" it, or auto-closing
          *   feature is enabled.
          */
         if (_inputStream != null) {

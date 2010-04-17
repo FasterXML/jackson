@@ -71,7 +71,8 @@ public class JsonFactory
      * to a {@link BufferRecycler} used to provide a low-cost
      * buffer recycling between reader and writer instances.
      */
-    final static ThreadLocal<SoftReference<BufferRecycler>> _recyclerRef = new ThreadLocal<SoftReference<BufferRecycler>>();
+    final protected static ThreadLocal<SoftReference<BufferRecycler>> _recyclerRef
+        = new ThreadLocal<SoftReference<BufferRecycler>>();
 
     /**
      * Each factory comes equipped with a shared root symbol table.
@@ -206,9 +207,9 @@ public class JsonFactory
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Configuration, generator settings
-    //////////////////////////////////////////////////////
+    /******************************************************
+    /* Configuration, generator settings
+    /******************************************************
      */
 
     /**
@@ -289,9 +290,9 @@ public class JsonFactory
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Configuration, other
-    //////////////////////////////////////////////////////
+    /******************************************************
+    /* Configuration, other
+    /******************************************************
      */
 
     public JsonFactory setCodec(ObjectCodec oc) {
@@ -302,9 +303,9 @@ public class JsonFactory
     public ObjectCodec getCodec() { return _objectCodec; }
 
     /*
-    //////////////////////////////////////////////////////
-    // Reader factories
-    //////////////////////////////////////////////////////
+    /******************************************************
+    /* Reader factories
+    /******************************************************
      */
 
     /**
@@ -405,9 +406,9 @@ public class JsonFactory
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Generator factories
-    //////////////////////////////////////////////////////
+    /******************************************************
+    /* Generator factories
+    /******************************************************
      */
 
     /**
@@ -481,13 +482,14 @@ public class JsonFactory
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////////////////
+    /******************************************************
+    /* Internal factory methods, overridable
+    /******************************************************
      */
 
     /**
-     * Overridable construction method that actually instantiates desired generator.
+     * Overridable factory method that actually instantiates desired
+     * context object.
      */
     protected IOContext _createContext(Object srcRef, boolean resourceManaged)
     {
@@ -495,7 +497,8 @@ public class JsonFactory
     }
 
     /**
-     * Overridable construction method that actually instantiates desired parser.
+     * Overridable factory method that actually instantiates desired
+     * parser.
      */
     protected JsonParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
@@ -503,14 +506,22 @@ public class JsonFactory
         return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
     }
 
+    /**
+     * Overridable factory method that actually instantiates desired
+     * parser.
+     */
     protected JsonParser _createJsonParser(Reader r, IOContext ctxt)
 	throws IOException, JsonParseException
     {
         return new ReaderBasedParser(ctxt, _parserFeatures, r, _objectCodec,
                 _rootCharSymbols.makeChild(isEnabled(JsonParser.Feature.CANONICALIZE_FIELD_NAMES),
                     isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES)));
-        }
+    }
 
+    /**
+     * Overridable factory method that actually instantiates desired
+     * parser.
+     */
     protected JsonParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
         throws IOException, JsonParseException
     {
@@ -519,7 +530,8 @@ public class JsonFactory
     }
 
     /**
-     * Overridable construction method that actually instantiates desired generator
+     * Overridable factory method that actually instantiates desired
+     * generator.
      */
     protected JsonGenerator _createJsonGenerator(Writer out, IOContext ctxt)
         throws IOException
@@ -547,6 +559,21 @@ public class JsonFactory
         return br;
     }
 
+    protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException
+    {
+        if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
+            return new UTF8Writer(ctxt, out);
+        }
+        // not optimal, but should do unless we really care about UTF-16/32 encoding speed
+        return new OutputStreamWriter(out, enc.getJavaName());
+    }
+    
+    /*
+    /******************************************************
+    /* Internal factory methods, other
+    /******************************************************
+     */
+
     /**
      * Helper methods used for constructing an optimal stream for
      * parsers to use, when input is to be read from an URL.
@@ -568,14 +595,5 @@ public class JsonFactory
             }
         }
         return url.openStream();
-    }
-
-    protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException
-    {
-        if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
-	    return new UTF8Writer(ctxt, out);
-	}
-	// not optimal, but should do unless we really care about UTF-16/32 encoding speed
-	return new OutputStreamWriter(out, enc.getJavaName());
     }
 }
