@@ -23,6 +23,12 @@ public interface SmileConstants
     public final static byte TOKEN_LITERAL_NULL = 0x26;
     public final static byte TOKEN_LITERAL_EMPTY_STRING = 0x27;
 
+    /**
+     * Only "short" Strings use length prefix; longer uncompressed
+     * Strings use zero byte as end marker.
+     */
+    public final static byte TOKEN_LITERAL_LONG_STRING = 0x28;
+    
     // and "real" END_OBJECT is chosen not to overlap, on purpose
     public final static byte TOKEN_NAME_LITERAL_END_OBJECT = 0x30;
     
@@ -32,11 +38,16 @@ public interface SmileConstants
     /****************************************************
      */
     
-    public final static int TOKEN_PREFIX_SHORT_ASCII = 0x00;
+    // Shared strings are back references for last 63 short (< 64 byte) string values
+    // NOTE: 0x00 is reserved, not used
+    public final static int TOKEN_PREFIX_SHARED_STRING = 0x00;
     public final static int TOKEN_PREFIX_LITERAL = 0x20;
-    public final static int TOKEN_PREFIX_SHORT_UNICODE = 0x40;
-    public final static int TOKEN_PREFIX_SHARED_STRING = 0x60;
-    public final static int TOKEN_PREFIX_SMALL_INT = 0x80;
+
+    // Small ints are 4-bit (-16 to +15) integer constants
+    public final static int TOKEN_PREFIX_SMALL_INT = 0x40;
+
+    public final static int TOKEN_PREFIX_SHORT_ASCII = 0x060;
+    public final static int TOKEN_PREFIX_SHORT_UNICODE = 0x80;
     public final static int TOKEN_PREFIX_TEXT = 0xA0;
     public final static int TOKEN_PREFIX_NUMBER = 0xC0;
     public final static int TOKEN_PREFIX_BINARY = 0xE0;
