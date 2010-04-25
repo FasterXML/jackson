@@ -307,3 +307,7 @@ Lukasz Dywicki:
   * Reported [JACKSON-273] Problems with OSGi dependency declarations
    [1.5.2]
 
+Aron Atkins:
+  * Reported [JACKSON-281] JsonGenerator.writeObject() only supports subset of
+    wrapper types (when not specifying ObjectCodec)
+   [1.5.2]

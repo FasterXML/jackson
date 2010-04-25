@@ -13,6 +13,9 @@ Description:
   * [JACKSON-273] Yet another OSGi issue, "org.codehaus.jackson.map.util"
     not exported by mapper module, needed by jax-rs module.
    (reported by Lukasz D)
+  * [JACKSON-281] JsonGenerator.writeObject() only supports subset of
+    wrapper types (when not specifying ObjectCodec)
+   (reported by Aron A)
 
 ------------------------------------------------------------------------
 == History: ==

@@ -3,6 +3,9 @@ package org.codehaus.jackson.impl;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.codehaus.jackson.*;
 
@@ -444,6 +447,10 @@ public abstract class JsonGeneratorBase
          *    types even without codec. This can improve interoperability,
          *    and specifically help with TokenBuffer.
          */
+        if (value == null) {
+            writeNull();
+            return;
+        }
         if (value instanceof String) {
             writeString((String) value);
             return;
@@ -459,18 +466,42 @@ public abstract class JsonGeneratorBase
             } else if (n instanceof Double) {
                 writeNumber(n.doubleValue());
                 return;
+            } else if (n instanceof Float) {
+                writeNumber(n.floatValue());
+                return;
+            } else if (n instanceof Short) {
+                writeNumber(n.shortValue());
+                return;
+            } else if (n instanceof Byte) {
+                writeNumber(n.byteValue());
+                return;
             } else if (n instanceof BigInteger) {
                 writeNumber((BigInteger) n);
                 return;
             } else if (n instanceof BigDecimal) {
                 writeNumber((BigDecimal) n);
                 return;
+                
+            // then Atomic types
+                
+            } else if (n instanceof AtomicInteger) {
+                writeNumber(((AtomicInteger) n).get());
+                return;
+            } else if (n instanceof AtomicLong) {
+                writeNumber(((AtomicLong) n).get());
+                return;
             }
         } else if (value instanceof byte[]) {
             writeBinary((byte[]) value);
+            return;
         } else if (value instanceof Boolean) {
             writeBoolean(((Boolean) value).booleanValue());
+            return;
+        } else if (value instanceof AtomicBoolean) {
+            writeBoolean(((AtomicBoolean) value).get());
+            return;
         }
-        throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize regular Java objects (except for simple wrappers)");
+        throw new IllegalStateException("No ObjectCodec defined for the generator, can only serialize simple wrapper types (type passed "
+                +value.getClass().getName()+")");
     }    
 }
