@@ -1,6 +1,9 @@
 package org.codehaus.jackson.main;
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.concurrent.atomic.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.MappingJsonFactory;
@@ -80,6 +83,51 @@ public class TestGeneratorMisc
         }
     }
 
+    // Also, "very simple" objects are supported even without Codec:
+    public void testSimpleWriteObject() throws IOException
+    {
+        // note: NOT mapping factory, for this test
+        JsonFactory jf = new JsonFactory();
+        StringWriter sw = new StringWriter();
+        JsonGenerator gen = jf.createJsonGenerator(sw);
+        gen.writeStartArray();
+
+        // simple wrappers first
+        gen.writeObject(Integer.valueOf(1));
+        gen.writeObject(Short.valueOf((short)-2));
+        gen.writeObject(Long.valueOf(3));
+        gen.writeObject(Byte.valueOf((byte)-4));
+        gen.writeObject(Double.valueOf(0.25));
+        gen.writeObject(Float.valueOf(-0.125f));
+        gen.writeObject(Boolean.TRUE);
+        gen.close();
+        String act = sw.toString().trim();
+        assertEquals("[1,-2,3,-4,0.25,-0.125,true]", act);
+        
+        // then other basic types
+        sw = new StringWriter();
+        gen = jf.createJsonGenerator(sw);
+        gen.writeStartArray();
+        gen.writeObject(BigInteger.valueOf(1234));
+        gen.writeObject(new BigDecimal(0.5));
+        gen.writeEndArray();
+        gen.close();
+        act = sw.toString().trim();
+        assertEquals("[1234,0.5]", act);
+
+        // then Atomic types
+        sw = new StringWriter();
+        gen = jf.createJsonGenerator(sw);
+        gen.writeStartArray();
+        gen.writeObject(new AtomicBoolean(false));
+        gen.writeObject(new AtomicInteger(13));
+        gen.writeObject(new AtomicLong(-127L));
+        gen.writeEndArray();
+        gen.close();
+        act = sw.toString().trim();
+        assertEquals("[false,13,-127]", act);
+    }
+    
     /*
     ///////////////////////////////////////////////
     // Tests for raw output
