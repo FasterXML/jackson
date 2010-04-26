@@ -1,10 +1,18 @@
-Version: 1.5.2
+Version: 1.5.3
 
 Release date:
-  25-Apr-2010
+  xx-May-2010
 
 Description:
-  Second patch release for 1.5
+  Third patch release for 1.5
+
+  Fixes:
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.5.2 [25-Apr-2010]
 
   Fixes:
 
@@ -16,10 +24,6 @@ Description:
   * [JACKSON-281] JsonGenerator.writeObject() only supports subset of
     wrapper types (when not specifying ObjectCodec)
    (reported by Aron A)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.5.1 [09-Apr-2010]
 
