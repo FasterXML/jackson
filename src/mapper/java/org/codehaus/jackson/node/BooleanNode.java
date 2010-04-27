@@ -26,7 +26,9 @@ public final class BooleanNode
     public static BooleanNode valueOf(boolean b) { return b ? TRUE : FALSE; }
 
     // Interesting... two choices...
-    @Override public JsonToken asToken() { return JsonToken.VALUE_TRUE; }
+    @Override public JsonToken asToken() {
+        return (this == TRUE) ? JsonToken.VALUE_TRUE : JsonToken.VALUE_FALSE;
+    }
 
     @Override
     public boolean isBoolean() { return true; }
