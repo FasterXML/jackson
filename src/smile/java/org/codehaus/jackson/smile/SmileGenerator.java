@@ -30,6 +30,11 @@ public class SmileGenerator
 
     private static long MIN_INT_AS_LONG = (long) Integer.MIN_VALUE;
     private static long MAX_INT_AS_LONG = (long) Integer.MAX_VALUE;
+
+    private final static byte NULL_BYTE = 0;
+
+    private final static byte TOKEN_BYTE_LONG_STRING =
+        (byte) (TOKEN_PREFIX_VAR_LENGTH_MISC | TOKEN_MISC_SUBTYPE_LONG_TEXT);
     
     /*
     /**********************************************************
@@ -124,7 +129,7 @@ public class SmileGenerator
     protected void _writeEndObject()
         throws IOException, JsonGenerationException
     {
-        _writeByte(TOKEN_NAME_LITERAL_END_OBJECT);
+        _writeByte(TOKEN_LITERAL_END_OBJECT);
     }
 
     @Override
@@ -143,13 +148,63 @@ public class SmileGenerator
     @Override
     public void writeString(String text) throws IOException,JsonGenerationException
     {
-        if (text.length() == 0) {
+        int len = text.length();
+        if (len == 0) {
             _writeByte(TOKEN_LITERAL_EMPTY_STRING);
             return;
         }
-        // !!! TBI
+        if (len <= MAX_SHORT_STRING_BYTES) { // possibly short strings (not necessarily)
+            // !!! TODO: check for shared Strings
+            // first: ensure we have enough space
+            if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
+                _flushBuffer();
+            }
+            int byteLen = _fastUTF8Encode(text, 0, len);
+            int origOffset = _outputTail;
+            byte typeToken;
+            if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
+                if (byteLen == len) { // and all ASCII
+                    typeToken = (byte) (TOKEN_PREFIX_TINY_ASCII | byteLen);
+                } else { // not just ASCII
+                    typeToken = (byte) (TOKEN_PREFIX_TINY_UNICODE | byteLen);
+                }
+            } else { // nope, longer non-ascii Strings
+                typeToken = TOKEN_BYTE_LONG_STRING;
+                // and we will need null byte as end marker
+                _outputBuffer[_outputTail++] = NULL_BYTE;
+            }
+            // and then sneak in type token now that know the details
+            _outputBuffer[origOffset] = typeToken;
+        } else { // "long" String, never shared
+            _writeByte(TOKEN_BYTE_LONG_STRING);
+            // but might still fit within buffer?
+            int maxLen = len + len + len + 1;
+            if (maxLen <= _outputBuffer.length) { // yes indeed
+                if ((_outputTail + maxLen) >= _outputEnd) {
+                    _flushBuffer();
+                }
+                _fastUTF8Encode(text, 0, len);
+                _outputBuffer[_outputTail++] = NULL_BYTE;                
+            } else {
+                _slowUTF8Encode(text, 0, len);
+                _writeByte(NULL_BYTE);
+            }
+        }
+    }
+    
+    /**
+     * Helper method used to encode Strings that are short enough that UTF-8
+     * encoded version is known to fit in the buffer
+     */
+    private int _fastUTF8Encode(String str, int ptr, int end)
+    {
+        return 0;
     }
 
+    private void _slowUTF8Encode(String str, int ptr, int end)
+    {
+    }
+    
     @Override
     public void writeString(char[] text, int offset, int len) throws IOException, JsonGenerationException
     {
@@ -210,8 +265,26 @@ public class SmileGenerator
     @Override
     public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len) throws IOException, JsonGenerationException
     {
-        // TODO Auto-generated method stub
-        
+        if (data == null) {
+            writeNull();
+            return;
+        }
+        int lenlen = _determineLengthIndicator(len);
+        // !!! TODO: handle compression
+        int compType = TOKEN_COMP_TYPE_NONE;
+        byte tokenType = (byte) (TOKEN_PREFIX_VAR_LENGTH_MISC | TOKEN_MISC_BIT_BINARY | (lenlen << 2) | compType);
+        switch (lenlen) {
+        case TOKEN_LENGTH_IND_8B:
+            _writeBytes(tokenType, (byte) len);
+            break;
+        case TOKEN_LENGTH_IND_16B:
+            _writeTaggedShort(tokenType, (short) len);
+            break;
+        default:
+            _writeTaggedInt(tokenType, len);
+            break;
+        }
+        _writeBytes(data, offset, len);
     }
 
     /*
@@ -240,11 +313,11 @@ public class SmileGenerator
     {
         if (i > 0xF) { // not small, at least 8-bit
             if ((i >> 7) == 0) { // 8 bits is enough
-                _writeBytes(TOKEN_NUMBER_8B_INT, (byte) i);
+                _writeBytes(TOKEN_NUMBER_BYTE, (byte) i);
             } else if ((i >> 15) == 0) { // 16 bits is enough
-                _writeTaggedShort(TOKEN_NUMBER_16B_INT, i);
+                _writeTaggedShort(TOKEN_NUMBER_SHORT, i);
             } else  { // need full 32 bits
-                _writeTaggedInt(TOKEN_NUMBER_32B_INT, i);
+                _writeTaggedInt(TOKEN_NUMBER_INT, i);
             }
             return;
         }
@@ -252,11 +325,11 @@ public class SmileGenerator
         if (i >= -16) { // small int
             _writeByte((byte) (TOKEN_PREFIX_SMALL_INT + i));
         } else if ((i >> 7) == -1) {
-            _writeBytes(TOKEN_NUMBER_8B_INT, (byte) i);
+            _writeBytes(TOKEN_NUMBER_BYTE, (byte) i);
         } else if ((i >> 15) == -1) { // 16 bit?
-            _writeTaggedShort(TOKEN_NUMBER_16B_INT, i);
+            _writeTaggedShort(TOKEN_NUMBER_SHORT, i);
         } else { // need full 32 bits
-            _writeTaggedInt(TOKEN_NUMBER_32B_INT, i);            
+            _writeTaggedInt(TOKEN_NUMBER_INT, i);            
         }
     }
 
@@ -269,7 +342,7 @@ public class SmileGenerator
             writeNumber((int) l);
             return;
         }
-        _writeTaggedInt(TOKEN_NUMBER_64B_INT, (int) hi);
+        _writeTaggedInt(TOKEN_NUMBER_LONG, (int) hi);
         _writeInt((int) l);
     }
 
@@ -300,15 +373,59 @@ public class SmileGenerator
     @Override
     public void writeNumber(BigDecimal dec) throws IOException, JsonGenerationException
     {
-        // TODO Auto-generated method stub
-        
+        if (dec == null) {
+            writeNull();
+            return;
+        }
+        int scale = dec.scale();
+        BigInteger unscaled = dec.unscaledValue();
+        byte[] data = unscaled.toByteArray();
+        int len = data.length;
+        // only have a single length-indicator; need to be big enough for both scale and array length
+        int lenlen = _determineLengthIndicator(Math.max(scale, len));
+        byte tokenType = (byte) (TOKEN_PREFIX_VAR_LENGTH_MISC | TOKEN_MISC_SUBTYPE_BIG_DECIMAL | lenlen);
+ 
+        // Ok then scale (byte/short/int) and BigInteger serialization (byte/short/int for length; n bytes)
+        switch (lenlen) {
+        case TOKEN_LENGTH_IND_8B:
+            _writeBytes(tokenType, (byte) scale);
+            _writeByte((byte) len);
+            break;
+        case TOKEN_LENGTH_IND_16B:
+            _writeTaggedShort(tokenType, (short) scale);
+            _writeShort(len);
+            break;
+        default:
+            _writeTaggedInt(tokenType, scale);
+            _writeInt(len);
+            break;
+        }
+        _writeBytes(data);
     }
 
     @Override
-    public void writeNumber(BigInteger v) throws IOException,
-            JsonGenerationException {
-        // TODO Auto-generated method stub
-        
+    public void writeNumber(BigInteger v) throws IOException, JsonGenerationException
+    {
+        if (v == null) {
+            writeNull();
+            return;
+        }
+        byte[] data = v.toByteArray();
+        int len = data.length;
+        int lenlen = _determineLengthIndicator(len);
+        byte tokenType = (byte) (TOKEN_PREFIX_VAR_LENGTH_MISC | TOKEN_MISC_SUBTYPE_BIG_INTEGER | lenlen);
+        switch (lenlen) {
+        case TOKEN_LENGTH_IND_8B:
+            _writeBytes(tokenType, (byte) len);
+            break;
+        case TOKEN_LENGTH_IND_16B:
+            _writeTaggedShort(tokenType, (short) len);
+            break;
+        default:
+            _writeTaggedInt(tokenType, len);
+            break;
+        }
+        _writeBytes(data);
     }
 
     @Override
@@ -319,7 +436,7 @@ public class SmileGenerator
          */
         throw _notSupported();
     }
-    
+
     /*
     /**********************************************************
     /* Implementations for other methods
@@ -392,7 +509,7 @@ public class SmileGenerator
 
     private final void _writeByte(byte b) throws IOException
     {
-        if (_outputTail >= _outputBuffer.length) {
+        if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = b;
@@ -400,16 +517,45 @@ public class SmileGenerator
 
     private final void _writeBytes(byte b1, byte b2) throws IOException
     {
-        if ((_outputTail + 1) >= _outputBuffer.length) {
+        if ((_outputTail + 1) >= _outputEnd) {
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = b1;
         _outputBuffer[_outputTail++] = b2;
     }
 
+    private final void _writeBytes(byte[] data) throws IOException
+    {
+        _writeBytes(data, 0, data.length);
+    }
+
+    private final void _writeBytes(byte[] data, int offset, int len) throws IOException
+    {
+        if (len > 0) {
+            while (true) {
+                int currLen = Math.min(len, (_outputTail - _outputEnd));
+                System.arraycopy(data, offset, _outputBuffer, _outputTail, currLen);
+                if ((len -= currLen) == 0) {
+                    break;
+                }
+                _flushBuffer();
+                offset += currLen;
+            }
+        }
+    }
+
+    private final void _writeShort(int i) throws IOException
+    {
+        if ((_outputTail + 2) >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = (byte) (i >> 8);
+        _outputBuffer[_outputTail++] = (byte) i;
+    }
+    
     private final void _writeTaggedShort(byte b, int i) throws IOException
     {
-        if ((_outputTail + 3) >= _outputBuffer.length) {
+        if ((_outputTail + 3) >= _outputEnd) {
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = b;
@@ -419,7 +565,7 @@ public class SmileGenerator
 
     private final void _writeInt(int i) throws IOException
     {
-        if ((_outputTail + 4) >= _outputBuffer.length) {
+        if ((_outputTail + 4) >= _outputEnd) {
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = (byte) (i >> 24);
@@ -430,7 +576,7 @@ public class SmileGenerator
     
     private final void _writeTaggedInt(byte b, int i) throws IOException
     {
-        if ((_outputTail + 5) >= _outputBuffer.length) {
+        if ((_outputTail + 5) >= _outputEnd) {
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = b;
@@ -464,6 +610,29 @@ public class SmileGenerator
         }
     }
 
+    /*
+    /**********************************************************
+    /* Internal methods, calculating lengths
+    /**********************************************************
+    */
+    
+    /**
+     * Method used to figure out how many bytes are needed to represent given
+     * length; either 1, 2 or 4 bytes (since argument itself is a 32-bit int)
+     */
+    protected int _determineLengthIndicator(int length)
+    {
+        if ((length >> 8) == 0) {
+            return TOKEN_LENGTH_IND_8B;
+        }
+        if ((length >> 16) == 0) {
+            return TOKEN_LENGTH_IND_16B;
+        }
+        // with int, can not go past 32 bits
+        return TOKEN_LENGTH_IND_32B;
+    }
+    
+    
     /*
     /**********************************************************
     /* Internal methods, error reporting
