@@ -243,10 +243,9 @@ public class BeanDeserializer
 
         for (SettableBeanProperty prop : _props.values()) {
             // May already have deserializer from annotations, if so, skip:
-            if (prop.hasValueDeserializer()) {
-                continue;
+            if (!prop.hasValueDeserializer()) {
+                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(), seen));
             }
-            prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(), seen));
         }
 
         // Finally, "any setter" may also need to be resolved now
@@ -262,7 +261,9 @@ public class BeanDeserializer
         // or property-based one
         if (_propertyBasedCreator != null) {
             for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
-                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(), seen));
+                if (!prop.hasValueDeserializer()) {
+                    prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(), seen));
+                }
             }
         }
     }
