@@ -44,12 +44,14 @@ public final class SerializerCache
      */
     public ReadOnlyClassToSerializerMap getReadOnlyLookupMap()
     {
+        ReadOnlyClassToSerializerMap m;
         synchronized (this) {
-            if (_readOnlyMap == null) {
-                _readOnlyMap = ReadOnlyClassToSerializerMap.from(_sharedMap);
+            m = _readOnlyMap;
+            if (m == null) {
+                _readOnlyMap = m = ReadOnlyClassToSerializerMap.from(_sharedMap);
             }
-            return _readOnlyMap.instance();
         }
+        return m.instance();
     }
 
     /**
