@@ -1,10 +1,21 @@
-Version: 1.4.4
+Version: 1.4.5
 
 Release date:
-  25-Apr-2010
+  xx-May-2010
 
 Description:
-  Fourth (and likely final) patch release for 1.4.
+  Fifth (and last) patch release for 1.4.
+
+  Fixes:
+
+  * [JACKSON-285] Problem with @JsonCreator annotated constructor that
+    also uses @JsonDeserialize annotations
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.4.4 [25-Apr-2010]
 
   Fixes:
 
@@ -13,10 +24,6 @@ Description:
    (reported by Gennadiy S)
   * [JACKSON-266] Deserialization issues when binding data from JsonNode
    (reported by Martin T)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.4.3 [18-Feb-2010]
 
