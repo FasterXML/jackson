@@ -31,18 +31,31 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+1.5.2 [25-Apr-2010]
+
+  Fixes:
+
+  * [JACKSON-273] Yet another OSGi issue, "org.codehaus.jackson.map.util"
+    not exported by mapper module, needed by jax-rs module.
+   (reported by Lukasz D)
+  * [JACKSON-281] JsonGenerator.writeObject() only supports subset of
+    wrapper types (when not specifying ObjectCodec)
+   (reported by Aron A)
+
+  (and all fixes from 1.4.x branch up to 1.4.4)
+
 1.5.1 [09-Apr-2010]
 
   Fixes:
 
-  * [JACKSON-263] BooleanNode.asToken() incorrectly returns 'true' token
-    for all nodes (not just 'false' ones)
-   (reported by Gennadiy S)
   * [JACKSON-265]: problems with generic type handling for serialization
     (reported by Fabrice D)
   * [JACKSON-269]: missing OSGi export by mapper (o.c.j.m.jsontype.impl),
     needed by jackson-xc module
     (reported by Raymond F)
+
+  (and all fixes from 1.4.x branch up to 1.4.3)
+
 
 1.5.0 [14-Mar-2010]
 
@@ -114,6 +127,16 @@ Description:
        @JsonSerialize.using and @JsonDeserialize.using, respectively)
      * @JsonGetter and @JsonSetter are marked as deprecated, since
        @JsonProperty can (and should) be used instead.
+
+1.4.4 [25-Apr-2010]
+
+  Fixes:
+
+  * [JACKSON-263] BooleanNode.asToken() incorrectly returns 'true' token
+    for all nodes (not just 'false' ones)
+   (reported by Gennadiy S)
+  * [JACKSON-266] Deserialization issues when binding data from JsonNode
+   (reported by Martin T)
 
 1.4.3 [18-Feb-2010]
 
