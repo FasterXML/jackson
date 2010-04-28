@@ -11,39 +11,39 @@ public final class UTF8Writer
     final static int SURR2_FIRST = 0xDC00;
     final static int SURR2_LAST = 0xDFFF;
 
-    final protected IOContext mContext;
+    final protected IOContext _context;
 
-    OutputStream mOut;
+    OutputStream _out;
 
-    byte[] mOutBuffer;
+    byte[] _outBuffer;
 
-    final int mOutBufferLast;
+    final int _outBufferEnd;
 
-    int mOutPtr;
+    int _outPtr;
 
     /**
      * When outputting chars from BMP, surrogate pairs need to be coalesced.
      * To do this, both pairs must be known first; and since it is possible
      * pairs may be split, we need temporary storage for the first half
      */
-    int mSurrogate = 0;
+    int _surrogate = 0;
 
     public UTF8Writer(IOContext ctxt, OutputStream out)
     {
-        mContext = ctxt;
-        mOut = out;
+        _context = ctxt;
+        _out = out;
 
-        mOutBuffer = ctxt.allocWriteEncodingBuffer();
+        _outBuffer = ctxt.allocWriteEncodingBuffer();
         /* Max. expansion for a single char (in unmodified UTF-8) is
          * 4 bytes (or 3 depending on how you view it -- 4 when recombining
          * surrogate pairs)
          */
-        mOutBufferLast = mOutBuffer.length - 4;
-        mOutPtr = 0;
+        _outBufferEnd = _outBuffer.length - 4;
+        _outPtr = 0;
     }
 
     @Override
-	public Writer append(char c)
+    public Writer append(char c)
         throws IOException
     {
         write(c);
@@ -51,21 +51,21 @@ public final class UTF8Writer
     }
 
     @Override
-	public void close()
+    public void close()
         throws IOException
     {
-        if (mOut != null) {
-            if (mOutPtr > 0) {
-                mOut.write(mOutBuffer, 0, mOutPtr);
-                mOutPtr = 0;
+        if (_out != null) {
+            if (_outPtr > 0) {
+                _out.write(_outBuffer, 0, _outPtr);
+                _outPtr = 0;
             }
-            OutputStream out = mOut;
-            mOut = null;
+            OutputStream out = _out;
+            _out = null;
 
-            byte[] buf = mOutBuffer;
+            byte[] buf = _outBuffer;
             if (buf != null) {
-                mOutBuffer = null;
-                mContext.releaseWriteEncodingBuffer(buf);
+                _outBuffer = null;
+                _context.releaseWriteEncodingBuffer(buf);
             }
 
             out.close();
@@ -73,8 +73,8 @@ public final class UTF8Writer
             /* Let's 'flush' orphan surrogate, no matter what; but only
              * after cleanly closing everything else.
              */
-            int code = mSurrogate;
-            mSurrogate = 0;
+            int code = _surrogate;
+            _surrogate = 0;
             if (code > 0) {
                 throwIllegal(code);
             }
@@ -82,25 +82,25 @@ public final class UTF8Writer
     }
 
     @Override
-	public void flush()
+    public void flush()
         throws IOException
     {
-        if (mOutPtr > 0) {
-            mOut.write(mOutBuffer, 0, mOutPtr);
-            mOutPtr = 0;
+        if (_outPtr > 0) {
+            _out.write(_outBuffer, 0, _outPtr);
+            _outPtr = 0;
         }
-        mOut.flush();
+        _out.flush();
     }
 
     @Override
-	public void write(char[] cbuf)
+    public void write(char[] cbuf)
         throws IOException
     {
         write(cbuf, 0, cbuf.length);
     }
 
     @Override
-	public void write(char[] cbuf, int off, int len)
+    public void write(char[] cbuf, int off, int len)
         throws IOException
     {
         if (len < 2) {
@@ -111,16 +111,16 @@ public final class UTF8Writer
         }
 
         // First: do we have a leftover surrogate to deal with?
-        if (mSurrogate > 0) {
+        if (_surrogate > 0) {
             char second = cbuf[off++];
             --len;
             write(convertSurrogate(second));
             // will have at least one more char
         }
 
-        int outPtr = mOutPtr;
-        byte[] outBuf = mOutBuffer;
-        int outBufLast = mOutBufferLast; // has 4 'spare' bytes
+        int outPtr = _outPtr;
+        byte[] outBuf = _outBuffer;
+        int outBufLast = _outBufferEnd; // has 4 'spare' bytes
 
         // All right; can just loop it nice and easy now:
         len += off; // len will now be the end of input buffer
@@ -131,7 +131,7 @@ public final class UTF8Writer
              * (longest UTF-8 encoded codepoint):
              */
             if (outPtr >= outBufLast) {
-                mOut.write(outBuf, 0, outPtr);
+                _out.write(outBuf, 0, outPtr);
                 outPtr = 0;
             }
 
@@ -174,17 +174,17 @@ public final class UTF8Writer
                 }
                 // Yup, a surrogate:
                 if (c > SURR1_LAST) { // must be from first range
-                    mOutPtr = outPtr;
+                    _outPtr = outPtr;
                     throwIllegal(c);
                 }
-                mSurrogate = c;
+                _surrogate = c;
                 // and if so, followed by another from next range
                 if (off >= len) { // unless we hit the end?
                     break;
                 }
                 c = convertSurrogate(cbuf[off++]);
                 if (c > 0x10FFFF) { // illegal in JSON as well as in XML
-                    mOutPtr = outPtr;
+                    _outPtr = outPtr;
                     throwIllegal(c);
                 }
                 outBuf[outPtr++] = (byte) (0xf0 | (c >> 18));
@@ -193,14 +193,14 @@ public final class UTF8Writer
                 outBuf[outPtr++] = (byte) (0x80 | (c & 0x3f));
             }
         }
-        mOutPtr = outPtr;
+        _outPtr = outPtr;
     }
     
     @Override
-	public void write(int c) throws IOException
+    public void write(int c) throws IOException
     {
         // First; do we have a left over surrogate?
-        if (mSurrogate > 0) {
+        if (_surrogate > 0) {
             c = convertSurrogate(c);
             // If not, do we start with a surrogate?
         } else if (c >= SURR1_FIRST && c <= SURR2_LAST) {
@@ -209,47 +209,47 @@ public final class UTF8Writer
                 throwIllegal(c);
             }
             // First part just needs to be held for now
-            mSurrogate = c;
+            _surrogate = c;
             return;
         }
 
-        if (mOutPtr >= mOutBufferLast) { // let's require enough room, first
-            mOut.write(mOutBuffer, 0, mOutPtr);
-            mOutPtr = 0;
+        if (_outPtr >= _outBufferEnd) { // let's require enough room, first
+            _out.write(_outBuffer, 0, _outPtr);
+            _outPtr = 0;
         }
 
         if (c < 0x80) { // ascii
-            mOutBuffer[mOutPtr++] = (byte) c;
+            _outBuffer[_outPtr++] = (byte) c;
         } else {
-            int ptr = mOutPtr;
+            int ptr = _outPtr;
             if (c < 0x800) { // 2-byte
-                mOutBuffer[ptr++] = (byte) (0xc0 | (c >> 6));
-                mOutBuffer[ptr++] = (byte) (0x80 | (c & 0x3f));
+                _outBuffer[ptr++] = (byte) (0xc0 | (c >> 6));
+                _outBuffer[ptr++] = (byte) (0x80 | (c & 0x3f));
             } else if (c <= 0xFFFF) { // 3 bytes
-                mOutBuffer[ptr++] = (byte) (0xe0 | (c >> 12));
-                mOutBuffer[ptr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-                mOutBuffer[ptr++] = (byte) (0x80 | (c & 0x3f));
+                _outBuffer[ptr++] = (byte) (0xe0 | (c >> 12));
+                _outBuffer[ptr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
+                _outBuffer[ptr++] = (byte) (0x80 | (c & 0x3f));
             } else { // 4 bytes
                 if (c > 0x10FFFF) { // illegal
                     throwIllegal(c);
                 }
-                mOutBuffer[ptr++] = (byte) (0xf0 | (c >> 18));
-                mOutBuffer[ptr++] = (byte) (0x80 | ((c >> 12) & 0x3f));
-                mOutBuffer[ptr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-                mOutBuffer[ptr++] = (byte) (0x80 | (c & 0x3f));
+                _outBuffer[ptr++] = (byte) (0xf0 | (c >> 18));
+                _outBuffer[ptr++] = (byte) (0x80 | ((c >> 12) & 0x3f));
+                _outBuffer[ptr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
+                _outBuffer[ptr++] = (byte) (0x80 | (c & 0x3f));
             }
-            mOutPtr = ptr;
+            _outPtr = ptr;
         }
     }
 
     @Override
-	public void write(String str) throws IOException
+    public void write(String str) throws IOException
     {
         write(str, 0, str.length());
     }
 
     @Override
-	public void write(String str, int off, int len)  throws IOException
+    public void write(String str, int off, int len)  throws IOException
     {
         if (len < 2) {
             if (len == 1) {
@@ -259,16 +259,16 @@ public final class UTF8Writer
         }
 
         // First: do we have a leftover surrogate to deal with?
-        if (mSurrogate > 0) {
+        if (_surrogate > 0) {
             char second = str.charAt(off++);
             --len;
             write(convertSurrogate(second));
             // will have at least one more char (case of 1 char was checked earlier on)
         }
 
-        int outPtr = mOutPtr;
-        byte[] outBuf = mOutBuffer;
-        int outBufLast = mOutBufferLast; // has 4 'spare' bytes
+        int outPtr = _outPtr;
+        byte[] outBuf = _outBuffer;
+        int outBufLast = _outBufferEnd; // has 4 'spare' bytes
 
         // All right; can just loop it nice and easy now:
         len += off; // len will now be the end of input buffer
@@ -279,7 +279,7 @@ public final class UTF8Writer
              * (longest UTF-8 encoded codepoint):
              */
             if (outPtr >= outBufLast) {
-                mOut.write(outBuf, 0, outPtr);
+                _out.write(outBuf, 0, outPtr);
                 outPtr = 0;
             }
 
@@ -322,17 +322,17 @@ public final class UTF8Writer
                 }
                 // Yup, a surrogate:
                 if (c > SURR1_LAST) { // must be from first range
-                    mOutPtr = outPtr;
+                    _outPtr = outPtr;
                     throwIllegal(c);
                 }
-                mSurrogate = c;
+                _surrogate = c;
                 // and if so, followed by another from next range
                 if (off >= len) { // unless we hit the end?
                     break;
                 }
                 c = convertSurrogate(str.charAt(off++));
                 if (c > 0x10FFFF) { // illegal, as per RFC 4627
-                    mOutPtr = outPtr;
+                    _outPtr = outPtr;
                     throwIllegal(c);
                 }
                 outBuf[outPtr++] = (byte) (0xf0 | (c >> 18));
@@ -341,13 +341,13 @@ public final class UTF8Writer
                 outBuf[outPtr++] = (byte) (0x80 | (c & 0x3f));
             }
         }
-        mOutPtr = outPtr;
+        _outPtr = outPtr;
     }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
      */
 
     /**
@@ -356,8 +356,8 @@ public final class UTF8Writer
     private int convertSurrogate(int secondPart)
         throws IOException
     {
-        int firstPart = mSurrogate;
-        mSurrogate = 0;
+        int firstPart = _surrogate;
+        _surrogate = 0;
 
         // Ok, then, is the second part valid?
         if (secondPart < SURR2_FIRST || secondPart > SURR2_LAST) {
