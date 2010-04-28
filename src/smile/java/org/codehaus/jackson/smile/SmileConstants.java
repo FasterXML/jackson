@@ -29,6 +29,15 @@ public interface SmileConstants
      */
     public final static int MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING = 1 + (3 * MAX_SHORT_STRING_BYTES);
 
+    /**
+     * We need a byte marker to denote end of variable-length Strings. Although
+     * null byte is commonly used, let's try to avoid using it since it can't
+     * be embedded in WebSockets content (similarly, 0xFF can't). There are
+     * multiple candidates for bytes UTF-8 can not have; 0xFE seems like a
+     * good choice
+     */
+    public final static byte BYTE_STRING_END_MARKER = (byte) 0xFE;
+    
     /*
     /****************************************************
     /* Type prefixes: 3 MSB of token byte
@@ -115,6 +124,16 @@ public interface SmileConstants
     public final static int TOKEN_MISC_SUBTYPE_BIG_DECIMAL = 0x08;
 
     // Note: subtype with code 0x0C is reserved for future use
+
+    /*
+    /****************************************************
+    /* Token types for keys
+    /****************************************************
+     */
+
+    public final static byte TOKEN_KEY_LONG_STRING = 0x34;
+
+    public final static byte TOKEN_KEY_EMPTY_STRING = 0x35;
     
     /*
     /****************************************************
@@ -136,3 +155,4 @@ public interface SmileConstants
     public final static int TOKEN_COMP_TYPE_NONE = 0x00;
     public final static int TOKEN_COMP_TYPE_LZF = 0x01;
 }
+
