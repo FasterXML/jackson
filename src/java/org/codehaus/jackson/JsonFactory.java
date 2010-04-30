@@ -251,7 +251,7 @@ public class JsonFactory
     }
 
     /**
-     * Checked whether specified generator feature is enabled.
+     * Check whether specified generator feature is enabled.
      *
      * @since 1.2
      */
@@ -412,7 +412,7 @@ public class JsonFactory
      */
 
     /**
-     * Method for constructing json generator for writing json content
+     * Method for constructing JSON generator for writing JSON content
      * using specified output stream.
      * Encoding to use must be specified, and needs to be one of available
      * types (as per JSON specification).
@@ -425,7 +425,7 @@ public class JsonFactory
      * is enabled).
      * Using application needs to close it explicitly if this is the case.
      *
-     * @param out OutputStream to use for writing json content 
+     * @param out OutputStream to use for writing JSON content 
      * @param enc Character encoding to use
      */
     public JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
@@ -438,7 +438,7 @@ public class JsonFactory
     }
 
     /**
-     * Method for constructing json generator for writing json content
+     * Method for constructing JSON generator for writing JSON content
      * using specified Writer.
      *<p>
      * Underlying stream <b>is NOT owned</b> by the generator constructed,
@@ -448,7 +448,7 @@ public class JsonFactory
      * {@link org.codehaus.jackson.JsonGenerator.Feature#AUTO_CLOSE_TARGET} is enabled).
      * Using application needs to close it explicitly.
      *
-     * @param out Writer to use for writing json content 
+     * @param out Writer to use for writing JSON content 
      */
     public JsonGenerator createJsonGenerator(Writer out)
         throws IOException

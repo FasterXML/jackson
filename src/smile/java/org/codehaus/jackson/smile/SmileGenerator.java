@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
@@ -19,14 +20,56 @@ import static org.codehaus.jackson.smile.SmileConstants.*;
 public class SmileGenerator
     extends JsonGeneratorBase
 {
-    /* @TODO:
-     * 
-     * - Handling of initial 4 byte start marker
-     * - Handling of in-stream 4-byte start marker (smiley)
-     * 
+    /**
+     * Enumeration that defines all togglable features for Smile generators.
      */
-        
+    public enum Feature {
+        /**
+         * Whether to write 4-byte header sequence when starting output or not.
+         * If disabled, no header is written; this may be useful in embedded cases
+         * where context is enough to know that content is encoded using this format.
+         */
+        WRITE_HEADER(true)
 
+        /**
+         * Whether to use simple 7-bit per byte encoding for binary content when output.
+         * This is necessary ensure that byte 0xFF will never be included in content output.
+         * For other data types this limitation is handled automatically; but since overhead
+         * for binary data (14% size expansion, processing overhead) is non-negligible,
+         * it is not enabled by default. If no binary data is output, feature has no effect.
+         *<p>
+         * Default setting is false, indicating that binary data is to be embedded as is
+         */
+        ,ENCODE_BINARY_AS_7BIT(false)
+        ;
+
+        final boolean _defaultState;
+        final int _mask;
+        
+        /**
+         * Method that calculates bit set (flags) of all features that
+         * are enabled by default.
+         */
+        public static int collectDefaults()
+        {
+            int flags = 0;
+            for (Feature f : values()) {
+                if (f.enabledByDefault()) {
+                    flags |= f.getMask();
+                }
+            }
+            return flags;
+        }
+        
+        private Feature(boolean defaultState) {
+            _defaultState = defaultState;
+            _mask = (1 << ordinal());
+        }
+        
+        public boolean enabledByDefault() { return _defaultState; }
+        public int getMask() { return _mask; }
+    }
+    
     /**
      * To simplify certain operations, we require output buffer length
      * to allow outputting of contiguous 256 character UTF-8 encoded String
@@ -36,15 +79,40 @@ public class SmileGenerator
      */
     private final static int MIN_BUFFER_LENGTH = (3 * 256) + 2;
 
-    //private final static byte NULL_BYTE = 0;
+    private final static byte TOKEN_BYTE_LONG_STRING_ASCII =
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_LONG_TEXT_ASCII);
+    private final static byte TOKEN_BYTE_LONG_STRING_UNICODE =
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_LONG_TEXT_UNICODE);
 
-    private final static byte TOKEN_BYTE_LONG_STRING =
-        (byte) (TOKEN_PREFIX_VAR_LENGTH_MISC | TOKEN_MISC_SUBTYPE_LONG_TEXT);
+    private final static byte TOKEN_BYTE_INT_POSITIVE = 
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER);
+    private final static byte TOKEN_BYTE_INT_NEGATIVE = 
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_SIGN);
 
+    private final static byte TOKEN_BYTE_FLOAT_32 = 
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FLOATING_POINT);
+    private final static byte TOKEN_BYTE_FLOAT_64 = 
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FLOATING_POINT | TOKEN_MISC_FP_DOUBLE_PRECISION);
+
+    private final static byte TOKEN_BYTE_BIG_INTEGER = 
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BIG_NUMBER);
+    private final static byte TOKEN_BYTE_BIG_DECIMAL = 
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BIG_NUMBER | TOKEN_MISC_BIG_NUMBER_DECIMAL);
+    
     final static int SURR1_FIRST = 0xD800;
     final static int SURR1_LAST = 0xDBFF;
     final static int SURR2_FIRST = 0xDC00;
     final static int SURR2_LAST = 0xDFFF;
+
+    // // // And then the header that puts smile on data...
+    
+    public final static byte HEADER_BYTE_1 = (byte) ':';
+
+    public final static byte HEADER_BYTE_2 = (byte) ')';
+
+    public final static byte HEADER_BYTE_3 = (byte) '\n';
+
+    public final static byte HEADER_BYTE_4 = (byte) 0;
     
     /*
     /**********************************************************
@@ -55,6 +123,13 @@ public class SmileGenerator
     final protected IOContext _ioContext;
 
     final protected OutputStream _out;
+
+    /**
+     * Bit flag composed of bits that indicate which
+     * {@link org.codehaus.jackson.smile.SmileGenerator.Feature}s
+     * are enabled.
+     */
+    protected int _features;
     
     /*
     /**********************************************************
@@ -98,6 +173,40 @@ public class SmileGenerator
             throw new IllegalStateException("Internal encoding buffer length ("+_outputEnd
                     +") too short, must be at least "+MIN_BUFFER_LENGTH);
         }
+    }
+
+    public void writeHeader() throws IOException
+    {
+        _writeBytes(HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, HEADER_BYTE_4);
+    }
+    
+    /*
+    /**********************************************************
+    /* Extended API, configuration
+    /**********************************************************
+     */
+
+    public SmileGenerator enable(Feature f) {
+        _features |= f.getMask();
+        return this;
+    }
+
+    public SmileGenerator disable(Feature f) {
+        _features &= ~f.getMask();
+        return this;
+    }
+
+    public final boolean isEnabled(Feature f) {
+        return (_features & f.getMask()) != 0;
+    }
+
+    public JsonGenerator configure(Feature f, boolean state) {
+        if (state) {
+            enable(f);
+        } else {
+            disable(f);
+        }
+        return this;
     }
     
     /*
@@ -209,24 +318,30 @@ public class SmileGenerator
                 } else { // not just ASCII
                     typeToken = (byte) (TOKEN_PREFIX_TINY_UNICODE | byteLen);
                 }
-            } else { // nope, longer non-ascii Strings
-                typeToken = TOKEN_BYTE_LONG_STRING;
+            } else { // nope, longer non-ASCII String 
+                typeToken = TOKEN_BYTE_LONG_STRING_UNICODE;
                 // and we will need String end marker byte
                 _outputBuffer[_outputTail++] = BYTE_STRING_END_MARKER;
             }
             // and then sneak in type token now that know the details
             _outputBuffer[origOffset] = typeToken;
         } else { // "long" String, never shared
-            _writeByte(TOKEN_BYTE_LONG_STRING);
             // but might still fit within buffer?
-            int maxLen = len + len + len + 1;
+            int maxLen = len + len + len + 2;
             if (maxLen <= _outputBuffer.length) { // yes indeed
                 if ((_outputTail + maxLen) >= _outputEnd) {
                     _flushBuffer();
                 }
-                _shortUTF8Encode(text);
+                int origOffset = _outputTail;
+                _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
+                int byteLen = _shortUTF8Encode(text);
+                // if it's ASCII, let's revise our type determination (to help decoder optimize)
+                if (byteLen == len) {
+                    _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_ASCII;
+                }
                 _outputBuffer[_outputTail++] = BYTE_STRING_END_MARKER;                
-            } else {
+            } else { // won't fit; can't efficiently rewrite ascii/unicode marker, so:
+                _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
                 _slowUTF8Encode(text);
                 _writeByte(BYTE_STRING_END_MARKER);
             }
@@ -255,24 +370,30 @@ public class SmileGenerator
                 } else { // not just ASCII
                     typeToken = (byte) (TOKEN_PREFIX_TINY_UNICODE | byteLen);
                 }
-            } else { // nope, longer non-ascii Strings
-                typeToken = TOKEN_BYTE_LONG_STRING;
+            } else { // nope, longer non-ASCII Strings
+                typeToken = TOKEN_BYTE_LONG_STRING_UNICODE;
                 // and we will need String end marker byte
                 _outputBuffer[_outputTail++] = BYTE_STRING_END_MARKER;
             }
             // and then sneak in type token now that know the details
             _outputBuffer[origOffset] = typeToken;
         } else { // "long" String, never shared
-            _writeByte(TOKEN_BYTE_LONG_STRING);
             // but might still fit within buffer?
-            int maxLen = len + len + len + 1;
+            int maxLen = len + len + len + 2;
             if (maxLen <= _outputBuffer.length) { // yes indeed
                 if ((_outputTail + maxLen) >= _outputEnd) {
                     _flushBuffer();
                 }
-                _shortUTF8Encode(text, offset, offset+len);
+                int origOffset = _outputTail;
+                _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
+                int byteLen = _shortUTF8Encode(text, offset, offset+len);
+                // if it's ASCII, let's revise our type determination (to help decoder optimize)
+                if (byteLen == len) {
+                    _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_ASCII;
+                }
                 _outputBuffer[_outputTail++] = BYTE_STRING_END_MARKER;                
             } else {
+                _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
                 _slowUTF8Encode(text, offset, offset+len);
                 _writeByte(BYTE_STRING_END_MARKER);
             }
@@ -333,24 +454,21 @@ public class SmileGenerator
             writeNull();
             return;
         }
-        int lenlen = _determineLengthIndicator(len);
         // !!! TODO: handle compression
         int compType = TOKEN_COMP_TYPE_NONE;
-        byte tokenType = (byte) (TOKEN_PREFIX_VAR_LENGTH_MISC | TOKEN_MISC_BIT_BINARY | (lenlen << 2) | compType);
-        switch (lenlen) {
-        case TOKEN_LENGTH_IND_8B:
-            _writeBytes(tokenType, (byte) len);
-            break;
-        case TOKEN_LENGTH_IND_16B:
-            _writeTaggedShort(tokenType, (short) len);
-            break;
-        default:
-            _writeTaggedInt(tokenType, len);
-            break;
+        
+        if (this.isEnabled(Feature.ENCODE_BINARY_AS_7BIT)) {
+            _writeByte((byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BINARY_7BIT | compType));
+            _write7BitBinaryWithLength(data, offset, len);
+            // !!! TODO: handle 7-by-8 expansion...
+        } else {
+            _writeByte((byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BINARY_RAW | compType));
+            _writeVInt(len);
+            // raw is dead simple of course:
+            _writeBytes(data, offset, len);
         }
-        _writeBytes(data, offset, len);
     }
-
+    
     /*
     /**********************************************************
     /* Output method implementations, primitive
@@ -375,26 +493,55 @@ public class SmileGenerator
     @Override
     public void writeNumber(int i) throws IOException, JsonGenerationException
     {
-        if (i > 0xF) { // not small, at least 8-bit
-            if ((i >> 7) == 0) { // 8 bits is enough
-                _writeBytes(TOKEN_NUMBER_BYTE, (byte) i);
-            } else if ((i >> 15) == 0) { // 16 bits is enough
-                _writeTaggedShort(TOKEN_NUMBER_SHORT, i);
-            } else  { // need full 32 bits
-                _writeTaggedInt(TOKEN_NUMBER_INT, i);
+        // First: need to swap sign?
+        byte type;
+        if (i < 0) {
+            // Tiny ints are easiest to handle here
+            if (i >= -16) { // small int
+                _writeByte((byte) (TOKEN_PREFIX_SMALL_INT + (i & 0x1F)));
+                return;
+            }
+            // Special case is MIN_VALUE, which can't be negated (becomes long)
+            if (i == Integer.MIN_VALUE) { // sub-optimal but...
+                writeNumber((long) i);
+                return;
+            }
+            type = TOKEN_BYTE_INT_NEGATIVE;
+            i = -i;
+        } else {
+            if (i <= 0x0F) { // small int
+                _writeByte((byte) (TOKEN_PREFIX_SMALL_INT + i));
+                return;
+            }
+            type = TOKEN_BYTE_INT_POSITIVE;            
+        }
+
+        // Ok: let's find minimal representation then
+        byte b0 = (byte) (0x80 + (i & 0x3F));
+        i >>= 6;
+        if (i <= 0x7F) { // 6 or 13 bits is enough (== 2 or 3 byte total encoding)
+            if (i == 0) { // 6 bits is enough for value (excluding sign, meaning most 7-bit numbers)
+                _writeBytes(type, b0);
+            } else  {
+                _writeBytes(type, (byte) i, b0);
             }
             return;
         }
-        // small or negative
-        if (i >= -16) { // small int
-            _writeByte((byte) (TOKEN_PREFIX_SMALL_INT + i));
-        } else if ((i >> 7) == -1) {
-            _writeBytes(TOKEN_NUMBER_BYTE, (byte) i);
-        } else if ((i >> 15) == -1) { // 16 bit?
-            _writeTaggedShort(TOKEN_NUMBER_SHORT, i);
-        } else { // need full 32 bits
-            _writeTaggedInt(TOKEN_NUMBER_INT, i);            
+        byte b1 = (byte) (i & 0x7F);
+        i >>= 7;
+        if (i <= 0x7F) {
+            _writeBytes(type, (byte) i, b1, b0);
+            return;
         }
+        byte b2 = (byte) (i & 0x7F);
+        i >>= 7;
+        if (i <= 0x7F) {
+            _writeBytes(type, (byte) i, b2, b1, b0);
+            return;
+        }
+        // no, need all 5 bytes
+        byte b3 = (byte) (i & 0x7F);
+        _writeBytes(type, (byte) (i >> 7), b3, b2, b1, b0);
     }
 
     @Override
@@ -406,32 +553,132 @@ public class SmileGenerator
             writeNumber((int) l);
             return;
         }
-        _writeTaggedInt(TOKEN_NUMBER_LONG, (int) hi);
-        _writeInt((int) l);
+        // Special case: is it "MIN LONG"?
+        if (l == Long.MIN_VALUE) {
+            _writeByte(TOKEN_LITERAL_MIN_64BIT_LONG);
+            return;
+        }
+        // And then we can handle sign bit
+        byte type;
+        if (l < 0) {
+            type = TOKEN_BYTE_INT_NEGATIVE;
+            l = -l;
+        } else {
+            type = TOKEN_BYTE_INT_POSITIVE;
+        }
+
+        // Ok, well, we do know that 5 lowest-significant bytes are needed
+        int i = (int) l;
+        // 4 can be extracted from lower int
+        byte b0 = (byte) (0x80 + (i & 0x3F)); // sign bit set in the last byte
+        byte b1 = (byte) ((i >> 6) & 0x7F);
+        byte b2 = (byte) ((i >> 13) & 0x7F);
+        byte b3 = (byte) ((i >> 20) & 0x7F);
+        // fifth one is split between ints:
+        l >>>= 27;
+        byte b4 = (byte) (((int) l) & 0x7F);
+
+        // which may be enough?
+        i = (int) (l >> 7);
+        if (i == 0) {
+            _writeBytes(type, b4, b3, b2, b1, b0);
+            return;
+        }
+
+        if (i <= 0x7F) {
+            _writeBytes(type, (byte) i);
+            _writeBytes(b4, b3, b2, b1, b0);
+            return;
+        }
+        byte b5 = (byte) (i & 0x7F);
+        i >>= 7;
+        if (i <= 0x7F) {
+            _writeBytes(type, (byte) i);
+            _writeBytes(b5, b4, b3, b2, b1, b0);
+            return;
+        }
+        byte b6 = (byte) (i & 0x7F);
+        i >>= 7;
+        if (i <= 0x7F) {
+            _writeBytes(type, (byte) i, b6);
+            _writeBytes(b5, b4, b3, b2, b1, b0);
+            return;
+        }
+        byte b7 = (byte) (i & 0x7F);
+        i >>= 7;
+        if (i <= 0x7F) {
+            _writeBytes(type, (byte) i, b7, b6);
+            _writeBytes(b5, b4, b3, b2, b1, b0);
+            return;
+        }
+        byte b8 = (byte) (i & 0x7F);
+        // must be done, with 10 bytes! (9 * 7 + 6 == 69 bits; only need 63)
+        _writeBytes(type, (byte) i, b8, b7, b6);
+        _writeBytes(b5, b4, b3, b2, b1, b0);
     }
 
     @Override
     public void writeNumber(double d) throws IOException, JsonGenerationException
     {
+        // Ok, now, we needed token type byte plus 10 data bytes (7 bits each)
+        _ensureRoomForOutput(11);
         /* 17-Apr-2010, tatu: could also use 'doubleToIntBits', but it seems more accurate to use
          * exact representation; and possibly faster. However, if there are cases
          * where collapsing of NaN was needed (for non-Java clients), this can
          * be changed
          */
         long l = Double.doubleToRawLongBits(d);
-        _writeTaggedInt(TOKEN_NUMBER_FLOAT, (int) (l >> 32));
-        _writeInt((int) l);
+        _outputBuffer[_outputTail++] = TOKEN_BYTE_FLOAT_64;
+        // Handle first 29 bits (single bit first, then 4 x 7 bits)
+        int hi5 = (int) (l >>> 35);
+        _outputBuffer[_outputTail+4] = (byte) (hi5 & 0x7F);
+        hi5 >>= 7;
+        _outputBuffer[_outputTail+3] = (byte) (hi5 & 0x7F);
+        hi5 >>= 7;
+        _outputBuffer[_outputTail+2] = (byte) (hi5 & 0x7F);
+        hi5 >>= 7;
+        _outputBuffer[_outputTail+1] = (byte) (hi5 & 0x7F);
+        hi5 >>= 7;
+        _outputBuffer[_outputTail] = (byte) hi5;
+        _outputTail += 5;
+        // Then split byte (one that crosses lo/hi int boundary)
+        {
+            int mid = (int) (l >> 28);
+            _outputBuffer[_outputTail] = (byte) (mid & 0x7F);
+        }
+        // and then last 4 bytes
+        int lo4 = (int) l;
+        _outputBuffer[_outputTail+3] = (byte) (lo4 & 0x7F);
+        lo4 >>= 7;
+        _outputBuffer[_outputTail+2] = (byte) (lo4 & 0x7F);
+        lo4 >>= 7;
+        _outputBuffer[_outputTail+1] = (byte) (lo4 & 0x7F);
+        lo4 >>= 7;
+        _outputBuffer[_outputTail] = (byte) (lo4 & 0x7F);
     }
 
     @Override
     public void writeNumber(float f) throws IOException, JsonGenerationException
     {
+        // Ok, now, we needed token type byte plus 5 data bytes (7 bits each)
+        _ensureRoomForOutput(6);
+
         /* 17-Apr-2010, tatu: could also use 'floatToIntBits', but it seems more accurate to use
          * exact representation; and possibly faster. However, if there are cases
          * where collapsing of NaN was needed (for non-Java clients), this can
          * be changed
          */
-        _writeTaggedInt(TOKEN_NUMBER_FLOAT, Float.floatToRawIntBits(f));
+        int i = Float.floatToRawIntBits(f);
+        _outputBuffer[_outputTail++] = TOKEN_BYTE_FLOAT_32;
+        _outputBuffer[_outputTail+4] = (byte) (i & 0x7F);
+        i >>= 7;
+        _outputBuffer[_outputTail+3] = (byte) (i & 0x7F);
+        i >>= 7;
+        _outputBuffer[_outputTail+2] = (byte) (i & 0x7F);
+        i >>= 7;
+        _outputBuffer[_outputTail+1] = (byte) (i & 0x7F);
+        i >>= 7;
+        _outputBuffer[_outputTail] = (byte) (i & 0x7F);
     }
 
     @Override
@@ -443,28 +690,12 @@ public class SmileGenerator
         }
         int scale = dec.scale();
         BigInteger unscaled = dec.unscaledValue();
+        _writeByte(TOKEN_BYTE_BIG_DECIMAL);
+        // Ok, first output scale as VInt
+        _writeVInt(scale);
         byte[] data = unscaled.toByteArray();
-        int len = data.length;
-        // only have a single length-indicator; need to be big enough for both scale and array length
-        int lenlen = _determineLengthIndicator(Math.max(scale, len));
-        byte tokenType = (byte) (TOKEN_PREFIX_VAR_LENGTH_MISC | TOKEN_MISC_SUBTYPE_BIG_DECIMAL | lenlen);
- 
-        // Ok then scale (byte/short/int) and BigInteger serialization (byte/short/int for length; n bytes)
-        switch (lenlen) {
-        case TOKEN_LENGTH_IND_8B:
-            _writeBytes(tokenType, (byte) scale);
-            _writeByte((byte) len);
-            break;
-        case TOKEN_LENGTH_IND_16B:
-            _writeTaggedShort(tokenType, (short) scale);
-            _writeShort(len);
-            break;
-        default:
-            _writeTaggedInt(tokenType, scale);
-            _writeInt(len);
-            break;
-        }
-        _writeBytes(data);
+        // And then binary data in "safe" mode (7-bit values)
+        _write7BitBinaryWithLength(data, 0, data.length);
     }
 
     @Override
@@ -474,22 +705,10 @@ public class SmileGenerator
             writeNull();
             return;
         }
+        // quite simple: type, and then VInt-len prefixed 7-bit encoded binary data:
+        _writeByte(TOKEN_BYTE_BIG_INTEGER);
         byte[] data = v.toByteArray();
-        int len = data.length;
-        int lenlen = _determineLengthIndicator(len);
-        byte tokenType = (byte) (TOKEN_PREFIX_VAR_LENGTH_MISC | TOKEN_MISC_SUBTYPE_BIG_INTEGER | lenlen);
-        switch (lenlen) {
-        case TOKEN_LENGTH_IND_8B:
-            _writeBytes(tokenType, (byte) len);
-            break;
-        case TOKEN_LENGTH_IND_16B:
-            _writeTaggedShort(tokenType, (short) len);
-            break;
-        default:
-            _writeTaggedInt(tokenType, len);
-            break;
-        }
-        _writeBytes(data);
+        _write7BitBinaryWithLength(data, 0, data.length);
     }
 
     @Override
@@ -541,7 +760,7 @@ public class SmileGenerator
          */
         // First: let's see that we still have buffers...
         if (_outputBuffer != null
-            && isEnabled(Feature.AUTO_CLOSE_JSON_CONTENT)) {
+            && isEnabled(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT)) {
             while (true) {
                 JsonStreamContext ctxt = getOutputContext();
                 if (ctxt.inArray()) {
@@ -555,7 +774,7 @@ public class SmileGenerator
         }
         _flushBuffer();
 
-        if (_ioContext.isResourceManaged() || isEnabled(Feature.AUTO_CLOSE_TARGET)) {
+        if (_ioContext.isResourceManaged() || isEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
             _out.close();
         } else {
             // If we can't close it, we should at least flush
@@ -873,6 +1092,13 @@ public class SmileGenerator
     /**********************************************************
     */
 
+    private final void _ensureRoomForOutput(int needed) throws IOException
+    {
+        if ((_outputTail + needed) >= _outputEnd) {
+            _flushBuffer();
+        }        
+    }
+    
     private final void _writeByte(byte b) throws IOException
     {
         if (_outputTail >= _outputEnd) {
@@ -890,9 +1116,50 @@ public class SmileGenerator
         _outputBuffer[_outputTail++] = b2;
     }
 
-    private final void _writeBytes(byte[] data) throws IOException
+    private final void _writeBytes(byte b1, byte b2, byte b3) throws IOException
     {
-        _writeBytes(data, 0, data.length);
+        if ((_outputTail + 2) >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = b1;
+        _outputBuffer[_outputTail++] = b2;
+        _outputBuffer[_outputTail++] = b3;
+    }
+
+    private final void _writeBytes(byte b1, byte b2, byte b3, byte b4) throws IOException
+    {
+        if ((_outputTail + 3) >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = b1;
+        _outputBuffer[_outputTail++] = b2;
+        _outputBuffer[_outputTail++] = b3;
+        _outputBuffer[_outputTail++] = b4;
+    }
+
+    private final void _writeBytes(byte b1, byte b2, byte b3, byte b4, byte b5) throws IOException
+    {
+        if ((_outputTail + 4) >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = b1;
+        _outputBuffer[_outputTail++] = b2;
+        _outputBuffer[_outputTail++] = b3;
+        _outputBuffer[_outputTail++] = b4;
+        _outputBuffer[_outputTail++] = b5;
+    }
+
+    private final void _writeBytes(byte b1, byte b2, byte b3, byte b4, byte b5, byte b6) throws IOException
+    {
+        if ((_outputTail + 5) >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = b1;
+        _outputBuffer[_outputTail++] = b2;
+        _outputBuffer[_outputTail++] = b3;
+        _outputBuffer[_outputTail++] = b4;
+        _outputBuffer[_outputTail++] = b5;
+        _outputBuffer[_outputTail++] = b6;
     }
 
     private final void _writeBytes(byte[] data, int offset, int len) throws IOException
@@ -910,48 +1177,113 @@ public class SmileGenerator
         }
     }
 
-    private final void _writeShort(int i) throws IOException
+    private void _writeVInt(int i) throws IOException
     {
-        if ((_outputTail + 2) >= _outputEnd) {
-            _flushBuffer();
+        // At most 5 bytes (4 * 7 + 6 bits == 34 bits)
+        _ensureRoomForOutput(5);
+        byte b0 = (byte) (0x80 + (i & 0x3F));
+        i >>= 6;
+        if (i <= 0x7F) { // 6 or 13 bits is enough (== 2 or 3 byte total encoding)
+            if (i > 0) {
+                _outputBuffer[_outputTail++] = (byte) i;
+            }
+            _outputBuffer[_outputTail++] = b0;
+            return;
         }
-        _outputBuffer[_outputTail++] = (byte) (i >> 8);
-        _outputBuffer[_outputTail++] = (byte) i;
-    }
-    
-    private final void _writeTaggedShort(byte b, int i) throws IOException
-    {
-        if ((_outputTail + 3) >= _outputEnd) {
-            _flushBuffer();
+        byte b1 = (byte) (i & 0x7F);
+        i >>= 7;
+        if (i <= 0x7F) {
+            _outputBuffer[_outputTail++] = (byte) i;
+            _outputBuffer[_outputTail++] = b1;
+            _outputBuffer[_outputTail++] = b0;            
+        } else {
+            byte b2 = (byte) (i & 0x7F);
+            i >>= 7;
+            if (i <= 0x7F) {
+                _outputBuffer[_outputTail++] = (byte) i;
+                _outputBuffer[_outputTail++] = b2;
+                _outputBuffer[_outputTail++] = b1;
+                _outputBuffer[_outputTail++] = b0;            
+            } else {
+                byte b3 = (byte) (i & 0x7F);
+                _outputBuffer[_outputTail++] = (byte) (i >> 7);
+                _outputBuffer[_outputTail++] = b3;
+                _outputBuffer[_outputTail++] = b2;
+                _outputBuffer[_outputTail++] = b1;
+                _outputBuffer[_outputTail++] = b0;            
+            }
         }
-        _outputBuffer[_outputTail++] = b;
-        _outputBuffer[_outputTail++] = (byte) (i >> 8);
-        _outputBuffer[_outputTail++] = (byte) i;
-    }
-
-    private final void _writeInt(int i) throws IOException
-    {
-        if ((_outputTail + 4) >= _outputEnd) {
-            _flushBuffer();
-        }
-        _outputBuffer[_outputTail++] = (byte) (i >> 24);
-        _outputBuffer[_outputTail++] = (byte) (i >> 16);
-        _outputBuffer[_outputTail++] = (byte) (i >> 8);
-        _outputBuffer[_outputTail++] = (byte) i;
-    }
-    
-    private final void _writeTaggedInt(byte b, int i) throws IOException
-    {
-        if ((_outputTail + 5) >= _outputEnd) {
-            _flushBuffer();
-        }
-        _outputBuffer[_outputTail++] = b;
-        _outputBuffer[_outputTail++] = (byte) (i >> 24);
-        _outputBuffer[_outputTail++] = (byte) (i >> 16);
-        _outputBuffer[_outputTail++] = (byte) (i >> 8);
-        _outputBuffer[_outputTail++] = (byte) i;
     }
 
+    protected void _write7BitBinaryWithLength(byte[] data, int offset, int len) throws IOException
+    {
+        _writeVInt(len);
+        // first, let's handle full 7-byte chunks
+        while (len >= 7) {
+            if ((_outputTail + 8) >= _outputEnd) {
+                _flushBuffer();
+            }
+            int i = data[offset++] & 0xFF; // 1st byte
+            _outputBuffer[_outputTail++] = (byte) (i >> 1);
+            i = ((i & 0x01) << 8) | (data[offset++] & 0xFF); // 2nd
+            _outputBuffer[_outputTail++] = (byte) (i >> 2);
+            i = ((i & 0x03) << 8) | (data[offset++] & 0xFF); // 3rd
+            _outputBuffer[_outputTail++] = (byte) (i >> 3);
+            i = ((i & 0x07) << 8) | (data[offset++] & 0xFF); // 4th
+            _outputBuffer[_outputTail++] = (byte) (i >> 4);
+            i = ((i & 0x0F) << 8) | (data[offset++] & 0xFF); // 5th
+            _outputBuffer[_outputTail++] = (byte) (i >> 5);
+            i = ((i & 0x1F) << 8) | (data[offset++] & 0xFF); // 6th
+            _outputBuffer[_outputTail++] = (byte) (i >> 6);
+            i = ((i & 0x3F) << 8) | (data[offset++] & 0xFF); // 7th
+            _outputBuffer[_outputTail++] = (byte) (i >> 7);
+            _outputBuffer[_outputTail++] = (byte) (i & 0x7F);
+            
+            offset += 7;
+            len -= 7;
+        }
+        // and then partial piece, if any
+        if (len > 0) {
+            // up to 6 bytes to output, resulting in at most 7 bytes (which can encode 49 bits)
+            if ((_outputTail + 7) >= _outputEnd) {
+                _flushBuffer();
+            }
+            int i = data[offset++] & 0xFF;
+            _outputBuffer[_outputTail++] = (byte) (i >> 1);
+            if (len > 1) {
+                i = ((i & 0x01) << 8) | (data[offset++] & 0xFF); // 2nd
+                _outputBuffer[_outputTail++] = (byte) (i >> 2);
+                if (len > 2) {
+                    i = ((i & 0x03) << 8) | (data[offset++] & 0xFF); // 3rd
+                    _outputBuffer[_outputTail++] = (byte) (i >> 3);
+                    if (len > 3) {
+                        i = ((i & 0x07) << 8) | (data[offset++] & 0xFF); // 4th
+                        _outputBuffer[_outputTail++] = (byte) (i >> 4);
+                        if (len > 4) {
+                            i = ((i & 0x0F) << 8) | (data[offset++] & 0xFF); // 5th
+                            _outputBuffer[_outputTail++] = (byte) (i >> 5);
+                            if (len > 5) {
+                                i = ((i & 0x1F) << 8) | (data[offset++] & 0xFF); // 6th
+                                _outputBuffer[_outputTail++] = (byte) (i >> 6);
+                                _outputBuffer[_outputTail++] = (byte) (i & 0x3F); // last 6 bits
+                            } else {
+                                _outputBuffer[_outputTail++] = (byte) (i & 0x1F); // last 5 bits                                
+                            }
+                        } else {
+                            _outputBuffer[_outputTail++] = (byte) (i & 0x0F); // last 4 bits
+                        }
+                    } else {
+                        _outputBuffer[_outputTail++] = (byte) (i & 0x07); // last 3 bits                        
+                    }
+                } else {
+                    _outputBuffer[_outputTail++] = (byte) (i & 0x03); // last 2 bits                    
+                }
+            } else {
+                _outputBuffer[_outputTail++] = (byte) (i & 0x01); // last bit
+            }
+        }
+    }
+    
     /*
     /**********************************************************
     /* Internal methods, buffer handling
@@ -974,28 +1306,6 @@ public class SmileGenerator
             _out.write(_outputBuffer, 0, _outputTail);
             _outputTail = 0;
         }
-    }
-
-    /*
-    /**********************************************************
-    /* Internal methods, calculating lengths
-    /**********************************************************
-    */
-    
-    /**
-     * Method used to figure out how many bytes are needed to represent given
-     * length; either 1, 2 or 4 bytes (since argument itself is a 32-bit int)
-     */
-    protected int _determineLengthIndicator(int length)
-    {
-        if ((length >> 8) == 0) {
-            return TOKEN_LENGTH_IND_8B;
-        }
-        if ((length >> 16) == 0) {
-            return TOKEN_LENGTH_IND_16B;
-        }
-        // with int, can not go past 32 bits
-        return TOKEN_LENGTH_IND_32B;
     }
     
     /*

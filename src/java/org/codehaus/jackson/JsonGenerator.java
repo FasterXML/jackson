@@ -128,7 +128,7 @@ public abstract class JsonGenerator
         public boolean enabledByDefault() { return _defaultState; }
     
         public int getMask() { return _mask; }
-    };
+    }
 
     // // // Configuration:
 

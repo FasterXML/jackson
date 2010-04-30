@@ -24,6 +24,18 @@ import org.codehaus.jackson.io.IOContext;
  */
 public class SmileFactory extends JsonFactory
 {
+    /**
+     * Bitfield (set of flags) of all parser features that are enabled
+     * by default.
+     */
+    final static int DEFAULT_SMILE_PARSER_FEATURE_FLAGS = SmileParser.Feature.collectDefaults();
+
+    /**
+     * Bitfield (set of flags) of all generator features that are enabled
+     * by default.
+     */
+    final static int DEFAULT_SMILE_GENERATOR_FEATURE_FLAGS = SmileGenerator.Feature.collectDefaults();
+
     /*
     /******************************************************
     /* Configuration
@@ -38,6 +50,10 @@ public class SmileFactory extends JsonFactory
      * (if set to false)
      */
     protected boolean _cfgDelegateToTextual;
+
+    protected int _smileParserFeatures = DEFAULT_SMILE_PARSER_FEATURE_FLAGS;
+
+    protected int _smileGeneratorFeatures = DEFAULT_SMILE_GENERATOR_FEATURE_FLAGS;
     
     /*
     /******************************************************
@@ -61,6 +77,132 @@ public class SmileFactory extends JsonFactory
 
     public void delegateToTextual(boolean state) {
         _cfgDelegateToTextual = state;
+    }
+
+    /*
+    /******************************************************
+    /* Configuration, parser settings
+    /******************************************************
+     */
+
+    /**
+     * Method for enabling or disabling specified parser feature
+     * (check {@link SmileParser.Feature} for list of features)
+     */
+    public final SmileFactory configure(SmileParser.Feature f, boolean state)
+    {
+        if (state) {
+            enable(f);
+        } else {
+            disable(f);
+        }
+        return this;
+    }
+
+    /**
+     * Method for enabling specified parser feature
+     * (check {@link SmileParser.Feature} for list of features)
+     */
+    public SmileFactory enable(SmileParser.Feature f) {
+        _smileParserFeatures |= f.getMask();
+        return this;
+    }
+
+    /**
+     * Method for disabling specified parser features
+     * (check {@link JsonParser.Feature} for list of features)
+     */
+    public SmileFactory disable(SmileParser.Feature f) {
+        _smileParserFeatures &= ~f.getMask();
+        return this;
+    }
+
+    /**
+     * Checked whether specified parser feature is enabled.
+     */
+    public final boolean isEnabled(SmileParser.Feature f) {
+        return (_smileParserFeatures & f.getMask()) != 0;
+    }
+
+    /*
+    /******************************************************
+    /* Configuration, generator settings
+    /******************************************************
+     */
+
+    /**
+     * Method for enabling or disabling specified generator feature
+     * (check {@link JsonGenerator.Feature} for list of features)
+     *
+     * @since 1.2
+     */
+    public final SmileFactory configure(SmileGenerator.Feature f, boolean state) {
+        if (state) {
+            enable(f);
+        } else {
+            disable(f);
+        }
+        return this;
+    }
+
+
+    /**
+     * Method for enabling specified generator features
+     * (check {@link JsonGenerator.Feature} for list of features)
+     */
+    public SmileFactory enable(SmileGenerator.Feature f) {
+        _smileGeneratorFeatures |= f.getMask();
+        return this;
+    }
+
+    /**
+     * Method for disabling specified generator feature
+     * (check {@link JsonGenerator.Feature} for list of features)
+     */
+    public SmileFactory disable(SmileGenerator.Feature f) {
+        _smileGeneratorFeatures &= ~f.getMask();
+        return this;
+    }
+
+    /**
+     * Check whether specified generator feature is enabled.
+     */
+    public final boolean isEnabled(SmileGenerator.Feature f) {
+        return (_smileGeneratorFeatures & f.getMask()) != 0;
+    }
+    
+    /*
+    /******************************************************
+    /* Overridden parts of public API
+    /******************************************************
+     */
+
+    /**
+     *<p>
+     * note: co-variant return type
+     */
+    public SmileGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
+        throws IOException
+    {
+        return createJsonGenerator(out);
+    }
+    
+    /*
+    /******************************************************
+    /* Extended public API
+    /******************************************************
+     */
+
+    /**
+     * Since Smile format always uses UTF-8 internally, no encoding need
+     * to be passed to this method.
+     */
+    public SmileGenerator createJsonGenerator(OutputStream out)
+        throws IOException
+    {
+        // false -> we won't manage the stream unless explicitly directed to
+        IOContext ctxt = _createContext(out, false);
+        return _createJsonGenerator(out, ctxt);
     }
     
     /*
@@ -130,12 +272,17 @@ public class SmileFactory extends JsonFactory
             return super._createWriter(out, enc, ctxt);
         }
         throw new UnsupportedOperationException("Can not create generator for non-byte-based target");
-        /*
-        if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
-            return new UTF8Writer(ctxt, out);
-        }
-        // not optimal, but should do unless we really care about UTF-16/32 encoding speed
-        return new OutputStreamWriter(out, enc.getJavaName());
-        */
     }    
+
+    /*
+    /******************************************************
+    /* Internal methods
+    /******************************************************
+     */
+    
+    protected SmileGenerator _createJsonGenerator(OutputStream out, IOContext ctxt)
+        throws IOException
+    {
+        return new SmileGenerator(ctxt, _smileGeneratorFeatures, _objectCodec, out);    
+    }
 }

@@ -6,12 +6,46 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.impl.JsonReadContext;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.smile.SmileGenerator.Feature;
 
 public class SmileParser extends JsonParser
 {
+    /**
+     * Enumeration that defines all togglable features for Smile generators.
+     */
+    public enum Feature {
+        DUMMY_PLACEHOLDER(false)
+        ;
+
+        final boolean _defaultState;
+        final int _mask;
+        
+        /**
+         * Method that calculates bit set (flags) of all features that
+         * are enabled by default.
+         */
+        public static int collectDefaults()
+        {
+            int flags = 0;
+            for (Feature f : values()) {
+                if (f.enabledByDefault()) {
+                    flags |= f.getMask();
+                }
+            }
+            return flags;
+        }
+        
+        private Feature(boolean defaultState) {
+            _defaultState = defaultState;
+            _mask = (1 << ordinal());
+        }
+        
+        public boolean enabledByDefault() { return _defaultState; }
+        public int getMask() { return _mask; }
+    }
+
     /*
     /**********************************************************
     /* Generic I/O state
@@ -111,7 +145,7 @@ public class SmileParser extends JsonParser
         _closed = true;
         // _closeInput()
         if (_inputStream != null) {
-            if (_ioContext.isResourceManaged() || isEnabled(Feature.AUTO_CLOSE_SOURCE)) {
+            if (_ioContext.isResourceManaged() || isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE)) {
                 _inputStream.close();
             }
             _inputStream = null;
