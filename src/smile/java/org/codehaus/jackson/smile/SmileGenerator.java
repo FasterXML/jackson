@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
@@ -467,7 +466,7 @@ public class SmileGenerator
             // !!! TODO: handle 7-by-8 expansion...
         } else {
             _writeByte((byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BINARY_RAW | compType));
-            _writeVInt(len);
+            _writePositiveVInt(len);
             // raw is dead simple of course:
             _writeBytes(data, offset, len);
         }
@@ -696,7 +695,7 @@ public class SmileGenerator
         BigInteger unscaled = dec.unscaledValue();
         _writeByte(TOKEN_BYTE_BIG_DECIMAL);
         // Ok, first output scale as VInt
-        _writeVInt(scale);
+        _writeSignedVInt(scale);
         byte[] data = unscaled.toByteArray();
         // And then binary data in "safe" mode (7-bit values)
         _write7BitBinaryWithLength(data, 0, data.length);
@@ -1186,7 +1185,10 @@ public class SmileGenerator
         }
     }
 
-    private void _writeVInt(int i) throws IOException
+    /**
+     * Helper method for writing a 32-bit positive (really 31-bit then) value
+     */
+    private void _writePositiveVInt(int i) throws IOException
     {
         // At most 5 bytes (4 * 7 + 6 bits == 34 bits)
         _ensureRoomForOutput(5);
@@ -1224,9 +1226,19 @@ public class SmileGenerator
         }
     }
 
+    /**
+     * Helper method for writing 32-bit signed value, using
+     * "zig zag encoding" (see protocol buffers for explanation)
+     * coupled with basic variable length encoding
+     */
+    private void _writeSignedVInt(int input) throws IOException
+    {
+        _writePositiveVInt(SmileUtil.zigzagEncode(input));
+    }
+
     protected void _write7BitBinaryWithLength(byte[] data, int offset, int len) throws IOException
     {
-        _writeVInt(len);
+        _writePositiveVInt(len);
         // first, let's handle full 7-byte chunks
         while (len >= 7) {
             if ((_outputTail + 8) >= _outputEnd) {

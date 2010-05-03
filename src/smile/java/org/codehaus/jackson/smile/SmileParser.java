@@ -8,7 +8,6 @@ import java.math.BigInteger;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.JsonReadContext;
 import org.codehaus.jackson.io.IOContext;
-import org.codehaus.jackson.smile.SmileGenerator.Feature;
 
 public class SmileParser extends JsonParser
 {

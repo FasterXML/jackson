@@ -55,7 +55,7 @@ public class TestSmileGenerator
                 HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, HEADER_BYTE_4,
                 TOKEN_LITERAL_NULL, BYTE_MARKER_END_OF_CONTENT);
     }
-
+    
     /*
     /**********************************************************
     /* Helper methods
