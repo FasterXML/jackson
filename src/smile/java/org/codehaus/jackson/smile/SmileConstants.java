@@ -29,14 +29,54 @@ public interface SmileConstants
      */
     public final static int MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING = 1 + (3 * MAX_SHORT_STRING_BYTES);
 
+    /*
+    /****************************************************
+    /* Byte markers
+    /****************************************************
+     */
+    
     /**
      * We need a byte marker to denote end of variable-length Strings. Although
      * null byte is commonly used, let's try to avoid using it since it can't
-     * be embedded in WebSockets content (similarly, 0xFF can't). There are
+     * be embedded in Web Sockets content (similarly, 0xFF can't). There are
      * multiple candidates for bytes UTF-8 can not have; 0xFE seems like a
      * good choice
      */
-    public final static byte BYTE_STRING_END_MARKER = (byte) 0xFE;
+    public final static byte BYTE_MARKER_END_OF_STRING = (byte) 0xFE;
+
+    /**
+     * In addition we can use a marker to allow simple framing; splitting
+     * of physical data (like file) into distinct logical sections like
+     * JSON documents. 0xFF makes sense here since it is also used
+     * as end marker for Web Sockets.
+     */
+    public final static byte BYTE_MARKER_END_OF_CONTENT = (byte) 0xFF;
+
+    /*
+    /****************************************************
+    /* Format header: put smile on your data...
+    /****************************************************
+     */
+
+    /**
+     * First byte of data header
+     */
+    public final static byte HEADER_BYTE_1 = (byte) ':';
+
+    /**
+     * Second byte of data header
+     */
+    public final static byte HEADER_BYTE_2 = (byte) ')';
+
+    /**
+     * Third byte of data header
+     */
+    public final static byte HEADER_BYTE_3 = (byte) '\n';
+
+    /**
+     * Fourth byte of data header
+     */
+    public final static byte HEADER_BYTE_4 = (byte) 0;
     
     /*
     /****************************************************

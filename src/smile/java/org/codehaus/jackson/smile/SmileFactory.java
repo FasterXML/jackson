@@ -283,6 +283,11 @@ public class SmileFactory extends JsonFactory
     protected SmileGenerator _createJsonGenerator(OutputStream out, IOContext ctxt)
         throws IOException
     {
-        return new SmileGenerator(ctxt, _smileGeneratorFeatures, _objectCodec, out);    
+        int feats = _smileGeneratorFeatures;
+        SmileGenerator gen = new SmileGenerator(ctxt, feats, _objectCodec, out);
+        if ((feats & SmileGenerator.Feature.WRITE_HEADER.getMask()) != 0) {
+            gen.writeHeader();
+        }
+        return gen;
     }
 }

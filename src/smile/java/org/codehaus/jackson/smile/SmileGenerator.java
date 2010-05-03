@@ -32,6 +32,17 @@ public class SmileGenerator
         WRITE_HEADER(true)
 
         /**
+         * Whether write byte marker that signifies end of logical content segment
+         * ({@link SmileConstants#BYTE_MARKER_END_OF_CONTENT}) when
+         * {@link #close} is called or not. This can be useful when outputting
+         * multiple adjacent logical content segments (documents) into single
+         * physical output unit (file).
+         *<p>
+         * Default setting is false meaning that such marker is not written.
+         */
+        ,WRITE_END_MARKER(false)
+        
+        /**
          * Whether to use simple 7-bit per byte encoding for binary content when output.
          * This is necessary ensure that byte 0xFF will never be included in content output.
          * For other data types this limitation is handled automatically; but since overhead
@@ -74,45 +85,38 @@ public class SmileGenerator
      * To simplify certain operations, we require output buffer length
      * to allow outputting of contiguous 256 character UTF-8 encoded String
      * value. Length of the longest UTF-8 codepoint (from Java char) is 3 bytes,
-     * and we need both initial token byte and single-byte length indicators
+     * and we need both initial token byte and single-byte end marker
      * so we get following value.
+     *<p>
+     * Note: actually we could live with shorter one; absolute minimum would
+     * be for encoding 64-character Strings.
      */
     private final static int MIN_BUFFER_LENGTH = (3 * 256) + 2;
 
-    private final static byte TOKEN_BYTE_LONG_STRING_ASCII =
+    protected final static byte TOKEN_BYTE_LONG_STRING_ASCII =
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_LONG_TEXT_ASCII);
-    private final static byte TOKEN_BYTE_LONG_STRING_UNICODE =
+    protected final static byte TOKEN_BYTE_LONG_STRING_UNICODE =
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_LONG_TEXT_UNICODE);
 
-    private final static byte TOKEN_BYTE_INT_POSITIVE = 
+    protected final static byte TOKEN_BYTE_INT_POSITIVE = 
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER);
-    private final static byte TOKEN_BYTE_INT_NEGATIVE = 
+    protected final static byte TOKEN_BYTE_INT_NEGATIVE = 
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_SIGN);
 
-    private final static byte TOKEN_BYTE_FLOAT_32 = 
+    protected final static byte TOKEN_BYTE_FLOAT_32 = 
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FLOATING_POINT);
-    private final static byte TOKEN_BYTE_FLOAT_64 = 
+    protected final static byte TOKEN_BYTE_FLOAT_64 = 
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FLOATING_POINT | TOKEN_MISC_FP_DOUBLE_PRECISION);
 
-    private final static byte TOKEN_BYTE_BIG_INTEGER = 
+    protected final static byte TOKEN_BYTE_BIG_INTEGER = 
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BIG_NUMBER);
-    private final static byte TOKEN_BYTE_BIG_DECIMAL = 
+    protected final static byte TOKEN_BYTE_BIG_DECIMAL = 
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BIG_NUMBER | TOKEN_MISC_BIG_NUMBER_DECIMAL);
     
-    final static int SURR1_FIRST = 0xD800;
-    final static int SURR1_LAST = 0xDBFF;
-    final static int SURR2_FIRST = 0xDC00;
-    final static int SURR2_LAST = 0xDFFF;
-
-    // // // And then the header that puts smile on data...
-    
-    public final static byte HEADER_BYTE_1 = (byte) ':';
-
-    public final static byte HEADER_BYTE_2 = (byte) ')';
-
-    public final static byte HEADER_BYTE_3 = (byte) '\n';
-
-    public final static byte HEADER_BYTE_4 = (byte) 0;
+    protected final static int SURR1_FIRST = 0xD800;
+    protected final static int SURR1_LAST = 0xDBFF;
+    protected final static int SURR2_FIRST = 0xDC00;
+    protected final static int SURR2_LAST = 0xDFFF;
     
     /*
     /**********************************************************
@@ -153,7 +157,7 @@ public class SmileGenerator
      * Typically same as length of the buffer.
      */
     protected final int _outputEnd;
-    
+
     /*
     /**********************************************************
     /* Life-cycle
@@ -268,7 +272,7 @@ public class SmileGenerator
             } else { // nope, longer non-ASCII Strings
                 typeToken = TOKEN_KEY_LONG_STRING;
                 // and we will need String end marker byte
-                _outputBuffer[_outputTail++] = BYTE_STRING_END_MARKER;
+                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
             }
             // and then sneak in type token now that know the details
             _outputBuffer[origOffset] = typeToken;
@@ -281,10 +285,10 @@ public class SmileGenerator
                     _flushBuffer();
                 }
                 _shortUTF8Encode(name);
-                _outputBuffer[_outputTail++] = BYTE_STRING_END_MARKER;                
+                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
             } else {
                 _slowUTF8Encode(name);
-                _writeByte(BYTE_STRING_END_MARKER);
+                _writeByte(BYTE_MARKER_END_OF_STRING);
             }
         }
     }
@@ -321,7 +325,7 @@ public class SmileGenerator
             } else { // nope, longer non-ASCII String 
                 typeToken = TOKEN_BYTE_LONG_STRING_UNICODE;
                 // and we will need String end marker byte
-                _outputBuffer[_outputTail++] = BYTE_STRING_END_MARKER;
+                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
             }
             // and then sneak in type token now that know the details
             _outputBuffer[origOffset] = typeToken;
@@ -339,11 +343,11 @@ public class SmileGenerator
                 if (byteLen == len) {
                     _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_ASCII;
                 }
-                _outputBuffer[_outputTail++] = BYTE_STRING_END_MARKER;                
+                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
             } else { // won't fit; can't efficiently rewrite ascii/unicode marker, so:
                 _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
                 _slowUTF8Encode(text);
-                _writeByte(BYTE_STRING_END_MARKER);
+                _writeByte(BYTE_MARKER_END_OF_STRING);
             }
         }
     }    
@@ -373,7 +377,7 @@ public class SmileGenerator
             } else { // nope, longer non-ASCII Strings
                 typeToken = TOKEN_BYTE_LONG_STRING_UNICODE;
                 // and we will need String end marker byte
-                _outputBuffer[_outputTail++] = BYTE_STRING_END_MARKER;
+                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
             }
             // and then sneak in type token now that know the details
             _outputBuffer[origOffset] = typeToken;
@@ -391,11 +395,11 @@ public class SmileGenerator
                 if (byteLen == len) {
                     _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_ASCII;
                 }
-                _outputBuffer[_outputTail++] = BYTE_STRING_END_MARKER;                
+                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
             } else {
                 _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
                 _slowUTF8Encode(text, offset, offset+len);
-                _writeByte(BYTE_STRING_END_MARKER);
+                _writeByte(BYTE_MARKER_END_OF_STRING);
             }
         }
     }
@@ -753,6 +757,8 @@ public class SmileGenerator
     public void close()
         throws IOException
     {
+        boolean wasClosed = _closed;
+        
         super.close();
 
         /* 05-Dec-2008, tatu: To add [JACKSON-27], need to close open
@@ -771,6 +777,9 @@ public class SmileGenerator
                     break;
                 }
             }
+        }
+        if (!wasClosed && isEnabled(Feature.WRITE_END_MARKER)) {
+            _writeByte(BYTE_MARKER_END_OF_CONTENT);
         }
         _flushBuffer();
 
