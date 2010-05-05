@@ -83,7 +83,7 @@ public class SmileGenerator
     /**
      * To simplify certain operations, we require output buffer length
      * to allow outputting of contiguous 256 character UTF-8 encoded String
-     * value. Length of the longest UTF-8 codepoint (from Java char) is 3 bytes,
+     * value. Length of the longest UTF-8 code point (from Java char) is 3 bytes,
      * and we need both initial token byte and single-byte end marker
      * so we get following value.
      *<p>
@@ -97,20 +97,18 @@ public class SmileGenerator
     protected final static byte TOKEN_BYTE_LONG_STRING_UNICODE =
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_LONG_TEXT_UNICODE);
 
-    protected final static byte TOKEN_BYTE_INT_POSITIVE = 
+    protected final static byte TOKEN_BYTE_INT = 
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER);
-    protected final static byte TOKEN_BYTE_INT_NEGATIVE = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_SIGN);
 
     protected final static byte TOKEN_BYTE_FLOAT_32 = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FLOATING_POINT);
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_OTHER_NUMBER| TOKEN_MISC_NUMBER_FLOAT);
     protected final static byte TOKEN_BYTE_FLOAT_64 = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FLOATING_POINT | TOKEN_MISC_FP_DOUBLE_PRECISION);
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_OTHER_NUMBER | TOKEN_MISC_NUMBER_DOUBLE);
 
     protected final static byte TOKEN_BYTE_BIG_INTEGER = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BIG_NUMBER);
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_OTHER_NUMBER | TOKEN_MISC_NUMBER_BIG_INTEGER);
     protected final static byte TOKEN_BYTE_BIG_DECIMAL = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BIG_NUMBER | TOKEN_MISC_BIG_NUMBER_DECIMAL);
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_OTHER_NUMBER | TOKEN_MISC_NUMBER_BIG_DECIMAL);
     
     protected final static int SURR1_FIRST = 0xD800;
     protected final static int SURR1_LAST = 0xDBFF;
@@ -482,7 +480,7 @@ public class SmileGenerator
     public void writeBoolean(boolean state) throws IOException, JsonGenerationException
     {
         if (state) {
-            _writeByte(TOKEN_LITERAL_TRUE);            
+            _writeByte(TOKEN_LITERAL_TRUE);
         } else {
             _writeByte(TOKEN_LITERAL_FALSE);             
         }
@@ -496,27 +494,17 @@ public class SmileGenerator
     @Override
     public void writeNumber(int i) throws IOException, JsonGenerationException
     {
-        // First: need to swap sign?
-        byte type;
-        if (i < 0) {
-            // Tiny ints are easiest to handle here
-            if (i >= -16) { // small int
-                _writeByte((byte) (TOKEN_PREFIX_SMALL_INT + (i & 0x1F)));
-                return;
-            }
-            // Special case is MIN_VALUE, which can't be negated (becomes long)
-            if (i == Integer.MIN_VALUE) { // sub-optimal but...
-                writeNumber((long) i);
-                return;
-            }
-            type = TOKEN_BYTE_INT_NEGATIVE;
-            i = -i;
-        } else {
-            if (i <= 0x0F) { // small int
+        // First things first: let's zigzag encode number
+        i = SmileUtil.zigzagEncode(i);
+        // tiny (single byte) or small (type + 6-bit value) number?
+        if (i <= 0x3F) {
+            if (i <= 0x1F) { // tiny 
                 _writeByte((byte) (TOKEN_PREFIX_SMALL_INT + i));
                 return;
             }
-            type = TOKEN_BYTE_INT_POSITIVE;            
+            // nope, just small
+            _writeBytes(TOKEN_BYTE_INT, (byte) (0x80 + i));
+            i = -i;
         }
 
         // Ok: let's find minimal representation then
@@ -524,27 +512,27 @@ public class SmileGenerator
         i >>= 6;
         if (i <= 0x7F) { // 6 or 13 bits is enough (== 2 or 3 byte total encoding)
             if (i == 0) { // 6 bits is enough for value (excluding sign, meaning most 7-bit numbers)
-                _writeBytes(type, b0);
+                _writeBytes(TOKEN_BYTE_INT, b0);
             } else  {
-                _writeBytes(type, (byte) i, b0);
+                _writeBytes(TOKEN_BYTE_INT, (byte) i, b0);
             }
             return;
         }
         byte b1 = (byte) (i & 0x7F);
         i >>= 7;
         if (i <= 0x7F) {
-            _writeBytes(type, (byte) i, b1, b0);
+            _writeBytes(TOKEN_BYTE_INT, (byte) i, b1, b0);
             return;
         }
         byte b2 = (byte) (i & 0x7F);
         i >>= 7;
         if (i <= 0x7F) {
-            _writeBytes(type, (byte) i, b2, b1, b0);
+            _writeBytes(TOKEN_BYTE_INT, (byte) i, b2, b1, b0);
             return;
         }
         // no, need all 5 bytes
         byte b3 = (byte) (i & 0x7F);
-        _writeBytes(type, (byte) (i >> 7), b3, b2, b1, b0);
+        _writeBytes(TOKEN_BYTE_INT, (byte) (i >> 7), b3, b2, b1, b0);
     }
 
     @Override
@@ -556,20 +544,8 @@ public class SmileGenerator
             writeNumber((int) l);
             return;
         }
-        // Special case: is it "MIN LONG"?
-        if (l == Long.MIN_VALUE) {
-            _writeByte(TOKEN_LITERAL_MIN_64BIT_LONG);
-            return;
-        }
-        // And then we can handle sign bit
-        byte type;
-        if (l < 0) {
-            type = TOKEN_BYTE_INT_NEGATIVE;
-            l = -l;
-        } else {
-            type = TOKEN_BYTE_INT_POSITIVE;
-        }
-
+        // Then let's zigzag encode it
+        l = SmileUtil.zigzagEncode(l);
         // Ok, well, we do know that 5 lowest-significant bytes are needed
         int i = (int) l;
         // 4 can be extracted from lower int
@@ -584,39 +560,39 @@ public class SmileGenerator
         // which may be enough?
         i = (int) (l >> 7);
         if (i == 0) {
-            _writeBytes(type, b4, b3, b2, b1, b0);
+            _writeBytes(TOKEN_BYTE_INT, b4, b3, b2, b1, b0);
             return;
         }
 
         if (i <= 0x7F) {
-            _writeBytes(type, (byte) i);
+            _writeBytes(TOKEN_BYTE_INT, (byte) i);
             _writeBytes(b4, b3, b2, b1, b0);
             return;
         }
         byte b5 = (byte) (i & 0x7F);
         i >>= 7;
         if (i <= 0x7F) {
-            _writeBytes(type, (byte) i);
+            _writeBytes(TOKEN_BYTE_INT, (byte) i);
             _writeBytes(b5, b4, b3, b2, b1, b0);
             return;
         }
         byte b6 = (byte) (i & 0x7F);
         i >>= 7;
         if (i <= 0x7F) {
-            _writeBytes(type, (byte) i, b6);
+            _writeBytes(TOKEN_BYTE_INT, (byte) i, b6);
             _writeBytes(b5, b4, b3, b2, b1, b0);
             return;
         }
         byte b7 = (byte) (i & 0x7F);
         i >>= 7;
         if (i <= 0x7F) {
-            _writeBytes(type, (byte) i, b7, b6);
+            _writeBytes(TOKEN_BYTE_INT, (byte) i, b7, b6);
             _writeBytes(b5, b4, b3, b2, b1, b0);
             return;
         }
         byte b8 = (byte) (i & 0x7F);
         // must be done, with 10 bytes! (9 * 7 + 6 == 69 bits; only need 63)
-        _writeBytes(type, (byte) i, b8, b7, b6);
+        _writeBytes(TOKEN_BYTE_INT, (byte) i, b8, b7, b6);
         _writeBytes(b5, b4, b3, b2, b1, b0);
     }
 
@@ -644,12 +620,12 @@ public class SmileGenerator
         hi5 >>= 7;
         _outputBuffer[_outputTail] = (byte) hi5;
         _outputTail += 5;
-        // Then split byte (one that crosses lo/hi int boundary)
+        // Then split byte (one that crosses lo/hi int boundary), 7 bits
         {
             int mid = (int) (l >> 28);
             _outputBuffer[_outputTail] = (byte) (mid & 0x7F);
         }
-        // and then last 4 bytes
+        // and then last 4 bytes (28 bits)
         int lo4 = (int) l;
         _outputBuffer[_outputTail+3] = (byte) (lo4 & 0x7F);
         lo4 >>= 7;
@@ -691,11 +667,11 @@ public class SmileGenerator
             writeNull();
             return;
         }
-        int scale = dec.scale();
-        BigInteger unscaled = dec.unscaledValue();
         _writeByte(TOKEN_BYTE_BIG_DECIMAL);
+        int scale = dec.scale();
         // Ok, first output scale as VInt
         _writeSignedVInt(scale);
+        BigInteger unscaled = dec.unscaledValue();
         byte[] data = unscaled.toByteArray();
         // And then binary data in "safe" mode (7-bit values)
         _write7BitBinaryWithLength(data, 0, data.length);
@@ -1186,7 +1162,8 @@ public class SmileGenerator
     }
 
     /**
-     * Helper method for writing a 32-bit positive (really 31-bit then) value
+     * Helper method for writing a 32-bit positive (really 31-bit then) value.
+     * Value is NOT zigzag encoded (since there is no sign bit to worry about)
      */
     private void _writePositiveVInt(int i) throws IOException
     {
@@ -1228,7 +1205,8 @@ public class SmileGenerator
 
     /**
      * Helper method for writing 32-bit signed value, using
-     * "zig zag encoding" (see protocol buffers for explanation)
+     * "zig zag encoding" (see protocol buffers for explanation -- basically,
+     * sign bit is moved as LSB, rest of value shifted left by one)
      * coupled with basic variable length encoding
      */
     private void _writeSignedVInt(int input) throws IOException

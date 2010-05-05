@@ -87,16 +87,20 @@ public interface SmileConstants
     // Shared strings are back references for last 63 short (< 64 byte) string values
     // NOTE: 0x00 is reserved, not used
     public final static int TOKEN_PREFIX_SHORT_SHARED_STRING = 0x00;
+    // literals are put between 0x20 and 0x3F to reserve markers (smiley)
     public final static int TOKEN_PREFIX_LITERAL = 0x20;
-    // Small ints are 4-bit (-16 to +15) integer constants
-    public final static int TOKEN_PREFIX_SMALL_INT = 0x40;
 
-    public final static int TOKEN_PREFIX_MISC_TYPES = 0x060;
-    public final static int TOKEN_PREFIX_TINY_ASCII = 0x80;
-    public final static int TOKEN_PREFIX_SMALL_ASCII = 0xA0;
-    public final static int TOKEN_PREFIX_TINY_UNICODE = 0xC0;
-    public final static int TOKEN_PREFIX_SHORT_UNICODE = 0xE0;
-    
+    public final static int TOKEN_PREFIX_TINY_ASCII = 0x40;
+    public final static int TOKEN_PREFIX_SMALL_ASCII = 0x60;
+    public final static int TOKEN_PREFIX_TINY_UNICODE = 0x80;
+    public final static int TOKEN_PREFIX_SHORT_UNICODE = 0xA0;
+
+    // Small ints are 4-bit (-16 to +15) integer constants
+    public final static int TOKEN_PREFIX_SMALL_INT = 0xC0;
+
+    // And misc types have empty at the end too, to reserve 0xF8 - 0xFF
+    public final static int TOKEN_PREFIX_MISC_TYPES = 0xE0;
+
     /*
     /****************************************************
     /* Token literals, normal mode
@@ -112,16 +116,6 @@ public interface SmileConstants
     public final static byte TOKEN_LITERAL_TRUE = 0x25;
     public final static byte TOKEN_LITERAL_NULL = 0x26;
     public final static byte TOKEN_LITERAL_EMPTY_STRING = 0x27;
-
-    /**
-     * Stand-alone value token that represents smallest possible
-     * 64-bit integer number (negative number with largest absolute
-     * value). Defined separately because it has no positive counterpart,
-     * and thus its handling using general VInt mechanism is tricky.
-     * Using separate type is bit wasteful, but we do have individual
-     * values to spare at this point.
-     */
-    public final static byte TOKEN_LITERAL_MIN_64BIT_LONG = 0x28;
 
     // and "real" END_OBJECT is chosen not to overlap, on purpose
     public final static byte TOKEN_LITERAL_END_OBJECT = 0x36;
@@ -169,45 +163,42 @@ public interface SmileConstants
      * Type (for misc, other) used 
      * for regular floating-point types (float, double)
      */
-    public final static int TOKEN_MISC_FLOATING_POINT = 0x14;
+    public final static int TOKEN_MISC_OTHER_NUMBER = 0x14;
     
-    /**
-     * Type (for misc, other) used for "big" numeric types
-     * ({@link java.math.BigDecimal}, {@link java.math.BigInteger})
+    /* Note: subtypes with code 0x1C can not be used since
+     * that overlaps with 0xFE and 0xFF; 18 is reserved
+     * to reserve 0xF8 - 0xFB for future expansion.
      */
-    public final static int TOKEN_MISC_BIG_NUMBER = 0x18;
-
-    // Note: subtype with code 0x1C is reserved for future use
 
     /*
     /****************************************************
     /* Modifiers for misc entries
     /****************************************************
      */
-
-    /**
-     * LSB of token type for {@link #TOKEN_MISC_INTEGER} is
-     * used to indicate sign; if set (1) number is negative,
-     * if unset (0), positive.
-     */
-    public final static int TOKEN_MISC_INTEGER_SIGN = 0x01;
     
     /**
-     * LSB of token type for {@link #TOKEN_MISC_FLOATING_POINT}
-     * is used to indicate precisions: if set (1) it is
-     * double-precision (64-bit IEEE) value, if unset (0),
-     * single-precision (32-bit IEEE).
+     * Numeric subtype (2 LSB) for {@link #TOKEN_MISC_OTHER_NUMBER},
+     * indicating 32-bit IEEE single precision floating point number.
      */
-    public final static int TOKEN_MISC_FP_DOUBLE_PRECISION = 0x01;
+    public final static int TOKEN_MISC_NUMBER_FLOAT = 0x00;
 
     /**
-     * LSB of token type for {@link #TOKEN_MISC_BIG_NUMBER}
-     * is used to indicate whether it is a
-     * {@link java.math.BigDecimal} or not ({@link java.math.BigInteger}).
-     * If set (1) value is <code>BigDecimal</code>, if unset (0),
-     * <code>BigInteger</code>
+     * Numeric subtype (2 LSB) for {@link #TOKEN_MISC_OTHER_NUMBER},
+     * indicating 64-bit IEEE double precision floating point number.
      */
-    public final static int TOKEN_MISC_BIG_NUMBER_DECIMAL = 0x01;
+    public final static int TOKEN_MISC_NUMBER_DOUBLE = 0x01;
+
+    /**
+     * Numeric subtype (2 LSB) for {@link #TOKEN_MISC_OTHER_NUMBER},
+     * indicating {@link java.math.BigInteger} type.
+     */
+    public final static int TOKEN_MISC_NUMBER_BIG_INTEGER = 0x02;
+
+    /**
+     * Numeric subtype (2 LSB) for {@link #TOKEN_MISC_OTHER_NUMBER},
+     * indicating {@link java.math.BigDecimal} type.
+     */
+    public final static int TOKEN_MISC_NUMBER_BIG_DECIMAL = 0x03;
     
     /*
     /****************************************************
