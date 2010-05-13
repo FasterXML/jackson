@@ -44,14 +44,25 @@ public class BasicSerializerFactory
      * about ClassLoader used to load them. Rather, we can just
      * use the class name, and keep things simple and efficient.
      */
-    final static HashMap<String, JsonSerializer<?>> _concrete =
+    protected final static HashMap<String, JsonSerializer<?>> _concrete =
         new HashMap<String, JsonSerializer<?>>();
+
+    /**
+     * Actually it may not make much sense to eagerly instantiate all
+     * kinds of serializers: so this Map actually contains class references,
+     * not instances
+     *
+     * @since 1.6
+     */
+    protected final static HashMap<String, Class<? extends JsonSerializer<?>>> _concreteLazy =
+        new HashMap<String, Class<? extends JsonSerializer<?>>>();
+    
     /**
      * There are also standard interfaces and abstract classes
      * that we need to support without knowing conrecte implementation
      * classes.
      */
-    final static ArrayList<SerializerMapping> _abstractSerializers =
+    protected final static ArrayList<SerializerMapping> _abstractSerializers =
         new ArrayList<SerializerMapping>();
 
     static {
@@ -134,15 +145,24 @@ public class BasicSerializerFactory
         _concrete.put(TreeSet.class.getName(), collectionS);
 
         // And then other standard non-structured JDK types
-        for (Map.Entry<Class<?>,JsonSerializer<?>> en : new JdkSerializers().provide()) {
-            _concrete.put(en.getKey().getName(), en.getValue());
+        for (Map.Entry<Class<?>,Object> en : new JdkSerializers().provide()) {
+            Object value = en.getValue();
+            if (value instanceof JsonSerializer<?>) {
+                _concrete.put(en.getKey().getName(), (JsonSerializer<?>) value);
+            } else if (value instanceof Class<?>) {
+                @SuppressWarnings("unchecked")
+                Class<? extends JsonSerializer<?>> cls = (Class<? extends JsonSerializer<?>>) value;
+                _concreteLazy.put(en.getKey().getName(), cls);
+            } else { // should never happen, but:
+                throw new IllegalStateException("Internal error: unrecognized value of type "+en.getClass().getName());
+            }
         }
 
-        // And finally, one specific Jackson type
-        // (Q: can this ever be sub-classes?)
-        _concrete.put(TokenBuffer.class.getName(), new StdSerializers.TokenBufferSerializer());
+        // Jackson-specific type(s)
+        // (Q: can this ever be sub-classed?)
+        _concreteLazy.put(TokenBuffer.class.getName(), StdSerializers.TokenBufferSerializer.class);
     }
-
+    
     static {
         /* 21-Nov-2009, tatu: Also, explicit support for basic Joda DateTime;
          *    and can use same mechanism for javax.xml.datatype types as well.
@@ -293,7 +313,20 @@ public class BasicSerializerFactory
     public final JsonSerializer<?> findSerializerByLookup(JavaType type, SerializationConfig config,
                                                           BasicBeanDescription beanDesc)
     {
-        JsonSerializer<?> ser = _concrete.get(type.getRawClass().getName());
+        String clsName = type.getRawClass().getName();
+        JsonSerializer<?> ser = _concrete.get(clsName);
+        if (ser == null) {
+            Class<? extends JsonSerializer<?>> serClass = _concreteLazy.get(clsName);
+            if (serClass != null) {
+                try {
+                    ser = serClass.newInstance();
+                } catch (Exception e) {
+                    throw new IllegalStateException("Failed to instantiate standard serializer (of type "+serClass.getName()+"): "
+                            +e.getMessage(), e);
+                }
+            }
+        }
+
         /* 08-Nov-2009, tatus: Some standard types may need customization;
          *    for now that just means Maps, but in future probably other
          *    collections as well. For strictly standard types this is
