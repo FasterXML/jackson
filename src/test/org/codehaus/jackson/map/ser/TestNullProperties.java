@@ -36,6 +36,12 @@ public class TestNullProperties
         public String getB() { return null; }
     }
 
+    static class LegacyFieldBean
+    {
+        @JsonWriteNullProperties(false)
+        public String b;
+    }
+    
     @JsonSerialize(include=JsonSerialize.Inclusion.ALWAYS) // just to ensure default
     static class NoNullsBean
     {
@@ -156,6 +162,13 @@ public class TestNullProperties
     {
         ObjectMapper m = new ObjectMapper();
         Map<String,Object> result = writeAndMap(m, new LegacyMethodBean());
+        assertEquals(0, result.size());
+    }
+
+    public void testByFieldLegacy() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        Map<String,Object> result = writeAndMap(m, new LegacyFieldBean());
         assertEquals(0, result.size());
     }
 }

@@ -16,6 +16,12 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
  * configuration for serialization and deserialization. Separated
  * so that different sets of annotations can be supported, and support
  * plugged-in dynamically.
+ *<p>
+ * NOTE: due to rapid addition of new methods (and changes to existing methods),
+ * it is <b>strongly</b> recommended that custom implementations not directly
+ * extends this class, but rather {@link NopAnnotationIntrospector}. This way
+ * added methods will not break backwards compatibility of custom annotation
+ * introspectors.
  */
 public abstract class AnnotationIntrospector
 {    

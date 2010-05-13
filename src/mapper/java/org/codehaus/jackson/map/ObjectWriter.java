@@ -146,8 +146,12 @@ public class ObjectWriter
     public void writeValue(JsonGenerator jgen, Object value)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        _provider.serializeValue(_config, jgen, value, _serializerFactory);
-        jgen.flush();
+        if (_config.isEnabled(SerializationConfig.Feature.CLOSE_CLOSEABLE) && (value instanceof Closeable)) {
+            _writeCloseableValue(jgen, value, _config);
+        } else {
+            _provider.serializeValue(_config, jgen, value, _serializerFactory);
+            jgen.flush();
+        }
     }
 
     /*
@@ -263,6 +267,11 @@ public class ObjectWriter
         if (_config.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
             jgen.useDefaultPrettyPrinter();
         }
+        // [JACKSON-282]: consider Closeable
+        if (_config.isEnabled(SerializationConfig.Feature.CLOSE_CLOSEABLE) && (value instanceof Closeable)) {
+            _configAndWriteCloseable(jgen, value, _config);
+            return;
+        }
         boolean closed = false;
         try {
             if (_rootType == null) {
@@ -279,6 +288,62 @@ public class ObjectWriter
             if (!closed) {
                 try {
                     jgen.close();
+                } catch (IOException ioe) { }
+            }
+        }
+    }
+
+    /**
+     * Helper method used when value to serialize is {@link Closeable} and its <code>close()</code>
+     * method is to be called right after serialization has been called
+     */
+    private final void _configAndWriteCloseable(JsonGenerator jgen, Object value, SerializationConfig cfg)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {
+        Closeable toClose = (Closeable) value;
+        try {
+            _provider.serializeValue(cfg, jgen, value, _serializerFactory);
+            JsonGenerator tmpJgen = jgen;
+            jgen = null;
+            tmpJgen.close();
+            Closeable tmpToClose = toClose;
+            toClose = null;
+            tmpToClose.close();
+        } finally {
+            /* Need to close both generator and value, as long as they haven't yet
+             * been closed
+             */
+            if (jgen != null) {
+                try {
+                    jgen.close();
+                } catch (IOException ioe) { }
+            }
+            if (toClose != null) {
+                try {
+                    toClose.close();
+                } catch (IOException ioe) { }
+            }
+        }
+    }
+    
+    /**
+     * Helper method used when value to serialize is {@link Closeable} and its <code>close()</code>
+     * method is to be called right after serialization has been called
+     */
+    private final void _writeCloseableValue(JsonGenerator jgen, Object value, SerializationConfig cfg)
+        throws IOException, JsonGenerationException, JsonMappingException
+    {
+        Closeable toClose = (Closeable) value;
+        try {
+            _provider.serializeValue(cfg, jgen, value, _serializerFactory);
+            jgen.flush();
+            Closeable tmpToClose = toClose;
+            toClose = null;
+            tmpToClose.close();
+        } finally {
+            if (toClose != null) {
+                try {
+                    toClose.close();
                 } catch (IOException ioe) { }
             }
         }

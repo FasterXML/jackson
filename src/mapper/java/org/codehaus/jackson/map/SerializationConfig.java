@@ -191,6 +191,24 @@ public class SerializationConfig
           * @since 1.5
           */
          ,DEFAULT_VIEW_INCLUSION(true)
+
+         /**
+          * Feature that determines whether <code>close</code> method of
+          * serialized <b>root level</b> objects (ones for which <code>ObjectMapper</code>'s
+          * writeValue() (or equivalent) method is called)
+          * that implement {@link java.io.Closeable} 
+          * is called after serialization or not. If enabled, <b>close()</b> will
+          * be called after serialization completes (whether succesfully, or
+          * due to an error manifested by an exception being thrown). You can
+          * think of this as sort of "finally" processing.
+          *<p>
+          * NOTE: only affects behavior with <b>root</b> objects, and not other
+          * objects reachable from the root object. Put another way, only one
+          * call will be made for each 'writeValue' call.
+          * 
+          * @since 1.6
+          */
+         ,CLOSE_CLOSEABLE(false)
          
         // // // Features for datatype-specific serialization
 

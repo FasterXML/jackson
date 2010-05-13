@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.ser;
 
 import org.codehaus.jackson.map.BaseMapTest;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 
@@ -67,6 +68,18 @@ public class TestFeatures
         public boolean isOk() { return true; }
     }
 
+    static class CloseableBean implements Closeable
+    {
+        public int a = 3;
+
+        protected boolean wasClosed = false;
+        
+        @Override
+        public void close() throws IOException {
+            wasClosed = true;
+        }
+    }
+    
     /*
     /*********************************************************
     /* Test methods
@@ -128,5 +141,25 @@ public class TestFeatures
         m.configure(DeserializationConfig.Feature.AUTO_DETECT_SETTERS, false).configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
         assertFalse(m.getDeserializationConfig().isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS));
         assertFalse(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
+    }
+
+    public void testCloseCloseable() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        // default should be disabled:
+        CloseableBean bean = new CloseableBean();
+        m.writeValueAsString(bean);
+        assertFalse(bean.wasClosed);
+
+        // but can enable it:
+        m.configure(SerializationConfig.Feature.CLOSE_CLOSEABLE, true);
+        bean = new CloseableBean();
+        m.writeValueAsString(bean);
+        assertTrue(bean.wasClosed);
+
+        // also: let's ensure that ObjectWriter won't interfere with it
+        bean = new CloseableBean();
+        m.typedWriter(CloseableBean.class).writeValueAsString(bean);
+        assertTrue(bean.wasClosed);
     }
 }

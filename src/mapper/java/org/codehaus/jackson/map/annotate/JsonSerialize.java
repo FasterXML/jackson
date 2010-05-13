@@ -92,9 +92,9 @@ public @interface JsonSerialize
     public Inclusion include() default Inclusion.ALWAYS;
 
     /*
-    /////////////////////////////////////////////////////////////
-    // Value enumerations needed
-    /////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Value enumerations needed
+    /**********************************************************
      */
 
     /**
@@ -144,7 +144,7 @@ public @interface JsonSerialize
          * Value that indicates that the static declared type is to
          * be used.
          */
-            STATIC
-            ;
+        STATIC
+        ;
     }
 }

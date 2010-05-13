@@ -1,7 +1,7 @@
 Version: 1.6.0
 
 Release date:
-  xx-Apr-2010
+  xx-Jun-2010
 
 Description:
   Version 1.6
@@ -14,6 +14,8 @@ Description:
     getter/setter) is to be considered a property; similar to how
     @JsonSerialize/@JsonDeserialize/@JsonProperty are used.
   * [JACKSON-274] Undeprecated @JsonGetter and @JsonSetter.
+  * [JACKSON-290] @JsonWriteNullProperties can be used with fields too;
+    annotation itself is now deprecated (use JsonSerialize#include instead).
 
   New features:
 
@@ -24,8 +26,11 @@ Description:
    (reported by Fabrice D)
   * [JACKSON-267] Allow unquoted field names to start with '@' in
     (when unquoted name support is enabled, to support polymorphic
-    typing (which defaults to property names like "@class")
+    typing (which defaults to property names like "@class").
    (requested by Michel G)
+  * [JACKSON-282] Added SerializationConfig.Feature.CLOSE_CLOSEABLE
+    which when enabled forced a call to value.close() right after
+    serialization of a (root-level) value.
 
 ------------------------------------------------------------------------
 == History: ==

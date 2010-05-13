@@ -15,8 +15,12 @@ import java.lang.annotation.Target;
  *<p>
  * Default value for this property is 'true', meaning that null
  * properties are written.
+ *<p>
+ * @deprecated (since 1.6) Currently recommended annotation to use is
+ * {@link org.codehaus.jackson.map.annotate.JsonSerialize#include()}
+ * (with values <code>ALWAYS</code> or <code>NON_NULL</code>)
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonWriteNullProperties
