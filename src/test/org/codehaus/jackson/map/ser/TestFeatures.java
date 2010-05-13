@@ -143,6 +143,7 @@ public class TestFeatures
         assertFalse(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS));
     }
 
+    // Test for [JACKSON-282]
     public void testCloseCloseable() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
@@ -161,5 +162,18 @@ public class TestFeatures
         bean = new CloseableBean();
         m.typedWriter(CloseableBean.class).writeValueAsString(bean);
         assertTrue(bean.wasClosed);
+    }
+
+    // Test for [JACKSON-289]
+    public void testCharArrays() throws IOException
+    {
+        char[] chars = new char[] { 'a','b','c' };
+        ObjectMapper m = new ObjectMapper();
+        // default: serialize as Strings
+        assertEquals(quote("abc"), m.writeValueAsString(chars));
+        
+        // new feature: serialize as JSON array:
+        m.configure(SerializationConfig.Feature.WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS, true);
+        assertEquals("[\"a\",\"b\",\"c\"]", m.writeValueAsString(chars));
     }
 }

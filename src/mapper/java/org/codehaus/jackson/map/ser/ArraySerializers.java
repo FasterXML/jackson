@@ -82,9 +82,9 @@ public final class ArraySerializers
     }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Concrete serializers, arrays
-    ////////////////////////////////////////////////////////////
+     ****************************************************************
+    /* Concrete serializers, arrays
+     ****************************************************************
      */
 
     /**
@@ -463,7 +463,14 @@ public final class ArraySerializers
         public void serialize(char[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
-            jgen.writeString(value, 0, value.length);
+            // [JACKSON-289] allows serializing as 'sparse' char array too:
+            if (provider.isEnabled(SerializationConfig.Feature.WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS)) {
+                jgen.writeStartArray();
+                _writeArrayContents(jgen, value);
+                jgen.writeEndArray();
+            } else {
+                jgen.writeString(value, 0, value.length);
+            }
         }
 
         @Override
@@ -471,9 +478,24 @@ public final class ArraySerializers
                 TypeSerializer typeSer)
             throws IOException, JsonGenerationException
         {
-            typeSer.writeTypePrefixForScalar(value, jgen);
-            jgen.writeString(value, 0, value.length);
-            typeSer.writeTypeSuffixForScalar(value, jgen);
+            // [JACKSON-289] allows serializing as 'sparse' char array too:
+            if (provider.isEnabled(SerializationConfig.Feature.WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS)) {
+                typeSer.writeTypePrefixForArray(value, jgen);
+                _writeArrayContents(jgen, value);
+                typeSer.writeTypeSuffixForArray(value, jgen);
+            } else { // default is to write as simple String
+                typeSer.writeTypePrefixForScalar(value, jgen);
+                jgen.writeString(value, 0, value.length);
+                typeSer.writeTypeSuffixForScalar(value, jgen);
+            }
+        }
+
+        private final void _writeArrayContents(JsonGenerator jgen, char[] value)
+            throws IOException, JsonGenerationException
+        {
+            for (int i = 0, len = value.length; i < len; ++i) {
+                jgen.writeString(value, i, 1);
+            }
         }
         
         //@Override

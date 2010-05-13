@@ -285,9 +285,9 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /////////////////////////////////////////////////////////////
-    // Helper methods for sub-classes, resolving dependencies
-    /////////////////////////////////////////////////////////////
+    /****************************************************
+    /* Helper methods for sub-classes, resolving dependencies
+    /****************************************************
     */
 
     /**
@@ -315,9 +315,9 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /////////////////////////////////////////////////////////////
-    // Helper methods for sub-classes, problem reporting
-    /////////////////////////////////////////////////////////////
+    /****************************************************
+    /* Helper methods for sub-classes, problem reporting
+    /****************************************************
     */
 
     /**
@@ -370,10 +370,10 @@ public abstract class StdDeserializer<T>
 
 
     /*
-    /////////////////////////////////////////////////////////////
-    // Then one intermediate base class for things that have
-    // both primitive and wrapper types
-    /////////////////////////////////////////////////////////////
+    /****************************************************
+    /* Then one intermediate base class for things that have
+    /* both primitive and wrapper types
+    /****************************************************
     */
 
     protected abstract static class PrimitiveOrWrapperDeserializer<T>
@@ -391,9 +391,9 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /////////////////////////////////////////////////////////////
-    // First, generic (Object, String, String-like, Class) deserializers
-    /////////////////////////////////////////////////////////////
+    /****************************************************
+    /* First, generic (Object, String, String-like, Class) deserializers
+    /****************************************************
     */
 
     public final static class StringDeserializer
@@ -441,9 +441,9 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /////////////////////////////////////////////////////////////
-    // Then primitive/wrapper types
-    /////////////////////////////////////////////////////////////
+    /****************************************************
+    /* Then primitive/wrapper types
+    /****************************************************
     */
 
     public final static class BooleanDeserializer
@@ -760,9 +760,9 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /////////////////////////////////////////////////////////////
-    // Then trickier things: Date/Calendar types
-    /////////////////////////////////////////////////////////////
+    /****************************************************
+    /* Then trickier things: Date/Calendar types
+    /****************************************************
     */
 
     public static class CalendarDeserializer
@@ -820,9 +820,9 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /////////////////////////////////////////////////////////////
-    // And other oddities
-    /////////////////////////////////////////////////////////////
+    /****************************************************
+    /* And other oddities
+    /****************************************************
     */
 
     public static class StackTraceElementDeserializer

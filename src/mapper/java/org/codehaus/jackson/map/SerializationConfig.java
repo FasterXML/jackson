@@ -206,7 +206,7 @@ public class SerializationConfig
           * objects reachable from the root object. Put another way, only one
           * call will be made for each 'writeValue' call.
           * 
-          * @since 1.6
+          * @since 1.6 (see [JACKSON-282 for details])
           */
          ,CLOSE_CLOSEABLE(false)
          
@@ -225,6 +225,15 @@ public class SerializationConfig
          */
         ,WRITE_DATES_AS_TIMESTAMPS(true)
 
+        /**
+         * Feature that determines how type <code>char[]</code> is serialized:
+         * when enabled, will be serialized as an explict JSON array (with
+         * single-character Strings as values); when disabled, defaults to
+         * serializing them as Strings (which is more compact).
+         * 
+         * @since 1.6 (see [JACKSON-289 for details])
+         */
+        ,WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS(false)
 
         // // // Output fine tuning
             

@@ -18,7 +18,7 @@ import org.codehaus.jackson.type.TypeReference;
 public class TestArrayDeserialization
     extends BaseMapTest
 {
-	   /*
+    /*
     /*****************************************
     /* Helper classes
     /*****************************************
@@ -31,7 +31,7 @@ public class TestArrayDeserialization
 
         // Just for deserialization:
         @SuppressWarnings("unused")
-		private Bean1() { }
+        private Bean1() { }
 
         public Bean1(int x, int y, List<Bean2> beans)
         {
@@ -218,12 +218,16 @@ public class TestArrayDeserialization
         ObjectMapper mapper = new ObjectMapper();
         char[] result = mapper.readValue("\""+TEST_STR+"\"", char[].class);
         assertEquals(TEST_STR, new String(result));
+
+        // And just for [JACKSON-289], let's verify that fluffy arrays work too
+        result = mapper.readValue("[\"a\",\"b\",\"c\"]", char[].class);
+        assertEquals("abc", new String(result));
     }
 
     /*
-    //////////////////////////////////////////
-    // Tests for primitive arrays
-    //////////////////////////////////////////
+    /**********************************************************
+    /* Tests for primitive arrays
+    /**********************************************************
      */
 
     public void testBooleanArray() throws Exception

@@ -60,9 +60,9 @@ public class StdDeserializationContext
     }
 
     /*
-    ///////////////////////////////////////////////////
-    // Public API, accessors
-    ///////////////////////////////////////////////////
+    /****************************************************
+    /* Public API, accessors
+    /****************************************************
      */
 
     @Override
@@ -82,9 +82,9 @@ public class StdDeserializationContext
     public JsonParser getParser() { return _parser; }
 
     /*
-    ///////////////////////////////////////////////////
-    // Public API, helper object recycling
-    ///////////////////////////////////////////////////
+    /****************************************************
+    /* Public API, helper object recycling
+    /****************************************************
      */
 
     @Override
@@ -121,10 +121,10 @@ public class StdDeserializationContext
     }
 
     /*
-    //////////////////////////////////////////////////////////////
-    // Parsing methods that may use reusable/recyclable objects
-    //////////////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Parsing methods that may use reusable/recyclable objects
+    /**********************************************************
+     */
 
     @Override
     public Date parseDate(String dateStr)
@@ -148,9 +148,9 @@ public class StdDeserializationContext
         return c;
     }
     /*
-    ///////////////////////////////////////////////////
-    // Public API, problem handling, reporting
-    ///////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, problem handling, reporting
+    /**********************************************************
      */
 
     /**
@@ -264,9 +264,9 @@ public class StdDeserializationContext
     }
 
     /*
-    ///////////////////////////////////////////////////
-    // Overridable internal methods
-    ///////////////////////////////////////////////////
+    /**********************************************************
+    /* Overridable internal methods
+    /**********************************************************
      */
 
     protected DateFormat getDateFormat()
@@ -279,9 +279,9 @@ public class StdDeserializationContext
     }
 
     /*
-    ///////////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////////
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
      */
 
     protected String _valueDesc()

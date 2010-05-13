@@ -14,6 +14,10 @@ Description:
     getter/setter) is to be considered a property; similar to how
     @JsonSerialize/@JsonDeserialize/@JsonProperty are used.
   * [JACKSON-274] Undeprecated @JsonGetter and @JsonSetter.
+  * [JACKSON-289] Added "SerializationConfig.Feature.WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS"
+    to allow serializing char[]s as JSON Arrays with single-char-String values
+    (also fixed issues with deserializing the same on deserializer side)
+    (requested by Brian O)
   * [JACKSON-290] @JsonWriteNullProperties can be used with fields too;
     annotation itself is now deprecated (use JsonSerialize#include instead).
 
