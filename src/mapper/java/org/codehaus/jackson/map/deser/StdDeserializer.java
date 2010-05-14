@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
@@ -685,11 +687,33 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /*************************************************************
+    /**********************************************************
+    /* Atomic types (java.util.concurrent.atomic), [JACKSON-283]
+    /* 
+    /* note: AtomicInteger and AtomicLong work out of the box,
+    /* due to single-arg constructors
+    /**********************************************************
+     */
+
+    public final static class AtomicBooleanDeserializer
+        extends StdScalarDeserializer<AtomicBoolean>
+    {
+        public AtomicBooleanDeserializer() { super(AtomicBoolean.class); }
+        
+        @Override
+        public AtomicBoolean deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            return new AtomicBoolean(_parseBoolean(jp, ctxt));
+        }
+    }
+    
+    /*
+    /**********************************************************
     /* And then bit more complicated (but non-structured) number
     /* types
-    /*************************************************************
-    */
+    /**********************************************************
+     */
 
     public static class BigDecimalDeserializer
         extends StdScalarDeserializer<BigDecimal>

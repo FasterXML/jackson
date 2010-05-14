@@ -97,6 +97,8 @@ class StdDeserializers
 
         // Plus TokenBuffer is a core type since 1.5
         add(new StdDeserializer.TokenBufferDeserializer());
+        // [JACKSON-283] need to support atomic types, too
+        add(new StdDeserializer.AtomicBooleanDeserializer());
     }
 
     /**
