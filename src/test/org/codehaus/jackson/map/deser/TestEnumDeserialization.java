@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
@@ -8,9 +9,9 @@ public class TestEnumDeserialization
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////////////////
-    // Helper classes, enums
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper classes, enums
+    /**********************************************************
      */
 
     enum TestEnum { JACKSON, RULES, OK; }
@@ -32,10 +33,21 @@ public class TestEnumDeserialization
         }
     }
 
+    protected enum EnumWithCreator {
+        A, B;
+
+        @JsonCreator
+        public static EnumWithCreator fromEnum(String str) {
+            if ("enumA".equals(str)) return A;
+            if ("enumB".equals(str)) return B;
+            return null;
+        }
+    }
+    
     /*
-    //////////////////////////////////////////////////////////
-    // Tests
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Tests
+    /**********************************************************
      */
 
     public void testSimple() throws Exception
@@ -84,11 +96,19 @@ public class TestEnumDeserialization
         assertEquals(AnnotatedTestEnum.OK, e);
     }
 
-    // Test [WSTX-214]
+    // Test [JACKSON-214]
     public void testSubclassedEnums() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         EnumWithSubClass value = mapper.readValue("\"A\"", EnumWithSubClass.class);
         assertEquals(EnumWithSubClass.A, value);
+    }
+
+    // [JACKSON-193]
+    public void testCreatorEnums() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        EnumWithCreator value = mapper.readValue("\"enumA\"", EnumWithCreator.class);
+        assertEquals(EnumWithCreator.A, value);
     }
 }

@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.node.ObjectNode;
@@ -12,7 +13,7 @@ import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.type.JavaType;
 
 /**
- * Standard serializer used for all enum types.
+ * Standard serializer used for {@link java.lang.Enum} types.
  *<p>
  * Based on {@link ScalarSerializerBase} since the JSON value is
  * scalar (String).
@@ -34,11 +35,18 @@ public class EnumSerializer
         _values = v;
     }
 
+    @Deprecated
     public static EnumSerializer construct(Class<Enum<?>> enumClass, AnnotationIntrospector intr)
     {
         return new EnumSerializer(EnumValues.construct(enumClass, intr));
     }
 
+    public static EnumSerializer construct(Class<Enum<?>> enumClass, SerializationConfig config,
+            BasicBeanDescription beanDesc)
+    {
+        return construct(enumClass, config.getAnnotationIntrospector());
+    }
+    
     @Override
     public void serialize(Enum<?> en, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException

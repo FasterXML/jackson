@@ -31,7 +31,7 @@ public final class JsonValueSerializer
     extends SerializerBase<Object>
     implements ResolvableSerializer, SchemaAware
 {
-    final Method _accessorMethod;
+    protected final Method _accessorMethod;
 
     protected JsonSerializer<Object> _valueSerializer;
     

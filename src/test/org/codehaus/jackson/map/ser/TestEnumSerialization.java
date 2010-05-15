@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.ser;
 import java.io.*;
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.ser.ToStringSerializer;
@@ -15,9 +16,9 @@ public class TestEnumSerialization
     extends BaseMapTest
 {
     /*
-    ///////////////////////////////////////////////////
-    // Helper enums
-    ///////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper enums
+    /**********************************************************
      */
 
     /**
@@ -41,10 +42,21 @@ public class TestEnumSerialization
         @Override public String toString() { return name().toLowerCase(); }
     }
 
+    protected enum EnumWithJsonValue {
+        A("foo"), B("bar");
+        private final String name;
+        private EnumWithJsonValue(String n) {
+            name = n;
+        }
+        @JsonValue
+        @Override
+        public String toString() { return name; }
+    }
+
     /*
-    ///////////////////////////////////////////////////
-    // Tests
-    ///////////////////////////////////////////////////
+    /**********************************************************
+    /* Tests
+    /**********************************************************
      */
 
     public void testSimple() throws Exception
@@ -111,10 +123,17 @@ public class TestEnumSerialization
         assertEquals("\"a\"", sw.toString());
     }
 
-    // Test [WSTX-214]
+    // Test [JACKSON-214]
     public void testSubclassedEnums() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         assertEquals("\"B\"", mapper.writeValueAsString(EnumWithSubClass.B));
+    }
+
+    // [JACKSON-193]
+    public void testEnumsWithJsonValue() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals("\"bar\"", mapper.writeValueAsString(EnumWithJsonValue.B));
     }
 }

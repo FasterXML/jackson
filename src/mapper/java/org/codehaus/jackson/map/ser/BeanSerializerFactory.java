@@ -137,15 +137,6 @@ public class BeanSerializerFactory
         if (!isPotentialBeanType(type.getRawClass())) {
             return null;
         }
-        // [JACKSON-80]: Support @JsonValue, alternative to bean method introspection.
-        AnnotatedMethod valueMethod = beanDesc.findJsonValueMethod();
-        if (valueMethod != null) {
-            /* Further, method itself may also be annotated to indicate
-             * exact JsonSerializer to use for whatever value is returned...
-             */
-            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, valueMethod);
-            return new JsonValueSerializer(valueMethod.getAnnotated(), ser);
-        }
         return constructBeanSerializer(config, beanDesc);
     }
 

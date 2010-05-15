@@ -8,6 +8,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
@@ -392,13 +393,21 @@ public class BasicSerializerFactory
             }
             return buildCollectionSerializer(type, config, beanDesc);
         }
+        // [JACKSON-193]: consider @JsonValue for enum types (and basically any type), so:
+        AnnotatedMethod valueMethod = beanDesc.findJsonValueMethod();
+        if (valueMethod != null) {
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, valueMethod);
+            return new JsonValueSerializer(valueMethod.getAnnotated(), ser);
+            
+        }
+        
         if (Number.class.isAssignableFrom(cls)) {
             return StdSerializers.NumberSerializer.instance;
         }
         if (Enum.class.isAssignableFrom(cls)) {
             @SuppressWarnings("unchecked")
             Class<Enum<?>> enumClass = (Class<Enum<?>>) cls;
-            return EnumSerializer.construct(enumClass, config.getAnnotationIntrospector());
+            return EnumSerializer.construct(enumClass, config, beanDesc);
         }
         if (Calendar.class.isAssignableFrom(cls)) {
             return StdSerializers.CalendarSerializer.instance;
