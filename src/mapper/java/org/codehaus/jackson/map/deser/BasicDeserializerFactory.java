@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
@@ -312,7 +313,8 @@ public abstract class BasicDeserializerFactory
                 int argCount = factory.getParameterCount();
                 if (argCount == 1) {
                     Class<?> returnType = factory.getRawType();
-                    if (returnType == enumClass) {
+                    // usually should be class, but may be just plain Enum<?> (for Enum.valueOf()?)
+                    if (returnType.isAssignableFrom(enumClass)) {
                         return EnumDeserializer.deserializerForCreator(config, enumClass, factory);
                     }
                 }
@@ -330,11 +332,22 @@ public abstract class BasicDeserializerFactory
         return JsonNodeDeserializer.getDeserializer(nodeClass);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        return _simpleDeserializers.get(type);
+        JsonDeserializer<Object> deser = _simpleDeserializers.get(type);
+        if (deser != null) {
+            return deser;
+        }
+        // [JACKSON-283]: AtomicReference is a rather special type...
+        Class<?> cls = type.getRawClass();
+        if (AtomicReference.class.isAssignableFrom(cls)) {
+            JsonDeserializer<?> d2 = new StdDeserializer.AtomicReferenceDeserializer(type);
+            return (JsonDeserializer<Object>)d2;
+        }
+        return null;
     }
 
     @Override

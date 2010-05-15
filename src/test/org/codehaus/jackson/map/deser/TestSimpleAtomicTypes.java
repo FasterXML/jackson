@@ -31,12 +31,12 @@ public class TestSimpleAtomicTypes
     public void testAtomicReference() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        AtomicReference<int[]> value = mapper.readValue("[1,2]",
-                new org.codehaus.jackson.type.TypeReference<AtomicReference<int[]>>() { });
-        int[] ints = value.get();
-        assertNotNull(ints);
-        assertEquals(2, ints.length);
-        assertEquals(1, ints[0]);
-        assertEquals(2, ints[1]);
+        AtomicReference<long[]> value = mapper.readValue("[1,2]",
+                new org.codehaus.jackson.type.TypeReference<AtomicReference<long[]>>() { });
+        long[] longs = value.get();
+        assertNotNull(longs);
+        assertEquals(2, longs.length);
+        assertEquals(1, longs[0]);
+        assertEquals(2, longs[1]);
     }
 }

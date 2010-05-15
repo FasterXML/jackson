@@ -11,6 +11,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
 
@@ -303,8 +304,7 @@ public abstract class StdDeserializer<T>
                                                         Map<JavaType, JsonDeserializer<Object>> seen)
         throws JsonMappingException
     {
-        JsonDeserializer<Object> deser = (seen == null) ?
-            null : seen.get(type);
+        JsonDeserializer<Object> deser = (seen == null) ? null : seen.get(type);
         if (deser == null) {
             deser = provider.findValueDeserializer(config, type, getValueType(), propertyName);
             if (seen != null) {
@@ -705,6 +705,45 @@ public abstract class StdDeserializer<T>
             throws IOException, JsonProcessingException
         {
             return new AtomicBoolean(_parseBoolean(jp, ctxt));
+        }
+    }
+
+    public static class AtomicReferenceDeserializer
+        extends StdScalarDeserializer<AtomicReference<?>>
+        implements ResolvableDeserializer
+    {
+        /**
+         * Type of value that we reference
+         */
+        protected final JavaType _referencedType;
+
+        protected JsonDeserializer<?> _valueDeserializer;
+        
+        /**
+         * @param type AtomicReference deserializer is to be constructed for
+         */
+        public AtomicReferenceDeserializer(JavaType type)
+        {
+            super(type.getRawClass());
+            JavaType refType = type.containedType(0);
+            if (refType == null) { // untyped... assume Object
+                refType = TypeFactory.type(Object.class);
+            }
+            _referencedType = refType;
+        }
+
+        @Override
+        public AtomicReference<?> deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            return new AtomicReference<Object>(_valueDeserializer.deserialize(jp, ctxt));
+        }
+
+        @Override
+        public void resolve(DeserializationConfig config, DeserializerProvider provider)
+            throws JsonMappingException
+        {
+            _valueDeserializer = provider.findValueDeserializer(config, _referencedType, getValueType(), "");
         }
     }
     

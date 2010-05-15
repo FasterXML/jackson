@@ -12,9 +12,9 @@ public abstract class DeserializerProvider
     protected DeserializerProvider() { }
 
     /*
-    //////////////////////////////////////////////////////
-    // General deserializer locating method
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* General deserializer locating method
+    /**********************************************************
      */
 
     /**
@@ -78,9 +78,9 @@ public abstract class DeserializerProvider
     public abstract boolean hasValueDeserializerFor(DeserializationConfig config, JavaType type);
 
     /*
-    //////////////////////////////////////////////////////
-    // Access to caching aspects
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Access to caching aspects
+    /**********************************************************
      */
 
     /**

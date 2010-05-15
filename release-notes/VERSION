@@ -17,6 +17,7 @@ Description:
     getter/setter) is to be considered a property; similar to how
     @JsonSerialize/@JsonDeserialize/@JsonProperty are used.
   * [JACKSON-274] Un-deprecated @JsonGetter and @JsonSetter.
+  * [JACKSON-283] JDK atomic types (java.util.concurrent.atomic) supported
   * [JACKSON-289] Added "SerializationConfig.Feature.WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS"
     to allow serializing char[]s as JSON Arrays with single-char-String values
     (also fixed issues with deserializing the same on deserializer side)
