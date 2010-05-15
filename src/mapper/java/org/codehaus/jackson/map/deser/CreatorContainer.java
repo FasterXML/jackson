@@ -29,10 +29,10 @@ public class CreatorContainer
     }
 
     /*
-    /////////////////////////////////////////////////////////
-    // Setters
-    /////////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Setters
+    /**********************************************************
+     */
 
     public void addStringConstructor(AnnotatedConstructor ctor) {
         _strConstructor = verifyNonDup(ctor, _strConstructor, "String");
@@ -75,10 +75,10 @@ public class CreatorContainer
     }
 
     /*
-    /////////////////////////////////////////////////////////
-    // Accessors
-    /////////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Accessors
+    /**********************************************************
+     */
 
     public Creator.StringBased stringCreator()
     {
@@ -116,10 +116,10 @@ public class CreatorContainer
     }
 
     /*
-/////////////////////////////////////////////////////////
-// Helper methods
-/////////////////////////////////////////////////////////
-*/
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
+     */
 
     protected AnnotatedConstructor verifyNonDup(AnnotatedConstructor newOne, AnnotatedConstructor oldOne,
                                                 String type)

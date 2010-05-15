@@ -53,6 +53,10 @@ public class TestEnumSerialization
         public String toString() { return name; }
     }
 
+    protected static interface ToStringMixin {
+        @JsonValue public String toString();
+    }
+    
     /*
     /**********************************************************
     /* Tests
@@ -135,5 +139,13 @@ public class TestEnumSerialization
     {
         ObjectMapper mapper = new ObjectMapper();
         assertEquals("\"bar\"", mapper.writeValueAsString(EnumWithJsonValue.B));
+    }
+
+    // also, for [JACKSON-193], needs to work via mix-ins
+    public void testEnumsWithJsonValueUsingMixin() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().addMixInAnnotations(TestEnum.class, ToStringMixin.class);
+        assertEquals("\"b\"", mapper.writeValueAsString(TestEnum.B));
     }
 }

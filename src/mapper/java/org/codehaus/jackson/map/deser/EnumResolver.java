@@ -23,6 +23,10 @@ public final class EnumResolver<T extends Enum<T>>
         _enumsById = map;
     }
 
+    /**
+     * Factory method for constructing resolver that maps from Enum.name() into
+     * Enum value
+     */
     public static <ET extends Enum<ET>> EnumResolver<ET> constructFor(Class<ET> enumCls, AnnotationIntrospector ai)
     {
         ET[] enumValues = enumCls.getEnumConstants();
@@ -33,6 +37,24 @@ public final class EnumResolver<T extends Enum<T>>
         return new EnumResolver<ET>(enumCls, enumValues, map);
     }
 
+    /**
+     * Factory method for constructing resolver that maps from Enum.toString() into
+     * Enum value
+     * 
+     * @since 1.6
+     */
+    public static <ET extends Enum<ET>> EnumResolver<ET> constructUsingToString(Class<ET> enumCls)
+    {
+        ET[] enumValues = enumCls.getEnumConstants();
+        HashMap<String, ET> map = new HashMap<String, ET>();
+        // from last to first, so that in case of duplicate values, first wins
+        for (int i = enumValues.length; --i >= 0; ) {
+            ET e = enumValues[i];
+            map.put(e.toString(), e);
+        }
+        return new EnumResolver<ET>(enumCls, enumValues, map);
+    }    
+    
     /**
      * This method is needed because of the dynamic nature of constructing Enum
      * resolvers.
@@ -45,6 +67,20 @@ public final class EnumResolver<T extends Enum<T>>
          */
         Class<Enum> enumCls = (Class<Enum>) rawEnumCls;
         return constructFor(enumCls, ai);
+    }
+
+    /**
+     * Method that needs to be used instead of {@link #constructUsingToString}
+     * if static type of enum is not known.
+     * 
+     * @since 1.6
+     */
+    @SuppressWarnings("unchecked")
+    public static EnumResolver<?> constructUnsafeUsingToString(Class<?> rawEnumCls)
+    {            
+        // oh so wrong... not much that can be done tho
+        Class<Enum> enumCls = (Class<Enum>) rawEnumCls;
+        return constructUsingToString(enumCls);
     }
     
     public T findEnum(String key)

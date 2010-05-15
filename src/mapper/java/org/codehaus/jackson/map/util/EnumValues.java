@@ -4,6 +4,10 @@ import java.util.*;
 
 import org.codehaus.jackson.map.*;
 
+/**
+ * Helper class used for storing String serializations of
+ * enumerations.
+ */
 public final class EnumValues
 {
     private final EnumMap<?,String> _values;

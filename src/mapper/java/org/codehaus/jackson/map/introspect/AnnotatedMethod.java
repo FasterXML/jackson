@@ -48,6 +48,11 @@ public final class AnnotatedMethod
         return _method.getGenericReturnType();
     }
 
+    /**
+     * For methods, this returns declared return type, which is only
+     * useful with getters (setters do not return anything; hence "void"
+     * type is returned here)
+     */
     public Class<?> getRawType() {
         return _method.getReturnType();
     }
@@ -121,4 +126,3 @@ public final class AnnotatedMethod
         return "[method "+getName()+", annotations: "+_annotations+"]";
     }
 }
-

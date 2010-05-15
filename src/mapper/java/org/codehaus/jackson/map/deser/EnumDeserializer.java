@@ -1,12 +1,17 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.annotate.JsonCachable;
+import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Deserializer class that can deserialize instances of
@@ -28,10 +33,32 @@ public class EnumDeserializer
         _resolver = res;
     }
 
+    /**
+     * Factory method used when Enum instances are to be deserialized
+     * using a creator (static factory method)
+     * 
+     * @return Deserializer based on given factory method, if type was suitable;
+     *  null if type can not be used
+     * 
+     * @since 1.6
+     */
+    public static JsonDeserializer<?> deserializerForCreator(DeserializationConfig config,
+            Class<?> enumClass, AnnotatedMethod factory)
+    {
+        // note: caller has verified there's just one arg; but we must verify its type
+        if (factory.getParameterType(0) != String.class) {
+            throw new IllegalArgumentException("Parameter #0 type for factory method ("+factory+") not suitable, must be java.lang.String");
+        }
+        if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+            ClassUtil.checkAndFixAccess(factory.getMember());
+        }
+        return new FactoryBasedDeserializer(enumClass, factory);
+    }
+    
     /*
-    /////////////////////////////////////////////////////////
-    // JsonDeserializer implementation
-    /////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Default JsonDeserializer implementation
+    /**********************************************************
      */
 
     public Enum<?> deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -58,5 +85,47 @@ public class EnumDeserializer
             return result;
         }
         throw ctxt.mappingException(_resolver.getEnumClass());
+    }
+
+    /*
+    /**********************************************************
+    /* Default JsonDeserializer implementation
+    /**********************************************************
+     */
+
+    /**
+     * Deserializer that uses a single-String static factory method
+     * for locating Enum values by String id.
+     */
+    protected static class FactoryBasedDeserializer
+        extends StdScalarDeserializer<Object>
+    {
+        protected final Class<?> _enumClass;
+        protected final Method _factory;
+        
+        public FactoryBasedDeserializer(Class<?> cls, AnnotatedMethod f)
+        {
+            super(Enum.class);
+            _enumClass = cls;
+            _factory = f.getAnnotated();
+        }
+
+        public Object deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            JsonToken curr = jp.getCurrentToken();
+            
+            // Usually should just get string value:
+            if (curr != JsonToken.VALUE_STRING) {
+                throw ctxt.mappingException(_enumClass);
+            }
+            String value = jp.getText();
+            try {
+                return _factory.invoke(_enumClass, value);
+            } catch (Exception e) {
+                ClassUtil.unwrapAndThrowAsIAE(e);
+            }
+            return null;
+        }
     }
 }

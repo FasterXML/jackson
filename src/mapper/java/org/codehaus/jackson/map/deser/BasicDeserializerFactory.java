@@ -301,13 +301,26 @@ public abstract class BasicDeserializerFactory
         /* 18-Feb-2009, tatu: Must first check if we have a class annotation
          *    that should override default deserializer
          */
-        BasicBeanDescription beanDesc = config.introspectClassAnnotations(enumClass);
-        JsonDeserializer<Object> des = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
+        BasicBeanDescription beanDesc = config.introspectForCreation(enumClass);
+        JsonDeserializer<?> des = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
         if (des != null) {
             return des;
         }
-        JsonDeserializer<?> d2 = new EnumDeserializer(EnumResolver.constructUnsafe(enumClass, config.getAnnotationIntrospector()));
-        return (JsonDeserializer<Object>) d2;
+        // [JACKSON-193] May have @JsonCreator for static factory method:
+        for (AnnotatedMethod factory : beanDesc.getFactoryMethods()) {
+            if (config.getAnnotationIntrospector().hasCreatorAnnotation(factory)) {
+                int argCount = factory.getParameterCount();
+                if (argCount == 1) {
+                    Class<?> returnType = factory.getRawType();
+                    if (returnType == enumClass) {
+                        return EnumDeserializer.deserializerForCreator(config, enumClass, factory);
+                    }
+                }
+                throw new IllegalArgumentException("Unsuitable method ("+factory+") decorated with @JsonCreator (for Enum type "
+                        +enumClass.getName()+")");
+            }
+        }
+        return new EnumDeserializer(EnumResolver.constructUnsafe(enumClass, config.getAnnotationIntrospector()));
     }
 
     @Override
