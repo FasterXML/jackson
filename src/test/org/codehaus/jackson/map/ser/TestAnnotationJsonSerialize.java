@@ -2,8 +2,10 @@ package org.codehaus.jackson.map.ser;
 
 import org.codehaus.jackson.map.BaseMapTest;
 
+import java.io.IOException;
 import java.util.*;
 
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -16,9 +18,9 @@ public class TestAnnotationJsonSerialize
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes
+    /**********************************************************
      */
 
     interface ValueInterface {
@@ -85,10 +87,47 @@ public class TestAnnotationJsonSerialize
     @SuppressWarnings("serial")
     static class ValueLinkedList extends LinkedList<ValueInterface> { }
     
+    // Classes for [JACKSON-294]
+    @SuppressWarnings("unused")
+    static class Foo294
+    {
+        @JsonProperty private String id;
+        @JsonSerialize(using = Bar294Serializer.class)
+        private Bar294 bar;
+
+        public Foo294() { }
+        public Foo294(String id, String id2) {
+            this.id = id;
+            bar = new Bar294(id2);
+        }
+    }
+
+    static class Bar294{
+        @JsonProperty private String id;
+        @JsonProperty private String name;
+
+        public Bar294() { }
+        public Bar294(String id) {
+            this.id = id;
+        }
+
+        public String getId() { return id; }
+        public String getName() { return name; }
+    }
+
+    static class Bar294Serializer extends JsonSerializer<Bar294>
+    {
+        public void serialize(Bar294 bar, JsonGenerator jgen,
+            SerializerProvider provider) throws IOException
+        {
+            jgen.writeString(bar.id);
+        }
+    }
+
     /*
-    //////////////////////////////////////////////
-    // Main tests
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Main tests
+    /**********************************************************
      */
 
     @SuppressWarnings("unchecked")
@@ -181,6 +220,12 @@ public class TestAnnotationJsonSerialize
         m.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
         ValueInterface[] array = new ValueInterface[] { new ValueClass() };
         assertEquals("[{\"x\":3}]", serializeAsString(m, array));
+    }
+
+    public void testProblem294() throws Exception
+    {
+        assertEquals("{\"id\":\"fooId\",\"bar\":\"barId\"}",
+                new ObjectMapper().writeValueAsString(new Foo294("fooId", "barId")));
     }
     
 }
