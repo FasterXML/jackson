@@ -15,6 +15,9 @@ Description:
 
   * [JACKSON-284]: Reduce scope of sync block in
     SerializerCache.getReadOnlyLookupMap()
+  * Partial fix for [JACKSON-289]: allow JSON Array with single-character
+    Strings to be bound to char[] during deserialization
+   (suggested by Brian O)
 
 ------------------------------------------------------------------------
 == History: ==

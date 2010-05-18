@@ -90,9 +90,9 @@ public class ArrayDeserializers
     }
     
     /*
-    /////////////////////////////////////////////////////////////
-    // Actual deserializers: efficient String[], char[] deserializers
-    /////////////////////////////////////////////////////////////
+    /********************************************************
+    /* Actual deserializers: efficient String[], char[] deserializers
+    /********************************************************
     */
 
     final static class StringDeser
@@ -139,24 +139,52 @@ public class ArrayDeserializers
              * convert other tokens to Strings... but let's not bother
              * yet, doesn't seem to make sense)
              */
-            if (jp.getCurrentToken() != JsonToken.VALUE_STRING) {
-                throw ctxt.mappingException(_valueClass);
+            JsonToken t = jp.getCurrentToken();
+            if (t == JsonToken.VALUE_STRING) {
+                // note: can NOT return shared internal buffer, must copy:
+                char[] buffer = jp.getTextCharacters();
+                int offset = jp.getTextOffset();
+                int len = jp.getTextLength();
+    
+                char[] result = new char[len];
+                System.arraycopy(buffer, offset, result, 0, len);
+                return result;
             }
-            // note: can NOT return shared internal buffer, must copy:
-            char[] buffer = jp.getTextCharacters();
-            int offset = jp.getTextOffset();
-            int len = jp.getTextLength();
-
-            char[] result = new char[len];
-            System.arraycopy(buffer, offset, result, 0, len);
-            return result;
+            if (t == JsonToken.START_ARRAY) {
+                // Let's actually build as a String, then get chars
+                StringBuilder sb = new StringBuilder(64);
+                while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
+                    if (t != JsonToken.VALUE_STRING) {
+                        throw ctxt.mappingException(Character.TYPE);
+                    }
+                    String str = jp.getText();
+                    if (str.length() != 1) {
+                        throw JsonMappingException.from(jp, "Can not convert a JSON String of length "+str.length()+" into a char element of char array");
+                    }
+                    sb.append(str.charAt(0));
+                }
+                return sb.toString().toCharArray();
+            }
+            // or, maybe an embedded object?
+            if (t == JsonToken.VALUE_EMBEDDED_OBJECT) {
+                Object ob = jp.getEmbeddedObject();
+                if (ob == null) return null;
+                if (ob instanceof char[]) {
+                    return (char[]) ob;
+                }
+                if (ob instanceof String) {
+                    return ((String) ob).toCharArray();
+                }
+                // not recognized, just fall through
+            }
+            throw ctxt.mappingException(_valueClass);
         }
     }
 
     /*
-    /////////////////////////////////////////////////////////////
-    // Actual deserializers: primivate array desers
-    /////////////////////////////////////////////////////////////
+    /********************************************************
+    /* Actual deserializers: primivate array desers
+    /********************************************************
     */
 
     final static class BooleanDeser
