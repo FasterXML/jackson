@@ -8,6 +8,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-265] Problems with generic wildcard type, type info.
+   (reported by Fabrice D)
+
   Improvements:
 
   * [JACKSON-193] @JsonCreator-annotated factory methods and @JsonValue annotated
@@ -32,8 +35,6 @@ Description:
   * [JACKSON-264] Ability to "update" values; to read and bind JSON
     content as properties of existing beans. This is done by using
     "ObjectMapper.updatingReader()" (and "reader.readValue(source)")
-  * [JACKSON-265] Problems with generic wildcard type, type info.
-   (reported by Fabrice D)
   * [JACKSON-267] Allow unquoted field names to start with '@' in
     (when unquoted name support is enabled, to support polymorphic
     typing (which defaults to property names like "@class").
