@@ -284,12 +284,18 @@ public class StdDeserializerProvider
          * handle cyclic references, and possibly reuse non-cached
          * deserializers (list, map))
          */
-        _incompleteDeserializers.put(type, deser);
+        /* 07-Jun-2010, tatu: Danger: [JACKSON-296] was caused by accidental
+         *   resolution of a reference -- couple of ways to prevent this;
+         *   either not add Lists or Maps, or clear references eagerly.
+         *   Let's actually do both; since both seem reasonable.
+         */
         /* Need to resolve? Mostly done for bean deserializers; required for
          * resolving cyclic references.
          */
         if (isResolvable) {
+            _incompleteDeserializers.put(type, deser);
             _resolveDeserializer(config, (ResolvableDeserializer)deser);
+            _incompleteDeserializers.remove(type);
         }
         if (addToCache) {
             _cachedDeserializers.put(type, deser);

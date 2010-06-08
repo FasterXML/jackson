@@ -240,7 +240,6 @@ public class BeanDeserializer
          *   types cost is much lower so we can drop caching
          */
         HashMap<JavaType, JsonDeserializer<Object>> seen = new HashMap<JavaType, JsonDeserializer<Object>>();
-
         for (SettableBeanProperty prop : _props.values()) {
             // May already have deserializer from annotations, if so, skip:
             if (!prop.hasValueDeserializer()) {

@@ -32,7 +32,7 @@ public class TestJaxbPolymorphicLists
          public List<Animal> animals;
 
          @XmlElements({
-             @XmlElement(type=Buffalo.class, name="beefalot")
+             @XmlElement(type=Whale.class, name="whale")
          })
 		 public List<Animal> critters;
 
