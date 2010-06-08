@@ -1222,20 +1222,20 @@ public class SmileGenerator
             if ((_outputTail + 8) >= _outputEnd) {
                 _flushBuffer();
             }
-            int i = data[offset++] & 0xFF; // 1st byte
-            _outputBuffer[_outputTail++] = (byte) (i >> 1);
-            i = ((i & 0x01) << 8) | (data[offset++] & 0xFF); // 2nd
-            _outputBuffer[_outputTail++] = (byte) (i >> 2);
-            i = ((i & 0x03) << 8) | (data[offset++] & 0xFF); // 3rd
-            _outputBuffer[_outputTail++] = (byte) (i >> 3);
-            i = ((i & 0x07) << 8) | (data[offset++] & 0xFF); // 4th
-            _outputBuffer[_outputTail++] = (byte) (i >> 4);
-            i = ((i & 0x0F) << 8) | (data[offset++] & 0xFF); // 5th
-            _outputBuffer[_outputTail++] = (byte) (i >> 5);
-            i = ((i & 0x1F) << 8) | (data[offset++] & 0xFF); // 6th
-            _outputBuffer[_outputTail++] = (byte) (i >> 6);
-            i = ((i & 0x3F) << 8) | (data[offset++] & 0xFF); // 7th
-            _outputBuffer[_outputTail++] = (byte) (i >> 7);
+            int i = data[offset++]; // 1st byte
+            _outputBuffer[_outputTail++] = (byte) ((i >> 1) & 0x7F);
+            i = (i << 8) | (data[offset++] & 0xFF); // 2nd
+            _outputBuffer[_outputTail++] = (byte) ((i >> 2) & 0x7F);
+            i = (i << 8) | (data[offset++] & 0xFF); // 3rd
+            _outputBuffer[_outputTail++] = (byte) ((i >> 3) & 0x7F);
+            i = (i << 8) | (data[offset++] & 0xFF); // 4th
+            _outputBuffer[_outputTail++] = (byte) ((i >> 4) & 0x7F);
+            i = (i << 8) | (data[offset++] & 0xFF); // 5th
+            _outputBuffer[_outputTail++] = (byte) ((i >> 5) & 0x7F);
+            i = (i << 8) | (data[offset++] & 0xFF); // 6th
+            _outputBuffer[_outputTail++] = (byte) ((i >> 6) & 0x7F);
+            i = (i << 8) | (data[offset++] & 0xFF); // 7th
+            _outputBuffer[_outputTail++] = (byte) ((i >> 7) & 0x7F);
             _outputBuffer[_outputTail++] = (byte) (i & 0x7F);
             
             offset += 7;
@@ -1247,23 +1247,23 @@ public class SmileGenerator
             if ((_outputTail + 7) >= _outputEnd) {
                 _flushBuffer();
             }
-            int i = data[offset++] & 0xFF;
-            _outputBuffer[_outputTail++] = (byte) (i >> 1);
+            int i = data[offset++];
+            _outputBuffer[_outputTail++] = (byte) ((i >> 1) & 0x7F);
             if (len > 1) {
                 i = ((i & 0x01) << 8) | (data[offset++] & 0xFF); // 2nd
-                _outputBuffer[_outputTail++] = (byte) (i >> 2);
+                _outputBuffer[_outputTail++] = (byte) ((i >> 2) & 0x7F);
                 if (len > 2) {
                     i = ((i & 0x03) << 8) | (data[offset++] & 0xFF); // 3rd
-                    _outputBuffer[_outputTail++] = (byte) (i >> 3);
+                    _outputBuffer[_outputTail++] = (byte) ((i >> 3) & 0x7F);
                     if (len > 3) {
                         i = ((i & 0x07) << 8) | (data[offset++] & 0xFF); // 4th
-                        _outputBuffer[_outputTail++] = (byte) (i >> 4);
+                        _outputBuffer[_outputTail++] = (byte) ((i >> 4) & 0x7F);
                         if (len > 4) {
                             i = ((i & 0x0F) << 8) | (data[offset++] & 0xFF); // 5th
-                            _outputBuffer[_outputTail++] = (byte) (i >> 5);
+                            _outputBuffer[_outputTail++] = (byte) ((i >> 5) & 0x7F);
                             if (len > 5) {
                                 i = ((i & 0x1F) << 8) | (data[offset++] & 0xFF); // 6th
-                                _outputBuffer[_outputTail++] = (byte) (i >> 6);
+                                _outputBuffer[_outputTail++] = (byte) ((i >> 6) & 0x7F);
                                 _outputBuffer[_outputTail++] = (byte) (i & 0x3F); // last 6 bits
                             } else {
                                 _outputBuffer[_outputTail++] = (byte) (i & 0x1F); // last 5 bits                                

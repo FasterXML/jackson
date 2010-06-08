@@ -31,6 +31,13 @@ public abstract class JsonSerializer<T>
      * Default implementation will ignore serialization of type information,
      * and just calls {@link #serialize}: serializers that can embed
      * type information should override this to implement actual handling.
+     * Most common such handling is done by something like:
+     *<pre>
+     *  // note: method to call depends on whether this type is serialized as JSON scalar, object or Array!
+     *  typeSer.writeTypePrefixForScalar(value, jgen);
+     *  serialize(value, jgen, provider);
+     *  typeSer.writeTypeSuffixForScalar(value, jgen);
+     *</pre>
      *
      * @param value Value to serialize; can <b>not</b> be null.
      * @param jgen Generator used to output resulting Json content
@@ -48,9 +55,9 @@ public abstract class JsonSerializer<T>
     }
     
     /*
-    ************************************************************
+    /**********************************************************
     * Introspection methods needed for type handling 
-    ************************************************************
+    /**********************************************************
      */
     
     /**
@@ -63,9 +70,9 @@ public abstract class JsonSerializer<T>
     public Class<T> handledType() { return null; }
     
     /*
-    //////////////////////////////////////////////////////
-    // Helper class(es)
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper class(es)
+    /**********************************************************
      */
 
     /**

@@ -41,6 +41,9 @@ public class TestJsonNode
         // path is never null; but does point to missing node
         assertNotNull(n.path("xyz"));
         assertTrue(n.path("xyz").isMissingNode());
+
+        assertFalse(n.has("field"));
+        assertFalse(n.has(3));
     }
 
     public void testText()

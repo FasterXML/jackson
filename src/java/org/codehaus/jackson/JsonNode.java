@@ -32,9 +32,9 @@ public abstract class JsonNode
     protected JsonNode() { }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, type introspection
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, type introspection
+    /**********************************************************
      */
 
     // // First high-level division between values, containers and "missing"
@@ -172,9 +172,9 @@ public abstract class JsonNode
     public abstract JsonParser.NumberType getNumberType();
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, value access
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, value access
+    /**********************************************************
      */
 
     /**
@@ -204,6 +204,14 @@ public abstract class JsonNode
         return null;
     }
 
+    /**
+     * Method to use for accessing JSON boolean values (value
+     * literals 'true' and 'false').
+     * For other types, always returns false.
+     *
+     * @return Textual value this node contains, iff it is a textual
+     *   json node (comes from Json String value entry)
+     */
     public boolean getBooleanValue() { return false; }
 
     /**
@@ -216,7 +224,18 @@ public abstract class JsonNode
      */
     public Number getNumberValue() { return null; }
 
+    /**
+     * Returns integer value for this node, <b>if and only if</b>
+     * this node is numeric ({@link #isNumber} returns true). For other
+     * types returns 0.
+     * For floating-point numbers, value is truncated using default
+     * Java coercion, similar to how cast from double to int operates.
+     *
+     * @return Integer value this node contains, if any; 0 for non-number
+     *   nodes.
+     */
     public int getIntValue() { return 0; }
+
     public long getLongValue() { return 0L; }
     public double getDoubleValue() { return 0.0; }
     public BigDecimal getDecimalValue() { return BigDecimal.ZERO; }
@@ -253,23 +272,6 @@ public abstract class JsonNode
     public JsonNode get(String fieldName) { return null; }
 
     /**
-     * Alias for {@link #get(String)}.
-     *
-     * @deprecated Use {@link #get(String)} instead.
-     */
-    @Deprecated
-	public final JsonNode getFieldValue(String fieldName) { return get(fieldName); }
-
-    /**
-     * Alias for {@link #get(int)}.
-     *
-     * @deprecated Use {@link #get(int)} instead.
-     */
-    @Deprecated
-	public final JsonNode getElementValue(int index) { return get(index); }
-
-
-    /**
      * Method that will return valid String representation of
      * the container value, if the node is a value node
      * (method {@link #isValueNode} returns true), otherwise null.
@@ -279,10 +281,80 @@ public abstract class JsonNode
      */
     public abstract String getValueAsText();
 
+    /**
+     * Method that allows checking whether this node is JSON Object node
+     * and contains value for specified property. If this is the case
+     * (including properties with explicit null values), returns true;
+     * otherwise returns false.
+     *<p>
+     * This method is equivalent to:
+     *<pre>
+     *   node.get(fieldName) != null
+     *</pre>
+     * (since return value of get() is node, not value node contains)
+     *
+     * @param fieldName Name of element to check
+     * 
+     * @return True if this node is a JSON Object node, and has a property
+     *   entry with specified name (with any value, including null value)
+     *   
+     * @since 1.6
+     */
+    public boolean has(String fieldName) {
+        return get(fieldName) != null;
+    }
+
+    /**
+     * Method that allows checking whether this node is JSON Array node
+     * and contains a value for specified index
+     * If this is the case
+     * (including case of specified indexing having null as value), returns true;
+     * otherwise returns false.
+     *<p>
+     * Note: array element indexes are 0-based.
+     *<p>
+     * This method is equivalent to:
+     *<pre>
+     *   node.get(index) != null
+     *</pre>
+     *
+     * @param index Index to check
+     * 
+     * @return True if this node is a JSON Object node, and has a property
+     *   entry with specified name (with any value, including null value)
+     *   
+     * @since 1.6
+     */
+    public boolean has(int index) {
+        return get(index) != null;
+    }
+
     /*
-    ////////////////////////////////////////////////////
-    // Public API, container access
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, deprecated accessor
+    /**********************************************************
+     */
+    
+    /**
+     * Alias for {@link #get(String)}.
+     *
+     * @deprecated Use {@link #get(String)} instead.
+     */
+    @Deprecated
+    public final JsonNode getFieldValue(String fieldName) { return get(fieldName); }
+
+    /**
+     * Alias for {@link #get(int)}.
+     *
+     * @deprecated Use {@link #get(int)} instead.
+     */
+    @Deprecated
+    public final JsonNode getElementValue(int index) { return get(index); }
+
+    /*
+    /**********************************************************
+    /* Public API, container access
+    /**********************************************************
      */
 
     /**
@@ -317,9 +389,9 @@ public abstract class JsonNode
     public Iterator<String> getFieldNames() { return NO_STRINGS.iterator(); }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, path handling
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, path handling
+    /**********************************************************
      */
 
     /**
@@ -360,9 +432,9 @@ public abstract class JsonNode
     public final JsonNode getPath(int index) { return path(index); }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, serialization
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, serialization
+    /**********************************************************
      */
 
     /**
@@ -377,9 +449,9 @@ public abstract class JsonNode
         throws IOException, JsonGenerationException;
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API: converting to/from Streaming API
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API: converting to/from Streaming API
+    /**********************************************************
      */
 
 
@@ -394,9 +466,9 @@ public abstract class JsonNode
     public abstract JsonParser traverse();
 
     /*
-    ////////////////////////////////////////////////////
-    // Overridden standard methods
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Overridden standard methods
+    /**********************************************************
      */
     
     /**

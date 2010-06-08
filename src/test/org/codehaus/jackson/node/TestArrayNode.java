@@ -29,6 +29,11 @@ public class TestArrayNode
         assertTrue(n.path("x").isMissingNode());
         assertSame(text, n.get(0));
 
+        // single element, so:
+        assertFalse(n.has("field"));
+        assertTrue(n.has(0));
+        assertFalse(n.has(1));
+        
         // add null node too
         n.add((JsonNode) null);
         assertEquals(2, n.size());

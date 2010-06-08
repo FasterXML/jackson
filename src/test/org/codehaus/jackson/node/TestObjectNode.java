@@ -34,6 +34,10 @@ public class TestObjectNode
         assertNull(n.get("b"));
         assertNull(n.get(0)); // not used with objects
 
+        assertFalse(n.has(0));
+        assertTrue(n.has("a"));
+        assertFalse(n.has("b"));
+
         ObjectNode n2 = new ObjectNode(JsonNodeFactory.instance);
         n2.put("b", 13);
         assertFalse(n.equals(n2));

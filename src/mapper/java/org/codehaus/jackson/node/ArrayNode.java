@@ -18,9 +18,9 @@ public final class ArrayNode
     public ArrayNode(JsonNodeFactory nc) { super(nc); }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Implementation of core JsonNode API
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Implementation of core JsonNode API
+    /**********************************************************
      */
 
     @Override public JsonToken asToken() { return JsonToken.START_ARRAY; }
@@ -41,7 +41,7 @@ public final class ArrayNode
     }
 
     @Override
-        public JsonNode get(int index)
+    public JsonNode get(int index)
     {
         if (index >= 0 && (_children != null) && index < _children.size()) {
             return _children.get(index);
@@ -50,10 +50,10 @@ public final class ArrayNode
     }
 
     @Override
-        public JsonNode get(String fieldName) { return null; }
+    public JsonNode get(String fieldName) { return null; }
 
     @Override
-        public JsonNode path(String fieldName) { return MissingNode.getInstance(); }
+    public JsonNode path(String fieldName) { return MissingNode.getInstance(); }
 
     @Override
     public JsonNode path(int index)
@@ -65,9 +65,9 @@ public final class ArrayNode
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, serialization
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, serialization
+    /**********************************************************
      */
 
     @Override
@@ -89,9 +89,9 @@ public final class ArrayNode
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Extended ObjectNode API, accessors
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended ObjectNode API, accessors
+    /**********************************************************
      */
 
     /**
@@ -197,9 +197,9 @@ public final class ArrayNode
     }
     
     /*
-    ///////////////////////////////////////////////////////////
-    // Extended ObjectNode API, mutators, generic
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended ObjectNode API, mutators, generic
+    /**********************************************************
      */
 
     /**
@@ -401,9 +401,9 @@ public final class ArrayNode
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Standard methods
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Standard methods
+    /**********************************************************
      */
 
     @Override
@@ -457,9 +457,9 @@ public final class ArrayNode
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
      */
 
     public JsonNode _set(int index, JsonNode value)
