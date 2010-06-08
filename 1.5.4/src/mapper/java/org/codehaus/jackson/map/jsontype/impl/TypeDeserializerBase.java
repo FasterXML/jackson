@@ -44,6 +44,17 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
     
     @Override    
     public TypeIdResolver getTypeIdResolver() { return _idResolver; }
+
+    @Override
+    public String toString()
+    {
+    	StringBuilder sb = new StringBuilder();
+    	sb.append('[').append(getClass().getName());
+    	sb.append("; base-type:").append(_baseType);
+    	sb.append("; id-resolver: ").append(_idResolver);
+    	sb.append(']');
+    	return sb.toString();
+    }
     
     /*
      ************************************************************

@@ -294,7 +294,6 @@ public abstract class BasicDeserializerFactory
      * Factory method for constructing serializers of {@link Enum} types.
      */
     @Override
-    @SuppressWarnings("unchecked")
     public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p)
         throws JsonMappingException
     {

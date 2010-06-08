@@ -91,6 +91,16 @@ public class TypeNameIdResolver
         return t;
     }    
 
+    @Override
+    public String toString()
+    {
+    	StringBuilder sb = new StringBuilder();
+    	sb.append('[').append(getClass().getName());
+    	sb.append("; id-to-type=").append(_idToType);
+    	sb.append(']');
+    	return sb.toString();
+    }
+    
     /*
     /*********************************************************
     /* Helper methods
