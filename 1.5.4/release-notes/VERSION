@@ -1,10 +1,24 @@
-Version: 1.5.3
+Version: 1.5.4
 
 Release date:
-  31-May-2010
+  xx-Jun-2010
 
 Description:
-  Third patch release for 1.5
+  Fourth patch release for 1.5
+
+  Fixes:
+
+  Improvements:
+
+  * [JACKSON-296]: Add support for JAXB/@XmlElementRef(s), fix related
+    issues uncovered (wrt. handling of polymorphic collection fields)
+   (reported by Ryan H)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.5.3 [31-May-2010]
 
   Fixes:
 
@@ -18,10 +32,6 @@ Description:
   * Partial fix for [JACKSON-289]: allow JSON Array with single-character
     Strings to be bound to char[] during deserialization
    (suggested by Brian O)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.5.2 [25-Apr-2010]
 

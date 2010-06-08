@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.BeanDeserializer;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -268,9 +269,12 @@ public class StdDeserializerProvider
         if (deser == null) {
             return null;
         }
+        /* cache resulting deserializer? always true for "plain" BeanDeserializer
+         * (but can be re-defined for sub-classes by using @JsonCachable!)
+         */
+        // 08-Jun-2010, tatu: Related to [JACKSON-296], need to avoid caching MapSerializers... so:
         boolean isResolvable = (deser instanceof ResolvableDeserializer);
-        // cache resulting deserializer? always true for resolvables (beans)
-        boolean addToCache = isResolvable;
+        boolean addToCache = (deser.getClass() == BeanDeserializer.class);
         if (!addToCache) {
             AnnotationIntrospector aintr = config.getAnnotationIntrospector();
             // note: pass 'null' to prevent mix-ins from being used
