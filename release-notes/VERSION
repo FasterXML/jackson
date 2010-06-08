@@ -42,6 +42,9 @@ Description:
   * [JACKSON-282] Added SerializationConfig.Feature.CLOSE_CLOSEABLE
     which when enabled forced a call to value.close() right after
     serialization of a (root-level) value.
+  * [JACKSON-299] Added 'org.codehaus.jackson.impl.MinimalPrettyPrinter'
+    to make it easier to add simple output customizations
+    (suggested b y David P)
 
 ------------------------------------------------------------------------
 == History: ==

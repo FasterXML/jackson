@@ -48,9 +48,9 @@ public class DefaultPrettyPrinter
     protected int _nesting = 0;
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Life-cycle (construct, configure)
-    ////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle (construct, configure)
+    /**********************************************************
     */
 
     public DefaultPrettyPrinter() { }
@@ -66,10 +66,11 @@ public class DefaultPrettyPrinter
     }
 
     public void spacesInObjectEntries(boolean b) { _spacesInObjectEntries = b; }
+
     /*
-    ////////////////////////////////////////////////////////////
-    // PrettyPrinter impl
-    ////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* PrettyPrinter impl
+    /**********************************************************
      */
 
     public void writeRootValueSeparator(JsonGenerator jg)
@@ -188,9 +189,9 @@ public class DefaultPrettyPrinter
     }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Helper classes
-    ////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
      */
 
     /**
