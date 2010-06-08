@@ -234,7 +234,8 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue)
     {
         JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
