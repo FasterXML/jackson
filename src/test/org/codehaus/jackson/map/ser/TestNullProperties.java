@@ -14,6 +14,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
  * {@link JsonSerialize#include} annotation property work
  * as expected.
  */
+@SuppressWarnings("deprecation")
 public class TestNullProperties
     extends BaseMapTest
 {
@@ -23,7 +24,7 @@ public class TestNullProperties
         public String getB() { return null; }
     }
 
-    @JsonWriteNullProperties(false)
+	@JsonWriteNullProperties(false)
     static class LegacyNoNullsBean
     {
         public String getA() { return "a"; }

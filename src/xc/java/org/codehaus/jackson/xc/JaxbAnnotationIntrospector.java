@@ -8,6 +8,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -330,7 +331,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     @Override
     public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType)
     {
-        /* First: @XmlElements only applies type for immediate property, if it
+        /* First: @XmlElements and @XmlElementRefs only applies type for immediate property, if it
          * is NOT a structured type.
          */
         if (baseType.isContainerType()) return null;
@@ -351,12 +352,14 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     protected TypeResolverBuilder<?> _typeResolverFromXmlElements(AnnotatedMember am)
     {
-        /* If simple type, @XmlElements is applicable. Note: @XmlElement is NOT
-         * handled here, since it is handled specifically as non-polymorphic indication
+        /* If simple type, @XmlElements and @XmlElementRefs are applicable.
+         * Note: @XmlElement and @XmlElementRef are NOT handled here, since they
+         * are handled specifically as non-polymorphic indication
          * of the actual type
          */
         XmlElements elems = findAnnotation(XmlElements.class, am, false, false, false);
-        if (elems == null) {
+        XmlElementRefs elemRefs = findAnnotation(XmlElementRefs.class, am, false, false, false);
+        if (elems == null && elemRefs == null) {
             return null;
         }
 
@@ -381,6 +384,29 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
                 result.add(new NamedType(elem.type(), name));
             }
             return result;
+        }
+        else {
+            XmlElementRefs elemRefs = findAnnotation(XmlElementRefs.class, a, false, false, false);
+            if (elemRefs != null) {
+                ArrayList<NamedType> result = new ArrayList<NamedType>();
+                for (XmlElementRef elemRef : elemRefs.value()) {
+                    Class<?> refType = elemRef.type();
+                    if (!JAXBElement.class.isAssignableFrom(refType)) {
+                        XmlRootElement rootElement = (XmlRootElement) refType.getAnnotation(XmlRootElement.class);
+                        if (rootElement != null) {
+                            String name = rootElement.name();
+                            if (MARKER_FOR_DEFAULT.equals(name)) {
+                                name = Introspector.decapitalize(refType.getSimpleName());
+                            }
+                            result.add(new NamedType(refType, name));
+                        }
+                        else {
+                            //todo: (heatonra) should be illegal, per JAXB. Should we throw an exception?
+                        }
+                    }
+                }
+                return result;
+            }
         }
         return null;
     }

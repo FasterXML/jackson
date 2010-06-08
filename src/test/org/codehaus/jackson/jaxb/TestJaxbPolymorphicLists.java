@@ -1,10 +1,13 @@
 package org.codehaus.jackson.jaxb;
 
 import java.util.*;
+
 import javax.xml.bind.annotation.*;
 
 import org.codehaus.jackson.jaxb.TestJaxbPolymorphic.Animal;
 import org.codehaus.jackson.jaxb.TestJaxbPolymorphic.Buffalo;
+import org.codehaus.jackson.jaxb.TestJaxbPolymorphic.Cow;
+import org.codehaus.jackson.jaxb.TestJaxbPolymorphic.Emu;
 import org.codehaus.jackson.jaxb.TestJaxbPolymorphic.Whale;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -31,10 +34,11 @@ public class TestJaxbPolymorphicLists
          })
          public List<Animal> animals;
 
-         @XmlElements({
-             @XmlElement(type=Whale.class, name="whale")
+         @XmlElementRefs({
+             @XmlElementRef(type=Emu.class),
+             @XmlElementRef(type=Cow.class)
          })
-		 public List<Animal> critters;
+		 public List<Animal> otherAnimals;
 
          public ListBean() { }
          public ListBean(Animal... a) {
@@ -80,5 +84,30 @@ public class TestJaxbPolymorphicLists
          assertEquals("black", ((Buffalo) a2).hairColor);
      }
 
-     
+     /**
+      * And then a test for collection types using element ref(s)
+      */
+     public void testPolymorphicListElementRef() throws Exception
+     {
+         ObjectMapper mapper = getJaxbMapper();
+         ListBean input = new ListBean();
+         input.otherAnimals = Arrays.asList(
+                 new Cow("bluey", 150),
+                 new Emu("Bob", "black")
+         );
+         String str = mapper.writeValueAsString(input);
+         // Let's assume it's ok, and try deserialize right away:
+         ListBean result = mapper.readValue(str, ListBean.class);
+         assertEquals(2, result.otherAnimals.size());
+         Animal a1 = result.otherAnimals.get(0);
+         assertNotNull(a1);
+         assertEquals(Cow.class, a1.getClass());
+         assertEquals("bluey", a1.nickname);
+         assertEquals(150, ((Cow)a1).weightInPounds);
+         Animal a2 = result.otherAnimals.get(1);
+         assertNotNull(a2);
+         assertEquals(Emu.class, a2.getClass());
+         assertEquals("Bob", a2.nickname);
+         assertEquals("black", ((Emu) a2).featherColor);
+     }
 }

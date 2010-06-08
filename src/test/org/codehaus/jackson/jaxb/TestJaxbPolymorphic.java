@@ -9,6 +9,9 @@ import org.codehaus.jackson.map.ObjectMapper;
  * Tests for handling of type-related JAXB annotations 
  *
  * @since 1.5
+ * 
+ * @author Tatu Saloranta
+ * @author Ryan Heaton
  */
 public class TestJaxbPolymorphic 
     extends BaseJaxbTest
@@ -27,6 +30,12 @@ public class TestJaxbPolymorphic
          })
          public Animal animal;
 
+         @XmlElementRefs({
+                 @XmlElementRef(type=Emu.class),
+                 @XmlElementRef(type=Cow.class)
+         })
+         public Animal other;
+
          public Bean() { }
          public Bean(Animal a) { animal = a; }
      }
@@ -39,25 +48,16 @@ public class TestJaxbPolymorphic
          })
          public Animal[] animals;
 
+         @XmlElementRefs({
+                 @XmlElementRef(type=Emu.class),
+                 @XmlElementRef(type=Cow.class)
+         })
+         public Animal[] otherAnimals;
+
          public ArrayBean() { }
          public ArrayBean(Animal... a) {
              animals = a;
          }
-     }
-
-     static class MapBean 
-     {
-         @XmlElements({
-                 @XmlElement(type=Buffalo.class, name="beefalot"),
-                 @XmlElement(type=Whale.class, name="whale")
-         })
-         public Map<Integer,Animal> animals;
-
-         public MapBean() {
-             animals = new HashMap<Integer,Animal>();
-         }
-
-         public void add(Integer key, Animal value) { animals.put(key, value); }
      }
      
      static abstract class Animal {
@@ -85,6 +85,26 @@ public class TestJaxbPolymorphic
          }
      }
 
+     @XmlRootElement
+     static class Emu extends Animal {
+         public String featherColor;
+         public Emu() { this(null, null); }
+         public Emu(String n, String w) {
+             super(n);
+             featherColor = w;
+         }
+     }
+
+     @XmlRootElement (name="moo")
+     static class Cow extends Animal {
+         public int weightInPounds;
+         public Cow() { this(null, 0); }
+         public Cow(String n, int w) {
+             super(n);
+             weightInPounds = w;
+         }
+     }
+
      /*
       **************************************************************
       * Tests
@@ -102,7 +122,7 @@ public class TestJaxbPolymorphic
          String str = mapper.writeValueAsString(input);
          // First: let's verify output looks like what we expect:
          Map<String,Object> map = mapper.readValue(str, Map.class);
-         assertEquals(1, map.size());
+         assertEquals(2, map.size());
          Map<String,Object> map2 = (Map<String,Object>) map.get("animal");
          assertNotNull(map2);
          // second level, should have type info as WRAPPER_OBJECT
@@ -143,23 +163,27 @@ public class TestJaxbPolymorphic
          assertEquals(3000, ((Whale)a2).weightInTons); 
      }
 
-     public void testPolymorphicMap() throws Exception
+     public void testPolymorphicArrayElementRef() throws Exception
      {
          ObjectMapper mapper = getJaxbMapper();
-         Animal a = new Whale("Jaska", 3000);
-         Animal b = new Whale("Arska", 2000);
-         Animal c = new Whale("Pena", 1500);
-         MapBean input = new MapBean();
-         input.add(1, a);
-         input.add(2, b);
-         input.add(3, c);
+         Animal a1 = new Emu("Bill", "grey");
+         Animal a2 = new Cow("moe", 3000);
+         ArrayBean input = new ArrayBean();
+         input.otherAnimals = new Animal[]{a1, null, a2};
          String str = mapper.writeValueAsString(input);
+         ArrayBean result = mapper.readValue(str, ArrayBean.class);
+         assertEquals(3, result.otherAnimals.length);
+         a1 = result.otherAnimals[0];
+         assertNull(result.otherAnimals[1]);
+         a2 = result.otherAnimals[2];
+         assertNotNull(a1);
+         assertNotNull(a2);
+         assertEquals(Emu.class, a1.getClass());
+         assertEquals(Cow.class, a2.getClass());
+         assertEquals("Bill", a1.nickname);
+         assertEquals("grey", ((Emu) a1).featherColor);
 
-         MapBean result = mapper.readValue(str, MapBean.class);
-         Map<Integer,Animal> map = result.animals;
-         assertEquals(3, map.size());
-         assertEquals("Jaska", ((Whale) map.get(Integer.valueOf(1))).nickname);
-         assertEquals("Arska", ((Whale) map.get(Integer.valueOf(2))).nickname);
-         assertEquals("Pena", ((Whale) map.get(Integer.valueOf(3))).nickname);
+         assertEquals("moe", a2.nickname);
+         assertEquals(3000, ((Cow)a2).weightInPounds);
      }
 }
