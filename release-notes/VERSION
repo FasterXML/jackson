@@ -47,6 +47,21 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+1.5.3 [31-May-2010]
+
+  Fixes:
+
+  * [JACKSON-285]: Problem with @JsonCreator annotated constructor that
+    also uses @JsonDeserialize annotations
+
+  Improvements:
+
+  * [JACKSON-284]: Reduce scope of sync block in
+    SerializerCache.getReadOnlyLookupMap()
+  * Partial fix for [JACKSON-289]: allow JSON Array with single-character
+    Strings to be bound to char[] during deserialization
+   (suggested by Brian O)
+
 1.5.2 [25-Apr-2010]
 
   Fixes:

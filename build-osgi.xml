@@ -108,6 +108,7 @@ org.codehaus.jackson.schema;version=${IMPL_VERSION}
 !org.codehaus.jackson.map.jsontype.impl,
 !org.codehaus.jackson.map.ser,
 !org.codehaus.jackson.map.type,
+!org.codehaus.jackson.map.util,
 !org.codehaus.jackson.node,
 !org.codehaus.jackson.schema,
 *"
@@ -210,6 +211,7 @@ org.codehaus.jackson.schema;version=${IMPL_VERSION}
 !org.codehaus.jackson.map.jsontype.impl,
 !org.codehaus.jackson.map.ser,
 !org.codehaus.jackson.map.type,
+!org.codehaus.jackson.map.util,
 !org.codehaus.jackson.node,
 !org.codehaus.jackson.schema,
 *"
@@ -290,6 +292,7 @@ org.codehaus.jackson.jaxrs;version=${IMPL_VERSION}"
          filename="jackson-xc-${IMPL_VERSION}"
          importPackage="
 javax.activation
+,javax.xml.bind
 ,javax.xml.bind.annotation
 ,javax.xml.bind.annotation.adapters
 ,org.codehaus.jackson;version='${IMPL_VERSION}'

@@ -5,7 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 /**
  * Annotation used with {@link JsonTypeInfo} to indicate sub types of serializable
  * polymorphic types, and to associate logical names used within JSON content
