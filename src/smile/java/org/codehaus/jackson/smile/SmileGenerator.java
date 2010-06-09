@@ -201,7 +201,7 @@ public class SmileGenerator
         return (_features & f.getMask()) != 0;
     }
 
-    public JsonGenerator configure(Feature f, boolean state) {
+    public SmileGenerator configure(Feature f, boolean state) {
         if (state) {
             enable(f);
         } else {
