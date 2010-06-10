@@ -12,10 +12,11 @@ import org.codehaus.jackson.*;
  * of references (during serialization/deserialization) to help in
  * troubleshooting.
  */
-@SuppressWarnings("serial")
 public class JsonMappingException
     extends JsonProcessingException
 {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Let's limit length of reference chain, to limit damage in cases
      * of infinite recursion.
@@ -23,9 +24,9 @@ public class JsonMappingException
     final static int MAX_REFS_TO_LIST = 1000;
 
     /*
-    ////////////////////////////////////////////////////////
-    // Helper classes
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
      */
 
     /**
@@ -117,9 +118,9 @@ public class JsonMappingException
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // State/configuration
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* State/configuration
+    /**********************************************************
      */
 
     /**
@@ -129,9 +130,9 @@ public class JsonMappingException
     protected LinkedList<Reference> _path;
 
     /*
-    ////////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public JsonMappingException(String msg)
@@ -218,9 +219,9 @@ public class JsonMappingException
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Accessors/mutators
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Accessors/mutators
+    /**********************************************************
      */
 
     public List<Reference> getPath()
@@ -265,9 +266,9 @@ public class JsonMappingException
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Overridden methods
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Overridden methods
+    /**********************************************************
      */
 
     /**
@@ -306,9 +307,9 @@ public class JsonMappingException
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
      */
 
     protected void _appendPathDesc(StringBuilder sb)

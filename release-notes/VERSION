@@ -27,6 +27,9 @@ Description:
     (requested by Brian O)
   * [JACKSON-290] @JsonWriteNullProperties can be used with fields too;
     annotation itself is now deprecated (use JsonSerialize#include instead).
+  * [JACKSON-301] Allow JsonMappingException to return name of "bad" (unrecognized)
+    field
+    (requested by Rob O)
   * [JACKSON-302] Add JsonNode.has(String/int) to allow for more convenient checking
     of whether JSON Object/Array nodes have specified value.
 

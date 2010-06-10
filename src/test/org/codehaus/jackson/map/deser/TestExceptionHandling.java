@@ -4,6 +4,7 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.exc.UnrecognizedPropertyException;
 
 /**
  * Unit test for verifying that exceptions are properly handled (caught,
@@ -13,6 +14,30 @@ import org.codehaus.jackson.map.*;
 public class TestExceptionHandling
     extends BaseMapTest
 {
+    static class Bean {
+        String x;
+    }
+
+    /**
+     * Verification of [JACKSON-301]
+     */
+    public void testHandlingOfUnrecognized() throws Exception
+    {
+        try {
+            new ObjectMapper().readValue("{\"bar\":3}", Bean.class);
+            fail("Should have failed binding");
+        } catch (UnrecognizedPropertyException e) {
+            assertEquals("bar", e.getUnrecognizedPropertyName());
+            assertEquals(Bean.class, e.getReferringClass());
+        }
+    }
+    
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
+
     /**
      * Simple test to check behavior when end-of-stream is encountered
      * without content. Should throw EOFException.
@@ -73,9 +98,9 @@ public class TestExceptionHandling
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Helper methods
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
      */
 
     void verifyException(Exception e, Class<?> expType, String expMsg)

@@ -317,4 +317,8 @@ Paul R Brown:
     enum types
    [1.6.0]
 
+Rob Ottway:
+  * Requested [JACKSON-301] Allow JsonMappingException to return name of "bad"
+    (unrecognized) field
+   [1.6.0]  
  

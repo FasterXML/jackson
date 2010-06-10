@@ -9,7 +9,9 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.exc.UnrecognizedPropertyException;
 import org.codehaus.jackson.map.util.ArrayBuilders;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 import org.codehaus.jackson.type.JavaType;
@@ -82,9 +84,9 @@ public class StdDeserializationContext
     public JsonParser getParser() { return _parser; }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Public API, helper object recycling
-    /****************************************************
+    /**********************************************************
      */
 
     @Override
@@ -243,8 +245,7 @@ public class StdDeserializationContext
     @Override
     public JsonMappingException unknownFieldException(Object instanceOrClass, String fieldName)
     {
-        String clsName = determineClassName(instanceOrClass);
-        return JsonMappingException.from(_parser, "Unrecognized field \""+fieldName+"\" (Class "+clsName+"), not marked as ignorable");
+        return UnrecognizedPropertyException.from(_parser, instanceOrClass, fieldName);
     }
 
     @Override
@@ -255,12 +256,7 @@ public class StdDeserializationContext
    
     protected String determineClassName(Object instance)
     {
-        if (instance == null) {
-            return "unknown";
-        }
-        Class<?> cls = (instance instanceof Class<?>) ?
-            (Class<?>) instance : instance.getClass();
-        return cls.getName();
+        return ClassUtil.getClassDescription(instance);
     }
 
     /*
