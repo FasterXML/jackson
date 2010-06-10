@@ -885,7 +885,7 @@ public final class ReaderBasedParser
             break;
 
         default:
-            _reportError("Unrecognized character escape "+_getCharDesc(c));
+            return _handleUnrecognizedCharacterEscape(c);
         }
 
         // Ok, a hex escape. Need 4 characters

@@ -608,6 +608,15 @@ public abstract class JsonParserBase
         _reportError("Unexpected close marker '"+((char) actCh)+"': expected '"+expCh+"' (for "+_parsingContext.getTypeDesc()+" starting at "+startDesc+")");
     }
 
+    protected char _handleUnrecognizedCharacterEscape(char ch) throws JsonProcessingException
+    {
+        // as per [JACKSON-300]
+        if (!isEnabled(Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER))  {
+            _reportError("Unrecognized character escape "+_getCharDesc(ch));
+        }
+        return ch;
+    }
+    
     /*
     /**********************************************************
     /* Error reporting, generic

@@ -38,6 +38,13 @@ public class TestParserNonStandard
         _testNonStandardNameChars(true);
     }
     
+    // Test for [JACKSON-300]
+    public void testNonStandardAnyCharQuoting() throws Exception
+    {
+        _testNonStandarBackslashQuoting(false);
+        _testNonStandarBackslashQuoting(true);
+    }
+    
     /*
     /****************************************************************
     /* Secondary test methods
@@ -224,4 +231,29 @@ public class TestParserNonStandard
         assertToken(JsonToken.END_OBJECT, jp.nextToken());
         jp.close();
     }
+
+    private void _testNonStandarBackslashQuoting(boolean useStream) throws Exception
+    {
+        // first: verify that we get an exception
+        JsonFactory f = new JsonFactory();
+        assertFalse(f.isEnabled(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER));
+        final String JSON = quote("\\'");
+        JsonParser jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")                
+                : createParserUsingReader(f, JSON);
+        try {      
+            jp.nextToken();
+            jp.getText();
+            fail("Should have thrown an exception for doc <"+JSON+">");
+        } catch (JsonParseException e) {
+            verifyException(e, "unrecognized character escape");
+        }
+        // and then verify it's ok...
+        f.configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true);
+        assertTrue(f.isEnabled(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER));
+        jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")                
+                : createParserUsingReader(f, JSON);
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("'", jp.getText());
+    }
+
 }

@@ -121,16 +121,29 @@ public abstract class JsonParser
          * If feature is set false, an exception is thrown if such a
          * character is encountered.
          *<p>
-         * Since JSON specification requires quoting for all
-         * control characters,
-         * this is a non-standard feature, and as such disabled by
-         * default.
+         * Since JSON specification requires quoting for all control characters,
+         * this is a non-standard feature, and as such disabled by default.
          *<p>
          * This feature can be changed for parser instances.
          *
          * @since 1.4
          */
         ,ALLOW_UNQUOTED_CONTROL_CHARS(false)
+
+        /**
+         * Feature that can be enabled to accept quoting of all character
+         * using backslash qooting mechanism: if not enabled, only characters
+         * that are explicitly listed by JSON specification can be thus
+         * escaped (see JSON spec for small list of these characters)
+         *<p>
+         * Since JSON specification requires quoting for all control characters,
+         * this is a non-standard feature, and as such disabled by default.
+         *<p>
+         * This feature can be changed for parser instances.
+         * 
+         * @since 1.6
+         */
+        ,ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER(false)
 
         /**
          * Feature that determines whether JSON object field names are

@@ -1384,7 +1384,7 @@ public final class Utf8StreamParser
             break;
 
         default:
-            _reportError("Unrecognized character escape (\\ followed by "+_getCharDesc(_decodeCharForError(c))+")");
+            return _handleUnrecognizedCharacterEscape((char) _decodeCharForError(c));
         }
 
         // Ok, a hex escape. Need 4 characters

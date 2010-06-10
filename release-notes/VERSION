@@ -48,6 +48,9 @@ Description:
   * [JACKSON-299] Added 'org.codehaus.jackson.impl.MinimalPrettyPrinter'
     to make it easier to add simple output customizations
     (suggested b y David P)
+  * [JACKSON-300] Add 'JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER
+    to allow non-standard character escapes like \'.
+    (requested by Ketan G)
 
 ------------------------------------------------------------------------
 == History: ==
