@@ -18,9 +18,9 @@ public abstract class ReaderBasedNumericParser
     extends ReaderBasedParserBase
 {
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public ReaderBasedNumericParser(IOContext pc, int features, Reader r)
@@ -29,9 +29,9 @@ public abstract class ReaderBasedNumericParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Textual parsing of number values
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Textual parsing of number values
+    /**********************************************************
      */
 
     /**
@@ -49,7 +49,6 @@ public abstract class ReaderBasedNumericParser
      * deferred, since it is usually the most complicated and costliest
      * part of processing.
      */
-    @Override
     protected final JsonToken parseNumberText(int ch)
         throws IOException, JsonParseException
     {

@@ -6,10 +6,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.impl.JsonReadContext;
+import org.codehaus.jackson.impl.StreamBasedParserBase;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 
-public class SmileParser extends JsonParser
+public class SmileParser
+    extends StreamBasedParserBase
 {
     /**
      * Enumeration that defines all togglable features for Smile generators.
@@ -47,87 +49,42 @@ public class SmileParser extends JsonParser
 
     /*
     /**********************************************************
-    /* Generic I/O state
-    /**********************************************************
-     */
-
-    /**
-     * I/O context for this reader. It handles buffer allocation
-     * for the reader.
-     */
-    final protected IOContext _ioContext;
-
-    /**
-     * Flag that indicates whether parser is closed or not. Gets
-     * set when parser is either closed by explicit call
-     * ({@link #close}) or when end-of-input is reached.
-     */
-    protected boolean _closed;
-
-    /**
-     * Input stream that can be used for reading more content, if one
-     * in use. May be null, if input comes just as a full buffer,
-     * or if the stream has been closed.
-     */
-    protected InputStream _inputStream;
-
-    /*
-    /**********************************************************
-    /* Current input data
-    /**********************************************************
-     */
-
-    /**
-     * Current buffer from which data is read; generally data is read into
-     * buffer from input source, but in some cases pre-loaded buffer
-     * is handed to the parser.
-     */
-    protected byte[] _inputBuffer;
-
-    /**
-     * Flag that indicates whether the input buffer is recycable (and
-     * needs to be returned to recycler once we are done) or not.
-     */
-    protected boolean _bufferRecyclable;
-
-    /**
-     * Pointer to next available character in buffer
-     */
-    protected int _inputPtr = 0;
-
-    /**
-     * Index of character after last available one in the buffer.
-     */
-    protected int _inputEnd = 0;
-
-    /*
-    /**********************************************************
-    /* Other configuration
+    /* Configuration
     /**********************************************************
      */
     
+    /**
+     * Codec used for data binding when (if) requested.
+     */
     protected ObjectCodec _objectCodec;
-    
+
     /*
     /**********************************************************
-    /* Parsing state
+    /* Additional parsing state
     /**********************************************************
      */
 
     /**
-     * Information about parser context, context in which
-     * the next token is to be parsed (root, array, object).
+     * Type byte of the current token
      */
-    protected JsonReadContext _parsingContext;
-
+    protected int _typeByte;
+    
     /*
     /**********************************************************
     /* Life-cycle
     /**********************************************************
      */
     
-    public SmileParser(IOContext ctxt) {
-        _ioContext = ctxt;
+    public SmileParser(IOContext ctxt, int parserFeatures, int smileFeatures,
+            ObjectCodec codec,
+            BytesToNameCanonicalizer sym,
+            InputStream in, byte[] inputBuffer, int start, int end,
+            boolean bufferRecyclable)
+    {
+        super(ctxt, parserFeatures, in, inputBuffer, start, end, bufferRecyclable);
+        _objectCodec = codec;
+        _tokenInputRow = -1;
+        _tokenInputCol = -1;
     }
 
     public ObjectCodec getCodec() {
@@ -138,29 +95,6 @@ public class SmileParser extends JsonParser
         _objectCodec = c;
     }
     
-    @Override
-    public void close() throws IOException
-    {
-        _closed = true;
-        // _closeInput()
-        if (_inputStream != null) {
-            if (_ioContext.isResourceManaged() || isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE)) {
-                _inputStream.close();
-            }
-            _inputStream = null;
-        }
-        //_releaseBuffers();
-        if (_bufferRecyclable) {
-            byte[] buf = _inputBuffer;
-            if (buf != null) {
-                _inputBuffer = null;
-                _ioContext.releaseReadIOBuffer(buf);
-            }
-        }
-    }
-    
-    public boolean isClosed() { return _closed; }
-    
     /*
     /**********************************************************
     /* JsonParser impl
@@ -168,76 +102,108 @@ public class SmileParser extends JsonParser
      */
 
     @Override
-    public JsonToken nextToken() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
+    public JsonToken nextToken() throws IOException, JsonParseException
+    {
+        // For longer tokens (text, binary), we'll only read when requested
+        if (_tokenIncomplete) {
+            _skipIncomplete();
+        }
+        _tokenInputTotal = _currInputProcessed + _inputPtr - 1;
+
+        // finally: clear any data retained so far
+        _binaryValue = null;
+        if (_inputPtr >= _inputEnd) {
+            if (!loadMore()) {
+                _handleEOF();
+            }
+        }
+        int ch = _inputBuffer[_inputPtr++];
+        _typeByte = ch;
+        // Two main modes: values, and field names.
+        if (_parsingContext.inObject() && _currToken != JsonToken.FIELD_NAME) {
+            return (_currToken = _handleFieldName());
+        }
+
+        switch ((ch >> 5) & 0x7) {
+        case 0: // short shared string value reference
+        case 1: // misc literals
+            switch (ch & 0x1F) {
+            case 0x0: // START_OBJECT
+                _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
+                return (_currToken = JsonToken.START_OBJECT);
+            //case 0x0: // not used
+            case 0x2: // START_ARRAY
+                _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
+                return (_currToken = JsonToken.START_ARRAY);
+            case 0x3: // END_ARRAY
+                if (!_parsingContext.inArray()) {
+                    _reportMismatchedEndMarker(']', '}');
+                }
+                _parsingContext = _parsingContext.getParent();
+                return (_currToken = JsonToken.END_ARRAY);
+            case 0x4: // false
+                return (_currToken = JsonToken.VALUE_FALSE);
+            case 0x5: // true
+                return (_currToken = JsonToken.VALUE_TRUE);
+            case 0x6:
+                return (_currToken = JsonToken.VALUE_NULL);
+            case 0x7:
+                _textBuffer.resetWithEmpty();
+                return (_currToken = JsonToken.VALUE_STRING);
+            }
+            // and everything else is reserved, for now
+            break;
+        case 2: // tiny ascii
+            // fall through
+        case 3: // short ascii
+            // fall through
+        case 4: // tiny unicode
+            // fall through
+        case 5: // short unicode
+            // all fine; but no need to decode quite yet
+            _tokenIncomplete = true;
+            return (_currToken = JsonToken.VALUE_STRING);
+        case 6: // small integers; zig zag encoded
+            _numberInt = SmileUtil.zigzagDecode(ch & 0x1F);
+            _numTypesValid = NR_INT;
+            return (_currToken = JsonToken.VALUE_NUMBER_INT);
+        default: // binary/longtext/var-numbers
+            ch &= 0x1F;
+            _tokenIncomplete = true; // none of these is fully handled yet
+            // next 3 bytes define subtype
+            switch (ch >> 2) {
+            case 0: // long variable length ascii
+            case 1: // long variable length unicode
+                _tokenIncomplete = true;
+                return (_currToken = JsonToken.VALUE_STRING);
+            case 2: // binary, raw
+            case 3: // binary, 7-bit
+                _tokenIncomplete = true;
+                return (_currToken = JsonToken.VALUE_EMBEDDED_OBJECT);
+            case 4: // VInt (zigzag)
+                _tokenIncomplete = true;
+                return (_currToken = JsonToken.VALUE_NUMBER_INT);
+            case 5: // other numbers
+                _currToken = ((ch & 0x3) == 2) ?
+                        JsonToken.VALUE_NUMBER_INT : JsonToken.VALUE_NUMBER_FLOAT;
+                return _currToken;
+            default: // 6 and 7 not used (to reserve 0xF8 - 0xFF)
+            }
+            break;
+        }
+        // If we get this far, type byte is corrupt
+        _reportError("Invalid type marker byte 0x"+Integer.toHexString(ch)+" for expected value token");
         return null;
     }
 
     @Override
-    public JsonParser skipChildren() throws IOException, JsonParseException
-    {
-        if (_currToken != JsonToken.START_OBJECT
-                && _currToken != JsonToken.START_ARRAY) {
-                return this;
-            }
-            int open = 1;
-
-            /* Since proper matching of start/end markers is handled
-             * by nextToken(), we'll just count nesting levels here
-             */
-            while (true) {
-                JsonToken t = nextToken();
-                if (t == null) {
-                    _handleEOF();
-                    /* given constraints, above should never return;
-                     * however, FindBugs doesn't know about it and
-                     * complains... so let's add dummy break here
-                     */
-                    return this;
-                }
-                switch (t) {
-                case START_OBJECT:
-                case START_ARRAY:
-                    ++open;
-                    break;
-                case END_OBJECT:
-                case END_ARRAY:
-                    if (--open == 0) {
-                        return this;
-                    }
-                    break;
-                }
-            }
-    }
-
     public String getCurrentName() throws IOException, JsonParseException
     {
+        if (_tokenIncomplete) {
+            _skipIncomplete();
+        }
         return _parsingContext.getCurrentName();
     }    
-    
-    public JsonReadContext getParsingContext()
-    {
-        return _parsingContext;
-    }
-    
-    /**
-     * Method that return the <b>starting</b> location of the current
-     * token; that is, position of the first character from input
-     * that starts the current token.
-     */
-    public JsonLocation getTokenLocation()
-    {
-        return JsonLocation.NA;
-    }
-    
-    /**
-     * Method that returns location of the last processed character;
-     * usually for error reporting purposes
-     */
-    public JsonLocation getCurrentLocation()
-    {
-        return JsonLocation.NA;
-    }
         
     /*
     /**********************************************************
@@ -245,27 +211,114 @@ public class SmileParser extends JsonParser
     /**********************************************************
      */
 
-    @Override
-    public String getText() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
+    /*
+    /**********************************************************
+    /* Public API, access to token information, text
+    /**********************************************************
+     */
+
+    /**
+     * Method for accessing textual representation of the current event;
+     * if no current event (before first call to {@link #nextToken}, or
+     * after encountering end-of-input), returns null.
+     * Method can be called for any event.
+     */
+    @Override    
+    public String getText()
+        throws IOException, JsonParseException
+    {
+        if (_currToken != null) { // null only before/after document
+            if (_tokenIncomplete) {
+                _tokenIncomplete = false;
+                _finishToken();
+            }
+            switch (_currToken) {
+            case VALUE_STRING:
+                return _textBuffer.contentsAsString();
+            case FIELD_NAME:
+                return _parsingContext.getCurrentName();
+            case VALUE_NUMBER_INT:
+            case VALUE_NUMBER_FLOAT:
+                // !!! TBI
+                return getNumberValue().toString();
+                
+            default:
+                return _currToken.asString();
+            }
+        }
         return null;
     }
 
     @Override
-    public char[] getTextCharacters() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
+    public char[] getTextCharacters()
+        throws IOException, JsonParseException
+    {
+        if (_currToken != null) { // null only before/after document
+            if (_tokenIncomplete) {
+                _tokenIncomplete = false;
+                _finishToken();
+            }
+            switch (_currToken) {                
+            case VALUE_STRING:
+                return _textBuffer.getTextBuffer();
+            case FIELD_NAME:
+                if (!_nameCopied) {
+                    String name = _parsingContext.getCurrentName();
+                    int nameLen = name.length();
+                    if (_nameCopyBuffer == null) {
+                        _nameCopyBuffer = _ioContext.allocNameCopyBuffer(nameLen);
+                    } else if (_nameCopyBuffer.length < nameLen) {
+                        _nameCopyBuffer = new char[nameLen];
+                    }
+                    name.getChars(0, nameLen, _nameCopyBuffer, 0);
+                    _nameCopied = true;
+                }
+                return _nameCopyBuffer;
+
+                // fall through
+            case VALUE_NUMBER_INT:
+            case VALUE_NUMBER_FLOAT:
+                // !!! TBI
+                return getNumberValue().toString().toCharArray();
+                
+            default:
+                return _currToken.asCharArray();
+            }
+        }
         return null;
     }
 
-    @Override
-    public int getTextLength() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
+    @Override    
+    public int getTextLength()
+        throws IOException, JsonParseException
+    {
+        if (_currToken != null) { // null only before/after document
+            if (_tokenIncomplete) {
+                _tokenIncomplete = false;
+                _finishToken();
+            }
+            switch (_currToken) {
+            case VALUE_STRING:
+                return _textBuffer.size();                
+            case FIELD_NAME:
+                return _parsingContext.getCurrentName().length();
+                // fall through
+            case VALUE_NUMBER_INT:
+            case VALUE_NUMBER_FLOAT:
+                // !!! TBI
+                return getNumberValue().toString().length();
+                
+            default:
+                return _currToken.asCharArray().length;
+            }
+        }
         return 0;
     }
 
     @Override
-    public int getTextOffset() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
+    public int getTextOffset()
+        throws IOException, JsonParseException
+    {
         return 0;
     }
 
@@ -276,113 +329,198 @@ public class SmileParser extends JsonParser
      */
 
     @Override
-    public byte[] getBinaryValue(Base64Variant b64variant) throws IOException,
-            JsonParseException {
-        // TODO Auto-generated method stub
+    protected byte[] _decodeBase64(Base64Variant b64variant)
+        throws IOException, JsonParseException
+    {
+        // !!! TBI
         return null;
     }
     
     /*
     /**********************************************************
-    /* Numeric accessors
+    /* Internal methods, parsing
     /**********************************************************
      */
 
     @Override
-    public BigInteger getBigIntegerValue() throws IOException,
-            JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
+    protected void parseNumericValue(int expType)
+        throws JsonParseException
+    {
     }
 
-    @Override
-    public BigDecimal getDecimalValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public double getDoubleValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public float getFloatValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public int getIntValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public long getLongValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public NumberType getNumberType() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Number getNumberValue() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
-    /*
-    /**********************************************************
-    /* Internal methods
-    /**********************************************************
-     */
-    
     /**
-     * Method called when an EOF is encountered between tokens.
-     * If so, it may be a legitimate EOF, but only iff there
-     * is no open non-root context.
+     * Method that handles initial token type recognition for token
+     * that has to be either FIELD_NAME or END_OBJECT.
      */
-    protected void _handleEOF()
-        throws JsonParseException
+    protected final JsonToken _handleFieldName() throws IOException, JsonParseException
     {
-        if (!_parsingContext.inRoot()) {
-            _reportInvalidEOF(": expected close marker for "+_parsingContext.getTypeDesc()+" (from "+_parsingContext.getStartLocation(_ioContext.getSourceReference())+")");
+        int ch = _typeByte;
+        switch ((ch >> 6) & 3) {
+        case 0: // misc, including end marker
+            switch (ch) {
+            case 0x30: // long shared defer
+            case 0x31:
+            case 0x32:
+            case 0x33:
+                _tokenIncomplete = true;
+                return JsonToken.FIELD_NAME;
+            case 0x35: // empty String as name, legal if unusual
+                _parsingContext.setCurrentName("");
+                return JsonToken.FIELD_NAME;
+            case 0x36:
+                if (!_parsingContext.inObject()) {
+                    _reportMismatchedEndMarker('}', ']');
+                }
+                _parsingContext = _parsingContext.getParent();
+                return JsonToken.END_OBJECT;
+            }
+            break;
+        case 1: // short shared, can fully process
+            // !!! TBI
+            {
+                int nameIndex = (ch & 0x3F);
+                _parsingContext.setCurrentName("");
+            }
+            return JsonToken.FIELD_NAME;
+        case 2: // short ASCII
+        case 3: // short Unicode
+            // all valid, except for 0xBF and 0xFF
+            if ((ch & 0x3F) != 0x3F) {
+                _tokenIncomplete = true;
+                return JsonToken.FIELD_NAME;                
+            }
+            break;
         }
-    }
-
-    protected void _reportInvalidEOF()
-        throws JsonParseException
-    {
-        _reportInvalidEOF(" in "+_currToken);
-    }
-    
-    protected void _reportInvalidEOF(String msg)
-        throws JsonParseException
-    {
-        _reportError("Unexpected end-of-input"+msg);
+        // Other byte values are illegal
+        _reportError("Invalid type marker byte 0x"+Integer.toHexString(ch)+" for expected field name (or END_OBJECT marker)");
+        return null;
     }    
 
-    protected final void _reportError(String msg)
-        throws JsonParseException
+    protected final void _finishFieldName()
+        throws IOException, JsonParseException
     {
-        throw _constructError(msg);
+        _tokenIncomplete = false;
+        int ch = _typeByte;
+        switch ((ch >> 6) & 3) {
+        case 0:
+            {
+                if (_inputPtr >= _inputEnd) {
+                    loadMoreGuaranteed();
+                }
+                int index = ((ch & 0x3) << 8) | _inputBuffer[_inputPtr++];
+                
+                // !!! TBI: found actual String!
+            }
+            break;
+        case 1:
+            _throwInternal(); // never gets here
+        case 2: // short ASCII 
+            {
+                int len = 1 + (ch & 0x3F);
+                _loadToHaveAtLeast(len);
+                int outPtr = 0;
+                char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+                int inPtr = _inputPtr;
+                _inputPtr += len;
+                for (int end = inPtr + len; inPtr < end; ) {
+                    outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
+                }
+                _textBuffer.setCurrentLength(len);
+                _parsingContext.setCurrentName(_textBuffer.contentsAsString());
+            }
+            break;
+        default: // (3) short Unicode            
+            {
+                int len = 1 + (ch & 0x3F);
+                _decodeShortUnicode(len);
+                _parsingContext.setCurrentName(_textBuffer.contentsAsString());
+            }
+            break;
+        }        
     }
     
-    protected final void _throwInternal()
+    /**
+     * Helper method used to decode short Unicode string, length for which actual
+     * length (in bytes) is known
+     * 
+     * @param len Length between 1 and 64
+     */
+    protected void _decodeShortUnicode(int len)
+        throws IOException, JsonParseException
     {
-        throw new RuntimeException("Internal error: this code path should never get executed");
-    }
-    
-    protected final JsonParseException _constructError(String msg, Throwable t)
-    {
-        return new JsonParseException(msg, getCurrentLocation(), t);
+        _loadToHaveAtLeast(len);
+
+        int outPtr = 0;
+        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+        int inPtr = _inputPtr;
+        _inputPtr += len;
+        final int[] codes = SmileConstants.sUtf8UnitLengths;
+        for (int end = inPtr + len; inPtr < end; ) {
+            int i = _inputBuffer[inPtr++] & 0xFF;
+            int code = codes[i];
+            if (code != 0) {
+                // trickiest one, need surrogate handling
+                switch (code) {
+                case 1:
+                    i = ((i & 0x1F) << 6) | (_inputBuffer[inPtr++] & 0x3F);
+                    break;
+                case 2:
+                    i = ((i & 0x0F) << 12)
+                        | ((_inputBuffer[inPtr++] & 0x3F) << 6)
+                        | (_inputBuffer[inPtr++] & 0x3F);
+                    break;
+                case 3:
+                    i = ((i & 0x07) << 18)
+                    | ((_inputBuffer[inPtr++] & 0x3F) << 12)
+                    | ((_inputBuffer[inPtr++] & 0x3F) << 6)
+                    | (_inputBuffer[inPtr++] & 0x3F);
+                    // note: this is the codepoint value; need to split, too
+                    i -= 0x10000;
+                    outBuf[outPtr++] = (char) (0xD800 | (i >> 10));
+                    i = 0xDC00 | (i & 0x3FF);
+                    break;
+                default: // invalid
+                    _reportError("Invalid byte "+Integer.toHexString(i)+" in short Unicode text block");
+                }
+            }
+            outBuf[outPtr++] = (char) i;
+        }
+        _textBuffer.setCurrentLength(outPtr);
     }
 
+    /*
+    /**********************************************************
+    /* Internal methods, skipping
+    /**********************************************************
+     */
+
+    /**
+     * Method called to finish parsing of a token so that token contents
+     * are retrieable
+     */
+    protected void _finishToken() throws IOException, JsonParseException
+    {
+        // !!! TBI
+    }
+
+    /**
+     * Method called to skip remainders of an incomplete token, when
+     * contents themselves will not be needed any more
+     */
+    protected void _skipIncomplete() throws IOException, JsonParseException
+    {
+        // !!! TBI
+    }
+
+    @Override
+    protected void _finishString() throws IOException, JsonParseException {
+        // should never be called:
+        _throwInternal();
+    }
+    
+    /*
+    /**********************************************************
+    /* Internal methods, other
+    /**********************************************************
+     */
 }

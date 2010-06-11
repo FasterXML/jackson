@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.exc;
 import org.codehaus.jackson.JsonLocation;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Specialized {@link JsonMappingException} sub-class specifically used

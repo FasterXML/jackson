@@ -7,7 +7,7 @@ import org.junit.Assert;
 import static org.codehaus.jackson.smile.SmileConstants.*;
 
 public class TestSmileGenerator
-    extends main.BaseTest
+    extends BaseSmileTest
 {
     /**
      * Test for verifying handling of 'true', 'false' and 'null' literals
@@ -62,16 +62,4 @@ public class TestSmileGenerator
     /**********************************************************
      */
 
-    protected SmileGenerator _generator(ByteArrayOutputStream result, boolean addHeader)
-        throws IOException
-    {
-        SmileFactory f = new SmileFactory();
-        f.configure(SmileGenerator.Feature.WRITE_HEADER, addHeader);
-        return f.createJsonGenerator(result, null);
-    }
-
-    protected void _verifyBytes(byte[] actBytes, byte... expBytes)
-    {
-        Assert.assertArrayEquals(expBytes, actBytes);
-    }
 }

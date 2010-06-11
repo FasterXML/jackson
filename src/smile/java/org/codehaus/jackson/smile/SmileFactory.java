@@ -1,6 +1,7 @@
 package org.codehaus.jackson.smile;
 
 import java.io.*;
+import java.net.URL;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
@@ -37,9 +38,9 @@ public class SmileFactory extends JsonFactory
     final static int DEFAULT_SMILE_GENERATOR_FEATURE_FLAGS = SmileGenerator.Feature.collectDefaults();
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Configuration
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -56,9 +57,9 @@ public class SmileFactory extends JsonFactory
     protected int _smileGeneratorFeatures = DEFAULT_SMILE_GENERATOR_FEATURE_FLAGS;
     
     /*
-    /******************************************************
+    /**********************************************************
     /* Factory construction, configuration
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -80,9 +81,9 @@ public class SmileFactory extends JsonFactory
     }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Configuration, parser settings
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -125,9 +126,9 @@ public class SmileFactory extends JsonFactory
     }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Configuration, generator settings
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -172,11 +173,49 @@ public class SmileFactory extends JsonFactory
     }
     
     /*
-    /******************************************************
-    /* Overridden parts of public API
-    /******************************************************
+    /**********************************************************
+    /* Overridden parser factory methods
+    /**********************************************************
      */
 
+    public SmileParser createJsonParser(File f)
+        throws IOException, JsonParseException
+    {
+        return _createJsonParser(new FileInputStream(f), _createContext(f, true));
+    }
+
+    public SmileParser createJsonParser(URL url)
+        throws IOException, JsonParseException
+    {
+        return _createJsonParser(_optimizedStreamFromURL(url), _createContext(url, true));
+    }
+
+    public SmileParser createJsonParser(InputStream in)
+        throws IOException, JsonParseException
+    {
+        return _createJsonParser(in, _createContext(in, false));
+    }
+
+    //public JsonParser createJsonParser(Reader r)
+    
+    public SmileParser createJsonParser(byte[] data)
+        throws IOException, JsonParseException
+    {
+        return _createJsonParser(data, 0, data.length, _createContext(data, true));
+    }
+    
+    public SmileParser createJsonParser(byte[] data, int offset, int len)
+        throws IOException, JsonParseException
+    {
+        return _createJsonParser(data, offset, len, _createContext(data, true));
+    }
+
+    /*
+    /**********************************************************
+    /* Overridden generator factory methods
+    /**********************************************************
+     */
+    
     /**
      *<p>
      * note: co-variant return type
@@ -188,9 +227,9 @@ public class SmileFactory extends JsonFactory
     }
     
     /*
-    /******************************************************
+    /**********************************************************
     /* Extended public API
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -217,7 +256,7 @@ public class SmileFactory extends JsonFactory
      * Overridable factory method that actually instantiates desired
      * parser.
      */
-    protected JsonParser _createJsonParser(InputStream in, IOContext ctxt)
+    protected SmileParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
         // !!! TBI
@@ -242,7 +281,7 @@ public class SmileFactory extends JsonFactory
      * Overridable factory method that actually instantiates desired
      * parser.
      */
-    protected JsonParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
+    protected SmileParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
         throws IOException, JsonParseException
     {
         // !!! TBI
@@ -275,9 +314,9 @@ public class SmileFactory extends JsonFactory
     }    
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Internal methods
-    /******************************************************
+    /**********************************************************
      */
     
     protected SmileGenerator _createJsonGenerator(OutputStream out, IOContext ctxt)

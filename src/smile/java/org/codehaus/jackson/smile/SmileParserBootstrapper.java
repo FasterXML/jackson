@@ -1,20 +1,28 @@
-package org.codehaus.jackson.impl;
+package org.codehaus.jackson.smile;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.CharConversionException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.io.*;
+import org.codehaus.jackson.JsonEncoding;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.ObjectCodec;
+import org.codehaus.jackson.impl.ReaderBasedParser;
+import org.codehaus.jackson.impl.Utf8StreamParser;
+import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.io.MergedStream;
+import org.codehaus.jackson.io.UTF32Reader;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
 
 /**
- * This class is used to determine the encoding of byte stream
- * that is to contain JSON content. Rules are fairly simple, and
- * defined in JSON specification (RFC-4627 or newer), except
- * for BOM handling, which is a property of underlying
- * streams.
+ * Simple bootstrapper version used with Smile format parser.
  */
-public final class ByteSourceBootstrapper
+public class SmileParserBootstrapper
 {
     /*
     /**********************************************************
@@ -74,7 +82,7 @@ public final class ByteSourceBootstrapper
     /**********************************************************
      */
 
-    public ByteSourceBootstrapper(IOContext ctxt, InputStream in)
+    public SmileParserBootstrapper(IOContext ctxt, InputStream in)
     {
         _context = ctxt;
         _in = in;
@@ -84,7 +92,7 @@ public final class ByteSourceBootstrapper
         _bufferRecyclable = true;
     }
 
-    public ByteSourceBootstrapper(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen)
+    public SmileParserBootstrapper(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen)
     {
         _context = ctxt;
         _in = null;
@@ -348,4 +356,3 @@ public final class ByteSourceBootstrapper
         return true;
     }
 }
-

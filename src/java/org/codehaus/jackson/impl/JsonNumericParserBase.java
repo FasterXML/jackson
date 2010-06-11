@@ -79,10 +79,10 @@ public abstract class JsonNumericParserBase
     final protected static char CHAR_NULL = '\0';
 
     /*
-    ////////////////////////////////////////////////////
-    // Numeric value holders: multiple fields used for
-    // for efficiency
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Numeric value holders: multiple fields used for
+    /* for efficiency
+    /**********************************************************
      */
 
     /**
@@ -134,9 +134,9 @@ public abstract class JsonNumericParserBase
     protected int mExpLength;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     protected JsonNumericParserBase(IOContext ctxt, int features)
@@ -159,18 +159,9 @@ public abstract class JsonNumericParserBase
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Additional methods for sub-classes to implement
-    ////////////////////////////////////////////////////
-     */
-
-    protected abstract JsonToken parseNumberText(int ch)
-        throws IOException, JsonParseException;
-
-    /*
-    ////////////////////////////////////////////////////
-    // Numeric accessors of public API
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Numeric accessors of public API
+    /**********************************************************
      */
 
     public Number getNumberValue()
@@ -321,9 +312,9 @@ public abstract class JsonNumericParserBase
 
 
     /*
-    ////////////////////////////////////////////////////
-    // Conversion from textual to numeric representation
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Conversion from textual to numeric representation
+    /**********************************************************
      */
 
     /**
@@ -335,7 +326,7 @@ public abstract class JsonNumericParserBase
      * @param expType Numeric type that we will immediately need, if any;
      *   mostly necessary to optimize handling of floating point numbers
      */
-    protected final void parseNumericValue(int expType)
+    protected void parseNumericValue(int expType)
         throws JsonParseException
     {
         // First things first: must be a numeric event
@@ -418,9 +409,9 @@ public abstract class JsonNumericParserBase
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Conversions
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Conversions
+    /**********************************************************
      */    
 
     protected void convertNumberToInt()
@@ -553,9 +544,9 @@ public abstract class JsonNumericParserBase
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Exception reporting
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Exception reporting
+    /**********************************************************
      */
 
     protected void reportUnexpectedNumberChar(int ch, String comment)

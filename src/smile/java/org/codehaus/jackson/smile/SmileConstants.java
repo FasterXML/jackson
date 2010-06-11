@@ -5,7 +5,7 @@ package org.codehaus.jackson.smile;
  * 
  * @author tatu
  */
-public interface SmileConstants
+public final class SmileConstants
 {
     /*
     /****************************************************
@@ -218,5 +218,42 @@ public interface SmileConstants
 
     public final static int TOKEN_COMP_TYPE_NONE = 0x00;
     public final static int TOKEN_COMP_TYPE_LZF = 0x01;
+
+    /*
+    /****************************************************
+    /* Basic UTF-8 decode/encode table
+    /****************************************************
+     */
+    
+    /**
+     * Additionally we can combine UTF-8 decoding info into similar
+     * data table.
+     * Values indicate "byte length - 1"; meaning -1 is used for
+     * invalid bytes, 0 for single-byte codes, 1 for 2-byte codes
+     * and 2 for 3-byte codes.
+     */
+    public final static int[] sUtf8UnitLengths;
+    static {
+        int[] table = new int[256];
+        for (int c = 128; c < 256; ++c) {
+            int code;
+
+            // We'll add number of bytes needed for decoding
+            if ((c & 0xE0) == 0xC0) { // 2 bytes (0x0080 - 0x07FF)
+                code = 1;
+            } else if ((c & 0xF0) == 0xE0) { // 3 bytes (0x0800 - 0xFFFF)
+                code = 2;
+            } else if ((c & 0xF8) == 0xF0) {
+                // 4 bytes; double-char with surrogates and all...
+                code = 3;
+            } else {
+                // And -1 seems like a good "universal" error marker...
+                code = -1;
+            }
+            table[c] = code;
+        }
+        sUtf8UnitLengths = table;
+    }
+
 }
 

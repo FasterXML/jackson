@@ -46,6 +46,9 @@ public abstract class StreamBasedParserBase
     /**
      * Flag that indicates whether the input buffer is recycable (and
      * needs to be returned to recycler once we are done) or not.
+     *<p>
+     * If it is not, it also means that parser can NOT modify underlying
+     * buffer.
      */
     protected boolean _bufferRecyclable;
 
@@ -75,7 +78,7 @@ public abstract class StreamBasedParserBase
      */
 
     @Override
-	protected final boolean loadMore()
+    protected final boolean loadMore()
         throws IOException
     {
         _currInputProcessed += _inputEnd;
@@ -92,12 +95,50 @@ public abstract class StreamBasedParserBase
             _closeInput();
             // Should never return 0, so let's fail
             if (count == 0) {
-                throw new IOException("Reader returned 0 characters when trying to read "+_inputEnd);
+                throw new IOException("InputStream.read() returned 0 characters when trying to read "+_inputBuffer.length+" bytes");
             }
         }
         return false;
     }
 
+    /**
+     * Helper method that will try to load at least specified number bytes in
+     * input buffer, possible moving existing data around if necessary
+     * 
+     * @since 1.6
+     */
+    protected final boolean _loadToHaveAtLeast(int minAvailable)
+        throws IOException
+    {
+        // No input stream, no leading (either we are closed, or have non-stream input source)
+        if (_inputStream == null) {
+            return false;
+        }
+        // Need to move remaining data in front?
+        if (_inputPtr > 0) {
+            _currInputProcessed += _inputPtr;
+            _currInputRowStart -= _inputPtr;
+            int amount = _inputEnd - _inputPtr;
+            System.arraycopy(_inputBuffer, _inputPtr, _inputBuffer, 0, amount);
+            _inputPtr = 0;
+            _inputEnd = amount;
+        }
+        while (_inputPtr < minAvailable) {
+            int amount = _inputBuffer.length - _inputPtr;
+            int count = _inputStream.read(_inputBuffer, _inputPtr, amount);
+            if (count < 1) {
+                // End of input
+                _closeInput();
+                // Should never return 0, so let's fail
+                if (count == 0) {
+                    throw new IOException("InputStream.read() returned 0 characters when trying to read "+amount+" bytes");
+                }
+            }
+            _inputPtr += count;
+        }
+        return true;
+    }
+    
     @Override
     protected void _closeInput() throws IOException
     {

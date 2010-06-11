@@ -25,20 +25,20 @@ public final class JsonReadContext
     protected String _currentName;
 
     /*
-    //////////////////////////////////////////////////
-    // Simple instance reuse slots; speeds up things
-    // a bit (10-15%) for docs with lots of small
-    // arrays/objects (for which allocation was
-    // visible in profile stack frames)
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Simple instance reuse slots; speeds up things
+    /* a bit (10-15%) for docs with lots of small
+    /* arrays/objects (for which allocation was
+    /* visible in profile stack frames)
+    /**********************************************************
      */
 
     JsonReadContext _child = null;
 
     /*
-    //////////////////////////////////////////////////
-    // Instance construction, reuse
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Instance construction, reuse
+    /**********************************************************
      */
 
     public JsonReadContext(JsonReadContext parent,
@@ -87,9 +87,9 @@ public final class JsonReadContext
     }
 
     /*
-    //////////////////////////////////////////////////
-    // Abstract method implementation
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Abstract method implementation
+    /**********************************************************
      */
 
     public final String getCurrentName() { return _currentName; }
@@ -97,9 +97,9 @@ public final class JsonReadContext
     public final JsonReadContext getParent() { return _parent; }
 
     /*
-    //////////////////////////////////////////////////
-    // Extended API
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
      */
 
     /**
@@ -117,9 +117,9 @@ public final class JsonReadContext
     }
 
     /*
-    //////////////////////////////////////////////////
-    // State changes
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* State changes
+    /**********************************************************
      */
 
     public final boolean expectComma()
@@ -138,10 +138,10 @@ public final class JsonReadContext
     }
 
     /*
-    //////////////////////////////////////////////////
-    // Overridden standard methods
-    //////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Overridden standard methods
+    /**********************************************************
+     */
 
     /**
      * Overridden to provide developer readable "JsonPath" representation

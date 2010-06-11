@@ -10,6 +10,12 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 public class TestJaxbFieldAccess
     extends org.codehaus.jackson.map.BaseMapTest
 {
+    /*
+     **************************************************************
+     * Helper beans
+     **************************************************************
+     */
+
     @XmlAccessorType(XmlAccessType.FIELD)
     static class Fields {
         protected int x;

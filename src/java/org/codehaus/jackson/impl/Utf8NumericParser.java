@@ -18,9 +18,9 @@ public abstract class Utf8NumericParser
     extends StreamBasedParserBase
 {
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public Utf8NumericParser(IOContext pc, int features,
@@ -32,9 +32,9 @@ public abstract class Utf8NumericParser
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Textual parsing of number values
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Textual parsing of number values
+    /**********************************************************
      */
 
     /**
@@ -52,7 +52,6 @@ public abstract class Utf8NumericParser
      * deferred, since it is usually the most complicated and costliest
      * part of processing.
      */
-    @Override
     protected final JsonToken parseNumberText(int c)
         throws IOException, JsonParseException
     {

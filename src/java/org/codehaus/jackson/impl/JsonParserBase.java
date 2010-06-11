@@ -147,9 +147,9 @@ public abstract class JsonParserBase
     protected JsonReadContext _parsingContext;
 
     /**
-     * Secondary token related to the current token: used when
-     * the current token is <code>FIELD_NAME</code> but the
-     * actual value token is also known.
+     * Secondary token related to the next token after current one;
+     * used if its type is known. This may be value token that
+     * follows FIELD_NAME, for example.
      */
     protected JsonToken _nextToken;
 
@@ -465,11 +465,12 @@ public abstract class JsonParserBase
     /**********************************************************
      */
 
-    public final byte[] getBinaryValue(Base64Variant b64variant)
+    public byte[] getBinaryValue(Base64Variant b64variant)
         throws IOException, JsonParseException
     {
-        if (_currToken != JsonToken.VALUE_STRING) {
-            _reportError("Current token ("+_currToken+") not VALUE_STRING, can not access as binary");
+        if (_currToken != JsonToken.VALUE_STRING &&
+                (_currToken != JsonToken.VALUE_EMBEDDED_OBJECT || _binaryValue == null)) {
+            _reportError("Current token ("+_currToken+") not VALUE_STRING or VALUE_EMBEDDED_OBJECT, can not access as binary");
         }
         /* To ensure that we won't see inconsistent data, better clear up
          * state...
@@ -484,7 +485,7 @@ public abstract class JsonParserBase
              * textual content in error cases
              */
             _tokenIncomplete = false;
-        }
+        }        
         return _binaryValue;
     }
 
