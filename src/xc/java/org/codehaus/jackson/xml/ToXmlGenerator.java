@@ -4,11 +4,13 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import org.codehaus.jackson.Base64Variant;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonStreamContext;
-import org.codehaus.jackson.ObjectCodec;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamWriter;
+
+import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.ri.Stax2WriterAdapter;
+
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
 import org.codehaus.jackson.io.IOContext;
@@ -61,6 +63,8 @@ public class ToXmlGenerator
     /**********************************************************
      */
 
+    final protected XMLStreamWriter2 _xmlWriter;
+    
     final protected IOContext _ioContext;
 
     /**
@@ -72,14 +76,27 @@ public class ToXmlGenerator
 
     /*
     /**********************************************************
+    /* XML Output state
+    /**********************************************************
+     */
+
+    /**
+     * 
+     */
+    protected QName _nextName;
+    
+    /*
+    /**********************************************************
     /* Life-cycle
     /**********************************************************
      */
 
-    public ToXmlGenerator(IOContext ctxt, int features, ObjectCodec codec)
+    public ToXmlGenerator(IOContext ctxt, int features, ObjectCodec codec,
+            XMLStreamWriter sw)
     {
         super(features, codec);
         _ioContext = ctxt;
+        _xmlWriter = Stax2WriterAdapter.wrapIfNecessary(sw);
     }
 
     /*

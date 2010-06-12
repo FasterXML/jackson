@@ -1,17 +1,16 @@
 package org.codehaus.jackson.xml;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
+import javax.xml.stream.*;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.ObjectCodec;
+import org.codehaus.stax2.XMLInputFactory2;
+import org.codehaus.stax2.XMLOutputFactory2;
+import org.codehaus.stax2.XMLStreamReader2;
+import org.codehaus.stax2.XMLStreamWriter2;
+import org.codehaus.stax2.ri.Stax2ReaderAdapter;
+import org.codehaus.stax2.ri.Stax2WriterAdapter;
+
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
 
 /**
@@ -40,19 +39,23 @@ public class XmlFactory extends JsonFactory
     final static int DEFAULT_XML_GENERATOR_FEATURE_FLAGS = ToXmlGenerator.Feature.collectDefaults();
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Configuration
-    /******************************************************
+    /**********************************************************
      */
 
     protected int _xmlParserFeatures = DEFAULT_XML_PARSER_FEATURE_FLAGS;
 
     protected int _xmlGeneratorFeatures = DEFAULT_XML_GENERATOR_FEATURE_FLAGS;
-    
+
+    protected XMLInputFactory _xmlInputFactory;
+
+    protected XMLOutputFactory _xmlOutputFactory;
+
     /*
-    /******************************************************
+    /**********************************************************
     /* Factory construction, configuration
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -67,12 +70,28 @@ public class XmlFactory extends JsonFactory
      */
     public XmlFactory() { this(null); }
 
-    public XmlFactory(ObjectCodec oc) { super(oc); }
+    public XmlFactory(ObjectCodec oc) {
+        this(oc, null, null);
+    }
+
+    public XmlFactory(ObjectCodec oc,
+            XMLInputFactory xmlIn, XMLOutputFactory xmlOut)
+    {
+        super(oc);
+        if (xmlIn == null) {
+            xmlIn = XMLInputFactory.newFactory();
+        }
+        if (xmlOut == null) {
+            xmlOut = XMLOutputFactory.newFactory();
+        }
+        _xmlInputFactory = xmlIn;
+        _xmlOutputFactory = xmlOut;
+    }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Configuration, parser settings
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -162,9 +181,9 @@ public class XmlFactory extends JsonFactory
     }
     
     /*
-    /******************************************************
+    /**********************************************************
     /* Overridden parts of public API
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -174,31 +193,15 @@ public class XmlFactory extends JsonFactory
     public ToXmlGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
         throws IOException
     {
-        return createJsonGenerator(out);
-    }
-    
-    /*
-    /******************************************************
-    /* Extended public API
-    /******************************************************
-     */
-
-    /**
-     * Since Smile format always uses UTF-8 internally, no encoding need
-     * to be passed to this method.
-     */
-    public ToXmlGenerator createJsonGenerator(OutputStream out)
-        throws IOException
-    {
         // false -> we won't manage the stream unless explicitly directed to
         IOContext ctxt = _createContext(out, false);
-        return _createJsonGenerator(out, ctxt);
+        return _createJsonGenerator(ctxt, out, enc);
     }
     
     /*
-    /******************************************************
+    /**********************************************************
     /* Overridden internal factory methods
-    /******************************************************
+    /**********************************************************
      */
 
     //protected IOContext _createContext(Object srcRef, boolean resourceManaged)
@@ -239,38 +242,46 @@ public class XmlFactory extends JsonFactory
         //return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
     }
 
+    /*
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
+     */
+
     /**
      * Overridable factory method that actually instantiates desired
      * generator.
      */
-    protected JsonGenerator _createJsonGenerator(Writer out, IOContext ctxt)
-        throws IOException
-    {
-            // !!! TBI
-            return null;
-    }
-
-    //public BufferRecycler _getBufferRecycler()
-
-    protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException
-    {
-        // !!! TBI
-        return null;
-    }    
-
-    /*
-    /******************************************************
-    /* Internal methods
-    /******************************************************
-     */
-    
-    protected ToXmlGenerator _createJsonGenerator(OutputStream out, IOContext ctxt)
+    protected JsonGenerator _createJsonGenerator(IOContext ctxt, Writer out)
         throws IOException
     {
         int feats = _xmlGeneratorFeatures;
-        ToXmlGenerator gen = new ToXmlGenerator(ctxt, feats, _objectCodec);
-        //if ((feats & ToXmlGenerator.Feature.WRITE_HEADER.getMask()) != 0)
-        return gen;
+        return new ToXmlGenerator(ctxt, feats, _objectCodec, _createXmlWriter(out));
+    }
+    
+    protected ToXmlGenerator _createJsonGenerator(IOContext ctxt, OutputStream out, JsonEncoding enc)
+        throws IOException
+    {
+        int feats = _xmlGeneratorFeatures;
+        return new ToXmlGenerator(ctxt, feats, _objectCodec, _createXmlWriter(out));
+    }
+
+    protected XMLStreamWriter _createXmlWriter(OutputStream out) throws IOException
+    {
+        try {
+            return _xmlOutputFactory.createXMLStreamWriter(out, "UTF-8");
+        } catch (XMLStreamException e) {
+            return StaxUtil.throwXmlAsIOException(e);
+        }
+    }
+
+    protected XMLStreamWriter _createXmlWriter(Writer w) throws IOException
+    {
+        try {
+            return _xmlOutputFactory.createXMLStreamWriter(w);
+        } catch (XMLStreamException e) {
+            return StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
 }

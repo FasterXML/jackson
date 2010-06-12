@@ -180,6 +180,9 @@ compile.main, test.compile, compile.extra, compile.perf" />
                <fileset dir="${dir.lib}/jaxb">
                     <include name="*.jar" />
                </fileset>
+               <fileset dir="${dir.lib}/xml">
+                    <include name="*.jar" />
+               </fileset>
             </classpath>
         </javac>
     </target>
