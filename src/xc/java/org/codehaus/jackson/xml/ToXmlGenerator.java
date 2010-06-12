@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.codehaus.stax2.XMLStreamWriter2;
@@ -16,7 +17,11 @@ import org.codehaus.jackson.impl.JsonWriteContext;
 import org.codehaus.jackson.io.IOContext;
 
 /**
- * 
+ * {@link JsonGenerator} that outputs JAXB-style XML output instead of JSON content.
+ * Operation requires calling code (usually either standard Jackson serializers,
+ * or in some cases (like <code>BeanSerializer</code>) customised ones) to do
+ * additional configuration calls beyond regular {@link JsonGenerator} API,
+ * mostly to pass namespace information.
  * 
  * @since 1.6
  */
@@ -57,6 +62,8 @@ public class ToXmlGenerator
         public int getMask() { return _mask; }
     }
 
+    final private QName NAME_UNKNOWN = new QName("unknown");
+    
     /*
     /**********************************************************
     /* Configuration
@@ -81,9 +88,11 @@ public class ToXmlGenerator
      */
 
     /**
-     * 
+     * Element or attribute name to use for next output call.
+     * Assigned by either code that initiates serialization
+     * or bean serializer.
      */
-    protected QName _nextName;
+    protected String _nextName = "unknown";
     
     /*
     /**********************************************************
@@ -130,36 +139,65 @@ public class ToXmlGenerator
 
     /*
     /**********************************************************
-    /* Output method implementations, structural
+    /* Extended API, passing XML specific settings
+    /**********************************************************
+     */
+    
+    /*
+    /**********************************************************
+    /* JsonGenerator output method implementations, structural
     /**********************************************************
      */
 
     @Override
     protected final void _writeStartArray() throws IOException, JsonGenerationException
     {
+        // !!! TODO: cases where there is no wrapper
+        try {
+            _xmlWriter.writeStartElement(_nextName);
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
     
     @Override
     protected void _writeEndArray()
         throws IOException, JsonGenerationException
     {
+        // !!! TODO: cases where there is no wrapper
+        try {
+            _xmlWriter.writeEndElement();
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
     protected void _writeStartObject()
         throws IOException, JsonGenerationException
     {
+        try {
+            _xmlWriter.writeStartElement(_nextName);
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
     protected void _writeEndObject()
         throws IOException, JsonGenerationException
     {
+        try {
+            _xmlWriter.writeEndElement();
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
     protected void _writeFieldName(String name, boolean commaBefore) throws IOException, JsonGenerationException
     {
+        _nextName = name;
     }
     
     /*
@@ -171,11 +209,35 @@ public class ToXmlGenerator
     @Override
     public void writeString(String text) throws IOException,JsonGenerationException
     {
+        _verifyValueWrite("write text value");
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeStartElement(_nextName);
+                _xmlWriter.writeCharacters(text);
+                _xmlWriter.writeEndElement();
+            } else {
+                _xmlWriter.writeCharacters(text);                
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }    
     
     @Override
     public void writeString(char[] text, int offset, int len) throws IOException, JsonGenerationException
     {
+        _verifyValueWrite("write text value");
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeStartElement(_nextName);
+                _xmlWriter.writeCharacters(text, offset, len);
+                _xmlWriter.writeEndElement();
+            } else {
+                _xmlWriter.writeCharacters(text, offset, len);
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
     
     /*
@@ -185,38 +247,39 @@ public class ToXmlGenerator
      */
 
     @Override
-    public void writeRaw(String text) throws IOException, JsonGenerationException {
-        // !!! TBI
+    public void writeRaw(String text) throws IOException, JsonGenerationException
+    {
+        try {
+            _xmlWriter.writeRaw(text);
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
-    public void writeRaw(String text, int offset, int len) throws IOException, JsonGenerationException {
-        // !!! TBI
+    public void writeRaw(String text, int offset, int len) throws IOException, JsonGenerationException
+    {
+        try {
+            _xmlWriter.writeRaw(text, offset, len);
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
-    public void writeRaw(char[] text, int offset, int len) throws IOException, JsonGenerationException {
-        // !!! TBI
+    public void writeRaw(char[] text, int offset, int len) throws IOException, JsonGenerationException
+    {
+        try {
+            _xmlWriter.writeRaw(text, offset, len);
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
-    public void writeRaw(char c) throws IOException, JsonGenerationException {
-        // !!! TBI
-    }
-
-    @Override
-    public void writeRawValue(String text) throws IOException, JsonGenerationException {
-        // !!! TBI
-    }
-
-    @Override
-    public void writeRawValue(String text, int offset, int len) throws IOException, JsonGenerationException {
-        // !!! TBI
-    }
-
-    @Override
-    public void writeRawValue(char[] text, int offset, int len) throws IOException, JsonGenerationException {
-        // !!! TBI
+    public void writeRaw(char c) throws IOException, JsonGenerationException
+    {
+        writeRaw(String.valueOf(c));
     }
     
     /*
@@ -232,7 +295,17 @@ public class ToXmlGenerator
             writeNull();
             return;
         }
-        // !!! TBI
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeStartElement(_nextName);
+                _xmlWriter.writeBinary(data, offset, len);
+                _xmlWriter.writeEndElement();
+            } else {
+                _xmlWriter.writeBinary(data, offset, len);
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
     
     /*
@@ -244,36 +317,102 @@ public class ToXmlGenerator
     @Override
     public void writeBoolean(boolean state) throws IOException, JsonGenerationException
     {
-        // !!! TBI
+        _verifyValueWrite("write text value");
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeStartElement(_nextName);
+                _xmlWriter.writeBoolean(state);
+                _xmlWriter.writeEndElement();
+            } else {
+                
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
-    public void writeNull() throws IOException, JsonGenerationException {
-        // !!! TBI
+    public void writeNull() throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write text value");
+        // !!! TODO: proper use of 'xsd:isNil'
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeEmptyElement(_nextName);
+            } else {
+                // !!! TBI
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
     public void writeNumber(int i) throws IOException, JsonGenerationException
     {
-        // !!! TBI
+        _verifyValueWrite("write number");
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeStartElement(_nextName);
+                _xmlWriter.writeInt(i);
+                _xmlWriter.writeEndElement();
+            } else {
+                _xmlWriter.writeInt(i);
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
     public void writeNumber(long l) throws IOException, JsonGenerationException
     {
-        // !!! TBI
+        _verifyValueWrite("write number");
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeStartElement(_nextName);
+                _xmlWriter.writeLong(l);
+                _xmlWriter.writeEndElement();
+            } else {
+                _xmlWriter.writeLong(l);
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
     public void writeNumber(double d) throws IOException, JsonGenerationException
     {
-        // !!! TBI
+        _verifyValueWrite("write number");
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeStartElement(_nextName);
+                _xmlWriter.writeDouble(d);
+                _xmlWriter.writeEndElement();
+            } else {
+                _xmlWriter.writeDouble(d);
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
     public void writeNumber(float f) throws IOException, JsonGenerationException
     {
-        // !!! TBI
+        _verifyValueWrite("write number");
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeStartElement(_nextName);
+                _xmlWriter.writeFloat(f);
+                _xmlWriter.writeEndElement();
+            } else {
+                _xmlWriter.writeFloat(f);
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
@@ -283,7 +422,18 @@ public class ToXmlGenerator
             writeNull();
             return;
         }
-        // !!! TBI
+        _verifyValueWrite("write number");
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeStartElement(_nextName);
+                _xmlWriter.writeDecimal(dec);
+                _xmlWriter.writeEndElement();
+            } else {
+                _xmlWriter.writeDecimal(dec);
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
@@ -293,13 +443,24 @@ public class ToXmlGenerator
             writeNull();
             return;
         }
-        // !!! TBI
+        _verifyValueWrite("write number");
+        try {
+            if (_nextName != null) {
+                _xmlWriter.writeStartElement(_nextName);
+                _xmlWriter.writeInteger(v);
+                _xmlWriter.writeEndElement();
+            } else {
+                _xmlWriter.writeInteger(v);
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
     public void writeNumber(String encodedValue) throws IOException,JsonGenerationException, UnsupportedOperationException
     {
-//        throw _notSupported();
+        writeString(encodedValue);
     }
 
     /*
@@ -327,8 +488,11 @@ public class ToXmlGenerator
     @Override
     public final void flush() throws IOException
     {
-        _flushBuffer();
-//        _out.flush();
+        try {
+            _xmlWriter.flush();
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
 
     @Override
@@ -354,46 +518,19 @@ public class ToXmlGenerator
                 }
             }
         }
-        _flushBuffer();
-
-        if (_ioContext.isResourceManaged() || isEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
-        	// !!! TBI
-//            _out.close();
-        } else {
-            // If we can't close it, we should at least flush
-        	// !!! TBI
-//            _out.flush();
+        try {
+            if (_ioContext.isResourceManaged() || isEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
+                _xmlWriter.closeCompletely();
+            } else {
+                _xmlWriter.close();
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
         }
-        // Internal buffer(s) generator has can now be released as well
-        _releaseBuffers();
     }
 
-    /*
-    /**********************************************************
-    /* Internal methods, buffer handling
-    /**********************************************************
-    */
-    
     @Override
-    protected void _releaseBuffers()
-    {
-    	/*
-        byte[] buf = _outputBuffer;
-        if (buf != null) {
-            _outputBuffer = null;
-            _ioContext.releaseWriteEncodingBuffer(buf);
-        }
-        */
+    protected void _releaseBuffers() {
+        // Nothing to do here, as we have no buffers
     }
-
-    protected final void _flushBuffer() throws IOException
-    {
-    	/*
-        if (_outputTail > 0) {
-            _out.write(_outputBuffer, 0, _outputTail);
-            _outputTail = 0;
-        }
-        */
-    }
-    
 }

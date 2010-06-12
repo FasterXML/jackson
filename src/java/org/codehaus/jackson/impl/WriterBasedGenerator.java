@@ -296,37 +296,13 @@ public final class WriterBasedGenerator
     }
 
     @Override
-	public void writeRaw(char c)
+    public void writeRaw(char c)
         throws IOException, JsonGenerationException
     {
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = c;
-    }
-
-    @Override
-    public void writeRawValue(String text)
-        throws IOException, JsonGenerationException
-    {
-        _verifyValueWrite("write raw value");
-        writeRaw(text);
-    }
-
-    @Override
-    public void writeRawValue(String text, int offset, int len)
-        throws IOException, JsonGenerationException
-    {
-        _verifyValueWrite("write raw value");
-        writeRaw(text, offset, len);
-    }
-
-    @Override
-    public void writeRawValue(char[] text, int offset, int len)
-        throws IOException, JsonGenerationException
-    {
-        _verifyValueWrite("write raw value");
-        writeRaw(text, offset, len);
     }
 
     private void writeRawLong(String text)

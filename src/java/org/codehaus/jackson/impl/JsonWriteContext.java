@@ -22,11 +22,11 @@ public abstract class JsonWriteContext
     protected final JsonWriteContext _parent;
 
     /*
-    //////////////////////////////////////////////////
-    // Simple instance reuse slots; speed up things
-    // a bit (10-15%) for docs with lots of small
-    // arrays/objects
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Simple instance reuse slots; speed up things
+    /* a bit (10-15%) for docs with lots of small
+    /* arrays/objects
+    /**********************************************************
      */
 
     JsonWriteContext _childArray = null;
@@ -34,9 +34,9 @@ public abstract class JsonWriteContext
     JsonWriteContext _childObject = null;
 
     /*
-    //////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     protected JsonWriteContext(int type, JsonWriteContext parent)
@@ -225,4 +225,3 @@ final class ObjectWContext
         sb.append(']');
     }
 }
-

@@ -226,8 +226,33 @@ public abstract class JsonGeneratorBase
 
     //public abstract void writeRaw(char[] text, int offset, int len) throws IOException, JsonGenerationException;
 
+    @Override
+    public void writeRawValue(String text)
+        throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write raw value");
+        writeRaw(text);
+    }
+
+    @Override
+    public void writeRawValue(String text, int offset, int len)
+        throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write raw value");
+        writeRaw(text, offset, len);
+    }
+
+    @Override
+    public void writeRawValue(char[] text, int offset, int len)
+        throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write raw value");
+        writeRaw(text, offset, len);
+    }
+    
     //public abstract void writeBinary(byte[] data, int offset, int len, boolean includeLFs) throws IOException, JsonGenerationException;
 
+    
     /*
     /**********************************************************
     /* Public API, write methods, primitive

@@ -1,16 +1,11 @@
 package org.codehaus.jackson.xml;
 
 import java.io.*;
+
 import javax.xml.stream.*;
 
-import org.codehaus.stax2.XMLInputFactory2;
-import org.codehaus.stax2.XMLOutputFactory2;
-import org.codehaus.stax2.XMLStreamReader2;
-import org.codehaus.stax2.XMLStreamWriter2;
-import org.codehaus.stax2.ri.Stax2ReaderAdapter;
-import org.codehaus.stax2.ri.Stax2WriterAdapter;
-
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.impl.WriterBasedGenerator;
 import org.codehaus.jackson.io.IOContext;
 
 /**
@@ -84,6 +79,8 @@ public class XmlFactory extends JsonFactory
         if (xmlOut == null) {
             xmlOut = XMLOutputFactory.newFactory();
         }
+        // 12-Jun-2010, tatu: Better ensure namespaces get built properly, so:
+        xmlOut.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
         _xmlInputFactory = xmlIn;
         _xmlOutputFactory = xmlOut;
     }
@@ -195,7 +192,24 @@ public class XmlFactory extends JsonFactory
     {
         // false -> we won't manage the stream unless explicitly directed to
         IOContext ctxt = _createContext(out, false);
-        return _createJsonGenerator(ctxt, out, enc);
+        return new ToXmlGenerator(ctxt, _xmlGeneratorFeatures, _objectCodec, _createXmlWriter(out));
+    }
+
+    public ToXmlGenerator createJsonGenerator(Writer out)
+        throws IOException
+    {
+        IOContext ctxt = _createContext(out, false);
+        return new ToXmlGenerator(ctxt, _xmlGeneratorFeatures, _objectCodec, _createXmlWriter(out));
+    }
+
+    public ToXmlGenerator createJsonGenerator(File f, JsonEncoding enc)
+        throws IOException
+    {
+        OutputStream out = new FileOutputStream(f);
+        // true -> yes, we have to manage the stream since we created it
+        IOContext ctxt = _createContext(out, true);
+        ctxt.setEncoding(enc);
+        return new ToXmlGenerator(ctxt, _xmlGeneratorFeatures, _objectCodec, _createXmlWriter(out));
     }
     
     /*
@@ -247,24 +261,6 @@ public class XmlFactory extends JsonFactory
     /* Internal methods
     /**********************************************************
      */
-
-    /**
-     * Overridable factory method that actually instantiates desired
-     * generator.
-     */
-    protected JsonGenerator _createJsonGenerator(IOContext ctxt, Writer out)
-        throws IOException
-    {
-        int feats = _xmlGeneratorFeatures;
-        return new ToXmlGenerator(ctxt, feats, _objectCodec, _createXmlWriter(out));
-    }
-    
-    protected ToXmlGenerator _createJsonGenerator(IOContext ctxt, OutputStream out, JsonEncoding enc)
-        throws IOException
-    {
-        int feats = _xmlGeneratorFeatures;
-        return new ToXmlGenerator(ctxt, feats, _objectCodec, _createXmlWriter(out));
-    }
 
     protected XMLStreamWriter _createXmlWriter(OutputStream out) throws IOException
     {
