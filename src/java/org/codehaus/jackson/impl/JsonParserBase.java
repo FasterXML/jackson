@@ -300,8 +300,10 @@ public abstract class JsonParserBase
 
     public void close() throws IOException
     {
-        _closed = true;
-        _closeInput();
+        if (!_closed) {
+            _closed = true;
+            _closeInput();
+        }
         // Also, internal buffer(s) can now be released as well
         _releaseBuffers();
     }

@@ -3,6 +3,8 @@ package org.codehaus.jackson.map.ser;
 import java.io.*;
 import java.util.*;
 
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -56,7 +58,25 @@ public class TestEnumSerialization
     protected static interface ToStringMixin {
         @JsonValue public String toString();
     }
-    
+
+    protected enum SerializableEnum implements JsonSerializableWithType
+    {
+        A, B, C;
+
+        private SerializableEnum() { }
+        
+        public void serializeWithType(JsonGenerator jgen, SerializerProvider provider, TypeSerializer typeSer)
+                throws IOException, JsonProcessingException
+        {
+            serialize(jgen, provider);
+        }
+
+        public void serialize(JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException
+        {
+            jgen.writeString("foo");
+        }
+    }
+
     /*
     /**********************************************************
     /* Tests
@@ -147,5 +167,15 @@ public class TestEnumSerialization
         ObjectMapper mapper = new ObjectMapper();
         mapper.getSerializationConfig().addMixInAnnotations(TestEnum.class, ToStringMixin.class);
         assertEquals("\"b\"", mapper.writeValueAsString(TestEnum.B));
+    }
+
+    /**
+     * Test for ensuring that @JsonSerializable is used with Enum types as well
+     * as with any other types.
+     */
+    public void testSerializableEnum() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals("\"foo\"", mapper.writeValueAsString(SerializableEnum.A));
     }
 }

@@ -192,14 +192,16 @@ public class XmlFactory extends JsonFactory
     {
         // false -> we won't manage the stream unless explicitly directed to
         IOContext ctxt = _createContext(out, false);
-        return new ToXmlGenerator(ctxt, _xmlGeneratorFeatures, _objectCodec, _createXmlWriter(out));
+        return new ToXmlGenerator(ctxt, _generatorFeatures, _xmlGeneratorFeatures,
+                _objectCodec, _createXmlWriter(out));
     }
 
     public ToXmlGenerator createJsonGenerator(Writer out)
         throws IOException
     {
         IOContext ctxt = _createContext(out, false);
-        return new ToXmlGenerator(ctxt, _xmlGeneratorFeatures, _objectCodec, _createXmlWriter(out));
+        return new ToXmlGenerator(ctxt, _generatorFeatures, _xmlGeneratorFeatures,
+                _objectCodec, _createXmlWriter(out));
     }
 
     public ToXmlGenerator createJsonGenerator(File f, JsonEncoding enc)
@@ -209,7 +211,8 @@ public class XmlFactory extends JsonFactory
         // true -> yes, we have to manage the stream since we created it
         IOContext ctxt = _createContext(out, true);
         ctxt.setEncoding(enc);
-        return new ToXmlGenerator(ctxt, _xmlGeneratorFeatures, _objectCodec, _createXmlWriter(out));
+        return new ToXmlGenerator(ctxt, _generatorFeatures, _xmlGeneratorFeatures,
+                _objectCodec, _createXmlWriter(out));
     }
     
     /*

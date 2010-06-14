@@ -13,11 +13,12 @@ public class TestConfig
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Helper beans
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Helper beans
+    /**********************************************************
      */
 
+    @SuppressWarnings("deprecation")
     @JsonWriteNullProperties(false)
     @JsonAutoDetect(JsonMethod.NONE)
     final static class ConfigLegacy { }
@@ -36,13 +37,13 @@ public class TestConfig
     }
 
     /*
-    //////////////////////////////////////////////
-    // Main tests
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Main tests
+    /**********************************************************
      */
 
     @SuppressWarnings("deprecation")
-	public void testDefaults()
+    public void testDefaults()
     {
         ObjectMapper m = new ObjectMapper();
         SerializationConfig cfg = m.getSerializationConfig();

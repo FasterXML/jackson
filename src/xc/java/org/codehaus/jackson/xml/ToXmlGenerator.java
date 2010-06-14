@@ -61,8 +61,6 @@ public class ToXmlGenerator
         public boolean enabledByDefault() { return _defaultState; }
         public int getMask() { return _mask; }
     }
-
-    final private QName NAME_UNKNOWN = new QName("unknown");
     
     /*
     /**********************************************************
@@ -79,7 +77,7 @@ public class ToXmlGenerator
      * {@link org.codehaus.jackson.smile.SmileGenerator.Feature}s
      * are enabled.
      */
-    protected int _features;
+    protected int _xmlFeatures;
 
     /*
     /**********************************************************
@@ -100,10 +98,11 @@ public class ToXmlGenerator
     /**********************************************************
      */
 
-    public ToXmlGenerator(IOContext ctxt, int features, ObjectCodec codec,
-            XMLStreamWriter sw)
+    public ToXmlGenerator(IOContext ctxt, int genericGeneratorFeatures, int xmlFeatures,
+            ObjectCodec codec, XMLStreamWriter sw)
     {
-        super(features, codec);
+        super(genericGeneratorFeatures, codec);
+        _xmlFeatures = xmlFeatures;
         _ioContext = ctxt;
         _xmlWriter = Stax2WriterAdapter.wrapIfNecessary(sw);
     }
@@ -115,17 +114,17 @@ public class ToXmlGenerator
      */
 
     public ToXmlGenerator enable(Feature f) {
-        _features |= f.getMask();
+        _xmlFeatures |= f.getMask();
         return this;
     }
 
     public ToXmlGenerator disable(Feature f) {
-        _features &= ~f.getMask();
+        _xmlFeatures &= ~f.getMask();
         return this;
     }
 
     public final boolean isEnabled(Feature f) {
-        return (_features & f.getMask()) != 0;
+        return (_xmlFeatures & f.getMask()) != 0;
     }
 
     public ToXmlGenerator configure(Feature f, boolean state) {
