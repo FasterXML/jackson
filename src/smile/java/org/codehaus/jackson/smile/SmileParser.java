@@ -150,6 +150,12 @@ public class SmileParser
             case 0x7:
                 _textBuffer.resetWithEmpty();
                 return (_currToken = JsonToken.VALUE_STRING);
+            case 0x1A: // == 0x3A == ':' -> possibly header signature for next chunk?
+            	if (_handleSignature(false)) {
+            		// Mark current token as empty, to return; but don't close input to allow more parsing
+            		return (_currToken = null);
+            	}
+            	_reportError("Unrecognized token byte 0x3A (malformed segment header?");
             }
             // and everything else is reserved, for now
             break;
@@ -488,6 +494,43 @@ public class SmileParser
         _textBuffer.setCurrentLength(outPtr);
     }
 
+    /**
+     * Helper method called when it looks like input might contain the signature;
+     * and it is necessary to detect and handle signature to get configuration
+     * information it might have.
+     * 
+     * @return True if valid signature was found and handled; false if not
+     */
+	protected boolean _handleSignature(boolean throwException)
+		throws IOException, JsonParseException
+	{
+        if (_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        if (_inputBuffer[_inputPtr] == SmileConstants.HEADER_BYTE_2) {
+            if (++_inputPtr >= _inputEnd) {
+            	loadMoreGuaranteed();        	
+            }
+            if (_inputBuffer[_inputPtr] == SmileConstants.HEADER_BYTE_3) {
+            	// Good enough; just need version info from 4th byte...
+                if (++_inputPtr >= _inputEnd) {
+                	loadMoreGuaranteed();        	
+                }
+                int ch = _inputBuffer[_inputPtr++];
+                int versionBits = (ch >> 6) & 0x03;
+                if (versionBits != SmileConstants.HEADER_VERSION_00) {
+                	_reportError("Version number bits (0x"+Integer.toHexString(versionBits)+") indicate unrecognized version; only 0x0 handled by parser");
+                }
+                // !!! TODO: handle actual config bits
+                return true;
+            }
+        }
+        if (throwException) {
+        	_reportError("Malformed content: signature not valid, starts with 0x3A byte, rest not valid");
+        }
+        return false;
+	}
+    
     /*
     /**********************************************************
     /* Internal methods, skipping

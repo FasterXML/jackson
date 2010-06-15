@@ -77,6 +77,11 @@ public final class SmileConstants
      * Fourth byte of data header
      */
     public final static byte HEADER_BYTE_4 = (byte) 0;
+
+    /**
+     * Current version consists of two zero bits.
+     */
+    public final static int HEADER_VERSION_00 = 0x0;
     
     /*
     /****************************************************
