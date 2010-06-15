@@ -30,6 +30,9 @@ public final class EnumResolver<T extends Enum<T>>
     public static <ET extends Enum<ET>> EnumResolver<ET> constructFor(Class<ET> enumCls, AnnotationIntrospector ai)
     {
         ET[] enumValues = enumCls.getEnumConstants();
+        if (enumValues == null) {
+            throw new IllegalArgumentException("No enum constants for class "+enumCls.getName());
+        }
         HashMap<String, ET> map = new HashMap<String, ET>();
         for (ET e : enumValues) {
             map.put(ai.findEnumValue(e), e);

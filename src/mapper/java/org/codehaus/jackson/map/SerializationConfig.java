@@ -235,6 +235,21 @@ public class SerializationConfig
          */
         ,WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS(false)
 
+        /**
+         * Feature that determines standard serialization mechanism used for
+         * Enum values: if enabled, return value of <code>Enum.toString()</code>
+         * is used; if disabled, return value of <code>Enum.name()</code> is used.
+         * Since pre-1.6 method was to use Enum name, this is the default.
+         *<p>
+         * Note: this feature should usually have same value
+         * as {@link SerializationConfig#READ_ENUMS_USING_TO_STRING}.
+         *<p>
+         * For further details, check out [JACKSON-212]
+         * 
+         * @since 1.6
+         */
+        ,WRITE_ENUMS_USING_TO_STRING(false)
+        
         // // // Output fine tuning
             
         /**

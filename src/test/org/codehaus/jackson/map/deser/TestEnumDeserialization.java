@@ -1,9 +1,12 @@
 package org.codehaus.jackson.map.deser;
 
+import java.util.EnumMap;
+
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.type.TypeReference;
 
 public class TestEnumDeserialization
     extends BaseMapTest
@@ -43,7 +46,13 @@ public class TestEnumDeserialization
             return null;
         }
     }
-    
+
+    protected enum LowerCaseEnum {
+        A, B, C;
+        private LowerCaseEnum() { }
+        public String toString() { return name().toLowerCase(); }
+    }
+
     /*
     /**********************************************************
     /* Tests
@@ -96,6 +105,14 @@ public class TestEnumDeserialization
         assertEquals(AnnotatedTestEnum.OK, e);
     }
 
+    public void testEnumMaps() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        EnumMap<TestEnum,String> value = mapper.readValue("{\"OK\":\"value\"}",
+                new TypeReference<EnumMap<TestEnum,String>>() { });
+        assertEquals("value", value.get(TestEnum.OK));
+    }
+    
     // Test [JACKSON-214]
     public void testSubclassedEnums() throws Exception
     {
@@ -110,5 +127,24 @@ public class TestEnumDeserialization
         ObjectMapper mapper = new ObjectMapper();
         EnumWithCreator value = mapper.readValue("\"enumA\"", EnumWithCreator.class);
         assertEquals(EnumWithCreator.A, value);
+    }
+    
+    // [JACKSON-212]
+    public void testToStringEnums() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.READ_ENUMS_USING_TO_STRING, true);
+        LowerCaseEnum value = mapper.readValue("\"c\"", LowerCaseEnum.class);
+        assertEquals(LowerCaseEnum.C, value);
+    }
+
+    // [JACKSON-212]
+    public void testToStringEnumMaps() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.READ_ENUMS_USING_TO_STRING, true);
+        EnumMap<LowerCaseEnum,String> value = mapper.readValue("{\"a\":\"value\"}",
+                new TypeReference<EnumMap<LowerCaseEnum,String>>() { });
+        assertEquals("value", value.get(LowerCaseEnum.A));
     }
 }

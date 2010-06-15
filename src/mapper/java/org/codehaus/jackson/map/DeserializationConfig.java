@@ -47,7 +47,7 @@ public class DeserializationConfig
          *
          * @since 1.2
          */
-        USE_ANNOTATIONS(true),
+        USE_ANNOTATIONS(true)
 
         /**
          * Feature that determines whether "setter" methods are
@@ -63,7 +63,7 @@ public class DeserializationConfig
          *<P>
          * Feature is enabled by default.
          */
-        AUTO_DETECT_SETTERS(true),
+        ,AUTO_DETECT_SETTERS(true)
         /**
          * Feature that determines whether "creator" methods are
          * automatically detected by consider public constructors,
@@ -78,7 +78,7 @@ public class DeserializationConfig
          *<P>
          * Feature is enabled by default.
          */
-        AUTO_DETECT_CREATORS(true),
+        ,AUTO_DETECT_CREATORS(true)
 
         /**
          * Feature that determines whether non-static fields are recognized as
@@ -95,7 +95,7 @@ public class DeserializationConfig
          *
          * @since 1.1
          */
-        AUTO_DETECT_FIELDS(true),
+        ,AUTO_DETECT_FIELDS(true)
 
         /**
          * Feature that determines whether otherwise regular "getter"
@@ -113,7 +113,7 @@ public class DeserializationConfig
          *<p>
          * Feature is enabled by default.
          */
-        USE_GETTERS_AS_SETTERS(true),
+        ,USE_GETTERS_AS_SETTERS(true)
 
         /**
          * Feature that determines whether method and field access
@@ -123,7 +123,7 @@ public class DeserializationConfig
          * may be called to enable access to otherwise unaccessible
          * objects.
          */
-        CAN_OVERRIDE_ACCESS_MODIFIERS(true),
+        ,CAN_OVERRIDE_ACCESS_MODIFIERS(true)
 
         // // // Type conversion configuration
 
@@ -141,7 +141,7 @@ public class DeserializationConfig
          * (choice is for performance reason -- BigDecimals are slower than
          * Doubles)
          */
-        USE_BIG_DECIMAL_FOR_FLOATS(false),
+        ,USE_BIG_DECIMAL_FOR_FLOATS(false)
 
         /**
          * Feature that determines whether Json integral (non-floating-point)
@@ -159,8 +159,24 @@ public class DeserializationConfig
          * point numbers will by default be deserialized using whatever
          * is the most compact integral type, to optimize efficiency.
          */
-        USE_BIG_INTEGER_FOR_INTS(false),
+        ,USE_BIG_INTEGER_FOR_INTS(false)
 
+        /**
+         * Feature that determines standard deserialization mechanism used for
+         * Enum values: if enabled, Enums are assumed to have been serialized  using
+         * return value of <code>Enum.toString()</code>;
+         * if disabled, return value of <code>Enum.name()</code> is assumed to have been used.
+         * Since pre-1.6 method was to use Enum name, this is the default.
+         *<p>
+         * Note: this feature should usually have same value
+         * as {@link SerializationConfig#WRITE_ENUMS_USING_TO_STRING}.
+         *<p>
+         * For further details, check out [JACKSON-212]
+         * 
+         * @since 1.6
+         */
+        ,READ_ENUMS_USING_TO_STRING(false)
+        
         // // // Problem handling
 
         /**
@@ -180,7 +196,7 @@ public class DeserializationConfig
          *
          * @since 1.2
          */
-         FAIL_ON_UNKNOWN_PROPERTIES(true)
+         ,FAIL_ON_UNKNOWN_PROPERTIES(true)
 
         // // // Structural changes
 

@@ -35,6 +35,8 @@ Description:
 
   New features:
 
+  * [JACKSON-212] Allow serializer/deserializing Enums using toString() method
+    instead name()
   * [JACKSON-264] Ability to "update" values; to read and bind JSON
     content as properties of existing beans. This is done by using
     "ObjectMapper.updatingReader()" (and "reader.readValue(source)")

@@ -77,6 +77,12 @@ public class TestEnumSerialization
         }
     }
 
+    protected enum LowerCaseEnum {
+        A, B, C;
+        private LowerCaseEnum() { }
+        public String toString() { return name().toLowerCase(); }
+    }
+
     /*
     /**********************************************************
     /* Tests
@@ -177,5 +183,23 @@ public class TestEnumSerialization
     {
         ObjectMapper mapper = new ObjectMapper();
         assertEquals("\"foo\"", mapper.writeValueAsString(SerializableEnum.A));
+    }
+
+    // [JACKSON-212]
+    public void testToStringEnum() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationConfig.Feature.WRITE_ENUMS_USING_TO_STRING, true);
+        assertEquals("\"b\"", mapper.writeValueAsString(LowerCaseEnum.B));
+    }
+
+    // [JACKSON-212]
+    public void testToStringEnumWithEnumMap() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        EnumMap<LowerCaseEnum,String> m = new EnumMap<LowerCaseEnum,String>(LowerCaseEnum.class);
+        m.put(LowerCaseEnum.C, "value");
+        mapper.configure(SerializationConfig.Feature.WRITE_ENUMS_USING_TO_STRING, true);
+        assertEquals("{\"c\":\"value\"}", mapper.writeValueAsString(m));
     }
 }

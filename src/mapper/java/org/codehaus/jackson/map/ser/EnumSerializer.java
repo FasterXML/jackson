@@ -44,7 +44,11 @@ public class EnumSerializer
     public static EnumSerializer construct(Class<Enum<?>> enumClass, SerializationConfig config,
             BasicBeanDescription beanDesc)
     {
-        return construct(enumClass, config.getAnnotationIntrospector());
+        // [JACKSON-212]: If toString() is to be used instead, leave EnumValues null
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        EnumValues v = config.isEnabled(SerializationConfig.Feature.WRITE_ENUMS_USING_TO_STRING)
+            ? EnumValues.constructFromToString(enumClass, intr) : EnumValues.constructFromName(enumClass, intr);
+        return new EnumSerializer(v);
     }
     
     @Override

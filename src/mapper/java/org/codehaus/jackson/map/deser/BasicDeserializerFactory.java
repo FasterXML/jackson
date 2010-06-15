@@ -171,14 +171,13 @@ public abstract class BasicDeserializerFactory
         if (contentDeser == null) { // not defined by annotation
             // One special type: EnumSet:
             if (EnumSet.class.isAssignableFrom(collectionClass)) {
-                return new EnumSetDeserializer(EnumResolver.constructUnsafe(contentType.getRawClass(),
-                		config.getAnnotationIntrospector()));
+                return new EnumSetDeserializer(constructEnumResolver(contentType.getRawClass(), config));
             }
             // But otherwise we can just use a generic value deserializer:
             // 'null' -> collections have no referring fields
             contentDeser = p.findValueDeserializer(config, contentType, type, null);            
         }
-
+        
         /* One twist: if we are being asked to instantiate an interface or
          * abstract Collection, we need to either find something that implements
          * the thing, or give up.
@@ -239,7 +238,11 @@ public abstract class BasicDeserializerFactory
          * but EnumMap requires special handling for keys
          */
         if (EnumMap.class.isAssignableFrom(mapClass)) {
-            return new EnumMapDeserializer(EnumResolver.constructUnsafe(keyType.getRawClass(), config.getAnnotationIntrospector()), contentDeser);
+            Class<?> kt = keyType.getRawClass();
+            if (kt == null || !kt.isEnum()) {
+                throw new IllegalArgumentException("Can not construct EnumMap; generic (key) type not available");
+            }
+            return new EnumMapDeserializer(constructEnumResolver(kt, config), contentDeser);
         }
 
         // Otherwise, generic handler works ok.
@@ -321,7 +324,7 @@ public abstract class BasicDeserializerFactory
                         +enumClass.getName()+")");
             }
         }
-        return new EnumDeserializer(EnumResolver.constructUnsafe(enumClass, config.getAnnotationIntrospector()));
+        return new EnumDeserializer(constructEnumResolver(enumClass, config));
     }
 
     @Override
@@ -594,6 +597,15 @@ public abstract class BasicDeserializerFactory
         return type;
     }
 
+    protected EnumResolver<?> constructEnumResolver(Class<?> enumClass, DeserializationConfig config)
+    {
+        // [JACKSON-212]: may need to use Enum.toString()
+        if (config.isEnabled(DeserializationConfig.Feature.READ_ENUMS_USING_TO_STRING)) {
+            return EnumResolver.constructUnsafeUsingToString(enumClass);
+        }
+        return EnumResolver.constructUnsafe(enumClass, config.getAnnotationIntrospector());
+    }
+    
     /*
     /****************************************************
     /* Helper methods, dealing with Creators

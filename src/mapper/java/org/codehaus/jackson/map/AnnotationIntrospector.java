@@ -26,9 +26,9 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 public abstract class AnnotationIntrospector
 {    
     /*
-    /******************************************************
+    /**********************************************************
     /* Factory methods
-    /******************************************************
+    /**********************************************************
      */
     
     /**
@@ -47,9 +47,9 @@ public abstract class AnnotationIntrospector
     }
     
     /*
-    /******************************************************
+    /**********************************************************
     /* Generic annotation properties, lookup
-    /******************************************************
+    /**********************************************************
     */
 
     /**
@@ -59,9 +59,9 @@ public abstract class AnnotationIntrospector
     public abstract boolean isHandled(Annotation ann);
 
     /*
-    /******************************************************
+    /**********************************************************
     /* General annotations for serialization+deserialization
-    /******************************************************
+    /**********************************************************
     */
 
     /**
@@ -78,9 +78,9 @@ public abstract class AnnotationIntrospector
     public abstract String findNamespace(Annotated ann);
 
     /*
-    /******************************************************
+    /**********************************************************
     /* General class annotations
-    /******************************************************
+    /**********************************************************
     */
 
     /**
@@ -130,9 +130,9 @@ public abstract class AnnotationIntrospector
     public abstract Boolean findIgnoreUnknownProperties(AnnotatedClass ac);
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Property auto-detection
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -148,9 +148,9 @@ public abstract class AnnotationIntrospector
             VisibilityChecker<?> baseChecker);
     
     /*
-    /****************************************************
+    /**********************************************************
     /* Class annotations for PM type handling (1.5+)
-    /****************************************************
+    /**********************************************************
     */
 
     /**
@@ -231,9 +231,9 @@ public abstract class AnnotationIntrospector
     public abstract String findTypeName(AnnotatedClass ac);
     
     /*
-    /******************************************************
+    /**********************************************************
     /* General method annotations
-    /******************************************************
+    /**********************************************************
     */
 
     /**
@@ -256,9 +256,9 @@ public abstract class AnnotationIntrospector
     public abstract boolean isIgnorableConstructor(AnnotatedConstructor c);
 
     /*
-    /******************************************************
+    /**********************************************************
     /* General field annotations
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -272,10 +272,10 @@ public abstract class AnnotationIntrospector
     public abstract boolean isIgnorableField(AnnotatedField f);
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Serialization: general annotations
-    /******************************************************
-    */
+    /**********************************************************
+     */
 
     /**
      * Method for getting a serializer definition on specified method
@@ -336,10 +336,10 @@ public abstract class AnnotationIntrospector
     public abstract Class<?>[] findSerializationViews(Annotated a);
     
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: class annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Serialization: class annotations
+    /**********************************************************
+     */
 
     /**
      * Method for accessing defined property serialization order (which may be
@@ -359,10 +359,10 @@ public abstract class AnnotationIntrospector
     public abstract Boolean findSerializationSortAlphabetically(AnnotatedClass ac);
     
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: method annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Serialization: method annotations
+    /**********************************************************
+     */
 
     /**
      * Method for checking whether given method has an annotation
@@ -397,10 +397,10 @@ public abstract class AnnotationIntrospector
     public abstract String findEnumValue(Enum<?> value);
 
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: field annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Serialization: field annotations
+    /**********************************************************
+     */
 
     /**
      * Method for checking whether given member field represent
@@ -415,10 +415,10 @@ public abstract class AnnotationIntrospector
     public abstract String findSerializablePropertyName(AnnotatedField af);
 
     /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: general annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Deserialization: general annotations
+    /**********************************************************
+     */
 
     /**
      * Method for getting a deserializer definition on specified method
@@ -504,16 +504,16 @@ public abstract class AnnotationIntrospector
             String propName);
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Deserialization: class annotations
-    /******************************************************
+    /**********************************************************
     */
 
     /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: method annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Deserialization: method annotations
+    /**********************************************************
+     */
 
     /**
      * Method for checking whether given method has an annotation
@@ -551,10 +551,10 @@ public abstract class AnnotationIntrospector
     public abstract boolean hasCreatorAnnotation(Annotated a);
 
     /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: field annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Deserialization: field annotations
+    /**********************************************************
+     */
 
     /**
      * Method for checking whether given member field represent
@@ -569,11 +569,11 @@ public abstract class AnnotationIntrospector
     public abstract String findDeserializablePropertyName(AnnotatedField af);
 
     /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: parameter annotations (for
-    // creator method parameters)
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Deserialization: parameter annotations (for
+    /* creator method parameters)
+    /**********************************************************
+     */
 
     /**
      * Method for checking whether given set of annotations indicates
@@ -584,10 +584,10 @@ public abstract class AnnotationIntrospector
     public abstract String findPropertyNameForParam(AnnotatedParameter param);
 
     /*
-    ///////////////////////////////////////////////////////
-    // Helper classes
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
 
     /**
      * Helper class that allows using 2 introspectors such that one
