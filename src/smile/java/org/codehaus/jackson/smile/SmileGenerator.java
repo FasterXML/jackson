@@ -315,9 +315,9 @@ public class SmileGenerator
             byte typeToken;
             if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
                 if (byteLen == len) { // and all ASCII
-                    typeToken = (byte) (TOKEN_PREFIX_TINY_ASCII | byteLen);
+                    typeToken = (byte) ((TOKEN_PREFIX_TINY_ASCII - 1) + byteLen);
                 } else { // not just ASCII
-                    typeToken = (byte) (TOKEN_PREFIX_TINY_UNICODE | byteLen);
+                    typeToken = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 1) +  byteLen);
                 }
             } else { // nope, longer non-ASCII String 
                 typeToken = TOKEN_BYTE_LONG_STRING_UNICODE;
@@ -367,9 +367,9 @@ public class SmileGenerator
             byte typeToken;
             if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
                 if (byteLen == len) { // and all ASCII
-                    typeToken = (byte) (TOKEN_PREFIX_TINY_ASCII | byteLen);
+                    typeToken = (byte) ((TOKEN_PREFIX_TINY_ASCII - 1) + byteLen);
                 } else { // not just ASCII
-                    typeToken = (byte) (TOKEN_PREFIX_TINY_UNICODE | byteLen);
+                    typeToken = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 1) + byteLen);
                 }
             } else { // nope, longer non-ASCII Strings
                 typeToken = TOKEN_BYTE_LONG_STRING_UNICODE;
@@ -714,7 +714,7 @@ public class SmileGenerator
             _reportError("Can not "+typeMsg+", expecting field name");
         }
     }
-
+    
     /*
     /**********************************************************
     /* Low-level output handling

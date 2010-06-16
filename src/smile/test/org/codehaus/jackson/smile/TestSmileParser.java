@@ -2,27 +2,42 @@ package org.codehaus.jackson.smile;
 
 import java.io.*;
 
-import org.junit.Assert;
-
-import static org.codehaus.jackson.smile.SmileConstants.*;
+import org.codehaus.jackson.JsonToken;
 
 public class TestSmileParser
+	extends BaseSmileTest
 {
-    public void testSimple() throws Exception
+    public void testSimple() throws IOException
     {
+    	byte[] data = _smileDoc("[ true, null, false ]");
+    	SmileParser p = _parser(data);
+    	assertNull(p.getCurrentToken());
+    	assertToken(JsonToken.START_ARRAY, p.nextToken());
+    	assertToken(JsonToken.VALUE_TRUE, p.nextToken());
+    	assertToken(JsonToken.VALUE_NULL, p.nextToken());
+    	assertToken(JsonToken.VALUE_FALSE, p.nextToken());
+    	assertToken(JsonToken.END_ARRAY, p.nextToken());
+    	assertNull(p.nextToken());
+    	p.close();
     }
 
+    public void testArrayWithString() throws IOException
+    {
+    	byte[] data = _smileDoc("[ \"abc\" ]");
+    	SmileParser p = _parser(data);
+    	assertNull(p.getCurrentToken());
+    	assertToken(JsonToken.START_ARRAY, p.nextToken());
+    	assertToken(JsonToken.VALUE_STRING, p.nextToken());
+    	assertEquals("abc", p.getText());
+    	assertEquals(0, p.getTextOffset());
+    	assertEquals(3, p.getTextLength());
+    	assertToken(JsonToken.END_ARRAY, p.nextToken());
+    	p.close();
+    }
+    
     /*
     /**********************************************************
     /* Helper methods
     /**********************************************************
      */
-
-    protected SmileGenerator _generator(ByteArrayOutputStream result, boolean addHeader)
-        throws IOException
-    {
-        SmileFactory f = new SmileFactory();
-        f.configure(SmileGenerator.Feature.WRITE_HEADER, addHeader);
-        return f.createJsonGenerator(result, null);
-    }
 }

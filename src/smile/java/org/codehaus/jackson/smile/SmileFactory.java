@@ -259,9 +259,8 @@ public class SmileFactory extends JsonFactory
     protected SmileParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        // !!! TBI
-        return null;
-        //return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
+        return new SmileParserBootstrapper(ctxt, in).constructParser(_parserFeatures,
+        		_smileParserFeatures, _objectCodec, _rootByteSymbols);
     }
 
     /**
@@ -284,10 +283,8 @@ public class SmileFactory extends JsonFactory
     protected SmileParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        // !!! TBI
-        return null;
-        // true -> managed (doesn't really matter; we have no stream!)
-        //return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
+        return new SmileParserBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures,
+        		_smileParserFeatures, _objectCodec, _rootByteSymbols);
     }
 
     /**

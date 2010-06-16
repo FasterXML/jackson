@@ -103,7 +103,7 @@ public class SmileParserBootstrapper
         		_in, _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
     	if (_inputBuffer[_inputPtr] == SmileConstants.HEADER_BYTE_1) {
     		// need to ensure it gets properly handled so caller won't see the signature
-    		p._handleSignature(true);
+    		p.handleSignature(true);
     	}
         return p;
     }

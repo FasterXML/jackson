@@ -15,7 +15,7 @@ public final class SmileConstants
 
     /**
      * Encoding has special "short" forms for Strings that can
-     * be represented by 63 bytes of UTF-8 or less.
+     * be represented by 64 bytes of UTF-8 or less.
      */
     public final static int MAX_SHORT_STRING_BYTES = 64;
 

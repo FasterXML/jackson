@@ -94,6 +94,49 @@ public class SmileParser
     public void setCodec(ObjectCodec c) {
         _objectCodec = c;
     }
+
+    /**
+     * Helper method called when it looks like input might contain the signature;
+     * and it is necessary to detect and handle signature to get configuration
+     * information it might have.
+     * 
+     * @return True if valid signature was found and handled; false if not
+     */
+	protected boolean handleSignature(boolean throwException)
+		throws IOException, JsonParseException
+	{
+        if (++_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        if (_inputBuffer[_inputPtr] != SmileConstants.HEADER_BYTE_2) {
+            if (throwException) {
+            	_reportError("Malformed content: signature not valid, starts with 0x3a but followed by 0x"
+            			+Integer.toHexString(_inputBuffer[_inputPtr])+", not 0x29");
+            }
+            return false;
+        }
+        if (++_inputPtr >= _inputEnd) {
+        	loadMoreGuaranteed();        	
+        }
+        if (_inputBuffer[_inputPtr] != SmileConstants.HEADER_BYTE_3) {
+            if (throwException) {
+            	_reportError("Malformed content: signature not valid, starts with 0x3a, 0x29, but followed by 0x"
+            			+Integer.toHexString(_inputBuffer[_inputPtr])+", not 0xA");
+            }
+            return false;
+        }
+    	// Good enough; just need version info from 4th byte...
+        if (++_inputPtr >= _inputEnd) {
+        	loadMoreGuaranteed();        	
+        }
+        int ch = _inputBuffer[_inputPtr++];
+        int versionBits = (ch >> 6) & 0x03;
+        // but failure with version number is fatal, can not ignore
+        if (versionBits != SmileConstants.HEADER_VERSION_00) {
+        	_reportError("Header version number bits (0x"+Integer.toHexString(versionBits)+") indicate unrecognized version; only 0x0 handled by parser");
+        }
+        return true;
+	}
     
     /*
     /**********************************************************
@@ -115,6 +158,12 @@ public class SmileParser
         if (_inputPtr >= _inputEnd) {
             if (!loadMore()) {
                 _handleEOF();
+                /* NOTE: here we can and should close input, release buffers,
+                 * since this is "hard" EOF, not a boundary imposed by
+                 * header token.
+                 */
+                close();
+                return (_currToken = null);
             }
         }
         int ch = _inputBuffer[_inputPtr++];
@@ -151,7 +200,7 @@ public class SmileParser
                 _textBuffer.resetWithEmpty();
                 return (_currToken = JsonToken.VALUE_STRING);
             case 0x1A: // == 0x3A == ':' -> possibly header signature for next chunk?
-            	if (_handleSignature(false)) {
+            	if (handleSignature(false)) {
             		// Mark current token as empty, to return; but don't close input to allow more parsing
             		return (_currToken = null);
             	}
@@ -209,13 +258,7 @@ public class SmileParser
             _skipIncomplete();
         }
         return _parsingContext.getCurrentName();
-    }    
-        
-    /*
-    /**********************************************************
-    /* Public API, access to token information, text
-    /**********************************************************
-     */
+    }
 
     /*
     /**********************************************************
@@ -349,9 +392,10 @@ public class SmileParser
      */
 
     @Override
-    protected void parseNumericValue(int expType)
+    protected void _parseNumericValue(int expType)
         throws JsonParseException
     {
+    	// !!! TBI
     }
 
     /**
@@ -364,11 +408,18 @@ public class SmileParser
         switch ((ch >> 6) & 3) {
         case 0: // misc, including end marker
             switch (ch) {
-            case 0x30: // long shared defer
+            case 0x30: // long shared
             case 0x31:
             case 0x32:
             case 0x33:
-                _tokenIncomplete = true;
+	            {
+	                if (_inputPtr >= _inputEnd) {
+	                    loadMoreGuaranteed();
+	                }
+	                int index = ((ch & 0x3) << 8) | _inputBuffer[_inputPtr++];
+	                // !!! TBI: fetch actual String
+	                _parsingContext.setCurrentName("TBI");
+	            }
                 return JsonToken.FIELD_NAME;
             case 0x35: // empty String as name, legal if unusual
                 _parsingContext.setCurrentName("");
@@ -379,20 +430,37 @@ public class SmileParser
                 }
                 _parsingContext = _parsingContext.getParent();
                 return JsonToken.END_OBJECT;
+
             }
             break;
         case 1: // short shared, can fully process
-            // !!! TBI
             {
                 int nameIndex = (ch & 0x3F);
-                _parsingContext.setCurrentName("");
+                // !!! TBI: fetch actual String
+                _parsingContext.setCurrentName("TBI");
             }
             return JsonToken.FIELD_NAME;
         case 2: // short ASCII
+	        {
+	            int len = 1 + (ch & 0x3F);
+	            _loadToHaveAtLeast(len);
+	            int outPtr = 0;
+	            char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	            int inPtr = _inputPtr;
+	            _inputPtr += len;
+	            for (int end = inPtr + len; inPtr < end; ) {
+	                outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
+	            }
+	            _textBuffer.setCurrentLength(len);
+	            _parsingContext.setCurrentName(_textBuffer.contentsAsString());
+	        }
+            return JsonToken.FIELD_NAME;                
         case 3: // short Unicode
             // all valid, except for 0xBF and 0xFF
             if ((ch & 0x3F) != 0x3F) {
-                _tokenIncomplete = true;
+                int len = 1 + (ch & 0x3F);
+                _decodeShortUnicode(len);
+                _parsingContext.setCurrentName(_textBuffer.contentsAsString());
                 return JsonToken.FIELD_NAME;                
             }
             break;
@@ -402,56 +470,13 @@ public class SmileParser
         return null;
     }    
 
-    protected final void _finishFieldName()
-        throws IOException, JsonParseException
-    {
-        _tokenIncomplete = false;
-        int ch = _typeByte;
-        switch ((ch >> 6) & 3) {
-        case 0:
-            {
-                if (_inputPtr >= _inputEnd) {
-                    loadMoreGuaranteed();
-                }
-                int index = ((ch & 0x3) << 8) | _inputBuffer[_inputPtr++];
-                
-                // !!! TBI: found actual String!
-            }
-            break;
-        case 1:
-            _throwInternal(); // never gets here
-        case 2: // short ASCII 
-            {
-                int len = 1 + (ch & 0x3F);
-                _loadToHaveAtLeast(len);
-                int outPtr = 0;
-                char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-                int inPtr = _inputPtr;
-                _inputPtr += len;
-                for (int end = inPtr + len; inPtr < end; ) {
-                    outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
-                }
-                _textBuffer.setCurrentLength(len);
-                _parsingContext.setCurrentName(_textBuffer.contentsAsString());
-            }
-            break;
-        default: // (3) short Unicode            
-            {
-                int len = 1 + (ch & 0x3F);
-                _decodeShortUnicode(len);
-                _parsingContext.setCurrentName(_textBuffer.contentsAsString());
-            }
-            break;
-        }        
-    }
-    
     /**
      * Helper method used to decode short Unicode string, length for which actual
      * length (in bytes) is known
      * 
      * @param len Length between 1 and 64
      */
-    protected void _decodeShortUnicode(int len)
+    protected final void _decodeShortUnicode(int len)
         throws IOException, JsonParseException
     {
         _loadToHaveAtLeast(len);
@@ -494,43 +519,6 @@ public class SmileParser
         _textBuffer.setCurrentLength(outPtr);
     }
 
-    /**
-     * Helper method called when it looks like input might contain the signature;
-     * and it is necessary to detect and handle signature to get configuration
-     * information it might have.
-     * 
-     * @return True if valid signature was found and handled; false if not
-     */
-	protected boolean _handleSignature(boolean throwException)
-		throws IOException, JsonParseException
-	{
-        if (_inputPtr >= _inputEnd) {
-            loadMoreGuaranteed();
-        }
-        if (_inputBuffer[_inputPtr] == SmileConstants.HEADER_BYTE_2) {
-            if (++_inputPtr >= _inputEnd) {
-            	loadMoreGuaranteed();        	
-            }
-            if (_inputBuffer[_inputPtr] == SmileConstants.HEADER_BYTE_3) {
-            	// Good enough; just need version info from 4th byte...
-                if (++_inputPtr >= _inputEnd) {
-                	loadMoreGuaranteed();        	
-                }
-                int ch = _inputBuffer[_inputPtr++];
-                int versionBits = (ch >> 6) & 0x03;
-                if (versionBits != SmileConstants.HEADER_VERSION_00) {
-                	_reportError("Version number bits (0x"+Integer.toHexString(versionBits)+") indicate unrecognized version; only 0x0 handled by parser");
-                }
-                // !!! TODO: handle actual config bits
-                return true;
-            }
-        }
-        if (throwException) {
-        	_reportError("Malformed content: signature not valid, starts with 0x3A byte, rest not valid");
-        }
-        return false;
-	}
-    
     /*
     /**********************************************************
     /* Internal methods, skipping
@@ -543,7 +531,55 @@ public class SmileParser
      */
     protected void _finishToken() throws IOException, JsonParseException
     {
-        // !!! TBI
+    	int tb = _typeByte;
+        switch ((tb >> 5) & 0x7) {
+        case 2: // tiny ascii
+            // fall through
+        case 3: // short ascii
+        	{
+        		int len = (tb - 0x3F);
+	            _loadToHaveAtLeast(len);
+	            int outPtr = 0;
+	            char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	            int inPtr = _inputPtr;
+	            _inputPtr += len;
+	            for (int end = inPtr + len; inPtr < end; ) {
+	                outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
+	            }
+	            _textBuffer.setCurrentLength(len);
+        	}
+        	return;
+
+        case 4: // tiny unicode
+            // fall through
+        case 5: // short unicode
+	        {
+	            int len = (tb - 0x7F);
+	            _decodeShortUnicode(len);
+	        }
+	        return;
+
+        case 7:
+            tb &= 0x1F;
+            // next 3 bytes define subtype
+            switch (tb >> 2) {
+            case 0: // long variable length ascii
+            case 1: // long variable length unicode
+            	//
+            case 2: // binary, raw
+            case 3: // binary, 7-bit
+            	//
+            case 4: // VInt (zigzag)
+            	//
+            case 5: // other numbers
+            	//
+            	/*
+                _currToken = ((ch & 0x3) == 2) ?
+                        JsonToken.VALUE_NUMBER_INT : JsonToken.VALUE_NUMBER_FLOAT;
+                        */
+            }
+        }
+    	_throwInternal();
     }
 
     /**
@@ -552,12 +588,60 @@ public class SmileParser
      */
     protected void _skipIncomplete() throws IOException, JsonParseException
     {
-        // !!! TBI
+    	int tb = _typeByte;
+        switch ((tb >> 5) & 0x7) {
+        case 2: // tiny ascii
+            // fall through
+        case 3: // short ascii
+        	_skipBytes(tb - 0x3F);
+        	return;
+        	
+        case 4: // tiny unicode
+            // fall through
+        case 5: // short unicode
+        	_skipBytes(tb - 0x7F);
+        	return;
+
+        case 7:
+            tb &= 0x1F;
+            // next 3 bytes define subtype
+            switch (tb >> 2) {
+            case 0: // long variable length ascii
+            case 1: // long variable length unicode
+            	//
+            case 2: // binary, raw
+            case 3: // binary, 7-bit
+            	//
+            case 4: // VInt (zigzag)
+            	//
+            case 5: // other numbers
+            	//
+            	/*
+                _currToken = ((ch & 0x3) == 2) ?
+                        JsonToken.VALUE_NUMBER_INT : JsonToken.VALUE_NUMBER_FLOAT;
+                        */
+            }
+        }
+    	_throwInternal();
     }
 
+    protected void _skipBytes(int len)  throws IOException, JsonParseException
+    {
+	    while (true) {
+	    	int toAdd = Math.min(len, _inputEnd - _inputPtr);
+	    	_inputPtr += toAdd;
+	    	len -= toAdd;
+	    	if (len <= 0) {
+	    		return;
+	    	}
+	    	loadMoreGuaranteed();
+	    }
+    }
+    
     @Override
-    protected void _finishString() throws IOException, JsonParseException {
-        // should never be called:
+    protected void _finishString() throws IOException, JsonParseException
+    {
+        // should never be called; but must be defined for superclass
         _throwInternal();
     }
     

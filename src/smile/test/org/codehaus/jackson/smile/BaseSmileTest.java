@@ -5,15 +5,39 @@ import java.io.IOException;
 
 import org.junit.Assert;
 
+import org.codehaus.jackson.*;
+
 public class BaseSmileTest
+	extends main.BaseTest
 {
     protected SmileParser _parser(byte[] input)
         throws IOException
     {
-        SmileFactory f = new SmileFactory();
+    	SmileFactory f = new SmileFactory();
         return f.createJsonParser(input);
     }
 
+    protected byte[] _smileDoc(String json) throws IOException
+    {
+    	return _smileDoc(json, true);
+    }
+
+    protected byte[] _smileDoc(String json, boolean writeHeader) throws IOException
+    {
+        JsonFactory jf = new JsonFactory();
+    	JsonParser jp = jf.createJsonParser(json);
+    	SmileFactory sf = new SmileFactory();
+    	ByteArrayOutputStream out = new ByteArrayOutputStream();
+    	JsonGenerator jg = sf.createJsonGenerator(out, JsonEncoding.UTF8);
+    	
+    	while (jp.nextToken() != null) {
+    		jg.copyCurrentEvent(jp);
+    	}
+    	jp.close();
+    	jg.close();
+    	return out.toByteArray();
+    }
+    
     protected SmileGenerator _generator(ByteArrayOutputStream result, boolean addHeader)
         throws IOException
     {

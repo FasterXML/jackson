@@ -168,7 +168,7 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         if (_numTypesValid == NR_UNKNOWN) {
-            parseNumericValue(NR_UNKNOWN); // will also check event type
+            _parseNumericValue(NR_UNKNOWN); // will also check event type
         }
         // Separate types for int types
         if (_currToken == JsonToken.VALUE_NUMBER_INT) {
@@ -201,7 +201,7 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         if (_numTypesValid == NR_UNKNOWN) {
-            parseNumericValue(NR_UNKNOWN); // will also check event type
+            _parseNumericValue(NR_UNKNOWN); // will also check event type
         }
         if (_currToken == JsonToken.VALUE_NUMBER_INT) {
             if ((_numTypesValid & NR_INT) != 0) {
@@ -230,7 +230,7 @@ public abstract class JsonNumericParserBase
     {
         if ((_numTypesValid & NR_INT) == 0) {
             if (_numTypesValid == NR_UNKNOWN) { // not parsed at all
-                parseNumericValue(NR_INT); // will also check event type
+                _parseNumericValue(NR_INT); // will also check event type
             }
             if ((_numTypesValid & NR_INT) == 0) { // wasn't an int natively?
                 convertNumberToInt(); // let's make it so, if possible
@@ -244,7 +244,7 @@ public abstract class JsonNumericParserBase
     {
         if ((_numTypesValid & NR_LONG) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
-                parseNumericValue(NR_LONG);
+                _parseNumericValue(NR_LONG);
             }
             if ((_numTypesValid & NR_LONG) == 0) {
                 convertNumberToLong();
@@ -258,7 +258,7 @@ public abstract class JsonNumericParserBase
     {
         if ((_numTypesValid & NR_BIGINT) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
-                parseNumericValue(NR_BIGINT);
+                _parseNumericValue(NR_BIGINT);
             }
             if ((_numTypesValid & NR_BIGINT) == 0) {
                 convertNumberToBigInteger();
@@ -287,7 +287,7 @@ public abstract class JsonNumericParserBase
     {
         if ((_numTypesValid & NR_DOUBLE) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
-                parseNumericValue(NR_DOUBLE);
+                _parseNumericValue(NR_DOUBLE);
             }
             if ((_numTypesValid & NR_DOUBLE) == 0) {
                 convertNumberToDouble();
@@ -301,7 +301,7 @@ public abstract class JsonNumericParserBase
     {
         if ((_numTypesValid & NR_BIGDECIMAL) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
-                parseNumericValue(NR_BIGDECIMAL);
+                _parseNumericValue(NR_BIGDECIMAL);
             }
             if ((_numTypesValid & NR_BIGDECIMAL) == 0) {
                 convertNumberToBigDecimal();
@@ -326,7 +326,7 @@ public abstract class JsonNumericParserBase
      * @param expType Numeric type that we will immediately need, if any;
      *   mostly necessary to optimize handling of floating point numbers
      */
-    protected void parseNumericValue(int expType)
+    protected void _parseNumericValue(int expType)
         throws JsonParseException
     {
         // First things first: must be a numeric event
