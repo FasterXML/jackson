@@ -403,7 +403,7 @@ public class SmileParser
      * that has to be either FIELD_NAME or END_OBJECT.
      */
     protected final JsonToken _handleFieldName() throws IOException, JsonParseException
-    {
+    {    	
         int ch = _typeByte;
         switch ((ch >> 6) & 3) {
         case 0: // misc, including end marker
@@ -532,6 +532,7 @@ public class SmileParser
     protected void _finishToken() throws IOException, JsonParseException
     {
     	int tb = _typeByte;
+
         switch ((tb >> 5) & 0x7) {
         case 2: // tiny ascii
             // fall through

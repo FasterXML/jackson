@@ -310,8 +310,9 @@ public class SmileGenerator
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
                 _flushBuffer();
             }
-            int byteLen = _shortUTF8Encode(text);
             int origOffset = _outputTail;
+            ++_outputTail; // to leave room for type token
+            int byteLen = _shortUTF8Encode(text);
             byte typeToken;
             if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
                 if (byteLen == len) { // and all ASCII
@@ -362,8 +363,9 @@ public class SmileGenerator
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
                 _flushBuffer();
             }
-            int byteLen = _shortUTF8Encode(text, offset, offset+len);
             int origOffset = _outputTail;
+            ++_outputTail; // to leave room for type token
+            int byteLen = _shortUTF8Encode(text, offset, offset+len);
             byte typeToken;
             if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
                 if (byteLen == len) { // and all ASCII

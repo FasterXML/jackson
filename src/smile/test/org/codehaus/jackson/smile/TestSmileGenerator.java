@@ -7,14 +7,14 @@ import org.junit.Assert;
 import static org.codehaus.jackson.smile.SmileConstants.*;
 
 public class TestSmileGenerator
-    extends BaseSmileTest
+    extends SmileTestBase
 {
     /**
      * Test for verifying handling of 'true', 'false' and 'null' literals
      */
     public void testSimpleLiterals() throws Exception
     {
-        // true, no header (or frame marker)
+        // false, no header (or frame marker)
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SmileGenerator gen = _generator(out, false);
         gen.writeBoolean(true);
@@ -54,6 +54,50 @@ public class TestSmileGenerator
         _verifyBytes(out.toByteArray(),
                 HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, HEADER_BYTE_4,
                 TOKEN_LITERAL_NULL, BYTE_MARKER_END_OF_CONTENT);
+    }
+
+    public void testSimpleArray() throws Exception
+    {
+    	// First: empty array (2 bytes)
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SmileGenerator gen = _generator(out, false);
+        gen.writeStartArray();
+        gen.writeEndArray();
+        gen.close();
+        _verifyBytes(out.toByteArray(), SmileConstants.TOKEN_LITERAL_START_ARRAY,
+        		SmileConstants.TOKEN_LITERAL_END_ARRAY);
+
+        // then simple array with 3 literals
+        out = new ByteArrayOutputStream();
+        gen = _generator(out, false);
+        gen.writeStartArray();
+        gen.writeBoolean(true);
+        gen.writeNull();
+        gen.writeBoolean(false);
+        gen.writeEndArray();
+        gen.close();
+        assertEquals(5, out.toByteArray().length);
+
+        // and then array containing another array and short String
+        out = new ByteArrayOutputStream();
+        gen = _generator(out, false);
+        gen.writeStartArray();
+        gen.writeStartArray();
+        gen.writeEndArray();
+        gen.writeString("12");
+        gen.writeEndArray();
+        gen.close();
+        // 4 bytes for start/end arrays; 3 bytes for short ascii string
+        assertEquals(7, out.toByteArray().length);
+    }
+
+    public void testShortAscii() throws Exception
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SmileGenerator gen = _generator(out, false);
+        gen.writeString("abc");
+        gen.close();
+        _verifyBytes(out.toByteArray(), (byte)0x42, (byte) 'a', (byte) 'b', (byte) 'c');
     }
     
     /*

@@ -7,7 +7,7 @@ import org.junit.Assert;
 
 import org.codehaus.jackson.*;
 
-public class BaseSmileTest
+class SmileTestBase
 	extends main.BaseTest
 {
     protected SmileParser _parser(byte[] input)
