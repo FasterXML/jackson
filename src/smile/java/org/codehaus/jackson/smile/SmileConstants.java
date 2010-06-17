@@ -8,9 +8,9 @@ package org.codehaus.jackson.smile;
 public final class SmileConstants
 {
     /*
-    /****************************************************
+    /**********************************************************
     /* Thresholds
-    /****************************************************
+    /**********************************************************
      */
 
     /**
@@ -30,9 +30,9 @@ public final class SmileConstants
     public final static int MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING = 1 + (3 * MAX_SHORT_STRING_BYTES);
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Byte markers
-    /****************************************************
+    /**********************************************************
      */
     
     /**
@@ -53,9 +53,9 @@ public final class SmileConstants
     public final static byte BYTE_MARKER_END_OF_CONTENT = (byte) 0xFF;
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Format header: put smile on your data...
-    /****************************************************
+    /**********************************************************
      */
 
     /**
@@ -84,9 +84,9 @@ public final class SmileConstants
     public final static int HEADER_VERSION_00 = 0x0;
     
     /*
-    /****************************************************
+    /**********************************************************
     /* Type prefixes: 3 MSB of token byte
-    /****************************************************
+    /**********************************************************
      */
     
     // Shared strings are back references for last 63 short (< 64 byte) string values
@@ -107,9 +107,9 @@ public final class SmileConstants
     public final static int TOKEN_PREFIX_MISC_TYPES = 0xE0;
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Token literals, normal mode
-    /****************************************************
+    /**********************************************************
      */
     
     public final static byte TOKEN_LITERAL_START_OBJECT = 0x20;
@@ -126,9 +126,9 @@ public final class SmileConstants
     public final static byte TOKEN_LITERAL_END_OBJECT = 0x36;
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Subtype constants for "Misc types" -- 3 bit
-    /****************************************************
+    /**********************************************************
      */
     
     /**
@@ -176,9 +176,9 @@ public final class SmileConstants
      */
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Modifiers for misc entries
-    /****************************************************
+    /**********************************************************
      */
     
     /**
@@ -206,28 +206,31 @@ public final class SmileConstants
     public final static int TOKEN_MISC_NUMBER_BIG_DECIMAL = 0x03;
     
     /*
-    /****************************************************
+    /**********************************************************
     /* Token types for keys
-    /****************************************************
+    /**********************************************************
      */
 
     public final static byte TOKEN_KEY_LONG_STRING = 0x34;
 
     public final static byte TOKEN_KEY_EMPTY_STRING = 0x35;
-    
+
+    public final static int TOKEN_PREFIX_KEY_ASCII = 0x80;
+
+    public final static int TOKEN_PREFIX_KEY_UNICODE = 0xC0;
     /*
-    /****************************************************
+    /**********************************************************
     /* Compression indicator suffix (2 LSB)
-    /****************************************************
+    /**********************************************************
      */
 
     public final static int TOKEN_COMP_TYPE_NONE = 0x00;
     public final static int TOKEN_COMP_TYPE_LZF = 0x01;
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Basic UTF-8 decode/encode table
-    /****************************************************
+    /**********************************************************
      */
     
     /**
@@ -259,6 +262,5 @@ public final class SmileConstants
         }
         sUtf8UnitLengths = table;
     }
-
 }
 

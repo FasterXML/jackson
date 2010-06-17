@@ -22,11 +22,22 @@ public class TestSmileUtil
         assertEquals(0x7fffFFFF, SmileUtil.zigzagDecode(0xFFFFFFFE));
         assertEquals(Integer.MIN_VALUE, SmileUtil.zigzagDecode(0xFFFFFFFF));
 
-        // then ranges
+        // round-trip
+        assertEquals(Integer.MIN_VALUE, SmileUtil.zigzagDecode(SmileUtil.zigzagEncode(Integer.MIN_VALUE)));
+        assertEquals(Integer.MAX_VALUE, SmileUtil.zigzagDecode(SmileUtil.zigzagEncode(Integer.MAX_VALUE)));
     }
 
     public void testZigZagLong()
     {
-        // !!! TODO
-    }
+        assertEquals(0L, SmileUtil.zigzagEncode(0L));
+        assertEquals(-1L, SmileUtil.zigzagEncode(Long.MIN_VALUE));
+        assertEquals(-2L, SmileUtil.zigzagEncode(Long.MAX_VALUE));
+
+        assertEquals(Long.MAX_VALUE, SmileUtil.zigzagDecode(-2L));
+        assertEquals(Long.MIN_VALUE, SmileUtil.zigzagDecode(-1L));
+
+        // round-trip
+        assertEquals(Long.MIN_VALUE, SmileUtil.zigzagDecode(SmileUtil.zigzagEncode(Long.MIN_VALUE)));
+        assertEquals(Long.MAX_VALUE, SmileUtil.zigzagDecode(SmileUtil.zigzagEncode(Long.MAX_VALUE)));
+}
 }

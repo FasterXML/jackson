@@ -1,5 +1,7 @@
 package org.codehaus.jackson.smile;
 
+import static org.codehaus.jackson.smile.SmileConstants.BYTE_MARKER_END_OF_STRING;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -237,8 +239,10 @@ public class SmileParser
                 return (_currToken = JsonToken.VALUE_EMBEDDED_OBJECT);
             case 4: // VInt (zigzag)
                 _tokenIncomplete = true;
+                _numTypesValid = 0;
                 return (_currToken = JsonToken.VALUE_NUMBER_INT);
             case 5: // other numbers
+                _numTypesValid = 0;
                 _currToken = ((ch & 0x3) == 2) ?
                         JsonToken.VALUE_NUMBER_INT : JsonToken.VALUE_NUMBER_FLOAT;
                 return _currToken;
@@ -391,13 +395,6 @@ public class SmileParser
     /**********************************************************
      */
 
-    @Override
-    protected void _parseNumericValue(int expType)
-        throws JsonParseException
-    {
-    	// !!! TBI
-    }
-
     /**
      * Method that handles initial token type recognition for token
      * that has to be either FIELD_NAME or END_OBJECT.
@@ -521,15 +518,26 @@ public class SmileParser
 
     /*
     /**********************************************************
-    /* Internal methods, skipping
+    /* Internal methods, secondary parsing
     /**********************************************************
      */
 
+    @Override
+    protected void _parseNumericValue(int expType)
+    	throws IOException, JsonParseException
+	{
+    	if (_tokenIncomplete) {
+    		_tokenIncomplete = false;
+    		_finishToken();
+    	}
+	}
+    
     /**
      * Method called to finish parsing of a token so that token contents
      * are retrieable
      */
-    protected void _finishToken() throws IOException, JsonParseException
+    protected void _finishToken()
+    	throws IOException, JsonParseException
     {
     	int tb = _typeByte;
 
@@ -571,7 +579,47 @@ public class SmileParser
             case 3: // binary, 7-bit
             	//
             case 4: // VInt (zigzag)
-            	//
+	            {
+	            	if (_inputPtr >= _inputEnd) {
+	            		loadMoreGuaranteed();
+	            	}
+	            	int value = _inputBuffer[_inputPtr++];
+	            	if (value < 0) { // 6 bits
+	            		_finishInt(0, value);
+	            		return;
+	            	}
+	            	if (_inputPtr >= _inputEnd) {
+	            		loadMoreGuaranteed();
+	            	}
+	            	int i = _inputBuffer[_inputPtr++];
+	            	if (i < 0) { // 13 bits
+	            		_finishInt(value, i);
+	            		return;
+	            	}
+	            	value = (value << 7) + i;
+	            	if (_inputPtr >= _inputEnd) {
+	            		loadMoreGuaranteed();
+	            	}
+	            	i = _inputBuffer[_inputPtr++];
+	            	if (i < 0) { // 20 bits
+	            		_finishInt(value, i);
+	            		return;
+	            	}
+	            	value = (value << 7) + i;
+	            	if (_inputPtr >= _inputEnd) {
+	            		loadMoreGuaranteed();
+	            	}
+	            	i = _inputBuffer[_inputPtr++];
+	            	if (i < 0) { // 27 bits
+	            		_finishInt(value, i);
+	            		return;
+	            	}
+	            	// Ok: likely to be a long, call...
+	            	value = (value << 7) + i;
+	            	_finishLong(value);
+	            }
+            	return;
+
             case 5: // other numbers
             	//
             	/*
@@ -583,6 +631,53 @@ public class SmileParser
     	_throwInternal();
     }
 
+    /**
+     * Helper method that will update state for an int value
+     */
+	private final void  _finishInt(int base, int lastByte)
+	{
+		base <<= 6;
+        _numberInt = SmileUtil.zigzagDecode(base + (lastByte & 0x3F));
+        _numTypesValid = NR_INT;
+	}
+
+	private final void  _finishLong(long value)
+	    throws IOException, JsonParseException
+	{
+		// First special case: if we only get a single more byte, it might be still an int
+    	if (_inputPtr >= _inputEnd) {
+    		loadMoreGuaranteed();
+    	}
+    	int i = _inputBuffer[_inputPtr++];
+    	if (i < 0) { // up to 34 bits...
+    		value = (value << 6) + (i & 0x3F);
+    		value = SmileUtil.zigzagDecode(value);
+    		// quick check to see if int has all data...
+    		if ((value >>> 32) == 0) {
+    	        _numberInt = (int) value;
+    	        _numTypesValid = NR_INT;
+    	        return;
+    		}
+    		_numberLong = SmileUtil.zigzagDecode(value);
+    		_numTypesValid = NR_LONG;
+    		return;
+    	}
+    	// Otherwise, let's just loop for the rest
+    	while (true) {
+        	if (_inputPtr >= _inputEnd) {
+        		loadMoreGuaranteed();
+        	}
+        	i = _inputBuffer[_inputPtr++];
+        	if (i < 0) {
+        		value = (value << 6) + (i & 0x3F);
+        		_numberLong = SmileUtil.zigzagDecode(value);
+        		_numTypesValid = NR_LONG;
+        		return;
+        	}
+        	value = (value << 7) + i;
+    	}
+	}
+	
     /**
      * Method called to skip remainders of an incomplete token, when
      * contents themselves will not be needed any more
@@ -609,11 +704,34 @@ public class SmileParser
             switch (tb >> 2) {
             case 0: // long variable length ascii
             case 1: // long variable length unicode
+            	// Doesn't matter which one, just need to find the end marker
+            	while (true) {
+            		final int end = _inputEnd;
+            		final byte[] buf = _inputBuffer;
+            		while (_inputPtr < end) {
+            			if (buf[_inputPtr++] == BYTE_MARKER_END_OF_STRING) {
+            				return;
+            			}
+            		}
+            		loadMoreGuaranteed();
+            	}
+
             	//
             case 2: // binary, raw
             case 3: // binary, 7-bit
             	//
             case 4: // VInt (zigzag)
+            	// easy, just skip until we see sign bit... (should we try to limit damage?)
+            	while (true) {
+            		final int end = _inputEnd;
+            		final byte[] buf = _inputBuffer;
+            		while (_inputPtr < end) {
+            			if (buf[_inputPtr++] < 0) {
+            				return;
+            			}
+            		}
+            		loadMoreGuaranteed();            		
+            	}
             	//
             case 5: // other numbers
             	//

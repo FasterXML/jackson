@@ -257,14 +257,15 @@ public class SmileGenerator
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
                 _flushBuffer();
             }
-            int byteLen = _shortUTF8Encode(name);
             int origOffset = _outputTail;
+            ++_outputTail; // to reserve space for type token
+            int byteLen = _shortUTF8Encode(name);
             byte typeToken;
             if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
                 if (byteLen == len) { // and all ASCII
-                    typeToken = (byte) (TOKEN_PREFIX_TINY_ASCII | byteLen);
+                    typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
                 } else { // not just ASCII
-                    typeToken = (byte) (TOKEN_PREFIX_TINY_UNICODE | byteLen);
+                    typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 1) + byteLen);
                 }
             } else { // nope, longer non-ASCII Strings
                 typeToken = TOKEN_KEY_LONG_STRING;
@@ -299,6 +300,7 @@ public class SmileGenerator
     @Override
     public void writeString(String text) throws IOException,JsonGenerationException
     {
+        _verifyValueWrite("write String value");
         int len = text.length();
         if (len == 0) {
             _writeByte(TOKEN_LITERAL_EMPTY_STRING);
@@ -353,6 +355,7 @@ public class SmileGenerator
     @Override
     public void writeString(char[] text, int offset, int len) throws IOException, JsonGenerationException
     {
+        _verifyValueWrite("write String value");
         if (len == 0) {
             _writeByte(TOKEN_LITERAL_EMPTY_STRING);
             return;
@@ -453,10 +456,12 @@ public class SmileGenerator
     @Override
     public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len) throws IOException, JsonGenerationException
     {
+        _verifyValueWrite("write String value");
         if (data == null) {
             writeNull();
             return;
         }
+        _verifyValueWrite("write Binary value");
         // !!! TODO: handle compression
         int compType = TOKEN_COMP_TYPE_NONE;
         
@@ -481,6 +486,7 @@ public class SmileGenerator
     @Override
     public void writeBoolean(boolean state) throws IOException, JsonGenerationException
     {
+        _verifyValueWrite("write boolean value");
         if (state) {
             _writeByte(TOKEN_LITERAL_TRUE);
         } else {
@@ -489,35 +495,33 @@ public class SmileGenerator
     }
 
     @Override
-    public void writeNull() throws IOException, JsonGenerationException {
+    public void writeNull() throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write null value");
         _writeByte(TOKEN_LITERAL_NULL);
     }
 
     @Override
     public void writeNumber(int i) throws IOException, JsonGenerationException
     {
-        // First things first: let's zigzag encode number
+        _verifyValueWrite("write number");
+    	// First things first: let's zigzag encode number
         i = SmileUtil.zigzagEncode(i);
         // tiny (single byte) or small (type + 6-bit value) number?
-        if (i <= 0x3F) {
+        if (i <= 0x3F && i >= 0) {
             if (i <= 0x1F) { // tiny 
                 _writeByte((byte) (TOKEN_PREFIX_SMALL_INT + i));
                 return;
             }
-            // nope, just small
+            // nope, just small, 2 bytes (type, 1-byte zigzag value) for 6 bit value
             _writeBytes(TOKEN_BYTE_INT, (byte) (0x80 + i));
-            i = -i;
+            return;
         }
-
         // Ok: let's find minimal representation then
         byte b0 = (byte) (0x80 + (i & 0x3F));
-        i >>= 6;
-        if (i <= 0x7F) { // 6 or 13 bits is enough (== 2 or 3 byte total encoding)
-            if (i == 0) { // 6 bits is enough for value (excluding sign, meaning most 7-bit numbers)
-                _writeBytes(TOKEN_BYTE_INT, b0);
-            } else  {
-                _writeBytes(TOKEN_BYTE_INT, (byte) i, b0);
-            }
+        i >>>= 6;
+        if (i <= 0x7F) { // 13 bits is enough (== 3 byte total encoding)
+            _writeBytes(TOKEN_BYTE_INT, (byte) i, b0);
             return;
         }
         byte b1 = (byte) (i & 0x7F);
@@ -546,6 +550,7 @@ public class SmileGenerator
             writeNumber((int) l);
             return;
         }
+        _verifyValueWrite("write number");
         // Then let's zigzag encode it
         l = SmileUtil.zigzagEncode(l);
         // Ok, well, we do know that 5 lowest-significant bytes are needed
@@ -603,6 +608,7 @@ public class SmileGenerator
     {
         // Ok, now, we needed token type byte plus 10 data bytes (7 bits each)
         _ensureRoomForOutput(11);
+        _verifyValueWrite("write number");
         /* 17-Apr-2010, tatu: could also use 'doubleToIntBits', but it seems more accurate to use
          * exact representation; and possibly faster. However, if there are cases
          * where collapsing of NaN was needed (for non-Java clients), this can
@@ -643,6 +649,7 @@ public class SmileGenerator
     {
         // Ok, now, we needed token type byte plus 5 data bytes (7 bits each)
         _ensureRoomForOutput(6);
+        _verifyValueWrite("write number");
 
         /* 17-Apr-2010, tatu: could also use 'floatToIntBits', but it seems more accurate to use
          * exact representation; and possibly faster. However, if there are cases
@@ -669,6 +676,7 @@ public class SmileGenerator
             writeNull();
             return;
         }
+        _verifyValueWrite("write number");
         _writeByte(TOKEN_BYTE_BIG_DECIMAL);
         int scale = dec.scale();
         // Ok, first output scale as VInt
@@ -686,6 +694,7 @@ public class SmileGenerator
             writeNull();
             return;
         }
+        _verifyValueWrite("write number");
         // quite simple: type, and then VInt-len prefixed 7-bit encoded binary data:
         _writeByte(TOKEN_BYTE_BIG_INTEGER);
         byte[] data = v.toByteArray();

@@ -327,7 +327,7 @@ public abstract class JsonNumericParserBase
      *   mostly necessary to optimize handling of floating point numbers
      */
     protected void _parseNumericValue(int expType)
-        throws JsonParseException
+        throws IOException, JsonParseException
     {
         // First things first: must be a numeric event
         if (_currToken == null || !_currToken.isNumeric()) {

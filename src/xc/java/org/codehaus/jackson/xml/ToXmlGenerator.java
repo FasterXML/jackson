@@ -208,7 +208,7 @@ public class ToXmlGenerator
     @Override
     public void writeString(String text) throws IOException,JsonGenerationException
     {
-        _verifyValueWrite("write text value");
+        _verifyValueWrite("write String value");
         try {
             if (_nextName != null) {
                 _xmlWriter.writeStartElement(_nextName);
@@ -225,7 +225,7 @@ public class ToXmlGenerator
     @Override
     public void writeString(char[] text, int offset, int len) throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write text value");
+        _verifyValueWrite("write String value");
         try {
             if (_nextName != null) {
                 _xmlWriter.writeStartElement(_nextName);
@@ -294,6 +294,7 @@ public class ToXmlGenerator
             writeNull();
             return;
         }
+        _verifyValueWrite("write Binary value");
         try {
             if (_nextName != null) {
                 _xmlWriter.writeStartElement(_nextName);
@@ -316,7 +317,7 @@ public class ToXmlGenerator
     @Override
     public void writeBoolean(boolean state) throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write text value");
+        _verifyValueWrite("write boolean value");
         try {
             if (_nextName != null) {
                 _xmlWriter.writeStartElement(_nextName);
@@ -333,7 +334,7 @@ public class ToXmlGenerator
     @Override
     public void writeNull() throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write text value");
+        _verifyValueWrite("write null value");
         // !!! TODO: proper use of 'xsd:isNil'
         try {
             if (_nextName != null) {
