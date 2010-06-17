@@ -664,6 +664,7 @@ public class SmileParser
     	}
     	// Otherwise, let's just loop for the rest
     	while (true) {
+        	value = (value << 7) + i;
         	if (_inputPtr >= _inputEnd) {
         		loadMoreGuaranteed();
         	}
@@ -674,7 +675,6 @@ public class SmileParser
         		_numTypesValid = NR_LONG;
         		return;
         	}
-        	value = (value << 7) + i;
     	}
 	}
 	

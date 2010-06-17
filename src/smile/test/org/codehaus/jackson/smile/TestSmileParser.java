@@ -36,7 +36,7 @@ public class TestSmileParser
     	p.close();
     }
 
-    public void testInts() throws IOException
+    public void testIntsMedium() throws IOException
     {
     	byte[] data = _smileDoc("255");
     	SmileParser p = _parser(data);
@@ -56,13 +56,22 @@ public class TestSmileParser
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.INT, p.getNumberType());
     	assertEquals(123456789, p.getIntValue());
-    	
-    	data = _smileDoc(String.valueOf(Integer.MAX_VALUE));
-    	p = _parser(data);
+    }
+
+    public void testMinMaxInts() throws IOException
+    {
+    	byte[] data = _smileDoc(String.valueOf(Integer.MAX_VALUE));
+    	SmileParser p = _parser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.INT, p.getNumberType());
     	assertEquals(Integer.MAX_VALUE, p.getIntValue());
 
+    	data = _smileDoc(String.valueOf(Integer.MIN_VALUE));
+    	p = _parser(data);
+    	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
+    	assertEquals(JsonParser.NumberType.INT, p.getNumberType());
+    	assertEquals(Integer.MIN_VALUE, p.getIntValue());
+    	
     	long l = 1L + Integer.MAX_VALUE;
     	data = _smileDoc(String.valueOf(l));
     	p = _parser(data);
@@ -78,7 +87,7 @@ public class TestSmileParser
     	SmileParser p = _parser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.LONG, p.getNumberType());
-    	assertEquals(l, p.getIntValue());
+    	assertEquals(l, p.getLongValue());
     	assertEquals(String.valueOf(l), p.getText());
 
     	l = Long.MIN_VALUE;
@@ -86,7 +95,7 @@ public class TestSmileParser
     	p = _parser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.LONG, p.getNumberType());
-    	assertEquals(l, p.getIntValue());
+    	assertEquals(l, p.getLongValue());
     	assertEquals(String.valueOf(l), p.getText());
     }
     

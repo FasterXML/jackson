@@ -598,6 +598,7 @@ public class SmileGenerator
             return;
         }
         byte b8 = (byte) (i & 0x7F);
+        i >>= 7;
         // must be done, with 10 bytes! (9 * 7 + 6 == 69 bits; only need 63)
         _writeBytes(TOKEN_BYTE_INT, (byte) i, b8, b7, b6);
         _writeBytes(b5, b4, b3, b2, b1, b0);
