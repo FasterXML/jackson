@@ -97,24 +97,30 @@ public class SmileGenerator
     protected final static byte TOKEN_BYTE_LONG_STRING_UNICODE =
         (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_LONG_TEXT_UNICODE);
 
-    protected final static byte TOKEN_BYTE_INT = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER);
+    protected final static byte TOKEN_BYTE_INT_32 = 
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_32);
+
+    protected final static byte TOKEN_BYTE_INT_64 = 
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_64);
+    protected final static byte TOKEN_BYTE_BIG_INTEGER = 
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_BIG);
 
     protected final static byte TOKEN_BYTE_FLOAT_32 = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_OTHER_NUMBER| TOKEN_MISC_NUMBER_FLOAT);
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FP | TOKEN_MISC_FLOAT_32);
     protected final static byte TOKEN_BYTE_FLOAT_64 = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_OTHER_NUMBER | TOKEN_MISC_NUMBER_DOUBLE);
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FP | TOKEN_MISC_FLOAT_64);
 
-    protected final static byte TOKEN_BYTE_BIG_INTEGER = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_OTHER_NUMBER | TOKEN_MISC_NUMBER_BIG_INTEGER);
     protected final static byte TOKEN_BYTE_BIG_DECIMAL = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_OTHER_NUMBER | TOKEN_MISC_NUMBER_BIG_DECIMAL);
+        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FP | TOKEN_MISC_FLOAT_BIG);
     
     protected final static int SURR1_FIRST = 0xD800;
     protected final static int SURR1_LAST = 0xDBFF;
     protected final static int SURR2_FIRST = 0xDC00;
     protected final static int SURR2_LAST = 0xDFFF;
-    
+
+    protected final static long MIN_INT_AS_LONG = (long) Integer.MIN_VALUE;
+    protected final static long MAX_INT_AS_LONG = (long) Integer.MAX_VALUE;
+
     /*
     /**********************************************************
     /* Configuration
@@ -514,44 +520,44 @@ public class SmileGenerator
                 return;
             }
             // nope, just small, 2 bytes (type, 1-byte zigzag value) for 6 bit value
-            _writeBytes(TOKEN_BYTE_INT, (byte) (0x80 + i));
+            _writeBytes(TOKEN_BYTE_INT_32, (byte) (0x80 + i));
             return;
         }
         // Ok: let's find minimal representation then
         byte b0 = (byte) (0x80 + (i & 0x3F));
         i >>>= 6;
         if (i <= 0x7F) { // 13 bits is enough (== 3 byte total encoding)
-            _writeBytes(TOKEN_BYTE_INT, (byte) i, b0);
+            _writeBytes(TOKEN_BYTE_INT_32, (byte) i, b0);
             return;
         }
         byte b1 = (byte) (i & 0x7F);
         i >>= 7;
         if (i <= 0x7F) {
-            _writeBytes(TOKEN_BYTE_INT, (byte) i, b1, b0);
+            _writeBytes(TOKEN_BYTE_INT_32, (byte) i, b1, b0);
             return;
         }
         byte b2 = (byte) (i & 0x7F);
         i >>= 7;
         if (i <= 0x7F) {
-            _writeBytes(TOKEN_BYTE_INT, (byte) i, b2, b1, b0);
+            _writeBytes(TOKEN_BYTE_INT_32, (byte) i, b2, b1, b0);
             return;
         }
         // no, need all 5 bytes
         byte b3 = (byte) (i & 0x7F);
-        _writeBytes(TOKEN_BYTE_INT, (byte) (i >> 7), b3, b2, b1, b0);
+        _writeBytes(TOKEN_BYTE_INT_32, (byte) (i >> 7), b3, b2, b1, b0);
     }
 
     @Override
     public void writeNumber(long l) throws IOException, JsonGenerationException
     {
         // First: maybe 32 bits is enough?
-        long hi = (l >> 32);
-        if (hi == 0L || hi == -1L) {
+    	if (l <= MAX_INT_AS_LONG && l >= MIN_INT_AS_LONG) {
             writeNumber((int) l);
             return;
         }
         _verifyValueWrite("write number");
         // Then let's zigzag encode it
+        
         l = SmileUtil.zigzagEncode(l);
         // Ok, well, we do know that 5 lowest-significant bytes are needed
         int i = (int) l;
@@ -567,40 +573,40 @@ public class SmileGenerator
         // which may be enough?
         i = (int) (l >> 7);
         if (i == 0) {
-            _writeBytes(TOKEN_BYTE_INT, b4, b3, b2, b1, b0);
+            _writeBytes(TOKEN_BYTE_INT_64, b4, b3, b2, b1, b0);
             return;
         }
 
         if (i <= 0x7F) {
-            _writeBytes(TOKEN_BYTE_INT, (byte) i);
+            _writeBytes(TOKEN_BYTE_INT_64, (byte) i);
             _writeBytes(b4, b3, b2, b1, b0);
             return;
         }
         byte b5 = (byte) (i & 0x7F);
         i >>= 7;
         if (i <= 0x7F) {
-            _writeBytes(TOKEN_BYTE_INT, (byte) i);
+            _writeBytes(TOKEN_BYTE_INT_64, (byte) i);
             _writeBytes(b5, b4, b3, b2, b1, b0);
             return;
         }
         byte b6 = (byte) (i & 0x7F);
         i >>= 7;
         if (i <= 0x7F) {
-            _writeBytes(TOKEN_BYTE_INT, (byte) i, b6);
+            _writeBytes(TOKEN_BYTE_INT_64, (byte) i, b6);
             _writeBytes(b5, b4, b3, b2, b1, b0);
             return;
         }
         byte b7 = (byte) (i & 0x7F);
         i >>= 7;
         if (i <= 0x7F) {
-            _writeBytes(TOKEN_BYTE_INT, (byte) i, b7, b6);
+            _writeBytes(TOKEN_BYTE_INT_64, (byte) i, b7, b6);
             _writeBytes(b5, b4, b3, b2, b1, b0);
             return;
         }
         byte b8 = (byte) (i & 0x7F);
         i >>= 7;
         // must be done, with 10 bytes! (9 * 7 + 6 == 69 bits; only need 63)
-        _writeBytes(TOKEN_BYTE_INT, (byte) i, b8, b7, b6);
+        _writeBytes(TOKEN_BYTE_INT_64, (byte) i, b8, b7, b6);
         _writeBytes(b5, b4, b3, b2, b1, b0);
     }
 
@@ -632,7 +638,7 @@ public class SmileGenerator
         // Then split byte (one that crosses lo/hi int boundary), 7 bits
         {
             int mid = (int) (l >> 28);
-            _outputBuffer[_outputTail] = (byte) (mid & 0x7F);
+            _outputBuffer[_outputTail++] = (byte) (mid & 0x7F);
         }
         // and then last 4 bytes (28 bits)
         int lo4 = (int) l;
@@ -643,6 +649,7 @@ public class SmileGenerator
         _outputBuffer[_outputTail+1] = (byte) (lo4 & 0x7F);
         lo4 >>= 7;
         _outputBuffer[_outputTail] = (byte) (lo4 & 0x7F);
+        _outputTail += 4;
     }
 
     @Override
@@ -651,7 +658,7 @@ public class SmileGenerator
         // Ok, now, we needed token type byte plus 5 data bytes (7 bits each)
         _ensureRoomForOutput(6);
         _verifyValueWrite("write number");
-
+        
         /* 17-Apr-2010, tatu: could also use 'floatToIntBits', but it seems more accurate to use
          * exact representation; and possibly faster. However, if there are cases
          * where collapsing of NaN was needed (for non-Java clients), this can
@@ -668,6 +675,7 @@ public class SmileGenerator
         _outputBuffer[_outputTail+1] = (byte) (i & 0x7F);
         i >>= 7;
         _outputBuffer[_outputTail] = (byte) (i & 0x7F);
+        _outputTail += 5;
     }
 
     @Override

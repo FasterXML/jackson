@@ -26,9 +26,8 @@ class SmileTestBase
     {
         JsonFactory jf = new JsonFactory();
     	JsonParser jp = jf.createJsonParser(json);
-    	SmileFactory sf = new SmileFactory();
     	ByteArrayOutputStream out = new ByteArrayOutputStream();
-    	JsonGenerator jg = sf.createJsonGenerator(out, JsonEncoding.UTF8);
+    	JsonGenerator jg = _generator(out, writeHeader);
     	
     	while (jp.nextToken() != null) {
     		jg.copyCurrentEvent(jp);

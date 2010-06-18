@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonParser.NumberType;
 import org.codehaus.jackson.impl.StreamBasedParserBase;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
@@ -70,6 +71,14 @@ public class SmileParser
      * Type byte of the current token
      */
     protected int _typeByte;
+
+    /**
+     * Specific flag that is set when we encountered a 32-bit
+     * floating point value; needed since numeric super classes do
+     * not track distinction between float and double, but Smile
+     * format does, and we want to retain that separation.
+     */
+    protected boolean _got32BitFloat;
     
     /*
     /**********************************************************
@@ -237,15 +246,24 @@ public class SmileParser
             case 3: // binary, 7-bit
                 _tokenIncomplete = true;
                 return (_currToken = JsonToken.VALUE_EMBEDDED_OBJECT);
-            case 4: // VInt (zigzag)
-                _tokenIncomplete = true;
-                _numTypesValid = 0;
-                return (_currToken = JsonToken.VALUE_NUMBER_INT);
-            case 5: // other numbers
-                _numTypesValid = 0;
-                _currToken = ((ch & 0x3) == 2) ?
-                        JsonToken.VALUE_NUMBER_INT : JsonToken.VALUE_NUMBER_FLOAT;
-                return _currToken;
+            case 4: // VInt (zigzag), BigInteger
+                if ((ch & 0x3) <= 0x2) { // 0x3 reserved (should never occur)
+	                _tokenIncomplete = true;
+	                _numTypesValid = 0;
+	                return (_currToken = JsonToken.VALUE_NUMBER_INT);
+                }
+                break;
+            case 5: // floating-point
+                {
+                	int subtype = ch & 0x3;
+	                if ((ch & 0x3) <= 0x2) { // 0x3 reserved (should never occur)
+		                _tokenIncomplete = true;
+		                _numTypesValid = 0;
+		                _got32BitFloat = (subtype == 0);
+		                return (_currToken = JsonToken.VALUE_NUMBER_FLOAT);
+	                }
+                }
+                break;
             default: // 6 and 7 not used (to reserve 0xF8 - 0xFF)
             }
             break;
@@ -264,6 +282,15 @@ public class SmileParser
         return _parsingContext.getCurrentName();
     }
 
+    public NumberType getNumberType()
+	    throws IOException, JsonParseException
+	{
+    	if (_got32BitFloat) {
+    		return NumberType.FLOAT;
+    	}
+    	return super.getNumberType();
+	}
+    
     /*
     /**********************************************************
     /* Public API, access to token information, text
@@ -574,16 +601,17 @@ public class SmileParser
             switch (tb >> 2) {
             case 0: // long variable length ascii
             case 1: // long variable length unicode
-            	//
+            	// !!! TBI
             case 2: // binary, raw
             case 3: // binary, 7-bit
-            	//
-            case 4: // VInt (zigzag)
-	            {
-	            	if (_inputPtr >= _inputEnd) {
-	            		loadMoreGuaranteed();
-	            	}
-	            	int value = _inputBuffer[_inputPtr++];
+            	// !!! TBI
+            case 4: // VInt (zigzag) or BigDecimal
+            	int subtype = tb & 0x03;
+            	if (subtype == 0) { // (v)int
+                	if (_inputPtr >= _inputEnd) {
+                		loadMoreGuaranteed();
+                	}
+                	int value = _inputBuffer[_inputPtr++];
 	            	if (value < 0) { // 6 bits
 	            		_finishInt(0, value);
 	            		return;
@@ -614,18 +642,40 @@ public class SmileParser
 	            		_finishInt(value, i);
 	            		return;
 	            	}
-	            	// Ok: likely to be a long, call...
 	            	value = (value << 7) + i;
-	            	_finishLong(value);
-	            }
+	            	// and then we must get negative
+	            	if (_inputPtr >= _inputEnd) {
+	            		loadMoreGuaranteed();
+	            	}
+	            	i = _inputBuffer[_inputPtr++];
+	            	if (i >= 0) {
+	            		_reportError("Corrupt input; 32-bit VInt extends beyond 5 data bytes");
+	            	}
+            		_finishInt(value, i);
+            		return;
+            	}
+            	if (subtype == 1) { // (v)long
+            		_finishLong();
+            	} else if (subtype == 2) {
+                    _finishBigInteger();
+            	} else {
+                	_throwInternal();
+            	}
             	return;
 
             case 5: // other numbers
-            	//
-            	/*
-                _currToken = ((ch & 0x3) == 2) ?
-                        JsonToken.VALUE_NUMBER_INT : JsonToken.VALUE_NUMBER_FLOAT;
-                        */
+            	switch (tb & 0x03) {
+            	case 0: // float
+            		_finishFloat();
+            		return;
+            	case 1: // double
+            		_finishDouble();
+            		return;
+            	case 2: // big-decimal
+            		_finishBigDecimal();
+            		return;
+            	}
+            	break;
             }
         }
     	_throwInternal();
@@ -641,43 +691,103 @@ public class SmileParser
         _numTypesValid = NR_INT;
 	}
 
-	private final void  _finishLong(long value)
+	private final void  _finishLong()
 	    throws IOException, JsonParseException
 	{
-		// First special case: if we only get a single more byte, it might be still an int
-    	if (_inputPtr >= _inputEnd) {
-    		loadMoreGuaranteed();
-    	}
-    	int i = _inputBuffer[_inputPtr++];
-    	if (i < 0) { // up to 34 bits...
-    		value = (value << 6) + (i & 0x3F);
-    		value = SmileUtil.zigzagDecode(value);
-    		// quick check to see if int has all data...
-    		if ((value >>> 32) == 0) {
-    	        _numberInt = (int) value;
-    	        _numTypesValid = NR_INT;
-    	        return;
-    		}
-    		_numberLong = SmileUtil.zigzagDecode(value);
-    		_numTypesValid = NR_LONG;
-    		return;
-    	}
-    	// Otherwise, let's just loop for the rest
+		// Ok, first, will always get 4 full data bytes first; 1 was already passed
+		long l = (long) _fourBytesToInt();
+    	// and loop for the rest
     	while (true) {
-        	value = (value << 7) + i;
         	if (_inputPtr >= _inputEnd) {
         		loadMoreGuaranteed();
         	}
-        	i = _inputBuffer[_inputPtr++];
-        	if (i < 0) {
-        		value = (value << 6) + (i & 0x3F);
-        		_numberLong = SmileUtil.zigzagDecode(value);
+        	int value = _inputBuffer[_inputPtr++];
+        	if (value < 0) {
+        		l = (l << 6) + (value & 0x3F);
+        		_numberLong = SmileUtil.zigzagDecode(l);
         		_numTypesValid = NR_LONG;
         		return;
         	}
+        	l = (l << 7) + value;
     	}
 	}
+
+	private final void _finishBigInteger()
+		throws IOException, JsonParseException
+	{
+		// !!! TBI
+		_numberBigInt = BigInteger.ZERO;
+		_numTypesValid = NR_BIGINT;
+	}
+
+	private final void _finishFloat()
+		throws IOException, JsonParseException
+	{
+		// just need 5 bytes to get int32 first; all are unsigned
+		int i = _fourBytesToInt();
+    	if (_inputPtr >= _inputEnd) {
+    		loadMoreGuaranteed();
+    	}
+    	i = (i << 7) + _inputBuffer[_inputPtr++];
+    	float f = Float.intBitsToFloat(i);
+		_numberDouble = (double) f;
+		_numTypesValid = NR_DOUBLE;
+	}
+
+	private final void _finishDouble()
+		throws IOException, JsonParseException
+	{
+		// ok; let's take two sets of 4 bytes (each is int)
+		long hi = _fourBytesToInt();
+		long value = (hi << 28) + (long) _fourBytesToInt();
+		// and then remaining 2 bytes
+		if (_inputPtr >= _inputEnd) {
+			loadMoreGuaranteed();
+		}
+		value = (value << 7) + _inputBuffer[_inputPtr++];
+		if (_inputPtr >= _inputEnd) {
+			loadMoreGuaranteed();
+		}
+		value = (value << 7) + _inputBuffer[_inputPtr++];
+	    _numberDouble = Double.longBitsToDouble(value);
+		_numTypesValid = NR_DOUBLE;
+	}
+
+	private final int _fourBytesToInt() 
+		throws IOException, JsonParseException
+	{
+		if (_inputPtr >= _inputEnd) {
+			loadMoreGuaranteed();
+		}
+		int i = _inputBuffer[_inputPtr++]; // first 7 bits
+		if (_inputPtr >= _inputEnd) {
+			loadMoreGuaranteed();
+		}
+		i = (i << 7) + _inputBuffer[_inputPtr++]; // 14 bits
+		if (_inputPtr >= _inputEnd) {
+			loadMoreGuaranteed();
+		}
+		i = (i << 7) + _inputBuffer[_inputPtr++]; // 21
+		if (_inputPtr >= _inputEnd) {
+			loadMoreGuaranteed();
+		}
+		return (i << 7) + _inputBuffer[_inputPtr++];
+	}
 	
+	private final void _finishBigDecimal()
+		throws IOException, JsonParseException
+	{
+		// !!! TBI
+		_numberBigDecimal = BigDecimal.ZERO;
+		_numTypesValid = NR_BIGDECIMAL;
+	}
+	
+    /*
+    /**********************************************************
+    /* Internal methods, skipping
+    /**********************************************************
+     */
+
     /**
      * Method called to skip remainders of an incomplete token, when
      * contents themselves will not be needed any more
@@ -722,23 +832,37 @@ public class SmileParser
             	//
             case 4: // VInt (zigzag)
             	// easy, just skip until we see sign bit... (should we try to limit damage?)
-            	while (true) {
-            		final int end = _inputEnd;
-            		final byte[] buf = _inputBuffer;
-            		while (_inputPtr < end) {
-            			if (buf[_inputPtr++] < 0) {
-            				return;
-            			}
-            		}
-            		loadMoreGuaranteed();            		
+            	switch (tb & 0x3) {
+            	case 1: // vlong
+            		_skipBytes(4); // min 5 bytes
+            		// fall through
+            	case 0: // vint
+	            	while (true) {
+	            		final int end = _inputEnd;
+	            		final byte[] buf = _inputBuffer;
+	            		while (_inputPtr < end) {
+	            			if (buf[_inputPtr++] < 0) {
+	            				return;
+	            			}
+	            		}
+	            		loadMoreGuaranteed();            		
+	            	}
+            	case 2: // big-int
+            		// !!! TBI
+            		break;
             	}
-            	//
+            	break;
             case 5: // other numbers
-            	//
-            	/*
-                _currToken = ((ch & 0x3) == 2) ?
-                        JsonToken.VALUE_NUMBER_INT : JsonToken.VALUE_NUMBER_FLOAT;
-                        */
+            	switch (tb & 0x3) {
+            	case 0: // float
+            		_skipBytes(5);
+            		return;
+            	case 1: // double
+            		_skipBytes(11);
+            		return;
+            	case 2: // big-decimal
+            	}
+            	break;
             }
         }
     	_throwInternal();
