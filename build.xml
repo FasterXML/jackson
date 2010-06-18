@@ -8,6 +8,7 @@
     <property name="dir.src.java.mapper" location="${dir.src}/mapper/java" />
     <property name="dir.src.java.jaxrs" location="${dir.src}/jaxrs/java" />
     <property name="dir.src.java.xc" location="${dir.src}/xc/java" />
+    <property name="dir.src.java.smile" location="${dir.src}/smile/java" />
     <property name="dir.src.resource.jaxrs" location="${dir.src}/jaxrs/resources" />
     <property name="dir.src.maven" location="${dir.src}/maven" />
     <property name="dir.src.sample" location="${dir.src}/sample" />
@@ -22,6 +23,7 @@
     <property name="dir.build.classes.mapper" location="${dir.build}/classes/mapper" />
     <property name="dir.build.classes.jaxrs" location="${dir.build}/classes/jaxrs" />
     <property name="dir.build.classes.xc" location="${dir.build}/classes/xc" />
+    <property name="dir.build.classes.smile" location="${dir.build}/classes/smile" />
     <!-- both "sample" and "tools" java code goes under "extra" -->
     <property name="dir.build.classes.extra" location="${dir.build}/classes/extra" />
 
@@ -43,6 +45,7 @@
     <property name="IMPL_TITLE_MAPPER" value="Data mapper for Jackson JSON processor" />
     <property name="IMPL_TITLE_JAXRS" value="JAX-RS provider for Json content type, using Jackson data binding" />
     <property name="IMPL_TITLE_XC" value="XML Compatibility extensions for Jackson data binding" />
+    <property name="IMPL_TITLE_SMILE" value="Smile Binary format handling functionality" />
 
     <property name="IMPL_VERSION" value="1.6.0" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
@@ -101,6 +104,7 @@
         <mkdir dir="${dir.build.classes.mapper}" />
         <mkdir dir="${dir.build.classes.jaxrs}" />
         <mkdir dir="${dir.build.classes.xc}" />
+        <mkdir dir="${dir.build.classes.smile}" />
         <mkdir dir="${dir.build.classes.extra}" />
 
         <!-- make docs directories -->
@@ -135,7 +139,8 @@
     <target name="compile.all" depends="
 compile.main, test.compile, compile.extra, compile.perf" />
     <target name="compile.main"
-      depends="compile.core, compile.mapper, compile.jaxrs, compile.xc" />
+      depends="compile.core, compile.mapper, compile.jaxrs, compile.xc,
+compile.smile" />
 
     <target name="compile.core" depends="prepare">
         <javac srcdir="${dir.src.java.core}" destdir="${dir.build.classes.core}"
@@ -203,6 +208,20 @@ compile.main, test.compile, compile.extra, compile.perf" />
                <pathelement path="${dir.build.classes.mapper}"/>  
                <!-- this is optional dependency, but needed for compilation -->
                <pathelement path="${dir.build.classes.xc}"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile.smile" depends="compile.core">
+        <javac srcdir="${dir.src.java.smile}" destdir="${dir.build.classes.smile}"
+            source="1.5" target="1.5"
+            debug="true"
+        >
+            <compilerarg value="-Xlint:unchecked" />
+            <include name="org/codehaus/jackson/smile/**/*.java" />
+            <!-- builds on core classes -->
+            <classpath>
+               <pathelement path="${dir.build.classes.core}"/>  
             </classpath>
         </javac>
     </target>
