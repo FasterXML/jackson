@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.JsonParser.NumberType;
 import org.codehaus.jackson.impl.StreamBasedParserBase;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
@@ -319,7 +318,7 @@ public class SmileParser
                 return _parsingContext.getCurrentName();
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
-                // !!! TBI
+                // TODO: optimize
                 return getNumberValue().toString();
                 
             default:
@@ -358,7 +357,7 @@ public class SmileParser
                 // fall through
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
-                // !!! TBI
+                // TODO: optimize
                 return getNumberValue().toString().toCharArray();
                 
             default:
@@ -385,7 +384,7 @@ public class SmileParser
                 // fall through
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
-                // !!! TBI
+                // TODO: optimize
                 return getNumberValue().toString().length();
                 
             default:
@@ -413,6 +412,7 @@ public class SmileParser
         throws IOException, JsonParseException
     {
         // !!! TBI
+        _throwInternal();
         return null;
     }
     
@@ -442,6 +442,7 @@ public class SmileParser
 	                }
 	                int index = ((ch & 0x3) << 8) | _inputBuffer[_inputPtr++];
 	                // !!! TBI: fetch actual String
+	                if (true) _throwInternal();
 	                _parsingContext.setCurrentName("TBI");
 	            }
                 return JsonToken.FIELD_NAME;
@@ -461,6 +462,7 @@ public class SmileParser
             {
                 int nameIndex = (ch & 0x3F);
                 // !!! TBI: fetch actual String
+                if (true) _throwInternal();
                 _parsingContext.setCurrentName("TBI");
             }
             return JsonToken.FIELD_NAME;
@@ -589,10 +591,7 @@ public class SmileParser
         case 4: // tiny unicode
             // fall through
         case 5: // short unicode
-	        {
-	            int len = (tb - 0x7F);
-	            _decodeShortUnicode(len);
-	        }
+            _decodeShortUnicode(tb - 0x7F);
 	        return;
 
         case 7:
@@ -602,9 +601,11 @@ public class SmileParser
             case 0: // long variable length ascii
             case 1: // long variable length unicode
             	// !!! TBI
+                if (true) _throwInternal();
             case 2: // binary, raw
             case 3: // binary, 7-bit
             	// !!! TBI
+                if (true) _throwInternal();
             case 4: // VInt (zigzag) or BigDecimal
             	int subtype = tb & 0x03;
             	if (subtype == 0) { // (v)int
@@ -716,7 +717,9 @@ public class SmileParser
 		throws IOException, JsonParseException
 	{
 		// !!! TBI
-		_numberBigInt = BigInteger.ZERO;
+        if (true) _throwInternal();
+
+        _numberBigInt = BigInteger.ZERO;
 		_numTypesValid = NR_BIGINT;
 	}
 
@@ -778,6 +781,7 @@ public class SmileParser
 		throws IOException, JsonParseException
 	{
 		// !!! TBI
+        if (true) _throwInternal();
 		_numberBigDecimal = BigDecimal.ZERO;
 		_numTypesValid = NR_BIGDECIMAL;
 	}
@@ -849,6 +853,7 @@ public class SmileParser
 	            	}
             	case 2: // big-int
             		// !!! TBI
+                    if (true) _throwInternal();
             		break;
             	}
             	break;
@@ -861,6 +866,8 @@ public class SmileParser
             		_skipBytes(11);
             		return;
             	case 2: // big-decimal
+            		// !!! TBI
+                    if (true) _throwInternal();
             	}
             	break;
             }

@@ -3,12 +3,11 @@ import java.io.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.smile.SmileFactory;
 import org.codehaus.jackson.util.BufferRecycler;
 
 // json.org's reference implementation
 import org.json.*;
-// StringTree implementation
-import org.stringtree.json.JSONReader;
 // Jsontool implementation
 import com.sdicons.json.parser.JSONParser;
 // Noggit:
@@ -20,22 +19,30 @@ public final class TestJsonPerf
 
     private final static int TEST_PER_GC = 15;
 
-    final JsonFactory mJsonFactory;
+    final JsonFactory _jsonFactory;
+    
+    final ObjectMapper _mapper;
 
-    final byte[] mData;
+    final SmileFactory _smileFactory;
+    
+    final byte[] _jsonData;
 
+    final byte[] _smileData;
+    
     protected int mBatchSize;
 
-    public TestJsonPerf(File f)
-        throws Exception
+    public TestJsonPerf(File f) throws IOException
     {
-        mJsonFactory = new JsonFactory();
-        mData = readData(f);
+        _jsonFactory = new JsonFactory();
+        _mapper = new ObjectMapper(_jsonFactory);
+        _smileFactory = new SmileFactory();
+        _jsonData = readData(f);
+        _smileData = convertToSmile(_jsonData);
 
         // Let's try to guestimate suitable size... to get to 50 megs parsed
-        REPS = (int) ((double) (50 * 1000 * 1000) / (double) mData.length);
+        REPS = (int) ((double) (50 * 1000 * 1000) / (double) _jsonData.length);
 
-        System.out.println("Read "+mData.length+" bytes from '"+f+"'; will do "+REPS+" reps");
+        System.out.println("Read "+_jsonData.length+" bytes (smile: "+_smileData.length+") from '"+f+"'; will do "+REPS+" reps");
         System.out.println();
     }
 
@@ -58,41 +65,41 @@ public final class TestJsonPerf
 
             case 0:
                 msg = "Jackson, stream/byte";
-                sum += testJacksonStream(REPS, true);
+                sum += testJacksonStream(REPS, _jsonFactory, _jsonData, true);
                 break;
             case 1:
                 msg = "Jackson, stream/char";
-                sum += testJacksonStream(REPS, false);
+                sum += testJacksonStream(REPS, _jsonFactory, _jsonData, false);
                 break;
             case 2:
+                msg = "Jackson/smile, stream";
+                sum += testJacksonStream(REPS, _smileFactory, _smileData, true);
+                break;
+            case 3:
                 msg = "Noggit";
                 sum += testNoggit(REPS);
                 break;
 
-            case 3:
+            case 4:
                 msg = "Jackson, Java types";
-                sum += testJacksonJavaTypes(REPS);
+                sum += testJacksonJavaTypes(_mapper, REPS);
                 break;
 
-            case 4:
-                msg = "Jackson, JSON types";
-                sum += testJacksonJsonTypes(REPS);
-                break;
             case 5:
+                msg = "Jackson, JSON types";
+                sum += testJacksonJsonTypes(_mapper, REPS);
+                break;
+            case 6:
                 msg = "Json.org";
                 sum += testJsonOrg(REPS);
                 break;
-            case 6:
+            case 7:
                 msg = "Json-simple";
                 sum += testJsonSimple(REPS);
                 break;
-            case 7:
+            case 8:
                 msg = "JSONTools (berlios.de)";
                 sum += testJsonTools(REPS);
-                break;
-            case 8:
-                msg = "StringTree";
-                sum += testStringTree(REPS);
                 break;
             default:
                 throw new Error("Internal error");
@@ -132,12 +139,25 @@ public final class TestJsonPerf
         return data;
     }
 
+    private byte[] convertToSmile(byte[] json) throws IOException
+    {
+    	JsonParser jp = _jsonFactory.createJsonParser(json);
+    	ByteArrayOutputStream out = new ByteArrayOutputStream(200);
+    	JsonGenerator jg = _smileFactory.createJsonGenerator(out);
+    	while (jp.nextToken() != null) {
+    		jg.copyCurrentEvent(jp);
+    	}
+    	jp.close();
+    	jg.close();
+    	return out.toByteArray();
+    }
+    
     protected int testJsonOrg(int reps)
         throws Exception
     {
         Object ob = null;
         // Json.org's code only accepts Strings:
-        String input = new String(mData, "UTF-8");
+        String input = new String(_jsonData, "UTF-8");
         for (int i = 0; i < reps; ++i) {
             JSONTokener tok = new JSONTokener(input);
             ob = tok.nextValue();
@@ -145,13 +165,13 @@ public final class TestJsonPerf
         return ob.hashCode();
     }
 
-    protected int testJsonTools(int reps)
+    private int testJsonTools(int reps)
         throws Exception
     {
         Object ob = null;
         for (int i = 0; i < reps; ++i) {
             // Json-tools accepts streams, yay!
-            JSONParser jp = new JSONParser(new ByteArrayInputStream(mData), "byte stream");
+            JSONParser jp = new JSONParser(new ByteArrayInputStream(_jsonData), "byte stream");
             /* Hmmmh. Will we get just one object for the whole thing?
              * Or a stream? Seems like just one
              */
@@ -161,23 +181,11 @@ public final class TestJsonPerf
         return ob.hashCode();
     }
 
-    protected int testStringTree(int reps)
-        throws Exception
-    {
-        Object ob = null;
-        String input = new String(mData, "UTF-8");
-        for (int i = 0; i < reps; ++i) {
-            // StringTree impl only accepts Strings:
-            ob = new JSONReader().read(input);
-        }
-        return ob.hashCode();
-    }
-
-    protected int testJsonSimple(int reps)
+    private int testJsonSimple(int reps)
         throws Exception
     {
         // Json.org's code only accepts Strings:
-        String input = new String(mData, "UTF-8");
+        String input = new String(_jsonData, "UTF-8");
         Object ob = null;
         for (int i = 0; i < reps; ++i) {
             ob = org.json.simple.JSONValue.parse(input);
@@ -185,12 +193,12 @@ public final class TestJsonPerf
         return ob.hashCode();
     }
 
-    protected int testNoggit(int reps)
+    private int testNoggit(int reps)
         throws Exception
     {
-        ByteArrayInputStream bin = new ByteArrayInputStream(mData);
+        ByteArrayInputStream bin = new ByteArrayInputStream(_jsonData);
 
-        char[] cbuf = new char[mData.length];
+        char[] cbuf = new char[_jsonData.length];
 
         IOContext ctxt = new IOContext(new BufferRecycler(), this, false);
         int sum = 0;
@@ -220,7 +228,7 @@ public final class TestJsonPerf
         return sum;
     }
 
-    protected int testJacksonStream(int reps, boolean fast)
+    private int testJacksonStream(int reps, JsonFactory factory, byte[] data, boolean fast)
         throws Exception
     {
         int sum = 0;
@@ -229,9 +237,9 @@ public final class TestJsonPerf
             JsonParser jp;
 
             if (fast) {
-                jp = mJsonFactory.createJsonParser(mData, 0, mData.length);
+                jp = factory.createJsonParser(data, 0, data.length);
             } else {
-                jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData));
+                jp = factory.createJsonParser(new ByteArrayInputStream(data));
             }
             JsonToken t;
             while ((t = jp.nextToken()) != null) {
@@ -247,30 +255,23 @@ public final class TestJsonPerf
         return sum;
     }
 
-    protected int testJacksonJavaTypes(int reps)
+    private int testJacksonJavaTypes(ObjectMapper mapper, int reps)
         throws Exception
     {
         Object ob = null;
-        ObjectMapper mapper = new ObjectMapper();
         for (int i = 0; i < reps; ++i) {
-            JsonParser jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData));
             // This is "untyped"... Maps, Lists etc
-            ob = mapper.readValue(jp, Object.class);
-            jp.close();
+            ob = mapper.readValue(_jsonData, 0, _jsonData.length, Object.class);
         }
         return ob.hashCode(); // just to get some non-optimizable number
     }
 
-    @SuppressWarnings("deprecation")
-    protected int testJacksonJsonTypes(int reps)
+    private int testJacksonJsonTypes(ObjectMapper mapper, int reps)
         throws Exception
     {
         Object ob = null;
-        TreeMapper mapper = new TreeMapper();
         for (int i = 0; i < reps; ++i) {
-            JsonParser jp = mJsonFactory.createJsonParser(new ByteArrayInputStream(mData));
-            ob = mapper.readTree(jp);
-            jp.close();
+            ob = mapper.readValue(_jsonData, 0, _jsonData.length, JsonNode.class);
         }
         return ob.hashCode(); // just to get some non-optimizable number
     }

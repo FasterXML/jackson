@@ -253,6 +253,7 @@ compile.smile" />
                </fileset>
                <pathelement path="${dir.build.classes.core}"/>  
                <pathelement path="${dir.build.classes.mapper}"/>  
+               <pathelement path="${dir.build.classes.smile}"/>  
             </classpath>
             <include name="**/*.java" />
         </javac>

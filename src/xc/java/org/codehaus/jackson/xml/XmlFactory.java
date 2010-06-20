@@ -5,7 +5,6 @@ import java.io.*;
 import javax.xml.stream.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.impl.WriterBasedGenerator;
 import org.codehaus.jackson.io.IOContext;
 
 /**

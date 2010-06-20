@@ -2,7 +2,6 @@ package org.codehaus.jackson.smile;
 
 import java.io.*;
 
-import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 
 public class TestSmileParser
@@ -71,5 +70,11 @@ public class TestSmileParser
 
     	assertToken(JsonToken.END_OBJECT, p.nextToken());
     	p.close();
+    }
+
+    public void testJsonSampleDoc() throws IOException
+    {
+    	byte[] data = _smileDoc(SAMPLE_DOC_JSON_SPEC);
+    	verifyJsonSpecSampleDoc(_parser(data), true);
     }
 }

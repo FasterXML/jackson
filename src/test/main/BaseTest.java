@@ -12,9 +12,9 @@ public abstract class BaseTest
     extends TestCase
 {
     /*
-    ////////////////////////////////////////////////////////
-    // Some sample documents:
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Some sample documents:
+    /**********************************************************
      */
 
     protected final static int SAMPLE_SPEC_VALUE_WIDTH = 800;
@@ -45,9 +45,9 @@ public abstract class BaseTest
         ;
 
     /*
-    ////////////////////////////////////////////////////////
-    // High-level helpers
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* High-level helpers
+    /**********************************************************
      */
 
     protected void verifyJsonSpecSampleDoc(JsonParser jp, boolean verifyContents)
@@ -159,9 +159,9 @@ public abstract class BaseTest
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Parser/generator construction
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Parser/generator construction
+    /**********************************************************
      */
 
     protected JsonParser createParserUsingReader(String input)
@@ -203,9 +203,9 @@ public abstract class BaseTest
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Additional assertion methods
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Additional assertion methods
+    /**********************************************************
      */
 
     protected void assertToken(JsonToken expToken, JsonToken actToken)
@@ -264,9 +264,9 @@ public abstract class BaseTest
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // And other helpers
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* And other helpers
+    /**********************************************************
      */
 
     protected byte[] encodeInUTF32BE(String input)
