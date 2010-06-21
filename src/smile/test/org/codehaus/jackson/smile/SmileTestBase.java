@@ -13,10 +13,15 @@ class SmileTestBase
     protected SmileParser _parser(byte[] input)
         throws IOException
     {
-    	SmileFactory f = new SmileFactory();
-        return f.createJsonParser(input);
+    	return _parser(new SmileFactory(), input);
     }
 
+    protected SmileParser _parser(SmileFactory f, byte[] input)
+	    throws IOException
+	{
+	    return f.createJsonParser(input);
+	}
+    
     protected byte[] _smileDoc(String json) throws IOException
     {
     	return _smileDoc(json, true);

@@ -34,6 +34,35 @@ public class TestSmileParser
     	assertToken(JsonToken.END_ARRAY, p.nextToken());
     	p.close();
     }
+
+    public void testLongAsciiString() throws IOException
+    {
+    	final String DIGITS = "1234567890";
+    	String LONG = DIGITS + DIGITS + DIGITS + DIGITS;
+    	LONG = LONG + LONG + LONG + LONG;
+    	byte[] data = _smileDoc(quote(LONG));
+
+    	SmileParser p = _parser(data);
+    	assertNull(p.getCurrentToken());
+    	assertToken(JsonToken.VALUE_STRING, p.nextToken());
+    	assertEquals(LONG, p.getText());
+    	assertNull(p.nextToken());
+    }
+
+    public void testTrivialObject() throws IOException
+    {
+    	byte[] data = _smileDoc("{\"abc\":13}");
+    	SmileParser p = _parser(data);
+    	assertNull(p.getCurrentToken());
+
+    	assertToken(JsonToken.START_OBJECT, p.nextToken());
+    	assertToken(JsonToken.FIELD_NAME, p.nextToken());
+    	assertEquals("abc", p.getCurrentName());
+    	assertEquals("abc", p.getText());
+    	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
+    	assertEquals(13, p.getIntValue());    	
+    	assertToken(JsonToken.END_OBJECT, p.nextToken());
+    }
     
     public void testSimpleObject() throws IOException
     {

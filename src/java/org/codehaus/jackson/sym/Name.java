@@ -21,9 +21,9 @@ public abstract class Name
     public String getName() { return mName; }
 
     /*
-    //////////////////////////////////////////////////////////
-    // Methods for package/core parser
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Methods for package/core parser
+    /**********************************************************
      */
 
     public abstract boolean equals(int quad1);
@@ -33,9 +33,9 @@ public abstract class Name
     public abstract boolean equals(int[] quads, int qlen);
 
     /*
-    //////////////////////////////////////////////////////////
-    // Overridden standard methods
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Overridden standard methods
+    /**********************************************************
      */
 
     @Override

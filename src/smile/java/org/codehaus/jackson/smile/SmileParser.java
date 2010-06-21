@@ -11,6 +11,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.StreamBasedParserBase;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
+import org.codehaus.jackson.sym.Name;
 
 public class SmileParser
     extends StreamBasedParserBase
@@ -49,6 +50,8 @@ public class SmileParser
         public int getMask() { return _mask; }
     }
 
+    private static int[] NO_INTS = new int[0];
+    
     /*
     /**********************************************************
     /* Configuration
@@ -60,6 +63,11 @@ public class SmileParser
      */
     protected ObjectCodec _objectCodec;
 
+    /**
+     * Symbol table that contains field names encountered so far
+     */
+    final protected BytesToNameCanonicalizer _symbols;
+    
     /*
     /**********************************************************
     /* Additional parsing state
@@ -78,6 +86,13 @@ public class SmileParser
      * format does, and we want to retain that separation.
      */
     protected boolean _got32BitFloat;
+
+    /**
+     * Temporary buffer used for name parsing.
+     */
+    protected int[] _quadBuffer = NO_INTS;
+
+    protected int _quad1, _quad2;
     
     /*
     /**********************************************************
@@ -93,6 +108,7 @@ public class SmileParser
     {
         super(ctxt, parserFeatures, in, inputBuffer, start, end, bufferRecyclable);
         _objectCodec = codec;
+        _symbols = sym;
         _tokenInputRow = -1;
         _tokenInputCol = -1;
     }
@@ -147,7 +163,28 @@ public class SmileParser
         }
         return true;
 	}
-    
+
+    /*
+    /**********************************************************
+    /* Overridden methods
+    /**********************************************************
+     */
+
+    @Override
+    protected void _finishString() throws IOException, JsonParseException
+    {
+        // should never be called; but must be defined for superclass
+        _throwInternal();
+    }
+
+    @Override
+    public void close() throws IOException
+    {
+        super.close();
+        // Merge found symbols, if any:
+        _symbols.release();
+    }
+	
     /*
     /**********************************************************
     /* JsonParser impl
@@ -418,7 +455,7 @@ public class SmileParser
     
     /*
     /**********************************************************
-    /* Internal methods, parsing
+    /* Internal methods, field name parsing
     /**********************************************************
      */
 
@@ -468,45 +505,77 @@ public class SmileParser
             return JsonToken.FIELD_NAME;
         case 2: // short ASCII
 	        {
-	            int len = 1 + (ch & 0x3F);
-	            _loadToHaveAtLeast(len);
-	            int outPtr = 0;
-	            char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-	            int inPtr = _inputPtr;
-	            _inputPtr += len;
-	            for (int end = inPtr + len; inPtr < end; ) {
-	                outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
-	            }
-	            _textBuffer.setCurrentLength(len);
-	            _parsingContext.setCurrentName(_textBuffer.contentsAsString());
+	        	int len = (ch & 0x3f) + 1;
+	        	String name;
+	        	Name n = _findDecodedFromSymbols(len);
+	        	if (n != null) {
+	        		name = n.getName();
+	        		_inputPtr += len;
+	        	} else {
+	        		name = _decodeShortAsciiName(len);
+	        		name = _addDecodedToSymbols(len, name);
+	        	}
+	            _parsingContext.setCurrentName(name);
 	        }
             return JsonToken.FIELD_NAME;                
         case 3: // short Unicode
             // all valid, except for 0xBF and 0xFF
             if ((ch & 0x3F) != 0x3F) {
-                int len = 1 + (ch & 0x3F);
-                _decodeShortUnicode(len);
-                _parsingContext.setCurrentName(_textBuffer.contentsAsString());
-                return JsonToken.FIELD_NAME;                
+	        	int len = (ch & 0x3f) + 1;
+	        	String name;
+	        	Name n = _findDecodedFromSymbols(len);
+	        	if (n != null) {
+	        		name = n.getName();
+	        		_inputPtr += len;
+	        	} else {
+	        		name = _decodeShortUnicodeName(len);
+	        		name = _addDecodedToSymbols(len, name);
+	        	}
+	            _parsingContext.setCurrentName(name);
+	            return JsonToken.FIELD_NAME;                
             }
             break;
         }
         // Other byte values are illegal
         _reportError("Invalid type marker byte 0x"+Integer.toHexString(ch)+" for expected field name (or END_OBJECT marker)");
         return null;
-    }    
+    }
 
+    private final String _addDecodedToSymbols(int len, String name)
+    {
+	    if (len < 5) {
+    		return _symbols.addName(name, _quad1, 0).getName();
+		}
+	    if (len < 9) {
+    		return _symbols.addName(name, _quad1, _quad2).getName();
+		}
+		int qlen = (len + 3) >> 2;
+		return _symbols.addName(name, _quadBuffer, qlen).getName();
+	}
+
+    private final String _decodeShortAsciiName(int len)
+	    throws IOException, JsonParseException
+	{
+		int outPtr = 0;
+	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	    int inPtr = _inputPtr;
+	    _inputPtr += len;
+	    for (int end = inPtr + len; inPtr < end; ) {
+	        outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
+	    }
+	    _textBuffer.setCurrentLength(len);
+	    return _textBuffer.contentsAsString();
+	}
+    
     /**
      * Helper method used to decode short Unicode string, length for which actual
      * length (in bytes) is known
      * 
      * @param len Length between 1 and 64
      */
-    protected final void _decodeShortUnicode(int len)
+    private final String _decodeShortUnicodeName(int len)
         throws IOException, JsonParseException
     {
-        _loadToHaveAtLeast(len);
-
         int outPtr = 0;
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
         int inPtr = _inputPtr;
@@ -543,8 +612,111 @@ public class SmileParser
             outBuf[outPtr++] = (char) i;
         }
         _textBuffer.setCurrentLength(outPtr);
+	    return _textBuffer.contentsAsString();
     }
 
+    /**
+     * Helper method for trying to find specified encoded UTF-8 byte sequence
+     * from symbol table; if succesfull avoids actual decoding to String
+     */
+    private final Name _findDecodedFromSymbols(int len)
+    	throws IOException, JsonParseException
+	{
+	    if ((_inputEnd - _inputPtr) < len) {
+			_loadToHaveAtLeast(len);
+		}
+		// First: maybe we already have this name decoded?
+		if (len < 5) {
+	    	int inPtr = _inputPtr;
+	    	final byte[] inBuf = _inputBuffer;
+			int q = inBuf[inPtr];
+			if (--len > 0) {
+				q = (q << 8) + inBuf[++inPtr];
+				if (--len > 0) {
+					q = (q << 8) + inBuf[++inPtr];
+					if (--len > 0) {
+						q = (q << 8) + inBuf[++inPtr];
+					}
+				}
+			}
+			_quad1 = q;
+			return _symbols.findName(q);
+		}
+		if (len < 9) {
+	    	int inPtr = _inputPtr;
+	    	final byte[] inBuf = _inputBuffer;
+			// First quadbyte is easy
+			int q1 = inBuf[inPtr++] << 8;
+			q1 += inBuf[inPtr++];
+			q1 <<= 8;
+			q1 += inBuf[inPtr++];
+			q1 <<= 8;
+			q1 += inBuf[inPtr++];
+			int q2 = inBuf[inPtr++];
+			len -= 5;
+			if (len > 0) {
+				q2 = (q2 << 8) + inBuf[inPtr++];				
+				if (--len >= 0) {
+					q2 = (q2 << 8) + inBuf[inPtr++];				
+					if (--len >= 0) {
+						q2 = (q2 << 8) + inBuf[inPtr++];				
+					}
+				}
+			}
+			_quad1 = q1;
+			_quad2 = q2;
+			return _symbols.findName(q1, q2);
+		}
+		return _findDecodedLong(len);
+	}
+
+    private final Name _findDecodedLong(int len)
+		throws IOException, JsonParseException
+	{
+    	// first, need enough buffer to store bytes as ints:
+    	{
+			int bufLen = (len  + 3) >> 2;
+	        if (bufLen > _quadBuffer.length) {
+	            _quadBuffer = _growArrayTo(_quadBuffer, bufLen);
+	        }
+    	}
+    	// then decode, full quads first
+    	int offset = 0;
+    	int inPtr = _inputPtr;
+    	final byte[] inBuf = _inputBuffer;
+        do {
+			int q = inBuf[inPtr++] << 8;
+			q |= inBuf[inPtr++];
+			q <<= 8;
+			q |= inBuf[inPtr++];
+			q <<= 8;
+			q |= inBuf[inPtr++];
+			_quadBuffer[offset++] = q;
+        } while ((len -= 4) > 3);
+        // and then leftovers
+        if (len > 0) {
+			int q = inBuf[inPtr++];
+			if (--len >= 0) {
+				q = (q << 8) + inBuf[inPtr++];				
+				if (--len >= 0) {
+					q = (q << 8) + inBuf[inPtr++];				
+				}
+			}
+			_quadBuffer[offset++] = q;
+        }
+        return _symbols.findName(_quadBuffer, offset);
+	}
+    
+    public static int[] _growArrayTo(int[] arr, int minSize)
+    {
+    	int[] newArray = new int[minSize + 4];
+        if (arr != null) {
+        	// !!! TODO: JDK 1.6, Arrays.copyOf
+        	System.arraycopy(arr, 0, newArray, 0, arr.length);
+        }
+        return newArray;
+    }
+    
     /*
     /**********************************************************
     /* Internal methods, secondary parsing
@@ -574,24 +746,13 @@ public class SmileParser
         case 2: // tiny ascii
             // fall through
         case 3: // short ascii
-        	{
-        		int len = (tb - 0x3F);
-	            _loadToHaveAtLeast(len);
-	            int outPtr = 0;
-	            char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-	            int inPtr = _inputPtr;
-	            _inputPtr += len;
-	            for (int end = inPtr + len; inPtr < end; ) {
-	                outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
-	            }
-	            _textBuffer.setCurrentLength(len);
-        	}
+            _decodeShortAsciiValue(tb - 0x3F);
         	return;
 
         case 4: // tiny unicode
             // fall through
         case 5: // short unicode
-            _decodeShortUnicode(tb - 0x7F);
+            _decodeShortUnicodeValue(tb - 0x7F);
 	        return;
 
         case 7:
@@ -682,6 +843,67 @@ public class SmileParser
     	_throwInternal();
     }
 
+    protected final void _decodeShortAsciiValue(int len)
+	    throws IOException, JsonParseException
+	{
+    	if ((_inputEnd - _inputPtr) < len) {
+    		_loadToHaveAtLeast(len);
+    	}
+        int outPtr = 0;
+        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+        int inPtr = _inputPtr;
+        _inputPtr += len;
+        for (int end = inPtr + len; inPtr < end; ) {
+            outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
+        }
+        _textBuffer.setCurrentLength(len);
+	}
+    
+    protected final void _decodeShortUnicodeValue(int len)
+	    throws IOException, JsonParseException
+	{
+    	if ((_inputEnd - _inputPtr) < len) {
+    		_loadToHaveAtLeast(len);
+    	}
+	
+	    int outPtr = 0;
+	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	    int inPtr = _inputPtr;
+	    _inputPtr += len;
+	    final int[] codes = SmileConstants.sUtf8UnitLengths;
+	    for (int end = inPtr + len; inPtr < end; ) {
+	        int i = _inputBuffer[inPtr++] & 0xFF;
+	        int code = codes[i];
+	        if (code != 0) {
+	            // trickiest one, need surrogate handling
+	            switch (code) {
+	            case 1:
+	                i = ((i & 0x1F) << 6) | (_inputBuffer[inPtr++] & 0x3F);
+	                break;
+	            case 2:
+	                i = ((i & 0x0F) << 12)
+	                    | ((_inputBuffer[inPtr++] & 0x3F) << 6)
+	                    | (_inputBuffer[inPtr++] & 0x3F);
+	                break;
+	            case 3:
+	                i = ((i & 0x07) << 18)
+	                | ((_inputBuffer[inPtr++] & 0x3F) << 12)
+	                | ((_inputBuffer[inPtr++] & 0x3F) << 6)
+	                | (_inputBuffer[inPtr++] & 0x3F);
+	                // note: this is the codepoint value; need to split, too
+	                i -= 0x10000;
+	                outBuf[outPtr++] = (char) (0xD800 | (i >> 10));
+	                i = 0xDC00 | (i & 0x3FF);
+	                break;
+	            default: // invalid
+	                _reportError("Invalid byte "+Integer.toHexString(i)+" in short Unicode text block");
+	            }
+	        }
+	        outBuf[outPtr++] = (char) i;
+	    }
+	    _textBuffer.setCurrentLength(outPtr);
+	}
+    
     /**
      * Helper method that will update state for an int value
      */
@@ -886,13 +1108,6 @@ public class SmileParser
 	    	}
 	    	loadMoreGuaranteed();
 	    }
-    }
-    
-    @Override
-    protected void _finishString() throws IOException, JsonParseException
-    {
-        // should never be called; but must be defined for superclass
-        _throwInternal();
     }
     
     /*

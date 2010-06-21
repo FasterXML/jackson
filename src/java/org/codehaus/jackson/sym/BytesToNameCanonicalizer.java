@@ -477,6 +477,20 @@ public final class BytesToNameCanonicalizer
     /**********************************************************
      */
 
+    /**
+     * @since 1.6.0
+     */
+    public Name addName(String symbolStr, int q1, int q2)
+    {
+        if (_intern) {
+            symbolStr = InternCache.instance.intern(symbolStr);
+        }
+        int hash = (q2 == 0) ? calcHash(q1) : calcHash(q1, q2);
+        Name symbol = constructName(hash, symbolStr, q1, q2);
+        _addSymbol(hash, symbol);
+        return symbol;
+    }
+    
     public Name addName(String symbolStr, int[] quads, int qlen)
     {
         if (_intern) {
@@ -487,7 +501,7 @@ public final class BytesToNameCanonicalizer
         _addSymbol(hash, symbol);
         return symbol;
     }
-
+    
     /*
     /**********************************************************
     /* Helper methods
@@ -732,9 +746,9 @@ public final class BytesToNameCanonicalizer
         Bucket[] oldBuckets = _collList;
         _collList = new Bucket[oldBuckets.length];
         for (int i = 0; i < oldEnd; ++i) {
-            for (Bucket curr = oldBuckets[i]; curr != null; curr = curr.mNext) {
+            for (Bucket curr = oldBuckets[i]; curr != null; curr = curr._next) {
                 ++symbolsSeen;
-                Name symbol = curr.mName;
+                Name symbol = curr._name;
                 int hash = symbol.hashCode();
                 int ix = (hash & _mainHashMask);
                 int val = _mainHash[ix];
@@ -862,7 +876,6 @@ public final class BytesToNameCanonicalizer
     /**********************************************************
      */
 
-    /*
     private static Name constructName(int hash, String name, int q1, int q2)
     {     
         if (q2 == 0) { // one quad only?
@@ -870,7 +883,6 @@ public final class BytesToNameCanonicalizer
         }
         return new Name2(name, hash, q1, q2);
     }
-    */
 
     private static Name constructName(int hash, String name, int[] quads, int qlen)
     {
@@ -901,19 +913,19 @@ public final class BytesToNameCanonicalizer
 
     final static class Bucket
     {
-        final Name mName;
-        final Bucket mNext;
+        protected final Name _name;
+        protected final Bucket _next;
 
         Bucket(Name name, Bucket next)
         {
-            mName = name;
-            mNext = next;
+            _name = name;
+            _next = next;
         }
 
         public int length()
         {
             int len = 1;
-            for (Bucket curr = mNext; curr != null; curr = curr.mNext) {
+            for (Bucket curr = _next; curr != null; curr = curr._next) {
                 ++len;
             }
             return len;
@@ -921,13 +933,13 @@ public final class BytesToNameCanonicalizer
 
         public Name find(int hash, int firstQuad, int secondQuad)
         {
-            if (mName.hashCode() == hash) {
-                if (mName.equals(firstQuad, secondQuad)) {
-                    return mName;
+            if (_name.hashCode() == hash) {
+                if (_name.equals(firstQuad, secondQuad)) {
+                    return _name;
                 }
             }
-            for (Bucket curr = mNext; curr != null; curr = curr.mNext) {
-                Name currName = curr.mName;
+            for (Bucket curr = _next; curr != null; curr = curr._next) {
+                Name currName = curr._name;
                 if (currName.hashCode() == hash) {
                     if (currName.equals(firstQuad, secondQuad)) {
                         return currName;
@@ -939,13 +951,13 @@ public final class BytesToNameCanonicalizer
 
         public Name find(int hash, int[] quads, int qlen)
         {
-            if (mName.hashCode() == hash) {
-                if (mName.equals(quads, qlen)) {
-                    return mName;
+            if (_name.hashCode() == hash) {
+                if (_name.equals(quads, qlen)) {
+                    return _name;
                 }
             }
-            for (Bucket curr = mNext; curr != null; curr = curr.mNext) {
-                Name currName = curr.mName;
+            for (Bucket curr = _next; curr != null; curr = curr._next) {
+                Name currName = curr._name;
                 if (currName.hashCode() == hash) {
                     if (currName.equals(quads, qlen)) {
                         return currName;
