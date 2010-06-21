@@ -45,6 +45,22 @@ public class TestSmileParserNumbers
     	assertEquals(Integer.MIN_VALUE, p.getIntValue());
     }
 
+    public void testIntsInObjectSkipping() throws IOException
+    {
+    	byte[] data = _smileDoc("{\"a\":200,\"b\":200}");
+    	SmileParser p = _parser(data);
+    	assertToken(JsonToken.START_OBJECT, p.nextToken());
+    	assertToken(JsonToken.FIELD_NAME, p.nextToken());
+    	assertEquals("a", p.getCurrentName());
+    	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
+    	// let's NOT access value, forcing skipping
+    	assertToken(JsonToken.FIELD_NAME, p.nextToken());
+    	assertEquals("b", p.getCurrentName());
+    	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
+    	// let's NOT access value, forcing skipping
+    	assertToken(JsonToken.END_OBJECT, p.nextToken());
+    }
+    
     public void testBorderLongs() throws IOException
     {
     	long l = (long) Integer.MIN_VALUE - 1L;

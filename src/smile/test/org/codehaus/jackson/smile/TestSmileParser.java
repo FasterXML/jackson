@@ -35,6 +35,51 @@ public class TestSmileParser
     	p.close();
     }
 
+    public void testEmptyStrings() throws IOException
+    {
+    	// first, empty key
+    	byte[] data = _smileDoc("{ \"\":true }");
+    	SmileParser p = _parser(data);
+    	assertNull(p.getCurrentToken());
+    	assertToken(JsonToken.START_OBJECT, p.nextToken());
+    	assertToken(JsonToken.FIELD_NAME, p.nextToken());
+    	assertEquals("", p.getCurrentName());
+    	assertToken(JsonToken.VALUE_TRUE, p.nextToken());
+    	assertToken(JsonToken.END_OBJECT, p.nextToken());
+    	assertNull(p.nextToken());
+    	p.close();
+
+    	// then empty value
+    	data = _smileDoc("{ \"abc\":\"\" }");
+    	p = _parser(data);
+    	assertNull(p.getCurrentToken());
+    	assertToken(JsonToken.START_OBJECT, p.nextToken());
+    	assertToken(JsonToken.FIELD_NAME, p.nextToken());
+    	assertEquals("abc", p.getCurrentName());
+    	assertToken(JsonToken.VALUE_STRING, p.nextToken());
+    	assertEquals("", p.getText());
+    	assertToken(JsonToken.END_OBJECT, p.nextToken());
+    	assertNull(p.nextToken());
+    	p.close();
+    	
+    	// and combinations
+    	data = _smileDoc("{ \"\":\"\", \"\":\"\" }");
+    	p = _parser(data);
+    	assertNull(p.getCurrentToken());
+    	assertToken(JsonToken.START_OBJECT, p.nextToken());
+    	assertToken(JsonToken.FIELD_NAME, p.nextToken());
+    	assertEquals("", p.getCurrentName());
+    	assertToken(JsonToken.VALUE_STRING, p.nextToken());
+    	assertEquals("", p.getText());
+    	assertToken(JsonToken.FIELD_NAME, p.nextToken());
+    	assertEquals("", p.getCurrentName());
+    	assertToken(JsonToken.VALUE_STRING, p.nextToken());
+    	assertEquals("", p.getText());
+    	assertToken(JsonToken.END_OBJECT, p.nextToken());
+    	assertNull(p.nextToken());
+    	p.close();
+    }
+    
     public void testLongAsciiString() throws IOException
     {
     	final String DIGITS = "1234567890";

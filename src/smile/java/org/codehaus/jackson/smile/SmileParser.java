@@ -62,11 +62,6 @@ public class SmileParser
      * Codec used for data binding when (if) requested.
      */
     protected ObjectCodec _objectCodec;
-
-    /**
-     * Symbol table that contains field names encountered so far
-     */
-    final protected BytesToNameCanonicalizer _symbols;
     
     /*
     /**********************************************************
@@ -87,6 +82,17 @@ public class SmileParser
      */
     protected boolean _got32BitFloat;
 
+    /*
+    /**********************************************************
+    /* Symbol handling, decoding
+    /**********************************************************
+     */
+
+    /**
+     * Symbol table that contains field names encountered so far
+     */
+    final protected BytesToNameCanonicalizer _symbols;
+    
     /**
      * Temporary buffer used for name parsing.
      */
@@ -312,9 +318,6 @@ public class SmileParser
     @Override
     public String getCurrentName() throws IOException, JsonParseException
     {
-        if (_tokenIncomplete) {
-            _skipIncomplete();
-        }
         return _parsingContext.getCurrentName();
     }
 
@@ -483,6 +486,9 @@ public class SmileParser
 	                _parsingContext.setCurrentName("TBI");
 	            }
                 return JsonToken.FIELD_NAME;
+            case 0x34: // long ascii/unicode name
+                if (true) _throwInternal();
+                return JsonToken.FIELD_NAME;            	
             case 0x35: // empty String as name, legal if unusual
                 _parsingContext.setCurrentName("");
                 return JsonToken.FIELD_NAME;
@@ -499,7 +505,7 @@ public class SmileParser
             {
                 int nameIndex = (ch & 0x3F);
                 // !!! TBI: fetch actual String
-                if (true) _throwInternal();
+                if (true) _reportError("Short-shared not yet implemented!");
                 _parsingContext.setCurrentName("TBI");
             }
             return JsonToken.FIELD_NAME;
@@ -760,9 +766,11 @@ public class SmileParser
             // next 3 bytes define subtype
             switch (tb >> 2) {
             case 0: // long variable length ascii
+            	_decodeLongAscii();
+            	return;
             case 1: // long variable length unicode
-            	// !!! TBI
-                if (true) _throwInternal();
+            	_decodeLongUnicode();
+            	return;
             case 2: // binary, raw
             case 3: // binary, 7-bit
             	// !!! TBI
@@ -770,53 +778,8 @@ public class SmileParser
             case 4: // VInt (zigzag) or BigDecimal
             	int subtype = tb & 0x03;
             	if (subtype == 0) { // (v)int
-                	if (_inputPtr >= _inputEnd) {
-                		loadMoreGuaranteed();
-                	}
-                	int value = _inputBuffer[_inputPtr++];
-	            	if (value < 0) { // 6 bits
-	            		_finishInt(0, value);
-	            		return;
-	            	}
-	            	if (_inputPtr >= _inputEnd) {
-	            		loadMoreGuaranteed();
-	            	}
-	            	int i = _inputBuffer[_inputPtr++];
-	            	if (i < 0) { // 13 bits
-	            		_finishInt(value, i);
-	            		return;
-	            	}
-	            	value = (value << 7) + i;
-	            	if (_inputPtr >= _inputEnd) {
-	            		loadMoreGuaranteed();
-	            	}
-	            	i = _inputBuffer[_inputPtr++];
-	            	if (i < 0) { // 20 bits
-	            		_finishInt(value, i);
-	            		return;
-	            	}
-	            	value = (value << 7) + i;
-	            	if (_inputPtr >= _inputEnd) {
-	            		loadMoreGuaranteed();
-	            	}
-	            	i = _inputBuffer[_inputPtr++];
-	            	if (i < 0) { // 27 bits
-	            		_finishInt(value, i);
-	            		return;
-	            	}
-	            	value = (value << 7) + i;
-	            	// and then we must get negative
-	            	if (_inputPtr >= _inputEnd) {
-	            		loadMoreGuaranteed();
-	            	}
-	            	i = _inputBuffer[_inputPtr++];
-	            	if (i >= 0) {
-	            		_reportError("Corrupt input; 32-bit VInt extends beyond 5 data bytes");
-	            	}
-            		_finishInt(value, i);
-            		return;
-            	}
-            	if (subtype == 1) { // (v)long
+            		_finishInt();
+            	} else if (subtype == 1) { // (v)long
             		_finishLong();
             	} else if (subtype == 2) {
                     _finishBigInteger();
@@ -843,75 +806,55 @@ public class SmileParser
     	_throwInternal();
     }
 
-    protected final void _decodeShortAsciiValue(int len)
-	    throws IOException, JsonParseException
-	{
-    	if ((_inputEnd - _inputPtr) < len) {
-    		_loadToHaveAtLeast(len);
-    	}
-        int outPtr = 0;
-        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-        int inPtr = _inputPtr;
-        _inputPtr += len;
-        for (int end = inPtr + len; inPtr < end; ) {
-            outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
-        }
-        _textBuffer.setCurrentLength(len);
-	}
-    
-    protected final void _decodeShortUnicodeValue(int len)
-	    throws IOException, JsonParseException
-	{
-    	if ((_inputEnd - _inputPtr) < len) {
-    		_loadToHaveAtLeast(len);
-    	}
-	
-	    int outPtr = 0;
-	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-	    int inPtr = _inputPtr;
-	    _inputPtr += len;
-	    final int[] codes = SmileConstants.sUtf8UnitLengths;
-	    for (int end = inPtr + len; inPtr < end; ) {
-	        int i = _inputBuffer[inPtr++] & 0xFF;
-	        int code = codes[i];
-	        if (code != 0) {
-	            // trickiest one, need surrogate handling
-	            switch (code) {
-	            case 1:
-	                i = ((i & 0x1F) << 6) | (_inputBuffer[inPtr++] & 0x3F);
-	                break;
-	            case 2:
-	                i = ((i & 0x0F) << 12)
-	                    | ((_inputBuffer[inPtr++] & 0x3F) << 6)
-	                    | (_inputBuffer[inPtr++] & 0x3F);
-	                break;
-	            case 3:
-	                i = ((i & 0x07) << 18)
-	                | ((_inputBuffer[inPtr++] & 0x3F) << 12)
-	                | ((_inputBuffer[inPtr++] & 0x3F) << 6)
-	                | (_inputBuffer[inPtr++] & 0x3F);
-	                // note: this is the codepoint value; need to split, too
-	                i -= 0x10000;
-	                outBuf[outPtr++] = (char) (0xD800 | (i >> 10));
-	                i = 0xDC00 | (i & 0x3FF);
-	                break;
-	            default: // invalid
-	                _reportError("Invalid byte "+Integer.toHexString(i)+" in short Unicode text block");
-	            }
-	        }
-	        outBuf[outPtr++] = (char) i;
-	    }
-	    _textBuffer.setCurrentLength(outPtr);
-	}
-    
-    /**
-     * Helper method that will update state for an int value
+	/*
+    /**********************************************************
+    /* Internal methods, secondary Number parsing
+    /**********************************************************
      */
-	private final void  _finishInt(int base, int lastByte)
+    
+	private final void _finishInt() throws IOException, JsonParseException
 	{
-		base <<= 6;
-        _numberInt = SmileUtil.zigzagDecode(base + (lastByte & 0x3F));
-        _numTypesValid = NR_INT;
+    	if (_inputPtr >= _inputEnd) {
+    		loadMoreGuaranteed();
+    	}
+    	int value = _inputBuffer[_inputPtr++];
+    	int i;
+    	if (value < 0) { // 6 bits
+    		value &= 0x3F;
+    	} else {
+	    	if (_inputPtr >= _inputEnd) {
+	    		loadMoreGuaranteed();
+	    	}
+	    	i = _inputBuffer[_inputPtr++];
+	    	if (i >= 0) { // 13 bits
+		    	value = (value << 7) + i;
+		    	if (_inputPtr >= _inputEnd) {
+					loadMoreGuaranteed();
+				}
+				i = _inputBuffer[_inputPtr++];
+				if (i >= 0) {
+					value = (value << 7) + i;
+					if (_inputPtr >= _inputEnd) {
+						loadMoreGuaranteed();
+					}
+					i = _inputBuffer[_inputPtr++];
+					if (i >= 0) {
+						value = (value << 7) + i;
+						// and then we must get negative
+						if (_inputPtr >= _inputEnd) {
+							loadMoreGuaranteed();
+						}
+						i = _inputBuffer[_inputPtr++];
+						if (i >= 0) {
+							_reportError("Corrupt input; 32-bit VInt extends beyond 5 data bytes");
+						}
+					}
+				}
+	    	}
+	        value = (value << 6) + (i & 0x3F);
+    	}
+        _numberInt = SmileUtil.zigzagDecode(value);
+    	_numTypesValid = NR_INT;
 	}
 
 	private final void  _finishLong()
@@ -1007,8 +950,109 @@ public class SmileParser
 		_numberBigDecimal = BigDecimal.ZERO;
 		_numTypesValid = NR_BIGDECIMAL;
 	}
+
+	/*
+    /**********************************************************
+    /* Internal methods, secondary String parsing
+    /**********************************************************
+     */
 	
-    /*
+    protected final void _decodeShortAsciiValue(int len)
+	    throws IOException, JsonParseException
+	{
+		if ((_inputEnd - _inputPtr) < len) {
+			_loadToHaveAtLeast(len);
+		}
+	    int outPtr = 0;
+	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	    int inPtr = _inputPtr;
+	    _inputPtr += len;
+	    for (int end = inPtr + len; inPtr < end; ) {
+	        outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
+	    }
+	    _textBuffer.setCurrentLength(len);
+	}
+	
+	protected final void _decodeShortUnicodeValue(int len)
+	    throws IOException, JsonParseException
+	{
+		if ((_inputEnd - _inputPtr) < len) {
+			_loadToHaveAtLeast(len);
+		}
+	
+	    int outPtr = 0;
+	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	    int inPtr = _inputPtr;
+	    _inputPtr += len;
+	    final int[] codes = SmileConstants.sUtf8UnitLengths;
+	    for (int end = inPtr + len; inPtr < end; ) {
+	        int i = _inputBuffer[inPtr++] & 0xFF;
+	        int code = codes[i];
+	        if (code != 0) {
+	            // trickiest one, need surrogate handling
+	            switch (code) {
+	            case 1:
+	                i = ((i & 0x1F) << 6) | (_inputBuffer[inPtr++] & 0x3F);
+	                break;
+	            case 2:
+	                i = ((i & 0x0F) << 12)
+	                    | ((_inputBuffer[inPtr++] & 0x3F) << 6)
+	                    | (_inputBuffer[inPtr++] & 0x3F);
+	                break;
+	            case 3:
+	                i = ((i & 0x07) << 18)
+	                | ((_inputBuffer[inPtr++] & 0x3F) << 12)
+	                | ((_inputBuffer[inPtr++] & 0x3F) << 6)
+	                | (_inputBuffer[inPtr++] & 0x3F);
+	                // note: this is the codepoint value; need to split, too
+	                i -= 0x10000;
+	                outBuf[outPtr++] = (char) (0xD800 | (i >> 10));
+	                i = 0xDC00 | (i & 0x3FF);
+	                break;
+	            default: // invalid
+	                _reportError("Invalid byte "+Integer.toHexString(i)+" in short Unicode text block");
+	            }
+	        }
+	        outBuf[outPtr++] = (char) i;
+	    }
+	    _textBuffer.setCurrentLength(outPtr);
+	}
+
+	private final void _decodeLongAscii()
+		throws IOException, JsonParseException
+	{
+	    int outPtr = 0;
+	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	    main_loop:
+	    while (true) {
+	    	int left = _inputEnd - _inputPtr;
+	    	if (left < 1) {
+		    	left = _inputEnd - _inputPtr;
+	    	}
+	    	if (outPtr >= outBuf.length) {
+	    		outBuf = _textBuffer.finishCurrentSegment();
+	    		outPtr = 0;
+	    	}
+	    	left = Math.min(left, outBuf.length - outPtr);
+	    	do {
+	    		byte b = _inputBuffer[_inputPtr++];
+	    		if (b == SmileConstants.BYTE_MARKER_END_OF_STRING) {
+	    			break main_loop;
+	    		}
+		        outBuf[outPtr++] = (char) b;	    		
+	    	} while (--left >= 0);
+	    }
+	    _textBuffer.setCurrentLength(outPtr);
+	}
+
+	private final void _decodeLongUnicode()
+		throws IOException, JsonParseException
+	{
+		// !!! TBI
+	    if (true) _throwInternal();
+	}
+
+	/*
     /**********************************************************
     /* Internal methods, skipping
     /**********************************************************
@@ -1020,6 +1064,7 @@ public class SmileParser
      */
     protected void _skipIncomplete() throws IOException, JsonParseException
     {
+    	_tokenIncomplete = false;
     	int tb = _typeByte;
         switch ((tb >> 5) & 0x7) {
         case 2: // tiny ascii
