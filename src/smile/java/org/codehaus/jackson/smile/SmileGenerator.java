@@ -73,7 +73,7 @@ public class SmileGenerator
          * this option is disabled by default, and should only be enabled if it is likely that
          * same values repeat relatively often.
          */
-        ,CHECK_SHARED_STRING_VALUES(true)
+        ,CHECK_SHARED_STRING_VALUES(false)
         ;
 
         final boolean _defaultState;

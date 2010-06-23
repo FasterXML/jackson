@@ -41,8 +41,12 @@ public class TestSmileGenerator
         gen = _generator(out, true);
         gen.writeBoolean(true);
         gen.close();
-        _verifyBytes(out.toByteArray(),
-                HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, HEADER_BYTE_4,
+        
+        // note: version, and 'check shared names', but not 'check shared strings'
+        int b4 = HEADER_BYTE_4 | SmileConstants.HEADER_BIT_HAS_SHARED_NAMES;
+
+    	_verifyBytes(out.toByteArray(),
+                HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, (byte) b4,
                 SmileConstants.TOKEN_LITERAL_TRUE);
 
         // null, with header and end marker
@@ -52,7 +56,7 @@ public class TestSmileGenerator
         gen.writeNull();
         gen.close();
         _verifyBytes(out.toByteArray(),
-                HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, HEADER_BYTE_4,
+                HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, (byte) b4,
                 TOKEN_LITERAL_NULL, BYTE_MARKER_END_OF_CONTENT);
     }
 

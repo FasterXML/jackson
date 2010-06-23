@@ -26,4 +26,26 @@ public class TestSmileGeneratorSymbols
         byte[] result = out.toByteArray();
         assertEquals(13, result.length);
     }
+
+    // same as above, but with name >= 64 characters
+    public void testSharedNameSimpleLong() throws Exception
+    {
+    	String digits = "01234567899";
+    	final String LONG_NAME = "a"+digits+"b"+digits+"c"+digits+"d"+digits+"e"+digits+"f"+digits;
+        // false, no header (or frame marker)
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SmileGenerator gen = _generator(out, false);
+        gen.writeStartArray();
+        gen.writeStartObject();
+        gen.writeNumberField(LONG_NAME, 1);
+        gen.writeEndObject();
+        gen.writeStartObject();
+        gen.writeNumberField(LONG_NAME, 2);
+        gen.writeEndObject();
+        gen.writeEndArray();
+        gen.close();
+        byte[] result = out.toByteArray();
+        assertEquals(83, result.length);
+    }
+    
 }

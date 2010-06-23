@@ -57,6 +57,11 @@ public final class SmileConstants
     public final static byte BYTE_MARKER_END_OF_STRING = (byte) 0xFE;
 
     /**
+     * Same as {@link #BYTE_MARKER_END_OF_STRING}, except as unsigned int
+     */
+    public final static int INT_MARKER_END_OF_STRING = 0xFE;
+    
+    /**
      * In addition we can use a marker to allow simple framing; splitting
      * of physical data (like file) into distinct logical sections like
      * JSON documents. 0xFF makes sense here since it is also used

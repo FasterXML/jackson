@@ -80,6 +80,10 @@ public class TestSmileParser
     	p.close();
     }
     
+    /**
+     * Test for ascii String values longer than 64 bytes; separate
+     * since handling differs
+     */
     public void testLongAsciiString() throws IOException
     {
     	final String DIGITS = "1234567890";
@@ -94,6 +98,25 @@ public class TestSmileParser
     	assertNull(p.nextToken());
     }
 
+    /**
+     * Test for non-ASCII String values longer than 64 bytes; separate
+     * since handling differs
+     */
+    public void testLongUnicodeString() throws IOException
+    {
+    	final String DIGITS = "1234567890";
+    	final String UNIC = "\u00F06"; // o with umlauts
+    	String LONG = DIGITS + UNIC + DIGITS + UNIC + UNIC + DIGITS + DIGITS;
+    	LONG = LONG + LONG + LONG;
+    	byte[] data = _smileDoc(quote(LONG));
+
+    	SmileParser p = _parser(data);
+    	assertNull(p.getCurrentToken());
+    	assertToken(JsonToken.VALUE_STRING, p.nextToken());
+    	assertEquals(LONG, p.getText());
+    	assertNull(p.nextToken());
+    }
+    
     public void testTrivialObject() throws IOException
     {
     	byte[] data = _smileDoc("{\"abc\":13}");

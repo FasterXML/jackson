@@ -12,6 +12,7 @@ import org.codehaus.jackson.impl.StreamBasedParserBase;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 import org.codehaus.jackson.sym.Name;
+import org.codehaus.jackson.util.CharTypes;
 
 public class SmileParser
     extends StreamBasedParserBase
@@ -1105,8 +1106,83 @@ public class SmileParser
 	private final void _decodeLongUnicode()
 		throws IOException, JsonParseException
 	{
-		// !!! TBI
-	    if (true) _throwInternal();
+	    int outPtr = 0;
+	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	    final int[] codes = SmileConstants.sUtf8UnitLengths;
+        int c;
+        final byte[] inputBuffer = _inputBuffer;
+
+        main_loop:
+        while (true) {
+            // First the tight ascii loop:
+            ascii_loop:
+            while (true) {
+                int ptr = _inputPtr;
+                if (ptr >= _inputEnd) {
+                    loadMoreGuaranteed();
+                    ptr = _inputPtr;
+                }
+                if (outPtr >= outBuf.length) {
+                    outBuf = _textBuffer.finishCurrentSegment();
+                    outPtr = 0;
+                }
+                int max = _inputEnd;
+                {
+                    int max2 = ptr + (outBuf.length - outPtr);
+                    if (max2 < max) {
+                        max = max2;
+                    }
+                }
+                while (ptr < max) {
+                    c = (int) inputBuffer[ptr++] & 0xFF;
+                    if (codes[c] != 0) {
+                        _inputPtr = ptr;
+                        break ascii_loop;
+                    }
+                    outBuf[outPtr++] = (char) c;
+                }
+                _inputPtr = ptr;
+            }
+            // Ok: end marker, escape or multi-byte?
+            if (c == SmileConstants.INT_MARKER_END_OF_STRING) {
+                break main_loop;
+            }
+
+            switch (codes[c]) {
+            case 1: // 2-byte UTF
+                c = _decodeUtf8_2(c);
+                break;
+            case 2: // 3-byte UTF
+                if ((_inputEnd - _inputPtr) >= 2) {
+                    c = _decodeUtf8_3fast(c);
+                } else {
+                    c = _decodeUtf8_3(c);
+                }
+                break;
+            case 4: // 4-byte UTF
+                c = _decodeUtf8_4(c);
+                // Let's add first part right away:
+                outBuf[outPtr++] = (char) (0xD800 | (c >> 10));
+                if (outPtr >= outBuf.length) {
+                    outBuf = _textBuffer.finishCurrentSegment();
+                    outPtr = 0;
+                }
+                c = 0xDC00 | (c & 0x3FF);
+                // And let the other char output down below
+                break;
+            default:
+                // Is this good enough error message?
+                _reportInvalidChar(c);
+            }
+            // Need more room?
+            if (outPtr >= outBuf.length) {
+                outBuf = _textBuffer.finishCurrentSegment();
+                outPtr = 0;
+            }
+            // Ok, let's add char to output:
+            outBuf[outPtr++] = (char) c;
+        }
+        _textBuffer.setCurrentLength(outPtr);
 	}
 
 	/*
@@ -1142,7 +1218,9 @@ public class SmileParser
             switch (tb >> 2) {
             case 0: // long variable length ascii
             case 1: // long variable length unicode
-            	// Doesn't matter which one, just need to find the end marker
+            	/* Doesn't matter which one, just need to find the end marker
+            	 * (note: can potentially skip invalid UTF-8 too)
+            	 */
             	while (true) {
             		final int end = _inputEnd;
             		final byte[] buf = _inputBuffer;
@@ -1211,7 +1289,104 @@ public class SmileParser
 	    	loadMoreGuaranteed();
 	    }
     }
-     
+
+    /*
+    /**********************************************************
+    /* Internal methods, UTF8 decoding
+    /**********************************************************
+     */
+
+    private final int _decodeUtf8_2(int c)
+        throws IOException, JsonParseException
+    {
+        if (_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        int d = (int) _inputBuffer[_inputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            _reportInvalidOther(d & 0xFF, _inputPtr);
+        }
+        return ((c & 0x1F) << 6) | (d & 0x3F);
+    }
+
+    private final int _decodeUtf8_3(int c1)
+        throws IOException, JsonParseException
+    {
+        if (_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        c1 &= 0x0F;
+        int d = (int) _inputBuffer[_inputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            _reportInvalidOther(d & 0xFF, _inputPtr);
+        }
+        int c = (c1 << 6) | (d & 0x3F);
+        if (_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        d = (int) _inputBuffer[_inputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            _reportInvalidOther(d & 0xFF, _inputPtr);
+        }
+        c = (c << 6) | (d & 0x3F);
+        return c;
+    }
+
+    private final int _decodeUtf8_3fast(int c1)
+        throws IOException, JsonParseException
+    {
+        c1 &= 0x0F;
+        int d = (int) _inputBuffer[_inputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            _reportInvalidOther(d & 0xFF, _inputPtr);
+        }
+        int c = (c1 << 6) | (d & 0x3F);
+        d = (int) _inputBuffer[_inputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            _reportInvalidOther(d & 0xFF, _inputPtr);
+        }
+        c = (c << 6) | (d & 0x3F);
+        return c;
+    }
+
+    /**
+     * @return Character value <b>minus 0x10000</c>; this so that caller
+     *    can readily expand it to actual surrogates
+     */
+    private final int _decodeUtf8_4(int c)
+        throws IOException, JsonParseException
+    {
+        if (_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        int d = (int) _inputBuffer[_inputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            _reportInvalidOther(d & 0xFF, _inputPtr);
+        }
+        c = ((c & 0x07) << 6) | (d & 0x3F);
+
+        if (_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        d = (int) _inputBuffer[_inputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            _reportInvalidOther(d & 0xFF, _inputPtr);
+        }
+        c = (c << 6) | (d & 0x3F);
+        if (_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        d = (int) _inputBuffer[_inputPtr++];
+        if ((d & 0xC0) != 0x080) {
+            _reportInvalidOther(d & 0xFF, _inputPtr);
+        }
+
+        /* note: won't change it to negative here, since caller
+         * already knows it'll need a surrogate
+         */
+        return ((c << 6) | (d & 0x3F)) - 0x10000;
+    }
+    
     /*
     /**********************************************************
     /* Internal methods, error reporting
@@ -1222,4 +1397,34 @@ public class SmileParser
     {
        _reportError("Encountered shared name reference, even though document header explicitly declared no shared name references are included");
     }
+
+    protected void _reportInvalidChar(int c)
+	    throws JsonParseException
+    {
+        // Either invalid WS or illegal UTF-8 start char
+        if (c < ' ') {
+            _throwInvalidSpace(c);
+        }
+        _reportInvalidInitial(c);
+    }
+	
+	protected void _reportInvalidInitial(int mask)
+	    throws JsonParseException
+	{
+	    _reportError("Invalid UTF-8 start byte 0x"+Integer.toHexString(mask));
+	}
+	
+	protected void _reportInvalidOther(int mask)
+	    throws JsonParseException
+	{
+	    _reportError("Invalid UTF-8 middle byte 0x"+Integer.toHexString(mask));
+	}
+	
+	protected void _reportInvalidOther(int mask, int ptr)
+	    throws JsonParseException
+	{
+	    _inputPtr = ptr;
+	    _reportInvalidOther(mask);
+	}
+
 }
