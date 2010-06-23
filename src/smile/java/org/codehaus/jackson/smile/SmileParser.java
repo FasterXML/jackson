@@ -507,10 +507,11 @@ public class SmileParser
 	                if (_inputPtr >= _inputEnd) {
 	                    loadMoreGuaranteed();
 	                }
+	                if (_sharedNames == null) {
+	                	_reportInvalidSharedName();
+	                }
 	                int index = ((ch & 0x3) << 8) | _inputBuffer[_inputPtr++];
-	                // !!! TBI: fetch actual String
-	                if (true) _throwInternal();
-	                _parsingContext.setCurrentName("TBI");
+	                _parsingContext.setCurrentName(_sharedNames[index]);
 	            }
                 return JsonToken.FIELD_NAME;
             case 0x34: // long ascii/unicode name
@@ -530,10 +531,11 @@ public class SmileParser
             break;
         case 1: // short shared, can fully process
             {
-                int nameIndex = (ch & 0x3F);
-                // !!! TBI: fetch actual String
-                if (true) _reportError("Short-shared not yet implemented!");
-                _parsingContext.setCurrentName("TBI");
+                int index = (ch & 0x3F);
+                if (_sharedNames == null) {
+                	_reportInvalidSharedName();
+                }
+                _parsingContext.setCurrentName(_sharedNames[index]);
             }
             return JsonToken.FIELD_NAME;
         case 2: // short ASCII
@@ -548,6 +550,12 @@ public class SmileParser
 	        		name = _decodeShortAsciiName(len);
 	        		name = _addDecodedToSymbols(len, name);
 	        	}
+                if (_sharedNames != null) {
+                   if (_sharedNameCount >= _sharedNames.length) {
+   	                    _sharedNames = _expandSharedNames(_sharedNames);
+                   }
+                   _sharedNames[_sharedNameCount++] = name;
+                }
 	            _parsingContext.setCurrentName(name);
 	        }
             return JsonToken.FIELD_NAME;                
@@ -564,6 +572,12 @@ public class SmileParser
 	        		name = _decodeShortUnicodeName(len);
 	        		name = _addDecodedToSymbols(len, name);
 	        	}
+                if (_sharedNames != null) {
+                    if (_sharedNameCount >= _sharedNames.length) {
+	                    _sharedNames = _expandSharedNames(_sharedNames);
+                    }
+                    _sharedNames[_sharedNameCount++] = name;
+	             }
 	            _parsingContext.setCurrentName(name);
 	            return JsonToken.FIELD_NAME;                
             }
@@ -574,6 +588,22 @@ public class SmileParser
         return null;
     }
 
+    private final static String[] _expandSharedNames(String[] oldShared)
+    {
+        int len = oldShared.length;
+        String[] newShared;
+        if (len == 0) {
+        	newShared = new String[MIN_SHARED_NAMES];
+        } else if (len == SmileConstants.MAX_SHARED_NAMES) { // too many? Just flush...
+      	   newShared = oldShared;
+        } else {
+            int newSize = (len == MIN_SHARED_NAMES) ? 128 : SmileConstants.MAX_SHARED_NAMES;
+            newShared = new String[newSize];
+            System.arraycopy(oldShared, 0, newShared, 0, oldShared.length);
+        }
+        return newShared;
+    }
+    
     private final String _addDecodedToSymbols(int len, String name)
     {
 	    if (len < 5) {
