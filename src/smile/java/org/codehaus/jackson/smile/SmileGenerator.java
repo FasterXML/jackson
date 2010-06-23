@@ -159,7 +159,7 @@ public class SmileGenerator
      * {@link org.codehaus.jackson.smile.SmileGenerator.Feature}s
      * are enabled.
      */
-    protected int _features;
+    protected int _smileFeatures;
     
     /*
     /**********************************************************
@@ -190,10 +190,11 @@ public class SmileGenerator
     /**********************************************************
      */
 
-    public SmileGenerator(IOContext ctxt, int features, ObjectCodec codec,
-            OutputStream out)
+    public SmileGenerator(IOContext ctxt, int jsonFeatures, int smileFeatures,
+			  ObjectCodec codec, OutputStream out)
     {
-        super(features, codec);
+        super(jsonFeatures, codec);
+	_smileFeatures = smileFeatures;
         _ioContext = ctxt;
         _out = out;
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
@@ -207,7 +208,14 @@ public class SmileGenerator
 
     public void writeHeader() throws IOException
     {
-        _writeBytes(HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, HEADER_BYTE_4);
+	int last = HEADER_BYTE_4;
+        if ((_smileFeatures & Feature.CHECK_SHARED_NAMES.getMask()) != 0) {
+	    last |= SmileConstants.HEADER_BIT_HAS_SHARED_NAMES;
+        }
+        if ((_smileFeatures & Feature.CHECK_SHARED_STRING_VALUES.getMask()) != 0) {
+	    last |= SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES;
+        }
+        _writeBytes(HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, (byte) last);
     }
     
     /*
