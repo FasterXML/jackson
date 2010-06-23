@@ -50,8 +50,15 @@ public class SmileParser
         public int getMask() { return _mask; }
     }
 
-    private static int[] NO_INTS = new int[0];
-    
+    private final static int[] NO_INTS = new int[0];
+
+    private final static String[] NO_STRINGS = new String[0];
+
+    /**
+     * Minimum number of shared names to buffer initially
+     */
+    private final static int MIN_SHARED_NAMES = 16;
+
     /*
     /**********************************************************
     /* Configuration
@@ -98,7 +105,18 @@ public class SmileParser
      */
     protected int[] _quadBuffer = NO_INTS;
 
+    /**
+     * Quads used for hash calculation
+     */
     protected int _quad1, _quad2;
+     
+    /**
+     * Array of recently seen field names, which may be back referenced
+     * by later fields
+     */
+    protected String[] _sharedNames = NO_STRINGS;
+
+    protected int _sharedNameCount = 0;
     
     /*
     /**********************************************************
@@ -167,8 +185,17 @@ public class SmileParser
         if (versionBits != SmileConstants.HEADER_VERSION_00) {
         	_reportError("Header version number bits (0x"+Integer.toHexString(versionBits)+") indicate unrecognized version; only 0x0 handled by parser");
         }
+
+        // can avoid tracking names, if explicitly disabled
+        if ((ch & SmileConstants.HEADER_BIT_HAS_SHARED_NAMES) == 0) {
+            _sharedNames = null;
+        }
+        /*
+        if ((ch & SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES) == 0) {
+        }
+        */
         return true;
-	}
+    }
 
     /*
     /**********************************************************
@@ -1154,10 +1181,15 @@ public class SmileParser
 	    	loadMoreGuaranteed();
 	    }
     }
-    
+     
     /*
     /**********************************************************
-    /* Internal methods, other
+    /* Internal methods, error reporting
     /**********************************************************
      */
+
+    protected void _reportInvalidSharedName() throws IOException, JsonParseException
+    {
+       _reportError("Encountered shared name reference, even though document header explicitly declared no shared name references are included");
+    }
 }
