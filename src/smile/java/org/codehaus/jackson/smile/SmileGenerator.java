@@ -52,28 +52,28 @@ public class SmileGenerator
          */
         ,ENCODE_BINARY_AS_7BIT(false)
 
-	    /**
-	     * Whether generator should check if it can "share" field names during generating
-	     * content or not. If enabled, can replace repeating field names with back references,
-	     * which are more compact and should faster to decode. Downside is that there is some
-	     * overhead for writing (need to track existing values, check), as well as decoding.
-	     *<p>
-	     * Since field names tend to repeat quite often, this setting is enabled by default.
-	     */
-	    ,CHECK_SHARED_NAMES(true)
+        /**
+         * Whether generator should check if it can "share" field names during generating
+         * content or not. If enabled, can replace repeating field names with back references,
+         * which are more compact and should faster to decode. Downside is that there is some
+         * overhead for writing (need to track existing values, check), as well as decoding.
+         *<p>
+         * Since field names tend to repeat quite often, this setting is enabled by default.
+         */
+        ,CHECK_SHARED_NAMES(true)
 
-	    /**
-	     * Whether generator should check if it can "share" short (at most 64 bytes encoded)
-	     * String value during generating
-	     * content or not. If enabled, can replace repeating Short String values with back references,
-	     * which are more compact and should faster to decode. Downside is that there is some
-	     * overhead for writing (need to track existing values, check), as well as decoding.
-	     *<p>
-	     * Since efficiency of this option depends a lot on type of content being produced,
-	     * this option is disabled by default, and should only be enabled if it is likely that
-	     * same values repeat relatively often.
-	     */
-	    ,CHECK_SHARED_STRING_VALUES(true)
+        /**
+         * Whether generator should check if it can "share" short (at most 64 bytes encoded)
+         * String value during generating
+         * content or not. If enabled, can replace repeating Short String values with back references,
+         * which are more compact and should faster to decode. Downside is that there is some
+         * overhead for writing (need to track existing values, check), as well as decoding.
+         *<p>
+         * Since efficiency of this option depends a lot on type of content being produced,
+         * this option is disabled by default, and should only be enabled if it is likely that
+         * same values repeat relatively often.
+         */
+        ,CHECK_SHARED_STRING_VALUES(true)
         ;
 
         final boolean _defaultState;
@@ -143,7 +143,7 @@ public class SmileGenerator
 
     protected final static long MIN_INT_AS_LONG = (long) Integer.MIN_VALUE;
     protected final static long MAX_INT_AS_LONG = (long) Integer.MAX_VALUE;
-
+    
     /*
     /**********************************************************
     /* Configuration
@@ -186,15 +186,23 @@ public class SmileGenerator
 
     /*
     /**********************************************************
+    /* Shared String detection
+    /**********************************************************
+     */
+
+    protected final java.util.HashMap<String,Integer> _seenNames;
+    
+    /*
+    /**********************************************************
     /* Life-cycle
     /**********************************************************
      */
 
     public SmileGenerator(IOContext ctxt, int jsonFeatures, int smileFeatures,
-			  ObjectCodec codec, OutputStream out)
+    		ObjectCodec codec, OutputStream out)
     {
         super(jsonFeatures, codec);
-	_smileFeatures = smileFeatures;
+        _smileFeatures = smileFeatures;
         _ioContext = ctxt;
         _out = out;
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
@@ -204,16 +212,22 @@ public class SmileGenerator
             throw new IllegalStateException("Internal encoding buffer length ("+_outputEnd
                     +") too short, must be at least "+MIN_BUFFER_LENGTH);
         }
+        if ((smileFeatures & Feature.CHECK_SHARED_NAMES.getMask()) == 0) {
+        	_seenNames = null;
+        } else {
+        	_seenNames = new java.util.HashMap<String,Integer>(64);
+        	
+        }
     }
 
     public void writeHeader() throws IOException
     {
-	int last = HEADER_BYTE_4;
+    	int last = HEADER_BYTE_4;
         if ((_smileFeatures & Feature.CHECK_SHARED_NAMES.getMask()) != 0) {
-	    last |= SmileConstants.HEADER_BIT_HAS_SHARED_NAMES;
+        	last |= SmileConstants.HEADER_BIT_HAS_SHARED_NAMES;
         }
         if ((_smileFeatures & Feature.CHECK_SHARED_STRING_VALUES.getMask()) != 0) {
-	    last |= SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES;
+        	last |= SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES;
         }
         _writeBytes(HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, (byte) last);
     }
@@ -225,17 +239,17 @@ public class SmileGenerator
      */
 
     public SmileGenerator enable(Feature f) {
-        _features |= f.getMask();
+        _smileFeatures |= f.getMask();
         return this;
     }
 
     public SmileGenerator disable(Feature f) {
-        _features &= ~f.getMask();
+        _smileFeatures &= ~f.getMask();
         return this;
     }
 
     public final boolean isEnabled(Feature f) {
-        return (_features & f.getMask()) != 0;
+        return (_smileFeatures & f.getMask()) != 0;
     }
 
     public SmileGenerator configure(Feature f, boolean state) {
@@ -288,6 +302,20 @@ public class SmileGenerator
             _writeByte(TOKEN_KEY_EMPTY_STRING);
             return;
         }
+        // First: is it something we can share?
+        if (_seenNames != null) {
+	        Integer I = _seenNames.get(name);
+	        if (I != null) {
+	        	int ix = I.intValue();
+	        	if (ix < 64) {
+	        		_writeByte((byte) (TOKEN_PREFIX_KEY_SHARED_SHORT + ix));
+	        	} else {
+	        		_writeBytes(((byte) (TOKEN_PREFIX_KEY_SHARED_LONG + (ix >> 8))),
+	        				(byte) ix);
+	        	}
+	        	return;
+	        }
+        }
         if (len <= MAX_SHORT_STRING_BYTES) { // possibly short strings (not necessarily)
             // !!! TODO: check for shared Keys
             // first: ensure we have enough space
@@ -325,6 +353,13 @@ public class SmileGenerator
                 _slowUTF8Encode(name);
                 _writeByte(BYTE_MARKER_END_OF_STRING);
             }
+        }
+        // Also, remember in case there's need to share some more..
+        if (_seenNames != null) {
+	        if (_seenNames.size() >= SmileConstants.MAX_SHARED_NAMES) { // too big? Start from scratch!
+	        	_seenNames.clear();
+	        }
+	        _seenNames.put(name, Integer.valueOf(_seenNames.size()));
         }
     }
     
