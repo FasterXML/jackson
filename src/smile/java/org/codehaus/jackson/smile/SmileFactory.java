@@ -320,9 +320,17 @@ public class SmileFactory extends JsonFactory
         throws IOException
     {
         int feats = _smileGeneratorFeatures;
-        SmileGenerator gen = new SmileGenerator(ctxt, feats, _objectCodec, out);
+        /* One sanity check: MUST write header if shared string values setting is enabled.
+         * But should we force writing, or throw exception, if settings are in conflict?
+         * For now, let's error out...
+         */
+        SmileGenerator gen = new SmileGenerator(ctxt, _generatorFeatures, feats, _objectCodec, out);
         if ((feats & SmileGenerator.Feature.WRITE_HEADER.getMask()) != 0) {
             gen.writeHeader();
+        } else if ((feats & SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES.getMask()) != 0) {
+        	throw new JsonGenerationException(
+        			"Inconsistent settings: WRITE_HEADER disabled, but CHECK_SHARED_STRING_VALUES enabled; can not construct generator"
+        			+" due to possible data loss (either enable WRITE_HEADER, or disable CHECK_SHARED_STRING_VALUES to resolve)");
         }
         return gen;
     }
