@@ -51,6 +51,29 @@ public class SmileGenerator
          * Default setting is false, indicating that binary data is to be embedded as is
          */
         ,ENCODE_BINARY_AS_7BIT(false)
+
+	    /**
+	     * Whether generator should check if it can "share" field names during generating
+	     * content or not. If enabled, can replace repeating field names with back references,
+	     * which are more compact and should faster to decode. Downside is that there is some
+	     * overhead for writing (need to track existing values, check), as well as decoding.
+	     *<p>
+	     * Since field names tend to repeat quite often, this setting is enabled by default.
+	     */
+	    ,CHECK_SHARED_NAMES(true)
+
+	    /**
+	     * Whether generator should check if it can "share" short (at most 64 bytes encoded)
+	     * String value during generating
+	     * content or not. If enabled, can replace repeating Short String values with back references,
+	     * which are more compact and should faster to decode. Downside is that there is some
+	     * overhead for writing (need to track existing values, check), as well as decoding.
+	     *<p>
+	     * Since efficiency of this option depends a lot on type of content being produced,
+	     * this option is disabled by default, and should only be enabled if it is likely that
+	     * same values repeat relatively often.
+	     */
+	    ,CHECK_SHARED_STRING_VALUES(true)
         ;
 
         final boolean _defaultState;
