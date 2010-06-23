@@ -1,6 +1,8 @@
 package org.codehaus.jackson.smile;
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
@@ -198,4 +200,35 @@ public class TestSmileParserNumbers
     	assertToken(JsonToken.END_ARRAY, p.nextToken());
     }
 
+    public void testBigInteger() throws IOException
+    {
+    	ByteArrayOutputStream bo = new ByteArrayOutputStream();
+    	BigInteger in = new BigInteger(String.valueOf(Long.MAX_VALUE)+"0000");
+    	SmileGenerator g = _generator(bo, false);
+    	g.writeNumber(in);
+    	g.close();
+    	byte[] data = bo.toByteArray();
+    	SmileParser p = _parser(data);
+    	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
+    	assertEquals(JsonParser.NumberType.BIG_INTEGER, p.getNumberType());
+    	assertEquals(BigInteger.class, p.getNumberValue());
+    	assertEquals(in, p.getBigIntegerValue());
+    	p.close();
+    }    
+
+    public void testBigDecimal() throws IOException
+    {
+    	ByteArrayOutputStream bo = new ByteArrayOutputStream();
+    	BigDecimal in = new BigDecimal("599.00001");
+    	SmileGenerator g = _generator(bo, false);
+    	g.writeNumber(in);
+    	g.close();
+    	byte[] data = bo.toByteArray();
+    	SmileParser p = _parser(data);
+    	assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
+    	assertEquals(JsonParser.NumberType.BIG_DECIMAL, p.getNumberType());
+    	assertEquals(BigDecimal.class, p.getNumberValue());
+    	assertEquals(in, p.getDecimalValue());
+    	p.close();
+    }    
 }

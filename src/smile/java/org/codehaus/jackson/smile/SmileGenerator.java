@@ -1323,8 +1323,6 @@ public class SmileGenerator
             i = (i << 8) | (data[offset++] & 0xFF); // 7th
             _outputBuffer[_outputTail++] = (byte) ((i >> 7) & 0x7F);
             _outputBuffer[_outputTail++] = (byte) (i & 0x7F);
-            
-            offset += 7;
             len -= 7;
         }
         // and then partial piece, if any
