@@ -20,6 +20,18 @@ public final class SmileConstants
     public final static int MAX_SHORT_STRING_BYTES = 64;
 
     /**
+     * Longest back reference we use for field names is 10 bits; no point
+     * in keeping much more around
+     */
+    public final static int MAX_SHARED_NAMES = 1024;
+
+    /**
+     * Longest back reference we use for short shared String values is 10 bits,
+     * so up to (1 << 10) values to keep track of.
+     */
+    public final static int MAX_SHARED_STRING_VALUES = 1024;
+    
+    /**
      * And to make encoding logic tight and simple, we can always
      * require that output buffer has this amount of space
      * available before encoding possibly short String (3 bytes since
@@ -82,6 +94,27 @@ public final class SmileConstants
      * Current version consists of two zero bits.
      */
     public final static int HEADER_VERSION_00 = 0x0;
+
+    /**
+     * Indicator bit that indicates whether encoded content may 
+     * have Shared names (back references to recently encoded field
+     * names). If no header available, must be
+     * processed as if this was set to true.
+     * If (and only if) header exists, and value is 0, can parser
+     * omit storing of seen names, as it is guaranteed that no back
+     * references exist.
+     */
+    public final static int HEADER_BIT_HAS_SHARED_NAMES = 0x01;
+
+    /**
+     * Indicator bit that indicates whether encoded content may
+     * have shared String values (back references to recently encoded
+     * 'short' String values, where short is defined as 64 bytes or less).
+     * If no header available, can be assumed to be 0 (false).
+     * If header exists, and bit value is 1, parsers has to store up
+     * to 1024 most recently seen distinct short String values.
+     */
+    public final static int HEADER_BIT_HAS_SHARED_STRING_VALUES = 0x02;
     
     /*
     /**********************************************************
@@ -227,6 +260,10 @@ public final class SmileConstants
 
     public final static byte TOKEN_KEY_EMPTY_STRING = 0x35;
 
+    public final static int TOKEN_PREFIX_KEY_SHARED_LONG = 0x30;
+    
+    public final static int TOKEN_PREFIX_KEY_SHARED_SHORT = 0x40;
+    
     public final static int TOKEN_PREFIX_KEY_ASCII = 0x80;
 
     public final static int TOKEN_PREFIX_KEY_UNICODE = 0xC0;
