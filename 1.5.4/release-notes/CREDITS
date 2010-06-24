@@ -311,3 +311,8 @@ Aron Atkins:
   * Reported [JACKSON-281] JsonGenerator.writeObject() only supports subset of
     wrapper types (when not specifying ObjectCodec)
    [1.5.2]
+
+Eric Sirianni:
+  * Reported [JACKSON-311]: Problems handling polymorphic type information for
+    'untyped' (Object) bean properties, default typing
+   [1.5.4]
