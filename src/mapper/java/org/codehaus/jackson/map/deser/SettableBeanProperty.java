@@ -41,9 +41,9 @@ public abstract class SettableBeanProperty
     protected Object _nullValue;
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Life-cycle (construct & configure)
-    /******************************************************
+    /**********************************************************
      */
 
     protected SettableBeanProperty(String propName, JavaType type,
@@ -74,9 +74,9 @@ public abstract class SettableBeanProperty
     protected abstract Class<?> getDeclaringClass();
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Accessors
-    /******************************************************
+    /**********************************************************
      */
 
     public String getPropertyName() { return _propName; }
@@ -95,9 +95,9 @@ public abstract class SettableBeanProperty
     public int getCreatorIndex() { return -1; }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Public API
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -130,15 +130,15 @@ public abstract class SettableBeanProperty
             return _nullValue;
         }
         if (_valueTypeDeserializer != null) {
-            return _valueTypeDeserializer.deserializeTypedFromObject(jp, ctxt);
+            return _valueDeserializer.deserializeWithType(jp, ctxt, _valueTypeDeserializer);
         }
         return _valueDeserializer.deserialize(jp, ctxt);
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Helper methods
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
      */
 
     /**
@@ -184,9 +184,9 @@ public abstract class SettableBeanProperty
     @Override public String toString() { return "[property '"+_propName+"']"; }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Impl classes
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Impl classes
+    /**********************************************************
      */
 
     /**

@@ -307,6 +307,16 @@ Lukasz Dywicki:
   * Reported [JACKSON-273] Problems with OSGi dependency declarations
    [1.5.2]
 
+Aron Atkins:
+  * Reported [JACKSON-281] JsonGenerator.writeObject() only supports subset of
+    wrapper types (when not specifying ObjectCodec)
+   [1.5.2]
+
+Eric Sirianni:
+  * Reported [JACKSON-311]: Problems handling polymorphic type information for
+    'untyped' (Object) bean properties, default typing
+   [1.5.4]
+
 Brian Oberman:
   * Requested [JACKSON-289] Ability to serialize char[] values as JSON Arrays
     with String values of length 1 (and accepting these on deserialization)

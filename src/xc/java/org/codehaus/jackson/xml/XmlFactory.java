@@ -73,10 +73,16 @@ public class XmlFactory extends JsonFactory
     {
         super(oc);
         if (xmlIn == null) {
-            xmlIn = XMLInputFactory.newFactory();
+            /* 24-Jun-2010, tatu: Ugh. JDK authors seem to waffle on what the name of
+             *   factory constructor method is...
+             * 
+             */
+            //xmlIn = XMLInputFactory.newFactory();
+            xmlIn = XMLInputFactory.newInstance();
         }
         if (xmlOut == null) {
-            xmlOut = XMLOutputFactory.newFactory();
+            //xmlOut = XMLOutputFactory.newFactory();
+            xmlOut = XMLOutputFactory.newInstance();
         }
         // 12-Jun-2010, tatu: Better ensure namespaces get built properly, so:
         xmlOut.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
