@@ -203,7 +203,7 @@ public class TestSmileParserNumbers
     public void testBigInteger() throws IOException
     {
     	ByteArrayOutputStream bo = new ByteArrayOutputStream();
-    	BigInteger in = new BigInteger(String.valueOf(Long.MAX_VALUE)+"0000");
+    	BigInteger in = new BigInteger(String.valueOf(Long.MIN_VALUE)+"0012575934");
     	SmileGenerator g = _generator(bo, false);
     	g.writeNumber(in);
     	g.close();
@@ -211,15 +211,30 @@ public class TestSmileParserNumbers
     	SmileParser p = _parser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.BIG_INTEGER, p.getNumberType());
-    	assertEquals(BigInteger.class, p.getNumberValue());
+    	assertEquals(BigInteger.class, p.getNumberValue().getClass());
     	assertEquals(in, p.getBigIntegerValue());
     	p.close();
+    	
+    	// second test; verify skipping works
+        bo = new ByteArrayOutputStream();
+        g = _generator(bo, false);
+        g.writeStartArray();
+        g.writeNumber(in);
+        g.writeEndArray();
+        g.close();
+        data = bo.toByteArray();
+        p = _parser(data);
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertNull(p.nextToken());
+        p.close();
     }    
 
     public void testBigDecimal() throws IOException
     {
     	ByteArrayOutputStream bo = new ByteArrayOutputStream();
-    	BigDecimal in = new BigDecimal("599.00001");
+    	BigDecimal in = new BigDecimal("32599.00001");
     	SmileGenerator g = _generator(bo, false);
     	g.writeNumber(in);
     	g.close();
@@ -227,8 +242,23 @@ public class TestSmileParserNumbers
     	SmileParser p = _parser(data);
     	assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
     	assertEquals(JsonParser.NumberType.BIG_DECIMAL, p.getNumberType());
-    	assertEquals(BigDecimal.class, p.getNumberValue());
+    	assertEquals(BigDecimal.class, p.getNumberValue().getClass());
     	assertEquals(in, p.getDecimalValue());
     	p.close();
+
+        // second test; verify skipping works
+        bo = new ByteArrayOutputStream();
+        g = _generator(bo, false);
+        g.writeStartArray();
+        g.writeNumber(in);
+        g.writeEndArray();
+        g.close();
+        data = bo.toByteArray();
+        p = _parser(data);
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertNull(p.nextToken());
+        p.close();
     }    
 }

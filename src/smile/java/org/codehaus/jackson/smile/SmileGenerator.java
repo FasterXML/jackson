@@ -530,7 +530,7 @@ public class SmileGenerator
     @Override
     public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len) throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write String value");
+        _verifyValueWrite("write Binary value");
         if (data == null) {
             writeNull();
             return;
@@ -679,6 +679,20 @@ public class SmileGenerator
     }
 
     @Override
+    public void writeNumber(BigInteger v) throws IOException, JsonGenerationException
+    {
+        if (v == null) {
+            writeNull();
+            return;
+        }
+        _verifyValueWrite("write number");
+        // quite simple: type, and then VInt-len prefixed 7-bit encoded binary data:
+        _writeByte(TOKEN_BYTE_BIG_INTEGER);
+        byte[] data = v.toByteArray();
+        _write7BitBinaryWithLength(data, 0, data.length);
+    }
+    
+    @Override
     public void writeNumber(double d) throws IOException, JsonGenerationException
     {
         // Ok, now, we needed token type byte plus 10 data bytes (7 bits each)
@@ -761,20 +775,6 @@ public class SmileGenerator
         BigInteger unscaled = dec.unscaledValue();
         byte[] data = unscaled.toByteArray();
         // And then binary data in "safe" mode (7-bit values)
-        _write7BitBinaryWithLength(data, 0, data.length);
-    }
-
-    @Override
-    public void writeNumber(BigInteger v) throws IOException, JsonGenerationException
-    {
-        if (v == null) {
-            writeNull();
-            return;
-        }
-        _verifyValueWrite("write number");
-        // quite simple: type, and then VInt-len prefixed 7-bit encoded binary data:
-        _writeByte(TOKEN_BYTE_BIG_INTEGER);
-        byte[] data = v.toByteArray();
         _write7BitBinaryWithLength(data, 0, data.length);
     }
 

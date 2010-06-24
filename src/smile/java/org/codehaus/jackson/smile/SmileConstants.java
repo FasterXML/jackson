@@ -237,6 +237,8 @@ public final class SmileConstants
      */
     public final static int TOKEN_MISC_INTEGER_BIG = 0x02;
 
+    // Note: type 3 (0xF3) reserved for future use
+    
     /**
      * Numeric subtype (2 LSB) for {@link #TOKEN_MISC_FP},
      * indicating 32-bit IEEE single precision floating point number.
@@ -253,7 +255,9 @@ public final class SmileConstants
      * Numeric subtype (2 LSB) for {@link #TOKEN_MISC_FP},
      * indicating {@link java.math.BigDecimal} type.
      */
-    public final static int TOKEN_MISC_FLOAT_BIG = 0x03;
+    public final static int TOKEN_MISC_FLOAT_BIG = 0x02;
+
+    // Note: type 3 (0xF7) reserved for future use
     
     /*
     /**********************************************************
