@@ -12,7 +12,6 @@ import org.codehaus.jackson.impl.StreamBasedParserBase;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 import org.codehaus.jackson.sym.Name;
-import org.codehaus.jackson.util.CharTypes;
 
 public class SmileParser
     extends StreamBasedParserBase
@@ -350,13 +349,13 @@ public class SmileParser
     }
 
     public NumberType getNumberType()
-	    throws IOException, JsonParseException
-	{
+        throws IOException, JsonParseException
+    {
     	if (_got32BitFloat) {
-    		return NumberType.FLOAT;
+    	    return NumberType.FLOAT;
     	}
     	return super.getNumberType();
-	}
+    }
     
     /*
     /**********************************************************
@@ -618,9 +617,10 @@ public class SmileParser
 	}
 
     private final String _decodeShortAsciiName(int len)
-	    throws IOException, JsonParseException
-	{
-		int outPtr = 0;
+        throws IOException, JsonParseException
+    {
+        // note: caller ensures we have enough bytes available
+        int outPtr = 0;
 	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
 	    int inPtr = _inputPtr;
 	    _inputPtr += len;
@@ -629,7 +629,7 @@ public class SmileParser
 	    }
 	    _textBuffer.setCurrentLength(len);
 	    return _textBuffer.contentsAsString();
-	}
+    }
     
     /**
      * Helper method used to decode short Unicode string, length for which actual
@@ -640,6 +640,7 @@ public class SmileParser
     private final String _decodeShortUnicodeName(int len)
         throws IOException, JsonParseException
     {
+        // note: caller ensures we have enough bytes available
         int outPtr = 0;
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
         int inPtr = _inputPtr;
@@ -685,10 +686,10 @@ public class SmileParser
      */
     private final Name _findDecodedFromSymbols(int len)
     	throws IOException, JsonParseException
-	{
-	    if ((_inputEnd - _inputPtr) < len) {
-			_loadToHaveAtLeast(len);
-		}
+    {
+        if ((_inputEnd - _inputPtr) < len) {
+            _loadToHaveAtLeast(len);
+        }
 		// First: maybe we already have this name decoded?
 		if (len < 5) {
 	    	int inPtr = _inputPtr;
@@ -732,11 +733,11 @@ public class SmileParser
 			return _symbols.findName(q1, q2);
 		}
 		return _findDecodedLong(len);
-	}
+    }
 
     private final Name _findDecodedLong(int len)
-		throws IOException, JsonParseException
-	{
+        throws IOException, JsonParseException
+    {
     	// first, need enough buffer to store bytes as ints:
     	{
 			int bufLen = (len  + 3) >> 2;
@@ -775,8 +776,8 @@ public class SmileParser
     {
     	int[] newArray = new int[minSize + 4];
         if (arr != null) {
-        	// !!! TODO: JDK 1.6, Arrays.copyOf
-        	System.arraycopy(arr, 0, newArray, 0, arr.length);
+            // !!! TODO: JDK 1.6, Arrays.copyOf
+            System.arraycopy(arr, 0, newArray, 0, arr.length);
         }
         return newArray;
     }
@@ -790,12 +791,12 @@ public class SmileParser
     @Override
     protected void _parseNumericValue(int expType)
     	throws IOException, JsonParseException
-	{
+    {
     	if (_tokenIncomplete) {
-    		_tokenIncomplete = false;
-    		_finishToken();
+    	    _tokenIncomplete = false;
+    	    _finishToken();
     	}
-	}
+    }
     
     /**
      * Method called to finish parsing of a token so that token contents
@@ -811,13 +812,13 @@ public class SmileParser
             // fall through
         case 3: // short ascii
             _decodeShortAsciiValue(tb - 0x3F);
-        	return;
+            return;
 
         case 4: // tiny unicode
             // fall through
         case 5: // short unicode
             _decodeShortUnicodeValue(tb - 0x7F);
-	        return;
+            return;
 
         case 7:
             tb &= 0x1F;
@@ -864,14 +865,14 @@ public class SmileParser
     	_throwInternal();
     }
 
-	/*
+    /*
     /**********************************************************
     /* Internal methods, secondary Number parsing
     /**********************************************************
      */
     
-	private final void _finishInt() throws IOException, JsonParseException
-	{
+    private final void _finishInt() throws IOException, JsonParseException
+    {
     	if (_inputPtr >= _inputEnd) {
     		loadMoreGuaranteed();
     	}
@@ -915,15 +916,15 @@ public class SmileParser
     	_numTypesValid = NR_INT;
 	}
 
-	private final void  _finishLong()
-	    throws IOException, JsonParseException
-	{
-		// Ok, first, will always get 4 full data bytes first; 1 was already passed
-		long l = (long) _fourBytesToInt();
+    private final void  _finishLong()
+        throws IOException, JsonParseException
+    {
+	// Ok, first, will always get 4 full data bytes first; 1 was already passed
+	long l = (long) _fourBytesToInt();
     	// and loop for the rest
     	while (true) {
         	if (_inputPtr >= _inputEnd) {
-        		loadMoreGuaranteed();
+        	    loadMoreGuaranteed();
         	}
         	int value = _inputBuffer[_inputPtr++];
         	if (value < 0) {
@@ -936,15 +937,13 @@ public class SmileParser
     	}
 	}
 
-	private final void _finishBigInteger()
-		throws IOException, JsonParseException
-	{
-		// !!! TBI
-        if (true) _throwInternal();
-
-        _numberBigInt = BigInteger.ZERO;
-		_numTypesValid = NR_BIGINT;
-	}
+    private final void _finishBigInteger()
+	throws IOException, JsonParseException
+    {
+        byte[] raw = _read7BitBinaryWithLength();
+        _numberBigInt = new BigInteger(raw);
+        _numTypesValid = NR_BIGINT;
+    }
 
 	private final void _finishFloat()
 		throws IOException, JsonParseException
@@ -979,9 +978,9 @@ public class SmileParser
 		_numTypesValid = NR_DOUBLE;
 	}
 
-	private final int _fourBytesToInt() 
-		throws IOException, JsonParseException
-	{
+    private final int _fourBytesToInt() 
+        throws IOException, JsonParseException
+    {
 		if (_inputPtr >= _inputEnd) {
 			loadMoreGuaranteed();
 		}
@@ -998,45 +997,99 @@ public class SmileParser
 			loadMoreGuaranteed();
 		}
 		return (i << 7) + _inputBuffer[_inputPtr++];
-	}
+    }
 	
-	private final void _finishBigDecimal()
-		throws IOException, JsonParseException
-	{
-		// !!! TBI
-        if (true) _throwInternal();
-		_numberBigDecimal = BigDecimal.ZERO;
-		_numTypesValid = NR_BIGDECIMAL;
-	}
+    private final void _finishBigDecimal()
+        throws IOException, JsonParseException
+    {
+        int scale = SmileUtil.zigzagDecode(_readUnsignedVInt());
+        byte[] raw = _read7BitBinaryWithLength();
+        _numberBigDecimal = new BigDecimal(new BigInteger(raw), scale);
+        _numTypesValid = NR_BIGDECIMAL;
+    }
 
-	/*
+    private final int _readUnsignedVInt()
+        throws IOException, JsonParseException
+    {
+        int value = 0;
+        while (true) {
+            if (_inputPtr >= _inputEnd) {
+                loadMoreGuaranteed();
+            }
+            int i = _inputBuffer[_inputPtr++];
+            if (i < 0) { // last byte
+                value = (value << 6) + (i & 0x3F);
+                return value;
+            }
+            value = (value << 7) + i;
+        }
+    }
+
+    private final byte[] _read7BitBinaryWithLength()
+        throws IOException, JsonParseException
+    {
+        int byteLen = _readUnsignedVInt();
+        byte[] result = new byte[byteLen];
+        int ptr = 0;
+        int lastOkStart = byteLen - 8;
+        
+        // first, read all 7-by-8 byte chunks
+        while (ptr <= lastOkStart) {
+            if ((_inputEnd - _inputPtr) < 8) {
+                _loadToHaveAtLeast(8);
+            }
+            int i1 = (_inputBuffer[_inputPtr++] << 25)
+                + (_inputBuffer[_inputPtr++] << 18)
+                + (_inputBuffer[_inputPtr++] << 11)
+                + (_inputBuffer[_inputPtr++] << 4);
+            int x = _inputBuffer[_inputPtr++];
+            i1 += x >> 3;
+            int i2 = ((x & 0x7) << 21)
+                + (_inputBuffer[_inputPtr++] << 14)
+                + (_inputBuffer[_inputPtr++] << 7)
+                + _inputBuffer[_inputPtr++];
+            // Ok: got our 7 bytes, just need to split, copy
+            result[ptr++] = (byte)(i1 >> 24);
+            result[ptr++] = (byte)(i1 >> 16);
+            result[ptr++] = (byte)(i1 >> 8);
+            result[ptr++] = (byte)i1;
+            result[ptr++] = (byte)(i2 >> 16);
+            result[ptr++] = (byte)(i2 >> 8);
+            result[ptr++] = (byte)i2;
+        }
+        // and then leftovers
+        // !!! TBI
+        return result;
+    }
+    
+    /*
     /**********************************************************
     /* Internal methods, secondary String parsing
     /**********************************************************
      */
 	
     protected final void _decodeShortAsciiValue(int len)
-	    throws IOException, JsonParseException
-	{
-		if ((_inputEnd - _inputPtr) < len) {
-			_loadToHaveAtLeast(len);
-		}
-	    int outPtr = 0;
-	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-	    int inPtr = _inputPtr;
-	    _inputPtr += len;
-	    for (int end = inPtr + len; inPtr < end; ) {
-	        outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
-	    }
-	    _textBuffer.setCurrentLength(len);
+        throws IOException, JsonParseException
+    {
+        if ((_inputEnd - _inputPtr) < len) {
+            _loadToHaveAtLeast(len);
+        }
+        int outPtr = 0;
+	char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	int inPtr = _inputPtr;
+	_inputPtr += len;
+	for (int end = inPtr + len; inPtr < end; ) {
+	    outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
 	}
+	_textBuffer.setCurrentLength(len);
+    }
 	
-	protected final void _decodeShortUnicodeValue(int len)
-	    throws IOException, JsonParseException
-	{
-		if ((_inputEnd - _inputPtr) < len) {
-			_loadToHaveAtLeast(len);
-		}
+    protected final void _decodeShortUnicodeValue(int len)
+        throws IOException, JsonParseException
+    {
+        if ((_inputEnd - _inputPtr) < len) {
+	    _loadToHaveAtLeast(len);
+	}
 	
 	    int outPtr = 0;
 	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
@@ -1103,12 +1156,12 @@ public class SmileParser
 	    _textBuffer.setCurrentLength(outPtr);
 	}
 
-	private final void _decodeLongUnicode()
-		throws IOException, JsonParseException
-	{
-	    int outPtr = 0;
-	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-	    final int[] codes = SmileConstants.sUtf8UnitLengths;
+    private final void _decodeLongUnicode()
+        throws IOException, JsonParseException
+    {
+	int outPtr = 0;
+	char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	final int[] codes = SmileConstants.sUtf8UnitLengths;
         int c;
         final byte[] inputBuffer = _inputBuffer;
 
@@ -1185,7 +1238,7 @@ public class SmileParser
         _textBuffer.setCurrentLength(outPtr);
 	}
 
-	/*
+    /*
     /**********************************************************
     /* Internal methods, skipping
     /**********************************************************

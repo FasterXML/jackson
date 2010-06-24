@@ -27,6 +27,8 @@ public class SmileGenerator
          * Whether to write 4-byte header sequence when starting output or not.
          * If disabled, no header is written; this may be useful in embedded cases
          * where context is enough to know that content is encoded using this format.
+         * Note, however, that omitting header means that default settings for
+         * shared names/string values can not be changed.
          */
         WRITE_HEADER(true)
 
