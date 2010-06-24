@@ -13,6 +13,7 @@ public class TestSmileParser
      */
     public void testMandatoryHeader() throws IOException
     {
+        // first test failing case
         byte[] data = _smileDoc("[ null ]", false);
         try {
             _parser(data, true);
@@ -20,6 +21,13 @@ public class TestSmileParser
         } catch (Exception e) {
             verifyException(e, "does not start with Smile format header");
         }
+
+        // and then test passing one
+        SmileParser p = _parser(data, false);
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        assertToken(JsonToken.VALUE_NULL, p.nextToken());
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertNull(p.nextToken());
     }
 
     public void testSimple() throws IOException

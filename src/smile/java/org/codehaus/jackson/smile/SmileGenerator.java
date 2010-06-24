@@ -104,6 +104,24 @@ public class SmileGenerator
         public boolean enabledByDefault() { return _defaultState; }
         public int getMask() { return _mask; }
     }
+
+    /**
+     * Helper class used for keeping track of possibly shareable String
+     * references (for field names and/or short String values)
+     */
+    protected final static class SharedStringNode
+    {
+        public final String value;
+        public final int index;
+        public SharedStringNode next;
+        
+        public SharedStringNode(String value, int index, SharedStringNode next)
+        {
+            this.value = value;
+            this.index = index;
+            this.next = next;
+        }
+    }
     
     /**
      * To simplify certain operations, we require output buffer length
@@ -192,7 +210,17 @@ public class SmileGenerator
     /**********************************************************
      */
 
-    protected final java.util.HashMap<String,Integer> _seenNames;
+    /**
+     * Raw data structure used for checking whether field name to
+     * write can be output using back reference or not.
+     */
+    protected SharedStringNode[] _seenNames;
+    
+    /**
+     * Number of entries in {@link #_seenNames}; -1 if no shared name
+     * detection is enabled
+     */
+    protected int _seenNameCount;
     
     /*
     /**********************************************************
@@ -215,10 +243,11 @@ public class SmileGenerator
                     +") too short, must be at least "+MIN_BUFFER_LENGTH);
         }
         if ((smileFeatures & Feature.CHECK_SHARED_NAMES.getMask()) == 0) {
-        	_seenNames = null;
+            _seenNames = null;
+            _seenNameCount = -1;
         } else {
-        	_seenNames = new java.util.HashMap<String,Integer>(64);
-        	
+            _seenNames = new SharedStringNode[64];
+            _seenNameCount = 0;
         }
     }
 
@@ -305,7 +334,8 @@ public class SmileGenerator
             return;
         }
         // First: is it something we can share?
-        if (_seenNames != null) {
+        if (_seenNameCount >= 0) {
+            /*
 	        Integer I = _seenNames.get(name);
 	        if (I != null) {
 	        	int ix = I.intValue();
@@ -317,6 +347,7 @@ public class SmileGenerator
 	        	}
 	        	return;
 	        }
+	        */
         }
         if (len <= MAX_SHORT_STRING_BYTES) { // possibly short strings (not necessarily)
             // !!! TODO: check for shared Keys
@@ -357,11 +388,13 @@ public class SmileGenerator
             }
         }
         // Also, remember in case there's need to share some more..
-        if (_seenNames != null) {
-	        if (_seenNames.size() >= SmileConstants.MAX_SHARED_NAMES) { // too big? Start from scratch!
-	        	_seenNames.clear();
-	        }
+        if (_seenNameCount >= 0) {
+            if (_seenNameCount >= SmileConstants.MAX_SHARED_NAMES) { // too big? Start from scratch!
+                _seenNameCount = 0;
+            }
+	        /*
 	        _seenNames.put(name, Integer.valueOf(_seenNames.size()));
+	        */
         }
     }
     
@@ -1374,7 +1407,7 @@ public class SmileGenerator
     /**********************************************************
     /* Internal methods, buffer handling
     /**********************************************************
-    */
+     */
     
     @Override
     protected void _releaseBuffers()
@@ -1398,7 +1431,7 @@ public class SmileGenerator
     /**********************************************************
     /* Internal methods, error reporting
     /**********************************************************
-    */
+     */
     
     protected UnsupportedOperationException _notSupported() {
         return new UnsupportedOperationException();

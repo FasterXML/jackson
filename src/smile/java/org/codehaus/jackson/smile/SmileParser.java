@@ -123,7 +123,7 @@ public class SmileParser
     protected String[] _sharedNames = NO_STRINGS;
 
     protected int _sharedNameCount = 0;
-    
+
     /*
     /**********************************************************
     /* Life-cycle
@@ -1291,7 +1291,7 @@ public class SmileParser
             loadMoreGuaranteed();
         }
     }
-    
+
     /*
     /**********************************************************
     /* Internal methods, skipping
@@ -1310,15 +1310,13 @@ public class SmileParser
         case 2: // tiny ascii
             // fall through
         case 3: // short ascii
-        	_skipBytes(tb - 0x3F);
-        	return;
-        	
+            _skipBytes(tb - 0x3F);
+            return;
         case 4: // tiny unicode
             // fall through
         case 5: // short unicode
-        	_skipBytes(tb - 0x7F);
-        	return;
-
+            _skipBytes(tb - 0x7F);
+            return;
         case 7:
             tb &= 0x1F;
             // next 3 bytes define subtype
