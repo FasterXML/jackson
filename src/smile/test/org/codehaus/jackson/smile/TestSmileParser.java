@@ -5,7 +5,7 @@ import java.io.*;
 import org.codehaus.jackson.JsonToken;
 
 public class TestSmileParser
-	extends SmileTestBase
+    extends SmileTestBase
 {
     public void testSimple() throws IOException
     {

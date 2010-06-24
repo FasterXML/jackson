@@ -1238,8 +1238,9 @@ public class SmileGenerator
     {
         if (len > 0) {
             while (true) {
-                int currLen = Math.min(len, (_outputTail - _outputEnd));
+                int currLen = Math.min(len, (_outputEnd - _outputTail));
                 System.arraycopy(data, offset, _outputBuffer, _outputTail, currLen);
+                _outputTail += currLen;
                 if ((len -= currLen) == 0) {
                     break;
                 }

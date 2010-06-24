@@ -474,10 +474,23 @@ public class SmileParser
      */
 
     @Override
+    public byte[] getBinaryValue(Base64Variant b64variant)
+        throws IOException, JsonParseException
+    {
+        if (_tokenIncomplete) {
+            _finishToken();
+        }
+        if (_currToken != JsonToken.VALUE_EMBEDDED_OBJECT ) {
+            // Todo, maybe: support base64 for text?
+            _reportError("Current token ("+_currToken+") not VALUE_EMBEDDED_OBJECT, can not access as binary");
+        }
+        return _binaryValue;
+    }
+
+    @Override
     protected byte[] _decodeBase64(Base64Variant b64variant)
         throws IOException, JsonParseException
     {
-        // !!! TBI
         _throwInternal();
         return null;
     }
@@ -605,29 +618,29 @@ public class SmileParser
     
     private final String _addDecodedToSymbols(int len, String name)
     {
-	    if (len < 5) {
-    		return _symbols.addName(name, _quad1, 0).getName();
-		}
-	    if (len < 9) {
-    		return _symbols.addName(name, _quad1, _quad2).getName();
-		}
-		int qlen = (len + 3) >> 2;
-		return _symbols.addName(name, _quadBuffer, qlen).getName();
+        if (len < 5) {
+            return _symbols.addName(name, _quad1, 0).getName();
+        }
+	if (len < 9) {
+    	    return _symbols.addName(name, _quad1, _quad2).getName();
 	}
+	int qlen = (len + 3) >> 2;
+	return _symbols.addName(name, _quadBuffer, qlen).getName();
+    }
 
     private final String _decodeShortAsciiName(int len)
         throws IOException, JsonParseException
     {
         // note: caller ensures we have enough bytes available
         int outPtr = 0;
-	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-	    int inPtr = _inputPtr;
-	    _inputPtr += len;
-	    for (int end = inPtr + len; inPtr < end; ) {
-	        outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
-	    }
-	    _textBuffer.setCurrentLength(len);
-	    return _textBuffer.contentsAsString();
+        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+        int inPtr = _inputPtr;
+        _inputPtr += len;
+        for (int end = inPtr + len; inPtr < end; ) {
+            outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
+        }
+        _textBuffer.setCurrentLength(len);
+        return _textBuffer.contentsAsString();
     }
     
     /**
@@ -830,9 +843,11 @@ public class SmileParser
             	_decodeLongUnicode();
             	return;
             case 2: // binary, raw
+                _finishRawBinary();
+                return;
             case 3: // binary, 7-bit
-            	// !!! TBI
-                if (true) _throwInternal();
+                _binaryValue = _read7BitBinaryWithLength();
+                return;
             case 4: // VInt (zigzag) or BigDecimal
             	int subtype = tb & 0x03;
             	if (subtype == 0) { // (v)int
@@ -872,7 +887,7 @@ public class SmileParser
     private final void _finishInt() throws IOException, JsonParseException
     {
     	if (_inputPtr >= _inputEnd) {
-    		loadMoreGuaranteed();
+    	    loadMoreGuaranteed();
     	}
     	int value = _inputBuffer[_inputPtr++];
     	int i;
@@ -1029,10 +1044,10 @@ public class SmileParser
         int byteLen = _readUnsignedVInt();
         byte[] result = new byte[byteLen];
         int ptr = 0;
-        int lastOkStart = byteLen - 8;
+        int lastOkPtr = byteLen - 7;
         
         // first, read all 7-by-8 byte chunks
-        while (ptr <= lastOkStart) {
+        while (ptr <= lastOkPtr) {
             if ((_inputEnd - _inputPtr) < 8) {
                 _loadToHaveAtLeast(8);
             }
@@ -1057,17 +1072,19 @@ public class SmileParser
         }
         // and then leftovers: n+1 bytes to decode n bytes
         int toDecode = (result.length - ptr);
-        if ((_inputEnd - _inputPtr) < (toDecode+1)) {
-            _loadToHaveAtLeast(toDecode+1);
+        if (toDecode > 0) {
+            if ((_inputEnd - _inputPtr) < (toDecode+1)) {
+                _loadToHaveAtLeast(toDecode+1);
+            }
+            int value = _inputBuffer[_inputPtr++];
+            for (int i = 1; i < toDecode; ++i) {
+                value = (value << 7) + _inputBuffer[_inputPtr++];
+                result[ptr++] = (byte) (value >> (7 - i));
+            }
+            // last byte is different, has remaining 1 - 6 bits, right-aligned
+            value <<= toDecode;
+            result[ptr] = (byte) (value + _inputBuffer[_inputPtr++]);
         }
-        int value = _inputBuffer[_inputPtr++];
-        for (int i = 1; i < toDecode; ++i) {
-            value = (value << 7) + _inputBuffer[_inputPtr++];
-            result[ptr++] = (byte) (value >> (7 - i));
-        }
-        // last byte is different, has remaining 1 - 6 bits, right-aligned
-        value <<= toDecode;
-        result[ptr] = (byte) (value + _inputBuffer[_inputPtr++]);
         return result;
     }
     
@@ -1247,6 +1264,28 @@ public class SmileParser
         _textBuffer.setCurrentLength(outPtr);
     }
 
+    private final void _finishRawBinary()
+        throws IOException, JsonParseException
+    {
+        int byteLen = _readUnsignedVInt();
+        _binaryValue = new byte[byteLen];
+        if (_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        int ptr = 0;
+        while (true) {
+            int toAdd = Math.min(byteLen, _inputEnd - _inputPtr);
+            System.arraycopy(_inputBuffer, _inputPtr, _binaryValue, ptr, toAdd);
+            _inputPtr += toAdd;
+            ptr += toAdd;
+            byteLen -= toAdd;
+            if (byteLen <= 0) {
+                return;
+            }
+            loadMoreGuaranteed();
+        }
+    }
+    
     /*
     /**********************************************************
     /* Internal methods, skipping
@@ -1371,7 +1410,10 @@ public class SmileParser
         int chunks = origBytes / 7;
         int encBytes = chunks * 8;
         // and for last 0 - 6 bytes, last+1 (except none if no leftovers)
-        encBytes += 1 + (origBytes - (7 * chunks));
+        origBytes -= 7 * chunks;
+        if (origBytes > 0) {
+            encBytes += 1 + origBytes;
+        }
         _skipBytes(encBytes);
     }
     
