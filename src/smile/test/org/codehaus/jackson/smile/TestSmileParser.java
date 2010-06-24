@@ -7,6 +7,21 @@ import org.codehaus.jackson.JsonToken;
 public class TestSmileParser
     extends SmileTestBase
 {
+    /**
+     * Unit tests for verifying that if header/signature is required,
+     * lacking it is fatal
+     */
+    public void testMandatoryHeader() throws IOException
+    {
+        byte[] data = _smileDoc("[ null ]", false);
+        try {
+            _parser(data, true);
+            fail("Should have gotten exception for missing header");
+        } catch (Exception e) {
+            verifyException(e, "does not start with Smile format header");
+        }
+    }
+
     public void testSimple() throws IOException
     {
     	byte[] data = _smileDoc("[ true, null, false ]");

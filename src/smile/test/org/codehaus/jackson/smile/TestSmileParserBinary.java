@@ -35,7 +35,6 @@ public class TestSmileParserBinary
     private void _testBinary(boolean raw) throws IOException
     {
         SmileFactory f = new SmileFactory();
-        f.configure(SmileGenerator.Feature.WRITE_HEADER, false);
         f.configure(SmileGenerator.Feature.ENCODE_BINARY_AS_7BIT, !raw);
         for (int size : SIZES) {
             byte[] data = _generateData(size);

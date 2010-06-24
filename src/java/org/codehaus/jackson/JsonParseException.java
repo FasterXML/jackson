@@ -8,9 +8,9 @@ package org.codehaus.jackson;
 public class JsonParseException
     extends JsonProcessingException
 {
-	final static long serialVersionUID = 123; // Stupid eclipse...
+    final static long serialVersionUID = 123; // Stupid eclipse...
 
-	public JsonParseException(String msg, JsonLocation loc)
+    public JsonParseException(String msg, JsonLocation loc)
     {
         super(msg, loc);
     }

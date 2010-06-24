@@ -2,6 +2,7 @@ package org.codehaus.jackson.smile;
 
 import java.io.*;
 
+import org.codehaus.jackson.JsonLocation;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.ObjectCodec;
@@ -101,9 +102,17 @@ public class SmileParserBootstrapper
         SmileParser p =  new SmileParser(_context, generalParserFeatures, smileFeatures,
         		codec, can, 
         		_in, _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
+        boolean hadSig;
     	if (_inputBuffer[_inputPtr] == SmileConstants.HEADER_BYTE_1) {
-    		// need to ensure it gets properly handled so caller won't see the signature
-    		p.handleSignature(true);
+    	    // need to ensure it gets properly handled so caller won't see the signature
+    	    hadSig = p.handleSignature(true);
+    	} else {
+    	    hadSig = false;
+    	}
+    	if (!hadSig && (smileFeatures & SmileParser.Feature.REQUIRE_HEADER.getMask()) != 0) {
+    	    throw new JsonParseException(
+    	            "Input does not start with Smile format header; and parser has REQUIRE_HEADER enabLed: can not parse",
+    	            JsonLocation.NA);
     	}
         return p;
     }

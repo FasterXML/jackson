@@ -20,7 +20,13 @@ public class SmileParser
      * Enumeration that defines all togglable features for Smile generators.
      */
     public enum Feature {
-        DUMMY_PLACEHOLDER(false)
+        /**
+         * Feature that determines whether 4-byte Smile header is mandatory in input,
+         * or optional. If enabled, it means that only input that starts with the header
+         * is accepted as valid; if disabled, header is optional. In latter case,
+         * settings for content are assumed to be defaults.
+         */
+        REQUIRE_HEADER(true)
         ;
 
         final boolean _defaultState;
@@ -702,49 +708,49 @@ public class SmileParser
         if ((_inputEnd - _inputPtr) < len) {
             _loadToHaveAtLeast(len);
         }
-		// First: maybe we already have this name decoded?
-		if (len < 5) {
-	    	int inPtr = _inputPtr;
-	    	final byte[] inBuf = _inputBuffer;
-			int q = inBuf[inPtr];
-			if (--len > 0) {
-				q = (q << 8) + inBuf[++inPtr];
-				if (--len > 0) {
-					q = (q << 8) + inBuf[++inPtr];
-					if (--len > 0) {
-						q = (q << 8) + inBuf[++inPtr];
-					}
-				}
-			}
-			_quad1 = q;
-			return _symbols.findName(q);
-		}
-		if (len < 9) {
-	    	int inPtr = _inputPtr;
-	    	final byte[] inBuf = _inputBuffer;
-			// First quadbyte is easy
-			int q1 = inBuf[inPtr++] << 8;
-			q1 += inBuf[inPtr++];
-			q1 <<= 8;
-			q1 += inBuf[inPtr++];
-			q1 <<= 8;
-			q1 += inBuf[inPtr++];
-			int q2 = inBuf[inPtr++];
-			len -= 5;
-			if (len > 0) {
-				q2 = (q2 << 8) + inBuf[inPtr++];				
-				if (--len >= 0) {
-					q2 = (q2 << 8) + inBuf[inPtr++];				
-					if (--len >= 0) {
-						q2 = (q2 << 8) + inBuf[inPtr++];				
-					}
-				}
-			}
-			_quad1 = q1;
-			_quad2 = q2;
-			return _symbols.findName(q1, q2);
-		}
-		return _findDecodedLong(len);
+	// First: maybe we already have this name decoded?
+	if (len < 5) {
+	    int inPtr = _inputPtr;
+	    final byte[] inBuf = _inputBuffer;
+	    int q = inBuf[inPtr];
+	    if (--len > 0) {
+	        q = (q << 8) + inBuf[++inPtr];
+	        if (--len > 0) {
+	            q = (q << 8) + inBuf[++inPtr];
+	            if (--len > 0) {
+	                q = (q << 8) + inBuf[++inPtr];
+	            }
+	        }
+	    }
+	    _quad1 = q;
+	    return _symbols.findName(q);
+	}
+        if (len < 9) {
+            int inPtr = _inputPtr;
+            final byte[] inBuf = _inputBuffer;
+            // First quadbyte is easy
+            int q1 = inBuf[inPtr++] << 8;
+            q1 += inBuf[inPtr++];
+            q1 <<= 8;
+            q1 += inBuf[inPtr++];
+            q1 <<= 8;
+            q1 += inBuf[inPtr++];
+            int q2 = inBuf[inPtr++];
+            len -= 5;
+            if (len > 0) {
+                q2 = (q2 << 8) + inBuf[inPtr++];				
+                if (--len >= 0) {
+                    q2 = (q2 << 8) + inBuf[inPtr++];				
+                    if (--len >= 0) {
+                        q2 = (q2 << 8) + inBuf[inPtr++];				
+                    }
+                }
+            }
+            _quad1 = q1;
+            _quad2 = q2;
+            return _symbols.findName(q1, q2);
+        }
+        return _findDecodedLong(len);
     }
 
     private final Name _findDecodedLong(int len)

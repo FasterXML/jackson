@@ -10,17 +10,22 @@ import org.codehaus.jackson.*;
 class SmileTestBase
 	extends main.BaseTest
 {
-    protected SmileParser _parser(byte[] input)
-        throws IOException
+    protected SmileParser _parser(byte[] input) throws IOException {
+        return _parser(input, false);
+    }
+
+    protected SmileParser _parser(byte[] input, boolean requireHeader) throws IOException
     {
-    	return _parser(new SmileFactory(), input);
+        SmileFactory f = new SmileFactory();
+        f.configure(SmileParser.Feature.REQUIRE_HEADER, requireHeader);
+    	return _parser(f, input);
     }
 
     protected SmileParser _parser(SmileFactory f, byte[] input)
-	    throws IOException
-	{
-	    return f.createJsonParser(input);
-	}
+        throws IOException
+    {
+        return f.createJsonParser(input);
+    }
     
     protected byte[] _smileDoc(String json) throws IOException
     {
