@@ -834,8 +834,8 @@ public class SmileParser
 
         case 4: // tiny unicode
             // fall through
-        case 5: // short unicode
-            _decodeShortUnicodeValue(tb - 0x7F);
+        case 5: // short unicode; note, lengths 2 - 65  (off-by-one compared to ascii)
+            _decodeShortUnicodeValue(tb - 0x7E);
             return;
 
         case 7:

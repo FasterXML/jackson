@@ -3,6 +3,7 @@ package org.codehaus.jackson.smile;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
@@ -335,19 +336,15 @@ public class SmileGenerator
         }
         // First: is it something we can share?
         if (_seenNameCount >= 0) {
-            /*
-	        Integer I = _seenNames.get(name);
-	        if (I != null) {
-	        	int ix = I.intValue();
-	        	if (ix < 64) {
-	        		_writeByte((byte) (TOKEN_PREFIX_KEY_SHARED_SHORT + ix));
-	        	} else {
-	        		_writeBytes(((byte) (TOKEN_PREFIX_KEY_SHARED_LONG + (ix >> 8))),
-	        				(byte) ix);
-	        	}
-	        	return;
-	        }
-	        */
+            int ix = _findSeenName(name);
+            if (ix >= 0) {
+                if (ix < 64) {
+                    _writeByte((byte) (TOKEN_PREFIX_KEY_SHARED_SHORT + ix));
+                } else {
+                    _writeBytes(((byte) (TOKEN_PREFIX_KEY_SHARED_LONG + (ix >> 8))), (byte) ix);
+                }
+                return;
+            }
         }
         if (len <= MAX_SHORT_STRING_BYTES) { // possibly short strings (not necessarily)
             // !!! TODO: check for shared Keys
@@ -363,7 +360,8 @@ public class SmileGenerator
                 if (byteLen == len) { // and all ASCII
                     typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
                 } else { // not just ASCII
-                    typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 1) + byteLen);
+                    // note: since 2 is smaller allowed length, offset differs from one used for
+                    typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 2) + byteLen);
                 }
             } else { // nope, longer non-ASCII Strings
                 typeToken = TOKEN_KEY_LONG_STRING;
@@ -389,12 +387,7 @@ public class SmileGenerator
         }
         // Also, remember in case there's need to share some more..
         if (_seenNameCount >= 0) {
-            if (_seenNameCount >= SmileConstants.MAX_SHARED_NAMES) { // too big? Start from scratch!
-                _seenNameCount = 0;
-            }
-	        /*
-	        _seenNames.put(name, Integer.valueOf(_seenNames.size()));
-	        */
+            _addSeenName(name);
         }
     }
     
@@ -427,7 +420,8 @@ public class SmileGenerator
                 if (byteLen == len) { // and all ASCII
                     typeToken = (byte) ((TOKEN_PREFIX_TINY_ASCII - 1) + byteLen);
                 } else { // not just ASCII
-                    typeToken = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 1) +  byteLen);
+                    // note: since length 1 can not be used here, value range is offset by 2, not 1
+                    typeToken = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 2) +  byteLen);
                 }
             } else { // nope, longer non-ASCII String 
                 typeToken = TOKEN_BYTE_LONG_STRING_UNICODE;
@@ -481,7 +475,7 @@ public class SmileGenerator
                 if (byteLen == len) { // and all ASCII
                     typeToken = (byte) ((TOKEN_PREFIX_TINY_ASCII - 1) + byteLen);
                 } else { // not just ASCII
-                    typeToken = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 1) + byteLen);
+                    typeToken = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 2) + byteLen);
                 }
             } else { // nope, longer non-ASCII Strings
                 typeToken = TOKEN_BYTE_LONG_STRING_UNICODE;
@@ -1425,6 +1419,64 @@ public class SmileGenerator
             _out.write(_outputBuffer, 0, _outputTail);
             _outputTail = 0;
         }
+    }
+
+    /*
+    /**********************************************************
+    /* Internal methods, handling shared string "maps"
+    /**********************************************************
+     */
+
+    private final int _findSeenName(String name)
+    {
+        int hash = name.hashCode();
+        SharedStringNode head = _seenNames[hash & (_seenNames.length-1)];
+        if (head != null) {
+            SharedStringNode node = head;
+            // first, identity match; assuming most of the time we get intern()ed String
+            do {
+                if (node.value == name) {
+                    return node.index;
+                }
+                node = node.next;
+            } while (node != null);
+            // and then comparison, if no match yet
+            node = head;
+            do {
+                String value = node.value;
+                if (value.hashCode() == hash && value.equals(name)) {
+                    return node.index;
+                }
+                node = node.next;
+            } while (node != null);
+        }
+        return -1;
+    }
+
+    private final void _addSeenName(String name)
+    {
+        // first: do we need to expand?
+        if (_seenNameCount == _seenNames.length) {
+            if (_seenNameCount == MAX_SHARED_NAMES) { // we are too full, restart from empty
+                Arrays.fill(_seenNames, null);
+                _seenNameCount = 0;
+            } else { // we always start with modest default size (like 64), so expand to full
+                SharedStringNode[] old = _seenNames;
+                _seenNames = new SharedStringNode[MAX_SHARED_NAMES];
+                final int mask = MAX_SHARED_NAMES-1;
+                for (SharedStringNode node : old) {
+                    for (; node != null; node = node.next) {
+                        int ix = node.value.hashCode() & mask;
+                        node.next = _seenNames[ix];
+                        _seenNames[ix] = node;
+                    }
+                }
+            }
+        }
+        // other than that, just slap it there
+        int ix = name.hashCode() & (_seenNames.length-1);
+        _seenNames[ix] = new SharedStringNode(name, _seenNameCount, _seenNames[ix]);
+        ++_seenNameCount;
     }
     
     /*

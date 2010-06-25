@@ -47,5 +47,4 @@ public class TestSmileGeneratorSymbols
         byte[] result = out.toByteArray();
         assertEquals(83, result.length);
     }
-    
 }
