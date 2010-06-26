@@ -20,9 +20,9 @@ public abstract class SettableBeanProperty
      * Logical name of the property (often but not always derived
      * from the setter method name)
      */
-    final String _propName;
+    protected final String _propName;
 
-    final JavaType _type;
+    protected final JavaType _type;
 
     protected JsonDeserializer<Object> _valueDeserializer;
 
@@ -40,6 +40,13 @@ public abstract class SettableBeanProperty
      */
     protected Object _nullValue;
 
+    /**
+     * If property represents a managed (forward) reference
+     * (see [JACKSON-235]), we will need name of reference for
+     * later linking.
+     */
+    protected String _managedReferenceName;
+    
     /*
     /**********************************************************
     /* Life-cycle (construct & configure)
@@ -71,6 +78,10 @@ public abstract class SettableBeanProperty
         _nullValue = _valueDeserializer.getNullValue();
     }
 
+    public void setManagedReferenceName(String n) {
+        _managedReferenceName = n;
+    }
+    
     protected abstract Class<?> getDeclaringClass();
 
     /*
@@ -82,6 +93,8 @@ public abstract class SettableBeanProperty
     public String getPropertyName() { return _propName; }
     public JavaType getType() { return _type; }
 
+    public String getManagedReferenceName() { return _managedReferenceName; }
+    
     public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
 
     /**
@@ -279,7 +292,7 @@ public abstract class SettableBeanProperty
             }
             /* Note: null won't work, since we can't then inject anything
              * in. At least that's not good in common case. However,
-             * theoretically the case where we get Json null might
+             * theoretically the case where we get JSON null might
              * be compatible. If so, implementation could be changed.
              */
             if (toModify == null) {
@@ -391,4 +404,47 @@ public abstract class SettableBeanProperty
             //throw new IllegalStateException("Method should never be called on a "+getClass().getName());
         }
     }
+
+    /**
+     * Wrapper property that is used to handle managed (forward) properties
+     * (see [JACKSON-235] for more information). Basically just need to
+     * delegate first to actual forward property, and 
+     * 
+     * @author tatu
+     */
+    public final static class ManagedReferenceProperty
+        extends SettableBeanProperty
+    {
+        protected final SettableBeanProperty _managedProperty;
+
+        protected final SettableBeanProperty _backProperty;
+        
+        public ManagedReferenceProperty(SettableBeanProperty forward,
+                SettableBeanProperty backward)
+        {
+            super(forward.getPropertyName(), forward.getType(), forward._valueTypeDeserializer);
+            _managedProperty = forward;
+            _backProperty = backward;
+        }
+
+        protected Class<?> getDeclaringClass()
+        {
+            return _managedProperty.getDeclaringClass();
+        }
+    
+        public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
+                                      Object instance)
+            throws IOException, JsonProcessingException
+        {
+            set(instance, _managedProperty.deserialize(jp, ctxt));
+        }
+    
+        public final void set(Object instance, Object value)
+            throws IOException
+        {
+            _managedProperty.set(instance, value);
+            _backProperty.set(value, instance);
+        }
+    }
+
 }

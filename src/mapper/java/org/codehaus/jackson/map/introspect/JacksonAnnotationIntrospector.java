@@ -26,9 +26,9 @@ public class JacksonAnnotationIntrospector
     public JacksonAnnotationIntrospector() { }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* General annotation properties
-    /****************************************************
+    /**********************************************************
      */
 
     @Override
@@ -48,9 +48,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* General annotations
-    /****************************************************
+    /**********************************************************
      */
 
     @Override
@@ -67,9 +67,9 @@ public class JacksonAnnotationIntrospector
     }
     
     /*
-    /****************************************************
+    /**********************************************************
     /* General class annotations
-    /****************************************************
+    /**********************************************************
      */
 
     @Override
@@ -100,11 +100,11 @@ public class JacksonAnnotationIntrospector
         JsonIgnoreProperties ignore = ac.getAnnotation(JsonIgnoreProperties.class);
         return (ignore == null) ? null : ignore.ignoreUnknown();
     }
-
+    
     /*
-    /******************************************************
+    /**********************************************************
     /* Property auto-detection
-    /******************************************************
+    /**********************************************************
      */
     
     @Override
@@ -114,12 +114,33 @@ public class JacksonAnnotationIntrospector
         JsonAutoDetect ann = ac.getAnnotation(JsonAutoDetect.class);
         return (ann == null) ? checker : checker.with(ann);
     }
+
+    /*
+    /**********************************************************
+    /* General member (field, method/constructor) annotations
+    /**********************************************************
+     */
+
+    // @since 1.6
+    @Override        
+    public ReferenceProperty findReferenceType(AnnotatedMember member)
+    {
+        JsonManagedReference ref1 = member.getAnnotation(JsonManagedReference.class);
+        if (ref1 != null) {
+            return AnnotationIntrospector.ReferenceProperty.managed(ref1.value());
+        }
+        JsonBackReference ref2 = member.getAnnotation(JsonBackReference.class);
+        if (ref2 != null) {
+            return AnnotationIntrospector.ReferenceProperty.back(ref2.value());
+        }
+        return null;
+    }
     
     /*
-    /****************************************************
+    /**********************************************************
     /* Class annotations for PM type handling (1.5+)
-    /****************************************************
-    */
+    /**********************************************************
+     */
     
     @Override
     public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType)
@@ -185,9 +206,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* General method annotations
-    /****************************************************
+    /**********************************************************
     */
 
     @Override
@@ -201,9 +222,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* General field annotations
-    /****************************************************
+    /**********************************************************
      */
 
     @Override
@@ -212,9 +233,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Serialization: general annotations
-    /****************************************************
+    /**********************************************************
     */
 
     @Override
@@ -282,10 +303,10 @@ public class JacksonAnnotationIntrospector
     }
     
     /*
-    /****************************************************
+    /**********************************************************
     /* Serialization: class annotations
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
 
     public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
@@ -299,10 +320,10 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Serialization: method annotations
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
     @SuppressWarnings("deprecation")
     @Override
@@ -341,9 +362,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Serialization: field annotations
-    /****************************************************
+    /**********************************************************
     */
 
     @Override
@@ -362,10 +383,10 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Deserialization: general annotations
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
     @Override
     public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a)
@@ -494,9 +515,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Deserialization: Method annotations
-    /***************************************************
+    /**********************************************************
      */
 
     @Override
@@ -547,10 +568,10 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Deserialization: field annotations
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
     @Override
     public String findDeserializablePropertyName(AnnotatedField af)
@@ -568,10 +589,10 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Deserialization: parameters annotations
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
     @Override
         public String findPropertyNameForParam(AnnotatedParameter param)
@@ -590,9 +611,9 @@ public class JacksonAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Helper methods
-    /****************************************************
+    /**********************************************************
      */
 
     protected boolean _isIgnorable(Annotated a)

@@ -29,17 +29,20 @@ public class BeanDeserializer
     implements ResolvableDeserializer
 {
     /*
-    /*************************************************
+    /**********************************************************
     /* Information regarding type being deserialized
-    /*************************************************
+    /**********************************************************
      */
 
+    /**
+     * Declared type of the bean this deserializer handles.
+     */
     final protected JavaType _beanType;
 
     /*
-    /*************************************************
+    /**********************************************************
     /* Construction configuration
-    /*************************************************
+    /**********************************************************
      */
 
     /**
@@ -87,9 +90,9 @@ public class BeanDeserializer
     protected Creator.PropertyBased _propertyBasedCreator;
 
     /*
-    /********************************************************
+    /**********************************************************
     /* Property information, setters
-    /********************************************************
+    /**********************************************************
      */
 
     /**
@@ -118,10 +121,16 @@ public class BeanDeserializer
      */
     protected boolean _ignoreAllUnknown;
 
+    /**
+     * We may also have one or more back reference fields (usually
+     * zero or one).
+     */
+    protected HashMap<String, SettableBeanProperty> _backRefs;
+    
     /*
-    /********************************************************
+    /**********************************************************
     /* Special deserializers needed for sub-types
-    /********************************************************
+    /**********************************************************
      */
 
     /**
@@ -131,9 +140,9 @@ public class BeanDeserializer
     protected HashMap<ClassKey, JsonDeserializer<Object>> _subDeserializers;
     
     /*
-    /********************************************************
+    /**********************************************************
     /* Life-cycle, construction, initialization
-    /********************************************************
+    /**********************************************************
      */
 
     public BeanDeserializer(JavaType type) 
@@ -188,6 +197,14 @@ public class BeanDeserializer
         }
     }
 
+    public void  addBackReferenceProperty(String referenceName, SettableBeanProperty prop)
+    {
+        if (_backRefs == null) {
+            _backRefs = new HashMap<String, SettableBeanProperty>(4);
+        }
+        _backRefs.put(referenceName, prop);
+    }
+    
     public SettableBeanProperty removeProperty(String name)
     {
         return _props.remove(name);
@@ -218,9 +235,9 @@ public class BeanDeserializer
     }
 
     /*
-    /********************************************************
+    /**********************************************************
     /* Validation, post-processing
-    /********************************************************
+    /**********************************************************
      */
 
     /**
@@ -240,10 +257,26 @@ public class BeanDeserializer
          *   types cost is much lower so we can drop caching
          */
         HashMap<JavaType, JsonDeserializer<Object>> seen = new HashMap<JavaType, JsonDeserializer<Object>>();
-        for (SettableBeanProperty prop : _props.values()) {
+        for (Map.Entry<String, SettableBeanProperty> en : _props.entrySet()) {
+            SettableBeanProperty prop = en.getValue();
             // May already have deserializer from annotations, if so, skip:
             if (!prop.hasValueDeserializer()) {
                 prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(), seen));
+            }
+            // and for [JACKSON-235] need to finally link managed references with matching back references
+            String refName = prop.getManagedReferenceName();
+            if (refName != null) {
+                JsonDeserializer<?> valueDeser = prop._valueDeserializer;
+                if (!(valueDeser instanceof BeanDeserializer)) {
+                    throw new IllegalArgumentException("Can not handle managed/back reference '"+refName+"': type for value deserializer is not BeanDeserializer but "
+                            +valueDeser.getClass().getName());
+                }
+                SettableBeanProperty backProp = ((BeanDeserializer) valueDeser).findBackReference(refName);
+                if (backProp == null) {
+                    throw new IllegalArgumentException("Can not handle managed/back reference '"+refName+"': no back reference property found from type "
+                            +prop.getType());
+                }
+                en.setValue(new SettableBeanProperty.ManagedReferenceProperty(prop, backProp));
             }
         }
 
@@ -268,9 +301,9 @@ public class BeanDeserializer
     }
 
     /*
-    /********************************************************
+    /**********************************************************
     /* JsonDeserializer implementation
-    /********************************************************
+    /**********************************************************
      */
 
     /**
@@ -347,19 +380,38 @@ public class BeanDeserializer
     }
     
     /*
-    /********************************************************
+    /**********************************************************
     /* Other public accessors
-    /********************************************************
+    /**********************************************************
      */
 
     public final Class<?> getBeanClass() { return _beanType.getRawClass(); }
 
     @Override public JavaType getValueType() { return _beanType; }
 
+    /**
+     * @since 1.6
+     */
+    public Iterable<SettableBeanProperty> properties() {
+        return _props.values();
+    }
+
+    /**
+     * Method needed by {@link BeanDeserializerFactory} to properly link
+     * managed- and back-reference pairs.
+     */
+    public SettableBeanProperty findBackReference(String logicalName)
+    {
+        if (_backRefs == null) {
+            return null;
+        }
+        return _backRefs.get(logicalName);
+    }
+    
     /*
-    /********************************************************
+    /**********************************************************
     /* Concrete deserialization methods
-    /********************************************************
+    /**********************************************************
      */
 
     public Object deserializeFromObject(JsonParser jp, DeserializationContext ctxt)
@@ -521,9 +573,9 @@ public class BeanDeserializer
     }
 
     /*
-    /////////////////////////////////////////////////////////
-    // Overridable helper methods
-    /////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Overridable helper methods
+    /**********************************************************
      */
 
     /**

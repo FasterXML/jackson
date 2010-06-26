@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.introspect;
 
 import java.lang.annotation.Annotation;
-import java.util.List;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.JsonDeserializer;
@@ -9,8 +8,6 @@ import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Typing;
-import org.codehaus.jackson.map.jsontype.NamedType;
-import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 
 /**
  * Dummy, "no-operation" implementation of {@link AnnotationIntrospector}.
@@ -28,9 +25,9 @@ public class NopAnnotationIntrospector
     public final static NopAnnotationIntrospector instance = new NopAnnotationIntrospector();
 
     /*
-    /****************************************************
+    /**********************************************************
     /* General annotation properties
-    /****************************************************
+    /**********************************************************
      */
 
     @Override
@@ -39,9 +36,9 @@ public class NopAnnotationIntrospector
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* General annotations
-    /****************************************************
+    /**********************************************************
      */
 
     @Override
@@ -55,9 +52,9 @@ public class NopAnnotationIntrospector
     }
     
     /*
-    /****************************************************
+    /**********************************************************
     /* General Class annotations
-    /****************************************************
+    /**********************************************************
      */
 
     @Override
@@ -81,9 +78,9 @@ public class NopAnnotationIntrospector
     }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Property auto-detection
-    /******************************************************
+    /**********************************************************
      */
     
     @Override
@@ -92,41 +89,10 @@ public class NopAnnotationIntrospector
     }
     
     /*
-    /****************************************************
-    /* Class annotations for PM type handling (1.5+)
-    /****************************************************
-    */
-
-    @Override
-    public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType) {
-        return null;
-    }
-
-    @Override
-    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType) {
-        return null;
-    }
-
-    @Override
-    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType) {
-        return null;
-    }
-    
-    @Override
-    public List<NamedType> findSubtypes(Annotated a) {
-        return null;
-    }
-
-    @Override
-    public String findTypeName(AnnotatedClass ac) {
-        return null;
-    }
-    
-    /*
-    ///////////////////////////////////////////////////////
-    // General Method annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* General Method annotations
+    /**********************************************************
+     */
 
     @Override
     public boolean isIgnorableConstructor(AnnotatedConstructor c) {
@@ -139,9 +105,9 @@ public class NopAnnotationIntrospector
     }
     
     /*
-    ////////////////////////////////////////////////////
-    // General field annotations
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* General field annotations
+    /**********************************************************
      */
 
     @Override
@@ -150,10 +116,10 @@ public class NopAnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: general annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Serialization: general annotations
+    /**********************************************************
+     */
 
     @Override
     public Object findSerializer(Annotated am) {
@@ -181,10 +147,10 @@ public class NopAnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: class annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Serialization: class annotations
+    /**********************************************************
+     */
 
     public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
         return null;
@@ -195,10 +161,10 @@ public class NopAnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: method annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Serialization: method annotations
+    /**********************************************************
+     */
 
     @Override
     public String findGettablePropertyName(AnnotatedMethod am) {
@@ -249,8 +215,6 @@ public class NopAnnotationIntrospector
     public String findSerializablePropertyName(AnnotatedField af) {
         return null;
     }
-
-
     
     @Override
     public String findSettablePropertyName(AnnotatedMethod am) {

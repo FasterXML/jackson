@@ -57,9 +57,9 @@ public class BeanSerializerFactory
     public final static BeanSerializerFactory instance = new BeanSerializerFactory();
 
     /*
-    /*********************************************************
+    /**********************************************************
     /* Life cycle
-    /*********************************************************
+    /**********************************************************
      */
 
     /**
@@ -70,9 +70,9 @@ public class BeanSerializerFactory
     protected BeanSerializerFactory() { }
 
     /*
-    /*********************************************************
+    /**********************************************************
     /* JsonSerializerFactory impl
-    /*********************************************************
+    /**********************************************************
      */
 
     /**
@@ -120,10 +120,10 @@ public class BeanSerializerFactory
     }
 
     /*
-    /*********************************************************
+    /**********************************************************
     /* Other public methods that are not part of
     /* JsonSerializerFactory API
-    /*********************************************************
+    /**********************************************************
      */
 
     /**
@@ -192,9 +192,9 @@ public class BeanSerializerFactory
     }
     
     /*
-    /*********************************************************
+    /**********************************************************
     /* Overridable non-public methods
-    /*********************************************************
+    /**********************************************************
      */
 
     /**
@@ -255,7 +255,8 @@ public class BeanSerializerFactory
             vchecker = vchecker.withFieldVisibility(Visibility.NONE);
         }
         // and finally per-class overrides:
-        vchecker = config.getAnnotationIntrospector().findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        vchecker = intr.findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
 
         LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(vchecker, null);
         LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findSerializableFields(vchecker, methodsByProp.keySet());
@@ -270,11 +271,21 @@ public class BeanSerializerFactory
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
         TypeBindings typeBind = beanDesc.bindingsForBeanType();
         // [JACKSON-98]: start with field properties, if any
-        for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {            
+        for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {      
+            // [JACKSON-235]: suppress writing of back references
+            AnnotationIntrospector.ReferenceProperty prop = intr.findReferenceType(en.getValue());
+            if (prop != null && prop.isBackReference()) {
+                continue;
+            }
             props.add(_constructWriter(config, typeBind, pb, staticTyping, en.getKey(), en.getValue()));
         }
         // and then add member properties
         for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
+            // [JACKSON-235]: suppress writing of back references
+            AnnotationIntrospector.ReferenceProperty prop = intr.findReferenceType(en.getValue());
+            if (prop != null && prop.isBackReference()) {
+                continue;
+            }
             props.add(_constructWriter(config, typeBind, pb, staticTyping, en.getKey(), en.getValue()));
         }
         return props;
@@ -432,9 +443,9 @@ public class BeanSerializerFactory
     }
 
     /*
-    *****************************************************************
-    * Internal helper methods
-    *****************************************************************
+    /**********************************************************
+    /* Internal helper methods
+    /**********************************************************
      */
 
     /**

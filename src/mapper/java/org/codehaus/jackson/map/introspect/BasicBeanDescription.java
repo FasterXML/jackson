@@ -21,9 +21,9 @@ import org.codehaus.jackson.type.JavaType;
 public class BasicBeanDescription extends BeanDescription
 {
     /*
-    /******************************************************
+    /**********************************************************
     /* Configuration
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -40,9 +40,9 @@ public class BasicBeanDescription extends BeanDescription
     protected TypeBindings _bindings;
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Life-cycle
-    /******************************************************
+    /**********************************************************
      */
 
     public BasicBeanDescription(JavaType type, AnnotatedClass ac,
@@ -55,9 +55,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Simple accessors
-    /******************************************************
+    /**********************************************************
      */
 
     public AnnotatedClass getClassInfo() { return _classInfo; }
@@ -114,15 +114,15 @@ public class BasicBeanDescription extends BeanDescription
     }
     
     /*
-    /*********************************************************
+    /**********************************************************
     /* Basic API
-    /*********************************************************
+    /**********************************************************
      */
 
     /*
-    /*********************************************************
+    /**********************************************************
     /* Introspection for serialization (write JSON), getters
-    /*********************************************************
+    /**********************************************************
      */
     
     public LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
@@ -221,9 +221,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    /*********************************************************
+    /**********************************************************
     /* Introspection for serialization, factories
-    /*********************************************************
+    /**********************************************************
      */
 
     /**
@@ -375,9 +375,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    /*********************************************************
+    /**********************************************************
     /* Introspection for serialization, fields
-    /*********************************************************
+    /**********************************************************
      */
 
     public LinkedHashMap<String,AnnotatedField> findSerializableFields(VisibilityChecker<?> vchecker,
@@ -387,9 +387,9 @@ public class BasicBeanDescription extends BeanDescription
     }
     
     /*
-    /*********************************************************
+    /**********************************************************
     /* Introspection for serialization, other
-    /*********************************************************
+    /**********************************************************
      */
 
     /**
@@ -404,9 +404,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    /*********************************************************
+    /**********************************************************
     /* Introspection for deserialization, setters:
-    /*********************************************************
+    /**********************************************************
      */
 
     public LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> vchecker)
@@ -513,10 +513,47 @@ public class BasicBeanDescription extends BeanDescription
         return found;
     }
 
+    /**
+     * Method for locating all back-reference properties (setters, fields) bean has
+     * 
+     * @since 1.6
+     */
+    public Map<String,AnnotatedMember> findBackReferenceProperties()
+    {
+        HashMap<String,AnnotatedMember> result = null;
+        // First, gather setter methods
+        for (AnnotatedMethod am : _classInfo.memberMethods()) {
+            if (am.getParameterCount() == 1) {
+                AnnotationIntrospector.ReferenceProperty prop = _annotationIntrospector.findReferenceType(am);
+                if (prop != null && prop.isBackReference()) {
+                    if (result == null) {
+                        result = new HashMap<String,AnnotatedMember>();
+                    }
+                    if (result.put(prop.getName(), am) != null) {
+                        throw new IllegalArgumentException("Multiple back-reference properties with name '"+prop.getName()+"'");
+                    }
+                }
+            }
+        }
+        // then settable fields
+        for (AnnotatedField af : _classInfo.fields()) {
+            AnnotationIntrospector.ReferenceProperty prop = _annotationIntrospector.findReferenceType(af);
+            if (prop != null && prop.isBackReference()) {
+                if (result == null) {
+                    result = new HashMap<String,AnnotatedMember>();
+                }
+                if (result.put(prop.getName(), af) != null) {
+                    throw new IllegalArgumentException("Multiple back-reference properties with name '"+prop.getName()+"'");
+                }
+            }
+        }
+        return result;
+    }
+    
     /*
-    /*********************************************************
+    /**********************************************************
     /* Introspection for deserialization, fields:
-    /*********************************************************
+    /**********************************************************
      */
 
     public LinkedHashMap<String,AnnotatedField> findDeserializableFields(VisibilityChecker<?> vchecker,
@@ -526,9 +563,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    /*********************************************************
+    /**********************************************************
     /* Helper methods for getters
-    /*********************************************************
+    /**********************************************************
      */
 
     public String okNameForAnyGetter(AnnotatedMethod am, String name)
@@ -657,9 +694,9 @@ public class BasicBeanDescription extends BeanDescription
     }
  
     /*
-    /*********************************************************
+    /**********************************************************
     /* Helper methods for setters
-    /*********************************************************
+    /**********************************************************
      */
 
     public String okNameForSetter(AnnotatedMethod am)
@@ -696,9 +733,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    /*********************************************************
+    /**********************************************************
     /* Helper methods for field introspection
-    /*********************************************************
+    /**********************************************************
      */
 
     /**
@@ -777,9 +814,9 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /*
-    /*********************************************************
+    /**********************************************************
     /* Property name mangling (getFoo -> foo)
-    /*********************************************************
+    /**********************************************************
      */
 
     /**

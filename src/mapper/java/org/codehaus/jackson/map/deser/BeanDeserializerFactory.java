@@ -132,6 +132,8 @@ public class BeanDeserializerFactory
 
          // And then setters for deserializing from Json Object
         addBeanProps(config, beanDesc, deser);
+        // managed/back reference fields/setters need special handling... first part
+        addReferenceProperties(config, beanDesc, deser);
 
         return deser;
     }
@@ -378,6 +380,9 @@ public class BeanDeserializerFactory
     /**
      * Method called to figure out settable properties for the
      * bean deserializer to use.
+     *<p>
+     * Note: designed to be overridable, and effort is made to keep interface
+     * similar between versions.
      */
     protected void addBeanProps(DeserializationConfig config,
                                 BasicBeanDescription beanDesc, BeanDeserializer deser)
@@ -399,12 +404,7 @@ public class BeanDeserializerFactory
         // Also, do we have a fallback "any" setter?
         AnnotatedMethod anySetter = beanDesc.findAnySetter();
 
-        /* No setters? Should we proceed here? It may well be ok, if
-         * there are factory methods or such.
-         */
-        //if (setters.isEmpty() && anySetter == null) ...
-
-        // And finally, things specified as "ok to ignore"? [JACKSON-77]
+        // Things specified as "ok to ignore"? [JACKSON-77]
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean ignoreAny = false;
         {
@@ -491,6 +491,33 @@ public class BeanDeserializerFactory
     }
 
     /**
+     * Method that will find if bean has any managed- or back-reference properties,
+     * and if so add them to bean, to be linked during resolution phase.
+     * 
+     * @since 1.6
+     */
+    protected void addReferenceProperties(DeserializationConfig config,
+            BasicBeanDescription beanDesc, BeanDeserializer deser)
+        throws JsonMappingException
+    {
+        // and then back references, not necessarily found as regular properties
+        Map<String,AnnotatedMember> refs = beanDesc.findBackReferenceProperties();
+        if (refs != null) {
+            for (Map.Entry<String, AnnotatedMember> en : refs.entrySet()) {
+                String name = en.getKey();
+                AnnotatedMember m = en.getValue();
+                if (m instanceof AnnotatedMethod) {
+                    deser.addBackReferenceProperty(name, constructSettableProperty(
+                            config, beanDesc, name, (AnnotatedMethod) m));
+                } else {
+                    deser.addBackReferenceProperty(name, constructSettableProperty(
+                            config, beanDesc, name, (AnnotatedField) m));
+                }
+            }
+        }
+    }
+        
+    /**
      * Method called to construct fallback {@link SettableAnyProperty}
      * for handling unknown bean properties, given a method that
      * has been designated as such setter.
@@ -560,6 +587,11 @@ public class BeanDeserializerFactory
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);
         }
+        // [JACKSON-235]: need to retain name of managed forward references:
+        AnnotationIntrospector.ReferenceProperty ref = config.getAnnotationIntrospector().findReferenceType(setter);
+        if (ref != null && ref.isManagedReference()) {
+            prop.setManagedReferenceName(ref.getName());
+        }
         return prop;
     }
 
@@ -584,6 +616,11 @@ public class BeanDeserializerFactory
         SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(name, type, typeDeser, f);
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);
+        }
+        // [JACKSON-235]: need to retain name of managed forward references:
+        AnnotationIntrospector.ReferenceProperty ref = config.getAnnotationIntrospector().findReferenceType(field);
+        if (ref != null && ref.isManagedReference()) {
+            prop.setManagedReferenceName(ref.getName());
         }
         return prop;
     }

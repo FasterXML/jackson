@@ -27,6 +27,58 @@ public abstract class AnnotationIntrospector
 {    
     /*
     /**********************************************************
+    /* Enumeration types
+    /**********************************************************
+     */
+
+    /**
+     * Value type used with managed and back references; contains type and
+     * logic name, used to link related references
+     * 
+     * @since 1.6
+     */
+    public static class ReferenceProperty
+    {
+        public enum Type {
+            /**
+             * Reference property that Jackson manages and that is serialized normally (by serializing
+             * reference object), but is used for resolving back references during
+             * deserialization.
+             * Usually this can be defined by using
+             * {@link org.codehaus.jackson.annotate.JsonManagedReference}
+             */
+            MANAGED_REFERENCE
+    
+            /**
+             * Reference property that Jackson manages by suppressing it during serialization,
+             * and reconstructing during deserialization.
+             * Usually this can be defined by using
+             * {@link org.codehaus.jackson.annotate.JsonBackReference}
+             */
+            ,BACK_REFERENCE
+            ;
+        }
+
+        private final Type _type;
+        private final String _name;
+
+        public ReferenceProperty(Type t, String n) {
+            _type = t;
+            _name = n;
+        }
+
+        public static ReferenceProperty managed(String name) { return new ReferenceProperty(Type.MANAGED_REFERENCE, name); }
+        public static ReferenceProperty back(String name) { return new ReferenceProperty(Type.BACK_REFERENCE, name); }
+        
+        public Type getType() { return _type; }
+        public String getName() { return _name; }
+
+        public boolean isManagedReference() { return _type == Type.MANAGED_REFERENCE; }
+        public boolean isBackReference() { return _type == Type.BACK_REFERENCE; }
+    }
+    
+    /*
+    /**********************************************************
     /* Factory methods
     /**********************************************************
      */
@@ -168,7 +220,9 @@ public abstract class AnnotationIntrospector
      * 
      * @since 1.5
      */
-    public abstract TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType);
+    public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType) {
+        return null;
+    }
 
     /**
      * Method for checking if given property entity (field or method) has annotations
@@ -186,7 +240,9 @@ public abstract class AnnotationIntrospector
      * 
      * @since 1.5
      */
-    public abstract TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType);
+    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType) {
+        return null;
+    }
 
     /**
      * Method for checking if given structured property entity (field or method that
@@ -206,7 +262,9 @@ public abstract class AnnotationIntrospector
      * 
      * @since 1.5
      */    
-    public abstract TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType containerType);
+    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType containerType) {
+        return null;
+    }
 
     /**
      * Method for locating annotation-specified subtypes related to annotated
@@ -219,7 +277,9 @@ public abstract class AnnotationIntrospector
      * 
      * @since 1.5
      */
-    public abstract List<NamedType> findSubtypes(Annotated a);
+    public List<NamedType> findSubtypes(Annotated a) {
+        return null;
+    }
 
     /**
      * Method for checking if specified type has explicit name.
@@ -228,13 +288,31 @@ public abstract class AnnotationIntrospector
      * 
      * @since 1.5
      */
-    public abstract String findTypeName(AnnotatedClass ac);
+    public String findTypeName(AnnotatedClass ac) {
+        return null;
+    }
+
+    /*
+    /**********************************************************
+    /* General member (field, method/constructor) annotations
+    /**********************************************************
+     */
+
+    /**
+     * Note: defined as non-abstract to reduce fragility between
+     * versions.
+     * 
+     * @since 1.6
+     */
+    public ReferenceProperty findReferenceType(AnnotatedMember member) {
+        return null;
+    }
     
     /*
     /**********************************************************
     /* General method annotations
     /**********************************************************
-    */
+     */
 
     /**
      * Method for checking whether there is an annotation that
@@ -766,6 +844,18 @@ public abstract class AnnotationIntrospector
                 name = _secondary.findTypeName(ac);                
             }
             return name;
+        }
+
+        // // // General member (field, method/constructor) annotations
+        
+        @Override        
+        public ReferenceProperty findReferenceType(AnnotatedMember member)
+        {
+            ReferenceProperty ref = _primary.findReferenceType(member);
+            if (ref == null) {
+                ref = _secondary.findReferenceType(member);
+            }
+            return ref; 
         }
         
         // // // General method annotations

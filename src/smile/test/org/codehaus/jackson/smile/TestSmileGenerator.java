@@ -2,8 +2,6 @@ package org.codehaus.jackson.smile;
 
 import java.io.*;
 
-import org.junit.Assert;
-
 import static org.codehaus.jackson.smile.SmileConstants.*;
 
 public class TestSmileGenerator
