@@ -45,7 +45,7 @@ public class TestAccessType
          Model originalModel = new Model();
          originalModel.setName("Foobar");
          String json = mapper.writeValueAsString(originalModel);
-         System.out.println(json); // Outputs {"name":"Name"}
+//         System.out.println(json); // Outputs {"name":"Name"}
          Model newModel = mapper.readValue(json, Model.class);
          assertEquals("Foobar", newModel.name);
      }

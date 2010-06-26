@@ -443,8 +443,12 @@ public abstract class SettableBeanProperty
             throws IOException
         {
             _managedProperty.set(instance, value);
-            _backProperty.set(value, instance);
+            /* And then back reference, if (and only if!) we actually have a non-null
+             * reference
+             */
+            if (value != null) {
+                _backProperty.set(value, instance);
+            }
         }
     }
-
 }
