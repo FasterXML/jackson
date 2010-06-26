@@ -206,7 +206,7 @@ public abstract class BasicDeserializerFactory
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         @SuppressWarnings("unchecked")
         Constructor<Collection<Object>> ctor = ClassUtil.findConstructor((Class<Collection<Object>>)collectionClass, fixAccess);
-        return new CollectionDeserializer(collectionClass, contentDeser, contentTypeDeser, ctor);
+        return new CollectionDeserializer(type, contentDeser, contentTypeDeser, ctor);
     }
 
     @Override

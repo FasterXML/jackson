@@ -267,16 +267,37 @@ public class BeanDeserializer
             String refName = prop.getManagedReferenceName();
             if (refName != null) {
                 JsonDeserializer<?> valueDeser = prop._valueDeserializer;
-                if (!(valueDeser instanceof BeanDeserializer)) {
-                    throw new IllegalArgumentException("Can not handle managed/back reference '"+refName+"': type for value deserializer is not BeanDeserializer but "
+                SettableBeanProperty backProp = null;
+                boolean isContainer = false;
+                if (valueDeser instanceof BeanDeserializer) {
+                    backProp = ((BeanDeserializer) valueDeser).findBackReference(refName);
+                } else if (valueDeser instanceof ContainerDeserializer<?>) {
+                    JsonDeserializer<?> contentDeser = ((ContainerDeserializer<?>) valueDeser).getContentDeserializer();
+                    if (!(contentDeser instanceof BeanDeserializer)) {
+                        throw new IllegalArgumentException("Can not handle managed/back reference '"+refName
+                                +"': value deserializer is of type ContainerDeserializer, but content type is not handled by a BeanDeserializer "
+                                +" (instead it's of type "+contentDeser.getClass().getName()+")");
+                    }
+                    backProp = ((BeanDeserializer) contentDeser).findBackReference(refName);
+                    isContainer = true;
+                } else {
+                    throw new IllegalArgumentException("Can not handle managed/back reference '"+refName
+                            +"': type for value deserializer is not BeanDeserializer or ContainerDeserializer, but "
                             +valueDeser.getClass().getName());
                 }
-                SettableBeanProperty backProp = ((BeanDeserializer) valueDeser).findBackReference(refName);
                 if (backProp == null) {
                     throw new IllegalArgumentException("Can not handle managed/back reference '"+refName+"': no back reference property found from type "
                             +prop.getType());
                 }
-                en.setValue(new SettableBeanProperty.ManagedReferenceProperty(prop, backProp));
+                // also: verify that type is compatible
+                JavaType referredType = _beanType;
+                JavaType backRefType = backProp.getType();
+                if (!backRefType.getRawClass().isAssignableFrom(referredType.getRawClass())) {
+                    throw new IllegalArgumentException("Can not handle managed/back reference '"+refName+"': back reference type ("
+                            +backRefType.getRawClass().getName()+") not compatible with managed type ("
+                            +referredType.getRawClass().getName()+")");
+                }
+                en.setValue(new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp, isContainer));
             }
         }
 

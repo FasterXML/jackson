@@ -508,10 +508,10 @@ public class BeanDeserializerFactory
                 AnnotatedMember m = en.getValue();
                 if (m instanceof AnnotatedMethod) {
                     deser.addBackReferenceProperty(name, constructSettableProperty(
-                            config, beanDesc, name, (AnnotatedMethod) m));
+                            config, beanDesc, m.getName(), (AnnotatedMethod) m));
                 } else {
                     deser.addBackReferenceProperty(name, constructSettableProperty(
-                            config, beanDesc, name, (AnnotatedField) m));
+                            config, beanDesc, m.getName(), (AnnotatedField) m));
                 }
             }
         }

@@ -14,7 +14,7 @@ import org.codehaus.jackson.type.JavaType;
  * Basic serializer that can serialize non-primitive arrays.
  */
 public class ArrayDeserializer
-    extends StdDeserializer<Object>
+    extends ContainerDeserializer<Object[]>
 {
     // // Configuration
 
@@ -60,9 +60,27 @@ public class ArrayDeserializer
         _elementTypeDeserializer = elemTypeDeser;
     }
 
-    public JavaType getValueType() { return null; }
+    /*
+    /**********************************************************
+    /* ContainerDeserializer API
+    /**********************************************************
+     */
+
+    public JavaType getContentType() {
+        return _arrayType.getContentType();
+    }
+
+    public JsonDeserializer<Object> getContentDeserializer() {
+        return _elementDeserializer;
+    }
     
-    public Object deserialize(JsonParser jp, DeserializationContext ctxt)
+    /*
+    /**********************************************************
+    /* JsonDeserializer API
+    /**********************************************************
+     */
+    
+    public Object[] deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_ARRAY
@@ -112,15 +130,21 @@ public class ArrayDeserializer
         return result;
     }
 
-    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+    public Object[] deserializeWithType(JsonParser jp, DeserializationContext ctxt,
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException
     {
         /* Should there be separate handling for base64 stuff?
          * for now this should be enough:
          */
-        return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
+        return (Object[]) typeDeserializer.deserializeTypedFromArray(jp, ctxt);
     }
+
+    /*
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
+     */
     
     protected Byte[] deserializeFromBase64(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException

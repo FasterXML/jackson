@@ -36,26 +36,25 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Extended API
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
     public Class<?> getValueClass() { return _valueClass; }
 
     /**
-     * Exact structured type deserializer handles, if known;
-     * null for non-structured (scalar) types.
+     * Exact structured type deserializer handles, if known.
      *<p>
      * Default implementation just returns null.
      */
     public JavaType getValueType() { return null; }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Partial JsonDeserializer implementation 
-    /****************************************************
-    */
+    /**********************************************************
+     */
     
     /**
      * Base implementation that does not assume specific type
@@ -70,10 +69,10 @@ public abstract class StdDeserializer<T>
     }
     
     /*
-    /****************************************************
+    /**********************************************************
     /* Helper methods for sub-classes, parsing
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
     protected final boolean _parseBoolean(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
@@ -295,7 +294,8 @@ public abstract class StdDeserializer<T>
 
     /**
      * Helper method used to locate deserializers for properties the
-     * bean itself contains.
+     * type this deserializer handles contains (usually for properties of
+     * bean types)
      *
      * @param type Type of property to deserialize
      */
@@ -317,10 +317,10 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Helper methods for sub-classes, problem reporting
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
     /**
      * Method called to deal with a property that did not map to a known
@@ -372,11 +372,11 @@ public abstract class StdDeserializer<T>
 
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Then one intermediate base class for things that have
     /* both primitive and wrapper types
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
     protected abstract static class PrimitiveOrWrapperDeserializer<T>
         extends StdScalarDeserializer<T>
@@ -393,10 +393,10 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* First, generic (Object, String, String-like, Class) deserializers
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
     public final static class StringDeserializer
         extends StdScalarDeserializer<String>
@@ -443,10 +443,10 @@ public abstract class StdDeserializer<T>
     }
 
     /*
-    /****************************************************
+    /**********************************************************
     /* Then primitive/wrapper types
-    /****************************************************
-    */
+    /**********************************************************
+     */
 
     public final static class BooleanDeserializer
         extends PrimitiveOrWrapperDeserializer<Boolean>
@@ -760,7 +760,7 @@ public abstract class StdDeserializer<T>
         public BigDecimalDeserializer() { super(BigDecimal.class); }
 
         @Override
-		public BigDecimal deserialize(JsonParser jp, DeserializationContext ctxt)
+	public BigDecimal deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();

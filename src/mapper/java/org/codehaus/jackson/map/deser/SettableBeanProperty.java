@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
 import java.lang.reflect.*;
+import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -415,16 +416,27 @@ public abstract class SettableBeanProperty
     public final static class ManagedReferenceProperty
         extends SettableBeanProperty
     {
+        protected final String _referenceName;
+        
+        /**
+         * Flag that indicates whether property to handle is a container type
+         * (array, Collection, Map) or not.
+         */
+        protected final boolean _isContainer;
+        
         protected final SettableBeanProperty _managedProperty;
 
         protected final SettableBeanProperty _backProperty;
         
-        public ManagedReferenceProperty(SettableBeanProperty forward,
-                SettableBeanProperty backward)
+        public ManagedReferenceProperty(String refName,
+                SettableBeanProperty forward,
+                SettableBeanProperty backward, boolean isContainer)
         {
             super(forward.getPropertyName(), forward.getType(), forward._valueTypeDeserializer);
+            _referenceName = refName;
             _managedProperty = forward;
             _backProperty = backward;
+            _isContainer = isContainer;
         }
 
         protected Class<?> getDeclaringClass()
@@ -447,7 +459,32 @@ public abstract class SettableBeanProperty
              * reference
              */
             if (value != null) {
-                _backProperty.set(value, instance);
+                if (_isContainer) { // ok, this gets ugly... but has to do for now
+                    if (value instanceof Object[]) {
+                        for (Object ob : (Object[]) value) {
+                            if (ob != null) {
+                                _backProperty.set(ob, instance);                            
+                            }
+                        }
+                    } else if (value instanceof Collection<?>) {
+                        for (Object ob : (Collection<?>) value) {
+                            if (ob != null) {
+                                _backProperty.set(ob, instance);                            
+                            }
+                        }
+                    } else if (value instanceof Map<?,?>) {
+                        for (Object ob : ((Map<?,?>) value).values()) {
+                            if (ob != null) {
+                                _backProperty.set(ob, instance);                            
+                            }
+                        }
+                    } else {
+                        throw new IllegalStateException("Unsupported container type ("+value.getClass().getName()
+                                +") when resolving reference '"+_referenceName+"'");
+                    }
+                } else {
+                    _backProperty.set(value, instance);
+                }
             }
         }
     }

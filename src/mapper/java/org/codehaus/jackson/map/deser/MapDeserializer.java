@@ -21,7 +21,7 @@ import org.codehaus.jackson.type.JavaType;
  * POJO types, only other containers and primitives/wrappers.
  */
 public class MapDeserializer
-    extends StdDeserializer<Map<Object,Object>>
+    extends ContainerDeserializer<Map<Object,Object>>
     implements ResolvableDeserializer
 {
     // // Configuration: typing, deserializers
@@ -60,11 +60,11 @@ public class MapDeserializer
     // // Any properties to ignore if seen?
     
     protected HashSet<String> _ignorableProperties;
-    
+
     /*
-    ////////////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public MapDeserializer(JavaType mapType, Constructor<Map<Object,Object>> defCtor,
@@ -95,9 +95,23 @@ public class MapDeserializer
     }
 
     /*
-    /////////////////////////////////////////////////////////
-    // Validation, post-processing
-    /////////////////////////////////////////////////////////
+    /**********************************************************
+    /* ContainerDeserializer API
+    /**********************************************************
+     */
+
+    public JavaType getContentType() {
+        return _mapType.getContentType();
+    }
+
+    public JsonDeserializer<Object> getContentDeserializer() {
+        return _valueDeserializer;
+    }
+    
+    /*
+    /**********************************************************
+    /* Validation, post-processing
+    /**********************************************************
      */
 
     /**
@@ -119,9 +133,9 @@ public class MapDeserializer
     }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Deserializer API
-    ////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* JsonDeserializer API
+    /**********************************************************
      */
 
     @Override
@@ -173,9 +187,9 @@ public class MapDeserializer
     }
     
     /*
-    /////////////////////////////////////////////////////////
-    // Other public accessors
-    /////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Other public accessors
+    /**********************************************************
      */
 
     @SuppressWarnings("unchecked")
@@ -184,10 +198,10 @@ public class MapDeserializer
     @Override public JavaType getValueType() { return _mapType; }
 
     /*
-    *************************************************
-    * Internal methods
-    *************************************************
-    */
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
+     */
 
     protected final void _readAndBind(JsonParser jp, DeserializationContext ctxt,
                                       Map<Object,Object> result)

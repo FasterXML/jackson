@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
+import java.util.*;
+
 import org.codehaus.jackson.annotate.JsonBackReference;
 import org.codehaus.jackson.annotate.JsonManagedReference;
 import org.codehaus.jackson.map.*;
@@ -11,7 +13,7 @@ public class TestParentChildReferences
 {
     /*
     /**********************************************************
-    /* Test classes, enums
+    /* Test classes
     /**********************************************************
      */
 
@@ -55,12 +57,67 @@ public class TestParentChildReferences
         @JsonManagedReference("sibling")
         public FullTreeNode next;
         @JsonBackReference("sibling")
-        public FullTreeNode prev;
+        protected FullTreeNode prev;
         
         public FullTreeNode() { this(null); }
         public FullTreeNode(String name) {
             this.name = name;
         }
+    }
+
+    /**
+     * Class for testing managed references via arrays
+     */
+    static class NodeArray
+    {
+        @JsonManagedReference("arr")
+        public ArrayNode[] nodes;
+    }
+
+    static class ArrayNode
+    {
+        public String name;
+        
+        @JsonBackReference("arr")
+        public NodeArray parent;
+
+        public ArrayNode() { this(null); }
+        public ArrayNode(String n) { name = n; }
+    }
+    
+    /**
+     * Class for testing managed references via Collections
+     */
+    static class NodeList
+    {
+        @JsonManagedReference
+        public List<NodeForList> nodes;
+    }
+
+    static class NodeForList
+    {
+        public String name;
+        
+        public NodeList parent;
+
+        public NodeForList() { this(null); }
+        public NodeForList(String n) { name = n; }
+    }
+    
+    static class NodeMap
+    {
+        @JsonManagedReference
+        public Map<String,NodeForMap> nodes;
+    }
+
+    static class NodeForMap
+    {
+        public String name;
+        
+        public NodeMap parent;
+
+        public NodeForMap() { this(null); }
+        public NodeForMap(String n) { name = n; }
     }
     
     /*
@@ -68,7 +125,7 @@ public class TestParentChildReferences
     /* Unit tests
     /**********************************************************
      */
-    
+
     public void testSimpleRefs() throws Exception
     {
         SimpleTreeNode root = new SimpleTreeNode("root");
@@ -116,4 +173,66 @@ public class TestParentChildReferences
         assertNull(resultChild2.next);
     }
 
+    public void testArrayOfRefs() throws Exception
+    {
+        NodeArray root = new NodeArray();
+        ArrayNode node1 = new ArrayNode("a");
+        ArrayNode node2 = new ArrayNode("b");
+        root.nodes = new ArrayNode[] { node1, node2 };
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(root);
+        
+        NodeArray result = mapper.readValue(json, NodeArray.class);
+        ArrayNode[] kids = result.nodes;
+        assertNotNull(kids);
+        assertEquals(2, kids.length);
+        assertEquals("a", kids[0].name);
+        assertEquals("b", kids[1].name);
+        assertSame(result, kids[0].parent);
+        assertSame(result, kids[1].parent);
+    }
+
+    public void testListOfRefs() throws Exception
+    {
+        NodeList root = new NodeList();
+        NodeForList node1 = new NodeForList("a");
+        NodeForList node2 = new NodeForList("b");
+        root.nodes = Arrays.asList(node1, node2);
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(root);
+        
+        NodeList result = mapper.readValue(json, NodeList.class);
+        List<NodeForList> kids = result.nodes;
+        assertNotNull(kids);
+        assertEquals(2, kids.size());
+        assertEquals("a", kids.get(0).name);
+        assertEquals("b", kids.get(0).name);
+        assertSame(result, kids.get(1).parent);
+        assertSame(result, kids.get(1).parent);
+    }
+
+    public void testMapOfRefs() throws Exception
+    {
+        NodeMap root = new NodeMap();
+        NodeForMap node1 = new NodeForMap("a");
+        NodeForMap node2 = new NodeForMap("b");
+        Map<String,NodeForMap> nodes = new HashMap<String, NodeForMap>();
+        nodes.put("a1", node1);
+        nodes.put("b2", node2);
+        root.nodes = nodes;
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(root);
+        
+        NodeMap result = mapper.readValue(json, NodeMap.class);
+        Map<String,NodeForMap> kids = result.nodes;
+        assertNotNull(kids);
+        assertEquals(2, kids.size());
+        assertNotNull(kids.get("a1"));
+        assertNotNull(kids.get("b2"));
+        assertEquals("a", kids.get("a1").name);
+        assertEquals("b", kids.get("a1").name);
+        assertSame(result, kids.get("b2").parent);
+        assertSame(result, kids.get("b2").parent);
+    }
+    
 }

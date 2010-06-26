@@ -10,10 +10,12 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.TypeDeserializer;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.type.JavaType;
 
 /**
- * Basic serializer that can take Json "Array" structure and
+ * Basic serializer that can take JSON "Array" structure and
  * construct a {@link java.util.Collection} instance, with typed contents.
  *<p>
  * Note: for untyped content (one indicated by passing Object.class
@@ -22,11 +24,11 @@ import org.codehaus.jackson.map.util.ClassUtil;
  * POJO types, only other containers and primitives/wrappers.
  */
 public class CollectionDeserializer
-    extends StdDeserializer<Collection<Object>>
+    extends ContainerDeserializer<Collection<Object>>
 {
     // // Configuration
 
-    final Class<Collection<Object>> _collectionClass;
+    protected final JavaType _collectionType;
 
     /**
      * Value deserializer.
@@ -45,32 +47,37 @@ public class CollectionDeserializer
      */
     final Constructor<Collection<Object>> _defaultCtor;
     
-    @Deprecated
-    public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser)
+    public CollectionDeserializer(JavaType collectionType, JsonDeserializer<Object> valueDeser,
+            TypeDeserializer valueTypeDeser,
+            Constructor<Collection<Object>> ctor)
     {
-        this(collectionClass, valueDeser, null);
-    }
-
-    @SuppressWarnings("unchecked")
-    public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser,
-            TypeDeserializer valueTypeDeser)
-    {
-        this(collectionClass, valueDeser, valueTypeDeser,
-             ClassUtil.findConstructor((Class<Collection<Object>>) collectionClass, true));
-    }
-
-    @SuppressWarnings("unchecked")
-    public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser,
-                                  TypeDeserializer valueTypeDeser,
-                                  Constructor<Collection<Object>> ctor)
-    {
-        super(collectionClass);
-        _collectionClass = (Class<Collection<Object>>) collectionClass;
+        super(collectionType.getRawClass());
+        _collectionType = collectionType;
         _valueDeserializer = valueDeser;
         _valueTypeDeserializer = valueTypeDeser;
         _defaultCtor = ctor;
     }
 
+    /*
+    /**********************************************************
+    /* ContainerDeserializer API
+    /**********************************************************
+     */
+
+    public JavaType getContentType() {
+        return _collectionType.getContentType();
+    }
+
+    public JsonDeserializer<Object> getContentDeserializer() {
+        return _valueDeserializer;
+    }
+    
+    /*
+    /**********************************************************
+    /* JsonDeserializer API
+    /**********************************************************
+     */
+    
     @Override
     public Collection<Object> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
@@ -79,7 +86,7 @@ public class CollectionDeserializer
         try {
             result = _defaultCtor.newInstance();
         } catch (Exception e) {
-            throw ctxt.instantiationException(_collectionClass, e);
+            throw ctxt.instantiationException(_collectionType.getRawClass(), e);
         }
         return deserialize(jp, ctxt, result);
     }
@@ -91,7 +98,7 @@ public class CollectionDeserializer
     {
         // Ok: must point to START_ARRAY
         if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
-            throw ctxt.mappingException(_collectionClass);
+            throw ctxt.mappingException(_collectionType.getRawClass());
         }
 
         JsonDeserializer<Object> valueDes = _valueDeserializer;
