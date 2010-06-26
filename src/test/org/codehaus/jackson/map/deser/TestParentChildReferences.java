@@ -98,6 +98,7 @@ public class TestParentChildReferences
     {
         public String name;
         
+        @JsonBackReference
         public NodeList parent;
 
         public NodeForList() { this(null); }
@@ -114,6 +115,7 @@ public class TestParentChildReferences
     {
         public String name;
         
+        @JsonBackReference
         public NodeMap parent;
 
         public NodeForMap() { this(null); }
@@ -206,8 +208,8 @@ public class TestParentChildReferences
         assertNotNull(kids);
         assertEquals(2, kids.size());
         assertEquals("a", kids.get(0).name);
-        assertEquals("b", kids.get(0).name);
-        assertSame(result, kids.get(1).parent);
+        assertEquals("b", kids.get(1).name);
+        assertSame(result, kids.get(0).parent);
         assertSame(result, kids.get(1).parent);
     }
 
@@ -230,8 +232,8 @@ public class TestParentChildReferences
         assertNotNull(kids.get("a1"));
         assertNotNull(kids.get("b2"));
         assertEquals("a", kids.get("a1").name);
-        assertEquals("b", kids.get("a1").name);
-        assertSame(result, kids.get("b2").parent);
+        assertEquals("b", kids.get("b2").name);
+        assertSame(result, kids.get("a1").parent);
         assertSame(result, kids.get("b2").parent);
     }
     
