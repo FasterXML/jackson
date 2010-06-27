@@ -103,16 +103,25 @@ public class SmileParserBootstrapper
         		codec, can, 
         		_in, _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
         boolean hadSig;
-    	if (_inputBuffer[_inputPtr] == SmileConstants.HEADER_BYTE_1) {
+        byte firstByte = _inputBuffer[_inputPtr];
+    	if (firstByte == SmileConstants.HEADER_BYTE_1) {
     	    // need to ensure it gets properly handled so caller won't see the signature
     	    hadSig = p.handleSignature(true);
     	} else {
     	    hadSig = false;
     	}
     	if (!hadSig && (smileFeatures & SmileParser.Feature.REQUIRE_HEADER.getMask()) != 0) {
-    	    throw new JsonParseException(
-    	            "Input does not start with Smile format header; and parser has REQUIRE_HEADER enabLed: can not parse",
-    	            JsonLocation.NA);
+    	    // Ok, first, let's see if it looks like plain JSON...
+    	    String msg;
+    	    if (firstByte == '{' || firstByte == '[') {
+                msg = "Input does not start with Smile format header (first byte = 0x"
+                    +Integer.toHexString(firstByte & 0xFF)+") -- rather, it starts with '"+((char) firstByte)
+                    +"' (plain JSON input?) -- can not parse";
+    	    } else {
+                msg = "Input does not start with Smile format header (first byte = 0x"
+                +Integer.toHexString(firstByte & 0xFF)+") and parser has REQUIRE_HEADER enabled: can not parse";
+    	    }
+    	    throw new JsonParseException(msg, JsonLocation.NA);
     	}
         return p;
     }

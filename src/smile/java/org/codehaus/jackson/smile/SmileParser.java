@@ -551,7 +551,7 @@ public class SmileParser
             {
                 int index = (ch & 0x3F);
                 if (_sharedNames == null) {
-                	_reportInvalidSharedName();
+               	    _reportInvalidSharedName();
                 }
                 _parsingContext.setCurrentName(_sharedNames[index]);
             }
@@ -1161,32 +1161,32 @@ public class SmileParser
 	    _textBuffer.setCurrentLength(outPtr);
 	}
 
-	private final void _decodeLongAscii()
-		throws IOException, JsonParseException
-	{
-	    int outPtr = 0;
-	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-	    main_loop:
-	    while (true) {
-	    	int left = _inputEnd - _inputPtr;
-	    	if (left < 1) {
-		    	left = _inputEnd - _inputPtr;
-	    	}
-	    	if (outPtr >= outBuf.length) {
-	    		outBuf = _textBuffer.finishCurrentSegment();
-	    		outPtr = 0;
-	    	}
-	    	left = Math.min(left, outBuf.length - outPtr);
-	    	do {
-	    		byte b = _inputBuffer[_inputPtr++];
-	    		if (b == SmileConstants.BYTE_MARKER_END_OF_STRING) {
-	    			break main_loop;
-	    		}
-		        outBuf[outPtr++] = (char) b;	    		
-	    	} while (--left >= 0);
-	    }
-	    _textBuffer.setCurrentLength(outPtr);
-	}
+    private final void _decodeLongAscii()
+        throws IOException, JsonParseException
+    {
+        int outPtr = 0;
+        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+        main_loop:
+        while (true) {
+            if (_inputPtr >= _inputEnd) {
+                loadMoreGuaranteed();
+            }
+            int left = _inputEnd - _inputPtr;
+            if (outPtr >= outBuf.length) {
+                outBuf = _textBuffer.finishCurrentSegment();
+                outPtr = 0;
+            }
+            left = Math.min(left, outBuf.length - outPtr);
+            do {
+                byte b = _inputBuffer[_inputPtr++];
+                if (b == SmileConstants.BYTE_MARKER_END_OF_STRING) {
+                    break main_loop;
+                }
+                outBuf[outPtr++] = (char) b;	    		
+            } while (--left > 0);
+        }
+        _textBuffer.setCurrentLength(outPtr);
+    }
 
     private final void _decodeLongUnicode()
         throws IOException, JsonParseException
