@@ -192,9 +192,79 @@ public class TestSmileParser
     	p.close();
     }
 
+    public void testNestedObject() throws IOException
+    {
+        byte[] data = _smileDoc("[{\"a\":{\"b\":[1]}}]");
+        SmileParser p = _parser(data);
+        assertNull(p.getCurrentToken());
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken()); // a
+        assertEquals("a", p.getCurrentName());
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken()); // b
+        assertEquals("b", p.getCurrentName());
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertNull(p.nextToken());
+    }
+    
     public void testJsonSampleDoc() throws IOException
     {
     	byte[] data = _smileDoc(SAMPLE_DOC_JSON_SPEC);
     	verifyJsonSpecSampleDoc(_parser(data), true);
     }
+
+    public void testUnicodeStringValues() throws IOException
+    {
+        String uc = "\u00f6stl. v. Greenwich \u3333?";
+        byte[] data = _smileDoc("[" +quote(uc)+"]");
+
+        // First, just skipping
+        SmileParser p = _parser(data);
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        assertToken(JsonToken.VALUE_STRING, p.nextToken());
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertNull(p.nextToken());
+        p.close();
+
+        // Then accessing data
+        p = _parser(data);
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        assertToken(JsonToken.VALUE_STRING, p.nextToken());
+        assertEquals(uc, p.getText());
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertNull(p.nextToken());
+        p.close();
+    }
+
+    public void testUnicodePropertyNames() throws IOException
+    {
+        String uc = "\u00f6stl. v. Greenwich \u3333";
+        byte[] data = _smileDoc("{" +quote(uc)+":true}");
+
+        // First, just skipping
+        SmileParser p = _parser(data);
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        assertToken(JsonToken.VALUE_TRUE, p.nextToken());
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+        assertNull(p.nextToken());
+        p.close();
+
+        // Then accessing data
+        p = _parser(data);
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        assertEquals(uc, p.getCurrentName());
+        assertToken(JsonToken.VALUE_TRUE, p.nextToken());
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+        assertNull(p.nextToken());
+        p.close();
+    }
+    
 }

@@ -83,7 +83,7 @@ public abstract class StreamBasedParserBase
     {
         _currInputProcessed += _inputEnd;
         _currInputRowStart -= _inputEnd;
-
+        
         if (_inputStream != null) {
             int count = _inputStream.read(_inputBuffer, 0, _inputBuffer.length);
             if (count > 0) {

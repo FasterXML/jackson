@@ -158,9 +158,9 @@ public class SmileParser
      * 
      * @return True if valid signature was found and handled; false if not
      */
-	protected boolean handleSignature(boolean throwException)
-		throws IOException, JsonParseException
-	{
+    protected boolean handleSignature(boolean throwException)
+        throws IOException, JsonParseException
+    {
         if (++_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
@@ -258,7 +258,7 @@ public class SmileParser
         if (_parsingContext.inObject() && _currToken != JsonToken.FIELD_NAME) {
             return (_currToken = _handleFieldName());
         }
-
+        
         switch ((ch >> 5) & 0x7) {
         case 0: // short shared string value reference
         case 1: // misc literals
@@ -266,7 +266,7 @@ public class SmileParser
             case 0x0: // START_OBJECT
                 _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
                 return (_currToken = JsonToken.START_OBJECT);
-            //case 0x0: // not used
+            //case 0x1: // not used
             case 0x2: // START_ARRAY
                 _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
                 return (_currToken = JsonToken.START_ARRAY);
@@ -558,16 +558,16 @@ public class SmileParser
             return JsonToken.FIELD_NAME;
         case 2: // short ASCII
 	    {
-	        int len = (ch & 0x3f) + 1;
+	        int len = 1 + (ch & 0x3f);
         	String name;
-	        	Name n = _findDecodedFromSymbols(len);
-	        	if (n != null) {
-	        		name = n.getName();
-	        		_inputPtr += len;
-	        	} else {
-	        		name = _decodeShortAsciiName(len);
-	        		name = _addDecodedToSymbols(len, name);
-	        	}
+        	Name n = _findDecodedFromSymbols(len);
+        	if (n != null) {
+        	    name = n.getName();
+        	    _inputPtr += len;
+        	} else {
+        	    name = _decodeShortAsciiName(len);
+        	    name = _addDecodedToSymbols(len, name);
+        	}
                 if (_sharedNames != null) {
                    if (_sharedNameCount >= _sharedNames.length) {
    	               _sharedNames = _expandSharedNames(_sharedNames);
@@ -578,26 +578,29 @@ public class SmileParser
 	    }
 	    return JsonToken.FIELD_NAME;                
         case 3: // short Unicode
-            // all valid, except for 0xBF and 0xFF
-            if ((ch & 0x3F) != 0x3F) {
-                int len = (ch & 0x3f) + 1;
-	        String name;
-	        Name n = _findDecodedFromSymbols(len);
-	        if (n != null) {
-	        	name = n.getName();
-	        	_inputPtr += len;
-	        } else {
-	        	name = _decodeShortUnicodeName(len);
-	        	name = _addDecodedToSymbols(len, name);
-	        }
-                if (_sharedNames != null) {
-                    if (_sharedNameCount >= _sharedNames.length) {
-	                    _sharedNames = _expandSharedNames(_sharedNames);
+            // all valid, except for 0xFF
+            {
+                int len = (ch & 0x3F);
+                if (len != 0x3f) { // 0x3F would be 0xFF, not valid
+                    len += 2; // values from 2 to 64...
+                    String name;
+                    Name n = _findDecodedFromSymbols(len);
+                    if (n != null) {
+                        name = n.getName();
+                        _inputPtr += len;
+                    } else {
+                        name = _decodeShortUnicodeName(len);
+                        name = _addDecodedToSymbols(len, name);
                     }
-                    _sharedNames[_sharedNameCount++] = name;
-	             }
-	            _parsingContext.setCurrentName(name);
-	            return JsonToken.FIELD_NAME;                
+                    if (_sharedNames != null) {
+                        if (_sharedNameCount >= _sharedNames.length) {
+    	                    _sharedNames = _expandSharedNames(_sharedNames);
+                        }
+                        _sharedNames[_sharedNameCount++] = name;
+                    }
+                    _parsingContext.setCurrentName(name);
+                    return JsonToken.FIELD_NAME;                
+                }
             }
             break;
         }
@@ -695,7 +698,7 @@ public class SmileParser
             outBuf[outPtr++] = (char) i;
         }
         _textBuffer.setCurrentLength(outPtr);
-	    return _textBuffer.contentsAsString();
+        return _textBuffer.contentsAsString();
     }
 
     /**
@@ -829,13 +832,13 @@ public class SmileParser
         case 2: // tiny ascii
             // fall through
         case 3: // short ascii
-            _decodeShortAsciiValue(tb - 0x3F);
+            _decodeShortAsciiValue(1 + (tb & 0x3F));
             return;
 
         case 4: // tiny unicode
             // fall through
         case 5: // short unicode; note, lengths 2 - 65  (off-by-one compared to ascii)
-            _decodeShortUnicodeValue(tb - 0x7E);
+            _decodeShortUnicodeValue(2 + (tb & 0x3F));
             return;
 
         case 7:
@@ -1126,27 +1129,26 @@ if (_inputPtr > _inputEnd) {
         if ((_inputEnd - _inputPtr) < len) {
 	    _loadToHaveAtLeast(len);
 	}
-	
-	    int outPtr = 0;
-	    char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-	    int inPtr = _inputPtr;
-	    _inputPtr += len;
-	    final int[] codes = SmileConstants.sUtf8UnitLengths;
-	    for (int end = inPtr + len; inPtr < end; ) {
-	        int i = _inputBuffer[inPtr++] & 0xFF;
-	        int code = codes[i];
-	        if (code != 0) {
-	            // trickiest one, need surrogate handling
-	            switch (code) {
-	            case 1:
-	                i = ((i & 0x1F) << 6) | (_inputBuffer[inPtr++] & 0x3F);
-	                break;
-	            case 2:
-	                i = ((i & 0x0F) << 12)
-	                    | ((_inputBuffer[inPtr++] & 0x3F) << 6)
+        int outPtr = 0;
+        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+        int inPtr = _inputPtr;
+        _inputPtr += len;
+        final int[] codes = SmileConstants.sUtf8UnitLengths;
+        for (int end = inPtr + len; inPtr < end; ) {
+            int i = _inputBuffer[inPtr++] & 0xFF;
+            int code = codes[i];
+            if (code != 0) {
+                // trickiest one, need surrogate handling
+                switch (code) {
+                case 1:
+                    i = ((i & 0x1F) << 6) | (_inputBuffer[inPtr++] & 0x3F);
+                    break;
+	        case 2:
+	            i = ((i & 0x0F) << 12)
+	                  | ((_inputBuffer[inPtr++] & 0x3F) << 6)
 	                    | (_inputBuffer[inPtr++] & 0x3F);
 	                break;
-	            case 3:
+	        case 3:
 	                i = ((i & 0x07) << 18)
 	                | ((_inputBuffer[inPtr++] & 0x3F) << 12)
 	                | ((_inputBuffer[inPtr++] & 0x3F) << 6)
@@ -1156,14 +1158,14 @@ if (_inputPtr > _inputEnd) {
 	                outBuf[outPtr++] = (char) (0xD800 | (i >> 10));
 	                i = 0xDC00 | (i & 0x3FF);
 	                break;
-	            default: // invalid
+	        default: // invalid
 	                _reportError("Invalid byte "+Integer.toHexString(i)+" in short Unicode text block");
-	            }
-	        }
-	        outBuf[outPtr++] = (char) i;
+                }
 	    }
-	    _textBuffer.setCurrentLength(outPtr);
-	}
+	    outBuf[outPtr++] = (char) i;
+        }        
+        _textBuffer.setCurrentLength(outPtr);
+    }
 
     private final void _decodeLongAscii()
         throws IOException, JsonParseException
@@ -1314,12 +1316,12 @@ if (_inputPtr > _inputEnd) {
         case 2: // tiny ascii
             // fall through
         case 3: // short ascii
-            _skipBytes(tb - 0x3F);
+            _skipBytes(1 + (tb & 0x3F));
             return;
         case 4: // tiny unicode
             // fall through
         case 5: // short unicode
-            _skipBytes(tb - 0x7F);
+            _skipBytes(2 + (tb & 0x3F));
             return;
         case 7:
             tb &= 0x1F;

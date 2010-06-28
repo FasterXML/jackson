@@ -145,13 +145,43 @@ public final class TestJsonPerf
     {
     	JsonParser jp = _jsonFactory.createJsonParser(json);
     	ByteArrayOutputStream out = new ByteArrayOutputStream(200);
+        System.out.println("Converting and verifying Smile data...");
     	JsonGenerator jg = _smileFactory.createJsonGenerator(out);
     	while (jp.nextToken() != null) {
-    		jg.copyCurrentEvent(jp);
+    	    jg.copyCurrentEvent(jp);
     	}
     	jp.close();
     	jg.close();
-    	return out.toByteArray();
+    	byte[] smileBytes = out.toByteArray();
+
+    	// One more thing: let's actually verify correctness!
+    	JsonParser sp = _smileFactory.createJsonParser(new ByteArrayInputStream(smileBytes));
+        jp = _jsonFactory.createJsonParser(json);
+        while (true) {
+            JsonToken t1 = jp.nextToken();
+            JsonToken t2;
+            try {
+                t2 = sp.nextToken();
+            } catch (IOException ioe) {
+                System.err.println("WARN: problem for token matching input token "+t1+" at "+jp.getCurrentLocation());
+                throw ioe;
+            }
+            if (t1 != t2) {
+                throw new IllegalArgumentException("Error: tokens differ (json: "+t1+", smile "+t2+") at "+jp.getCurrentLocation());
+            }
+            if (t1 == null) break;
+            if (t1.isScalarValue() || t1 == JsonToken.FIELD_NAME) {
+                String str1 = jp.getText();
+                String str2 = jp.getText();
+                if (str1 == null) {
+                    throw new IllegalArgumentException("Error: token texts differ (json: null, smile '"+str2+"') at "+jp.getCurrentLocation());                    
+                } else if (!str1.equals(str2)) {
+                    throw new IllegalArgumentException("Error: token texts differ (json: '"+str1+"', smile '"+str2+"') at "+jp.getCurrentLocation());                    
+                }
+            }
+        }
+        System.out.println("Verified Smile data ("+smileBytes.length+"): same as JSON ("+json.length+")");
+    	return smileBytes;
     }
     
     protected int testJsonOrg(int reps)
@@ -245,6 +275,10 @@ public final class TestJsonPerf
             }
             JsonToken t;
             while ((t = jp.nextToken()) != null) {
+/*                
+if (t == JsonToken.FIELD_NAME) System.err.println("'"+jp.getCurrentName()+"'");               
+else System.err.println(""+t);                
+*/
                 // Field names are always constructed
                 if (t == JsonToken.VALUE_STRING
                     //|| t == JsonToken.FIELD_NAME
