@@ -115,17 +115,18 @@ public abstract class StreamBasedParserBase
             return false;
         }
         // Need to move remaining data in front?
-        if (_inputPtr > 0) {
+        int amount = _inputEnd - _inputPtr;
+        if (amount > 0 && _inputPtr > 0) {
             _currInputProcessed += _inputPtr;
             _currInputRowStart -= _inputPtr;
-            int amount = _inputEnd - _inputPtr;
             System.arraycopy(_inputBuffer, _inputPtr, _inputBuffer, 0, amount);
-            _inputPtr = 0;
             _inputEnd = amount;
+        } else {
+            _inputEnd = 0;
         }
-        while (_inputPtr < minAvailable) {
-            int amount = _inputBuffer.length - _inputPtr;
-            int count = _inputStream.read(_inputBuffer, _inputPtr, amount);
+        _inputPtr = 0;
+        while (amount < minAvailable) {
+            int count = _inputStream.read(_inputBuffer, _inputEnd, _inputBuffer.length - _inputEnd);
             if (count < 1) {
                 // End of input
                 _closeInput();
@@ -134,7 +135,8 @@ public abstract class StreamBasedParserBase
                     throw new IOException("InputStream.read() returned 0 characters when trying to read "+amount+" bytes");
                 }
             }
-            _inputPtr += count;
+            _inputEnd += count;
+            amount = _inputEnd - _inputPtr;
         }
         return true;
     }
