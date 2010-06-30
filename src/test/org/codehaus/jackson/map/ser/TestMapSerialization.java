@@ -57,4 +57,19 @@ public class TestMapSerialization
         ObjectMapper m = new ObjectMapper();
         assertEquals("\"{a=b, c=d}\"", m.writeValueAsString(new PseudoMap("a", "b", "c", "d")));
     }
+
+    /**
+     * Test [JACKSON-314]
+     */
+    public void testMapNullSerialization() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        Map<String,String> map = new HashMap<String,String>();
+        map.put("a", null);
+        // by default, should output null-valued entries:
+        assertEquals("{\"a\":null}", m.writeValueAsString(map));
+        // but not if explicitly asked not to (note: config value is dynamic here)
+        m.configure(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES, false);
+        assertEquals("{}", m.writeValueAsString(map));
+    }
 }

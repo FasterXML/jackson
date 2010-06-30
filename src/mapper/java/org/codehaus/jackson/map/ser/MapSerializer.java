@@ -121,9 +121,9 @@ public class MapSerializer
     }
     
     /*
-     ***********************************************************************
-     * JsonSerializer implementation
-     ***********************************************************************
+    /**********************************************************
+    /* JsonSerializer implementation
+    /**********************************************************
      */
 
     @Override
@@ -172,20 +172,23 @@ public class MapSerializer
         JsonSerializer<Object> prevValueSerializer = null;
         Class<?> prevValueClass = null;
         final HashSet<String> ignored = _ignoredEntries;
+        final boolean skipNulls = !provider.isEnabled(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES);
 
         for (Map.Entry<?,?> entry : value.entrySet()) {
+            Object valueElem = entry.getValue();
             // First, serialize key
             Object keyElem = entry.getKey();
             if (keyElem == null) {
                 provider.getNullKeySerializer().serialize(null, jgen, provider);
             } else {
+                // [JACKSON-314] skip entries with null values?
+                if (skipNulls && valueElem == null) continue;
                 // One twist: is entry ignorable? If so, skip
                 if (ignored != null && ignored.contains(keyElem)) continue;
                 keySerializer.serialize(keyElem, jgen, provider);
             }
 
             // And then value
-            Object valueElem = entry.getValue();
             if (valueElem == null) {
                 provider.getNullValueSerializer().serialize(null, jgen, provider);
             } else {
@@ -221,16 +224,19 @@ public class MapSerializer
         final JsonSerializer<Object> keySerializer = provider.getKeySerializer();
         final HashSet<String> ignored = _ignoredEntries;
         final TypeSerializer typeSer = _valueTypeSerializer;
+        final boolean skipNulls = !provider.isEnabled(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES);
 
         for (Map.Entry<?,?> entry : value.entrySet()) {
+            Object valueElem = entry.getValue();
             Object keyElem = entry.getKey();
             if (keyElem == null) {
                 provider.getNullKeySerializer().serialize(null, jgen, provider);
             } else {
+                // [JACKSON-314] also may need to skip entries with null values
+                if (skipNulls && valueElem == null) continue;
                 if (ignored != null && ignored.contains(keyElem)) continue;
                 keySerializer.serialize(keyElem, jgen, provider);
             }
-            Object valueElem = entry.getValue();
             if (valueElem == null) {
                 provider.getNullValueSerializer().serialize(null, jgen, provider);
             } else {
@@ -256,20 +262,23 @@ public class MapSerializer
         JsonSerializer<Object> prevValueSerializer = null;
         Class<?> prevValueClass = null;
         final HashSet<String> ignored = _ignoredEntries;
+        final boolean skipNulls = !provider.isEnabled(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES);
     
         for (Map.Entry<?,?> entry : value.entrySet()) {
+            Object valueElem = entry.getValue();
             // First, serialize key
             Object keyElem = entry.getKey();
             if (keyElem == null) {
                 provider.getNullKeySerializer().serialize(null, jgen, provider);
             } else {
+                // [JACKSON-314] also may need to skip entries with null values
+                if (skipNulls && valueElem == null) continue;
                 // One twist: is entry ignorable? If so, skip
                 if (ignored != null && ignored.contains(keyElem)) continue;
                 keySerializer.serialize(keyElem, jgen, provider);
             }
     
             // And then value
-            Object valueElem = entry.getValue();
             if (valueElem == null) {
                 provider.getNullValueSerializer().serialize(null, jgen, provider);
             } else {

@@ -249,6 +249,16 @@ public class SerializationConfig
          * @since 1.6
          */
         ,WRITE_ENUMS_USING_TO_STRING(false)
+
+        /**
+         * Feature that determines whether Map entries with null values are
+         * to be serialized (true) or not (false).
+         *<p>
+         * For further details, check out [JACKSON-314]
+         * 
+         * @since 1.6
+         */
+        ,WRITE_NULL_MAP_VALUES(true)
         
         // // // Output fine tuning
             

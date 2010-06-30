@@ -54,6 +54,8 @@ Description:
   * [JACKSON-300] Add 'JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER
     to allow non-standard character escapes like \'.
     (requested by Ketan G)
+  * [JACKSON-314] (go Pi, go!) Add 'SerializationConfig.Feature.WRITE_NULL_MAP_VALUES'
+    to suppress writing of Map entries with null values.
 
 ------------------------------------------------------------------------
 == History: ==
