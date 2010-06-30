@@ -222,9 +222,9 @@ public abstract class JsonParser
     };
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Minimal configuration state
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -235,9 +235,9 @@ public abstract class JsonParser
     protected int _features;
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Minimal generic state
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -255,9 +255,9 @@ public abstract class JsonParser
     protected JsonToken _lastClearedToken;
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Construction, init
-    /***************************************************
+    /**********************************************************
      */
 
     protected JsonParser() { }
@@ -281,9 +281,9 @@ public abstract class JsonParser
     public abstract void setCodec(ObjectCodec c);
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Closeable implementation
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -377,9 +377,9 @@ public abstract class JsonParser
 
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Public API, traversal
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -454,10 +454,34 @@ public abstract class JsonParser
      */
     public abstract boolean isClosed();
 
+    /**
+     * Method that may be optionally implemented by parser; and if
+     * so, allows determining type of token following current token,
+     * but without losing information about current token.
+     * If method is not supported, will return
+     * {@link JsonToken#NOT_AVAILABLE}; otherwise either type of
+     * next token, or null to indicate end-of-document.
+     *<p>
+     * Note: for incremental/lazy parsers this method will force
+     * loading of all data for the current token.
+     *
+     * @return Type of token following current token if peeking
+     *   is possible; {@link JsonToken#NOT_AVAILABLE} if not (or
+     *   parser does not implement this method); or null if
+     *   peek indicates end of document.
+     *   
+     * @since 1.6
+     */
+    public JsonToken peekNextToken()
+        throws IOException, JsonParseException
+    {
+        return JsonToken.NOT_AVAILABLE;
+    }
+    
     /*
-    /***************************************************
+    /**********************************************************
     /* Public API, token accessors
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -557,9 +581,9 @@ public abstract class JsonParser
     }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Public API, access to token information, text
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -622,9 +646,9 @@ public abstract class JsonParser
         throws IOException, JsonParseException;
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Public API, access to token information, numeric
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -816,9 +840,9 @@ public abstract class JsonParser
     }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Public API, access to token information, binary
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -856,9 +880,9 @@ public abstract class JsonParser
     }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Public API, optional data binding functionality
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -925,9 +949,9 @@ public abstract class JsonParser
     }
 
     /**
-     * Method to deserialize Json content into equivalent "tree model",
+     * Method to deserialize JSON content into equivalent "tree model",
      * represented by root {@link JsonNode} of resulting model.
-     * For Json Arrays it will an array node (with child nodes),
+     * For JSON Arrays it will an array node (with child nodes),
      * for objects object node (with child nodes), and for other types
      * matching leaf node type
      */
@@ -942,9 +966,9 @@ public abstract class JsonParser
     }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Internal methods
-    /***************************************************
+    /**********************************************************
      */
 
     /**

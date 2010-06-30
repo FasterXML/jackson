@@ -23,6 +23,8 @@ public final class TestJsonPerf
     
     final ObjectMapper _mapper;
 
+    final ObjectMapper _smileMapper;
+    
     final SmileFactory _smileFactory;
     
     final byte[] _jsonData;
@@ -36,6 +38,7 @@ public final class TestJsonPerf
         _jsonFactory = new JsonFactory();
         _mapper = new ObjectMapper(_jsonFactory);
         _smileFactory = new SmileFactory();
+        _smileMapper = new ObjectMapper(_smileFactory);
         _jsonData = readData(f);
         _smileData = convertToSmile(_jsonData);
 
@@ -55,7 +58,7 @@ public final class TestJsonPerf
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
             // Use 9 to test all...
-            int round = (i++ % 2);
+            int round = (i++ % 1);
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -63,6 +66,17 @@ public final class TestJsonPerf
 
             switch (round) {
 
+            case 0:
+                msg = "Smile/data-bind";
+                sum += testJacksonDatabind(_smileMapper, _smileData, REPS);
+                break;
+
+            case 1:
+                msg = "Jackson/data-bind";
+                sum += testJacksonDatabind(_mapper, _jsonData, REPS);
+                break;
+                
+            /*
             case 0:
                 msg = "Jackson/smile, stream";
                 sum += testJacksonStream(REPS, _smileFactory, _smileData, true);
@@ -78,7 +92,7 @@ public final class TestJsonPerf
 
             case 3:
                 msg = "Jackson, Java types";
-                sum += testJacksonJavaTypes(_mapper, REPS);
+                sum += testJacksonDatabind(_mapper, REPS);
                 break;
 
             case 4:
@@ -103,6 +117,7 @@ public final class TestJsonPerf
                 msg = "JSONTools (berlios.de)";
                 sum += testJsonTools(REPS);
                 break;
+                */
             default:
                 throw new Error("Internal error");
             }
@@ -291,23 +306,23 @@ else System.err.println(""+t);
         return sum;
     }
 
-    private int testJacksonJavaTypes(ObjectMapper mapper, int reps)
+    private int testJacksonDatabind(ObjectMapper mapper, byte[] data, int reps)
         throws Exception
     {
         Object ob = null;
         for (int i = 0; i < reps; ++i) {
             // This is "untyped"... Maps, Lists etc
-            ob = mapper.readValue(_jsonData, 0, _jsonData.length, Object.class);
+            ob = mapper.readValue(data, 0, data.length, Object.class);
         }
         return ob.hashCode(); // just to get some non-optimizable number
     }
 
-    private int testJacksonJsonTypes(ObjectMapper mapper, int reps)
+    private int testJacksonTree(ObjectMapper mapper, byte[] data, int reps)
         throws Exception
     {
         Object ob = null;
         for (int i = 0; i < reps; ++i) {
-            ob = mapper.readValue(_jsonData, 0, _jsonData.length, JsonNode.class);
+            ob = mapper.readValue(data, 0, data.length, JsonNode.class);
         }
         return ob.hashCode(); // just to get some non-optimizable number
     }

@@ -240,6 +240,30 @@ public class TestSmileParser
         assertToken(JsonToken.END_ARRAY, p.nextToken());
         assertNull(p.nextToken());
         p.close();
+
+        // and then let's create longer text segment as well
+        StringBuilder sb = new StringBuilder();
+        while (sb.length() < 200) {
+            sb.append(uc);
+        }
+        final String longer = sb.toString();
+        data = _smileDoc("["+quote(longer)+"]");
+
+        // Ok once again, first skipping, then accessing
+        p = _parser(data);
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        assertToken(JsonToken.VALUE_STRING, p.nextToken());
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertNull(p.nextToken());
+        p.close();
+
+        p = _parser(data);
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        assertToken(JsonToken.VALUE_STRING, p.nextToken());
+        assertEquals(longer, p.getText());
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertNull(p.nextToken());
+        p.close();
     }
 
     public void testUnicodePropertyNames() throws IOException
