@@ -453,30 +453,6 @@ public abstract class JsonParser
      * end of input.
      */
     public abstract boolean isClosed();
-
-    /**
-     * Method that may be optionally implemented by parser; and if
-     * so, allows determining type of token following current token,
-     * but without losing information about current token.
-     * If method is not supported, will return
-     * {@link JsonToken#NOT_AVAILABLE}; otherwise either type of
-     * next token, or null to indicate end-of-document.
-     *<p>
-     * Note: for incremental/lazy parsers this method will force
-     * loading of all data for the current token.
-     *
-     * @return Type of token following current token if peeking
-     *   is possible; {@link JsonToken#NOT_AVAILABLE} if not (or
-     *   parser does not implement this method); or null if
-     *   peek indicates end of document.
-     *   
-     * @since 1.6
-     */
-    public JsonToken peekNextToken()
-        throws IOException, JsonParseException
-    {
-        return JsonToken.NOT_AVAILABLE;
-    }
     
     /*
     /**********************************************************

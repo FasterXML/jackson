@@ -27,9 +27,9 @@ public class JsonParserDelegate extends JsonParser
     }
 
     /*
-    /**************************************************
+    /**********************************************************
     /* Public API, configuration
-    /**************************************************
+    /**********************************************************
      */
 
     @Override
@@ -57,9 +57,9 @@ public class JsonParserDelegate extends JsonParser
     }
     
     /*
-    /**************************************************
+    /**********************************************************
     /* Closeable impl
-    /**************************************************
+    /**********************************************************
      */
 
     @Override
@@ -73,9 +73,9 @@ public class JsonParserDelegate extends JsonParser
     }
 
     /*
-    /**************************************************
+    /**********************************************************
     /* Public API, token accessors
-    /**************************************************
+    /**********************************************************
      */
 
     public JsonToken getCurrentToken() {
@@ -111,9 +111,9 @@ public class JsonParserDelegate extends JsonParser
     }
 
     /*
-    /**************************************************
+    /**********************************************************
     /* Public API, access to token information, text
-    /**************************************************
+    /**********************************************************
      */
 
     @Override
@@ -138,9 +138,9 @@ public class JsonParserDelegate extends JsonParser
 
 
     /*
-    /**************************************************
+    /**********************************************************
     /* Public API, access to token information, numeric
-    /**************************************************
+    /**********************************************************
      */
     
     @Override
@@ -207,7 +207,7 @@ public class JsonParserDelegate extends JsonParser
     public JsonToken nextToken() throws IOException, JsonParseException {
         return delegate.nextToken();
     }
-
+    
     @Override
     public JsonParser skipChildren() throws IOException, JsonParseException {
         delegate.skipChildren();

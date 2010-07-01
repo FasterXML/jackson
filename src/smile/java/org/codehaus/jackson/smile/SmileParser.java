@@ -350,6 +350,13 @@ public class SmileParser
         return null;
     }
 
+    public JsonToken peekNextToken()
+        throws IOException, JsonParseException
+    {
+        // !!! TBI
+        return null;
+    }
+    
     @Override
     public String getCurrentName() throws IOException, JsonParseException
     {

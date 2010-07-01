@@ -19,9 +19,9 @@ import org.codehaus.jackson.*;
 public class TreeTraversingParser extends JsonParser
 {
     /*
-     *********************************************
-     * Configuration
-     *********************************************
+    /**********************************************************
+    /* Configuration
+    /**********************************************************
      */
 
     protected ObjectCodec _objectCodec;
@@ -32,9 +32,9 @@ public class TreeTraversingParser extends JsonParser
     protected NodeCursor _nodeCursor;
 
     /*
-     *********************************************
-     * State
-     *********************************************
+    /**********************************************************
+    /* State
+    /**********************************************************
      */
 
     /**
@@ -57,9 +57,9 @@ public class TreeTraversingParser extends JsonParser
     protected boolean _closed;
 
     /*
-     *********************************************
-     * Life-cycle
-     *********************************************
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public TreeTraversingParser(JsonNode n) { this(n, null); }
@@ -87,9 +87,9 @@ public class TreeTraversingParser extends JsonParser
     }
 
     /*
-     *********************************************
-     * Closeable implementation
-     *********************************************
+    /**********************************************************
+    /* Closeable implementation
+    /**********************************************************
      */
 
     @Override
@@ -103,9 +103,9 @@ public class TreeTraversingParser extends JsonParser
     }
 
     /*
-     *********************************************
-     * Public API, traversal
-     *********************************************
+    /**********************************************************
+    /* Public API, traversal
+    /**********************************************************
      */
 
     @Override
@@ -150,7 +150,7 @@ public class TreeTraversingParser extends JsonParser
         _nodeCursor = _nodeCursor.getParent();
         return _currToken;
     }
-
+    
     // default works well here:
     //public JsonToken nextValue() throws IOException, JsonParseException
 
@@ -171,9 +171,9 @@ public class TreeTraversingParser extends JsonParser
     }
 
     /*
-     *********************************************
-     * Public API, token accessors
-     *********************************************
+    /**********************************************************
+    /* Public API, token accessors
+    /**********************************************************
      */
 
     @Override
@@ -197,9 +197,9 @@ public class TreeTraversingParser extends JsonParser
     }
 
     /*
-     *********************************************
-     * Public API, access to textual content
-     *********************************************
+    /**********************************************************
+    /* Public API, access to textual content
+    /**********************************************************
      */
 
     @Override
@@ -245,9 +245,9 @@ public class TreeTraversingParser extends JsonParser
     }
 
     /*
-     *********************************************
-     * Public API, typed non-text access
-     *********************************************
+    /**********************************************************
+    /* Public API, typed non-text access
+    /**********************************************************
      */
 
     //public byte getByteValue() throws IOException, JsonParseException
@@ -306,9 +306,9 @@ public class TreeTraversingParser extends JsonParser
     }
 
     /*
-     *********************************************
-     * Public API, typed binary (base64) access
-     *********************************************
+    /**********************************************************
+    /* Public API, typed binary (base64) access
+    /**********************************************************
      */
 
     @Override
@@ -336,9 +336,9 @@ public class TreeTraversingParser extends JsonParser
     }
 
     /*
-     *********************************************
-     * Internal methods
-     *********************************************
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
      */
 
     protected JsonNode currentNode() {

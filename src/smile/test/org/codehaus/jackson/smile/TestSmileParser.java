@@ -290,5 +290,4 @@ public class TestSmileParser
         assertNull(p.nextToken());
         p.close();
     }
-    
 }

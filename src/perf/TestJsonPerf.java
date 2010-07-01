@@ -13,6 +13,7 @@ import com.sdicons.json.parser.JSONParser;
 // Noggit:
 //import org.apache.noggit.JSONParser;
 
+@SuppressWarnings("unused")
 public final class TestJsonPerf
 {
     private final int REPS;

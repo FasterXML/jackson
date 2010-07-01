@@ -71,7 +71,6 @@ public final class ReaderBasedParser
         if (_tokenIncomplete) {
             _skipString(); // only strings can be partial
         }
-
         int i = _skipWSOrEnd();
         if (i < 0) { // end-of-input
             /* 19-Feb-2009, tatu: Should actually close/release things
@@ -214,7 +213,7 @@ public final class ReaderBasedParser
         }
         return (_currToken = t);
     }
-
+    
     @Override
     public void close() throws IOException
     {

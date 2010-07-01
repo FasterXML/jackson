@@ -155,6 +155,7 @@ public enum JsonToken
      * Object/Array start/end markers all field names.
      */
     public boolean isScalarValue() {
-        return ordinal() >= VALUE_STRING.ordinal();
+        // note: up to 1.5, VALUE_EMBEDDED_OBJECT was incorrectly considered non-scalar!
+        return ordinal() >= VALUE_EMBEDDED_OBJECT.ordinal();
     }
 }

@@ -679,9 +679,9 @@ public class TokenBuffer
         protected ObjectCodec _codec;
 
         /*
-        ////////////////////////////////////////////////////
-        // Parsing state
-        ////////////////////////////////////////////////////
+        /**********************************************************
+        /* Parsing state
+        /**********************************************************
          */
 
         /**
@@ -707,9 +707,9 @@ public class TokenBuffer
         protected JsonLocation _location = null;
         
         /*
-        ////////////////////////////////////////////////////
-        // Construction, init
-        ////////////////////////////////////////////////////
+        /**********************************************************
+        /* Construction, init
+        /**********************************************************
          */
         
         public Parser(Segment firstSeg, ObjectCodec codec) {
@@ -730,9 +730,29 @@ public class TokenBuffer
         public void setCodec(ObjectCodec c) { _codec = c; }
 
         /*
-        ////////////////////////////////////////////////////
-        // Closeable implementation
-        ////////////////////////////////////////////////////
+        /**********************************************************
+        /* Extended API beyond JsonParser
+        /**********************************************************
+         */
+        
+        public JsonToken peekNextToken()
+            throws IOException, JsonParseException
+        {
+            // closed? nothing more to peek, either
+            if (_closed) return null;
+            Segment seg = _segment;
+            int ptr = _segmentPtr+1;
+            if (ptr >= Segment.TOKENS_PER_SEGMENT) {
+                ptr = 0;
+                seg = (seg == null) ? null : seg.next();
+            }
+            return (seg == null) ? null : seg.type(ptr);
+        }
+        
+        /*
+        /**********************************************************
+        /* Closeable implementation
+        /**********************************************************
          */
 
         @Override
@@ -743,9 +763,9 @@ public class TokenBuffer
         }
 
         /*
-        ////////////////////////////////////////////////////
-        // Public API, traversal
-        ////////////////////////////////////////////////////
+        /**********************************************************
+        /* Public API, traversal
+        /**********************************************************
          */
         
         @Override
@@ -818,9 +838,9 @@ public class TokenBuffer
         public boolean isClosed() { return _closed; }
 
         /*
-        ////////////////////////////////////////////////////
-        // Public API, token accessors
-        ////////////////////////////////////////////////////
+        /**********************************************************
+        /* Public API, token accessors
+        /**********************************************************
          */
         
         @Override
@@ -838,9 +858,9 @@ public class TokenBuffer
         public String getCurrentName() { return _parsingContext.getCurrentName(); }
         
         /*
-        ////////////////////////////////////////////////////
-        // Public API, access to token information, text
-        ////////////////////////////////////////////////////
+        /**********************************************************
+        /* Public API, access to token information, text
+        /**********************************************************
          */
         
         @Override
@@ -879,9 +899,9 @@ public class TokenBuffer
         public int getTextOffset() { return 0; }
 
         /*
-        ////////////////////////////////////////////////////
-        // Public API, access to token information, numeric
-        ////////////////////////////////////////////////////
+        /**********************************************************
+        /* Public API, access to token information, numeric
+        /**********************************************************
          */
 
         @Override
@@ -957,9 +977,9 @@ public class TokenBuffer
         }
         
         /*
-        ////////////////////////////////////////////////////
-        // Public API, access to token information, other
-        ////////////////////////////////////////////////////
+        /**********************************************************
+        /* Public API, access to token information, other
+        /**********************************************************
          */
 
         private final static int INT_SPACE = 0x0020;
@@ -1000,9 +1020,9 @@ public class TokenBuffer
         }
 
         /*
-        ////////////////////////////////////////////////////
-        // Internal methods
-        ////////////////////////////////////////////////////
+        /**********************************************************
+        /* Internal methods
+        /**********************************************************
          */
 
         protected void _decodeBase64(String str, ByteArrayBuilder builder, Base64Variant b64variant)

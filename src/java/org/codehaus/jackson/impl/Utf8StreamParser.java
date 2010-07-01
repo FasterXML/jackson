@@ -233,7 +233,7 @@ public final class Utf8StreamParser
         }
         return (_currToken = t);
     }
-
+    
     @Override
     public void close() throws IOException
     {
