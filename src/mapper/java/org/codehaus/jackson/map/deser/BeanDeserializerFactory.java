@@ -25,7 +25,7 @@ public class BeanDeserializerFactory
     /**
      * Signature of <b>Throwable.initCause</b> method.
      */
-    final static Class<?>[] INIT_CAUSE_PARAMS = new Class<?>[] { Throwable.class };
+    private final static Class<?>[] INIT_CAUSE_PARAMS = new Class<?>[] { Throwable.class };
 
     public final static BeanDeserializerFactory instance = new BeanDeserializerFactory();
 
@@ -95,6 +95,17 @@ public class BeanDeserializerFactory
             return buildThrowableDeserializer(config, type, beanDesc);
         }
 
+        // [JACKSON-41] (v1.6): Let's make it possible to materialize abstract types.
+        if (type.isAbstract()) {
+            /* One check however: if type information is indicated, we usually do not
+             * want materialization...
+             */
+            if (config.getAnnotationIntrospector().findTypeResolver(beanDesc.getClassInfo(), type) != null) {
+                // TODO: plug
+                // AbstractTypeResolver.resolveAbstractType(
+            }
+        }
+        
         /* Otherwise we'll just use generic bean introspection
          * to build deserializer
          */

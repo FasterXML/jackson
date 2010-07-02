@@ -48,6 +48,13 @@ public class TestDefaultForObject
             this.bar = bar;
         }
     }
+
+    final static class BeanHolder
+    {
+        public AbstractBean bean;
+        
+        public BeanHolder() { }
+    }
     
     /*
     /**********************************************************
@@ -93,7 +100,7 @@ public class TestDefaultForObject
             fail("Should have failed");
         } catch (JsonMappingException e) {
             // let's use whatever is currently thrown exception... may change tho
-            verifyException(e, "can not instantiate from JSON object");
+            verifyException(e, "can not instantiate");
         }
         
         // and then that we will succeed with default type info
@@ -122,6 +129,18 @@ public class TestDefaultForObject
         m.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
         assertEquals("[\""+StringBean.class.getName()+"\",{\"name\":\"x\"}]",
             m.writeValueAsString(bean));
+    }
+
+    public void testNullValue() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        BeanHolder h = new BeanHolder();
+        String json = m.writeValueAsString(h);
+        assertNotNull(json);
+        BeanHolder result = m.readValue(json, BeanHolder.class);
+        assertNotNull(result);
+        assertNull(result.bean);
     }
     
     public void testEnumAsObject() throws Exception

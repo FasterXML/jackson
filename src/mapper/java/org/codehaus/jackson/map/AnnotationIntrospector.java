@@ -204,7 +204,7 @@ public abstract class AnnotationIntrospector
     /* Class annotations for PM type handling (1.5+)
     /**********************************************************
     */
-
+    
     /**
      * Method for checking if given class has annotations that indicate
      * that specific type resolver is to be used for handling instances.
