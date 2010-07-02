@@ -25,9 +25,9 @@ import org.codehaus.jackson.util.ByteArrayBuilder;
 public class ObjectWriter
 {
     /*
-    /***************************************************
+    /**********************************************************
     /* Immutable configuration from ObjectMapper
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -51,9 +51,9 @@ public class ObjectWriter
     protected VisibilityChecker<?> _visibilityChecker;
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Configuration that can be changed during building
-    /***************************************************
+    /**********************************************************
      */   
     
     /**
@@ -68,9 +68,9 @@ public class ObjectWriter
     protected final JavaType _rootType;
     
     /*
-    /***************************************************
+    /**********************************************************
     /* Life-cycle
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -134,9 +134,9 @@ public class ObjectWriter
     }
     
     /*
-    /***************************************************
+    /**********************************************************
     /* Serialization methods; ones from ObjectCodec first
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -155,9 +155,9 @@ public class ObjectWriter
     }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Serialization methods, others
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -208,8 +208,6 @@ public class ObjectWriter
      * a String. Functionally equivalent to calling
      * {@link #writeValue(Writer,Object)} with {@link java.io.StringWriter}
      * and constructing String, but more efficient.
-     *
-     * @since 1.3
      */
     public String writeValueAsString(Object value)
         throws IOException, JsonGenerationException, JsonMappingException
@@ -226,8 +224,6 @@ public class ObjectWriter
      * {@link #writeValue(Writer,Object)} with {@link java.io.ByteArrayOutputStream}
      * and getting bytes, but more efficient.
      * Encoding used will be UTF-8.
-     *
-     * @since 1.5
      */
     public byte[] writeValueAsBytes(Object value)
         throws IOException, JsonGenerationException, JsonMappingException
@@ -240,9 +236,9 @@ public class ObjectWriter
     }
     
     /*
-    /***************************************************
+    /**********************************************************
     /* Other public methods
-    /***************************************************
+    /**********************************************************
      */
 
     public boolean canSerialize(Class<?> type)
@@ -251,9 +247,9 @@ public class ObjectWriter
     }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Internal methods
-    /***************************************************
+    /**********************************************************
      */
     
     /**
