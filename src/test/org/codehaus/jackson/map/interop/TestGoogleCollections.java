@@ -4,6 +4,12 @@ import org.codehaus.jackson.map.*;
 
 import com.google.common.collect.*;
 
+/**
+ * NOTE: this is bogus test currently (as of Jackson 1.6) -- not support
+ * has been added!
+ * 
+ * @author tatu
+ */
 public class TestGoogleCollections
     extends org.codehaus.jackson.map.BaseMapTest
 {
