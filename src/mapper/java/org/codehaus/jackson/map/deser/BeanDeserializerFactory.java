@@ -75,18 +75,6 @@ public class BeanDeserializerFactory
             beanDesc = config.introspect(type);
         }
 
-        /* 02-Mar-2009, tatu: Can't instantiate abstract classes or interfaces
-         *   so now might be a good time to catch that problem...
-         */
-        /* 23-Jan-2010, tatu: ... except that with 1.5 it is useful, in cases where we do
-         *   have actual type information: we still need intermediate deserializer
-         *   for locating type information (as a sort of placeholder). So can not
-         *   fail yet with non-concrete types.
-         */
-        /*
-        if (!type.isConcrete()) return null;
-        */
-
         /* One more thing to check: do we have an exception type
          * (Throwable or its sub-classes)? If so, need slightly
          * different handling.
@@ -104,13 +92,17 @@ public class BeanDeserializerFactory
             /* One check however: if type information is indicated, we usually do not
              * want materialization...
              */
-            AnnotationIntrospector intr = config.getAnnotationIntrospector();
-            if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
-                // TODO: plug
-                // AbstractTypeResolver.resolveAbstractType(...)
-                
-//                throw new IllegalStateException("Can not construct BeanDeserializer for abstract types");
+            AbstractTypeResolver res = config.getAbstractTypeResolver();
+            if (res != null) {
+                AnnotationIntrospector intr = config.getAnnotationIntrospector();
+                if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
+                    JavaType concrete = res.resolveAbstractType(config, type);
+                    if (concrete != null) {
+                        return buildBeanDeserializer(config, concrete, beanDesc);
+                    }
+                }
             }
+            // otherwise we assume there must be extra type information coming
             return new AbstractDeserializer(type);
         }
         

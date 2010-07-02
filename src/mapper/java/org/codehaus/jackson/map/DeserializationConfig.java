@@ -251,9 +251,9 @@ public class DeserializationConfig
     protected final static DateFormat DEFAULT_DATE_FORMAT = StdDateFormat.instance;
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Configuration settings
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -334,6 +334,14 @@ public class DeserializationConfig
      * @since 1.5
      */
     protected VisibilityChecker<?> _visibilityChecker;
+
+    /**
+     * To support on-the-fly class generation for interface and abstract classes
+     * it is possible to register "abstract type resolver".
+     * 
+     * @since 1.6
+     */
+    protected AbstractTypeResolver _abstractTypeResolver;
     
     /*
     /**********************************************************
@@ -357,6 +365,7 @@ public class DeserializationConfig
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
+        _abstractTypeResolver = src._abstractTypeResolver;
         _featureFlags = src._featureFlags;
         _problemHandlers = src._problemHandlers;
         _dateFormat = src._dateFormat;
@@ -500,10 +509,24 @@ public class DeserializationConfig
         return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
     }
 
+    /**
+     * @since 1.6
+     */
+    public void setAbstractTypeResolver(AbstractTypeResolver atr) {
+        _abstractTypeResolver = atr;
+    }
+
+    /**
+     * @since 1.6
+     */
+    public AbstractTypeResolver getAbstractTypeResolver() {
+        return _abstractTypeResolver;
+    }
+
     /*
-    /***************************************************
+    /**********************************************************
     /* Adding problem handlers
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -532,9 +555,9 @@ public class DeserializationConfig
     }
         
     /*
-    /***************************************************
+    /**********************************************************
     /* Accessors
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -615,9 +638,9 @@ public class DeserializationConfig
     }
     
     /*
-    /***************************************************
+    /**********************************************************
     /* Configuration: on/off features
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -649,9 +672,9 @@ public class DeserializationConfig
     //protected int getFeatures() { return _generatorFeatures; }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Configuration: other
-    /***************************************************
+    /**********************************************************
      */
 
     /**

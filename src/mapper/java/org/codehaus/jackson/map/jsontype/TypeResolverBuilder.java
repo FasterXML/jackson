@@ -28,10 +28,10 @@ import org.codehaus.jackson.type.JavaType;
 public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
 {
     /*
-     ***********************************************************
-     * Actual builder methods
-     ***********************************************************
-      */
+    /**********************************************************
+    /* Actual builder methods
+    /**********************************************************
+     */
 
     /**
      * Method for building type serializer based on current configuration
@@ -55,11 +55,11 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
             Collection<NamedType> subtypes);
     
     /*
-     ***********************************************************
-     * Initialization method(s) that must be called before other
-     * configuration
-     ***********************************************************
-      */
+    /**********************************************************
+    /* Initialization method(s) that must be called before other
+    /* configuration
+    /**********************************************************
+     */
 
     /**
      * Initialization method that is called right after constructing
@@ -74,9 +74,9 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
     public T init(JsonTypeInfo.Id idType, TypeIdResolver res);
     
     /*
-    ***********************************************************
-    * Methods for configuring resolver to build 
-    ***********************************************************
+    /**********************************************************
+    /* Methods for configuring resolver to build 
+    /**********************************************************
      */
     
     /**

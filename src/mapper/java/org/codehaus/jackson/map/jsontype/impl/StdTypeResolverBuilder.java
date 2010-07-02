@@ -32,9 +32,9 @@ public class StdTypeResolverBuilder
     protected TypeIdResolver _customIdResolver;
     
     /*
-    ********************************************************
-    * Construction, initialization, actual building
-    ********************************************************
+    /**********************************************************
+    /* Construction, initialization, actual building
+    /**********************************************************
      */
 
     public StdTypeResolverBuilder() { }
@@ -87,10 +87,10 @@ public class StdTypeResolverBuilder
     }
     
     /*
-     ********************************************************
-     * Construction, configuration
-     ********************************************************
-      */
+    /**********************************************************
+    /* Construction, configuration
+    /**********************************************************
+     */
 
     public StdTypeResolverBuilder inclusion(JsonTypeInfo.As includeAs) {
         if (includeAs == null) {
@@ -111,10 +111,10 @@ public class StdTypeResolverBuilder
     }
 
     /*
-     ********************************************************
-     * Internal methods
-     ********************************************************
-      */
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
+     */
 
     /**
      * Helper method that will either return configured custom

@@ -12,7 +12,7 @@ public class TestSimpleMaterializedInterfaces
     /**********************************************************
      */
 
-    interface Bean {
+    public interface Bean {
         public int getX();
         public String getA();
     }
@@ -25,13 +25,11 @@ public class TestSimpleMaterializedInterfaces
 
     public void testSimpleInteface() throws Exception
     {
-        /*
         ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
         Bean bean = mapper.readValue("{\"a\":\"value\",\"b\":123", Bean.class);
         assertNotNull(bean);
         assertEquals("value", bean.getA());
         assertEquals(123, bean.getX());
-*/
-    
     }
 }
