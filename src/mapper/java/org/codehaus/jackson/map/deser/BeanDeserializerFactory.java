@@ -95,15 +95,23 @@ public class BeanDeserializerFactory
             return buildThrowableDeserializer(config, type, beanDesc);
         }
 
-        // [JACKSON-41] (v1.6): Let's make it possible to materialize abstract types.
+        /* Abstract types can not be handled using regular bean deserializer, but need
+         * either type deserializer (which caller usually deals with), or resolve
+         * to a concrete type.
+         */
         if (type.isAbstract()) {
+            // [JACKSON-41] (v1.6): Let's make it possible to materialize abstract types.
             /* One check however: if type information is indicated, we usually do not
              * want materialization...
              */
-            if (config.getAnnotationIntrospector().findTypeResolver(beanDesc.getClassInfo(), type) != null) {
+            AnnotationIntrospector intr = config.getAnnotationIntrospector();
+            if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
                 // TODO: plug
-                // AbstractTypeResolver.resolveAbstractType(
+                // AbstractTypeResolver.resolveAbstractType(...)
+                
+//                throw new IllegalStateException("Can not construct BeanDeserializer for abstract types");
             }
+            return new AbstractDeserializer(type);
         }
         
         /* Otherwise we'll just use generic bean introspection

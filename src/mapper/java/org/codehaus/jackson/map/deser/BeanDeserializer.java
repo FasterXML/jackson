@@ -15,7 +15,7 @@ import org.codehaus.jackson.util.TokenBuffer;
 
 /**
  * Deserializer class that can deserialize instances of
- * arbitrary bean objects, usually from Json Object structs,
+ * arbitrary bean objects, usually from JSON Object structs,
  * but possibly also from simple types like String values.
  */
 @JsonCachable

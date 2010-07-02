@@ -100,7 +100,7 @@ public class TestDefaultForObject
             fail("Should have failed");
         } catch (JsonMappingException e) {
             // let's use whatever is currently thrown exception... may change tho
-            verifyException(e, "can not instantiate");
+            verifyException(e, "can not construct");
         }
         
         // and then that we will succeed with default type info

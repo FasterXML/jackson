@@ -25,7 +25,7 @@ public class TestAbstract
             m.readValue("{ \"x\" : 3 }", Abstract.class);
             fail("Should fail on trying to deserialize abstract type");
         } catch (JsonProcessingException e) {
-            verifyException(e, "can not instantiate");
+            verifyException(e, "can not construct");
         }
     }
 }

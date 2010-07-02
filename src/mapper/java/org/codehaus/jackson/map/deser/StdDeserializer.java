@@ -34,7 +34,7 @@ public abstract class StdDeserializer<T>
     protected StdDeserializer(Class<?> vc) {
         _valueClass = vc;
     }
-
+    
     /*
     /**********************************************************
     /* Extended API

@@ -1,6 +1,7 @@
 package main;
 
 import java.io.*;
+import java.util.Arrays;
 
 import junit.framework.TestCase;
 
@@ -231,14 +232,17 @@ public abstract class BaseTest
         }
     }
 
-    protected void verifyException(Throwable e, String match)
+    protected void verifyException(Throwable e, String... matches)
     {
         String msg = e.getMessage();
         String lmsg = msg.toLowerCase();
-        String lmatch = match.toLowerCase();
-        if (lmsg.indexOf(lmatch) < 0) {
-            fail("Expected an exception with sub-string \""+match+"\": got one with message \""+msg+"\"");
+        for (String match : matches) {
+            String lmatch = match.toLowerCase();
+            if (lmsg.indexOf(lmatch) >= 0) {
+                return;
+            }
         }
+        fail("Expected an exception with one of substrings ("+Arrays.asList(matches)+"): got one with message \""+msg+"\"");
     }
 
     /**
