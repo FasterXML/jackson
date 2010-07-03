@@ -1,10 +1,21 @@
-Version: 1.5.4
+Version: 1.5.5
 
 Release date:
-  25-Jun-2010
+  xx-Jul-2010
 
 Description:
-  Fourth patch release for 1.5
+  Fifth patch release for 1.5
+
+  Fixes:
+
+  * [JACKSON-318] Deserializer missing support for java.util.Currency
+    (reported by Geoffrey A)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.5.4 [25-Jun-2010]
 
   Fixes:
 
@@ -14,10 +25,6 @@ Description:
   * [JACKSON-311]: Problems handling polymorphic type information for
     'untyped' (Object) bean properties, default typing
    (reported by Eric S)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.5.3 [31-May-2010]
 
