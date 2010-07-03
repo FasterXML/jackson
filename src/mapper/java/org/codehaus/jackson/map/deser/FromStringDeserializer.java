@@ -45,10 +45,10 @@ public abstract class FromStringDeserializer<T>
         throws IOException, JsonProcessingException;
 
     /*
-    /////////////////////////////////////////////////////////////
-    // Then concrete implementations
-    /////////////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Then concrete implementations
+    /**********************************************************
+     */
 
     public static class UUIDDeserializer
         extends FromStringDeserializer<UUID>

@@ -63,6 +63,7 @@ class StdDeserializers
         add(new FromStringDeserializer.UUIDDeserializer());
         add(new FromStringDeserializer.URLDeserializer());
         add(new FromStringDeserializer.URIDeserializer());
+        add(new FromStringDeserializer.CurrencyDeserializer());
         add(new FromStringDeserializer.PatternDeserializer());
 
         /* 25-Aug-2009, tatu: Looks like Google's Android and GAE

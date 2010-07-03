@@ -35,4 +35,10 @@ public class TestJdkTypes
         Map<String,Object> result = writeAndMap(input);
         assertEquals(p.pattern(), result.get("p"));
     }
+
+    public void testCurrency() throws IOException
+    {
+        Currency usd = Currency.getInstance("USD");
+        assertEquals(quote("USD"), new ObjectMapper().writeValueAsString(usd));
+    }
 }
