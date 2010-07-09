@@ -318,6 +318,11 @@ Eric Sirianni:
    [1.5.4]
 
 Geoffrey Arnold:
-  * Reported [JACKSON-318: Missing deserialization support for
+  * Reported [JACKSON-318]: Missing deserialization support for
     java.util.Currency
+   [1.5.5]
+
+Christopher Currie:
+  * Reported [JACKSON-319], pointed out solution: issues trying to deserialize
+    polymorphic instances with no data (just type info)
    [1.5.5]

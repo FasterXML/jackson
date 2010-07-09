@@ -10,6 +10,9 @@ Description:
 
   * [JACKSON-318] Deserializer missing support for java.util.Currency
     (reported by Geoffrey A)
+  * [JACKSON-319] Issues when trying to deserialize polymorphic type
+    with no data (just type information)
+    (reported by Chris C)
 
 ------------------------------------------------------------------------
 == History: ==
