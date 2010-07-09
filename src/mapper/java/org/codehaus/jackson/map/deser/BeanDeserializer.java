@@ -354,6 +354,7 @@ public class BeanDeserializer
             // these only work if there's a (delegating) creator...
             return deserializeUsingCreator(jp, ctxt);
         case FIELD_NAME:
+        case END_OBJECT: // added to resolve [JACKSON-319], possible related issues
             return deserializeFromObject(jp, ctxt);
 	}
         throw ctxt.mappingException(getBeanClass());

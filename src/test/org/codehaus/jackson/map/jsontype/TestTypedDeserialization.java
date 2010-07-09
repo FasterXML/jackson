@@ -58,6 +58,17 @@ public class TestTypedDeserialization
         public void setName(String n) { name = n; }
     }
 
+    // for [JACKSON-319] -- allow "empty" beans
+    @JsonTypeName("fishy")
+    static class Fish extends Animal
+    {
+        @JsonCreator
+        public Fish()
+        {
+            super(null);
+        }
+    }
+
     static class AnimalContainer {
         public Animal animal;
     }
@@ -146,19 +157,22 @@ public class TestTypedDeserialization
                                      "@classy", Dog.class.getName(),
                                      "name", "Bob"
                                      )
+            +",\n"
+            +asJSONObjectValueString(m, "@classy", Fish.class.getName())
             +", null\n]";
         
         JavaType expType = TypeFactory.collectionType(ArrayList.class, Animal.class);
         List<Animal> animals = m.readValue(JSON, expType);
         assertNotNull(animals);
-        assertEquals(3, animals.size());
+        assertEquals(4, animals.size());
         Cat c = (Cat) animals.get(0);
         assertEquals("Hello", c.name);
         assertEquals("white", c.furColor);
         Dog d = (Dog) animals.get(1);
         assertEquals("Bob", d.name);
         assertEquals(1, d.boneCount);
-        assertNull(animals.get(2));
+        Fish f = (Fish) animals.get(2);
+        assertNull(animals.get(3));
     }
 
     public void testCagedAnimal() throws Exception
