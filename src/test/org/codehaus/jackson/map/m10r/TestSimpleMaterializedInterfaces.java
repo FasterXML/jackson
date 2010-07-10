@@ -2,7 +2,6 @@ package org.codehaus.jackson.map.m10r;
 
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.type.TypeFactory;
 
 public class TestSimpleMaterializedInterfaces
     extends BaseMapTest
@@ -27,9 +26,10 @@ public class TestSimpleMaterializedInterfaces
     /**
      * First test verifies that bean builder works as expected
      */
-    public void testBeanBuilder() throws Exception
+    public void testLowLevelMaterializer() throws Exception
     {
-        Class<?> impl = new BeanBuilder().implement(Bean.class).load("test.BeanImpl");
+        AbstractTypeMaterializer mat = new AbstractTypeMaterializer();
+        Class<?> impl = mat.materializeClass(Bean.class);
         assertNotNull(impl);
         assertTrue(Bean.class.isAssignableFrom(impl));
         // also, let's instantiate to make sure:
@@ -47,7 +47,7 @@ public class TestSimpleMaterializedInterfaces
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
-        Bean bean = mapper.readValue("{\"a\":\"value\",\"b\":123", Bean.class);
+        Bean bean = mapper.readValue("{\"a\":\"value\",\"x\":123 }", Bean.class);
         assertNotNull(bean);
         assertEquals("value", bean.getA());
         assertEquals(123, bean.getX());

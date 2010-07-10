@@ -56,13 +56,16 @@ public class BeanBuilder
     }
 
     /**
+     * Method that generates byte code for class that implements abstract
+     * types requested so far.
+     * 
      * @param className Fully-qualified name of the class to generate
-     * @return Class instance built by this builder
+     * @return Byte code Class instance built by this builder
      */
-    public Class<?> load(String className)
+    public byte[] build(String className)
     {
-        String internalClass = getInternalClassName(className);
         ClassWriter cw = new ClassWriter(0);
+        String internalClass = getInternalClassName(className);
 
         String[] parents = new String[implementing.size()];
         for (int i = 0; i < implementing.size(); i++) {
@@ -72,7 +75,6 @@ public class BeanBuilder
                 "java/lang/Object", parents);
         cw.visitSource(className + ".java", null);
         BeanBuilder.generateDefaultConstructor(cw);
-
         for (Map.Entry<String, Class<?>> propEntry : properties.entrySet()) {
             String propName = propEntry.getKey();
             Class<?> propClass = propEntry.getValue();
@@ -90,8 +92,7 @@ public class BeanBuilder
         }
 
         cw.visitEnd();
-
-        return loadClass(className, cw.toByteArray());
+        return cw.toByteArray();
     }
     
     /*
@@ -181,32 +182,6 @@ public class BeanBuilder
         mv.visitInsn(ATHROW);
         mv.visitMaxs(2, 1 + inTypes.length);
         mv.visitEnd();
-    }
-
-    private static Class<?> loadClass(String className, byte[] b) {
-        // override classDefine (as it is protected) and define the class.
-        Class<?> clazz = null;
-        try {
-            ClassLoader loader = ClassLoader.getSystemClassLoader();
-            Class<?> cls = Class.forName("java.lang.ClassLoader");
-            java.lang.reflect.Method method = cls.getDeclaredMethod(
-                    "defineClass", new Class<?>[] { String.class, byte[].class,
-                            int.class, int.class });
-
-            // protected method invocation
-            method.setAccessible(true);
-            try {
-                Object[] args = new Object[] { className, b, new Integer(0),
-                        new Integer(b.length) };
-                clazz = (Class<?>) method.invoke(loader, args);
-            } finally {
-                method.setAccessible(false);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-        return clazz;
     }
 
     private static String getInternalClassName(String className) {

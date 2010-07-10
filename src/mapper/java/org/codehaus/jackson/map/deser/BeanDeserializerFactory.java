@@ -101,6 +101,7 @@ public class BeanDeserializerFactory
                         /* important: introspect actual implementation (abstract class or
                          * interface doesn't have constructors, for one)
                          */
+System.err.println("DEBUG: introspect type "+concrete);                       
                         beanDesc = config.introspect(concrete);
                         return buildBeanDeserializer(config, concrete, beanDesc);
                     }
