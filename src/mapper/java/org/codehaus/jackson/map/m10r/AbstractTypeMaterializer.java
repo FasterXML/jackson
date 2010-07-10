@@ -21,9 +21,8 @@ public class AbstractTypeMaterializer
         Class<?> cls = type.getRawClass();
         // Need to have proper name mangling in future, but for now...
         String newName = "materialized."+cls.getName();
-        BeanBuilder builder = new BeanBuilder(newName);
-        builder.implement(cls);
-        Class<?> impl = builder.load();
+        BeanBuilder builder = new BeanBuilder();
+        Class<?> impl = builder.implement(cls).load(newName);
         return TypeFactory.type(impl);
     }
 }

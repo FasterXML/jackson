@@ -14,17 +14,25 @@ public class BeanBuilder
     protected Map<String, Class<?>> properties = new LinkedHashMap<String, Class<?>>();
     protected Map<String, ThrowMethodType> throwMethods = new LinkedHashMap<String, ThrowMethodType>();
     protected List<Class<?>> implementing = new ArrayList<Class<?>>();
-    protected String className;
-    protected String internalClass;
 
-    public BeanBuilder(String className) {
-        this.className = className;
-        this.internalClass = getInternalClassName(className);
-    }
+    public BeanBuilder() { }
 
-    public BeanBuilder implement(Class<?> parent) {
+    /*
+    /**********************************************************
+    /* Core public API
+    /**********************************************************
+     */
+
+    /**
+     * @param parent Interface or abstract class that resulting class should
+     *    complete (implement all abstract/interface methods)
+     * @return
+     */
+    public BeanBuilder implement(Class<?> parent)
+    {
         this.implementing.add(parent);
 
+        // TODO: recursively check super-interfaces/classes
         for (Method m : parent.getMethods()) {
             if (m.getName().startsWith("get")
                     || m.getName().startsWith("set")) {
@@ -34,9 +42,8 @@ public class BeanBuilder
 
                 if (this.properties.containsKey(name)
                         && !this.properties.get(name).equals(propType)) {
-                    throw new IllegalArgumentException("Duplicate property");
+                    throw new IllegalArgumentException("Duplicate property '"+name+"' with different types");
                 }
-
                 addProperty(name, propType);
             } else {
                 addThrow(m.getName(), m.getParameterTypes(), m
@@ -48,21 +55,13 @@ public class BeanBuilder
         return this;
     }
 
-    public BeanBuilder addProperty(String name, Class<?> type) {
-        properties.put(name, type);
-
-        return this;
-    }
-
-    public BeanBuilder addThrow(String name, Class<?>[] paramTypes,
-            Class<?> returnType, Class<?> exceptionType) {
-        this.throwMethods.put(name, new ThrowMethodType(name, paramTypes,
-                returnType, exceptionType));
-
-        return this;
-    }
-
-    public Class<?> load() {
+    /**
+     * @param className Fully-qualified name of the class to generate
+     * @return Class instance built by this builder
+     */
+    public Class<?> load(String className)
+    {
+        String internalClass = getInternalClassName(className);
         ClassWriter cw = new ClassWriter(0);
 
         String[] parents = new String[implementing.size()];
@@ -83,12 +82,10 @@ public class BeanBuilder
             BeanBuilder.createSetter(cw, internalClass, propName, propClass);
         }
 
-        for (Map.Entry<String, ThrowMethodType> throwEntry : this.throwMethods
-                .entrySet()) {
+        for (Map.Entry<String, ThrowMethodType> throwEntry : throwMethods.entrySet()) {
             ThrowMethodType thr = throwEntry.getValue();
 
-            BeanBuilder.createThrow(cw, this.internalClass, throwEntry
-                    .getKey(), thr.paramTypes, thr.returnType,
+            createThrow(cw, internalClass, throwEntry.getKey(), thr.paramTypes, thr.returnType,
                     thr.exceptionType);
         }
 
@@ -96,10 +93,35 @@ public class BeanBuilder
 
         return loadClass(className, cw.toByteArray());
     }
+    
+    /*
+    /**********************************************************
+    /* Build methods
+    /**********************************************************
+     */
+    
+    public BeanBuilder addProperty(String name, Class<?> type) {
+        properties.put(name, type);
+
+        return this;
+    }
+
+    public BeanBuilder addThrow(String name, Class<?>[] paramTypes,
+            Class<?> returnType, Class<?> exceptionType) {
+        this.throwMethods.put(name, new ThrowMethodType(name, paramTypes,
+                returnType, exceptionType));
+
+        return this;
+    }
+
+    /*
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
+     */
 
     private static void generateDefaultConstructor(ClassWriter cw) {
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null,
-                null);
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
         mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
@@ -230,7 +252,14 @@ public class BeanBuilder
         return list.toString();
     }
 
-    private static class ThrowMethodType {
+    /*
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+    
+    private static class ThrowMethodType
+    {
         //public final String name;
         public final Class<?>[] paramTypes;
         public final Class<?> returnType;
