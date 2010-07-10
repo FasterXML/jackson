@@ -98,6 +98,10 @@ public class BeanDeserializerFactory
                 if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
                     JavaType concrete = res.resolveAbstractType(config, type);
                     if (concrete != null) {
+                        /* important: introspect actual implementation (abstract class or
+                         * interface doesn't have constructors, for one)
+                         */
+                        beanDesc = config.introspect(concrete);
                         return buildBeanDeserializer(config, concrete, beanDesc);
                     }
                 }
