@@ -268,21 +268,6 @@ public class ObjectMapper
 
     /*
     /**********************************************************
-    /* Configuration settings, other
-    /**********************************************************
-     */
-
-    /**
-     * Node factory to use for creating {@link JsonNode}s
-     * for tree model instances when binding JSON content
-     * as JSON trees.
-     *
-     * @since 1.2
-     */
-    protected JsonNodeFactory _nodeFactory;
-
-    /*
-    /**********************************************************
     /* Caching
     /**********************************************************
      */
@@ -396,10 +381,6 @@ public class ObjectMapper
 
         // Default serializer factory is stateless, can just assign
         _serializerFactory = BeanSerializerFactory.instance;
-
-        // and use standard JsonNodeFactory initially
-        _nodeFactory = JsonNodeFactory.instance;
-
     }
 
     /**
@@ -451,7 +432,7 @@ public class ObjectMapper
      * @since 1.2
      */
     public ObjectMapper setNodeFactory(JsonNodeFactory f) {
-        _nodeFactory = f;
+        _deserializationConfig.setNodeFactory(f);
         return this;
     }
 
@@ -634,11 +615,16 @@ public class ObjectMapper
      * Method that can be used to get hold of {@link JsonNodeFactory}
      * that this mapper will use when directly constructing
      * root {@link JsonNode} instances for Trees.
+     *<p>
+     * Note: this is just a shortcut for calling
+     *<pre>
+     *   getDeserializationConfig().getNodeFactory()
+     *</pre>
      *
      * @since 1.2
      */
     public JsonNodeFactory getNodeFactory() {
-        return _nodeFactory;
+        return _deserializationConfig.getNodeFactory();
     }
 
     /*
@@ -1012,7 +998,7 @@ public class ObjectMapper
      * @since 1.2
      */
     public ObjectNode createObjectNode() {
-        return _nodeFactory.objectNode();
+        return _deserializationConfig.getNodeFactory().objectNode();
     }
 
     /**
@@ -1025,7 +1011,7 @@ public class ObjectMapper
      * @since 1.2
      */
     public ArrayNode createArrayNode() {
-        return _nodeFactory.arrayNode();
+        return _deserializationConfig.getNodeFactory().arrayNode();
     }
 
     /**
@@ -1465,6 +1451,15 @@ public class ObjectMapper
     public ObjectReader reader(TypeReference<?> type)
     {
         return reader(TypeFactory.type(type));
+    }
+
+    /**
+     * Factory method for constructing {@link ObjectReader} that will
+     * use specified {@link JsonNodeFactory} for constructing JSON trees.
+     */
+    public ObjectReader reader(JsonNodeFactory f)
+    {        
+        return new ObjectReader(this, null, null).withNodeFactory(f);
     }
     
     /*

@@ -23,23 +23,26 @@ public class JsonNodeDeserializer
 
     protected JsonNodeDeserializer() { super(JsonNode.class); }
 
+    /**
+     * Factory method for accessing deserializer for specific node type
+     */
     public static JsonDeserializer<? extends JsonNode> getDeserializer(Class<?> nodeClass)
     {
-        if (ObjectNode.class.isAssignableFrom(nodeClass)) {
+        if (nodeClass == ObjectNode.class) {
             return ObjectDeserializer.instance;
         }
-        if (ArrayNode.class.isAssignableFrom(nodeClass)) {
+        if (nodeClass == ArrayNode.class) {
             return ArrayDeserializer.instance;
         }
         // For others, generic one works fine
-        return JsonNodeDeserializer.instance;
+        return instance;
     }
     
     /*
-    /////////////////////////////////////////////////////
-    // Actual deserializer implementations
-    /////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Actual deserializer implementations
+    /**********************************************************
+     */
 
     /**
      * Implementation that will produce types of any JSON nodes; not just one
@@ -53,15 +56,15 @@ public class JsonNodeDeserializer
     }
 
     /*
-    /////////////////////////////////////////////////////
-    // Specific instances for more accurate types
-    /////////////////////////////////////////////////////
+    /**********************************************************
+    /* Specific instances for more accurate types
+    /**********************************************************
      */
 
     final static class ObjectDeserializer
         extends BaseNodeDeserializer<ObjectNode>
     {
-        final static ObjectDeserializer instance = new ObjectDeserializer();
+        protected final static ObjectDeserializer instance = new ObjectDeserializer();
 
         protected ObjectDeserializer() {
             super(ObjectNode.class);
@@ -85,7 +88,7 @@ public class JsonNodeDeserializer
     final static class ArrayDeserializer
         extends BaseNodeDeserializer<ArrayNode>
     {
-        final static ArrayDeserializer instance = new ArrayDeserializer();
+        protected final static ArrayDeserializer instance = new ArrayDeserializer();
 
         protected ArrayDeserializer() {
             super(ArrayNode.class);
@@ -110,16 +113,10 @@ public class JsonNodeDeserializer
 abstract class BaseNodeDeserializer<N extends JsonNode>
     extends StdDeserializer<N>
 {
-    protected JsonNodeFactory _nodeFactory;
-    
     public BaseNodeDeserializer(Class<N> nodeClass)
     {
         super(nodeClass);
-        _nodeFactory = JsonNodeFactory.instance;
     }
-    
-    public JsonNodeFactory getNodeFactory() { return _nodeFactory; }
-    public void setNodeFactory(JsonNodeFactory nf) { _nodeFactory = nf; }
     
     @Override
     public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
@@ -133,10 +130,10 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
     }
 
     /*
-    /////////////////////////////////////////////////////
-    // Overridable methods
-    /////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Overridable methods
+    /**********************************************************
+     */
     
     protected void _reportProblem(JsonParser jp, String msg)
         throws JsonMappingException
@@ -166,15 +163,15 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
     }
     
     /*
-    /////////////////////////////////////////////////////
-    // Helper methods
-    /////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
+     */
     
     protected final ObjectNode deserializeObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        ObjectNode node = _nodeFactory.objectNode();
+        ObjectNode node = ctxt.getNodeFactory().objectNode();
         JsonToken t = jp.getCurrentToken();
         if (t == JsonToken.START_OBJECT) {
             t = jp.nextToken();
@@ -194,7 +191,7 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
     protected final ArrayNode deserializeArray(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        ArrayNode node = _nodeFactory.arrayNode();
+        ArrayNode node = ctxt.getNodeFactory().arrayNode();
         while (jp.nextToken() != JsonToken.END_ARRAY) {
             node.add(deserializeAny(jp, ctxt));
         }
@@ -204,6 +201,7 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
     protected final JsonNode deserializeAny(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
+        final JsonNodeFactory nodeFactory = ctxt.getNodeFactory();
         switch (jp.getCurrentToken()) {
         case START_OBJECT:
         case FIELD_NAME:
@@ -213,19 +211,19 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
             return deserializeArray(jp, ctxt);
 
         case VALUE_STRING:
-            return _nodeFactory.textNode(jp.getText());
+            return nodeFactory.textNode(jp.getText());
 
         case VALUE_NUMBER_INT:
             {
                 JsonParser.NumberType nt = jp.getNumberType();
                 if (nt == JsonParser.NumberType.BIG_INTEGER
                     || ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS)) {
-                    return _nodeFactory.numberNode(jp.getIntValue());
+                    return nodeFactory.numberNode(jp.getIntValue());
                 }
                 if (nt == JsonParser.NumberType.INT) {
-                    return _nodeFactory.numberNode(jp.getIntValue());
+                    return nodeFactory.numberNode(jp.getIntValue());
                 }
-                return _nodeFactory.numberNode(jp.getLongValue());
+                return nodeFactory.numberNode(jp.getLongValue());
             }
 
         case VALUE_NUMBER_FLOAT:
@@ -233,19 +231,19 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
                 JsonParser.NumberType nt = jp.getNumberType();
                 if (nt == JsonParser.NumberType.BIG_DECIMAL
                     || ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
-                    return _nodeFactory.numberNode(jp.getDecimalValue());
+                    return nodeFactory.numberNode(jp.getDecimalValue());
                 }
-                return _nodeFactory.numberNode(jp.getDoubleValue());
+                return nodeFactory.numberNode(jp.getDoubleValue());
             }
 
         case VALUE_TRUE:
-            return _nodeFactory.booleanNode(true);
+            return nodeFactory.booleanNode(true);
 
         case VALUE_FALSE:
-            return _nodeFactory.booleanNode(false);
+            return nodeFactory.booleanNode(false);
 
         case VALUE_NULL:
-            return _nodeFactory.nullNode();
+            return nodeFactory.nullNode();
 
             // These states can not be mapped; input stream is
             // off by an event or two

@@ -22,9 +22,9 @@ public class JsonNodeFactory
     protected JsonNodeFactory() { }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Factory methods for literal values
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Factory methods for literal values
+    /**********************************************************
      */
 
     /**
@@ -42,9 +42,9 @@ public class JsonNodeFactory
     public NullNode nullNode() { return NullNode.getInstance(); }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Factory methods for numeric values
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Factory methods for numeric values
+    /**********************************************************
      */
 
     /**
@@ -96,9 +96,9 @@ public class JsonNodeFactory
     public NumericNode numberNode(BigDecimal v) { return DecimalNode.valueOf(v); }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Factory methods for textual values
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Factory methods for textual values
+    /**********************************************************
      */
 
     /**
@@ -124,26 +124,26 @@ public class JsonNodeFactory
     }
 
     /*
-    ////////////////////////////////////////////////////////
-    // Factory method for structured values
-    ////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Factory method for structured values
+    /**********************************************************
      */
 
     /**
-     * Factory method for constructing an empty Json Array node
+     * Factory method for constructing an empty JSON Array node
      */
     public ArrayNode arrayNode() { return new ArrayNode(this); }
 
     /**
-     * Factory method for constructing an empty Json Object ("struct") node
+     * Factory method for constructing an empty JSON Object ("struct") node
      */
     public ObjectNode objectNode() { return new ObjectNode(this); }
 
     /**
      * Factory method for constructing a wrapper for POJO
      * ("Plain Old Java Object") objects; these will get serialized
-     * using data binding, usually as Json Objects, but in some
-     * cases as Json Strings or other node types.
+     * using data binding, usually as JSON Objects, but in some
+     * cases as JSON Strings or other node types.
      */
     public POJONode POJONode(Object pojo) { return new POJONode(pojo); }
 }

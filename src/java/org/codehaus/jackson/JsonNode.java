@@ -5,11 +5,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
-
 /**
  * Base class for all JSON nodes, which form the basis of JSON
  * Tree Model that Jackson implements.
- * One way to think of these nodes is to considere them
+ * One way to think of these nodes is to consider them
  * similar to DOM nodes in XML DOM trees.
  *<p>
  * As a general design rule, most accessors ("getters") are included
@@ -18,10 +17,12 @@ import java.util.*;
  * specific sub-classes. This seems sensible because proper type
  * information is generally available when building or modifying
  * trees, but less often when reading a tree (newly built from
- * parsed Json content).
+ * parsed JSON content).
  *<p>
  * Actual concrete sub-classes can be found from package
- * {@link org.codehaus.jackson.node}.
+ * {@link org.codehaus.jackson.node}, which is in 'mapper' jar
+ * (whereas this class is in 'core' jar, since it is declared as
+ * nominal type for operations in {@link ObjectCodec}
  */
 public abstract class JsonNode
     implements Iterable<JsonNode>
@@ -370,13 +371,13 @@ public abstract class JsonNode
     /**
      * Same as calling {@link #getElements}; implemented so that
      * convenience "for-each" loop can be used for looping over elements
-     * of Json Array constructs.
+     * of JSON Array constructs.
      */
     public final Iterator<JsonNode> iterator() { return getElements(); }
 
     /**
      * Method for accessing all value nodes of this Node, iff
-     * this node is a Json Array or Object node. In case of Object node,
+     * this node is a JSON Array or Object node. In case of Object node,
      * field names (keys) are not included, only values.
      * For other types of nodes, returns empty iterator.
      */
@@ -384,7 +385,7 @@ public abstract class JsonNode
 
     /**
      * Method for accessing names of all fields for this Node, iff
-     * this node is a Json Object node.
+     * this node is a JSON Object node.
      */
     public Iterator<String> getFieldNames() { return NO_STRINGS.iterator(); }
 
@@ -480,9 +481,13 @@ public abstract class JsonNode
     public abstract String toString();
 
     /**
+     * Equality for node objects is defined as full (deep) value
+     * equality. This means that it is possible to compare complete
+     * JSON trees for equality by comparing equality of root nodes.
      *<p>
      * Note: marked as abstract to ensure all implementation
-     * classes define it properly.
+     * classes define it properly and not rely on definition
+     * from {@link java.lang.Object}.
      */
     @Override
     public abstract boolean equals(Object o);

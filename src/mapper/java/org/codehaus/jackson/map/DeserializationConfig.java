@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.StdDateFormat;
+import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -342,6 +343,11 @@ public class DeserializationConfig
      * @since 1.6
      */
     protected AbstractTypeResolver _abstractTypeResolver;
+
+    /**
+     * @since 1.6
+     */
+    protected JsonNodeFactory _nodeFactory;
     
     /*
     /**********************************************************
@@ -356,6 +362,8 @@ public class DeserializationConfig
         _annotationIntrospector = annIntr;
         _typer = null;
         _visibilityChecker = vc;
+        _nodeFactory = JsonNodeFactory.instance;
+
     }
 
     protected DeserializationConfig(DeserializationConfig src,
@@ -369,6 +377,7 @@ public class DeserializationConfig
         _featureFlags = src._featureFlags;
         _problemHandlers = src._problemHandlers;
         _dateFormat = src._dateFormat;
+        _nodeFactory = src._nodeFactory;
         _mixInAnnotations = mixins;
         _typer = typer;
         _visibilityChecker = vc;
@@ -433,6 +442,18 @@ public class DeserializationConfig
     	return new DeserializationConfig(this, mixins, typer, vc);
     }
 
+    /**
+     * Alternative "copy factory" that creates an unshared copy that uses
+     * different node factory than this instance.
+     * 
+     * @since 1.6
+     */
+    public DeserializationConfig createUnshared(JsonNodeFactory nf)
+    {
+        DeserializationConfig config = createUnshared(_typer, _visibilityChecker);
+        config.setNodeFactory(nf);
+        return config;
+    }
 
     //@Override
     public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
@@ -519,8 +540,8 @@ public class DeserializationConfig
     /**
      * @since 1.6
      */
-    public AbstractTypeResolver getAbstractTypeResolver() {
-        return _abstractTypeResolver;
+    public void setNodeFactory(JsonNodeFactory nf) {
+        _nodeFactory = nf;
     }
 
     /*
@@ -627,14 +648,26 @@ public class DeserializationConfig
         return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
     }
     
-    //@Override
     public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
         return _typer;
     }
 
-    //@Override
     public VisibilityChecker<?> getDefaultVisibilityChecker() {
     	return _visibilityChecker;
+    }
+
+    /**
+     * @since 1.6
+     */
+    public AbstractTypeResolver getAbstractTypeResolver() {
+        return _abstractTypeResolver;
+    }
+    
+    /**
+     * @since 1.6
+     */
+    public final JsonNodeFactory getNodeFactory() {
+        return _nodeFactory;
     }
     
     /*

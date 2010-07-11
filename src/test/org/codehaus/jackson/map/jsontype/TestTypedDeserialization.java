@@ -172,6 +172,7 @@ public class TestTypedDeserialization
         assertEquals("Bob", d.name);
         assertEquals(1, d.boneCount);
         Fish f = (Fish) animals.get(2);
+        assertNotNull(f);
         assertNull(animals.get(3));
     }
 

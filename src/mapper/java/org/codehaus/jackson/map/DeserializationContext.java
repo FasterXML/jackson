@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ObjectBuffer;
+import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -22,9 +23,9 @@ public abstract class DeserializationContext
     }
 
     /*
-    /************************************************************
+    /**********************************************************
     /* Configuration methods
-    /************************************************************
+    /**********************************************************
      */
 
     /**
@@ -70,11 +71,15 @@ public abstract class DeserializationContext
      */
     public abstract JsonParser getParser();
 
+    public final JsonNodeFactory getNodeFactory() {
+        return _config.getNodeFactory();
+    }
+    
     /*
-    //////////////////////////////////////////////////////////////
-    // Methods for accessing reusable/recyclable helper objects
-    //////////////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Methods for accessing reusable/recyclable helper objects
+    /**********************************************************
+     */
 
     /**
      * Method that can be used to get access to a reusable ObjectBuffer,
@@ -99,10 +104,10 @@ public abstract class DeserializationContext
     public abstract ArrayBuilders getArrayBuilders();
 
     /*
-    //////////////////////////////////////////////////////////////
-    // Parsing methods that may use reusable/-cyclable objects
-    //////////////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Parsing methods that may use reusable/-cyclable objects
+    /**********************************************************
+     */
 
     public abstract java.util.Date parseDate(String dateStr)
         throws IllegalArgumentException;
@@ -110,10 +115,10 @@ public abstract class DeserializationContext
     public abstract Calendar constructCalendar(Date d);
 
     /*
-    //////////////////////////////////////////////////////////////
-    // Methods for problem handling, reporting
-    //////////////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Methods for problem handling, reporting
+    /**********************************************************
+     */
 
     /**
      * Method deserializers can call to inform configured {@link DeserializationProblemHandler}s

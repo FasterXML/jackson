@@ -9,6 +9,8 @@ import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.node.JsonNodeFactory;
+import org.codehaus.jackson.node.NullNode;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -26,10 +28,12 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class ObjectReader
 {
+    private final static JavaType JSON_NODE_TYPE = TypeFactory.type(JsonNode.class);
+
     /*
-    /***************************************************
+    /**********************************************************
     /* Immutable configuration from ObjectMapper
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -56,9 +60,9 @@ public class ObjectReader
     protected VisibilityChecker<?> _visibilityChecker;
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Configuration that can be changed during building
-    /***************************************************
+    /**********************************************************
      */   
 
     /**
@@ -82,9 +86,9 @@ public class ObjectReader
     protected final Object _valueToUpdate;
     
     /*
-    /***************************************************
+    /**********************************************************
     /* Life-cycle
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -107,7 +111,7 @@ public class ObjectReader
             throw new IllegalArgumentException("Can not update an array value");
         }
     }
-
+    
     /**
      * Copy constructor used for building variations.
      */
@@ -145,6 +149,14 @@ public class ObjectReader
     {
         return withType(TypeFactory.type(valueType));
     }    
+
+    public ObjectReader withNodeFactory(JsonNodeFactory f)
+    {
+        // node factory is stored within config, so need to copy that first
+        if (f == _config.getNodeFactory()) return this;
+        DeserializationConfig cfg = _config.createUnshared(f);
+        return new ObjectReader(this, cfg, _valueType, _valueToUpdate);
+    }
     
     public ObjectReader withValueToUpdate(Object value)
     {
@@ -157,9 +169,10 @@ public class ObjectReader
     }    
 
     /*
-    /******************************************************************
+    /**********************************************************
     /* Deserialization methods; basic ones to support ObjectCodec first
-    /******************************************************************
+    /* (ones that take JsonParser)
+    /**********************************************************
      */
 
     @SuppressWarnings("unchecked")
@@ -168,6 +181,18 @@ public class ObjectReader
     {
         return (T) _bind(jp);
     }
+
+    public JsonNode readTree(JsonParser jp)
+        throws IOException, JsonProcessingException
+    {
+        return _bindAsTree(jp);
+    }
+    
+    /*
+    /**********************************************************
+    /* Deserialization methods; others similar to what ObjectMapper has
+    /**********************************************************
+     */
 
     @SuppressWarnings("unchecked")
     public <T> T readValue(InputStream src)
@@ -218,10 +243,28 @@ public class ObjectReader
         return (T) _bindAndClose(_jsonFactory.createJsonParser(src));
     }
     
+    public JsonNode readTree(InputStream in)
+        throws IOException, JsonProcessingException
+    {
+        return _bindAndCloseAsTree(_jsonFactory.createJsonParser(in));
+    }
+    
+    public JsonNode readTree(Reader r)
+        throws IOException, JsonProcessingException
+    {
+        return _bindAndCloseAsTree(_jsonFactory.createJsonParser(r));
+    }
+
+    public JsonNode readTree(String content)
+        throws IOException, JsonProcessingException
+    {
+        return _bindAndCloseAsTree(_jsonFactory.createJsonParser(content));
+    }
+    
     /*
-    /******************************************************************
+    /**********************************************************
     /* Helper methods
-    /******************************************************************
+    /**********************************************************
      */
 
     /**
@@ -250,7 +293,6 @@ public class ObjectReader
         jp.clearCurrentToken();
         return result;
     }
-
     
     protected Object _bindAndClose(JsonParser jp)
         throws IOException, JsonParseException, JsonMappingException
@@ -276,8 +318,37 @@ public class ObjectReader
             } catch (IOException ioe) { }
         }
     }
- 
-    protected JsonToken _initForReading(JsonParser jp)
+
+    protected JsonNode _bindAsTree(JsonParser jp)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        JsonNode result;
+        JsonToken t = _initForReading(jp);
+        if (t == JsonToken.VALUE_NULL || t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
+            result = NullNode.instance;
+        } else {
+            DeserializationContext ctxt = _createDeserializationContext(jp, _config);
+            // Bit more complicated, since we may need to override node factory:
+            result = (JsonNode) _findRootDeserializer(_config, JSON_NODE_TYPE).deserialize(jp, ctxt);
+        }
+        // Need to consume the token too
+        jp.clearCurrentToken();
+        return result;
+    }
+    
+    protected JsonNode _bindAndCloseAsTree(JsonParser jp)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        try {
+            return _bindAsTree(jp);
+        } finally {
+            try {
+                jp.close();
+            } catch (IOException ioe) { }
+        }
+    }
+    
+    protected static JsonToken _initForReading(JsonParser jp)
         throws IOException, JsonParseException, JsonMappingException
     {
         /* First: must point to a token; if not pointing to one, advance.
