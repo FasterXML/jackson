@@ -530,6 +530,19 @@ public class DeserializationConfig
         return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
     }
 
+    //@Override
+    public DateFormat getDateFormat() { return _dateFormat; }
+
+    /**
+     * Method that will set the textual deserialization to use for
+     * deserializing Dates (and Calendars). If null is passed, will
+     * use {@link StdDateFormat}.
+     */
+    //@Override
+    public void setDateFormat(DateFormat df) {
+        _dateFormat = (df == null) ? StdDateFormat.instance : df;
+    }
+    
     /**
      * @since 1.6
      */
@@ -606,8 +619,6 @@ public class DeserializationConfig
     {
         return _problemHandlers;
     }
-
-    public DateFormat getDateFormat() { return _dateFormat; }
 
     /**
      * Method that will introspect full bean properties for the purpose
@@ -709,13 +720,4 @@ public class DeserializationConfig
     /* Configuration: other
     /**********************************************************
      */
-
-    /**
-     * Method that will set the textual deserialization to use for
-     * deserializing Dates (and Calendars). If null is passed, will
-     * use {@link StdDateFormat}.
-     */
-    public void setDateFormat(DateFormat df) {
-        _dateFormat = (df == null) ? StdDateFormat.instance : df;
-    }
 }

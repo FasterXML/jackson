@@ -1,8 +1,10 @@
 package org.codehaus.jackson.map;
 
+import java.text.DateFormat;
 import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.map.SerializationConfig.Feature;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;
@@ -84,6 +86,33 @@ public interface MapperConfig<T extends MapperConfig<T>>
      */
     public Class<?> findMixInClassFor(Class<?> cls);
 
+    /**
+     * Method for accessing currently configured (textual) date format
+     * that will be used for reading or writing date values (in case
+     * of writing, only if textual output is configured; not if dates
+     * are to be serialized as time stamps).
+     *<p>
+     * Note that typically {@link DateFormat} instances are <b>not thread-safe</b>
+     * (at least ones provided by JDK):
+     * this means that calling code should clone format instance before
+     * using it.
+     *<p>
+     * This method is usually only called by framework itself, since there
+     * are convenience methods available via
+     * {@link DeserializationContext} and {@link SerializerProvider} that
+     * take care of cloning and thread-safe reuse.
+     */
+    public DateFormat getDateFormat();
+
+    /**
+     * Method that will define specific date format to use for reading/writing
+     * Date and Calendar values; instance is used as is, without creating
+     * a clone.
+     * Format object can be access using
+     * {@link #getDateFormat}.
+     */
+    public void setDateFormat(DateFormat df);
+    
     /**
      * Method called to locate a type info handler for types that do not have
      * one explicitly declared via annotations (or other configuration).

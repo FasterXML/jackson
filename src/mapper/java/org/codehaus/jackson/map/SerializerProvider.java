@@ -33,9 +33,9 @@ public abstract class SerializerProvider
     }
 
     /*
-    /********************************************************
+    /**********************************************************
     /* Methods that ObjectMapper will call
-    /********************************************************
+    /**********************************************************
      */
 
     /**
@@ -85,9 +85,9 @@ public abstract class SerializerProvider
                                              Class<?> cls, SerializerFactory jsf);
 
     /*
-    /********************************************************
+    /**********************************************************
     /* Access to configuration
-    /********************************************************
+    /**********************************************************
      */
 
     public final SerializationConfig getConfig() { return _config; }
@@ -105,9 +105,9 @@ public abstract class SerializerProvider
     public final Class<?> getSerializationView() { return _serializationView; }
     
     /*
-    /********************************************************
+    /**********************************************************
     /* General serializer locating functionality
-    /********************************************************
+    /**********************************************************
      */
 
     /**
@@ -133,6 +133,9 @@ public abstract class SerializerProvider
         throws JsonMappingException;
 
     /**
+     * Similar to {@link #findValueSerializer(Class)}, but takes full generics-aware
+     * type instead of raw class.
+     * 
      * @since 1.5
      */
     public abstract JsonSerializer<Object> findValueSerializer(JavaType serializationType)

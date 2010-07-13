@@ -109,9 +109,23 @@ public abstract class DeserializationContext
     /**********************************************************
      */
 
+    /**
+     * Convenience method for parsing a Date from given String, using
+     * currently configured date format (accessed using
+     * {@link DeserializationConfig#getDateFormat()}).
+     *<p>
+     * Implementation will handle thread-safety issues related to
+     * date formats such that first time this method is called,
+     * date format is cloned, and cloned instance will be retained
+     * for use during this deserialization round.
+     */
     public abstract java.util.Date parseDate(String dateStr)
         throws IllegalArgumentException;
 
+    /**
+     * Convenience method for constructing Calendar instance set
+     * to specified time, to be modified and used by caller.
+     */
     public abstract Calendar constructCalendar(Date d);
 
     /*

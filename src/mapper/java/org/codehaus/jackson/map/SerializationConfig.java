@@ -316,9 +316,9 @@ public class SerializationConfig
     protected final static int DEFAULT_FEATURE_FLAGS = Feature.collectDefaults();
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Configuration settings
-    /***************************************************
+    /**********************************************************
      */
 
 
@@ -576,7 +576,7 @@ public class SerializationConfig
         _mixInAnnotations.put(new ClassKey(target), mixinSource);
     }
 
-    /***
+    /**
      * @since 1.2
      */
     //@Override
@@ -584,10 +584,28 @@ public class SerializationConfig
         return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
     }
 
+    //@Override
+    public DateFormat getDateFormat() { return _dateFormat; }
+
+    /**
+     * Method that will set the specific date format to use for
+     * serializing Dates (and Calendars); or if null passed, simply
+     * disable textual serialization and use timestamp.
+     * In addition to setting format, will also enable/disable feature
+     * {@link Feature#WRITE_DATES_AS_TIMESTAMPS}: enable, if argument
+     * is null; disable if non-null.
+     */
+    //@Override
+    public void setDateFormat(DateFormat df) {
+        _dateFormat = df;
+        // Also: enable/disable usage of 
+        set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
+    }
+
     /*
-    /***************************************************
+    /**********************************************************
     /* Accessors
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -596,8 +614,6 @@ public class SerializationConfig
     public final boolean isEnabled(Feature f) {
         return (_featureFlags & f.getMask()) != 0;
     }
-
-    public DateFormat getDateFormat() { return _dateFormat; }
 
     /**
      * Method for checking which serialization view is being used,
@@ -655,9 +671,9 @@ public class SerializationConfig
     }
     
     /*
-    /***************************************************
+    /**********************************************************
     /* Configuration: on/off features
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -689,9 +705,9 @@ public class SerializationConfig
     //protected int getFeatures() { return _generatorFeatures; }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Configuration: other
-    /***************************************************
+    /**********************************************************
      */
 
     /**
@@ -714,20 +730,6 @@ public class SerializationConfig
     }
 
     /**
-     * Method that will set the textual serialization to use for
-     * serializing Dates (and Calendars); or if null passed, simply
-     * disable textual serialization and use timestamp.
-     * Also, will enable/disable feature
-     * {@link Feature#WRITE_DATES_AS_TIMESTAMPS}: enable, if argument
-     * is null; disable if non-null.
-     */
-    public void setDateFormat(DateFormat df) {
-        _dateFormat = df;
-        // Also: enable/disable usage of 
-        set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
-    }
-
-    /**
      * Method for checking which serialization view is being used,
      * if any; null if none.
      *
@@ -739,9 +741,9 @@ public class SerializationConfig
     }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Debug support
-    /***************************************************
+    /**********************************************************
      */
 
     @Override public String toString()
