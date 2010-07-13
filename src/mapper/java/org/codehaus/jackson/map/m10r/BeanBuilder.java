@@ -14,9 +14,9 @@ import org.codehaus.jackson.map.type.TypeFactory;
 
 public class BeanBuilder
 {
-    protected Map<String, TypeDescription> properties = new LinkedHashMap<String, TypeDescription>();
-    protected List<Method> throwMethods = new ArrayList<Method>();
-    protected List<Class<?>> implementing = new ArrayList<Class<?>>();
+    protected Map<String, Property> _beanProperties = new LinkedHashMap<String,Property>();
+    protected List<Method> _unsupportedMethods = new ArrayList<Method>();
+    protected List<Class<?>> _implementedTypes = new ArrayList<Class<?>>();
 
     public BeanBuilder() { }
 
@@ -33,37 +33,29 @@ public class BeanBuilder
      */
     public BeanBuilder implement(Class<?> parent)
     {
-        this.implementing.add(parent);
+        _implementedTypes.add(parent);
 
         // TODO: recursively check super-interfaces/classes
         for (Method m : parent.getMethods()) {
             TypeDescription type;
+            String methodName = m.getName();
+            int argCount = m.getParameterTypes().length;
 
-            if (m.getName().startsWith("get")) {
-                type = TypeDescription.fromReturnType(m);
-            } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
-                type = TypeDescription.fromFirstArgType(m);
-            } else {
-                throwMethods.add(m);
-                continue;
-            }
-            String name = getFieldName(m.getName());
-            TypeDescription prevType = properties.get(name);
-            if (prevType != null) { // if we already saw a setter or getter, need to check compatibility
-                // must be assignable; if so, more specific should be used
-                TypeDescription specific = TypeDescription.moreSpecificType(prevType, type);
-                if (specific == null) { // not compatible
-                    throw new IllegalArgumentException("Invalid property '"+name+"': incompatible types for getter/setter ("
-                            +prevType+" vs "+type+")");
+            if (argCount == 0) { // getter?
+                if (methodName.startsWith("get") || methodName.startsWith("is") && returnsBoolean(m)) {
+                    addGetter(m);
+                    continue;
                 }
-                type = specific;
+            } else if (argCount == 1 && methodName.startsWith("set")) {
+                addSetter(m);
+            } else {
+                _unsupportedMethods.add(m);
             }
-            properties.put(name, type);
         }
 
         return this;
     }
-
+    
     /**
      * Method that generates byte code for class that implements abstract
      * types requested so far.
@@ -76,25 +68,24 @@ public class BeanBuilder
         ClassWriter cw = new ClassWriter(0);
         String internalClass = getInternalClassName(className);
 
-        String[] parents = new String[implementing.size()];
-        for (int i = 0; i < implementing.size(); i++) {
-            parents[i] = getInternalClassName(implementing.get(i).getName());
+        String[] parents = new String[_implementedTypes.size()];
+        for (int i = 0; i < _implementedTypes.size(); i++) {
+            parents[i] = getInternalClassName(_implementedTypes.get(i).getName());
         }
         cw.visit(V1_2, ACC_PUBLIC + ACC_SUPER, internalClass, null,
                 "java/lang/Object", parents);
         cw.visitSource(className + ".java", null);
         BeanBuilder.generateDefaultConstructor(cw);
-        for (Map.Entry<String, TypeDescription> propEntry : properties.entrySet()) {
-            String propName = propEntry.getKey();
-            TypeDescription type = propEntry.getValue();
-
-            createField(cw, propName, type);
-            createGetter(cw, internalClass, propName, type);
-            createSetter(cw, internalClass, propName, type);
+        for (Property prop : _beanProperties.values()) {
+            // First: determine type to use; preferably setter (usually more explicit); otherwise getter
+            TypeDescription type = prop.selectType();
+            createField(cw, prop.getName(), type);
+            createGetter(cw, internalClass, prop.getName(), type);
+            createSetter(cw, internalClass, prop.getName(), type);
         }
-
-        for (Method m : throwMethods) {
+        for (Method m : _unsupportedMethods) {            
             createUnimplementedMethod(cw, internalClass, m);
+            
         }
 
         cw.visitEnd();
@@ -103,7 +94,70 @@ public class BeanBuilder
 
     /*
     /**********************************************************
-    /* Internal methods
+    /* Internal methods, property discovery
+    /**********************************************************
+     */
+
+    private static String getPropertyName(String methodName)
+    {
+        int prefixLen = methodName.startsWith("is") ? 2 : 3;
+        String body = methodName.substring(prefixLen);
+        StringBuilder sb = new StringBuilder(body);
+        sb.setCharAt(0, Character.toLowerCase(body.charAt(0)));
+        return sb.toString();
+    }
+    
+    private static String getGetterName(String fieldName) {
+        return "get" + fieldName.substring(0, 1).toUpperCase()+ fieldName.substring(1);
+    }
+
+    private static String getSetterName(String fieldName) {
+        return "set" + fieldName.substring(0, 1).toUpperCase()+ fieldName.substring(1);
+    }
+
+    private static String getInternalClassName(String className) {
+        return className.replace(".", "/");
+    }
+
+    private void addGetter(Method m)
+    {
+        Property prop = findProperty(getPropertyName(m.getName()));
+        if (prop.getGetter() != null) { // dup?
+            throw new IllegalArgumentException("Invalid property '"+prop.getName()+"'; multiple getters; '"
+                    +m.getName()+"()' vs '"+prop.getGetter().getName()+"()'");
+        }
+        prop.setGetter(m);        
+    }
+
+    private void addSetter(Method m)
+    {
+        Property prop = findProperty(getPropertyName(m.getName()));
+        if (prop.getSetter() != null) { // dup?
+            throw new IllegalArgumentException("Invalid property '"+prop.getName()+"'; multiple setters; '"
+                    +m.getName()+"()' vs '"+prop.getSetter().getName()+"()'");
+        }
+        prop.setSetter(m);
+    }
+
+    private Property findProperty(String propName)
+    {
+        Property prop = _beanProperties.get(propName);
+        if (prop == null) {
+            prop = new Property(propName);
+            _beanProperties.put(propName, prop);
+        }
+        return prop;
+    }
+    
+    private final static boolean returnsBoolean(Method m)
+    {
+        Class<?> rt = m.getReturnType();
+        return (rt == Boolean.class || rt == Boolean.TYPE);
+    }
+    
+    /*
+    /**********************************************************
+    /* Internal methods, bytecode generation
     /**********************************************************
      */
 
@@ -157,11 +211,11 @@ public class BeanBuilder
     private static void createUnimplementedMethod(ClassWriter cw, String internalClassName,
             Method method)
     {
-        String exceptionName = getInternalClassName(UnsupportedOperationException.class.getName());
-
+        String exceptionName = getInternalClassName(UnsupportedOperationException.class.getName());        
         String sig = Type.getMethodDescriptor(method);
+        String name = method.getName();
         // should we try to pass generic information?
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, method.getName(), sig, null, null);
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, name, sig, null, null);
 
         mv.visitTypeInsn(NEW, exceptionName);
         mv.visitInsn(DUP);
@@ -170,26 +224,6 @@ public class BeanBuilder
         mv.visitMaxs(2, 1 + method.getParameterTypes().length);
         mv.visitEnd();
     }
-
-    private static String getInternalClassName(String className) {
-        return className.replace(".", "/");
-    }
-
-    private static String getFieldName(String getterMethodName) {
-        char[] name = getterMethodName.substring(3).toCharArray();
-        name[0] = Character.toLowerCase(name[0]);
-        final String propName = new String(name);
-
-        return propName;
-    }
-    
-    private static String getGetterName(String fieldName) {
-        return "get" + fieldName.substring(0, 1).toUpperCase()+ fieldName.substring(1);
-    }
-
-    private static String getSetterName(String fieldName) {
-        return "set" + fieldName.substring(0, 1).toUpperCase()+ fieldName.substring(1);
-    }
     
     /*
     /**********************************************************
@@ -197,6 +231,56 @@ public class BeanBuilder
     /**********************************************************
      */
 
+    /**
+     * Bean that contains information about a single logical
+     * property, which consists of a getter and/or setter,
+     * and is used to generate getter, setter and matching
+     * backing field.
+     */
+    private static class Property
+    {
+        protected final String _name;
+        
+        protected Method _getter;
+        protected Method _setter;
+        
+        public Property(String name) {
+            _name = name;
+        }
+
+        public String getName() { return _name; }
+        
+        public void setGetter(Method m) { _getter = m; }
+        public void setSetter(Method m) { _setter = m; }
+        
+        public Method getGetter() { return _getter; }
+        public Method getSetter() { return _setter; }
+
+        public TypeDescription selectType()
+        {
+            // First: if only know setter, or getter, use that one:
+            if (_getter == null) {
+                return TypeDescription.fromFirstArgType(_setter);
+            }
+            if (_setter == null) {
+                return TypeDescription.fromReturnType(_getter);
+            }
+            /* Otherwise must ensure they are compatible, choose more specific
+             * (most often setter - type)
+             */
+            TypeDescription st = TypeDescription.fromFirstArgType(_setter);
+            TypeDescription gt = TypeDescription.fromReturnType(_getter);
+            TypeDescription specificType = TypeDescription.moreSpecificType(st, gt);
+            if (specificType == null) { // incompatible...
+                throw new IllegalArgumentException("Invalid property '"+getName()
+                        +"': incompatible types for getter/setter ("
+                        +gt+" vs "+st+")");
+
+            }
+            return specificType;
+        }
+    }
+    
     /**
      * Helper bean used to encapsulate most details of type handling
      */
@@ -274,6 +358,7 @@ public class BeanBuilder
         /* Other methods
         /**********************************************************
          */
+
         
         public static TypeDescription moreSpecificType(TypeDescription desc1, TypeDescription desc2)
         {
