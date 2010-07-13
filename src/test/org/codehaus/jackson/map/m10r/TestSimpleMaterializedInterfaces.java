@@ -19,6 +19,16 @@ public class TestSimpleMaterializedInterfaces
         public String getA();
     }
 
+    public interface PartialBean {
+        public boolean isOk();
+        // and then non-getter/setter one:
+        public int foobar();
+    }
+    
+    public interface BeanHolder {
+        public Bean getBean();
+    }
+    
     // then invalid one; conflicting setter/getter types
     public interface InvalidBean {
         public int getX();
@@ -72,7 +82,7 @@ public class TestSimpleMaterializedInterfaces
      */
 
     /**
-     * And the a test to verify it via registration
+     * Test simple leaf-level bean with 2 implied _beanProperties
      */
     public void testSimpleInteface() throws Exception
     {
@@ -84,7 +94,22 @@ public class TestSimpleMaterializedInterfaces
         assertEquals(123, bean.getX());
     }
 
-    public void testArrayInteface() throws Exception
+    /**
+     * Then one bean holding a reference to another (leaf-level) bean
+     */
+    public void testBeanHolder() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        BeanHolder holder = mapper.readValue("{\"bean\":{\"a\":\"b\",\"x\":-4 }}", BeanHolder.class);
+        assertNotNull(holder);
+        Bean bean = holder.getBean();
+        assertNotNull(bean);
+        assertEquals("b", bean.getA());
+        assertEquals(-4, bean.getX());
+    }    
+    
+    public void testArrayInterface() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
@@ -94,4 +119,30 @@ public class TestSimpleMaterializedInterfaces
         assertArrayEquals(new int[] { 1, 2, 3} , bean.getValues());
         assertArrayEquals(new String[] { "cool", "beans" } , bean.getWords());
     }
+
+    /*
+    /**********************************************************
+    /* Unit tests, higher level, error handling
+    /**********************************************************
+     */
+
+    /**
+     * Test to verify that materializer will by default create exception-throwing methods
+     * for "unknown" abstract methods
+     */
+    public void testPartialBean() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        PartialBean bean = mapper.readValue("{\"ok\":true}", PartialBean.class);
+        assertNotNull(bean);
+        assertTrue(bean.isOk());
+        // and then exception
+        try {
+            bean.foobar();
+        } catch (UnsupportedOperationException e) {
+            verifyException(e, "foccr");
+        }
+    }
+    
 }
