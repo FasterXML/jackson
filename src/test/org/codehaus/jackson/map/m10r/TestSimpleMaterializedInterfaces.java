@@ -13,13 +13,20 @@ public class TestSimpleMaterializedInterfaces
      */
 
     public interface Bean {
-        public int getX();
+//        public int getX();
+        public Integer getX();
         public String getA();
+    }
+
+    // then invalid one; conflicting setter/getter types
+    public interface InvalidBean {
+        public int getX();
+        public void setX(String value);
     }
     
     /*
     /**********************************************************
-    /* Unit tests
+    /* Unit tests, low level
     /**********************************************************
      */
 
@@ -40,6 +47,23 @@ public class TestSimpleMaterializedInterfaces
         assertNull(bean.getA());
     }
 
+    public void testLowLevelMaterializerFail() throws Exception
+    {
+        AbstractTypeMaterializer mat = new AbstractTypeMaterializer();
+        try {
+            /*Class<?> impl =*/ mat.materializeClass(InvalidBean.class);
+            fail("Expected exception for incompatible property types");
+        } catch (IllegalArgumentException e) {
+            verifyException(e, "incompatible types");
+        }
+    }
+
+    /*
+    /**********************************************************
+    /* Unit tests, higher level
+    /**********************************************************
+     */
+
     /**
      * And the a test to verify it via registration
      */
@@ -50,6 +74,8 @@ public class TestSimpleMaterializedInterfaces
         Bean bean = mapper.readValue("{\"a\":\"value\",\"x\":123 }", Bean.class);
         assertNotNull(bean);
         assertEquals("value", bean.getA());
-        assertEquals(123, bean.getX());
+//        assertEquals(123, bean.getX());
+        assertEquals(Integer.valueOf(123), bean.getX());
     }
+
 }
