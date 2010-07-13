@@ -235,7 +235,7 @@ public abstract class BaseTest
     protected void verifyException(Throwable e, String... matches)
     {
         String msg = e.getMessage();
-        String lmsg = msg.toLowerCase();
+        String lmsg = (msg == null) ? "" : msg.toLowerCase();
         for (String match : matches) {
             String lmatch = match.toLowerCase();
             if (lmsg.indexOf(lmatch) >= 0) {

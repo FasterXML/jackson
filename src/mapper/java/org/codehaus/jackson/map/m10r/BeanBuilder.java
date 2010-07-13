@@ -48,9 +48,9 @@ public class BeanBuilder
                 }
             } else if (argCount == 1 && methodName.startsWith("set")) {
                 addSetter(m);
-            } else {
-                _unsupportedMethods.add(m);
+                continue;
             }
+            _unsupportedMethods.add(m);
         }
 
         return this;
@@ -67,7 +67,7 @@ public class BeanBuilder
     {
         ClassWriter cw = new ClassWriter(0);
         String internalClass = getInternalClassName(className);
-
+        
         String[] parents = new String[_implementedTypes.size()];
         for (int i = 0; i < _implementedTypes.size(); i++) {
             parents[i] = getInternalClassName(_implementedTypes.get(i).getName());
@@ -79,15 +79,13 @@ public class BeanBuilder
         for (Property prop : _beanProperties.values()) {
             // First: determine type to use; preferably setter (usually more explicit); otherwise getter
             TypeDescription type = prop.selectType();
-            createField(cw, prop.getName(), type);
-            createGetter(cw, internalClass, prop.getName(), type);
-            createSetter(cw, internalClass, prop.getName(), type);
+            createField(cw, prop, type);
+            createGetter(cw, internalClass, prop, type);
+            createSetter(cw, internalClass, prop, type);
         }
         for (Method m : _unsupportedMethods) {            
             createUnimplementedMethod(cw, internalClass, m);
-            
         }
-
         cw.visitEnd();
         return cw.toByteArray();
     }
@@ -107,11 +105,11 @@ public class BeanBuilder
         return sb.toString();
     }
     
-    private static String getGetterName(String fieldName) {
+    private static String buildGetterName(String fieldName) {
         return "get" + fieldName.substring(0, 1).toUpperCase()+ fieldName.substring(1);
     }
 
-    private static String getSetterName(String fieldName) {
+    private static String buildSetterName(String fieldName) {
         return "set" + fieldName.substring(0, 1).toUpperCase()+ fieldName.substring(1);
     }
 
@@ -171,20 +169,29 @@ public class BeanBuilder
         mv.visitEnd();
     }
 
-    private static void createField(ClassWriter cw, String fieldName, TypeDescription type)
+    private static void createField(ClassWriter cw, Property prop, TypeDescription type)
     {
-        FieldVisitor fv = cw.visitField(0, fieldName, type.signature(), null, null);
+        FieldVisitor fv = cw.visitField(0, prop.getFieldName(), type.signature(), null, null);
         fv.visitEnd();
     }
 
     private static void createSetter(ClassWriter cw, String internalClassName,
-            String fieldName, TypeDescription argType)
+            Property prop, TypeDescription propertyType)
     {
-        String methodName = getSetterName(fieldName);
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, "("+ argType.signature() + ")V", null, null);
+        String methodName;
+        String sig;
+        Method setter = prop.getSetter();
+        if (setter != null) { // easy, copy as is
+            sig = Type.getMethodDescriptor(setter);
+            methodName = setter.getName();
+        } else { // otherwise need to explicitly construct from property type (close enough)
+            sig = "("+ propertyType.signature() + ")V";
+            methodName = buildSetterName(prop.getName());
+        }
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, sig, null, null);
         mv.visitVarInsn(ALOAD, 0); // this
-        mv.visitVarInsn(argType.getLoadOpcode(), 1);
-        mv.visitFieldInsn(PUTFIELD, internalClassName, fieldName, argType.signature());
+        mv.visitVarInsn(propertyType.getLoadOpcode(), 1);
+        mv.visitFieldInsn(PUTFIELD, internalClassName, prop.getFieldName(), propertyType.signature());
         
         mv.visitInsn(RETURN);
         mv.visitMaxs(2, 2);
@@ -192,14 +199,22 @@ public class BeanBuilder
     }
 
     private static void createGetter(ClassWriter cw, String internalClassName,
-            String fieldName, TypeDescription returnType)
+            Property prop, TypeDescription propertyType)
     {
-        String methodName = getGetterName(fieldName);
-        String typeSignature = returnType.signature();
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, "()"+ typeSignature, null, null);
+        String methodName;
+        String sig;
+        Method getter = prop.getGetter();
+        if (getter != null) { // easy, copy as is
+            sig = Type.getMethodDescriptor(getter);
+            methodName = getter.getName();
+        } else { // otherwise need to explicitly construct from property type (close enough)
+            sig = "()"+propertyType.signature();
+            methodName = buildGetterName(prop.getName());
+        }
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, sig, null, null);
         mv.visitVarInsn(ALOAD, 0); // load 'this'
-        mv.visitFieldInsn(GETFIELD, internalClassName, fieldName, typeSignature);
-        mv.visitInsn(returnType.getReturnOpcode());
+        mv.visitFieldInsn(GETFIELD, internalClassName, prop.getFieldName(), propertyType.signature());
+        mv.visitInsn(propertyType.getReturnOpcode());
         mv.visitMaxs(1, 1);
         mv.visitEnd();
     }
@@ -216,12 +231,12 @@ public class BeanBuilder
         String name = method.getName();
         // should we try to pass generic information?
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, name, sig, null, null);
-
         mv.visitTypeInsn(NEW, exceptionName);
         mv.visitInsn(DUP);
-        mv.visitMethodInsn(INVOKESPECIAL, exceptionName, "<init>", "()V");
+        mv.visitLdcInsn("Unimplemented method '"+name+"' (not a setter/getter, could not materialize)");
+        mv.visitMethodInsn(INVOKESPECIAL, exceptionName, "<init>", "(Ljava/lang/String;)V");
         mv.visitInsn(ATHROW);
-        mv.visitMaxs(2, 1 + method.getParameterTypes().length);
+        mv.visitMaxs(3, 1 + method.getParameterTypes().length);
         mv.visitEnd();
     }
     
@@ -240,12 +255,15 @@ public class BeanBuilder
     private static class Property
     {
         protected final String _name;
+        protected final String _fieldName;
         
         protected Method _getter;
         protected Method _setter;
         
         public Property(String name) {
             _name = name;
+            // Let's just prefix field name with single underscore for fun...
+            _fieldName = "_"+name;
         }
 
         public String getName() { return _name; }
@@ -256,6 +274,10 @@ public class BeanBuilder
         public Method getGetter() { return _getter; }
         public Method getSetter() { return _setter; }
 
+        public String getFieldName() {
+            return _fieldName;
+        }
+        
         public TypeDescription selectType()
         {
             // First: if only know setter, or getter, use that one:

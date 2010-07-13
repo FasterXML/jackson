@@ -141,7 +141,8 @@ public class TestSimpleMaterializedInterfaces
         try {
             bean.foobar();
         } catch (UnsupportedOperationException e) {
-            verifyException(e, "foccr");
+System.err.println("DEBUG: got error ("+e.getClass().getName()+") -> msg = ["+e.getMessage()+"]");            
+            verifyException(e, "Unimplemented method 'foobar'");
         }
     }
     
