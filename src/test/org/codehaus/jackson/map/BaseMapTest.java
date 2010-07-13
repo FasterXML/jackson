@@ -15,9 +15,9 @@ public abstract class BaseMapTest
     private final static Object SINGLETON_OBJECT = new Object();
 
     /*
-    //////////////////////////////////////////////
-    // Shared helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Shared helper classes
+    /**********************************************************
      */
 
     /**
@@ -67,9 +67,9 @@ public abstract class BaseMapTest
     protected BaseMapTest() { super(); }
 
     /*
-    //////////////////////////////////////////////
-    // Additional assert methods
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Additional assert methods
+    /**********************************************************
      */
 
     protected void assertEquals(int[] exp, int[] act)
@@ -92,9 +92,9 @@ public abstract class BaseMapTest
     }
 
     /*
-    //////////////////////////////////////////////
-    // Helper methods
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
      */
 
     @SuppressWarnings("unchecked")

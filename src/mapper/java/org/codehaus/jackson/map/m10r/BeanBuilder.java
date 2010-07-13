@@ -128,13 +128,8 @@ public class BeanBuilder
     {
         String methodName = getSetterName(fieldName);
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, "("+ argType.signature() + ")V", null, null);
-        int loadOp = argType.getLoadOpcode();
-        mv.visitVarInsn(loadOp, 0);
-        mv.visitVarInsn(loadOp, 1);
-        // !!! TODO: probably different for primitive types?
-        if (argType.isPrimitive()) {
-        } else {
-        }
+        mv.visitVarInsn(ALOAD, 0); // this
+        mv.visitVarInsn(argType.getLoadOpcode(), 1);
         mv.visitFieldInsn(PUTFIELD, internalClassName, fieldName, argType.signature());
         
         mv.visitInsn(RETURN);
@@ -148,8 +143,7 @@ public class BeanBuilder
         String methodName = getGetterName(fieldName);
         String typeSignature = returnType.signature();
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, "()"+ typeSignature, null, null);
-        int loadOp = returnType.getLoadOpcode();
-        mv.visitVarInsn(loadOp, 0);
+        mv.visitVarInsn(ALOAD, 0); // load 'this'
         mv.visitFieldInsn(GETFIELD, internalClassName, fieldName, typeSignature);
         mv.visitInsn(returnType.getReturnOpcode());
         mv.visitMaxs(1, 1);

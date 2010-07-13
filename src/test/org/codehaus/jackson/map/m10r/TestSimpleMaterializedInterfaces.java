@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.m10r;
 
+import static org.junit.Assert.assertArrayEquals;
+
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -21,6 +23,12 @@ public class TestSimpleMaterializedInterfaces
     public interface InvalidBean {
         public int getX();
         public void setX(String value);
+    }
+
+    public interface ArrayBean {
+        public int[] getValues();
+        public String[] getWords();
+        public void setWords(String[] words);
     }
     
     /*
@@ -74,5 +82,16 @@ public class TestSimpleMaterializedInterfaces
         assertNotNull(bean);
         assertEquals("value", bean.getA());
         assertEquals(123, bean.getX());
+    }
+
+    public void testArrayInteface() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        ArrayBean bean = mapper.readValue("{\"values\":[1,2,3], \"words\": [ \"cool\", \"beans\" ] }",
+                ArrayBean.class);
+        assertNotNull(bean);
+        assertArrayEquals(new int[] { 1, 2, 3} , bean.getValues());
+        assertArrayEquals(new String[] { "cool", "beans" } , bean.getWords());
     }
 }
