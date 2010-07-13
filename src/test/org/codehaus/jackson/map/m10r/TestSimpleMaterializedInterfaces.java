@@ -13,8 +13,7 @@ public class TestSimpleMaterializedInterfaces
      */
 
     public interface Bean {
-//        public int getX();
-        public Integer getX();
+        public int getX();
         public String getA();
     }
 
@@ -51,7 +50,7 @@ public class TestSimpleMaterializedInterfaces
     {
         AbstractTypeMaterializer mat = new AbstractTypeMaterializer();
         try {
-            /*Class<?> impl =*/ mat.materializeClass(InvalidBean.class);
+            mat.materializeClass(InvalidBean.class);
             fail("Expected exception for incompatible property types");
         } catch (IllegalArgumentException e) {
             verifyException(e, "incompatible types");
@@ -74,8 +73,6 @@ public class TestSimpleMaterializedInterfaces
         Bean bean = mapper.readValue("{\"a\":\"value\",\"x\":123 }", Bean.class);
         assertNotNull(bean);
         assertEquals("value", bean.getA());
-//        assertEquals(123, bean.getX());
-        assertEquals(Integer.valueOf(123), bean.getX());
+        assertEquals(123, bean.getX());
     }
-
 }

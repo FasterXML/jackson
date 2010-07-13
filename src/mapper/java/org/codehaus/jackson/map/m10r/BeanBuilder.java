@@ -6,7 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.org.objectweb.asm.ClassWriter;
 import org.codehaus.jackson.org.objectweb.asm.FieldVisitor;
 import org.codehaus.jackson.org.objectweb.asm.MethodVisitor;
-import org.codehaus.jackson.org.objectweb.asm.Opcodes;
+import org.codehaus.jackson.org.objectweb.asm.Type;
 import static org.codehaus.jackson.org.objectweb.asm.Opcodes.*;
 
 import org.codehaus.jackson.type.JavaType;
@@ -14,8 +14,8 @@ import org.codehaus.jackson.map.type.TypeFactory;
 
 public class BeanBuilder
 {
-    protected Map<String, JavaType> properties = new LinkedHashMap<String, JavaType>();
-    protected Map<String, ThrowMethodType> throwMethods = new LinkedHashMap<String, ThrowMethodType>();
+    protected Map<String, TypeDescription> properties = new LinkedHashMap<String, TypeDescription>();
+    protected List<Method> throwMethods = new ArrayList<Method>();
     protected List<Class<?>> implementing = new ArrayList<Class<?>>();
 
     public BeanBuilder() { }
@@ -37,36 +37,28 @@ public class BeanBuilder
 
         // TODO: recursively check super-interfaces/classes
         for (Method m : parent.getMethods()) {
-            JavaType type;
+            TypeDescription type;
 
             if (m.getName().startsWith("get")) {
-                type = TypeFactory.type(m.getGenericReturnType());                
+                type = TypeDescription.fromReturnType(m);
             } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
-                type = TypeFactory.type(m.getGenericParameterTypes()[0]);
+                type = TypeDescription.fromFirstArgType(m);
             } else {
-                addThrow(m.getName(), m.getParameterTypes(), m.getReturnType(),
-                        UnsupportedOperationException.class);
+                throwMethods.add(m);
                 continue;
             }
             String name = getFieldName(m.getName());
-            JavaType prevType = properties.get(name);
+            TypeDescription prevType = properties.get(name);
             if (prevType != null) { // if we already saw a setter or getter, need to check compatibility
                 // must be assignable; if so, more specific should be used
-                Class<?> oldRaw = prevType.getRawClass();
-                Class<?> newRaw = type.getRawClass();
-                if (oldRaw.isAssignableFrom(newRaw)) {
-                    // type is more specific
-                    properties.put(name, type);
-                } else if (newRaw.isAssignableFrom(oldRaw)) {
-                    // old type more specific, retain
-                    continue;
-                } else { // incompatible: error
+                TypeDescription specific = TypeDescription.moreSpecificType(prevType, type);
+                if (specific == null) { // not compatible
                     throw new IllegalArgumentException("Invalid property '"+name+"': incompatible types for getter/setter ("
-                            +newRaw.getName()+" vs "+oldRaw.getName()+")");
+                            +prevType+" vs "+type+")");
                 }
-            } else {
-                properties.put(name, type);
+                type = specific;
             }
+            properties.put(name, type);
         }
 
         return this;
@@ -92,39 +84,21 @@ public class BeanBuilder
                 "java/lang/Object", parents);
         cw.visitSource(className + ".java", null);
         BeanBuilder.generateDefaultConstructor(cw);
-        for (Map.Entry<String, JavaType> propEntry : properties.entrySet()) {
+        for (Map.Entry<String, TypeDescription> propEntry : properties.entrySet()) {
             String propName = propEntry.getKey();
-            Class<?> propClass = propEntry.getValue().getRawClass();
+            TypeDescription type = propEntry.getValue();
 
-            TypeType type = resolveType(propClass);
             createField(cw, propName, type);
             createGetter(cw, internalClass, propName, type);
             createSetter(cw, internalClass, propName, type);
         }
 
-        for (Map.Entry<String, ThrowMethodType> throwEntry : throwMethods.entrySet()) {
-            ThrowMethodType thr = throwEntry.getValue();
-
-            createThrow(cw, internalClass, throwEntry.getKey(), thr.paramTypes, thr.returnType,
-                    thr.exceptionType);
+        for (Method m : throwMethods) {
+            createUnimplementedMethod(cw, internalClass, m);
         }
 
         cw.visitEnd();
         return cw.toByteArray();
-    }
-    
-    /*
-    /**********************************************************
-    /* Build methods
-    /**********************************************************
-     */
-
-    public BeanBuilder addThrow(String name, Class<?>[] paramTypes,
-            Class<?> returnType, Class<?> exceptionType) {
-        this.throwMethods.put(name, new ThrowMethodType(name, paramTypes,
-                returnType, exceptionType));
-
-        return this;
     }
 
     /*
@@ -143,57 +117,63 @@ public class BeanBuilder
         mv.visitEnd();
     }
 
-    private static void createField(ClassWriter cw, String fieldName, TypeType type)
+    private static void createField(ClassWriter cw, String fieldName, TypeDescription type)
     {
         FieldVisitor fv = cw.visitField(0, fieldName, type.signature(), null, null);
         fv.visitEnd();
     }
 
     private static void createSetter(ClassWriter cw, String internalClassName,
-            String fieldName, TypeType argType)
+            String fieldName, TypeDescription argType)
     {
         String methodName = getSetterName(fieldName);
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, "("+ argType.signature() + ")V", null, null);
-        int loadOp = argType.loadOpCode();
+        int loadOp = argType.getLoadOpcode();
         mv.visitVarInsn(loadOp, 0);
         mv.visitVarInsn(loadOp, 1);
+        // !!! TODO: probably different for primitive types?
+        if (argType.isPrimitive()) {
+        } else {
+        }
         mv.visitFieldInsn(PUTFIELD, internalClassName, fieldName, argType.signature());
+        
         mv.visitInsn(RETURN);
         mv.visitMaxs(2, 2);
         mv.visitEnd();
     }
 
     private static void createGetter(ClassWriter cw, String internalClassName,
-            String fieldName, TypeType returnType)
+            String fieldName, TypeDescription returnType)
     {
         String methodName = getGetterName(fieldName);
         String typeSignature = returnType.signature();
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, "()"+ typeSignature, null, null);
-        int loadOp = returnType.loadOpCode();
+        int loadOp = returnType.getLoadOpcode();
         mv.visitVarInsn(loadOp, 0);
         mv.visitFieldInsn(GETFIELD, internalClassName, fieldName, typeSignature);
-        mv.visitInsn(ARETURN);
+        mv.visitInsn(returnType.getReturnOpcode());
         mv.visitMaxs(1, 1);
         mv.visitEnd();
     }
 
-    private static void createThrow(ClassWriter cw, String internalClassName,
-            String methodName, Class<?>[] inTypes, Class<?> returnType,
-            Class<?> exceptionType)
+    /**
+     * Builder for methods that just throw an exception, basically "unsupported
+     * operation" implementation.
+     */
+    private static void createUnimplementedMethod(ClassWriter cw, String internalClassName,
+            Method method)
     {
-        String returnTypeSignature = resolveType(returnType).signature();
-        String exceptionName = getInternalClassName(exceptionType.getName());
+        String exceptionName = getInternalClassName(UnsupportedOperationException.class.getName());
 
-        String sig = "(" + getArgumentsType(inTypes) + ")" + returnTypeSignature;
-
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, sig, null,
-                null);
+        String sig = Type.getMethodDescriptor(method);
+        // should we try to pass generic information?
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, method.getName(), sig, null, null);
 
         mv.visitTypeInsn(NEW, exceptionName);
         mv.visitInsn(DUP);
         mv.visitMethodInsn(INVOKESPECIAL, exceptionName, "<init>", "()V");
         mv.visitInsn(ATHROW);
-        mv.visitMaxs(2, 1 + inTypes.length);
+        mv.visitMaxs(2, 1 + method.getParameterTypes().length);
         mv.visitEnd();
     }
 
@@ -216,139 +196,104 @@ public class BeanBuilder
     private static String getSetterName(String fieldName) {
         return "set" + fieldName.substring(0, 1).toUpperCase()+ fieldName.substring(1);
     }
-
-    private static String getArgumentsType(Class<?>[] inTypes) {
-        StringBuilder list = new StringBuilder();
-
-        for (Class<?> clazz : inTypes) {
-            list.append(resolveType(clazz).signature());
-        }
-
-        return list.toString();
-    }
-
-    private static TypeType resolveType(Class<?> rawType)
-    {
-        int arrayCount = 0;
-        while (rawType.isArray()) {
-            ++arrayCount;
-            rawType = rawType.getComponentType();
-        }
-        TypeType elementType;
-        if (!rawType.isPrimitive()) {
-            return new RefTypeType(rawType, arrayCount, EnumTypeType.OBJECT);
-        }
-        if (rawType == Integer.TYPE) {
-            rawType = Integer.class;
-            elementType = EnumTypeType.OBJECT;
-            //elementType = EnumTypeType.INT;
-        }
-        else if (rawType == Long.TYPE) elementType = EnumTypeType.INT;
-        else if (rawType == Boolean.TYPE) elementType = EnumTypeType.INT;
-        else if (rawType == Byte.TYPE) elementType = EnumTypeType.INT;
-        else if (rawType == Short.TYPE)elementType = EnumTypeType.INT;
-        else if (rawType == Character.TYPE) elementType = EnumTypeType.INT;
-        else if (rawType == Float.TYPE) elementType = EnumTypeType.INT;
-        else if (rawType == Double.TYPE) elementType = EnumTypeType.INT;
-        else throw new IllegalArgumentException("Unrecognized primitive type "+rawType.getName());
-        if (arrayCount > 0) {
-            return new RefTypeType(rawType, arrayCount, elementType);
-        }
-        return elementType;
-    }
     
     /*
     /**********************************************************
     /* Helper classes
     /**********************************************************
      */
-    
-    private static class ThrowMethodType
-    {
-        //public final String name;
-        public final Class<?>[] paramTypes;
-        public final Class<?> returnType;
-        public final Class<?> exceptionType;
 
-        public ThrowMethodType(String name, Class<?>[] paramTypes,
-                Class<?> returnType, Class<?> exceptionType) {
-            //this.name = name;
-            this.paramTypes = paramTypes;
-            this.returnType = returnType;
-            this.exceptionType = exceptionType;
-        }
-    }
-
-    interface TypeType {
-        public String signature();
-        public int loadOpCode();
-        public int storeOpCode();
-    }
-
-    static class RefTypeType
-        implements TypeType
-    {
-        protected final String _signature;
-        
-        public RefTypeType(Class<?> elementClass, int arrayCount, TypeType elementType)
-        {
-            StringBuilder sb = new StringBuilder();
-            while (--arrayCount >= 0) {
-                sb.append('[');
-            }
-            sb.append(elementType.signature());
-            if (!elementClass.isPrimitive()) {
-                sb.append(getInternalClassName(elementClass.getName())).append(';');
-            }
-            _signature = sb.toString();
-        }
-
-        public String signature() { return _signature; }
-        public int loadOpCode() { return ALOAD; }
-        public int storeOpCode() { return ASTORE; }
-    }
-    
     /**
-     * Enumeration used for simplifying handling of primitive vs object (reference)
-     * types
+     * Helper bean used to encapsulate most details of type handling
      */
-    public enum EnumTypeType
-        implements TypeType
+    private static class TypeDescription
     {
-        VOID('V'), // void
-        BOOLEAN('Z', ILOAD, ISTORE), // boolean
-        BYTE('B', ILOAD, ISTORE),
-        SHORT('S', ILOAD, ISTORE),
-        CHAR('C', ILOAD, ISTORE),
-        INT('I', ILOAD, ISTORE),
-        LONG('J', LLOAD, LSTORE),
-        FLOAT('F', FLOAD, FSTORE),
-        DOUBLE('D', DLOAD, DSTORE),
-        OBJECT('L', ALOAD, ASTORE)
-        ;
+        private final Type _signatureType;
+        private final java.lang.reflect.Type _rawJavaType;
+        private final String _signature;
+        private JavaType _jacksonType;
 
-        private final String _typeDescription;
-        private final int _loadOpcode;
-        private final int _storeOpcode;
+        /*
+        /**********************************************************
+        /* Construction
+        /**********************************************************
+         */
         
-        private EnumTypeType(char tc)
+        public TypeDescription(Type sigType, java.lang.reflect.Type rawType)
         {
-            this(tc, ALOAD, ASTORE);
-        }
-
-        private EnumTypeType(char tc, int loadOp, int storeOp)
-        {
-            _typeDescription = String.valueOf(tc);
-            _loadOpcode = loadOp;
-            _storeOpcode = storeOp;
-        }
-
-        public String signature()
-        {
-            return _typeDescription;
+            _signatureType = sigType;
+            _signature = sigType.getDescriptor();
+            _rawJavaType = rawType;
         }
         
-        public int loadOpCode() { return _loadOpcode; }
-        public int storeOpCode() { return _storeOpcode; }
+        public static TypeDescription fromReturnType(Method m)
+        {
+            return new TypeDescription(Type.getReturnType(m), m.getGenericReturnType());
+        }
+        
+        public static TypeDescription fromFirstArgType(Method m)
+        {
+            return new TypeDescription(Type.getArgumentTypes(m)[0], m.getGenericParameterTypes()[0]);
+        }
+
+        /*
+        /**********************************************************
+        /* Accessors
+        /**********************************************************
+         */
+        
+        public String signature() {
+            return _signature;
+        }
+
+        public boolean isPrimitive() {
+            return _signature.length() == 1;
+        }
+        
+        protected JavaType getJacksonType()
+        {
+            if (_jacksonType == null) {
+                _jacksonType = TypeFactory.type(_rawJavaType);
+            }
+            return _jacksonType;
+        }
+ 
+        public int getStoreOpcode() {
+            return _signatureType.getOpcode(ISTORE);
+        }
+
+        public int getLoadOpcode() {
+            return _signatureType.getOpcode(ILOAD);
+        }
+
+        public int getReturnOpcode() {
+            return _signatureType.getOpcode(IRETURN);
+        }
+        
+        @Override
+        public String toString() {
+            return getJacksonType().toString();
+        }
+
+        /*
+        /**********************************************************
+        /* Other methods
+        /**********************************************************
+         */
+        
+        public static TypeDescription moreSpecificType(TypeDescription desc1, TypeDescription desc2)
+        {
+            Class<?> c1 = desc1.getJacksonType().getRawClass();
+            Class<?> c2 = desc2.getJacksonType().getRawClass();
+
+            if (c1.isAssignableFrom(c2)) { // c2 more specific than c1
+                return desc2;
+            }
+            if (c2.isAssignableFrom(c1)) { // c1 more specific than c2
+                return desc1;
+            }
+            // not compatible, so:
+            return null;
+        }
     }
 }
