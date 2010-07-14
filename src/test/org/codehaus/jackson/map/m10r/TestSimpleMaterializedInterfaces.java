@@ -146,7 +146,10 @@ public class TestSimpleMaterializedInterfaces
     public void testPartialBean() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        AbstractTypeMaterializer mat = new AbstractTypeMaterializer();
+        // ensure that we will only get deferred error methods
+        mat.disable(AbstractTypeMaterializer.Feature.FAIL_ON_UNMATERIALIZED_METHOD);
+        mapper.getDeserializationConfig().setAbstractTypeResolver(mat);
         PartialBean bean = mapper.readValue("{\"ok\":true}", PartialBean.class);
         assertNotNull(bean);
         assertTrue(bean.isOk());
@@ -154,7 +157,6 @@ public class TestSimpleMaterializedInterfaces
         try {
             bean.foobar();
         } catch (UnsupportedOperationException e) {
-System.err.println("DEBUG: got error ("+e.getClass().getName()+") -> msg = ["+e.getMessage()+"]");            
             verifyException(e, "Unimplemented method 'foobar'");
         }
     }
