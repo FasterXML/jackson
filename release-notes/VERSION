@@ -32,6 +32,8 @@ Description:
     (requested by Rob O)
   * [JACKSON-302] Add JsonNode.has(String/int) to allow for more convenient checking
     of whether JSON Object/Array nodes have specified value.
+  * [JACKSON-321] Allow passing JsonNodeFactory to use for ObjectMapper, ObjectReader,
+    to allow use of custom JsonNode types.
 
   New features:
 

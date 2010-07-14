@@ -43,21 +43,27 @@ public class TestNodeFactoryConfig
     /**********************************************************
      */
 
-     public void testWithObjectMapper() throws Exception
-     {
+    /**
+     * Verifying [JACKSON-321]    
+     */
+    public void testWithObjectMapper() throws Exception
+    {
          ObjectMapper m = new ObjectMapper();
          m.setNodeFactory(new MyNodeFactory());
          JsonNode n = m.readTree("{ \"a\":3 }");
          assertNotNull(n);
          assertSame(MyObjectNode.class, n.getClass());
-     }
+    }
 
-     public void testWithObjectReader() throws Exception
-     {
+    /**
+     * Verifying [JACKSON-321]    
+     */
+    public void testWithObjectReader() throws Exception
+    {
          ObjectMapper m = new ObjectMapper();
          ObjectReader reader = m.reader(new MyNodeFactory());
          JsonNode n = reader.readTree("{ \"a\":3 }");
          assertNotNull(n);
          assertSame(MyObjectNode.class, n.getClass());
-     }
+    }
 }

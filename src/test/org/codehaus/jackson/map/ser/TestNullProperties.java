@@ -24,7 +24,7 @@ public class TestNullProperties
         public String getB() { return null; }
     }
 
-	@JsonWriteNullProperties(false)
+    @JsonWriteNullProperties(false)
     static class LegacyNoNullsBean
     {
         public String getA() { return "a"; }
