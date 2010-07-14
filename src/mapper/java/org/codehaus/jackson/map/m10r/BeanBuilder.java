@@ -3,10 +3,8 @@ package org.codehaus.jackson.map.m10r;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import org.codehaus.jackson.org.objectweb.asm.ClassWriter;
-import org.codehaus.jackson.org.objectweb.asm.FieldVisitor;
-import org.codehaus.jackson.org.objectweb.asm.MethodVisitor;
-import org.codehaus.jackson.org.objectweb.asm.Type;
+import org.codehaus.jackson.org.objectweb.asm.*;
+
 import static org.codehaus.jackson.org.objectweb.asm.Opcodes.*;
 
 import org.codehaus.jackson.type.JavaType;
@@ -71,7 +69,7 @@ public class BeanBuilder
      */
     public byte[] build(String className)
     {
-        ClassWriter cw = new ClassWriter(0);
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         String internalClass = getInternalClassName(className);
         
         String[] parents = new String[_implementedTypes.size()];
@@ -130,6 +128,8 @@ public class BeanBuilder
             throw new IllegalArgumentException("Invalid property '"+prop.getName()+"'; multiple getters; '"
                     +m.getName()+"()' vs '"+prop.getGetter().getName()+"()'");
         }
+
+ System.err.println("Add property '"+m.getName()+"', returns '"+Type.getReturnType(m));
         prop.setGetter(m);        
     }
 
@@ -171,7 +171,7 @@ public class BeanBuilder
         mv.visitVarInsn(ALOAD, 0);
         mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
         mv.visitInsn(RETURN);
-        mv.visitMaxs(1, 1);
+        mv.visitMaxs(0, 0); // don't care (real values: 1,1)
         mv.visitEnd();
     }
 
@@ -200,7 +200,7 @@ public class BeanBuilder
         mv.visitFieldInsn(PUTFIELD, internalClassName, prop.getFieldName(), propertyType.signature());
         
         mv.visitInsn(RETURN);
-        mv.visitMaxs(2, 2);
+        mv.visitMaxs(0, 0); // don't care (real values: 2, 2)
         mv.visitEnd();
     }
 
@@ -221,7 +221,7 @@ public class BeanBuilder
         mv.visitVarInsn(ALOAD, 0); // load 'this'
         mv.visitFieldInsn(GETFIELD, internalClassName, prop.getFieldName(), propertyType.signature());
         mv.visitInsn(propertyType.getReturnOpcode());
-        mv.visitMaxs(1, 1);
+        mv.visitMaxs(0, 0); // don't care (real values: 1,1)
         mv.visitEnd();
     }
 
@@ -242,7 +242,7 @@ public class BeanBuilder
         mv.visitLdcInsn("Unimplemented method '"+name+"' (not a setter/getter, could not materialize)");
         mv.visitMethodInsn(INVOKESPECIAL, exceptionName, "<init>", "(Ljava/lang/String;)V");
         mv.visitInsn(ATHROW);
-        mv.visitMaxs(3, 1 + method.getParameterTypes().length);
+        mv.visitMaxs(0, 0);  // don't care (real values: 3, 1 + method.getParameterTypes().length);
         mv.visitEnd();
     }
     

@@ -7,8 +7,8 @@
     <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask"
         classpath="lib/ext/jarjar/jarjar-1.0.jar"
     />
-    <jarjar jarfile="lib/repackaged/jackson-asm-3.2.jar">
-        <zipfileset src="lib/ext/asm/asm-3.2.jar"/>
+    <jarjar jarfile="lib/repackaged/jackson-asm-3.3.jar">
+        <zipfileset src="lib/ext/asm/asm-3.3.jar"/>
         <rule pattern="org.objectweb.asm.**"
             result="org.codehaus.jackson.org.objectweb.asm.@1"
         />
