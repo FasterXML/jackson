@@ -29,15 +29,17 @@ public class BeanBuilder
     /**
      * @param parent Interface or abstract class that resulting class should
      *    complete (implement all abstract/interface methods)
-     * @return
+     * @param failOnUnrecognized If true, and an unrecognized (non-getter, non-setter)
+     *   method is encountered, will throw {@link IllegalArgumentException}; if false,
+     *   will implement bogus method that will throw {@link UnsupportedOperationException}
+     *   if called.
      */
-    public BeanBuilder implement(Class<?> parent)
+    public BeanBuilder implement(Class<?> parent, boolean failOnUnrecognized)
     {
         _implementedTypes.add(parent);
 
         // TODO: recursively check super-interfaces/classes
         for (Method m : parent.getMethods()) {
-            TypeDescription type;
             String methodName = m.getName();
             int argCount = m.getParameterTypes().length;
 
@@ -49,6 +51,10 @@ public class BeanBuilder
             } else if (argCount == 1 && methodName.startsWith("set")) {
                 addSetter(m);
                 continue;
+            }
+            if (failOnUnrecognized) {
+                throw new IllegalArgumentException("Unrecognized abstract method '"+methodName
+                        +"' (not a getter or setter) -- to avoid exception, disable AbstractTypeMaterializer.Feature.FAIL_ON_UNMATERIALIZED_METHOD");
             }
             _unsupportedMethods.add(m);
         }

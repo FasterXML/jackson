@@ -64,7 +64,7 @@ public class TestSimpleMaterializedInterfaces
         assertNull(bean.getA());
     }
 
-    public void testLowLevelMaterializerFail() throws Exception
+    public void testLowLevelMaterializerFailOnIncompatible() throws Exception
     {
         AbstractTypeMaterializer mat = new AbstractTypeMaterializer();
         try {
@@ -75,6 +75,19 @@ public class TestSimpleMaterializedInterfaces
         }
     }
 
+    public void testLowLevelMaterializerFailOnUnrecognized() throws Exception
+    {
+        AbstractTypeMaterializer mat = new AbstractTypeMaterializer();
+        //  by default early failure is disabled, enable:
+        mat.enable(AbstractTypeMaterializer.Feature.FAIL_ON_UNMATERIALIZED_METHOD);
+        try {
+            mat.materializeClass(PartialBean.class);
+            fail("Expected exception for unrecognized method");
+        } catch (IllegalArgumentException e) {
+            verifyException(e, "Unrecognized abstract method 'foobar'");
+        }        
+    }
+    
     /*
     /**********************************************************
     /* Unit tests, higher level

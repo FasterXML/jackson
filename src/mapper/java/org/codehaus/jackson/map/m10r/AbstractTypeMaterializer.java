@@ -14,16 +14,104 @@ public class AbstractTypeMaterializer
     extends AbstractTypeResolver
 {
     /**
+     * Enumeration that defines togglable features that guide
+     * the serialization feature.
+     */
+    public enum Feature {
+        /**
+         * Feature that determines what happens if an "unrecognized"
+         * (non-getter, non-setter) abstract method is encountered: if set to
+         * true, will throw an exception during materialization; if false,
+         * will materialize method that throws exception only if called.
+         */
+        FAIL_ON_UNMATERIALIZED_METHOD(false)
+        ;
+
+        final boolean _defaultState;
+
+        // Method that calculates bit set (flags) of all features that are enabled by default.
+        protected static int collectDefaults() {
+            int flags = 0;
+            for (Feature f : values()) {
+                if (f.enabledByDefault()) {
+                    flags |= f.getMask();
+                }
+            }
+            return flags;
+        }
+                
+        private Feature(boolean defaultState) { _defaultState = defaultState; }
+        public boolean enabledByDefault() { return _defaultState; }
+        public int getMask() { return (1 << ordinal()); }
+    }
+
+    /**
+     * Bitfield (set of flags) of all Features that are enabled
+     * by default.
+     */
+    protected final static int DEFAULT_FEATURE_FLAGS = Feature.collectDefaults();
+    
+    /**
      * We will use per-materializer class loader for now; would be nice
      * to find a way to reduce number of class loaders (and hence
      * number of generated classes!) constructed...
      */
     protected final MyClassLoader _classLoader;
+
+    /**
+     * Bit set that contains all enabled features
+     */
+    protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
+    
+    /*
+    /**********************************************************
+    /* Construction, configuration
+    /**********************************************************
+     */
     
     public AbstractTypeMaterializer() {
         _classLoader = new MyClassLoader(getClass().getClassLoader());
     }
 
+    /**
+     * Method for checking whether given feature is enabled or not
+     */
+    public final boolean isEnabled(Feature f) {
+        return (_featureFlags & f.getMask()) != 0;
+    }
+
+    /**
+     * Method for enabling specified  feature.
+     */
+    public void enable(Feature f) {
+        _featureFlags |= f.getMask();
+    }
+
+    /**
+     * Method for disabling specified feature.
+     */
+    public void disable(Feature f) {
+        _featureFlags &= ~f.getMask();
+    }
+
+    /**
+     * Method for enabling or disabling specified feature.
+     */
+    public void set(Feature f, boolean state)
+    {
+        if (state) {
+            enable(f);
+        } else {
+            disable(f);
+        }
+    }
+    
+    /*
+    /**********************************************************
+    /* Public API
+    /**********************************************************
+     */
+    
     @Override
     public JavaType resolveAbstractType(DeserializationConfig config, JavaType type)
     {
@@ -42,7 +130,7 @@ public class AbstractTypeMaterializer
         // Need to have proper name mangling in future, but for now...
         String newName = "materialized."+cls.getName();
         BeanBuilder builder = new BeanBuilder();
-        byte[] bytecode = builder.implement(cls).build(newName);
+        byte[] bytecode = builder.implement(cls, isEnabled(Feature.FAIL_ON_UNMATERIALIZED_METHOD)).build(newName);
         return _classLoader.loadAndResolve(newName, bytecode);
     }
 
