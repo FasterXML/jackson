@@ -85,6 +85,7 @@ org.codehaus.jackson;version='${IMPL_VERSION}'
 "
          dynamicImportPackage="
 org.joda.time, org.joda.time.format,
+org.codehaus.jackson.org.objectweb.asm,
 org.w3c.dom.ls, org.w3c.dom.bootstrap"
          exportpackage="
 org.codehaus.jackson.map;version=${IMPL_VERSION},
@@ -189,6 +190,7 @@ org.codehaus.jackson;version='${IMPL_VERSION}'
 "
          dynamicImportPackage="
 org.joda.time, org.joda.time.format,
+org.codehaus.jackson.org.objectweb.asm,
 org.w3c.dom.ls, org.w3c.dom.bootstrap"
          exportpackage="
 org.codehaus.jackson.map;version=${IMPL_VERSION},
