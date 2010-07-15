@@ -8,6 +8,8 @@ Description:
 
   Fixes:
 
+  * [JACKSON-309] Serialization of null properties not working correctly
+    when using JAXB annotation introspector
   * [JACKSON-318] Deserializer missing support for java.util.Currency
     (reported by Geoffrey A)
   * [JACKSON-319] Issues when trying to deserialize polymorphic type
