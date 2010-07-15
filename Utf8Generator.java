@@ -4,20 +4,30 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.io.*;
+import org.codehaus.jackson.Base64Variant;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonStreamContext;
+import org.codehaus.jackson.ObjectCodec;
+import org.codehaus.jackson.JsonGenerator.Feature;
+import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.io.NumberOutput;
 import org.codehaus.jackson.util.CharTypes;
 
-/**
- * {@link JsonGenerator} that outputs JSON content using a {@link java.io.Writer}
- * which handles character encoding.
- */
-public final class WriterBasedGenerator
+public class Utf8Generator
     extends JsonGeneratorBase
 {
-    final static int SHORT_WRITE = 32;
+    private final static byte BYTE_n = (byte) 'n';
+    private final static byte BYTE_u = (byte) 'u';
+    private final static byte BYTE_l = (byte) 'l';
 
-    final static char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
+    final static int SHORT_WRITE = 32;
+    
+    final static byte[] HEX_CHARS = new byte[16];
+    static {
+        for (int i = 0; i < 16; ++i) {
+            HEX_CHARS[i] = (byte) "0123456789ABCDEF".charAt(i);
+        }
+    }
 
     /*
     /**********************************************************
@@ -27,7 +37,7 @@ public final class WriterBasedGenerator
 
     final protected IOContext _ioContext;
 
-    final protected Writer _writer;
+    final protected OutputStream _outputStream;
     
     /*
     /**********************************************************
@@ -39,7 +49,7 @@ public final class WriterBasedGenerator
      * Intermediate buffer in which contents are buffered before
      * being written using {@link #_writer}.
      */
-    protected char[] _outputBuffer;
+    protected byte[] _outputBuffer;
 
     /**
      * Pointer to the first buffered character to output
@@ -59,10 +69,10 @@ public final class WriterBasedGenerator
     protected int _outputEnd;
 
     /**
-     * 6-char temporary buffer allocated if needed, for constructing
+     * 6 character temporary buffer allocated if needed, for constructing
      * escape sequences
      */
-    protected char[] _entityBuffer;
+    protected byte[] _entityBuffer;
 
     /*
     /**********************************************************
@@ -70,13 +80,14 @@ public final class WriterBasedGenerator
     /**********************************************************
      */
 
-    public WriterBasedGenerator(IOContext ctxt, int features, ObjectCodec codec,
-                                Writer w)
+    public Utf8Generator(IOContext ctxt, int features, ObjectCodec codec,
+            OutputStream out)
     {
+        
         super(features, codec);
         _ioContext = ctxt;
-        _writer = w;
-        _outputBuffer = ctxt.allocConcatBuffer();
+        _outputStream = out;
+        _outputBuffer = ctxt.allocWriteEncodingBuffer();
         _outputEnd = _outputBuffer.length;
     }
 
@@ -87,7 +98,7 @@ public final class WriterBasedGenerator
      */
 
     @Override
-	protected void _writeStartArray()
+        protected void _writeStartArray()
         throws IOException, JsonGenerationException
     {
         if (_outputTail >= _outputEnd) {
@@ -275,7 +286,7 @@ public final class WriterBasedGenerator
         if (room >= len) {
             text.getChars(start, start+len, _outputBuffer, _outputTail);
             _outputTail += len;
-        } else {            	
+        } else {                
             writeRawLong(text.substring(start, start+len));
         }
     }
@@ -414,8 +425,6 @@ public final class WriterBasedGenerator
         _outputTail = NumberOutput.outputLong(l, _outputBuffer, _outputTail);
         _outputBuffer[_outputTail++] = '"';
     }
-
-    // !!! 05-Aug-2008, tatus: Any ways to optimize these?
 
     @Override
     public void writeNumber(BigInteger value)
@@ -617,8 +626,8 @@ public final class WriterBasedGenerator
         throws IOException
     {
         _flushBuffer();
-        if (_writer != null) {
-            _writer.flush();
+        if (_outputStream != null) {
+            _outputStream.flush();
         }
     }
 
@@ -725,7 +734,7 @@ public final class WriterBasedGenerator
              */
             int flushLen = (_outputTail - _outputHead);
             if (flushLen > 0) {
-                _writer.write(_outputBuffer, _outputHead, flushLen);
+                _outputStream.write(_outputBuffer, _outputHead, flushLen);
             }
             /* In any case, tail will be the new start, so hopefully
              * we have room now.
@@ -936,11 +945,12 @@ public final class WriterBasedGenerator
             _flushBuffer();
         }
         int ptr = _outputTail;
-        char[] buf = _outputBuffer;
-        buf[ptr] = 'n';
-        buf[++ptr] = 'u';
-        buf[++ptr] = 'l';
-        buf[++ptr] = 'l';
+        byte[] buf = _outputBuffer;
+        buf[ptr] = BYTE_n;
+        buf[++ptr] = BYTE_u;
+        byte l = BYTE_l;
+        buf[++ptr] = l;
+        buf[++ptr] = l;
         _outputTail = ptr+1;
     }
         
@@ -951,9 +961,9 @@ public final class WriterBasedGenerator
     private void _writeSingleEscape(int escCode)
         throws IOException
     {
-        char[] buf = _entityBuffer;
+        byte[] buf = _entityBuffer;
         if (buf == null) {
-            buf = new char[6];
+            buf = new byte[6];
             buf[0] = '\\';
             buf[2] = '0';
             buf[3] = '0';
@@ -965,14 +975,14 @@ public final class WriterBasedGenerator
             // We know it's a control char, so only the last 2 chars are non-0
             buf[4] = HEX_CHARS[value >> 4];
             buf[5] = HEX_CHARS[value & 0xF];
-            _writer.write(buf, 0, 6);
+            _outputStream.write(buf, 0, 6);
         } else {
             buf[1] = (char) escCode;
-            _writer.write(buf, 0, 2);
+            _outputStream.write(buf, 0, 2);
         }
     }
 
-    private void _appendSingleEscape(int escCode, char[] buf, int ptr)
+    private void _appendSingleEscape(int escCode, byte[] buf, int ptr)
     {
         if (escCode < 0) { // control char, value -(char + 1)
             int value = -(escCode + 1);
@@ -995,7 +1005,7 @@ public final class WriterBasedGenerator
         if (len > 0) {
             int offset = _outputHead;
             _outputTail = _outputHead = 0;
-            _writer.write(_outputBuffer, offset, len);
+            _outputStream.write(_outputBuffer, offset, len);
         }
     }
 }
