@@ -1,7 +1,6 @@
 package org.codehaus.jackson.jaxb;
 
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**

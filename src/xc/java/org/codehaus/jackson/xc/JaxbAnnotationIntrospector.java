@@ -521,7 +521,7 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         /* [JACKSON-256]: better pass default value through, if no explicit direction indicating
          * otherwise
          */
-        return null;
+        return defValue;
     }
 
     @Override
