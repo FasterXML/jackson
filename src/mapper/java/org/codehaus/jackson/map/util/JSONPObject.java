@@ -56,9 +56,9 @@ public class JSONPObject
     }
     
     /*
-    /**************************************************************
+    /**********************************************************
     /* JsonSerializable(WithType) implementation
-    /**************************************************************
+    /**********************************************************
      */
     
     public void serializeWithType(JsonGenerator jgen, SerializerProvider provider, TypeSerializer typeSer)
