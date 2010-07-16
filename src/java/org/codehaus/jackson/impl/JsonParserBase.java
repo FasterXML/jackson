@@ -302,10 +302,14 @@ public abstract class JsonParserBase
     {
         if (!_closed) {
             _closed = true;
-            _closeInput();
+            try {
+                _closeInput();
+            } finally {
+                // as per [JACKSON-324], do in finally block
+                // Also, internal buffer(s) can now be released as well
+                _releaseBuffers();
+            }
         }
-        // Also, internal buffer(s) can now be released as well
-        _releaseBuffers();
     }
 
     public boolean isClosed() { return _closed; }

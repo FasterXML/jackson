@@ -1,9 +1,10 @@
-package org.codehaus.jackson.map.m10r;
+package org.codehaus.jackson.mrbean;
 
 import static org.junit.Assert.assertArrayEquals;
 
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.mrbean.AbstractTypeMaterializer;
 
 public class TestSimpleMaterializedInterfaces
     extends BaseMapTest

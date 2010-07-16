@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.m10r;
+package org.codehaus.jackson.mrbean;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -6,9 +6,13 @@ import org.codehaus.jackson.type.JavaType;
 
 /**
  * Nifty class for pulling implementations of classes out of thin air.
+ *<p>
+ * ... friends call him Mister Bean... :-)
  * 
  * @author tatu
  * @author sunny
+ * 
+ * @since 1.6
  */
 public class AbstractTypeMaterializer
     extends AbstractTypeResolver

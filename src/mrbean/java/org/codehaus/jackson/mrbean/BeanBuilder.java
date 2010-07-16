@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.m10r;
+package org.codehaus.jackson.mrbean;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -10,6 +10,11 @@ import static org.codehaus.jackson.org.objectweb.asm.Opcodes.*;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.type.TypeFactory;
 
+/**
+ * Heavy-lifter of mr. Bean package.
+ * 
+ * @since 1.6
+ */
 public class BeanBuilder
 {
     protected Map<String, Property> _beanProperties = new LinkedHashMap<String,Property>();
@@ -352,9 +357,11 @@ public class BeanBuilder
             return _signature;
         }
 
+        /*
         public boolean isPrimitive() {
             return _signature.length() == 1;
         }
+        */
         
         protected JavaType getJacksonType()
         {
@@ -363,10 +370,12 @@ public class BeanBuilder
             }
             return _jacksonType;
         }
- 
+
+        /*
         public int getStoreOpcode() {
             return _signatureType.getOpcode(ISTORE);
         }
+        */
 
         public int getLoadOpcode() {
             return _signatureType.getOpcode(ILOAD);
