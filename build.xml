@@ -9,7 +9,7 @@
     <property name="dir.src.java.jaxrs" location="${dir.src}/jaxrs/java" />
     <property name="dir.src.java.xc" location="${dir.src}/xc/java" />
     <property name="dir.src.java.smile" location="${dir.src}/smile/java" />
-    <property name="dir.src.java.mrbean" location="${dir.src}/smile/mrbean" />
+    <property name="dir.src.java.mrbean" location="${dir.src}/mrbean/java" />
     <property name="dir.src.resource.jaxrs" location="${dir.src}/jaxrs/resources" />
     <property name="dir.src.maven" location="${dir.src}/maven" />
     <property name="dir.src.sample" location="${dir.src}/sample" />
@@ -241,6 +241,9 @@ compile.smile, compile.mrbean" />
             <classpath>
                <pathelement path="${dir.build.classes.core}"/>  
                <pathelement path="${dir.build.classes.mapper}"/>  
+               <fileset dir="${dir.lib}/repackaged">
+                    <include name="jackson-asm*.jar" />
+               </fileset>
             </classpath>
         </javac>
     </target>
