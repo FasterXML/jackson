@@ -246,6 +246,12 @@ compile.smile, compile.mrbean" />
                </fileset>
             </classpath>
         </javac>
+        <!-- also, unpack classes from repackaged asm jar, for OSGi bundle -->
+        <unjar dest="${dir.build.classes.mrbean}">
+          <fileset dir="${dir.lib}/repackaged">
+            <include name="jackson-asm*.jar" />
+          </fileset>
+        </unjar>
     </target>
 
     <target name="compile.extra" depends="compile.main">

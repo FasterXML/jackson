@@ -60,6 +60,7 @@
                 <pathelement path="${dir.build.classes.mapper}"/>  
                 <pathelement path="${dir.build.classes.jaxrs}"/>  
                 <pathelement path="${dir.build.classes.xc}"/>  
+                <pathelement path="${dir.build.classes.mrbean}"/>  
                 <path refid="test-libs"/>
                 <fileset dir="${dir.lib}/jaxrs">
                     <include name="*.jar" />
