@@ -301,9 +301,13 @@ public abstract class JsonParserBase
     public void close() throws IOException
     {
         _closed = true;
-        _closeInput();
-        // Also, internal buffer(s) can now be released as well
-        _releaseBuffers();
+	try {
+	    _closeInput();
+	} finally {
+	    // as per [JACKSON-324], do in finally block
+	    // Also, internal buffer(s) can now be released as well
+	    _releaseBuffers();
+	}
     }
 
     public boolean isClosed() { return _closed; }

@@ -15,6 +15,9 @@ Description:
   * [JACKSON-319] Issues when trying to deserialize polymorphic type
     with no data (just type information)
     (reported by Chris C)
+  * [JACKSON-324] JsonParserBase: call releaseBuffers() in finally
+    block (within close())
+    (suggested by Steve C)
 
 ------------------------------------------------------------------------
 == History: ==
