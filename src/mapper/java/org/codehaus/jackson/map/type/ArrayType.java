@@ -49,9 +49,9 @@ public final class ArrayType
     }
     
     /*
-    //////////////////////////////////////////////////////////
-    // Methods for narrowing conversions
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Methods for narrowing conversions
+    /**********************************************************
      */
 
     /**
@@ -89,9 +89,9 @@ public final class ArrayType
     }
 
     /*
-    //////////////////////////////////////////////////////////
-    // Overridden methods
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Overridden methods
+    /**********************************************************
      */
 
     @Override
@@ -113,6 +113,12 @@ public final class ArrayType
     @Override
     public boolean isConcrete() { return true; }
 
+    @Override
+    public boolean mayBeGeneric() {
+        // arrays are not parameterized, but element type may be:
+        return _componentType.mayBeGeneric();
+    }
+    
     /**
      * Not sure what symbolic name is used internally, if any;
      * let's follow naming of Collection types here.
@@ -125,9 +131,9 @@ public final class ArrayType
     }
     
     /*
-    //////////////////////////////////////////////////////////
-    // Public API
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API
+    /**********************************************************
      */
 
     public boolean isContainerType() { return true; }
@@ -140,10 +146,20 @@ public final class ArrayType
             return (index == 0) ? _componentType : null;
     }
     
+    public StringBuilder getGenericSignature(StringBuilder sb) {
+        sb.append('[');
+        return _componentType.getGenericSignature(sb);
+    }
+
+    public StringBuilder getErasedSignature(StringBuilder sb) {
+        sb.append('[');
+        return _componentType.getErasedSignature(sb);
+    }
+    
     /*
-    //////////////////////////////////////////////////////////
-    // Standard methods
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Standard methods
+    /**********************************************************
      */
 
     @Override

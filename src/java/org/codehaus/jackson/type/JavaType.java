@@ -46,9 +46,9 @@ public abstract class JavaType
     protected Object _typeHandler;
     
     /*
-    /*************************************************
-    // Life-cycle
-    /*************************************************
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     protected JavaType(Class<?> clz)
@@ -170,9 +170,9 @@ public abstract class JavaType
     }
     
     /*
-    /*************************************************
+    /**********************************************************
     /* Public API
-    /*************************************************
+    /**********************************************************
      */
 
     public final Class<?> getRawClass() { return _class; }
@@ -227,6 +227,16 @@ public abstract class JavaType
 
     public final boolean isFinal() { return Modifier.isFinal(_class.getModifiers()); }
 
+    /**
+     * Method that can be used to find out types that either have generic
+     * type information, or should have it (i.e. expects parameterization);
+     * latter happens when generic types are created without generic
+     * types ("raw" Lists, Maps etc).
+     * 
+     * @since 1.6
+     */
+    public abstract boolean mayBeGeneric();
+    
     /**
      * Method for accessing key type for this type, assuming type
      * has such a concept (only Map types do)
@@ -304,11 +314,73 @@ public abstract class JavaType
      * @since 1.5
      */
     public abstract String toCanonical();
+
+    /*
+    /**********************************************************
+    /* Support for producing signatures (1.6+)
+    /**********************************************************
+     */
+
+    /**
+     * Method for accessing signature that contains generic
+     * type information, in form compatible with JVM 1.5
+     * as per JLS. It is a superset of {@link #getErasedSignature},
+     * in that generic information can be automatically removed
+     * if necessary (just remove outermost
+     * angle brackets along with content inside)
+     * 
+     * @since 1.6
+     */
+    public String getGenericSignature() {
+        StringBuilder sb = new StringBuilder(40);
+        getGenericSignature(sb);
+        return sb.toString();        
+    }
+
+    /**
+     * 
+     * @param sb StringBuilder to append signature to
+     * 
+     * @return StringBuilder that was passed in; returned to allow
+     * call chaining
+     * 
+     * @since 1.6
+     */
+    public abstract StringBuilder getGenericSignature(StringBuilder sb);
+    
+    /**
+     * Method for accessing signature without generic
+     * type information, in form compatible with all versions
+     * of JVM, and specifically used for type descriptions
+     * when generating byte code.
+     * 
+     * @since 1.6
+     */
+    public String getErasedSignature() {
+        StringBuilder sb = new StringBuilder(40);
+        getErasedSignature(sb);
+        return sb.toString();
+    }
+
+    /**
+     * Method for accessing signature without generic
+     * type information, in form compatible with all versions
+     * of JVM, and specifically used for type descriptions
+     * when generating byte code.
+     * 
+     * @param sb StringBuilder to append signature to
+     * 
+     * @return StringBuilder that was passed in; returned to allow
+     * call chaining
+     * 
+     * @since 1.6
+     */
+    public abstract StringBuilder getErasedSignature(StringBuilder sb);
     
     /*
-    /*************************************************
+    /**********************************************************
     /* Helper methods
-    /*************************************************
+    /**********************************************************
      */
 
     protected void _assertSubclass(Class<?> subclass, Class<?> superClass)
@@ -319,9 +391,9 @@ public abstract class JavaType
     }
 
     /*
-    /**************************************************************
+    /**********************************************************
     /* Standard methods; let's make them abstract to force override
-    /**************************************************************
+    /**********************************************************
      */
 
     public abstract String toString();

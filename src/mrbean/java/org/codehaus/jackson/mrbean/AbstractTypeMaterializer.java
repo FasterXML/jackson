@@ -1,8 +1,12 @@
 package org.codehaus.jackson.mrbean;
 
+import java.lang.reflect.Method;
+
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
+
+import org.codehaus.jackson.org.objectweb.asm.*;
 
 /**
  * Nifty class for pulling implementations of classes out of thin air.
@@ -54,6 +58,11 @@ public class AbstractTypeMaterializer
      * by default.
      */
     protected final static int DEFAULT_FEATURE_FLAGS = Feature.collectDefaults();
+
+    /**
+     * Default package to use for generated classes.
+     */
+    public final static String DEFAULT_PACKAGE_FOR_GENERATED = "org.codehaus.jackson.generated.";
     
     /**
      * We will use per-materializer class loader for now; would be nice
@@ -66,6 +75,11 @@ public class AbstractTypeMaterializer
      * Bit set that contains all enabled features
      */
     protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
+
+    /**
+     * Package name to use as prefix for generated classes.
+     */
+    protected String _defaultPackage = DEFAULT_PACKAGE_FOR_GENERATED;
     
     /*
     /**********************************************************
@@ -109,6 +123,14 @@ public class AbstractTypeMaterializer
             disable(f);
         }
     }
+
+    public void setDefaultPackage(String defPkg)
+    {
+        if (!defPkg.endsWith(".")) {
+            defPkg = defPkg + ".";
+        }
+        _defaultPackage = defPkg;
+    }
     
     /*
     /**********************************************************
@@ -120,6 +142,19 @@ public class AbstractTypeMaterializer
     public JavaType resolveAbstractType(DeserializationConfig config, JavaType type)
     {
         Class<?> impl = materializeClass(type.getRawClass());
+
+        // !!! TEST
+/*        
+        for (Class<?> c : new Class<?>[] { type.getRawClass(), impl } ) {
+            System.out.println("Class "+c.getName()+":");
+            for (Method m : c.getDeclaredMethods()) {
+                System.out.println("  method '"+m+"', returns "+TypeFactory.type(m.getGenericReturnType(), c));
+                for (java.lang.reflect.Type t : m.getGenericParameterTypes()) {
+                   System.out.println("   param: "+TypeFactory.type(t, c));
+                }
+            }
+        }
+*/        
         return TypeFactory.type(impl);
     }
     
@@ -132,10 +167,51 @@ public class AbstractTypeMaterializer
     protected Class<?> materializeClass(Class<?> cls)
     {
         // Need to have proper name mangling in future, but for now...
-        String newName = "materialized."+cls.getName();
+        String newName = _defaultPackage+cls.getName();
         BeanBuilder builder = new BeanBuilder();
         byte[] bytecode = builder.implement(cls, isEnabled(Feature.FAIL_ON_UNMATERIALIZED_METHOD)).build(newName);
-        return _classLoader.loadAndResolve(newName, bytecode);
+        Class<?> result = _classLoader.loadAndResolve(newName, bytecode);
+        
+        // TEST: uncomment for more debugging during development (never for release builds)
+        /*
+        
+System.out.println("DEBUG: "+bytecode.length+" bytes for "+newName); 
+try {
+    System.out.println("<visit name='"+result.getName()+"'>");
+ClassReader cr = new ClassReader(bytecode);
+cr.accept(new ClassVisitor() {
+    @Override  public void visit(int arg0, int access, String name, String desc ,String sig, String[] arg5) { }
+    @Override public AnnotationVisitor visitAnnotation(String arg0, boolean arg1) {
+        System.out.println(" Annotation '"+arg0+"'...");
+        return null;
+    }
+    @Override public void visitAttribute(Attribute arg0) { System.out.println(" Attribute '"+arg0+"'"); }
+    @Override public void visitEnd() { }
+    
+    @Override
+    public FieldVisitor visitField(int arg0, String name, String desc, String sig, Object arg4) {
+        System.out.println(" Field '"+name+"; desc '"+desc+"', sig '"+sig+"', value: "+arg4);
+        return null;
+    }
+    
+    @Override
+    public void visitInnerClass(String arg0, String arg1, String arg2, int arg3) { }
+    
+    @Override
+    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        System.out.println("Method '"+name+"' (access 0x"+Integer.toHexString(access)+"): desc "+desc+", signature "+signature);
+        return null;
+    }
+    
+    @Override public void visitOuterClass(String arg0, String arg1, String arg2) { }
+    
+    @Override public void visitSource(String arg0, String arg1) { }
+}, 0);
+} catch (Exception e) { throw new RuntimeException(e);
+}
+System.out.println("</visit>");
+*/
+        return result;
     }
 
     /*
@@ -166,7 +242,7 @@ public class AbstractTypeMaterializer
         }
     }
 
-    /* // old loading code
+    /* // old loading code that uses system class loader
     private static Class<?> loadClass(String className, byte[] b) {
         // override classDefine (as it is protected) and define the class.
         Class<?> clazz = null;

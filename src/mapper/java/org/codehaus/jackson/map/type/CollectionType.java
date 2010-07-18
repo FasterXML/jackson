@@ -14,9 +14,9 @@ public final class CollectionType
     final JavaType _elementType;
 
     /*
-    //////////////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     private CollectionType(Class<?> collT, JavaType elemT)
@@ -59,11 +59,14 @@ public final class CollectionType
     }
     
     /*
-    //////////////////////////////////////////////////////////
-    // Public API
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API
+    /**********************************************************
      */
 
+    @Override
+    public boolean mayBeGeneric() { return true; }
+    
     public JavaType getContentType() { return _elementType; }
     public int containedTypeCount() { return 1; }
     public JavaType containedType(int index) {
@@ -79,18 +82,30 @@ public final class CollectionType
         return null;
     }
 
+    public StringBuilder getErasedSignature(StringBuilder sb) {
+        return _classSignature(_class, sb, true);
+    }
+    
+    public StringBuilder getGenericSignature(StringBuilder sb) {
+        _classSignature(_class, sb, false);
+        sb.append('<');
+        _elementType.getGenericSignature(sb);
+        sb.append(">;");
+        return sb;
+    }
+    
     /*
-    //////////////////////////////////////////////////////////
-    // Extended API
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
      */
 
     public boolean isContainerType() { return true; }
 
     /*
-    //////////////////////////////////////////////////////////
-    // Standard methods
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Standard methods
+    /**********************************************************
      */
 
     @Override

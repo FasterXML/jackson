@@ -19,9 +19,9 @@ public final class MapType
     final JavaType _valueType;
 
     /*
-    //////////////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     private MapType(Class<?> mapType, JavaType keyT, JavaType valueT)
@@ -78,12 +78,15 @@ public final class MapType
     }
     
     /*
-    //////////////////////////////////////////////////////////
-    // Public API
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API
+    /**********************************************************
      */
 
     public boolean isContainerType() { return true; }
+
+    @Override
+    public boolean mayBeGeneric() { return true; }
 
     @Override
     public JavaType getKeyType() { return _keyType; }
@@ -111,11 +114,25 @@ public final class MapType
         if (index == 1) return "V";
         return null;
     }
+
+    public StringBuilder getErasedSignature(StringBuilder sb) {
+        return _classSignature(_class, sb, true);
+    }
+    
+    public StringBuilder getGenericSignature(StringBuilder sb)
+    {
+        _classSignature(_class, sb, false);
+        sb.append('<');
+        _keyType.getGenericSignature(sb);
+        _valueType.getGenericSignature(sb);
+        sb.append(">;");
+        return sb;
+    }
     
     /*
-    //////////////////////////////////////////////////////////
-    // Standard methods
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Standard methods
+    /**********************************************************
      */
 
     @Override

@@ -133,8 +133,6 @@ public class BeanBuilder
             throw new IllegalArgumentException("Invalid property '"+prop.getName()+"'; multiple getters; '"
                     +m.getName()+"()' vs '"+prop.getGetter().getName()+"()'");
         }
-
- System.err.println("Add property '"+m.getName()+"', returns '"+Type.getReturnType(m));
         prop.setGetter(m);        
     }
 
@@ -182,7 +180,9 @@ public class BeanBuilder
 
     private static void createField(ClassWriter cw, Property prop, TypeDescription type)
     {
-        FieldVisitor fv = cw.visitField(0, prop.getFieldName(), type.signature(), null, null);
+        // !!! TODO: add signature
+        String sig = type.isGeneric() ? type.genericSignature() : null;
+        FieldVisitor fv = cw.visitField(0, prop.getFieldName(), type.erasedSignature(), sig, null);
         fv.visitEnd();
     }
 
@@ -190,19 +190,25 @@ public class BeanBuilder
             Property prop, TypeDescription propertyType)
     {
         String methodName;
-        String sig;
+        String desc;
         Method setter = prop.getSetter();
         if (setter != null) { // easy, copy as is
-            sig = Type.getMethodDescriptor(setter);
+            desc = Type.getMethodDescriptor(setter);
             methodName = setter.getName();
         } else { // otherwise need to explicitly construct from property type (close enough)
-            sig = "("+ propertyType.signature() + ")V";
+            desc = "("+ propertyType.erasedSignature() + ")V";
             methodName = buildSetterName(prop.getName());
         }
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, sig, null, null);
+        String sig = propertyType.isGeneric() ? ("("+propertyType.genericSignature()+")V") : null;
+/*
+System.err.println("Method: "+methodName);
+System.err.println("  desc == ["+desc+"]");
+System.err.println("   sig == ["+sig+"]");
+*/
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, desc, sig, null);
         mv.visitVarInsn(ALOAD, 0); // this
         mv.visitVarInsn(propertyType.getLoadOpcode(), 1);
-        mv.visitFieldInsn(PUTFIELD, internalClassName, prop.getFieldName(), propertyType.signature());
+        mv.visitFieldInsn(PUTFIELD, internalClassName, prop.getFieldName(), propertyType.erasedSignature());
         
         mv.visitInsn(RETURN);
         mv.visitMaxs(0, 0); // don't care (real values: 2, 2)
@@ -213,18 +219,24 @@ public class BeanBuilder
             Property prop, TypeDescription propertyType)
     {
         String methodName;
-        String sig;
+        String desc;
         Method getter = prop.getGetter();
         if (getter != null) { // easy, copy as is
-            sig = Type.getMethodDescriptor(getter);
+            desc = Type.getMethodDescriptor(getter);
             methodName = getter.getName();
         } else { // otherwise need to explicitly construct from property type (close enough)
-            sig = "()"+propertyType.signature();
+            desc = "()"+propertyType.erasedSignature();
             methodName = buildGetterName(prop.getName());
         }
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, sig, null, null);
+        String sig = propertyType.isGeneric() ? ("()"+propertyType.genericSignature()) : null;
+/*        
+System.err.println("Method: "+methodName);
+System.err.println("  desc == ["+desc+"]");
+System.err.println("   sig == ["+sig+"]");
+*/
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, desc, sig, null);
         mv.visitVarInsn(ALOAD, 0); // load 'this'
-        mv.visitFieldInsn(GETFIELD, internalClassName, prop.getFieldName(), propertyType.signature());
+        mv.visitFieldInsn(GETFIELD, internalClassName, prop.getFieldName(), propertyType.erasedSignature());
         mv.visitInsn(propertyType.getReturnOpcode());
         mv.visitMaxs(0, 0); // don't care (real values: 1,1)
         mv.visitEnd();
@@ -271,7 +283,8 @@ public class BeanBuilder
         protected Method _getter;
         protected Method _setter;
         
-        public Property(String name) {
+        public Property(String name)
+        {
             _name = name;
             // Let's just prefix field name with single underscore for fun...
             _fieldName = "_"+name;
@@ -288,21 +301,31 @@ public class BeanBuilder
         public String getFieldName() {
             return _fieldName;
         }
+
+        private TypeDescription getterType() {
+            Class<?> context = _getter.getDeclaringClass();
+            return new TypeDescription(TypeFactory.type(_getter.getGenericReturnType(), context));
+        }
+
+        private TypeDescription setterType() {
+            Class<?> context = _setter.getDeclaringClass();
+            return new TypeDescription(TypeFactory.type(_setter.getGenericParameterTypes()[0], context));
+        }
         
         public TypeDescription selectType()
         {
             // First: if only know setter, or getter, use that one:
             if (_getter == null) {
-                return TypeDescription.fromFirstArgType(_setter);
+                return setterType();
             }
             if (_setter == null) {
-                return TypeDescription.fromReturnType(_getter);
+                return getterType();
             }
             /* Otherwise must ensure they are compatible, choose more specific
              * (most often setter - type)
              */
-            TypeDescription st = TypeDescription.fromFirstArgType(_setter);
-            TypeDescription gt = TypeDescription.fromReturnType(_getter);
+            TypeDescription st = setterType();
+            TypeDescription gt = getterType();
             TypeDescription specificType = TypeDescription.moreSpecificType(st, gt);
             if (specificType == null) { // incompatible...
                 throw new IllegalArgumentException("Invalid property '"+getName()
@@ -319,9 +342,7 @@ public class BeanBuilder
      */
     private static class TypeDescription
     {
-        private final Type _signatureType;
-        private final java.lang.reflect.Type _rawJavaType;
-        private final String _signature;
+        private final Type _asmType;
         private JavaType _jacksonType;
 
         /*
@@ -330,21 +351,10 @@ public class BeanBuilder
         /**********************************************************
          */
         
-        public TypeDescription(Type sigType, java.lang.reflect.Type rawType)
+        public TypeDescription(JavaType type)
         {
-            _signatureType = sigType;
-            _signature = sigType.getDescriptor();
-            _rawJavaType = rawType;
-        }
-        
-        public static TypeDescription fromReturnType(Method m)
-        {
-            return new TypeDescription(Type.getReturnType(m), m.getGenericReturnType());
-        }
-        
-        public static TypeDescription fromFirstArgType(Method m)
-        {
-            return new TypeDescription(Type.getArgumentTypes(m)[0], m.getGenericParameterTypes()[0]);
+            _jacksonType = type;
+            _asmType = Type.getType(type.getRawClass());
         }
 
         /*
@@ -352,24 +362,26 @@ public class BeanBuilder
         /* Accessors
         /**********************************************************
          */
+
+        public Class<?> getRawClass() { return _jacksonType.getRawClass(); }
         
-        public String signature() {
-            return _signature;
+        public String erasedSignature() {
+            return _jacksonType.getErasedSignature();
         }
 
+        public String genericSignature() {
+            return _jacksonType.getGenericSignature();
+        }
+
+        public boolean isGeneric() {
+            return _jacksonType.mayBeGeneric();
+        }
+        
         /*
         public boolean isPrimitive() {
             return _signature.length() == 1;
         }
         */
-        
-        protected JavaType getJacksonType()
-        {
-            if (_jacksonType == null) {
-                _jacksonType = TypeFactory.type(_rawJavaType);
-            }
-            return _jacksonType;
-        }
 
         /*
         public int getStoreOpcode() {
@@ -378,16 +390,16 @@ public class BeanBuilder
         */
 
         public int getLoadOpcode() {
-            return _signatureType.getOpcode(ILOAD);
+            return _asmType.getOpcode(ILOAD);
         }
 
         public int getReturnOpcode() {
-            return _signatureType.getOpcode(IRETURN);
+            return _asmType.getOpcode(IRETURN);
         }
         
         @Override
         public String toString() {
-            return getJacksonType().toString();
+            return _jacksonType.toString();
         }
 
         /*
@@ -399,8 +411,8 @@ public class BeanBuilder
         
         public static TypeDescription moreSpecificType(TypeDescription desc1, TypeDescription desc2)
         {
-            Class<?> c1 = desc1.getJacksonType().getRawClass();
-            Class<?> c2 = desc2.getJacksonType().getRawClass();
+            Class<?> c1 = desc1.getRawClass();
+            Class<?> c2 = desc2.getRawClass();
 
             if (c1.isAssignableFrom(c2)) { // c2 more specific than c1
                 return desc2;
@@ -412,4 +424,42 @@ public class BeanBuilder
             return null;
         }
     }
+
+    /*
+        // Simple test code for introspecting signatures...
+
+    public static void main(String[] args) throws Exception {
+        ClassReader cr = new ClassReader(Foobar.class.getName());
+        cr.accept(new Visitor(), 0);
+    }
+
+    static abstract class Foobar {
+        public abstract Map<String,List<Integer>> foobar();
+        public abstract List<Foobar> foobars();
+    }
+
+    static class Visitor implements ClassVisitor
+    {
+        @Override  public void visit(int arg0, int arg1, String arg2, String arg3,String arg4, String[] arg5) { }
+        @Override public AnnotationVisitor visitAnnotation(String arg0, boolean arg1) { return null; }
+        @Override public void visitAttribute(Attribute arg0) { }
+        @Override public void visitEnd() { }
+
+        @Override
+        public FieldVisitor visitField(int arg0, String arg1, String arg2, String arg3, Object arg4) { return null; }
+
+        @Override
+        public void visitInnerClass(String arg0, String arg1, String arg2, int arg3) { }
+
+        @Override
+        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+            System.out.println("Method '"+name+"' (access 0x"+Integer.toHexString(access)+"): desc "+desc+", signature "+signature);
+            return null;
+        }
+
+        @Override public void visitOuterClass(String arg0, String arg1, String arg2) { }
+
+        @Override public void visitSource(String arg0, String arg1) { }
+    }
+    */
 }

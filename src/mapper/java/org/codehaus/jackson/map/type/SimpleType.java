@@ -31,9 +31,9 @@ public final class SimpleType
     protected final String[] _typeNames;
     
     /*
-    /*********************************************************
+    /**********************************************************
     /* Life-cycle
-    /*********************************************************
+    /**********************************************************
      */
 
     protected SimpleType(Class<?> cls) {
@@ -103,14 +103,19 @@ public final class SimpleType
     }
     
     /*
-    /*********************************************************
+    /**********************************************************
     /* Public API
-    /*********************************************************
+    /**********************************************************
      */
 
     @Override
     public boolean isContainerType() { return false; }
 
+    @Override
+    public boolean mayBeGeneric() {
+        return containedTypeCount() > 0;
+    }
+    
     @Override
     public int containedTypeCount() {
         return (_typeParameters == null) ? 0 : _typeParameters.length;
@@ -133,10 +138,28 @@ public final class SimpleType
         return _typeNames[index];
     }
     
+    public StringBuilder getErasedSignature(StringBuilder sb) {
+        return _classSignature(_class, sb, true);
+    }
+    
+    public StringBuilder getGenericSignature(StringBuilder sb)
+    {
+        _classSignature(_class, sb, false);
+        if (_typeParameters != null) {
+            sb.append('<');
+            for (JavaType param : _typeParameters) {
+                sb = param.getGenericSignature(sb);
+            }
+            sb.append('>');
+        }
+        sb.append(';');
+        return sb;
+    }
+    
     /*
-    /*********************************************************
+    /**********************************************************
     /* Standard methods
-    /*********************************************************
+    /**********************************************************
      */
 
     @Override
