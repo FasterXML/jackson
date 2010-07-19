@@ -42,6 +42,13 @@ public final class NumberOutput
         }
     }
 
+    final static byte[] FULL_TRIPLETS_B = new byte[4000];
+    static {
+        for (int i = 0; i < 4000; ++i) {
+            FULL_TRIPLETS_B[i] = (byte) FULL_TRIPLETS[i];
+        }
+    }
+    
     final static String[] sSmallIntStrs = new String[] {
         "0","1","2","3","4","5","6","7","8","9","10"
     };
@@ -119,6 +126,57 @@ public final class NumberOutput
         return offset;
     }
 
+    public static int outputInt(int value, byte[] buffer, int offset)
+    {
+        if (value < 0) {
+            if (value == Integer.MIN_VALUE) {
+                return outputLong((long) value, buffer, offset);
+            }
+            buffer[offset++] = '-';
+            value = -value;
+        }
+
+        if (value < MILLION) { // at most 2 triplets...
+            if (value < 1000) {
+                if (value < 10) {
+                    buffer[offset++] = (byte) ('0' + value);
+                } else {
+                    offset = outputLeadingTriplet(value, buffer, offset);
+                }
+            } else {
+                int thousands = value / 1000;
+                value -= (thousands * 1000); // == value % 1000
+                offset = outputLeadingTriplet(thousands, buffer, offset);
+                offset = outputFullTriplet(value, buffer, offset);
+            }
+            return offset;
+        }
+        boolean hasBillions = (value >= BILLION);
+        if (hasBillions) {
+            value -= BILLION;
+            if (value >= BILLION) {
+                value -= BILLION;
+                buffer[offset++] = '2';
+            } else {
+                buffer[offset++] = '1';
+            }
+        }
+        int newValue = value / 1000;
+        int ones = (value - (newValue * 1000)); // == value % 1000
+        value = newValue;
+        newValue /= 1000;
+        int thousands = (value - (newValue * 1000));
+        
+        if (hasBillions) {
+            offset = outputFullTriplet(newValue, buffer, offset);
+        } else {
+            offset = outputLeadingTriplet(newValue, buffer, offset);
+        }
+        offset = outputFullTriplet(thousands, buffer, offset);
+        offset = outputFullTriplet(ones, buffer, offset);
+        return offset;
+    }
+    
     /**
      * @return Offset within buffer after outputting int
      */
@@ -176,6 +234,52 @@ public final class NumberOutput
         return offset;
     }
 
+    public static int outputLong(long value, byte[] buffer, int offset)
+    {
+        if (value < 0L) {
+            if (value > MIN_INT_AS_LONG) {
+                return outputInt((int) value, buffer, offset);
+            }
+            if (value == Long.MIN_VALUE) {
+                // Special case: no matching positive value within range
+                int len = SMALLEST_LONG.length();
+                for (int i = 0; i < len; ++i) {
+                    buffer[offset++] = (byte) SMALLEST_LONG.charAt(i);
+                }
+                return offset;
+            }
+            buffer[offset++] = '-';
+            value = -value;
+        } else {
+            if (value <= MAX_INT_AS_LONG) {
+                return outputInt((int) value, buffer, offset);
+            }
+        }
+        int origOffset = offset;
+        offset += calcLongStrLength(value);
+        int ptr = offset;
+
+        // First, with long arithmetics:
+        while (value > MAX_INT_AS_LONG) { // full triplet
+            ptr -= 3;
+            long newValue = value / THOUSAND_L;
+            int triplet = (int) (value - newValue * THOUSAND_L);
+            outputFullTriplet(triplet, buffer, ptr);
+            value = newValue;
+        }
+        // Then with int arithmetics:
+        int ivalue = (int) value;
+        while (ivalue >= 1000) { // still full triplet
+            ptr -= 3;
+            int newValue = ivalue / 1000;
+            int triplet = ivalue - (newValue * 1000);
+            outputFullTriplet(triplet, buffer, ptr);
+            ivalue = newValue;
+        }
+        outputLeadingTriplet(ivalue, buffer, origOffset);
+        return offset;
+    }
+    
     /*
     /**********************************************************
     /* Secondary convenience serialization methods
@@ -237,6 +341,22 @@ public final class NumberOutput
         return offset;
     }
 
+    private static int outputLeadingTriplet(int triplet, byte[] buffer, int offset)
+    {
+        int digitOffset = (triplet << 2);
+        char c = LEADING_TRIPLETS[digitOffset++];
+        if (c != NULL_CHAR) {
+            buffer[offset++] = (byte) c;
+        }
+        c = LEADING_TRIPLETS[digitOffset++];
+        if (c != NULL_CHAR) {
+            buffer[offset++] = (byte) c;
+        }
+        // Last is required to be non-empty
+        buffer[offset++] = (byte) LEADING_TRIPLETS[digitOffset];
+        return offset;
+    }
+    
     private static int outputFullTriplet(int triplet, char[] buffer, int offset)
     {
         int digitOffset = (triplet << 2);
@@ -246,6 +366,15 @@ public final class NumberOutput
         return offset;
     }
 
+    private static int outputFullTriplet(int triplet, byte[] buffer, int offset)
+    {
+        int digitOffset = (triplet << 2);
+        buffer[offset++] = FULL_TRIPLETS_B[digitOffset++];
+        buffer[offset++] = FULL_TRIPLETS_B[digitOffset++];
+        buffer[offset++] = FULL_TRIPLETS_B[digitOffset];
+        return offset;
+    }
+    
     /**
      *<p>
      * Pre-conditions: posValue is positive, and larger than

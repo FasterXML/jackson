@@ -18,8 +18,22 @@ public class Utf8Generator
 {
     private final static byte BYTE_n = (byte) 'n';
     private final static byte BYTE_u = (byte) 'u';
+    private final static byte BYTE_U = (byte) 'U';
     private final static byte BYTE_l = (byte) 'l';
 
+    private final static byte BYTE_0 = (byte) '0';
+    
+    private final static byte BYTE_LBRACKET = (byte) '[';
+    private final static byte BYTE_RBRACKET = (byte) ']';
+    private final static byte BYTE_LCURLY = (byte) '{';
+    private final static byte BYTE_RCURLY = (byte) '}';
+ 
+    private final static byte BYTE_BACKSLASH = (byte) '\\';
+    private final static byte BYTE_SPACE = (byte) ' ';
+    private final static byte BYTE_COMMA = (byte) ',';
+    private final static byte BYTE_COLON = (byte) ':';
+    private final static byte BYTE_QUOTE = (byte) '"';
+    
     final static int SHORT_WRITE = 32;
     
     final static byte[] HEX_CHARS = new byte[16];
@@ -104,7 +118,7 @@ public class Utf8Generator
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '[';
+        _outputBuffer[_outputTail++] = BYTE_LBRACKET;
     }
 
     @Override
@@ -114,7 +128,7 @@ public class Utf8Generator
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = ']';
+        _outputBuffer[_outputTail++] = BYTE_RBRACKET;
     }
 
     @Override
@@ -124,7 +138,7 @@ public class Utf8Generator
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '{';
+        _outputBuffer[_outputTail++] = BYTE_LCURLY;
     }
 
     @Override
@@ -134,7 +148,7 @@ public class Utf8Generator
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '}';
+        _outputBuffer[_outputTail++] = BYTE_RCURLY;
     }
 
     @Override
@@ -150,7 +164,7 @@ public class Utf8Generator
             _flushBuffer();
         }
         if (commaBefore) {
-            _outputBuffer[_outputTail++] = ',';
+            _outputBuffer[_outputTail++] = BYTE_COMMA;
         }
 
         /* To support [JACKSON-46], we'll do this:
@@ -162,14 +176,14 @@ public class Utf8Generator
         }
 
         // we know there's room for at least one more char
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
         // The beef:
         _writeString(name);
         // and closing quotes; need room for one more char:
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
     /**
@@ -189,12 +203,12 @@ public class Utf8Generator
             if (_outputTail >= _outputEnd) {
                 _flushBuffer();
             }
-            _outputBuffer[_outputTail++] = '"';
+            _outputBuffer[_outputTail++] = BYTE_QUOTE;
             _writeString(name);
             if (_outputTail >= _outputEnd) {
                 _flushBuffer();
             }
-            _outputBuffer[_outputTail++] = '"';
+            _outputBuffer[_outputTail++] = BYTE_QUOTE;
         } else { // non-standard, omit quotes
             _writeString(name);
         }
@@ -218,13 +232,13 @@ public class Utf8Generator
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
         _writeString(text);
         // And finally, closing quotes
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
     @Override
@@ -235,13 +249,13 @@ public class Utf8Generator
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
         _writeString(text, offset, len);
         // And finally, closing quotes
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
     /*
@@ -361,13 +375,13 @@ public class Utf8Generator
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
         _writeBinary(b64variant, data, offset, offset+len);
         // and closing quotes
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
     /*
@@ -396,9 +410,9 @@ public class Utf8Generator
         if ((_outputTail + 13) >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
         _outputTail = NumberOutput.outputInt(i, _outputBuffer, _outputTail);
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }    
 
     @Override
@@ -421,9 +435,9 @@ public class Utf8Generator
         if ((_outputTail + 23) >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
         _outputTail = NumberOutput.outputLong(l, _outputBuffer, _outputTail);
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
     @Override
@@ -505,12 +519,12 @@ public class Utf8Generator
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
         writeRaw(value.toString());
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = '"';
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
     
     @Override
@@ -522,7 +536,7 @@ public class Utf8Generator
             _flushBuffer();
         }
         int ptr = _outputTail;
-        char[] buf = _outputBuffer;
+        byte[] buf = _outputBuffer;
         if (state) {
             buf[ptr] = 't';
             buf[++ptr] = 'r';
@@ -561,16 +575,16 @@ public class Utf8Generator
             _reportError("Can not "+typeMsg+", expecting field name");
         }
         if (_cfgPrettyPrinter == null) {
-            char c;
+            byte b;
             switch (status) {
             case JsonWriteContext.STATUS_OK_AFTER_COMMA:
-                c = ',';
+                b = BYTE_COMMA;
                 break;
             case JsonWriteContext.STATUS_OK_AFTER_COLON:
-                c = ':';
+                b = BYTE_COLON;
                 break;
             case JsonWriteContext.STATUS_OK_AFTER_SPACE:
-                c = ' ';
+                b = BYTE_SPACE;
                 break;
             case JsonWriteContext.STATUS_OK_AS_IS:
             default:
@@ -579,7 +593,7 @@ public class Utf8Generator
             if (_outputTail >= _outputEnd) {
                 _flushBuffer();
             }
-            _outputBuffer[_outputTail] = c;
+            _outputBuffer[_outputTail] = b;
             ++_outputTail;
             return;
         }
@@ -663,10 +677,10 @@ public class Utf8Generator
          *   may not be properly recycled if we don't close the writer.
          */
         if (_ioContext.isResourceManaged() || isEnabled(Feature.AUTO_CLOSE_TARGET)) {
-            _writer.close();
+            _outputStream.close();
         } else {
             // If we can't close it, we should at least flush
-            _writer.flush();
+            _outputStream.flush();
         }
         // Internal buffer(s) generator has can now be released as well
         _releaseBuffers();
@@ -675,7 +689,7 @@ public class Utf8Generator
     @Override
     protected void _releaseBuffers()
     {
-        char[] buf = _outputBuffer;
+        byte[] buf = _outputBuffer;
         if (buf != null) {
             _outputBuffer = null;
             _ioContext.releaseConcatBuffer(buf);
@@ -964,20 +978,23 @@ public class Utf8Generator
         byte[] buf = _entityBuffer;
         if (buf == null) {
             buf = new byte[6];
-            buf[0] = '\\';
-            buf[2] = '0';
-            buf[3] = '0';
+            buf[0] = BYTE_BACKSLASH;
+            buf[2] = BYTE_0;
+            buf[3] = BYTE_0;
         }
 
         if (escCode < 0) { // control char, value -(char + 1)
             int value = -(escCode + 1);
-            buf[1] = 'u';
+            buf[1] = BYTE_U;
             // We know it's a control char, so only the last 2 chars are non-0
             buf[4] = HEX_CHARS[value >> 4];
             buf[5] = HEX_CHARS[value & 0xF];
             _outputStream.write(buf, 0, 6);
         } else {
-            buf[1] = (char) escCode;
+            if (escCode > 127) { // should add better error message?
+                _throwInternal();
+            }
+            buf[1] = (byte) escCode;
             _outputStream.write(buf, 0, 2);
         }
     }
@@ -986,16 +1003,20 @@ public class Utf8Generator
     {
         if (escCode < 0) { // control char, value -(char + 1)
             int value = -(escCode + 1);
-            buf[ptr] = '\\';
-            buf[++ptr] = 'u';
+            buf[ptr] = BYTE_BACKSLASH;
+            buf[++ptr] = BYTE_U;
             // We know it's a control char, so only the last 2 chars are non-0
-            buf[++ptr] = '0';
-            buf[++ptr] = '0';
+            buf[++ptr] = BYTE_0;
+            buf[++ptr] = BYTE_0;
             buf[++ptr] = HEX_CHARS[value >> 4];
             buf[++ptr] = HEX_CHARS[value & 0xF];
         } else {
+            // these are all still in ascii range
+            if (escCode > 127) { // should add better error message?
+                _throwInternal();
+            }
             buf[ptr] = '\\';
-            buf[ptr+1] = (char) escCode;
+            buf[ptr+1] = (byte) escCode;
         }
     }
 

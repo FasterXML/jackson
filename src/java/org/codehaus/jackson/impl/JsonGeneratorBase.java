@@ -529,4 +529,9 @@ public abstract class JsonGeneratorBase
         throw new IllegalStateException("No ObjectCodec defined for the generator, can only serialize simple wrapper types (type passed "
                 +value.getClass().getName()+")");
     }    
+
+    protected final void _throwInternal()
+    {
+        throw new RuntimeException("Internal error: this code path should never get executed");
+    }
 }
