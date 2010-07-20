@@ -621,6 +621,29 @@ public abstract class JsonParser
     public abstract int getTextOffset()
         throws IOException, JsonParseException;
 
+    /**
+     * Method that can be used to determine whether calling of
+     * {@link #getTextCharacters} would be the most efficient
+     * way to access textual content for the event parser currently
+     * points to.
+     *<p> 
+     * Default implementation simply returns false since only actual
+     * implementation class has knowledge of its internal buffering
+     * state.
+     * Implementations are strongly encouraged to properly override
+     * this method, to allow efficient copying of content by other
+     * code.
+     * 
+     * @return True if parser currently has character array that can
+     *   be efficiently returned via {@link #getTextCharacters}; false
+     *   means that it may or may not exist
+     * 
+     * @since 1.6
+     */
+    public boolean hasTextCharacters() {
+        return false;
+    }
+    
     /*
     /**********************************************************
     /* Public API, access to token information, numeric

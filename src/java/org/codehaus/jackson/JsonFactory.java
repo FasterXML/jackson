@@ -556,6 +556,8 @@ public class JsonFactory
     protected JsonGenerator _createUTF8JsonGenerator(OutputStream out, IOContext ctxt)
         throws IOException
     {
+        // !!! TEST
+        //if (true) return _createJsonGenerator(_createWriter(out, JsonEncoding.UTF8, ctxt), ctxt);
         return new Utf8Generator(ctxt, _generatorFeatures, _objectCodec, out);
     }
     
@@ -581,6 +583,7 @@ public class JsonFactory
 
     protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException
     {
+        // note: this should not get called any more (caller checks, dispatches)
         if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
             return new UTF8Writer(ctxt, out);
         }

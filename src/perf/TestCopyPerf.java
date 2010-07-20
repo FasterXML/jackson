@@ -1,15 +1,16 @@
 import java.io.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.util.TokenBuffer;
 import org.codehaus.jackson.map.ObjectMapper;
 
 public final class TestCopyPerf
 {
-    private final static int REPS = 2500;
+    private final static int REPS = 7500;
 
     final JsonFactory _jsonFactory;
 
-    final JsonNode _tree;
+    final TokenBuffer _tokens;
 
     private TestCopyPerf(File f)
         throws Exception
@@ -18,7 +19,7 @@ public final class TestCopyPerf
         FileInputStream fis = new FileInputStream(f);
         ObjectMapper mapper = new ObjectMapper();
         JsonParser jp = _jsonFactory.createJsonParser(fis);
-        _tree = mapper.readTree(jp);
+        _tokens = mapper.readValue(jp, TokenBuffer.class);
         jp.close();
     }
 
@@ -48,7 +49,11 @@ public final class TestCopyPerf
         while (--reps >= 0) {
             bos.reset();
             jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF8);
-            jg.writeTree(_tree);
+            JsonParser jp = _tokens.asParser();
+            while (jp.nextToken() != null) {
+                jg.copyCurrentEvent(jp);
+            }
+            jp.close();
             jg.close();
         }
         return jg.hashCode();

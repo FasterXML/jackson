@@ -240,10 +240,15 @@ public class TreeTraversingParser extends JsonParser
 
     @Override
     public int getTextOffset() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
         return 0;
     }
 
+    @Override
+    public boolean hasTextCharacters() {
+        // generally we do not have efficient access as char[], hence:
+        return false;
+    }
+    
     /*
     /**********************************************************
     /* Public API, typed non-text access

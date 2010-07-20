@@ -34,6 +34,8 @@ Description:
     of whether JSON Object/Array nodes have specified value.
   * [JACKSON-321] Allow passing JsonNodeFactory to use for ObjectMapper, ObjectReader,
     to allow use of custom JsonNode types.
+  * [JACKSON-326] Add 'JsonParser.hasTextCharacters()' to make it easire to optimize
+    text access (esp. when copying events)
 
   New features:
 

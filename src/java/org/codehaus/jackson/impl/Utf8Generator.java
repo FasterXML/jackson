@@ -780,7 +780,7 @@ public class Utf8Generator
      * This method called when the string content is already in
      * a char buffer, and need not be copied for processing.
      */
-    private void _writeStringSegment(char[] cbuf, int offset, int len)
+    private final void _writeStringSegment(char[] cbuf, int offset, int len)
         throws IOException, JsonGenerationException
     {
         // First: if we have 2 x charCount spaces, we know it'll be fine for common case...

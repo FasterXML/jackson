@@ -361,7 +361,11 @@ public abstract class JsonGeneratorBase
             writeFieldName(jp.getCurrentName());
             break;
         case VALUE_STRING:
-            writeString(jp.getTextCharacters(), jp.getTextOffset(), jp.getTextLength());
+            if (jp.hasTextCharacters()) {
+                writeString(jp.getTextCharacters(), jp.getTextOffset(), jp.getTextLength());
+            } else {
+                writeString(jp.getText());
+            }
             break;
         case VALUE_NUMBER_INT:
             switch (jp.getNumberType()) {

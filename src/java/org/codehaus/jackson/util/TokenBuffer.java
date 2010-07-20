@@ -898,6 +898,12 @@ public class TokenBuffer
         @Override
         public int getTextOffset() { return 0; }
 
+        @Override
+        public boolean hasTextCharacters() {
+            // We never have raw buffer available, so:
+            return false;
+        }
+        
         /*
         /**********************************************************
         /* Public API, access to token information, numeric

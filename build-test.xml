@@ -48,7 +48,8 @@
     <!-- Compiling and running test cases
       -->
 
-    <target name="test.compile" depends="test.prepare, compile.mapper, compile.xc, compile.jaxrs, compile.mrbean">  
+    <target name="test.compile" depends="test.prepare, compile.mapper,
+compile.xc, compile.jaxrs, compile.smile, compile.mrbean">  
         <javac srcdir="${dir.src.test}" destdir="${dir.test.classes}"
             source="1.5" target="1.5"
             debug="true"
@@ -60,6 +61,7 @@
                 <pathelement path="${dir.build.classes.mapper}"/>  
                 <pathelement path="${dir.build.classes.jaxrs}"/>  
                 <pathelement path="${dir.build.classes.xc}"/>  
+                <pathelement path="${dir.build.classes.smile}"/>  
                 <pathelement path="${dir.build.classes.mrbean}"/>  
                 <path refid="test-libs"/>
                 <fileset dir="${dir.lib}/jaxrs">
@@ -113,6 +115,7 @@
                 <pathelement path="${dir.build.classes.core}" />
                 <pathelement path="${dir.build.classes.mapper}" />
                 <pathelement path="${dir.build.classes.xc}" />
+                <pathelement path="${dir.build.classes.smile}" />
                 <pathelement path="${dir.build.classes.mrbean}" />
                 <pathelement location="${dir.test.classes}" /> 
                 <path refid="test-libs"/>
@@ -178,6 +181,8 @@
                 <pathelement path="${dir.build.classes.mapper}" />
                 <pathelement path="${dir.build.classes.xc}" />
                 <pathelement path="${dir.build.classes.jaxrs}" />
+                <pathelement path="${dir.build.classes.smile}" />
+                <pathelement path="${dir.build.classes.mrbean}" />
                 <pathelement location="${dir.test.classes}" /> 
                 <path refid="test-libs"/>
                 <path refid="test-libs-ext"/>

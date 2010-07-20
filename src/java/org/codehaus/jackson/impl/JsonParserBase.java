@@ -418,6 +418,20 @@ public abstract class JsonParserBase
         return null;
     }
 
+    @Override
+    public boolean hasTextCharacters()
+    {
+        if (_currToken != null) { // null only before/after document
+            switch (_currToken) {
+            case FIELD_NAME:
+                return _nameCopied;
+            case VALUE_STRING:
+                return true; // usually true
+            }        
+        }
+        return false;
+    }
+    
     public int getTextLength()
         throws IOException, JsonParseException
     {
