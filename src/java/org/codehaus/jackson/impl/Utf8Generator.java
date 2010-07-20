@@ -8,7 +8,6 @@ import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonStreamContext;
 import org.codehaus.jackson.ObjectCodec;
-import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.io.NumberOutput;
 import org.codehaus.jackson.util.CharTypes;
@@ -16,10 +15,7 @@ import org.codehaus.jackson.util.CharTypes;
 public class Utf8Generator
     extends JsonGeneratorBase
 {
-    private final static byte BYTE_n = (byte) 'n';
     private final static byte BYTE_u = (byte) 'u';
-    private final static byte BYTE_U = (byte) 'U';
-    private final static byte BYTE_l = (byte) 'l';
 
     private final static byte BYTE_0 = (byte) '0';
     
@@ -33,16 +29,22 @@ public class Utf8Generator
     private final static byte BYTE_COMMA = (byte) ',';
     private final static byte BYTE_COLON = (byte) ':';
     private final static byte BYTE_QUOTE = (byte) '"';
-    
-    final static int SHORT_WRITE = 32;
+
+    private final static int SURR1_FIRST = 0xD800;
+    private final static int SURR2_LAST = 0xDFFF;
     
     final static byte[] HEX_CHARS = new byte[16];
     static {
         for (int i = 0; i < 16; ++i) {
             HEX_CHARS[i] = (byte) "0123456789ABCDEF".charAt(i);
         }
+    
     }
 
+    private final static byte[] NULL_BYTES = { 'n', 'u', 'l', 'l' };
+    private final static byte[] TRUE_BYTES = { 't', 'r', 'u', 'e' };
+    private final static byte[] FALSE_BYTES = { 'f', 'a', 'l', 's', 'e' };
+    
     /*
     /**********************************************************
     /* Configuration
@@ -66,11 +68,6 @@ public class Utf8Generator
     protected byte[] _outputBuffer;
 
     /**
-     * Pointer to the first buffered character to output
-     */
-    protected int _outputHead = 0;
-
-    /**
      * Pointer to the position right beyond the last character to output
      * (end marker; may be past the buffer)
      */
@@ -82,6 +79,12 @@ public class Utf8Generator
      */
     protected int _outputEnd;
 
+    /**
+     * Intermediate buffer in which characters of a String are copied
+     * before being encoded.
+     */
+    protected char[] _charBuffer;
+    
     /**
      * 6 character temporary buffer allocated if needed, for constructing
      * escape sequences
@@ -103,6 +106,7 @@ public class Utf8Generator
         _outputStream = out;
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
         _outputEnd = _outputBuffer.length;
+        _charBuffer = ctxt.allocConcatBuffer();
     }
 
     /*
@@ -112,7 +116,7 @@ public class Utf8Generator
      */
 
     @Override
-        protected void _writeStartArray()
+    protected void _writeStartArray()
         throws IOException, JsonGenerationException
     {
         if (_outputTail >= _outputEnd) {
@@ -250,7 +254,7 @@ public class Utf8Generator
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
-        _writeString(text, offset, len);
+        _writeStringSegment(text, offset, len);
         // And finally, closing quotes
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
@@ -268,98 +272,142 @@ public class Utf8Generator
     public void writeRaw(String text)
         throws IOException, JsonGenerationException
     {
-        // Nothing to check, can just output as is
+        int start = 0;
         int len = text.length();
-        int room = _outputEnd - _outputTail;
-
-        if (room == 0) {
-            _flushBuffer();
-            room = _outputEnd - _outputTail;
-        }
-        // But would it nicely fit in? If yes, it's easy
-        if (room >= len) {
-            text.getChars(0, len, _outputBuffer, _outputTail);
-            _outputTail += len;
-        } else {
-            writeRawLong(text);
+        while (len > 0) {
+            char[] buf = _charBuffer;
+            final int blen = buf.length;
+            final int len2 = (len < blen) ? len : blen;
+            text.getChars(start, start+len2, buf, 0);
+            writeRaw(buf, 0, len2);
+            start += len2;
+            len -= len2;
         }
     }
 
     @Override
-    public void writeRaw(String text, int start, int len)
+    public void writeRaw(String text, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        // Nothing to check, can just output as is
-        int room = _outputEnd - _outputTail;
-
-        if (room < len) {
-            _flushBuffer();
-            room = _outputEnd - _outputTail;
-        }
-        // But would it nicely fit in? If yes, it's easy
-        if (room >= len) {
-            text.getChars(start, start+len, _outputBuffer, _outputTail);
-            _outputTail += len;
-        } else {                
-            writeRawLong(text.substring(start, start+len));
+        while (len > 0) {
+            char[] buf = _charBuffer;
+            final int blen = buf.length;
+            final int len2 = (len < blen) ? len : blen;
+            text.getChars(offset, offset+len2, buf, 0);
+            writeRaw(buf, 0, len2);
+            offset += len2;
+            len -= len2;
         }
     }
 
     @Override
-    public void writeRaw(char[] text, int offset, int len)
+    public final void writeRaw(char[] cbuf, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        // Only worth buffering if it's a short write?
-        if (len < SHORT_WRITE) {
-            int room = _outputEnd - _outputTail;
-            if (len > room) {
+        // First: if we have 3 x charCount spaces, we know it'll fit just fine
+        {
+            int len3 = len+len+len;
+            if ((_outputTail + len3) > _outputEnd) {
+                // maybe we could flush?
+                if (_outputEnd < len3) { // wouldn't be enough...
+                    _writeSegmentedRaw(cbuf, offset, len);
+                    return;
+                }
+                // yes, flushing brings enough space
                 _flushBuffer();
             }
-            System.arraycopy(text, offset, _outputBuffer, _outputTail, len);
-            _outputTail += len;
-            return;
         }
-        // Otherwise, better just pass through:
-        _flushBuffer();
-        _writer.write(text, offset, len);
+        len += offset; // now marks the end
+
+        // Note: here we know there is enough room, hence no output boundary checks
+        main_loop:
+        while (offset < len) {
+            inner_loop:
+            while (true) {
+                int ch = (int) cbuf[offset];
+                if (ch > 0x7F) {
+                    break inner_loop;
+                }
+                _outputBuffer[_outputTail++] = (byte) ch;
+                if (++offset >= len) {
+                    break main_loop;
+                }
+            }
+            char ch = cbuf[offset++];
+            if (ch < 0x800) { // 2-byte?
+                _outputBuffer[_outputTail++] = (byte) (0xc0 | (ch >> 6));
+                _outputBuffer[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
+            } else {
+                if (_outputMultiByteChar(ch)) { // surrogate, takes more than 3 bytes
+                    int rem = len - offset;
+                    int rem3 = rem+rem+rem;
+                    if ((_outputTail + rem3) >= _outputEnd) {
+                        _flushBuffer();
+                    }
+                }
+            }
+            _outputBuffer[_outputTail++] = (byte)ch;
+        }
     }
 
     @Override
-    public void writeRaw(char c)
+    public void writeRaw(char ch)
         throws IOException, JsonGenerationException
     {
-        if (_outputTail >= _outputEnd) {
+        if ((_outputTail + 3) >= _outputEnd) {
             _flushBuffer();
         }
-        _outputBuffer[_outputTail++] = c;
+        final byte[] bbuf = _outputBuffer;
+        if (ch <= 0x7F) {
+            bbuf[_outputTail++] = (byte) ch;
+        } else  if (ch < 0x800) { // 2-byte?
+            bbuf[_outputTail++] = (byte) (0xc0 | (ch >> 6));
+            bbuf[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
+        } else {
+            _outputMultiByteChar(ch);
+        }
     }
 
-    private void writeRawLong(String text)
+    /**
+     * Helper method called when it is possible that output of raw section
+     * to output may cross buffer boundary
+     */
+    private final void _writeSegmentedRaw(char[] cbuf, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        int room = _outputEnd - _outputTail;
-        // If not, need to do it by looping
-        text.getChars(0, room, _outputBuffer, _outputTail);
-        _outputTail += room;
-        _flushBuffer();
-        int offset = room;
-        int len = text.length() - room;
-
-        while (len > _outputEnd) {
-            int amount = _outputEnd;
-            text.getChars(offset, offset+amount, _outputBuffer, 0);
-            _outputHead = 0;
-            _outputTail = amount;
-            _flushBuffer();
-            offset += amount;
-            len -= amount;
+        final int end = _outputEnd;
+        final byte[] bbuf = _outputBuffer;
+        
+        main_loop:
+        while (offset < len) {
+            inner_loop:
+            while (true) {
+                int ch = (int) cbuf[offset];
+                if (ch >= 0x80) {
+                    break inner_loop;
+                }
+                // !!! TODO: fast(er) writes (roll input, output checks in one)
+                if (_outputTail >= end) {
+                    _flushBuffer();
+                }
+                bbuf[_outputTail++] = (byte) ch;
+                if (++offset >= len) {
+                    break main_loop;
+                }
+            }
+            if ((_outputTail + 3) >= _outputEnd) {
+                _flushBuffer();
+            }
+            char ch = cbuf[offset++];
+            if (ch < 0x800) { // 2-byte?
+                bbuf[_outputTail++] = (byte) (0xc0 | (ch >> 6));
+                bbuf[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
+            } else {
+                _outputMultiByteChar(ch);
+            }
         }
-        // And last piece (at most length of buffer)
-        text.getChars(offset, offset+len, _outputBuffer, 0);
-        _outputHead = 0;
-        _outputTail = len;
     }
-
+    
     /*
     /**********************************************************
     /* Output method implementations, base64-encoded binary
@@ -383,7 +431,7 @@ public class Utf8Generator
         }
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
-
+    
     /*
     /**********************************************************
     /* Output method implementations, primitive
@@ -535,21 +583,10 @@ public class Utf8Generator
         if ((_outputTail + 5) >= _outputEnd) {
             _flushBuffer();
         }
-        int ptr = _outputTail;
-        byte[] buf = _outputBuffer;
-        if (state) {
-            buf[ptr] = 't';
-            buf[++ptr] = 'r';
-            buf[++ptr] = 'u';
-            buf[++ptr] = 'e';
-        } else {
-            buf[ptr] = 'f';
-            buf[++ptr] = 'a';
-            buf[++ptr] = 'l';
-            buf[++ptr] = 's';
-            buf[++ptr] = 'e';
-        }
-        _outputTail = ptr+1;
+        byte[] keyword = state ? TRUE_BYTES : FALSE_BYTES;
+        int len = keyword.length;
+        System.arraycopy(keyword, 0, _outputBuffer, _outputTail, len);
+        _outputTail += len;
     }
 
     @Override
@@ -692,7 +729,12 @@ public class Utf8Generator
         byte[] buf = _outputBuffer;
         if (buf != null) {
             _outputBuffer = null;
-            _ioContext.releaseConcatBuffer(buf);
+            _ioContext.releaseWriteEncodingBuffer(buf);
+        }
+        char[] cbuf = _charBuffer;
+        if (cbuf != null) {
+            _charBuffer = null;
+            _ioContext.releaseConcatBuffer(cbuf);
         }
     }
 
@@ -702,213 +744,149 @@ public class Utf8Generator
     /**********************************************************
      */
 
-    private void _writeString(String text)
+    // note: called for field names and content
+    private final void _writeString(String text)
         throws IOException, JsonGenerationException
     {
-        /* One check first: if String won't fit in the buffer, let's
-         * segment writes. No point in extending buffer to huge sizes
-         * (like if someone wants to include multi-megabyte base64
-         * encoded stuff or such)
-         */
-        int len = text.length();
-        if (len > _outputEnd) { // Let's reserve space for entity at begin/end
-            _writeLongString(text);
+        final int len = text.length();
+        // simple cases: fits in input buffer as is
+        final char[] buf = _charBuffer;
+        if (len > buf.length) { // if not, need segemented
+            _writeSegmentedString(text);
             return;
         }
-
-        // Ok: we know String will fit in buffer ok
-        // But do we need to flush first?
-        if ((_outputTail + len) > _outputEnd) {
-            _flushBuffer();
-        }
-        text.getChars(0, len, _outputBuffer, _outputTail);
-
-        // And then we'll need to verify need for escaping etc:
-        int end = _outputTail + len;
-        final int[] escCodes = CharTypes.getOutputEscapes();
-        final int escLen = escCodes.length;
-
-        output_loop:
-        while (_outputTail < end) {
-            // Fast loop for chars not needing escaping
-            escape_loop:
-            while (true) {
-                char c = _outputBuffer[_outputTail];
-                if (c < escLen && escCodes[c] != 0) {
-                    break escape_loop;
-                }
-                if (++_outputTail >= end) {
-                    break output_loop;
-                }
-            }
-
-            // Ok, bumped into something that needs escaping.
-            /* First things first: need to flush the buffer.
-             * Inlined, as we don't want to lose tail pointer
-             */
-            int flushLen = (_outputTail - _outputHead);
-            if (flushLen > 0) {
-                _outputStream.write(_outputBuffer, _outputHead, flushLen);
-            }
-            /* In any case, tail will be the new start, so hopefully
-             * we have room now.
-             */
-            {
-                int escCode = escCodes[_outputBuffer[_outputTail]];
-                ++_outputTail;
-                int needLen = (escCode < 0) ? 6 : 2;
-                // If not, need to call separate method (note: buffer is empty now)
-                if (needLen > _outputTail) {
-                    _outputHead = _outputTail;
-                    _writeSingleEscape(escCode);
-                } else {
-                    // But if it fits, can just prepend to buffer
-                    int ptr = _outputTail - needLen;
-                    _outputHead = ptr;
-                    _appendSingleEscape(escCode, _outputBuffer, ptr);
-                }
-            }
-        }
+        text.getChars(0, len, buf, 0);
+        _writeStringSegment(buf, 0, len);
     }
-
-    /**
-     * Method called to write "long strings", strings whose length exceeds
-     * output buffer length.
-     */
-    private void _writeLongString(String text)
+    
+    private final void _writeSegmentedString(String text)
         throws IOException, JsonGenerationException
     {
-        // First things first: let's flush the buffer to get some more room
-        _flushBuffer();
-
-        // Then we can write 
-        final int textLen = text.length();
         int offset = 0;
+        int len = text.length();
+        final char[] buf = _charBuffer;
         do {
-            int max = _outputEnd;
-            int segmentLen = ((offset + max) > textLen)
-                ? (textLen - offset) : max;
-            text.getChars(offset, offset+segmentLen, _outputBuffer, 0);
-            _writeSegment(segmentLen);
-            offset += segmentLen;
-        } while (offset < textLen);
+            final int blen = buf.length;
+            final int len2 = (len < blen) ? len : blen;
+            text.getChars(offset, offset+len2, buf, 0);
+            _writeStringSegment(buf, 0, len2);
+            offset += len2;
+            len -= len2;
+        } while (len > 0);
     }
-    /**
-     * Method called to output textual context which has been copied
-     * to the output buffer prior to call. If any escaping is needed,
-     * it will also be handled by the method.
-     *<p>
-     * Note: when called, textual content to write is within output
-     * buffer, right after buffered content (if any). That's why only
-     * length of that text is passed, as buffer and offset are implied.
-     */
-    private final void _writeSegment(int end)
-        throws IOException, JsonGenerationException
-    {
-        final int[] escCodes = CharTypes.getOutputEscapes();
-        final int escLen = escCodes.length;
-
-        int ptr = 0;
-
-        output_loop:
-        while (ptr < end) {
-            // Fast loop for chars not needing escaping
-            int start = ptr;
-            while (true) {
-                char c = _outputBuffer[ptr];
-                if (c < escLen && escCodes[c] != 0) {
-                    break;
-                }
-                if (++ptr >= end) {
-                    break;
-                }
-            }
-
-            // Ok, bumped into something that needs escaping.
-            /* First things first: need to flush the buffer.
-             * Inlined, as we don't want to lose tail pointer
-             */
-            int flushLen = (ptr - start);
-            if (flushLen > 0) {
-                _writer.write(_outputBuffer, start, flushLen);
-                if (ptr >= end) {
-                    break output_loop;
-                }
-            }
-            /* In any case, tail will be the new start, so hopefully
-             * we have room now.
-             */
-            {
-                int escCode = escCodes[_outputBuffer[ptr]];
-                ++ptr;
-                int needLen = (escCode < 0) ? 6 : 2;
-                // If not, need to call separate method (note: buffer is empty now)
-                if (needLen > _outputTail) {
-                    _writeSingleEscape(escCode);
-                } else {
-                    // But if it fits, can just prepend to buffer
-                    ptr -= needLen;
-                    _appendSingleEscape(escCode, _outputBuffer, ptr);
-                }
-            }
-        }
-    }
-
+    
+    
     /**
      * This method called when the string content is already in
      * a char buffer, and need not be copied for processing.
      */
-    private void _writeString(char[] text, int offset, int len)
+    private void _writeStringSegment(char[] cbuf, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        /* Let's just find longest spans of non-escapable
-         * content, and for each see if it makes sense
-         * to copy them, or write through
-         */
-        len += offset; // -> len marks the end from now on
-        final int[] escCodes = CharTypes.getOutputEscapes();
-        final int escLen = escCodes.length;
-        while (offset < len) {
-            int start = offset;
-
-            while (true) {
-                char c = text[offset];
-                if (c < escLen && escCodes[c] != 0) {
-                    break;
+        // First: if we have 2 x charCount spaces, we know it'll be fine for common case...
+        {
+            int len3 = len+len+len;
+            if ((_outputTail + len3) > _outputEnd) {
+                // maybe we could flush?
+                if (_outputEnd < len3) { // wouldn't be enough...
+                    _writeSegmentedString(cbuf, offset, len);
+                    return;
                 }
-                if (++offset >= len) {
-                    break;
-                }
+                // yes, flushing brings enough space
+                _flushBuffer();
             }
+        }
 
-            // Short span? Better just copy it to buffer first:
-            int newAmount = offset - start;
-            if (newAmount < SHORT_WRITE) {
-                // Note: let's reserve room for escaped char (up to 6 chars)
-                if ((_outputTail + newAmount) > _outputEnd) {
+        // Fast loop for chars not needing escaping
+        len += offset; // becomes end marker, then
+
+        main_loop:
+        while (offset < len) {
+            final int[] escCodes = CharTypes.getOutputEscapes();
+
+            inner_loop:
+            while (true) {
+                int ch = cbuf[offset];
+                if (ch > 0x7F || escCodes[ch] != 0) {
+                    break inner_loop;
+                }
+                _outputBuffer[_outputTail++] = (byte) ch;
+                if (++offset >= len) {
+                    break main_loop;
+                }
+            }                
+            // Ok, so what did we hit?
+            int ch = (int) cbuf[offset++];
+            if (ch <= 0x7F) { // needs quoting
+                int escape = escCodes[ch];
+                if (escape > 0) { // 2-char escape, fine
+                    _outputBuffer[_outputTail++] = BYTE_BACKSLASH;
+                    _outputBuffer[_outputTail++] = (byte) escape;
+                    continue main_loop;
+                }
+                // ctrl-char, 6-byte escape...
+                _writeSingleEscape(escape);
+            } else if (ch <= 0x7FF) { // fine, just needs 2 byte output
+                _outputBuffer[_outputTail++] = (byte) (0xc0 | (ch >> 6));
+                _outputBuffer[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
+                // fine, no need for checks
+                continue main_loop;
+            } else {
+                _outputMultiByteChar(ch);
+            }
+            // 3 or more byte for char, need to re-check bounds
+            int rem = len - offset;
+            int rem3 = rem+rem+rem;
+            if ((_outputTail + rem3) >= _outputEnd) {
+                _flushBuffer();
+            }
+        }
+    }
+
+    private void _writeSegmentedString(char[] cbuf, int offset, int len)
+        throws IOException, JsonGenerationException
+    {
+        // Fast loop for chars not needing escaping
+        len += offset; // becomes end marker, then
+
+        main_loop:
+        while (offset < len) {
+            final int[] escCodes = CharTypes.getOutputEscapes();
+            final int end = _outputEnd - 6; // let's always have room for 6 more bytes, simpler
+
+            inner_loop:
+            while (true) {
+                if (_outputTail >= end) {
                     _flushBuffer();
                 }
-                if (newAmount > 0) {
-                    System.arraycopy(text, start, _outputBuffer, _outputTail, newAmount);
-                    _outputTail += newAmount;
+                int ch = cbuf[offset];
+                if (ch > 0x7F || escCodes[ch] != 0) {
+                    break inner_loop;
                 }
-            } else { // Nope: better just write through
-                _flushBuffer();
-                _writer.write(text, start, newAmount);
+                _outputBuffer[_outputTail++] = (byte) ch;
+                if (++offset >= len) {
+                    break main_loop;
+                }
+            }                
+            // Ok, so what did we hit?
+            int ch = (int) cbuf[offset++];
+            if (ch <= 0x7F) { // needs quoting
+                int escape = escCodes[ch];
+                if (escape > 0) { // 2-char escape, fine
+                    _outputBuffer[_outputTail++] = BYTE_BACKSLASH;
+                    _outputBuffer[_outputTail++] = (byte) escape;
+                    continue main_loop;
+                }
+                // ctrl-char, 6-byte escape...
+                _writeSingleEscape(escape);
+            } else if (ch <= 0x7FF) { // fine, just needs 2 byte output
+                _outputBuffer[_outputTail++] = (byte) (0xc0 | (ch >> 6));
+                _outputBuffer[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
+                // fine, no need for checks
+                continue main_loop;
+            } else {
+                _outputMultiByteChar(ch);
             }
-            // Was this the end?
-            if (offset >= len) { // yup
-                break;
-            }
-            // Nope, need to escape the char.
-            int escCode = escCodes[text[offset]];
-            ++offset;
-            int needLen = (escCode < 0) ? 6 : 2;
-            if ((_outputTail + needLen) > _outputEnd) {
-                _flushBuffer();
-            }
-            _appendSingleEscape(escCode, _outputBuffer, _outputTail);
-            _outputTail += needLen;
         }
     }
 
@@ -953,19 +931,43 @@ public class Utf8Generator
         }
     }
 
+    /**
+     * Method called to output a character that is beyond range of
+     * 1- and 2-byte UTF-8 encodings. Since JSON actually allows escaping
+     * of surrogate characters separately (unlike XML), this is bit
+     * simpler than with xml...
+     *
+     * @returns True if handled character was a surrogate character; this
+     *    may require caller to verify its bounds checks.
+     */
+    final protected boolean _outputMultiByteChar(int ch)
+        throws IOException
+    {
+        byte[] bbuf = _outputBuffer;
+        if (ch >= SURR1_FIRST && ch <= SURR2_LAST) { // yes, outside of BMP; add an escape
+            bbuf[_outputTail++] = BYTE_BACKSLASH;
+            bbuf[_outputTail++] = BYTE_u;
+            
+            bbuf[_outputTail++] = HEX_CHARS[(ch >> 12) & 0xF];
+            bbuf[_outputTail++] = HEX_CHARS[(ch >> 8) & 0xF];
+            bbuf[_outputTail++] = HEX_CHARS[(ch >> 4) & 0xF];
+            bbuf[_outputTail++] = HEX_CHARS[ch & 0xF];
+            return true;
+        } else {
+            bbuf[_outputTail++] = (byte) (0xe0 | (ch >> 12));
+            bbuf[_outputTail++] = (byte) (0x80 | ((ch >> 6) & 0x3f));
+            bbuf[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
+        }
+        return false;
+    }
+
     private final void _writeNull() throws IOException
     {
         if ((_outputTail + 4) >= _outputEnd) {
             _flushBuffer();
         }
-        int ptr = _outputTail;
-        byte[] buf = _outputBuffer;
-        buf[ptr] = BYTE_n;
-        buf[++ptr] = BYTE_u;
-        byte l = BYTE_l;
-        buf[++ptr] = l;
-        buf[++ptr] = l;
-        _outputTail = ptr+1;
+        System.arraycopy(NULL_BYTES, 0, _outputBuffer, _outputTail, 4);
+        _outputTail += 4;
     }
         
     /**
@@ -975,58 +977,33 @@ public class Utf8Generator
     private void _writeSingleEscape(int escCode)
         throws IOException
     {
-        byte[] buf = _entityBuffer;
-        if (buf == null) {
-            buf = new byte[6];
-            buf[0] = BYTE_BACKSLASH;
-            buf[2] = BYTE_0;
-            buf[3] = BYTE_0;
+        if ((_outputTail + 6) >= _outputEnd) {
+            _flushBuffer();
         }
-
+        final byte[] bbuf = _outputBuffer;
+        bbuf[_outputTail++] = BYTE_BACKSLASH;
         if (escCode < 0) { // control char, value -(char + 1)
             int value = -(escCode + 1);
-            buf[1] = BYTE_U;
+            bbuf[_outputTail++] = BYTE_u;
+            bbuf[_outputTail++] = BYTE_0;
+            bbuf[_outputTail++] = BYTE_0;
             // We know it's a control char, so only the last 2 chars are non-0
-            buf[4] = HEX_CHARS[value >> 4];
-            buf[5] = HEX_CHARS[value & 0xF];
-            _outputStream.write(buf, 0, 6);
+            bbuf[_outputTail++] = HEX_CHARS[value >> 4];
+            bbuf[_outputTail++] = HEX_CHARS[value & 0xF];
         } else {
             if (escCode > 127) { // should add better error message?
-                _throwInternal();
+                _reportError("Should not try escaping character 0x"+Integer.toHexString(escCode));
             }
-            buf[1] = (byte) escCode;
-            _outputStream.write(buf, 0, 2);
-        }
-    }
-
-    private void _appendSingleEscape(int escCode, byte[] buf, int ptr)
-    {
-        if (escCode < 0) { // control char, value -(char + 1)
-            int value = -(escCode + 1);
-            buf[ptr] = BYTE_BACKSLASH;
-            buf[++ptr] = BYTE_U;
-            // We know it's a control char, so only the last 2 chars are non-0
-            buf[++ptr] = BYTE_0;
-            buf[++ptr] = BYTE_0;
-            buf[++ptr] = HEX_CHARS[value >> 4];
-            buf[++ptr] = HEX_CHARS[value & 0xF];
-        } else {
-            // these are all still in ascii range
-            if (escCode > 127) { // should add better error message?
-                _throwInternal();
-            }
-            buf[ptr] = '\\';
-            buf[ptr+1] = (byte) escCode;
+            bbuf[_outputTail++] = (byte) escCode;
         }
     }
 
     protected final void _flushBuffer() throws IOException
     {
-        int len = _outputTail - _outputHead;
+        int len = _outputTail;
         if (len > 0) {
-            int offset = _outputHead;
-            _outputTail = _outputHead = 0;
-            _outputStream.write(_outputBuffer, offset, len);
+            _outputTail = 0;
+            _outputStream.write(_outputBuffer, 0, len);
         }
     }
 }

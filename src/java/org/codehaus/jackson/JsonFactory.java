@@ -21,6 +21,7 @@ import java.net.URL;
 import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.impl.ByteSourceBootstrapper;
 import org.codehaus.jackson.impl.ReaderBasedParser;
+import org.codehaus.jackson.impl.Utf8Generator;
 import org.codehaus.jackson.impl.WriterBasedGenerator;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
@@ -434,6 +435,9 @@ public class JsonFactory
 	// false -> we won't manage the stream unless explicitly directed to
         IOContext ctxt = _createContext(out, false);
         ctxt.setEncoding(enc);
+        if (enc == JsonEncoding.UTF8) {
+            return _createUTF8JsonGenerator(out, ctxt);
+        }
 	return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
     }
 
@@ -478,6 +482,9 @@ public class JsonFactory
 	// true -> yes, we have to manage the stream since we created it
         IOContext ctxt = _createContext(out, true);
         ctxt.setEncoding(enc);
+        if (enc == JsonEncoding.UTF8) {
+            return _createUTF8JsonGenerator(out, ctxt);
+        }
 	return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
     }
 
@@ -539,6 +546,19 @@ public class JsonFactory
         return new WriterBasedGenerator(ctxt, _generatorFeatures, _objectCodec, out);
     }
 
+    /**
+     * Overridable factory method that actually instantiates desired
+     * generator that is specifically to output content using specified
+     * output stream and using UTF-8 encoding.
+     *
+     * @return
+     */
+    protected JsonGenerator _createUTF8JsonGenerator(OutputStream out, IOContext ctxt)
+        throws IOException
+    {
+        return new Utf8Generator(ctxt, _generatorFeatures, _objectCodec, out);
+    }
+    
     /**
      * Method used by factory to create buffer recycler instances
      * for parsers and generators.
