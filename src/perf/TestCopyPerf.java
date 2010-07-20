@@ -6,7 +6,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 public final class TestCopyPerf
 {
-    private final static int REPS = 7500;
+    private final int REPS;
 
     final JsonFactory _jsonFactory;
 
@@ -20,6 +20,10 @@ public final class TestCopyPerf
         ObjectMapper mapper = new ObjectMapper();
         JsonParser jp = _jsonFactory.createJsonParser(fis);
         _tokens = mapper.readValue(jp, TokenBuffer.class);
+
+        // Let's try to guestimate suitable size... to get about 20 megs copied
+        REPS = (int) ((double) (20 * 1000 * 1000) / (double) f.length());
+        
         jp.close();
     }
 
@@ -27,28 +31,37 @@ public final class TestCopyPerf
         throws Exception
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream(2000);
-        testCopy(1, bos);
-        System.out.println("Output length: "+bos.size());
+        testCopy(1, bos, 0);
+        System.out.println("Output length: "+bos.size()+"; will do "+REPS+" writes per round");
         System.out.println();
+
+        int round = 0;
 
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
 
             long curr = System.currentTimeMillis();
-            int result = testCopy(REPS, bos);
+            String result = testCopy(REPS, bos, round);
             curr = System.currentTimeMillis() - curr;
-            System.out.println("Took "+curr+" msecs ("
-                               +(result & 0xFF)+").");
+            System.out.println("Took "+curr+" msecs (round "+round+", "+result+").");
+            ++round;
         }
     }
 
-    private int testCopy(int reps, ByteArrayOutputStream bos)
+    private String testCopy(int reps, ByteArrayOutputStream bos, int round)
         throws IOException
     {
         JsonGenerator jg = null;
+        
+        boolean realUTF8 = (round & 1) == 0;
+        
         while (--reps >= 0) {
             bos.reset();
-            jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF8);
+            if (realUTF8) {
+                jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF8);                
+            } else {
+                jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF16_BE);
+            }
             JsonParser jp = _tokens.asParser();
             while (jp.nextToken() != null) {
                 jg.copyCurrentEvent(jp);
@@ -56,7 +69,7 @@ public final class TestCopyPerf
             jp.close();
             jg.close();
         }
-        return jg.hashCode();
+        return jg.getClass().getName();
     }
 
     public static void main(String[] args)
