@@ -41,7 +41,8 @@ public class TestGenericTypes
         List<LeafBean> leaves = bean.getLeaves();
         assertNotNull(leaves);
         assertEquals(1, leaves.size());
-        assertSame(LeafBean.class, leaves.get(0).getClass());
+        Object ob = leaves.get(0);        
+        assertSame(LeafBean.class, ob.getClass());
         assertEquals("foo", leaves.get(0).value);
     }
     

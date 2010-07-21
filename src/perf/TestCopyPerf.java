@@ -60,6 +60,7 @@ public final class TestCopyPerf
             if (realUTF8) {
                 jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF8);                
             } else {
+//                jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF8);                
                 jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF16_BE);
             }
             JsonParser jp = _tokens.asParser();

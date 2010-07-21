@@ -201,13 +201,22 @@ public class TestStringGeneration
 
         offset = 0;
         while (jp.nextToken() == JsonToken.VALUE_STRING) {
-        	// Let's verify, piece by piece
-        	String act = jp.getText();
-        	String exp = text.substring(offset, offset+act.length());
-        	if (!act.equals(exp)) {
-        		fail("String segment ["+offset+" - "+(offset+act.length())+"[ different");
-        	}
-        	offset += act.length();
+            // Let's verify, piece by piece
+            String act = jp.getText();
+            String exp = text.substring(offset, offset+act.length());
+            if (act.length() != exp.length()) {
+                fail("String segment ["+offset+" - "+(offset+act.length())+"[ differs; exp length "+exp+", actual "+act);                
+            }
+            if (!act.equals(exp)) {
+                int i = 0;
+                while (act.charAt(i) == exp.charAt(i)) {
+                    ++i;
+                }
+                fail("String segment ["+offset+" - "+(offset+act.length())+"[ different at offset #"+i
+                        +"; exp char 0x"+Integer.toHexString(exp.charAt(i))
+                        +", actual 0x"+Integer.toHexString(act.charAt(i)));
+            }
+            offset += act.length();
         }
         assertEquals(JsonToken.END_ARRAY, jp.getCurrentToken());
         jp.close();

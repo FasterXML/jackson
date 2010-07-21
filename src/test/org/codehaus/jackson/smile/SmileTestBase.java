@@ -7,7 +7,7 @@ import org.junit.Assert;
 
 import org.codehaus.jackson.*;
 
-class SmileTestBase
+abstract class SmileTestBase
 	extends main.BaseTest
 {
     protected SmileParser _parser(byte[] input) throws IOException {

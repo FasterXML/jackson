@@ -954,7 +954,12 @@ public class TokenBuffer
         }
 
         @Override
-        public int getIntValue() throws IOException, JsonParseException {
+        public int getIntValue() throws IOException, JsonParseException
+        {
+            // optimize common case:
+            if (_currToken == JsonToken.VALUE_NUMBER_INT) {
+                return ((Number) _currentObject()).intValue();
+            }
             return getNumberValue().intValue();
         }
 
@@ -1113,7 +1118,7 @@ public class TokenBuffer
             return _segment.get(_segmentPtr);
         }
 
-        protected void _checkIsNumber() throws JsonParseException
+        protected final void _checkIsNumber() throws JsonParseException
         {
             if (_currToken == null || !_currToken.isNumeric()) {
                 throw _constructError("Current token ("+_currToken+") not numeric, can not use numeric value accessors");

@@ -183,6 +183,7 @@ public class Utf8Generator
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
         // The beef:
         _writeString(name);
+
         // and closing quotes; need room for one more char:
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
@@ -338,15 +339,8 @@ public class Utf8Generator
                 _outputBuffer[_outputTail++] = (byte) (0xc0 | (ch >> 6));
                 _outputBuffer[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
             } else {
-                if (_outputMultiByteChar(ch)) { // surrogate, takes more than 3 bytes
-                    int rem = len - offset;
-                    int rem3 = rem+rem+rem;
-                    if ((_outputTail + rem3) >= _outputEnd) {
-                        _flushBuffer();
-                    }
-                }
+                _outputRawMultiByteChar(ch);
             }
-            _outputBuffer[_outputTail++] = (byte)ch;
         }
     }
 
@@ -364,7 +358,7 @@ public class Utf8Generator
             bbuf[_outputTail++] = (byte) (0xc0 | (ch >> 6));
             bbuf[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
         } else {
-            _outputMultiByteChar(ch);
+            _outputRawMultiByteChar(ch);
         }
     }
 
@@ -403,7 +397,7 @@ public class Utf8Generator
                 bbuf[_outputTail++] = (byte) (0xc0 | (ch >> 6));
                 bbuf[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
             } else {
-                _outputMultiByteChar(ch);
+                _outputRawMultiByteChar(ch);
             }
         }
     }
@@ -744,7 +738,6 @@ public class Utf8Generator
     /**********************************************************
      */
 
-    // note: called for field names and content
     private final void _writeString(String text)
         throws IOException, JsonGenerationException
     {
@@ -799,10 +792,12 @@ public class Utf8Generator
 
         // Fast loop for chars not needing escaping
         len += offset; // becomes end marker, then
+        int ptr = _outputTail;
 
         main_loop:
         while (offset < len) {
             final int[] escCodes = CharTypes.getOutputEscapes();
+            final byte[] outputBuffer = _outputBuffer;
 
             inner_loop:
             while (true) {
@@ -810,7 +805,7 @@ public class Utf8Generator
                 if (ch > 0x7F || escCodes[ch] != 0) {
                     break inner_loop;
                 }
-                _outputBuffer[_outputTail++] = (byte) ch;
+                outputBuffer[ptr++] = (byte) ch;
                 if (++offset >= len) {
                     break main_loop;
                 }
@@ -820,27 +815,29 @@ public class Utf8Generator
             if (ch <= 0x7F) { // needs quoting
                 int escape = escCodes[ch];
                 if (escape > 0) { // 2-char escape, fine
-                    _outputBuffer[_outputTail++] = BYTE_BACKSLASH;
-                    _outputBuffer[_outputTail++] = (byte) escape;
+                    outputBuffer[ptr++] = BYTE_BACKSLASH;
+                    outputBuffer[ptr++] = (byte) escape;
                     continue main_loop;
                 }
                 // ctrl-char, 6-byte escape...
-                _writeSingleEscape(escape);
+                ptr = _writeEscapedControlChar(escape, ptr);
             } else if (ch <= 0x7FF) { // fine, just needs 2 byte output
-                _outputBuffer[_outputTail++] = (byte) (0xc0 | (ch >> 6));
-                _outputBuffer[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
+                outputBuffer[ptr++] = (byte) (0xc0 | (ch >> 6));
+                outputBuffer[ptr++] = (byte) (0x80 | (ch & 0x3f));
                 // fine, no need for checks
                 continue main_loop;
             } else {
-                _outputMultiByteChar(ch);
+                ptr = _outputMultiByteChar(ch, ptr);
             }
             // 3 or more byte for char, need to re-check bounds
             int rem = len - offset;
             int rem3 = rem+rem+rem;
-            if ((_outputTail + rem3) >= _outputEnd) {
+            if ((ptr + rem3) >= _outputEnd) {
                 _flushBuffer();
+                ptr = _outputTail;
             }
         }
+        _outputTail = ptr;
     }
 
     private void _writeSegmentedString(char[] cbuf, int offset, int len)
@@ -848,46 +845,49 @@ public class Utf8Generator
     {
         // Fast loop for chars not needing escaping
         len += offset; // becomes end marker, then
+        int ptr = _outputTail;
 
         main_loop:
         while (offset < len) {
             final int[] escCodes = CharTypes.getOutputEscapes();
             final int end = _outputEnd - 6; // let's always have room for 6 more bytes, simpler
+            final byte[] outputBuffer = _outputBuffer;
 
             inner_loop:
             while (true) {
-                if (_outputTail >= end) {
+                if (ptr >= end) {
+                    _outputTail = ptr;
                     _flushBuffer();
+                    ptr = _outputTail;
                 }
                 int ch = cbuf[offset];
                 if (ch > 0x7F || escCodes[ch] != 0) {
                     break inner_loop;
                 }
-                _outputBuffer[_outputTail++] = (byte) ch;
+                outputBuffer[ptr++] = (byte) ch;
                 if (++offset >= len) {
                     break main_loop;
                 }
             }                
-            // Ok, so what did we hit?
+            // (note: we have flushed earlier, if necessary)
             int ch = (int) cbuf[offset++];
             if (ch <= 0x7F) { // needs quoting
                 int escape = escCodes[ch];
                 if (escape > 0) { // 2-char escape, fine
-                    _outputBuffer[_outputTail++] = BYTE_BACKSLASH;
-                    _outputBuffer[_outputTail++] = (byte) escape;
+                    outputBuffer[ptr++] = BYTE_BACKSLASH;
+                    outputBuffer[ptr++] = (byte) escape;
                     continue main_loop;
                 }
                 // ctrl-char, 6-byte escape...
-                _writeSingleEscape(escape);
+                ptr = _writeEscapedControlChar(escape, ptr);
             } else if (ch <= 0x7FF) { // fine, just needs 2 byte output
-                _outputBuffer[_outputTail++] = (byte) (0xc0 | (ch >> 6));
-                _outputBuffer[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
-                // fine, no need for checks
-                continue main_loop;
+                outputBuffer[ptr++] = (byte) (0xc0 | (ch >> 6));
+                outputBuffer[ptr++] = (byte) (0x80 | (ch & 0x3f));
             } else {
-                _outputMultiByteChar(ch);
+                ptr = _outputMultiByteChar(ch, ptr);
             }
         }
+        _outputTail = ptr;
     }
 
     protected void _writeBinary(Base64Variant b64variant, byte[] input, int inputPtr, final int inputEnd)
@@ -933,34 +933,52 @@ public class Utf8Generator
 
     /**
      * Method called to output a character that is beyond range of
-     * 1- and 2-byte UTF-8 encodings. Since JSON actually allows escaping
-     * of surrogate characters separately (unlike XML), this is bit
-     * simpler than with xml...
+     * 1- and 2-byte UTF-8 encodings, when outputting "raw" 
+     * text (meaning it is not to be escaped or quoted)
      *
      * @returns True if handled character was a surrogate character; this
      *    may require caller to verify its bounds checks.
      */
-    final protected boolean _outputMultiByteChar(int ch)
+    private final void _outputRawMultiByteChar(int ch)
+        throws IOException
+    {
+        byte[] bbuf = _outputBuffer;
+        // Can't really escape, not much we can do about escaping it... could unify, at most
+        //if (ch >= SURR1_FIRST && ch <= SURR2_LAST) { // yes, outside of BMP; add an escape
+        bbuf[_outputTail++] = (byte) (0xe0 | (ch >> 12));
+        bbuf[_outputTail++] = (byte) (0x80 | ((ch >> 6) & 0x3f));
+        bbuf[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
+    }
+
+    /**
+     * 
+     * @param ch
+     * @param outputPtr Position within output buffer to append multi-byte in
+     * 
+     * @return New output position after appending
+     * 
+     * @throws IOException
+     */
+    private final int _outputMultiByteChar(int ch, int outputPtr)
         throws IOException
     {
         byte[] bbuf = _outputBuffer;
         if (ch >= SURR1_FIRST && ch <= SURR2_LAST) { // yes, outside of BMP; add an escape
-            bbuf[_outputTail++] = BYTE_BACKSLASH;
-            bbuf[_outputTail++] = BYTE_u;
+            bbuf[outputPtr++] = BYTE_BACKSLASH;
+            bbuf[outputPtr++] = BYTE_u;
             
-            bbuf[_outputTail++] = HEX_CHARS[(ch >> 12) & 0xF];
-            bbuf[_outputTail++] = HEX_CHARS[(ch >> 8) & 0xF];
-            bbuf[_outputTail++] = HEX_CHARS[(ch >> 4) & 0xF];
-            bbuf[_outputTail++] = HEX_CHARS[ch & 0xF];
-            return true;
+            bbuf[outputPtr++] = HEX_CHARS[(ch >> 12) & 0xF];
+            bbuf[outputPtr++] = HEX_CHARS[(ch >> 8) & 0xF];
+            bbuf[outputPtr++] = HEX_CHARS[(ch >> 4) & 0xF];
+            bbuf[outputPtr++] = HEX_CHARS[ch & 0xF];
         } else {
-            bbuf[_outputTail++] = (byte) (0xe0 | (ch >> 12));
-            bbuf[_outputTail++] = (byte) (0x80 | ((ch >> 6) & 0x3f));
-            bbuf[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
+            bbuf[outputPtr++] = (byte) (0xe0 | (ch >> 12));
+            bbuf[outputPtr++] = (byte) (0x80 | ((ch >> 6) & 0x3f));
+            bbuf[outputPtr++] = (byte) (0x80 | (ch & 0x3f));
         }
-        return false;
+        return outputPtr;
     }
-
+    
     private final void _writeNull() throws IOException
     {
         if ((_outputTail + 4) >= _outputEnd) {
@@ -974,28 +992,24 @@ public class Utf8Generator
      * @param escCode Character code for escape sequence (\C); or -1
      *   to indicate a generic (\\uXXXX) sequence.
      */
-    private void _writeSingleEscape(int escCode)
+    private int _writeEscapedControlChar(int escCode, int outputPtr)
         throws IOException
     {
-        if ((_outputTail + 6) >= _outputEnd) {
+        if ((outputPtr + 6) >= _outputEnd) {
+            _outputTail = outputPtr;
             _flushBuffer();
+            outputPtr = _outputTail;
         }
         final byte[] bbuf = _outputBuffer;
-        bbuf[_outputTail++] = BYTE_BACKSLASH;
-        if (escCode < 0) { // control char, value -(char + 1)
-            int value = -(escCode + 1);
-            bbuf[_outputTail++] = BYTE_u;
-            bbuf[_outputTail++] = BYTE_0;
-            bbuf[_outputTail++] = BYTE_0;
-            // We know it's a control char, so only the last 2 chars are non-0
-            bbuf[_outputTail++] = HEX_CHARS[value >> 4];
-            bbuf[_outputTail++] = HEX_CHARS[value & 0xF];
-        } else {
-            if (escCode > 127) { // should add better error message?
-                _reportError("Should not try escaping character 0x"+Integer.toHexString(escCode));
-            }
-            bbuf[_outputTail++] = (byte) escCode;
-        }
+        bbuf[outputPtr++] = BYTE_BACKSLASH;
+        int value = -(escCode + 1);
+        bbuf[outputPtr++] = BYTE_u;
+        bbuf[outputPtr++] = BYTE_0;
+        bbuf[outputPtr++] = BYTE_0;
+        // We know it's a control char, so only the last 2 chars are non-0
+        bbuf[outputPtr++] = HEX_CHARS[value >> 4];
+        bbuf[outputPtr++] = HEX_CHARS[value & 0xF];
+        return outputPtr;
     }
 
     protected final void _flushBuffer() throws IOException

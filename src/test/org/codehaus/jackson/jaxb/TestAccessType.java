@@ -46,7 +46,12 @@ public class TestAccessType
          originalModel.setName("Foobar");
          String json = mapper.writeValueAsString(originalModel);
 //         System.out.println(json); // Outputs {"name":"Name"}
-         Model newModel = mapper.readValue(json, Model.class);
+         Model newModel = null;
+         try {
+             newModel = mapper.readValue(json, Model.class);
+         } catch (Exception ie) {
+             fail("Failed to deserialize: "+ie.getMessage());
+         }
          assertEquals("Foobar", newModel.name);
      }
 

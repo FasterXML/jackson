@@ -438,6 +438,13 @@ public class JsonFactory
         if (enc == JsonEncoding.UTF8) {
             return _createUTF8JsonGenerator(out, ctxt);
         }
+        // !!! TEST
+        /*
+        if (true) {
+            ctxt.setEncoding(JsonEncoding.UTF8);
+            return _createJsonGenerator(_createWriter(out, JsonEncoding.UTF8, ctxt), ctxt);
+        }
+        */
 	return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
     }
 
@@ -556,8 +563,6 @@ public class JsonFactory
     protected JsonGenerator _createUTF8JsonGenerator(OutputStream out, IOContext ctxt)
         throws IOException
     {
-        // !!! TEST
-        //if (true) return _createJsonGenerator(_createWriter(out, JsonEncoding.UTF8, ctxt), ctxt);
         return new Utf8Generator(ctxt, _generatorFeatures, _objectCodec, out);
     }
     

@@ -397,12 +397,12 @@ public abstract class JsonParser
     /**
      * Iteration method that will advance stream enough
      * to determine type of the next token that is a value type
-     * (including Json Array and Object start/end markers).
+     * (including JSON Array and Object start/end markers).
      * Or put another way, nextToken() will be called once,
      * and if {@link JsonToken#FIELD_NAME} is returned, another
      * time to get the value for the field.
      * Method is most useful for iterating over value entries
-     * of Json objects; field name will still be available
+     * of JSON objects; field name will still be available
      * by calling {@link #getCurrentName} when parser points to
      * the value.
      *
@@ -653,7 +653,7 @@ public abstract class JsonParser
     /**
      * Generic number value accessor method that will work for
      * all kinds of numeric values. It will return the optimal
-     * (simplest/smallest possibl) wrapper object that can
+     * (simplest/smallest possible) wrapper object that can
      * express the numeric value just parsed.
      */
     public abstract Number getNumberValue()
