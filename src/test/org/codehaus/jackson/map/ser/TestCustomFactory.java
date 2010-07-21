@@ -20,6 +20,26 @@ public class TestCustomFactory
         }
     }
 
+    interface BeanInterface {
+        public int foo();
+    }
+
+    static class BeanImpl implements BeanInterface {
+        public int foo() { return 13; }
+    }
+
+    static class BeanSerializer
+        extends JsonSerializer<BeanInterface>
+    {
+        @Override
+        public void serialize(BeanInterface value,
+                JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonProcessingException
+        {
+            jgen.writeBoolean(true);
+        }
+    }
+    
     /**
      * Simple test to verify specific mappings working
      */
@@ -52,5 +72,19 @@ public class TestCustomFactory
         String result = serializeAsString(mapper, new Timestamp(0L));
 
         assertEquals("\"XXX\"", result);
+    }
+
+    // Unit test for [JACKSON-327]
+    public void testRegisterForInterface() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        CustomSerializerFactory sf = new CustomSerializerFactory();
+        sf.addGenericMapping(BeanInterface.class, new BeanSerializer());
+        mapper.setSerializerFactory(sf);
+
+        ObjectWriter w = mapper.typedWriter(BeanInterface.class);
+        String result = w.writeValueAsString(new BeanImpl());
+
+        assertEquals("true", result);
     }
 }
