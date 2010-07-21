@@ -18,6 +18,9 @@ Description:
   * [JACKSON-324] JsonParserBase: call releaseBuffers() in finally
     block (within close())
     (suggested by Steve C)
+  * [JACKSON-327] CustomSerializerFactory had a bug in handling of
+    interface registrations
+    (reported by Yuanchen Z)
 
 ------------------------------------------------------------------------
 == History: ==

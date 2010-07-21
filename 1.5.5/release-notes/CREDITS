@@ -331,3 +331,8 @@ Steve Crane:
   * Suggested [JACKSON-324], calling releaseBuffers() within finally block
     (JsonParserBase.close())
    [1.5.5]
+
+Yuanchen Zhu:
+  * Reported [JACKSON-327], submitted patch: CustomSerializerFactory incorrectly
+    looks up serializer for interfaces
+   [1.5.5]
