@@ -30,8 +30,10 @@ public class Utf8Generator
     private final static byte BYTE_COLON = (byte) ':';
     private final static byte BYTE_QUOTE = (byte) '"';
 
-    private final static int SURR1_FIRST = 0xD800;
-    private final static int SURR2_LAST = 0xDFFF;
+    protected final static int SURR1_FIRST = 0xD800;
+    protected final static int SURR1_LAST = 0xDBFF;
+    protected final static int SURR2_FIRST = 0xDC00;
+    protected final static int SURR2_LAST = 0xDFFF;
     
     final static byte[] HEX_CHARS = new byte[16];
     static {
@@ -339,7 +341,7 @@ public class Utf8Generator
                 _outputBuffer[_outputTail++] = (byte) (0xc0 | (ch >> 6));
                 _outputBuffer[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
             } else {
-                _outputRawMultiByteChar(ch);
+                _outputRawMultiByteChar(ch, cbuf, offset, len);
             }
         }
     }
@@ -358,7 +360,7 @@ public class Utf8Generator
             bbuf[_outputTail++] = (byte) (0xc0 | (ch >> 6));
             bbuf[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
         } else {
-            _outputRawMultiByteChar(ch);
+            _outputRawMultiByteChar(ch, null, 0, 0);
         }
     }
 
@@ -397,7 +399,7 @@ public class Utf8Generator
                 bbuf[_outputTail++] = (byte) (0xc0 | (ch >> 6));
                 bbuf[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
             } else {
-                _outputRawMultiByteChar(ch);
+                _outputRawMultiByteChar(ch, cbuf, offset, len);
             }
         }
     }
@@ -935,21 +937,42 @@ public class Utf8Generator
      * Method called to output a character that is beyond range of
      * 1- and 2-byte UTF-8 encodings, when outputting "raw" 
      * text (meaning it is not to be escaped or quoted)
-     *
-     * @returns True if handled character was a surrogate character; this
-     *    may require caller to verify its bounds checks.
      */
-    private final void _outputRawMultiByteChar(int ch)
+    private final int _outputRawMultiByteChar(int ch, char[] cbuf, int inputOffset, int inputLen)
         throws IOException
     {
-        byte[] bbuf = _outputBuffer;
-        // Can't really escape, not much we can do about escaping it... could unify, at most
-        //if (ch >= SURR1_FIRST && ch <= SURR2_LAST) { // yes, outside of BMP; add an escape
+        // Let's handle surrogates gracefully (as 4 byte output):
+        if (ch >= SURR1_FIRST) {
+            if (ch <= SURR2_LAST) { // yes, outside of BMP
+                // Do we have second part?
+                if (inputOffset >= inputLen) { // nope... have to note down
+                    _reportError("Split surrogate on writeRaw() input (last character)");
+                }
+                _outputSurrogates(ch, cbuf[inputOffset]);
+                return (inputOffset+1);
+            }
+        }
+        final byte[] bbuf = _outputBuffer;
         bbuf[_outputTail++] = (byte) (0xe0 | (ch >> 12));
         bbuf[_outputTail++] = (byte) (0x80 | ((ch >> 6) & 0x3f));
         bbuf[_outputTail++] = (byte) (0x80 | (ch & 0x3f));
+        return inputOffset;
     }
 
+    protected final void _outputSurrogates(int surr1, int surr2)
+        throws IOException
+    {
+        int c = _decodeSurrogate(surr1, surr2);
+        if ((_outputTail + 4) > _outputEnd) {
+            _flushBuffer();
+        }
+        final byte[] bbuf = _outputBuffer;
+        bbuf[_outputTail++] = (byte) (0xf0 | (c >> 18));
+        bbuf[_outputTail++] = (byte) (0x80 | ((c >> 12) & 0x3f));
+        bbuf[_outputTail++] = (byte) (0x80 | ((c >> 6) & 0x3f));
+        bbuf[_outputTail++] = (byte) (0x80 | (c & 0x3f));
+    }
+    
     /**
      * 
      * @param ch
@@ -977,6 +1000,17 @@ public class Utf8Generator
             bbuf[outputPtr++] = (byte) (0x80 | (ch & 0x3f));
         }
         return outputPtr;
+    }
+
+    protected final int _decodeSurrogate(int surr1, int surr2) throws IOException
+    {
+        // First is known to be valid, but how about the other?
+        if (surr2 < SURR2_FIRST || surr2 > SURR2_LAST) {
+            String msg = "Incomplete surrogate pair: first char 0x"+Integer.toHexString(surr1)+", second 0x"+Integer.toHexString(surr2);
+            _reportError(msg);
+        }
+        int c = 0x10000 + ((surr1 - SURR1_FIRST) << 10) + (surr2 - SURR2_FIRST);
+        return c;
     }
     
     private final void _writeNull() throws IOException
