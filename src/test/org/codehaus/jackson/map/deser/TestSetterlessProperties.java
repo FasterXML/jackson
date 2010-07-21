@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.deser;
 
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -14,9 +15,9 @@ public class TestSetterlessProperties
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////////
-    // Helper beans
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper beans
+    /**********************************************************
      */
 
     static class CollectionBean
@@ -33,10 +34,22 @@ public class TestSetterlessProperties
         public Map<String,Integer> getValues() { return _values; }
     }
 
+    // testing to verify that field has precedence over getter, for lists
+    static class Dual
+    {
+        @JsonProperty("list") protected List<Integer> values = new ArrayList<Integer>();
+
+        public Dual() { }
+        
+        public List<Integer> getList() {
+            throw new IllegalStateException("Should not get called");
+        }
+    }
+    
     /*
-    //////////////////////////////////////////////////
-    // Unit tests
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
      */
 
     public void testSimpleSetterlessCollectionOk()
@@ -100,5 +113,17 @@ public class TestSetterlessProperties
         } catch (JsonMappingException e) {
             verifyException(e, "Unrecognized field");
         }
+    }
+
+    /* Test for [JACKSON-328], precedence of "getter-as-setter" (for Lists) versus
+     * field for same property.
+     */
+    public void testSetterlessPrecedence() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.configure(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS, true);
+        Dual value = m.readValue("{\"list\":[1,2,3]}, valueType)", Dual.class);
+        assertNotNull(value);
+        assertEquals(3, value.values.size());
     }
 }
