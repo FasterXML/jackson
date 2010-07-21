@@ -254,6 +254,12 @@ public class CustomSerializerFactory
 
         // And if still no match, how about interfaces?
         if (_interfaceMappings != null) {
+            // as per [JACKSON-327], better check actual interface first too...
+            key.reset(type);
+            ser = _interfaceMappings.get(key);
+            if (ser != null) {
+                return ser;
+            }
             for (Class<?> curr = type; (curr != null); curr = curr.getSuperclass()) {
                 for (Class<?> iface : curr.getInterfaces()) {
                     key.reset(iface);
