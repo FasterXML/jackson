@@ -591,18 +591,24 @@ public class StdSerializers
 
         /**
          * Implementing typed output for contents of a TokenBuffer is very tricky,
-         * since we do not know for sure what its contents might look like.
+         * since we do not know for sure what its contents might look like (or, rather,
+         * we do know when serializing, but not necessarily when deserializing!)
          * One possibility would be to check the current token, and use that to
-         * determine if we would output Json Array, Object or scalar value.
-         * That might or might now work,
-         * so for now (as of 1.5), let's not output any type information.
+         * determine if we would output JSON Array, Object or scalar value.
+         * Jackson 1.5 did NOT include any type information; but this seems wrong,
+         * and so 1.6 WILL include type information.
+         *<p>
+         * Note that we just claim it is scalar; this should work ok and is simpler
+         * than doing introspection on both serialization and deserialization.
          */
         @Override
         public final void serializeWithType(TokenBuffer value, JsonGenerator jgen, SerializerProvider provider,
                 TypeSerializer typeSer)
             throws IOException, JsonGenerationException
         {
+            typeSer.writeTypePrefixForScalar(value, jgen);
             serialize(value, jgen, provider);
+            typeSer.writeTypeSuffixForScalar(value, jgen);
         }
         
         @Override

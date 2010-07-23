@@ -2,7 +2,9 @@ package org.codehaus.jackson.map.jsontype;
 
 import java.util.*;
 
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.util.TokenBuffer;
 
 public class TestDefaultForObject
     extends BaseMapTest
@@ -54,6 +56,14 @@ public class TestDefaultForObject
         public AbstractBean bean;
         
         public BeanHolder() { }
+    }
+
+    final static class ObjectHolder
+    {
+        public Object value;
+
+        public ObjectHolder() { }
+        public ObjectHolder(Object v) { value = v; }
     }
     
     /*
@@ -217,6 +227,60 @@ public class TestDefaultForObject
         PolymorphicType value = mapper.readValue(json, PolymorphicType.class);
         assertEquals("hello", value.foo);
         assertEquals(Integer.valueOf(2), value.bar);
+    }
+
+    // Also, let's ensure TokenBuffer gets properly handled
+    public void testTokenBuffer() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+
+        // Ok, first test JSON Object containing buffer:
+        TokenBuffer buf = new TokenBuffer(mapper);
+        buf.writeStartObject();
+        buf.writeNumberField("num", 42);
+        buf.writeEndObject();
+        String json = mapper.writeValueAsString(new ObjectHolder(buf));
+System.out.println("JSON = '"+json+"'");        
+        ObjectHolder holder = mapper.readValue(json, ObjectHolder.class);
+        assertNotNull(holder.value);
+        assertSame(TokenBuffer.class, holder.value.getClass());
+        JsonParser jp = ((TokenBuffer) holder.value).asParser();
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertToken(JsonToken.END_OBJECT, jp.nextToken());
+        assertNull(jp.nextToken());
+        jp.close();
+
+        // then as an array:
+        buf = new TokenBuffer(mapper);
+        buf.writeStartArray();
+        buf.writeBoolean(true);
+        buf.writeEndArray();
+        json = mapper.writeValueAsString(new ObjectHolder(buf));
+        holder = mapper.readValue(json, ObjectHolder.class);
+        assertNotNull(holder.value);
+        assertSame(TokenBuffer.class, holder.value.getClass());
+        jp = ((TokenBuffer) holder.value).asParser();
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_TRUE, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        assertNull(jp.nextToken());
+        jp.close();
+
+        // and finally as scalar
+        buf = new TokenBuffer(mapper);
+        buf.writeNumber(321);
+        json = mapper.writeValueAsString(new ObjectHolder(buf));
+        holder = mapper.readValue(json, ObjectHolder.class);
+        assertNotNull(holder.value);
+        assertSame(TokenBuffer.class, holder.value.getClass());
+        jp = ((TokenBuffer) holder.value).asParser();
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(321, jp.getIntValue());
+        assertNull(jp.nextToken());
+        jp.close();
     }
     
     /*

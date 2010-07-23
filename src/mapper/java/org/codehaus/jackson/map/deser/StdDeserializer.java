@@ -420,6 +420,16 @@ public abstract class StdDeserializer<T>
             }
             throw ctxt.mappingException(_valueClass);
         }
+
+        // 1.6: since we can never have type info ("natural type"; String, Boolean, Integer, Double):
+        // (is it an error to even call this version?)
+        @Override
+        public String deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+                TypeDeserializer typeDeserializer)
+            throws IOException, JsonProcessingException
+        {
+            return deserialize(jp, ctxt);
+        }
     }
 
     @JacksonStdImpl
@@ -462,6 +472,16 @@ public abstract class StdDeserializer<T>
         
         @Override
 	public Boolean deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            return _parseBoolean(jp, ctxt) ? Boolean.TRUE : Boolean.FALSE;
+        }
+
+        // 1.6: since we can never have type info ("natural type"; String, Boolean, Integer, Double):
+        // (is it an error to even call this version?)
+        @Override
+        public Boolean deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+                TypeDeserializer typeDeserializer)
             throws IOException, JsonProcessingException
         {
             return _parseBoolean(jp, ctxt) ? Boolean.TRUE : Boolean.FALSE;
@@ -554,6 +574,16 @@ public abstract class StdDeserializer<T>
         {
             return _parseInt(jp, ctxt);
         }
+
+        // 1.6: since we can never have type info ("natural type"; String, Boolean, Integer, Double):
+        // (is it an error to even call this version?)
+        @Override
+        public Integer deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+                TypeDeserializer typeDeserializer)
+            throws IOException, JsonProcessingException
+        {
+            return _parseInt(jp, ctxt);
+        }
     }
 
     @JacksonStdImpl
@@ -604,6 +634,16 @@ public abstract class StdDeserializer<T>
 
         @Override
         public Double deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            return _parseDouble(jp, ctxt);
+        }
+
+        // 1.6: since we can never have type info ("natural type"; String, Boolean, Integer, Double):
+        // (is it an error to even call this version?)
+        @Override
+        public Double deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+                TypeDeserializer typeDeserializer)
             throws IOException, JsonProcessingException
         {
             return _parseDouble(jp, ctxt);
@@ -947,6 +987,10 @@ public abstract class StdDeserializer<T>
     /**
      * We also want to directly support deserialization of
      * {@link TokenBuffer}.
+     *<p>
+     * Note that we use scalar deserializer base just because we claim
+     * to be of scalar for type information inclusion purposes; actual
+     * underlying content can be of any (Object, Array, scalar) type.
      *
      * @since 1.5
      */
