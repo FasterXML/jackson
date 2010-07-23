@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.type.JavaType;
@@ -20,6 +21,7 @@ import org.codehaus.jackson.schema.SchemaAware;
  * implement because actual Enum value type may not be available;
  * and if not, it can only be gotten from actual instance.
  */
+@JacksonStdImpl
 public class EnumMapSerializer
     extends ContainerSerializerBase<EnumMap<? extends Enum<?>, ?>>
     implements ResolvableSerializer

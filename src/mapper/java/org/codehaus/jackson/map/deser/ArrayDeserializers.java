@@ -5,6 +5,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ObjectBuffer;
@@ -95,6 +96,7 @@ public class ArrayDeserializers
     /********************************************************
     */
 
+    @JacksonStdImpl
     final static class StringDeser
         extends ArrayDeser<String[]>
     {
@@ -127,6 +129,7 @@ public class ArrayDeserializers
         }
     }
 
+    @JacksonStdImpl
     final static class CharDeser
         extends ArrayDeser<char[]>
     {
@@ -187,6 +190,7 @@ public class ArrayDeserializers
     /********************************************************
     */
 
+    @JacksonStdImpl
     final static class BooleanDeser
         extends ArrayDeser<boolean[]>
     {
@@ -219,6 +223,7 @@ public class ArrayDeserializers
      * When dealing with byte arrays we have one more alternative (compared
      * to int/long/shorts): base64 encoded data.
      */
+    @JacksonStdImpl
     final static class ByteDeser
         extends ArrayDeser<byte[]>
     {
@@ -271,6 +276,7 @@ public class ArrayDeserializers
         }
     }
 
+    @JacksonStdImpl
     final static class ShortDeser
         extends ArrayDeser<short[]>
     {
@@ -298,6 +304,7 @@ public class ArrayDeserializers
         }
     }
 
+    @JacksonStdImpl
     final static class IntDeser
         extends ArrayDeser<int[]>
     {
@@ -326,6 +333,7 @@ public class ArrayDeserializers
         }
     }
 
+    @JacksonStdImpl
     final static class LongDeser
         extends ArrayDeser<long[]>
     {
@@ -353,6 +361,7 @@ public class ArrayDeserializers
         }
     }
 
+    @JacksonStdImpl
     final static class FloatDeser
         extends ArrayDeser<float[]>
     {
@@ -381,6 +390,7 @@ public class ArrayDeserializers
         }
     }
 
+    @JacksonStdImpl
     final static class DoubleDeser
         extends ArrayDeser<double[]>
     {

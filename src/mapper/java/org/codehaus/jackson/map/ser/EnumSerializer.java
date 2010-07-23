@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.EnumValues;
@@ -20,6 +21,7 @@ import org.codehaus.jackson.type.JavaType;
  * 
  * @author tatu
  */
+@JacksonStdImpl
 public class EnumSerializer
     extends ScalarSerializerBase<Enum<?>>
 {

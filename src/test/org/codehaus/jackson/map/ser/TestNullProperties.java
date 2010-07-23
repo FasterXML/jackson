@@ -18,6 +18,12 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 public class TestNullProperties
     extends BaseMapTest
 {
+    /*
+    /**********************************************************
+    /* Helper beans
+    /**********************************************************
+     */
+
     static class SimpleBean
     {
         public String getA() { return "a"; }
@@ -76,9 +82,13 @@ public class TestNullProperties
         public String getB() { return _b; }
     }
 
-
-    @SuppressWarnings("deprecation")
-	public void testGlobal() throws IOException
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+    
+    public void testGlobal() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
         assertTrue(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));
@@ -147,8 +157,7 @@ public class TestNullProperties
 
     // // // Tests for deprecated legacy annotations:
 
-    @SuppressWarnings("deprecation")
-	public void testByClassLegacy() throws IOException
+    public void testByClassLegacy() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
         assertTrue(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.WRITE_NULL_PROPERTIES));

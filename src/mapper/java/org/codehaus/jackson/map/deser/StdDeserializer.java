@@ -11,6 +11,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
@@ -398,6 +399,7 @@ public abstract class StdDeserializer<T>
     /**********************************************************
      */
 
+    @JacksonStdImpl
     public final static class StringDeserializer
         extends StdScalarDeserializer<String>
     {
@@ -420,6 +422,7 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    @JacksonStdImpl
     public final static class ClassDeserializer
         extends StdScalarDeserializer<Class<?>>
     {
@@ -448,6 +451,7 @@ public abstract class StdDeserializer<T>
     /**********************************************************
      */
 
+    @JacksonStdImpl
     public final static class BooleanDeserializer
         extends PrimitiveOrWrapperDeserializer<Boolean>
     {
@@ -464,6 +468,7 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    @JacksonStdImpl
     public final static class ByteDeserializer
         extends PrimitiveOrWrapperDeserializer<Byte>
     {
@@ -485,6 +490,7 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    @JacksonStdImpl
     public final static class ShortDeserializer
         extends PrimitiveOrWrapperDeserializer<Short>
     {
@@ -501,6 +507,7 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    @JacksonStdImpl
     public final static class CharacterDeserializer
         extends PrimitiveOrWrapperDeserializer<Character>
     {
@@ -532,6 +539,7 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    @JacksonStdImpl
     public final static class IntegerDeserializer
         extends PrimitiveOrWrapperDeserializer<Integer>
     {
@@ -548,6 +556,7 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    @JacksonStdImpl
     public final static class LongDeserializer
         extends PrimitiveOrWrapperDeserializer<Long>
     {
@@ -564,6 +573,7 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    @JacksonStdImpl
     public final static class FloatDeserializer
         extends PrimitiveOrWrapperDeserializer<Float>
     {
@@ -583,6 +593,7 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    @JacksonStdImpl
     public final static class DoubleDeserializer
         extends PrimitiveOrWrapperDeserializer<Double>
     {
@@ -609,6 +620,7 @@ public abstract class StdDeserializer<T>
      * But other numeric types may need such type information.
      * This is why {@link #deserializeWithType} must be overridden.
      */
+    @JacksonStdImpl
     public final static class NumberDeserializer
         extends StdScalarDeserializer<Number>
     {
@@ -754,6 +766,7 @@ public abstract class StdDeserializer<T>
     /**********************************************************
      */
 
+    @JacksonStdImpl
     public static class BigDecimalDeserializer
         extends StdScalarDeserializer<BigDecimal>
     {
@@ -786,6 +799,7 @@ public abstract class StdDeserializer<T>
      * This is bit trickier to implement efficiently, while avoiding
      * overflow problems.
      */
+    @JacksonStdImpl
     public static class BigIntegerDeserializer
         extends StdScalarDeserializer<BigInteger>
     {
@@ -828,6 +842,7 @@ public abstract class StdDeserializer<T>
     /****************************************************
     */
 
+    @JacksonStdImpl
     public static class CalendarDeserializer
         extends StdScalarDeserializer<Calendar>
     {
@@ -935,6 +950,7 @@ public abstract class StdDeserializer<T>
      *
      * @since 1.5
      */
+    @JacksonStdImpl
     public static class TokenBufferDeserializer
         extends StdScalarDeserializer<TokenBuffer>
     {

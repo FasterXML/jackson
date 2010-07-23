@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.type.JavaType;
@@ -18,6 +19,7 @@ import org.codehaus.jackson.type.JavaType;
  * Note: about the only configurable setting currently is ability to filter out
  * entries with specified names.
  */
+@JacksonStdImpl
 public class MapSerializer
     extends ContainerSerializerBase<Map<?,?>>
     implements ResolvableSerializer

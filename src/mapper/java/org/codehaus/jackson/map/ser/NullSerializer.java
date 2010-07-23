@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 
 /**
  * This is a simple dummy serializer that will just output literal
@@ -13,6 +14,7 @@ import org.codehaus.jackson.map.*;
  * null object references unless overridden), as well as for some
  * more exotic types (java.lang.Void).
  */
+@JacksonStdImpl
 public class NullSerializer
     extends SerializerBase<Object>
 {

@@ -10,6 +10,7 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.TypeDeserializer;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -21,6 +22,7 @@ import org.codehaus.jackson.type.JavaType;
  * It can also construct {@link java.util.List}s, but not with specific
  * POJO types, only other containers and primitives/wrappers.
  */
+@JacksonStdImpl
 public class CollectionDeserializer
     extends ContainerDeserializer<Collection<Object>>
 {

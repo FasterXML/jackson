@@ -376,6 +376,9 @@ public class BasicSerializerFactory
          * - java.lang.Number (but is that integral or not?)
          */
         if (JsonSerializable.class.isAssignableFrom(cls)) {
+            if (JsonSerializableWithType.class.isAssignableFrom(cls)) {
+                return StdSerializers.SerializableWithTypeSerializer.instance;
+            }
             return StdSerializers.SerializableSerializer.instance;
         }
         if (Map.class.isAssignableFrom(cls)) {

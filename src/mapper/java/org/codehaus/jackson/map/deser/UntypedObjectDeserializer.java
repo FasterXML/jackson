@@ -10,12 +10,14 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.TypeDeserializer;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 
 /**
  * This deserializer is only used if it is necessary to bind content of
  * unknown type (or without regular structure) into generic Java container
  * types; Lists, Maps, wrappers, nulls and so on.
  */
+@JacksonStdImpl
 public class UntypedObjectDeserializer
     extends StdDeserializer<Object>
 {

@@ -1,12 +1,8 @@
 package org.codehaus.jackson.mrbean;
 
-import java.lang.reflect.Method;
-
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
-
-import org.codehaus.jackson.org.objectweb.asm.*;
 
 /**
  * Nifty class for pulling implementations of classes out of thin air.

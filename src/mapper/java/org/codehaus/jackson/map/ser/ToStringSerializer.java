@@ -8,12 +8,14 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 
 /**
  * Simple general purpose serializer, useful for any
  * type for which {@link Object#toString} returns the desired Json
  * value.
  */
+@JacksonStdImpl
 public final class ToStringSerializer
     extends SerializerBase<Object>
 {

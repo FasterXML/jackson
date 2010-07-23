@@ -10,6 +10,7 @@ import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.type.ArrayType;
 
@@ -90,6 +91,7 @@ public final class ArraySerializers
     /**
      * Generic serializer for Object arrays (<code>Object[]</code>).
      */
+    @JacksonStdImpl
     public final static class ObjectArraySerializer
         extends AsArraySerializer<Object[]>
         implements ResolvableSerializer
@@ -293,6 +295,7 @@ public final class ArraySerializers
         }        
     }
 
+    @JacksonStdImpl
     public final static class StringArraySerializer
         extends AsArraySerializer<String[]>
     {
@@ -343,6 +346,7 @@ public final class ArraySerializers
         }
     }
 
+    @JacksonStdImpl
     public final static class BooleanArraySerializer
         extends AsArraySerializer<boolean[]>
     {
@@ -383,6 +387,7 @@ public final class ArraySerializers
      *<p>
      * NOTE: since it is NOT serialized as an array, can not use AsArraySerializer as base
      */
+    @JacksonStdImpl
     public final static class ByteArraySerializer
         extends SerializerBase<byte[]>
     {
@@ -416,6 +421,7 @@ public final class ArraySerializers
         }
     }
 
+    @JacksonStdImpl
     public final static class ShortArraySerializer
         extends AsArraySerializer<short[]>
     {
@@ -454,6 +460,7 @@ public final class ArraySerializers
      *<p>
      * NOTE: since it is NOT serialized as an array, can not use AsArraySerializer as base
      */
+    @JacksonStdImpl
     public final static class CharArraySerializer
         extends SerializerBase<char[]>
     {
@@ -509,7 +516,7 @@ public final class ArraySerializers
         }
     }
 
-
+    @JacksonStdImpl
     public final static class IntArraySerializer
         extends AsArraySerializer<int[]>
     {
@@ -543,6 +550,7 @@ public final class ArraySerializers
         }
     }
 
+    @JacksonStdImpl
     public final static class LongArraySerializer
         extends AsArraySerializer<long[]>
     {
@@ -572,6 +580,7 @@ public final class ArraySerializers
         }
     }
 
+    @JacksonStdImpl
     public final static class FloatArraySerializer
         extends AsArraySerializer<float[]>
     {
@@ -601,6 +610,7 @@ public final class ArraySerializers
         }
     }
 
+    @JacksonStdImpl
     public final static class DoubleArraySerializer
         extends AsArraySerializer<double[]>
     {

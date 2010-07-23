@@ -9,6 +9,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
@@ -72,7 +73,7 @@ public final class ContainerSerializers
      * Base class for serializers that will output contents as JSON
      * arrays.
      */
-     private abstract static class AsArraySerializer<T>
+    private abstract static class AsArraySerializer<T>
         extends ContainerSerializerBase<T>
         implements ResolvableSerializer
     {
@@ -186,6 +187,7 @@ public final class ContainerSerializers
      * traversed by index (as opposed to others, such as {@link LinkedList}
      * that can not}.
      */
+    @JacksonStdImpl
     public static class IndexedListSerializer
         extends AsArraySerializer<List<?>>
     {
@@ -309,6 +311,7 @@ public final class ContainerSerializers
      * If so, we will just construct an {@link java.util.Iterator}
      * to iterate over elements.
      */
+    @JacksonStdImpl
     public static class CollectionSerializer
         extends AsArraySerializer<Collection<?>>
     {
@@ -401,6 +404,7 @@ public final class ContainerSerializers
         }
     }
 
+    @JacksonStdImpl
     public static class IteratorSerializer
         extends AsArraySerializer<Iterator<?>>
     {
@@ -445,6 +449,7 @@ public final class ContainerSerializers
         }
     }
 
+    @JacksonStdImpl
     public static class IterableSerializer
         extends AsArraySerializer<Iterable<?>>
     {

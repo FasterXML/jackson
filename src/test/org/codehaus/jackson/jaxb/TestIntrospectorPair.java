@@ -18,6 +18,7 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
  *
  * @author Tatu Saloranta
  */
+@SuppressWarnings("deprecation")
 public class TestIntrospectorPair
     extends org.codehaus.jackson.map.BaseMapTest
 {
@@ -27,9 +28,9 @@ public class TestIntrospectorPair
     public TestIntrospectorPair() { super(); }
     
     /*
-    /////////////////////////////////////////////////////
-    // Helper beans
-    /////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper beans
+    /**********************************************************
      */
 
     /**
@@ -105,9 +106,9 @@ public class TestIntrospectorPair
     }
 
     /*
-    /////////////////////////////////////////////////////
-    // Unit tests
-    /////////////////////////////////////////////////////
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
      */
 
     public void testSimple() throws Exception

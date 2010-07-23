@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSerializableSchema;
@@ -65,6 +66,7 @@ public class StdSerializers
      * Since this is one of "native" types, no type information is ever
      * included on serialization (unlike for most scalar types as of 1.5)
      */
+    @JacksonStdImpl
     public final static class BooleanSerializer
         extends NonTypedScalarSerializer<Boolean>
     {
@@ -107,6 +109,7 @@ public class StdSerializers
      * Since this is one of "native" types, no type information is ever
      * included on serialization (unlike for most scalar types as of 1.5)
      */
+    @JacksonStdImpl
     public final static class StringSerializer
         extends NonTypedScalarSerializer<String>
     {
@@ -139,6 +142,7 @@ public class StdSerializers
      * Since this is one of "native" types, no type information is ever
      * included on serialization (unlike for most scalar types as of 1.5)
      */
+    @JacksonStdImpl
     public final static class IntegerSerializer
         extends NonTypedScalarSerializer<Integer>
     {
@@ -164,6 +168,7 @@ public class StdSerializers
      * instead, cast is to {@link java.lang.Number}, and conversion is
      * by calling {@link java.lang.Number#intValue}.
      */
+    @JacksonStdImpl
     public final static class IntLikeSerializer
         extends ScalarSerializerBase<Number>
     {
@@ -186,6 +191,7 @@ public class StdSerializers
         }
     }
 
+    @JacksonStdImpl
     public final static class LongSerializer
         extends ScalarSerializerBase<Long>
     {
@@ -207,6 +213,7 @@ public class StdSerializers
         }
     }
     
+    @JacksonStdImpl
     public final static class FloatSerializer
         extends ScalarSerializerBase<Float>
     {
@@ -235,6 +242,7 @@ public class StdSerializers
      * Since this is one of "native" types, no type information is ever
      * included on serialization (unlike for most scalar types as of 1.5)
      */
+    @JacksonStdImpl
     public final static class DoubleSerializer
         extends NonTypedScalarSerializer<Double>
     {
@@ -260,6 +268,7 @@ public class StdSerializers
      * As a fallback, we may need to use this serializer for other
      * types of {@link Number}s (custom types).
      */
+    @JacksonStdImpl
     public final static class NumberSerializer
         extends ScalarSerializerBase<Number>
     {
@@ -302,6 +311,7 @@ public class StdSerializers
      * thing that can be reliably converted between date-based objects
      * and json.
      */
+    @JacksonStdImpl
     public final static class CalendarSerializer
         extends ScalarSerializerBase<Calendar>
     {
@@ -329,6 +339,7 @@ public class StdSerializers
      * For efficiency, we will serialize Dates as longs, instead of
      * potentially more readable Strings.
      */
+    @JacksonStdImpl
     public final static class UtilDateSerializer
         extends ScalarSerializerBase<java.util.Date>
     {
@@ -358,6 +369,7 @@ public class StdSerializers
      * representation here. Why? Basically to truncate of time part, since
      * that should not be used by plain SQL date.
      */
+    @JacksonStdImpl
     public final static class SqlDateSerializer
         extends ScalarSerializerBase<java.sql.Date>
     {
@@ -378,6 +390,7 @@ public class StdSerializers
         }
     }
 
+    @JacksonStdImpl
     public final static class SqlTimeSerializer
         extends ScalarSerializerBase<java.sql.Time>
     {
@@ -410,11 +423,12 @@ public class StdSerializers
      * Note: given that this is used for anything that implements
      * interface, can not be checked for direct class equivalence.
      */
+    @JacksonStdImpl
     @SuppressWarnings("deprecation")
     public final static class SerializableSerializer
         extends SerializerBase<JsonSerializable>
     {
-        final static SerializableSerializer instance = new SerializableSerializer();
+        protected final static SerializableSerializer instance = new SerializableSerializer();
 
         private SerializableSerializer() { super(JsonSerializable.class); }
 
@@ -483,6 +497,78 @@ public class StdSerializers
     }
 
     /**
+     * Generic handler for types that implement {@link JsonSerializableWithType}.
+     *<p>
+     * Note: given that this is used for anything that implements
+     * interface, can not be checked for direct class equivalence.
+     */
+    @JacksonStdImpl
+    public final static class SerializableWithTypeSerializer
+        extends SerializerBase<JsonSerializableWithType>
+    {
+        protected final static SerializableWithTypeSerializer instance = new SerializableWithTypeSerializer();
+
+        private SerializableWithTypeSerializer() { super(JsonSerializableWithType.class); }
+
+        @SuppressWarnings("deprecation") // why is this needed?
+        @Override
+        public void serialize(JsonSerializableWithType value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            value.serialize(jgen, provider);
+        }
+
+        @Override
+        public final void serializeWithType(JsonSerializableWithType value, JsonGenerator jgen, SerializerProvider provider,
+                TypeSerializer typeSer)
+            throws IOException, JsonGenerationException
+        {
+            value.serializeWithType(jgen, provider, typeSer);
+        }
+        
+        // copied verbatim from "JsonSerializableSerializer"
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+            throws JsonMappingException
+        {
+            ObjectNode objectNode = createObjectNode();
+            String schemaType = "any";
+            String objectProperties = null;
+            String itemDefinition = null;
+            if (typeHint != null) {
+                Class<?> rawClass = TypeFactory.type(typeHint).getRawClass();
+                if (rawClass.isAnnotationPresent(JsonSerializableSchema.class)) {
+                    JsonSerializableSchema schemaInfo = rawClass.getAnnotation(JsonSerializableSchema.class);
+                    schemaType = schemaInfo.schemaType();
+                    if (!"##irrelevant".equals(schemaInfo.schemaObjectPropertiesDefinition())) {
+                        objectProperties = schemaInfo.schemaObjectPropertiesDefinition();
+                    }
+                    if (!"##irrelevant".equals(schemaInfo.schemaItemDefinition())) {
+                        itemDefinition = schemaInfo.schemaItemDefinition();
+                    }
+                }
+            }
+            objectNode.put("type", schemaType);
+            if (objectProperties != null) {
+                try {
+                    objectNode.put("properties", new ObjectMapper().readValue(objectProperties, JsonNode.class));
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+            if (itemDefinition != null) {
+                try {
+                    objectNode.put("items", new ObjectMapper().readValue(itemDefinition, JsonNode.class));
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+            objectNode.put("optional", true);
+            return objectNode;
+        }
+    }
+
+    /**
      * We also want to directly support serialization of {@link TokenBuffer};
      * and since it is part of core package, it can not implement
      * {@link JsonSerializable} (which is only included in the mapper
@@ -490,6 +576,7 @@ public class StdSerializers
      *
      * @since 1.5
      */
+    @JacksonStdImpl
     public final static class TokenBufferSerializer
         extends SerializerBase<TokenBuffer>
     {
@@ -527,6 +614,5 @@ public class StdSerializers
              */
             return createSchemaNode("any", true);
         }
-    }
-    
+    }    
 }

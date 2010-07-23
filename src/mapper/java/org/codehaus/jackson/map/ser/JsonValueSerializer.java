@@ -10,6 +10,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.schema.JsonSchema;
@@ -27,6 +28,7 @@ import org.codehaus.jackson.type.JavaType;
  * done from {@link #resolve} method, and NOT from constructor;
  * otherwise we could end up with an infinite loop.
  */
+@JacksonStdImpl
 public final class JsonValueSerializer
     extends SerializerBase<Object>
     implements ResolvableSerializer, SchemaAware

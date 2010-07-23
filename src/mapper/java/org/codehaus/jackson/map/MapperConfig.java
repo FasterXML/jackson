@@ -4,7 +4,6 @@ import java.text.DateFormat;
 import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.map.SerializationConfig.Feature;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;

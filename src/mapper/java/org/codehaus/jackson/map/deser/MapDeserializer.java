@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.type.JavaType;
 
@@ -20,6 +21,7 @@ import org.codehaus.jackson.type.JavaType;
  * It can also construct {@link java.util.Map}s, but not with specific
  * POJO types, only other containers and primitives/wrappers.
  */
+@JacksonStdImpl
 public class MapDeserializer
     extends ContainerDeserializer<Map<Object,Object>>
     implements ResolvableDeserializer
