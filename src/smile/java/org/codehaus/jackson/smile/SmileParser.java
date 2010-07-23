@@ -652,8 +652,9 @@ public class SmileParser
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
         int inPtr = _inputPtr;
         _inputPtr += len;
+        final byte[] inBuf = _inputBuffer;
         for (int end = inPtr + len; inPtr < end; ) {
-            outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
+            outBuf[outPtr++] = (char) inBuf[inPtr++];
         }
         _textBuffer.setCurrentLength(len);
         return _textBuffer.contentsAsString();
@@ -674,25 +675,26 @@ public class SmileParser
         int inPtr = _inputPtr;
         _inputPtr += len;
         final int[] codes = SmileConstants.sUtf8UnitLengths;
+        final byte[] inBuf = _inputBuffer;
         for (int end = inPtr + len; inPtr < end; ) {
-            int i = _inputBuffer[inPtr++] & 0xFF;
+            int i = inBuf[inPtr++] & 0xFF;
             int code = codes[i];
             if (code != 0) {
                 // trickiest one, need surrogate handling
                 switch (code) {
                 case 1:
-                    i = ((i & 0x1F) << 6) | (_inputBuffer[inPtr++] & 0x3F);
+                    i = ((i & 0x1F) << 6) | (inBuf[inPtr++] & 0x3F);
                     break;
                 case 2:
                     i = ((i & 0x0F) << 12)
-                        | ((_inputBuffer[inPtr++] & 0x3F) << 6)
-                        | (_inputBuffer[inPtr++] & 0x3F);
+                        | ((inBuf[inPtr++] & 0x3F) << 6)
+                        | (inBuf[inPtr++] & 0x3F);
                     break;
                 case 3:
                     i = ((i & 0x07) << 18)
-                    | ((_inputBuffer[inPtr++] & 0x3F) << 12)
-                    | ((_inputBuffer[inPtr++] & 0x3F) << 6)
-                    | (_inputBuffer[inPtr++] & 0x3F);
+                    | ((inBuf[inPtr++] & 0x3F) << 12)
+                    | ((inBuf[inPtr++] & 0x3F) << 6)
+                    | (inBuf[inPtr++] & 0x3F);
                     // note: this is the codepoint value; need to split, too
                     i -= 0x10000;
                     outBuf[outPtr++] = (char) (0xD800 | (i >> 10));
@@ -778,29 +780,29 @@ public class SmileParser
     	int inPtr = _inputPtr;
     	final byte[] inBuf = _inputBuffer;
         do {
-			int q = inBuf[inPtr++] << 8;
-			q |= inBuf[inPtr++];
-			q <<= 8;
-			q |= inBuf[inPtr++];
-			q <<= 8;
-			q |= inBuf[inPtr++];
-			_quadBuffer[offset++] = q;
+            int q = inBuf[inPtr++] << 8;
+            q |= inBuf[inPtr++];
+            q <<= 8;
+            q |= inBuf[inPtr++];
+            q <<= 8;
+            q |= inBuf[inPtr++];
+            _quadBuffer[offset++] = q;
         } while ((len -= 4) > 3);
         // and then leftovers
         if (len > 0) {
-			int q = inBuf[inPtr++];
-			if (--len >= 0) {
-				q = (q << 8) + inBuf[inPtr++];				
-				if (--len >= 0) {
-					q = (q << 8) + inBuf[inPtr++];				
-				}
-			}
-			_quadBuffer[offset++] = q;
+            int q = inBuf[inPtr++];
+            if (--len >= 0) {
+                q = (q << 8) + inBuf[inPtr++];				
+                if (--len >= 0) {
+                    q = (q << 8) + inBuf[inPtr++];				
+                }
+            }
+            _quadBuffer[offset++] = q;
         }
         return _symbols.findName(_quadBuffer, offset);
-	}
+    }
     
-    public static int[] _growArrayTo(int[] arr, int minSize)
+    private static int[] _growArrayTo(int[] arr, int minSize)
     {
     	int[] newArray = new int[minSize + 4];
         if (arr != null) {
@@ -867,9 +869,9 @@ public class SmileParser
             case 4: // VInt (zigzag) or BigDecimal
             	int subtype = tb & 0x03;
             	if (subtype == 0) { // (v)int
-            		_finishInt();
+            	    _finishInt();
             	} else if (subtype == 1) { // (v)long
-            		_finishLong();
+            	    _finishLong();
             	} else if (subtype == 2) {
                     _finishBigInteger();
             	} else {
@@ -879,14 +881,14 @@ public class SmileParser
             case 5: // other numbers
             	switch (tb & 0x03) {
             	case 0: // float
-            		_finishFloat();
-            		return;
+            	    _finishFloat();
+            	    return;
             	case 1: // double
-            		_finishDouble();
-            		return;
+            	    _finishDouble();
+            	    return;
             	case 2: // big-decimal
-            		_finishBigDecimal();
-            		return;
+            	    _finishBigDecimal();
+            	    return;
             	}
             	break;
             }
@@ -910,36 +912,36 @@ public class SmileParser
     	if (value < 0) { // 6 bits
     		value &= 0x3F;
     	} else {
-	    	if (_inputPtr >= _inputEnd) {
-	    		loadMoreGuaranteed();
-	    	}
-	    	i = _inputBuffer[_inputPtr++];
-	    	if (i >= 0) { // 13 bits
-		    	value = (value << 7) + i;
-		    	if (_inputPtr >= _inputEnd) {
-					loadMoreGuaranteed();
-				}
-				i = _inputBuffer[_inputPtr++];
-				if (i >= 0) {
-					value = (value << 7) + i;
-					if (_inputPtr >= _inputEnd) {
-						loadMoreGuaranteed();
-					}
-					i = _inputBuffer[_inputPtr++];
-					if (i >= 0) {
-						value = (value << 7) + i;
-						// and then we must get negative
-						if (_inputPtr >= _inputEnd) {
-							loadMoreGuaranteed();
-						}
-						i = _inputBuffer[_inputPtr++];
-						if (i >= 0) {
-							_reportError("Corrupt input; 32-bit VInt extends beyond 5 data bytes");
-						}
-					}
-				}
-	    	}
-	        value = (value << 6) + (i & 0x3F);
+    	    if (_inputPtr >= _inputEnd) {
+    	        loadMoreGuaranteed();
+    	    }
+    	    i = _inputBuffer[_inputPtr++];
+    	    if (i >= 0) { // 13 bits
+    	        value = (value << 7) + i;
+    	        if (_inputPtr >= _inputEnd) {
+    	            loadMoreGuaranteed();
+    	        }
+    	        i = _inputBuffer[_inputPtr++];
+    	        if (i >= 0) {
+    	            value = (value << 7) + i;
+    	            if (_inputPtr >= _inputEnd) {
+    	                loadMoreGuaranteed();
+    	            }
+    	            i = _inputBuffer[_inputPtr++];
+    	            if (i >= 0) {
+    	                value = (value << 7) + i;
+    	                // and then we must get negative
+    	                if (_inputPtr >= _inputEnd) {
+    	                    loadMoreGuaranteed();
+    	                }
+    	                i = _inputBuffer[_inputPtr++];
+    	                if (i >= 0) {
+    	                    _reportError("Corrupt input; 32-bit VInt extends beyond 5 data bytes");
+    	                }
+    	            }
+    	        }
+    	    }
+    	    value = (value << 6) + (i & 0x3F);
     	}
         _numberInt = SmileUtil.zigzagDecode(value);
     	_numTypesValid = NR_INT;
@@ -952,17 +954,17 @@ public class SmileParser
 	long l = (long) _fourBytesToInt();
     	// and loop for the rest
     	while (true) {
-        	if (_inputPtr >= _inputEnd) {
-        	    loadMoreGuaranteed();
-        	}
-        	int value = _inputBuffer[_inputPtr++];
-        	if (value < 0) {
-        		l = (l << 6) + (value & 0x3F);
-        		_numberLong = SmileUtil.zigzagDecode(l);
-        		_numTypesValid = NR_LONG;
-        		return;
-        	}
-        	l = (l << 7) + value;
+    	    if (_inputPtr >= _inputEnd) {
+    	        loadMoreGuaranteed();
+    	    }
+    	    int value = _inputBuffer[_inputPtr++];
+    	    if (value < 0) {
+    	        l = (l << 6) + (value & 0x3F);
+    	        _numberLong = SmileUtil.zigzagDecode(l);
+    	        _numTypesValid = NR_LONG;
+    	        return;
+    	    }
+    	    l = (l << 7) + value;
     	}
     }
 
@@ -1118,14 +1120,12 @@ public class SmileParser
         }
         int outPtr = 0;
         // Note: we count on fact that buffer must have at least 'len' (<= 64) empty char slots
-	char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+	final char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
 	int inPtr = _inputPtr;
 	_inputPtr += len;
-if (_inputPtr > _inputEnd) {
-    throw new Error("Bad stuff; ptr now "+_inputPtr+"...");
-}
+	final byte[] inputBuf = _inputBuffer;
 	for (int end = inPtr + len; inPtr < end; ) {
-	    outBuf[outPtr++] = (char) _inputBuffer[inPtr++];
+	    outBuf[outPtr++] = (char) inputBuf[inPtr++];
 	}
 	_textBuffer.setCurrentLength(len);
     }
@@ -1141,32 +1141,33 @@ if (_inputPtr > _inputEnd) {
         int inPtr = _inputPtr;
         _inputPtr += len;
         final int[] codes = SmileConstants.sUtf8UnitLengths;
+        final byte[] inputBuf = _inputBuffer;
         for (int end = inPtr + len; inPtr < end; ) {
-            int i = _inputBuffer[inPtr++] & 0xFF;
+            int i = inputBuf[inPtr++] & 0xFF;
             int code = codes[i];
             if (code != 0) {
                 // trickiest one, need surrogate handling
                 switch (code) {
                 case 1:
-                    i = ((i & 0x1F) << 6) | (_inputBuffer[inPtr++] & 0x3F);
+                    i = ((i & 0x1F) << 6) | (inputBuf[inPtr++] & 0x3F);
                     break;
 	        case 2:
 	            i = ((i & 0x0F) << 12)
-	                  | ((_inputBuffer[inPtr++] & 0x3F) << 6)
-	                    | (_inputBuffer[inPtr++] & 0x3F);
-	                break;
+	                  | ((inputBuf[inPtr++] & 0x3F) << 6)
+	                  | (inputBuf[inPtr++] & 0x3F);
+	            break;
 	        case 3:
-	                i = ((i & 0x07) << 18)
-	                | ((_inputBuffer[inPtr++] & 0x3F) << 12)
-	                | ((_inputBuffer[inPtr++] & 0x3F) << 6)
-	                | (_inputBuffer[inPtr++] & 0x3F);
-	                // note: this is the codepoint value; need to split, too
-	                i -= 0x10000;
-	                outBuf[outPtr++] = (char) (0xD800 | (i >> 10));
-	                i = 0xDC00 | (i & 0x3FF);
-	                break;
+	            i = ((i & 0x07) << 18)
+	                | ((inputBuf[inPtr++] & 0x3F) << 12)
+	                | ((inputBuf[inPtr++] & 0x3F) << 6)
+	                | (inputBuf[inPtr++] & 0x3F);
+	            // note: this is the codepoint value; need to split, too
+	            i -= 0x10000;
+	            outBuf[outPtr++] = (char) (0xD800 | (i >> 10));
+	            i = 0xDC00 | (i & 0x3FF);
+	            break;
 	        default: // invalid
-	                _reportError("Invalid byte "+Integer.toHexString(i)+" in short Unicode text block");
+	            _reportError("Invalid byte "+Integer.toHexString(i)+" in short Unicode text block");
                 }
 	    }
 	    outBuf[outPtr++] = (char) i;
@@ -1184,19 +1185,22 @@ if (_inputPtr > _inputEnd) {
             if (_inputPtr >= _inputEnd) {
                 loadMoreGuaranteed();
             }
-            int left = _inputEnd - _inputPtr;
+            int inPtr = _inputPtr;
+            int left = _inputEnd - inPtr;
             if (outPtr >= outBuf.length) {
                 outBuf = _textBuffer.finishCurrentSegment();
                 outPtr = 0;
             }
             left = Math.min(left, outBuf.length - outPtr);
             do {
-                byte b = _inputBuffer[_inputPtr++];
+                byte b = _inputBuffer[inPtr++];
                 if (b == SmileConstants.BYTE_MARKER_END_OF_STRING) {
+                    _inputPtr = inPtr;
                     break main_loop;
                 }
                 outBuf[outPtr++] = (char) b;	    		
             } while (--left > 0);
+            _inputPtr = inPtr;
         }
         _textBuffer.setCurrentLength(outPtr);
     }
@@ -1340,17 +1344,16 @@ if (_inputPtr > _inputEnd) {
             	 * (note: can potentially skip invalid UTF-8 too)
             	 */
             	while (true) {
-            		final int end = _inputEnd;
-            		final byte[] buf = _inputBuffer;
-            		while (_inputPtr < end) {
-            			if (buf[_inputPtr++] == BYTE_MARKER_END_OF_STRING) {
-            				return;
-            			}
-            		}
-            		loadMoreGuaranteed();
+            	    final int end = _inputEnd;
+            	    final byte[] buf = _inputBuffer;
+            	    while (_inputPtr < end) {
+            	        if (buf[_inputPtr++] == BYTE_MARKER_END_OF_STRING) {
+            	            return;
+            	        }
+            	    }
+            	    loadMoreGuaranteed();
             	}
-
-            	//
+            	// never gets here
             case 2: // binary, raw
                 _skipBytes(_readUnsignedVInt());
                 return;

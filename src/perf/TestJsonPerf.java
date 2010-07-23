@@ -59,7 +59,7 @@ public final class TestJsonPerf
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
             // Use 9 to test all...
-            int round = (i++ % 1);
+            int round = (i++ % 2);
 
             long curr = System.currentTimeMillis();
             String msg;

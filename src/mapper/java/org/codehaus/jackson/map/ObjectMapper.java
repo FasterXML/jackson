@@ -1779,7 +1779,6 @@ public class ObjectMapper
         if (deser != null) {
             return deser;
         }
-
         // Nope: need to ask provider to resolve it
         deser = _deserializerProvider.findTypedValueDeserializer(cfg, valueType);
         if (deser == null) { // can this happen?
