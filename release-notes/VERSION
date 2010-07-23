@@ -36,6 +36,9 @@ Description:
     to allow use of custom JsonNode types.
   * [JACKSON-326] Add 'JsonParser.hasTextCharacters()' to make it easire to optimize
     text access (esp. when copying events)
+  * [JACKSON-328] Precedence of "getters-as-setters" (for Maps, Collections) was
+    accidentally higher than that of property fields (public, @JsonProperty)
+    (reported by Thomas D)
 
   New features:
 
@@ -60,6 +63,14 @@ Description:
     (requested by Ketan G)
   * [JACKSON-314] (go Pi, go!) Add 'SerializationConfig.Feature.WRITE_NULL_MAP_VALUES'
     to suppress writing of Map entries with null values.
+  
+  Backwards incompatible changes:
+
+  * [JACKSON-328] (see above) fixes precedence of "getter-as-setter" (for Maps, Collections)
+    to be LOWER than that of fields; this is the original intended behavior. However,
+    versions 1.1 - 1.5 accidentally had fields at lower precedence. This fix can
+    change behavior of code.
+
 
 ------------------------------------------------------------------------
 == History: ==

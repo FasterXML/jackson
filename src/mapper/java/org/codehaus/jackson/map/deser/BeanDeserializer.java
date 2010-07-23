@@ -197,6 +197,13 @@ public class BeanDeserializer
         }
     }
 
+    /**
+     * @since 1.6
+     */
+    public boolean hasProperty(String propertyName) {
+        return _props.containsKey(propertyName);
+    }
+    
     public void  addBackReferenceProperty(String referenceName, SettableBeanProperty prop)
     {
         if (_backRefs == null) {

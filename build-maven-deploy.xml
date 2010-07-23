@@ -25,12 +25,16 @@
     <artifact:pom id="pom.lgpl.mapper" file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.jaxrs" file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.pom" />
     <artifact:pom id="pom.xc" file="${dir.dist}/jackson-xc-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.smile" file="${dir.dist}/jackson-smile-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.mrbean" file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}.pom" />
 
     <!-- And then snapshots -->
     <artifact:pom id="pom.snapshot.core" file="${dir.snapshot}/jackson-core-asl-${IMPL_VERSION}-SNAPSHOT.pom" />
     <artifact:pom id="pom.snapshot.mapper" file="${dir.snapshot}/jackson-mapper-asl-${IMPL_VERSION}-SNAPSHOT.pom" />
     <artifact:pom id="pom.snapshot.jaxrs" file="${dir.snapshot}/jackson-jaxrs-${IMPL_VERSION}-SNAPSHOT.pom" />
     <artifact:pom id="pom.snapshot.xc" file="${dir.snapshot}/jackson-xc-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.smile" file="${dir.snapshot}/jackson-smile-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.mrbean" file="${dir.snapshot}/jackson-mrbean-${IMPL_VERSION}-SNAPSHOT.pom" />
   </target>
 
   <target name="maven.repos" depends="maven.init">
@@ -81,6 +85,18 @@
      file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.jar">
       <attach file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
     </artifact:install>
+    <artifact:install pomRefId="pom.xc"
+     file="${dir.dist}/jackson-xc-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-xc-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+    </artifact:install>
+    <artifact:install pomRefId="pom.smile"
+     file="${dir.dist}/jackson-smile-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-smile-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+    </artifact:install>
+    <artifact:install pomRefId="pom.mrbean"
+     file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+    </artifact:install>
   </target>
 
   <!-- target for deploying SNAPSHOT versions in "real" Maven
@@ -118,6 +134,20 @@
    >
       <remoteRepository refid="repo.snapshot" />
       <attach file="${dir.dist}/jackson-xc-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.snapshot.smile" uniqueVersion="true"
+     file="${dir.dist}/jackson-smile-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.snapshot" />
+      <attach file="${dir.dist}/jackson-smile-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.snapshot.mrbean" uniqueVersion="true"
+     file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.snapshot" />
+      <attach file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
   </target>
 
@@ -167,6 +197,20 @@
    >
       <remoteRepository refid="repo.release" />
       <attach file="${dir.dist}/jackson-xc-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.smile" uniqueVersion="false"
+     file="${dir.dist}/jackson-smile-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-smile-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.mrbean" uniqueVersion="false"
+     file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
     </artifact:deploy>
 
   </target>

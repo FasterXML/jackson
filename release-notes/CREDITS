@@ -337,4 +337,8 @@ Rob Ottway:
     (unrecognized) field
    [1.6.0]  
 
+ Thomas Dudziak:
+  * Reported [JACKSON-328] Incorrect precedence between property fields, "getter-as-setter"
+    fallbacks (former should have higher precedence)
+   [1.6.0]
  

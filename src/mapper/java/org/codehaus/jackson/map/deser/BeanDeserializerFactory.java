@@ -463,32 +463,7 @@ public class BeanDeserializerFactory
             deser.setAnySetter(constructAnySetter(config, anySetter));
         }
 
-        /* As per [JACKSON-88], may also need to consider getters
-         * for Map/Collection properties
-         */
         HashSet<String> addedProps = new HashSet<String>(setters.keySet());
-        if (config.isEnabled(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS)) {
-            /* Hmmh. We have to assume that 'use getters as setters' also
-             * implies 'yes, do auto-detect these getters'? (if not, we'd
-             * need to add AUTO_DETECT_GETTERS to deser config too, not
-             * just ser config)
-             */
-            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(vchecker, addedProps);
-            for (Map.Entry<String,AnnotatedMethod> en : getters.entrySet()) {
-                AnnotatedMethod getter = en.getValue();
-                // should only consider Collections and Maps, for now?
-                Class<?> rt = getter.getRawType();
-                if (Collection.class.isAssignableFrom(rt)
-                    || Map.class.isAssignableFrom(rt)) {
-                    String name = en.getKey();
-                    if (!ignored.contains(name)) {
-                        deser.addProperty(constructSetterlessProperty(config, beanDesc, name, getter));
-                        addedProps.add(name);
-                    }
-                }
-            }
-        }
-        
         /* [JACKSON-98]: also include field-backed properties:
          *   (second arg passed to ignore anything for which there is a getter
          *   method)
@@ -496,13 +471,44 @@ public class BeanDeserializerFactory
         LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(vchecker, addedProps);
         for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
             String name = en.getKey();
-            if (!ignored.contains(name)) {
+            if (!ignored.contains(name) && !deser.hasProperty(name)) {
                 SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, en.getValue());
                 if (prop != null) {
                     deser.addProperty(prop);
+                    addedProps.add(name);
                 }
             }
         }
+
+        /* As per [JACKSON-88], may also need to consider getters
+         * for Map/Collection properties
+         */
+        /* also, as per [JACKSON-328], should not override fields (or actual setters),
+         * thus these are added AFTER adding fields
+         */
+        if (config.isEnabled(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS)) {
+            /* Hmmh. We have to assume that 'use getters as setters' also
+             * implies 'yes, do auto-detect these getters'? (if not, we'd
+             * need to add AUTO_DETECT_GETTERS to deser config too, not
+             * just ser config)
+             */
+            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(vchecker, addedProps);
+
+            for (Map.Entry<String,AnnotatedMethod> en : getters.entrySet()) {
+                AnnotatedMethod getter = en.getValue();
+                // should only consider Collections and Maps, for now?
+                Class<?> rt = getter.getRawType();
+                if (!Collection.class.isAssignableFrom(rt) && !Map.class.isAssignableFrom(rt)) {
+                    continue;
+                }
+                String name = en.getKey();
+                if (!ignored.contains(name) && !deser.hasProperty(name)) {
+                    deser.addProperty(constructSetterlessProperty(config, beanDesc, name, getter));
+                    addedProps.add(name);
+                }
+            }
+        }
+        
     }
 
     /**

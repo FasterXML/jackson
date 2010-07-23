@@ -316,6 +316,12 @@ compile.smile, compile.mrbean" />
             <packageset dir="${dir.src.java.xc}" defaultexcludes="yes">
                 <include name="org/codehaus/jackson/xc/**" />
             </packageset>
+            <packageset dir="${dir.src.java.smile}" defaultexcludes="yes">
+                <include name="org/codehaus/jackson/smile/**" />
+            </packageset>
+            <packageset dir="${dir.src.java.mrbean}" defaultexcludes="yes">
+                <include name="org/codehaus/jackson/mrbean/**" />
+            </packageset>
 
             <!-- Need to link to regular JDK 6 classes  -->
             <link href="http://java.sun.com/javase/6/docs/api" />
