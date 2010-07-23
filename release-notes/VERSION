@@ -63,6 +63,8 @@ Description:
     (requested by Ketan G)
   * [JACKSON-314] (go Pi, go!) Add 'SerializationConfig.Feature.WRITE_NULL_MAP_VALUES'
     to suppress writing of Map entries with null values.
+  * [JACKSON-325] Add new Jackson "internal" annotation (@JacksonStdCodec?) to allow
+    marking default/standard serializers, deserializers
   
   Backwards incompatible changes:
 
