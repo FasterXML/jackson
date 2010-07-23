@@ -897,38 +897,47 @@ public class SmileGenerator
     {
         int i = 0;
         final int len = str.length();
-        final int origTail = _outputTail;
+        int ptr = _outputTail;
 
         // First: let's see if it's all ASCII: that's rather fast
+        final byte[] outBuf = _outputBuffer;
         do {
             int c = str.charAt(i);
             if (c > 0x7F) {
                 break;
             }
-            _outputBuffer[_outputTail++] = (byte) c;
+            outBuf[ptr++] = (byte) c;
         } while (++i < len);
+        int codedLen = ptr - _outputTail;
+        _outputTail = ptr;
         if (i < len) { // offline not-all-ASCII case
+            ptr = _outputTail;            
             _shortUTF8Encode2(str, i);
+            codedLen += (_outputTail - ptr);
         }
-        return _outputTail - origTail;
+        return codedLen;
     }
 
     private final int _shortUTF8Encode(char[] str, int i, int end)
     {
-        final int origTail = _outputTail;
-
         // First: let's see if it's all ASCII: that's rather fast
+        int ptr = _outputTail;
+        final byte[] outBuf = _outputBuffer;
         do {
             int c = str[i];
             if (c > 0x7F) {
                 break;
             }
-            _outputBuffer[_outputTail++] = (byte) c;
+            outBuf[ptr++] = (byte) c;
         } while (++i < end);
+        int codedLen = ptr - _outputTail;
+        _outputTail = ptr;
         if (i < end) { // offline not-all-ASCII case
+            ptr = _outputTail;
             _shortUTF8Encode2(str, i, end);
+            codedLen += (_outputTail - ptr);
         }
-        return _outputTail - origTail;
+        return codedLen;
     }
     
     /**

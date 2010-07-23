@@ -1,14 +1,18 @@
 import java.io.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.util.TokenBuffer;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.smile.SmileFactory;
+import org.codehaus.jackson.smile.SmileGenerator;
+import org.codehaus.jackson.util.TokenBuffer;
 
 public final class TestCopyPerf
 {
     private final int REPS;
 
     final JsonFactory _jsonFactory;
+    
+    final SmileFactory _smileFactory;
 
     final TokenBuffer _tokens;
 
@@ -16,6 +20,9 @@ public final class TestCopyPerf
         throws Exception
     {
         _jsonFactory = new JsonFactory();
+        _smileFactory = new SmileFactory();
+        // whether to use back-refs for field names has measurable impact on ser/deser (but different direction):
+        _smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, false);
         FileInputStream fis = new FileInputStream(f);
         ObjectMapper mapper = new ObjectMapper();
         JsonParser jp = _jsonFactory.createJsonParser(fis);
@@ -39,29 +46,31 @@ public final class TestCopyPerf
 
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-
-            long curr = System.currentTimeMillis();
-            String result = testCopy(REPS, bos, round);
-            curr = System.currentTimeMillis() - curr;
-            System.out.println("Took "+curr+" msecs (round "+round+", "+result+").");
+            testCopy(REPS, bos, round);
             ++round;
         }
     }
 
-    private String testCopy(int reps, ByteArrayOutputStream bos, int round)
+    private long testCopy(int reps, ByteArrayOutputStream bos, int round)
         throws IOException
     {
+        int mode = (round % 2);
+        if (mode == 0) System.out.println();
+
         JsonGenerator jg = null;
-        
-        boolean realUTF8 = (round & 1) == 0;
+        final long start = System.currentTimeMillis();
         
         while (--reps >= 0) {
             bos.reset();
-            if (realUTF8) {
+            switch (mode) {
+            case 0:
+                jg = _smileFactory.createJsonGenerator(bos);
+                break;
+            case 1:
                 jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF8);                
-            } else {
-//                jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF8);                
-                jg = _jsonFactory.createJsonGenerator(bos, JsonEncoding.UTF16_BE);
+                break;
+            default:
+                throw new Error();
             }
             JsonParser jp = _tokens.asParser();
             while (jp.nextToken() != null) {
@@ -70,7 +79,9 @@ public final class TestCopyPerf
             jp.close();
             jg.close();
         }
-        return jg.getClass().getName();
+        long time = System.currentTimeMillis() - start;
+        System.out.println("Took "+time+" msecs (round "+round+") for "+jg.getClass().getName());
+        return time;
     }
 
     public static void main(String[] args)
