@@ -116,6 +116,18 @@ public class TestArrayNode
         assertEquals(0, a2.size());
     }
 
+    /**
+     * Another test to verify [JACKSON-227]...
+     */
+    public void testNullChecking2()
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode src = mapper.createArrayNode();
+        ArrayNode dest = mapper.createArrayNode();
+        src.add("element");
+        dest.addAll(src);
+    }
+    
     public void testParser() throws Exception
     {
         ArrayNode n = new ArrayNode(JsonNodeFactory.instance);

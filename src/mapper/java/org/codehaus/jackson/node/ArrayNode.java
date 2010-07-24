@@ -135,8 +135,12 @@ public final class ArrayNode
     {
         ArrayList<JsonNode> contents = other._children;
         if (contents != null) {
-            for (int i = 0, len = contents.size(); i < len; ++i) {
-                _children.add(contents.get(i));
+            if (_children == null) {
+                _children = new ArrayList<JsonNode>(contents);
+            } else {
+                for (int i = 0, len = contents.size(); i < len; ++i) {
+                    _children.add(contents.get(i));
+                }
             }
         }
         return this;
@@ -153,11 +157,15 @@ public final class ArrayNode
      */
     public JsonNode addAll(Collection<JsonNode> nodes)
     {
-        for (JsonNode n : nodes) {
-            if (n == null) {
-                n = nullNode();
+        if (_children == null) {
+            _children = new ArrayList<JsonNode>(nodes);
+        } else {
+            for (JsonNode n : nodes) {
+                if (n == null) {
+                    n = nullNode();
+                }
+                _children.add(n);
             }
-            _children.add(n);
         }
         return this;
     }
