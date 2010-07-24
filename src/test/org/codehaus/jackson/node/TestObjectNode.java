@@ -67,22 +67,6 @@ public class TestObjectNode
         o1.putAll(o2);
         assertEquals(0, o1.size());
         assertEquals(0, o2.size());
-
-        // also: nulls should be converted to NullNodes...
-        o1.put("x", (ObjectNode) null);
-        JsonNode n = o1.get("x");
-        assertNotNull(n);
-        assertSame(n, NullNode.instance);
-
-        o1.put("str", (String) null);
-        n = o1.get("str");
-        assertNotNull(n);
-        assertSame(n, NullNode.instance);
-
-        o1.put("d", (BigDecimal) null);
-        n = o1.get("d");
-        assertNotNull(n);
-        assertSame(n, NullNode.instance);
     }
 
     /**

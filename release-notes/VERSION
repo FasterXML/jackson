@@ -1,13 +1,14 @@
 Version: 1.4.5
 
 Release date:
-  25-Jun-2010
+  24-Jul-2010
 
 Description:
   Fifth patch release for 1.4.
 
   Fixes:
 
+  * [JACKSON-227] Earlier fixes were incomplete; still more work done
   * [JACKSON-285] Problem with @JsonCreator annotated constructor that
     also uses @JsonDeserialize annotations
   * [JACKSON-307] JAX-RS provider (JacksonJsonProvider) regression from

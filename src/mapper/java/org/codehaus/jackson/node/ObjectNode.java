@@ -178,8 +178,16 @@ public class ObjectNode
      */
     public JsonNode putAll(Map<String,JsonNode> properties)
     {
-        for (Map.Entry<String, JsonNode> en : properties.entrySet()) {
-            _children.put(en.getKey(), en.getValue());
+	if (_children == null) {
+	    _children = new LinkedHashMap<String,JsonNode>(properties);
+	} else {
+	    for (Map.Entry<String, JsonNode> en : properties.entrySet()) {
+		JsonNode n = en.getValue();
+		if (n == null) {
+		    n = nullNode();
+		}
+		_children.put(en.getKey(), n);
+	    }
         }
         return this;
     }
@@ -196,6 +204,9 @@ public class ObjectNode
      */
     public JsonNode putAll(ObjectNode other)
     {
+	if (_children == null) {
+	    _children = new LinkedHashMap<String,JsonNode>();
+	}
         Iterator<Map.Entry<String,JsonNode>> it = other.getFields();
         while (it.hasNext()) {
             Map.Entry<String,JsonNode> en = it.next();
