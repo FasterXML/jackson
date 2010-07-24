@@ -19,7 +19,7 @@ public class TestGenericTypes
         public List<LeafBean> getLeaves();
     }
 
-    public class LeafBean {
+    public static class LeafBean {
         public String value;
     }
     

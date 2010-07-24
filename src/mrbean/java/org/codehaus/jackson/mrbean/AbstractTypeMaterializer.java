@@ -143,8 +143,12 @@ public class AbstractTypeMaterializer
 /*        
         for (Class<?> c : new Class<?>[] { type.getRawClass(), impl } ) {
             System.out.println("Class "+c.getName()+":");
-            for (Method m : c.getDeclaredMethods()) {
-                System.out.println("  method '"+m+"', returns "+TypeFactory.type(m.getGenericReturnType(), c));
+            for (java.lang.reflect.Field f : c.getDeclaredFields()) {
+                System.out.println("  field '"+f+"', of type "+TypeFactory.type(f.getGenericType(), c));                
+            }
+            for (java.lang.reflect.Method m : c.getDeclaredMethods()) {
+                java.lang.reflect.Type rt = m.getGenericReturnType();
+                System.out.println("  method '"+m+"', returns "+TypeFactory.type(rt, c));
                 for (java.lang.reflect.Type t : m.getGenericParameterTypes()) {
                    System.out.println("   param: "+TypeFactory.type(t, c));
                 }
@@ -174,18 +178,18 @@ public class AbstractTypeMaterializer
 System.out.println("DEBUG: "+bytecode.length+" bytes for "+newName); 
 try {
     System.out.println("<visit name='"+result.getName()+"'>");
-ClassReader cr = new ClassReader(bytecode);
-cr.accept(new ClassVisitor() {
+    org.codehaus.jackson.org.objectweb.asm.ClassReader cr = new org.codehaus.jackson.org.objectweb.asm.ClassReader(bytecode);
+    cr.accept(new org.codehaus.jackson.org.objectweb.asm.ClassVisitor() {
     @Override  public void visit(int arg0, int access, String name, String desc ,String sig, String[] arg5) { }
-    @Override public AnnotationVisitor visitAnnotation(String arg0, boolean arg1) {
+    @Override public org.codehaus.jackson.org.objectweb.asm.AnnotationVisitor visitAnnotation(String arg0, boolean arg1) {
         System.out.println(" Annotation '"+arg0+"'...");
         return null;
     }
-    @Override public void visitAttribute(Attribute arg0) { System.out.println(" Attribute '"+arg0+"'"); }
+    @Override public void visitAttribute(org.codehaus.jackson.org.objectweb.asm.Attribute arg0) { System.out.println(" Attribute '"+arg0+"'"); }
     @Override public void visitEnd() { }
     
     @Override
-    public FieldVisitor visitField(int arg0, String name, String desc, String sig, Object arg4) {
+    public org.codehaus.jackson.org.objectweb.asm.FieldVisitor visitField(int arg0, String name, String desc, String sig, Object arg4) {
         System.out.println(" Field '"+name+"; desc '"+desc+"', sig '"+sig+"', value: "+arg4);
         return null;
     }
@@ -194,7 +198,7 @@ cr.accept(new ClassVisitor() {
     public void visitInnerClass(String arg0, String arg1, String arg2, int arg3) { }
     
     @Override
-    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+    public org.codehaus.jackson.org.objectweb.asm.MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         System.out.println("Method '"+name+"' (access 0x"+Integer.toHexString(access)+"): desc "+desc+", signature "+signature);
         return null;
     }

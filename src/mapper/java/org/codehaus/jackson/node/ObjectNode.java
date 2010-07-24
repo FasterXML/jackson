@@ -178,12 +178,16 @@ public class ObjectNode
      */
     public JsonNode putAll(Map<String,JsonNode> properties)
     {
-        for (Map.Entry<String, JsonNode> en : properties.entrySet()) {
-            JsonNode n = en.getValue();
-            if (n == null) {
-                n = nullNode();
+        if (_children == null) {
+            _children = new LinkedHashMap<String, JsonNode>(properties);
+        } else {
+            for (Map.Entry<String, JsonNode> en : properties.entrySet()) {
+                JsonNode n = en.getValue();
+                if (n == null) {
+                    n = nullNode();
+                }
+                _children.put(en.getKey(), n);
             }
-            _children.put(en.getKey(), n);
         }
         return this;
     }
@@ -200,10 +204,12 @@ public class ObjectNode
      */
     public JsonNode putAll(ObjectNode other)
     {
-        Iterator<Map.Entry<String,JsonNode>> it = other.getFields();
-        while (it.hasNext()) {
-            Map.Entry<String,JsonNode> en = it.next();
-            _children.put(en.getKey(), en.getValue());
+        int len = other.size();
+        if (len > 0) {
+            if (_children == null) {
+                _children = new LinkedHashMap<String, JsonNode>(len);
+            }
+            other.putContentsTo(_children);
         }
         return this;
     }
@@ -307,6 +313,24 @@ public class ObjectNode
             putNull(fieldName);
         } else {
             _put(fieldName, binaryNode(v));
+        }
+    }
+
+    /*
+    /**********************************************************
+    /* Package methods (for other node classes to use)
+    /**********************************************************
+     */
+
+    /**
+     * @since 1.6
+     */
+    protected void putContentsTo(Map<String,JsonNode> dst)
+    {
+        if (_children != null) {
+            for (Map.Entry<String,JsonNode> en : _children.entrySet()) {
+                dst.put(en.getKey(), en.getValue());
+            }
         }
     }
 

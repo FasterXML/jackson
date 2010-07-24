@@ -88,4 +88,16 @@ public class TestObjectNode
         assertNotNull(n);
         assertSame(n, NullNode.instance);
     }
+
+    /**
+     * Another test to verify [JACKSON-227]...
+     */
+    public void testNullChecking2()
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode src = mapper.createObjectNode();
+        ObjectNode dest = mapper.createObjectNode();
+        src.put("a", "b");
+        dest.putAll(src);
+    }
 }

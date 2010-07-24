@@ -13,7 +13,7 @@ import org.codehaus.jackson.map.SerializerProvider;
 public final class ArrayNode
     extends ContainerNode
 {
-    ArrayList<JsonNode> _children;
+    protected ArrayList<JsonNode> _children;
 
     public ArrayNode(JsonNodeFactory nc) { super(nc); }
 
@@ -133,15 +133,12 @@ public final class ArrayNode
      */
     public JsonNode addAll(ArrayNode other)
     {
-        ArrayList<JsonNode> contents = other._children;
-        if (contents != null) {
+        int len = other.size();
+        if (len > 0) {
             if (_children == null) {
-                _children = new ArrayList<JsonNode>(contents);
-            } else {
-                for (int i = 0, len = contents.size(); i < len; ++i) {
-                    _children.add(contents.get(i));
-                }
+                _children = new ArrayList<JsonNode>(len+2);
             }
+            other.addContentsTo(_children);
         }
         return this;
     }
@@ -157,14 +154,12 @@ public final class ArrayNode
      */
     public JsonNode addAll(Collection<JsonNode> nodes)
     {
-        if (_children == null) {
-            _children = new ArrayList<JsonNode>(nodes);
-        } else {
-            for (JsonNode n : nodes) {
-                if (n == null) {
-                    n = nullNode();
-                }
-                _children.add(n);
+        int len = nodes.size();
+        if (len > 0) {
+            if (_children == null) {
+                _children = new ArrayList<JsonNode>(nodes);
+            } else {
+                _children.addAll(nodes);
             }
         }
         return this;
@@ -408,6 +403,24 @@ public final class ArrayNode
         }
     }
 
+    /*
+    /**********************************************************
+    /* Package methods (for other node classes to use)
+    /**********************************************************
+     */
+
+    /**
+     * @since 1.6
+     */
+    protected void addContentsTo(List<JsonNode> dst)
+    {
+        if (_children != null) {
+            for (JsonNode n : _children) {
+                dst.add(n);
+            }
+        }
+    }
+    
     /*
     /**********************************************************
     /* Standard methods

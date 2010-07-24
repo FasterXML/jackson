@@ -182,7 +182,7 @@ public class BeanBuilder
     {
         // !!! TODO: add signature
         String sig = type.isGeneric() ? type.genericSignature() : null;
-        FieldVisitor fv = cw.visitField(0, prop.getFieldName(), type.erasedSignature(), sig, null);
+        FieldVisitor fv = cw.visitField(ACC_PUBLIC, prop.getFieldName(), type.erasedSignature(), sig, null);
         fv.visitEnd();
     }
 
@@ -206,6 +206,7 @@ System.err.println("  desc == ["+desc+"]");
 System.err.println("   sig == ["+sig+"]");
 */
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, desc, sig, null);
+        mv.visitCode();
         mv.visitVarInsn(ALOAD, 0); // this
         mv.visitVarInsn(propertyType.getLoadOpcode(), 1);
         mv.visitFieldInsn(PUTFIELD, internalClassName, prop.getFieldName(), propertyType.erasedSignature());
@@ -230,11 +231,12 @@ System.err.println("   sig == ["+sig+"]");
         }
         String sig = propertyType.isGeneric() ? ("()"+propertyType.genericSignature()) : null;
 /*        
-System.err.println("Method: "+methodName);
-System.err.println("  desc == ["+desc+"]");
-System.err.println("   sig == ["+sig+"]");
+System.out.println("Method: "+methodName);
+System.out.println("  desc == ["+desc+"]");
+System.out.println("   sig == ["+sig+"]");
 */
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, desc, sig, null);
+        mv.visitCode();
         mv.visitVarInsn(ALOAD, 0); // load 'this'
         mv.visitFieldInsn(GETFIELD, internalClassName, prop.getFieldName(), propertyType.erasedSignature());
         mv.visitInsn(propertyType.getReturnOpcode());
