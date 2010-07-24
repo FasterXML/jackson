@@ -1,5 +1,6 @@
 package org.codehaus.jackson.node;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -66,6 +67,17 @@ public class TestObjectNode
         o1.putAll(o2);
         assertEquals(0, o1.size());
         assertEquals(0, o2.size());
+    }
 
+    /**
+     * Another test to verify [JACKSON-227]...
+     */
+    public void testNullChecking2()
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode src = mapper.createObjectNode();
+        ObjectNode dest = mapper.createObjectNode();
+        src.put("a", "b");
+        dest.putAll(src);
     }
 }

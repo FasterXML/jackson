@@ -39,7 +39,7 @@
     <fail unless="password" message="Must define -Dpassword" />
 
     <!-- uploads done using webdav, need to register -->
-    <artifact:install-provider artifactId="wagon-webdav" version="1.0-beta-1" />
+    <artifact:install-provider artifactId="wagon-webdav" version="1.0-beta-2" />
 
     <echo message="(authenticating as user '${user}')" />
     <artifact:remoteRepository id="repo.release"
