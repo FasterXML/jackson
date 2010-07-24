@@ -28,7 +28,7 @@ public class TestArrayNode
         assertNull(n.get("x")); // not used with arrays
         assertTrue(n.path("x").isMissingNode());
         assertSame(text, n.get(0));
-
+        
         // add null node too
         n.add((JsonNode) null);
         assertEquals(2, n.size());
@@ -111,6 +111,18 @@ public class TestArrayNode
         assertEquals(0, a2.size());
     }
 
+    /**
+     * Another test to verify [JACKSON-227]...
+     */
+    public void testNullChecking2()
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode src = mapper.createArrayNode();
+        ArrayNode dest = mapper.createArrayNode();
+        src.add("element");
+        dest.addAll(src);
+    }
+    
     public void testParser() throws Exception
     {
         ArrayNode n = new ArrayNode(JsonNodeFactory.instance);

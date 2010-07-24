@@ -1,5 +1,6 @@
 package org.codehaus.jackson.node;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -67,5 +68,32 @@ public class TestObjectNode
         assertEquals(0, o1.size());
         assertEquals(0, o2.size());
 
+        // also: nulls should be converted to NullNodes...
+        o1.put("x", (ObjectNode) null);
+        JsonNode n = o1.get("x");
+        assertNotNull(n);
+        assertSame(n, NullNode.instance);
+
+        o1.put("str", (String) null);
+        n = o1.get("str");
+        assertNotNull(n);
+        assertSame(n, NullNode.instance);
+
+        o1.put("d", (BigDecimal) null);
+        n = o1.get("d");
+        assertNotNull(n);
+        assertSame(n, NullNode.instance);
+    }
+
+    /**
+     * Another test to verify [JACKSON-227]...
+     */
+    public void testNullChecking2()
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode src = mapper.createObjectNode();
+        ObjectNode dest = mapper.createObjectNode();
+        src.put("a", "b");
+        dest.putAll(src);
     }
 }
