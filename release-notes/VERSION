@@ -1,22 +1,27 @@
-Version: 1.4.5
+Version: 1.4.6
 
 Release date:
-  24-Jul-2010
+  xx-xxx-2010
 
 Description:
-  Fifth patch release for 1.4.
+  Sixth patch release for 1.4.
 
   Fixes:
 
   * [JACKSON-227] Earlier fixes were incomplete; still more work done
-  * [JACKSON-285] Problem with @JsonCreator annotated constructor that
-    also uses @JsonDeserialize annotations
-  * [JACKSON-307] JAX-RS provider (JacksonJsonProvider) regression from
-    1.3; single-argument (ObjectMapper) constructor was missing.
 
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
+
+1.4.5 [25-Jun-2010]
+
+  Fixes:
+
+  * [JACKSON-285] Problem with @JsonCreator annotated constructor that
+    also uses @JsonDeserialize annotations
+  * [JACKSON-307] JAX-RS provider (JacksonJsonProvider) regression from
+    1.3; single-argument (ObjectMapper) constructor was missing.
 
 1.4.4 [25-Apr-2010]
 
