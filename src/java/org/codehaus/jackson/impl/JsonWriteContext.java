@@ -29,9 +29,9 @@ public abstract class JsonWriteContext
     /**********************************************************
      */
 
-    JsonWriteContext _childArray = null;
+    protected JsonWriteContext _childArray = null;
 
-    JsonWriteContext _childObject = null;
+    protected JsonWriteContext _childObject = null;
 
     /*
     /**********************************************************

@@ -104,5 +104,25 @@ public class TestSmileGeneratorNumbers
         gen.close();
         assertEquals(11, out.toByteArray().length);
     }
-    
+
+    public void testFloats() throws Exception
+    {
+        // float length is fixed, 6 bytes
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SmileGenerator gen = _generator(out, false);
+        gen.writeNumber(0.125f);
+        gen.close();
+        assertEquals(6, out.toByteArray().length);
+    }    
+
+    public void testDoubles() throws Exception
+    {
+        // double length is fixed, 11 bytes
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SmileGenerator gen = _generator(out, false);
+        gen.writeNumber(0.125);
+        gen.close();
+        assertEquals(11, out.toByteArray().length);
+    }    
+
 }

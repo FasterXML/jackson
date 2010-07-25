@@ -200,6 +200,43 @@ public class TestSmileParserNumbers
     	assertToken(JsonToken.END_ARRAY, p.nextToken());
     }
 
+    public void testObjectWithDoubles() throws IOException
+    {
+        ByteArrayOutputStream bo = new ByteArrayOutputStream();
+        SmileGenerator g = _generator(bo, false);
+        g.writeStartObject();
+        g.writeNumberField("x", 0.5);
+        g.writeNumberField("y", 0.01338);
+        g.writeEndObject();
+        g.close();
+        
+        byte[] data = bo.toByteArray();
+
+        // first let's just skip 
+        SmileParser p = _parser(data);
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+        p.close();
+        
+        // and then check data too (skip codepath distinct)
+        p = _parser(data);
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        assertEquals("x", p.getText());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
+        assertEquals(0.5, p.getDoubleValue());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        assertEquals("y", p.getText());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
+        assertEquals(0.01338, p.getDoubleValue());
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+        p.close();
+    }
+    
     public void testBigInteger() throws IOException
     {
     	ByteArrayOutputStream bo = new ByteArrayOutputStream();

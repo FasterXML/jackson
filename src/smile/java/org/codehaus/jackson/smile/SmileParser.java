@@ -258,7 +258,7 @@ public class SmileParser
         if (_parsingContext.inObject() && _currToken != JsonToken.FIELD_NAME) {
             return (_currToken = _handleFieldName());
         }
-        
+
         switch ((ch >> 5) & 0x7) {
         case 0: // short shared string value reference
         case 1: // misc literals
@@ -333,10 +333,10 @@ public class SmileParser
                     {
                     	int subtype = typeBits & 0x3;
     	                if (subtype <= 0x2) { // 0x3 reserved (should never occur)
-    		                _tokenIncomplete = true;
-    		                _numTypesValid = 0;
-    		                _got32BitFloat = (subtype == 0);
-    		                return (_currToken = JsonToken.VALUE_NUMBER_FLOAT);
+    	                    _tokenIncomplete = true;
+    	                    _numTypesValid = 0;
+    	                    _got32BitFloat = (subtype == 0);
+    	                    return (_currToken = JsonToken.VALUE_NUMBER_FLOAT);
     	                }
                     }
                     break;
@@ -581,7 +581,7 @@ public class SmileParser
                    }
                    _sharedNames[_sharedNameCount++] = name;
                 }
-	            _parsingContext.setCurrentName(name);
+                _parsingContext.setCurrentName(name);
 	    }
 	    return JsonToken.FIELD_NAME;                
         case 3: // short Unicode
@@ -993,16 +993,16 @@ public class SmileParser
     private final void _finishDouble()
 	throws IOException, JsonParseException
     {
-	// ok; let's take two sets of 4 bytes (each is int)
+        // ok; let's take two sets of 4 bytes (each is int)
 	long hi = _fourBytesToInt();
 	long value = (hi << 28) + (long) _fourBytesToInt();
 	// and then remaining 2 bytes
 	if (_inputPtr >= _inputEnd) {
-		loadMoreGuaranteed();
+	    loadMoreGuaranteed();
 	}
 	value = (value << 7) + _inputBuffer[_inputPtr++];
 	if (_inputPtr >= _inputEnd) {
-		loadMoreGuaranteed();
+	    loadMoreGuaranteed();
 	}
 	value = (value << 7) + _inputBuffer[_inputPtr++];
 	_numberDouble = Double.longBitsToDouble(value);
@@ -1389,7 +1389,7 @@ public class SmileParser
             	    _skipBytes(5);
             	    return;
             	case 1: // double
-            	    _skipBytes(11);
+            	    _skipBytes(10);
             	    return;
         	case 2: // big-decimal
             	    // first, skip scale

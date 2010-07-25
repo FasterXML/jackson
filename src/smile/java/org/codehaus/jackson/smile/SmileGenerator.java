@@ -205,6 +205,14 @@ public class SmileGenerator
      */
     protected final int _outputEnd;
 
+    /**
+     * Let's keep track of how many bytes have been output, may prove useful
+     * when debugging. This does <b>not</b> include bytes buffered in
+     * the output buffer, just bytes that have been written using underlying
+     * stream writer.
+     */
+    protected int _bytesWritten;
+    
     /*
     /**********************************************************
     /* Shared String detection
@@ -1425,6 +1433,7 @@ public class SmileGenerator
     protected final void _flushBuffer() throws IOException
     {
         if (_outputTail > 0) {
+            _bytesWritten += _outputTail;
             _out.write(_outputBuffer, 0, _outputTail);
             _outputTail = 0;
         }
@@ -1493,6 +1502,14 @@ public class SmileGenerator
     /* Internal methods, error reporting
     /**********************************************************
      */
+
+    /**
+     * Method for accessing offset of the next byte within the whole output
+     * stream that this generator has produced.
+     */
+    protected long outputOffset() {
+        return _bytesWritten + _outputTail;
+    }
     
     protected UnsupportedOperationException _notSupported() {
         return new UnsupportedOperationException();

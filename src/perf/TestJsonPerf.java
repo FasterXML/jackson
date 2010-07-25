@@ -169,6 +169,7 @@ public final class TestJsonPerf
     	jp.close();
     	jg.close();
     	byte[] smileBytes = out.toByteArray();
+    	System.out.println("Written as "+smileBytes.length+" Smile bytes from "+json.length+" JSON bytes; will verify correctness");
 
     	// One more thing: let's actually verify correctness!
     	JsonParser sp = _smileFactory.createJsonParser(new ByteArrayInputStream(smileBytes));
