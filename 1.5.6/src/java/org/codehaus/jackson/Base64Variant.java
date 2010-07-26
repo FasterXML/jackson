@@ -48,9 +48,9 @@ public final class Base64Variant
     public final static int BASE64_VALUE_PADDING = -2;
 
     /*
-    ////////////////////////////////////////////////////
-    // Encoding/decoding tables
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Encoding/decoding tables
+    /**********************************************************
      */
 
     /**
@@ -71,9 +71,9 @@ public final class Base64Variant
     private final byte[] _base64ToAsciiB = new byte[64];
 
     /*
-    ////////////////////////////////////////////////////
-    // Other configuration
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Other configuration
+    /**********************************************************
      */
 
     /**
@@ -102,9 +102,9 @@ public final class Base64Variant
     final int _maxLineLength;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public Base64Variant(String name, String base64Alphabet, boolean usesPadding, char paddingChar, int maxLineLength)
@@ -168,9 +168,9 @@ public final class Base64Variant
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public accessors
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public accessors
+    /**********************************************************
      */
 
     public String getName() { return _name; }
@@ -184,9 +184,9 @@ public final class Base64Variant
     public int getMaxLineLength() { return _maxLineLength; }
 
     /*
-    ////////////////////////////////////////////////////
-    // Decoding support
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Decoding support
+    /**********************************************************
      */
 
     /**
@@ -210,9 +210,9 @@ public final class Base64Variant
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Encoding support
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Encoding support
+    /**********************************************************
      */
 
     public char encodeBase64BitsAsChar(int value)
@@ -327,10 +327,84 @@ public final class Base64Variant
         return outPtr;
     }
 
+    /**
+     * Convenience method for converting given byte array as base64 encoded
+     * String using this variant's settings.
+     * Resulting value is "raw", that is, not enclosed in double-quotes.
+     * 
+     * @param input Byte array to encode
+     * 
+     * @since 1.6
+     */
+    public String encode(byte[] input)
+    {
+        return encode(input, false);
+    }
+
+    /**
+     * Convenience method for converting given byte array as base64 encoded
+     * String using this variant's settings, optionally enclosed in
+     * double-quotes.
+     * 
+     * @param input Byte array to encode
+     * @param addQuotes Whether to surround resulting value in double quotes
+     *   or not
+     * 
+     * @since 1.6
+     */
+    public String encode(byte[] input, boolean addQuotes)
+    {
+        int inputEnd = input.length;
+        StringBuilder sb;
+        {
+            // let's approximate... 33% overhead, ~= 3/8 (0.375)
+            int outputLen = inputEnd + (inputEnd >> 2) + (inputEnd >> 3);
+            sb = new StringBuilder(outputLen);
+        }
+        if (addQuotes) {
+            sb.append('"');
+        }
+
+        int chunksBeforeLF = getMaxLineLength() >> 2;
+
+        // Ok, first we loop through all full triplets of data:
+        int inputPtr = 0;
+        int safeInputEnd = inputEnd-3; // to get only full triplets
+
+        while (inputPtr <= safeInputEnd) {
+            // First, mash 3 bytes into lsb of 32-bit int
+            int b24 = ((int) input[inputPtr++]) << 8;
+            b24 |= ((int) input[inputPtr++]) & 0xFF;
+            b24 = (b24 << 8) | (((int) input[inputPtr++]) & 0xFF);
+            encodeBase64Chunk(sb, b24);
+            if (--chunksBeforeLF <= 0) {
+                // note: must quote in JSON value, so not really useful...
+                sb.append('\\');
+                sb.append('n');
+                chunksBeforeLF = getMaxLineLength() >> 2;
+            }
+        }
+
+        // And then we may have 1 or 2 leftover bytes to encode
+        int inputLeft = inputEnd - inputPtr; // 0, 1 or 2
+        if (inputLeft > 0) { // yes, but do we have room for output?
+            int b24 = ((int) input[inputPtr++]) << 16;
+            if (inputLeft == 2) {
+                b24 |= (((int) input[inputPtr++]) & 0xFF) << 8;
+            }
+            encodeBase64Partial(sb, b24, inputLeft);
+        }
+
+        if (addQuotes) {
+            sb.append('"');
+        }
+        return sb.toString();
+    }
+    
     /*
-    ////////////////////////////////////////////////////
-    // other methods
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* other methods
+    /**********************************************************
      */
 
     // @Override
