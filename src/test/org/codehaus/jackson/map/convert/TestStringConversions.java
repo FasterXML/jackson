@@ -32,4 +32,16 @@ public class TestStringConversions
         assertArrayEquals(new int[] { 1, 2, 3, 4, -1, 0 },
                           mapper.convertValue("1  2 3    4  -1 0".split("\\s+"), int[].class));
     }
+
+    /**
+     * @since 1.6
+     */
+    public void testBytesToBase64AndBack() throws Exception
+    {
+        byte[] input = new byte[] { 1, 2, 3, 4, 5, 6, 7 };
+        String encoded = mapper.convertValue(input, String.class);
+        assertNotNull(encoded);
+        byte[] result = mapper.convertValue(encoded, byte[].class);
+        assertArrayEquals(input, result);
+    }
 }

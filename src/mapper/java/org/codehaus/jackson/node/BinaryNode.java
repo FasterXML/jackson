@@ -79,7 +79,7 @@ public final class BinaryNode
      * but will work correctly.
      */
     public String getValueAsText() {
-        return _asBase64(false, _data);
+        return Base64Variants.getDefaultVariant().encode(_data, false);
     }
 
     @Override
@@ -112,65 +112,6 @@ public final class BinaryNode
     @Override
     public String toString()
     {
-        return _asBase64(true, _data);
+        return Base64Variants.getDefaultVariant().encode(_data, true);
     }
-
-    /*
-    /////////////////////////////////////////////////////////////////
-    // Internal methods
-    /////////////////////////////////////////////////////////////////
-     */
-
-    protected static String _asBase64(boolean addQuotes, byte[] input)
-    {
-        int inputEnd = input.length;
-        StringBuilder sb = new StringBuilder(_outputLength(inputEnd));
-        if (addQuotes) {
-            sb.append('"');
-        }
-        // should there be a way to customize this?
-        Base64Variant b64variant = Base64Variants.getDefaultVariant();
-
-        int chunksBeforeLF = b64variant.getMaxLineLength() >> 2;
-
-        // Ok, first we loop through all full triplets of data:
-        int inputPtr = 0;
-        int safeInputEnd = inputEnd-3; // to get only full triplets
-
-        while (inputPtr <= safeInputEnd) {
-            // First, mash 3 bytes into lsb of 32-bit int
-            int b24 = ((int) input[inputPtr++]) << 8;
-            b24 |= ((int) input[inputPtr++]) & 0xFF;
-            b24 = (b24 << 8) | (((int) input[inputPtr++]) & 0xFF);
-            b64variant.encodeBase64Chunk(sb, b24);
-            if (--chunksBeforeLF <= 0) {
-                // note: must quote in JSON value, so not really useful...
-                sb.append('\\');
-                sb.append('n');
-                chunksBeforeLF = b64variant.getMaxLineLength() >> 2;
-            }
-        }
-
-        // And then we may have 1 or 2 leftover bytes to encode
-        int inputLeft = inputEnd - inputPtr; // 0, 1 or 2
-        if (inputLeft > 0) { // yes, but do we have room for output?
-            int b24 = ((int) input[inputPtr++]) << 16;
-            if (inputLeft == 2) {
-                b24 |= (((int) input[inputPtr++]) & 0xFF) << 8;
-            }
-            b64variant.encodeBase64Partial(sb, b24, inputLeft);
-        }
-
-        if (addQuotes) {
-            sb.append('"');
-        }
-        return sb.toString();
-    }
-
-    private static int _outputLength(int inputLen)
-    {
-        // let's approximate... 33% overhead, ~= 3/8 (0.375)
-        return inputLen + (inputLen >> 2) + (inputLen >> 3);
-    }
-
 }

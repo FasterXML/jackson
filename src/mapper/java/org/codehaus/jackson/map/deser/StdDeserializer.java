@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
@@ -413,6 +414,18 @@ public abstract class StdDeserializer<T>
             // Usually should just get string value:
             if (curr == JsonToken.VALUE_STRING) {
                 return jp.getText();
+            }
+            // [JACKSON-330]: need to gracefully handle byte[] data, as base64
+            if (curr == JsonToken.VALUE_EMBEDDED_OBJECT) {
+                Object ob = jp.getEmbeddedObject();
+                if (ob == null) {
+                    return null;
+                }
+                if (ob instanceof byte[]) {
+                    return Base64Variants.getDefaultVariant().encode((byte[]) ob, false);
+                }
+                // otherwise, try conversion using toString()...
+                return ob.toString();
             }
             // Can deserialize any scalar value, but not markers
             if (curr.isScalarValue()) {

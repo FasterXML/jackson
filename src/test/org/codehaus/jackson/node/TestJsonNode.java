@@ -169,7 +169,7 @@ public class TestJsonNode
         assertTrue(n.equals(n2));
         assertEquals("\"Aw==\"", n.toString());
 
-        assertEquals("AAMD", BinaryNode._asBase64(false, data));
+        assertEquals("AAMD", new BinaryNode(data).getValueAsText());
     }
 
     public void testPOJO()
