@@ -1,0 +1,396 @@
+<?xml version="1.0" standalone='yes'?>
+
+  <project name="Jackson JSON processor" basedir="." default="readme">
+
+    <!-- Source directories -->
+    <property name="dir.src" location="${basedir}/src" />
+    <property name="dir.src.java.core" location="${dir.src}/java" />
+    <property name="dir.src.java.mapper" location="${dir.src}/mapper/java" />
+    <property name="dir.src.java.jaxrs" location="${dir.src}/jaxrs/java" />
+    <property name="dir.src.java.xc" location="${dir.src}/xc/java" />
+    <property name="dir.src.resource.jaxrs" location="${dir.src}/jaxrs/resources" />
+    <property name="dir.src.maven" location="${dir.src}/maven" />
+    <property name="dir.src.sample" location="${dir.src}/sample" />
+    <property name="dir.src.tools" location="${dir.src}/tools" />
+    <property name="dir.releasenotes" location="${basedir}/release-notes" />
+
+    <!-- Libs -->
+    <property name="dir.lib" location="${basedir}/lib" />
+    <!-- Build-related -->
+    <property name="dir.build" location="${basedir}/build" />
+    <property name="dir.build.classes.core" location="${dir.build}/classes/core" />
+    <property name="dir.build.classes.mapper" location="${dir.build}/classes/mapper" />
+    <property name="dir.build.classes.jaxrs" location="${dir.build}/classes/jaxrs" />
+    <property name="dir.build.classes.xc" location="${dir.build}/classes/xc" />
+    <!-- both "sample" and "tools" java code goes under "extra" -->
+    <property name="dir.build.classes.extra" location="${dir.build}/classes/extra" />
+
+    <!-- Documentation -->
+    <property name="dir.doc" location="${basedir}/doc" />
+    <property name="dir.javadoc" location="${dir.build}/javadoc" />
+
+    <!-- Distribution -->
+    <property name="dir.dist" location="${basedir}/dist" />
+    <property name="dir.snapshot" location="${basedir}/build/snapshot" />
+
+    <!-- Version information -->
+
+    <!-- Version -->
+    <property name="JSON_TITLE" value="JSON - JavaScript Object Notation" />
+    <property name="JSON_VERSION" value="1.0" />
+    <property name="JSON_VENDOR" value="http://www.ietf.org/rfc/rfc4627.txt" />
+    <property name="IMPL_TITLE_CORE" value="Jackson JSON processor" />
+    <property name="IMPL_TITLE_MAPPER" value="Data mapper for Jackson JSON processor" />
+    <property name="IMPL_TITLE_JAXRS" value="JAX-RS provider for Json content type, using Jackson data binding" />
+    <property name="IMPL_TITLE_XC" value="XML Compatibility extensions for Jackson data binding" />
+
+    <property name="IMPL_VERSION" value="1.5.5" />
+    <property name="IMPL_VENDOR" value="http://fasterxml.com" />
+
+    <patternset id="dist-all-source-files">
+          <include name="README.txt" />
+          <include name="build*.xml" />
+          <include name="release-notes/*" />
+          <include name="DEV/contributor*" />
+          <include name="src/**/*.java" />
+          <include name="src/java/**/*.html" />
+          <include name="src/maven/*.pom" />
+          <include name="release-notes/*" />
+          <include name="release-notes/asl/*" />
+          <include name="release-notes/lgpl/*" />
+          <!-- need jars for auxiliary tasks (tests), although jackson
+               itself does not depend on any other packages, just JDK 1.5
+            -->
+          <include name="lib/**/*.jar" />
+          <include name="samples/**/*.jsn" />
+    </patternset>
+
+    <!-- some build tasks are refactored out of the main task -->
+    <import file="build-osgi.xml" />
+    <import file="build-maven-deploy.xml" />
+    <import file="build-coverage.xml" />
+    <import file="build-test.xml" />
+
+
+    <!--*********************************************************************-->
+    <!-- The readme target shows a brief description of all targets          -->
+    <!-- supported by this ant build file                                    -->
+    <!--*********************************************************************-->
+    <target name="readme">
+        <echo message = "${ant.project.name}'s Available Targets" />
+        <echo message = "---------------------------------------------------" />
+        <echo message = "1)  readme - Displays this information (default target)." />
+        <echo message = "2)  clean - Remove any generated files/directories." />
+        <echo message = "3)  build - Compile all code, run unit tests" />
+        <echo message = "4)  jars - Compile and create all jars for non-test ${ant.project.name} code" />
+        <echo message = "5)  javadoc - Generate ${ant.project.name} code documentation." />
+        <echo message = "6)  test - Run JUnit tests." />
+        <echo message = "7)  dist - Create distribution directory and copy necessary files there" />
+        <echo message = "8) all - Run clean, compile, test, javadoc," />
+        <echo message = "         and dist targets." />  
+        <echo message = "" />
+        <echo message = "Available command-line arguments:" />
+        <echo message = "---------------------------------" />
+        <echo message = "none" />
+    </target>
+
+    <target name="prepare">
+        <!-- make build directories -->
+        <mkdir dir="${dir.build}" />
+        <mkdir dir="${dir.build.classes.core}" />
+        <mkdir dir="${dir.build.classes.mapper}" />
+        <mkdir dir="${dir.build.classes.jaxrs}" />
+        <mkdir dir="${dir.build.classes.xc}" />
+        <mkdir dir="${dir.build.classes.extra}" />
+
+        <!-- make docs directories -->
+        <mkdir dir="${dir.doc}" />
+        <mkdir dir="${dir.javadoc}" />
+
+        <!-- and finally distribution dir -->
+        <mkdir dir="${dir.dist}" />
+        <mkdir dir="${dir.snapshot}" />
+    </target>
+
+    <!-- ***********************************************
+       - clean - Removes all generated files/directories
+       - ***********************************************-->
+
+    <target name="clean">
+        <delete dir="${dir.build}"/>
+        <delete dir="${dir.doc}"/>
+        <delete dir="${dir.test}"/>
+        <delete dir="${dir.dist}"/>
+        <delete file="cobertura.ser" />
+    </target>
+
+    <target name="build" depends="compile, all-tests" />
+
+    <target name="compile" depends="compile.all" />
+    <target name="compile.all" depends="
+compile.main, test.compile, compile.extra, compile.perf" />
+    <target name="compile.main"
+      depends="compile.core, compile.mapper, compile.jaxrs, compile.xc" />
+
+    <target name="compile.core" depends="prepare">
+        <javac srcdir="${dir.src.java.core}" destdir="${dir.build.classes.core}"
+            source="1.5" target="1.5"
+            debug="true"
+        >
+            <compilerarg value="-Xlint:unchecked" />
+            <include name="org/codehaus/**/*.java" />
+        </javac>
+    </target>
+
+    <target name="compile.mapper" depends="compile.core">
+        <javac srcdir="${dir.src.java.mapper}" destdir="${dir.build.classes.mapper}"
+            source="1.5" target="1.5"
+            debug="true"
+        >
+            <compilerarg value="-Xlint:unchecked" />
+            <include name="org/codehaus/jackson/**/*.java" />
+            <!-- mapper builds on core classes -->
+            <classpath>
+               <pathelement path="${dir.build.classes.core}"/>  
+               <!-- We support some ext libs (like Joda time) -->
+               <fileset dir="${dir.lib}/ext">
+                    <include name="*.jar" />
+               </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile.xc" depends="compile.mapper">
+        <javac srcdir="${dir.src.java.xc}" destdir="${dir.build.classes.xc}"
+            source="1.5" target="1.5"
+            debug="true"
+        >
+            <compilerarg value="-Xlint:unchecked" />
+            <include name="org/codehaus/jackson/**/*.java" />
+            <!-- builds on core and mapper classes -->
+            <classpath>
+               <pathelement path="${dir.build.classes.core}"/>  
+               <pathelement path="${dir.build.classes.mapper}"/>  
+               <!-- For JDK 1.5 build, need JAXB API -->
+               <fileset dir="${dir.lib}/jaxb">
+                    <include name="*.jar" />
+               </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile.jaxrs" depends="compile.mapper,compile.xc">
+        <javac srcdir="${dir.src.java.jaxrs}" destdir="${dir.build.classes.jaxrs}"
+            source="1.5" target="1.5"
+            debug="true"
+        >
+            <compilerarg value="-Xlint:unchecked" />
+            <include name="org/codehaus/jackson/**/*.java" />
+            <!-- builds on core and mapper classes -->
+            <classpath>
+               <fileset dir="${dir.lib}/jaxrs">
+                    <include name="*.jar" />
+               </fileset>
+               <pathelement path="${dir.build.classes.core}"/>  
+               <pathelement path="${dir.build.classes.mapper}"/>  
+               <!-- this is optional dependency, but needed for compilation -->
+               <pathelement path="${dir.build.classes.xc}"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile.extra" depends="compile.main">
+        <javac destdir="${dir.build.classes.extra}"
+            source="1.5" target="1.5" debug="true"
+        >
+            <compilerarg value="-Xlint:unchecked" />
+            <src path="${dir.src.sample}" /> 
+            <src path="${dir.src.tools}" /> 
+            <include name="**/*.java" />
+            <!-- need core and mapper classes -->
+            <classpath>
+               <pathelement path="${dir.build.classes.core}"/>
+               <pathelement path="${dir.build.classes.mapper}"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile.perf" depends="compile.main">
+      <mkdir dir="${dir.build.classes.perf}" />
+        <!-- Let's also compile micro-benchmarks... -->
+        <javac srcdir="${dir.src}/perf" destdir="${dir.build.classes.perf}" debug="true"
+        >
+            <classpath>
+               <fileset dir="${dir.lib}/perf">
+                    <include name="*.jar" />
+               </fileset>
+               <pathelement path="${dir.build.classes.core}"/>  
+               <pathelement path="${dir.build.classes.mapper}"/>  
+            </classpath>
+            <include name="**/*.java" />
+        </javac>
+    </target>
+
+    <!-- Dummy target that just includes all individual jars... --> 
+    <target name="jars"
+       depends="jars.asl, jars.lgpl, jars.other"
+    />
+
+    <target name="javadoc" depends="compile.all">
+        <!-- Build a dirpath that contains just the "source" tree -->
+        <javadoc windowtitle="Jackson JSON Processor"
+            destdir="${dir.javadoc}" 
+            author="true" version="true" use="true">
+
+            <classpath>
+               <fileset dir="${dir.lib}/jaxrs">
+                    <include name="*.jar" />
+               </fileset>
+            </classpath>
+
+            <packageset dir="${dir.src.java.core}" defaultexcludes="yes">
+                <include name="org/codehaus/**" />
+            </packageset>
+            <packageset dir="${dir.src.java.mapper}" defaultexcludes="yes">
+                <include name="org/codehaus/**" />
+            </packageset>
+            <packageset dir="${dir.src.java.jaxrs}" defaultexcludes="yes">
+                <include name="org/codehaus/jackson/jaxrs/**" />
+            </packageset>
+            <packageset dir="${dir.src.java.xc}" defaultexcludes="yes">
+                <include name="org/codehaus/jackson/xc/**" />
+            </packageset>
+
+            <!-- Need to link to regular JDK 6 classes  -->
+            <link href="http://java.sun.com/javase/6/docs/api" />
+            <!-- And JAX-RS (jsr-311) as well -->
+            <link href="http://jackson.codehaus.org/javadoc/jax-rs/1.0" />
+            <!-- And Joda time... -->
+            <link href="http://joda-time.sourceforge.net/api-release" />
+
+            <group title="Jackson Core" packages="org.codehaus.jackson*" />
+            <group title="Jackson Mapper"
+               packages="org.codehaus.jackson.map*:org.codehaus.jackson.node:org.codehaus.jackson.schema"
+            />
+            <group title="Jackson JAX-RS provider" packages="org.codehaus.jackson.jaxrs" />
+            <group title="Jackson XML Compatibility" packages="org.codehaus.jackson.xc" />
+        </javadoc>
+    </target> 
+
+    <!-- Generic distribution target builds the structure we copy over
+         to the website.
+      --> 
+    <target name="dist" depends="compile.all,jars,javadoc"
+    >
+       <!-- First, let's copy the binary jars to dist -->
+       <copy todir="${dir.dist}">
+          <fileset dir="${dir.build}" includes="*.jar" />
+       </copy>
+
+       <!-- Then let's create the source distribution tar packages
+          -->
+       <!-- Need to first copy to a tmp dir, to get the additional
+          directory (so tar/zip contents won't explode directly
+          in current dir)
+        -->
+       <property name="DIST_FILENAME" value="jackson-src-${IMPL_VERSION}" />
+       <property name="DIST_DIR" value="${DIST_FILENAME}" />
+
+       <!-- better always clean it up, if it exists... -->
+       <delete dir="${dir.build}/${DIST_DIR}" />
+       <mkdir dir="${dir.build}/${DIST_DIR}" />
+
+       <copy todir="${dir.build}/${DIST_DIR}">
+         <fileset dir="${basedir}">
+           <patternset refid="dist-all-source-files" />
+         </fileset>
+       </copy>
+
+       <!-- then create tarball, zip -->
+       <tar basedir="${dir.build}"
+        includes="${DIST_DIR}/**"
+        destfile="${dir.dist}/${DIST_FILENAME}.tar.gz"
+        compression="gzip"
+      />
+       <zip basedir="${dir.build}"
+        includes="${DIST_DIR}/**"
+        destfile="${dir.dist}/${DIST_FILENAME}.zip"
+      />
+
+       <!-- And create source jars for IDE support; separate for core, mapper
+            and both license types
+         -->
+       <jar destfile="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java.core}"
+          includes="org/codehaus/jackson/**"
+       />
+       <jar destfile="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java.mapper}"
+          includes="org/codehaus/jackson/map/**"
+       />
+
+       <jar destfile="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java.core}"
+          excludes="org/codehaus/jackson/map/**"
+          includes="org/codehaus/jackson/**"
+       />
+       <jar destfile="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java.mapper}"
+          includes="org/codehaus/jackson/map/**"
+       />
+       <jar destfile="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java.jaxrs}"
+          includes="org/codehaus/jackson/jaxrs/**"
+       />
+       <jar destfile="${dir.dist}/jackson-xc-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java.xc}"
+          includes="org/codehaus/jackson/xc/**"
+       />
+
+       <!-- Then copy javadocs -->
+       <copy todir="${dir.dist}">
+         <fileset dir="${dir.javadoc}/.." includes="javadoc/**/*" />
+       </copy>
+       <!-- Plus, let's also just copy README and compatibility files, in
+            addition to being included in source package
+         -->
+       <copy todir="${dir.dist}" >
+            <fileset dir="." includes="release-notes/*" />
+            <fileset dir="." includes="release-notes/asl/*" />
+            <fileset dir="." includes="release-notes/lgpl/*" />
+       </copy>
+       <!-- And also additional Maven stuff -->
+        <copy todir="${dir.dist}">
+            <fileset dir="${dir.src}/maven" includes="*.pom" />
+            <globmapper from="*.pom" to="*-${IMPL_VERSION}.pom" />
+            <filterset>
+                <filter token="VERSION" value="${IMPL_VERSION}" />
+            </filterset>
+        </copy>
+
+        <!-- 12-Jun-2009, tatu: Trying to make Maven snapshots work...
+          -->
+        <copy todir="${dir.snapshot}">
+            <fileset dir="${dir.src}/maven" includes="*.pom" />
+            <globmapper from="*.pom" to="*-${IMPL_VERSION}-SNAPSHOT.pom" />
+            <filterset>
+                <filter token="VERSION" value="${IMPL_VERSION}-SNAPSHOT" />
+            </filterset>
+        </copy>
+
+        <!-- 03-Dec-2008, tatu: Let's validate well-formedness of
+          resulting files (to avoid things like [JACKSON-25])
+         -->
+        <xmlvalidate lenient="true">
+        <!-- lenient: check only well-formedness, no dtd/schema (yet) -->
+            <fileset dir="${dir.dist}" includes="*.pom" />
+            <fileset dir="${dir.snapshot}" includes="*.pom" />
+        </xmlvalidate>
+    </target>
+
+    <target name="all" depends="clean,javadoc,test,dist">
+        <!-- This target simply depends on others to do its job -->
+    </target>
+
+
+</project>
