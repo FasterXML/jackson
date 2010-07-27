@@ -241,7 +241,6 @@ public class TestDefaultForObject
         buf.writeNumberField("num", 42);
         buf.writeEndObject();
         String json = mapper.writeValueAsString(new ObjectHolder(buf));
-System.out.println("JSON = '"+json+"'");        
         ObjectHolder holder = mapper.readValue(json, ObjectHolder.class);
         assertNotNull(holder.value);
         assertSame(TokenBuffer.class, holder.value.getClass());
@@ -311,5 +310,4 @@ System.out.println("JSON = '"+json+"'");
         assertEquals(1, map.size());
         assertEquals("abc", map.get("name"));
     }
-
 }
