@@ -1,5 +1,9 @@
 package org.codehaus.jackson.map.jsontype;
 
+import java.util.*;
+
+import org.junit.Assert;
+
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
@@ -11,7 +15,8 @@ import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.junit.Assert;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 public class TestTypedContainerSerialization
 	extends BaseMapTest
@@ -22,11 +27,11 @@ public class TestTypedContainerSerialization
 	@JsonSubTypes( { @Type(value = Dog.class, name = "doggy"),
 			@Type(value = Cat.class, name = "kitty") })
 	static abstract class Animal {
-		public String name;
+	    public String name;
 
-		protected Animal(String n) {
-			name = n;
-		}
+	    protected Animal(String n) {
+	        name = n;
+	    }
 	}
 
 	@JsonTypeName("doggie")
@@ -107,4 +112,15 @@ public class TestTypedContainerSerialization
 		Assert.assertTrue("polymorphic type info is kept (2)", s2
 				.indexOf("\"object-type\":\"doggy\"") >= 0);
 	}
+
+        public void testIssue329() throws Exception
+        {
+            ArrayList<Animal> animals = new ArrayList<Animal>();
+            animals.add(new Dog("Spot"));
+            JavaType rootType = TypeFactory.parametricType(Iterator.class, Animal.class);
+            String json = mapper.typedWriter(rootType).writeValueAsString(animals.iterator());
+            if (json.indexOf("\"object-type\":\"doggy\"") < 0) {
+                fail("No polymorphic type retained, should be; JSON = '"+json+"'");
+            }
+        }
 }

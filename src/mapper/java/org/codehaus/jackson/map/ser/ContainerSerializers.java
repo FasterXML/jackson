@@ -340,7 +340,7 @@ public final class ContainerSerializers
             if (it.hasNext()) {
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
-                TypeSerializer typeSer = _valueTypeSerializer;
+                final TypeSerializer typeSer = _valueTypeSerializer;
     
                 int i = 0;
                 do {
@@ -425,6 +425,7 @@ public final class ContainerSerializers
             throws IOException, JsonGenerationException
         {
             if (value.hasNext()) {
+                final TypeSerializer typeSer = _valueTypeSerializer;
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
                 do {
@@ -442,7 +443,11 @@ public final class ContainerSerializers
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
-                        currSerializer.serialize(elem, jgen, provider);
+                        if (typeSer == null) {
+                            currSerializer.serialize(elem, jgen, provider);
+                        } else {
+                            currSerializer.serializeWithType(elem, jgen, provider, typeSer);
+                        }
                     }
                 } while (value.hasNext());
             }
@@ -471,6 +476,7 @@ public final class ContainerSerializers
         {
             Iterator<?> it = value.iterator();
             if (it.hasNext()) {
+                final TypeSerializer typeSer = _valueTypeSerializer;
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
                 
@@ -489,7 +495,11 @@ public final class ContainerSerializers
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
-                        currSerializer.serialize(elem, jgen, provider);
+                        if (typeSer == null) {
+                            currSerializer.serialize(elem, jgen, provider);
+                        } else {
+                            currSerializer.serializeWithType(elem, jgen, provider, typeSer);
+                        }
                     }
                 } while (it.hasNext());
             }
