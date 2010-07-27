@@ -8,6 +8,12 @@ Description:
 
   Fixes:
 
+  * [JACKSON-329] type information was not properly serialized for
+    Iterator or Iterable serializers
+   (reported by Yuanchen Z)
+  * [JACKSON-330] ObjectMapper.convertValue(): base64 conversions
+    do not work as expected
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------

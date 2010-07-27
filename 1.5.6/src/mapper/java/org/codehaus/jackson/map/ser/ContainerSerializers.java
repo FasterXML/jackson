@@ -28,9 +28,9 @@ public final class ContainerSerializers
     private ContainerSerializers() { }
 
     /*
-     ****************************************************************
-     * Factory methods
-     ****************************************************************
+    /**********************************************************
+    /* Factory methods
+    /**********************************************************
      */
     
     public static ContainerSerializerBase<?> indexedListSerializer(JavaType elemType,
@@ -63,16 +63,16 @@ public final class ContainerSerializers
     }
     
     /*
-     ****************************************************************
-     * Base classes
-     ****************************************************************
+    /**********************************************************
+    /* Base classes
+    /**********************************************************
      */
 
     /**
      * Base class for serializers that will output contents as JSON
      * arrays.
      */
-     private abstract static class AsArraySerializer<T>
+    private abstract static class AsArraySerializer<T>
         extends ContainerSerializerBase<T>
         implements ResolvableSerializer
     {
@@ -176,9 +176,9 @@ public final class ContainerSerializers
     }
     
     /*
-    ************************************************************
-    * Concrete serializers, Lists/collections
-    ************************************************************
+    /**********************************************************
+    /* Concrete serializers, Lists/collections
+    /**********************************************************
      */
 
     /**
@@ -337,7 +337,7 @@ public final class ContainerSerializers
             if (it.hasNext()) {
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
-                TypeSerializer typeSer = _valueTypeSerializer;
+                final TypeSerializer typeSer = _valueTypeSerializer;
     
                 int i = 0;
                 do {
@@ -421,6 +421,7 @@ public final class ContainerSerializers
             throws IOException, JsonGenerationException
         {
             if (value.hasNext()) {
+                final TypeSerializer typeSer = _valueTypeSerializer;
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
                 do {
@@ -438,7 +439,11 @@ public final class ContainerSerializers
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
-                        currSerializer.serialize(elem, jgen, provider);
+                        if (typeSer == null) {
+                            currSerializer.serialize(elem, jgen, provider);
+                        } else {
+                            currSerializer.serializeWithType(elem, jgen, provider, typeSer);
+                        }
                     }
                 } while (value.hasNext());
             }
@@ -466,6 +471,7 @@ public final class ContainerSerializers
         {
             Iterator<?> it = value.iterator();
             if (it.hasNext()) {
+                final TypeSerializer typeSer = _valueTypeSerializer;
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
                 
@@ -484,7 +490,11 @@ public final class ContainerSerializers
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
-                        currSerializer.serialize(elem, jgen, provider);
+                        if (typeSer == null) {
+                            currSerializer.serialize(elem, jgen, provider);
+                        } else {
+                            currSerializer.serializeWithType(elem, jgen, provider, typeSer);
+                        }
                     }
                 } while (it.hasNext());
             }

@@ -336,3 +336,6 @@ Yuanchen Zhu:
   * Reported [JACKSON-327], submitted patch: CustomSerializerFactory incorrectly
     looks up serializer for interfaces
    [1.5.5]
+  * Reported [JACKSON-329], type information was not properly serialized for
+    Iterator or Iterable serializers
+   [1.5.6]
