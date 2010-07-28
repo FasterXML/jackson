@@ -84,9 +84,17 @@ public class AbstractTypeMaterializer
      */
     
     public AbstractTypeMaterializer() {
-        _classLoader = new MyClassLoader(getClass().getClassLoader());
+        this(null);
     }
 
+    public AbstractTypeMaterializer(ClassLoader parentClassLoader)
+    {
+        if (parentClassLoader == null) {
+            parentClassLoader = getClass().getClassLoader();
+        }
+        _classLoader = new MyClassLoader(parentClassLoader);
+    }
+    
     /**
      * Method for checking whether given feature is enabled or not
      */

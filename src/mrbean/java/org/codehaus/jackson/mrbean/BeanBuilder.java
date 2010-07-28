@@ -168,7 +168,8 @@ public class BeanBuilder
     /**********************************************************
      */
 
-    private static void generateDefaultConstructor(ClassWriter cw) {
+    private static void generateDefaultConstructor(ClassWriter cw)
+    {
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
