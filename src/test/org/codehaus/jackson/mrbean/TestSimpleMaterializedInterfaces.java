@@ -63,6 +63,11 @@ public class TestSimpleMaterializedInterfaces
         Bean bean = (Bean) ob;
         // call something to ensure generation worked...
         assertNull(bean.getA());
+
+        // Also: let's verify that we can handle dup calls:
+        Class<?> impl2 = mat.materializeClass(Bean.class);
+        assertNotNull(impl2);
+        assertSame(impl, impl2);
     }
 
     public void testLowLevelMaterializerFailOnIncompatible() throws Exception

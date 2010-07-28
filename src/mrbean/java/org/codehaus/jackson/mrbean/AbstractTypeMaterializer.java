@@ -170,7 +170,7 @@ public class AbstractTypeMaterializer
         String newName = _defaultPackage+cls.getName();
         BeanBuilder builder = new BeanBuilder();
         byte[] bytecode = builder.implement(cls, isEnabled(Feature.FAIL_ON_UNMATERIALIZED_METHOD)).build(newName);
-        Class<?> result = _classLoader.loadAndResolve(newName, bytecode);
+        Class<?> result = _classLoader.loadAndResolve(newName, bytecode, cls);
         
         // TEST: uncomment for more debugging during development (never for release builds)
         /*
@@ -213,7 +213,7 @@ System.out.println("</visit>");
 */
         return result;
     }
-
+    
     /*
     /**********************************************************
     /* Helper classes
@@ -227,9 +227,19 @@ System.out.println("</visit>");
             super(parent);
         }
 
-        public Class<?> loadAndResolve(String className, byte[] byteCode)
+        /**
+         * @param targetClass Interface or abstract class that class to load should extend or 
+         *   implement
+         */
+        public Class<?> loadAndResolve(String className, byte[] byteCode, Class<?> targetClass)
             throws IllegalArgumentException
         {
+            // First things first: just to be sure; maybe we have already loaded it?
+            Class<?> old = findLoadedClass(className);
+            if (old != null && targetClass.isAssignableFrom(old)) {
+                return old;
+            }
+            
             Class<?> impl;
             try {
                 impl = defineClass(className, byteCode, 0, byteCode.length);
