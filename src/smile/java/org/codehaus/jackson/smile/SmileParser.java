@@ -349,13 +349,6 @@ public class SmileParser
         _reportError("Invalid type marker byte 0x"+Integer.toHexString(ch)+" for expected value token");
         return null;
     }
-
-    public JsonToken peekNextToken()
-        throws IOException, JsonParseException
-    {
-        // !!! TBI
-        return null;
-    }
     
     @Override
     public String getCurrentName() throws IOException, JsonParseException
@@ -653,9 +646,17 @@ public class SmileParser
         int inPtr = _inputPtr;
         _inputPtr += len;
         final byte[] inBuf = _inputBuffer;
-        for (int end = inPtr + len; inPtr < end; ) {
+        // loop unrolling seems to help here:
+        for (int inEnd = inPtr + len - 3; inPtr < inEnd; ) {
+            outBuf[outPtr++] = (char) inBuf[inPtr++];            
+            outBuf[outPtr++] = (char) inBuf[inPtr++];            
+            outBuf[outPtr++] = (char) inBuf[inPtr++];            
+            outBuf[outPtr++] = (char) inBuf[inPtr++];            
+        }
+        for (int inEnd = _inputPtr; inPtr < inEnd; ) {
             outBuf[outPtr++] = (char) inBuf[inPtr++];
         }
+        
         _textBuffer.setCurrentLength(len);
         return _textBuffer.contentsAsString();
     }
