@@ -206,6 +206,12 @@ public class SmileGenerator
     protected final int _outputEnd;
 
     /**
+     * Intermediate buffer in which characters of a String are copied
+     * before being encoded.
+     */
+    protected char[] _charBuffer;
+    
+    /**
      * Let's keep track of how many bytes have been output, may prove useful
      * when debugging. This does <b>not</b> include bytes buffered in
      * the output buffer, just bytes that have been written using underlying
@@ -246,6 +252,7 @@ public class SmileGenerator
         _out = out;
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
         _outputEnd = _outputBuffer.length;
+        _charBuffer = ctxt.allocConcatBuffer();
         // let's just sanity check to prevent nasty odd errors
         if (_outputEnd < MIN_BUFFER_LENGTH) {
             throw new IllegalStateException("Internal encoding buffer length ("+_outputEnd
@@ -355,14 +362,15 @@ public class SmileGenerator
             }
         }
         if (len <= MAX_SHORT_STRING_BYTES) { // possibly short strings (not necessarily)
-            // !!! TODO: check for shared Keys
             // first: ensure we have enough space
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
                 _flushBuffer();
             }
+            // then let's copy String chars to char buffer, faster than using getChar (measured, profiled)
+            name.getChars(0, len, _charBuffer, 0);
             int origOffset = _outputTail;
             ++_outputTail; // to reserve space for type token
-            int byteLen = _shortUTF8Encode(name);
+            int byteLen = _shortUTF8Encode(_charBuffer, 0, len);
             byte typeToken;
             if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
                 if (byteLen == len) { // and all ASCII
@@ -386,7 +394,13 @@ public class SmileGenerator
                 if ((_outputTail + maxLen) >= _outputEnd) {
                     _flushBuffer();
                 }
-                _shortUTF8Encode(name);
+                // can we make a copy of chars?                                 
+                if (_charBuffer.length >= len) {
+                    name.getChars(0, len, _charBuffer, 0);
+                     _shortUTF8Encode(_charBuffer, 0, len);
+                } else {
+                    _mediumUTF8Encode(name);
+                }
                 _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
             } else {
                 _slowUTF8Encode(name);
@@ -420,9 +434,11 @@ public class SmileGenerator
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
                 _flushBuffer();
             }
+            // then let's copy String chars to char buffer, faster than using getChar (measured, profiled)
+            text.getChars(0, len, _charBuffer, 0);
             int origOffset = _outputTail;
             ++_outputTail; // to leave room for type token
-            int byteLen = _shortUTF8Encode(text);
+            int byteLen = _shortUTF8Encode(_charBuffer, 0, len);
             byte typeToken;
             if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
                 if (byteLen == len) { // and all ASCII
@@ -447,7 +463,13 @@ public class SmileGenerator
                 }
                 int origOffset = _outputTail;
                 _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
-                int byteLen = _shortUTF8Encode(text);
+                int byteLen;
+                if (len < _charBuffer.length) {
+                    text.getChars(0, len, _charBuffer, 0);
+                    byteLen = _shortUTF8Encode(_charBuffer, 0, len);
+                } else {
+                    byteLen = _mediumUTF8Encode(text);
+                }
                 // if it's ASCII, let's revise our type determination (to help decoder optimize)
                 if (byteLen == len) {
                     _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_ASCII;
@@ -896,12 +918,35 @@ public class SmileGenerator
     /* Internal methods, UTF-8 encoding
     /**********************************************************
     */
+
+    private final int _shortUTF8Encode(char[] str, int i, int end)
+    {
+        // First: let's see if it's all ASCII: that's rather fast
+        int ptr = _outputTail;
+        final byte[] outBuf = _outputBuffer;
+        do {
+            int c = str[i];
+            if (c > 0x7F) {
+                break;
+            }
+            outBuf[ptr++] = (byte) c;
+        } while (++i < end);
+        int codedLen = ptr - _outputTail;
+        _outputTail = ptr;
+        if (i < end) { // offline not-all-ASCII case
+            ptr = _outputTail;
+            _shortUTF8Encode2(str, i, end);
+            codedLen += (_outputTail - ptr);
+        }
+        return codedLen;
+    }
+
     
     /**
      * Helper method used to encode Strings that are short enough that UTF-8
      * encoded version is known to fit in the buffer
      */
-    private final int _shortUTF8Encode(String str)
+    private final int _mediumUTF8Encode(String str)
     {
         int i = 0;
         final int len = str.length();
@@ -926,27 +971,6 @@ public class SmileGenerator
         return codedLen;
     }
 
-    private final int _shortUTF8Encode(char[] str, int i, int end)
-    {
-        // First: let's see if it's all ASCII: that's rather fast
-        int ptr = _outputTail;
-        final byte[] outBuf = _outputBuffer;
-        do {
-            int c = str[i];
-            if (c > 0x7F) {
-                break;
-            }
-            outBuf[ptr++] = (byte) c;
-        } while (++i < end);
-        int codedLen = ptr - _outputTail;
-        _outputTail = ptr;
-        if (i < end) { // offline not-all-ASCII case
-            ptr = _outputTail;
-            _shortUTF8Encode2(str, i, end);
-            codedLen += (_outputTail - ptr);
-        }
-        return codedLen;
-    }
     
     /**
      * Second part, slightly slower, which needs to deal with
@@ -1427,6 +1451,11 @@ public class SmileGenerator
         if (buf != null) {
             _outputBuffer = null;
             _ioContext.releaseWriteEncodingBuffer(buf);
+        }
+        char[] cbuf = _charBuffer;
+        if (cbuf != null) {
+            _charBuffer = null;
+            _ioContext.releaseConcatBuffer(cbuf);
         }
     }
 
