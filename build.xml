@@ -289,7 +289,7 @@ compile.smile, compile.mrbean" />
 
     <!-- Dummy target that just includes all individual jars... --> 
     <target name="jars"
-       depends="jars.asl, jars.lgpl, jars.other"
+       depends="jars.asl, jars.lgpl, jars.other, jar.all"
     />
 
     <target name="javadoc" depends="compile.all">
@@ -338,6 +338,31 @@ compile.smile, compile.mrbean" />
             <group title="Jackson XML Compatibility" packages="org.codehaus.jackson.xc" />
         </javadoc>
     </target> 
+
+  <!-- New with 1.6, "jackson-all" combo jar -->
+    <target name="jar.all" depends="jars.asl, jars.other">
+      <jar jarfile="${dir.build}/jackson-all-${IMPL_VERSION}.jar"
+          filesonly="true" index="true" level="9">
+<!-- Bah: need Ant 1.8 for this:  indexMetaInf="true"  -->
+        <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Implementation-Title"   value="Jackson"/>
+          <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+          <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+          <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
+          <attribute name="Specification-Version" value="${JSON_VERSION}"/>
+          <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
+       </manifest>
+       <metainf dir="${dir.releasenotes}/asl" includes="*" />
+       <fileset dir="${dir.build.classes.core}" includes="**/*.class" />
+       <fileset dir="${dir.build.classes.mapper}" includes="**/*.class" />
+       <fileset dir="${dir.build.classes.jaxrs}" includes="**/*.class" />
+       <fileset dir="${dir.build.classes.xc}" includes="**/*.class" />
+       <fileset dir="${dir.build.classes.smile}" includes="**/*.class" />
+       <fileset dir="${dir.build.classes.mrbean}" includes="**/*.class" />
+      </jar>
+    </target>
+
 
     <!-- Generic distribution target builds the structure we copy over
          to the website.

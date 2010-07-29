@@ -337,8 +337,12 @@ Rob Ottway:
     (unrecognized) field
    [1.6.0]  
 
- Thomas Dudziak:
+Thomas Dudziak:
   * Reported [JACKSON-328] Incorrect precedence between property fields, "getter-as-setter"
     fallbacks (former should have higher precedence)
    [1.6.0]
- 
+
+Ant Elder:
+  * Suggested [JACKSON-295] Create "jackson-all" jar for more convenient
+    deployment
+   [1.6.0]

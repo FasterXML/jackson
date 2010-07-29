@@ -1,6 +1,7 @@
 <?xml version="1.0" standalone='yes'?>
 <!-- This Ant build file fragment contains targets needed to build
-     distributable OSGi-aware artifacts
+     distributable OSGi-aware artifacts,
+     as well as "jackson-all" non-bundle jar
   -->
 
 <project name="OSGi export tasks for Jackson" basedir=".">
@@ -15,6 +16,7 @@
   <target name="jars.asl" depends="jar.core.asl, jar.mapper.asl" />
   <target name="jars.lgpl" depends="jar.core.lgpl, jar.mapper.lgpl" />
   <target name="jars.other" depends="jar.jaxrs, jar.xc, jar.smile, jar.mrbean" />
+  <target name="jar.all" depends="jars.asl, jars.other" />
 
   <!-- Let's build our JARs as OSGi bundles; then they work
         both within and outside of OSGi containers
