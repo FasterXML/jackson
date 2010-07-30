@@ -81,7 +81,8 @@ public class BeanBuilder
         for (int i = 0; i < _implementedTypes.size(); i++) {
             parents[i] = getInternalClassName(_implementedTypes.get(i).getName());
         }
-        cw.visit(V1_2, ACC_PUBLIC + ACC_SUPER, internalClass, null,
+        // muchos important: level at least 1.5 to get generics!!!
+        cw.visit(V1_5, ACC_PUBLIC + ACC_SUPER, internalClass, null,
                 "java/lang/Object", parents);
         cw.visitSource(className + ".java", null);
         BeanBuilder.generateDefaultConstructor(cw);
@@ -181,9 +182,9 @@ public class BeanBuilder
 
     private static void createField(ClassWriter cw, Property prop, TypeDescription type)
     {
-        // !!! TODO: add signature
         String sig = type.isGeneric() ? type.genericSignature() : null;
-        FieldVisitor fv = cw.visitField(ACC_PUBLIC, prop.getFieldName(), type.erasedSignature(), sig, null);
+        String desc = type.erasedSignature();
+        FieldVisitor fv = cw.visitField(ACC_PUBLIC, prop.getFieldName(), desc, sig, null);
         fv.visitEnd();
     }
 
@@ -201,11 +202,6 @@ public class BeanBuilder
             methodName = buildSetterName(prop.getName());
         }
         String sig = propertyType.isGeneric() ? ("("+propertyType.genericSignature()+")V") : null;
-/*
-System.err.println("Method: "+methodName);
-System.err.println("  desc == ["+desc+"]");
-System.err.println("   sig == ["+sig+"]");
-*/
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, desc, sig, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0); // this
@@ -230,12 +226,8 @@ System.err.println("   sig == ["+sig+"]");
             desc = "()"+propertyType.erasedSignature();
             methodName = buildGetterName(prop.getName());
         }
+        
         String sig = propertyType.isGeneric() ? ("()"+propertyType.genericSignature()) : null;
-/*        
-System.out.println("Method: "+methodName);
-System.out.println("  desc == ["+desc+"]");
-System.out.println("   sig == ["+sig+"]");
-*/
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, desc, sig, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0); // load 'this'
@@ -427,42 +419,4 @@ System.out.println("   sig == ["+sig+"]");
             return null;
         }
     }
-
-    /*
-        // Simple test code for introspecting signatures...
-
-    public static void main(String[] args) throws Exception {
-        ClassReader cr = new ClassReader(Foobar.class.getName());
-        cr.accept(new Visitor(), 0);
-    }
-
-    static abstract class Foobar {
-        public abstract Map<String,List<Integer>> foobar();
-        public abstract List<Foobar> foobars();
-    }
-
-    static class Visitor implements ClassVisitor
-    {
-        @Override  public void visit(int arg0, int arg1, String arg2, String arg3,String arg4, String[] arg5) { }
-        @Override public AnnotationVisitor visitAnnotation(String arg0, boolean arg1) { return null; }
-        @Override public void visitAttribute(Attribute arg0) { }
-        @Override public void visitEnd() { }
-
-        @Override
-        public FieldVisitor visitField(int arg0, String arg1, String arg2, String arg3, Object arg4) { return null; }
-
-        @Override
-        public void visitInnerClass(String arg0, String arg1, String arg2, int arg3) { }
-
-        @Override
-        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-            System.out.println("Method '"+name+"' (access 0x"+Integer.toHexString(access)+"): desc "+desc+", signature "+signature);
-            return null;
-        }
-
-        @Override public void visitOuterClass(String arg0, String arg1, String arg2) { }
-
-        @Override public void visitSource(String arg0, String arg1) { }
-    }
-    */
 }
