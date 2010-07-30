@@ -54,7 +54,7 @@ public final class UTF32Reader
         throws IOException
     {
         // Already EOF?
-        if (mBuffer == null) {
+        if (_buffer == null) {
             return -1;
         }
         if (len < 1) {
@@ -77,7 +77,7 @@ public final class UTF32Reader
             /* Note: we'll try to avoid blocking as much as possible. As a
              * result, we only need to get 4 bytes for a full char.
              */
-            int left = (mLength - mPtr);
+            int left = (_length - _ptr);
             if (left < 4) {
                 if (!loadMore(left)) { // (legal) EOF?
                     return -1;
@@ -87,17 +87,17 @@ public final class UTF32Reader
 
         main_loop:
         while (outPtr < len) {
-            int ptr = mPtr;
+            int ptr = _ptr;
             int ch;
 
             if (mBigEndian) {
-                ch = (mBuffer[ptr] << 24) | ((mBuffer[ptr+1] & 0xFF) << 16)
-                    | ((mBuffer[ptr+2] & 0xFF) << 8) | (mBuffer[ptr+3] & 0xFF);
+                ch = (_buffer[ptr] << 24) | ((_buffer[ptr+1] & 0xFF) << 16)
+                    | ((_buffer[ptr+2] & 0xFF) << 8) | (_buffer[ptr+3] & 0xFF);
             } else {
-                ch = (mBuffer[ptr] & 0xFF) | ((mBuffer[ptr+1] & 0xFF) << 8)
-                    | ((mBuffer[ptr+2] & 0xFF) << 16) | (mBuffer[ptr+3] << 24);
+                ch = (_buffer[ptr] & 0xFF) | ((_buffer[ptr+1] & 0xFF) << 8)
+                    | ((_buffer[ptr+2] & 0xFF) << 16) | (_buffer[ptr+3] << 24);
             }
-            mPtr += 4;
+            _ptr += 4;
 
             // Does it need to be split to surrogates?
             // (also, we can and need to verify illegal chars)
@@ -117,7 +117,7 @@ public final class UTF32Reader
                 }
             }
             cbuf[outPtr++] = (char) ch;
-            if (mPtr >= mLength) {
+            if (_ptr >= _length) {
                 break main_loop;
             }
         }
@@ -147,7 +147,7 @@ public final class UTF32Reader
     private void reportInvalid(int value, int offset, String msg)
         throws IOException
     {
-        int bytePos = mByteCount + mPtr - 1;
+        int bytePos = mByteCount + _ptr - 1;
         int charPos = mCharCount + offset;
 
         throw new CharConversionException("Invalid UTF-32 character 0x"
@@ -164,25 +164,25 @@ public final class UTF32Reader
     private boolean loadMore(int available)
         throws IOException
     {
-        mByteCount += (mLength - available);
+        mByteCount += (_length - available);
 
         // Bytes that need to be moved to the beginning of buffer?
         if (available > 0) {
-            if (mPtr > 0) {
+            if (_ptr > 0) {
                 for (int i = 0; i < available; ++i) {
-                    mBuffer[i] = mBuffer[mPtr+i];
+                    _buffer[i] = _buffer[_ptr+i];
                 }
-                mPtr = 0;
+                _ptr = 0;
             }
-            mLength = available;
+            _length = available;
         } else {
             /* Ok; here we can actually reasonably expect an EOF,
              * so let's do a separate read right away:
              */
-            mPtr = 0;
-            int count = mIn.read(mBuffer);
+            _ptr = 0;
+            int count = _in.read(_buffer);
             if (count < 1) {
-                mLength = 0;
+                _length = 0;
                 if (count < 0) { // -1
                     freeBuffers(); // to help GC?
                     return false;
@@ -190,23 +190,23 @@ public final class UTF32Reader
                 // 0 count is no good; let's err out
                 reportStrangeStream();
             }
-            mLength = count;
+            _length = count;
         }
 
         /* Need at least 4 bytes; if we don't get that many, it's an
          * error.
          */
-        while (mLength < 4) {
-            int count = mIn.read(mBuffer, mLength, mBuffer.length - mLength);
+        while (_length < 4) {
+            int count = _in.read(_buffer, _length, _buffer.length - _length);
             if (count < 1) {
                 if (count < 0) { // -1, EOF... no good!
                     freeBuffers(); // to help GC?
-                    reportUnexpectedEOF(mLength, 4);
+                    reportUnexpectedEOF(_length, 4);
                 }
                 // 0 count is no good; let's err out
                 reportStrangeStream();
             }
-            mLength += count;
+            _length += count;
         }
         return true;
     }

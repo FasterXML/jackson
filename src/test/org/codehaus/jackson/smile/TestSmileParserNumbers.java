@@ -13,20 +13,20 @@ public class TestSmileParserNumbers
     public void testIntsMedium() throws IOException
     {
     	byte[] data = _smileDoc("255");
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(255, p.getIntValue());
     	assertEquals("255", p.getText());
 
     	data = _smileDoc("-999");
-    	p = _parser(data);
+    	p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.INT, p.getNumberType());
     	assertEquals(-999, p.getIntValue());
     	assertEquals("-999", p.getText());
 
     	data = _smileDoc("123456789");
-    	p = _parser(data);
+    	p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.INT, p.getNumberType());
     	assertEquals(123456789, p.getIntValue());
@@ -35,13 +35,13 @@ public class TestSmileParserNumbers
     public void testMinMaxInts() throws IOException
     {
     	byte[] data = _smileDoc(String.valueOf(Integer.MAX_VALUE));
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.INT, p.getNumberType());
     	assertEquals(Integer.MAX_VALUE, p.getIntValue());
 
     	data = _smileDoc(String.valueOf(Integer.MIN_VALUE));
-    	p = _parser(data);
+    	p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.INT, p.getNumberType());
     	assertEquals(Integer.MIN_VALUE, p.getIntValue());
@@ -50,7 +50,7 @@ public class TestSmileParserNumbers
     public void testIntsInObjectSkipping() throws IOException
     {
     	byte[] data = _smileDoc("{\"a\":200,\"b\":200}");
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertToken(JsonToken.START_OBJECT, p.nextToken());
     	assertToken(JsonToken.FIELD_NAME, p.nextToken());
     	assertEquals("a", p.getCurrentName());
@@ -68,7 +68,7 @@ public class TestSmileParserNumbers
     	long l = (long) Integer.MIN_VALUE - 1L;
     	byte[] data = _smileDoc(String.valueOf(l), false);
     	assertEquals(6, data.length);
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.LONG, p.getNumberType());
     	assertEquals(l, p.getLongValue());
@@ -76,7 +76,7 @@ public class TestSmileParserNumbers
     	l = 1L + (long) Integer.MAX_VALUE;
     	data = _smileDoc(String.valueOf(l), false);
     	assertEquals(6, data.length);
-    	p = _parser(data);
+    	p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.LONG, p.getNumberType());
     	assertEquals(l, p.getLongValue());
@@ -86,7 +86,7 @@ public class TestSmileParserNumbers
     {
     	long l = Long.MAX_VALUE;
     	byte[] data = _smileDoc(String.valueOf(l));
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.LONG, p.getNumberType());
     	assertEquals(l, p.getLongValue());
@@ -94,7 +94,7 @@ public class TestSmileParserNumbers
 
     	l = Long.MIN_VALUE;
     	data = _smileDoc(String.valueOf(l));
-    	p = _parser(data);
+    	p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.LONG, p.getNumberType());
     	assertEquals(l, p.getLongValue());
@@ -106,7 +106,7 @@ public class TestSmileParserNumbers
     	byte[] data = _smileDoc("[ 1, 0, -1, 255, -999, "
     			+Integer.MIN_VALUE+","+Integer.MAX_VALUE+","
     			+Long.MIN_VALUE+", "+Long.MAX_VALUE+" ]");
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertNull(p.getCurrentToken());
     	assertToken(JsonToken.START_ARRAY, p.nextToken());
 
@@ -148,14 +148,14 @@ public class TestSmileParserNumbers
     public void testFloats() throws IOException
     {
     	ByteArrayOutputStream bo = new ByteArrayOutputStream();
-    	SmileGenerator g = _generator(bo, false);
+    	SmileGenerator g = smileGenerator(bo, false);
     	float value = 0.37f;
     	g.writeNumber(value);
     	g.close();
     	byte[] data = bo.toByteArray();
     	assertEquals(6, data.length);
 
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
     	assertEquals(JsonParser.NumberType.FLOAT, p.getNumberType());
     	assertEquals(value, p.getFloatValue());
@@ -164,14 +164,14 @@ public class TestSmileParserNumbers
     public void testDoubles() throws IOException
     {
     	ByteArrayOutputStream bo = new ByteArrayOutputStream();
-    	SmileGenerator g = _generator(bo, false);
+    	SmileGenerator g = smileGenerator(bo, false);
     	double value = -12.0986;
     	g.writeNumber(value);
     	g.close();
     	byte[] data = bo.toByteArray();
     	assertEquals(11, data.length);
 
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
     	assertEquals(JsonParser.NumberType.DOUBLE, p.getNumberType());
     	assertEquals(value, p.getDoubleValue());
@@ -180,7 +180,7 @@ public class TestSmileParserNumbers
     public void testArrayWithDoubles() throws IOException
     {
     	ByteArrayOutputStream bo = new ByteArrayOutputStream();
-    	SmileGenerator g = _generator(bo, false);
+    	SmileGenerator g = smileGenerator(bo, false);
     	g.writeStartArray();
     	g.writeNumber(0.1f);
     	g.writeNumber(0.333);
@@ -189,7 +189,7 @@ public class TestSmileParserNumbers
     	byte[] data = bo.toByteArray();
     	assertEquals(19, data.length);
 
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertToken(JsonToken.START_ARRAY, p.nextToken());
     	assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
     	assertEquals(JsonParser.NumberType.FLOAT, p.getNumberType());
@@ -203,7 +203,7 @@ public class TestSmileParserNumbers
     public void testObjectWithDoubles() throws IOException
     {
         ByteArrayOutputStream bo = new ByteArrayOutputStream();
-        SmileGenerator g = _generator(bo, false);
+        SmileGenerator g = smileGenerator(bo, false);
         g.writeStartObject();
         g.writeNumberField("x", 0.5);
         g.writeNumberField("y", 0.01338);
@@ -213,7 +213,7 @@ public class TestSmileParserNumbers
         byte[] data = bo.toByteArray();
 
         // first let's just skip 
-        SmileParser p = _parser(data);
+        SmileParser p = _smileParser(data);
         assertToken(JsonToken.START_OBJECT, p.nextToken());
         assertToken(JsonToken.FIELD_NAME, p.nextToken());
         assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
@@ -223,7 +223,7 @@ public class TestSmileParserNumbers
         p.close();
         
         // and then check data too (skip codepath distinct)
-        p = _parser(data);
+        p = _smileParser(data);
         assertToken(JsonToken.START_OBJECT, p.nextToken());
         assertToken(JsonToken.FIELD_NAME, p.nextToken());
         assertEquals("x", p.getText());
@@ -241,11 +241,11 @@ public class TestSmileParserNumbers
     {
     	ByteArrayOutputStream bo = new ByteArrayOutputStream();
     	BigInteger in = new BigInteger(String.valueOf(Long.MIN_VALUE)+"0012575934");
-    	SmileGenerator g = _generator(bo, false);
+    	SmileGenerator g = smileGenerator(bo, false);
     	g.writeNumber(in);
     	g.close();
     	byte[] data = bo.toByteArray();
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
     	assertEquals(JsonParser.NumberType.BIG_INTEGER, p.getNumberType());
     	assertEquals(BigInteger.class, p.getNumberValue().getClass());
@@ -254,13 +254,13 @@ public class TestSmileParserNumbers
     	
     	// second test; verify skipping works
         bo = new ByteArrayOutputStream();
-        g = _generator(bo, false);
+        g = smileGenerator(bo, false);
         g.writeStartArray();
         g.writeNumber(in);
         g.writeEndArray();
         g.close();
         data = bo.toByteArray();
-        p = _parser(data);
+        p = _smileParser(data);
         assertToken(JsonToken.START_ARRAY, p.nextToken());
         assertToken(JsonToken.VALUE_NUMBER_INT, p.nextToken());
         assertToken(JsonToken.END_ARRAY, p.nextToken());
@@ -272,11 +272,11 @@ public class TestSmileParserNumbers
     {
     	ByteArrayOutputStream bo = new ByteArrayOutputStream();
     	BigDecimal in = new BigDecimal("32599.00001");
-    	SmileGenerator g = _generator(bo, false);
+    	SmileGenerator g = smileGenerator(bo, false);
     	g.writeNumber(in);
     	g.close();
     	byte[] data = bo.toByteArray();
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
     	assertEquals(JsonParser.NumberType.BIG_DECIMAL, p.getNumberType());
     	assertEquals(BigDecimal.class, p.getNumberValue().getClass());
@@ -285,13 +285,13 @@ public class TestSmileParserNumbers
 
         // second test; verify skipping works
         bo = new ByteArrayOutputStream();
-        g = _generator(bo, false);
+        g = smileGenerator(bo, false);
         g.writeStartArray();
         g.writeNumber(in);
         g.writeEndArray();
         g.close();
         data = bo.toByteArray();
-        p = _parser(data);
+        p = _smileParser(data);
         assertToken(JsonToken.START_ARRAY, p.nextToken());
         assertToken(JsonToken.VALUE_NUMBER_FLOAT, p.nextToken());
         assertToken(JsonToken.END_ARRAY, p.nextToken());

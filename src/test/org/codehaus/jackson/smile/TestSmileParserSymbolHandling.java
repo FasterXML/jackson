@@ -18,7 +18,7 @@ public class TestSmileParserSymbolHandling
 		
     	byte[] data = _smileDoc("{ "+quote(STR1)+":1, \"foobar\":2, \"longername\":3 }");
     	SmileFactory f = new SmileFactory();
-    	SmileParser p = _parser(f, data);
+    	SmileParser p = _smileParser(f, data);
     	final BytesToNameCanonicalizer symbols1 = p._symbols;
     	assertEquals(0, symbols1.size());
 
@@ -44,7 +44,7 @@ public class TestSmileParserSymbolHandling
         p.close();
 
         // but let's verify that symbol table gets reused properly
-    	p = _parser(f, data);
+    	p = _smileParser(f, data);
     	BytesToNameCanonicalizer symbols2 = p._symbols;
     	// symbol tables are not reused, but contents are:
     	assertNotSame(symbols1, symbols2);

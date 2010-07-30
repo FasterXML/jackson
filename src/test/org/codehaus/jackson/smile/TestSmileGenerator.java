@@ -14,21 +14,21 @@ public class TestSmileGenerator
     {
         // false, no header (or frame marker)
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SmileGenerator gen = _generator(out, false);
+        SmileGenerator gen = smileGenerator(out, false);
         gen.writeBoolean(true);
         gen.close();
         _verifyBytes(out.toByteArray(), SmileConstants.TOKEN_LITERAL_TRUE);
 
         // false, no header or frame marker
         out = new ByteArrayOutputStream();
-        gen = _generator(out, false);
+        gen = smileGenerator(out, false);
         gen.writeBoolean(false);
         gen.close();
         _verifyBytes(out.toByteArray(), SmileConstants.TOKEN_LITERAL_FALSE);
 
         // null, no header or frame marker
         out = new ByteArrayOutputStream();
-        gen = _generator(out, false);
+        gen = smileGenerator(out, false);
         gen.writeNull();
         gen.close();
         _verifyBytes(out.toByteArray(), SmileConstants.TOKEN_LITERAL_NULL);
@@ -36,7 +36,7 @@ public class TestSmileGenerator
         // And then with some other combinations:
         // true, but with header
         out = new ByteArrayOutputStream();
-        gen = _generator(out, true);
+        gen = smileGenerator(out, true);
         gen.writeBoolean(true);
         gen.close();
         
@@ -49,7 +49,7 @@ public class TestSmileGenerator
 
         // null, with header and end marker
         out = new ByteArrayOutputStream();
-        gen = _generator(out, true);
+        gen = smileGenerator(out, true);
         gen.enable(SmileGenerator.Feature.WRITE_END_MARKER);
         gen.writeNull();
         gen.close();
@@ -62,7 +62,7 @@ public class TestSmileGenerator
     {
     	// First: empty array (2 bytes)
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SmileGenerator gen = _generator(out, false);
+        SmileGenerator gen = smileGenerator(out, false);
         gen.writeStartArray();
         gen.writeEndArray();
         gen.close();
@@ -71,7 +71,7 @@ public class TestSmileGenerator
 
         // then simple array with 3 literals
         out = new ByteArrayOutputStream();
-        gen = _generator(out, false);
+        gen = smileGenerator(out, false);
         gen.writeStartArray();
         gen.writeBoolean(true);
         gen.writeNull();
@@ -82,7 +82,7 @@ public class TestSmileGenerator
 
         // and then array containing another array and short String
         out = new ByteArrayOutputStream();
-        gen = _generator(out, false);
+        gen = smileGenerator(out, false);
         gen.writeStartArray();
         gen.writeStartArray();
         gen.writeEndArray();
@@ -96,7 +96,7 @@ public class TestSmileGenerator
     public void testShortAscii() throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SmileGenerator gen = _generator(out, false);
+        SmileGenerator gen = smileGenerator(out, false);
         gen.writeString("abc");
         gen.close();
         _verifyBytes(out.toByteArray(), (byte)0x42, (byte) 'a', (byte) 'b', (byte) 'c');
@@ -106,7 +106,7 @@ public class TestSmileGenerator
     public void testTrivialObject() throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SmileGenerator gen = _generator(out, false);
+        SmileGenerator gen = smileGenerator(out, false);
         gen.writeStartObject();
         gen.writeNumberField("a", 6);
         gen.writeEndObject();
@@ -119,7 +119,7 @@ public class TestSmileGenerator
     public void test2FieldObject() throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SmileGenerator gen = _generator(out, false);
+        SmileGenerator gen = smileGenerator(out, false);
         gen.writeStartObject();
         gen.writeNumberField("a", 1);
         gen.writeNumberField("b", 2);
@@ -134,7 +134,7 @@ public class TestSmileGenerator
     public void testAnotherObject() throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SmileGenerator gen = _generator(out, false);
+        SmileGenerator gen = smileGenerator(out, false);
         gen.writeStartObject();
         gen.writeNumberField("a", 8);
         gen.writeFieldName("b");

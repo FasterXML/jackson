@@ -102,17 +102,18 @@ public class SmileParserBootstrapper
         SmileParser p =  new SmileParser(_context, generalParserFeatures, smileFeatures,
         		codec, can, 
         		_in, _inputBuffer, _inputPtr, _inputEnd, _bufferRecyclable);
-        boolean hadSig;
-        byte firstByte = _inputBuffer[_inputPtr];
-    	if (firstByte == SmileConstants.HEADER_BYTE_1) {
-    	    // need to ensure it gets properly handled so caller won't see the signature
-    	    hadSig = p.handleSignature(true);
-    	} else {
-    	    hadSig = false;
+        boolean hadSig = false;
+        if (_inputPtr < _inputEnd) { // only false for empty doc
+            if (_inputBuffer[_inputPtr] == SmileConstants.HEADER_BYTE_1) {
+                // need to ensure it gets properly handled so caller won't see the signature
+                hadSig = p.handleSignature(true);
+            }
     	}
     	if (!hadSig && (smileFeatures & SmileParser.Feature.REQUIRE_HEADER.getMask()) != 0) {
     	    // Ok, first, let's see if it looks like plain JSON...
     	    String msg;
+
+    	    byte firstByte = (_inputPtr < _inputEnd) ? _inputBuffer[_inputPtr] : 0;
     	    if (firstByte == '{' || firstByte == '[') {
                 msg = "Input does not start with Smile format header (first byte = 0x"
                     +Integer.toHexString(firstByte & 0xFF)+") -- rather, it starts with '"+((char) firstByte)
@@ -135,18 +136,16 @@ public class SmileParserBootstrapper
     protected boolean ensureLoaded(int minimum)
         throws IOException
     {
+        if (_in == null) { // block source; nothing more to load
+            return false;
+        }
+
         /* Let's assume here buffer has enough room -- this will always
          * be true for the limited used this method gets
          */
         int gotten = (_inputEnd - _inputPtr);
         while (gotten < minimum) {
-            int count;
-
-            if (_in == null) { // block source
-                count = -1;
-            } else {
-                count = _in.read(_inputBuffer, _inputEnd, _inputBuffer.length - _inputEnd);
-            }
+            int count = _in.read(_inputBuffer, _inputEnd, _inputBuffer.length - _inputEnd);
             if (count < 1) {
                 return false;
             }

@@ -16,14 +16,14 @@ public class TestSmileParser
         // first test failing case
         byte[] data = _smileDoc("[ null ]", false);
         try {
-            _parser(data, true);
+            _smileParser(data, true);
             fail("Should have gotten exception for missing header");
         } catch (Exception e) {
             verifyException(e, "does not start with Smile format header");
         }
 
         // and then test passing one
-        SmileParser p = _parser(data, false);
+        SmileParser p = _smileParser(data, false);
         assertToken(JsonToken.START_ARRAY, p.nextToken());
         assertToken(JsonToken.VALUE_NULL, p.nextToken());
         assertToken(JsonToken.END_ARRAY, p.nextToken());
@@ -33,7 +33,7 @@ public class TestSmileParser
     public void testSimple() throws IOException
     {
     	byte[] data = _smileDoc("[ true, null, false ]");
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertNull(p.getCurrentToken());
     	assertToken(JsonToken.START_ARRAY, p.nextToken());
     	assertToken(JsonToken.VALUE_TRUE, p.nextToken());
@@ -47,7 +47,7 @@ public class TestSmileParser
     public void testArrayWithString() throws IOException
     {
     	byte[] data = _smileDoc("[ \"abc\" ]");
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertNull(p.getCurrentToken());
     	assertToken(JsonToken.START_ARRAY, p.nextToken());
     	assertToken(JsonToken.VALUE_STRING, p.nextToken());
@@ -62,7 +62,7 @@ public class TestSmileParser
     {
     	// first, empty key
     	byte[] data = _smileDoc("{ \"\":true }");
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertNull(p.getCurrentToken());
     	assertToken(JsonToken.START_OBJECT, p.nextToken());
     	assertToken(JsonToken.FIELD_NAME, p.nextToken());
@@ -74,7 +74,7 @@ public class TestSmileParser
 
     	// then empty value
     	data = _smileDoc("{ \"abc\":\"\" }");
-    	p = _parser(data);
+    	p = _smileParser(data);
     	assertNull(p.getCurrentToken());
     	assertToken(JsonToken.START_OBJECT, p.nextToken());
     	assertToken(JsonToken.FIELD_NAME, p.nextToken());
@@ -87,7 +87,7 @@ public class TestSmileParser
     	
     	// and combinations
     	data = _smileDoc("{ \"\":\"\", \"\":\"\" }");
-    	p = _parser(data);
+    	p = _smileParser(data);
     	assertNull(p.getCurrentToken());
     	assertToken(JsonToken.START_OBJECT, p.nextToken());
     	assertToken(JsonToken.FIELD_NAME, p.nextToken());
@@ -114,7 +114,7 @@ public class TestSmileParser
     	LONG = LONG + LONG + LONG + LONG;
     	byte[] data = _smileDoc(quote(LONG));
 
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertNull(p.getCurrentToken());
     	assertToken(JsonToken.VALUE_STRING, p.nextToken());
     	assertEquals(LONG, p.getText());
@@ -133,7 +133,7 @@ public class TestSmileParser
     	LONG = LONG + LONG + LONG;
     	byte[] data = _smileDoc(quote(LONG));
 
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertNull(p.getCurrentToken());
     	assertToken(JsonToken.VALUE_STRING, p.nextToken());
     	assertEquals(LONG, p.getText());
@@ -143,7 +143,7 @@ public class TestSmileParser
     public void testTrivialObject() throws IOException
     {
     	byte[] data = _smileDoc("{\"abc\":13}");
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertNull(p.getCurrentToken());
 
     	assertToken(JsonToken.START_OBJECT, p.nextToken());
@@ -158,7 +158,7 @@ public class TestSmileParser
     public void testSimpleObject() throws IOException
     {
     	byte[] data = _smileDoc("{\"a\":8, \"b\" : [ true ], \"c\" : { }, \"d\":{\"e\":null}}");
-    	SmileParser p = _parser(data);
+    	SmileParser p = _smileParser(data);
     	assertNull(p.getCurrentToken());
     	assertToken(JsonToken.START_OBJECT, p.nextToken());
 
@@ -195,7 +195,7 @@ public class TestSmileParser
     public void testNestedObject() throws IOException
     {
         byte[] data = _smileDoc("[{\"a\":{\"b\":[1]}}]");
-        SmileParser p = _parser(data);
+        SmileParser p = _smileParser(data);
         assertNull(p.getCurrentToken());
         assertToken(JsonToken.START_ARRAY, p.nextToken());
         assertToken(JsonToken.START_OBJECT, p.nextToken());
@@ -216,7 +216,7 @@ public class TestSmileParser
     public void testJsonSampleDoc() throws IOException
     {
     	byte[] data = _smileDoc(SAMPLE_DOC_JSON_SPEC);
-    	verifyJsonSpecSampleDoc(_parser(data), true);
+    	verifyJsonSpecSampleDoc(_smileParser(data), true);
     }
 
     public void testUnicodeStringValues() throws IOException
@@ -225,7 +225,7 @@ public class TestSmileParser
         byte[] data = _smileDoc("[" +quote(uc)+"]");
 
         // First, just skipping
-        SmileParser p = _parser(data);
+        SmileParser p = _smileParser(data);
         assertToken(JsonToken.START_ARRAY, p.nextToken());
         assertToken(JsonToken.VALUE_STRING, p.nextToken());
         assertToken(JsonToken.END_ARRAY, p.nextToken());
@@ -233,7 +233,7 @@ public class TestSmileParser
         p.close();
 
         // Then accessing data
-        p = _parser(data);
+        p = _smileParser(data);
         assertToken(JsonToken.START_ARRAY, p.nextToken());
         assertToken(JsonToken.VALUE_STRING, p.nextToken());
         assertEquals(uc, p.getText());
@@ -250,14 +250,14 @@ public class TestSmileParser
         data = _smileDoc("["+quote(longer)+"]");
 
         // Ok once again, first skipping, then accessing
-        p = _parser(data);
+        p = _smileParser(data);
         assertToken(JsonToken.START_ARRAY, p.nextToken());
         assertToken(JsonToken.VALUE_STRING, p.nextToken());
         assertToken(JsonToken.END_ARRAY, p.nextToken());
         assertNull(p.nextToken());
         p.close();
 
-        p = _parser(data);
+        p = _smileParser(data);
         assertToken(JsonToken.START_ARRAY, p.nextToken());
         assertToken(JsonToken.VALUE_STRING, p.nextToken());
         assertEquals(longer, p.getText());
@@ -272,7 +272,7 @@ public class TestSmileParser
         byte[] data = _smileDoc("{" +quote(uc)+":true}");
 
         // First, just skipping
-        SmileParser p = _parser(data);
+        SmileParser p = _smileParser(data);
         assertToken(JsonToken.START_OBJECT, p.nextToken());
         assertToken(JsonToken.FIELD_NAME, p.nextToken());
         assertToken(JsonToken.VALUE_TRUE, p.nextToken());
@@ -281,7 +281,7 @@ public class TestSmileParser
         p.close();
 
         // Then accessing data
-        p = _parser(data);
+        p = _smileParser(data);
         assertToken(JsonToken.START_OBJECT, p.nextToken());
         assertToken(JsonToken.FIELD_NAME, p.nextToken());
         assertEquals(uc, p.getCurrentName());

@@ -21,44 +21,44 @@ abstract class BaseReader
     final protected static char NULL_CHAR = (char) 0;
     final protected static char NULL_BYTE = (byte) 0;
 
-    final protected IOContext mContext;
+    final protected IOContext _context;
 
-    protected InputStream mIn;
+    protected InputStream _in;
 
-    protected byte[] mBuffer;
+    protected byte[] _buffer;
 
-    protected int mPtr;
-    protected int mLength;
+    protected int _ptr;
+    protected int _length;
 
     /*
-    ////////////////////////////////////////
-    // Life-cycle
-    ////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
+     */
 
     protected BaseReader(IOContext context,
                          InputStream in, byte[] buf, int ptr, int len)
     {
-        mContext = context;
-        mIn = in;
-        mBuffer = buf;
-        mPtr = ptr;
-        mLength = len;
+        _context = context;
+        _in = in;
+        _buffer = buf;
+        _ptr = ptr;
+        _length = len;
     }
 
     /*
-    ////////////////////////////////////////
-    // Reader API
-    ////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Reader API
+    /**********************************************************
+     */
 
     public void close()
         throws IOException
     {
-        InputStream in = mIn;
+        InputStream in = _in;
 
         if (in != null) {
-            mIn = null;
+            _in = null;
             freeBuffers();
             in.close();
         }
@@ -84,10 +84,10 @@ abstract class BaseReader
     }
 
     /*
-    ////////////////////////////////////////
-    // Internal/package methods:
-    ////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Internal/package methods:
+    /**********************************************************
+     */
 
     /**
      * This method should be called along with (or instead of) normal
@@ -96,10 +96,10 @@ abstract class BaseReader
      */
     public final void freeBuffers()
     {
-        byte[] buf = mBuffer;
+        byte[] buf = _buffer;
         if (buf != null) {
-            mBuffer = null;
-            mContext.releaseReadIOBuffer(buf);
+            _buffer = null;
+            _context.releaseReadIOBuffer(buf);
         }
     }
 

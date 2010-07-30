@@ -8,23 +8,33 @@ import org.junit.Assert;
 import org.codehaus.jackson.*;
 
 abstract class SmileTestBase
-	extends main.BaseTest
+    extends main.BaseTest
 {
-    protected SmileParser _parser(byte[] input) throws IOException {
-        return _parser(input, false);
+    protected SmileParser _smileParser(byte[] input) throws IOException {
+        return _smileParser(input, false);
     }
 
-    protected SmileParser _parser(byte[] input, boolean requireHeader) throws IOException
+    protected SmileParser _smileParser(byte[] input, boolean requireHeader) throws IOException
     {
-        SmileFactory f = new SmileFactory();
-        f.configure(SmileParser.Feature.REQUIRE_HEADER, requireHeader);
-    	return _parser(f, input);
+        SmileFactory f = smileFactory(requireHeader, false, false);
+    	return _smileParser(f, input);
     }
 
-    protected SmileParser _parser(SmileFactory f, byte[] input)
+    protected SmileParser _smileParser(SmileFactory f, byte[] input)
         throws IOException
     {
         return f.createJsonParser(input);
+    }
+    
+    protected SmileFactory smileFactory(boolean requireHeader,
+            boolean writeHeader, boolean writeEndMarker)
+        throws IOException
+    {
+        SmileFactory f = new SmileFactory();
+        f.configure(SmileParser.Feature.REQUIRE_HEADER, requireHeader);
+        f.configure(SmileGenerator.Feature.WRITE_HEADER, writeHeader);
+        f.configure(SmileGenerator.Feature.WRITE_END_MARKER, writeEndMarker);
+        return f;
     }
     
     protected byte[] _smileDoc(String json) throws IOException
@@ -37,7 +47,7 @@ abstract class SmileTestBase
         JsonFactory jf = new JsonFactory();
     	JsonParser jp = jf.createJsonParser(json);
     	ByteArrayOutputStream out = new ByteArrayOutputStream();
-    	JsonGenerator jg = _generator(out, writeHeader);
+    	JsonGenerator jg = smileGenerator(out, writeHeader);
     	
     	while (jp.nextToken() != null) {
     		jg.copyCurrentEvent(jp);
@@ -47,7 +57,7 @@ abstract class SmileTestBase
     	return out.toByteArray();
     }
     
-    protected SmileGenerator _generator(ByteArrayOutputStream result, boolean addHeader)
+    protected SmileGenerator smileGenerator(ByteArrayOutputStream result, boolean addHeader)
         throws IOException
     {
         SmileFactory f = new SmileFactory();

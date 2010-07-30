@@ -267,6 +267,13 @@ public class SmileGenerator
         }
     }
 
+    /**
+     * Method that can be called to explicitly write Smile document header.
+     * Note that usually you do not need to call this for first document to output, 
+     * but rather only if you intend to write multiple root-level documents
+     * with same generator (and even in that case this is optional thing to do).
+     * As a result usually only {@link SmileFactory} calls this method.
+     */
     public void writeHeader() throws IOException
     {
     	int last = HEADER_BYTE_4;
@@ -874,8 +881,7 @@ public class SmileGenerator
     }
 
     @Override
-    public void close()
-        throws IOException
+    public void close() throws IOException
     {
         boolean wasClosed = _closed;
         

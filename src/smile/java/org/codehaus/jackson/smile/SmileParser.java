@@ -311,7 +311,6 @@ public class SmileParser
         default: // binary/longtext/var-numbers
             {
                 int typeBits = ch & 0x1F;
-                _tokenIncomplete = true; // none of these is fully handled yet
                 // next 3 bytes define subtype
                 switch (typeBits >> 2) {
                 case 0: // long variable length ascii
@@ -324,9 +323,9 @@ public class SmileParser
                     return (_currToken = JsonToken.VALUE_EMBEDDED_OBJECT);
                 case 4: // VInt (zigzag), BigInteger
                     if ((typeBits & 0x3) <= 0x2) { // 0x3 reserved (should never occur)
-    	            _tokenIncomplete = true;
-    	            _numTypesValid = 0;
-    	            return (_currToken = JsonToken.VALUE_NUMBER_INT);
+                        _tokenIncomplete = true;
+                        _numTypesValid = 0;
+                        return (_currToken = JsonToken.VALUE_NUMBER_INT);
                     }
                     break;
                 case 5: // floating-point
@@ -338,6 +337,11 @@ public class SmileParser
     	                    _got32BitFloat = (subtype == 0);
     	                    return (_currToken = JsonToken.VALUE_NUMBER_FLOAT);
     	                }
+                    }
+                    break;
+                case 7: // end markers 0xFE (string), 0xFF (document)
+                    if (ch == SmileConstants.BYTE_MARKER_END_OF_CONTENT) {
+                        return (_currToken = null);
                     }
                     break;
                 default: // 6 and 7 not used (to reserve 0xF8 - 0xFF)

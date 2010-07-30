@@ -13,7 +13,7 @@ public class TestSmileGeneratorSymbols
     {
         // false, no header (or frame marker)
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SmileGenerator gen = _generator(out, false);
+        SmileGenerator gen = smileGenerator(out, false);
         gen.writeStartArray();
         gen.writeStartObject();
         gen.writeNumberField("abc", 1);
@@ -34,7 +34,7 @@ public class TestSmileGeneratorSymbols
     	final String LONG_NAME = "a"+digits+"b"+digits+"c"+digits+"d"+digits+"e"+digits+"f"+digits;
         // false, no header (or frame marker)
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SmileGenerator gen = _generator(out, false);
+        SmileGenerator gen = smileGenerator(out, false);
         gen.writeStartArray();
         gen.writeStartObject();
         gen.writeNumberField(LONG_NAME, 1);
