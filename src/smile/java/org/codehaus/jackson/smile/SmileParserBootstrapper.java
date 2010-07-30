@@ -106,7 +106,7 @@ public class SmileParserBootstrapper
         if (_inputPtr < _inputEnd) { // only false for empty doc
             if (_inputBuffer[_inputPtr] == SmileConstants.HEADER_BYTE_1) {
                 // need to ensure it gets properly handled so caller won't see the signature
-                hadSig = p.handleSignature(true);
+                hadSig = p.handleSignature(true, true);
             }
     	}
     	if (!hadSig && (smileFeatures & SmileParser.Feature.REQUIRE_HEADER.getMask()) != 0) {

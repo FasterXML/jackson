@@ -158,10 +158,13 @@ public class SmileParser
      * 
      * @return True if valid signature was found and handled; false if not
      */
-    protected boolean handleSignature(boolean throwException)
+    protected boolean handleSignature(boolean consumeFirstByte, boolean throwException)
         throws IOException, JsonParseException
     {
-        if (++_inputPtr >= _inputEnd) {
+        if (consumeFirstByte) {
+            ++_inputPtr;
+        }
+        if (_inputPtr >= _inputEnd) {
             loadMoreGuaranteed();
         }
         if (_inputBuffer[_inputPtr] != SmileConstants.HEADER_BYTE_2) {
@@ -183,13 +186,13 @@ public class SmileParser
         }
     	// Good enough; just need version info from 4th byte...
         if (++_inputPtr >= _inputEnd) {
-        	loadMoreGuaranteed();        	
+            loadMoreGuaranteed();        	
         }
         int ch = _inputBuffer[_inputPtr++];
         int versionBits = (ch >> 6) & 0x03;
         // but failure with version number is fatal, can not ignore
         if (versionBits != SmileConstants.HEADER_VERSION_00) {
-        	_reportError("Header version number bits (0x"+Integer.toHexString(versionBits)+") indicate unrecognized version; only 0x0 handled by parser");
+            _reportError("Header version number bits (0x"+Integer.toHexString(versionBits)+") indicate unrecognized version; only 0x0 handled by parser");
         }
 
         // can avoid tracking names, if explicitly disabled
@@ -286,9 +289,16 @@ public class SmileParser
                 _textBuffer.resetWithEmpty();
                 return (_currToken = JsonToken.VALUE_STRING);
             case 0x1A: // == 0x3A == ':' -> possibly header signature for next chunk?
-            	if (handleSignature(false)) {
-            		// Mark current token as empty, to return; but don't close input to allow more parsing
-            		return (_currToken = null);
+            	if (handleSignature(false, false)) {
+            	    /* Ok, now; end-marker and header both imply doc boundary and a
+            	     * 'null token'; but if both are seen, they are collapsed.
+            	     * We can check this by looking at current token; if it's null,
+            	     * need to get non-null token
+            	     */
+            	    if (_currToken == null) {
+            	        return nextToken();
+            	    }
+            	    return (_currToken = null);
             	}
             	_reportError("Unrecognized token byte 0x3A (malformed segment header?");
             }
