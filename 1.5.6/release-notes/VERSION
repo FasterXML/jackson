@@ -13,6 +13,7 @@ Description:
    (reported by Yuanchen Z)
   * [JACKSON-330] ObjectMapper.convertValue(): base64 conversions
     do not work as expected
+  * [JACKSON-334] Support ISO-8601 date without milliseconds
 
 ------------------------------------------------------------------------
 == History: ==
