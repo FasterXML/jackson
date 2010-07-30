@@ -214,10 +214,33 @@ public class TestDateDeserialization
         assertNull(mapper.readValue(quote(""), java.sql.Date.class));
     }
 
+    // for [JACKSON-334]
+    public void test8601DateTimeNoMilliSecs() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // ok, Zebra, no milliseconds
+        for (String inputStr : new String[] {
+               "2010-06-28T23:34:22Z",
+               "2010-06-28T23:34:22+0000",
+               "2010-06-28T23:34:22+00",
+        }) {
+            Date inputDate = mapper.readValue(quote(inputStr), java.util.Date.class);
+            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+            c.setTime(inputDate);
+            assertEquals(2010, c.get(Calendar.YEAR));
+            assertEquals(Calendar.JUNE, c.get(Calendar.MONTH));
+            assertEquals(28, c.get(Calendar.DAY_OF_MONTH));
+            assertEquals(23, c.get(Calendar.HOUR_OF_DAY));
+            assertEquals(34, c.get(Calendar.MINUTE));
+            assertEquals(22, c.get(Calendar.SECOND));
+            assertEquals(0, c.get(Calendar.MILLISECOND));
+        }
+    }
+    
     /*
-    //////////////////////////////////////////////////////////
-    // Helper methods
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
      */
 
     String serializeDateAsString(java.util.Date value)

@@ -97,9 +97,9 @@ public class StdDateFormat
     transient SimpleDateFormat _formatPlain;
 
     /*
-    /////////////////////////////////////////////////////
-    // Life cycle, accessing singleton "standard" formats
-    /////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life cycle, accessing singleton "standard" formats
+    /**********************************************************
      */
 
     public StdDateFormat() { }
@@ -155,9 +155,9 @@ public class StdDateFormat
     }
 
     /*
-    /////////////////////////////////////////////////////
-    // Public API
-    /////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API
+    /**********************************************************
      */
 
     public Date parse(String dateStr)
@@ -217,9 +217,9 @@ public class StdDateFormat
     }
 
     /*
-    /////////////////////////////////////////////////////
-    // Helper methods
-    /////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
      */
 
     /**
@@ -263,6 +263,12 @@ public class StdDateFormat
             if (df == null) {
                 df = _formatISO8601_z = (SimpleDateFormat) DATE_FORMAT_ISO8601_Z.clone();
             }
+            // [JACKSON-334]: may be missing milliseconds... if so, add
+            if (dateStr.charAt(len-4) == ':') {
+                StringBuilder sb = new StringBuilder(dateStr);
+                sb.insert(len-1, ".000");
+                dateStr = sb.toString();
+            }
         } else {
             // Let's see if we have timezone indicator or not...
             if (hasTimeZone(dateStr)) {
@@ -276,6 +282,16 @@ public class StdDateFormat
                     // let's just append '00'
                     dateStr += "00";
                 }
+                // [JACKSON-334]: may be missing milliseconds... if so, add
+                len = dateStr.length();
+                // '+0000' (5 chars); should come after '.000' (4 chars) of milliseconds, so:
+                c = dateStr.charAt(len-9);
+                if (Character.isDigit(c)) {
+                    StringBuilder sb = new StringBuilder(dateStr);
+                    sb.insert(len-5, ".000");
+                    dateStr = sb.toString();
+                }
+                
                 df = _formatISO8601;
                 if (_formatISO8601 == null) {
                     df = _formatISO8601 = (SimpleDateFormat) DATE_FORMAT_ISO8601.clone();
