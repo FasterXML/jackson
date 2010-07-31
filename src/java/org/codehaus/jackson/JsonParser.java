@@ -322,6 +322,8 @@ public abstract class JsonParser
      *    otherwise number of bytes released (0 if there was nothing to release)
      *    
      * @throws IOException if write to stream threw exception
+     * 
+     * @since 1.6
      */    
     public int releaseBuffered(OutputStream out) throws IOException
     {
@@ -342,6 +344,8 @@ public abstract class JsonParser
      *    otherwise number of chars released (0 if there was nothing to release)
      *    
      * @throws IOException if write using Writer threw exception
+     * 
+     * @since 1.6
      */    
     public int releaseBuffered(Writer w) throws IOException
     {

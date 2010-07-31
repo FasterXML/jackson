@@ -480,7 +480,6 @@ public class BasicBeanDescription extends BeanDescription
      * is acceptable: needs to take 2 arguments, first one String or
      * Object; second any can be any type.
      */
-
     public AnnotatedMethod findAnySetter()
         throws IllegalArgumentException
     {
@@ -513,6 +512,36 @@ public class BasicBeanDescription extends BeanDescription
         return found;
     }
 
+    /**
+     * Method used to locate the method of introspected class that
+     * implements {@link org.codehaus.jackson.annotate.JsonAnyGetter}.
+     * If no such method exists null is returned.
+     * If more than one are found, an exception is thrown.
+     * 
+     * @since 1.6
+     */
+    public AnnotatedMethod findAnyGetter() throws IllegalArgumentException
+    {
+        AnnotatedMethod found = null;
+        for (AnnotatedMethod am : _classInfo.memberMethods()) {
+            if (!_annotationIntrospector.hasAnyGetterAnnotation(am)) {
+                continue;
+            }
+            if (found != null) {
+                throw new IllegalArgumentException("Multiple methods with 'any-getter' annotation ("+found.getName()+"(), "+am.getName()+")");
+            }
+            /* For now let's require a Map; in future can add support for other
+             * types like perhaps Iterable<Map.Entry>?
+             */
+            Class<?> type = am.getRawType();
+            if (!Map.class.isAssignableFrom(type)) {
+                throw new IllegalArgumentException("Invalid 'any-getter' annotation on method "+am.getName()+"(): return type is not instance of java.util.Map");
+            }
+            found = am;
+        }
+        return found;
+    }
+    
     /**
      * Method for locating all back-reference properties (setters, fields) bean has
      * 

@@ -44,6 +44,14 @@ public class BeanSerializer
      * are only to be included in certain views
      */
     final protected BeanPropertyWriter[] _filteredProps;
+
+    /**
+     * Handler for {@link org.codehaus.jackson.annotate.JsonAnyGetter}
+     * annotated properties
+     * 
+     * @since 1.6
+     */
+    protected AnyGetterWriter _anyGetterWriter;
     
     /**
      * 
@@ -100,6 +108,10 @@ public class BeanSerializer
         return new BeanSerializer(_class, _props, filtered);
     }
 
+    public void setAnyGetter(AnyGetterWriter agw) {
+        _anyGetterWriter = agw;
+    }
+    
     /*
     /**********************************************************
     /* JsonSerializer implementation
@@ -145,6 +157,9 @@ public class BeanSerializer
                 if (prop != null) { // can have nulls in filtered list
                     prop.serializeAsField(bean, jgen, provider);
                 }
+            }
+            if (_anyGetterWriter != null) {
+                _anyGetterWriter.getAndSerialize(bean, jgen, provider);
             }
         } catch (Exception e) {
             wrapAndThrow(e, bean, props[i].getName());
@@ -245,6 +260,11 @@ public class BeanSerializer
                 }
             }
             _props[i] = prop.withSerializer(ser);
+        }
+
+        // also, any-getter may need to be resolved
+        if (_anyGetterWriter != null) {
+            _anyGetterWriter.resolve(provider);
         }
     }
 

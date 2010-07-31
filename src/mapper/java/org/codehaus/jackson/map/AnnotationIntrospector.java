@@ -127,7 +127,9 @@ public abstract class AnnotationIntrospector
      *   namespace information; non-null namespace (which may
      *   be empty String) otherwise
      */
-    public abstract String findNamespace(Annotated ann);
+    public String findNamespace(Annotated ann) {
+        return null;
+    }
 
     /*
     /**********************************************************
@@ -614,8 +616,25 @@ public abstract class AnnotationIntrospector
      * @return True if such annotation is found (and is not disabled),
      *   false otherwise
      */
-    public abstract boolean hasAnySetterAnnotation(AnnotatedMethod am);
+    public boolean hasAnySetterAnnotation(AnnotatedMethod am) {
+        return false;
+    }
 
+    /**
+     * Method for checking whether given method has an annotation
+     * that suggests that the method is to serve as "any setter";
+     * method to be used for accessing set of miscellaneous "extra"
+     * properties, often bound with matching "any setter" method.
+     *
+     * @return True if such annotation is found (and is not disabled),
+     *   false otherwise
+     *   
+     * @since 1.6
+     */
+    public boolean hasAnyGetterAnnotation(AnnotatedMethod am) {
+        return false;
+    }
+    
     /**
      * Method for checking whether given annotated item (method, constructor)
      * has an annotation
@@ -626,7 +645,9 @@ public abstract class AnnotationIntrospector
      * @return True if such annotation is found (and is not disabled),
      *   false otherwise
      */
-    public abstract boolean hasCreatorAnnotation(Annotated a);
+    public boolean hasCreatorAnnotation(Annotated a) {
+        return false;
+    }
 
     /*
     /**********************************************************
@@ -1120,6 +1141,12 @@ public abstract class AnnotationIntrospector
             return _primary.hasAnySetterAnnotation(am) || _secondary.hasAnySetterAnnotation(am);
         }
 
+        @Override
+        public boolean hasAnyGetterAnnotation(AnnotatedMethod am)
+        {
+            return _primary.hasAnyGetterAnnotation(am) || _secondary.hasAnyGetterAnnotation(am);
+        }
+        
         @Override
         public boolean hasCreatorAnnotation(Annotated a)
         {

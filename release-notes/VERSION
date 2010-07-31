@@ -34,7 +34,7 @@ Description:
     of whether JSON Object/Array nodes have specified value.
   * [JACKSON-321] Allow passing JsonNodeFactory to use for ObjectMapper, ObjectReader,
     to allow use of custom JsonNode types.
-  * [JACKSON-326] Add 'JsonParser.hasTextCharacters()' to make it easire to optimize
+  * [JACKSON-326] Add 'JsonParser.hasTextCharacters()' to make it easier to optimize
     text access (esp. when copying events)
   * [JACKSON-328] Precedence of "getters-as-setters" (for Maps, Collections) was
     accidentally higher than that of property fields (public, @JsonProperty)
@@ -57,11 +57,13 @@ Description:
     serialization of a (root-level) value.
   * [JACKSON-287] Add JsonParser.releaseBufferedContent() which can be called
     to "push back" content read but not (yet) consumed by JsonParser
+  * [JACKSON-292] Add "any-getter" (using @JsonAnyGetter) to complement @JsonAnySetter,
+    more convenient mapping of miscellaneous extra properties.
   * [JACKSON-295] Add 'jackson-all' jar
     (suggested by Ant E)
   * [JACKSON-299] Added 'org.codehaus.jackson.impl.MinimalPrettyPrinter'
     to make it easier to add simple output customizations
-    (suggested b y David P)
+    (suggested by David P)
   * [JACKSON-300] Add 'JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER
     to allow non-standard character escapes like \'.
     (requested by Ketan G)

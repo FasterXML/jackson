@@ -231,6 +231,18 @@ public class BeanSerializerFactory
         // Do they need to be sorted in some special way?
         props = sortBeanProperties(config, beanDesc, props);
         BeanSerializer ser = new BeanSerializer(beanDesc.getBeanClass(), props);
+        // 1.6: any-setter?
+        AnnotatedMethod m = beanDesc.findAnyGetter();
+        if (m != null) {
+            JavaType type = m.getType(beanDesc.bindingsForBeanType());
+            // copied from BasicSerializerFactory.buildMapSerializer():
+            boolean staticTyping = config.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING);
+            JavaType valueType = type.getContentType();
+            TypeSerializer typeSer = createTypeSerializer(valueType, config);
+            MapSerializer mapSer = MapSerializer.construct(/* ignored props*/ null, type, staticTyping, typeSer);
+            ser.setAnyGetter(new AnyGetterWriter(m, mapSer));
+        }
+        
         // One more thing: need to gather view information, if any:
         ser = processViews(config, beanDesc, ser, props);
         return ser;

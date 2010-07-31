@@ -220,15 +220,4 @@ public class NopAnnotationIntrospector
     public String findSettablePropertyName(AnnotatedMethod am) {
         return null;
     }
-
-    @Override
-    public boolean hasAnySetterAnnotation(AnnotatedMethod am) {
-        return false;
-    }
-
-    @Override
-    public boolean hasCreatorAnnotation(Annotated a) {
-        return false;
-    }
-
 }

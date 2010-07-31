@@ -558,6 +558,15 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
+    public boolean hasAnyGetterAnnotation(AnnotatedMethod am)
+    {
+        /* No dedicated disabling; regular @JsonIgnore used
+         * if needs to be ignored (handled separately
+         */
+        return am.hasAnnotation(JsonAnyGetter.class);
+    }
+    
+    @Override
     public boolean hasCreatorAnnotation(Annotated a)
     {
         /* No dedicated disabling; regular @JsonIgnore used
