@@ -73,6 +73,25 @@ public abstract class StreamBasedParserBase
 
     /*
     /**********************************************************
+    /* Overrides
+    /**********************************************************
+     */
+
+    @Override
+    public int releaseBuffered(OutputStream out) throws IOException
+    {
+        int count = _inputEnd - _inputPtr;
+        if (count < 1) {
+            return 0;
+        }
+        // let's just advance ptr to end
+        int origPtr = _inputPtr;
+        out.write(_inputBuffer, origPtr, count);
+        return count;
+    }
+    
+    /*
+    /**********************************************************
     /* Low-level reading, other
     /**********************************************************
      */

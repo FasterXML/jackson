@@ -1,6 +1,7 @@
 package org.codehaus.jackson.main;
 
 import main.BaseTest;
+import static org.junit.Assert.*;
 
 import org.codehaus.jackson.*;
 
@@ -97,10 +98,36 @@ public class TestParserClosing
         assertFalse(input.isClosed());
     }
 
+    // [JACKSON-287]
+    public void testReleaseContentBytes() throws Exception
+    {
+        byte[] input = "[1]foobar".getBytes("UTF-8");
+        JsonParser jp = new JsonFactory().createJsonParser(input);
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        // theoretically could have only read subset; but current impl is more greedy
+        assertEquals(6, jp.releaseBuffered(out));
+        assertArrayEquals("foobar".getBytes("UTF-8"), out.toByteArray());
+    }
+
+    public void testReleaseContentChars() throws Exception
+    {
+        JsonParser jp = new JsonFactory().createJsonParser("[true]xyz");
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_TRUE, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        StringWriter sw = new StringWriter();
+        // theoretically could have only read subset; but current impl is more greedy
+        assertEquals(3, jp.releaseBuffered(sw));
+        assertEquals("xyz", sw.toString());
+    }
+    
     /*
-    ///////////////////////////////////////////////
-    // Helper classes
-    ///////////////////////////////////////////////
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
      */
 
     final static class MyReader extends StringReader

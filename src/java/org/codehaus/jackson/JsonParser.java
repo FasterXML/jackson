@@ -304,6 +304,51 @@ public abstract class JsonParser
     public abstract void close() throws IOException;
 
     /*
+    /**********************************************************
+    /* Buffer handling
+    /**********************************************************
+     */
+
+    /**
+     * Method that can be called to push back any content that
+     * has been read but not consumed by the parser. This is usually
+     * done after reading all content of interest using parser.
+     * Content is released by writing it to given stream if possible;
+     * if underlying input is byte-based it can released, if not (char-based)
+     * it can not.
+     * 
+     * @return -1 if the underlying content source is not byte based
+     *    (that is, input can not be sent to {@link OutputStream};
+     *    otherwise number of bytes released (0 if there was nothing to release)
+     *    
+     * @throws IOException if write to stream threw exception
+     */    
+    public int releaseBuffered(OutputStream out) throws IOException
+    {
+        return -1;
+    }
+
+    /**
+     * Method that can be called to push back any content that
+     * has been read but not consumed by the parser.
+     * This is usually
+     * done after reading all content of interest using parser.
+     * Content is released by writing it to given writer if possible;
+     * if underlying input is char-based it can released, if not (byte-based)
+     * it can not.
+     * 
+     * @return -1 if the underlying content source is not char-based
+     *    (that is, input can not be sent to {@link Writer};
+     *    otherwise number of chars released (0 if there was nothing to release)
+     *    
+     * @throws IOException if write using Writer threw exception
+     */    
+    public int releaseBuffered(Writer w) throws IOException
+    {
+        return -1;
+    }
+    
+    /*
     /***************************************************
     /* Public API, configuration
     /***************************************************

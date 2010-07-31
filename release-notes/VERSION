@@ -1,7 +1,7 @@
 Version: 1.6.0
 
 Release date:
-  xx-Jun-2010
+  xx-Aug-2010
 
 Description:
   Version 1.6
@@ -55,6 +55,8 @@ Description:
   * [JACKSON-282] Added SerializationConfig.Feature.CLOSE_CLOSEABLE
     which when enabled forced a call to value.close() right after
     serialization of a (root-level) value.
+  * [JACKSON-287] Add JsonParser.releaseBufferedContent() which can be called
+    to "push back" content read but not (yet) consumed by JsonParser
   * [JACKSON-295] Add 'jackson-all' jar
     (suggested by Ant E)
   * [JACKSON-299] Added 'org.codehaus.jackson.impl.MinimalPrettyPrinter'

@@ -57,6 +57,25 @@ public abstract class ReaderBasedParserBase
 
     /*
     /**********************************************************
+    /* Overrides
+    /**********************************************************
+     */
+
+    @Override
+    public int releaseBuffered(Writer w) throws IOException
+    {
+        int count = _inputEnd - _inputPtr;
+        if (count < 1) {
+            return 0;
+        }
+        // let's just advance ptr to end
+        int origPtr = _inputPtr;
+        w.write(_inputBuffer, origPtr, count);
+        return count;
+    }
+    
+    /*
+    /**********************************************************
     /* Low-level reading, other
     /**********************************************************
      */
