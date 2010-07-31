@@ -12,9 +12,9 @@ public class TestGenericMapDeser
     extends BaseMapTest
 {
     /*
-    ***************************************************
-    * Test classes, enums
-    ***************************************************
+    /**********************************************************
+    /* Test classes, enums
+    /**********************************************************
      */
 
     static class BooleanWrapper {
@@ -51,10 +51,14 @@ public class TestGenericMapDeser
         public Map<String,Long> getEntries() { return entries; }
     }
 
+    static class StringWrapperValueMap<KEY> extends HashMap<KEY,StringWrapper> { }
+
+    static class StringStringWrapperMap extends StringWrapperValueMap<String> { }
+    
     /*
-    ***************************************************
-    * Test methods for sub-classing
-    ***************************************************
+    /**********************************************************
+    /* Test methods for sub-classing
+    /**********************************************************
      */
 
     /**
@@ -81,10 +85,21 @@ public class TestGenericMapDeser
         assertEquals(Long.valueOf(9), value.getEntries().get("a"));
     }
 
+    public void testIntermediateTypes() throws Exception
+    {
+        StringStringWrapperMap result = new ObjectMapper().readValue
+            ("{\"a\":true", StringStringWrapperMap.class);
+        assertEquals(1, result.size());
+        Object value = result.get("a");
+        assertNotNull(value);
+        assertEquals(value.getClass(), BooleanWrapper.class);
+        assertTrue(((BooleanWrapper) value).b);
+    }
+    
     /*
-    ***************************************************
-    * Test methods for sub-classing for annotation handling
-    ***************************************************
+    /**********************************************************
+    /* Test methods for sub-classing for annotation handling
+    /**********************************************************
      */
 
     /**

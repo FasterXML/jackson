@@ -449,7 +449,7 @@ public class TypeFactory
             /* 24-Mar-2010, tatu: Better create context if one was not passed;
              *   mostly matters for root serialization types
              */
-            if (context == null) {             
+            if (context == null) {
                 context = new TypeBindings(cls);
             }
             return _fromClass(cls, context);
@@ -596,8 +596,9 @@ public class TypeFactory
     {
         Type parentType = clz.getGenericSuperclass();
         if (parentType != null) {
-            // Need to have context, for now
-            JavaType parent = _fromType(parentType, null);
+            // Should we create context at this point?
+            TypeBindings context = new TypeBindings(clz);
+            JavaType parent = _fromType(parentType, context);
             // This should always be true, but let's ensure:
             if (expType.isAssignableFrom(parent.getClass())) {
                 return (T) parent;
