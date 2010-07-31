@@ -182,7 +182,7 @@ public class BeanBuilder
 
     private static void createField(ClassWriter cw, Property prop, TypeDescription type)
     {
-        String sig = type.isGeneric() ? type.genericSignature() : null;
+        String sig = type.hasGenerics() ? type.genericSignature() : null;
         String desc = type.erasedSignature();
         FieldVisitor fv = cw.visitField(ACC_PUBLIC, prop.getFieldName(), desc, sig, null);
         fv.visitEnd();
@@ -201,7 +201,7 @@ public class BeanBuilder
             desc = "("+ propertyType.erasedSignature() + ")V";
             methodName = buildSetterName(prop.getName());
         }
-        String sig = propertyType.isGeneric() ? ("("+propertyType.genericSignature()+")V") : null;
+        String sig = propertyType.hasGenerics() ? ("("+propertyType.genericSignature()+")V") : null;
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, desc, sig, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0); // this
@@ -227,7 +227,7 @@ public class BeanBuilder
             methodName = buildGetterName(prop.getName());
         }
         
-        String sig = propertyType.isGeneric() ? ("()"+propertyType.genericSignature()) : null;
+        String sig = propertyType.hasGenerics() ? ("()"+propertyType.genericSignature()) : null;
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, methodName, desc, sig, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0); // load 'this'
@@ -368,8 +368,12 @@ public class BeanBuilder
             return _jacksonType.getGenericSignature();
         }
 
-        public boolean isGeneric() {
-            return _jacksonType.mayBeGeneric();
+        /**
+         * @return True if type has direct generic declaration (which may need
+         *   to be copied)
+         */
+        public boolean hasGenerics() {
+            return _jacksonType.hasGenericTypes();
         }
         
         /*

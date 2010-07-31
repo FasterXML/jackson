@@ -114,9 +114,9 @@ public final class ArrayType
     public boolean isConcrete() { return true; }
 
     @Override
-    public boolean mayBeGeneric() {
+    public boolean hasGenericTypes() {
         // arrays are not parameterized, but element type may be:
-        return _componentType.mayBeGeneric();
+        return _componentType.hasGenericTypes();
     }
     
     /**

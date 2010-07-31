@@ -112,7 +112,7 @@ public final class SimpleType
     public boolean isContainerType() { return false; }
 
     @Override
-    public boolean mayBeGeneric() {
+    public boolean hasGenericTypes() {
         return containedTypeCount() > 0;
     }
     

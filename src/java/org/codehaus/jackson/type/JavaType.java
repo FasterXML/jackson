@@ -228,14 +228,12 @@ public abstract class JavaType
     public final boolean isFinal() { return Modifier.isFinal(_class.getModifiers()); }
 
     /**
-     * Method that can be used to find out types that either have generic
-     * type information, or should have it (i.e. expects parameterization);
-     * latter happens when generic types are created without generic
-     * types ("raw" Lists, Maps etc).
+     * Method that can be used to find out if the type directly declares generic
+     * parameters (for its super-class and/or direct super-interfaces)
      * 
      * @since 1.6
      */
-    public abstract boolean mayBeGeneric();
+    public abstract boolean hasGenericTypes();
     
     /**
      * Method for accessing key type for this type, assuming type

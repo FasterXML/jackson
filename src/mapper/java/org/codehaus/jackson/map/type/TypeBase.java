@@ -14,7 +14,7 @@ public abstract class TypeBase extends JavaType
     }
 
     @Override
-    public abstract boolean mayBeGeneric();
+    public abstract boolean hasGenericTypes();
     
     @Override
     public String toCanonical()

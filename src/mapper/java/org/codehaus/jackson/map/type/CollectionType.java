@@ -65,7 +65,7 @@ public final class CollectionType
      */
 
     @Override
-    public boolean mayBeGeneric() { return true; }
+    public boolean hasGenericTypes() { return true; }
     
     public JavaType getContentType() { return _elementType; }
     public int containedTypeCount() { return 1; }
