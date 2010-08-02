@@ -242,6 +242,22 @@ public class ObjectReader
     {
         return (T) _bindAndClose(_jsonFactory.createJsonParser(src));
     }
+
+    /**
+     * Convenience method for converting results from given JSON tree into given
+     * value type. Basically short-cut for:
+     *<pre>
+     *   objectReader.readValue(src.traverse())
+     *</pre>
+     *
+     * @since 1.6
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(JsonNode src)
+        throws IOException, JsonProcessingException
+    {
+        return (T) _bindAndClose(src.traverse());
+    }
     
     public JsonNode readTree(InputStream in)
         throws IOException, JsonProcessingException

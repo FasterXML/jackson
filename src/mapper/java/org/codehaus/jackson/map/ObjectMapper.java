@@ -1201,6 +1201,54 @@ public class ObjectMapper
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), valueType);
     } 
 
+    /**
+     * Convenience method for converting results from given JSON tree into given
+     * value type. Basically short-cut for:
+     *<pre>
+     *   mapper.readValue(root.traverse(), valueType);
+     *</pre>
+     *
+     * @since 1.6
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(JsonNode root, Class<T> valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readValue(copyDeserializationConfig(), root.traverse(), TypeFactory.type(valueType));
+    } 
+
+    /**
+     * Convenience method for converting results from given JSON tree into given
+     * value type. Basically short-cut for:
+     *<pre>
+     *   mapper.readValue(root.traverse(), valueType);
+     *</pre>
+     *
+     * @since 1.6
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(JsonNode root, TypeReference valueTypeRef)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readValue(copyDeserializationConfig(), root.traverse(), TypeFactory.type(valueTypeRef));
+    } 
+    
+    /**
+     * Convenience method for converting results from given JSON tree into given
+     * value type. Basically short-cut for:
+     *<pre>
+     *   mapper.readValue(root.traverse(), valueType);
+     *</pre>
+     *
+     * @since 1.6
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(JsonNode root, JavaType valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readValue(copyDeserializationConfig(), root.traverse(), valueType);
+    } 
+    
     /*
     /**********************************************************
     /* Extended Public API: serialization
