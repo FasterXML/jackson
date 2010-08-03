@@ -86,9 +86,6 @@ public final class MapType
     public boolean isContainerType() { return true; }
 
     @Override
-    public boolean hasGenericTypes() { return true; }
-
-    @Override
     public JavaType getKeyType() { return _keyType; }
 
     @Override

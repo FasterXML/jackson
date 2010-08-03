@@ -348,9 +348,9 @@ public class TypeFactory
     }
 
     /*
-    /*************************************************
+    /**********************************************************
     /* Internal methods
-    /*************************************************
+    /**********************************************************
      */
     
     /**
@@ -607,8 +607,91 @@ public class TypeFactory
         // no, couldn't find
         return null;
     }
-
+    
     protected JavaType _unknownType() {
         return _fromClass(Object.class, null);
+    }
+
+    /**
+     * Helper method used to find inheritance (implements, extends) path
+     * between given types, if one exists (caller generally checks before
+     * calling this method)
+     * 
+     * @return
+     */
+    protected static List<Type> _findSuperTypeChain(Class<?> subtype, Class<?> supertype)
+    {
+        // If super-type is a class (not interface), bit simpler
+        List<Type> supers = new ArrayList<Type>();
+        if (supertype.isInterface()) {
+            if (!_findSuperInterfaceChain(subtype, supertype, supers)) return null;
+        } else {
+            if (!_findSuperClassChain(subtype, supertype, supers)) return null;
+        }
+        return supers;
+    }
+
+    protected static boolean _findSuperClassChain(Type current, Class<?> target, List<Type> result)
+    {
+        Class<?> raw = _typeToClass(current);
+        if (raw == target) {
+            result.add(current);
+            return true;
+        }
+        // Otherwise, keep on going down the rat hole...
+        Type parent = raw.getGenericSuperclass();
+        // as long as there are superclasses
+        // and unless we have already seen the type (<T extends X<T>>)
+        if (parent != null && !result.contains(parent)) {
+            if (_findSuperClassChain(parent, target, result)) {
+                result.add(current);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected static boolean _findSuperInterfaceChain(Type current, Class<?> target, List<Type> result)
+    {
+        Class<?> raw = _typeToClass(current);
+        if (raw == target) {
+            result.add(current);
+            return true;
+        }
+        // Otherwise, keep on going down the rat hole; first implemented interaces
+        Type[] parents = raw.getGenericInterfaces();
+        // as long as there are superclasses
+        // and unless we have already seen the type (<T extends X<T>>)
+        if (parents != null) {
+            for (Type parent : parents) {
+                if (!result.contains(parent)) {
+                    if (_findSuperInterfaceChain(parent, target, result)) {
+                        result.add(current);
+                        return true;
+                    }
+                }
+            }
+        }
+        // and then super-class if any
+        Type parent = raw.getGenericSuperclass();
+        if (parent != null && !result.contains(parent)) {
+            if (_findSuperInterfaceChain(parent, target, result)) {
+                result.add(current);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected static final Class<?> _typeToClass(Type type)
+    {
+        if (type instanceof Class<?>) {
+            return (Class<?>) type;
+        }
+        if (type instanceof ParameterizedType) {
+            return (Class<?>)((ParameterizedType) type).getRawType();
+        }
+        // we don't really support other types; GenericArrayType may or may not need support in future?
+        throw new IllegalArgumentException("Can not coerce Type "+type.getClass().getName()+" into Class<?>");
     }
 }

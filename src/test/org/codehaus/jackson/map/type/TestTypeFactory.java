@@ -1,10 +1,12 @@
-package org.codehaus.jackson.type;
+package org.codehaus.jackson.map.type;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 import main.BaseTest;
 
-import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.type.TypeReference;
 
 /**
  * Simple tests to verify that the {@link TypeFactory} constructs
@@ -13,10 +15,31 @@ import org.codehaus.jackson.map.type.*;
 public class TestTypeFactory
     extends BaseTest
 {    
+    /*
+    /**********************************************************
+    /* Helper types
+    /**********************************************************
+     */
+
     enum EnumForCanonical { YES, NO; }
 
     static class SingleArgGeneric<X> { }
 
+    abstract static class MyMap extends IntermediateMap<String,Long> { }
+    abstract static class IntermediateMap<K,V> implements Map<K,V> { }
+
+    interface MapInterface extends Cloneable, IntermediateInterfaceMap<String> { }
+    interface IntermediateInterfaceMap<FOO> extends Map<FOO, Integer> { }
+
+    static class MyStringIntMap extends MyStringXMap<Integer> { }
+    static class MyStringXMap<V> extends HashMap<String,V> { }
+    
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+    
     public void testSimpleTypes()
     {
         Class<?>[] classes = new Class<?>[] {
@@ -190,9 +213,45 @@ public class TestTypeFactory
         // And then EnumMap (actual use case for us)
         t = TypeFactory.mapType(EnumMap.class, EnumForCanonical.class, String.class);
         can = t.toCanonical();
-        assertEquals("java.util.EnumMap<org.codehaus.jackson.type.TestTypeFactory$EnumForCanonical,java.lang.String>",
+        assertEquals("java.util.EnumMap<org.codehaus.jackson.map.type.TestTypeFactory$EnumForCanonical,java.lang.String>",
                 can);
         assertEquals(t, TypeFactory.fromCanonical(can));
         
+    }
+
+    /**
+     * @since 1.6
+     */
+    /*
+    public void testSuperTypeDetectionClass()
+    {
+        List<Type> types = TypeFactory._findSuperTypeChain(MyStringIntMap.class, HashMap.class);
+        assertNotNull(types);
+System.err.println("DEBUG: "+types);        
+        assertEquals(3, types.size());
+        assertSame(HashMap.class, TypeFactory._typeToClass(types.get(0)));
+        assertSame(MyStringXMap.class, TypeFactory._typeToClass(types.get(1)));
+        assertSame(MyStringIntMap.class, TypeFactory._typeToClass(types.get(2)));
+    }
+    */
+
+    /**
+     * @since 1.6
+     */
+    public void testSuperTypeDetectionInterface()
+    {
+        List<Type> types = TypeFactory._findSuperTypeChain(MyMap.class, Map.class);
+        assertNotNull(types);
+        assertEquals(3, types.size());
+        assertSame(Map.class, TypeFactory._typeToClass(types.get(0)));
+        assertSame(IntermediateMap.class, TypeFactory._typeToClass(types.get(1)));
+        assertSame(MyMap.class, TypeFactory._typeToClass(types.get(2)));
+
+        types = TypeFactory._findSuperTypeChain(MapInterface.class, Map.class);
+        assertNotNull(types);
+        assertEquals(3, types.size());
+        assertSame(Map.class, TypeFactory._typeToClass(types.get(0)));
+        assertSame(IntermediateInterfaceMap.class, TypeFactory._typeToClass(types.get(1)));
+        assertSame(MapInterface.class, TypeFactory._typeToClass(types.get(2)));
     }
 }

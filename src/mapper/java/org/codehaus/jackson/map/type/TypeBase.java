@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.type;
 
+import java.util.List;
+
 import org.codehaus.jackson.type.JavaType;
 
 public abstract class TypeBase extends JavaType
@@ -12,9 +14,6 @@ public abstract class TypeBase extends JavaType
     protected TypeBase(Class<?> raw) {
         super(raw);
     }
-
-    @Override
-    public abstract boolean hasGenericTypes();
     
     @Override
     public String toCanonical()
@@ -38,6 +37,18 @@ public abstract class TypeBase extends JavaType
     public abstract StringBuilder getGenericSignature(StringBuilder sb);
 
     public abstract StringBuilder getErasedSignature(StringBuilder sb);
+
+    public List<JavaType> findGenericTypesFor(Class<?> genericClass)
+    {
+        // first, sanity check: 
+        if (!genericClass.isAssignableFrom(_class)) {
+            return null;
+        }
+        // then need to start resolving...
+        
+        // !!! TBI
+        throw new Error();
+    }
     
     /*
     /**********************************************************

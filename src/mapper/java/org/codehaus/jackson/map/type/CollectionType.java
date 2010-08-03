@@ -63,9 +63,6 @@ public final class CollectionType
     /* Public API
     /**********************************************************
      */
-
-    @Override
-    public boolean hasGenericTypes() { return true; }
     
     public JavaType getContentType() { return _elementType; }
     public int containedTypeCount() { return 1; }
