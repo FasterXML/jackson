@@ -34,9 +34,9 @@ public class TypeFactory
     protected final TypeParser _parser;
     
     /*
-    /*************************************************
+    /**********************************************************
     /* Life-cycle
-    /*************************************************
+    /**********************************************************
      */
 
     private TypeFactory() {
@@ -44,9 +44,9 @@ public class TypeFactory
     }
 
     /*
-    /*************************************************
+    /**********************************************************
     /* Public factory methods
-    /*************************************************
+    /**********************************************************
      */
 
     /**
@@ -243,9 +243,9 @@ public class TypeFactory
     }
     
     /*
-    /****************************************************
+    /**********************************************************
     /* Type conversions
-    /****************************************************
+    /**********************************************************
      */
 
     /**
@@ -301,9 +301,9 @@ public class TypeFactory
     }
     
     /*
-    /****************************************************
+    /**********************************************************
     /* Legacy methods
-    /****************************************************
+    /**********************************************************
      */
 
     /**
@@ -374,20 +374,14 @@ public class TypeFactory
          * base Object.
          */
         if (Map.class.isAssignableFrom(clz)) {
-            MapType parentType = _findParentType(clz, MapType.class);
-            if (parentType == null) {                
-                JavaType unknown = _unknownType();
-                return MapType.construct(clz, unknown, unknown);
-            }
-            return MapType.construct(clz, parentType.getKeyType(), parentType.getContentType());
+            return _mapType(clz);
         }
         if (Collection.class.isAssignableFrom(clz)) {
-            CollectionType parentType = _findParentType(clz, CollectionType.class);
-            return CollectionType.construct(clz, (parentType == null) ? _unknownType() : parentType.getContentType());
+            return _collectionType(clz);
         }
         return new SimpleType(clz);
     }
-
+    
     /**
      * Method used by {@link TypeParser} when generics-aware version
      * is constructed.
@@ -407,27 +401,15 @@ public class TypeFactory
                 keyType = paramTypes.get(0);
                 contentType = (paramTypes.size() >= 2) ?
                         paramTypes.get(1) : _unknownType();
-            } else {
-                // and only if not available, check super type
-                MapType parentType = _findParentType(clz, MapType.class);
-                if (parentType == null) {                
-                    keyType = contentType = _unknownType();
-                } else {
-                    keyType = parentType.getKeyType();
-                    contentType = parentType.getContentType();
-                }
+                return MapType.construct(clz, keyType, contentType);
             }
-            return MapType.construct(clz, keyType, contentType);
+            return _mapType(clz);
         }
         if (Collection.class.isAssignableFrom(clz)) {
-            JavaType contentType;
             if (paramTypes.size() >= 1) {
-                contentType = paramTypes.get(0);
-            } else {
-                CollectionType parentType = _findParentType(clz, CollectionType.class);
-                contentType = (parentType == null) ? _unknownType() : parentType.getContentType();
+                return CollectionType.construct(clz, paramTypes.get(0));
             }
-            return CollectionType.construct(clz, contentType);
+            return _collectionType(clz);
         }
         if (paramTypes.size() == 0) {
             return new SimpleType(clz);
@@ -585,28 +567,106 @@ public class TypeFactory
         return _fromType(type.getUpperBounds()[0], context);
     }
 
+    private JavaType _mapType(Class<?> rawClass)
+    {
+        JavaType[] typeParams = _findParameterTypes(rawClass, Map.class);
+        // ok to have no types ("raw")
+        if (typeParams == null) {
+            return MapType.construct(rawClass, _unknownType(), _unknownType());
+        }
+        // but exactly 2 types if any found
+        if (typeParams.length != 2) {
+            throw new IllegalArgumentException("Strange Map type "+rawClass.getName()+": can not determine type parameters");
+        }
+        return MapType.construct(rawClass, typeParams[0], typeParams[1]);
+    }
+
+    private JavaType _collectionType(Class<?> rawClass)
+    {
+        JavaType[] typeParams = _findParameterTypes(rawClass, Collection.class);
+        // ok to have no types ("raw")
+        if (typeParams == null) {
+            return CollectionType.construct(rawClass, _unknownType());
+        }
+        // but exactly 2 types if any found
+        if (typeParams.length != 1) {
+            throw new IllegalArgumentException("Strange Collection type "+rawClass.getName()+": can not determine type parameters");
+        }
+        return CollectionType.construct(rawClass, typeParams[0]);
+    }
+    
     /**
      * Method that is to figure out actual type parameters that given
      * class binds to generic types defined by given interface
      * type. This could mean, for example, trying to figure out
      * key and value types for Map implementations.
      */
-    @SuppressWarnings("unchecked")
-    protected <T extends JavaType> T _findParentType(Class<?> clz, Class<T> expType)
+    protected JavaType[] _findParameterTypes(Class<?> clz, Class<?> expType)
     {
-        Type parentType = clz.getGenericSuperclass();
-        if (parentType != null) {
-            // Should we create context at this point?
-            TypeBindings context = new TypeBindings(clz);
-            JavaType parent = _fromType(parentType, context);
-            // This should always be true, but let's ensure:
-            if (expType.isAssignableFrom(parent.getClass())) {
-                return (T) parent;
+// TODO:        
+//System.err.println("FindParams("+clz.getName()+" -> "+expType.getName()+")");        
+        // First: find full inheritance chain
+        HierarchicType subType = _findSuperTypeChain(clz, expType);
+        // Caller is supposed to ensure this never happens, so:
+        if (subType == null) {
+            throw new IllegalArgumentException("Class "+clz.getName()+" is not a subtype of "+expType.getName());
+        }
+        // Ok and then go to the ultimate super-type:
+        HierarchicType superType = subType;
+        while (superType.getSuperType() != null) {
+            superType = superType.getSuperType();
+        }
+        // which ought to be generic (if not, it's raw type)
+        if (!superType.isGeneric()) {
+            return null;
+        }
+        // Otherwise this becomes a recursive thing
+
+        // otherwise need to start unwinding
+        ParameterizedType pt = superType.asGeneric();
+        Type[] actualTypes = pt.getActualTypeArguments();
+        JavaType[] resultTypes = new JavaType[actualTypes.length];
+        TypeBindings bindings = new TypeBindings(clz); // TODO: improve
+        for (int i = 0, len = actualTypes.length; i < len; ++i) {
+            Type t = actualTypes[i];
+            // Only type variables need to be checked?
+            if (t instanceof TypeVariable<?>) {
+//                resultTypes[i] = _resolveVariableViaSubTypes(superTypes, ((TypeVariable<?>) t).getName(), t);
+                // !!! TODO: implement properly
+                resultTypes[i] = _fromType(t, bindings);
+            } else {
+                resultTypes[i] = _fromType(t, bindings);
             }
         }
-        // no, couldn't find
-        return null;
+        return resultTypes;
     }
+
+    /**
+     * 
+     * @param currentType Current generic type
+     */
+    /*
+    protected void _resolveParameterTypes(ParameterizedType currentType)
+        // otherwise, need to unwind:
+        for ()
+        for (int i = 0, len = actualTypes.length; i < len; ++i) {
+            resultTypes[i] = _fromType(t, bind);
+        }
+        return resultTypes;
+    }
+
+    protected Type _resolveVariableViaSubTypes(List<Type> superTypes, String name, Type type)
+    {
+        // Name passed is from the first entry, hence skip first entry
+        // Ok: must resolve; via possibly renamed type
+        for (int j = 1, jlen = superTypes.size(); j < jlen; ++j) {
+            // Ok; do we now have something other than type variable?
+            Type superType = superTypes
+            Type[] actualTypes = type.getActualTypeArguments();
+            
+        }
+    }
+    */
     
     protected JavaType _unknownType() {
         return _fromClass(Object.class, null);
@@ -615,48 +675,44 @@ public class TypeFactory
     /**
      * Helper method used to find inheritance (implements, extends) path
      * between given types, if one exists (caller generally checks before
-     * calling this method)
-     * 
-     * @return
+     * calling this method). Returned type represents given <b>subtype</b>,
+     * with supertype linkage extending to <b>supertype</b>.
      */
-    protected static List<Type> _findSuperTypeChain(Class<?> subtype, Class<?> supertype)
+    protected static HierarchicType  _findSuperTypeChain(Class<?> subtype, Class<?> supertype)
     {
         // If super-type is a class (not interface), bit simpler
-        List<Type> supers = new ArrayList<Type>();
         if (supertype.isInterface()) {
-            if (!_findSuperInterfaceChain(subtype, supertype, supers)) return null;
-        } else {
-            if (!_findSuperClassChain(subtype, supertype, supers)) return null;
+            return _findSuperInterfaceChain(subtype, supertype);
         }
-        return supers;
+        return _findSuperClassChain(subtype, supertype);
     }
 
-    protected static boolean _findSuperClassChain(Type current, Class<?> target, List<Type> result)
+    protected static HierarchicType _findSuperClassChain(Type currentType, Class<?> target)
     {
-        Class<?> raw = _typeToClass(current);
+        HierarchicType current = new HierarchicType(currentType);
+        Class<?> raw = current.getRawClass();
         if (raw == target) {
-            result.add(current);
-            return true;
+            return current;
         }
         // Otherwise, keep on going down the rat hole...
         Type parent = raw.getGenericSuperclass();
-        // as long as there are superclasses
-        // and unless we have already seen the type (<T extends X<T>>)
-        if (parent != null && !result.contains(parent)) {
-            if (_findSuperClassChain(parent, target, result)) {
-                result.add(current);
-                return true;
+        if (parent != null) {
+            HierarchicType sup = _findSuperClassChain(parent, target);
+            if (sup != null) {
+                sup.setSubType(current);
+                current.setSuperType(sup);
+                return current;
             }
         }
-        return false;
+        return null;
     }
 
-    protected static boolean _findSuperInterfaceChain(Type current, Class<?> target, List<Type> result)
+    protected static HierarchicType _findSuperInterfaceChain(Type currentType, Class<?> target)
     {
-        Class<?> raw = _typeToClass(current);
+        HierarchicType current = new HierarchicType(currentType);
+        Class<?> raw = current.getRawClass();
         if (raw == target) {
-            result.add(current);
-            return true;
+            return current;
         }
         // Otherwise, keep on going down the rat hole; first implemented interaces
         Type[] parents = raw.getGenericInterfaces();
@@ -664,25 +720,28 @@ public class TypeFactory
         // and unless we have already seen the type (<T extends X<T>>)
         if (parents != null) {
             for (Type parent : parents) {
-                if (!result.contains(parent)) {
-                    if (_findSuperInterfaceChain(parent, target, result)) {
-                        result.add(current);
-                        return true;
-                    }
+                HierarchicType sup = _findSuperInterfaceChain(parent, target);
+                if (sup != null) {
+                    sup.setSubType(current);
+                    current.setSuperType(sup);
+                    return current;
                 }
             }
         }
         // and then super-class if any
         Type parent = raw.getGenericSuperclass();
-        if (parent != null && !result.contains(parent)) {
-            if (_findSuperInterfaceChain(parent, target, result)) {
-                result.add(current);
-                return true;
+        if (parent != null) {
+            HierarchicType sup = _findSuperInterfaceChain(parent, target);
+            if (sup != null) {
+                sup.setSubType(current);
+                current.setSuperType(sup);
+                return current;
             }
         }
-        return false;
+        return null;
     }
 
+    /*
     protected static final Class<?> _typeToClass(Type type)
     {
         if (type instanceof Class<?>) {
@@ -694,4 +753,5 @@ public class TypeFactory
         // we don't really support other types; GenericArrayType may or may not need support in future?
         throw new IllegalArgumentException("Can not coerce Type "+type.getClass().getName()+" into Class<?>");
     }
+    */
 }

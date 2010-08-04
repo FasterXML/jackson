@@ -31,8 +31,16 @@ public class TestTypeFactory
     interface MapInterface extends Cloneable, IntermediateInterfaceMap<String> { }
     interface IntermediateInterfaceMap<FOO> extends Map<FOO, Integer> { }
 
+    @SuppressWarnings("serial")
     static class MyStringIntMap extends MyStringXMap<Integer> { }
+    @SuppressWarnings("serial")
     static class MyStringXMap<V> extends HashMap<String,V> { }
+
+    // And one more, now with obfuscated type names; essentially it's just Map<Int,Long>
+    static abstract class IntLongMap extends XLongMap<Integer> { }
+    // trick here is that V now refers to key type, not value type
+    static abstract class XLongMap<V> extends XXMap<V,Long> { }
+    static abstract class XXMap<K,V> implements Map<K,V> { }
     
     /*
     /**********************************************************
@@ -230,12 +238,15 @@ public class TestTypeFactory
      */
     public void testSuperTypeDetectionClass()
     {
-        List<Type> types = TypeFactory._findSuperTypeChain(MyStringIntMap.class, HashMap.class);
-        assertNotNull(types);
-        assertEquals(3, types.size());
-        assertSame(HashMap.class, TypeFactory._typeToClass(types.get(0)));
-        assertSame(MyStringXMap.class, TypeFactory._typeToClass(types.get(1)));
-        assertSame(MyStringIntMap.class, TypeFactory._typeToClass(types.get(2)));
+        HierarchicType sub = TypeFactory._findSuperTypeChain(MyStringIntMap.class, HashMap.class);
+        assertNotNull(sub);
+        assertEquals(2, _countSupers(sub));
+        assertSame(MyStringIntMap.class, sub.getRawClass());
+        HierarchicType sup = sub.getSuperType();
+        assertSame(MyStringXMap.class, sup.getRawClass());
+        HierarchicType sup2 = sup.getSuperType();
+        assertSame(HashMap.class, sup2.getRawClass());
+        assertNull(sup2.getSuperType());
     }
     
     /**
@@ -243,21 +254,26 @@ public class TestTypeFactory
      */
     public void testSuperTypeDetectionInterface()
     {
-        List<Type> types = TypeFactory._findSuperTypeChain(MyMap.class, Map.class);
-        assertNotNull(types);
-        assertEquals(3, types.size());
-        assertSame(Map.class, TypeFactory._typeToClass(types.get(0)));
-        assertSame(IntermediateMap.class, TypeFactory._typeToClass(types.get(1)));
-        assertSame(MyMap.class, TypeFactory._typeToClass(types.get(2)));
-
-        types = TypeFactory._findSuperTypeChain(MapInterface.class, Map.class);
-        assertNotNull(types);
-        assertEquals(3, types.size());
-        assertSame(Map.class, TypeFactory._typeToClass(types.get(0)));
-        assertSame(IntermediateInterfaceMap.class, TypeFactory._typeToClass(types.get(1)));
-        assertSame(MapInterface.class, TypeFactory._typeToClass(types.get(2)));
+        HierarchicType sub = TypeFactory._findSuperTypeChain(MyMap.class, Map.class);
+        assertNotNull(sub);
+        assertEquals(2, _countSupers(sub));
+        assertSame(MyMap.class, sub.getRawClass());
+        HierarchicType sup = sub.getSuperType();
+        assertSame(IntermediateMap.class, sup.getRawClass());
+        HierarchicType sup2 = sup.getSuperType();
+        assertSame(Map.class, sup2.getRawClass());
+        assertNull(sup2.getSuperType());
     }
 
+    private int _countSupers(HierarchicType t)
+    {
+        int depth = 0;
+        for (HierarchicType sup = t.getSuperType(); sup != null; sup = sup.getSuperType()) {
+            ++depth;
+        }
+        return depth;
+    }
+    
     /*
     /**********************************************************
     /* Unit tests: map/collection type parameter resolution
@@ -275,6 +291,20 @@ public class TestTypeFactory
         assertEquals(TypeFactory.type(Boolean.class), mapType.getContentType());
     }
 
+    /**
+     * @since 1.6
+     */
+    public void testMapTypesRaw()
+    {
+        JavaType type = TypeFactory.type(HashMap.class);
+        MapType mapType = (MapType) type;
+        assertEquals(TypeFactory.type(Object.class), mapType.getKeyType());
+        assertEquals(TypeFactory.type(Object.class), mapType.getContentType());        
+    }
+
+    /**
+     * @since 1.6
+     */
     public void testMapTypesAdvanced()
     {
         JavaType type = TypeFactory.type(MyMap.class);
@@ -291,5 +321,20 @@ public class TestTypeFactory
         mapType = (MapType) type;
         assertEquals(TypeFactory.type(String.class), mapType.getKeyType());
         assertEquals(TypeFactory.type(Integer.class), mapType.getContentType());
+    }
+
+    /**
+     * Specific test to verify that complicate name mangling schemes
+     * do not fool type resolver
+     * 
+     * @since 1.6
+     */
+    public void testMapTypesSneaky()
+    {
+        JavaType type = TypeFactory.type(IntLongMap.class);
+        MapType mapType = (MapType) type;
+        assertEquals(TypeFactory.type(Integer.class), mapType.getKeyType());
+        assertEquals(TypeFactory.type(Long.class), mapType.getContentType());
     }    
 }
+

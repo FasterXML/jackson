@@ -88,12 +88,12 @@ public class TestGenericMapDeser
     public void testIntermediateTypes() throws Exception
     {
         StringStringWrapperMap result = new ObjectMapper().readValue
-            ("{\"a\":true", StringStringWrapperMap.class);
+            ("{\"a\":\"b\"}", StringStringWrapperMap.class);
         assertEquals(1, result.size());
         Object value = result.get("a");
         assertNotNull(value);
-        assertEquals(value.getClass(), BooleanWrapper.class);
-        assertTrue(((BooleanWrapper) value).b);
+        assertEquals(value.getClass(), StringWrapper.class);
+        assertEquals("b", ((StringWrapper) value).str);
     }
     
     /*
