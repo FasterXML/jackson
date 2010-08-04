@@ -219,22 +219,25 @@ public class TestTypeFactory
         
     }
 
+    /*
+    /**********************************************************
+    /* Unit tests: low-level inheritance resolution
+    /**********************************************************
+     */
+    
     /**
      * @since 1.6
      */
-    /*
     public void testSuperTypeDetectionClass()
     {
         List<Type> types = TypeFactory._findSuperTypeChain(MyStringIntMap.class, HashMap.class);
         assertNotNull(types);
-System.err.println("DEBUG: "+types);        
         assertEquals(3, types.size());
         assertSame(HashMap.class, TypeFactory._typeToClass(types.get(0)));
         assertSame(MyStringXMap.class, TypeFactory._typeToClass(types.get(1)));
         assertSame(MyStringIntMap.class, TypeFactory._typeToClass(types.get(2)));
     }
-    */
-
+    
     /**
      * @since 1.6
      */
@@ -254,4 +257,39 @@ System.err.println("DEBUG: "+types);
         assertSame(IntermediateInterfaceMap.class, TypeFactory._typeToClass(types.get(1)));
         assertSame(MapInterface.class, TypeFactory._typeToClass(types.get(2)));
     }
+
+    /*
+    /**********************************************************
+    /* Unit tests: map/collection type parameter resolution
+    /**********************************************************
+     */
+    
+    /**
+     * @since 1.6
+     */
+    public void testMapTypesSimple()
+    {
+        JavaType type = TypeFactory.type(new TypeReference<Map<String,Boolean>>() { });
+        MapType mapType = (MapType) type;
+        assertEquals(TypeFactory.type(String.class), mapType.getKeyType());
+        assertEquals(TypeFactory.type(Boolean.class), mapType.getContentType());
+    }
+
+    public void testMapTypesAdvanced()
+    {
+        JavaType type = TypeFactory.type(MyMap.class);
+        MapType mapType = (MapType) type;
+        assertEquals(TypeFactory.type(String.class), mapType.getKeyType());
+        assertEquals(TypeFactory.type(Long.class), mapType.getContentType());
+
+        type = TypeFactory.type(MapInterface.class);
+        mapType = (MapType) type;
+        assertEquals(TypeFactory.type(String.class), mapType.getKeyType());
+        assertEquals(TypeFactory.type(Integer.class), mapType.getContentType());
+
+        type = TypeFactory.type(MyStringIntMap.class);
+        mapType = (MapType) type;
+        assertEquals(TypeFactory.type(String.class), mapType.getKeyType());
+        assertEquals(TypeFactory.type(Integer.class), mapType.getContentType());
+    }    
 }
