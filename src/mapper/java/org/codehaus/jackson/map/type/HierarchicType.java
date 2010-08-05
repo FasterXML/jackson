@@ -14,11 +14,6 @@ import java.lang.reflect.*;
 public class HierarchicType
 {
     /**
-     * Just as sanity check let's prevent infinite recursion on depth access
-     */
-    private final static int MAX_DEPTH = 10000;
-    
-    /**
      * Type which will be either plain {@link java.lang.Class} or
      * {@link java.lang.reflect.ParameterizedType}.
      */
@@ -55,5 +50,13 @@ public class HierarchicType
     public ParameterizedType asGeneric() { return _genericType; }
 
     public Class<?> getRawClass() { return _rawClass; }
+    
+    @Override
+    public String toString() {
+        if (_genericType != null) {
+            return _genericType.toString();
+        }
+        return _rawClass.getName();
+    }
     
 }

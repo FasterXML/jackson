@@ -35,6 +35,8 @@ public class SerializedString
     /* API
     /**********************************************************
      */
+
+    public final String getValue() { return _value; }
     
     public char[] asQuotedChars()
     {

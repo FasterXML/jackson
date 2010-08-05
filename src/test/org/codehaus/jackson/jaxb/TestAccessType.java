@@ -5,7 +5,8 @@ import javax.xml.bind.annotation.*;
 import org.codehaus.jackson.map.*;
 
 /**
- * Unit test written for [JACKSON-303]
+ * Unit test written for [JACKSON-303]; we should be able to detect setter
+ * even though it is not annotated, because there is matching annotated getter.
  */
 public class TestAccessType
     extends BaseJaxbTest

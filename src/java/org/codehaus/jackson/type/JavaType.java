@@ -230,7 +230,7 @@ public abstract class JavaType
 
     /**
      * Method that can be used to find out if the type directly declares generic
-     * parameters (for its super-class and/or direct super-interfaces).
+     * parameters (for its direct super-class and/or super-interfaces).
      * 
      * @since 1.6
      */

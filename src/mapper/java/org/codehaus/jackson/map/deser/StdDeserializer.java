@@ -790,11 +790,12 @@ public abstract class StdDeserializer<T>
         public AtomicReferenceDeserializer(JavaType type)
         {
             super(type.getRawClass());
-            JavaType refType = type.containedType(0);
-            if (refType == null) { // untyped... assume Object
-                refType = TypeFactory.type(Object.class);
+            JavaType[] refTypes = TypeFactory.findParameterTypes(type, AtomicReference.class);
+            if (refTypes == null) { // untyped (raw)
+                _referencedType = TypeFactory.type(Object.class);
+            } else {
+                _referencedType = refTypes[0];
             }
-            _referencedType = refType;
         }
 
         @Override

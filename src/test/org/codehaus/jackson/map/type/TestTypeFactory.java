@@ -1,7 +1,7 @@
 package org.codehaus.jackson.map.type;
 
-import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import main.BaseTest;
 
@@ -28,6 +28,9 @@ public class TestTypeFactory
     abstract static class MyMap extends IntermediateMap<String,Long> { }
     abstract static class IntermediateMap<K,V> implements Map<K,V> { }
 
+    abstract static class MyList extends IntermediateList<Long> { }
+    abstract static class IntermediateList<E> implements List<E> { }
+    
     interface MapInterface extends Cloneable, IntermediateInterfaceMap<String> { }
     interface IntermediateInterfaceMap<FOO> extends Map<FOO, Integer> { }
 
@@ -254,15 +257,40 @@ public class TestTypeFactory
      */
     public void testSuperTypeDetectionInterface()
     {
-        HierarchicType sub = TypeFactory._findSuperTypeChain(MyMap.class, Map.class);
+        // List first
+        HierarchicType sub = TypeFactory._findSuperTypeChain(MyList.class, List.class);
+        assertNotNull(sub);
+        assertEquals(2, _countSupers(sub));
+        assertSame(MyList.class, sub.getRawClass());
+        HierarchicType sup = sub.getSuperType();
+        assertSame(IntermediateList.class, sup.getRawClass());
+        HierarchicType sup2 = sup.getSuperType();
+        assertSame(List.class, sup2.getRawClass());
+        assertNull(sup2.getSuperType());
+        
+        // Then Map
+        sub = TypeFactory._findSuperTypeChain(MyMap.class, Map.class);
         assertNotNull(sub);
         assertEquals(2, _countSupers(sub));
         assertSame(MyMap.class, sub.getRawClass());
-        HierarchicType sup = sub.getSuperType();
+        sup = sub.getSuperType();
         assertSame(IntermediateMap.class, sup.getRawClass());
-        HierarchicType sup2 = sup.getSuperType();
+        sup2 = sup.getSuperType();
         assertSame(Map.class, sup2.getRawClass());
         assertNull(sup2.getSuperType());
+    }
+
+    /**
+     * @since 1.6
+     */
+    public void testAtomicArrayRefParameterDetection()
+    {
+        JavaType type = TypeFactory.type(new TypeReference<AtomicReference<long[]>>() { });
+        HierarchicType sub = TypeFactory._findSuperTypeChain(type.getRawClass(), AtomicReference.class);
+        assertNotNull(sub);
+        assertEquals(0, _countSupers(sub));
+        assertTrue(AtomicReference.class.isAssignableFrom(type.getRawClass()));
+        assertNull(sub.getSuperType());
     }
 
     private int _countSupers(HierarchicType t)
@@ -336,5 +364,15 @@ public class TestTypeFactory
         assertEquals(TypeFactory.type(Integer.class), mapType.getKeyType());
         assertEquals(TypeFactory.type(Long.class), mapType.getContentType());
     }    
+
+    public void testAtomicArrayRefParameters()
+    {
+        JavaType type = TypeFactory.type(new TypeReference<AtomicReference<long[]>>() { });
+        JavaType[] params = TypeFactory.findParameterTypes(type, AtomicReference.class);
+        assertNotNull(params);
+        assertEquals(1, params.length);
+        assertEquals(TypeFactory.type(long[].class), params[0]);
+    }
+
 }
 
