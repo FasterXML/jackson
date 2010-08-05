@@ -90,6 +90,73 @@ public final class ArrayNode
 
     /*
     /**********************************************************
+    /* Public API, finding value nodes
+    /**********************************************************
+     */
+    
+    @Override
+    public JsonNode findValue(String fieldName)
+    {
+        if (_children != null) {
+            for (JsonNode node : _children) {
+                JsonNode value = node.findValue(fieldName);
+                if (value != null) {
+                    return value;
+                }
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    public List<JsonNode> findValues(String fieldName, List<JsonNode> foundSoFar)
+    {
+        if (_children != null) {
+            for (JsonNode node : _children) {
+                foundSoFar = node.findValues(fieldName, foundSoFar);
+            }
+        }
+        return foundSoFar;
+    }
+
+    @Override
+    public List<String> findValuesAsText(String fieldName, List<String> foundSoFar)
+    {
+        if (_children != null) {
+            for (JsonNode node : _children) {
+                foundSoFar = node.findValuesAsText(fieldName, foundSoFar);
+            }
+        }
+        return foundSoFar;
+    }
+    
+    @Override
+    public ObjectNode findParent(String fieldName)
+    {
+        if (_children != null) {
+            for (JsonNode node : _children) {
+                JsonNode parent = node.findParent(fieldName);
+                if (parent != null) {
+                    return (ObjectNode) parent;
+                }
+            }
+        }
+        return null;        
+    }
+
+    @Override
+    public List<JsonNode> findParents(String fieldName, List<JsonNode> foundSoFar)
+    {
+        if (_children != null) {
+            for (JsonNode node : _children) {
+                foundSoFar = node.findParents(fieldName, foundSoFar);
+            }
+        }
+        return foundSoFar;
+    }
+    
+    /*
+    /**********************************************************
     /* Extended ObjectNode API, accessors
     /**********************************************************
      */

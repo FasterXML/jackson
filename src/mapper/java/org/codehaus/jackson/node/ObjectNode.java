@@ -64,7 +64,7 @@ public class ObjectNode
     }
 
     @Override
-        public JsonNode path(String fieldName)
+    public JsonNode path(String fieldName)
     {
         if (_children != null) {
             JsonNode n = _children.get(fieldName);
@@ -75,6 +75,100 @@ public class ObjectNode
         return MissingNode.getInstance();
     }
 
+    /*
+    /**********************************************************
+    /* Public API, finding value nodes
+    /**********************************************************
+     */
+    
+    @Override
+    public JsonNode findValue(String fieldName)
+    {
+        if (_children != null) {
+            for (Map.Entry<String, JsonNode> entry : _children.entrySet()) {
+                if (fieldName.equals(entry.getKey())) {
+                    return entry.getValue();
+                }
+                JsonNode value = entry.getValue().findValue(fieldName);
+                if (value != null) {
+                    return value;
+                }
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    public List<JsonNode> findValues(String fieldName, List<JsonNode> foundSoFar)
+    {
+        if (_children != null) {
+            for (Map.Entry<String, JsonNode> entry : _children.entrySet()) {
+                if (fieldName.equals(entry.getKey())) {
+                    if (foundSoFar == null) {
+                        foundSoFar = new ArrayList<JsonNode>();
+                    }
+                    foundSoFar.add(entry.getValue());
+                } else { // only add children if parent not added
+                    foundSoFar = entry.getValue().findValues(fieldName, foundSoFar);
+                }
+            }
+        }
+        return foundSoFar;
+    }
+
+    @Override
+    public List<String> findValuesAsText(String fieldName, List<String> foundSoFar)
+    {
+        if (_children != null) {
+            for (Map.Entry<String, JsonNode> entry : _children.entrySet()) {
+                if (fieldName.equals(entry.getKey())) {
+                    if (foundSoFar == null) {
+                        foundSoFar = new ArrayList<String>();
+                    }
+                    foundSoFar.add(entry.getValue().getValueAsText());
+                } else { // only add children if parent not added
+                    foundSoFar = entry.getValue().findValuesAsText(fieldName, foundSoFar);
+                }
+            }
+        }
+        return foundSoFar;
+    }
+    
+    @Override
+    public ObjectNode findParent(String fieldName)
+    {
+        if (_children != null) {
+            for (Map.Entry<String, JsonNode> entry : _children.entrySet()) {
+                if (fieldName.equals(entry.getKey())) {
+                    return this;
+                }
+                JsonNode value = entry.getValue().findParent(fieldName);
+                if (value != null) {
+                    return (ObjectNode) value;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<JsonNode> findParents(String fieldName, List<JsonNode> foundSoFar)
+    {
+        if (_children != null) {
+            for (Map.Entry<String, JsonNode> entry : _children.entrySet()) {
+                if (fieldName.equals(entry.getKey())) {
+                    if (foundSoFar == null) {
+                        foundSoFar = new ArrayList<JsonNode>();
+                    }
+                    foundSoFar.add(this);
+                } else { // only add children if parent not added
+                    foundSoFar = entry.getValue().findParents(fieldName, foundSoFar);
+                }
+            }
+        }
+        return foundSoFar;
+    }
+    
     /*
     /**********************************************************
     /* Public API, serialization

@@ -1,6 +1,7 @@
 package org.codehaus.jackson.node;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.JsonSerializableWithType;
@@ -21,6 +22,48 @@ public abstract class BaseJsonNode
 {
     protected BaseJsonNode() { }
 
+    /*
+    /**********************************************************
+    /* Basic definitions for non-container types
+    /**********************************************************
+     */
+
+    @Override
+    public JsonNode findValue(String fieldName) {
+        return null;
+    }
+
+    @Override
+    public final JsonNode findPath(String fieldName)
+    {
+        JsonNode value = findValue(fieldName);
+        if (value == null) {
+            return MissingNode.getInstance();
+        }
+        return value;
+    }
+    
+    // note: co-variant return type
+    @Override
+    public ObjectNode findParent(String fieldName) {
+        return null;
+    }
+
+    @Override
+    public List<JsonNode> findValues(String fieldName, List<JsonNode> foundSoFar) {
+        return foundSoFar;
+    }
+
+    @Override
+    public List<String> findValuesAsText(String fieldName, List<String> foundSoFar) {
+        return foundSoFar;
+    }
+    
+    @Override
+    public List<JsonNode> findParents(String fieldName, List<JsonNode> foundSoFar) {
+        return foundSoFar;
+    }
+    
     /*
     /**********************************************************
     /* Support for traversal-as-stream

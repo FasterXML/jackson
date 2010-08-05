@@ -2,6 +2,7 @@ package org.codehaus.jackson.node;
 
 import java.math.BigDecimal;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.codehaus.jackson.JsonNode;
@@ -36,9 +37,30 @@ public abstract class ContainerNode
     public String getValueAsText() { return null; }
 
     /*
-    ////////////////////////////////////////////////////
-    // Methods reset as abstract to force real implementation
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Find methods; made abstract again to ensure implementation
+    /**********************************************************
+     */
+
+    @Override
+    public abstract JsonNode findValue(String fieldName);
+    
+    @Override
+    public abstract ObjectNode findParent(String fieldName);
+
+    @Override
+    public abstract List<JsonNode> findValues(String fieldName, List<JsonNode> foundSoFar);
+    
+    @Override
+    public abstract List<JsonNode> findParents(String fieldName, List<JsonNode> foundSoFar);
+
+    @Override
+    public abstract List<String> findValuesAsText(String fieldName, List<String> foundSoFar);
+    
+    /*
+    /**********************************************************
+    /* Methods reset as abstract to force real implementation
+    /**********************************************************
      */
 
     public abstract int size();
@@ -48,10 +70,10 @@ public abstract class ContainerNode
     public abstract JsonNode get(String fieldName);
 
     /*
-    ////////////////////////////////////////////////////
-    // NodeCreator implementation, just dispatch to
-    // the real creator
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* NodeCreator implementation, just dispatch to
+    /* the real creator
+    /**********************************************************
      */
 
     public final ArrayNode arrayNode() { return _nodeFactory.arrayNode(); }
@@ -76,9 +98,9 @@ public abstract class ContainerNode
     public final POJONode POJONode(Object pojo) { return _nodeFactory.POJONode(pojo); }
 
     /*
-    ////////////////////////////////////////////////////
-    // Common mutators
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Common mutators
+    /**********************************************************
      */
 
     /**
@@ -91,9 +113,9 @@ public abstract class ContainerNode
     public abstract ContainerNode removeAll();
 
     /*
-    ////////////////////////////////////////////////////
-    // Helper classes
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
      */
 
     protected static class NoNodesIterator

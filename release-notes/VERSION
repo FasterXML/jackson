@@ -45,6 +45,7 @@ Description:
   New features:
 
   * [JACKSON-41] Add code generation to allow deserialization into arbitrary Bean interfaces.     
+  * [JACKSON-210] Add method(s) in JsonNode for finding values of named property
   * [JACKSON-212] Allow serializer/deserializing Enums using toString() method
     instead name()
   * [JACKSON-235] Handle bi-directional (parent/child, double-linked lists) references

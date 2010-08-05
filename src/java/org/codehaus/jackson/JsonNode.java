@@ -27,8 +27,8 @@ import java.util.*;
 public abstract class JsonNode
     implements Iterable<JsonNode>
 {
-    final static List<JsonNode> NO_NODES = Collections.emptyList();
-    final static List<String> NO_STRINGS = Collections.emptyList();
+    protected final static List<JsonNode> NO_NODES = Collections.emptyList();
+    protected final static List<String> NO_STRINGS = Collections.emptyList();
 
     protected JsonNode() { }
 
@@ -174,7 +174,7 @@ public abstract class JsonNode
 
     /*
     /**********************************************************
-    /* Public API, value access
+    /* Public API, straight value access
     /**********************************************************
      */
 
@@ -271,7 +271,13 @@ public abstract class JsonNode
      *   field. Null otherwise.
      */
     public JsonNode get(String fieldName) { return null; }
-
+    
+    /*
+    /**********************************************************
+    /* Public API, value access with conversion(s)
+    /**********************************************************
+     */
+    
     /**
      * Method that will return valid String representation of
      * the container value, if the node is a value node
@@ -282,6 +288,12 @@ public abstract class JsonNode
      */
     public abstract String getValueAsText();
 
+    /*
+    /**********************************************************
+    /* Public API, value find / existence check methods
+    /**********************************************************
+     */
+    
     /**
      * Method that allows checking whether this node is JSON Object node
      * and contains value for specified property. If this is the case
@@ -330,6 +342,107 @@ public abstract class JsonNode
         return get(index) != null;
     }
 
+    /**
+     * Method for finding a JSON Object field with specified name in this
+     * node or its child nodes, and returning value it has.
+     * If no matching field is found in this node or its descendants, returns null.
+     * 
+     * @param fieldName Name of field to look for
+     * 
+     * @return Value of first matching node found, if any; null if none
+     * 
+     * @since 1.6
+     */
+    public abstract JsonNode findValue(String fieldName);
+
+    /**
+     * Method for finding JSON Object fields with specified name, and returning
+     * found ones as a List. Note that sub-tree search ends if a field is found,
+     * so possible children of result nodes are <b>not</b> included.
+     * If no matching fields are found in this node or its descendants, returns
+     * an empty List.
+     * 
+     * @param fieldName Name of field to look for
+     * 
+     * @since 1.6
+     */
+    public final List<JsonNode> findValues(String fieldName)
+    {
+        List<JsonNode> result = findValues(fieldName, null);
+        if (result == null) {
+            return Collections.emptyList();
+        }
+        return result;
+    }
+
+    /**
+     * Similar to {@link #findValues}, but will additionally convert
+     * values into Strings, calling {@link #getValueAsText}.
+     * 
+     * @since 1.6
+     */
+    public final List<String> findValuesAsText(String fieldName)
+    {
+        List<String> result = findValuesAsText(fieldName, null);
+        if (result == null) {
+            return Collections.emptyList();
+        }
+        return result;
+    }
+    
+    /**
+     * Method similar to {@link #findValue}, but that will return a
+     * "missing node" instead of null if no field is found. Missing node
+     * is a specific kind of node for which {@link #isMissingNode}
+     * returns true; and all value access methods return empty or
+     * missing value.
+     * 
+     * @param fieldName Name of field to look for
+     * 
+     * @return Value of first matching node found; or if not found, a
+     *    "missing node" (non-null instance that has no value)
+     * 
+     * @since 1.6
+     */
+    public abstract JsonNode findPath(String fieldName);
+    
+    /**
+     * Method for finding a JSON Object that contains specified field,
+     * within this node or its descendants.
+     * If no matching field is found in this node or its descendants, returns null.
+     * 
+     * @param fieldName Name of field to look for
+     * 
+     * @return Value of first matching node found, if any; null if none
+     * 
+     * @since 1.6
+     */
+    public abstract JsonNode findParent(String fieldName);
+
+    /**
+     * Method for finding a JSON Object that contains specified field,
+     * within this node or its descendants.
+     * If no matching field is found in this node or its descendants, returns null.
+     * 
+     * @param fieldName Name of field to look for
+     * 
+     * @return Value of first matching node found, if any; null if none
+     * 
+     * @since 1.6
+     */
+    public final List<JsonNode> findParents(String fieldName)
+    {
+        List<JsonNode> result = findParents(fieldName, null);
+        if (result == null) {
+            return Collections.emptyList();
+        }
+        return result;
+    }
+
+    public abstract List<JsonNode> findValues(String fieldName, List<JsonNode> foundSoFar);
+    public abstract List<String> findValuesAsText(String fieldName, List<String> foundSoFar);
+    public abstract List<JsonNode> findParents(String fieldName, List<JsonNode> foundSoFar);
+    
     /*
     /**********************************************************
     /* Public API, deprecated accessor
