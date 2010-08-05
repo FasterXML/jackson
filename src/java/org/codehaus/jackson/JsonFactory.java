@@ -62,9 +62,9 @@ public class JsonFactory
     final static int DEFAULT_GENERATOR_FEATURE_FLAGS = JsonGenerator.Feature.collectDefaults();
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Buffer, symbol table management
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -92,9 +92,9 @@ public class JsonFactory
     protected BytesToNameCanonicalizer _rootByteSymbols = BytesToNameCanonicalizer.createRoot();
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Configuration
-    /******************************************************
+    /**********************************************************
      */
 
     /**

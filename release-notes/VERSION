@@ -10,6 +10,8 @@ Description:
 
   * [JACKSON-265] Problems with generic wildcard type, type info.
    (reported by Fabrice D)
+  * [JACKSON-336] Generics handling: Map type not handled if intermediate types
+    with just one generic parameter
 
   Improvements:
 
@@ -42,6 +44,7 @@ Description:
 
   New features:
 
+  * [JACKSON-41] Add code generation to allow deserialization into arbitrary Bean interfaces.     
   * [JACKSON-212] Allow serializer/deserializing Enums using toString() method
     instead name()
   * [JACKSON-235] Handle bi-directional (parent/child, double-linked lists) references
@@ -69,6 +72,8 @@ Description:
     (requested by Ketan G)
   * [JACKSON-314] (go Pi, go!) Add 'SerializationConfig.Feature.WRITE_NULL_MAP_VALUES'
     to suppress writing of Map entries with null values.
+  * [JACKSON-316] Allow per-call enable/disable of pretty printing (added
+    methods in ObjectWriter; .withPrettyPrinter())
   * [JACKSON-325] Add new Jackson "internal" annotation (@JacksonStdCodec?) to allow
     marking default/standard serializers, deserializers
   

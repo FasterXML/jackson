@@ -3,6 +3,8 @@ package org.codehaus.jackson.map;
 import java.io.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.impl.DefaultPrettyPrinter;
+import org.codehaus.jackson.impl.MinimalPrettyPrinter;
 import org.codehaus.jackson.io.SegmentedStringWriter;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
@@ -13,17 +15,23 @@ import org.codehaus.jackson.util.ByteArrayBuilder;
 /**
  * Builder object that can be used for per-serialization configuration of
  * serialization parameters, such as JSON View and root type to use.
- * Uses "fluid" (aka builder) pattern so that instances are immutable
+ * Uses "fluent" (aka builder) pattern so that instances are immutable
  * (and thus fully thread-safe with no external synchronization);
  * new instances are constructed for different configurations.
  * Instances are initially constructed by {@link ObjectMapper} and can be
- * reused.
+ * reused in completely thread-safe manner with no explicit synchronization
  * 
  * @author tatu
  * @since 1.5
  */
 public class ObjectWriter
 {
+    /**
+     * We need to keep track of explicit disabling of pretty printing;
+     * easiest to do by a token value.
+     */
+    protected final static PrettyPrinter NULL_PRETTY_PRINTER = new MinimalPrettyPrinter();
+    
     /*
     /**********************************************************
     /* Immutable configuration from ObjectMapper
@@ -45,11 +53,18 @@ public class ObjectWriter
     protected final JsonFactory _jsonFactory;
     
     // Support for polymorphic types:
-    protected TypeResolverBuilder<?> _defaultTyper;
+    protected final TypeResolverBuilder<?> _defaultTyper;
 
     // Configurable visibility limits
-    protected VisibilityChecker<?> _visibilityChecker;
+    protected final VisibilityChecker<?> _visibilityChecker;
 
+    /**
+     * To allow for dynamic enabling/disabling of pretty printing,
+     * pretty printer can be optionally configured for writer
+     * as well
+     */
+    protected final PrettyPrinter _prettyPrinter;
+    
     /*
     /**********************************************************
     /* Configuration that can be changed during building
@@ -77,7 +92,7 @@ public class ObjectWriter
      * Constructor used by {@link ObjectMapper} for initial instantiation
      */
     protected ObjectWriter(ObjectMapper mapper, 
-            Class<?> view, JavaType rootType)
+            Class<?> view, JavaType rootType, PrettyPrinter pp)
     {
         _defaultTyper = mapper._defaultTyper;
         _visibilityChecker = mapper._visibilityChecker;
@@ -92,13 +107,14 @@ public class ObjectWriter
         
         _serializationView = view;
         _rootType = rootType;
+        _prettyPrinter = pp;
     }
 
     /**
      * Copy constructor used for building variations.
      */
     protected ObjectWriter(ObjectWriter base, SerializationConfig config,
-            Class<?> view, JavaType rootType)
+            Class<?> view, JavaType rootType, PrettyPrinter pp)
     {
         _config = config;
         _provider = base._provider;
@@ -110,27 +126,69 @@ public class ObjectWriter
         
         _serializationView = view;
         _rootType = rootType;
+        _prettyPrinter = pp;
     }
     
+    /**
+     * Method that will construct a new instance that uses specified
+     * serialization view for serialization (with null basically disables
+     * view processing)
+     */
     public ObjectWriter withView(Class<?> view)
     {
         if (view == _serializationView) return this;
         // View is included in config, must make immutable version
         SerializationConfig config = _config.createUnshared(_defaultTyper, _visibilityChecker);
         config.setSerializationView(view);
-        return new ObjectWriter(this, config, view, _rootType);
+        return new ObjectWriter(this, config, view, _rootType, _prettyPrinter);
     }    
     
+    /**
+     * Method that will construct a new instance that uses specific type
+     * as the root type for serialization, instead of runtime dynamic
+     * type of the root object itself.
+     */
     public ObjectWriter withType(JavaType rootType)
     {
         if (rootType == _rootType) return this;
         // type is stored here, no need to make a copy of config
-        return new ObjectWriter(this, _config, _serializationView, rootType);
+        return new ObjectWriter(this, _config, _serializationView, rootType, _prettyPrinter);
     }    
 
+    /**
+     * Method that will construct a new instance that uses specific type
+     * as the root type for serialization, instead of runtime dynamic
+     * type of the root object itself.
+     */
     public ObjectWriter withType(Class<?> rootType)
     {
         return withType(TypeFactory.type(rootType));
+    }
+
+    /**
+     * Method that will construct a new instance that will use specified pretty
+     * printer (or, if null, will not do any pretty-printing)
+     * 
+     * @since 1.6
+     */
+    public ObjectWriter withPrettyPrinter(PrettyPrinter pp)
+    {
+        // since null would mean "don't care", need to use placeholder to indicate "disable"
+        if (pp == null) {
+            pp = NULL_PRETTY_PRINTER;
+        }
+        return new ObjectWriter(this, _config, _serializationView, _rootType, pp);
+    }
+
+    /**
+     * Method that will construct a new instance that will use the default
+     * pretty printer for serialization.
+     * 
+     * @since 1.6
+     */
+    public ObjectWriter withDefaultPrettyPrinter()
+    {
+        return withPrettyPrinter(new DefaultPrettyPrinter());
     }
     
     /*
@@ -259,8 +317,10 @@ public class ObjectWriter
     protected final void _configAndWriteValue(JsonGenerator jgen, Object value)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        // [JACKSON-96]: allow enabling pretty printing for ObjectMapper directly
-        if (_config.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
+        if (_prettyPrinter != null) {
+            PrettyPrinter pp = _prettyPrinter;
+            jgen.setPrettyPrinter((pp == NULL_PRETTY_PRINTER) ? null : pp);
+        } else if (_config.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
             jgen.useDefaultPrettyPrinter();
         }
         // [JACKSON-282]: consider Closeable

@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.impl.DefaultPrettyPrinter;
 import org.codehaus.jackson.io.SegmentedStringWriter;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
@@ -1415,13 +1416,24 @@ public class ObjectMapper
      */
 
     /**
+     * Convenience method for constructing {@link ObjectWriter}
+     * with default settings.
+     * 
+     * @since 1.6
+     */
+    public ObjectWriter writer() {
+        return new ObjectWriter(this, /*view*/null, /*type*/ null, /*PrettyPrinter*/null);
+    }
+    
+    /**
      * Factory method for constructing {@link ObjectWriter} that will
      * serialize objects using specified JSON View (filter).
      * 
      * @since 1.5
      */
     public ObjectWriter viewWriter(Class<?> serializationView) {
-        return new ObjectWriter(this, serializationView, /*type*/ null);
+        return new ObjectWriter(this, serializationView,
+                /*type*/ null, /*PrettyPrinter*/null);
     }
 
     /**
@@ -1434,7 +1446,7 @@ public class ObjectMapper
      */
     public ObjectWriter typedWriter(Class<?> rootType) {
         JavaType t = (rootType == null) ? null : TypeFactory.type(rootType);
-        return new ObjectWriter(this, null, t);
+        return new ObjectWriter(this, null, t, /*PrettyPrinter*/null);
     }
 
     /**
@@ -1446,9 +1458,34 @@ public class ObjectMapper
      * @since 1.5
      */
     public ObjectWriter typedWriter(JavaType rootType) {
-        return new ObjectWriter(this, null, rootType);
+        return new ObjectWriter(this, null, rootType, /*PrettyPrinter*/null);
     }
 
+    /**
+     * Factory method for constructing {@link ObjectWriter} that will
+     * serialize objects using specified pretty printer for indentation
+     * (or if null, no pretty printer)
+     * 
+     * @since 1.5
+     */
+    public ObjectWriter prettyPrintingWriter(PrettyPrinter pp) {
+        if (pp == null) {
+            pp = ObjectWriter.NULL_PRETTY_PRINTER;
+        }
+        return new ObjectWriter(this, null, /*root type*/ null, pp);
+    }
+
+    /**
+     * Factory method for constructing {@link ObjectWriter} that will
+     * serialize objects using the default pretty printer for indentation
+     * 
+     * @since 1.5
+     */
+    public ObjectWriter defaultPrettyPrintingWriter() {
+        return new ObjectWriter(this, null, /*root type*/ null,
+                new DefaultPrettyPrinter());
+    }
+    
     /*
     /**********************************************************
     /* Extended Public API: constructing ObjectReaders
@@ -1456,6 +1493,16 @@ public class ObjectMapper
     /**********************************************************
      */
 
+    /**
+     * Factory method for constructing {@link ObjectReader} with
+     * default settings.
+     * 
+     * @since 1.6
+     */
+    public ObjectReader reader() {
+        return new ObjectReader(this, null, null);
+    }
+    
     /**
      * Factory method for constructing {@link ObjectReader} that will
      * update given Object (usually Bean, but can be a Collection or Map
@@ -1477,6 +1524,8 @@ public class ObjectMapper
     /**
      * Factory method for constructing {@link ObjectReader} that will
      * read or update instances of specified type
+     * 
+     * @since 1.6
      */
     public ObjectReader reader(JavaType type)
     {
@@ -1486,6 +1535,8 @@ public class ObjectMapper
     /**
      * Factory method for constructing {@link ObjectReader} that will
      * read or update instances of specified type
+     * 
+     * @since 1.6
      */
     public ObjectReader reader(Class<?> type)
     {
@@ -1495,6 +1546,8 @@ public class ObjectMapper
     /**
      * Factory method for constructing {@link ObjectReader} that will
      * read or update instances of specified type
+     * 
+     * @since 1.6
      */
     public ObjectReader reader(TypeReference<?> type)
     {
@@ -1504,6 +1557,8 @@ public class ObjectMapper
     /**
      * Factory method for constructing {@link ObjectReader} that will
      * use specified {@link JsonNodeFactory} for constructing JSON trees.
+     * 
+     * @since 1.6
      */
     public ObjectReader reader(JsonNodeFactory f)
     {        
