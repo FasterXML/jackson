@@ -2,7 +2,6 @@ package org.codehaus.jackson.mrbean;
 
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.mrbean.TestSimpleMaterializedInterfaces.Bean;
 
 public class TestAbstractClasses
     extends BaseMapTest
@@ -16,6 +15,8 @@ public class TestAbstractClasses
     public abstract static class Bean
     {
         int y;
+
+        protected Bean() { }
         
         public abstract String getX();
 
@@ -33,12 +34,10 @@ public class TestAbstractClasses
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
-        Bean bean = mapper.readValue("{ \"x\" : \"abc\", y : 13 }", Bean.class);
+        Bean bean = mapper.readValue("{ \"x\" : \"abc\", \"y\" : 13 }", Bean.class);
         assertNotNull(bean);
         assertEquals("abc", bean.getX());
         assertEquals(13, bean.y);
         assertEquals("Foo!", bean.getFoo());
-        assertEquals(123, bean.getX());
     }
-    
 }

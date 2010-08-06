@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.util.DefaultPrettyPrinter;
 
 /**
  * This base class implements part of API that a JSON generator exposes

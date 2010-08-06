@@ -323,12 +323,14 @@ compile.smile, compile.mrbean" />
                 <include name="org/codehaus/jackson/mrbean/**" />
             </packageset>
 
-            <!-- Need to link to regular JDK 6 classes  -->
+        	<!-- External JavaDocs to link: -->
+        	
+            <!-- Joda time... -->
+            <link href="http://joda-time.sourceforge.net/api-release" />
+            <!-- Regular JDK 6 classes  -->
             <link href="http://java.sun.com/javase/6/docs/api" />
             <!-- And JAX-RS (jsr-311) as well -->
             <link href="http://jackson.codehaus.org/javadoc/jax-rs/1.0" />
-            <!-- And Joda time... -->
-            <link href="http://joda-time.sourceforge.net/api-release" />
 
             <group title="Jackson Core" packages="org.codehaus.jackson*" />
             <group title="Jackson Mapper"
@@ -336,6 +338,8 @@ compile.smile, compile.mrbean" />
             />
             <group title="Jackson JAX-RS provider" packages="org.codehaus.jackson.jaxrs" />
             <group title="Jackson XML Compatibility" packages="org.codehaus.jackson.xc" />
+            <group title="Jackson Mr Bean" packages="org.codehaus.jackson.mrbean" />
+            <group title="Jackson Smile Format" packages="org.codehaus.jackson.smile" />
         </javadoc>
     </target> 
 

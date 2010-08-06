@@ -20,6 +20,11 @@ public class TestSimpleMaterializedInterfaces
         public String getA();
     }
 
+    public interface BeanWithY extends Bean
+    {
+        public int getY();
+    }
+    
     public interface PartialBean {
         public boolean isOk();
         // and then non-getter/setter one:
@@ -139,6 +144,17 @@ public class TestSimpleMaterializedInterfaces
         assertArrayEquals(new String[] { "cool", "beans" } , bean.getWords());
     }
 
+    public void testSubInterface() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        BeanWithY bean = mapper.readValue("{\"a\":\"b\",\"x\":1, \"y\":2 }", BeanWithY.class);
+        assertNotNull(bean);
+        assertEquals("b", bean.getA());
+        assertEquals(1, bean.getX());
+        assertEquals(2, bean.getY());
+    }
+    
     /*
     /**********************************************************
     /* Unit tests, higher level, error handling

@@ -1,14 +1,21 @@
-package org.codehaus.jackson.map;
+package org.codehaus.jackson.map.util;
 
 import java.util.*;
 
 import static org.junit.Assert.*;
 
+import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public class TestClassUtil
     extends BaseMapTest
 {
+    /*
+    /**********************************************************
+    /* Test classes, enums
+    /**********************************************************
+     */
+
     /* Test classes and interfaces needed for testing class util
      * methods
      */
@@ -38,6 +45,12 @@ public class TestClassUtil
         SubClass() { super("x"); }
     }
 
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
+    
     public void testSuperTypes()
     {
         Collection<Class<?>> result = ClassUtil.findSuperTypes(SubClass.class, null);
@@ -50,6 +63,16 @@ public class TestClassUtil
         assertArrayEquals(exp, classes);
     }
 
+    public void testSuperInterfaces()
+    {
+        Collection<Class<?>> result = ClassUtil.findSuperTypes(SubInt.class, null);
+        Class<?>[] classes = result.toArray(new Class<?>[result.size()]);
+        Class<?>[] exp = new Class[] {
+            BaseInt.class
+        };
+        assertArrayEquals(exp, classes);
+    }
+    
     public void testIsConcrete()
     {
         assertTrue(ClassUtil.isConcrete(getClass()));

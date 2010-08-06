@@ -1,7 +1,7 @@
 package org.codehaus.jackson.main;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.impl.MinimalPrettyPrinter;
+import org.codehaus.jackson.util.MinimalPrettyPrinter;
 
 import java.io.*;
 

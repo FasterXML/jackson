@@ -65,7 +65,7 @@ public class Utf8Generator
 
     /**
      * Intermediate buffer in which contents are buffered before
-     * being written using {@link #_writer}.
+     * being written using {@link #_outputStream}.
      */
     protected byte[] _outputBuffer;
 

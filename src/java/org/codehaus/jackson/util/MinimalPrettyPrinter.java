@@ -1,4 +1,4 @@
-package org.codehaus.jackson.impl;
+package org.codehaus.jackson.util;
 
 import java.io.IOException;
 

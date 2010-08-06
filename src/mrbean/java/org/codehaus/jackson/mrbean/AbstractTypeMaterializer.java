@@ -146,7 +146,7 @@ public class AbstractTypeMaterializer
     public JavaType resolveAbstractType(DeserializationConfig config, JavaType type)
     {
         Class<?> impl = materializeClass(type.getRawClass());
-
+        
         // !!! TEST
 /*        
         for (Class<?> c : new Class<?>[] { type.getRawClass(), impl } ) {
@@ -176,49 +176,9 @@ public class AbstractTypeMaterializer
     {
         // Need to have proper name mangling in future, but for now...
         String newName = _defaultPackage+cls.getName();
-        BeanBuilder builder = new BeanBuilder();
-        byte[] bytecode = builder.implement(cls, isEnabled(Feature.FAIL_ON_UNMATERIALIZED_METHOD)).build(newName);
+        BeanBuilder builder = new BeanBuilder(cls);
+        byte[] bytecode = builder.implement(isEnabled(Feature.FAIL_ON_UNMATERIALIZED_METHOD)).build(newName);
         Class<?> result = _classLoader.loadAndResolve(newName, bytecode, cls);
-        
-        // TEST: uncomment for more debugging during development (never for release builds)
-        /*
-        
-System.out.println("DEBUG: "+bytecode.length+" bytes for "+newName); 
-try {
-    System.out.println("<visit name='"+result.getName()+"'>");
-    org.codehaus.jackson.org.objectweb.asm.ClassReader cr = new org.codehaus.jackson.org.objectweb.asm.ClassReader(bytecode);
-    cr.accept(new org.codehaus.jackson.org.objectweb.asm.ClassVisitor() {
-    @Override  public void visit(int arg0, int access, String name, String desc ,String sig, String[] arg5) { }
-    @Override public org.codehaus.jackson.org.objectweb.asm.AnnotationVisitor visitAnnotation(String arg0, boolean arg1) {
-        System.out.println(" Annotation '"+arg0+"'...");
-        return null;
-    }
-    @Override public void visitAttribute(org.codehaus.jackson.org.objectweb.asm.Attribute arg0) { System.out.println(" Attribute '"+arg0+"'"); }
-    @Override public void visitEnd() { }
-    
-    @Override
-    public org.codehaus.jackson.org.objectweb.asm.FieldVisitor visitField(int arg0, String name, String desc, String sig, Object arg4) {
-        System.out.println(" Field '"+name+"; desc '"+desc+"', sig '"+sig+"', value: "+arg4);
-        return null;
-    }
-    
-    @Override
-    public void visitInnerClass(String arg0, String arg1, String arg2, int arg3) { }
-    
-    @Override
-    public org.codehaus.jackson.org.objectweb.asm.MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        System.out.println("Method '"+name+"' (access 0x"+Integer.toHexString(access)+"): desc "+desc+", signature "+signature);
-        return null;
-    }
-    
-    @Override public void visitOuterClass(String arg0, String arg1, String arg2) { }
-    
-    @Override public void visitSource(String arg0, String arg1) { }
-}, 0);
-} catch (Exception e) { throw new RuntimeException(e);
-}
-System.out.println("</visit>");
-*/
         return result;
     }
     

@@ -68,7 +68,7 @@ public class JsonFactory
      */
 
     /**
-     * This <code>ThreadLocal</code> contains a {@link SoftRerefence}
+     * This <code>ThreadLocal</code> contains a {@link java.lang.ref.SoftRerefence}
      * to a {@link BufferRecycler} used to provide a low-cost
      * buffer recycling between reader and writer instances.
      */
@@ -557,8 +557,6 @@ public class JsonFactory
      * Overridable factory method that actually instantiates desired
      * generator that is specifically to output content using specified
      * output stream and using UTF-8 encoding.
-     *
-     * @return
      */
     protected JsonGenerator _createUTF8JsonGenerator(OutputStream out, IOContext ctxt)
         throws IOException

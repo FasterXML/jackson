@@ -2,8 +2,7 @@
  * Package that contains standard implementations for
  * {@link org.codehaus.jackson.map.jsontype.TypeResolverBuilder}
  * and
- * {@link org.codehaus.jackson.map.jsontype.JsonTypeResolver} it
- * can construct.
+ * {@link org.codehaus.jackson.map.jsontype.TypeIdResolver}.
  *
  * @since 1.5
  */

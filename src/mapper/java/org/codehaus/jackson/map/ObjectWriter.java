@@ -3,14 +3,14 @@ package org.codehaus.jackson.map;
 import java.io.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.impl.DefaultPrettyPrinter;
-import org.codehaus.jackson.impl.MinimalPrettyPrinter;
 import org.codehaus.jackson.io.SegmentedStringWriter;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.ByteArrayBuilder;
+import org.codehaus.jackson.util.DefaultPrettyPrinter;
+import org.codehaus.jackson.util.MinimalPrettyPrinter;
 
 /**
  * Builder object that can be used for per-serialization configuration of

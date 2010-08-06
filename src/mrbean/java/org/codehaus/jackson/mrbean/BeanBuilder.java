@@ -9,6 +9,7 @@ import static org.codehaus.jackson.org.objectweb.asm.Opcodes.*;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Heavy-lifter of mr. Bean package.
@@ -18,10 +19,16 @@ import org.codehaus.jackson.map.type.TypeFactory;
 public class BeanBuilder
 {
     protected Map<String, Property> _beanProperties = new LinkedHashMap<String,Property>();
-    protected List<Method> _unsupportedMethods = new ArrayList<Method>();
-    protected List<Class<?>> _implementedTypes = new ArrayList<Class<?>>();
+    protected LinkedHashMap<String,Method> _unsupportedMethods = new LinkedHashMap<String,Method>();
 
-    public BeanBuilder() { }
+    /**
+     * Abstract class or interface that the bean is created to extend or implement.
+     */
+    protected final Class<?> _implementedType;
+    
+    public BeanBuilder(Class<?> implType) {
+        _implementedType = implType;
+    }
 
     /*
     /**********************************************************
@@ -37,29 +44,39 @@ public class BeanBuilder
      *   will implement bogus method that will throw {@link UnsupportedOperationException}
      *   if called.
      */
-    public BeanBuilder implement(Class<?> parent, boolean failOnUnrecognized)
+    public BeanBuilder implement(boolean failOnUnrecognized)
     {
-        _implementedTypes.add(parent);
-
-        // TODO: recursively check super-interfaces/classes
-        for (Method m : parent.getMethods()) {
-            String methodName = m.getName();
-            int argCount = m.getParameterTypes().length;
-
-            if (argCount == 0) { // getter?
-                if (methodName.startsWith("get") || methodName.startsWith("is") && returnsBoolean(m)) {
-                    addGetter(m);
+        ArrayList<Class<?>> implTypes = new ArrayList<Class<?>>();
+        // First: find all supertypes:
+        implTypes.add(_implementedType);
+        ClassUtil.findSuperTypes(_implementedType, Object.class, implTypes);
+        
+        for (Class<?> impl : implTypes) {
+            // and then find all getters, setters, and other non-concrete methods therein:
+            for (Method m : impl.getDeclaredMethods()) {
+                String methodName = m.getName();
+                int argCount = m.getParameterTypes().length;
+    
+                if (argCount == 0) { // getter?
+                    if (methodName.startsWith("get") || methodName.startsWith("is") && returnsBoolean(m)) {
+                        addGetter(m);
+                        continue;
+                    }
+                } else if (argCount == 1 && methodName.startsWith("set")) {
+                    addSetter(m);
                     continue;
                 }
-            } else if (argCount == 1 && methodName.startsWith("set")) {
-                addSetter(m);
-                continue;
+                // Otherwise, if concrete, or already handled, skip:
+                // !!! note: won't handle overloaded methods properly
+                if (ClassUtil.isConcrete(m) || _unsupportedMethods.containsKey(methodName)) {
+                    continue;
+                }
+                if (failOnUnrecognized) {
+                    throw new IllegalArgumentException("Unrecognized abstract method '"+methodName
+                            +"' (not a getter or setter) -- to avoid exception, disable AbstractTypeMaterializer.Feature.FAIL_ON_UNMATERIALIZED_METHOD");
+                }
+                _unsupportedMethods.put(methodName, m);
             }
-            if (failOnUnrecognized) {
-                throw new IllegalArgumentException("Unrecognized abstract method '"+methodName
-                        +"' (not a getter or setter) -- to avoid exception, disable AbstractTypeMaterializer.Feature.FAIL_ON_UNMATERIALIZED_METHOD");
-            }
-            _unsupportedMethods.add(m);
         }
 
         return this;
@@ -76,24 +93,35 @@ public class BeanBuilder
     {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         String internalClass = getInternalClassName(className);
+        String implName = getInternalClassName(_implementedType.getName());
         
-        String[] parents = new String[_implementedTypes.size()];
-        for (int i = 0; i < _implementedTypes.size(); i++) {
-            parents[i] = getInternalClassName(_implementedTypes.get(i).getName());
-        }
         // muchos important: level at least 1.5 to get generics!!!
-        cw.visit(V1_5, ACC_PUBLIC + ACC_SUPER, internalClass, null,
-                "java/lang/Object", parents);
+        // Also: abstract class vs interface...
+        String superName;
+        if (_implementedType.isInterface()) {
+            superName = "java/lang/Object";
+            cw.visit(V1_5, ACC_PUBLIC + ACC_SUPER, internalClass, null,
+                    superName, new String[] { implName });
+        } else {
+            superName = implName;
+            cw.visit(V1_5, ACC_PUBLIC + ACC_SUPER, internalClass, null,
+                    implName, null);
+        }
         cw.visitSource(className + ".java", null);
-        BeanBuilder.generateDefaultConstructor(cw);
+        BeanBuilder.generateDefaultConstructor(cw, superName);
         for (Property prop : _beanProperties.values()) {
             // First: determine type to use; preferably setter (usually more explicit); otherwise getter
             TypeDescription type = prop.selectType();
             createField(cw, prop, type);
-            createGetter(cw, internalClass, prop, type);
-            createSetter(cw, internalClass, prop, type);
+            // since some getters and/or setters may be implemented, check:
+            if (!prop.hasConcreteGetter()) {
+                createGetter(cw, internalClass, prop, type);
+            }
+            if (!prop.hasConcreteSetter()) {
+                createSetter(cw, internalClass, prop, type);
+            }
         }
-        for (Method m : _unsupportedMethods) {            
+        for (Method m : _unsupportedMethods.values()) {            
             createUnimplementedMethod(cw, internalClass, m);
         }
         cw.visitEnd();
@@ -130,21 +158,18 @@ public class BeanBuilder
     private void addGetter(Method m)
     {
         Property prop = findProperty(getPropertyName(m.getName()));
-        if (prop.getGetter() != null) { // dup?
-            throw new IllegalArgumentException("Invalid property '"+prop.getName()+"'; multiple getters; '"
-                    +m.getName()+"()' vs '"+prop.getGetter().getName()+"()'");
+        // only set if not yet set; we start with super class:
+        if (prop.getGetter() == null) {
+            prop.setGetter(m);        
         }
-        prop.setGetter(m);        
     }
 
     private void addSetter(Method m)
     {
         Property prop = findProperty(getPropertyName(m.getName()));
-        if (prop.getSetter() != null) { // dup?
-            throw new IllegalArgumentException("Invalid property '"+prop.getName()+"'; multiple setters; '"
-                    +m.getName()+"()' vs '"+prop.getSetter().getName()+"()'");
+        if (prop.getSetter() == null) {
+            prop.setSetter(m);
         }
-        prop.setSetter(m);
     }
 
     private Property findProperty(String propName)
@@ -169,12 +194,12 @@ public class BeanBuilder
     /**********************************************************
      */
 
-    private static void generateDefaultConstructor(ClassWriter cw)
+    private static void generateDefaultConstructor(ClassWriter cw, String superName)
     {
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+        mv.visitMethodInsn(INVOKESPECIAL, superName, "<init>", "()V");
         mv.visitInsn(RETURN);
         mv.visitMaxs(0, 0); // don't care (real values: 1,1)
         mv.visitEnd();
@@ -297,6 +322,14 @@ public class BeanBuilder
             return _fieldName;
         }
 
+        public boolean hasConcreteGetter() {
+            return (_getter != null) && ClassUtil.isConcrete(_getter);
+        }
+
+        public boolean hasConcreteSetter() {
+            return (_setter != null) && ClassUtil.isConcrete(_setter);
+        }
+        
         private TypeDescription getterType() {
             Class<?> context = _getter.getDeclaringClass();
             return new TypeDescription(TypeFactory.type(_getter.getGenericReturnType(), context));

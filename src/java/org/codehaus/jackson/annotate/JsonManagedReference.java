@@ -36,8 +36,6 @@ public @interface JsonManagedReference
      * back references. Default name can be used if there is just single
      * reference pair (for example, node class that just has parent/child linkage,
      * consisting of one managed reference and matching back reference)
-     * 
-     * @return
      */
     public String value() default "defaultReference";
 }

@@ -18,22 +18,23 @@ public final class ClassUtil
      * interfaces class directly declares to implemented, and then recursively
      * followed by parent of super-class and so forth.
      * Note that <code>Object.class</code> is not included in the list
-     * regardless of whether <code>endBefore</code> argument is defined
+     * regardless of whether <code>endBefore</code> argument is defined or not.
      *
      * @param endBefore Super-type to NOT include in results, if any; when
      *    encountered, will be ignored (and no super types are checked).
      */
     public static List<Class<?>> findSuperTypes(Class<?> cls, Class<?> endBefore)
     {
-        /* We don't expect to get huge collections, thus overhead of a
-         * Set seems unnecessary.
-         */
-        ArrayList<Class<?>> result = new ArrayList<Class<?>>();
+        return findSuperTypes(cls, endBefore, new ArrayList<Class<?>>());
+    }
+
+    public static List<Class<?>> findSuperTypes(Class<?> cls, Class<?> endBefore, List<Class<?>> result)
+    {
         _addSuperTypes(cls, endBefore, result, false);
         return result;
     }
-
-    private static void _addSuperTypes(Class<?> cls, Class<?> endBefore, ArrayList<Class<?>> result, boolean addClassItself)
+    
+    private static void _addSuperTypes(Class<?> cls, Class<?> endBefore, Collection<Class<?>> result, boolean addClassItself)
     {
         if (cls == endBefore || cls == null || cls == Object.class) {
             return;
@@ -138,6 +139,15 @@ public final class ClassUtil
         return (mod & (Modifier.INTERFACE | Modifier.ABSTRACT)) == 0;
     }
 
+    /**
+     * @since 1.6
+     */
+    public static boolean isConcrete(Member member)
+    {
+        int mod = member.getModifiers();
+        return (mod & (Modifier.INTERFACE | Modifier.ABSTRACT)) == 0;
+    }
+    
     public static boolean isCollectionMapOrArray(Class<?> type)
     {
         if (type.isArray()) return true;

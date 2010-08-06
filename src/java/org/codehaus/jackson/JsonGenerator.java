@@ -254,7 +254,7 @@ public abstract class JsonGenerator
     /**
      * Convenience method for enabling pretty-printing using
      * the default pretty printer
-     * ({@link org.codehaus.jackson.impl.DefaultPrettyPrinter}).
+     * ({@link org.codehaus.jackson.util.DefaultPrettyPrinter}).
      *
      * @return Generator itself (this), to allow chaining
      */
