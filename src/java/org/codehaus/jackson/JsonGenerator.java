@@ -18,6 +18,8 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import org.codehaus.jackson.io.SerializedString;
+
 /**
  * Base class that defines public API for writing Json content.
  * Instances are created using factory methods of
@@ -267,7 +269,7 @@ public abstract class JsonGenerator
      */
 
     /**
-     * Method for writing starting marker of a Json Array value
+     * Method for writing starting marker of a JSON Array value
      * (character '['; plus possible white space decoration
      * if pretty-printing is enabled).
      *<p>
@@ -279,7 +281,7 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     /**
-     * Method for writing closing marker of a Json Array value
+     * Method for writing closing marker of a JSON Array value
      * (character ']'; plus possible white space decoration
      * if pretty-printing is enabled).
      *<p>
@@ -290,7 +292,7 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     /**
-     * Method for writing starting marker of a Json Object value
+     * Method for writing starting marker of a JSON Object value
      * (character '{'; plus possible white space decoration
      * if pretty-printing is enabled).
      *<p>
@@ -302,30 +304,49 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     /**
-     * Method for writing closing marker of a Json Object value
+     * Method for writing closing marker of a JSON Object value
      * (character '}'; plus possible white space decoration
      * if pretty-printing is enabled).
      *<p>
      * Marker can be written if the innermost structured type
      * is Object, and the last written event was either a
-     * complete value, or START-OBJECT marker (see Json specification
+     * complete value, or START-OBJECT marker (see JSON specification
      * for more details).
      */
     public abstract void writeEndObject()
         throws IOException, JsonGenerationException;
 
     /**
-     * Method for writing a field name (json String surrounded by
-     * double quotes: syntactically identical to a json String value),
+     * Method for writing a field name (JSON String surrounded by
+     * double quotes: syntactically identical to a JSON String value),
      * possibly decorated by white space if pretty-printing is enabled.
      *<p>
      * Field names can only be written in Object context (check out
-     * Json specification for details), when field name is expected
+     * JSON specification for details), when field name is expected
      * (field names alternate with values).
      */
     public abstract void writeFieldName(String name)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method similar to {@link #writeFieldName(String)}, main difference
+     * being that it may perform better as some of processing (such as
+     * quoting of certain characters, or encoding into external encoding
+     * if supported by generator) can be done just once and reused for
+     * later calls.
+     *<p>
+     * Default implementation simple uses unprocessed name container in
+     * serialized String; implementations are strongly encouraged to make
+     * use of more efficient methods argument object has.
+     * 
+     * @since 1.6
+     */
+    public void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(name.getValue());
+    }
+    
     /*
     /**********************************************************
     /* Public API, write methods, textual/binary
