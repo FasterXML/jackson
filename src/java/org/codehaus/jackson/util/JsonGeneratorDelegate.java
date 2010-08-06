@@ -4,14 +4,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import org.codehaus.jackson.Base64Variant;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.JsonStreamContext;
-import org.codehaus.jackson.ObjectCodec;
+import org.codehaus.jackson.*;
+import org.codehaus.jackson.io.SerializedString;
 
 public class JsonGeneratorDelegate extends JsonGenerator
 {
@@ -109,11 +103,19 @@ public class JsonGeneratorDelegate extends JsonGenerator
     }
 
     @Override
-    public void writeFieldName(String name) throws IOException,
-            JsonGenerationException {
+    public void writeFieldName(String name)
+        throws IOException, JsonGenerationException
+    {
         delegate.writeFieldName(name);
     }
 
+    @Override
+    public void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        delegate.writeFieldName(name);
+    }
+    
     @Override
     public void writeNull() throws IOException, JsonGenerationException {
         delegate.writeNull();

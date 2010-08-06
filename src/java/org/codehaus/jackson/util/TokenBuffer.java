@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.JsonReadContext;
 import org.codehaus.jackson.impl.JsonWriteContext;
+import org.codehaus.jackson.io.SerializedString;
 
 /**
  * Utility class used for efficient storage of {@link JsonToken}
@@ -371,6 +372,7 @@ public class TokenBuffer
         }
     }
 
+    @Override
     public final void writeFieldName(String name)
         throws IOException, JsonGenerationException
     {
@@ -378,10 +380,18 @@ public class TokenBuffer
         _writeContext.writeFieldName(name);
     }
 
+    @Override
+    public void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        // Could this be optimized? (and does it need to)
+        writeFieldName(name.getValue());
+    }
+    
     /*
-    ***********************************************************
-    * JsonGenerator implementation: write methods, textual
-    ***********************************************************
+    /**********************************************************
+    /* JsonGenerator implementation: write methods, textual
+    /**********************************************************
      */
 
     @Override

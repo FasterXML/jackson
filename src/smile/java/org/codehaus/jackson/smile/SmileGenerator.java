@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
 
@@ -418,6 +419,14 @@ public class SmileGenerator
         if (_seenNameCount >= 0) {
             _addSeenName(name);
         }
+    }
+
+    @Override
+    public void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        // !!! TODO: implement with proper encodings
+        writeFieldName(name.getValue());
     }
     
     /*

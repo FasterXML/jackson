@@ -15,6 +15,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.io.SerializedString;
 
 /**
  * {@link JsonGenerator} that outputs JAXB-style XML output instead of JSON content.
@@ -107,6 +108,19 @@ public class ToXmlGenerator
         _xmlWriter = Stax2WriterAdapter.wrapIfNecessary(sw);
     }
 
+    /*
+    /**********************************************************
+    /* Overridden implementations
+    /**********************************************************
+     */
+    
+    @Override
+    public void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(name.getValue());
+    }
+    
     /*
     /**********************************************************
     /* Extended API, configuration

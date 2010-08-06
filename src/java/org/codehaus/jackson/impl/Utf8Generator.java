@@ -10,6 +10,7 @@ import org.codehaus.jackson.JsonStreamContext;
 import org.codehaus.jackson.ObjectCodec;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.io.NumberOutput;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.util.CharTypes;
 
 public class Utf8Generator
@@ -109,6 +110,20 @@ public class Utf8Generator
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
         _outputEnd = _outputBuffer.length;
         _charBuffer = ctxt.allocConcatBuffer();
+    }
+
+    /*
+    /**********************************************************
+    /* Overridden implementations
+    /**********************************************************
+     */
+    
+    @Override
+    public void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        // !!! TODO: access UTF-8 encoded:
+        writeFieldName(name.getValue());
     }
 
     /*

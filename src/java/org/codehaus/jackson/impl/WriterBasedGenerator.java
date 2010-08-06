@@ -82,6 +82,20 @@ public final class WriterBasedGenerator
 
     /*
     /**********************************************************
+    /* Overridden implementations
+    /**********************************************************
+     */
+    
+    @Override
+    public void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        // !!! TODO: access pre-quoted variant:
+        writeFieldName(name.getValue());
+    }
+    
+    /*
+    /**********************************************************
     /* Output method implementations, structural
     /**********************************************************
      */
