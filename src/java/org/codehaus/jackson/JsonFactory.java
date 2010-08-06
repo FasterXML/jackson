@@ -577,9 +577,7 @@ public class JsonFactory
 
         if (br == null) {
             br = new BufferRecycler();
-            if (ref == null) {
-                _recyclerRef.set(new SoftReference<BufferRecycler>(br));
-            }
+            _recyclerRef.set(new SoftReference<BufferRecycler>(br));
         }
         return br;
     }

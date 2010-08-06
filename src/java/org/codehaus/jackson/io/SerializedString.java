@@ -42,7 +42,7 @@ public class SerializedString
     {
         char[] result = _quotedChars;
         if (result == null) {
-            // !!! TBI
+            result = JsonStringEncoder.getInstance().quoteAsString(_value);
             _quotedChars = result;
         }
         return null;
@@ -56,7 +56,7 @@ public class SerializedString
     {
         byte[] result = _unquotedUTF8Ref.get();
         if (result == null) {
-            // !!! TBI
+            JsonStringEncoder.getInstance().encodeAsUTF8(_value);
             _unquotedUTF8Ref.set(result);
         }
         return null;
@@ -70,7 +70,7 @@ public class SerializedString
     {
         byte[] result = _quotedUTF8Ref.get();
         if (result == null) {
-            // !!! TBI
+            JsonStringEncoder.getInstance().quoteAsUTF8(_value);
             _quotedUTF8Ref.set(result);
         }
         return null;
