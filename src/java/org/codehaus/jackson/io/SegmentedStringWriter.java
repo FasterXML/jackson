@@ -18,7 +18,7 @@ import org.codehaus.jackson.util.TextBuffer;
 public final class SegmentedStringWriter
     extends Writer
 {
-    final TextBuffer _buffer;
+    final protected TextBuffer _buffer;
 
     public SegmentedStringWriter(BufferRecycler br)
     {
@@ -27,9 +27,9 @@ public final class SegmentedStringWriter
     }
 
     /*
-    /////////////////////////////////////////////////////////////
-    // java.io.Writer implementation
-    /////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* java.io.Writer implementation
+    /**********************************************************
      */
 
     @Override
@@ -83,9 +83,9 @@ public final class SegmentedStringWriter
     }
 
     /*
-    /////////////////////////////////////////////////////////////
-    // Extended API
-    /////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
      */
 
     /**

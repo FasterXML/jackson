@@ -114,20 +114,6 @@ public class Utf8Generator
 
     /*
     /**********************************************************
-    /* Overridden implementations
-    /**********************************************************
-     */
-    
-    @Override
-    public void writeFieldName(SerializedString name)
-        throws IOException, JsonGenerationException
-    {
-        // !!! TODO: access UTF-8 encoded:
-        writeFieldName(name.getValue());
-    }
-
-    /*
-    /**********************************************************
     /* Output method implementations, structural
     /**********************************************************
      */
@@ -208,6 +194,14 @@ public class Utf8Generator
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
+    @Override
+    protected void _writeFieldName(SerializedString name, boolean commaBefore)
+        throws IOException, JsonGenerationException
+    {
+        // !!! TODO: implement properly
+        _writeFieldName(name.getValue(), commaBefore);
+    }    
+    
     /**
      * Specialized version of <code>_writeFieldName</code>, off-lined
      * to keep the "fast path" as simple (and hopefully fast) as possible.

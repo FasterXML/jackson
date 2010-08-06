@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 
 /**
@@ -210,9 +211,24 @@ public abstract class JsonGeneratorBase
         _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
     }
 
+    @Override
+    public final void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        // Object is a value, need to verify it's allowed
+        int status = _writeContext.writeFieldName(name.getValue());
+        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
+            _reportError("Can not write a field name, expecting a value");
+        }
+        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+    }
+    
     protected abstract void _writeFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException;
 
+    protected abstract void _writeFieldName(SerializedString name, boolean commaBefore)
+        throws IOException, JsonGenerationException;
+    
     /*
     /**********************************************************
     /* Public API, write methods, textual

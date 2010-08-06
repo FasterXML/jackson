@@ -422,11 +422,11 @@ public class SmileGenerator
     }
 
     @Override
-    public void writeFieldName(SerializedString name)
+    protected void _writeFieldName(SerializedString name, boolean commaBefore) 
         throws IOException, JsonGenerationException
     {
         // !!! TODO: implement with proper encodings
-        writeFieldName(name.getValue());
+        _writeFieldName(name.getValue(), commaBefore);
     }
     
     /*

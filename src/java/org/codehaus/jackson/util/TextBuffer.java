@@ -26,6 +26,11 @@ public final class TextBuffer
     final static char[] NO_CHARS = new char[0];
 
     /**
+     * Let's start with sizable but not huge buffer, will grow as necessary
+     */
+    final static int MIN_SEGMENT_LEN = 1000;
+    
+    /**
      * Let's limit maximum segment length to something sensible
      * like 256k
      */
@@ -126,13 +131,17 @@ public final class TextBuffer
      */
     public void releaseBuffers()
     {
-        if (_allocator != null && _currentSegment != null) {
-            // First, let's get rid of all but the largest char array
+        if (_allocator == null) {
             resetWithEmpty();
-            // And then return that array
-            char[] buf = _currentSegment;
-            _currentSegment = null;
-            _allocator.releaseCharBuffer(BufferRecycler.CharBufferType.TEXT_BUFFER, buf);
+        } else {
+            if (_currentSegment != null) {
+                // First, let's get rid of all but the largest char array
+                resetWithEmpty();
+                // And then return that array
+                char[] buf = _currentSegment;
+                _currentSegment = null;
+                _allocator.releaseCharBuffer(BufferRecycler.CharBufferType.TEXT_BUFFER, buf);
+            }
         }
     }
 
@@ -204,7 +213,10 @@ public final class TextBuffer
      */
     private final char[] findBuffer(int needed)
     {
-        return _allocator.allocCharBuffer(BufferRecycler.CharBufferType.TEXT_BUFFER, needed);
+        if (_allocator != null) {
+            return _allocator.allocCharBuffer(BufferRecycler.CharBufferType.TEXT_BUFFER, needed);
+        }
+        return new char[Math.max(needed, MIN_SEGMENT_LEN)];
     }
 
     private final void clearSegments()
@@ -533,7 +545,7 @@ public final class TextBuffer
      * String is cached.
      */
     @Override
-	public String toString() {
+    public String toString() {
          return contentsAsString();
     }
 

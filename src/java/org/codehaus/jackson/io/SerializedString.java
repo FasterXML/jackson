@@ -45,7 +45,7 @@ public class SerializedString
             result = JsonStringEncoder.getInstance().quoteAsString(_value);
             _quotedChars = result;
         }
-        return null;
+        return result;
     }
 
     /**
@@ -56,10 +56,10 @@ public class SerializedString
     {
         byte[] result = _unquotedUTF8Ref.get();
         if (result == null) {
-            JsonStringEncoder.getInstance().encodeAsUTF8(_value);
+            result = JsonStringEncoder.getInstance().encodeAsUTF8(_value);
             _unquotedUTF8Ref.set(result);
         }
-        return null;
+        return result;
     }
 
     /**
@@ -70,16 +70,9 @@ public class SerializedString
     {
         byte[] result = _quotedUTF8Ref.get();
         if (result == null) {
-            JsonStringEncoder.getInstance().quoteAsUTF8(_value);
+            result = JsonStringEncoder.getInstance().quoteAsUTF8(_value);
             _quotedUTF8Ref.set(result);
         }
-        return null;
+        return result;
     }
-    
-    /*
-    /**********************************************************
-    /* Internal methods
-    /**********************************************************
-     */
-
 }

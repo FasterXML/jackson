@@ -79,20 +79,6 @@ public final class WriterBasedGenerator
         _outputBuffer = ctxt.allocConcatBuffer();
         _outputEnd = _outputBuffer.length;
     }
-
-    /*
-    /**********************************************************
-    /* Overridden implementations
-    /**********************************************************
-     */
-    
-    @Override
-    public void writeFieldName(SerializedString name)
-        throws IOException, JsonGenerationException
-    {
-        // !!! TODO: access pre-quoted variant:
-        writeFieldName(name.getValue());
-    }
     
     /*
     /**********************************************************
@@ -175,6 +161,49 @@ public final class WriterBasedGenerator
         _outputBuffer[_outputTail++] = '"';
     }
 
+    @Override
+    public void _writeFieldName(SerializedString name, boolean commaBefore)
+        throws IOException, JsonGenerationException
+    {
+        if (_cfgPrettyPrinter != null) {
+            _writePPFieldName(name, commaBefore);
+            return;
+        }
+        // for fast+std case, need to output up to 2 chars, comma, dquote
+        if ((_outputTail + 1) >= _outputEnd) {
+            _flushBuffer();
+        }
+        if (commaBefore) {
+            _outputBuffer[_outputTail++] = ',';
+        }
+
+        /* To support [JACKSON-46], we'll do this:
+         * (Quostion: should quoting of spaces (etc) still be enabled?)
+         */
+        final char[] quoted = name.asQuotedChars();
+        if (!isEnabled(Feature.QUOTE_FIELD_NAMES)) {
+            writeRaw(quoted, 0, quoted.length);
+            return;
+        }
+
+        // we know there's room for at least one more char
+        _outputBuffer[_outputTail++] = '"';
+        // The beef:
+        final int qlen = quoted.length;
+        if ((_outputTail + qlen + 1) >= _outputEnd) {
+            writeRaw(quoted, 0, qlen);
+            // and closing quotes; need room for one more char:
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = '"';
+        } else {
+            System.arraycopy(quoted, 0, _outputBuffer, _outputTail, qlen);
+            _outputTail += qlen;
+            _outputBuffer[_outputTail++] = '"';
+        }
+    }
+    
     /**
      * Specialized version of <code>_writeFieldName</code>, off-lined
      * to keep the "fast path" as simple (and hopefully fast) as possible.
@@ -200,6 +229,31 @@ public final class WriterBasedGenerator
             _outputBuffer[_outputTail++] = '"';
         } else { // non-standard, omit quotes
             _writeString(name);
+        }
+    }
+
+    protected final void _writePPFieldName(SerializedString name, boolean commaBefore)
+        throws IOException, JsonGenerationException
+    {
+        if (commaBefore) {
+            _cfgPrettyPrinter.writeObjectEntrySeparator(this);
+        } else {
+            _cfgPrettyPrinter.beforeObjectEntries(this);
+        }
+    
+        final char[] quoted = name.asQuotedChars();
+        if (isEnabled(Feature.QUOTE_FIELD_NAMES)) { // standard
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = '"';
+            writeRaw(quoted, 0, quoted.length);
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = '"';
+        } else { // non-standard, omit quotes
+            writeRaw(quoted, 0, quoted.length);
         }
     }
 

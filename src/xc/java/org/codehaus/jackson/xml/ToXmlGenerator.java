@@ -107,19 +107,6 @@ public class ToXmlGenerator
         _ioContext = ctxt;
         _xmlWriter = Stax2WriterAdapter.wrapIfNecessary(sw);
     }
-
-    /*
-    /**********************************************************
-    /* Overridden implementations
-    /**********************************************************
-     */
-    
-    @Override
-    public void writeFieldName(SerializedString name)
-        throws IOException, JsonGenerationException
-    {
-        writeFieldName(name.getValue());
-    }
     
     /*
     /**********************************************************
@@ -208,9 +195,18 @@ public class ToXmlGenerator
     }
 
     @Override
-    protected void _writeFieldName(String name, boolean commaBefore) throws IOException, JsonGenerationException
+    protected void _writeFieldName(String name, boolean commaBefore)
+        throws IOException, JsonGenerationException
     {
         _nextName = name;
+    }
+
+    @Override
+    protected void _writeFieldName(SerializedString name, boolean commaBefore)
+        throws IOException, JsonGenerationException
+    {
+        // !!! TODO: improve
+        _writeFieldName(name.getValue(), commaBefore);
     }
     
     /*

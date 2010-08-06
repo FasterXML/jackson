@@ -91,7 +91,6 @@ public final class ByteArrayBuilder
         _currBlockPtr = 0;
 
         if (!_pastBlocks.isEmpty()) {
-            _currBlock = _pastBlocks.getLast();
             _pastBlocks.clear();
         }
     }
@@ -105,6 +104,7 @@ public final class ByteArrayBuilder
         reset();
         if (_bufferRecycler != null && _currBlock != null) {
             _bufferRecycler.releaseByteBuffer(BufferRecycler.ByteBufferType.WRITE_CONCAT_BUFFER, _currBlock);
+            _currBlock = null;
         }
     }
 
@@ -172,31 +172,55 @@ public final class ByteArrayBuilder
         }
         return result;
     }
-    
-    private void _allocMore()
-    {
-        _pastLen += _currBlock.length;
-
-        /* Let's allocate block that's half the total size, except
-         * never smaller than twice the initial block size.
-         * The idea is just to grow with reasonable rate, to optimize
-         * between minimal number of chunks and minimal amount of
-         * wasted space.
-         */
-        int newSize = Math.max((_pastLen >> 1), (INITIAL_BLOCK_SIZE + INITIAL_BLOCK_SIZE));
-        // plus not to exceed max we define...
-        if (newSize > MAX_BLOCK_SIZE) {
-            newSize = MAX_BLOCK_SIZE;
-        }
-        _pastBlocks.add(_currBlock);
-        _currBlock = new byte[newSize];
-        _currBlockPtr = 0;
-    }
 
     /*
-    /*******************************************************
+    /**********************************************************
+    /* Non-stream API (similar to TextBuffer), since 1.6
+    /**********************************************************
+     */
+
+    /**
+     * Method called when starting "manual" output: will clear out
+     * current state and return the first segment buffer to fill
+     * 
+     * @since 1.6
+     */
+    public byte[] resetAndGetFirstSegment() {
+        reset();
+        return _currBlock;
+    }
+
+    /**
+     * Method called when the current segment buffer is full; will
+     * append to current contents, allocate a new segment buffer
+     * and return it
+     * 
+     * @since 1.6
+     */
+    public byte[] finishCurrentSegment() {
+        _allocMore();
+        return _currBlock;
+    }
+
+    /**
+     * Method that will complete "manual" output process, coalesce
+     * content (if necessary) and return results as a contiguous buffer.
+     * 
+     * @param lastBlockLength Amount of content in the current segment
+     * buffer.
+     * 
+     * @return Coalesced contents
+     */
+    public byte[] completeAndCoalesce(int lastBlockLength)
+    {
+        _currBlockPtr = lastBlockLength;
+        return toByteArray();
+    }
+    
+    /*
+    /**********************************************************
     /* OutputStream implementation
-    /*******************************************************
+    /**********************************************************
      */
     
     @Override
@@ -222,12 +246,39 @@ public final class ByteArrayBuilder
     }
 
     @Override
-    public void write(int b) throws IOException {
+    public void write(int b) {
         append(b);
     }
 
     @Override public void close() { /* NOP */ }
 
     @Override public void flush() { /* NOP */ }
+
+    /*
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
+     */
+    
+    private void _allocMore()
+    {
+        _pastLen += _currBlock.length;
+
+        /* Let's allocate block that's half the total size, except
+         * never smaller than twice the initial block size.
+         * The idea is just to grow with reasonable rate, to optimize
+         * between minimal number of chunks and minimal amount of
+         * wasted space.
+         */
+        int newSize = Math.max((_pastLen >> 1), (INITIAL_BLOCK_SIZE + INITIAL_BLOCK_SIZE));
+        // plus not to exceed max we define...
+        if (newSize > MAX_BLOCK_SIZE) {
+            newSize = MAX_BLOCK_SIZE;
+        }
+        _pastBlocks.add(_currBlock);
+        _currBlock = new byte[newSize];
+        _currBlockPtr = 0;
+    }
+
 }
 
