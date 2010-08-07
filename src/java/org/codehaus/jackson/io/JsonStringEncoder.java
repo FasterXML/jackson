@@ -40,7 +40,7 @@ public final class JsonStringEncoder
     /**
      * Temporary buffer used for composing quote/escape sequences
      */
-    protected final char[] _quoteBuffer = new char[6];
+    protected final char[] _quoteBuffer;
     
     /*
     /**********************************************************
@@ -48,7 +48,13 @@ public final class JsonStringEncoder
     /**********************************************************
      */
     
-    public JsonStringEncoder() { }
+    public JsonStringEncoder()
+    {
+        _quoteBuffer = new char[6];
+        _quoteBuffer[0] = '\\';
+        _quoteBuffer[2] = '0';
+        _quoteBuffer[3] = '0';
+    }
     
     /**
      * Factory method for getting an instance; this is either recycled per-thread instance,
@@ -150,6 +156,11 @@ public final class JsonStringEncoder
      */
     public byte[] encodeAsUTF8(String text)
     {
+        ByteArrayBuilder byteBuilder = _byteBuilder;
+        if (byteBuilder == null) {
+            // no allocator; can add if we must, shouldn't need to
+            _byteBuilder = byteBuilder = new ByteArrayBuilder(null);
+        }
         // !!! TBI
         return null;
     }
@@ -162,12 +173,6 @@ public final class JsonStringEncoder
 
     private int _appendSingleEscape(int escCode, char[] quoteBuffer)
     {
-        if (quoteBuffer == null) {
-            quoteBuffer = new char[6];
-            quoteBuffer[0] = '\\';
-            quoteBuffer[2] = '0';
-            quoteBuffer[3] = '0';
-        }
         if (escCode < 0) { // control char, value -(char + 1)
             int value = -(escCode + 1);
             quoteBuffer[1] = 'u';
