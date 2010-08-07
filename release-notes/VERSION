@@ -77,6 +77,7 @@ Description:
     methods in ObjectWriter; .withPrettyPrinter())
   * [JACKSON-325] Add new Jackson "internal" annotation (@JacksonStdCodec?) to allow
     marking default/standard serializers, deserializers
+  * [JACKSON-337] Add "ObjectMapper.valueToTree()"
   
   Backwards incompatible changes:
 

@@ -1016,6 +1016,11 @@ public class ObjectMapper
     }
 
     /**
+     * Method for constructing a {@link JsonParser} out of JSON tree
+     * representation.
+     * 
+     * @param n Root node of the tree that resulting parser will read from
+     * 
      * @since 1.3
      */
     public JsonParser treeAsTokens(JsonNode n)
@@ -1023,6 +1028,15 @@ public class ObjectMapper
         return new TreeTraversingParser(n, this);
     }
 
+    /**
+     * Convenience conversion method that will bind data given JSON tree
+     * contains into specific value (usually bean) type.
+     *<p>
+     * Equivalent to:
+     *<pre>
+     *   objectMapper.convertValue(n, valueClass);
+     *</pre>
+     */
     public <T> T treeToValue(JsonNode n, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
@@ -1030,6 +1044,37 @@ public class ObjectMapper
         return readValue(jp, valueType);
     }
 
+    /**
+     * Reverse of {@link #treeToValue}; given a value (usually bean), will
+     * construct equivalent JSON Tree representation. Functionally same
+     * as if serializing value into JSON and parsing JSON as tree, but
+     * more efficient.
+     * 
+     * @param <T> Actual node type; usually either basic {@link JsonNode} or
+     *  {@link org.codehaus.jackson.node.ObjectNode}
+     * @param fromValue Bean value to convert
+     * @return Root node of the resulting JSON tree
+     * 
+     * @since 1.6
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends JsonNode> T valueToTree(Object fromValue)
+        throws IllegalArgumentException
+    {
+        if (fromValue == null) return null;
+        TokenBuffer buf = new TokenBuffer(this);
+        JsonNode result;
+        try {
+            writeValue(buf, fromValue);
+            JsonParser jp = buf.asParser();
+            result = readTree(jp);
+            jp.close();
+        } catch (IOException e) { // should not occur, no real i/o...
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+        return (T) result;
+    } 
+    
     /*
     /**********************************************************
     /* Extended Public API, accessors
@@ -1624,7 +1669,7 @@ public class ObjectMapper
             throw new IllegalArgumentException(e.getMessage(), e);
         }
     }
-        
+    
     /*
     /**********************************************************
     /* Extended Public API: JSON Schema generation

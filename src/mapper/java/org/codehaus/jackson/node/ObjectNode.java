@@ -8,12 +8,12 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.SerializerProvider;
 
 /**
- * Note that maps to Json Object structures in Json content.
+ * Node that maps to JSON Object structures in JSON content.
  */
 public class ObjectNode
     extends ContainerNode
 {
-    LinkedHashMap<String, JsonNode> _children = null;
+    protected LinkedHashMap<String, JsonNode> _children = null;
 
     public ObjectNode(JsonNodeFactory nc) { super(nc); }
 

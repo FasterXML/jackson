@@ -11,6 +11,7 @@ import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.ByteArrayBuilder;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 import org.codehaus.jackson.util.MinimalPrettyPrinter;
+import org.codehaus.jackson.util.TokenBuffer;
 
 /**
  * Builder object that can be used for per-serialization configuration of
@@ -292,7 +293,7 @@ public class ObjectWriter
         bb.release();
         return result;
     }
-    
+
     /*
     /**********************************************************
     /* Other public methods

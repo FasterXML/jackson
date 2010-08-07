@@ -117,18 +117,6 @@ public abstract class ObjectCodec
      */
     public abstract JsonParser treeAsTokens(JsonNode n);
 
-    /*
-     * Method for constructing a {@link JsonGenerator} that can
-     * be used to add content to a JSON tree.
-     *
-     * @param containerNode Container node to add contents to via created generator.
-     *   If node is not a container node (as per {@link JsonNode#isContainerNode}),
-     *   {@link IllegalArgumentException} will be thrown
-     *
-c    public abstract JsonGenerator treeFromTokens(JsonNode containerNode)
-        throws IllegalArgumentException;
-    */
-
     /**
      * Convenience method for converting given JSON tree into instance of specified
      * value type. This is equivalent to first constructing a {@link JsonParser} to
