@@ -100,4 +100,33 @@ public class TestObjectNode
         src.put("a", "b");
         dest.putAll(src);
     }
+
+    public void testRemove()
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode ob = mapper.createObjectNode();
+        ob.put("a", "a");
+        ob.put("b", "b");
+        ob.put("c", "c");
+        assertEquals(3, ob.size());
+        assertSame(ob, ob.remove(Arrays.asList("a", "c")));
+        assertEquals(1, ob.size());
+        assertEquals("b", ob.get("b").getTextValue());
+    }
+
+    public void testRetain()
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode ob = mapper.createObjectNode();
+        ob.put("a", "a");
+        ob.put("b", "b");
+        ob.put("c", "c");
+        assertEquals(3, ob.size());
+        assertSame(ob, ob.retain("a", "c"));
+        assertEquals(2, ob.size());
+        assertEquals("a", ob.get("a").getTextValue());
+        assertNull(ob.get("b"));
+        assertEquals("c", ob.get("c").getTextValue());
+    }
+    
 }

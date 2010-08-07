@@ -16,7 +16,7 @@ public class ObjectNode
     protected LinkedHashMap<String, JsonNode> _children = null;
 
     public ObjectNode(JsonNodeFactory nc) { super(nc); }
-
+    
     /*
     /**********************************************************
     /* Implementation of core JsonNode API
@@ -254,6 +254,30 @@ public class ObjectNode
         return null;
     }
 
+    /**
+     * Method for removing specified field properties out of
+     * this ObjectNode.
+     * 
+     * @param fieldNames Names of fields to remove
+     * 
+     * @return This ObjectNode after removing entries
+     * 
+     * @since 1.6
+     */
+    public ObjectNode remove(Collection<String> fieldNames)
+    {
+        if (_children != null) {
+            for (String fieldName : fieldNames) {
+                _children.remove(fieldName);
+            }
+        }
+        return this;
+    }
+    
+    /**
+     * Method for removing all field properties, such that this
+     * ObjectNode will contain no properties after call.
+     */
     public ObjectNode removeAll()
     {
         _children = null;
@@ -306,6 +330,44 @@ public class ObjectNode
             other.putContentsTo(_children);
         }
         return this;
+    }
+
+    /**
+     * Method for removing all field properties out of this ObjectNode
+     * <b>except</b> for ones specified in argument.
+     * 
+     * @param fieldNames Fields to <b>retain</b> in this ObjectNode
+     * 
+     * @return This ObjectNode (to allow call chaining)
+     * 
+     * @since 1.6
+     */
+    public ObjectNode retain(Collection<String> fieldNames)
+    {
+        if (_children != null) {
+            Iterator<Map.Entry<String,JsonNode>> entries = _children.entrySet().iterator();
+            while (entries.hasNext()) {
+                Map.Entry<String, JsonNode> entry = entries.next();
+                if (!fieldNames.contains(entry.getKey())) {
+                    entries.remove();
+                }
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Method for removing all field properties out of this ObjectNode
+     * <b>except</b> for ones specified in argument.
+     * 
+     * @param fieldNames Fields to <b>retain</b> in this ObjectNode
+     * 
+     * @return This ObjectNode (to allow call chaining)
+     * 
+     * @since 1.6
+     */
+    public ObjectNode retain(String... fieldNames) {
+        return retain(Arrays.asList(fieldNames));
     }
     
     /*
