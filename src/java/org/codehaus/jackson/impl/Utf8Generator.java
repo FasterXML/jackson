@@ -36,13 +36,7 @@ public class Utf8Generator
     protected final static int SURR2_FIRST = 0xDC00;
     protected final static int SURR2_LAST = 0xDFFF;
     
-    final static byte[] HEX_CHARS = new byte[16];
-    static {
-        for (int i = 0; i < 16; ++i) {
-            HEX_CHARS[i] = (byte) "0123456789ABCDEF".charAt(i);
-        }
-    
-    }
+    final static byte[] HEX_CHARS = CharTypes.copyHexBytes();
 
     private final static byte[] NULL_BYTES = { 'n', 'u', 'l', 'l' };
     private final static byte[] TRUE_BYTES = { 't', 'r', 'u', 'e' };
@@ -175,7 +169,7 @@ public class Utf8Generator
         }
 
         /* To support [JACKSON-46], we'll do this:
-         * (Quostion: should quoting of spaces (etc) still be enabled?)
+         * (Question: should quoting of spaces (etc) still be enabled?)
          */
         if (!isEnabled(Feature.QUOTE_FIELD_NAMES)) {
             _writeString(name);

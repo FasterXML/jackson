@@ -215,6 +215,10 @@ public final class ByteArrayBuilder
         _currBlockPtr = lastBlockLength;
         return toByteArray();
     }
+
+    public byte[] getCurrentSegment() {
+        return _currBlock;
+    }
     
     /*
     /**********************************************************

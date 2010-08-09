@@ -1,5 +1,6 @@
 package org.codehaus.jackson.io;
 
+import java.io.IOException;
 import java.lang.ref.SoftReference;
 
 import org.codehaus.jackson.util.BufferRecycler;
@@ -15,8 +16,15 @@ import org.codehaus.jackson.util.TextBuffer;
  */
 public final class JsonStringEncoder
 {
-    private final static char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
+    private final static char[] HEX_CHARS = CharTypes.copyHexChars();
 
+    private final static byte[] HEX_BYTES = CharTypes.copyHexBytes();
+
+    private final static int SURR1_FIRST = 0xD800;
+    private final static int SURR1_LAST = 0xDBFF;
+    private final static int SURR2_FIRST = 0xDC00;
+    private final static int SURR2_LAST = 0xDFFF;
+    
     /**
      * This <code>ThreadLocal</code> contains a {@link java.lang.ref.SoftRerefence}
      * to a {@link BufferRecycler} used to provide a low-cost
@@ -161,8 +169,64 @@ public final class JsonStringEncoder
             // no allocator; can add if we must, shouldn't need to
             _byteBuilder = byteBuilder = new ByteArrayBuilder(null);
         }
-        // !!! TBI
-        return null;
+        int inputPtr = 0;
+        int inputEnd = text.length();
+        int outputPtr = 0;
+        byte[] outputBuffer = byteBuilder.resetAndGetFirstSegment();
+        int outputEnd = outputBuffer.length;
+        
+        main_loop:
+        while (inputPtr < inputEnd) {
+            char c = text.charAt(inputPtr++);
+            
+            ascii_loop:
+            while (c <= 0x7F) {
+                if (outputPtr >= outputEnd) {
+                    outputBuffer = byteBuilder.finishCurrentSegment();
+                    outputEnd = outputBuffer.length;
+                    outputPtr = 0;
+                }
+                outputBuffer[outputPtr++] = (byte) c;
+                c = text.charAt(inputPtr++);
+            }
+
+            // not enough room? offline
+            if ((outputPtr + 4) >= outputEnd) {
+                outputBuffer = byteBuilder.finishCurrentSegment();
+                outputEnd = outputBuffer.length;
+                outputPtr = 0;
+            }
+            // multi-byte...
+            if (c < 0x800) { // 2-byte
+                outputBuffer[outputPtr++] = (byte) (0xc0 | (c >> 6));
+                outputBuffer[outputPtr++] = (byte) (0x80 | (c & 0x3f));
+            } else { // 3 or 4 bytes
+                // Surrogates?
+                if (c < SURR1_FIRST || c > SURR2_LAST) {
+                    outputBuffer[outputPtr++] = (byte) (0xe0 | (c >> 12));
+                    outputBuffer[outputPtr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
+                    outputBuffer[outputPtr++] = (byte) (0x80 | (c & 0x3f));
+                    continue;
+                }
+                // Yup, a surrogate:
+                if (c > SURR1_LAST) { // must be from first range
+                    _throwIllegalSurrogate(c);
+                }
+                // and if so, followed by another from next range
+                if (inputPtr >= inputEnd) {
+                    _throwIllegalSurrogate(c);
+                }
+                int codepoint = _convertSurrogate(c, text.charAt(inputPtr++));
+                if (codepoint > 0x10FFFF) { // illegal, as per RFC 4627
+                    _throwIllegalSurrogate(codepoint);
+                }
+                outputBuffer[outputPtr++] = (byte) (0xf0 | (codepoint >> 18));
+                outputBuffer[outputPtr++] = (byte) (0x80 | ((codepoint >> 12) & 0x3f));
+                outputBuffer[outputPtr++] = (byte) (0x80 | ((codepoint >> 6) & 0x3f));
+                outputBuffer[outputPtr++] = (byte) (0x80 | (codepoint & 0x3f));
+            }
+        }
+        return _byteBuilder.completeAndCoalesce(outputPtr);
     }
     
     /*
@@ -184,4 +248,79 @@ public final class JsonStringEncoder
         quoteBuffer[1] = (char) escCode;
         return 2;
     }
+
+    private int _utf8EncodeSlow(int c, byte[] outputBuffer, int outputPtr, ByteArrayBuilder byteBuilder)
+    {
+        if (outputPtr >= outputBuffer.length) {
+            outputPtr = 0;
+            outputBuffer = byteBuilder.finishCurrentSegment();
+        }
+        if (c < 0x800) { // 2-byte
+            outputBuffer[outputPtr++] = (byte) (0xc0 | (c >> 6));
+            c = (0x80 | (c & 0x3f));
+        } else { // 3 or 4 bytes
+            // Surrogates?
+            if (c < SURR1_FIRST || c > SURR2_LAST) {
+                outputBuffer[outputPtr++] = (byte) (0xe0 | (c >> 12));
+                if (outputPtr >= outputBuffer.length) {
+                    outputPtr = 0;
+                    outputBuffer = byteBuilder.finishCurrentSegment();
+                }
+                outputBuffer[outputPtr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
+                 c = (0x80 | (c & 0x3f));
+            } else { // Yup, a surrogate:
+                if (c > SURR1_LAST) { // must be from first range
+                    _throwIllegalSurrogate(c);
+                }
+                // and if so, followed by another from next range
+                /*
+                if (inputPtr >= inputEnd) {
+                    _throwIllegalSurrogate(c);
+                }
+                c = _convertSurrogate(c, str[inputPtr++]);
+                */
+                if (c > 0x10FFFF) { // illegal, as per RFC 4627
+                    _throwIllegalSurrogate(c);
+                }
+                outputBuffer[outputPtr++] = (byte) (0xf0 | (c >> 18));
+                outputBuffer[outputPtr++] = (byte) (0x80 | ((c >> 12) & 0x3f));
+                outputBuffer[outputPtr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
+                c = (0x80 | (c & 0x3f));
+            }
+        }
+        if (outputPtr >= outputBuffer.length) {
+            outputPtr = 0;
+            outputBuffer = byteBuilder.finishCurrentSegment();
+        }
+        outputBuffer[outputPtr++] = (byte) c;
+        return outputPtr;
+    }
+
+    /**
+     * Method called to calculate UTF codepoint, from a surrogate pair.
+     */
+    private int _convertSurrogate(int firstPart, int secondPart)
+    {
+        // Ok, then, is the second part valid?
+        if (secondPart < SURR2_FIRST || secondPart > SURR2_LAST) {
+            throw new IllegalArgumentException("Broken surrogate pair: first char 0x"+Integer.toHexString(firstPart)+", second 0x"+Integer.toHexString(secondPart)+"; illegal combination");
+        }
+        return 0x10000 + ((firstPart - SURR1_FIRST) << 10) + (secondPart - SURR2_FIRST);
+    }
+    
+    private void _throwIllegalSurrogate(int code)
+    {
+        if (code > 0x10FFFF) { // over max?
+            throw new IllegalArgumentException("Illegal character point (0x"+Integer.toHexString(code)+") to output; max is 0x10FFFF as per RFC 4627");
+        }
+        if (code >= SURR1_FIRST) {
+            if (code <= SURR1_LAST) { // Unmatched first part (closing without second part?)
+                throw new IllegalArgumentException("Unmatched first part of surrogate pair (0x"+Integer.toHexString(code)+")");
+            }
+            throw new IllegalArgumentException("Unmatched second part of surrogate pair (0x"+Integer.toHexString(code)+")");
+        }
+        // should we ever get this?
+        throw new IllegalArgumentException("Illegal character point (0x"+Integer.toHexString(code)+") to output");
+    }
+
 }

@@ -15,9 +15,9 @@ import org.codehaus.jackson.util.CharTypes;
 public final class WriterBasedGenerator
     extends JsonGeneratorBase
 {
-    final static int SHORT_WRITE = 32;
+    final protected static int SHORT_WRITE = 32;
 
-    final static char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
+    final protected static char[] HEX_CHARS = CharTypes.copyHexChars();
 
     /*
     /**********************************************************

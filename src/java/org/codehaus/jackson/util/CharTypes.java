@@ -4,7 +4,16 @@ import java.util.Arrays;
 
 public final class CharTypes
 {
-    final static char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
+    private final static char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
+    private final static byte[] HEX_BYTES;
+    static {
+        int len = HEX_CHARS.length;
+        HEX_BYTES = new byte[len];
+        for (int i = 0; i < len; ++i) {
+            HEX_BYTES[i] = (byte) HEX_CHARS[i];
+        }
+    }
+
 
     /**
      * Lookup table used for determining which input characters
@@ -196,6 +205,22 @@ public final class CharTypes
                 sb.append((char) escCode);
             }
         }
+    }
+
+    /**
+     * @since 1.6
+     */
+    public static char[] copyHexChars()
+    {
+        return (char[]) HEX_CHARS.clone();
+    }
+
+    /**
+     * @since 1.6
+     */
+    public static byte[] copyHexBytes()
+    {
+        return (byte[]) HEX_BYTES.clone();
     }
 }
 
