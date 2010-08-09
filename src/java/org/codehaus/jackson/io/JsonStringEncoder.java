@@ -177,9 +177,9 @@ public final class JsonStringEncoder
         
         main_loop:
         while (inputPtr < inputEnd) {
-            char c = text.charAt(inputPtr++);
-            
-            ascii_loop:
+            int c = text.charAt(inputPtr++);
+
+            // first tight loop for ascii
             while (c <= 0x7F) {
                 if (outputPtr >= outputEnd) {
                     outputBuffer = byteBuilder.finishCurrentSegment();
@@ -187,44 +187,63 @@ public final class JsonStringEncoder
                     outputPtr = 0;
                 }
                 outputBuffer[outputPtr++] = (byte) c;
+                if (inputPtr >= inputEnd) {
+                    break main_loop;
+                }
                 c = text.charAt(inputPtr++);
             }
 
-            // not enough room? offline
-            if ((outputPtr + 4) >= outputEnd) {
+            // then multi-byte...
+            if (outputPtr >= outputEnd) {
                 outputBuffer = byteBuilder.finishCurrentSegment();
                 outputEnd = outputBuffer.length;
                 outputPtr = 0;
             }
-            // multi-byte...
             if (c < 0x800) { // 2-byte
                 outputBuffer[outputPtr++] = (byte) (0xc0 | (c >> 6));
-                outputBuffer[outputPtr++] = (byte) (0x80 | (c & 0x3f));
             } else { // 3 or 4 bytes
                 // Surrogates?
-                if (c < SURR1_FIRST || c > SURR2_LAST) {
+                if (c < SURR1_FIRST || c > SURR2_LAST) { // nope
                     outputBuffer[outputPtr++] = (byte) (0xe0 | (c >> 12));
+                    if (outputPtr >= outputEnd) {
+                        outputBuffer = byteBuilder.finishCurrentSegment();
+                        outputEnd = outputBuffer.length;
+                        outputPtr = 0;
+                    }
                     outputBuffer[outputPtr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-                    outputBuffer[outputPtr++] = (byte) (0x80 | (c & 0x3f));
-                    continue;
+                } else { // yes, surrogate pair
+                    if (c > SURR1_LAST) { // must be from first range
+                        _throwIllegalSurrogate(c);
+                    }
+                    // and if so, followed by another from next range
+                    if (inputPtr >= inputEnd) {
+                        _throwIllegalSurrogate(c);
+                    }
+                    c = _convertSurrogate(c, text.charAt(inputPtr++));
+                    if (c > 0x10FFFF) { // illegal, as per RFC 4627
+                        _throwIllegalSurrogate(c);
+                    }
+                    outputBuffer[outputPtr++] = (byte) (0xf0 | (c >> 18));
+                    if (outputPtr >= outputEnd) {
+                        outputBuffer = byteBuilder.finishCurrentSegment();
+                        outputEnd = outputBuffer.length;
+                        outputPtr = 0;
+                    }
+                    outputBuffer[outputPtr++] = (byte) (0x80 | ((c >> 12) & 0x3f));
+                    if (outputPtr >= outputEnd) {
+                        outputBuffer = byteBuilder.finishCurrentSegment();
+                        outputEnd = outputBuffer.length;
+                        outputPtr = 0;
+                    }
+                    outputBuffer[outputPtr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
                 }
-                // Yup, a surrogate:
-                if (c > SURR1_LAST) { // must be from first range
-                    _throwIllegalSurrogate(c);
-                }
-                // and if so, followed by another from next range
-                if (inputPtr >= inputEnd) {
-                    _throwIllegalSurrogate(c);
-                }
-                int codepoint = _convertSurrogate(c, text.charAt(inputPtr++));
-                if (codepoint > 0x10FFFF) { // illegal, as per RFC 4627
-                    _throwIllegalSurrogate(codepoint);
-                }
-                outputBuffer[outputPtr++] = (byte) (0xf0 | (codepoint >> 18));
-                outputBuffer[outputPtr++] = (byte) (0x80 | ((codepoint >> 12) & 0x3f));
-                outputBuffer[outputPtr++] = (byte) (0x80 | ((codepoint >> 6) & 0x3f));
-                outputBuffer[outputPtr++] = (byte) (0x80 | (codepoint & 0x3f));
             }
+            if (outputPtr >= outputEnd) {
+                outputBuffer = byteBuilder.finishCurrentSegment();
+                outputEnd = outputBuffer.length;
+                outputPtr = 0;
+            }
+            outputBuffer[outputPtr++] = (byte) (0x80 | (c & 0x3f));
         }
         return _byteBuilder.completeAndCoalesce(outputPtr);
     }
@@ -247,53 +266,6 @@ public final class JsonStringEncoder
         }
         quoteBuffer[1] = (char) escCode;
         return 2;
-    }
-
-    private int _utf8EncodeSlow(int c, byte[] outputBuffer, int outputPtr, ByteArrayBuilder byteBuilder)
-    {
-        if (outputPtr >= outputBuffer.length) {
-            outputPtr = 0;
-            outputBuffer = byteBuilder.finishCurrentSegment();
-        }
-        if (c < 0x800) { // 2-byte
-            outputBuffer[outputPtr++] = (byte) (0xc0 | (c >> 6));
-            c = (0x80 | (c & 0x3f));
-        } else { // 3 or 4 bytes
-            // Surrogates?
-            if (c < SURR1_FIRST || c > SURR2_LAST) {
-                outputBuffer[outputPtr++] = (byte) (0xe0 | (c >> 12));
-                if (outputPtr >= outputBuffer.length) {
-                    outputPtr = 0;
-                    outputBuffer = byteBuilder.finishCurrentSegment();
-                }
-                outputBuffer[outputPtr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-                 c = (0x80 | (c & 0x3f));
-            } else { // Yup, a surrogate:
-                if (c > SURR1_LAST) { // must be from first range
-                    _throwIllegalSurrogate(c);
-                }
-                // and if so, followed by another from next range
-                /*
-                if (inputPtr >= inputEnd) {
-                    _throwIllegalSurrogate(c);
-                }
-                c = _convertSurrogate(c, str[inputPtr++]);
-                */
-                if (c > 0x10FFFF) { // illegal, as per RFC 4627
-                    _throwIllegalSurrogate(c);
-                }
-                outputBuffer[outputPtr++] = (byte) (0xf0 | (c >> 18));
-                outputBuffer[outputPtr++] = (byte) (0x80 | ((c >> 12) & 0x3f));
-                outputBuffer[outputPtr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-                c = (0x80 | (c & 0x3f));
-            }
-        }
-        if (outputPtr >= outputBuffer.length) {
-            outputPtr = 0;
-            outputBuffer = byteBuilder.finishCurrentSegment();
-        }
-        outputBuffer[outputPtr++] = (byte) c;
-        return outputPtr;
     }
 
     /**
