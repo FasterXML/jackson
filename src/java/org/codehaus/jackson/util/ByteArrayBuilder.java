@@ -109,11 +109,10 @@ public final class ByteArrayBuilder
 
     public void append(int i)
     {
-        byte b = (byte) i;
         if (_currBlockPtr >= _currBlock.length) {
             _allocMore();
         }
-        _currBlock[_currBlockPtr++] = b;
+        _currBlock[_currBlockPtr++] = (byte) i;
     }
 
     public void appendTwoBytes(int b16)
@@ -218,6 +217,14 @@ public final class ByteArrayBuilder
 
     public byte[] getCurrentSegment() {
         return _currBlock;
+    }
+
+    public void setCurrentSegmentLength(int len) {
+        _currBlockPtr = len;
+    }
+
+    public int getCurrentSegmentLength() {
+        return _currBlockPtr;
     }
     
     /*

@@ -11,6 +11,10 @@ import org.codehaus.jackson.util.TextBuffer;
 /**
  * Helper class used for efficient encoding of JSON String values (including
  * JSON field names) into Strings or UTF-8 byte arrays.
+ *<p>
+ * Note that methods in here are somewhat optimized, but not ridiculously so.
+ * Reason is that conversion method results are expected to be cached so that
+ * these methods will not be hot spots during normal operation.
  *
  * @since 1.6
  */
@@ -24,6 +28,10 @@ public final class JsonStringEncoder
     private final static int SURR1_LAST = 0xDBFF;
     private final static int SURR2_FIRST = 0xDC00;
     private final static int SURR2_LAST = 0xDFFF;
+
+    private final static int INT_BACKSLASH = '\\';
+    private final static int INT_U = 'u';
+    private final static int INT_0 = '0';
     
     /**
      * This <code>ThreadLocal</code> contains a {@link java.lang.ref.SoftRerefence}
@@ -154,10 +162,90 @@ public final class JsonStringEncoder
             // no allocator; can add if we must, shouldn't need to
             _byteBuilder = byteBuilder = new ByteArrayBuilder(null);
         }
-        // !!! TBI
-        return null;
-    }
+        int inputPtr = 0;
+        int inputEnd = text.length();
+        int outputPtr = 0;
+        byte[] outputBuffer = byteBuilder.resetAndGetFirstSegment();
+        
+        main_loop:
+        while (inputPtr < inputEnd) {
+            final int[] escCodes = CharTypes.getOutputEscapes();
 
+            inner_loop: // ascii and escapes
+            while (true) {
+                int ch = text.charAt(inputPtr);
+                if (ch > 0x7F || escCodes[ch] != 0) {
+                    break inner_loop;
+                }
+                if (outputPtr >= outputBuffer.length) {
+                    outputBuffer = byteBuilder.finishCurrentSegment();
+                    outputPtr = 0;
+                }
+                outputBuffer[outputPtr++] = (byte) ch;
+                if (++inputPtr >= inputEnd) {
+                    break main_loop;
+                }
+            }                
+            if (outputPtr >= outputBuffer.length) {
+                outputBuffer = byteBuilder.finishCurrentSegment();
+                outputPtr = 0;
+            }
+            // Ok, so what did we hit?
+            int ch = (int) text.charAt(inputPtr++);
+            if (ch <= 0x7F) { // needs quoting
+                int escape = escCodes[ch];
+                // ctrl-char, 6-byte escape...
+                outputPtr = _appendByteEscape(escape, byteBuilder, outputPtr);
+                outputBuffer = byteBuilder.getCurrentSegment();
+                continue main_loop;
+            } else if (ch <= 0x7FF) { // fine, just needs 2 byte output
+                outputBuffer[outputPtr++] = (byte) (0xc0 | (ch >> 6));
+                ch = (0x80 | (ch & 0x3f));
+            } else { // 3 or 4 bytes
+                // Surrogates?
+                if (ch < SURR1_FIRST || ch > SURR2_LAST) { // nope
+                    outputBuffer[outputPtr++] = (byte) (0xe0 | (ch >> 12));
+                    if (outputPtr >= outputBuffer.length) {
+                        outputBuffer = byteBuilder.finishCurrentSegment();
+                        outputPtr = 0;
+                    }
+                    outputBuffer[outputPtr++] = (byte) (0x80 | ((ch >> 6) & 0x3f));
+                    ch = (0x80 | (ch & 0x3f));
+                } else { // yes, surrogate pair
+                    if (ch > SURR1_LAST) { // must be from first range
+                        _throwIllegalSurrogate(ch);
+                    }
+                    // and if so, followed by another from next range
+                    if (inputPtr >= inputEnd) {
+                        _throwIllegalSurrogate(ch);
+                    }
+                    ch = _convertSurrogate(ch, text.charAt(inputPtr++));
+                    if (ch > 0x10FFFF) { // illegal, as per RFC 4627
+                        _throwIllegalSurrogate(ch);
+                    }
+                    outputBuffer[outputPtr++] = (byte) (0xf0 | (ch >> 18));
+                    if (outputPtr >= outputBuffer.length) {
+                        outputBuffer = byteBuilder.finishCurrentSegment();
+                        outputPtr = 0;
+                    }
+                    outputBuffer[outputPtr++] = (byte) (0x80 | ((ch >> 12) & 0x3f));
+                    if (outputPtr >= outputBuffer.length) {
+                        outputBuffer = byteBuilder.finishCurrentSegment();
+                        outputPtr = 0;
+                    }
+                    outputBuffer[outputPtr++] = (byte) (0x80 | ((ch >> 6) & 0x3f));
+                    ch = (0x80 | (ch & 0x3f));
+                }
+            }
+            if (outputPtr >= outputBuffer.length) {
+                outputBuffer = byteBuilder.finishCurrentSegment();
+                outputPtr = 0;
+            }
+            outputBuffer[outputPtr++] = (byte) ch;
+        }
+        return _byteBuilder.completeAndCoalesce(outputPtr);
+    }
+    
     /**
      * Will encode given String as UTF-8 (without any quoting), return
      * resulting byte array.
@@ -268,6 +356,24 @@ public final class JsonStringEncoder
         return 2;
     }
 
+    private int _appendByteEscape(int escCode, ByteArrayBuilder byteBuilder, int ptr)
+    {
+        byteBuilder.setCurrentSegmentLength(ptr);
+        byteBuilder.append(INT_BACKSLASH);
+        if (escCode < 0) { // control char, value -(char + 1)
+            int value = -(escCode + 1);
+            byteBuilder.append(INT_U);
+            byteBuilder.append(INT_0);
+            byteBuilder.append(INT_0);
+            // We know it's a control char, so only the last 2 chars are non-0
+            byteBuilder.append(HEX_BYTES[value >> 4]);
+            byteBuilder.append(HEX_BYTES[value & 0xF]);
+        } else {
+            byteBuilder.append((byte) escCode);
+        }
+        return byteBuilder.getCurrentSegmentLength();
+    }
+    
     /**
      * Method called to calculate UTF codepoint, from a surrogate pair.
      */
