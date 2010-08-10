@@ -176,7 +176,6 @@ public final class WriterBasedGenerator
         if (commaBefore) {
             _outputBuffer[_outputTail++] = ',';
         }
-
         /* To support [JACKSON-46], we'll do this:
          * (Quostion: should quoting of spaces (etc) still be enabled?)
          */
@@ -185,7 +184,6 @@ public final class WriterBasedGenerator
             writeRaw(quoted, 0, quoted.length);
             return;
         }
-
         // we know there's room for at least one more char
         _outputBuffer[_outputTail++] = '"';
         // The beef:

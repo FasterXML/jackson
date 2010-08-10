@@ -192,6 +192,7 @@ public class Utf8Generator
     protected void _writeFieldName(SerializedString name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
+        byte[] raw = name.asQuotedUTF8();
         // !!! TODO: implement properly
         _writeFieldName(name.getValue(), commaBefore);
     }    

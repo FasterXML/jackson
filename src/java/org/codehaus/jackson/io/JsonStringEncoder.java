@@ -1,6 +1,5 @@
 package org.codehaus.jackson.io;
 
-import java.io.IOException;
 import java.lang.ref.SoftReference;
 
 import org.codehaus.jackson.util.BufferRecycler;

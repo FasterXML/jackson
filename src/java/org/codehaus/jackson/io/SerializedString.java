@@ -37,6 +37,11 @@ public class SerializedString
      */
 
     public final String getValue() { return _value; }
+
+    /**
+     * Returns length of the String as characters
+     */
+    public final int charLength() { return _value.length(); }
     
     public char[] asQuotedChars()
     {
