@@ -28,36 +28,31 @@ import org.codehaus.jackson.map.type.*;
  *  </li>
  *</ul>
  *<p>
- * In near future, following features are planned to be added:
- *<ul>
- * <li>Ability to define "mix-in annotations": associations between types
- *   (classes, interfaces) to deserialize, and a "mix-in" type which will
- *   be used so that all of its annotations are added to the deserialized
- *   type. Mixed-in annotations have priority over annotations that the
- *   deserialized type has. In effect this allows for overriding annotations
- *   types have; this is useful when type definition itself can not be
- *   modified
- *  </li>
+ * The way custom deserializer factory instances are hooked to
+ * {@link ObjectMapper} is usually by constructing an instance of
+ * {@link DeserializerProvider} (most commonly
+ * {@link StdDeserializerProvider}) with custom deserializer factory,
+ * and setting {@link ObjectMapper} to use it.
  */
 public class CustomDeserializerFactory
     extends BeanDeserializerFactory
 {
     /*
-    ////////////////////////////////////////////////////
-    // Configuration, direct/special mappings
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration, direct/special mappings
+    /**********************************************************
      */
 
     /**
      * Direct mappings that are used for exact class and interface type
      * matches.
      */
-    HashMap<ClassKey,JsonDeserializer<Object>> _directClassMappings = null;
+    protected HashMap<ClassKey,JsonDeserializer<Object>> _directClassMappings = null;
 
     /*
-    //////////////////////////////////////////////////////////
-    // Configuration: mappings that define "mix-in annotations"
-    //////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration: mappings that define "mix-in annotations"
+    /**********************************************************
      */
 
     /**
@@ -73,20 +68,20 @@ public class CustomDeserializerFactory
      *
      * @since 1.2
      */
-    HashMap<ClassKey,Class<?>> _mixInAnnotations;
+    protected HashMap<ClassKey,Class<?>> _mixInAnnotations;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle, constructors
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle, constructors
+    /**********************************************************
      */
 
     public CustomDeserializerFactory() { super(); }
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration: type-to-serializer mappings
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration: type-to-serializer mappings
+    /**********************************************************
      */
 
     /**
@@ -139,11 +134,10 @@ public class CustomDeserializerFactory
         _mixInAnnotations.put(new ClassKey(destinationClass), classWithMixIns);
     }
 
-
     /*
-    ////////////////////////////////////////////////////
-    // DeserializerFactory API
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* DeserializerFactory API
+    /**********************************************************
      */
 
     @Override
