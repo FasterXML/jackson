@@ -35,6 +35,9 @@ public class Utf8Generator
     protected final static int SURR1_LAST = 0xDBFF;
     protected final static int SURR2_FIRST = 0xDC00;
     protected final static int SURR2_LAST = 0xDFFF;
+
+    // intermediate copies only made up to certain length...
+    private final static int MAX_BYTES_TO_BUFFER = 512;
     
     final static byte[] HEX_CHARS = CharTypes.copyHexBytes();
 
@@ -192,9 +195,38 @@ public class Utf8Generator
     protected void _writeFieldName(SerializedString name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
+        if (_cfgPrettyPrinter != null) {
+            _writePPFieldName(name, commaBefore);
+            return;
+        }
+        if ((_outputTail + 1) >= _outputEnd) {
+            _flushBuffer();
+        }
+        if (commaBefore) {
+            _outputBuffer[_outputTail++] = BYTE_COMMA;
+        }
         byte[] raw = name.asQuotedUTF8();
-        // !!! TODO: implement properly
-        _writeFieldName(name.getValue(), commaBefore);
+        if (!isEnabled(Feature.QUOTE_FIELD_NAMES)) {
+            _writeBytes(raw);
+            return;
+        }
+
+        // we know there's room for at least one more char
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
+
+        // Can do it all in buffer?
+        final int len = raw.length;
+        if ((_outputTail + len + 1) < _outputEnd) { // yup
+            System.arraycopy(raw, 0, _outputBuffer, _outputTail, len);
+            _outputTail += len;
+            _outputBuffer[_outputTail++] = BYTE_QUOTE;
+        } else {
+            _writeBytes(raw);
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = BYTE_QUOTE;
+        }
     }    
     
     /**
@@ -225,6 +257,31 @@ public class Utf8Generator
         }
     }
 
+    protected final void _writePPFieldName(SerializedString name, boolean commaBefore)
+        throws IOException, JsonGenerationException
+    {
+        if (commaBefore) {
+            _cfgPrettyPrinter.writeObjectEntrySeparator(this);
+        } else {
+            _cfgPrettyPrinter.beforeObjectEntries(this);
+        }
+
+        boolean addQuotes = isEnabled(Feature.QUOTE_FIELD_NAMES); // standard
+        if (addQuotes) {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = BYTE_QUOTE;
+        }
+        _writeBytes(name.asQuotedUTF8());
+        if (addQuotes) {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = BYTE_QUOTE;
+        }
+    }
+    
     /*
     /**********************************************************
     /* Output method implementations, textual
@@ -744,6 +801,21 @@ public class Utf8Generator
     /**********************************************************
      */
 
+    private final void _writeBytes(byte[] bytes) throws IOException
+    {
+        final int len = bytes.length;
+        if ((_outputTail + len) > _outputEnd) {
+            _flushBuffer();
+            // still not enough?
+            if (len > MAX_BYTES_TO_BUFFER) {
+                _outputStream.write(_outputBuffer, 0, len);
+                return;
+            }
+        }
+        System.arraycopy(bytes, 0, _outputBuffer, _outputTail, len);
+        _outputTail += len;
+    }
+    
     private final void _writeString(String text)
         throws IOException, JsonGenerationException
     {
