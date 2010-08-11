@@ -15,6 +15,12 @@ import org.joda.time.*;
 public class TestJodaTime
     extends org.codehaus.jackson.map.BaseMapTest
 {
+    /*
+    /**************************************************************8 
+    /* Tests for DateTime (and closely related)
+    /**************************************************************8 
+     */
+
     /**
      * First: let's ensure that serialization does not fail
      * with an error (see [JACKSON-157]).
@@ -54,10 +60,28 @@ public class TestJodaTime
         assertEquals("1972-12-28T12:00:01.000Z", dt.toString());
     }
 
+    // @since 1.6    
+    public void testDeserReadableDateTime() throws IOException
+    {
+        ReadableDateTime date = new ObjectMapper().readValue(quote("1972-12-28T12:00:01.000+0000"),
+                ReadableDateTime.class);
+        assertNotNull(date);
+        assertEquals("1972-12-28T12:00:01.000Z", date.toString());
+    }
+
+    // @since 1.6    
+    public void testDeserReadableInstant() throws IOException
+    {
+        ReadableInstant date = new ObjectMapper().readValue(quote("1972-12-28T12:00:01.000+0000"),
+                ReadableInstant.class);
+        assertNotNull(date);
+        assertEquals("1972-12-28T12:00:01.000Z", date.toString());
+    }
+    
     /*
-    /**************************************************************8 
+    /**********************************************************
     /* Tests for DateMidnight type
-    /**************************************************************8 
+    /**********************************************************
      */
     
     // @since 1.5
@@ -90,9 +114,9 @@ public class TestJodaTime
     }
 
     /*
-    /**************************************************************8 
-    /* Tests for DateMidnight type
-    /**************************************************************8 
+    /**********************************************************
+    /* Tests for LocalDate type
+    /**********************************************************
      */
     
     // @since 1.5
@@ -125,9 +149,9 @@ public class TestJodaTime
     }
 
     /*
-    /**************************************************************8 
+    /**********************************************************
     /* Tests for LocalDateTime type
-    /**************************************************************8 
+    /**********************************************************
      */
     
     // @since 1.5

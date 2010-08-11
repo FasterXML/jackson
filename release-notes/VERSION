@@ -41,6 +41,7 @@ Description:
   * [JACKSON-328] Precedence of "getters-as-setters" (for Maps, Collections) was
     accidentally higher than that of property fields (public, @JsonProperty)
     (reported by Thomas D)
+  * [JACKSON-339] Support Joda ReadableDateTime, ReadableInstant out of the box
 
   New features:
 

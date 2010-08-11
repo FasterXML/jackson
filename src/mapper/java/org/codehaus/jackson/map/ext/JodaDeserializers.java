@@ -6,10 +6,12 @@ import java.util.*;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.joda.time.ReadableDateTime;
+import org.joda.time.ReadableInstant;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -28,7 +30,9 @@ public class JodaDeserializers
 {
     public Collection<StdDeserializer<?>> provide() {
         return Arrays.asList(new StdDeserializer<?>[] {
-                new DateTimeDeserializer()
+                new DateTimeDeserializer<DateTime>(DateTime.class)
+                ,new DateTimeDeserializer<ReadableDateTime>(ReadableDateTime.class)
+                ,new DateTimeDeserializer<ReadableInstant>(ReadableInstant.class)
                 ,new LocalDateDeserializer()
                 ,new LocalDateTimeDeserializer()
                 ,new DateMidnightDeserializer()
@@ -64,22 +68,26 @@ public class JodaDeserializers
      * Basic deserializer for {@link DateTime}. Accepts JSON String and Number
      * values and passes those to single-argument constructor.
      * Does not (yet?) support JSON object; support can be added if desired.
+     *<p>
+     * Since 1.6 this has been generic, to handle multiple related types,
+     * including super types of {@link DateTime}
      */
-    public static class DateTimeDeserializer
-        extends JodaDeserializer<DateTime>
+    public static class DateTimeDeserializer<T extends ReadableInstant>
+        extends JodaDeserializer<T>
     {
-        public DateTimeDeserializer() { super(DateTime.class); }
+        public DateTimeDeserializer(Class<T> cls) { super(cls); }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public DateTime deserialize(JsonParser jp, DeserializationContext ctxt)
+        public T deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
             if (t == JsonToken.VALUE_NUMBER_INT) {
-                return new DateTime(jp.getLongValue(), DateTimeZone.UTC);
+                return (T) new DateTime(jp.getLongValue(), DateTimeZone.UTC);
             }
             if (t == JsonToken.VALUE_STRING) {
-                return new DateTime(jp.getText().trim(), DateTimeZone.UTC);
+                return (T) new DateTime(jp.getText().trim(), DateTimeZone.UTC);
             }
             throw ctxt.mappingException(getValueClass());
         }
