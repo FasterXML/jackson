@@ -303,13 +303,13 @@ public class DeserializationConfig
      *
      * @since 1.2
      */
-    HashMap<ClassKey,Class<?>> _mixInAnnotations;
+    protected HashMap<ClassKey,Class<?>> _mixInAnnotations;
 
 
     /**
      * Flag used to detect when a copy if mix-in annotations is
      * needed: set when current copy is shared, cleared when a
-     * fresh copy is maed
+     * fresh copy is made
      *
      * @since 1.2
      */
