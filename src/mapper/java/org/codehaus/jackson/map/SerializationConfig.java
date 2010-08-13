@@ -45,7 +45,7 @@ public class SerializationConfig
          *
          * @since 1.2
          */
-        USE_ANNOTATIONS(true)
+        USE_ANNOTATIONS(true),
 
         /**
          * Feature that determines whether regualr "getter" methods are
@@ -64,7 +64,7 @@ public class SerializationConfig
          *<P>
          * Feature is enabled by default.
          */
-        ,AUTO_DETECT_GETTERS(true)
+        AUTO_DETECT_GETTERS(true),
 
         /**
          * Feature that determines whether "is getter" methods are
@@ -80,7 +80,7 @@ public class SerializationConfig
          *<P>
          * Feature is enabled by default.
          */
-        ,AUTO_DETECT_IS_GETTERS(true)
+        AUTO_DETECT_IS_GETTERS(true),
 
         /**
          * Feature that determines whether non-static fields are recognized as
@@ -97,7 +97,7 @@ public class SerializationConfig
          *
          * @since 1.1
          */
-         ,AUTO_DETECT_FIELDS(true)
+         AUTO_DETECT_FIELDS(true),
 
         /**
          * Feature that determines whether method and field access
@@ -107,7 +107,7 @@ public class SerializationConfig
          * may be called to enable access to otherwise unaccessible
          * objects.
          */
-        ,CAN_OVERRIDE_ACCESS_MODIFIERS(true)
+        CAN_OVERRIDE_ACCESS_MODIFIERS(true),
             
         // // // Generic output features
 
@@ -125,7 +125,7 @@ public class SerializationConfig
          * @deprecated As of 1.1, use {@link SerializationConfig#setSerializationInclusion}
          *    instead
          */
-        ,WRITE_NULL_PROPERTIES(true)
+        WRITE_NULL_PROPERTIES(true),
 
         /**
          * Feature that determines whether the type detection for
@@ -137,7 +137,7 @@ public class SerializationConfig
          * or field level by using {@link JsonSerialize#typing} annotation
          * property
          */
-        ,USE_STATIC_TYPING(false)
+        USE_STATIC_TYPING(false),
 
         /**
          * Feature that can be enabled to make root value (usually JSON
@@ -155,7 +155,7 @@ public class SerializationConfig
          *
          * @since 1.3
          */
-        ,WRAP_ROOT_VALUE(false)
+        WRAP_ROOT_VALUE(false),
 
         /**
          * Feature that determines what happens when no accessors are
@@ -172,7 +172,7 @@ public class SerializationConfig
          *
          * @since 1.4
          */
-         ,FAIL_ON_EMPTY_BEANS(true)
+        FAIL_ON_EMPTY_BEANS(true),
 
          /**
           * Feature that determines whether properties that have no view
@@ -190,7 +190,7 @@ public class SerializationConfig
           * 
           * @since 1.5
           */
-         ,DEFAULT_VIEW_INCLUSION(true)
+         DEFAULT_VIEW_INCLUSION(true),
 
          /**
           * Feature that determines whether <code>close</code> method of
@@ -208,7 +208,7 @@ public class SerializationConfig
           * 
           * @since 1.6 (see [JACKSON-282 for details])
           */
-         ,CLOSE_CLOSEABLE(false)
+         CLOSE_CLOSEABLE(false),
          
         // // // Features for datatype-specific serialization
 
@@ -223,7 +223,7 @@ public class SerializationConfig
          * Note: whether this feature affects handling of other date-related
          * types depend on handlers of those types.
          */
-        ,WRITE_DATES_AS_TIMESTAMPS(true)
+        WRITE_DATES_AS_TIMESTAMPS(true),
 
         /**
          * Feature that determines how type <code>char[]</code> is serialized:
@@ -233,7 +233,7 @@ public class SerializationConfig
          * 
          * @since 1.6 (see [JACKSON-289 for details])
          */
-        ,WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS(false)
+        WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS(false),
 
         /**
          * Feature that determines standard serialization mechanism used for
@@ -248,7 +248,7 @@ public class SerializationConfig
          * 
          * @since 1.6
          */
-        ,WRITE_ENUMS_USING_TO_STRING(false)
+        WRITE_ENUMS_USING_TO_STRING(false),
 
         /**
          * Feature that determines whether Map entries with null values are
@@ -258,7 +258,7 @@ public class SerializationConfig
          * 
          * @since 1.6
          */
-        ,WRITE_NULL_MAP_VALUES(true)
+        WRITE_NULL_MAP_VALUES(true),
         
         // // // Output fine tuning
             
@@ -279,7 +279,7 @@ public class SerializationConfig
          * method to use any <code>PrettyPrinter</code> instance.
          * This feature will only allow using the default implementation.
          */
-        ,INDENT_OUTPUT(false)
+        INDENT_OUTPUT(false)
             
             ;
 

@@ -47,7 +47,7 @@ public abstract class JsonGenerator
          *<p>
          * Feature is enabled by default.
          */
-        AUTO_CLOSE_TARGET(true)
+        AUTO_CLOSE_TARGET(true),
 
         /**
          * Feature that determines what happens when the generator is
@@ -59,20 +59,20 @@ public abstract class JsonGenerator
          *<p>
          * Feature is enabled by default.
          */
-        ,AUTO_CLOSE_JSON_CONTENT(true)
+        AUTO_CLOSE_JSON_CONTENT(true),
 
         /**
-         * Feature that determines whether Json Object field names are
-         * quoted using double-quotes, as specified by Json specification
+         * Feature that determines whether JSON Object field names are
+         * quoted using double-quotes, as specified by JSON specification
          * or not. Ability to disable quoting was added to support use
          * cases where they are not usually expected, which most commonly
-         * occurs when used straight from javascript.
+         * occurs when used straight from Javascript.
          */
-        ,QUOTE_FIELD_NAMES(true)
+        QUOTE_FIELD_NAMES(true),
 
         /**
          * Feature that determines whether "exceptional" (not real number)
-         * float/double values are outputted as quoted strings.
+         * float/double values are output as quoted strings.
          * The values checked are Double.Nan,
          * Double.POSITIVE_INFINITY and Double.NEGATIVE_INIFINTY (and 
          * associated Float values).
@@ -82,7 +82,7 @@ public abstract class JsonGenerator
          *<p>
          * Feature is enabled by default.
          */
-        ,QUOTE_NON_NUMERIC_NUMBERS(true)
+        QUOTE_NON_NUMERIC_NUMBERS(true),
 
         /**
          * Feature that forces all Java numbers to be written as JSON strings.
@@ -99,7 +99,7 @@ public abstract class JsonGenerator
          *
          * @since 1.3
          */
-        ,WRITE_NUMBERS_AS_STRINGS(false)
+        WRITE_NUMBERS_AS_STRINGS(false)
 
             ;
 

@@ -61,7 +61,7 @@ public abstract class JsonParser
          *<p>
          * Feature is enabled by default.
          */
-        AUTO_CLOSE_SOURCE(true)
+        AUTO_CLOSE_SOURCE(true),
             
         /**
          * Feature that determines whether parser will allow use
@@ -77,7 +77,7 @@ public abstract class JsonParser
          *<p>
          * This feature can be changed for parser instances.
          */
-        ,ALLOW_COMMENTS(false)
+        ALLOW_COMMENTS(false),
 
         /**
          * Feature that determines whether parser will allow use
@@ -93,7 +93,7 @@ public abstract class JsonParser
          *
          * @since 1.2
          */
-        ,ALLOW_UNQUOTED_FIELD_NAMES(false)
+        ALLOW_UNQUOTED_FIELD_NAMES(false),
 
         /**
          * Feature that determines whether parser will allow use
@@ -111,7 +111,7 @@ public abstract class JsonParser
          *
          * @since 1.3
          */
-        ,ALLOW_SINGLE_QUOTES(false)
+        ALLOW_SINGLE_QUOTES(false),
 
         /**
          * Feature that determines whether parser will allow
@@ -128,7 +128,7 @@ public abstract class JsonParser
          *
          * @since 1.4
          */
-        ,ALLOW_UNQUOTED_CONTROL_CHARS(false)
+        ALLOW_UNQUOTED_CONTROL_CHARS(false),
 
         /**
          * Feature that can be enabled to accept quoting of all character
@@ -143,7 +143,7 @@ public abstract class JsonParser
          * 
          * @since 1.6
          */
-        ,ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER(false)
+        ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER(false),
 
         /**
          * Feature that determines whether JSON object field names are
@@ -160,7 +160,7 @@ public abstract class JsonParser
          *
          * @since 1.3
          */
-         ,INTERN_FIELD_NAMES(true)
+        INTERN_FIELD_NAMES(true),
 
         /**
          * Feature that determines whether JSON object field names are
@@ -170,7 +170,7 @@ public abstract class JsonParser
          *
          * @since 1.5
          */
-         ,CANONICALIZE_FIELD_NAMES(true)
+        CANONICALIZE_FIELD_NAMES(true),
 
             // 14-Sep-2009, Tatu: This would be [JACKSON-142] implementation:
         /*
@@ -188,7 +188,7 @@ public abstract class JsonParser
          *  <li>"NaN" (for other not-a-numbers, like result of division by zero)
          *</ul>
 
-         ,ALLOW_NON_NUMERIC_NUMBERS(false)
+         ,ALLOW_NON_NUMERIC_NUMBERS(false),
          */
 
             ;

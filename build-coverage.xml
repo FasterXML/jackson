@@ -9,6 +9,7 @@
     <property name="cobertura.coverage.dir" value="${dir.build}/coverage" />
     <path id="cobertura.lib">
       <fileset dir="${dir.lib}/cobertura" includes="*.jar" />
+      <fileset dir="${dir.lib}/ext/asm" includes="*.jar" />
     </path>
     <taskdef classpathref="cobertura.lib" resource="tasks.properties" />
 

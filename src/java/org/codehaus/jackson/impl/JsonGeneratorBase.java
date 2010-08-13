@@ -226,8 +226,20 @@ public abstract class JsonGeneratorBase
     protected abstract void _writeFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException;
 
-    protected abstract void _writeFieldName(SerializedString name, boolean commaBefore)
-        throws IOException, JsonGenerationException;
+    /**
+     * Non-optimal default implementation for serializing given
+     * {@link SerializedString}: sub-classes are strongly recommmended to
+     * implement this efficiently. Default implementation mostly exists
+     * to avoid introducing binary incompatibility.
+     * 
+     * @since 1.6
+     */
+    protected void _writeFieldName(SerializedString name, boolean commaBefore)
+        throws IOException, JsonGenerationException
+    {
+        // Note: sub-classes are strongly urged to override this method
+        _writeFieldName(name.getValue(), commaBefore);
+    }
     
     /*
     /**********************************************************

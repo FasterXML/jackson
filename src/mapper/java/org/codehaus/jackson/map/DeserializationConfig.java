@@ -9,6 +9,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
+import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.LinkedNode;
@@ -48,7 +49,7 @@ public class DeserializationConfig
          *
          * @since 1.2
          */
-        USE_ANNOTATIONS(true)
+        USE_ANNOTATIONS(true),
 
         /**
          * Feature that determines whether "setter" methods are
@@ -64,7 +65,8 @@ public class DeserializationConfig
          *<P>
          * Feature is enabled by default.
          */
-        ,AUTO_DETECT_SETTERS(true)
+        AUTO_DETECT_SETTERS(true),
+
         /**
          * Feature that determines whether "creator" methods are
          * automatically detected by consider public constructors,
@@ -79,7 +81,7 @@ public class DeserializationConfig
          *<P>
          * Feature is enabled by default.
          */
-        ,AUTO_DETECT_CREATORS(true)
+        AUTO_DETECT_CREATORS(true),
 
         /**
          * Feature that determines whether non-static fields are recognized as
@@ -96,7 +98,7 @@ public class DeserializationConfig
          *
          * @since 1.1
          */
-        ,AUTO_DETECT_FIELDS(true)
+        AUTO_DETECT_FIELDS(true),
 
         /**
          * Feature that determines whether otherwise regular "getter"
@@ -114,7 +116,7 @@ public class DeserializationConfig
          *<p>
          * Feature is enabled by default.
          */
-        ,USE_GETTERS_AS_SETTERS(true)
+        USE_GETTERS_AS_SETTERS(true),
 
         /**
          * Feature that determines whether method and field access
@@ -124,7 +126,7 @@ public class DeserializationConfig
          * may be called to enable access to otherwise unaccessible
          * objects.
          */
-        ,CAN_OVERRIDE_ACCESS_MODIFIERS(true)
+        CAN_OVERRIDE_ACCESS_MODIFIERS(true),
 
         // // // Type conversion configuration
 
@@ -142,7 +144,7 @@ public class DeserializationConfig
          * (choice is for performance reason -- BigDecimals are slower than
          * Doubles)
          */
-        ,USE_BIG_DECIMAL_FOR_FLOATS(false)
+        USE_BIG_DECIMAL_FOR_FLOATS(false),
 
         /**
          * Feature that determines whether Json integral (non-floating-point)
@@ -160,7 +162,7 @@ public class DeserializationConfig
          * point numbers will by default be deserialized using whatever
          * is the most compact integral type, to optimize efficiency.
          */
-        ,USE_BIG_INTEGER_FOR_INTS(false)
+        USE_BIG_INTEGER_FOR_INTS(false),
 
         /**
          * Feature that determines standard deserialization mechanism used for
@@ -176,7 +178,7 @@ public class DeserializationConfig
          * 
          * @since 1.6
          */
-        ,READ_ENUMS_USING_TO_STRING(false)
+        READ_ENUMS_USING_TO_STRING(false),
         
         // // // Problem handling
 
@@ -197,7 +199,7 @@ public class DeserializationConfig
          *
          * @since 1.2
          */
-         ,FAIL_ON_UNKNOWN_PROPERTIES(true)
+        FAIL_ON_UNKNOWN_PROPERTIES(true),
 
         // // // Structural changes
 
@@ -214,8 +216,8 @@ public class DeserializationConfig
          *
          * @since 1.3
          */
-        ,WRAP_ROOT_VALUE(false)
-	            ;
+        WRAP_ROOT_VALUE(false)
+        ;
 
         final boolean _defaultState;
 
@@ -345,6 +347,16 @@ public class DeserializationConfig
     protected AbstractTypeResolver _abstractTypeResolver;
 
     /**
+     * Registered concrete subtypes that can be used instead of (or
+     * in addition to) ones declared using annotations.
+     * 
+     * @since 1.6
+     */
+    protected ArrayList<NamedType> _registeredSubtypes;
+    
+    /**
+     * Factory used for constructing {@link JsonNode} instances.
+     * 
      * @since 1.6
      */
     protected JsonNodeFactory _nodeFactory;
@@ -363,7 +375,6 @@ public class DeserializationConfig
         _typer = null;
         _visibilityChecker = vc;
         _nodeFactory = JsonNodeFactory.instance;
-
     }
 
     protected DeserializationConfig(DeserializationConfig src,
@@ -378,11 +389,53 @@ public class DeserializationConfig
         _problemHandlers = src._problemHandlers;
         _dateFormat = src._dateFormat;
         _nodeFactory = src._nodeFactory;
+        _registeredSubtypes = src._registeredSubtypes;
         _mixInAnnotations = mixins;
         _typer = typer;
         _visibilityChecker = vc;
     }
 
+    /*
+    /**********************************************************
+    /* Configuration: on/off features
+    /**********************************************************
+     */
+
+    /**
+     * Method for enabling specified  feature.
+     */
+    public void enable(Feature f) {
+        _featureFlags |= f.getMask();
+    }
+
+    /**
+     * Method for disabling specified feature.
+     */
+    public void disable(Feature f) {
+        _featureFlags &= ~f.getMask();
+    }
+
+    /**
+     * Method for enabling or disabling specified feature.
+     */
+    public void set(Feature f, boolean state)
+    {
+        if (state) {
+            enable(f);
+        } else {
+            disable(f);
+        }
+    }
+
+    /**
+     * Method for checking whether given feature is enabled or not
+     */
+    public final boolean isEnabled(Feature f) {
+        return (_featureFlags & f.getMask()) != 0;
+    }
+
+    //protected int getFeatures() { return _generatorFeatures; }
+    
     /*
     /**********************************************************
     /* MapperConfig implementation
@@ -542,27 +595,32 @@ public class DeserializationConfig
     public void setDateFormat(DateFormat df) {
         _dateFormat = (df == null) ? StdDateFormat.instance : df;
     }
+
+    //@Override
+    public VisibilityChecker<?> getDefaultVisibilityChecker() {
+        return _visibilityChecker;
+    }
+
+    //@Override
+    public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
+        return _typer;
+    }
     
-    /**
-     * @since 1.6
-     */
-    public void setAbstractTypeResolver(AbstractTypeResolver atr) {
-        _abstractTypeResolver = atr;
-    }
-
-    /**
-     * @since 1.6
-     */
-    public void setNodeFactory(JsonNodeFactory nf) {
-        _nodeFactory = nf;
-    }
-
     /*
     /**********************************************************
-    /* Adding problem handlers
+    /* Problem handlers
     /**********************************************************
      */
 
+    /**
+     * Method for getting head of the problem handler chain. May be null,
+     * if no handlers have been added.
+     */
+    public LinkedNode<DeserializationProblemHandler> getProblemHandlers()
+    {
+        return _problemHandlers;
+    }
+    
     /**
      * Method that can be used to add a handler that can (try to)
      * resolve non-fatal deserialization problems.
@@ -587,38 +645,12 @@ public class DeserializationConfig
     {
         _problemHandlers = null;
     }
-        
+
     /*
     /**********************************************************
-    /* Accessors
+    /* Introspection methods
     /**********************************************************
      */
-
-    /**
-     * Method for checking whether given feature is enabled or not
-     */
-    public final boolean isEnabled(Feature f) {
-        return (_featureFlags & f.getMask()) != 0;
-    }
-
-    /**
-     * Method called during deserialization if Base64 encoded content
-     * needs to be decoded. Default version just returns default Jackson
-     * uses, which is modified-mime which does not add linefeeds (because
-     * those would have to be escaped in Json strings).
-     */
-    public Base64Variant getBase64Variant() {
-        return Base64Variants.getDefaultVariant();
-    }
-
-    /**
-     * Method for getting head of the problem handler chain. May be null,
-     * if no handlers have been added.
-     */
-    public LinkedNode<DeserializationProblemHandler> getProblemHandlers()
-    {
-        return _problemHandlers;
-    }
 
     /**
      * Method that will introspect full bean properties for the purpose
@@ -636,7 +668,7 @@ public class DeserializationConfig
      * construct bean instance.
      */
     @SuppressWarnings("unchecked")
-	public <T extends BeanDescription> T introspectForCreation(Class<?> cls) {
+    public <T extends BeanDescription> T introspectForCreation(Class<?> cls) {
         return (T) _classIntrospector.forCreation(this, cls, this);
     }
 
@@ -645,7 +677,7 @@ public class DeserializationConfig
      * annotations: useful if no getter/setter/creator information is needed.
      */
     @SuppressWarnings("unchecked")
-	public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
+    public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
         return (T) _classIntrospector.forClassAnnotations(this, cls, this);
     }
 
@@ -659,15 +691,17 @@ public class DeserializationConfig
         return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
     }
     
-    public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
-        return _typer;
-    }
-
-    public VisibilityChecker<?> getDefaultVisibilityChecker() {
-    	return _visibilityChecker;
-    }
+    /*
+    /**********************************************************
+    /* Polymorphic type handling configuration
+    /**********************************************************
+     */
 
     /**
+     * Method for accessing {@link AbstractTypeResolver} configured, if any
+     * (no default) used for resolving abstract types into concrete
+     * types (either by mapping or materializing new classes).
+     * 
      * @since 1.6
      */
     public AbstractTypeResolver getAbstractTypeResolver() {
@@ -677,47 +711,76 @@ public class DeserializationConfig
     /**
      * @since 1.6
      */
-    public final JsonNodeFactory getNodeFactory() {
-        return _nodeFactory;
+    public void setAbstractTypeResolver(AbstractTypeResolver atr) {
+        _abstractTypeResolver = atr;
+    }
+
+    /**
+     * Method for registering specified class as a subtype, so that
+     * typename-based resolution can link supertypes to subtypes
+     * (as an alternative to using annotations).
+     * Type for given class is determined from appropriate annotation;
+     * or if missing, default name (unqualified class name)
+     * 
+     * @since 1.6
+     */
+    public void registerSubtype(Class<?>... classes)
+    {
+        if (_registeredSubtypes == null) {
+            _registeredSubtypes = new ArrayList<NamedType>();
+        }
+        for (Class<?> cls : classes) {
+            _registeredSubtypes.add(new NamedType(cls, null));
+        }
+    }
+
+    /**
+     * Method for registering specified class as a subtype, so that
+     * typename-based resolution can link supertypes to subtypes
+     * (as an alternative to using annotations).
+     * Name may be provided as part of argument, but if not will
+     * be based on annotations or use default name (unqualified
+     * class name).
+     * 
+     * @since 1.6
+     */
+    public void registerSubtype(NamedType... types)
+    {
+        if (_registeredSubtypes == null) {
+            _registeredSubtypes = new ArrayList<NamedType>();
+        }
+        for (NamedType type : types) {
+            _registeredSubtypes.add(type);
+        }
     }
     
     /*
     /**********************************************************
-    /* Configuration: on/off features
+    /* Other configuration
     /**********************************************************
      */
 
     /**
-     * Method for enabling specified  feature.
+     * Method called during deserialization if Base64 encoded content
+     * needs to be decoded. Default version just returns default Jackson
+     * uses, which is modified-mime which does not add linefeeds (because
+     * those would have to be escaped in Json strings).
      */
-    public void enable(Feature f) {
-        _featureFlags |= f.getMask();
+    public Base64Variant getBase64Variant() {
+        return Base64Variants.getDefaultVariant();
+    }
+    
+    /**
+     * @since 1.6
+     */
+    public void setNodeFactory(JsonNodeFactory nf) {
+        _nodeFactory = nf;
     }
 
     /**
-     * Method for disabling specified feature.
+     * @since 1.6
      */
-    public void disable(Feature f) {
-        _featureFlags &= ~f.getMask();
+    public final JsonNodeFactory getNodeFactory() {
+        return _nodeFactory;
     }
-
-    /**
-     * Method for enabling or disabling specified feature.
-     */
-    public void set(Feature f, boolean state)
-    {
-        if (state) {
-            enable(f);
-        } else {
-            disable(f);
-        }
-    }
-
-    //protected int getFeatures() { return _generatorFeatures; }
-
-    /*
-    /**********************************************************
-    /* Configuration: other
-    /**********************************************************
-     */
 }
