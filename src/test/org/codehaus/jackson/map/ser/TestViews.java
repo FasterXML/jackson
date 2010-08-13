@@ -5,6 +5,7 @@ import org.codehaus.jackson.map.BaseMapTest;
 import java.io.*;
 import java.util.*;
 
+import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonView;
 
@@ -16,9 +17,9 @@ public class TestViews
     extends BaseMapTest
 {
     /*
-     ****************************************************** 
-     * Helper types
-     ****************************************************** 
+    /**********************************************************
+    /* Helper types
+    /**********************************************************
      */
 
 	// Classes that represent views
@@ -62,11 +63,18 @@ public class TestViews
 		@JsonView(ViewA.class)
     	private int a = 1;
     }
+
+    static class VisibilityBean {
+        @JsonProperty protected String id = "id";
+    
+        @JsonView(ViewA.class)
+        public String value = "x";
+    }   
     
     /*
-     ****************************************************** 
-     * Unit tests
-     ****************************************************** 
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
      */    
     
     @SuppressWarnings("unchecked")
@@ -148,5 +156,15 @@ public class TestViews
     public void testImplicitAutoDetection() throws Exception
     {
     	assertEquals("{\"a\":1}", serializeAsString(new ImplicitBean()));
+    }
+
+    public void testVisibility() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        VisibilityBean bean = new VisibilityBean();
+        // Without view setting, should only see "id"
+        String json = mapper.viewWriter(Object.class).writeValueAsString(bean);
+        //json = mapper.writeValueAsString(bean);
+        assertEquals("{\"id\":\"id\"}", json);
     }
 }
