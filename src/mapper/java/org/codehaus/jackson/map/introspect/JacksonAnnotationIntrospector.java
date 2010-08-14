@@ -150,6 +150,12 @@ public class JacksonAnnotationIntrospector
         JsonTypeInfo info = ac.getAnnotation(JsonTypeInfo.class);
         JsonTypeResolver resAnn = ac.getAnnotation(JsonTypeResolver.class);
         if (resAnn != null) {
+            /* 14-Aug-2010, tatu: not sure if this can ever happen normally, but unit
+             *    tests were able to trigger this... so let's check:
+             */
+            if (info == null) {
+                return null;
+            }
             /* let's not try to force access override (would need to pass
              * settings through if we did, since that's not doable on some
              * platforms)
