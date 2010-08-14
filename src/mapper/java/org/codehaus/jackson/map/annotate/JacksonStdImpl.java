@@ -1,5 +1,12 @@
 package org.codehaus.jackson.map.annotate;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.codehaus.jackson.annotate.JacksonAnnotation;
+
 /**
  * Marker interface used to indicate implementation classes
  * (serializers, deserializers etc) that are standard ones Jackson
@@ -10,6 +17,9 @@ package org.codehaus.jackson.map.annotate;
  * 
  * @since 1.6
  */
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@JacksonAnnotation
 public @interface JacksonStdImpl {
 
 }

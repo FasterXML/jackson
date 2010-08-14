@@ -103,9 +103,9 @@ public class BasicClassIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Life cycle
-    ///////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life cycle
+    /**********************************************************
      */
 
     public final static BasicClassIntrospector instance = new BasicClassIntrospector();
@@ -113,9 +113,9 @@ public class BasicClassIntrospector
     public BasicClassIntrospector() { }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Factory method impls
-    ///////////////////////////////////////////////////////
+    /**********************************************************
+    /* Factory method impls
+    /**********************************************************
      */
 
     public BasicBeanDescription forSerialization(SerializationConfig cfg,
@@ -184,9 +184,9 @@ public class BasicClassIntrospector
     }
     
     /*
-    ///////////////////////////////////////////////////////
-    // Overridable helper methods
-    ///////////////////////////////////////////////////////
+    /**********************************************************
+    /* Overridable helper methods
+    /**********************************************************
      */
     
     /**
