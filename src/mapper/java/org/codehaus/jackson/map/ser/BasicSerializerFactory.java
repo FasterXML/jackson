@@ -16,7 +16,6 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.map.util.Provider;
-import org.codehaus.jackson.map.util.SubTypeHelper;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
 
@@ -284,7 +283,7 @@ public class BasicSerializerFactory
         if (b == null) {
             b = config.getDefaultTyper(baseType);
         } else {
-            subtypes = SubTypeHelper.collectAndResolveSubtypes(ac, config, ai);
+            subtypes = config.getSubtypeResolver().collectAndResolveSubtypes(ac, config, ai);
         }
         return (b == null) ? null : b.buildTypeSerializer(baseType, subtypes);
     }

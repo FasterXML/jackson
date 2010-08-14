@@ -16,7 +16,9 @@ import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.jsontype.NamedType;
+import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.impl.StdSubtypeResolver;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ArrayNode;
@@ -221,6 +223,14 @@ public class ObjectMapper
      * @since 1.5
      */
     protected VisibilityChecker<?> _visibilityChecker;
+
+    /**
+     * Registered concrete subtypes that can be used instead of (or
+     * in addition to) ones declared using annotations.
+     * 
+     * @since 1.6
+     */
+    protected SubtypeResolver _subtypeResolver;
     
     /*
     /**********************************************************
@@ -374,9 +384,9 @@ public class ObjectMapper
         // visibility checker; usually default
         _visibilityChecker = STD_VISIBILITY_CHECKER;
         _serializationConfig = (sconfig != null) ? sconfig :
-            new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker);
+            new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker, null);
         _deserializationConfig = (dconfig != null) ? dconfig :
-            new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker);
+            new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker, null);
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -459,6 +469,50 @@ public class ObjectMapper
      */    
     public void setVisibilityChecker(VisibilityChecker<?> vc) {
         _visibilityChecker = vc;
+    }
+
+    /**
+     * @since 1.6
+     */
+    public SubtypeResolver getSubtypeResolver() {
+        if (_subtypeResolver == null) {
+            _subtypeResolver = new StdSubtypeResolver();
+        }
+        return _subtypeResolver;
+    }
+
+    /**
+     * @since 1.6
+     */
+    public void setSubtypeResolver(SubtypeResolver r) {
+        _subtypeResolver = r;
+    }
+    
+    /**
+     * Method for registering specified class as a subtype, so that
+     * typename-based resolution can link supertypes to subtypes
+     * (as an alternative to using annotations).
+     * Type for given class is determined from appropriate annotation;
+     * or if missing, default name (unqualified class name)
+     * 
+     * @since 1.6
+     */
+    public void registerSubtypes(Class<?>... classes) {
+        getSubtypeResolver().registerSubtypes(classes);
+    }
+
+    /**
+     * Method for registering specified class as a subtype, so that
+     * typename-based resolution can link supertypes to subtypes
+     * (as an alternative to using annotations).
+     * Name may be provided as part of argument, but if not will
+     * be based on annotations or use default name (unqualified
+     * class name).
+     * 
+     * @since 1.6
+     */
+    public void registerSubtypes(NamedType... types) {
+        getSubtypeResolver().registerSubtypes(types);
     }
     
     /*

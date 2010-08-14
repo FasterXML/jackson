@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
+import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;
 
@@ -134,4 +135,20 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * @since 1.5
      */    
     public VisibilityChecker<?> getDefaultVisibilityChecker();
+
+    /**
+     * Accessor for object used for finding out all reachable subtypes
+     * for supertypes; needed when a logical type name is used instead
+     * of class name (or custom scheme).
+     * 
+     * @since 1.6
+     */
+    public SubtypeResolver getSubtypeResolver();
+
+    /**
+     * Method for overriding subtype resolver used.
+     * 
+     * @since 1.6
+     */
+    public void setSubtypeResolver(SubtypeResolver r);
 }

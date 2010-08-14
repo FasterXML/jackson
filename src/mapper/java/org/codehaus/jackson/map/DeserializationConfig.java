@@ -9,8 +9,9 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
-import org.codehaus.jackson.map.jsontype.NamedType;
+import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.impl.StdSubtypeResolver;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.StdDateFormat;
@@ -339,20 +340,20 @@ public class DeserializationConfig
     protected VisibilityChecker<?> _visibilityChecker;
 
     /**
+     * Registered concrete subtypes that can be used instead of (or
+     * in addition to) ones declared using annotations.
+     * 
+     * @since 1.6
+     */
+    protected SubtypeResolver _subtypeResolver;
+
+    /**
      * To support on-the-fly class generation for interface and abstract classes
      * it is possible to register "abstract type resolver".
      * 
      * @since 1.6
      */
     protected AbstractTypeResolver _abstractTypeResolver;
-
-    /**
-     * Registered concrete subtypes that can be used instead of (or
-     * in addition to) ones declared using annotations.
-     * 
-     * @since 1.6
-     */
-    protected ArrayList<NamedType> _registeredSubtypes;
     
     /**
      * Factory used for constructing {@link JsonNode} instances.
@@ -368,12 +369,14 @@ public class DeserializationConfig
      */
 
     public DeserializationConfig(ClassIntrospector<? extends BeanDescription> intr,
-                               AnnotationIntrospector annIntr, VisibilityChecker<?> vc)
+                               AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
+                               SubtypeResolver subtypeResolver)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
         _typer = null;
         _visibilityChecker = vc;
+        _subtypeResolver = subtypeResolver;
         _nodeFactory = JsonNodeFactory.instance;
     }
 
@@ -389,7 +392,7 @@ public class DeserializationConfig
         _problemHandlers = src._problemHandlers;
         _dateFormat = src._dateFormat;
         _nodeFactory = src._nodeFactory;
-        _registeredSubtypes = src._registeredSubtypes;
+        _subtypeResolver = src._subtypeResolver;
         _mixInAnnotations = mixins;
         _typer = typer;
         _visibilityChecker = vc;
@@ -605,6 +608,23 @@ public class DeserializationConfig
     public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
         return _typer;
     }
+
+    /**
+     * @since 1.6
+     */
+    public SubtypeResolver getSubtypeResolver() {
+        if (_subtypeResolver == null) {
+            _subtypeResolver = new StdSubtypeResolver();
+        }
+        return _subtypeResolver;
+    }
+
+    /**
+     * @since 1.6
+     */
+    public void setSubtypeResolver(SubtypeResolver r) {
+        _subtypeResolver = r;
+    }
     
     /*
     /**********************************************************
@@ -713,45 +733,6 @@ public class DeserializationConfig
      */
     public void setAbstractTypeResolver(AbstractTypeResolver atr) {
         _abstractTypeResolver = atr;
-    }
-
-    /**
-     * Method for registering specified class as a subtype, so that
-     * typename-based resolution can link supertypes to subtypes
-     * (as an alternative to using annotations).
-     * Type for given class is determined from appropriate annotation;
-     * or if missing, default name (unqualified class name)
-     * 
-     * @since 1.6
-     */
-    public void registerSubtype(Class<?>... classes)
-    {
-        if (_registeredSubtypes == null) {
-            _registeredSubtypes = new ArrayList<NamedType>();
-        }
-        for (Class<?> cls : classes) {
-            _registeredSubtypes.add(new NamedType(cls, null));
-        }
-    }
-
-    /**
-     * Method for registering specified class as a subtype, so that
-     * typename-based resolution can link supertypes to subtypes
-     * (as an alternative to using annotations).
-     * Name may be provided as part of argument, but if not will
-     * be based on annotations or use default name (unqualified
-     * class name).
-     * 
-     * @since 1.6
-     */
-    public void registerSubtype(NamedType... types)
-    {
-        if (_registeredSubtypes == null) {
-            _registeredSubtypes = new ArrayList<NamedType>();
-        }
-        for (NamedType type : types) {
-            _registeredSubtypes.add(type);
-        }
     }
     
     /*

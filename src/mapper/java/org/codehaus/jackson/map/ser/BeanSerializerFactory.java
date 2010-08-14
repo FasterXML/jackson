@@ -15,7 +15,6 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeBindings;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
-import org.codehaus.jackson.map.util.SubTypeHelper;
 import org.codehaus.jackson.type.JavaType;
  
 /**
@@ -161,7 +160,7 @@ public class BeanSerializerFactory
         if (b == null) {
             return createTypeSerializer(baseType, config);
         }
-        Collection<NamedType> subtypes = SubTypeHelper.collectAndResolveSubtypes(propertyEntity, config, ai);
+        Collection<NamedType> subtypes = config.getSubtypeResolver().collectAndResolveSubtypes(propertyEntity, config, ai);
         return b.buildTypeSerializer(baseType, subtypes);
     }
 
@@ -187,7 +186,7 @@ public class BeanSerializerFactory
         if (b == null) {
             return createTypeSerializer(contentType, config);
         }
-        Collection<NamedType> subtypes = SubTypeHelper.collectAndResolveSubtypes(propertyEntity, config, ai);
+        Collection<NamedType> subtypes = config.getSubtypeResolver().collectAndResolveSubtypes(propertyEntity, config, ai);
         return b.buildTypeSerializer(contentType, subtypes);
     }
     

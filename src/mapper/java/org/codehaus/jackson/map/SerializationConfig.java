@@ -8,7 +8,9 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion; // for javadocs
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
+import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.impl.StdSubtypeResolver;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.type.JavaType;
@@ -413,6 +415,14 @@ public class SerializationConfig
      * @since 1.5
      */
     protected VisibilityChecker<?> _visibilityChecker;
+
+    /**
+     * Registered concrete subtypes that can be used instead of (or
+     * in addition to) ones declared using annotations.
+     * 
+     * @since 1.6
+     */
+    protected SubtypeResolver _subtypeResolver;
     
     /*
     /**********************************************************
@@ -421,12 +431,14 @@ public class SerializationConfig
      */
 
     public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr,
-                               AnnotationIntrospector annIntr, VisibilityChecker<?> vc)
+                               AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
+                               SubtypeResolver subtypeResolver)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
         _typer = null;
         _visibilityChecker = vc;
+        _subtypeResolver = subtypeResolver;
     }
 
     protected SerializationConfig(SerializationConfig src,
@@ -440,6 +452,7 @@ public class SerializationConfig
         _dateFormat = src._dateFormat;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
+        _subtypeResolver = src._subtypeResolver;
         _mixInAnnotations = mixins;
         _typer = typer;
         _visibilityChecker = vc;
@@ -602,64 +615,6 @@ public class SerializationConfig
         set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
     }
 
-    /*
-    /**********************************************************
-    /* Accessors
-    /**********************************************************
-     */
-
-    /**
-     * Method for checking whether given feature is enabled or not
-     */
-    public final boolean isEnabled(Feature f) {
-        return (_featureFlags & f.getMask()) != 0;
-    }
-
-    /**
-     * Method for checking which serialization view is being used,
-     * if any; null if none.
-     *
-     * @since 1.4
-     */
-    public Class<?> getSerializationView() { return _serializationView; }
-
-    public JsonSerialize.Inclusion getSerializationInclusion()
-    {
-        if (_serializationInclusion != null) {
-            return _serializationInclusion;
-        }
-        return isEnabled(Feature.WRITE_NULL_PROPERTIES) ?
-            JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
-    }
-
-   /**
-     * Method that will introspect full bean properties for the purpose
-     * of building a bean serializer
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends BeanDescription> T introspect(Class<?> cls) {
-        return (T) _classIntrospector.forSerialization(this, cls, this);
-    }
-
-    /**
-     * Accessor for getting bean description that only contains class
-     * annotations: useful if no getter/setter/creator information is needed.
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forClassAnnotations(this, cls, this);
-    }
-
-    /**
-     * Accessor for getting bean description that only contains immediate class
-     * annotations: ones from the class, and its direct mix-in, if any, but
-     * not from super types.
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
-    }
-    
     //@Override
     public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
         return _typer;
@@ -667,7 +622,7 @@ public class SerializationConfig
 
     //@Override
     public VisibilityChecker<?> getDefaultVisibilityChecker() {
-    	return _visibilityChecker;
+        return _visibilityChecker;
     }
     
     /*
@@ -703,13 +658,94 @@ public class SerializationConfig
     }
 
     //protected int getFeatures() { return _generatorFeatures; }
+    
+    /**
+     * Method for checking whether given feature is enabled or not
+     */
+    public final boolean isEnabled(Feature f) {
+        return (_featureFlags & f.getMask()) != 0;
+    }
 
+    /*
+    /**********************************************************
+    /* Introspection methods
+    /**********************************************************
+     */
+
+    /**
+     * Method that will introspect full bean properties for the purpose
+     * of building a bean serializer
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends BeanDescription> T introspect(Class<?> cls) {
+        return (T) _classIntrospector.forSerialization(this, cls, this);
+    }
+
+    /**
+     * Accessor for getting bean description that only contains class
+     * annotations: useful if no getter/setter/creator information is needed.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
+        return (T) _classIntrospector.forClassAnnotations(this, cls, this);
+    }
+
+    /**
+     * Accessor for getting bean description that only contains immediate class
+     * annotations: ones from the class, and its direct mix-in, if any, but
+     * not from super types.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
+        return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
+    }
+    
+    /*
+    /**********************************************************
+    /* Polymorphic type handling configuration
+    /**********************************************************
+     */
+    
+    /**
+     * @since 1.6
+     */
+    public SubtypeResolver getSubtypeResolver() {
+        if (_subtypeResolver == null) {
+            _subtypeResolver = new StdSubtypeResolver();
+        }
+        return _subtypeResolver;
+    }
+
+    /**
+     * @since 1.6
+     */
+    public void setSubtypeResolver(SubtypeResolver r) {
+        _subtypeResolver = r;
+    }
+    
     /*
     /**********************************************************
     /* Configuration: other
     /**********************************************************
      */
 
+    /**
+     * Method for checking which serialization view is being used,
+     * if any; null if none.
+     *
+     * @since 1.4
+     */
+    public Class<?> getSerializationView() { return _serializationView; }
+
+    public JsonSerialize.Inclusion getSerializationInclusion()
+    {
+        if (_serializationInclusion != null) {
+            return _serializationInclusion;
+        }
+        return isEnabled(Feature.WRITE_NULL_PROPERTIES) ?
+            JsonSerialize.Inclusion.ALWAYS : JsonSerialize.Inclusion.NON_NULL;
+    }
+    
     /**
      * Method that will define global setting of which
      * bean/map properties are to be included in serialization.

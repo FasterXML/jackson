@@ -19,7 +19,6 @@ import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
-import org.codehaus.jackson.map.util.SubTypeHelper;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -367,7 +366,7 @@ public abstract class BasicDeserializerFactory
         if (b == null) {
             b = config.getDefaultTyper(baseType);
         } else {
-            subtypes = SubTypeHelper.collectAndResolveSubtypes(ac, config, ai);
+            subtypes = config.getSubtypeResolver().collectAndResolveSubtypes(ac, config, ai);
         }
         return (b == null) ? null : b.buildTypeDeserializer(baseType, subtypes);
     }    
@@ -404,7 +403,7 @@ public abstract class BasicDeserializerFactory
             return findTypeDeserializer(config, baseType);
         }
         // but if annotations found, may need to resolve subtypes:
-        Collection<NamedType> subtypes = SubTypeHelper.collectAndResolveSubtypes(propertyEntity, config, ai);
+        Collection<NamedType> subtypes = config.getSubtypeResolver().collectAndResolveSubtypes(propertyEntity, config, ai);
         return b.buildTypeDeserializer(baseType, subtypes);
     }
     
@@ -432,7 +431,7 @@ public abstract class BasicDeserializerFactory
             return findTypeDeserializer(config, contentType);
         }
         // but if annotations found, may need to resolve subtypes:
-        Collection<NamedType> subtypes = SubTypeHelper.collectAndResolveSubtypes(propertyEntity, config, ai);
+        Collection<NamedType> subtypes = config.getSubtypeResolver().collectAndResolveSubtypes(propertyEntity, config, ai);
         return b.buildTypeDeserializer(contentType, subtypes);
     }
     
