@@ -95,12 +95,9 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
 
     <target name="test.run" depends="test.compile">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
-        <!-- 09-Apr-2010, tatu: Looks like we must fork, otherwise there may be
-               issues with junit version?
-          -->
-        <junit fork="yes" printsummary="yes" haltonfailure="no"
+        <junit fork="no" printsummary="yes" haltonfailure="no"
          showoutput="yes">
-            <batchtest fork="yes" todir="${dir.test.xmlresults}">
+            <batchtest fork="no" todir="${dir.test.xmlresults}">
                 <fileset dir="${dir.test.classes}">
                     <!-- Need to exclude inner classes... -->
                     <exclude name="**/*$*.class"/>
