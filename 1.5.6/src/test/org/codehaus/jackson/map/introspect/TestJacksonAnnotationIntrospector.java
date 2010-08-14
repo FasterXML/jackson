@@ -5,15 +5,26 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
+import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonTypeResolver;
 import org.codehaus.jackson.map.deser.StdDeserializer;
+import org.codehaus.jackson.map.jsontype.NamedType;
+import org.codehaus.jackson.map.jsontype.TypeIdResolver;
+import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -22,40 +33,8 @@ import java.util.List;
 public class TestJacksonAnnotationIntrospector
         extends TestCase
 {
-
-    /**
-     * tests getting serializer/deserializer instances.
-     */
-    public void testSerializeDeserializeWithJaxbAnnotations() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().set(SerializationConfig.Feature.INDENT_OUTPUT, true);
-        JacksonExample ex = new JacksonExample();
-        QName qname = new QName("urn:hi", "hello");
-        ex.setQname(qname);
-        ex.setAttributeProperty("attributeValue");
-        ex.setElementProperty("elementValue");
-        ex.setWrappedElementProperty(Arrays.asList("wrappedElementValue"));
-        ex.setEnumProperty(EnumExample.VALUE1);
-        StringWriter writer = new StringWriter();
-        mapper.writeValue(writer, ex);
-        writer.flush();
-        writer.close();
-
-        String json = writer.toString();
-//        System.out.println(json);
-        JacksonExample readEx = mapper.readValue(json, JacksonExample.class);
-
-        assertEquals(ex.qname, readEx.qname);
-        assertEquals(ex.attributeProperty, readEx.attributeProperty);
-        assertEquals(ex.elementProperty, readEx.elementProperty);
-        assertEquals(ex.wrappedElementProperty, readEx.wrappedElementProperty);
-        assertEquals(ex.enumProperty, readEx.enumProperty);
-    }
-
     public static enum EnumExample {
-
-        VALUE1
+        VALUE1;
     }
 
     public static class JacksonExample
@@ -147,4 +126,57 @@ public class TestJacksonAnnotationIntrospector
         }
     }
 
+    public static class DummyBuilder extends StdTypeResolverBuilder
+    //<DummyBuilder>
+    {
+    }
+
+    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS)
+    @JsonTypeResolver(DummyBuilder.class)
+    static class TypeResolverBean { }
+    
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+    
+    /**
+     * tests getting serializer/deserializer instances.
+     */
+    public void testSerializeDeserializeWithJaxbAnnotations() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().set(SerializationConfig.Feature.INDENT_OUTPUT, true);
+        JacksonExample ex = new JacksonExample();
+        QName qname = new QName("urn:hi", "hello");
+        ex.setQname(qname);
+        ex.setAttributeProperty("attributeValue");
+        ex.setElementProperty("elementValue");
+        ex.setWrappedElementProperty(Arrays.asList("wrappedElementValue"));
+        ex.setEnumProperty(EnumExample.VALUE1);
+        StringWriter writer = new StringWriter();
+        mapper.writeValue(writer, ex);
+        writer.flush();
+        writer.close();
+
+        String json = writer.toString();
+        JacksonExample readEx = mapper.readValue(json, JacksonExample.class);
+
+        assertEquals(ex.qname, readEx.qname);
+        assertEquals(ex.attributeProperty, readEx.attributeProperty);
+        assertEquals(ex.elementProperty, readEx.elementProperty);
+        assertEquals(ex.wrappedElementProperty, readEx.wrappedElementProperty);
+        assertEquals(ex.enumProperty, readEx.enumProperty);
+    }
+
+    public void testJsonTypeResolver() throws Exception
+    {
+        JacksonAnnotationIntrospector ai = new JacksonAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(TypeResolverBean.class, ai, null);
+        JavaType baseType = TypeFactory.type(TypeResolverBean.class);
+        TypeResolverBuilder<?> rb = ai.findTypeResolver(ac, baseType);
+        assertNotNull(rb);
+        assertSame(DummyBuilder.class, rb.getClass());
+    }    
 }

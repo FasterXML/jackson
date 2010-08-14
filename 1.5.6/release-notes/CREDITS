@@ -339,3 +339,5 @@ Yuanchen Zhu:
   * Reported [JACKSON-329], type information was not properly serialized for
     Iterator or Iterable serializers
    [1.5.6]
+  * Reported [JACKSON-340] Meta annotations missing for @JsonTypeResolver
+   [1.5.6]

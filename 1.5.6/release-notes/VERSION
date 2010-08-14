@@ -14,6 +14,8 @@ Description:
   * [JACKSON-330] ObjectMapper.convertValue(): base64 conversions
     do not work as expected
   * [JACKSON-334] Support ISO-8601 date without milliseconds
+  * [JACKSON-340] Meta annotations missing for @JsonTypeResolver
+   (reported by Yuanchen Z)
 
 ------------------------------------------------------------------------
 == History: ==
