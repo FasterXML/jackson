@@ -383,7 +383,8 @@ public class DeserializationConfig
     protected DeserializationConfig(DeserializationConfig src,
                                     HashMap<ClassKey,Class<?>> mixins,
                                     TypeResolverBuilder<?> typer,
-                                    VisibilityChecker<?> vc)
+                                    VisibilityChecker<?> vc,
+                                    SubtypeResolver subtypeResolver)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -392,10 +393,10 @@ public class DeserializationConfig
         _problemHandlers = src._problemHandlers;
         _dateFormat = src._dateFormat;
         _nodeFactory = src._nodeFactory;
-        _subtypeResolver = src._subtypeResolver;
         _mixInAnnotations = mixins;
         _typer = typer;
         _visibilityChecker = vc;
+        _subtypeResolver = subtypeResolver;
     }
 
     /*
@@ -490,12 +491,11 @@ public class DeserializationConfig
      */
     //@Override
     public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer,
-    		VisibilityChecker<?> vc)
-
+    		VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-    	return new DeserializationConfig(this, mixins, typer, vc);
+    	return new DeserializationConfig(this, mixins, typer, vc, subtypeResolver);
     }
 
     /**
@@ -506,7 +506,7 @@ public class DeserializationConfig
      */
     public DeserializationConfig createUnshared(JsonNodeFactory nf)
     {
-        DeserializationConfig config = createUnshared(_typer, _visibilityChecker);
+        DeserializationConfig config = createUnshared(_typer, _visibilityChecker, _subtypeResolver);
         config.setNodeFactory(nf);
         return config;
     }

@@ -444,7 +444,8 @@ public class SerializationConfig
     protected SerializationConfig(SerializationConfig src,
                                   HashMap<ClassKey,Class<?>> mixins,
                                   TypeResolverBuilder<?> typer,
-                                  VisibilityChecker<?> vc)
+                                  VisibilityChecker<?> vc,
+                                  SubtypeResolver subtypeResolver)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -452,10 +453,10 @@ public class SerializationConfig
         _dateFormat = src._dateFormat;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
-        _subtypeResolver = src._subtypeResolver;
         _mixInAnnotations = mixins;
         _typer = typer;
         _visibilityChecker = vc;
+        _subtypeResolver = subtypeResolver;
     }
 
     /*
@@ -516,11 +517,11 @@ public class SerializationConfig
      */
     //@Override
     public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
-    		VisibilityChecker<?> vc)
+    		VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-    	return new SerializationConfig(this, mixins, typer, vc);
+    	return new SerializationConfig(this, mixins, typer, vc, subtypeResolver);
     }
 
     //@Override

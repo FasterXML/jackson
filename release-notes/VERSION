@@ -50,6 +50,7 @@ Description:
   * [JACKSON-212] Allow serializer/deserializing Enums using toString() method
     instead name()
   * [JACKSON-235] Handle bi-directional (parent/child, double-linked lists) references
+  * [JACKSON-257] Add ability to register sub-types for Polymetric Type Handling
   * [JACKSON-264] Ability to "update" values; to read and bind JSON
     content as properties of existing beans. This is done by using
     "ObjectMapper.updatingReader()" (and "reader.readValue(source)")

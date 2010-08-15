@@ -38,7 +38,8 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * Method to use for constructing an instance that is not shared
      * between multiple operations but only used for a single one.
      */
-    public T createUnshared(TypeResolverBuilder<?> typer, VisibilityChecker<?> vc);
+    public T createUnshared(TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
+            SubtypeResolver subtypeResolver);
 
     // // // Configuration
 

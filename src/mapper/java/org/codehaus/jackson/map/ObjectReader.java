@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
+import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.JsonNodeFactory;
@@ -59,6 +60,14 @@ public class ObjectReader
     // Configurable visibility limits
     protected VisibilityChecker<?> _visibilityChecker;
 
+    /**
+     * Registered concrete subtypes that can be used instead of (or
+     * in addition to) ones declared using annotations.
+     * 
+     * @since 1.6
+     */
+    protected final SubtypeResolver _subtypeResolver;
+    
     /*
     /**********************************************************
     /* Configuration that can be changed during building
@@ -99,11 +108,13 @@ public class ObjectReader
         _rootDeserializers = mapper._rootDeserializers;
         _defaultTyper = mapper._defaultTyper;
         _visibilityChecker = mapper._visibilityChecker;
+        _subtypeResolver = mapper._subtypeResolver;
         _provider = mapper._deserializerProvider;
         _jsonFactory = mapper._jsonFactory;
 
         // must make a copy at this point, to prevent further changes from trickling down
-        _config = mapper._deserializationConfig.createUnshared(_defaultTyper, _visibilityChecker);
+        _config = mapper._deserializationConfig.createUnshared(_defaultTyper, _visibilityChecker,
+                _subtypeResolver);
         
         _valueType = valueType;
         _valueToUpdate = valueToUpdate;
@@ -123,6 +134,7 @@ public class ObjectReader
         _visibilityChecker = base._visibilityChecker;
         _provider = base._provider;
         _jsonFactory = base._jsonFactory;
+        _subtypeResolver = base._subtypeResolver;
 
         _config = config;
         

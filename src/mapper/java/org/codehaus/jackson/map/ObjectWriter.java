@@ -5,6 +5,7 @@ import java.io.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.SegmentedStringWriter;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
+import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -59,6 +60,14 @@ public class ObjectWriter
     protected final VisibilityChecker<?> _visibilityChecker;
 
     /**
+     * Registered concrete subtypes that can be used instead of (or
+     * in addition to) ones declared using annotations.
+     * 
+     * @since 1.6
+     */
+    protected final SubtypeResolver _subtypeResolver;
+    
+    /**
      * To allow for dynamic enabling/disabling of pretty printing,
      * pretty printer can be optionally configured for writer
      * as well
@@ -96,8 +105,9 @@ public class ObjectWriter
     {
         _defaultTyper = mapper._defaultTyper;
         _visibilityChecker = mapper._visibilityChecker;
+        _subtypeResolver = mapper._subtypeResolver;
         // must make a copy at this point, to prevent further changes from trickling down
-        _config = mapper._serializationConfig.createUnshared(_defaultTyper, _visibilityChecker);
+        _config = mapper._serializationConfig.createUnshared(_defaultTyper, _visibilityChecker, _subtypeResolver);
         _config.setSerializationView(view);
 
         _provider = mapper._serializerProvider;
@@ -123,6 +133,7 @@ public class ObjectWriter
         _jsonFactory = base._jsonFactory;
         _defaultTyper = base._defaultTyper;
         _visibilityChecker = base._visibilityChecker;
+        _subtypeResolver = base._subtypeResolver;
         
         _serializationView = view;
         _rootType = rootType;
@@ -138,7 +149,8 @@ public class ObjectWriter
     {
         if (view == _serializationView) return this;
         // View is included in config, must make immutable version
-        SerializationConfig config = _config.createUnshared(_defaultTyper, _visibilityChecker);
+        SerializationConfig config = _config.createUnshared(_defaultTyper,
+                _visibilityChecker, _subtypeResolver);
         config.setSerializationView(view);
         return new ObjectWriter(this, config, view, _rootType, _prettyPrinter);
     }    

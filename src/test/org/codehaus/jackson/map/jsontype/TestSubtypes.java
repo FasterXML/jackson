@@ -29,6 +29,7 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
     /**********************************************************
      */
 
+    /*
     public void testSerialization() throws Exception
     {
         // serialization can detect type name ok without anything extra:
@@ -40,24 +41,32 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
         mapper = new ObjectMapper();
         mapper.registerSubtypes(new NamedType(SubB.class, "typeB"));
         assertEquals("{\"@type\":\"typeB\",\"b\":1}", mapper.writeValueAsString(bean));
-   }
 
-    public void testDeserialization() throws Exception
+        // and default name ought to be simple class name; with context
+        assertEquals("{\"@type\":\"TestSubtypes$SubD\",\"d\":0}", mapper.writeValueAsString(new SubD()));  
+    }
+
+    public void testDeserializationNonNamed() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerSubtypes(SubC.class);
+
+        // default name should be unqualified class name
+        SuperType bean = mapper.readValue("{\"@type\":\"TestSubtypes$SubC\", \"c\":1}", SuperType.class);
+        assertSame(SubC.class, bean.getClass());
+        assertEquals(1, ((SubC) bean).c);
+    }
+    */
+
+    public void testDeserializatioNamed() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerSubtypes(SubB.class);
-        mapper.registerSubtypes(SubC.class);
         mapper.registerSubtypes(new NamedType(SubD.class, "TypeD"));
 
         SuperType bean = mapper.readValue("{\"@type\":\"TypeB\", \"b\":13}", SuperType.class);
         assertSame(SubB.class, bean.getClass());
         assertEquals(13, ((SubB) bean).b);
-
-        // default name should be unqualified class name
-        
-        bean = mapper.readValue("{\"@type\":\"SubC\", \"c\":1}", SuperType.class);
-        assertSame(SubC.class, bean.getClass());
-        assertEquals(1, ((SubC) bean).c);
 
         // but we can also explicitly register name too
         bean = mapper.readValue("{\"@type\":\"TypeD\", \"d\":-4}", SuperType.class);

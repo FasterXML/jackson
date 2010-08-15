@@ -547,7 +547,8 @@ public class ObjectMapper
      * (like date format being used, see {@link SerializationConfig#setDateFormat}).
      */
     public SerializationConfig copySerializationConfig() {
-        return _serializationConfig.createUnshared(_defaultTyper, _visibilityChecker);
+        return _serializationConfig.createUnshared(_defaultTyper,
+                _visibilityChecker, _subtypeResolver);
     }
 
     /**
@@ -599,7 +600,8 @@ public class ObjectMapper
      * see {@link DeserializationConfig#addHandler})
      */
     public DeserializationConfig copyDeserializationConfig() {
-        return _deserializationConfig.createUnshared(_defaultTyper, _visibilityChecker);
+        return _deserializationConfig.createUnshared(_defaultTyper,
+                _visibilityChecker, _subtypeResolver);
     }
 
     /**
