@@ -23,9 +23,9 @@ public class TestTypeNames extends BaseMapTest
     static class AnimalMap extends LinkedHashMap<String,Animal> { }
     
     /*
-     ****************************************************** 
-     * Unit tests
-     ****************************************************** 
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
      */
 
     public void testSerialization() throws Exception
@@ -74,9 +74,9 @@ public class TestTypeNames extends BaseMapTest
 }
 
 /*
- ****************************************************** 
- * Helper types
- ****************************************************** 
+/**********************************************************
+/* Helper types
+/**********************************************************
  */
 
 @JsonTypeInfo(use=Id.NAME, include=As.WRAPPER_OBJECT)
