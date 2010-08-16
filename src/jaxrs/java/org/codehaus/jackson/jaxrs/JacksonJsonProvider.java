@@ -135,9 +135,9 @@ public class JacksonJsonProvider
     protected String _jsonpFunctionName;
     
     /*
-    /******************************************************
+    /**********************************************************
     /* Context configuration
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -149,9 +149,9 @@ public class JacksonJsonProvider
     protected Providers _providers;
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Configuration
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -171,9 +171,9 @@ public class JacksonJsonProvider
     protected boolean _cfgCheckCanDeserialize = false;
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Construction
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -210,9 +210,9 @@ public class JacksonJsonProvider
     }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Configuring
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -334,9 +334,9 @@ public class JacksonJsonProvider
     }
     
     /*
-    /******************************************************
+    /**********************************************************
     /* MessageBodyReader impl
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -399,9 +399,9 @@ public class JacksonJsonProvider
     }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* MessageBodyWriter impl
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -485,23 +485,23 @@ public class JacksonJsonProvider
         JavaType rootType = null;
         
         if (genericType != null && value != null) {
-        	if (genericType != value.getClass()) {
-        		rootType = TypeFactory.type(genericType);
-        	}
+            if (genericType != value.getClass()) {
+                rootType = TypeFactory.type(genericType);
+            }
         }
         // [JACKSON-245] Allow automatic JSONP wrapping
         if (_jsonpFunctionName != null) {
-        	mapper.writeValue(jg, new JSONPObject(_jsonpFunctionName, value, rootType));
+            mapper.writeValue(jg, new JSONPObject(_jsonpFunctionName, value, rootType));
         } else {
-        	// !!! TODO: 04-Mar-2010, tatus: As per [JACKSON-195], use root type!
-        	mapper.writeValue(jg, value);
+            // !!! TODO: 04-Mar-2010, tatus: As per [JACKSON-195], use root type!
+            mapper.writeValue(jg, value);
         }
     }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Public helper methods
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -579,9 +579,9 @@ public class JacksonJsonProvider
     }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Private/sub-class helper methods
-    /******************************************************
+    /**********************************************************
      */
 
     /**
