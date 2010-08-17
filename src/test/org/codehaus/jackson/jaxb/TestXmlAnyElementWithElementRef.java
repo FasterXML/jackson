@@ -52,7 +52,7 @@ public class TestXmlAnyElementWithElementRef
 
         // typed handling should be triggered by annotation on property, so
         String json = mapper.writeValueAsString(value);
-//        assertEquals("{\"others\":{}}", json);
+        assertEquals("{\"others\":[{\"b\":{\"count\":8}}]}", json);
 
         Bean result = mapper.readValue(json, Bean.class);
         assertNotNull(result);
