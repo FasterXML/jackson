@@ -18,6 +18,7 @@ Description:
   * [JACKSON-193] @JsonCreator-annotated factory methods and @JsonValue annotated
     output methods now work with enums, allowing more customizable enum ser/deser.
     (requested by Paul B)
+  * [JACKSON-253] Support combination of @XmlAnyElement + @XmlElementRefs
   * [JACKSON-261] @JsonView now implies that associated element (field,
     getter/setter) is to be considered a property; similar to how
     @JsonSerialize/@JsonDeserialize/@JsonProperty are used.

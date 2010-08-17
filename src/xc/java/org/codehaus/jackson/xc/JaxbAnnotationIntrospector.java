@@ -391,18 +391,20 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
                 ArrayList<NamedType> result = new ArrayList<NamedType>();
                 for (XmlElementRef elemRef : elemRefs.value()) {
                     Class<?> refType = elemRef.type();
+                    // only good for types other than JAXBElement (which is XML based)
                     if (!JAXBElement.class.isAssignableFrom(refType)) {
-                        XmlRootElement rootElement = (XmlRootElement) refType.getAnnotation(XmlRootElement.class);
-                        if (rootElement != null) {
-                            String name = rootElement.name();
-                            if (MARKER_FOR_DEFAULT.equals(name)) {
-                                name = Introspector.decapitalize(refType.getSimpleName());
+                        // [JACKSON-253] first consider explicit name declaration
+                        String name = elemRef.name();
+                        if (name == null || MARKER_FOR_DEFAULT.equals(name)) {
+                            XmlRootElement rootElement = (XmlRootElement) refType.getAnnotation(XmlRootElement.class);
+                            if (rootElement != null) {
+                                name = rootElement.name();
                             }
-                            result.add(new NamedType(refType, name));
                         }
-                        else {
-                            //todo: (heatonra) should be illegal, per JAXB. Should we throw an exception?
+                        if (name == null || MARKER_FOR_DEFAULT.equals(name)) {
+                            name = Introspector.decapitalize(refType.getSimpleName());
                         }
+                        result.add(new NamedType(refType, name));
                     }
                 }
                 return result;
