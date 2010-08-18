@@ -127,16 +127,16 @@ public final class ArraySerializers
         public void serializeContents(Object[] value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
+            final int len = value.length;
+            if (len == 0) {
+                return;
+            }
             if (_elementSerializer != null) {
                 serializeContentsUsing(value, jgen, provider, _elementSerializer);
                 return;
             }
             if (_valueTypeSerializer != null) {
                 serializeTypedContents(value, jgen, provider);
-                return;
-            }
-            final int len = value.length;
-            if (len == 0) {
                 return;
             }
             JsonSerializer<Object> prevSerializer = null;
@@ -191,30 +191,30 @@ public final class ArraySerializers
                 Object elem = value[i];
                 if (elem == null) {
                     provider.getNullValueSerializer().serialize(null, jgen, provider);
-                } else {
-                    try {
-                        if (typeSer == null) {
-                            ser.serialize(elem, jgen, provider);
-                        } else {
-                            ser.serializeWithType(elem, jgen, provider, typeSer);
-                        }
-                    } catch (IOException ioe) {
-                        throw ioe;
-                    } catch (Exception e) {
-                        // [JACKSON-55] Need to add reference information
-                        /* 05-Mar-2009, tatu: But one nasty edge is when we get
-                         *   StackOverflow: usually due to infinite loop. But that gets
-                         *   hidden within an InvocationTargetException...
-                         */
-                        Throwable t = e;
-                        while (t instanceof InvocationTargetException && t.getCause() != null) {
-                            t = t.getCause();
-                        }
-                        if (t instanceof Error) {
-                            throw (Error) t;
-                        }
-                        throw JsonMappingException.wrapWithPath(t, elem, i);
+                    continue;
+                }
+                try {
+                    if (typeSer == null) {
+                        ser.serialize(elem, jgen, provider);
+                    } else {
+                        ser.serializeWithType(elem, jgen, provider, typeSer);
                     }
+                } catch (IOException ioe) {
+                    throw ioe;
+                } catch (Exception e) {
+                    // [JACKSON-55] Need to add reference information
+                    /* 05-Mar-2009, tatu: But one nasty edge is when we get
+                     *   StackOverflow: usually due to infinite loop. But that gets
+                     *   hidden within an InvocationTargetException...
+                     */
+                    Throwable t = e;
+                    while (t instanceof InvocationTargetException && t.getCause() != null) {
+                        t = t.getCause();
+                    }
+                    if (t instanceof Error) {
+                        throw (Error) t;
+                    }
+                    throw JsonMappingException.wrapWithPath(t, elem, i);
                 }
             }
         }
@@ -223,9 +223,6 @@ public final class ArraySerializers
             throws IOException, JsonGenerationException
         {
             final int len = value.length;
-            if (len == 0) {
-                return;
-            }
             final TypeSerializer typeSer = _valueTypeSerializer;
             JsonSerializer<Object> prevSerializer = null;
             Class<?> prevClass = null;

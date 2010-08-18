@@ -276,7 +276,8 @@ public class BeanSerializerFactory
         if (methodsByProp.isEmpty() && fieldsByProp.isEmpty()) {
             return null;
         }
-        boolean staticTyping = usesStaticTyping(config, beanDesc);
+        // null is for value type serializer, which we don't have access to from here
+        boolean staticTyping = usesStaticTyping(config, beanDesc, null);
         PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
 
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
