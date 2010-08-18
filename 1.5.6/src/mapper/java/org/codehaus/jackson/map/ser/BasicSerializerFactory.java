@@ -179,9 +179,9 @@ public class BasicSerializerFactory
     }
 
     /*
-    /***********************************************************
+    /**********************************************************
     /* Life cycle
-    /***********************************************************
+    /**********************************************************
      */
     
     /**
@@ -199,9 +199,9 @@ public class BasicSerializerFactory
     protected BasicSerializerFactory() { }
 
     /*
-    /***********************************************************
+    /**********************************************************
     /* SerializerFactory impl
-    /***********************************************************
+    /**********************************************************
      */
 
     /**
@@ -270,9 +270,9 @@ public class BasicSerializerFactory
 
     
     /*
-    /***********************************************************
+    /**********************************************************
     /* Additional API for other core classes
-    /***********************************************************
+    /**********************************************************
      */
 
     public final JsonSerializer<?> getNullSerializer() {
@@ -280,9 +280,9 @@ public class BasicSerializerFactory
     }    
 
     /*
-    /************************************************************
+    /**********************************************************
     /* Overridable secondary serializer accessor methods
-    /************************************************************
+    /**********************************************************
      */
 
     /**
@@ -452,11 +452,11 @@ public class BasicSerializerFactory
                                                    BasicBeanDescription beanDesc)
     {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        boolean staticTyping = usesStaticTyping(config, beanDesc);
         JavaType valueType = type.getContentType();
-        TypeSerializer typeSer = createTypeSerializer(valueType, config);
+        TypeSerializer vts = createTypeSerializer(valueType, config);
+        boolean staticTyping = usesStaticTyping(config, beanDesc, vts);
         return MapSerializer.construct(intr.findPropertiesToIgnore(beanDesc.getClassInfo()),
-                type, staticTyping, typeSer);
+                type, staticTyping, vts);
     }
 
     protected JsonSerializer<?> buildEnumMapSerializer(JavaType type, SerializationConfig config,
@@ -471,9 +471,9 @@ public class BasicSerializerFactory
             Class<Enum<?>> enumClass = (Class<Enum<?>>) keyType.getRawClass();
             enums = EnumValues.construct(enumClass, config.getAnnotationIntrospector());
         }
-        TypeSerializer typeSer = createTypeSerializer(valueType, config);
-        return new EnumMapSerializer(valueType, usesStaticTyping(config, beanDesc),
-                enums, typeSer);
+        TypeSerializer vts = createTypeSerializer(valueType, config);
+        return new EnumMapSerializer(valueType, usesStaticTyping(config, beanDesc, vts),
+                enums, vts);
     }
 
     /**
@@ -485,7 +485,8 @@ public class BasicSerializerFactory
     {
         JavaType valueType = type.getContentType();
         TypeSerializer vts = createTypeSerializer(valueType, config);
-        return ArraySerializers.objectArraySerializer(valueType, usesStaticTyping(config, beanDesc), vts);
+        return ArraySerializers.objectArraySerializer(valueType,
+                usesStaticTyping(config, beanDesc, vts), vts);
     }
 
     protected JsonSerializer<?> buildIndexedListSerializer(JavaType type, SerializationConfig config,
@@ -493,7 +494,8 @@ public class BasicSerializerFactory
     {
         JavaType valueType = type.getContentType();
         TypeSerializer vts = createTypeSerializer(valueType, config);
-        return ContainerSerializers.indexedListSerializer(valueType, usesStaticTyping(config, beanDesc), vts);
+        return ContainerSerializers.indexedListSerializer(valueType,
+                usesStaticTyping(config, beanDesc, vts), vts);
     }
 
     protected JsonSerializer<?> buildCollectionSerializer(JavaType type, SerializationConfig config,
@@ -501,7 +503,8 @@ public class BasicSerializerFactory
     {
         JavaType valueType = type.getContentType();
         TypeSerializer vts = createTypeSerializer(valueType, config);
-        return ContainerSerializers.collectionSerializer(valueType, usesStaticTyping(config, beanDesc), vts);
+        return ContainerSerializers.collectionSerializer(valueType,
+                usesStaticTyping(config, beanDesc, vts), vts);
     }
 
     protected JsonSerializer<?> buildIteratorSerializer(JavaType type, SerializationConfig config,
@@ -513,7 +516,8 @@ public class BasicSerializerFactory
             valueType = TypeFactory.type(Object.class);
         }
         TypeSerializer vts = createTypeSerializer(valueType, config);
-        return ContainerSerializers.iteratorSerializer(valueType, usesStaticTyping(config, beanDesc), vts);
+        return ContainerSerializers.iteratorSerializer(valueType,
+                usesStaticTyping(config, beanDesc, vts), vts);
     }
     
     protected JsonSerializer<?> buildIterableSerializer(JavaType type, SerializationConfig config,
@@ -525,7 +529,8 @@ public class BasicSerializerFactory
             valueType = TypeFactory.type(Object.class);
         }
         TypeSerializer vts = createTypeSerializer(valueType, config);
-        return ContainerSerializers.iterableSerializer(valueType, usesStaticTyping(config, beanDesc), vts);
+        return ContainerSerializers.iterableSerializer(valueType,
+                usesStaticTyping(config, beanDesc, vts), vts);
     }
 
     protected JsonSerializer<?> buildEnumSetSerializer(JavaType type, SerializationConfig config,
@@ -547,8 +552,16 @@ public class BasicSerializerFactory
      * (instead of dynamic runtime types).
      */
     protected boolean usesStaticTyping(SerializationConfig config,
-                                       BasicBeanDescription beanDesc)
+                                       BasicBeanDescription beanDesc,
+                                       TypeSerializer typeSer)
     {
+        /* 16-Aug-2010, tatu: If there is a (value) type serializer, we can not force
+         *    static typing; that would make it impossible to handle expected subtypes
+         * 
+         */
+        if (typeSer != null) {
+            return false;
+        }
         JsonSerialize.Typing t = config.getAnnotationIntrospector().findSerializationTyping(beanDesc.getClassInfo());
         if (t != null) {
             return (t == JsonSerialize.Typing.STATIC);
@@ -557,9 +570,9 @@ public class BasicSerializerFactory
     }
     
     /*
-    /////////////////////////////////////////////////////////////////
-    // Helper classes
-    /////////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
      */
 
     private final static class SerializerMapping

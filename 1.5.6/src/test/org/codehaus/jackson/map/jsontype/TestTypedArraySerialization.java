@@ -2,7 +2,9 @@ package org.codehaus.jackson.map.jsontype;
 
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -17,9 +19,9 @@ public class TestTypedArraySerialization
     extends BaseMapTest
 {
     /*
-     ****************************************************** 
-     * Helper types
-     ****************************************************** 
+    /**********************************************************
+    /* Helper types
+    /**********************************************************
      */
 
     /**
@@ -41,13 +43,24 @@ public class TestTypedArraySerialization
     // Mix-in to force wrapper for things like primitive arrays
     @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.WRAPPER_OBJECT)
     interface WrapperMixIn { }
+
+    // for [JACKSON-341]
+    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.WRAPPER_OBJECT)
+    @JsonSubTypes({ @JsonSubTypes.Type(B.class) })
+    interface A { }
+
+    @JsonTypeName("BB")
+    static class B implements A {
+        public int value = 2;
+    }
+    
     
     /*
-     ****************************************************** 
-     * Unit tests, Lists
-     ****************************************************** 
+    /**********************************************************
+    /* Unit tests, Lists
+    /**********************************************************
      */
-    
+
     public void testIntList() throws Exception
     {
         TypedList<Integer> input = new TypedList<Integer>();
@@ -78,21 +91,20 @@ public class TestTypedArraySerialization
         input.add(true);
         input.add(null);
         input.add(false);
-        /* Can wrap in JSON Object for wrapped style... also, will use
-         * non-qualified class name as type name, since there are no
-         * annotations
-         */
+        // Can wrap in JSON Object for wrapped style... also, will use
+        // non-qualified class name as type name, since there are no
+        // annotations
         String expName = "TestTypedArraySerialization$TypedListAsWrapper";
         assertEquals("{\""+expName+"\":[true,null,false]}",
                 serializeAsString(input));
     }
 
     /*
-     ****************************************************** 
-     * Unit tests, primitive arrays
-     ****************************************************** 
+    /**********************************************************
+    /* Unit tests, primitive arrays
+    /**********************************************************
      */
-    
+
     public void testIntArray() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -100,5 +112,29 @@ public class TestTypedArraySerialization
         int[] input = new int[] { 1, 2, 3 };
         String clsName = int[].class.getName();
         assertEquals("{\""+clsName+"\":[1,2,3]}", serializeAsString(m, input));
+    }
+
+    /*
+    /**********************************************************
+    /* Unit tests, generic arrays
+    /**********************************************************
+     */
+
+    public void testGenericArray() throws Exception
+    {
+        ObjectMapper m;
+        final A[] input = new A[] { new B() };
+        final String EXP = "[{\"BB\":{\"value\":2}}]";
+
+        // first, with defaults
+        /*
+        m = new ObjectMapper();
+        assertEquals(EXP, m.writeValueAsString(input));
+        */
+
+        // then with static typing enabled:
+        m = new ObjectMapper();
+        m.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
+        assertEquals(EXP, m.writeValueAsString(input));
     }
 }
