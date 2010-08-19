@@ -53,7 +53,19 @@ public class TestTypedArraySerialization
     static class B implements A {
         public int value = 2;
     }
-    
+
+    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY)
+    @JsonTypeName("bean")
+    static class Bean {
+        public int x = 0;
+    }
+
+    static class BeanListWrapper {
+        public List<Bean> beans = new ArrayList<Bean>();
+        {
+            beans.add(new Bean());
+        }
+    }
     
     /*
     /**********************************************************
@@ -61,6 +73,11 @@ public class TestTypedArraySerialization
     /**********************************************************
      */
 
+    public void testListWithPolymorphic() throws Exception
+    {
+        assertEquals("{\"beans\":[{\"@type\":\"bean\",\"x\":0}]}", serializeAsString(new BeanListWrapper()));
+    }
+    
     public void testIntList() throws Exception
     {
         TypedList<Integer> input = new TypedList<Integer>();
@@ -127,10 +144,8 @@ public class TestTypedArraySerialization
         final String EXP = "[{\"BB\":{\"value\":2}}]";
 
         // first, with defaults
-        /*
         m = new ObjectMapper();
         assertEquals(EXP, m.writeValueAsString(input));
-        */
 
         // then with static typing enabled:
         m = new ObjectMapper();
