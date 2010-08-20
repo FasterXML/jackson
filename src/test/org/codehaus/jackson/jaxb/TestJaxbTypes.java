@@ -14,10 +14,10 @@ public class TestJaxbTypes
     extends BaseJaxbTest
 {
     /*
-    **************************************************************
-    * Helper beans
-    **************************************************************
-    */
+    /**********************************************************
+    /* Helper beans
+    /**********************************************************
+     */
 
     static class AbstractWrapper {
         @XmlElement(type=BeanImpl.class)
@@ -107,10 +107,10 @@ public class TestJaxbTypes
     }
     
     /*
-    **************************************************************
-    * Unit tests
-    **************************************************************
-    */
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
 
     public void testXmlElementTypeDeser() throws Exception
     {
@@ -231,6 +231,5 @@ public class TestJaxbTypes
         P2 bean = new P2("myId");
         String str = mapper.writeValueAsString(bean);
         assertEquals("{\"@type\":\"Name\",\"id\":\"myId\"}", str);
-
     }
 }

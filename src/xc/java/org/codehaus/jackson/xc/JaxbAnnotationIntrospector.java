@@ -5,6 +5,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -91,9 +92,9 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    /************************************************
+    /**********************************************************
     /* General annotation properties
-    /************************************************
+    /**********************************************************
      */
 
     /**
@@ -119,9 +120,9 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    /************************************************
+    /**********************************************************
     /* General annotations
-    /************************************************
+    /**********************************************************
      */
 
     @Override
@@ -183,10 +184,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
     
     /*
-    ///////////////////////////////////////////////////////
-    // General class annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* General class annotations
+    /**********************************************************
+     */
 
     @Override
     public Boolean findCachability(AnnotatedClass ac)
@@ -225,9 +226,9 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Property auto-detection
-    /******************************************************
+    /**********************************************************
      */
     
     @Override
@@ -313,13 +314,12 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return accessType == XmlAccessType.PUBLIC_MEMBER || accessType == XmlAccessType.FIELD;
     }
     */
-
     
     /*
-    /****************************************************
+    /**********************************************************
     /* Class annotations for PM type handling (1.5+)
-    /****************************************************
-    */
+    /**********************************************************
+     */
     
     @Override
     public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType)
@@ -424,10 +424,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
     
     /*
-    ///////////////////////////////////////////////////////
-    // General method annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* General method annotations
+    /**********************************************************
+     */
 
     public boolean isIgnorableMethod(AnnotatedMethod m)
     {
@@ -445,9 +445,9 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // General field annotations
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* General field annotations
+    /**********************************************************
      */
 
     public boolean isIgnorableField(AnnotatedField f)
@@ -456,10 +456,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: general annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Serialization: general annotations
+    /**********************************************************
+     */
 
     public JsonSerializer<?> findSerializer(Annotated am)
     {
@@ -540,10 +540,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
     
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: class annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Serialization: class annotations
+    /**********************************************************
+     */
 
     public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
         // @XmlType.propOrder fits the bill here:
@@ -558,23 +558,23 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: method annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Serialization: method annotations
+    /**********************************************************
+     */
 
     public String findGettablePropertyName(AnnotatedMethod am)
     {
-        if (isInvisible(am)) {
-            return null;
+        PropertyDescriptor desc = findPropertyDescriptor(am);
+        if (desc != null) {
+            return findJaxbSpecifiedPropertyName(desc);
         }
-        // null if no annotation is found (can still use auto-detection)
-        return findJaxbSpecifiedPropertyName(am);
+        return null;
     }
 
     public boolean hasAsValueAnnotation(AnnotatedMethod am)
     {
-        //since jaxb says @XmlValue can exist with attributes, this won't map as a json value.
+        //since jaxb says @XmlValue can exist with attributes, this won't map as a JSON value.
         return false;
     }
 
@@ -608,34 +608,11 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         return invisible;
     }
 
-    /**
-     * Whether the specified method (assumed to be a property) is invisible, per the JAXB rules.
-     *
-     * @param m The method.
-     * @return whether the method is invisible.
-     */
-    protected boolean isInvisible(AnnotatedMethod m)
-    {
-        boolean invisible = true;
-        for (Annotation annotation : m.getAnnotated().getDeclaredAnnotations()) {
-            if (isHandled(annotation)) {
-                //if any annotations are present, it is NOT ignorable.
-                invisible = false;
-            }
-        }
-        if (isPropertiesAccessible(m)) {
-            //jaxb only accounts for getter/setter pairs.
-            PropertyDescriptor pd = findPropertyDescriptor(m);
-            invisible = (pd == null) || pd.getReadMethod() == null || pd.getWriteMethod() == null;
-        }
-        return invisible;
-    }
-
     /*
-    ///////////////////////////////////////////////////////
-    // Serialization: field annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Serialization: field annotations
+    /**********************************************************
+     */
 
     @Override
     public String findSerializablePropertyName(AnnotatedField af)
@@ -653,11 +630,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: general annotations
-    ///////////////////////////////////////////////////////
+    /**********************************************************
+    /* Deserialization: general annotations
+    /**********************************************************
     */
-
 
     public JsonDeserializer<?> findDeserializer(Annotated am)
     {
@@ -753,11 +729,11 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
     public String findSettablePropertyName(AnnotatedMethod am)
     {
-        if (isInvisible(am)) {
-            return null;
+        PropertyDescriptor desc = findPropertyDescriptor(am);
+        if (desc != null) {
+            return findJaxbSpecifiedPropertyName(desc);
         }
-        // null if no annotation is found (can still use auto-detection)
-        return findJaxbSpecifiedPropertyName(am);
+        return null;
     }
 
     public boolean hasAnySetterAnnotation(AnnotatedMethod am)
@@ -790,10 +766,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Deserialization: parameters annotations
-    ///////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Deserialization: parameters annotations
+    /**********************************************************
+     */
 
     public String findPropertyNameForParam(AnnotatedParameter param)
     {
@@ -802,10 +778,10 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    /**************************************************
+    /**********************************************************
     /* Helper methods (non-API)
-    /**************************************************
-    */
+    /**********************************************************
+     */
 
     /**
      * Finds an annotation associated with given annotatable thing; or if
@@ -889,9 +865,9 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    /************************************************************************
+    /**********************************************************
     /* Helper methods for bean property introspection
-    /************************************************************************
+    /**********************************************************
      */
 
     /* 27-Feb-2010, tatu: Since bean property descriptors are accessed so
@@ -901,178 +877,56 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
      *   than a single class, since intent is to avoid repetitive same
      *   lookups (during handling of a single class)
      */
-    
-    private final Object _propertyDescriptorCacheLock = new Object();
-    private List<PropertyDescriptor> _cachedPropertyDescriptors = null;
-    private Class<?> _propertyDescriptorForClass = null;
+
+    private final static ThreadLocal<SoftReference<PropertyDescriptors>> _propertyDescriptors
+        = new ThreadLocal<SoftReference<PropertyDescriptors>>();
+ 
+    protected PropertyDescriptors getDescriptors(Class<?> forClass)
+    {
+        SoftReference<PropertyDescriptors> ref = _propertyDescriptors.get();
+        PropertyDescriptors descriptors = (ref == null) ? null : ref.get();
+
+        if (descriptors == null || descriptors.getBeanClass() != forClass) {
+            try {
+                descriptors = PropertyDescriptors.find(forClass);
+            } catch (IntrospectionException e) {
+                throw new IllegalArgumentException("Problem introspecting bean properties: "+e.getMessage(), e);
+            }
+            _propertyDescriptors.set(new SoftReference<PropertyDescriptors>(descriptors));
+        }
+        return descriptors;
+    }
     
     /**
      * Finds the property descriptor (adapted to AnnotatedElement) for the specified
-     * method.
+     * method. Can use logical property name
      *
      * @param m The method.
      * @return The property descriptor, or null if not found.
      */
     protected PropertyDescriptor findPropertyDescriptor(AnnotatedMethod m)
     {
-        /* 27-Feb-2010, tatu: Code used to only ask bean introspector to find properties,
-         *   without any post-processing. This would cause problems like [JACKSON-246].
-         *   At minimum, we must do renaming as per JAXB annotations.
+        // not good to rely on declaring class; methods could be split across classes, overridden...
+        PropertyDescriptors descs = getDescriptors(m.getDeclaringClass());
+        // is it enough to just find by method name?
+        PropertyDescriptor desc =  descs.findByMethodName(m.getName());
+        /*
+        if (desc == null) {
+            desc = descs.findByPropertyName(m.getName());
+        }
+        */
+        return desc;
+    }
+
+    protected String findJaxbSpecifiedPropertyName(PropertyDescriptor prop)
+    {
+        /* Should we rely on property name detected earlier? If not, change last argument
+         * to "" and it'll get determined later on.
          */
-        String methodName = m.getName();
-        for (PropertyDescriptor pd : findPropertyDescriptors(m.getDeclaringClass())) {
-            if (pd.getReadMethod().getName().equals(methodName)) {
-                return pd;
-            }
-            if (pd.getWriteMethod().getName().equals(methodName)) {
-                return pd;
-            }
-        }
-        return null;
+        return findJaxbPropertyName(new AnnotatedProperty(prop), prop.getPropertyType(), prop.getName());
     }
 
-    
-    /**
-     * Helper method for finding all <b>complete</b> property descriptors of given
-     * class. This means descriptors that have both getter and setter
-     * available.
-     * 
-     * @since 1.5
-     */
-    protected List<PropertyDescriptor> findPropertyDescriptors(Class<?> cls)
-    {
-        // First: trivial caching (or reuse), since this gets called a lot:
-        synchronized (_propertyDescriptorCacheLock) {
-            if (cls == _propertyDescriptorForClass && _cachedPropertyDescriptors != null) {
-                return _cachedPropertyDescriptors;
-            }
-        }
-        
-        BeanInfo beanInfo;
-        List<PropertyDescriptor> result;
-        try {
-            beanInfo = Introspector.getBeanInfo(cls);
-            PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
-            if (pds.length == 0) { // nothing found?
-                result = Collections.emptyList();
-            } else {
-                result = new ArrayList<PropertyDescriptor>();
-                // May need to reconnect renamed pieces:
-                Map<String,PropertyDescriptor> partials = null;
-                for (PropertyDescriptor pd : beanInfo.getPropertyDescriptors()) {
-                    Method read = pd.getReadMethod();
-                    String readName = (read == null) ? null : findJaxbPropertyName(read, pd.getPropertyType(), null);
-                    Method write = pd.getWriteMethod();
-                    String writeName = (write == null) ? null : findJaxbPropertyName(write, pd.getPropertyType(), null);
-                    if (write == null) { // only read method
-                        if (readName == null) {
-                            readName = pd.getName();
-                        }
-                        partials = _processReadMethod(partials, read, readName, result);
-                    } else if (read == null) { // only write method
-                        if (writeName == null) {
-                            writeName = pd.getName();
-                        }
-                        partials = _processWriteMethod(partials, write, writeName, result);                   
-                    } else { // both -> either add one (if matching names), or split
-                        // only possible kink: both have explicitly different names...
-                        if (readName != null && writeName != null && !readName.equals(writeName)) {
-                            partials = _processReadMethod(partials, read, readName, result);
-                            partials = _processWriteMethod(partials, write, writeName, result);                        
-                        } else { // otherwise just need to figure out the name
-                            String name;
-                            if (readName != null) {
-                                name = readName;
-                            } else if (writeName != null) {
-                                name = writeName;
-                            } else {
-                                name = pd.getName();
-                            }
-                            result.add(new PropertyDescriptor(name, read, write));
-                        }
-                    }
-                }
-            }
-        } catch (IntrospectionException e) {
-            throw new IllegalArgumentException("Problem introspecting bean properties: "+e.getMessage(), e);
-        }
-
-        // and update cache for reuse:
-        synchronized (_propertyDescriptorCacheLock) {
-            _cachedPropertyDescriptors = result;
-        }
-        return result;
-    }
-
-    private Map<String,PropertyDescriptor> _processReadMethod(Map<String,PropertyDescriptor> partials,
-            Method method, String propertyName, List<PropertyDescriptor> pds)
-        throws IntrospectionException
-    {
-        if (partials == null) {
-            partials = new HashMap<String,PropertyDescriptor>();
-        } else {
-            PropertyDescriptor pd = partials.get(propertyName);
-            if (pd != null) {
-                pd.setReadMethod(method);
-                if (pd.getWriteMethod() != null) { // now complete!
-                    pds.add(pd);
-                    partials.remove(propertyName);
-                    return partials;
-                }
-            } 
-        }
-        partials.put(propertyName, new PropertyDescriptor(propertyName, method, null));
-        return partials;
-    }
-
-    private Map<String,PropertyDescriptor> _processWriteMethod(Map<String,PropertyDescriptor> partials,
-            Method method, String propertyName, List<PropertyDescriptor> pds)
-        throws IntrospectionException
-    {
-        if (partials == null) {
-            partials = new HashMap<String,PropertyDescriptor>();
-        } else {
-            PropertyDescriptor pd = partials.get(propertyName);
-            if (pd != null) {
-                pd.setWriteMethod(method);
-                if (pd.getReadMethod() != null) { // now complete!
-                    pds.add(pd);
-                    partials.remove(propertyName);
-                    return partials;
-                }
-            }
-        }
-        partials.put(propertyName, new PropertyDescriptor(propertyName, null, method));
-        return partials;
-    }
-    
-    /**
-     * Find the property name for the specified annotated method. Takes into account any JAXB annotation that
-     * can be mapped to a JSON property.
-     *
-     * @param am The annotated method.
-     * @return The property name, or null if no JAXB annotation specifies the property name.
-     */
-    protected String findJaxbSpecifiedPropertyName(AnnotatedMethod am)
-    {
-        PropertyDescriptor pd = findPropertyDescriptor(am);
-        if (pd != null) {
-            return findJaxbPropertyName(new AnnotatedProperty(pd), pd.getPropertyType(), "");
-        }
-        return null;
-    }
-
-    /**
-     * Find the JAXB property name for the given annotated element.
-     *
-     * @param ae The annotated element.
-     * @param aeType The type of the annotated element.
-     * @param defaultName The default name if nothing is specified.
-     *
-     * @return The JAXB property name, if found; null if no annotations;
-     *    defaultName if annotation has value indicating default should be used.
-     */
-    protected String findJaxbPropertyName(AnnotatedElement ae, Class<?> aeType, String defaultName)
+    protected static String findJaxbPropertyName(AnnotatedElement ae, Class<?> aeType, String defaultName)
     {
         XmlElementWrapper elementWrapper = ae.getAnnotation(XmlElementWrapper.class);
         if (elementWrapper != null) {
@@ -1187,9 +1041,9 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     }
 
     /*
-    /************************************************************************
+    /**********************************************************
     /* Helper classes
-    /************************************************************************
+    /**********************************************************
      */
     
     private static class AnnotatedProperty implements AnnotatedElement {
@@ -1209,24 +1063,162 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 
         public <T extends Annotation> T getAnnotation(Class<T> annotationClass)
         {
-            T ann = pd.getReadMethod() != null ? pd.getReadMethod().getAnnotation(annotationClass) : null;
-            if (ann == null) {
-                ann = pd.getWriteMethod() != null ? pd.getWriteMethod().getAnnotation(annotationClass) : null;
+            T ann = (pd.getReadMethod() != null) ? pd.getReadMethod().getAnnotation(annotationClass) : null;
+            if (ann == null && (pd.getWriteMethod() != null)) {
+                ann = pd.getWriteMethod().getAnnotation(annotationClass);
             }
             return ann;
         }
 
-        public Annotation[] getAnnotations()
-        {
-            //not used. we don't need to support this yet.
+        public Annotation[] getAnnotations() { //not used. we don't need to support this yet.
             throw new UnsupportedOperationException();
         }
 
-        public Annotation[] getDeclaredAnnotations()
-        {
-            //not used. we don't need to support this yet.
+        public Annotation[] getDeclaredAnnotations() { //not used. we don't need to support this yet.
             throw new UnsupportedOperationException();
         }
     }
 
+    /**
+     * Helper class used to contain information about properties of a single class.
+     */
+    protected final static class PropertyDescriptors
+    {
+        private final Class<?> _forClass;
+        private final List<PropertyDescriptor> _properties;
+
+        private Map<String, PropertyDescriptor> _byMethodName;
+        private Map<String, PropertyDescriptor> _byPropertyName;
+
+        public PropertyDescriptors(Class<?> forClass, List<PropertyDescriptor> properties)
+        {
+            _forClass = forClass;
+            _properties = properties;
+        }
+
+        public Class<?> getBeanClass() { return _forClass; }
+
+        public PropertyDescriptor findByPropertyName(String name)
+        {
+            if (_byPropertyName == null) {
+                _byPropertyName = new HashMap<String, PropertyDescriptor>(_properties.size());
+                for (PropertyDescriptor desc : _properties) {
+                    _byPropertyName.put(desc.getName(), desc);
+                }
+            }
+            return _byPropertyName.get(name);
+        }
+
+        public PropertyDescriptor findByMethodName(String name)
+        {
+            if (_byMethodName == null) {
+                _byMethodName = new HashMap<String, PropertyDescriptor>(_properties.size());
+                for (PropertyDescriptor desc : _properties) {
+                    Method getter = desc.getReadMethod();
+                    if (getter != null) {
+                        _byMethodName.put(getter.getName(), desc);
+                    }
+                    Method setter = desc.getWriteMethod();
+                    if (setter != null) {
+                        _byMethodName.put(setter.getName(), desc);
+                    }
+                }
+            }
+            return _byMethodName.get(name);
+        }
+
+        /**
+         * Factory method for finding all (public) bean properties
+         */
+        public static PropertyDescriptors find(Class<?> forClass)
+            throws IntrospectionException
+        {
+            BeanInfo beanInfo = Introspector.getBeanInfo(forClass);
+            PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
+            List<PropertyDescriptor> descriptors;
+            if (pds.length == 0) { // nothing found?
+                descriptors = Collections.emptyList();
+            } else {
+                descriptors = new ArrayList<PropertyDescriptor>();
+                // May need to reconnect renamed pieces:
+                Map<String,PropertyDescriptor> partials = null;
+                for (PropertyDescriptor pd : beanInfo.getPropertyDescriptors()) {
+                    Method read = pd.getReadMethod();
+                    String readName = (read == null) ? null : findJaxbPropertyName(read, pd.getPropertyType(), null);
+                    Method write = pd.getWriteMethod();
+                    String writeName = (write == null) ? null : findJaxbPropertyName(write, pd.getPropertyType(), null);
+                    if (write == null) { // only read method
+                        if (readName == null) {
+                            readName = pd.getName();
+                        }
+                        partials = _processReadMethod(partials, read, readName, descriptors);
+                    } else if (read == null) { // only write method
+                        if (writeName == null) {
+                            writeName = pd.getName();
+                        }
+                        partials = _processWriteMethod(partials, write, writeName, descriptors);                   
+                    } else { // both -> either add one (if matching names), or split
+                        // only possible kink: both have explicitly different names...
+                        if (readName != null && writeName != null && !readName.equals(writeName)) {
+                            partials = _processReadMethod(partials, read, readName, descriptors);
+                            partials = _processWriteMethod(partials, write, writeName, descriptors);                        
+                        } else { // otherwise just need to figure out the name
+                            String name;
+                            if (readName != null) {
+                                name = readName;
+                            } else if (writeName != null) {
+                                name = writeName;
+                            } else {
+                                name = pd.getName();
+                            }
+                            descriptors.add(new PropertyDescriptor(name, read, write));
+                        }
+                    }
+                }
+            }
+            return new PropertyDescriptors(forClass, descriptors);
+        }
+
+        private static Map<String,PropertyDescriptor> _processReadMethod(Map<String,PropertyDescriptor> partials,
+                Method method, String propertyName, List<PropertyDescriptor> pds)
+            throws IntrospectionException
+        {
+            if (partials == null) {
+                partials = new HashMap<String,PropertyDescriptor>();
+            } else {
+                PropertyDescriptor pd = partials.get(propertyName);
+                if (pd != null) {
+                    pd.setReadMethod(method);
+                    if (pd.getWriteMethod() != null) { // now complete!
+                        pds.add(pd);
+                        partials.remove(propertyName);
+                        return partials;
+                    }
+                } 
+            }
+            partials.put(propertyName, new PropertyDescriptor(propertyName, method, null));
+            return partials;
+        }
+
+        private static Map<String,PropertyDescriptor> _processWriteMethod(Map<String,PropertyDescriptor> partials,
+                Method method, String propertyName, List<PropertyDescriptor> pds)
+            throws IntrospectionException
+        {
+            if (partials == null) {
+                partials = new HashMap<String,PropertyDescriptor>();
+            } else {
+                PropertyDescriptor pd = partials.get(propertyName);
+                if (pd != null) {
+                    pd.setWriteMethod(method);
+                    if (pd.getReadMethod() != null) { // now complete!
+                        pds.add(pd);
+                        partials.remove(propertyName);
+                        return partials;
+                    }
+                }
+            }
+            partials.put(propertyName, new PropertyDescriptor(propertyName, null, method));
+            return partials;
+        }
+    }
 }

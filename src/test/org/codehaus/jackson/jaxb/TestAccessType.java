@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.*;
 import org.codehaus.jackson.map.*;
 
 /**
- * Unit test written for [JACKSON-303]; we should be able to detect setter
+ * Unit test(s) written for [JACKSON-303]; we should be able to detect setter
  * even though it is not annotated, because there is matching annotated getter.
  */
 public class TestAccessType
@@ -46,14 +46,14 @@ public class TestAccessType
          Model originalModel = new Model();
          originalModel.setName("Foobar");
          String json = mapper.writeValueAsString(originalModel);
-//         System.out.println(json); // Outputs {"name":"Name"}
          Model newModel = null;
          try {
              newModel = mapper.readValue(json, Model.class);
          } catch (Exception ie) {
              fail("Failed to deserialize: "+ie.getMessage());
          }
-         assertEquals("Foobar", newModel.name);
+         if (!"Foobar".equals(newModel.name)) {
+             fail("Failed, JSON == '"+json+"')");
+         }
      }
-
 }

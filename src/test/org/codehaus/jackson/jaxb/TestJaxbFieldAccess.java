@@ -11,9 +11,9 @@ public class TestJaxbFieldAccess
     extends org.codehaus.jackson.map.BaseMapTest
 {
     /*
-     **************************************************************
-     * Helper beans
-     **************************************************************
+    /**********************************************************
+    /* Helper beans
+    /**********************************************************
      */
 
     @XmlAccessorType(XmlAccessType.FIELD)

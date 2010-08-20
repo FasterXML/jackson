@@ -50,7 +50,6 @@ public class SerializedString
             result = JsonStringEncoder.getInstance().quoteAsString(_value);
             _quotedChars = result;
         }
-//System.err.println("Quote '"+_value+"' == ("+result.length+") / '"+new String(result)+"'");        
         return result;
     }
 

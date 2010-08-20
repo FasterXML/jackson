@@ -346,3 +346,9 @@ Ant Elder:
   * Suggested [JACKSON-295] Create "jackson-all" jar for more convenient
     deployment
    [1.6.0]
+   
+David Melia: 
+  * Reported [JACKSON-303] JAXB annotation @XmlAccessorType(XmlAccessType.NONE) seems
+    to not work correctly during deserialisation process
+   [1.6.0]
+  
