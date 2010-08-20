@@ -25,10 +25,24 @@ public final class NullNode
     @Override
     public boolean isNull() { return true; }
 
+    @Override
     public String getValueAsText() {
         return "null";
     }
 
+    @Override
+    public int getValueAsInt(int defaultValue) {
+        return 0;
+    }
+    @Override
+    public long getValueAsLong(long defaultValue) {
+        return 0L;
+    }
+    @Override
+    public double getValueAsDouble(double defaultValue) {
+        return 0.0;
+    }
+    
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
         throws IOException, JsonProcessingException

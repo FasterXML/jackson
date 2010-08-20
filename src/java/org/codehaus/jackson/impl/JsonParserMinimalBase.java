@@ -181,6 +181,7 @@ public abstract class JsonParserMinimalBase
             case VALUE_TRUE:
                 return 1;
             case VALUE_FALSE:
+            case VALUE_NULL:
                 return 0;
             case VALUE_STRING:
                 return NumberInput.parseAsInt(getText(), defaultValue);
@@ -200,6 +201,7 @@ public abstract class JsonParserMinimalBase
             case VALUE_TRUE:
                 return 1;
             case VALUE_FALSE:
+            case VALUE_NULL:
                 return 0;
             case VALUE_STRING:
                 return NumberInput.parseAsLong(getText(), defaultValue);
@@ -219,6 +221,7 @@ public abstract class JsonParserMinimalBase
             case VALUE_TRUE:
                 return 1;
             case VALUE_FALSE:
+            case VALUE_NULL:
                 return 0;
             case VALUE_STRING:
                 return NumberInput.parseAsDouble(getText(), defaultValue);

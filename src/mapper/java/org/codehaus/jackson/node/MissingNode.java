@@ -11,6 +11,11 @@ import org.codehaus.jackson.map.SerializerProvider;
  * element of an array is requested for an element outside range
  * of elements in the array; or for a non-array value, result
  * will be reference to this node.
+ *<p>
+ * In most respects this placeholder node will act as {@link NullNode};
+ * for example, for purposes of value conversions, value is considered
+ * to be null and represented as value zero when used for numeric
+ * conversions. 
  */
 public final class MissingNode
     extends BaseJsonNode
@@ -28,7 +33,20 @@ public final class MissingNode
 
     @Override
     public String getValueAsText() { return null; }
-
+    
+    @Override
+    public int getValueAsInt(int defaultValue) {
+        return 0;
+    }
+    @Override
+    public long getValueAsLong(long defaultValue) {
+        return 0L;
+    }
+    @Override
+    public double getValueAsDouble(double defaultValue) {
+        return 0.0;
+    }
+    
     @Override
     public JsonNode path(String fieldName) { return this; }
 

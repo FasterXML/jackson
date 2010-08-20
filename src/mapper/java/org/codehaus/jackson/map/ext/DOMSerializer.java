@@ -15,7 +15,7 @@ import org.codehaus.jackson.map.ser.SerializerBase;
 public class DOMSerializer
     extends SerializerBase<Node>
 {
-    final DOMImplementationLS _domImpl;
+    protected final DOMImplementationLS _domImpl;
 
     public DOMSerializer()
     {

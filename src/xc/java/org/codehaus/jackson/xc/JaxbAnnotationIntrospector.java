@@ -68,11 +68,11 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class JaxbAnnotationIntrospector extends AnnotationIntrospector
 {
-    final static String MARKER_FOR_DEFAULT = "##default";
+    protected final static String MARKER_FOR_DEFAULT = "##default";
 
-    final String _jaxbPackageName;
-    final JsonSerializer<?> _dataHandlerSerializer;
-    final JsonDeserializer<?> _dataHandlerDeserializer;
+    protected final String _jaxbPackageName;
+    protected final JsonSerializer<?> _dataHandlerSerializer;
+    protected final JsonDeserializer<?> _dataHandlerDeserializer;
 
     public JaxbAnnotationIntrospector()
     {
