@@ -191,7 +191,7 @@ public class SmileParser
         int ch = _inputBuffer[_inputPtr++];
         int versionBits = (ch >> 6) & 0x03;
         // but failure with version number is fatal, can not ignore
-        if (versionBits != SmileConstants.HEADER_VERSION_00) {
+        if (versionBits != SmileConstants.HEADER_VERSION_0) {
             _reportError("Header version number bits (0x"+Integer.toHexString(versionBits)+") indicate unrecognized version; only 0x0 handled by parser");
         }
 

@@ -52,9 +52,10 @@ public class SmileGenerator
          * for binary data (14% size expansion, processing overhead) is non-negligible,
          * it is not enabled by default. If no binary data is output, feature has no effect.
          *<p>
-         * Default setting is false, indicating that binary data is to be embedded as is
+         * Default setting is true, indicating that binary data is quoted as 7-bit bytes
+         * instead of written raw.
          */
-        ,ENCODE_BINARY_AS_7BIT(false)
+        ,ENCODE_BINARY_AS_7BIT(true)
 
         /**
          * Whether generator should check if it can "share" field names during generating
@@ -80,8 +81,8 @@ public class SmileGenerator
         ,CHECK_SHARED_STRING_VALUES(false)
         ;
 
-        final boolean _defaultState;
-        final int _mask;
+        protected final boolean _defaultState;
+        protected final int _mask;
         
         /**
          * Method that calculates bit set (flags) of all features that
@@ -279,10 +280,13 @@ public class SmileGenerator
     {
     	int last = HEADER_BYTE_4;
         if ((_smileFeatures & Feature.CHECK_SHARED_NAMES.getMask()) != 0) {
-        	last |= SmileConstants.HEADER_BIT_HAS_SHARED_NAMES;
+            last |= SmileConstants.HEADER_BIT_HAS_SHARED_NAMES;
         }
         if ((_smileFeatures & Feature.CHECK_SHARED_STRING_VALUES.getMask()) != 0) {
-        	last |= SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES;
+            last |= SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES;
+        }
+        if ((_smileFeatures & Feature.ENCODE_BINARY_AS_7BIT.getMask()) == 0) {
+            last |= SmileConstants.HEADER_BIT_HAS_RAW_BINARY;
         }
         _writeBytes(HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, (byte) last);
     }
@@ -681,13 +685,11 @@ public class SmileGenerator
             return;
         }
         _verifyValueWrite("write Binary value");
-        // !!! TODO: handle compression
         int compType = TOKEN_COMP_TYPE_NONE;
         
         if (this.isEnabled(Feature.ENCODE_BINARY_AS_7BIT)) {
             _writeByte((byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BINARY_7BIT | compType));
             _write7BitBinaryWithLength(data, offset, len);
-            // !!! TODO: handle 7-by-8 expansion...
         } else {
             _writeByte((byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BINARY_RAW | compType));
             _writePositiveVInt(len);

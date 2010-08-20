@@ -91,15 +91,16 @@ public final class SmileConstants
     public final static byte HEADER_BYTE_3 = (byte) '\n';
 
     /**
-     * Fourth byte of data header
+     * Current version consists of four zero bits (nibble)
      */
-    public final static byte HEADER_BYTE_4 = (byte) 0;
+    public final static int HEADER_VERSION_0 = 0x0;
 
     /**
-     * Current version consists of two zero bits.
+     * Fourth byte of data header; contains version nibble, may
+     * have flags
      */
-    public final static int HEADER_VERSION_00 = 0x0;
-
+    public final static byte HEADER_BYTE_4 = (HEADER_VERSION_0 << 4);
+    
     /**
      * Indicator bit that indicates whether encoded content may 
      * have Shared names (back references to recently encoded field
@@ -120,6 +121,17 @@ public final class SmileConstants
      * to 1024 most recently seen distinct short String values.
      */
     public final static int HEADER_BIT_HAS_SHARED_STRING_VALUES = 0x02;
+
+    /**
+     * Indicator bit that indicates whether encoded content may
+     * contain raw (unquoted) binary values.
+     * If no header available, can be assumed to be 0 (false).
+     * If header exists, and bit value is 1, parser can not assume that
+     * specific byte values always have default meaning (specifically,
+     * content end marker 0xFF and header signature can be contained
+     * in binary values)
+     */
+    public final static int HEADER_BIT_HAS_RAW_BINARY = 0x04;
     
     /*
     /**********************************************************

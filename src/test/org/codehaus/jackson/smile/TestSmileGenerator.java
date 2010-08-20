@@ -40,7 +40,7 @@ public class TestSmileGenerator
         gen.writeBoolean(true);
         gen.close();
         
-        // note: version, and 'check shared names', but not 'check shared strings'
+        // note: version, and 'check shared names', but not 'check shared strings' or 'raw binary'
         int b4 = HEADER_BYTE_4 | SmileConstants.HEADER_BIT_HAS_SHARED_NAMES;
 
     	_verifyBytes(out.toByteArray(),
