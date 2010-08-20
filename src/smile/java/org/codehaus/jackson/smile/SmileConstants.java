@@ -130,6 +130,11 @@ public final class SmileConstants
      * specific byte values always have default meaning (specifically,
      * content end marker 0xFF and header signature can be contained
      * in binary values)
+     *<p>
+     * Note that this bit being true does not automatically mean that
+     * such raw binary content indeed exists; just that it may exist.
+     * This because header is written before any binary data may be
+     * written.
      */
     public final static int HEADER_BIT_HAS_RAW_BINARY = 0x04;
     

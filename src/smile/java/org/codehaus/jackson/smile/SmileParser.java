@@ -75,6 +75,15 @@ public class SmileParser
      * Codec used for data binding when (if) requested.
      */
     protected ObjectCodec _objectCodec;
+
+    /**
+     * Flag that indicates whether content can legally have raw (unquoted)
+     * binary data. Since this information is included both in header and
+     * in actual binary data blocks there is redundancy, and we want to
+     * ensure settings are compliant. Using application may also want to
+     * know this setting in case it does some direct (random) access.
+     */
+    protected boolean _mayContainRawBinary;
     
     /*
     /**********************************************************
@@ -189,7 +198,7 @@ public class SmileParser
             loadMoreGuaranteed();        	
         }
         int ch = _inputBuffer[_inputPtr++];
-        int versionBits = (ch >> 6) & 0x03;
+        int versionBits = (ch >> 4) & 0x0F;
         // but failure with version number is fatal, can not ignore
         if (versionBits != SmileConstants.HEADER_VERSION_0) {
             _reportError("Header version number bits (0x"+Integer.toHexString(versionBits)+") indicate unrecognized version; only 0x0 handled by parser");
@@ -203,6 +212,7 @@ public class SmileParser
         if ((ch & SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES) == 0) {
         }
         */
+        _mayContainRawBinary  = ((ch & SmileConstants.HEADER_BIT_HAS_RAW_BINARY) != 0);
         return true;
     }
 
@@ -226,7 +236,17 @@ public class SmileParser
         // Merge found symbols, if any:
         _symbols.release();
     }
-	
+
+    /*
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
+     */
+
+    public boolean mayContainRawBinary() {
+        return _mayContainRawBinary;
+    }
+    
     /*
     /**********************************************************
     /* JsonParser impl
