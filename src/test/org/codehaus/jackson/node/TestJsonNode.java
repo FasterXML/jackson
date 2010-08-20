@@ -46,7 +46,7 @@ public class TestJsonNode
         assertFalse(n.has(3));
 
         // 1.6:
-        assertNodeNumbersForNonNumeric(n);
+        assertNodeNumbers(n, 0, 0.0);
     }
 
     public void testText()
@@ -229,6 +229,7 @@ public class TestJsonNode
         assertStandardEquals(n);
         assertEquals("", n.toString());
 
-        assertNodeNumbersForNonNumeric(n);
+        // missing acts same as null, so:
+        assertNodeNumbers(n, 0, 0.0);
     }
 }

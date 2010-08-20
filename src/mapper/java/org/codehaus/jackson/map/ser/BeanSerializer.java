@@ -65,19 +65,19 @@ public class BeanSerializer
 
     /**
      * Alternate constructor used when class being serialized can
-     * have dynamically enabled Json Views
+     * have dynamically enabled JSON Views
      *
-     * @param fprops Filtered property writers to use when there is
+     * @param filteredProps Filtered property writers to use when there is
      *   an active view.
      */
     public BeanSerializer(Class<?> type, BeanPropertyWriter[] props,
-                          BeanPropertyWriter[] fprops)
+                          BeanPropertyWriter[] filteredProps)
     {
         super(type, false);
         _props = props;
         // let's store this for debugging
         _class = type;
-        _filteredProps = fprops;
+        _filteredProps = filteredProps;
     }
 
     public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props)
