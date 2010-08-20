@@ -464,8 +464,8 @@ public class BeanSerializerFactory
      * Helper method that will sort given List of properties according
      * to defined criteria (usually detected by annotations)
      */
-    List<BeanPropertyWriter> _sortBeanProperties(List<BeanPropertyWriter> props,
-                                                 List<String> creatorProps, String[] propertyOrder, boolean sort)
+    protected List<BeanPropertyWriter> _sortBeanProperties(List<BeanPropertyWriter> props,
+            List<String> creatorProps, String[] propertyOrder, boolean sort)
     {
         int size = props.size();
         Map<String,BeanPropertyWriter> all;
@@ -487,7 +487,7 @@ public class BeanSerializerFactory
                 if (w != null) {
                     ordered.put(name, w);
                 }
-            }            
+            }
         }
         // And secondly by sorting Creator properties before other unordered properties
         for (String name : creatorProps) {

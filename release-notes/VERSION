@@ -10,6 +10,9 @@ Description:
 
   * [JACKSON-265] Problems with generic wildcard type, type info.
    (reported by Fabrice D)
+  * [JACKSON-268] Property ordering for JAXB did not work with "raw" property
+    names (but just with renamed names like with Jackson annotations)
+   (reported by Valentin B)
   * [JACKSON-303] JAXB annotation @XmlAccessorType(XmlAccessType.NONE) seems
     to not work correctly during deserialisation process
     (reported by David M)

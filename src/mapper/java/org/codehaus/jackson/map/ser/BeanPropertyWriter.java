@@ -184,7 +184,7 @@ public class BeanPropertyWriter
      */
 
     public final String getName() { return _name; }
-
+    
     public boolean hasSerializer() { return _serializer != null; }
     
     // Needed by BeanSerializer#getSchema

@@ -7,6 +7,8 @@ Ryan Heaton, ryan@webcohesion.com: co-author
 
 Peter Harris, Peter.Harris@betfair.com: contributor
 
+Sunny Gleason, sunny@ning.com: contributor
+
 Alain Penders:
   * Reported problem with JavaTypeMapper, where floating point numbers were
     accidentally converted to Booleans.
@@ -346,9 +348,14 @@ Ant Elder:
   * Suggested [JACKSON-295] Create "jackson-all" jar for more convenient
     deployment
    [1.6.0]
-   
+      
 David Melia: 
   * Reported [JACKSON-303] JAXB annotation @XmlAccessorType(XmlAccessType.NONE) seems
     to not work correctly during deserialisation process
+   [1.6.0]
+ 
+ Valentin Brasov: 
+   * Reported [JACKSON-268] Property ordering for JAXB did not work with "raw" property
+    names (but just with renamed names like with Jackson annotations)
    [1.6.0]
   
