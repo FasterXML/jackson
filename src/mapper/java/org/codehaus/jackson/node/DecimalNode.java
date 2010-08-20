@@ -14,32 +14,32 @@ import org.codehaus.jackson.map.SerializerProvider;
 public final class DecimalNode
     extends NumericNode
 {
-    final BigDecimal _value;
+    final protected BigDecimal _value;
 
     /* 
-    ************************************************
-    * Construction
-    ************************************************
-    */
+    /**********************************************************
+    /* Construction
+    /**********************************************************
+     */
 
     public DecimalNode(BigDecimal v) { _value = v; }
 
     public static DecimalNode valueOf(BigDecimal d) { return new DecimalNode(d); }
 
     /* 
-    ************************************************
-    * BaseJsonNode extended API
-    ************************************************
-    */
+    /**********************************************************
+    /* BaseJsonNode extended API
+    /**********************************************************
+     */
 
     @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_FLOAT; }
 
     public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.BIG_DECIMAL; }
 
     /* 
-    ************************************************
-    * Overrridden JsonNode methods
-    ************************************************
+    /**********************************************************
+    /* Overrridden JsonNode methods
+    /**********************************************************
      */
 
     @Override

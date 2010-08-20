@@ -27,5 +27,38 @@ public abstract class NumericNode
     public abstract BigDecimal getDecimalValue();
     public abstract BigInteger getBigIntegerValue();
 
+    /* 
+    /**********************************************************
+    /* General type coercions
+    /**********************************************************
+     */
+    
     public abstract String getValueAsText();
+
+    @Override
+    public int getValueAsInt() {
+        return getIntValue();
+    }
+    @Override
+    public int getValueAsInt(int defaultValue) {
+        return getIntValue();
+    }
+
+    @Override
+    public long getValueAsLong() {
+        return getLongValue();
+    }
+    @Override
+    public long getValueAsLong(long defaultValue) {
+        return getLongValue();
+    }
+    
+    @Override
+    public double getValueAsDouble() {
+        return getDoubleValue();
+    }
+    @Override
+    public double getValueAsDouble(double defaultValue) {
+        return getDoubleValue();
+    }
 }

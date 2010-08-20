@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.impl.JsonParserMinimalBase;
 
 /**
  * Facade over {@link JsonNode} that implements {@link JsonParser} to allow
@@ -16,7 +17,7 @@ import org.codehaus.jackson.*;
  * 
  * @since 1.3
  */
-public class TreeTraversingParser extends JsonParser
+public class TreeTraversingParser extends JsonParserMinimalBase
 {
     /*
     /**********************************************************
@@ -66,6 +67,7 @@ public class TreeTraversingParser extends JsonParser
 
     public TreeTraversingParser(JsonNode n, ObjectCodec codec)
     {
+        super(0);
         _objectCodec = codec;
         if (n.isArray()) {
             _nextToken = JsonToken.START_ARRAY;
@@ -269,7 +271,6 @@ public class TreeTraversingParser extends JsonParser
         return currentNumericNode().getBigIntegerValue();
     }
 
-
     @Override
     public BigDecimal getDecimalValue() throws IOException, JsonParseException {
         return currentNumericNode().getDecimalValue();
@@ -362,5 +363,10 @@ public class TreeTraversingParser extends JsonParser
             throw _constructError("Current token ("+t+") not numeric, can not use numeric value accessors");
         }
         return n;
+    }
+
+    @Override
+    protected void _handleEOF() throws JsonParseException {
+        _throwInternal(); // should never get called
     }
 }

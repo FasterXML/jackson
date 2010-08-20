@@ -107,4 +107,103 @@ public final class NumberInput
         }
         return true;
     }
+
+    /**
+     * @since 1.6
+     */
+    public static int parseAsInt(String input, int defaultValue)
+    {
+        if (input == null) {
+            return defaultValue;
+        }
+        input = input.trim();
+        int len = input.length();
+        if (len == 0) {
+            return defaultValue;
+        }
+        // One more thing: use integer parsing for 'simple'
+        int i = 0;
+        if (i < len) { // skip leading sign:
+            char c = input.charAt(0);
+            if (c == '+') { // for plus, actually physically remove
+                input = input.substring(1);
+                len = input.length();
+            } else if (c == '-') { // minus, just skip for checks, must retain
+                ++i;
+            }
+        }
+        for (; i < len; ++i) {
+            char c = input.charAt(i);
+            // if other symbols, parse as Double, coerce
+            if (c > '9' || c < '0') {
+                try {
+                    double d = Double.parseDouble(input);
+                    return (int) d;
+                } catch (NumberFormatException e) { }
+            }
+        }
+        try {
+            return Integer.parseInt(input);
+        } catch (NumberFormatException e) { }
+        return defaultValue;
+    }
+
+    /**
+     * @since 1.6
+     */
+    public static long parseAsLong(String input, long defaultValue)
+    {
+        if (input == null) {
+            return defaultValue;
+        }
+        input = input.trim();
+        int len = input.length();
+        if (len == 0) {
+            return defaultValue;
+        }
+        // One more thing: use integer parsing for 'simple'
+        int i = 0;
+        if (i < len) { // skip leading sign:
+            char c = input.charAt(0);
+            if (c == '+') { // for plus, actually physically remove
+                input = input.substring(1);
+                len = input.length();
+            } else if (c == '-') { // minus, just skip for checks, must retain
+                ++i;
+            }
+        }
+        for (; i < len; ++i) {
+            char c = input.charAt(i);
+            // if other symbols, parse as Double, coerce
+            if (c > '9' || c < '0') {
+                try {
+                    double d = Double.parseDouble(input);
+                    return (long) d;
+                } catch (NumberFormatException e) { }
+            }
+        }
+        try {
+            return Long.parseLong(input);
+        } catch (NumberFormatException e) { }
+        return defaultValue;
+    }
+    
+    /**
+     * @since 1.6
+     */
+    public static double parseAsDouble(String input, double defaultValue)
+    {
+        if (input == null) {
+            return defaultValue;
+        }
+        input = input.trim();
+        int len = input.length();
+        if (len == 0) {
+            return defaultValue;
+        }
+        try {
+            return Double.parseDouble(input);
+        } catch (NumberFormatException e) { }
+        return defaultValue;
+    }
 }

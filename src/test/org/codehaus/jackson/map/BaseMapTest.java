@@ -5,6 +5,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonCreator;
 
 import main.BaseTest;
@@ -91,6 +92,26 @@ public abstract class BaseMapTest
         o.hashCode();
     }
 
+    protected void assertNodeNumbersForNonNumeric(JsonNode n)
+    { 
+        assertEquals(0, n.getValueAsInt());
+        assertEquals(-42, n.getValueAsInt(-42));
+        assertEquals(0, n.getValueAsLong());
+        assertEquals(12345678901L, n.getValueAsLong(12345678901L));
+        assertEquals(0.0, n.getValueAsDouble());
+        assertEquals(-19.25, n.getValueAsDouble(-19.25));
+    }
+    
+    protected void assertNodeNumbers(JsonNode n, int expInt, double expDouble)
+    {
+        assertEquals(expInt, n.getValueAsInt());
+        assertEquals(expInt, n.getValueAsInt(-42));
+        assertEquals((long) expInt, n.getValueAsLong());
+        assertEquals((long) expInt, n.getValueAsLong(19L));
+        assertEquals(expDouble, n.getValueAsDouble());
+        assertEquals(expDouble, n.getValueAsDouble(-19.25));
+    }
+    
     /*
     /**********************************************************
     /* Helper methods

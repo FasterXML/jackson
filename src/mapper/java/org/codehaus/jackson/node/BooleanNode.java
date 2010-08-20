@@ -43,6 +43,19 @@ public final class BooleanNode
     }
 
     @Override
+    public int getValueAsInt(int defaultValue) {
+        return (this == TRUE) ? 1 : 0;
+    }
+    @Override
+    public long getValueAsLong(long defaultValue) {
+        return (this == TRUE) ? 1L : 0L;
+    }
+    @Override
+    public double getValueAsDouble(double defaultValue) {
+        return (this == TRUE) ? 1.0 : 0.0;
+    }
+    
+    @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
         throws IOException, JsonProcessingException
     {

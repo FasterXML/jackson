@@ -138,6 +138,5 @@ public abstract class BaseJsonNode
          */
         serialize(jgen, null);
     }
-
 }
 

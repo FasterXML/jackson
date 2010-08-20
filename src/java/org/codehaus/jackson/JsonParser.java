@@ -260,7 +260,10 @@ public abstract class JsonParser
     /**********************************************************
      */
 
-    protected JsonParser() { }
+    protected JsonParser() { this(0); }
+    protected JsonParser(int features) {
+        _features = features;
+    }
 
     /**
      * Accessor for {@link ObjectCodec} associated with this
@@ -849,6 +852,12 @@ public abstract class JsonParser
     public abstract BigDecimal getDecimalValue()
         throws IOException, JsonParseException;
 
+    /*
+    /**********************************************************
+    /* Public API, access to token information, other
+    /**********************************************************
+     */
+    
     /**
      * Convenience accessor that can be called when the current
      * token is {@link JsonToken#VALUE_TRUE} or
@@ -929,12 +938,114 @@ public abstract class JsonParser
 
     /*
     /**********************************************************
+    /* Public API, access to token information, coercion/conversion
+    /**********************************************************
+     */
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>int</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0 (false)
+     * and 1 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an int (including structured type
+     * markers like start/end Object/Array)
+     * default value of <b>0</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     */
+    public int getValueAsInt() throws IOException, JsonParseException {
+        return getValueAsInt(0);
+    }
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>int</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0 (false)
+     * and 1 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an int (including structured type
+     * markers like start/end Object/Array)
+     * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     */
+    public int getValueAsInt(int defaultValue) throws IOException, JsonParseException {
+        return defaultValue;
+    }
+
+    /**
+     * Method that will try to convert value of this node to a Java <b>long</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0 (false)
+     * and 1 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an int (including structured type
+     * markers like start/end Object/Array)
+     * default value of <b>0</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     */
+    public long getValueAsLong() throws IOException, JsonParseException {
+        return getValueAsInt(0);
+    }
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>long</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0 (false)
+     * and 1 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an int (including structured type
+     * markers like start/end Object/Array)
+     * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     */
+    public long getValueAsLong(long defaultValue) throws IOException, JsonParseException {
+        return defaultValue;
+    }
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>double</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0.0 (false)
+     * and 1.0 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an int (including structured types
+     * like Objects and Arrays),
+     * default value of <b>0.0</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     */
+    public double getValueAsDouble() throws IOException, JsonParseException {
+        return getValueAsDouble(0.0);
+    }
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>double</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0.0 (false)
+     * and 1.0 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an int (including structured types
+     * like Objects and Arrays),
+     * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     */
+    public double getValueAsDouble(double defaultValue) throws IOException, JsonParseException {
+        return defaultValue;
+    }
+    
+    /*
+    /**********************************************************
     /* Public API, optional data binding functionality
     /**********************************************************
      */
 
     /**
-     * Method to deserialize Json content into a non-container
+     * Method to deserialize JSON content into a non-container
      * type (it can be an array type, however): typically a bean, array
      * or a wrapper type (like {@link java.lang.Boolean}).
      * <b>Note</b>: method can only be called if the parser has
@@ -965,7 +1076,7 @@ public abstract class JsonParser
     }
 
     /**
-     * Method to deserialize Json content into a Java type, reference
+     * Method to deserialize JSON content into a Java type, reference
      * to which is passed as argument. Type is passed using so-called
      * "super type token"
      * and specifically needs to be used if the root type is a 

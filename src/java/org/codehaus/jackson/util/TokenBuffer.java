@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.impl.JsonParserMinimalBase;
 import org.codehaus.jackson.impl.JsonReadContext;
 import org.codehaus.jackson.impl.JsonWriteContext;
 import org.codehaus.jackson.io.SerializedString;
@@ -25,12 +26,12 @@ public class TokenBuffer
  */
     extends JsonGenerator
 {
-    final static int DEFAULT_FEATURES = JsonParser.Feature.collectDefaults();
+    protected final static int DEFAULT_PARSER_FEATURES = JsonParser.Feature.collectDefaults();
 
     /*
-    ***********************************************************
-    * Configuration
-    ***********************************************************
+    /**********************************************************
+    /* Configuration
+    /**********************************************************
      */
 
     /**
@@ -52,9 +53,9 @@ public class TokenBuffer
     protected boolean _closed;
     
     /*
-    ***********************************************************
-    * Token buffering state
-    ***********************************************************
+    /**********************************************************
+    /* Token buffering state
+    /**********************************************************
      */
 
     /**
@@ -74,17 +75,17 @@ public class TokenBuffer
     protected int _appendOffset;
 
     /*
-    ***********************************************************
-    * Output state
-    ***********************************************************
+    /**********************************************************
+    /* Output state
+    /**********************************************************
      */
 
     protected JsonWriteContext _writeContext;
 
     /*
-    ***********************************************************
-    * Life-cycle
-    ***********************************************************
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     /**
@@ -95,7 +96,7 @@ public class TokenBuffer
     public TokenBuffer(ObjectCodec codec)
     {
         _objectCodec = codec;
-        _generatorFeatures = DEFAULT_FEATURES;
+        _generatorFeatures = DEFAULT_PARSER_FEATURES;
         _writeContext = JsonWriteContext.createRootContext();
         // at first we have just one segment
         _first = _last = new Segment();
@@ -147,9 +148,9 @@ public class TokenBuffer
     }
     
     /*
-    ***********************************************************
-    * Other custom methods not needed for implementing interfaces
-    ***********************************************************
+    /**********************************************************
+    /* Other custom methods not needed for implementing interfaces
+    /**********************************************************
      */
 
     /**
@@ -275,9 +276,9 @@ public class TokenBuffer
     }
         
     /*
-    ***********************************************************
-    * JsonGenerator implementation: configuration
-    ***********************************************************
+    /**********************************************************
+    /* JsonGenerator implementation: configuration
+    /**********************************************************
      */
 
     @Override
@@ -314,9 +315,9 @@ public class TokenBuffer
     public final JsonWriteContext getOutputContext() { return _writeContext; }
 
     /*
-    ***********************************************************
-    * JsonGenerator implementation: low-level output handling
-    ***********************************************************
+    /**********************************************************
+    /* JsonGenerator implementation: low-level output handling
+    /**********************************************************
      */
 
     public void flush() throws IOException { /* NOP */ }
@@ -328,9 +329,9 @@ public class TokenBuffer
     public boolean isClosed() { return _closed; }
 
     /*
-    ***********************************************************
-    * JsonGenerator implementation: write methods, structural
-    ***********************************************************
+    /**********************************************************
+    /* JsonGenerator implementation: write methods, structural
+    /**********************************************************
      */
 
     @Override
@@ -444,9 +445,9 @@ public class TokenBuffer
     }
 
     /*
-    ***********************************************************
-    * JsonGenerator implementation: write methods, primitive types
-    ***********************************************************
+    /**********************************************************
+    /* JsonGenerator implementation: write methods, primitive types
+    /**********************************************************
      */
 
     @Override
@@ -684,7 +685,7 @@ public class TokenBuffer
      */
 
     protected final static class Parser
-        extends JsonParser
+        extends JsonParserMinimalBase
     {
         protected ObjectCodec _codec;
 
@@ -722,7 +723,9 @@ public class TokenBuffer
         /**********************************************************
          */
         
-        public Parser(Segment firstSeg, ObjectCodec codec) {
+        public Parser(Segment firstSeg, ObjectCodec codec)
+        {
+            super(0);
             _segment = firstSeg;
             _segmentPtr = -1; // not yet read
             _codec = codec;
@@ -810,38 +813,6 @@ public class TokenBuffer
                 }
             }
             return _currToken;
-        }
-
-        @Override
-        public JsonParser skipChildren() throws IOException, JsonParseException
-        {
-            if (_currToken != JsonToken.START_OBJECT && _currToken != JsonToken.START_ARRAY) {
-                return this;
-            }
-            int open = 1;
-
-            /* Since proper matching of start/end markers is handled
-             * by nextToken(), we'll just count nesting levels here
-             */
-            while (true) {
-                JsonToken t = nextToken();
-                if (t == null) {
-                    // error for most parsers, but ok here
-                    return this;
-                }
-                switch (t) {
-                case START_OBJECT:
-                case START_ARRAY:
-                    ++open;
-                    break;
-                case END_OBJECT:
-                case END_ARRAY:
-                    if (--open == 0) {
-                        return this;
-                    }
-                    break;
-                }
-            }
         }
 
         @Override
@@ -1161,6 +1132,11 @@ public class TokenBuffer
 
         protected void _reportBase64EOF() throws JsonParseException {
             throw _constructError("Unexpected end-of-String in base64 content");
+        }
+
+        @Override
+        protected void _handleEOF() throws JsonParseException {
+            _throwInternal();
         }
     }
     

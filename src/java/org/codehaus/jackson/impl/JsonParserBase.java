@@ -15,35 +15,8 @@ import org.codehaus.jackson.util.TextBuffer;
  * @author Tatu Saloranta
  */
 public abstract class JsonParserBase
-    extends JsonParser
+    extends JsonParserMinimalBase
 {
-    // Control chars:
-    final static int INT_TAB = '\t';
-    final static int INT_LF = '\n';
-    final static int INT_CR = '\r';
-    final static int INT_SPACE = 0x0020;
-
-    // Markup
-    final static int INT_LBRACKET = '[';
-    final static int INT_RBRACKET = ']';
-    final static int INT_LCURLY = '{';
-    final static int INT_RCURLY = '}';
-    final static int INT_QUOTE = '"';
-    final static int INT_BACKSLASH = '\\';
-    final static int INT_SLASH = '/';
-    final static int INT_COLON = ':';
-    final static int INT_COMMA = ',';
-    final static int INT_ASTERISK = '*';
-    final static int INT_APOSTROPHE = '\'';
-
-    // Letters we need
-    final static int INT_b = 'b';
-    final static int INT_f = 'f';
-    final static int INT_n = 'n';
-    final static int INT_r = 'r';
-    final static int INT_t = 't';
-    final static int INT_u = 'u';
-
     /*
     /**********************************************************
     /* Generic I/O state
@@ -191,7 +164,7 @@ public abstract class JsonParserBase
      * ByteArrayBuilder is needed if 'getBinaryValue' is called. If so,
      * we better reuse it for remainder of content.
      */
-    ByteArrayBuilder _byteArrayBuilder = null;
+    protected ByteArrayBuilder _byteArrayBuilder = null;
 
     /**
      * We will hold on to decoded binary data, for duration of
@@ -200,7 +173,7 @@ public abstract class JsonParserBase
      * than once.
      */
     protected byte[] _binaryValue;
-
+    
     /*
     /**********************************************************
     /* Life-cycle
@@ -209,85 +182,18 @@ public abstract class JsonParserBase
 
     protected JsonParserBase(IOContext ctxt, int features)
     {
+        super(features);
         _ioContext = ctxt;
-        _features = features;
         _textBuffer = ctxt.constructTextBuffer();
         _parsingContext = JsonReadContext.createRootContext(_tokenInputRow, _tokenInputCol);
     }
 
     /*
     /**********************************************************
-    /* Configuration overrides if any
-    /**********************************************************
-     */
-
-    // from base class:
-
-    //public void enableFeature(Feature f)
-    //public void disableFeature(Feature f)
-    //public void setFeature(Feature f, boolean state)
-    //public boolean isFeatureEnabled(Feature f)
-
-    /*
-    /**********************************************************
-    /* Abstract methods needed from sub-classes
-    /**********************************************************
-     */
-
-    protected abstract void _finishString() throws IOException, JsonParseException;
-
-    /*
-    /**********************************************************
     /* JsonParser impl
     /**********************************************************
      */
-
-    public abstract JsonToken nextToken()
-        throws IOException, JsonParseException;
-
-    //public final JsonToken nextValue()
-
-    public JsonParser skipChildren()
-        throws IOException, JsonParseException
-    {
-        if (_currToken != JsonToken.START_OBJECT
-            && _currToken != JsonToken.START_ARRAY) {
-            return this;
-        }
-        int open = 1;
-
-        /* Since proper matching of start/end markers is handled
-         * by nextToken(), we'll just count nesting levels here
-         */
-        while (true) {
-            JsonToken t = nextToken();
-            if (t == null) {
-                _handleEOF();
-                /* given constraints, above should never return;
-                 * however, FindBugs doesn't know about it and
-                 * complains... so let's add dummy break here
-                 */
-                return this;
-            }
-            switch (t) {
-            case START_OBJECT:
-            case START_ARRAY:
-                ++open;
-                break;
-            case END_OBJECT:
-            case END_ARRAY:
-                if (--open == 0) {
-                    return this;
-                }
-                break;
-            }
-        }
-    }
-
-    //public JsonToken getCurrentToken()
-
-    //public boolean hasCurrentToken()
-
+    
     /**
      * Method that can be called to get the name associated with
      * the current event.
@@ -349,7 +255,7 @@ public abstract class JsonParserBase
     /* Public API, access to token information, text
     /**********************************************************
      */
-
+    
     /**
      * Method for accessing textual representation of the current event;
      * if no current event (before first call to {@link #nextToken}, or
@@ -400,7 +306,7 @@ public abstract class JsonParserBase
                     _nameCopied = true;
                 }
                 return _nameCopyBuffer;
-
+    
             case VALUE_STRING:
                 if (_tokenIncomplete) {
                     _tokenIncomplete = false;
@@ -457,8 +363,7 @@ public abstract class JsonParserBase
         return 0;
     }
 
-    public int getTextOffset()
-        throws IOException, JsonParseException
+    public int getTextOffset() throws IOException, JsonParseException
     {
         // Most have offset of 0, only some may have other values:
         if (_currToken != null) {
@@ -478,12 +383,6 @@ public abstract class JsonParserBase
         }
         return 0;
     }
-
-    /*
-    /**********************************************************
-    /* Public API, access to token information, binary
-    /**********************************************************
-     */
 
     public byte[] getBinaryValue(Base64Variant b64variant)
         throws IOException, JsonParseException
@@ -508,10 +407,7 @@ public abstract class JsonParserBase
         }        
         return _binaryValue;
     }
-
-    protected abstract byte[] _decodeBase64(Base64Variant b64variant)
-        throws IOException, JsonParseException;
-
+    
     /*
     /**********************************************************
     /* Public low-level accessors
@@ -528,8 +424,6 @@ public abstract class JsonParserBase
     /**********************************************************
      */
 
-    protected abstract boolean loadMore() throws IOException;
-
     protected final void loadMoreGuaranteed()
         throws IOException
     {
@@ -537,9 +431,26 @@ public abstract class JsonParserBase
             _reportInvalidEOF();
         }
     }
+    
+    /*
+    /**********************************************************
+    /* Abstract methods needed from sub-classes
+    /**********************************************************
+     */
 
-    protected abstract void _closeInput()
-        throws IOException;
+    protected abstract boolean loadMore() throws IOException;
+    
+    protected abstract void _finishString() throws IOException, JsonParseException;
+
+    protected abstract void _closeInput() throws IOException;
+
+    protected abstract byte[] _decodeBase64(Base64Variant b64variant) throws IOException, JsonParseException;
+    
+    /*
+    /**********************************************************
+    /* Low-level reading, other
+    /**********************************************************
+     */
 
     /**
      * Method called to release internal buffers owned by the base
@@ -556,14 +467,13 @@ public abstract class JsonParserBase
             _ioContext.releaseNameCopyBuffer(buf);
         }
     }
-
+    
     /**
      * Method called when an EOF is encountered between tokens.
      * If so, it may be a legitimate EOF, but only iff there
      * is no open non-root context.
      */
-    protected void _handleEOF()
-        throws JsonParseException
+    protected void _handleEOF() throws JsonParseException
     {
         if (!_parsingContext.inRoot()) {
             _reportInvalidEOF(": expected close marker for "+_parsingContext.getTypeDesc()+" (from "+_parsingContext.getStartLocation(_ioContext.getSourceReference())+")");
@@ -572,56 +482,10 @@ public abstract class JsonParserBase
 
     /*
     /**********************************************************
-    /* Error reporting
+    /* Internal/package methods: Error reporting
     /**********************************************************
      */
-
-    protected void _reportUnexpectedChar(int ch, String comment)
-        throws JsonParseException
-    {
-        String msg = "Unexpected character ("+_getCharDesc(ch)+")";
-        if (comment != null) {
-            msg += ": "+comment;
-        }
-        _reportError(msg);
-    }
-
-    protected void _reportInvalidEOF()
-        throws JsonParseException
-    {
-        _reportInvalidEOF(" in "+_currToken);
-    }
-
-    protected void _reportInvalidEOF(String msg)
-        throws JsonParseException
-    {
-        _reportError("Unexpected end-of-input"+msg);
-    }
-
-    protected void _throwInvalidSpace(int i)
-        throws JsonParseException
-    {
-        char c = (char) i;
-        String msg = "Illegal character ("+_getCharDesc(c)+"): only regular white space (\\r, \\n, \\t) is allowed between tokens";
-        _reportError(msg);
-    }
-
-    /**
-     * Method called to report a problem with unquoted control character.
-     * Note: starting with version 1.4, it is possible to suppress
-     * exception by enabling {@link JsonParser.Feature#ALLOW_UNQUOTED_CONTROL_CHARS}.
-     */
-    protected void _throwUnquotedSpace(int i, String ctxtDesc)
-        throws JsonParseException
-    {
-        // JACKSON-208; possible to allow unquoted control chars:
-        if (!isEnabled(Feature.ALLOW_UNQUOTED_CONTROL_CHARS) || i >= INT_SPACE) {
-            char c = (char) i;
-            String msg = "Illegal unquoted character ("+_getCharDesc(c)+"): has to be escaped using backslash to be included in "+ctxtDesc;
-            _reportError(msg);
-        }
-    }
-
+    
     protected void _reportMismatchedEndMarker(int actCh, char expCh)
         throws JsonParseException
     {
@@ -629,61 +493,12 @@ public abstract class JsonParserBase
         _reportError("Unexpected close marker '"+((char) actCh)+"': expected '"+expCh+"' (for "+_parsingContext.getTypeDesc()+" starting at "+startDesc+")");
     }
 
-    protected char _handleUnrecognizedCharacterEscape(char ch) throws JsonProcessingException
-    {
-        // as per [JACKSON-300]
-        if (!isEnabled(Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER))  {
-            _reportError("Unrecognized character escape "+_getCharDesc(ch));
-        }
-        return ch;
-    }
+    /*
+    /**********************************************************
+    /* Internal/package methods: shared/reusable builders
+    /**********************************************************
+     */
     
-    /*
-    /**********************************************************
-    /* Error reporting, generic
-    /**********************************************************
-     */
-
-    protected final static String _getCharDesc(int ch)
-    {
-        char c = (char) ch;
-        if (Character.isISOControl(c)) {
-            return "(CTRL-CHAR, code "+ch+")";
-        }
-        if (ch > 255) {
-            return "'"+c+"' (code "+ch+" / 0x"+Integer.toHexString(ch)+")";
-        }
-        return "'"+c+"' (code "+ch+")";
-    }
-
-    protected final void _reportError(String msg)
-        throws JsonParseException
-    {
-        throw _constructError(msg);
-    }
-
-    protected final void _wrapError(String msg, Throwable t)
-        throws JsonParseException
-    {
-        throw _constructError(msg, t);
-    }
-
-    protected final void _throwInternal()
-    {
-        throw new RuntimeException("Internal error: this code path should never get executed");
-    }
-
-    protected final JsonParseException _constructError(String msg, Throwable t)
-    {
-        return new JsonParseException(msg, getCurrentLocation(), t);
-    }
-
-    /*
-    /**********************************************************
-    /* Other helper methods for sub-classes
-    /**********************************************************
-     */
-
     public ByteArrayBuilder _getByteArrayBuilder()
     {
         if (_byteArrayBuilder == null) {
@@ -693,4 +508,5 @@ public abstract class JsonParserBase
         }
         return _byteArrayBuilder;
     }
+    
 }

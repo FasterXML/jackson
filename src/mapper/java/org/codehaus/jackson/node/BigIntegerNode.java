@@ -13,23 +13,23 @@ import org.codehaus.jackson.map.SerializerProvider;
 public final class BigIntegerNode
     extends NumericNode
 {
-    final BigInteger _value;
+    final protected BigInteger _value;
 
-    /* 
-    ************************************************
-    * Construction
-    ************************************************
-    */
+    /*
+    /**********************************************************
+    /* Construction
+    /**********************************************************
+     */
 
     public BigIntegerNode(BigInteger v) { _value = v; }
 
     public static BigIntegerNode valueOf(BigInteger v) { return new BigIntegerNode(v); }
 
     /* 
-    ************************************************
-    * Overrridden JsonNode methods
-    ************************************************
-    */
+    /**********************************************************
+    /* Overrridden JsonNode methods
+    /**********************************************************
+     */
 
     @Override
     public JsonToken asToken() { return JsonToken.VALUE_NUMBER_INT; }
@@ -61,12 +61,18 @@ public final class BigIntegerNode
         public double getDoubleValue() { return _value.doubleValue(); }
 
     @Override
-        public BigDecimal getDecimalValue() { return new BigDecimal(_value); }
+    public BigDecimal getDecimalValue() { return new BigDecimal(_value); }
 
+    /* 
+    /**********************************************************
+    /* General type coercions
+    /**********************************************************
+     */
+    
     public String getValueAsText() {
         return _value.toString();
     }
-
+        
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
         throws IOException, JsonProcessingException

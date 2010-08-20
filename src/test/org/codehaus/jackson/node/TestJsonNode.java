@@ -13,7 +13,7 @@ import org.codehaus.jackson.map.*;
 public class TestJsonNode
     extends BaseMapTest
 {
-    public void testSimple() throws Exception
+    public void testBasicsWithNullNode() throws Exception
     {
         // Let's use something that doesn't add much beyond JsonNode base
         NullNode n = NullNode.instance;
@@ -44,6 +44,9 @@ public class TestJsonNode
 
         assertFalse(n.has("field"));
         assertFalse(n.has(3));
+
+        // 1.6:
+        assertNodeNumbersForNonNumeric(n);
     }
 
     public void testText()
@@ -52,6 +55,12 @@ public class TestJsonNode
         TextNode empty = TextNode.valueOf("");
         assertStandardEquals(empty);
         assertSame(TextNode.EMPTY_STRING_NODE, empty);
+
+        // 1.6:
+        assertNodeNumbers(TextNode.valueOf("-3"), -3, -3.0);
+        assertNodeNumbers(TextNode.valueOf("17.75"), 17, 17.75);
+        // and then with non-numeric input
+        assertNodeNumbersForNonNumeric(TextNode.valueOf("foobar"));
     }
 
     public void testBoolean()
@@ -74,6 +83,10 @@ public class TestJsonNode
         assertTrue(t.getBooleanValue());
         assertEquals("true", t.getValueAsText());
         assertEquals(JsonToken.VALUE_TRUE, t.asToken());
+
+        // 1.6:
+        assertNodeNumbers(f, 0, 0.0);
+        assertNodeNumbers(t, 1, 1.0);
     }
 
     public void testInt()
@@ -88,6 +101,9 @@ public class TestJsonNode
         assertEquals(BigDecimal.ONE, n.getDecimalValue());
         assertEquals(BigInteger.ONE, n.getBigIntegerValue());
         assertEquals("1", n.getValueAsText());
+
+        // 1.6:
+        assertNodeNumbers(n, 1, 1.0);
     }
 
     public void testLong()
@@ -102,6 +118,9 @@ public class TestJsonNode
         assertEquals(BigDecimal.ONE, n.getDecimalValue());
         assertEquals(BigInteger.ONE, n.getBigIntegerValue());
         assertEquals("1", n.getValueAsText());
+
+        // 1.6:
+        assertNodeNumbers(n, 1, 1.0);
     }
 
     public void testDouble()
@@ -116,6 +135,9 @@ public class TestJsonNode
         assertNotNull(n.getDecimalValue());
         assertEquals(BigInteger.ZERO, n.getBigIntegerValue());
         assertEquals("0.25", n.getValueAsText());
+
+        // 1.6:
+        assertNodeNumbers(DoubleNode.valueOf(4.5), 4, 4.5);
     }
 
     public void testDecimalNode() throws Exception
@@ -133,6 +155,9 @@ public class TestJsonNode
         assertEquals(1L, n.getLongValue());
         assertEquals(BigDecimal.ONE, n.getDecimalValue());
         assertEquals("1", n.getValueAsText());
+
+        // 1.6:
+        assertNodeNumbers(n, 1, 1.0);
     }
 
     public void testBigIntegerNode() throws Exception
@@ -150,6 +175,9 @@ public class TestJsonNode
         assertEquals(1L, n.getLongValue());
         assertEquals(BigInteger.ONE, n.getBigIntegerValue());
         assertEquals("1", n.getValueAsText());
+
+        // 1.6:
+        assertNodeNumbers(n, 1, 1.0);
     }
 
     public void testBinary() throws Exception
@@ -170,6 +198,9 @@ public class TestJsonNode
         assertEquals("\"Aw==\"", n.toString());
 
         assertEquals("AAMD", new BinaryNode(data).getValueAsText());
+
+        // 1.6:
+        assertNodeNumbersForNonNumeric(n);
     }
 
     public void testPOJO()
@@ -177,11 +208,17 @@ public class TestJsonNode
         POJONode n = new POJONode("x"); // not really a pojo but that's ok
         assertStandardEquals(n);
         assertEquals(n, new POJONode("x"));
-        assertNull(n.getValueAsText());
+        assertEquals("x", n.getValueAsText());
         // not sure if this is what it'll remain as but:
         assertEquals("x", n.toString());
 
         assertEquals(new POJONode(null), new POJONode(null));
+
+        // 1.6:
+        // default; non-numeric
+        assertNodeNumbersForNonNumeric(n);
+        // but if wrapping actual number, use it
+        assertNodeNumbers(new POJONode(Integer.valueOf(123)), 123, 123.0);
     }
 
     public void testMissing()
@@ -191,5 +228,7 @@ public class TestJsonNode
         assertNull(n.getValueAsText());
         assertStandardEquals(n);
         assertEquals("", n.toString());
+
+        assertNodeNumbersForNonNumeric(n);
     }
 }

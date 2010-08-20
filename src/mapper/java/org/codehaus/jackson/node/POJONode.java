@@ -7,36 +7,69 @@ import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Value node that contains a wrapped POJO, to be serialized as
- * a Json constructed through data mapping (usually done by
+ * a JSON constructed through data mapping (usually done by
  * calling {@link org.codehaus.jackson.map.ObjectMapper}).
  */
 public final class POJONode
     extends ValueNode
 {
-    final Object _value;
+    protected final Object _value;
 
     public POJONode(Object v) { _value = v; }
 
     /*
-    ////////////////////////////////////////////////////
-    // Base class overrides
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Base class overrides
+    /**********************************************************
      */
-
-    @Override
-    public String getValueAsText() {
-        return null;
-    }
 
     @Override public JsonToken asToken() { return JsonToken.VALUE_EMBEDDED_OBJECT; }
 
     @Override
     public boolean isPojo() { return true; }
 
+    /* 
+    /**********************************************************
+    /* General type coercions
+    /**********************************************************
+     */
+
+    @Override
+    public String getValueAsText() {
+        return (_value == null) ? "null" : _value.toString();
+    }
+    
+    @Override
+    public int getValueAsInt(int defaultValue)
+    {
+        if (_value instanceof Number) {
+            return ((Number) _value).intValue();
+        }
+        return defaultValue;
+    }
+
+    @Override
+    public long getValueAsLong(long defaultValue)
+    {
+        if (_value instanceof Number) {
+            return ((Number) _value).longValue();
+        }
+        return defaultValue;
+    }
+    
+    @Override
+    public double getValueAsDouble(double defaultValue)
+    {
+        if (_value instanceof Number) {
+            return ((Number) _value).doubleValue();
+        }
+        return defaultValue;
+    }
+    
     /*
-    ////////////////////////////////////////////////////
-    // Public API, serialization
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, serialization
+    /**********************************************************
      */
 
     @Override
@@ -51,9 +84,9 @@ public final class POJONode
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Extended API
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
      */
 
     /**
@@ -62,9 +95,9 @@ public final class POJONode
     public Object getPojo() { return _value; }
 
     /*
-    ////////////////////////////////////////////////////
-    // Standard methods
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Overridden standard methods
+    /**********************************************************
      */
 
     @Override
@@ -83,7 +116,7 @@ public final class POJONode
     }
 
     @Override
-        public int hashCode() { return _value.hashCode(); }
+    public int hashCode() { return _value.hashCode(); }
 
     @Override
     public String toString()

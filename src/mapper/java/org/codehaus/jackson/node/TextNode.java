@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.io.NumberInput;
 import org.codehaus.jackson.util.ByteArrayBuilder;
 import org.codehaus.jackson.util.CharTypes;
 
@@ -52,17 +53,6 @@ public final class TextNode
     @Override
     public String getTextValue() {
         return _value;
-    }
-
-    @Override
-	public String getValueAsText() {
-        return _value;
-    }
-
-    @Override
-    public byte[] getBinaryValue() throws IOException
-    {
-        return getBinaryValue(Base64Variants.getDefaultVariant());
     }
 
     /**
@@ -152,6 +142,46 @@ public final class TextNode
     }
 
     @Override
+    public byte[] getBinaryValue() throws IOException
+    {
+        return getBinaryValue(Base64Variants.getDefaultVariant());
+    }
+    
+    /* 
+    /**********************************************************
+    /* General type coercions
+    /**********************************************************
+     */
+
+    @Override
+    public String getValueAsText() {
+        return _value;
+    }
+
+    // note: neither fast nor elegant, but these work for now:
+    
+    @Override
+    public int getValueAsInt(int defaultValue) {
+        return NumberInput.parseAsInt(_value, defaultValue);
+    }
+
+    @Override
+    public long getValueAsLong(long defaultValue) {
+        return NumberInput.parseAsLong(_value, defaultValue);
+    }
+    
+    @Override
+    public double getValueAsDouble(double defaultValue) {
+        return NumberInput.parseAsDouble(_value, defaultValue);
+    }
+    
+    /* 
+    /**********************************************************
+    /* Serialization
+    /**********************************************************
+     */
+    
+    @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
         throws IOException, JsonProcessingException
     {
@@ -162,6 +192,12 @@ public final class TextNode
         }
     }
 
+    /*
+    /**********************************************************
+    /* Overridden standard methods
+    /**********************************************************
+     */
+    
     @Override
     public boolean equals(Object o)
     {
@@ -172,9 +208,9 @@ public final class TextNode
         }
         return ((TextNode) o)._value.equals(_value);
     }
-
+    
     @Override
-        public int hashCode() { return _value.hashCode(); }
+    public int hashCode() { return _value.hashCode(); }
 
     /**
      * Different from other values, Strings need quoting
@@ -197,9 +233,9 @@ public final class TextNode
     }
 
     /*
-    //////////////////////////////////////////////////////////////
-    // Helper methods
-    //////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
      */
     
     protected void _reportInvalidBase64(Base64Variant b64variant, char ch, int bindex)
