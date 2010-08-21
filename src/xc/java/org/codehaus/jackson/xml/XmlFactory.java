@@ -181,6 +181,20 @@ public class XmlFactory extends JsonFactory
     public final boolean isEnabled(ToXmlGenerator.Feature f) {
         return (_xmlGeneratorFeatures & f.getMask()) != 0;
     }
+
+    /*
+    /**********************************************************
+    /* Additional configuration
+    /**********************************************************
+     */
+
+    public void setXMLInputFactory(XMLInputFactory f) {
+        _xmlInputFactory = f;
+    }
+
+    public void setXMLOutputFactory(XMLOutputFactory f) {
+        _xmlOutputFactory = f;
+    }
     
     /*
     /**********************************************************
