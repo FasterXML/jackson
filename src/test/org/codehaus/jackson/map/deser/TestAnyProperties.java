@@ -119,10 +119,11 @@ public class TestAnyProperties
     // [JACKSON-313]
     public void testIgnored() throws Exception
     {
-        Ignored bean = new ObjectMapper().readValue("{\"name\":\"bob\", \"bogus\":\"abc\", \"dummy\" : 13 }",
+        Ignored bean = new ObjectMapper().readValue("{\"name\":\"Bob\", \"bogus\": [ 1, 2, 3], \"dummy\" : 13 }",
                 Ignored.class);
         assertNull(bean.map.get("dummy"));
         assertNull(bean.map.get("bogus"));
         assertEquals("Bob", bean.map.get("name"));
+        assertEquals(1, bean.map.size());
     }
 }

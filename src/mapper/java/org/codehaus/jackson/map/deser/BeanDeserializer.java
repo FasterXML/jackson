@@ -389,10 +389,17 @@ public class BeanDeserializer
                 prop.deserializeAndSet(jp, ctxt, bean);
                 continue;
             }
+            /* As per [JACKSON-313], things marked as ignorable should not be
+             * passed to any setter
+             */
+            if (_ignorableProps != null && _ignorableProps.contains(propName)) {
+                jp.skipChildren();
+                continue;
+            }
             if (_anySetter != null) {
                 _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
                 continue;
-                }
+            }
             // Unknown: let's call handler method
             handleUnknownProperty(jp, ctxt, bean, propName);
         }
@@ -479,9 +486,13 @@ public class BeanDeserializer
                 prop.deserializeAndSet(jp, ctxt, bean);
                 continue;
             }
-            /* 08-Nov-2009, tatus: Should we first check ignorable properties,
-             *    and skip? For now, we'll just call any setter.
+            /* As per [JACKSON-313], things marked as ignorable should not be
+             * passed to any setter
              */
+            if (_ignorableProps != null && _ignorableProps.contains(propName)) {
+                jp.skipChildren();
+                continue;
+            }
             if (_anySetter != null) {
                 _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
                 continue;
@@ -579,6 +590,13 @@ public class BeanDeserializer
                 buffer.bufferProperty(prop, prop.deserialize(jp, ctxt));
                 continue;
             }
+            /* As per [JACKSON-313], things marked as ignorable should not be
+             * passed to any setter
+             */
+            if (_ignorableProps != null && _ignorableProps.contains(propName)) {
+                jp.skipChildren();
+                continue;
+            }
             // "any property"?
             if (_anySetter != null) {
                 buffer.bufferAnyProperty(_anySetter, propName, _anySetter.deserialize(jp, ctxt));
@@ -619,6 +637,10 @@ public class BeanDeserializer
     protected void handleUnknownProperty(JsonParser jp, DeserializationContext ctxt, Object beanOrClass, String propName)
         throws IOException, JsonProcessingException
     {
+        /* 22-Aug-2010, tatu: Caller now mostly checks for ignorable properties, so
+         *    following should not be necessary. However, "handleUnknownProperties()" seems
+         *    to still possibly need it so it is left for now.
+         */
         // If registered as ignorable, skip
         if (_ignoreAllUnknown ||
             (_ignorableProps != null && _ignorableProps.contains(propName))) {

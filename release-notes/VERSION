@@ -16,6 +16,7 @@ Description:
   * [JACKSON-303] JAXB annotation @XmlAccessorType(XmlAccessType.NONE) seems
     to not work correctly during deserialisation process
     (reported by David M)
+  * [JACKSON-313] Ignorable properties should not be passed to any-setter.
   * [JACKSON-336] Generics handling: Map type not handled if intermediate types
     with just one generic parameter
 
