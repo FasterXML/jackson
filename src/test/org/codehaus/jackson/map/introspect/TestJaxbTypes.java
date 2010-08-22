@@ -45,6 +45,12 @@ public class TestJaxbTypes
         public void setA(int a) { this.a = a; }
         public void setB(String b) { this.b = b; }
     }
+
+    // for [JACKSON-348
+    static class ShortListHolder {
+         @XmlElement(name="id", type=Short.class)
+         public List<Short> ids;
+    }
     
     /*
     **************************************************************
@@ -76,4 +82,16 @@ public class TestJaxbTypes
         mapper.getSerializationConfig().setAnnotationIntrospector(intr);
         return mapper;
     }
+
+     // [JACKSON-348]
+     public void testShortList() throws Exception
+     {
+         ShortListHolder holder = getJaxbMapper().readValue("{\"id\":[1,2,3]}",
+                 ShortListHolder.class);
+         assertNotNull(holder.ids);
+         assertEquals(3, holder.ids.size());
+         assertSame(Short.valueOf((short)1), holder.ids.get(0));
+         assertSame(Short.valueOf((short)2), holder.ids.get(1));
+         assertSame(Short.valueOf((short)3), holder.ids.get(2));
+     }
 }

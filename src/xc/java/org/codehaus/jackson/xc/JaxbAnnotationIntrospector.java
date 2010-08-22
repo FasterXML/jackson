@@ -16,10 +16,8 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
+import java.util.Collection;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -508,10 +506,22 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
          * only be attached to fields and methods
          */
         XmlElement annotation = findAnnotation(XmlElement.class, am, false, false, false);
-        if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
-            return annotation.type();
-        }
-        return null;
+        if (annotation == null || annotation.type() == XmlElement.DEFAULT.class) {
+            return null;
+	}
+	if( Collection.class.isAssignableFrom( am.getType() ) ) {
+            if( am instanceof AnnotatedField ) {
+                AnnotatedField af = (AnnotatedField) am;
+                final Type genericType = af.getGenericType();
+                if( genericType instanceof ParameterizedType ) {
+                    ParameterizedType parameterizedType = (ParameterizedType) genericType;
+                    if( parameterizedType.getActualTypeArguments()[ 0 ].equals( annotation.type() ) ) {
+                        return null;
+                    }
+                }
+            }
+         }
+ return annotation.type();
     }
 
     public Class<?> findDeserializationKeyType(Annotated am)

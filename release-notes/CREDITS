@@ -280,3 +280,7 @@ Gennadiy Shafranovich:
 Martin Tomko:
   * Reported [JACKSON-266] Deserialization from JsonNode fails
    [1.4.4]
+
+Hannes Schmidt:
+  * Reported [JACKSON-348], suggested fix for: Handling of @XmlElement.type
+    wrong for Collection types.

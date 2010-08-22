@@ -1,7 +1,7 @@
 Version: 1.4.6
 
 Release date:
-  xx-xxx-2010
+  22-Aug-2010
 
 Description:
   Sixth patch release for 1.4.
@@ -9,6 +9,8 @@ Description:
   Fixes:
 
   * [JACKSON-227] Earlier fixes were incomplete; still more work done
+  * [JACKSON-348] Handling of @XmlElementType wrong for collection types
+   (reported and fix for 1.4.6 suggested by Hannes S)
 
 ------------------------------------------------------------------------
 == History: ==
