@@ -13,9 +13,9 @@ public class TestAnyProperties
     extends BaseMapTest
 {
     /*
-    /*********************************************
+    /**********************************************************
     /* Annotated helper classes
-    /*********************************************
+    /**********************************************************
      */
 
     static class MapImitator
@@ -56,15 +56,30 @@ public class TestAnyProperties
     static class Broken
     {
         @JsonAnySetter
-            void addEntry1(String key, Object value) { }
+        void addEntry1(String key, Object value) { }
         @JsonAnySetter
-            void addEntry2(String key, Object value) { }
+        void addEntry2(String key, Object value) { }
     }
 
+    @JsonIgnoreProperties("dummy")
+    static class Ignored
+    {
+        HashMap<String,Object> map = new HashMap<String,Object>();
+ 
+        @JsonIgnore
+        public String bogus;
+        
+        @JsonAnySetter
+        void addEntry(String key, Object value)
+        {
+            map.put(key, value);
+        }        
+    }
+    
     /*
-    /*********************************************
+    /**********************************************************
     /* Test methods
-    /*********************************************
+    /**********************************************************
      */
 
     public void testSimpleMapImitation() throws Exception
@@ -94,10 +109,20 @@ public class TestAnyProperties
         ObjectMapper m = new ObjectMapper();
         try {
             @SuppressWarnings("unused")
-			Broken b = m.readValue("{ \"a\" : 3 }", Broken.class);
+            Broken b = m.readValue("{ \"a\" : 3 }", Broken.class);
             fail("Should have gotten an exception");
         } catch (JsonMappingException e) {
             verifyException(e, "Multiple methods with 'any-setter'");
         }
+    }
+
+    // [JACKSON-313]
+    public void testIgnored() throws Exception
+    {
+        Ignored bean = new ObjectMapper().readValue("{\"name\":\"bob\", \"bogus\":\"abc\", \"dummy\" : 13 }",
+                Ignored.class);
+        assertNull(bean.map.get("dummy"));
+        assertNull(bean.map.get("bogus"));
+        assertEquals("Bob", bean.map.get("name"));
     }
 }
