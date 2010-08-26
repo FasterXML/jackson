@@ -13,7 +13,7 @@ import org.codehaus.jackson.map.*;
 public abstract class StdKeyDeserializer
     extends KeyDeserializer
 {
-    final Class<?> _keyClass;
+    final protected Class<?> _keyClass;
 
     protected StdKeyDeserializer(Class<?> cls) { _keyClass = cls; }
 
@@ -40,9 +40,9 @@ public abstract class StdKeyDeserializer
     protected abstract Object _parse(String key, DeserializationContext ctxt) throws Exception;
 
     /*
-    ////////////////////////////////////////////////////////////////////////
-    // Helper methods for sub-classes
-    ////////////////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods for sub-classes
+    /**********************************************************
      */
 
     protected int _parseInt(String key) throws IllegalArgumentException
@@ -61,9 +61,9 @@ public abstract class StdKeyDeserializer
     }
 
     /*
-    ////////////////////////////////////////////////////////////////////////
-    // Key deserializer implementations; wrappers
-    ////////////////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Key deserializer implementations; wrappers
+    /**********************************************************
      */
 
     final static class BoolKD extends StdKeyDeserializer
@@ -147,7 +147,7 @@ public abstract class StdKeyDeserializer
         LongKD() { super(Long.class); }
 
         @Override
-		public Long _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        public Long _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             return _parseLong(key);
         }
@@ -158,7 +158,7 @@ public abstract class StdKeyDeserializer
         DoubleKD() { super(Double.class); }
 
         @Override
-		public Double _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        public Double _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             return _parseDouble(key);
         }
@@ -169,7 +169,7 @@ public abstract class StdKeyDeserializer
         FloatKD() { super(Float.class); }
 
         @Override
-		public Float _parse(String key, DeserializationContext ctxt) throws JsonMappingException
+        public Float _parse(String key, DeserializationContext ctxt) throws JsonMappingException
         {
             /* 22-Jan-2009, tatu: Bounds/range checks would be tricky
              *   here, so let's not bother even trying...
@@ -179,9 +179,9 @@ public abstract class StdKeyDeserializer
     }
 
     /*
-    ////////////////////////////////////////////////////////////////////////
-    // Key deserializer implementations; other
-    ////////////////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Key deserializer implementations; other
+    /**********************************************************
      */
 
     final static class EnumKD extends StdKeyDeserializer

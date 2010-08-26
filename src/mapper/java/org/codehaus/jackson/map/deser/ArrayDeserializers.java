@@ -293,7 +293,7 @@ public class ArrayDeserializers
             int ix = 0;
 
             while (jp.nextToken() != JsonToken.END_ARRAY) {
-                short value = _parseShort(jp, ctxt);
+                short value = _parseShortPrimitive(jp, ctxt);
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;
@@ -322,7 +322,7 @@ public class ArrayDeserializers
 
             while (jp.nextToken() != JsonToken.END_ARRAY) {
                 // whether we should allow truncating conversions?
-                int value = _parseInt(jp, ctxt);
+                int value = _parseIntPrimitive(jp, ctxt);
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;
@@ -350,7 +350,7 @@ public class ArrayDeserializers
             int ix = 0;
 
             while (jp.nextToken() != JsonToken.END_ARRAY) {
-                long value = _parseLong(jp, ctxt);
+                long value = _parseLongPrimitive(jp, ctxt);
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;
@@ -379,7 +379,7 @@ public class ArrayDeserializers
 
             while (jp.nextToken() != JsonToken.END_ARRAY) {
                 // whether we should allow truncating conversions?
-                float value = _parseFloat(jp, ctxt);
+                float value = _parseFloatPrimitive(jp, ctxt);
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;
@@ -407,7 +407,7 @@ public class ArrayDeserializers
             int ix = 0;
 
             while (jp.nextToken() != JsonToken.END_ARRAY) {
-                double value = _parseDouble(jp, ctxt);
+                double value = _parseDoublePrimitive(jp, ctxt);
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;

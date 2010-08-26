@@ -1,5 +1,8 @@
 package org.codehaus.jackson.map.deser;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 import org.codehaus.jackson.map.*;
 
 /**
@@ -23,5 +26,17 @@ public class TestNumbers
 
         result = m.readValue(" \""+Double.NEGATIVE_INFINITY+"\"", Double.class);
         assertEquals(Double.valueOf(Double.NEGATIVE_INFINITY), result);
+    }
+
+    // [JACKSON-349]
+    public void testEmptyAsNumber() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        assertNull(m.readValue(quote(""), Integer.class));
+        assertNull(m.readValue(quote(""), Long.class));
+        assertNull(m.readValue(quote(""), Float.class));
+        assertNull(m.readValue(quote(""), Double.class));
+        assertNull(m.readValue(quote(""), BigInteger.class));
+        assertNull(m.readValue(quote(""), BigDecimal.class));
     }
 }
