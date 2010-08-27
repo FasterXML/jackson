@@ -26,7 +26,6 @@ import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
-import org.codehaus.jackson.map.ser.BeanPropertyWriter;
 import org.codehaus.jackson.type.JavaType;
 
 /**

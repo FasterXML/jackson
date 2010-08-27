@@ -284,41 +284,59 @@ public class SmileParser
 
         switch ((ch >> 5) & 0x7) {
         case 0: // short shared string value reference
-        case 1: // misc literals
-            switch (ch & 0x1F) {
-            case 0x0: // START_OBJECT
-                _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
-                return (_currToken = JsonToken.START_OBJECT);
-            //case 0x1: // not used
-            case 0x2: // START_ARRAY
-                _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
-                return (_currToken = JsonToken.START_ARRAY);
-            case 0x3: // END_ARRAY
-                if (!_parsingContext.inArray()) {
-                    _reportMismatchedEndMarker(']', '}');
+            if (ch == 0) { // important: this is invalid, don't accept
+                _reportError("Invalid token byte 0x00");
+            }
+            // !!! TODO: implement
+            _reportError("Shared string reference: not yet implemented!");
+
+        case 1: // simple literals, numbers
+            {
+                int typeBits = ch & 0x1F;
+                if (typeBits < 4) {
+                    switch (typeBits) {
+                    case 0x00:
+                        _textBuffer.resetWithEmpty();
+                        return (_currToken = JsonToken.VALUE_STRING);
+                    case 0x01:
+                        return (_currToken = JsonToken.VALUE_NULL);
+                    case 0x02: // false
+                        return (_currToken = JsonToken.VALUE_FALSE);
+                    default: // 0x03 == true
+                        return (_currToken = JsonToken.VALUE_TRUE);
+                    }
                 }
-                _parsingContext = _parsingContext.getParent();
-                return (_currToken = JsonToken.END_ARRAY);
-            case 0x4: // false
-                return (_currToken = JsonToken.VALUE_FALSE);
-            case 0x5: // true
-                return (_currToken = JsonToken.VALUE_TRUE);
-            case 0x6:
-                return (_currToken = JsonToken.VALUE_NULL);
-            case 0x7:
-                _textBuffer.resetWithEmpty();
-                return (_currToken = JsonToken.VALUE_STRING);
-            case 0x1A: // == 0x3A == ':' -> possibly header signature for next chunk?
-            	if (handleSignature(false, false)) {
-            	    /* Ok, now; end-marker and header both imply doc boundary and a
-            	     * 'null token'; but if both are seen, they are collapsed.
-            	     * We can check this by looking at current token; if it's null,
-            	     * need to get non-null token
-            	     */
-            	    if (_currToken == null) {
-            	        return nextToken();
-            	    }
-            	    return (_currToken = null);
+                // next 3 bytes define subtype
+                if (typeBits < 8) { // VInt (zigzag), BigInteger
+                    if ((typeBits & 0x3) <= 0x2) { // 0x3 reserved (should never occur)
+                        _tokenIncomplete = true;
+                        _numTypesValid = 0;
+                        return (_currToken = JsonToken.VALUE_NUMBER_INT);
+                    }
+                    break;
+                }
+                if (typeBits < 12) { // floating-point
+                    int subtype = typeBits & 0x3;
+                    if (subtype <= 0x2) { // 0x3 reserved (should never occur)
+                        _tokenIncomplete = true;
+                        _numTypesValid = 0;
+                        _got32BitFloat = (subtype == 0);
+                        return (_currToken = JsonToken.VALUE_NUMBER_FLOAT);
+                    }
+                    break;
+                }
+                if (typeBits == 0x1A) { // == 0x3A == ':' -> possibly header signature for next chunk?
+                    if (handleSignature(false, false)) {
+                        /* Ok, now; end-marker and header both imply doc boundary and a
+                         * 'null token'; but if both are seen, they are collapsed.
+                         * We can check this by looking at current token; if it's null,
+                         * need to get non-null token
+                         */
+                        if (_currToken == null) {
+                            return nextToken();
+                        }
+                        return (_currToken = null);
+                    }
             	}
             	_reportError("Unrecognized token byte 0x3A (malformed segment header?");
             }
@@ -338,49 +356,39 @@ public class SmileParser
             _numberInt = SmileUtil.zigzagDecode(ch & 0x1F);
             _numTypesValid = NR_INT;
             return (_currToken = JsonToken.VALUE_NUMBER_INT);
-        default: // binary/longtext/var-numbers
-            {
-                int typeBits = ch & 0x1F;
-                // next 3 bytes define subtype
-                switch (typeBits >> 2) {
-                case 0: // long variable length ascii
-                case 1: // long variable length unicode
-                    _tokenIncomplete = true;
-                    return (_currToken = JsonToken.VALUE_STRING);
-                case 2: // binary, raw
-                case 3: // binary, 7-bit
-                    _tokenIncomplete = true;
-                    return (_currToken = JsonToken.VALUE_EMBEDDED_OBJECT);
-                case 4: // VInt (zigzag), BigInteger
-                    if ((typeBits & 0x3) <= 0x2) { // 0x3 reserved (should never occur)
-                        _tokenIncomplete = true;
-                        _numTypesValid = 0;
-                        return (_currToken = JsonToken.VALUE_NUMBER_INT);
-                    }
-                    break;
-                case 5: // floating-point
-                    {
-                    	int subtype = typeBits & 0x3;
-    	                if (subtype <= 0x2) { // 0x3 reserved (should never occur)
-    	                    _tokenIncomplete = true;
-    	                    _numTypesValid = 0;
-    	                    _got32BitFloat = (subtype == 0);
-    	                    return (_currToken = JsonToken.VALUE_NUMBER_FLOAT);
-    	                }
-                    }
-                    break;
-                case 7: // end markers 0xFE (string), 0xFF (document)
-                    if (ch == SmileConstants.BYTE_MARKER_END_OF_CONTENT) {
-                        return (_currToken = null);
-                    }
-                    break;
-                default: // 6 and 7 not used (to reserve 0xF8 - 0xFF)
+        case 7: // binary/longtext/markers
+            switch (ch & 0x1F) {
+            case 0x00: // long variable length Ascii
+            case 0x04: // long variable length unicode
+                _tokenIncomplete = true;
+                return (_currToken = JsonToken.VALUE_STRING);
+            case 0x08: // binary, 7-bit
+                _tokenIncomplete = true;
+                return (_currToken = JsonToken.VALUE_EMBEDDED_OBJECT);
+            case 0x18: // START_ARRAY
+                _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
+                return (_currToken = JsonToken.START_ARRAY);
+            case 0x19: // END_ARRAY
+                if (!_parsingContext.inArray()) {
+                    _reportMismatchedEndMarker(']', '}');
                 }
+                _parsingContext = _parsingContext.getParent();
+                return (_currToken = JsonToken.END_ARRAY);
+            case 0x1A: // START_OBJECT
+                _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
+                return (_currToken = JsonToken.START_OBJECT);
+            case 0x1B: // not used in this mode; would be END_OBJECT
+                _reportError("Invalid type marker byte 0xFB in value mode (would be END_OBJECT in key mode)");
+            case 0x1D: // binary, raw
+                _tokenIncomplete = true;
+                return (_currToken = JsonToken.VALUE_EMBEDDED_OBJECT);
+            case 0x1F: // 0xFF, end of content
+                return (_currToken = null);
             }
             break;
         }
         // If we get this far, type byte is corrupt
-        _reportError("Invalid type marker byte 0x"+Integer.toHexString(ch)+" for expected value token");
+        _reportError("Invalid type marker byte 0x"+Integer.toHexString(ch & 0xFF)+" for expected value token");
         return null;
     }
     
@@ -551,6 +559,9 @@ public class SmileParser
         switch ((ch >> 6) & 3) {
         case 0: // misc, including end marker
             switch (ch) {
+            case 0x20: // empty String as name, legal if unusual
+                _parsingContext.setCurrentName("");
+                return JsonToken.FIELD_NAME;
             case 0x30: // long shared
             case 0x31:
             case 0x32:
@@ -569,16 +580,6 @@ public class SmileParser
             case 0x34: // long ascii/unicode name
                 if (true) _throwInternal();
                 return JsonToken.FIELD_NAME;            	
-            case 0x35: // empty String as name, legal if unusual
-                _parsingContext.setCurrentName("");
-                return JsonToken.FIELD_NAME;
-            case 0x36:
-                if (!_parsingContext.inObject()) {
-                    _reportMismatchedEndMarker('}', ']');
-                }
-                _parsingContext = _parsingContext.getParent();
-                return JsonToken.END_OBJECT;
-
             }
             break;
         case 1: // short shared, can fully process
@@ -615,8 +616,16 @@ public class SmileParser
             // all valid, except for 0xFF
             {
                 int len = (ch & 0x3F);
-                if (len != 0x3f) { // 0x3F would be 0xFF, not valid
-                    len += 2; // values from 2 to 64...
+                if (len > 0x37) {
+                    if (len == 0x3B) {
+                        if (!_parsingContext.inObject()) {
+                            _reportMismatchedEndMarker('}', ']');
+                        }
+                        _parsingContext = _parsingContext.getParent();
+                        return JsonToken.END_OBJECT;
+                    }
+                } else {
+                    len += 2; // values from 2 to 57...
                     String name;
                     Name n = _findDecodedFromSymbols(len);
                     if (n != null) {
@@ -747,7 +756,7 @@ public class SmileParser
 
     /**
      * Helper method for trying to find specified encoded UTF-8 byte sequence
-     * from symbol table; if succesfull avoids actual decoding to String
+     * from symbol table; if successful avoids actual decoding to String
      */
     private final Name _findDecodedFromSymbols(int len)
     	throws IOException, JsonParseException
@@ -873,9 +882,39 @@ public class SmileParser
     	int tb = _typeByte;
 
         switch ((tb >> 5) & 0x7) {
-        case 2: // tiny ascii
+        case 1: // simple literals, numbers
+            tb &= 0x1F;
+            switch (tb >> 2) {
+            case 1: // VInt (zigzag) or BigDecimal
+                int subtype = tb & 0x03;
+                if (subtype == 0) { // (v)int
+                    _finishInt();
+                } else if (subtype == 1) { // (v)long
+                    _finishLong();
+                } else if (subtype == 2) {
+                    _finishBigInteger();
+                } else {
+                    _throwInternal();
+                }
+                return;
+            case 2: // other numbers
+                switch (tb & 0x03) {
+                case 0: // float
+                    _finishFloat();
+                    return;
+                case 1: // double
+                    _finishDouble();
+                    return;
+                case 2: // big-decimal
+                    _finishBigDecimal();
+                    return;
+                }
+                break;
+            }
+            break;
+        case 2: // tiny Ascii
             // fall through
-        case 3: // short ascii
+        case 3: // short Ascii
             _decodeShortAsciiValue(1 + (tb & 0x3F));
             return;
 
@@ -889,43 +928,18 @@ public class SmileParser
             tb &= 0x1F;
             // next 3 bytes define subtype
             switch (tb >> 2) {
-            case 0: // long variable length ascii
+            case 0: // long variable length Ascii
             	_decodeLongAscii();
             	return;
             case 1: // long variable length unicode
             	_decodeLongUnicode();
             	return;
-            case 2: // binary, raw
-                _finishRawBinary();
-                return;
-            case 3: // binary, 7-bit
+            case 2: // binary, 7-bit
                 _binaryValue = _read7BitBinaryWithLength();
                 return;
-            case 4: // VInt (zigzag) or BigDecimal
-            	int subtype = tb & 0x03;
-            	if (subtype == 0) { // (v)int
-            	    _finishInt();
-            	} else if (subtype == 1) { // (v)long
-            	    _finishLong();
-            	} else if (subtype == 2) {
-                    _finishBigInteger();
-            	} else {
-                    _throwInternal();
-            	}
-            	return;
-            case 5: // other numbers
-            	switch (tb & 0x03) {
-            	case 0: // float
-            	    _finishFloat();
-            	    return;
-            	case 1: // double
-            	    _finishDouble();
-            	    return;
-            	case 2: // big-decimal
-            	    _finishBigDecimal();
-            	    return;
-            	}
-            	break;
+            case 7: // binary, raw
+                _finishRawBinary();
+                return;
             }
         }
     	_throwInternal();
@@ -1359,6 +1373,51 @@ public class SmileParser
     	_tokenIncomplete = false;
     	int tb = _typeByte;
         switch ((tb >> 5) & 0x7) {
+        case 1: // simple literals, numbers
+            tb &= 0x1F;
+            // next 3 bytes define subtype
+            switch (tb >> 2) {
+            case 1: // VInt (zigzag)
+                // easy, just skip until we see sign bit... (should we try to limit damage?)
+                switch (tb & 0x3) {
+                case 1: // vlong
+                        _skipBytes(4); // min 5 bytes
+                        // fall through
+                case 0: // vint
+                    while (true) {
+                        final int end = _inputEnd;
+                        final byte[] buf = _inputBuffer;
+                        while (_inputPtr < end) {
+                                if (buf[_inputPtr++] < 0) {
+                                        return;
+                                }
+                        }
+                        loadMoreGuaranteed();                           
+                    }
+                case 2: // big-int
+                    // just has binary data
+                    _skip7BitBinary();
+                    return;
+                }
+                break;
+            case 2: // other numbers
+                switch (tb & 0x3) {
+                case 0: // float
+                    _skipBytes(5);
+                    return;
+                case 1: // double
+                    _skipBytes(10);
+                    return;
+                case 2: // big-decimal
+                    // first, skip scale
+                    _readUnsignedVInt();
+                    // then length-prefixed binary serialization
+                    _skip7BitBinary();
+                    return;
+                }
+                break;
+            }
+            break;
         case 2: // tiny ascii
             // fall through
         case 3: // short ascii
@@ -1373,7 +1432,7 @@ public class SmileParser
             tb &= 0x1F;
             // next 3 bytes define subtype
             switch (tb >> 2) {
-            case 0: // long variable length ascii
+            case 0: // long variable length Ascii
             case 1: // long variable length unicode
             	/* Doesn't matter which one, just need to find the end marker
             	 * (note: can potentially skip invalid UTF-8 too)
@@ -1389,51 +1448,12 @@ public class SmileParser
             	    loadMoreGuaranteed();
             	}
             	// never gets here
-            case 2: // binary, raw
-                _skipBytes(_readUnsignedVInt());
-                return;
-            case 3: // binary, 7-bit
+            case 2: // binary, 7-bit
                 _skip7BitBinary();
                 return;
-            case 4: // VInt (zigzag)
-            	// easy, just skip until we see sign bit... (should we try to limit damage?)
-            	switch (tb & 0x3) {
-            	case 1: // vlong
-            		_skipBytes(4); // min 5 bytes
-            		// fall through
-            	case 0: // vint
-	            while (true) {
-	                final int end = _inputEnd;
-	            	final byte[] buf = _inputBuffer;
-	            	while (_inputPtr < end) {
-	            		if (buf[_inputPtr++] < 0) {
-	            			return;
-	            		}
-	            	}
-	            	loadMoreGuaranteed();            		
-	            }
-            	case 2: // big-int
-            	    // just has binary data
-                    _skip7BitBinary();
-                    return;
-            	}
-            	break;
-            case 5: // other numbers
-                switch (tb & 0x3) {
-                case 0: // float
-            	    _skipBytes(5);
-            	    return;
-            	case 1: // double
-            	    _skipBytes(10);
-            	    return;
-        	case 2: // big-decimal
-            	    // first, skip scale
-            	    _readUnsignedVInt();
-            	    // then length-prefixed binary serialization
-                    _skip7BitBinary();
-                    return;
-           	}
-            	break;
+            case 7: // binary, raw
+                _skipBytes(_readUnsignedVInt());
+                return;
             }
         }
     	_throwInternal();

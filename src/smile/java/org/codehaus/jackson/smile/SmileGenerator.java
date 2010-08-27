@@ -138,26 +138,16 @@ public class SmileGenerator
      */
     private final static int MIN_BUFFER_LENGTH = (3 * 256) + 2;
 
-    protected final static byte TOKEN_BYTE_LONG_STRING_ASCII =
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_LONG_TEXT_ASCII);
-    protected final static byte TOKEN_BYTE_LONG_STRING_UNICODE =
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_LONG_TEXT_UNICODE);
+    protected final static byte TOKEN_BYTE_LONG_STRING_ASCII = (byte) TOKEN_MISC_LONG_TEXT_ASCII;
+    protected final static byte TOKEN_BYTE_LONG_STRING_UNICODE = (byte) TOKEN_MISC_LONG_TEXT_UNICODE;
 
-    protected final static byte TOKEN_BYTE_INT_32 = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_32);
+    protected final static byte TOKEN_BYTE_INT_32 =  (byte) (TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_32);
+    protected final static byte TOKEN_BYTE_INT_64 =  (byte) (TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_64);
+    protected final static byte TOKEN_BYTE_BIG_INTEGER =  (byte) (TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_BIG);
 
-    protected final static byte TOKEN_BYTE_INT_64 = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_64);
-    protected final static byte TOKEN_BYTE_BIG_INTEGER = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_INTEGER | TOKEN_MISC_INTEGER_BIG);
-
-    protected final static byte TOKEN_BYTE_FLOAT_32 = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FP | TOKEN_MISC_FLOAT_32);
-    protected final static byte TOKEN_BYTE_FLOAT_64 = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FP | TOKEN_MISC_FLOAT_64);
-
-    protected final static byte TOKEN_BYTE_BIG_DECIMAL = 
-        (byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_FP | TOKEN_MISC_FLOAT_BIG);
+    protected final static byte TOKEN_BYTE_FLOAT_32 =  (byte) (TOKEN_MISC_FP | TOKEN_MISC_FLOAT_32);
+    protected final static byte TOKEN_BYTE_FLOAT_64 =  (byte) (TOKEN_MISC_FP | TOKEN_MISC_FLOAT_64);
+    protected final static byte TOKEN_BYTE_BIG_DECIMAL =  (byte) (TOKEN_MISC_FP | TOKEN_MISC_FLOAT_BIG);
     
     protected final static int SURR1_FIRST = 0xD800;
     protected final static int SURR1_LAST = 0xDBFF;
@@ -373,7 +363,7 @@ public class SmileGenerator
                 return;
             }
         }
-        if (len <= MAX_SHORT_STRING_BYTES) { // possibly short strings (not necessarily)
+        if (len <= MAX_SHORT_NAME_ASCII_BYTES) { // possibly short strings (not necessarily)
             // first: ensure we have enough space
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
                 _flushBuffer();
@@ -384,17 +374,25 @@ public class SmileGenerator
             ++_outputTail; // to reserve space for type token
             int byteLen = _shortUTF8Encode(_charBuffer, 0, len);
             byte typeToken;
-            if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
-                if (byteLen == len) { // and all ASCII
+            
+            // Ascii?
+            if (byteLen == len) {
+                if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) { // yes, is short indeed
                     typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
-                } else { // not just ASCII
+                } else { // longer albeit Ascii
+                    typeToken = TOKEN_KEY_LONG_STRING;
+                    // and we will need String end marker byte
+                    _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
+                }
+            } else { // not all ASCII
+                if (byteLen <= MAX_SHORT_NAME_UNICODE_BYTES) { // yes, is short indeed
                     // note: since 2 is smaller allowed length, offset differs from one used for
                     typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 2) + byteLen);
+                } else { // nope, longer non-ASCII Strings
+                    typeToken = TOKEN_KEY_LONG_STRING;
+                    // and we will need String end marker byte
+                    _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
                 }
-            } else { // nope, longer non-ASCII Strings
-                typeToken = TOKEN_KEY_LONG_STRING;
-                // and we will need String end marker byte
-                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
             }
             // and then sneak in type token now that know the details
             _outputBuffer[origOffset] = typeToken;
@@ -453,7 +451,7 @@ public class SmileGenerator
         boolean needEndMarker;
         // ascii?
         if (byteLen == charLen) {
-            if (byteLen <= MAX_SHORT_STRING_BYTES) {
+            if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) {
                 typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
                 needEndMarker = false;
             } else {
@@ -461,7 +459,7 @@ public class SmileGenerator
                 needEndMarker = true;
             }
         } else { // nope, unicode char(s)
-            if (byteLen <= MAX_SHORT_STRING_BYTES) {
+            if (byteLen <= MAX_SHORT_NAME_UNICODE_BYTES) {
                 // note: since 2 is smaller allowed length, offset differs from one used for
                 typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 2) + byteLen);
                 needEndMarker = false;
@@ -520,7 +518,7 @@ public class SmileGenerator
             _writeByte(TOKEN_LITERAL_EMPTY_STRING);
             return;
         }
-        if (len <= MAX_SHORT_STRING_BYTES) { // possibly short strings (not necessarily)
+        if (len <= MAX_SHORT_VALUE_STRING_BYTES) { // possibly short strings (not necessarily)
             // !!! TODO: check for shared Strings
             // first: ensure we have enough space
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
@@ -532,7 +530,7 @@ public class SmileGenerator
             ++_outputTail; // to leave room for type token
             int byteLen = _shortUTF8Encode(_charBuffer, 0, len);
             byte typeToken;
-            if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
+            if (byteLen <= MAX_SHORT_VALUE_STRING_BYTES) { // yes, is short indeed
                 if (byteLen == len) { // and all ASCII
                     typeToken = (byte) ((TOKEN_PREFIX_TINY_ASCII - 1) + byteLen);
                 } else { // not just ASCII
@@ -583,7 +581,7 @@ public class SmileGenerator
             _writeByte(TOKEN_LITERAL_EMPTY_STRING);
             return;
         }
-        if (len <= MAX_SHORT_STRING_BYTES) { // possibly short strings (not necessarily)
+        if (len <= MAX_SHORT_VALUE_STRING_BYTES) { // possibly short strings (not necessarily)
             // !!! TODO: check for shared Strings
             // first: ensure we have enough space
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
@@ -593,7 +591,7 @@ public class SmileGenerator
             ++_outputTail; // to leave room for type token
             int byteLen = _shortUTF8Encode(text, offset, offset+len);
             byte typeToken;
-            if (byteLen <= MAX_SHORT_STRING_BYTES) { // yes, is short indeed
+            if (byteLen <= MAX_SHORT_VALUE_STRING_BYTES) { // yes, is short indeed
                 if (byteLen == len) { // and all ASCII
                     typeToken = (byte) ((TOKEN_PREFIX_TINY_ASCII - 1) + byteLen);
                 } else { // not just ASCII
@@ -685,13 +683,12 @@ public class SmileGenerator
             return;
         }
         _verifyValueWrite("write Binary value");
-        int compType = TOKEN_COMP_TYPE_NONE;
         
         if (this.isEnabled(Feature.ENCODE_BINARY_AS_7BIT)) {
-            _writeByte((byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BINARY_7BIT | compType));
+            _writeByte((byte) TOKEN_MISC_BINARY_7BIT);
             _write7BitBinaryWithLength(data, offset, len);
         } else {
-            _writeByte((byte) (TOKEN_PREFIX_MISC_TYPES | TOKEN_MISC_BINARY_RAW | compType));
+            _writeByte((byte) TOKEN_MISC_BINARY_RAW );
             _writePositiveVInt(len);
             // raw is dead simple of course:
             _writeBytes(data, offset, len);

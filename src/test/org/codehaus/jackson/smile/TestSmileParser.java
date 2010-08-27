@@ -290,4 +290,27 @@ public class TestSmileParser
         assertNull(p.nextToken());
         p.close();
     }
+
+    /**
+     * Simple test to verify that byte 0 is not used (an implementation
+     * might mistakenly consider it a string value reference)
+     * 
+     * @throws IOException
+     */
+    public void testInvalidByte() throws IOException
+    {
+        byte[] data = new byte[] { SmileConstants.TOKEN_LITERAL_START_ARRAY,
+                (byte) SmileConstants.TOKEN_PREFIX_SHORT_SHARED_STRING,
+                (byte) SmileConstants.TOKEN_LITERAL_END_ARRAY
+        };
+        SmileParser p = _smileParser(data);
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        // And now should get an error
+        try {
+            JsonToken t = p.nextToken();
+            fail("Expected parse error, got: "+t);
+        } catch (IOException e) {
+            verifyException(e, "Invalid token byte 0x00");
+        }
+    }
 }

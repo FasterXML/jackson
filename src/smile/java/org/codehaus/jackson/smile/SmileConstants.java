@@ -14,11 +14,24 @@ public final class SmileConstants
      */
 
     /**
-     * Encoding has special "short" forms for Strings that can
+     * Encoding has special "short" forms for value Strings that can
      * be represented by 64 bytes of UTF-8 or less.
      */
-    public final static int MAX_SHORT_STRING_BYTES = 64;
+    public final static int MAX_SHORT_VALUE_STRING_BYTES = 64;
 
+    /**
+     * Encoding has special "short" forms for field names that can
+     * be represented by 64 bytes of UTF-8 or less.
+     */
+    public final static int MAX_SHORT_NAME_ASCII_BYTES = 64;
+
+    /**
+     * Maximum byte length for short non-Ascii names is slightly
+     * less due to having to reserve bytes 0xF8 and above (but
+     * we get one more as values 0 and 1 are not valid)
+     */
+    public final static int MAX_SHORT_NAME_UNICODE_BYTES = 56;
+    
     /**
      * Longest back reference we use for field names is 10 bits; no point
      * in keeping much more around
@@ -39,7 +52,7 @@ public final class SmileConstants
      * Two extra bytes need to be reserved as well; first for token indicator,
      * and second for terminating null byte (in case it's not a short String after all)
      */
-    public final static int MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING = 1 + (3 * MAX_SHORT_STRING_BYTES);
+    public final static int MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING = 1 + (3 * 64);
 
     /*
     /**********************************************************
@@ -51,15 +64,13 @@ public final class SmileConstants
      * We need a byte marker to denote end of variable-length Strings. Although
      * null byte is commonly used, let's try to avoid using it since it can't
      * be embedded in Web Sockets content (similarly, 0xFF can't). There are
-     * multiple candidates for bytes UTF-8 can not have; 0xFE seems like a
-     * good choice
+     * multiple candidates for bytes UTF-8 can not have; 0xFC is chosen to
+     * allow reasonable ordering (highest values meaning most significant
+     * framing function; 0xFF being end-of-content and so on)
      */
-    public final static byte BYTE_MARKER_END_OF_STRING = (byte) 0xFE;
+    public final static int INT_MARKER_END_OF_STRING = 0xFC;
 
-    /**
-     * Same as {@link #BYTE_MARKER_END_OF_STRING}, except as unsigned int
-     */
-    public final static int INT_MARKER_END_OF_STRING = 0xFE;
+    public final static byte BYTE_MARKER_END_OF_STRING = (byte) INT_MARKER_END_OF_STRING;
     
     /**
      * In addition we can use a marker to allow simple framing; splitting
@@ -145,10 +156,10 @@ public final class SmileConstants
      */
     
     // Shared strings are back references for last 63 short (< 64 byte) string values
-    // NOTE: 0x00 is reserved, not used
+    // NOTE: 0x00 is reserved, not used with current version (may be used in future)
     public final static int TOKEN_PREFIX_SHORT_SHARED_STRING = 0x00;
-    // literals are put between 0x20 and 0x3F to reserve markers (smiley)
-    public final static int TOKEN_PREFIX_LITERAL = 0x20;
+    // literals are put between 0x20 and 0x3F to reserve markers (smiley), along with ints/doubles
+    //public final static int TOKEN_PREFIX_MISC_NUMBERS = 0x20;
 
     public final static int TOKEN_PREFIX_TINY_ASCII = 0x40;
     public final static int TOKEN_PREFIX_SMALL_ASCII = 0x60;
@@ -159,7 +170,7 @@ public final class SmileConstants
     public final static int TOKEN_PREFIX_SMALL_INT = 0xC0;
 
     // And misc types have empty at the end too, to reserve 0xF8 - 0xFF
-    public final static int TOKEN_PREFIX_MISC_TYPES = 0xE0;
+    public final static int TOKEN_PREFIX_MISC_OTHER = 0xE0;
 
     /*
     /**********************************************************
@@ -167,72 +178,73 @@ public final class SmileConstants
     /**********************************************************
      */
     
-    public final static byte TOKEN_LITERAL_START_OBJECT = 0x20;
-    // NOTE: NO END_OBJECT in normal mode since it can only occur instead of field name.
-    // Slot reserved however.
-    public final static byte TOKEN_LITERAL_START_ARRAY = 0x22;
-    public final static byte TOKEN_LITERAL_END_ARRAY = 0x23;
-    public final static byte TOKEN_LITERAL_FALSE = 0x24;
-    public final static byte TOKEN_LITERAL_TRUE = 0x25;
-    public final static byte TOKEN_LITERAL_NULL = 0x26;
-    public final static byte TOKEN_LITERAL_EMPTY_STRING = 0x27;
+    // First, non-structured literals
 
-    // and "real" END_OBJECT is chosen not to overlap, on purpose
-    public final static byte TOKEN_LITERAL_END_OBJECT = 0x36;
+    public final static byte TOKEN_LITERAL_EMPTY_STRING = 0x20;
+    public final static byte TOKEN_LITERAL_NULL = 0x21;
+    public final static byte TOKEN_LITERAL_FALSE = 0x22;
+    public final static byte TOKEN_LITERAL_TRUE = 0x23;
+
+    // And then structured literals
+    
+    public final static byte TOKEN_LITERAL_START_ARRAY = (byte) 0xF8;
+    public final static byte TOKEN_LITERAL_END_ARRAY = (byte) 0xF9;
+    public final static byte TOKEN_LITERAL_START_OBJECT = (byte) 0xFA;
+    public final static byte TOKEN_LITERAL_END_OBJECT = (byte) 0xFB;
 
     /*
     /**********************************************************
-    /* Subtype constants for "Misc types" -- 3 bit
+    /* Subtype constants for misc text/binary types
     /**********************************************************
      */
     
     /**
      * Type (for misc, other) used for
-     * variable length UTF-8 encoded text, when it is known to only contain ASCII chars
+     * variable length UTF-8 encoded text, when it is known to only contain ASCII chars.
+     * Note: 2 LSB are reserved for future use; must be zeroes for now
      */
-    public final static int TOKEN_MISC_LONG_TEXT_ASCII = 0x00;
+    public final static int TOKEN_MISC_LONG_TEXT_ASCII = 0xE0;
 
     /**
      * Type (for misc, other) used
      * for variable length UTF-8 encoded text, when it is NOT known to only contain ASCII chars
      * (which means it MAY have multi-byte characters)
+     * Note: 2 LSB are reserved for future use; must be zeroes for now
      */
-    public final static int TOKEN_MISC_LONG_TEXT_UNICODE = 0x04;
+    public final static int TOKEN_MISC_LONG_TEXT_UNICODE = 0xE4;
     
-    /**
-     * Type (for misc, other) used
-     * for "raw" (embedded as-is) binary data.
-     */
-    public final static int TOKEN_MISC_BINARY_RAW = 0x08;
-
     /**
      * Type (for misc, other) used
      * for "safe" (encoded by only using 7 LSB, giving 8/7 expansion ratio).
      * This is usually done to ensure that certain bytes are never included
      * in encoded data (like 0xFF)
+     * Note: 2 LSB are reserved for future use; must be zeroes for now
      */
-    public final static int TOKEN_MISC_BINARY_7BIT = 0x0C;
+    public final static int TOKEN_MISC_BINARY_7BIT = 0xE8;
+
+    /**
+     * Raw binary data marker is specifically chosen as separate from
+     * other types, since it can have significant impact on framing
+     * (or rather fast scanning based on structure and framing markers).
+     */
+    public final static int TOKEN_MISC_BINARY_RAW = 0xFD;
+
 
     /**
      * Type (for misc, other) used
      * for regular integral types (byte/short/int/long)
      */
-    public final static int TOKEN_MISC_INTEGER = 0x10;
+    public final static int TOKEN_MISC_INTEGER = 0x24;
 
     /**
      * Type (for misc, other) used 
      * for regular floating-point types (float, double)
      */
-    public final static int TOKEN_MISC_FP = 0x14;
-    
-    /* Note: subtypes with code 0x1C can not be used since
-     * that overlaps with 0xFE and 0xFF; 18 is reserved
-     * to reserve 0xF8 - 0xFB for future expansion.
-     */
+    public final static int TOKEN_MISC_FP = 0x28;
 
     /*
     /**********************************************************
-    /* Modifiers for misc entries
+    /* Modifiers for numeric entries
     /**********************************************************
      */
 
@@ -282,25 +294,20 @@ public final class SmileConstants
     /**********************************************************
      */
 
-    public final static byte TOKEN_KEY_LONG_STRING = 0x34;
-
-    public final static byte TOKEN_KEY_EMPTY_STRING = 0x35;
+    /**
+     * Let's use same code for empty key as for empty String value
+     */
+    public final static byte TOKEN_KEY_EMPTY_STRING = 0x20;
 
     public final static int TOKEN_PREFIX_KEY_SHARED_LONG = 0x30;
     
+    public final static byte TOKEN_KEY_LONG_STRING = 0x34;
+
     public final static int TOKEN_PREFIX_KEY_SHARED_SHORT = 0x40;
     
     public final static int TOKEN_PREFIX_KEY_ASCII = 0x80;
 
     public final static int TOKEN_PREFIX_KEY_UNICODE = 0xC0;
-    /*
-    /**********************************************************
-    /* Compression indicator suffix (2 LSB)
-    /**********************************************************
-     */
-
-    public final static int TOKEN_COMP_TYPE_NONE = 0x00;
-    public final static int TOKEN_COMP_TYPE_LZF = 0x01;
 
     /*
     /**********************************************************

@@ -49,7 +49,7 @@ public class TestWritePerf
     private long testCopy(int reps, int round)
         throws IOException
     {
-        int mode = (round % 6);
+        int mode = (round % 1);
         if (mode == 0) System.out.println();
 
         final JsonFactory factory;
