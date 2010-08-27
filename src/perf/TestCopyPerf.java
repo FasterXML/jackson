@@ -22,7 +22,8 @@ public final class TestCopyPerf
         _jsonFactory = new JsonFactory();
         _smileFactory = new SmileFactory();
         // whether to use back-refs for field names has measurable impact on ser/deser (but different direction):
-        _smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, false);
+	//        _smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, false);
+        _smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
         FileInputStream fis = new FileInputStream(f);
         ObjectMapper mapper = new ObjectMapper();
         JsonParser jp = _jsonFactory.createJsonParser(fis);
