@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 
@@ -40,15 +41,18 @@ public class ClassNameIdResolver
                 Class<?> enumClass = ClassUtil.findEnumType((EnumMap<?,?>) value);
                 Class<?> valueClass = Object.class;
                 str = TypeFactory.mapType(EnumMap.class, enumClass, valueClass).toCanonical();
-            } else if (str.startsWith("java.util.Arrays$")
+            } else {
+                String end = str.substring(9);
+                if ((end.startsWith(".Arrays$") || end.startsWith(".Collections$"))
                        && str.indexOf("List") >= 0) {
-                /* 17-Feb-2010, tatus: Another such case: result of
-                 *    Arrays.asList() is named like so in Sun JDK...
-                 *   Let's just plain old ArrayList in its place
-                 * NOTE: chances are there are plenty of similar cases
-                 * for other wrappers... (immutable, singleton, synced etc)
-                 */
-                str = "java.util.ArrayList";
+                    /* 17-Feb-2010, tatus: Another such case: result of
+                     *    Arrays.asList() is named like so in Sun JDK...
+                     *   Let's just plain old ArrayList in its place
+                     * NOTE: chances are there are plenty of similar cases
+                     * for other wrappers... (immutable, singleton, synced etc)
+                     */
+                    str = "java.util.ArrayList";
+                }
             }
         }
         return str;
@@ -66,7 +70,12 @@ public class ClassNameIdResolver
             return t;
         }
         try {
-            Class<?> cls = Class.forName(id);
+            /* [JACKSON-350]: Default Class.forName() won't work too well; context class loader
+             *    seems like slightly better choice
+             */
+//          Class<?> cls = Class.forName(id);
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            Class<?> cls = Class.forName(id, false, loader);
             return TypeFactory.specialize(_baseType, cls);
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): no such class found");
@@ -74,5 +83,4 @@ public class ClassNameIdResolver
             throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): "+e.getMessage(), e);
         }
     }
-
 }

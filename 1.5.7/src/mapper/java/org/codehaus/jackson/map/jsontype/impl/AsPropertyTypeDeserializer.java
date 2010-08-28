@@ -85,8 +85,17 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
                 "missing property '"+_propertyName+"' that is to contain type id  (for class "+baseTypeName()+")");
     }
 
+    /* As per [JACKSON-352], also need to re-route "unknown" version. Need to think
+     * this through bit more in future, but for now this does address issue and has
+     * no negative side effects (at least within existing unit test suite).
+     */
+    public Object deserializeTypedFromAny(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return deserializeTypedFromObject(jp, ctxt);
+    }    
+    
     // These are fine from base class:
     //public Object deserializeTypedArray(JsonParser jp, DeserializationContext ctxt)
     //public Object deserializeTypedScalar(JsonParser jp, DeserializationContext ctxt)    
-    //public Object deserializeTypedUnknown(JsonParser jp, DeserializationContext ctxt)    
 }

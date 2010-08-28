@@ -1,10 +1,22 @@
-Version: 1.5.6
+Version: 1.5.7
 
 Release date:
-  17-Aug-2010
+  xx-Aug-2010
 
 Description:
-  Sixth patch release for 1.5
+  A patch release for 1.5
+
+  Fixes:
+
+  * [JACKSON-352] Polymorphic deserialization for Object always assumes
+    array-wrapper style
+   (reported by Henry L)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.5.6 [17-Aug-2010]
 
   Fixes:
 
@@ -18,10 +30,6 @@ Description:
    (reported by Yuanchen Z)
   * [JACKSON-341] Issue with static typing, array and subtyping
     (reported by Yuanchen Z)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.5.5 [25-Jul-2010]
 

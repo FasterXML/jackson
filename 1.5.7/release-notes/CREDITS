@@ -341,3 +341,8 @@ Yuanchen Zhu:
    [1.5.6]
   * Reported [JACKSON-340] Meta annotations missing for @JsonTypeResolver
    [1.5.6]
+
+Henry Lai:
+  * Reported [JACSKON-352] Polymorphic deserialization for Object always
+    assumes array-wrapper style
+   [1.5.7]
