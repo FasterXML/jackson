@@ -111,4 +111,71 @@ public class TestSmileParserSymbolHandling
         }
         assertToken(JsonToken.END_ARRAY, jp.nextToken());
     }
+
+    public void testSharedStrings() throws IOException
+    {
+        final int count = 19000;
+        byte[] baseline = writeStringValues(false, count);
+        assertEquals(396119, baseline.length);
+        verifyStringValues(baseline, count);
+        
+        // and then shared; should be much smaller
+        byte[] shared = writeStringValues(true, count);
+        if (shared.length >= baseline.length) {
+            fail("Expected shared String length < "+baseline.length+", was "+shared.length);
+        }
+        verifyStringValues(baseline, count);
+    }
+
+    private byte[] writeStringValues(boolean enableSharing, int COUNT) throws IOException
+    {
+        String MORE_CHARS = "01234567890";
+        MORE_CHARS += MORE_CHARS;
+        MORE_CHARS += MORE_CHARS;
+        MORE_CHARS += MORE_CHARS; // -> 80 characters
+
+        SmileFactory f = new SmileFactory();
+        f.configure(SmileGenerator.Feature.WRITE_HEADER, true);
+        f.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, enableSharing);
+        ByteArrayOutputStream out = new ByteArrayOutputStream(4000);
+        JsonGenerator gen = f.createJsonGenerator(out);
+        gen.writeStartArray();
+        Random rnd = new Random(COUNT);
+        for (int i = 0; i < COUNT; ++i) {
+            int nr = rnd.nextInt() % 1200;
+            // Actually, let's try longer ones too
+            String str = "value"+nr;
+            if (nr > 900) {
+                str += MORE_CHARS;
+            }
+            gen.writeString(str);
+        }
+        gen.writeEndArray();
+        gen.close();
+        return out.toByteArray();
+    }
+
+    private void verifyStringValues(byte[] json, int COUNT) throws IOException
+    {
+        String MORE_CHARS = "01234567890";
+        MORE_CHARS += MORE_CHARS;
+        MORE_CHARS += MORE_CHARS;
+        MORE_CHARS += MORE_CHARS; // -> 80 characters
+        
+        SmileFactory f = new SmileFactory();
+        JsonParser jp = f.createJsonParser(json);
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        Random rnd = new Random(COUNT);
+        for (int i = 0; i < COUNT; ++i) {
+            int nr = rnd.nextInt() % 1200;
+            // Actually, let's try longer ones too
+            String str = "value"+nr;
+            if (nr > 900) {
+                str += MORE_CHARS;
+            }
+            assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+            assertEquals(str, jp.getText());
+        }
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+    }
 }

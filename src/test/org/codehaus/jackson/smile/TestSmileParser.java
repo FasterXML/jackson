@@ -300,7 +300,7 @@ public class TestSmileParser
     public void testInvalidByte() throws IOException
     {
         byte[] data = new byte[] { SmileConstants.TOKEN_LITERAL_START_ARRAY,
-                (byte) SmileConstants.TOKEN_PREFIX_SHORT_SHARED_STRING,
+                (byte) SmileConstants.TOKEN_PREFIX_SHARED_STRING_SHORT,
                 (byte) SmileConstants.TOKEN_LITERAL_END_ARRAY
         };
         SmileParser p = _smileParser(data);

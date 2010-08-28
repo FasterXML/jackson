@@ -228,6 +228,18 @@ public class SmileGenerator
      * detection is enabled
      */
     protected int _seenNameCount;
+
+    /**
+     * Raw data structure used for checking whether String value to
+     * write can be output using back reference or not.
+     */
+    protected SharedStringNode[] _seenTextValues;
+    
+    /**
+     * Number of entries in {@link #_seenTextValues}; -1 if no shared text value
+     * detection is enabled
+     */
+    protected int _seenTextValueCount;
     
     /*
     /**********************************************************
@@ -257,7 +269,15 @@ public class SmileGenerator
             _seenNames = new SharedStringNode[64];
             _seenNameCount = 0;
         }
-    }
+
+        if ((smileFeatures & Feature.CHECK_SHARED_STRING_VALUES.getMask()) == 0) {
+            _seenTextValues = null;
+            _seenTextValueCount = -1;
+        } else {
+            _seenTextValues = new SharedStringNode[64];
+            _seenTextValueCount = 0;
+        }
+}
 
     /**
      * Method that can be called to explicitly write Smile document header.
@@ -518,6 +538,18 @@ public class SmileGenerator
             _writeByte(TOKEN_LITERAL_EMPTY_STRING);
             return;
         }
+        // First: is it something we can share?
+        if (len <= MAX_SHARED_STRING_LENGTH_BYTES && _seenTextValueCount >= 0) {
+            int ix = _findSeenTextValue(text);
+            if (ix >= 0) {
+                if (ix < 31) { // add 1, as byte 0 is omitted
+                    _writeByte((byte) (TOKEN_PREFIX_SHARED_STRING_SHORT + 1 + ix));
+                } else {
+                    _writeBytes(((byte) (TOKEN_MISC_SHARED_STRING_LONG + (ix >> 8))), (byte) ix);
+                }
+                return;
+            }
+        }
         if (len <= MAX_SHORT_VALUE_STRING_BYTES) { // possibly short strings (not necessarily)
             // !!! TODO: check for shared Strings
             // first: ensure we have enough space
@@ -544,6 +576,12 @@ public class SmileGenerator
             }
             // and then sneak in type token now that know the details
             _outputBuffer[origOffset] = typeToken;
+            // plus keep reference, if it could be shared:
+            // Also, remember in case there's need to share some more..
+            if (_seenTextValueCount >= 0 && byteLen <= MAX_SHORT_VALUE_STRING_BYTES) {
+                _addSeenTextValue(text);
+            }
+            
         } else { // "long" String, never shared
             // but might still fit within buffer?
             int maxLen = len + len + len + 2;
@@ -565,7 +603,7 @@ public class SmileGenerator
                     _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_ASCII;
                 }
                 _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
-            } else { // won't fit; can't efficiently rewrite ascii/unicode marker, so:
+            } else { // won't fit; can't efficiently rewrite Ascii/unicode marker, so:
                 _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
                 _slowUTF8Encode(text);
                 _writeByte(BYTE_MARKER_END_OF_STRING);
@@ -576,6 +614,11 @@ public class SmileGenerator
     @Override
     public void writeString(char[] text, int offset, int len) throws IOException, JsonGenerationException
     {
+        // Shared strings are tricky; easiest to just construct String, call the other method
+        if (len <= MAX_SHARED_STRING_LENGTH_BYTES && _seenTextValueCount >= 0 && len > 0) {
+            writeString(new String(text, offset, len));
+            return;
+        }
         _verifyValueWrite("write String value");
         if (len == 0) {
             _writeByte(TOKEN_LITERAL_EMPTY_STRING);
@@ -1585,7 +1628,7 @@ public class SmileGenerator
         }
         return -1;
     }
-
+    
     private final void _addSeenName(String name)
     {
         // first: do we need to expand?
@@ -1610,6 +1653,58 @@ public class SmileGenerator
         int ix = name.hashCode() & (_seenNames.length-1);
         _seenNames[ix] = new SharedStringNode(name, _seenNameCount, _seenNames[ix]);
         ++_seenNameCount;
+    }
+
+    private final int _findSeenTextValue(String text)
+    {
+        int hash = text.hashCode();
+        SharedStringNode head = _seenTextValues[hash & (_seenTextValues.length-1)];
+        if (head != null) {
+            SharedStringNode node = head;
+            // first, identity match; assuming most of the time we get intern()ed String
+            do {
+                if (node.value == text) {
+                    return node.index;
+                }
+                node = node.next;
+            } while (node != null);
+            // and then comparison, if no match yet
+            node = head;
+            do {
+                String value = node.value;
+                if (value.hashCode() == hash && value.equals(text)) {
+                    return node.index;
+                }
+                node = node.next;
+            } while (node != null);
+        }
+        return -1;
+    }
+
+    private final void _addSeenTextValue(String text)
+    {
+        // first: do we need to expand?
+        if (_seenTextValueCount == _seenTextValues.length) {
+            if (_seenTextValueCount == MAX_SHARED_STRING_VALUES) { // we are too full, restart from empty
+                Arrays.fill(_seenTextValues, null);
+                _seenTextValueCount = 0;
+            } else { // we always start with modest default size (like 64), so expand to full
+                SharedStringNode[] old = _seenTextValues;
+                _seenTextValues = new SharedStringNode[MAX_SHARED_STRING_VALUES];
+                final int mask = MAX_SHARED_STRING_VALUES-1;
+                for (SharedStringNode node : old) {
+                    for (; node != null; node = node.next) {
+                        int ix = node.value.hashCode() & mask;
+                        node.next = _seenTextValues[ix];
+                        _seenTextValues[ix] = node;
+                    }
+                }
+            }
+        }
+        // other than that, just slap it there
+        int ix = text.hashCode() & (_seenTextValues.length-1);
+        _seenTextValues[ix] = new SharedStringNode(text, _seenTextValueCount, _seenTextValues[ix]);
+        ++_seenTextValueCount;
     }
     
     /*

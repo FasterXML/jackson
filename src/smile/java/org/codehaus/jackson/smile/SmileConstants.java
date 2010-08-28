@@ -43,6 +43,13 @@ public final class SmileConstants
      * so up to (1 << 10) values to keep track of.
      */
     public final static int MAX_SHARED_STRING_VALUES = 1024;
+
+    /**
+     * Also: whereas we can refer to names of any length, we will only consider
+     * text values less than specified number of bytes when serialized;
+     * this value specifies maximum length of value that can be shared.
+     */
+    public final static int MAX_SHARED_STRING_LENGTH_BYTES = 64;
     
     /**
      * And to make encoding logic tight and simple, we can always
@@ -157,7 +164,7 @@ public final class SmileConstants
     
     // Shared strings are back references for last 63 short (< 64 byte) string values
     // NOTE: 0x00 is reserved, not used with current version (may be used in future)
-    public final static int TOKEN_PREFIX_SHORT_SHARED_STRING = 0x00;
+    public final static int TOKEN_PREFIX_SHARED_STRING_SHORT = 0x00;
     // literals are put between 0x20 and 0x3F to reserve markers (smiley), along with ints/doubles
     //public final static int TOKEN_PREFIX_MISC_NUMBERS = 0x20;
 
@@ -197,6 +204,18 @@ public final class SmileConstants
     /* Subtype constants for misc text/binary types
     /**********************************************************
      */
+
+    /**
+     * Type (for misc, other) used
+     * for regular integral types (byte/short/int/long)
+     */
+    public final static int TOKEN_MISC_INTEGER = 0x24;
+
+    /**
+     * Type (for misc, other) used 
+     * for regular floating-point types (float, double)
+     */
+    public final static int TOKEN_MISC_FP = 0x28;
     
     /**
      * Type (for misc, other) used for
@@ -223,24 +242,19 @@ public final class SmileConstants
     public final static int TOKEN_MISC_BINARY_7BIT = 0xE8;
 
     /**
+     * Type (for misc, other) used for shared String values where index
+     * does not fit in "short" reference range (which is 0 - 30). If so,
+     * 2 LSB from here and full following byte are used to get 10-bit
+     * index. Values 
+     */
+    public final static int TOKEN_MISC_SHARED_STRING_LONG = 0xEC;
+    
+    /**
      * Raw binary data marker is specifically chosen as separate from
      * other types, since it can have significant impact on framing
      * (or rather fast scanning based on structure and framing markers).
      */
     public final static int TOKEN_MISC_BINARY_RAW = 0xFD;
-
-
-    /**
-     * Type (for misc, other) used
-     * for regular integral types (byte/short/int/long)
-     */
-    public final static int TOKEN_MISC_INTEGER = 0x24;
-
-    /**
-     * Type (for misc, other) used 
-     * for regular floating-point types (float, double)
-     */
-    public final static int TOKEN_MISC_FP = 0x28;
 
     /*
     /**********************************************************

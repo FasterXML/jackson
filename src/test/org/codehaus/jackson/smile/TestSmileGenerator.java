@@ -164,10 +164,11 @@ public class TestSmileGenerator
         // first, no sharing, 2 separate Strings
         final String VALUE = "abcde12345";
         byte[] data = writeRepeatedString(false, VALUE);
-        assertEquals(24, data.length);
-        data = writeRepeatedString(false, VALUE);
-        if (data.length >= 24) { // should be less
-            fail("Expected shared String length to be < 24, was "+data.length);
+        int BASE_LEN = 28;
+        assertEquals(BASE_LEN, data.length);
+        data = writeRepeatedString(true, VALUE);
+        if (data.length >= BASE_LEN) { // should be less
+            fail("Expected shared String length to be < "+BASE_LEN+", was "+data.length);
         }
     }
     
@@ -180,7 +181,8 @@ public class TestSmileGenerator
     private byte[] writeRepeatedString(boolean shared, String value) throws Exception
     {
         SmileFactory f = new SmileFactory();
-        f.configure(SmileGenerator.Feature.WRITE_HEADER, false);
+        // need header to enable shared string values
+        f.configure(SmileGenerator.Feature.WRITE_HEADER, true);
         f.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, shared);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SmileGenerator gen = f.createJsonGenerator(out);
