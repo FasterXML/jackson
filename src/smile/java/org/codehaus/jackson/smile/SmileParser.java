@@ -208,10 +208,8 @@ public class SmileParser
         if ((ch & SmileConstants.HEADER_BIT_HAS_SHARED_NAMES) == 0) {
             _sharedNames = null;
         }
-        /*
         if ((ch & SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES) == 0) {
         }
-        */
         _mayContainRawBinary  = ((ch & SmileConstants.HEADER_BIT_HAS_RAW_BINARY) != 0);
         return true;
     }
