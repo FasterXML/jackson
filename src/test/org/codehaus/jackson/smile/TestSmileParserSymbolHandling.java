@@ -1,8 +1,9 @@
 package org.codehaus.jackson.smile;
 
 import java.io.*;
+import java.util.Random;
 
-import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 
 /**
@@ -12,17 +13,15 @@ import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 public class TestSmileParserSymbolHandling
 	extends SmileTestBase
 {
-	public void testSimple() throws IOException
+    public void testSimple() throws IOException
     {
-		final String STR1 = "a";
+        final String STR1 = "a";
 		
     	byte[] data = _smileDoc("{ "+quote(STR1)+":1, \"foobar\":2, \"longername\":3 }");
     	SmileFactory f = new SmileFactory();
     	SmileParser p = _smileParser(f, data);
     	final BytesToNameCanonicalizer symbols1 = p._symbols;
     	assertEquals(0, symbols1.size());
-
-    	
     	
     	assertEquals(JsonToken.START_OBJECT, p.nextToken());
     	assertEquals(JsonToken.FIELD_NAME, p.nextToken());
@@ -71,5 +70,45 @@ public class TestSmileParserSymbolHandling
 
         assertEquals(3, symbols2.size());
     	p.close();
+    }
+
+    public void testSharedNames() throws IOException
+    {
+        final int COUNT = 19000;
+        
+        SmileFactory f = new SmileFactory();
+        f.configure(SmileGenerator.Feature.WRITE_HEADER, false);
+        f.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
+        ByteArrayOutputStream out = new ByteArrayOutputStream(4000);
+        JsonGenerator gen = f.createJsonGenerator(out);
+        gen.writeStartArray();
+        Random rnd = new Random(COUNT);
+        for (int i = 0; i < COUNT; ++i) {
+            gen.writeStartObject();
+            int nr = rnd.nextInt() % 1200;
+            gen.writeNumberField("f"+nr, nr);
+            gen.writeEndObject();
+        }
+        gen.writeEndArray();
+        gen.close();
+        byte[] json = out.toByteArray();
+
+        // And verify 
+        f.configure(SmileParser.Feature.REQUIRE_HEADER, false);
+        JsonParser jp = f.createJsonParser(json);
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        rnd = new Random(COUNT);
+        for (int i = 0; i < COUNT; ++i) {
+            assertToken(JsonToken.START_OBJECT, jp.nextToken());
+            int nr = rnd.nextInt() % 1200;
+            String name = "f"+nr;
+            assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals(name, jp.getCurrentName());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(nr, jp.getIntValue());
+            assertToken(JsonToken.END_OBJECT, jp.nextToken());
+            
+        }
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
     }
 }

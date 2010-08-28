@@ -652,14 +652,20 @@ public class SmileParser
         return null;
     }
 
-    private final static String[] _expandSharedNames(String[] oldShared)
+    /**
+     * Method called to try to expand shared name area to fit one more potentially
+     * shared String. If area is already at its biggest size, will just clear
+     * the area (by setting next-offset to 0)
+     */
+    private final String[] _expandSharedNames(String[] oldShared)
     {
         int len = oldShared.length;
         String[] newShared;
         if (len == 0) {
-        	newShared = new String[MIN_SHARED_NAMES];
+            newShared = new String[MIN_SHARED_NAMES];
         } else if (len == SmileConstants.MAX_SHARED_NAMES) { // too many? Just flush...
       	   newShared = oldShared;
+      	   _sharedNameCount = 0; // could also clear, but let's not yet bother
         } else {
             int newSize = (len == MIN_SHARED_NAMES) ? 128 : SmileConstants.MAX_SHARED_NAMES;
             newShared = new String[newSize];

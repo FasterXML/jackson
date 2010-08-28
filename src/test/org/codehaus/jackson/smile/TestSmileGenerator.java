@@ -156,10 +156,39 @@ public class TestSmileGenerator
         assertEquals(21, out.toByteArray().length);
     }
 
+    /**
+     * Test to verify that 
+     */
+    public void testSharedStrings() throws Exception
+    {
+        // first, no sharing, 2 separate Strings
+        final String VALUE = "abcde12345";
+        byte[] data = writeRepeatedString(false, VALUE);
+        assertEquals(24, data.length);
+        data = writeRepeatedString(false, VALUE);
+        if (data.length >= 24) { // should be less
+            fail("Expected shared String length to be < 24, was "+data.length);
+        }
+    }
+    
     /*
     /**********************************************************
     /* Helper methods
     /**********************************************************
      */
 
+    private byte[] writeRepeatedString(boolean shared, String value) throws Exception
+    {
+        SmileFactory f = new SmileFactory();
+        f.configure(SmileGenerator.Feature.WRITE_HEADER, false);
+        f.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, shared);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SmileGenerator gen = f.createJsonGenerator(out);
+        gen.writeStartArray();
+        gen.writeString(value);
+        gen.writeString(value);
+        gen.writeEndArray();  
+        gen.close();
+        return out.toByteArray();
+    }
 }
