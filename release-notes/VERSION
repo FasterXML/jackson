@@ -52,6 +52,7 @@ Description:
   * [JACKSON-333] Add JsonNode.getValueAsInt()/.getValueAsDouble() for more convenient
      coercion; including parsing of JSON text values to numbers if necessary
   * [JACKSON-339] Support Joda ReadableDateTime, ReadableInstant out of the box
+  * [JACKSON-349] Accept empty String as number (null for wrappers, 0 for primitives)
 
   New features:
 

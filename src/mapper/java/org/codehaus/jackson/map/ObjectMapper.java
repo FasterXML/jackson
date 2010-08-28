@@ -231,6 +231,15 @@ public class ObjectMapper
      * @since 1.6
      */
     protected SubtypeResolver _subtypeResolver;
+
+    /**
+     * Custom class loader (or at least one different from loader that loaded
+     * Jackson classes) may be needed on some platforms or containers; if so,
+     * it is to be defined here.
+     * 
+     * @since 1.6
+     */
+    protected ClassLoader _valueClassLoader;
     
     /*
     /**********************************************************
@@ -772,6 +781,7 @@ public class ObjectMapper
     public <T> T readValue(JsonParser jp, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
+    	_setupClassLoaderForDeserialization(valueType);
         return (T) _readValue(copyDeserializationConfig(), jp, TypeFactory.type(valueType));
     } 
 
@@ -797,6 +807,7 @@ public class ObjectMapper
                            DeserializationConfig cfg)
         throws IOException, JsonParseException, JsonMappingException
     {
+    	_setupClassLoaderForDeserialization(valueType);
         return (T) _readValue(cfg, jp, TypeFactory.type(valueType));
     } 
 
@@ -1178,6 +1189,7 @@ public class ObjectMapper
     public <T> T readValue(File src, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
+    	_setupClassLoaderForDeserialization(valueType);
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueType));
     } 
 
@@ -1199,6 +1211,7 @@ public class ObjectMapper
     public <T> T readValue(URL src, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
+    	_setupClassLoaderForDeserialization(valueType);
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueType));
     } 
 
@@ -1220,6 +1233,7 @@ public class ObjectMapper
     public <T> T readValue(String content, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
+    	_setupClassLoaderForDeserialization(valueType);
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(content), TypeFactory.type(valueType));
     } 
 
@@ -1241,6 +1255,7 @@ public class ObjectMapper
     public <T> T readValue(Reader src, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
+    	_setupClassLoaderForDeserialization(valueType);
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueType));
     } 
 
@@ -1262,6 +1277,7 @@ public class ObjectMapper
     public <T> T readValue(InputStream src, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
+    	_setupClassLoaderForDeserialization(valueType);
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueType));
     } 
 
@@ -1284,6 +1300,7 @@ public class ObjectMapper
                                Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
+    	_setupClassLoaderForDeserialization(valueType);
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), TypeFactory.type(valueType));
     } 
 
@@ -1316,6 +1333,7 @@ public class ObjectMapper
     public <T> T readValue(JsonNode root, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
+    	_setupClassLoaderForDeserialization(valueType);
         return (T) _readValue(copyDeserializationConfig(), root.traverse(), TypeFactory.type(valueType));
     } 
 
@@ -1996,5 +2014,13 @@ public class ObjectMapper
     {
         // 04-Jan-2010, tatu: we do actually need the provider too... (for polymorphic deser)
         return new StdDeserializationContext(cfg, jp, _deserializerProvider);
+    }
+    
+    //Allows use of the correct classloader (primarily for OSGi), separating framework from application
+    //should be safe to use in all contexts
+    protected <T> void _setupClassLoaderForDeserialization(Class<T> valueType)
+    {
+        ClassLoader loader = (valueType.getClassLoader() == null) ? Thread.currentThread().getContextClassLoader() : valueType.getClassLoader();
+        Thread.currentThread().setContextClassLoader(loader);
     }
 }

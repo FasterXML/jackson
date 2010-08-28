@@ -70,7 +70,12 @@ public class TypeParser
     protected Class<?> findClass(String className, MyTokenizer tokens)
     {
         try {
-            return Class.forName(className);
+            /* [JACKSON-350]: Default Class.forName() won't work too well; context class loader
+             *    seems like slightly better choice
+             */
+//          return Class.forName(className);
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            return Class.forName(className, true, loader);
         } catch (Exception e) {
             if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;
