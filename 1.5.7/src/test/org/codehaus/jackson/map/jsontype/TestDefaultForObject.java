@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.jsontype;
 
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.*;
 
 public class TestDefaultForObject
@@ -48,7 +49,21 @@ public class TestDefaultForObject
             this.bar = bar;
         }
     }
-    
+
+    // [JACKSON-352]
+    static class DomainBean {
+        public int weight;
+    }
+
+    static class DiscussBean extends DomainBean {
+        public String subject;
+    }
+
+    static public class DomainBeanWrapper {
+        public String name;
+        public Object myBean;
+    }
+
     /*
     /**********************************************************
     /* Unit tests
@@ -199,6 +214,27 @@ public class TestDefaultForObject
         assertEquals("hello", value.foo);
         assertEquals(Integer.valueOf(2), value.bar);
     }
+
+    /**
+     * Test for [JACKSON-352]
+     */
+    public void testIssue352() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enableDefaultTyping (ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE, JsonTypeInfo.As.PROPERTY);
+        DiscussBean d1 = new DiscussBean();
+        d1.subject = "mouse";
+        d1.weight=88;
+        DomainBeanWrapper wrapper = new DomainBeanWrapper();
+        wrapper.name = "mickey";
+        wrapper.myBean = d1;
+        String json = mapper.writeValueAsString(wrapper);
+        //System.out.println(serialText);
+        DomainBeanWrapper result = mapper.readValue(json, DomainBeanWrapper.class);
+        assertNotNull(result);
+        assertNotNull(wrapper.myBean);
+        assertSame(DiscussBean.class, wrapper.myBean.getClass());
+    }    
     
     /*
     /**********************************************************
