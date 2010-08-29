@@ -46,10 +46,11 @@ public final class SmileConstants
 
     /**
      * Also: whereas we can refer to names of any length, we will only consider
-     * text values less than specified number of bytes when serialized;
-     * this value specifies maximum length of value that can be shared.
+     * text values that are considered "tiny" or "short" (ones encoded with
+     * length prefix); this value thereby has to be maximum length of Strings
+     * that can be encoded as such.
      */
-    public final static int MAX_SHARED_STRING_LENGTH_BYTES = 64;
+    public final static int MAX_SHARED_STRING_LENGTH_BYTES = 65;
     
     /**
      * And to make encoding logic tight and simple, we can always

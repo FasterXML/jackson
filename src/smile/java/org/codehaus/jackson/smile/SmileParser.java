@@ -61,10 +61,15 @@ public class SmileParser
     private final static String[] NO_STRINGS = new String[0];
 
     /**
-     * Minimum number of shared names to buffer initially
+     * Minimum number of seen (back-referenceable) names to buffer initially
      */
-    private final static int MIN_SHARED_NAMES = 32;
+    private final static int MIN_SEEN_NAMES = 32;
 
+    /**
+     * Minimum number of seen (back-referenceable) text value to buffer initially
+     */
+    private final static int MIN_SEEN_TEXT_VALUES = 32;
+    
     /*
     /**********************************************************
     /* Configuration
@@ -127,12 +132,22 @@ public class SmileParser
      
     /**
      * Array of recently seen field names, which may be back referenced
-     * by later fields
+     * by later fields.
+     * Defaults set to enable handling even if no header found.
      */
-    protected String[] _sharedNames = NO_STRINGS;
+    protected String[] _seenNames = NO_STRINGS;
 
-    protected int _sharedNameCount = 0;
+    protected int _seenNameCount = 0;
 
+    /**
+     * Array of recently seen field names, which may be back referenced
+     * by later fields
+     * Defaults set to disable handling if no header found.
+     */
+    protected String[] _seenStringValues = null;
+
+    protected int _seenStringValueCount = -1;
+    
     /*
     /**********************************************************
     /* Life-cycle
@@ -206,11 +221,16 @@ public class SmileParser
 
         // can avoid tracking names, if explicitly disabled
         if ((ch & SmileConstants.HEADER_BIT_HAS_SHARED_NAMES) == 0) {
-            _sharedNames = null;
+            _seenNames = null;
+            _seenNameCount = -1;
         }
-        if ((ch & SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES) == 0) {
+        if ((ch & SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES) != 0) {
+            // conversely, shared string values must be explicitly enabled
+            _seenStringValues = NO_STRINGS;
+            _seenStringValueCount = 0;
         }
-        _mayContainRawBinary  = ((ch & SmileConstants.HEADER_BIT_HAS_RAW_BINARY) != 0);
+//System.err.println(" DEBUG: seenNames "+_seenNameCount+", seenStrings "+_seenStringValueCount);
+        _mayContainRawBinary = ((ch & SmileConstants.HEADER_BIT_HAS_RAW_BINARY) != 0);
         return true;
     }
 
@@ -285,8 +305,7 @@ public class SmileParser
             if (ch == 0) { // important: this is invalid, don't accept
                 _reportError("Invalid token byte 0x00");
             }
-            // !!! TODO: implement
-            _reportError("Shared string reference: not yet implemented!");
+            return _handleSharedString(ch-1);
 
         case 1: // simple literals, numbers
             {
@@ -340,29 +359,43 @@ public class SmileParser
             }
             // and everything else is reserved, for now
             break;
-        case 2: // tiny ascii
+        case 2: // tiny ASCII
+            // fall through            
+        case 3: // short ASCII
             // fall through
-        case 3: // short ascii
+        case 4: // tiny Unicode
             // fall through
-        case 4: // tiny unicode
-            // fall through
-        case 5: // short unicode
-            // all fine; but no need to decode quite yet
-            _tokenIncomplete = true;
-            return (_currToken = JsonToken.VALUE_STRING);
-        case 6: // small integers; zig zag encoded
+        case 5: // short Unicode
+            // No need to decode, unless we have to keep track of back-references (for shared string values)
+            _currToken = JsonToken.VALUE_STRING;
+            if (_seenStringValueCount >= 0) { // shared text values enabled
+                _finishToken();
+                _addSeenStringValue();
+            } else {
+                _tokenIncomplete = true;
+            }
+            return _currToken;
+        case 6: // small integers; zigzag encoded
             _numberInt = SmileUtil.zigzagDecode(ch & 0x1F);
             _numTypesValid = NR_INT;
             return (_currToken = JsonToken.VALUE_NUMBER_INT);
-        case 7: // binary/longtext/markers
+        case 7: // binary/long-text/long-shared/start-end-markers
             switch (ch & 0x1F) {
-            case 0x00: // long variable length Ascii
+            case 0x00: // long variable length ASCII
             case 0x04: // long variable length unicode
                 _tokenIncomplete = true;
                 return (_currToken = JsonToken.VALUE_STRING);
             case 0x08: // binary, 7-bit
                 _tokenIncomplete = true;
                 return (_currToken = JsonToken.VALUE_EMBEDDED_OBJECT);
+            case 0x0C: // long shared string
+            case 0x0D:
+            case 0x0E:
+            case 0x0F:
+                if (_inputPtr >= _inputEnd) {
+                    loadMoreGuaranteed();
+                }
+                return _handleSharedString(((ch & 0x3) << 8) + (_inputBuffer[_inputPtr++] & 0xFF));
             case 0x18: // START_ARRAY
                 _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
                 return (_currToken = JsonToken.START_ARRAY);
@@ -389,7 +422,46 @@ public class SmileParser
         _reportError("Invalid type marker byte 0x"+Integer.toHexString(ch & 0xFF)+" for expected value token");
         return null;
     }
+
+    private final JsonToken _handleSharedString(int index)
+        throws IOException, JsonParseException
+    {
+        // !!! TODO: implement
+        if (index >= _seenStringValueCount) {
+            _reportInvalidSharedStringValue(index);
+        }
+        _textBuffer.resetWithString(_seenStringValues[index]);
+        return (_currToken = JsonToken.VALUE_STRING);
+    }
+
+    private final void _addSeenStringValue()
+    {
+        if (_seenStringValues != null) {
+            if (_seenStringValueCount >= _seenStringValues.length) {
+                _seenStringValues = _expandSeenStringValues(_seenStringValues);
+            }
+            // !!! TODO: actually only store char[], first time around?
+            _seenStringValues[_seenStringValueCount++] = _textBuffer.contentsAsString();
+        }
+    }
     
+    private final String[] _expandSeenStringValues(String[] oldShared)
+    {
+        int len = oldShared.length;
+        String[] newShared;
+        if (len == 0) {
+            newShared = new String[MIN_SEEN_TEXT_VALUES];
+        } else if (len == SmileConstants.MAX_SHARED_STRING_VALUES) { // too many? Just flush...
+           newShared = oldShared;
+           _seenStringValueCount = 0; // could also clear, but let's not yet bother
+        } else {
+            int newSize = (len == MIN_SEEN_TEXT_VALUES) ? 128 : SmileConstants.MAX_SHARED_STRING_VALUES;
+            newShared = new String[newSize];
+            System.arraycopy(oldShared, 0, newShared, 0, oldShared.length);
+        }
+        return newShared;
+    }
+
     @Override
     public String getCurrentName() throws IOException, JsonParseException
     {
@@ -507,8 +579,7 @@ public class SmileParser
     }
 
     @Override
-    public int getTextOffset()
-        throws IOException, JsonParseException
+    public int getTextOffset() throws IOException, JsonParseException
     {
         return 0;
     }
@@ -569,13 +640,13 @@ public class SmileParser
                         loadMoreGuaranteed();
 	            }
 	            int index = ((ch & 0x3) << 8) + (_inputBuffer[_inputPtr++] & 0xFF);
-                    if (index >= _sharedNameCount) {
+                    if (index >= _seenNameCount) {
                         _reportInvalidSharedName(index);
                     }
-	            _parsingContext.setCurrentName(_sharedNames[index]);
+	            _parsingContext.setCurrentName(_seenNames[index]);
 	        }
                 return JsonToken.FIELD_NAME;
-            case 0x34: // long ascii/unicode name
+            case 0x34: // long ASCII/Unicode name
                 if (true) _throwInternal();
                 return JsonToken.FIELD_NAME;            	
             }
@@ -583,10 +654,10 @@ public class SmileParser
         case 1: // short shared, can fully process
             {
                 int index = (ch & 0x3F);
-                if (index >= _sharedNameCount) {
+                if (index >= _seenNameCount) {
                     _reportInvalidSharedName(index);
                 }
-                _parsingContext.setCurrentName(_sharedNames[index]);
+                _parsingContext.setCurrentName(_seenNames[index]);
             }
             return JsonToken.FIELD_NAME;
         case 2: // short ASCII
@@ -601,11 +672,11 @@ public class SmileParser
         	    name = _decodeShortAsciiName(len);
         	    name = _addDecodedToSymbols(len, name);
         	}
-                if (_sharedNames != null) {
-                   if (_sharedNameCount >= _sharedNames.length) {
-   	               _sharedNames = _expandSharedNames(_sharedNames);
+                if (_seenNames != null) {
+                   if (_seenNameCount >= _seenNames.length) {
+   	               _seenNames = _expandSeenNames(_seenNames);
                    }
-                   _sharedNames[_sharedNameCount++] = name;
+                   _seenNames[_seenNameCount++] = name;
                 }
                 _parsingContext.setCurrentName(name);
 	    }
@@ -633,11 +704,11 @@ public class SmileParser
                         name = _decodeShortUnicodeName(len);
                         name = _addDecodedToSymbols(len, name);
                     }
-                    if (_sharedNames != null) {
-                        if (_sharedNameCount >= _sharedNames.length) {
-    	                    _sharedNames = _expandSharedNames(_sharedNames);
+                    if (_seenNames != null) {
+                        if (_seenNameCount >= _seenNames.length) {
+    	                    _seenNames = _expandSeenNames(_seenNames);
                         }
-                        _sharedNames[_sharedNameCount++] = name;
+                        _seenNames[_seenNameCount++] = name;
                     }
                     _parsingContext.setCurrentName(name);
                     return JsonToken.FIELD_NAME;                
@@ -655,17 +726,17 @@ public class SmileParser
      * shared String. If area is already at its biggest size, will just clear
      * the area (by setting next-offset to 0)
      */
-    private final String[] _expandSharedNames(String[] oldShared)
+    private final String[] _expandSeenNames(String[] oldShared)
     {
         int len = oldShared.length;
         String[] newShared;
         if (len == 0) {
-            newShared = new String[MIN_SHARED_NAMES];
+            newShared = new String[MIN_SEEN_NAMES];
         } else if (len == SmileConstants.MAX_SHARED_NAMES) { // too many? Just flush...
       	   newShared = oldShared;
-      	   _sharedNameCount = 0; // could also clear, but let's not yet bother
+      	   _seenNameCount = 0; // could also clear, but let's not yet bother
         } else {
-            int newSize = (len == MIN_SHARED_NAMES) ? 128 : SmileConstants.MAX_SHARED_NAMES;
+            int newSize = (len == MIN_SEEN_NAMES) ? 128 : SmileConstants.MAX_SHARED_NAMES;
             newShared = new String[newSize];
             System.arraycopy(oldShared, 0, newShared, 0, oldShared.length);
         }
@@ -877,7 +948,7 @@ public class SmileParser
     
     /**
      * Method called to finish parsing of a token so that token contents
-     * are retrieable
+     * are retriable
      */
     protected void _finishToken()
     	throws IOException, JsonParseException
@@ -916,15 +987,15 @@ public class SmileParser
                 break;
             }
             break;
-        case 2: // tiny Ascii
+        case 2: // tiny ASCII
             // fall through
-        case 3: // short Ascii
+        case 3: // short ASCII
             _decodeShortAsciiValue(1 + (tb & 0x3F));
             return;
 
         case 4: // tiny unicode
             // fall through
-        case 5: // short unicode; note, lengths 2 - 65  (off-by-one compared to ascii)
+        case 5: // short unicode; note, lengths 2 - 65  (off-by-one compared to ASCII)
             _decodeShortUnicodeValue(2 + (tb & 0x3F));
             return;
 
@@ -932,7 +1003,7 @@ public class SmileParser
             tb &= 0x1F;
             // next 3 bytes define subtype
             switch (tb >> 2) {
-            case 0: // long variable length Ascii
+            case 0: // long variable length ASCII
             	_decodeLongAscii();
             	return;
             case 1: // long variable length unicode
@@ -1269,7 +1340,7 @@ public class SmileParser
 
         main_loop:
         while (true) {
-            // First the tight ascii loop:
+            // First the tight ASCII loop:
             ascii_loop:
             while (true) {
                 int ptr = _inputPtr;
@@ -1422,9 +1493,9 @@ public class SmileParser
                 break;
             }
             break;
-        case 2: // tiny ascii
+        case 2: // tiny ASCII
             // fall through
-        case 3: // short ascii
+        case 3: // short ASCII
             _skipBytes(1 + (tb & 0x3F));
             return;
         case 4: // tiny unicode
@@ -1436,7 +1507,7 @@ public class SmileParser
             tb &= 0x1F;
             // next 3 bytes define subtype
             switch (tb >> 2) {
-            case 0: // long variable length Ascii
+            case 0: // long variable length ASCII
             case 1: // long variable length unicode
             	/* Doesn't matter which one, just need to find the end marker
             	 * (note: can potentially skip invalid UTF-8 too)
@@ -1601,14 +1672,21 @@ public class SmileParser
 
     protected void _reportInvalidSharedName(int index) throws IOException
     {
-        if (_sharedNames == null) {
+        if (_seenNames == null) {
             _reportError("Encountered shared name reference, even though document header explicitly declared no shared name references are included");
         }
-       _reportError("Invalid shared name reference "+index+"; only got "+_sharedNameCount+" names in buffer (invalid content)");
+       _reportError("Invalid shared name reference "+index+"; only got "+_seenNameCount+" names in buffer (invalid content)");
+    }
+
+    protected void _reportInvalidSharedStringValue(int index) throws IOException
+    {
+        if (_seenStringValues == null) {
+            _reportError("Encountered shared text value reference, even though document header did not declared shared text value references may be included");
+        }
+       _reportError("Invalid shared text value reference "+index+"; only got "+_seenStringValueCount+" names in buffer (invalid content)");
     }
     
-    protected void _reportInvalidChar(int c)
-	    throws JsonParseException
+    protected void _reportInvalidChar(int c) throws JsonParseException
     {
         // Either invalid WS or illegal UTF-8 start char
         if (c < ' ') {
@@ -1617,23 +1695,22 @@ public class SmileParser
         _reportInvalidInitial(c);
     }
 	
-	protected void _reportInvalidInitial(int mask)
-	    throws JsonParseException
-	{
-	    _reportError("Invalid UTF-8 start byte 0x"+Integer.toHexString(mask));
-	}
+    protected void _reportInvalidInitial(int mask)
+        throws JsonParseException
+    {
+        _reportError("Invalid UTF-8 start byte 0x"+Integer.toHexString(mask));
+    }
 	
-	protected void _reportInvalidOther(int mask)
-	    throws JsonParseException
-	{
-	    _reportError("Invalid UTF-8 middle byte 0x"+Integer.toHexString(mask));
-	}
+    protected void _reportInvalidOther(int mask)
+        throws JsonParseException
+    {
+        _reportError("Invalid UTF-8 middle byte 0x"+Integer.toHexString(mask));
+    }
 	
-	protected void _reportInvalidOther(int mask, int ptr)
-	    throws JsonParseException
-	{
-	    _inputPtr = ptr;
-	    _reportInvalidOther(mask);
-	}
-
+    protected void _reportInvalidOther(int mask, int ptr)
+        throws JsonParseException
+    {
+        _inputPtr = ptr;
+        _reportInvalidOther(mask);
+    }
 }

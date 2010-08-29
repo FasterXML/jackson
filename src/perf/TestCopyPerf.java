@@ -24,6 +24,7 @@ public final class TestCopyPerf
         // whether to use back-refs for field names has measurable impact on ser/deser (but different direction):
 	//        _smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, false);
         _smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
+        _smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
         FileInputStream fis = new FileInputStream(f);
         ObjectMapper mapper = new ObjectMapper();
         JsonParser jp = _jsonFactory.createJsonParser(fis);
@@ -81,7 +82,7 @@ public final class TestCopyPerf
             jg.close();
         }
         long time = System.currentTimeMillis() - start;
-        System.out.println("Took "+time+" msecs (round "+round+") for "+jg.getClass().getName());
+        System.out.println("Took "+time+" msecs (round "+round+"; bytes "+bos.size()+") for "+jg.getClass().getName());
         return time;
     }
 

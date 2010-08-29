@@ -207,6 +207,22 @@ public final class TextBuffer
         append(buf, start, len);
     }
 
+    public void resetWithString(String value)
+    {
+        _inputBuffer = null;
+        _inputStart = -1;
+        _inputLen = 0;
+
+        _resultString = value;
+        _resultArray = null;
+
+        if (_hasSegments) {
+            clearSegments();
+        }
+        _currentSize = 0;
+        
+    }
+    
     /**
      * Helper method used to find a buffer to use, ideally one
      * recycled earlier.
