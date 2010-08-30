@@ -437,6 +437,14 @@ compile.smile, compile.mrbean" />
           filesonly="true" compress="true" basedir="${dir.src.java.xc}"
           includes="org/codehaus/jackson/xc/**"
        />
+       <jar destfile="${dir.dist}/jackson-smile-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java.smile}"
+          includes="org/codehaus/jackson/smile/**"
+       />
+       <jar destfile="${dir.dist}/jackson-mrbean-${IMPL_VERSION}-sources.jar"
+          filesonly="true" compress="true" basedir="${dir.src.java.mrbean}"
+          includes="org/codehaus/jackson/mrbean/**"
+       />
 
        <!-- Then copy javadocs -->
        <copy todir="${dir.dist}">
