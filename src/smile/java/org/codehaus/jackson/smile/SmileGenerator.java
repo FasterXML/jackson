@@ -437,7 +437,7 @@ public class SmileGenerator
                 _writeByte(BYTE_MARKER_END_OF_STRING);
             }
         }
-        // Also, remember in case there's need to share some more..
+        // Also, keep track if we can use back-references (shared names)
         if (_seenNameCount >= 0) {
             _addSeenName(name);
         }
@@ -460,7 +460,7 @@ public class SmileGenerator
                     _writeByte((byte) (TOKEN_PREFIX_KEY_SHARED_SHORT + ix));
                 } else {
                     _writeBytes(((byte) (TOKEN_PREFIX_KEY_SHARED_LONG + (ix >> 8))), (byte) ix);
-                }
+                } 
                 return;
             }
         }
@@ -469,7 +469,7 @@ public class SmileGenerator
 
         byte typeToken;
         boolean needEndMarker;
-        // ascii?
+        // ASCII?
         if (byteLen == charLen) {
             if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) {
                 typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
@@ -478,7 +478,7 @@ public class SmileGenerator
                 typeToken = TOKEN_KEY_LONG_STRING;
                 needEndMarker = true;
             }
-        } else { // nope, unicode char(s)
+        } else { // nope, Unicode char(s)
             if (byteLen <= MAX_SHORT_NAME_UNICODE_BYTES) {
                 // note: since 2 is smaller allowed length, offset differs from one used for
                 typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 2) + byteLen);
@@ -521,6 +521,10 @@ public class SmileGenerator
                 _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
             }
         }
+        // Also, keep track if we can use back-references (shared names)
+        if (_seenNameCount >= 0) {
+            _addSeenName(name.getValue());
+        }
     }
     
     /*
@@ -551,7 +555,6 @@ public class SmileGenerator
             }
         }
         if (len <= MAX_SHORT_VALUE_STRING_BYTES) { // possibly short strings (not necessarily)
-            // !!! TODO: check for shared Strings
             // first: ensure we have enough space
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
                 _flushBuffer();
