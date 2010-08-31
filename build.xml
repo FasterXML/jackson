@@ -118,6 +118,14 @@
         <!-- and finally distribution dir -->
         <mkdir dir="${dir.dist}" />
         <mkdir dir="${dir.snapshot}" />
+    	<!-- 1.6.0: also add VERSION marker file -->
+        <copy todir="${dir.build}">
+            <fileset dir="${dir.src}" includes="VERSION" />
+            <filterset>
+                <filter token="VERSION" value="${IMPL_VERSION}" />
+            </filterset>
+        </copy>
+
     </target>
 
     <!-- ***********************************************

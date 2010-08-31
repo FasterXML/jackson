@@ -47,7 +47,7 @@ org.codehaus.jackson.type;version=${IMPL_VERSION},
 org.codehaus.jackson.util;version=${IMPL_VERSION}
 "
          privatePackage=""
-         includeResource="META-INF=release-notes/asl"
+         includeResource="META-INF=release-notes/asl, org/codehaus/jackson/impl/VERSION=build/VERSION"
          includeIncludeResourceHeader="false"
         >
         <classpath><pathelement path="${dir.build.classes.core}" /></classpath>
@@ -103,7 +103,7 @@ org.codehaus.jackson.schema;version=${IMPL_VERSION}
          privatePackage="
 org.codehaus.jackson.map.ext
 "
-         includeResource="META-INF=release-notes/asl"
+         includeResource="META-INF=release-notes/asl, org/codehaus/jackson/map/VERSION=build/VERSION"
          includeIncludeResourceHeader="false"
         >
         <classpath><pathelement path="${dir.build.classes.mapper}" /></classpath>
@@ -138,7 +138,7 @@ org.codehaus.jackson;version=${IMPL_VERSION}
 ,org.codehaus.jackson.util;version=${IMPL_VERSION}
 '
          privatePackage=""
-         includeResource="META-INF=release-notes/lgpl"
+         includeResource="META-INF=release-notes/lgpl, org/codehaus/jackson/impl/VERSION=build/VERSION"
          includeIncludeResourceHeader="false"
         >
         <classpath>
@@ -196,7 +196,7 @@ org.codehaus.jackson.schema;version=${IMPL_VERSION}
          privatePackage="
 org.codehaus.jackson.map.ext
 "
-         includeResource="META-INF=release-notes/lgpl"
+         includeResource="META-INF=release-notes/lgpl, org/codehaus/jackson/map/VERSION=build/VERSION"
          includeIncludeResourceHeader="false"
         >
         <classpath><pathelement path="${dir.build.classes.mapper}" /></classpath>
@@ -247,7 +247,7 @@ javax.ws.rs
          dynamicImportPackage="org.codehaus.jackson.xc"
          exportpackage="
 org.codehaus.jackson.jaxrs;version=${IMPL_VERSION}"
-         includeResource="META-INF=release-notes/asl"
+         includeResource="META-INF=release-notes/asl, org/codehaus/jackson/jaxrs/VERSION=build/VERSION"
          includeIncludeResourceHeader="false"
         >
         <classpath><pathelement path="${dir.build.classes.jaxrs}" /></classpath>
@@ -280,7 +280,7 @@ org.codehaus.jackson.map;version='${IMPL_VERSION}'
          privatePackage="!org.codehaus.jackson.mrbean, *"
          exportpackage="
 org.codehaus.jackson.mrbean;version=${IMPL_VERSION}"
-         includeResource="META-INF=release-notes/asl"
+         includeResource="META-INF=release-notes/asl, org/codehaus/jackson/mrbean/VERSION=build/VERSION"
          includeIncludeResourceHeader="false"
         >
         <classpath><pathelement path="${dir.build.classes.mrbean}" /></classpath>
@@ -324,7 +324,7 @@ javax.activation
 "
          dynamicImportPackage="org.w3c.dom, javax.xml.parsers"
          exportpackage="org.codehaus.jackson.xc;version=${IMPL_VERSION}"
-         includeResource="META-INF=release-notes/asl"
+         includeResource="META-INF=release-notes/asl, org/codehaus/jackson/xc/VERSION=build/VERSION"
          includeIncludeResourceHeader="false"
         >
         <classpath><pathelement path="${dir.build.classes.xc}" /></classpath>
@@ -357,7 +357,7 @@ javax.activation
 "
          exportpackage="
 org.codehaus.jackson.smile;version=${IMPL_VERSION}"
-         includeResource="META-INF=release-notes/asl"
+         includeResource="META-INF=release-notes/asl, org/codehaus/jackson/smile/VERSION=build/VERSION"
          includeIncludeResourceHeader="false"
         >
         <classpath><pathelement path="${dir.build.classes.smile}" /></classpath>
