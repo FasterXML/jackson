@@ -9,7 +9,7 @@
   <!-- Need BND task for OSGi bundle/metadata creation -->
   <taskdef name="osgiJar" classname="net.luminis.build.plugin.bnd.BuildTask">
     <classpath>
-     <fileset dir="${dir.lib}/ant" includes="bndtask*.jar" />
+     <fileset dir="${basedir}/lib/ant" includes="bndtask*.jar" />
     </classpath>
   </taskdef>
 

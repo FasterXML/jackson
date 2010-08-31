@@ -4,7 +4,6 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
