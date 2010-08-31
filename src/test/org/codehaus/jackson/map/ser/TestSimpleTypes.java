@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
+import java.math.BigInteger;
+
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -93,6 +95,22 @@ public class TestSimpleTypes
         }
     }
 
+    public void testBigInteger() throws Exception
+    {
+        BigInteger[] values = new BigInteger[] {
+                BigInteger.ONE, BigInteger.TEN, BigInteger.ZERO,
+                BigInteger.valueOf(1234567890L),
+                new BigInteger("123456789012345678901234568"),
+                new BigInteger("-1250000124326904597090347547457")
+                };
+        ObjectMapper mapper = new ObjectMapper();
+
+        for (BigInteger value : values) {
+            String expected = value.toString();
+            assertEquals(expected,serializeAsString(mapper, value));
+        }
+    }
+    
     public void testClass() throws Exception
     {
         String result = serializeAsString(java.util.List.class);
