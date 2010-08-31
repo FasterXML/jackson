@@ -9,24 +9,33 @@ package org.codehaus.jackson;
 public class Version
     implements Comparable<Version>
 {
-    public final static Version UNKNOWN_VERSION = new Version(0, 0, 0);
+    public final static Version UNKNOWN_VERSION = new Version(0, 0, 0, null);
 
     protected final int _majorVersion;
 
     protected final int _minorVersion;
 
     protected final int _patchLevel;
+
+    /**
+     * Additional information for snapshot versions; null for non-snapshot
+     * (release) versions.
+     */
+    protected final String _snapshotInfo;
     
-    public Version(int major, int minor, int patchLevel)
+    public Version(int major, int minor, int patchLevel,
+            String snapshotInfo)
     {
         _majorVersion = major;
         _minorVersion = minor;
         _patchLevel = patchLevel;
+        _snapshotInfo = snapshotInfo;
     }
 
     public Version unknownVersion() { return UNKNOWN_VERSION; }
 
     public boolean isUknownVersion() { return (this == UNKNOWN_VERSION); }
+    public boolean isSnapshot() { return (_snapshotInfo != null && _snapshotInfo.length() > 0); }
     
     public int getMajorVersion() { return _majorVersion; }
     public int getMinorVersion() { return _minorVersion; }
@@ -39,6 +48,9 @@ public class Version
         sb.append(_majorVersion).append('.');
         sb.append(_minorVersion).append('.');
         sb.append(_patchLevel);
+        if (isSnapshot()) {
+            sb.append('-').append(_snapshotInfo);
+        }
         return sb.toString();
     }
 
