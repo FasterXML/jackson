@@ -733,7 +733,7 @@ public class ObjectMapper
         // we'll always use full class name, when using defaulting
         typer = typer.init(JsonTypeInfo.Id.CLASS, null);
         typer = typer.inclusion(includeAs);
-        return setDefaltTyping(typer);
+        return setDefaultTyping(typer);
     }
 
     /**
@@ -743,7 +743,15 @@ public class ObjectMapper
      * additional embedded type information.
      */
     public ObjectMapper disableDefaultTyping() {
-        return setDefaltTyping(null);
+        return setDefaultTyping(null);
+    }
+
+    /**
+     * @deprecated Typo in name -- use {@link #setDefaultTyping} instead.
+     */
+    public ObjectMapper setDefaltTyping(TypeResolverBuilder<?> typer) {
+        _defaultTyper = typer;
+        return this;
     }
 
     /**
@@ -752,8 +760,10 @@ public class ObjectMapper
      * as well as details of how information is embedded.
      * 
      * @param typer Type information inclusion handler
+     * 
+     * 
      */
-    public ObjectMapper setDefaltTyping(TypeResolverBuilder<?> typer) {
+    public ObjectMapper setDefaultTyping(TypeResolverBuilder<?> typer) {
         _defaultTyper = typer;
         return this;
     }
@@ -761,7 +771,7 @@ public class ObjectMapper
     /*
     /**********************************************************
     /* Public API (from ObjectCodec): deserialization
-    /* (mapping from Json to Java types);
+    /* (mapping from JSON to Java types);
     /* main methods
     /**********************************************************
      */
