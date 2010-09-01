@@ -9,7 +9,7 @@ package org.codehaus.jackson;
 public class Version
     implements Comparable<Version>
 {
-    public final static Version UNKNOWN_VERSION = new Version(0, 0, 0, null);
+    private final static Version UNKNOWN_VERSION = new Version(0, 0, 0, null);
 
     protected final int _majorVersion;
 
@@ -32,7 +32,11 @@ public class Version
         _snapshotInfo = snapshotInfo;
     }
 
-    public Version unknownVersion() { return UNKNOWN_VERSION; }
+    /**
+     * Method returns canonical "not known" version, which is used as version
+     * in cases where actual version information is not known (instead of null).
+     */
+    public static Version unknownVersion() { return UNKNOWN_VERSION; }
 
     public boolean isUknownVersion() { return (this == UNKNOWN_VERSION); }
     public boolean isSnapshot() { return (_snapshotInfo != null && _snapshotInfo.length() > 0); }

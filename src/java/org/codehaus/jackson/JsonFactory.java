@@ -26,6 +26,7 @@ import org.codehaus.jackson.impl.WriterBasedGenerator;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
 import org.codehaus.jackson.util.BufferRecycler;
+import org.codehaus.jackson.util.VersionUtil;
 
 /**
  * The main factory class of Jackson package, used to configure and
@@ -48,6 +49,7 @@ import org.codehaus.jackson.util.BufferRecycler;
  * @author Tatu Saloranta
  */
 public class JsonFactory
+    implements Versioned
 {
     /**
      * Bitfield (set of flags) of all parser features that are enabled
@@ -123,6 +125,18 @@ public class JsonFactory
     public JsonFactory() { this(null); }
 
     public JsonFactory(ObjectCodec oc) { _objectCodec = oc; }
+
+    /*
+    /**********************************************************
+    /* Versioned
+    /**********************************************************
+     */
+
+    @Override
+    public Version version() {
+        // VERSION is included under impl, so can't pass this class:
+        return VersionUtil.versionFor(Utf8Generator.class);
+    }
 
     /*
     /**********************************************************
