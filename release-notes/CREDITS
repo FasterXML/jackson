@@ -358,4 +358,9 @@ David Melia:
    * Reported [JACKSON-268] Property ordering for JAXB did not work with "raw" property
     names (but just with renamed names like with Jackson annotations)
    [1.6.0]
+   
+Igor Kolomets:
+   * Suggested [JACKSON-308] Configurable date formatting support for XMLGregorianCalendar,
+    XMLGregorianCalendar now uses same Date/Calendar serialization as other date types.
+   [1.6.0]
   

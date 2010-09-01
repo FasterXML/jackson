@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.ext;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 
@@ -88,9 +89,11 @@ public class CoreXMLDeserializers
         public GregorianCalendarDeserializer() { super(XMLGregorianCalendar.class); }
         
         protected XMLGregorianCalendar _deserialize(String value, DeserializationContext ctxt)
-            throws IllegalArgumentException
-        {
-            return _dataTypeFactory.newXMLGregorianCalendar(value);
+                throws IllegalArgumentException, IOException {
+            Date date = _parseDate(ctxt.getParser(), ctxt);
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setTime(date);
+            return _dataTypeFactory.newXMLGregorianCalendar(calendar);
         }
     }
 

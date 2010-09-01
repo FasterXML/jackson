@@ -42,6 +42,9 @@ Description:
     (requested by Rob O)
   * [JACKSON-302] Add JsonNode.has(String/int) to allow for more convenient checking
     of whether JSON Object/Array nodes have specified value.
+  * [JACKSON-308] Configurable date formatting support for XMLGregorianCalendar:
+    XMLGregorianCalendar now uses same Date/Calendar serialization as other date types.
+    (suggested by Igor K)
   * [JACKSON-321] Allow passing JsonNodeFactory to use for ObjectMapper, ObjectReader,
     to allow use of custom JsonNode types.
   * [JACKSON-326] Add 'JsonParser.hasTextCharacters()' to make it easier to optimize
@@ -92,12 +95,15 @@ Description:
     marking default/standard serializers, deserializers
   * [JACKSON-337] Add "ObjectMapper.valueToTree()"
   
-  Backwards incompatible changes:
+  Backwards incompatible changes
 
   * [JACKSON-328] (see above) fixes precedence of "getter-as-setter" (for Maps, Collections)
     to be LOWER than that of fields; this is the original intended behavior. However,
     versions 1.1 - 1.5 accidentally had fields at lower precedence. This fix can
     change behavior of code.
+  * [JACKSON-308] (see above) Configurable date formatting support for XMLGregorianCalendar:
+    since default Date/Calendar formatting uses timestamp instead of textual serialization,
+    default XMLGregorianCalendar serialization is changing.
 
 
 ------------------------------------------------------------------------
