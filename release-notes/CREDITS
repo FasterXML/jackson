@@ -319,6 +319,41 @@ Eric Sirianni:
     'untyped' (Object) bean properties, default typing
    [1.5.4]
 
+Geoffrey Arnold:
+  * Reported [JACKSON-318]: Missing deserialization support for
+    java.util.Currency
+   [1.5.5]
+
+Christopher Currie:
+  * Reported [JACKSON-319], pointed out solution: issues trying to deserialize
+    polymorphic instances with no data (just type info)
+   [1.5.5]
+
+Steve Crane:
+  * Suggested [JACKSON-324], calling releaseBuffers() within finally block
+    (JsonParserBase.close())
+   [1.5.5]
+
+Yuanchen Zhu:
+  * Reported [JACKSON-327], submitted patch: CustomSerializerFactory incorrectl\
+y
+    looks up serializer for interfaces
+   [1.5.5]
+  * Reported [JACKSON-329], type information was not properly serialized for
+    Iterator or Iterable serializers
+   [1.5.6]
+  * Reported [JACKSON-340] Meta annotations missing for @JsonTypeResolver
+   [1.5.6]
+
+Henry Lai:
+  * Reported [JACKSON-352] Polymorphic deserialization for Object always
+    assumes array-wrapper style
+   [1.5.7]
+
+Adam Sussman:
+  * Reported [JACKSON-355] Handling of BigInteger with JsonNode not correct
+   [1.5.7]
+
 Brian Oberman:
   * Requested [JACKSON-289] Ability to serialize char[] values as JSON Arrays
     with String values of length 1 (and accepting these on deserialization)
