@@ -22,6 +22,7 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.JSONPObject;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.util.VersionUtil;
 
 /**
  * Basic implementation of JAX-RS abstractions ({@link MessageBodyReader},
@@ -59,7 +60,8 @@ import org.codehaus.jackson.type.JavaType;
 public class JacksonJsonProvider
     implements
         MessageBodyReader<Object>,
-        MessageBodyWriter<Object>
+        MessageBodyWriter<Object>,
+        Versioned // since 1.6
 {
     /**
      * Default annotation sets to use, if not explicitly defined during
@@ -209,6 +211,16 @@ public class JacksonJsonProvider
         _mapperConfig = new MapperConfigurator(mapper, annotationsToUse);
     }
 
+    /**
+     * Method that will return version information stored in and read from jar
+     * that contains this class.
+     * 
+     * @since 1.6
+     */
+    public Version version() {
+        return VersionUtil.versionFor(getClass());
+    }
+    
     /*
     /**********************************************************
     /* Configuring

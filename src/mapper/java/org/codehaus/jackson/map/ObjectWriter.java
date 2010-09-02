@@ -12,6 +12,7 @@ import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.ByteArrayBuilder;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 import org.codehaus.jackson.util.MinimalPrettyPrinter;
+import org.codehaus.jackson.util.VersionUtil;
 
 /**
  * Builder object that can be used for per-serialization configuration of
@@ -26,6 +27,7 @@ import org.codehaus.jackson.util.MinimalPrettyPrinter;
  * @since 1.5
  */
 public class ObjectWriter
+    implements Versioned // since 1.6
 {
     /**
      * We need to keep track of explicit disabling of pretty printing;
@@ -138,6 +140,16 @@ public class ObjectWriter
         _serializationView = view;
         _rootType = rootType;
         _prettyPrinter = pp;
+    }
+
+    /**
+     * Method that will return version information stored in and read from jar
+     * that contains this class.
+     * 
+     * @since 1.6
+     */
+    public Version version() {
+        return VersionUtil.versionFor(getClass());
     }
     
     /**

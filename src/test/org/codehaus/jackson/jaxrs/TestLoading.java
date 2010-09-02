@@ -27,14 +27,18 @@ public class TestLoading extends main.BaseTest
 
     public void testEnsureXcMissing() throws Exception
     {
-        JacksonJaxbJsonProvider prov = new JacksonJaxbJsonProvider();
-        try {
-            // should fail here...
-            prov.locateMapper(Bean.class, null);
-            fail("Expected exception due to missing 'xc' module");
-        } catch (NoClassDefFoundError e) {
-            // as per [JACKSON-243], JVM messages differ here, should still have class name tho:
-            verifyException(e, "JaxbAnnotationIntrospector");
+        /* 01-Sep-2010, tatus: Skip if not running from Ant/cli:
+         */
+        if (runsFromAnt()) {
+            JacksonJaxbJsonProvider prov = new JacksonJaxbJsonProvider();
+            try {
+                // should fail here...
+                prov.locateMapper(Bean.class, null);
+                fail("Expected exception due to missing 'xc' module");
+            } catch (NoClassDefFoundError e) {
+                // as per [JACKSON-243], JVM messages differ here, should still have class name tho:
+                verifyException(e, "JaxbAnnotationIntrospector");
+            }
         }
     }
 }

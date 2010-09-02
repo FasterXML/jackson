@@ -159,6 +159,16 @@ public abstract class BaseTest
         assertEquals(String.valueOf(expValue), jp.getText());
     }
 
+    /**
+     * Method that checks whether Unit tests appear to run from Ant build
+     * scripts.
+     * 
+     * @since 1.6
+     */
+    protected static boolean runsFromAnt() {
+        return "true".equals(System.getProperty("FROM_ANT"));
+    }
+    
     /*
     /**********************************************************
     /* Parser/generator construction

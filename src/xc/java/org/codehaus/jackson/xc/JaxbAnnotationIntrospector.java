@@ -15,6 +15,8 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
 
+import org.codehaus.jackson.Version;
+import org.codehaus.jackson.Versioned;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.AnnotationIntrospector;
@@ -27,6 +29,7 @@ import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.util.VersionUtil;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -67,7 +70,9 @@ import org.codehaus.jackson.type.JavaType;
  * @author Ryan Heaton
  * @author Tatu Saloranta
  */
-public class JaxbAnnotationIntrospector extends AnnotationIntrospector
+public class JaxbAnnotationIntrospector
+    extends AnnotationIntrospector
+    implements Versioned
 {
     protected final static String MARKER_FOR_DEFAULT = "##default";
 
@@ -89,6 +94,16 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         }
         _dataHandlerSerializer = dataHandlerSerializer;
         _dataHandlerDeserializer = dataHandlerDeserializer;
+    }
+
+    /**
+     * Method that will return version information stored in and read from jar
+     * that contains this class.
+     * 
+     * @since 1.6
+     */
+    public Version version() {
+        return VersionUtil.versionFor(getClass());
     }
 
     /*

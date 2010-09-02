@@ -93,10 +93,12 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
         </junitreport>
     </target>
 
-    <target name="test.run" depends="test.compile">
+    <target name="test.run" depends="test.run.main, test.run.interop, test.run.jaxrs, test.run.versions"
+    />
+    <target name="test.run.main" depends="test.compile">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
-        <junit fork="no" printsummary="yes" haltonfailure="no"
-         showoutput="yes">
+        <junit fork="no" printsummary="yes" haltonfailure="no" showoutput="yes">
+        	<sysproperty key="FROM_ANT" value="true"/>
             <batchtest fork="no" todir="${dir.test.xmlresults}">
                 <fileset dir="${dir.test.classes}">
                     <!-- Need to exclude inner classes... -->
@@ -104,8 +106,8 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
                     <!-- and also interop tests, run later on -->
                     <exclude name="org/codehaus/jackson/jaxrs/*.class"/>
                     <exclude name="org/codehaus/jackson/map/interop/Test*.class"/>
+                    <exclude name="org/codehaus/jackson/map/version/*.class"/>
                     <include name="**/Test*.class"/>
-                    <include name="**/SlowTest*.class"/>
                 </fileset>
             </batchtest>
             <formatter type="xml" />
@@ -119,7 +121,9 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
                 <path refid="test-libs"/>
             </classpath>     
         </junit>
+    </target>
 
+    <target name="test.run.interop" depends="test.compile">
         <!-- for interop tests, yes, we need to fork (classloading issues) -->
         <junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes">
             <batchtest fork="no" todir="${dir.test.xmlresults}">
@@ -142,6 +146,9 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
                 <path refid="test-libs-ext"/>
             </classpath>
         </junit>
+    </target>
+
+    <target name="test.run.jaxrs" depends="test.compile">
         <!-- And finally, minimal testing for jax-rs too -->
         <junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes">
             <batchtest fork="no" todir="${dir.test.xmlresults}">
@@ -164,6 +171,30 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
         </junit>
     </target>
 
+    <target name="test.run.versions" depends="test.compile">
+        <junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes">
+            <batchtest fork="no" todir="${dir.test.xmlresults}">
+                <fileset dir="${dir.test.classes}">
+                    <include name="org/codehaus/jackson/version/*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <classpath>
+                <pathelement path="${dir.build.classes.core}" />
+                <pathelement path="${dir.build.classes.mapper}" />
+                <pathelement path="${dir.build.classes.jaxrs}" />
+                <pathelement path="${dir.build.classes.xc}" />
+                <pathelement path="${dir.build.classes.mrbean}" />
+                <pathelement path="${dir.build.classes.smile}" />
+                <pathelement location="${dir.test.classes}" /> 
+                <path refid="test-libs"/>
+                <fileset dir="${dir.lib}/jaxrs">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </junit>
+    </target>
+	
     <!-- Running a single Unit Test -->
     <target name="test.single" depends="test.compile">
          <fail unless="test" message="Must define -Dtest" />
@@ -172,6 +203,7 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
                issues with junit version?
           -->
         <junit fork="yes" maxmemory="128M" showoutput="yes" printsummary="yes">
+        	<sysproperty key="FROM_ANT" value="true"/>
           <formatter type="plain" usefile="no" />
           <test name="${test}" />
           <classpath>

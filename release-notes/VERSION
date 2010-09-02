@@ -72,6 +72,8 @@ Description:
     (when unquoted name support is enabled, to support polymorphic
     typing (which defaults to property names like "@class").
    (requested by Michel G)
+  * [JACKSON-278] Allow access to version information (via new Versioned interface)
+   (requested by Andrei V)
   * [JACKSON-282] Added SerializationConfig.Feature.CLOSE_CLOSEABLE
     which when enabled forced a call to value.close() right after
     serialization of a (root-level) value.

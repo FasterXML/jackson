@@ -1,8 +1,11 @@
 package org.codehaus.jackson.mrbean;
 
+import org.codehaus.jackson.Version;
+import org.codehaus.jackson.Versioned;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.util.VersionUtil;
 
 /**
  * Nifty class for pulling implementations of classes out of thin air.
@@ -16,6 +19,7 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class AbstractTypeMaterializer
     extends AbstractTypeResolver
+    implements Versioned
 {
     /**
      * Enumeration that defines togglable features that guide
@@ -93,6 +97,16 @@ public class AbstractTypeMaterializer
             parentClassLoader = getClass().getClassLoader();
         }
         _classLoader = new MyClassLoader(parentClassLoader);
+    }
+
+    /**
+     * Method that will return version information stored in and read from jar
+     * that contains this class.
+     * 
+     * @since 1.6
+     */
+    public Version version() {
+        return VersionUtil.versionFor(getClass());
     }
     
     /**

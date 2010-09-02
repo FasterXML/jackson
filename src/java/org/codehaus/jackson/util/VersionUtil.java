@@ -12,6 +12,8 @@ import org.codehaus.jackson.Version;
  */
 public class VersionUtil
 {
+    public final static String VERSION_FILE = "VERSION.txt";
+
     private final static Pattern VERSION_SEPARATOR = Pattern.compile("[-_.]");
     
     /**
@@ -28,7 +30,7 @@ public class VersionUtil
         Version version = null;
         
         try {
-            in = cls.getResourceAsStream("VERSION");
+            in = cls.getResourceAsStream(VERSION_FILE);
             if (in != null) {
                 try {
                     BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));

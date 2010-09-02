@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.NullNode;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.util.VersionUtil;
 
 /**
  * Builder object that can be used for per-serialization configuration of
@@ -28,6 +29,7 @@ import org.codehaus.jackson.type.JavaType;
  * @since 1.6
  */
 public class ObjectReader
+    implements Versioned
 {
     private final static JavaType JSON_NODE_TYPE = TypeFactory.type(JsonNode.class);
 
@@ -143,6 +145,16 @@ public class ObjectReader
         if (valueToUpdate != null && valueType.isArrayType()) {
             throw new IllegalArgumentException("Can not update an array value");
         }
+    }
+
+    /**
+     * Method that will return version information stored in and read from jar
+     * that contains this class.
+     * 
+     * @since 1.6
+     */
+    public Version version() {
+        return VersionUtil.versionFor(getClass());
     }
     
     public ObjectReader withType(JavaType valueType)
