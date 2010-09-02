@@ -28,7 +28,7 @@ import org.codehaus.jackson.io.SerializedString;
  * @author Tatu Saloranta
  */
 public abstract class JsonGenerator
-    implements Closeable
+    implements Closeable, Versioned
 {
     /**
      * Enumeration that defines all togglable features for generators.
@@ -144,6 +144,13 @@ public abstract class JsonGenerator
     protected JsonGenerator() {
     }
 
+    /**
+     * @since 1.6
+     */
+    public Version version() {
+        return Version.unknownVersion();
+    }
+    
     /*
     /**********************************************************
     /* Public API, configuration

@@ -6,6 +6,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.util.ByteArrayBuilder;
 import org.codehaus.jackson.util.TextBuffer;
+import org.codehaus.jackson.util.VersionUtil;
 
 /**
  * Intermediate base class used by all Jackson {@link JsonParser}
@@ -188,6 +189,11 @@ public abstract class JsonParserBase
         _parsingContext = JsonReadContext.createRootContext(_tokenInputRow, _tokenInputCol);
     }
 
+    @Override
+    public Version version() {
+        return VersionUtil.versionFor(getClass());
+    }
+    
     /*
     /**********************************************************
     /* JsonParser impl

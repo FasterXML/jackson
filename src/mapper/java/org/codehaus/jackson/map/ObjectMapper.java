@@ -32,6 +32,7 @@ import org.codehaus.jackson.type.TypeReference;
 import org.codehaus.jackson.util.ByteArrayBuilder;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 import org.codehaus.jackson.util.TokenBuffer;
+import org.codehaus.jackson.util.VersionUtil;
 
 /**
  * This mapper (or, data binder, or codec) provides functionality for
@@ -56,6 +57,7 @@ import org.codehaus.jackson.util.TokenBuffer;
  */
 public class ObjectMapper
     extends ObjectCodec
+    implements Versioned
 {
     /*
     /**********************************************************
@@ -403,6 +405,16 @@ public class ObjectMapper
         _serializerFactory = BeanSerializerFactory.instance;
     }
 
+    /**
+     * Method that will return version information stored in and read from jar
+     * that contains this class.
+     * 
+     * @since 1.6
+     */
+    public Version version() {
+        return VersionUtil.versionFor(getClass());
+    }
+    
     /**
      * Method for setting specific {@link SerializerFactory} to use
      * for constructing (bean) serializers.

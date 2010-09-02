@@ -105,6 +105,7 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
                     <exclude name="org/codehaus/jackson/jaxrs/*.class"/>
                     <exclude name="org/codehaus/jackson/map/interop/Test*.class"/>
                     <include name="**/Test*.class"/>
+                    <include name="**/SlowTest*.class"/>
                 </fileset>
             </batchtest>
             <formatter type="xml" />

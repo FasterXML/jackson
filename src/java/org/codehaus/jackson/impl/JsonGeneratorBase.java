@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
+import org.codehaus.jackson.util.VersionUtil;
 
 /**
  * This base class implements part of API that a JSON generator exposes
@@ -75,6 +76,11 @@ public abstract class JsonGeneratorBase
         _cfgNumbersAsStrings = isEnabled(Feature.WRITE_NUMBERS_AS_STRINGS);
     }
 
+    @Override
+    public Version version() {
+        return VersionUtil.versionFor(getClass());
+    }
+    
     /*
     /**********************************************************
     /* Configuration

@@ -29,7 +29,7 @@ import org.codehaus.jackson.type.TypeReference;
  * @author Tatu Saloranta
  */
 public abstract class JsonParser
-    implements Closeable
+    implements Closeable, Versioned
 {
     private final static int MIN_BYTE_I = (int) Byte.MIN_VALUE;
     private final static int MAX_BYTE_I = (int) Byte.MAX_VALUE;
@@ -283,6 +283,13 @@ public abstract class JsonParser
      */
     public abstract void setCodec(ObjectCodec c);
 
+    /**
+     * @since 1.6
+     */
+    public Version version() {
+        return Version.unknownVersion();
+    }
+    
     /*
     /**********************************************************
     /* Closeable implementation
