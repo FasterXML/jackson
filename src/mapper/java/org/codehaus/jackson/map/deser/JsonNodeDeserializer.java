@@ -218,7 +218,7 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
                 JsonParser.NumberType nt = jp.getNumberType();
                 if (nt == JsonParser.NumberType.BIG_INTEGER
                     || ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS)) {
-                    return nodeFactory.numberNode(jp.getIntValue());
+                    return nodeFactory.numberNode(jp.getBigIntegerValue());
                 }
                 if (nt == JsonParser.NumberType.INT) {
                     return nodeFactory.numberNode(jp.getIntValue());

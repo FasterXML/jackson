@@ -175,9 +175,23 @@ public class TestJsonNode
         assertEquals(1L, n.getLongValue());
         assertEquals(BigInteger.ONE, n.getBigIntegerValue());
         assertEquals("1", n.getValueAsText());
-
+        
         // 1.6:
         assertNodeNumbers(n, 1, 1.0);
+
+        BigInteger maxLong = BigInteger.valueOf(Long.MAX_VALUE);
+        
+        n = BigIntegerNode.valueOf(maxLong);
+        assertEquals(Long.MAX_VALUE, n.getLongValue());
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode n2 = mapper.readTree(maxLong.toString());
+        assertEquals(Long.MAX_VALUE, n2.getLongValue());
+
+        // then over long limit:
+        BigInteger beyondLong = maxLong.shiftLeft(2); // 4x max long
+        n2 = mapper.readTree(beyondLong.toString());
+        assertEquals(beyondLong, n2.getBigIntegerValue());
     }
 
     public void testBinary() throws Exception
