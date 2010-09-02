@@ -11,6 +11,8 @@ Description:
   * [JACKSON-352] Polymorphic deserialization for Object always assumes
     array-wrapper style
    (reported by Henry L)
+  * [JACKSON-355] Handling of BigInteger with JsonNode not correct
+   (reported by Adam S)
 
 ------------------------------------------------------------------------
 == History: ==
