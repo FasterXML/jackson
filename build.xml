@@ -162,6 +162,8 @@ compile.smile, compile.mrbean" />
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/**/*.java" />
         </javac>
+    	<!-- 1.6, [JACKSON-278]: need to copy VERSION info along (so unit tests see it) -->
+        <copy file="${dir.build}/VERSION" toDir="${dir.build.classes.core}/org/codehaus/jackson/impl" />
     </target>
 
     <target name="compile.mapper" depends="compile.core">
@@ -180,6 +182,8 @@ compile.smile, compile.mrbean" />
                </fileset>
             </classpath>
         </javac>
+    	<!-- 1.6, [JACKSON-278]: need to copy VERSION info along (so unit tests see it) -->
+        <copy file="${dir.build}/VERSION" toDir="${dir.build.classes.mapper}/org/codehaus/jackson/map" />
     </target>
 
     <target name="compile.xc" depends="compile.mapper">
@@ -202,6 +206,8 @@ compile.smile, compile.mrbean" />
                </fileset>
             </classpath>
         </javac>
+    	<!-- 1.6, [JACKSON-278]: need to copy VERSION info along (so unit tests see it) -->
+        <copy file="${dir.build}/VERSION" toDir="${dir.build.classes.xc}/org/codehaus/jackson/xc" />
     </target>
 
     <target name="compile.jaxrs" depends="compile.mapper,compile.xc">
@@ -222,6 +228,8 @@ compile.smile, compile.mrbean" />
                <pathelement path="${dir.build.classes.xc}"/>
             </classpath>
         </javac>
+    	<!-- 1.6, [JACKSON-278]: need to copy VERSION info along (so unit tests see it) -->
+        <copy file="${dir.build}/VERSION" toDir="${dir.build.classes.jaxrs}/org/codehaus/jackson/jaxrs" />
     </target>
 
     <target name="compile.smile" depends="compile.core">
@@ -236,6 +244,8 @@ compile.smile, compile.mrbean" />
                <pathelement path="${dir.build.classes.core}"/>  
             </classpath>
         </javac>
+    	<!-- 1.6, [JACKSON-278]: need to copy VERSION info along (so unit tests see it) -->
+        <copy file="${dir.build}/VERSION" toDir="${dir.build.classes.smile}/org/codehaus/jackson/smile" />
     </target>
 
     <target name="compile.mrbean" depends="compile.core">
@@ -253,7 +263,9 @@ compile.smile, compile.mrbean" />
                     <include name="jackson-asm*.jar" />
                </fileset>
             </classpath>
+        	<!-- 1.6, [JACKSON-278]: need to copy VERSION info along (so unit tests see it) -->
         </javac>
+        <copy file="${dir.build}/VERSION" toDir="${dir.build.classes.mrbean}/org/codehaus/jackson/mrbean" />
         <!-- also, unpack classes from repackaged asm jar, for OSGi bundle -->
         <unjar dest="${dir.build.classes.mrbean}">
           <fileset dir="${dir.lib}/repackaged">
