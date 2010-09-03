@@ -59,6 +59,7 @@
           <include name="release-notes/*" />
           <include name="DEV/contributor*" />
           <include name="src/**/*.java" />
+          <include name="src/VERSION.txt" />
           <include name="src/java/**/*.html" />
           <include name="src/maven/*.pom" />
           <include name="release-notes/*" />
