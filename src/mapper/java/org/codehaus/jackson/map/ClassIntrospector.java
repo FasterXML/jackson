@@ -59,7 +59,7 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      * class ("creator"), as well as class annotations, but
      * no information on member methods
      */
-    public abstract T forCreation(DeserializationConfig cfg, Class<?> c,
+    public abstract T forCreation(DeserializationConfig cfg, JavaType type,
                                   MixInResolver r);
 
     /**

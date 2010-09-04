@@ -214,7 +214,7 @@ public abstract class BasicDeserializerFactory
     {
         Class<?> mapClass = type.getRawClass();
 
-        BasicBeanDescription beanDesc = config.introspectForCreation(mapClass);
+        BasicBeanDescription beanDesc = config.introspectForCreation(type);
         // Explicit deserializer to use? (@JsonDeserialize.using)
         JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
         if (deser != null) {
@@ -267,8 +267,9 @@ public abstract class BasicDeserializerFactory
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Map type "+type);
             }
             mapClass = fallback;
+            type = (MapType) type.forcedNarrowBy(mapClass);
             // But if so, also need to re-check creators...
-            beanDesc = config.introspectForCreation(mapClass);
+            beanDesc = config.introspectForCreation(type);
         }
 
         // [JACKSON-153]: allow use of @JsonCreator
@@ -303,7 +304,7 @@ public abstract class BasicDeserializerFactory
         /* 18-Feb-2009, tatu: Must first check if we have a class annotation
          *    that should override default deserializer
          */
-        BasicBeanDescription beanDesc = config.introspectForCreation(enumClass);
+        BasicBeanDescription beanDesc = config.introspectForCreation(TypeFactory.type(enumClass));
         JsonDeserializer<?> des = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
         if (des != null) {
             return des;

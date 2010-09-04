@@ -688,8 +688,8 @@ public class DeserializationConfig
      * construct bean instance.
      */
     @SuppressWarnings("unchecked")
-    public <T extends BeanDescription> T introspectForCreation(Class<?> cls) {
-        return (T) _classIntrospector.forCreation(this, cls, this);
+    public <T extends BeanDescription> T introspectForCreation(JavaType type) {
+        return (T) _classIntrospector.forCreation(this, type, this);
     }
 
     /**

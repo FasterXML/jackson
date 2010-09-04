@@ -39,6 +39,13 @@ public class TestHibernate
      */
     public void testHibernateCglib() throws Exception
     {
+        /* 03-Sep-2010, tatu: This often fails form Eclipse (on some platforms like Mac OS X),
+         *   so let's only run it from Ant/CLI
+         */
+        if (!runsFromAnt()) {
+            return;
+        }
+
         Enhancer enh = new Enhancer();
         enh.setInterfaces(new Class[] { BeanInterfaceHib.class });
         enh.setCallback(new MethodInterceptor() {

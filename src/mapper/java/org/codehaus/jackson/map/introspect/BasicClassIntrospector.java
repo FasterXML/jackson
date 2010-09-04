@@ -156,12 +156,12 @@ public class BasicClassIntrospector
 
     @Override
     public BasicBeanDescription forCreation(DeserializationConfig cfg,
-            Class<?> c, MixInResolver r)
+            JavaType type, MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(c, ai, r);
+        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), ai, r);
         ac.resolveCreators(true);
-        return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
+        return new BasicBeanDescription(type, ac, ai);
     }
 
     @Override
