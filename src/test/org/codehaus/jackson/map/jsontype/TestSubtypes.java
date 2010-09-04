@@ -29,7 +29,6 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
     /**********************************************************
      */
 
-    /*
     public void testSerialization() throws Exception
     {
         // serialization can detect type name ok without anything extra:
@@ -56,7 +55,6 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
         assertSame(SubC.class, bean.getClass());
         assertEquals(1, ((SubC) bean).c);
     }
-    */
 
     public void testDeserializatioNamed() throws Exception
     {

@@ -62,7 +62,7 @@ public class TestGenericListSerialization
         byte[] json = mapper.typedWriter(rootType).writeValueAsBytes(input);
 //        byte[] json = mapper.writeValueAsBytes(input);
 
-        System.out.println("After Serialization: " + new String(json));
+//        System.out.println("After Serialization: " + new String(json));
 
         JSONResponse<List<Parent>> out = mapper.readValue(json, 0, json.length, rootType);
 
