@@ -83,6 +83,14 @@ public class PropertyBuilder
                 serializationType = TypeFactory.type(am.getGenericType());
             }
             JavaType ct = serializationType.getContentType();
+            /* 03-Sep-2010, tatu: This is somehow related to [JACKSON-356], but I don't completely
+             *   yet understand how pieces fit together. Still, better be explicit than rely on
+             *   NPE to indicate an issue...
+             */
+            if (ct == null) {
+                throw new IllegalStateException("Problem trying to create BeanPropertyWriter for property '"
+                        +name+"' (of type "+_beanDesc.getType()+"); serialization type "+serializationType+" has no content");
+            }
             ct.setTypeHandler(contentTypeSer);
         }
         Object suppValue = null;

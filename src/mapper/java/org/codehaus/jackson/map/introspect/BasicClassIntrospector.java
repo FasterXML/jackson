@@ -119,11 +119,10 @@ public class BasicClassIntrospector
      */
 
     public BasicBeanDescription forSerialization(SerializationConfig cfg,
-                                                 Class<?> c,
-                                                 MixInResolver r)
+            JavaType type, MixInResolver r)
     {
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(c, ai, r);
+        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), ai, r);
         // False -> no need to collect ignorable member list
         ac.resolveMemberMethods(getSerializationMethodFilter(cfg), false);
         /* only the default constructor needed here (that's needed
@@ -136,7 +135,7 @@ public class BasicClassIntrospector
         ac.resolveCreators(true);
         // False -> no need to collect ignorable field list
         ac.resolveFields(false);
-        return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
+        return new BasicBeanDescription(type, ac, ai);
     }
 
     @Override

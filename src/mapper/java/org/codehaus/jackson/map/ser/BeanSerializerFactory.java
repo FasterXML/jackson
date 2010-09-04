@@ -91,7 +91,7 @@ public class BeanSerializerFactory
         /* [JACKSON-220]: Very first thing, let's check annotations to
          * see if we have explicit definition
          */
-        BasicBeanDescription beanDesc = config.introspect(type.getRawClass());
+        BasicBeanDescription beanDesc = config.introspect(type);
         JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ser == null) {
             // First, fast lookup for exact type:

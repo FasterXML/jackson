@@ -678,8 +678,8 @@ public class SerializationConfig
      * of building a bean serializer
      */
     @SuppressWarnings("unchecked")
-    public <T extends BeanDescription> T introspect(Class<?> cls) {
-        return (T) _classIntrospector.forSerialization(this, cls, this);
+    public <T extends BeanDescription> T introspect(JavaType type) {
+        return (T) _classIntrospector.forSerialization(this, type, this);
     }
 
     /**

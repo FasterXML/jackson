@@ -43,7 +43,7 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      * Factory method that constructs an introspector that has all
      * information needed for serialization purposes.
      */
-    public abstract T forSerialization(SerializationConfig cfg, Class<?> c,
+    public abstract T forSerialization(SerializationConfig cfg, JavaType type,
                                        MixInResolver r);
 
     /**
