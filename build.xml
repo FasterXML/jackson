@@ -45,10 +45,10 @@
     <property name="JSON_VENDOR" value="http://www.ietf.org/rfc/rfc4627.txt" />
     <property name="IMPL_TITLE_CORE" value="Jackson JSON processor" />
     <property name="IMPL_TITLE_MAPPER" value="Data mapper for Jackson JSON processor" />
-    <property name="IMPL_TITLE_JAXRS" value="JAX-RS provider for Json content type, using Jackson data binding" />
+    <property name="IMPL_TITLE_JAXRS" value="JAX-RS provider for JSON content type, using Jackson data binding" />
     <property name="IMPL_TITLE_XC" value="XML Compatibility extensions for Jackson data binding" />
-    <property name="IMPL_TITLE_SMILE" value="Smile Binary format handling functionality" />
-    <property name="IMPL_TITLE_MRBEAN" value="Bean Materializer (aka Mr. Bean)" />
+    <property name="IMPL_TITLE_SMILE" value="Jackson Binary format (aka Smile) handling functionality" />
+    <property name="IMPL_TITLE_MRBEAN" value="Jackson Bean Materializer (aka Mr. Bean)" />
 
     <property name="IMPL_VERSION" value="1.6.0" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
