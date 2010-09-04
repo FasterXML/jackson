@@ -19,9 +19,9 @@ public class TestHibernate
     extends BaseTest
 {
     /*
-    //////////////////////////////////////////////
-    // Helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
      */
 
     interface BeanInterfaceHib {
@@ -29,9 +29,9 @@ public class TestHibernate
     }
 
     /*
-    //////////////////////////////////////////////
-    // Tests
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Tests
+    /**********************************************************
      */
 
     /*
@@ -67,13 +67,13 @@ public class TestHibernate
     }
 
     /*
-    //////////////////////////////////////////////
-    // Helper methods
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
      */
 
     @SuppressWarnings("unchecked")
-	private Map<String,Object> writeAndMap(ObjectMapper m, Object value)
+    private Map<String,Object> writeAndMap(ObjectMapper m, Object value)
         throws IOException
     {
         StringWriter sw = new StringWriter();
