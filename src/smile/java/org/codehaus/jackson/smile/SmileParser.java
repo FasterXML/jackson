@@ -167,10 +167,12 @@ public class SmileParser
         _tokenInputCol = -1;
     }
 
+    @Override
     public ObjectCodec getCodec() {
         return _objectCodec;
     }
 
+    @Override
     public void setCodec(ObjectCodec c) {
         _objectCodec = c;
     }
@@ -468,6 +470,7 @@ public class SmileParser
         return _parsingContext.getCurrentName();
     }
 
+    @Override
     public NumberType getNumberType()
         throws IOException, JsonParseException
     {

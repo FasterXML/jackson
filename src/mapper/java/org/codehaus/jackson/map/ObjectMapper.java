@@ -359,6 +359,7 @@ public class ObjectMapper
      * @deprecated Use other constructors instead; note that
      *   you can just set serializer factory with {@link #setSerializerFactory}
      */
+    @Deprecated
     public ObjectMapper(SerializerFactory sf)
     {
         this(null, null, null);
@@ -761,6 +762,7 @@ public class ObjectMapper
     /**
      * @deprecated Typo in name -- use {@link #setDefaultTyping} instead.
      */
+    @Deprecated
     public ObjectMapper setDefaltTyping(TypeResolverBuilder<?> typer) {
         _defaultTyper = typer;
         return this;
@@ -1053,6 +1055,7 @@ public class ObjectMapper
      * Method to serialize given JSON Tree, using generator
      * provided.
      */
+    @Override
     public void writeTree(JsonGenerator jgen, JsonNode rootNode)
         throws IOException, JsonProcessingException
     {
@@ -1089,6 +1092,7 @@ public class ObjectMapper
      *
      * @since 1.2
      */
+    @Override    
     public ObjectNode createObjectNode() {
         return _deserializationConfig.getNodeFactory().objectNode();
     }
@@ -1102,6 +1106,7 @@ public class ObjectMapper
      *
      * @since 1.2
      */
+    @Override
     public ArrayNode createArrayNode() {
         return _deserializationConfig.getNodeFactory().arrayNode();
     }
@@ -1114,6 +1119,7 @@ public class ObjectMapper
      * 
      * @since 1.3
      */
+    @Override
     public JsonParser treeAsTokens(JsonNode n)
     {
         return new TreeTraversingParser(n, this);
@@ -1128,6 +1134,7 @@ public class ObjectMapper
      *   objectMapper.convertValue(n, valueClass);
      *</pre>
      */
+    @Override
     public <T> T treeToValue(JsonNode n, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
@@ -1514,6 +1521,7 @@ public class ObjectMapper
      *   
      * @deprecated Use {@link #viewWriter} instead
      */
+    @Deprecated
     public void writeValueUsingView(JsonGenerator jgen, Object value, Class<?> viewClass)
         throws IOException, JsonGenerationException, JsonMappingException
     {
@@ -1533,6 +1541,7 @@ public class ObjectMapper
      *   
      * @deprecated Use {@link #viewWriter} instead
      */
+    @Deprecated
     public void writeValueUsingView(Writer w, Object value, Class<?> viewClass)
         throws IOException, JsonGenerationException, JsonMappingException
     {
@@ -1552,6 +1561,7 @@ public class ObjectMapper
      *   
      * @deprecated Use {@link #viewWriter} instead
      */
+    @Deprecated
     public void writeValueUsingView(OutputStream out, Object value, Class<?> viewClass)
         throws IOException, JsonGenerationException, JsonMappingException
     {

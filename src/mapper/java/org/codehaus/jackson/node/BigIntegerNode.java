@@ -69,6 +69,7 @@ public final class BigIntegerNode
     /**********************************************************
      */
     
+    @Override
     public String getValueAsText() {
         return _value.toString();
     }

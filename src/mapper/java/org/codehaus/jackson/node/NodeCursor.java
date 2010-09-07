@@ -30,8 +30,10 @@ abstract class NodeCursor
      */
 
     // note: co-variant return type
+    @Override
     public final NodeCursor getParent() { return _parent; }
 
+    @Override
     public abstract String getCurrentName();
 
     /*
@@ -86,8 +88,10 @@ abstract class NodeCursor
             _node = n;
         }
 
+        @Override
         public String getCurrentName() { return null; }
 
+        @Override
         public JsonToken nextToken() {
             if (!_done) {
                 _done = true;
@@ -97,9 +101,13 @@ abstract class NodeCursor
             return null;
         }
         
+        @Override
         public JsonToken nextValue() { return nextToken(); }
+        @Override
         public JsonToken endToken() { return null; }
+        @Override
         public JsonNode currentNode() { return _node; }
+        @Override
         public boolean currentHasChildren() { return false; }
     }
 
@@ -118,8 +126,10 @@ abstract class NodeCursor
             _contents = n.getElements();
         }
 
+        @Override
         public String getCurrentName() { return null; }
 
+        @Override
         public JsonToken nextToken()
         {
             if (!_contents.hasNext()) {
@@ -130,10 +140,14 @@ abstract class NodeCursor
             return _currentNode.asToken();
         }
 
+        @Override
         public JsonToken nextValue() { return nextToken(); }
+        @Override
         public JsonToken endToken() { return JsonToken.END_ARRAY; }
 
+        @Override
         public JsonNode currentNode() { return _currentNode; }
+        @Override
         public boolean currentHasChildren() {
             // note: ONLY to be called for container nodes
             return ((ContainerNode) currentNode()).size() > 0;
@@ -158,10 +172,12 @@ abstract class NodeCursor
             _needEntry = true;
         }
 
+        @Override
         public String getCurrentName() {
             return (_current == null) ? null : _current.getKey();
         }
 
+        @Override
         public JsonToken nextToken()
         {
             // Need a new entry?
@@ -178,6 +194,7 @@ abstract class NodeCursor
             return _current.getValue().asToken();
         }
 
+        @Override
         public JsonToken nextValue()
         {
             JsonToken t = nextToken();
@@ -187,11 +204,14 @@ abstract class NodeCursor
             return t;
         }
 
+        @Override
         public JsonToken endToken() { return JsonToken.END_OBJECT; }
 
+        @Override
         public JsonNode currentNode() {
             return (_current == null) ? null : _current.getValue();
         }
+        @Override
         public boolean currentHasChildren() {
             // note: ONLY to be called for container nodes
             return ((ContainerNode) currentNode()).size() > 0;

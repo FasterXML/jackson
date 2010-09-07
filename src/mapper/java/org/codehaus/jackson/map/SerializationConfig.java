@@ -127,6 +127,7 @@ public class SerializationConfig
          * @deprecated As of 1.1, use {@link SerializationConfig#setSerializationInclusion}
          *    instead
          */
+        @Deprecated
         WRITE_NULL_PROPERTIES(true),
 
         /**
@@ -244,7 +245,7 @@ public class SerializationConfig
          * Since pre-1.6 method was to use Enum name, this is the default.
          *<p>
          * Note: this feature should usually have same value
-         * as {@link SerializationConfig#READ_ENUMS_USING_TO_STRING}.
+         * as {@link DeserializationConfig.Feature#READ_ENUMS_USING_TO_STRING}.
          *<p>
          * For further details, check out [JACKSON-212]
          * 

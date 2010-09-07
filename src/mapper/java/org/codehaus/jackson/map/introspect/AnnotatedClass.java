@@ -162,12 +162,16 @@ public final class AnnotatedClass
     /**********************************************************
      */
 
+    @Override
     public Class<?> getAnnotated() { return _class; }
 
+    @Override
     public int getModifiers() { return _class.getModifiers(); }
 
+    @Override
     public String getName() { return _class.getName(); }
 
+    @Override
     public <A extends Annotation> A getAnnotation(Class<A> acls)
     {
         if (_classAnnotations == null) {
@@ -176,10 +180,12 @@ public final class AnnotatedClass
         return _classAnnotations.get(acls);
     }
 
+    @Override
     public Type getGenericType() {
         return _class;
     }
 
+    @Override
     public Class<?> getRawType() {
         return _class;
     }

@@ -35,6 +35,7 @@ public final class EnumSetDeserializer
     }
 
     @SuppressWarnings("unchecked") 
+    @Override
     public EnumSet<?> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {

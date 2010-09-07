@@ -275,6 +275,7 @@ public class JsonMappingException
      * Method is overridden so that we can properly inject description
      * of problem path, if such is defined.
      */
+    @Override
     public String getMessage()
     {
         /* First: if we have no path info, let's just use parent's

@@ -102,6 +102,7 @@ public class ArrayDeserializers
     {
         public StringDeser() { super(String[].class); }
 
+        @Override
         public String[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
@@ -135,6 +136,7 @@ public class ArrayDeserializers
     {
         public CharDeser() { super(char[].class); }
 
+        @Override
         public char[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
@@ -196,6 +198,7 @@ public class ArrayDeserializers
     {
         public BooleanDeser() { super(boolean[].class); }
 
+        @Override
         public boolean[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
@@ -229,6 +232,7 @@ public class ArrayDeserializers
     {
         public ByteDeser() { super(byte[].class); }
 
+        @Override
         public byte[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
@@ -282,6 +286,7 @@ public class ArrayDeserializers
     {
         public ShortDeser() { super(short[].class); }
 
+        @Override
         public short[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
@@ -310,6 +315,7 @@ public class ArrayDeserializers
     {
         public IntDeser() { super(int[].class); }
 
+        @Override
         public int[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
@@ -339,6 +345,7 @@ public class ArrayDeserializers
     {
         public LongDeser() { super(long[].class); }
 
+        @Override
         public long[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
@@ -367,6 +374,7 @@ public class ArrayDeserializers
     {
         public FloatDeser() { super(float[].class); }
 
+        @Override
         public float[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
@@ -396,6 +404,7 @@ public class ArrayDeserializers
     {
         public DoubleDeser() { super(double[].class); }
 
+        @Override
         public double[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {

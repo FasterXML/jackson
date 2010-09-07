@@ -23,9 +23,9 @@ public abstract class AnnotatedWithParams
     protected final AnnotationMap[] _paramAnnotations;
 
     /*
-    //////////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     protected AnnotatedWithParams(AnnotationMap classAnn, AnnotationMap[] paramAnn)
@@ -70,20 +70,21 @@ public abstract class AnnotatedWithParams
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Partial Annotated impl
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Partial Annotated impl
+    /**********************************************************
      */
 
+    @Override
     public final <A extends Annotation> A getAnnotation(Class<A> acls)
     {
         return _annotations.get(acls);
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Extended API
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
      */
 
     public final AnnotationMap getParameterAnnotations(int index)

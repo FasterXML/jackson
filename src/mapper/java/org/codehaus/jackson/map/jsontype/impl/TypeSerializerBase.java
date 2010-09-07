@@ -23,5 +23,6 @@ public abstract class TypeSerializerBase extends TypeSerializer
     @Override
     public String getPropertyName() { return null; }
     
+    @Override
     public TypeIdResolver getTypeIdResolver() { return _idResolver; }
 }

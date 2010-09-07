@@ -39,10 +39,12 @@ public final class ReaderBasedParser
         _symbols = st;
     }
 
+    @Override
     public ObjectCodec getCodec() {
         return _objectCodec;
     }
 
+    @Override
     public void setCodec(ObjectCodec c) {
         _objectCodec = c;
     }

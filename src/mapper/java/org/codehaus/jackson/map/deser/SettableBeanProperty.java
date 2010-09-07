@@ -223,18 +223,21 @@ public abstract class SettableBeanProperty
             _setter = setter;
         }
 
+        @Override
         protected Class<?> getDeclaringClass()
         {
             return _setter.getDeclaringClass();
         }
 
+        @Override
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
-                                      Object instance)
+                Object instance)
             throws IOException, JsonProcessingException
         {
             set(instance, deserialize(jp, ctxt));
         }
 
+        @Override
         public final void set(Object instance, Object value)
             throws IOException
         {
@@ -266,13 +269,15 @@ public abstract class SettableBeanProperty
             _getter = getter;
         }
 
+        @Override
         protected Class<?> getDeclaringClass()
         {
             return _getter.getDeclaringClass();
         }
         
+        @Override
         public final void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
-                                            Object instance)
+                Object instance)
             throws IOException, JsonProcessingException
         {
             JsonToken t = jp.getCurrentToken();
@@ -302,6 +307,7 @@ public abstract class SettableBeanProperty
             _valueDeserializer.deserialize(jp, ctxt, toModify);
         }
 
+        @Override
         public final void set(Object instance, Object value)
             throws IOException
         {
@@ -328,11 +334,13 @@ public abstract class SettableBeanProperty
             _field = f;
         }
 
+        @Override
         protected Class<?> getDeclaringClass()
         {
             return _field.getDeclaringClass();
         }
 
+        @Override
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
                                       Object instance)
             throws IOException, JsonProcessingException
@@ -340,6 +348,7 @@ public abstract class SettableBeanProperty
             set(instance, deserialize(jp, ctxt));
         }
 
+        @Override
         public final void set(Object instance, Object value)
             throws IOException
         {
@@ -382,13 +391,16 @@ public abstract class SettableBeanProperty
          * Base implementation returns -1 to indicate that no index exists
          * for the property.
          */
+        @Override
         public int getCreatorIndex() { return _index; }
         
+        @Override
         protected Class<?> getDeclaringClass()
         {
             return _declaringClass;
         }
 
+        @Override
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
                                       Object instance)
             throws IOException, JsonProcessingException
@@ -396,6 +408,7 @@ public abstract class SettableBeanProperty
             set(instance, deserialize(jp, ctxt));
         }
 
+        @Override
         public void set(Object instance, Object value)
             throws IOException
         {
@@ -439,11 +452,13 @@ public abstract class SettableBeanProperty
             _isContainer = isContainer;
         }
 
+        @Override
         protected Class<?> getDeclaringClass()
         {
             return _managedProperty.getDeclaringClass();
         }
     
+        @Override
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
                                       Object instance)
             throws IOException, JsonProcessingException
@@ -451,6 +466,7 @@ public abstract class SettableBeanProperty
             set(instance, _managedProperty.deserialize(jp, ctxt));
         }
     
+        @Override
         public final void set(Object instance, Object value)
             throws IOException
         {

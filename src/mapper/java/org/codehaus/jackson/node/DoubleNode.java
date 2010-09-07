@@ -15,12 +15,12 @@ import org.codehaus.jackson.map.SerializerProvider;
 public final class DoubleNode
     extends NumericNode
 {
-    final double _value;
+    protected final double _value;
 
     /* 
-    ************************************************
-    * Construction
-    ************************************************
+    /**********************************************************
+    /* Construction
+    /**********************************************************
      */
 
     public DoubleNode(double v) { _value = v; }
@@ -28,19 +28,20 @@ public final class DoubleNode
     public static DoubleNode valueOf(double v) { return new DoubleNode(v); }
 
     /* 
-    ************************************************
-    * BaseJsonNode extended API
-    ************************************************
+    /**********************************************************
+    /* BaseJsonNode extended API
+    /**********************************************************
      */
 
     @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_FLOAT; }
 
+    @Override
     public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.DOUBLE; }
 
     /* 
-    ************************************************
-    * Overrridden JsonNode methods
-    ************************************************
+    /**********************************************************
+    /* Overrridden JsonNode methods
+    /**********************************************************
      */
 
     @Override
@@ -71,6 +72,7 @@ public final class DoubleNode
         return getDecimalValue().toBigInteger();
     }
 
+    @Override
     public String getValueAsText() {
         return NumberOutput.toString(_value);
     }

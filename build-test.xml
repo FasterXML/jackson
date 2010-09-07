@@ -106,7 +106,7 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
                     <!-- and also interop tests, run later on -->
                     <exclude name="org/codehaus/jackson/jaxrs/*.class"/>
                     <exclude name="org/codehaus/jackson/map/interop/Test*.class"/>
-                    <exclude name="org/codehaus/jackson/map/version/*.class"/>
+                    <exclude name="org/codehaus/jackson/version/*.class"/>
                     <include name="**/Test*.class"/>
                 </fileset>
             </batchtest>

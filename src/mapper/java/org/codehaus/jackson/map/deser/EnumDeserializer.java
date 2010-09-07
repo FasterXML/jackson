@@ -61,6 +61,7 @@ public class EnumDeserializer
     /**********************************************************
      */
 
+    @Override
     public Enum<?> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
@@ -110,6 +111,7 @@ public class EnumDeserializer
             _factory = f.getAnnotated();
         }
 
+        @Override
         public Object deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {

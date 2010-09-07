@@ -16,9 +16,9 @@ public final class AnnotatedParameter
     final AnnotationMap _annotations;
 
     /*
-    //////////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public AnnotatedParameter(Type type,  AnnotationMap ann)
@@ -33,24 +33,29 @@ public final class AnnotatedParameter
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Annotated impl
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated impl
+    /**********************************************************
      */
 
     /// Unfortunately, there is no matching JDK type...
+    @Override
     public AnnotatedElement getAnnotated() { return null; }
 
     /// Unfortunately, there is no matching JDK type...
+    @Override
     public int getModifiers() { return 0; }
 
+    @Override
     public String getName() { return ""; }
 
+    @Override
     public <A extends Annotation> A getAnnotation(Class<A> acls)
     {
         return _annotations.get(acls);
     }
 
+    @Override
     public Type getGenericType() {
         /* Hmmh. Could figure out real type (require it to be passed).
          * But for now, let's assume we don't really need this method.
@@ -58,15 +63,16 @@ public final class AnnotatedParameter
         return getRawType();
     }
 
+    @Override
     public Class<?> getRawType() {
         // should never be called
         throw new IllegalStateException();
     }
     
     /*
-    //////////////////////////////////////////////////////
-    // Extended API
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
      */
 
     public Type getParameterType() { return _type; }

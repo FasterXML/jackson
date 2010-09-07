@@ -101,10 +101,12 @@ public class FromXmlParser extends JsonParserBase
         _xmlReader = Stax2ReaderAdapter.wrapIfNecessary(xmlReader);
     }
 
+    @Override
     public ObjectCodec getCodec() {
         return _objectCodec;
     }
 
+    @Override
     public void setCodec(ObjectCodec c) {
         _objectCodec = c;
     }
@@ -157,6 +159,7 @@ public class FromXmlParser extends JsonParserBase
     /**********************************************************
      */
 
+    @Override
     protected byte[] _decodeBase64(Base64Variant b64variant)
         throws IOException, JsonParseException
     {

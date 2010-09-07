@@ -7,12 +7,12 @@ import java.lang.reflect.Type;
 public final class AnnotatedConstructor
     extends AnnotatedWithParams
 {
-    final Constructor<?> _constructor;
+    protected final Constructor<?> _constructor;
 
     /*
-    //////////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public AnnotatedConstructor(Constructor<?> constructor,
@@ -26,45 +26,54 @@ public final class AnnotatedConstructor
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Annotated impl
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated impl
+    /**********************************************************
      */
 
+    @Override
     public Constructor<?> getAnnotated() { return _constructor; }
 
+    @Override
     public int getModifiers() { return _constructor.getModifiers(); }
 
+    @Override
     public String getName() { return _constructor.getName(); }
 
+    @Override
     public Type getGenericType() {
         return getRawType();
     }
 
+    @Override
     public Class<?> getRawType() {
         return _constructor.getDeclaringClass();
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Extended API
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
      */
 
+    @Override
     public AnnotatedParameter getParameter(int index) {
         return new AnnotatedParameter(getParameterType(index), _paramAnnotations[index]);
     }
 
+    @Override
     public int getParameterCount() {
         return _constructor.getParameterTypes().length;
     }
 
+    @Override
     public Class<?> getParameterClass(int index)
     {
         Class<?>[] types = _constructor.getParameterTypes();
         return (index >= types.length) ? null : types[index];
     }
 
+    @Override
     public Type getParameterType(int index)
     {
         Type[] types = _constructor.getGenericParameterTypes();
@@ -72,23 +81,25 @@ public final class AnnotatedConstructor
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // AnnotatedMember impl
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* AnnotatedMember impl
+    /**********************************************************
      */
 
+    @Override
     public Class<?> getDeclaringClass() { return _constructor.getDeclaringClass(); }
 
+    @Override
     public Member getMember() { return _constructor; }
 
     /*
-    //////////////////////////////////////////////////////
-    // Extended API, specific annotations
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended API, specific annotations
+    /**********************************************************
      */
 
-    public String toString()
-    {
+    @Override
+    public String toString() {
         return "[constructor for "+getName()+", annotations: "+_annotations+"]";
     }
 }

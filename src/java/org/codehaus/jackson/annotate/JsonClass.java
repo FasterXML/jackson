@@ -30,6 +30,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
+@Deprecated
 public @interface JsonClass
 {
     /**

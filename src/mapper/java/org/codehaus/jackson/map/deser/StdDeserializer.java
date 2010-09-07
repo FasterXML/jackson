@@ -63,6 +63,7 @@ public abstract class StdDeserializer<T>
      * inclusion mechanism. Sub-classes are expected to override
      * this method if they are to handle type information.
      */
+    @Override
     public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException
@@ -561,6 +562,7 @@ public abstract class StdDeserializer<T>
             _nullValue = nvl;
         }
         
+        @Override
         public final T getNullValue() { return _nullValue; }
     }
 

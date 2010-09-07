@@ -29,6 +29,7 @@ public class BeanWithCursor
         public int getToUserId() { return _toUserId; }
         public String getLanguageCode() { return _languageCode; }
         
+        @Override
         public String toString() {
             return "[Tweet, id: "+_id+", text='"+_text+"', from: "+_fromUserId+", to: "+_toUserId+", lang: "+_languageCode+"]";
         }

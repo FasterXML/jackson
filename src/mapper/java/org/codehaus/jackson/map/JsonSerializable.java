@@ -6,7 +6,7 @@ import org.codehaus.jackson.*;
 
 /**
  * Interface that can be implemented by objects that know how to
- * serialize themselves to Json, using {@link JsonGenerator}
+ * serialize themselves to JSON, using {@link JsonGenerator}
  * (and {@link SerializerProvider} if necessary).
  *<p>
  * Note that implementing this interface binds implementing object
@@ -17,13 +17,16 @@ import org.codehaus.jackson.*;
  * NOTE: as of version 1.5, this interface is missing one crucial
  * aspect, that of dealing with type information embedding.
  * Because of this, this interface is deprecated, although will be
- * fully supported for all 1.x releases.
+ * fully supported for all 1.x releases, and will work except for
+ * cases where polymorphic type information handling is needed for
+ * type (in which case implementing if {@link JsonSerializableWithType} is crucial).
  *
  * @see org.codehaus.jackson.map.JsonSerializableWithType
  *
  * @since 1.5
  * @deprecated Use {@link JsonSerializableWithType} instead
  */
+@Deprecated
 public interface JsonSerializable
 {
     public void serialize(JsonGenerator jgen, SerializerProvider provider)

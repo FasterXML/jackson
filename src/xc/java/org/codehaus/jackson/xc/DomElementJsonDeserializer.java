@@ -42,6 +42,7 @@ public class DomElementJsonDeserializer
         this.builder = builder;
     }
 
+    @Override
     public Element deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {

@@ -76,6 +76,7 @@ public abstract class JsonWriteContext
 
     // // // Shared API
 
+    @Override
     public final JsonWriteContext getParent() { return _parent; }
 
     // // // API sub-classes are to implement
@@ -99,6 +100,7 @@ public abstract class JsonWriteContext
      * Overridden to provide developer writeable "JsonPath" representation
      * of the context.
      */
+    @Override
     public final String toString()
     {
         StringBuilder sb = new StringBuilder(64);
@@ -119,13 +121,16 @@ final class RootWContext
         super(TYPE_ROOT, null);
     }
 
+    @Override
     public String getCurrentName() { return null; }
 
+    @Override
     public int writeFieldName(String name)
     {
         return STATUS_EXPECT_VALUE;
     }
 
+    @Override
     public int writeValue()
     {
         // No commas within root context, but need space
@@ -133,6 +138,7 @@ final class RootWContext
         return (_index == 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_SPACE;
     }
 
+    @Override
     protected void appendDesc(StringBuilder sb)
     {
         sb.append("/");
@@ -147,13 +153,16 @@ final class ArrayWContext
         super(TYPE_ARRAY, parent);
     }
 
+    @Override
     public String getCurrentName() { return null; }
 
+    @Override
     public int writeFieldName(String name)
     {
         return STATUS_EXPECT_VALUE;
     }
 
+    @Override
     public int writeValue()
     {
         int ix = _index;
@@ -161,6 +170,7 @@ final class ArrayWContext
         return (ix < 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_COMMA;
     }
 
+    @Override
     protected void appendDesc(StringBuilder sb)
     {
         sb.append('[');
@@ -190,8 +200,10 @@ final class ObjectWContext
         _expectValue = false;
     }
 
+    @Override
     public String getCurrentName() { return _currentName; }
 
+    @Override
     public int writeFieldName(String name)
     {
         if (_currentName != null) { // just wrote a name...
@@ -201,6 +213,7 @@ final class ObjectWContext
         return (_index < 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_COMMA;
     }
 
+    @Override
     public int writeValue()
     {
         if (_currentName == null) {
@@ -211,6 +224,7 @@ final class ObjectWContext
         return STATUS_OK_AFTER_COLON;
     }
 
+    @Override
     protected void appendDesc(StringBuilder sb)
     {
         sb.append('{');

@@ -271,6 +271,7 @@ public class StdSerializerProvider
         return new JsonSchema((ObjectNode) schemaNode);
     }
 
+    @Override
     public boolean hasSerializerFor(SerializationConfig config,
                                     Class<?> cls, SerializerFactory jsf)
     {
@@ -371,10 +372,12 @@ public class StdSerializerProvider
         _nullKeySerializer = nks;
     }
 
+    @Override
     public int cachedSerializersCount() {
         return _serializerCache.size();
     }
 
+    @Override
     public void flushCachedSerializers() {
         _serializerCache.flush();
     }

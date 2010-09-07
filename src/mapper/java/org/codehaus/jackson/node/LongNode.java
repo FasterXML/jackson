@@ -50,20 +50,21 @@ public final class LongNode
     }
 
     @Override
-        public int getIntValue() { return (int) _value; }
+    public int getIntValue() { return (int) _value; }
 
     @Override
-        public long getLongValue() { return _value; }
+    public long getLongValue() { return _value; }
 
     @Override
-        public double getDoubleValue() { return (double) _value; }
+    public double getDoubleValue() { return (double) _value; }
 
     @Override
-        public BigDecimal getDecimalValue() { return BigDecimal.valueOf(_value); }
+    public BigDecimal getDecimalValue() { return BigDecimal.valueOf(_value); }
 
     @Override
-        public BigInteger getBigIntegerValue() { return BigInteger.valueOf(_value); }
+    public BigInteger getBigIntegerValue() { return BigInteger.valueOf(_value); }
 
+    @Override
     public String getValueAsText() {
         return NumberOutput.toString(_value);
     }

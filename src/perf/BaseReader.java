@@ -52,8 +52,8 @@ abstract class BaseReader
     ////////////////////////////////////////
     */
 
-    public void close()
-        throws IOException
+    @Override
+    public void close()  throws IOException
     {
         InputStream in = mIn;
 
@@ -71,6 +71,7 @@ abstract class BaseReader
      * never be called by main code, let's still implement it bit more
      * efficiently just in case
      */
+    @Override
     public int read()
         throws IOException
     {

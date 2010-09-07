@@ -439,8 +439,8 @@ public final class ClassUtil
     	}
 
     	@SuppressWarnings("unchecked")
-		public Class<? extends Enum<?>> enumTypeFor(EnumSet<?> set)
-		{
+    	public Class<? extends Enum<?>> enumTypeFor(EnumSet<?> set)
+    	{
     		if (enumSetTypeField != null) {
     			return (Class<? extends Enum<?>>) get(set, enumSetTypeField);
     		}
@@ -448,18 +448,19 @@ public final class ClassUtil
 		}
 
     	@SuppressWarnings("unchecked")
-		public Class<? extends Enum<?>> enumTypeFor(EnumMap<?,?> set)
-		{
+    	public Class<? extends Enum<?>> enumTypeFor(EnumMap<?,?> set)
+		        {
     		if (enumMapTypeField != null) {
     			return (Class<? extends Enum<?>>) get(set, enumMapTypeField);
     		}
     		throw new IllegalStateException("Can not figure out type for EnumMap (odd JDK platform?)");
-		}
+		        
+        }
     	
-    	private Object get(Object instance, Field field)
+    	private Object get(Object bean, Field field)
     	{
     		try {
-    			return field.get(instance);
+    			return field.get(bean);
     		} catch (Exception e) {
     			throw new IllegalArgumentException(e);
     		}

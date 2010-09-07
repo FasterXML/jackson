@@ -42,16 +42,19 @@ public class JsonParserDelegate extends JsonParser
         return delegate.getCodec();
     }
 
+    @Override
     public JsonParser enable(Feature f) {
         delegate.enable(f);
         return this;
     }
 
+    @Override
     public JsonParser disable(Feature f) {
         delegate.disable(f);
         return this;
     }
  
+    @Override
     public boolean isEnabled(Feature f) {
         return delegate.isEnabled(f);
     }
@@ -78,14 +81,17 @@ public class JsonParserDelegate extends JsonParser
     /**********************************************************
      */
 
+    @Override
     public JsonToken getCurrentToken() {
         return delegate.getCurrentToken();
     }
 
+    @Override
     public boolean hasCurrentToken() {
         return delegate.hasCurrentToken();
     }
 
+    @Override
     public void clearCurrentToken() {
         delegate.clearCurrentToken();        
     }

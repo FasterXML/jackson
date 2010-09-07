@@ -12,16 +12,19 @@ public class BrokenStringWriter
         _message = msg;
     }
 
+    @Override
     public void write(char[] cbuf, int off, int len) throws IOException
     {
         throw new IOException(_message);
     }
     
+    @Override
     public void write(int c) throws IOException
     {
         throw new IOException(_message);
     }
     
+    @Override
     public void write(String str, int off, int len)  throws IOException
     {
         throw new IOException(_message);

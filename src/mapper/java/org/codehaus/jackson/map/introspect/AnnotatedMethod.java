@@ -32,18 +32,21 @@ public final class AnnotatedMethod
     /*****************************************************
      */
 
+    @Override
     public Method getAnnotated() { return _method; }
 
+    @Override
     public int getModifiers() { return _method.getModifiers(); }
 
+    @Override
     public String getName() { return _method.getName(); }
-
 
     /**
      * For methods, this returns declared return type, which is only
      * useful with getters (setters do not return anything; hence "void"
      * type is returned here)
      */
+    @Override
     public Type getGenericType() {
         return _method.getGenericReturnType();
     }
@@ -53,6 +56,7 @@ public final class AnnotatedMethod
      * useful with getters (setters do not return anything; hence "void"
      * type is returned here)
      */
+    @Override
     public Class<?> getRawType() {
         return _method.getReturnType();
     }
@@ -63,10 +67,11 @@ public final class AnnotatedMethod
     /********************************************************
      */
 
+    @Override
     public Class<?> getDeclaringClass() { return _method.getDeclaringClass(); }
 
+    @Override
     public Member getMember() { return _method; }
-
     
     /*
     /*****************************************************
@@ -74,10 +79,12 @@ public final class AnnotatedMethod
     /*****************************************************
      */
 
+    @Override
     public AnnotatedParameter getParameter(int index) {
         return new AnnotatedParameter(getParameterType(index), _paramAnnotations[index]);
     }
 
+    @Override
     public int getParameterCount() {
         return getParameterTypes().length;
     }
@@ -86,12 +93,14 @@ public final class AnnotatedMethod
         return _method.getGenericParameterTypes();
     }
 
+    @Override
     public Class<?> getParameterClass(int index)
     {
         Class<?>[] types = _method.getParameterTypes();
         return (index >= types.length) ? null : types[index];
     }
 
+    @Override
     public Type getParameterType(int index)
     {
         Type[] types = _method.getGenericParameterTypes();
@@ -121,6 +130,7 @@ public final class AnnotatedMethod
     /********************************************************
      */
 
+    @Override
     public String toString()
     {
         return "[method "+getName()+", annotations: "+_annotations+"]";

@@ -52,8 +52,8 @@ abstract class BaseReader
     /**********************************************************
      */
 
-    public void close()
-        throws IOException
+    @Override
+    public void close() throws IOException
     {
         InputStream in = _in;
 
@@ -64,23 +64,23 @@ abstract class BaseReader
         }
     }
 
-    char[] mTmpBuf = null;
+    protected char[] _tmpBuf = null;
 
     /**
      * Although this method is implemented by the base class, AND it should
      * never be called by main code, let's still implement it bit more
      * efficiently just in case
      */
-    public int read()
-        throws IOException
+    @Override
+    public int read() throws IOException
     {
-        if (mTmpBuf == null) {
-            mTmpBuf = new char[1];
+        if (_tmpBuf == null) {
+            _tmpBuf = new char[1];
         }
-        if (read(mTmpBuf, 0, 1) < 1) {
+        if (read(_tmpBuf, 0, 1) < 1) {
             return -1;
         }
-        return mTmpBuf[0];
+        return _tmpBuf[0];
     }
 
     /*

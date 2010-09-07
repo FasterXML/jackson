@@ -164,8 +164,8 @@ public abstract class JsonNumericParserBase
     /**********************************************************
      */
 
-    public Number getNumberValue()
-        throws IOException, JsonParseException
+    @Override
+    public Number getNumberValue() throws IOException, JsonParseException
     {
         if (_numTypesValid == NR_UNKNOWN) {
             _parseNumericValue(NR_UNKNOWN); // will also check event type
@@ -197,8 +197,8 @@ public abstract class JsonNumericParserBase
         return Double.valueOf(_numberDouble);
     }
 
-    public NumberType getNumberType()
-        throws IOException, JsonParseException
+    @Override
+    public NumberType getNumberType() throws IOException, JsonParseException
     {
         if (_numTypesValid == NR_UNKNOWN) {
             _parseNumericValue(NR_UNKNOWN); // will also check event type
@@ -225,8 +225,8 @@ public abstract class JsonNumericParserBase
         return NumberType.DOUBLE;
     }
 
-    public int getIntValue()
-        throws IOException, JsonParseException
+    @Override
+    public int getIntValue() throws IOException, JsonParseException
     {
         if ((_numTypesValid & NR_INT) == 0) {
             if (_numTypesValid == NR_UNKNOWN) { // not parsed at all
@@ -239,8 +239,8 @@ public abstract class JsonNumericParserBase
         return _numberInt;
     }
 
-    public long getLongValue()
-        throws IOException, JsonParseException
+    @Override
+    public long getLongValue() throws IOException, JsonParseException
     {
         if ((_numTypesValid & NR_LONG) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
@@ -253,8 +253,8 @@ public abstract class JsonNumericParserBase
         return _numberLong;
     }
 
-    public BigInteger getBigIntegerValue()
-        throws IOException, JsonParseException
+    @Override
+    public BigInteger getBigIntegerValue() throws IOException, JsonParseException
     {
         if ((_numTypesValid & NR_BIGINT) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
@@ -267,8 +267,8 @@ public abstract class JsonNumericParserBase
         return _numberBigInt;
     }
 
-    public float getFloatValue()
-        throws IOException, JsonParseException
+    @Override
+    public float getFloatValue() throws IOException, JsonParseException
     {
         double value = getDoubleValue();
         /* 22-Jan-2009, tatu: Bounds/range checks would be tricky
@@ -282,8 +282,8 @@ public abstract class JsonNumericParserBase
         return (float) value;
     }
 
-    public double getDoubleValue()
-        throws IOException, JsonParseException
+    @Override
+    public double getDoubleValue() throws IOException, JsonParseException
     {
         if ((_numTypesValid & NR_DOUBLE) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
@@ -296,8 +296,8 @@ public abstract class JsonNumericParserBase
         return _numberDouble;
     }
 
-    public BigDecimal getDecimalValue()
-        throws IOException, JsonParseException
+    @Override
+    public BigDecimal getDecimalValue() throws IOException, JsonParseException
     {
         if ((_numTypesValid & NR_BIGDECIMAL) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {

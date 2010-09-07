@@ -68,10 +68,12 @@ public class ArrayDeserializer
     /**********************************************************
      */
 
+    @Override
     public JavaType getContentType() {
         return _arrayType.getContentType();
     }
 
+    @Override
     public JsonDeserializer<Object> getContentDeserializer() {
         return _elementDeserializer;
     }
@@ -82,6 +84,7 @@ public class ArrayDeserializer
     /**********************************************************
      */
     
+    @Override
     public Object[] deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
@@ -132,6 +135,7 @@ public class ArrayDeserializer
         return result;
     }
 
+    @Override
     public Object[] deserializeWithType(JsonParser jp, DeserializationContext ctxt,
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException

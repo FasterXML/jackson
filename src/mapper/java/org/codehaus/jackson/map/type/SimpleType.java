@@ -52,12 +52,14 @@ public final class SimpleType
         }
     }
     
+    @Override
     protected JavaType _narrow(Class<?> subclass)
     {
         // Should we check that there is a sub-class relationship?
         return new SimpleType(subclass, _typeNames, _typeParameters);
     }
 
+    @Override
     public JavaType narrowContentsBy(Class<?> subclass)
     {
         // should never get called
@@ -82,6 +84,7 @@ public final class SimpleType
         return new SimpleType(cls);
     }
 
+    @Override
     protected String buildCanonicalName()
     {
         StringBuilder sb = new StringBuilder();
@@ -125,6 +128,7 @@ public final class SimpleType
         return _typeParameters[index];
     }
 
+    @Override
     public String containedTypeName(int index)
     {
         if (index < 0 || _typeNames == null || index >= _typeNames.length) {
@@ -133,10 +137,12 @@ public final class SimpleType
         return _typeNames[index];
     }
     
+    @Override
     public StringBuilder getErasedSignature(StringBuilder sb) {
         return _classSignature(_class, sb, true);
     }
     
+    @Override
     public StringBuilder getGenericSignature(StringBuilder sb)
     {
         _classSignature(_class, sb, false);

@@ -28,6 +28,7 @@ public final class InternCache
         super(MAX_ENTRIES, 0.8f, true);
     }
 
+    @Override
     protected boolean removeEldestEntry(Map.Entry<String,String> eldest)
     {
         return size() > MAX_ENTRIES;

@@ -37,8 +37,6 @@ public class BeanBuilder
      */
 
     /**
-     * @param parent Interface or abstract class that resulting class should
-     *    complete (implement all abstract/interface methods)
      * @param failOnUnrecognized If true, and an unrecognized (non-getter, non-setter)
      *   method is encountered, will throw {@link IllegalArgumentException}; if false,
      *   will implement bogus method that will throw {@link UnsupportedOperationException}

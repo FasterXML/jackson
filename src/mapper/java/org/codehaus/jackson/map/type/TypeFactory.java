@@ -404,6 +404,7 @@ public class TypeFactory
      *
      * @deprecated Use {@link #type(Type)} instead
      */
+    @Deprecated
     public static JavaType fromClass(Class<?> clz)
     {
         return instance._fromClass(clz, null);
@@ -417,6 +418,7 @@ public class TypeFactory
      *
      * @deprecated Use {@link #type(Type)} instead
      */
+    @Deprecated
     public static JavaType fromTypeReference(TypeReference<?> ref)
     {
         return type(ref.getType());
@@ -429,6 +431,7 @@ public class TypeFactory
      *
      * @deprecated Use {@link #type(Type)} instead
      */
+    @Deprecated
     public static JavaType fromType(Type type)
     {
         return instance._fromType(type, null);

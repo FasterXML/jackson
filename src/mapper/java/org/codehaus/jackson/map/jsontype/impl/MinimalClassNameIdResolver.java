@@ -32,6 +32,7 @@ public class MinimalClassNameIdResolver
         }
     }
 
+    @Override
     public JsonTypeInfo.Id getMechanism() { return JsonTypeInfo.Id.MINIMAL_CLASS; }
     
     @Override

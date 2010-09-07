@@ -9,7 +9,7 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
 
 /**
- * Type deserializer used with {@link JsonTypeInfo.As.WRAPPER_ARRAY}
+ * Type deserializer used with {@link JsonTypeInfo.As#WRAPPER_ARRAY}
  * inclusion mechanism. Simple since JSON structure used is always
  * the same, regardless of structure used for actual value: wrapping
  * is done using a 2-element JSON Array where type id is the first

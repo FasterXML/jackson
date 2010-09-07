@@ -64,10 +64,12 @@ public class CollectionDeserializer
     /**********************************************************
      */
 
+    @Override
     public JavaType getContentType() {
         return _collectionType.getContentType();
     }
 
+    @Override
     public JsonDeserializer<Object> getContentDeserializer() {
         return _valueDeserializer;
     }

@@ -24,16 +24,19 @@ public final class Name1
 
     final static Name1 getEmptyName() { return sEmptyName; }
 
+    @Override
     public boolean equals(int quad)
     {
         return (quad == mQuad);
     }
 
+    @Override
     public boolean equals(int quad1, int quad2)
     {
         return (quad1 == mQuad) && (quad2 == 0);
     }
 
+    @Override
     public boolean equals(int[] quads, int qlen)
     {
         return (qlen == 1 && quads[0] == mQuad);

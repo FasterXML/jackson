@@ -112,16 +112,19 @@ public abstract class JsonGeneratorBase
         return (_features & f.getMask()) != 0;
     }
 
+    @Override
     public final JsonGenerator useDefaultPrettyPrinter()
     {
         return setPrettyPrinter(new DefaultPrettyPrinter());
     }
 
+    @Override
     public final JsonGenerator setCodec(ObjectCodec oc) {
         _objectCodec = oc;
         return this;
     }
 
+    @Override
     public final ObjectCodec getCodec() { return _objectCodec; }
 
     /*
@@ -133,6 +136,7 @@ public abstract class JsonGeneratorBase
     /**
      * Note: co-variant return type.
      */
+    @Override
     public final JsonWriteContext getOutputContext() { return _writeContext; }
 
     /*
@@ -141,8 +145,8 @@ public abstract class JsonGeneratorBase
     /**********************************************************
      */
 
-    public final void writeStartArray()
-        throws IOException, JsonGenerationException
+    @Override
+    public final void writeStartArray() throws IOException, JsonGenerationException
     {
         // Array is a value, need to verify it's allowed
         _verifyValueWrite("start an array");
@@ -154,11 +158,10 @@ public abstract class JsonGeneratorBase
         }
     }
 
-    protected abstract void _writeStartArray()
-        throws IOException, JsonGenerationException;
+    protected abstract void _writeStartArray() throws IOException, JsonGenerationException;
 
-    public final void writeEndArray()
-        throws IOException, JsonGenerationException
+    @Override
+    public final void writeEndArray() throws IOException, JsonGenerationException
     {
         if (!_writeContext.inArray()) {
             _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
@@ -174,8 +177,8 @@ public abstract class JsonGeneratorBase
     protected abstract void _writeEndArray()
         throws IOException, JsonGenerationException;
 
-    public final void writeStartObject()
-        throws IOException, JsonGenerationException
+    @Override
+    public final void writeStartObject() throws IOException, JsonGenerationException
     {
         _verifyValueWrite("start an object");
         _writeContext = _writeContext.createChildObjectContext();
@@ -189,8 +192,8 @@ public abstract class JsonGeneratorBase
     protected abstract void _writeStartObject()
         throws IOException, JsonGenerationException;
 
-    public final void writeEndObject()
-        throws IOException, JsonGenerationException
+    @Override
+    public final void writeEndObject() throws IOException, JsonGenerationException
     {
         if (!_writeContext.inObject()) {
             _reportError("Current context not an object but "+_writeContext.getTypeDesc());
@@ -206,8 +209,8 @@ public abstract class JsonGeneratorBase
     protected abstract void _writeEndObject()
         throws IOException, JsonGenerationException;
 
-    public final void writeFieldName(String name)
-        throws IOException, JsonGenerationException
+    @Override
+    public final void writeFieldName(String name)  throws IOException, JsonGenerationException
     {
         // Object is a value, need to verify it's allowed
         int status = _writeContext.writeFieldName(name);
@@ -294,26 +297,17 @@ public abstract class JsonGeneratorBase
     /**********************************************************
      */
 
+    // Not implemented at this well, added as placeholders
+
+     /*
     public abstract void writeNumber(int i)
-        throws IOException, JsonGenerationException;
-
     public abstract void writeNumber(long l)
-        throws IOException, JsonGenerationException;
-
     public abstract void writeNumber(double d)
-        throws IOException, JsonGenerationException;
-
     public abstract void writeNumber(float f)
-        throws IOException, JsonGenerationException;
-
     public abstract void writeNumber(BigDecimal dec)
-        throws IOException, JsonGenerationException;
-
     public abstract void writeBoolean(boolean state)
-        throws IOException, JsonGenerationException;
-
     public abstract void writeNull()
-        throws IOException, JsonGenerationException;
+    */
 
     /*
     /**********************************************************
@@ -321,6 +315,7 @@ public abstract class JsonGeneratorBase
     /**********************************************************
      */
 
+    @Override
     public void writeObject(Object value)
         throws IOException, JsonProcessingException
     {
@@ -341,6 +336,7 @@ public abstract class JsonGeneratorBase
         }
     }
 
+    @Override
     public void writeTree(JsonNode rootNode)
         throws IOException, JsonProcessingException
     {
@@ -361,13 +357,16 @@ public abstract class JsonGeneratorBase
     /**********************************************************
      */
 
+    @Override
     public abstract void flush() throws IOException;
 
+    @Override
     public void close() throws IOException
     {
         _closed = true;
     }
 
+    @Override
     public boolean isClosed() { return _closed; }
 
     /*
@@ -376,6 +375,7 @@ public abstract class JsonGeneratorBase
     /**********************************************************
      */
 
+    @Override
     public final void copyCurrentEvent(JsonParser jp)
         throws IOException, JsonProcessingException
     {
@@ -443,6 +443,7 @@ public abstract class JsonGeneratorBase
         }
     }
 
+    @Override
     public final void copyCurrentStructure(JsonParser jp)
         throws IOException, JsonProcessingException
     {

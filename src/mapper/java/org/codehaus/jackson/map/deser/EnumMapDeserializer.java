@@ -33,7 +33,8 @@ public final class EnumMapDeserializer
     }
 
     @SuppressWarnings("unchecked")
-	public EnumMap<?,?> deserialize(JsonParser jp, DeserializationContext ctxt)
+    @Override
+    public EnumMap<?,?> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_OBJECT

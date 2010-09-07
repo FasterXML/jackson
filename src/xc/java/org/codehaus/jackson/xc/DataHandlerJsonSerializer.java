@@ -21,6 +21,7 @@ public class DataHandlerJsonSerializer extends SerializerBase<DataHandler>
 {
     public DataHandlerJsonSerializer() { super(DataHandler.class); }
     
+    @Override
     public void serialize(DataHandler value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonProcessingException
     {
@@ -43,6 +44,7 @@ public class DataHandlerJsonSerializer extends SerializerBase<DataHandler>
         jgen.writeBinary(out.toByteArray());
     }
 
+    @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
     {
         ObjectNode o = createSchemaNode("array", true);

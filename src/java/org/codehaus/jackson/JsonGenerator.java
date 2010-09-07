@@ -223,20 +223,23 @@ public abstract class JsonGenerator
 
     /** @deprecated Use {@link #enable} instead
      */
+    @SuppressWarnings("dep-ann")
     public void enableFeature(Feature f) { enable(f); }
 
     /** @deprecated Use {@link #disable} instead
      */
+    @SuppressWarnings("dep-ann")
     public void disableFeature(Feature f) { disable(f); }
 
     /** @deprecated Use {@link #configure} instead
      */
+    @SuppressWarnings("dep-ann")
     public void setFeature(Feature f, boolean state) { configure(f, state); }
 
     /** @deprecated Use {@link #isEnabled} instead
      */
+    @SuppressWarnings("dep-ann")
     public boolean isFeatureEnabled(Feature f) { return isEnabled(f); }
-
 
     /*
     /**********************************************************

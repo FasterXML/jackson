@@ -971,7 +971,7 @@ public abstract class AnnotationIntrospector
         
         // // // Serialization: class annotations
 
-
+        @Override
         public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
             String[] result = _primary.findSerializationPropertyOrder(ac);
             if (result == null) {
@@ -985,6 +985,7 @@ public abstract class AnnotationIntrospector
          * for which no explicit is defined should be alphabetically (lexicograpically)
          * ordered
          */
+        @Override
         public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
             Boolean result = _primary.findSerializationSortAlphabetically(ac);
             if (result == null) {

@@ -33,8 +33,8 @@ public final class MergedStream
         _end = end;
     }
 
-    public int available()
-        throws IOException
+    @Override
+    public int available() throws IOException
     {
         if (_buffer != null) {
             return _end - _ptr;
@@ -42,13 +42,14 @@ public final class MergedStream
         return _in.available();
     }
 
-    public void close()
-        throws IOException
+    @Override
+    public void close() throws IOException
     {
         freeMergedBuffer();
         _in.close();
     }
 
+    @Override
     public void mark(int readlimit)
     {
         if (_buffer == null) {
@@ -56,14 +57,15 @@ public final class MergedStream
         }
     }
     
+    @Override
     public boolean markSupported()
     {
         // Only supports marks past the initial rewindable section...
         return (_buffer == null) && _in.markSupported();
     }
     
-    public int read()
-        throws IOException
+    @Override
+    public int read() throws IOException
     {
         if (_buffer != null) {
             int c = _buffer[_ptr++] & 0xFF;
@@ -75,14 +77,14 @@ public final class MergedStream
         return _in.read();
     }
     
-    public int read(byte[] b)
-        throws IOException
+    @Override
+    public int read(byte[] b) throws IOException
     {
         return read(b, 0, b.length);
     }
 
-    public int 	read(byte[] b, int off, int len)
-        throws IOException
+    @Override
+    public int 	read(byte[] b, int off, int len) throws IOException
     {
         if (_buffer != null) {
             int avail = _end - _ptr;
@@ -99,16 +101,16 @@ public final class MergedStream
         return _in.read(b, off, len);
     }
 
-    public void reset()
-        throws IOException
+    @Override
+    public void reset() throws IOException
     {
         if (_buffer == null) {
             _in.reset();
         }
     }
 
-    public long skip(long n)
-        throws IOException
+    @Override
+    public long skip(long n) throws IOException
     {
         long count = 0L;
 

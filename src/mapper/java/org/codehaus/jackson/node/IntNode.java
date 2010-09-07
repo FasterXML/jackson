@@ -47,20 +47,21 @@ public final class IntNode
     }
 
     /* 
-    ************************************************
-    * BaseJsonNode extended API
-    ************************************************
-    */
+    /**********************************************************
+    /* BaseJsonNode extended API
+    /**********************************************************
+     */
 
     @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_INT; }
 
+    @Override
     public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.INT; }
 
     /* 
-    ************************************************
-    * Overrridden JsonNode methods
-    ************************************************
-    */
+    /**********************************************************
+    /* Overrridden JsonNode methods
+    /**********************************************************
+     */
 
     @Override
     public boolean isIntegralNumber() { return true; }
@@ -74,20 +75,21 @@ public final class IntNode
     }
 
     @Override
-        public int getIntValue() { return _value; }
+    public int getIntValue() { return _value; }
 
     @Override
-        public long getLongValue() { return (long) _value; }
+    public long getLongValue() { return (long) _value; }
 
     @Override
-        public double getDoubleValue() { return (double) _value; }
+    public double getDoubleValue() { return (double) _value; }
 
     @Override
-        public BigDecimal getDecimalValue() { return BigDecimal.valueOf(_value); }
+    public BigDecimal getDecimalValue() { return BigDecimal.valueOf(_value); }
 
     @Override
-        public BigInteger getBigIntegerValue() { return BigInteger.valueOf(_value); }
+    public BigInteger getBigIntegerValue() { return BigInteger.valueOf(_value); }
 
+    @Override
     public String getValueAsText() {
         return NumberOutput.toString(_value);
     }

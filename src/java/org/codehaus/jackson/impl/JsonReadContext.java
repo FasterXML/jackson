@@ -92,8 +92,10 @@ public final class JsonReadContext
     /**********************************************************
      */
 
+    @Override
     public final String getCurrentName() { return _currentName; }
 
+    @Override
     public final JsonReadContext getParent() { return _parent; }
 
     /*
@@ -147,6 +149,7 @@ public final class JsonReadContext
      * Overridden to provide developer readable "JsonPath" representation
      * of the context.
      */
+    @Override
     public final String toString()
     {
         StringBuilder sb = new StringBuilder(64);

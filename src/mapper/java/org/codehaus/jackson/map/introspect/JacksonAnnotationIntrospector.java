@@ -314,12 +314,13 @@ public class JacksonAnnotationIntrospector
     /**********************************************************
      */
 
-
+    @Override
     public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
         JsonPropertyOrder order = ac.getAnnotation(JsonPropertyOrder.class);
         return (order == null) ? null : order.value();
     }
 
+    @Override
     public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
         JsonPropertyOrder order = ac.getAnnotation(JsonPropertyOrder.class);
         return (order == null) ? null : order.alphabetic();

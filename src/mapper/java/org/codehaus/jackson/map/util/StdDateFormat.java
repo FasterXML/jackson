@@ -104,6 +104,7 @@ public class StdDateFormat
 
     public StdDateFormat() { }
 
+    @Override
     public StdDateFormat clone() {
         /* Since we always delegate all work to child DateFormat instances,
          * let's NOT call super.clone(); this is bit unusual, but makes
@@ -160,8 +161,8 @@ public class StdDateFormat
     /**********************************************************
      */
 
-    public Date parse(String dateStr)
-        throws ParseException
+    @Override
+    public Date parse(String dateStr) throws ParseException
     {
         dateStr = dateStr.trim();
         ParsePosition pos = new ParsePosition(0);
@@ -185,6 +186,7 @@ public class StdDateFormat
                            dateStr, sb.toString()), pos.getErrorIndex());
     }
 
+    @Override
     public Date parse(String dateStr, ParsePosition pos)
     {
         if (looksLikeISO8601(dateStr)) { // also includes "plain"
@@ -207,6 +209,7 @@ public class StdDateFormat
         return parseAsRFC1123(dateStr, pos);
     }
 
+    @Override
     public StringBuffer format(Date date, StringBuffer toAppendTo,
                                FieldPosition fieldPosition)
     {

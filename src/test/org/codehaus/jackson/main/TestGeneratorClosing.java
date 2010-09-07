@@ -131,6 +131,7 @@ public class TestGeneratorClosing
 
         public MyWriter() { }
 
+        @Override
         public void close() throws IOException {
             mIsClosed = true;
             super.close();
@@ -144,6 +145,7 @@ public class TestGeneratorClosing
 
         public MyStream() { }
 
+        @Override
         public void close() throws IOException {
             mIsClosed = true;
             super.close();

@@ -138,6 +138,7 @@ public class TestParserClosing
             super(contents);
         }
 
+        @Override
         public void close() {
             mIsClosed = true;
             super.close();
@@ -154,6 +155,7 @@ public class TestParserClosing
             super(data);
         }
 
+        @Override
         public void close() throws IOException {
             mIsClosed = true;
             super.close();

@@ -18,13 +18,20 @@ public abstract class NumericNode
 
     // // // Let's re-abstract so sub-classes handle them
 
+    @Override
     public abstract JsonParser.NumberType getNumberType();
 
+    @Override
     public abstract Number getNumberValue();
+    @Override
     public abstract int getIntValue();
+    @Override
     public abstract long getLongValue();
+    @Override
     public abstract double getDoubleValue();
+    @Override
     public abstract BigDecimal getDecimalValue();
+    @Override
     public abstract BigInteger getBigIntegerValue();
 
     /* 
@@ -33,6 +40,7 @@ public abstract class NumericNode
     /**********************************************************
      */
     
+    @Override
     public abstract String getValueAsText();
 
     @Override

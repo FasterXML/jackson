@@ -45,10 +45,10 @@ public class CoreXMLDeserializers
     }
     
     /*
-    ////////////////////////////////////////////////////////////////////////
-    // Provider implementation
-    ////////////////////////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Provider implementation
+    /**********************************************************
+     */
 
     /**
      * Method called by {@link org.codehaus.jackson.map.deser.BasicDeserializerFactory}
@@ -66,16 +66,17 @@ public class CoreXMLDeserializers
     }
     
     /*
-    ////////////////////////////////////////////////////////////////////////
-    // Concrete deserializers
-    ////////////////////////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Concrete deserializers
+    /**********************************************************
+     */
 
     public static class DurationDeserializer
         extends FromStringDeserializer<Duration>
     {
         public DurationDeserializer() { super(Duration.class); }
     
+        @Override
         protected Duration _deserialize(String value, DeserializationContext ctxt)
             throws IllegalArgumentException
         {
@@ -88,6 +89,7 @@ public class CoreXMLDeserializers
     {
         public GregorianCalendarDeserializer() { super(XMLGregorianCalendar.class); }
         
+        @Override
         protected XMLGregorianCalendar _deserialize(String value, DeserializationContext ctxt)
                 throws IllegalArgumentException, IOException {
             Date date = _parseDate(ctxt.getParser(), ctxt);
@@ -102,6 +104,7 @@ public class CoreXMLDeserializers
     {
         public QNameDeserializer() { super(QName.class); }
         
+        @Override
         protected QName _deserialize(String value, DeserializationContext ctxt)
             throws IllegalArgumentException
         {
@@ -125,6 +128,7 @@ public class CoreXMLDeserializers
 
         protected DOMDeserializer(Class<T> cls) { super(cls); }
 
+        @Override
         public abstract T _deserialize(String value, DeserializationContext ctxt);
 
         protected final Document parse(String value) throws IllegalArgumentException
@@ -140,6 +144,7 @@ public class CoreXMLDeserializers
     public static class DOMNodeDeserializer extends DOMDeserializer<Node>
     {
         public DOMNodeDeserializer() { super(Node.class); }
+        @Override
         public Node _deserialize(String value, DeserializationContext ctxt) throws IllegalArgumentException {
             return parse(value);
         }
@@ -148,6 +153,7 @@ public class CoreXMLDeserializers
     public static class DOMDocumentDeserializer extends DOMDeserializer<Document>
     {
         public DOMDocumentDeserializer() { super(Document.class); }
+        @Override
         public Document _deserialize(String value, DeserializationContext ctxt) throws IllegalArgumentException {
             return parse(value);
         }

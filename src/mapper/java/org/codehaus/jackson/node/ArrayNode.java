@@ -260,6 +260,7 @@ public final class ArrayNode
         return null;
     }
 
+    @Override
     public ArrayNode removeAll()
     {
         _children = null;

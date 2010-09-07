@@ -26,12 +26,14 @@ public final class FailingSerializer
         _msg = msg;
     }
     
+    @Override
     public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         throw new JsonGenerationException(_msg);
     }
 
+    @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException
     {

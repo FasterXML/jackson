@@ -278,6 +278,7 @@ public class ObjectNode
      * Method for removing all field properties, such that this
      * ObjectNode will contain no properties after call.
      */
+    @Override
     public ObjectNode removeAll()
     {
         _children = null;

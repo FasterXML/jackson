@@ -23,6 +23,7 @@ public abstract class FromStringDeserializer<T>
         super(vc);
     }
 
+    @Override
     public final T deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
@@ -55,8 +56,8 @@ public abstract class FromStringDeserializer<T>
     {
         public UUIDDeserializer() { super(UUID.class); }
         
-        protected UUID _deserialize(String value, DeserializationContext ctxt)
-        {
+        @Override
+        protected UUID _deserialize(String value, DeserializationContext ctxt) {
             return UUID.fromString(value);
         }
     }
@@ -66,6 +67,7 @@ public abstract class FromStringDeserializer<T>
     {
         public URLDeserializer() { super(URL.class); }
         
+        @Override
         protected URL _deserialize(String value, DeserializationContext ctxt)
             throws IOException
         {
@@ -77,7 +79,8 @@ public abstract class FromStringDeserializer<T>
         extends FromStringDeserializer<URI>
     {
         public URIDeserializer() { super(URI.class); }
-        
+
+        @Override
         protected URI _deserialize(String value, DeserializationContext ctxt)
             throws IllegalArgumentException
         {
@@ -90,6 +93,7 @@ public abstract class FromStringDeserializer<T>
     {
         public CurrencyDeserializer() { super(Currency.class); }
         
+        @Override
         protected Currency _deserialize(String value, DeserializationContext ctxt)
             throws IllegalArgumentException
         {
@@ -103,6 +107,7 @@ public abstract class FromStringDeserializer<T>
     {
         public PatternDeserializer() { super(Pattern.class); }
         
+        @Override
         protected Pattern _deserialize(String value, DeserializationContext ctxt)
             throws IllegalArgumentException
         {

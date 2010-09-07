@@ -20,6 +20,7 @@ public class StdSubtypeResolver extends SubtypeResolver
     /**********************************************************
      */
 
+    @Override    
     public void registerSubtypes(NamedType... types)
     {
         if (_registeredSubtypes == null) {
@@ -30,6 +31,7 @@ public class StdSubtypeResolver extends SubtypeResolver
         }
     }
 
+    @Override
     public void registerSubtypes(Class<?>... classes)
     {
         NamedType[] types = new NamedType[classes.length];
@@ -44,6 +46,7 @@ public class StdSubtypeResolver extends SubtypeResolver
      * @param property Base member to use for type resolution: either annotated type (class),
      *    or property (field, getter/setter)
      */
+    @Override
     public Collection<NamedType> collectAndResolveSubtypes(AnnotatedMember property,
         MapperConfig<?> config, AnnotationIntrospector ai)
     {
@@ -56,6 +59,7 @@ public class StdSubtypeResolver extends SubtypeResolver
         return _collectAndResolve(property, config, ai, st);
     }
 
+    @Override
     public Collection<NamedType> collectAndResolveSubtypes(AnnotatedClass type,
             MapperConfig<?> config, AnnotationIntrospector ai)
     {

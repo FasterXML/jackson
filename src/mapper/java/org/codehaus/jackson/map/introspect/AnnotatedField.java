@@ -19,9 +19,9 @@ public final class AnnotatedField
     protected final AnnotationMap _annotations;
 
     /*
-    //////////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public AnnotatedField(Field field, AnnotationMap annMap)
@@ -41,44 +41,52 @@ public final class AnnotatedField
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Annotated impl
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated impl
+    /**********************************************************
      */
 
+    @Override
     public Field getAnnotated() { return _field; }
 
+    @Override
     public int getModifiers() { return _field.getModifiers(); }
 
+    @Override
     public String getName() { return _field.getName(); }
 
+    @Override
     public <A extends Annotation> A getAnnotation(Class<A> acls)
     {
         return _annotations.get(acls);
     }
 
+    @Override
     public Type getGenericType() {
         return _field.getGenericType();
     }
 
+    @Override
     public Class<?> getRawType() {
         return _field.getType();
     }
     
     /*
-    //////////////////////////////////////////////////////
-    // AnnotatedMember impl
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* AnnotatedMember impl
+    /**********************************************************
      */
 
+    @Override
     public Class<?> getDeclaringClass() { return _field.getDeclaringClass(); }
 
+    @Override
     public Member getMember() { return _field; }
     
     /*
-    //////////////////////////////////////////////////////
-    // Extended API, generic
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended API, generic
+    /**********************************************************
      */
 
     public String getFullName() {
@@ -87,6 +95,7 @@ public final class AnnotatedField
 
     public int getAnnotationCount() { return _annotations.size(); }
 
+    @Override
     public String toString()
     {
         return "[field "+getName()+", annotations: "+_annotations+"]";

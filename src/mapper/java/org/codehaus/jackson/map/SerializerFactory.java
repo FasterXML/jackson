@@ -26,6 +26,7 @@ public abstract class SerializerFactory
      * @deprecated Use {@link #createSerializer(JavaType,SerializationConfig)} instead
      */
     @SuppressWarnings("unchecked")
+    @Deprecated
     public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config) {
         return (JsonSerializer<T>) createSerializer(TypeFactory.type(type), config);        
     }

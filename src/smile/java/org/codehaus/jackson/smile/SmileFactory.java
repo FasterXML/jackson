@@ -178,18 +178,21 @@ public class SmileFactory extends JsonFactory
     /**********************************************************
      */
 
+    @Override
     public SmileParser createJsonParser(File f)
         throws IOException, JsonParseException
     {
         return _createJsonParser(new FileInputStream(f), _createContext(f, true));
     }
 
+    @Override
     public SmileParser createJsonParser(URL url)
         throws IOException, JsonParseException
     {
         return _createJsonParser(_optimizedStreamFromURL(url), _createContext(url, true));
     }
 
+    @Override
     public SmileParser createJsonParser(InputStream in)
         throws IOException, JsonParseException
     {
@@ -198,12 +201,14 @@ public class SmileFactory extends JsonFactory
 
     //public JsonParser createJsonParser(Reader r)
     
+    @Override
     public SmileParser createJsonParser(byte[] data)
         throws IOException, JsonParseException
     {
         return _createJsonParser(data, 0, data.length, _createContext(data, true));
     }
     
+    @Override
     public SmileParser createJsonParser(byte[] data, int offset, int len)
         throws IOException, JsonParseException
     {
@@ -220,6 +225,7 @@ public class SmileFactory extends JsonFactory
      *<p>
      * note: co-variant return type
      */
+    @Override
     public SmileGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
         throws IOException
     {
@@ -256,6 +262,7 @@ public class SmileFactory extends JsonFactory
      * Overridable factory method that actually instantiates desired
      * parser.
      */
+    @Override
     protected SmileParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
@@ -267,6 +274,7 @@ public class SmileFactory extends JsonFactory
      * Overridable factory method that actually instantiates desired
      * parser.
      */
+    @Override
     protected JsonParser _createJsonParser(Reader r, IOContext ctxt)
         throws IOException, JsonParseException
     {
@@ -280,6 +288,7 @@ public class SmileFactory extends JsonFactory
      * Overridable factory method that actually instantiates desired
      * parser.
      */
+    @Override
     protected SmileParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
         throws IOException, JsonParseException
     {
@@ -291,6 +300,7 @@ public class SmileFactory extends JsonFactory
      * Overridable factory method that actually instantiates desired
      * generator.
      */
+    @Override
     protected JsonGenerator _createJsonGenerator(Writer out, IOContext ctxt)
         throws IOException
     {
@@ -302,6 +312,7 @@ public class SmileFactory extends JsonFactory
 
     //public BufferRecycler _getBufferRecycler()
 
+    @Override
     protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException
     {
         if (_cfgDelegateToTextual) {

@@ -34,6 +34,7 @@ public final class DecimalNode
 
     @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_FLOAT; }
 
+    @Override
     public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.BIG_DECIMAL; }
 
     /* 
@@ -43,30 +44,31 @@ public final class DecimalNode
      */
 
     @Override
-        public boolean isFloatingPointNumber() { return true; }
+    public boolean isFloatingPointNumber() { return true; }
     
     @Override
-        public boolean isBigDecimal() { return true; }
+    public boolean isBigDecimal() { return true; }
     
     @Override
-        public Number getNumberValue() { return _value; }
+    public Number getNumberValue() { return _value; }
 
     @Override
-        public int getIntValue() { return _value.intValue(); }
+    public int getIntValue() { return _value.intValue(); }
 
     @Override
-        public long getLongValue() { return _value.longValue(); }
+    public long getLongValue() { return _value.longValue(); }
 
 
     @Override
-        public BigInteger getBigIntegerValue() { return _value.toBigInteger(); }
+    public BigInteger getBigIntegerValue() { return _value.toBigInteger(); }
 
     @Override
-        public double getDoubleValue() { return _value.doubleValue(); }
+    public double getDoubleValue() { return _value.doubleValue(); }
 
     @Override
-        public BigDecimal getDecimalValue() { return _value; }
+    public BigDecimal getDecimalValue() { return _value; }
 
+    @Override
     public String getValueAsText() {
         return _value.toString();
     }

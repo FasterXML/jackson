@@ -23,6 +23,7 @@ import org.codehaus.jackson.node.NullNode;
  *
  * @deprecated Use {@link org.codehaus.jackson.map.ObjectMapper} instead
  */
+@Deprecated
 public class TreeMapper
     extends JsonNodeFactory
 {
@@ -32,9 +33,9 @@ public class TreeMapper
     protected ObjectMapper _objectMapper;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle (construction, configuration)
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle (construction, configuration)
+    /**********************************************************
      */
 
     public TreeMapper()
@@ -57,16 +58,16 @@ public class TreeMapper
     public JsonFactory getJsonFactory() { return objectMapper().getJsonFactory(); }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, constructing in-memory trees
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, constructing in-memory trees
+    /**********************************************************
      */
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, root-level mapping methods,
-    // mapping from JSON content to nodes
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, root-level mapping methods,
+    /* mapping from JSON content to nodes
+    /**********************************************************
      */
 
     /**
@@ -139,10 +140,10 @@ public class TreeMapper
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Public API, root-level mapping methods,
-    // writing nodes as JSON content
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, root-level mapping methods,
+    /* writing nodes as JSON content
+    /**********************************************************
      */
 
     public void writeTree(JsonNode rootNode, File dst)
@@ -164,9 +165,9 @@ public class TreeMapper
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Internal methods
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
      */
 
     protected synchronized ObjectMapper objectMapper()

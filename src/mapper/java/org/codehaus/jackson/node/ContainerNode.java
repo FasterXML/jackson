@@ -63,10 +63,13 @@ public abstract class ContainerNode
     /**********************************************************
      */
 
+    @Override
     public abstract int size();
 
+    @Override
     public abstract JsonNode get(int index);
 
+    @Override
     public abstract JsonNode get(String fieldName);
 
     /*

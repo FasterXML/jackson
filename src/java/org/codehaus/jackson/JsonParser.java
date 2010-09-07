@@ -420,18 +420,22 @@ public abstract class JsonParser
 
     /** @deprecated Use {@link #configure} instead
      */
+    @SuppressWarnings("dep-ann")
     public void setFeature(Feature f, boolean state) { configure(f, state); }
 
     /** @deprecated Use {@link #enable(Feature)} instead
      */
+    @SuppressWarnings("dep-ann")
     public void enableFeature(Feature f) { enable(f); }
 
     /** @deprecated Use {@link #disable(Feature)} instead
      */
+    @SuppressWarnings("dep-ann")
     public void disableFeature(Feature f) { disable(f); }
 
     /** @deprecated Use {@link #isEnabled(Feature)} instead
      */
+    @SuppressWarnings("dep-ann")
     public final boolean isFeatureEnabled(Feature f) { return isEnabled(f); }
 
 

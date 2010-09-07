@@ -84,11 +84,13 @@ public abstract class BaseJsonNode
      *
      * @since 1.3
      */
+    @Override
     public abstract JsonToken asToken();
 
     /**
      * @since 1.3
      */
+    @Override
     public JsonParser.NumberType getNumberType() {
         // most types non-numeric, so:
         return null; 

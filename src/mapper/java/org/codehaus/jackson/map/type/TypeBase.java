@@ -34,10 +34,13 @@ public abstract class TypeBase extends JavaType
         return this;
     }
 
+    @Override
     public abstract StringBuilder getGenericSignature(StringBuilder sb);
 
+    @Override
     public abstract StringBuilder getErasedSignature(StringBuilder sb);
 
+    @Override
     public List<JavaType> findGenericTypesFor(Class<?> genericClass)
     {
         // first, sanity check: 

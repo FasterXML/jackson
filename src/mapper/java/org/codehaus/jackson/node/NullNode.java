@@ -50,6 +50,7 @@ public final class NullNode
         jg.writeNull();
     }
 
+    @Override
     public boolean equals(Object o)
     {
         return (o == this);

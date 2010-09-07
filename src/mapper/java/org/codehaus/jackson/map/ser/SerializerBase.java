@@ -37,8 +37,10 @@ public abstract class SerializerBase<T>
         _handledType = (Class<T>) t;
     }
 
+    @Override
     public final Class<T> handledType() { return _handledType; }
     
+    @Override
     public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException;
 

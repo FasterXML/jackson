@@ -98,7 +98,7 @@ public class XmlFactory extends JsonFactory
 
     /**
      * Method for enabling or disabling specified parser feature
-     * (check {@link XmlParser.Feature} for list of features)
+     * (check {@link FromXmlParser.Feature} for list of features)
      */
     public final XmlFactory configure(FromXmlParser.Feature f, boolean state)
     {
@@ -206,6 +206,7 @@ public class XmlFactory extends JsonFactory
      *<p>
      * note: co-variant return type
      */
+    @Override
     public ToXmlGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
         throws IOException
     {
@@ -215,6 +216,7 @@ public class XmlFactory extends JsonFactory
                 _objectCodec, _createXmlWriter(out));
     }
 
+    @Override
     public ToXmlGenerator createJsonGenerator(Writer out)
         throws IOException
     {
@@ -223,6 +225,7 @@ public class XmlFactory extends JsonFactory
                 _objectCodec, _createXmlWriter(out));
     }
 
+    @Override
     public ToXmlGenerator createJsonGenerator(File f, JsonEncoding enc)
         throws IOException
     {
@@ -246,6 +249,7 @@ public class XmlFactory extends JsonFactory
      * Overridable factory method that actually instantiates desired
      * parser.
      */
+    @Override
     protected FromXmlParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
@@ -258,6 +262,7 @@ public class XmlFactory extends JsonFactory
      * Overridable factory method that actually instantiates desired
      * parser.
      */
+    @Override
     protected FromXmlParser _createJsonParser(Reader r, IOContext ctxt)
         throws IOException, JsonParseException
     {
@@ -269,6 +274,7 @@ public class XmlFactory extends JsonFactory
      * Overridable factory method that actually instantiates desired
      * parser.
      */
+    @Override
     protected FromXmlParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
         throws IOException, JsonParseException
     {

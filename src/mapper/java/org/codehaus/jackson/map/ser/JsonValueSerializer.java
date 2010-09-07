@@ -50,6 +50,7 @@ public final class JsonValueSerializer
         _valueSerializer = ser;
     }
 
+    @Override
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider prov)
         throws IOException, JsonGenerationException
     {
@@ -89,7 +90,7 @@ public final class JsonValueSerializer
         }
     }
 
-    //@Override
+    @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException
     {

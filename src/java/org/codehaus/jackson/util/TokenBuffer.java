@@ -300,18 +300,22 @@ public class TokenBuffer
         return (_generatorFeatures & f.getMask()) != 0;
     }
 
+    @Override
     public JsonGenerator useDefaultPrettyPrinter() {
         // No-op: we don't indent
         return this;
     }
 
+    @Override
     public JsonGenerator setCodec(ObjectCodec oc) {
         _objectCodec = oc;
         return this;
     }
 
+    @Override
     public ObjectCodec getCodec() { return _objectCodec; }
 
+    @Override
     public final JsonWriteContext getOutputContext() { return _writeContext; }
 
     /*
@@ -320,12 +324,15 @@ public class TokenBuffer
     /**********************************************************
      */
 
+    @Override
     public void flush() throws IOException { /* NOP */ }
 
+    @Override
     public void close() throws IOException {
         _closed = true;
     }
 
+    @Override
     public boolean isClosed() { return _closed; }
 
     /*
@@ -362,6 +369,7 @@ public class TokenBuffer
         _writeContext = _writeContext.createChildObjectContext();
     }
 
+    @Override
     public final void writeEndObject()
         throws IOException, JsonGenerationException
     {
@@ -512,6 +520,7 @@ public class TokenBuffer
     /***********************************************************
      */
 
+    @Override
     public void writeObject(Object value)
         throws IOException, JsonProcessingException
     {
@@ -519,6 +528,7 @@ public class TokenBuffer
         _append(JsonToken.VALUE_EMBEDDED_OBJECT, value);
     }
 
+    @Override
     public void writeTree(JsonNode rootNode)
         throws IOException, JsonProcessingException
     {
@@ -974,8 +984,7 @@ public class TokenBuffer
         /**********************************************************
          */
 
-        private final static int INT_SPACE = 0x0020;
-
+        @Override
         public Object getEmbeddedObject()
         {
             if (_currToken == JsonToken.VALUE_EMBEDDED_OBJECT) {

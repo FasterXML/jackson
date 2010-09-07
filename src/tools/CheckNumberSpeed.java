@@ -4,6 +4,7 @@ import java.math.BigInteger;
  * Simple test to see what is the performance difference between converting
  * simple int values into different wrapper types.
  */
+@SuppressWarnings("hiding")
 public final class CheckNumberSpeed
 {
     final int[] data;

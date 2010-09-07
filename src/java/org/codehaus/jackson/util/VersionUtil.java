@@ -14,7 +14,7 @@ public class VersionUtil
 {
     public final static String VERSION_FILE = "VERSION.txt";
 
-    private final static Pattern VERSION_SEPARATOR = Pattern.compile("[-_.]");
+    private final static Pattern VERSION_SEPARATOR = Pattern.compile("[-_./;:]");
     
     /**
      * Helper method that will try to load version information for specified

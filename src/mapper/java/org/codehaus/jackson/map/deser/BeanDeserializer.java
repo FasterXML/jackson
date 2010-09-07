@@ -337,6 +337,7 @@ public class BeanDeserializer
     /**
      * Main deserialization method for bean-based objects (POJOs).
      */
+    @Override
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
@@ -372,6 +373,7 @@ public class BeanDeserializer
      * instance is created as part of deserialization, potentially
      * after collecting some or all of the properties to set.
      */
+    @Override
     public Object deserialize(JsonParser jp, DeserializationContext ctxt, Object bean)
         throws IOException, JsonProcessingException
     {

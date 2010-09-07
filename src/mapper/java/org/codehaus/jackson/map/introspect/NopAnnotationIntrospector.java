@@ -152,10 +152,12 @@ public class NopAnnotationIntrospector
     /**********************************************************
      */
 
+    @Override
     public String[] findSerializationPropertyOrder(AnnotatedClass ac) {
         return null;
     }
 
+    @Override
     public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
         return null;
     }

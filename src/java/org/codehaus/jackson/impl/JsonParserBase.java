@@ -204,12 +204,14 @@ public abstract class JsonParserBase
      * Method that can be called to get the name associated with
      * the current event.
      */
+    @Override
     public String getCurrentName()
         throws IOException, JsonParseException
     {
         return _parsingContext.getCurrentName();
     }
 
+    @Override
     public void close() throws IOException
     {
         if (!_closed) {
@@ -224,8 +226,10 @@ public abstract class JsonParserBase
         }
     }
 
+    @Override
     public boolean isClosed() { return _closed; }
 
+    @Override
     public JsonReadContext getParsingContext()
     {
         return _parsingContext;
@@ -236,6 +240,7 @@ public abstract class JsonParserBase
      * token; that is, position of the first character from input
      * that starts the current token.
      */
+    @Override
     public JsonLocation getTokenLocation()
     {
         return new JsonLocation(_ioContext.getSourceReference(),
@@ -248,6 +253,7 @@ public abstract class JsonParserBase
      * Method that returns location of the last processed character;
      * usually for error reporting purposes
      */
+    @Override
     public JsonLocation getCurrentLocation()
     {
         int col = _inputPtr - _currInputRowStart + 1; // 1-based
@@ -268,6 +274,7 @@ public abstract class JsonParserBase
      * after encountering end-of-input), returns null.
      * Method can be called for any event.
      */
+    @Override
     public String getText()
         throws IOException, JsonParseException
     {
@@ -293,6 +300,7 @@ public abstract class JsonParserBase
         return null;
     }
 
+    @Override
     public char[] getTextCharacters()
         throws IOException, JsonParseException
     {
@@ -344,6 +352,7 @@ public abstract class JsonParserBase
         return false;
     }
     
+    @Override
     public int getTextLength()
         throws IOException, JsonParseException
     {
@@ -369,6 +378,7 @@ public abstract class JsonParserBase
         return 0;
     }
 
+    @Override
     public int getTextOffset() throws IOException, JsonParseException
     {
         // Most have offset of 0, only some may have other values:
@@ -390,6 +400,7 @@ public abstract class JsonParserBase
         return 0;
     }
 
+    @Override
     public byte[] getBinaryValue(Base64Variant b64variant)
         throws IOException, JsonParseException
     {
@@ -479,6 +490,7 @@ public abstract class JsonParserBase
      * If so, it may be a legitimate EOF, but only iff there
      * is no open non-root context.
      */
+    @Override
     protected void _handleEOF() throws JsonParseException
     {
         if (!_parsingContext.inRoot()) {

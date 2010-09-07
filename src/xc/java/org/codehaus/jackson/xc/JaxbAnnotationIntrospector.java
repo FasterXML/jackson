@@ -186,6 +186,7 @@ public class JaxbAnnotationIntrospector
      *   called potentially for every single enum value being
      *   serialized. Need to improve somehow
      */
+    @Override
     public String findEnumValue(Enum<?> e)
     {
         Class<?> enumClass = e.getDeclaringClass();
@@ -444,12 +445,13 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
      */
 
+    @Override
     public boolean isIgnorableMethod(AnnotatedMethod m)
     {
         return m.getAnnotation(XmlTransient.class) != null;
-
     }
 
+    @Override
     public boolean isIgnorableConstructor(AnnotatedConstructor c)
     {
         /* @XmlTransient can not be attached to constructors...
@@ -465,6 +467,7 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
      */
 
+    @Override
     public boolean isIgnorableField(AnnotatedField f)
     {
         return f.getAnnotation(XmlTransient.class) != null;
@@ -476,6 +479,7 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
      */
 
+    @Override
     public JsonSerializer<?> findSerializer(Annotated am)
     {
         XmlAdapter<Object,Object> adapter = findAdapter(am);
@@ -511,6 +515,7 @@ public class JaxbAnnotationIntrospector
                && (("javax.activation.DataHandler".equals(type.getName()) || isDataHandler(type.getSuperclass())));
     }
 
+    @Override
     public Class<?> findSerializationType(Annotated a)
     {
         /* 15-Feb-2010, tatu: May need to support in future; if so, would make use of
@@ -525,6 +530,7 @@ public class JaxbAnnotationIntrospector
      * from Jackson defaults. As of version 1.5 and above, this is resolved by honoring
      * Jackson defaults (which are configurable), and only using JAXB explicit annotations.
      */
+    @Override
     public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue)
     {
         XmlElementWrapper w = a.getAnnotation(XmlElementWrapper.class);
@@ -560,6 +566,7 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
      */
 
+    @Override
     public String[] findSerializationPropertyOrder(AnnotatedClass ac)
     {
         // @XmlType.propOrder fits the bill here:
@@ -599,6 +606,7 @@ public class JaxbAnnotationIntrospector
         return order;
     }
 
+    @Override
     public Boolean findSerializationSortAlphabetically(AnnotatedClass ac) {
         // Yup, XmlAccessorOrder can provide this...
         XmlAccessorOrder order = findAnnotation(XmlAccessorOrder.class, ac, true, true, true);
@@ -611,6 +619,7 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
      */
 
+    @Override
     public String findGettablePropertyName(AnnotatedMethod am)
     {
         PropertyDescriptor desc = findPropertyDescriptor(am);
@@ -620,6 +629,7 @@ public class JaxbAnnotationIntrospector
         return null;
     }
 
+    @Override
     public boolean hasAsValueAnnotation(AnnotatedMethod am)
     {
         //since jaxb says @XmlValue can exist with attributes, this won't map as a JSON value.
@@ -683,6 +693,7 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
     */
 
+    @Override
     public JsonDeserializer<?> findDeserializer(Annotated am)
     {
         XmlAdapter<Object,Object> adapter = findAdapter(am);
@@ -775,6 +786,7 @@ public class JaxbAnnotationIntrospector
         return null;
     }
 
+    @Override
     public String findSettablePropertyName(AnnotatedMethod am)
     {
         PropertyDescriptor desc = findPropertyDescriptor(am);
@@ -784,6 +796,7 @@ public class JaxbAnnotationIntrospector
         return null;
     }
 
+    @Override
     public boolean hasAnySetterAnnotation(AnnotatedMethod am)
     {
         //(ryan) JAXB has @XmlAnyAttribute and @XmlAnyElement annotations, but they're not applicable in this case
@@ -793,6 +806,7 @@ public class JaxbAnnotationIntrospector
         return false;
     }
 
+    @Override
     public boolean hasCreatorAnnotation(Annotated am)
     {
         return false;
@@ -819,6 +833,7 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
      */
 
+    @Override
     public String findPropertyNameForParam(AnnotatedParameter param)
     {
         // JAXB has nothing like this...

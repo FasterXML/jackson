@@ -24,16 +24,16 @@ abstract class PropertyValue
 
     /**
      * Method called to assign stored value of this property to specified
-     * bean isntance
+     * bean instance
      */
     public abstract void assign(Object bean)
         throws IOException, JsonProcessingException;
 
     /*
-    /////////////////////////////////////////////////////
-    // Concrete property value classes
-    /////////////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Concrete property value classes
+    /**********************************************************
+     */
 
     /**
      * Property value that used when assigning value to property using
@@ -51,6 +51,7 @@ abstract class PropertyValue
             _property = prop;
         }
 
+        @Override
         public void assign(Object bean)
             throws IOException, JsonProcessingException
         {
@@ -79,6 +80,7 @@ abstract class PropertyValue
             _propertyName = propName;
         }
 
+        @Override
         public void assign(Object bean)
             throws IOException, JsonProcessingException
         {
@@ -102,6 +104,7 @@ abstract class PropertyValue
         }
 
         @SuppressWarnings("unchecked") 
+        @Override
         public void assign(Object bean)
             throws IOException, JsonProcessingException
         {

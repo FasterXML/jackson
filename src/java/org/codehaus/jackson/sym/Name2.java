@@ -23,13 +23,16 @@ public final class Name2
         mQuad2 = quad2;
     }
 
+    @Override
     public boolean equals(int quad) { return false; }
 
+    @Override
     public boolean equals(int quad1, int quad2)
     {
         return (quad1 == mQuad1) && (quad2 == mQuad2);
     }
 
+    @Override
     public boolean equals(int[] quads, int qlen)
     {
         return (qlen == 2 && quads[0] == mQuad1 && quads[1] == mQuad2);

@@ -38,6 +38,7 @@ public final class BooleanNode
         return (this == TRUE);
     }
 
+    @Override
     public String getValueAsText() {
         return (this == TRUE) ? "true" : "false";
     }
@@ -62,6 +63,7 @@ public final class BooleanNode
         jg.writeBoolean(this == TRUE);
     }
 
+    @Override
     public boolean equals(Object o)
     {
         /* Since there are only ever two instances in existence

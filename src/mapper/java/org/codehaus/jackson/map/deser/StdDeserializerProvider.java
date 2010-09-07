@@ -166,8 +166,8 @@ public class StdDeserializerProvider
      * Method that can be called to find out whether a deserializer can
      * be found for given type
      */
-    public boolean hasValueDeserializerFor(DeserializationConfig config,
-                                           JavaType type)
+    @Override
+    public boolean hasValueDeserializerFor(DeserializationConfig config, JavaType type)
     {
         /* Note: mostly copied from findValueDeserializer, except for
          * handling of unknown types
@@ -183,6 +183,7 @@ public class StdDeserializerProvider
         return (deser != null);
     }
 
+    @Override
     public int cachedDeserializersCount() {
         return _cachedDeserializers.size();
     }
@@ -196,6 +197,7 @@ public class StdDeserializerProvider
      * 
      * @since 1.4
      */
+    @Override
     public void flushCachedDeserializers() {
         _cachedDeserializers.clear();       
     }

@@ -26,11 +26,12 @@ public final class CollectionType
         _hashCode += elemT.hashCode();
     }
 
-    protected JavaType _narrow(Class<?> subclass)
-    {
+    @Override
+    protected JavaType _narrow(Class<?> subclass) {
         return new CollectionType(subclass, _elementType);
     }
 
+    @Override
     public JavaType narrowContentsBy(Class<?> contentClass)
     {
         // Can do a quick check first:
@@ -47,6 +48,7 @@ public final class CollectionType
         return new CollectionType(rawType, elemT);
     }
 
+    @Override
     protected String buildCanonicalName() {
         StringBuilder sb = new StringBuilder();
         sb.append(_class.getName());
@@ -64,8 +66,11 @@ public final class CollectionType
     /**********************************************************
      */
     
+    @Override
     public JavaType getContentType() { return _elementType; }
+    @Override
     public int containedTypeCount() { return 1; }
+    @Override
     public JavaType containedType(int index) {
             return (index == 0) ? _elementType : null;
     }
@@ -74,15 +79,18 @@ public final class CollectionType
      * Not sure if we should count on this, but type names
      * for core interfaces use "E" for element type
      */
+    @Override
     public String containedTypeName(int index) {
         if (index == 0) return "E";
         return null;
     }
 
+    @Override
     public StringBuilder getErasedSignature(StringBuilder sb) {
         return _classSignature(_class, sb, true);
     }
     
+    @Override
     public StringBuilder getGenericSignature(StringBuilder sb) {
         _classSignature(_class, sb, false);
         sb.append('<');
@@ -97,6 +105,7 @@ public final class CollectionType
     /**********************************************************
      */
 
+    @Override
     public boolean isContainerType() { return true; }
 
     /*
@@ -111,6 +120,7 @@ public final class CollectionType
         return "[collection type; class "+_class.getName()+", contains "+_elementType+"]";
     }
 
+    @Override
     public boolean equals(Object o)
     {
         if (o == this) return true;

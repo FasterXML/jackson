@@ -74,13 +74,13 @@ public abstract class JsonParserMinimalBase
     /**********************************************************
      */
 
-    public abstract JsonToken nextToken()
-        throws IOException, JsonParseException;
+    @Override
+    public abstract JsonToken nextToken() throws IOException, JsonParseException;
 
     //public final JsonToken nextValue()
 
-    public JsonParser skipChildren()
-        throws IOException, JsonParseException
+    @Override
+    public JsonParser skipChildren() throws IOException, JsonParseException
     {
         if (_currToken != JsonToken.START_OBJECT
             && _currToken != JsonToken.START_ARRAY) {
@@ -125,13 +125,16 @@ public abstract class JsonParserMinimalBase
 
     //public boolean hasCurrentToken()
 
-    public abstract String getCurrentName()
-        throws IOException, JsonParseException;
+    @Override
+    public abstract String getCurrentName() throws IOException, JsonParseException;
     
+    @Override
     public abstract void close() throws IOException;
 
+    @Override
     public abstract boolean isClosed();
 
+    @Override
     public abstract JsonStreamContext getParsingContext();
 
 //    public abstract JsonLocation getTokenLocation();
@@ -144,15 +147,19 @@ public abstract class JsonParserMinimalBase
     /**********************************************************
      */
 
+    @Override
     public abstract String getText() throws IOException, JsonParseException;
 
+    @Override
     public abstract char[] getTextCharacters() throws IOException, JsonParseException;
 
     @Override
     public abstract boolean hasTextCharacters();
 
+    @Override
     public abstract int getTextLength() throws IOException, JsonParseException;
 
+    @Override
     public abstract int getTextOffset() throws IOException, JsonParseException;  
 
     /*
@@ -161,6 +168,7 @@ public abstract class JsonParserMinimalBase
     /**********************************************************
      */
 
+    @Override
     public abstract byte[] getBinaryValue(Base64Variant b64variant)
         throws IOException, JsonParseException;
 
@@ -170,8 +178,8 @@ public abstract class JsonParserMinimalBase
     /**********************************************************
      */
 
-    public int getValueAsInt(int defaultValue)
-        throws IOException, JsonParseException
+    @Override
+    public int getValueAsInt(int defaultValue) throws IOException, JsonParseException
     {
         if (_currToken != null) {
             switch (_currToken) {
@@ -190,8 +198,8 @@ public abstract class JsonParserMinimalBase
         return defaultValue;
     }
     
-    public long getValueAsLong(long defaultValue)
-        throws IOException, JsonParseException
+    @Override
+    public long getValueAsLong(long defaultValue) throws IOException, JsonParseException
     {
         if (_currToken != null) {
             switch (_currToken) {
@@ -210,8 +218,8 @@ public abstract class JsonParserMinimalBase
         return defaultValue;
     }
 
-    public double getValueAsDouble(double defaultValue)
-        throws IOException, JsonParseException
+    @Override
+    public double getValueAsDouble(double defaultValue) throws IOException, JsonParseException
     {
         if (_currToken != null) {
             switch (_currToken) {

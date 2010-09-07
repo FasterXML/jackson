@@ -80,10 +80,12 @@ public class TreeTraversingParser extends JsonParserMinimalBase
         }
     }
 
+    @Override
     public void setCodec(ObjectCodec c) {
         _objectCodec = c;
     }
 
+    @Override
     public ObjectCodec getCodec() {
         return _objectCodec;
     }
@@ -301,6 +303,7 @@ public class TreeTraversingParser extends JsonParserMinimalBase
         return currentNumericNode().getNumberValue();
     }
 
+    @Override
     public Object getEmbeddedObject() {
         if (!_closed) {
             JsonNode n = currentNode();

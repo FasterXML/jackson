@@ -49,6 +49,7 @@ public class JsonNodeDeserializer
      * deserializer is registered to handle (in case of more specialized handler).
      * Overridden by typed sub-classes for more thorough checking
      */
+    @Override
     public JsonNode deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
@@ -64,6 +65,7 @@ public class JsonNodeDeserializer
     final static class ObjectDeserializer
         extends BaseNodeDeserializer<ObjectNode>
     {
+        @SuppressWarnings("hiding")
         protected final static ObjectDeserializer instance = new ObjectDeserializer();
 
         protected ObjectDeserializer() {
@@ -88,6 +90,7 @@ public class JsonNodeDeserializer
     final static class ArrayDeserializer
         extends BaseNodeDeserializer<ArrayNode>
     {
+        @SuppressWarnings("hiding")
         protected final static ArrayDeserializer instance = new ArrayDeserializer();
 
         protected ArrayDeserializer() {

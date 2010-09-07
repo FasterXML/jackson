@@ -21,11 +21,14 @@ public final class Name3
     }
 
     // Implies quad length == 1, never matches
+    @Override
     public boolean equals(int quad) { return false; }
 
     // Implies quad length == 2, never matches
+    @Override
     public boolean equals(int quad1, int quad2) { return false; }
 
+    @Override
     public boolean equals(int[] quads, int qlen)
     {
         return (qlen == 3)

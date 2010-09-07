@@ -63,6 +63,7 @@ public final class MissingNode
          */
     }
 
+    @Override
     public boolean equals(Object o)
     {
         /* Hmmh. Since there's just a singleton instance, this

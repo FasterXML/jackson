@@ -125,6 +125,7 @@ public class BasicBeanDescription extends BeanDescription
     /**********************************************************
      */
     
+    @Override
     public LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
                                                              Collection<String> ignoredProperties)
     {
@@ -409,6 +410,7 @@ public class BasicBeanDescription extends BeanDescription
     /**********************************************************
      */
 
+    @Override
     public LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> vchecker)
     {
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();

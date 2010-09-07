@@ -102,10 +102,12 @@ public class MapDeserializer
     /**********************************************************
      */
 
+    @Override
     public JavaType getContentType() {
         return _mapType.getContentType();
     }
 
+    @Override
     public JsonDeserializer<Object> getContentDeserializer() {
         return _valueDeserializer;
     }

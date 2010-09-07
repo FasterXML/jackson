@@ -78,6 +78,7 @@ public final class BinaryNode
      * Hmmh. This is not quite as efficient as using {@link #serialize},
      * but will work correctly.
      */
+    @Override
     public String getValueAsText() {
         return Base64Variants.getDefaultVariant().encode(_data, false);
     }

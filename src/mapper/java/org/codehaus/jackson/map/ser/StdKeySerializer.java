@@ -30,7 +30,7 @@ public final class StdKeySerializer
         jgen.writeFieldName(keyStr);
     }
 
-    //@Override
+    @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException
     {

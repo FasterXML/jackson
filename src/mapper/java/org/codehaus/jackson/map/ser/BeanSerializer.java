@@ -123,6 +123,7 @@ public class BeanSerializer
      * configured
      * {@link BeanPropertyWriter} instances.
      */
+    @Override
     public final void serialize(Object bean, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
@@ -131,6 +132,7 @@ public class BeanSerializer
         jgen.writeEndObject();
     }
 
+    @Override
     public final void serializeWithType(Object bean, JsonGenerator jgen, SerializerProvider provider,
             TypeSerializer typeSer)
         throws IOException, JsonGenerationException

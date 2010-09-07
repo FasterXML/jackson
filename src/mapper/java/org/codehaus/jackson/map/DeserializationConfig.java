@@ -173,7 +173,7 @@ public class DeserializationConfig
          * Since pre-1.6 method was to use Enum name, this is the default.
          *<p>
          * Note: this feature should usually have same value
-         * as {@link SerializationConfig#WRITE_ENUMS_USING_TO_STRING}.
+         * as {@link SerializationConfig.Feature#WRITE_ENUMS_USING_TO_STRING}.
          *<p>
          * For further details, check out [JACKSON-212]
          * 

@@ -45,6 +45,7 @@ public final class ArrayType
         return new ArrayType(componentType, emptyInstance);
     }                                   
 
+    @Override
     protected String buildCanonicalName() {
         return _class.getName();
     }
@@ -59,6 +60,7 @@ public final class ArrayType
      * Handling of narrowing conversions for arrays is trickier: for now,
      * it is not even allowed.
      */
+    @Override
     protected JavaType _narrow(Class<?> subclass)
     {
         /* Ok: need a bit of indirection here. First, must replace component
@@ -79,6 +81,7 @@ public final class ArrayType
      * For array types, both main type and content type can be modified;
      * but ultimately they are interchangeable.
      */
+    @Override
     public JavaType narrowContentsBy(Class<?> contentClass)
     {
         // Can do a quick check first:
@@ -120,6 +123,7 @@ public final class ArrayType
         return _componentType.hasGenericTypes();
     }
 
+    @Override
     public List<JavaType> findGenericTypesFor(Class<?> genericClass) {
         // any parameterization would be found from element type...
         return _componentType.findGenericTypesFor(genericClass);
@@ -131,6 +135,7 @@ public final class ArrayType
      * Should not really matter since array types have no
      * super types.
      */
+    @Override
     public String containedTypeName(int index) {
         if (index == 0) return "E";
         return null;
@@ -142,21 +147,26 @@ public final class ArrayType
     /**********************************************************
      */
 
+    @Override
     public boolean isContainerType() { return true; }
 
     @Override
     public JavaType getContentType() { return  _componentType; }
 
+    @Override
     public int containedTypeCount() { return 1; }
+    @Override
     public JavaType containedType(int index) {
             return (index == 0) ? _componentType : null;
     }
     
+    @Override
     public StringBuilder getGenericSignature(StringBuilder sb) {
         sb.append('[');
         return _componentType.getGenericSignature(sb);
     }
 
+    @Override
     public StringBuilder getErasedSignature(StringBuilder sb) {
         sb.append('[');
         return _componentType.getErasedSignature(sb);
@@ -174,6 +184,7 @@ public final class ArrayType
         return "[array type, component type: "+_componentType+"]";
     }
 
+    @Override
     public boolean equals(Object o)
     {
         if (o == this) return true;

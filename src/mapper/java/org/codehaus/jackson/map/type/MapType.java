@@ -39,11 +39,13 @@ public final class MapType
         return new MapType(rawType, keyT, valueT);
     }
 
+    @Override
     protected JavaType _narrow(Class<?> subclass)
     {
         return new MapType(subclass, _keyType, _valueType);
     }
 
+    @Override
     public JavaType narrowContentsBy(Class<?> contentClass)
     {
         // Can do a quick check first:
@@ -64,6 +66,7 @@ public final class MapType
         return new MapType(_class, newKeyType, _valueType).copyHandlers(this);
     }
 
+    @Override
     protected String buildCanonicalName() {
         StringBuilder sb = new StringBuilder();
         sb.append(_class.getName());
@@ -83,6 +86,7 @@ public final class MapType
     /**********************************************************
      */
 
+    @Override
     public boolean isContainerType() { return true; }
 
     @Override
@@ -106,16 +110,19 @@ public final class MapType
      * for core interfaces are "K" and "V" respectively.
      * For now let's assume this should work.
      */
+    @Override
     public String containedTypeName(int index) {
         if (index == 0) return "K";
         if (index == 1) return "V";
         return null;
     }
 
+    @Override
     public StringBuilder getErasedSignature(StringBuilder sb) {
         return _classSignature(_class, sb, true);
     }
     
+    @Override
     public StringBuilder getGenericSignature(StringBuilder sb)
     {
         _classSignature(_class, sb, false);
@@ -133,11 +140,12 @@ public final class MapType
      */
 
     @Override
-        public String toString()
+    public String toString()
     {
         return "[map type; class "+_class.getName()+", "+_keyType+" -> "+_valueType+"]";
     }
 
+    @Override
     public boolean equals(Object o)
     {
         if (o == this) return true;

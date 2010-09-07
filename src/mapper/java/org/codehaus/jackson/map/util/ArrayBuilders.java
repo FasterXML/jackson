@@ -78,15 +78,16 @@ public final class ArrayBuilders
     }
 
     /*
-    /////////////////////////////////////////////////////
-    // Impl classes
-    /////////////////////////////////////////////////////
+    /**********************************************************
+    /* Impl classes
+    /**********************************************************
      */
 
     public final static class BooleanBuilder
         extends PrimitiveArrayBuilder<boolean[]>
     {
         public BooleanBuilder() { }
+        @Override
         public final boolean[] _constructArray(int len) { return new boolean[len]; }
     }
 
@@ -94,24 +95,28 @@ public final class ArrayBuilders
         extends PrimitiveArrayBuilder<byte[]>
     {
         public ByteBuilder() { }
+        @Override
         public final byte[] _constructArray(int len) { return new byte[len]; }
     }
     public final static class ShortBuilder
         extends PrimitiveArrayBuilder<short[]>
     {
         public ShortBuilder() { }
+        @Override
         public final short[] _constructArray(int len) { return new short[len]; }
     }
     public final static class IntBuilder
         extends PrimitiveArrayBuilder<int[]>
     {
         public IntBuilder() { }
+        @Override
         public final int[] _constructArray(int len) { return new int[len]; }
     }
     public final static class LongBuilder
         extends PrimitiveArrayBuilder<long[]>
     {
         public LongBuilder() { }
+        @Override
         public final long[] _constructArray(int len) { return new long[len]; }
     }
 
@@ -119,19 +124,21 @@ public final class ArrayBuilders
         extends PrimitiveArrayBuilder<float[]>
     {
         public FloatBuilder() { }
+        @Override
         public final float[] _constructArray(int len) { return new float[len]; }
     }
     public final static class DoubleBuilder
         extends PrimitiveArrayBuilder<double[]>
     {
         public DoubleBuilder() { }
+        @Override
         public final double[] _constructArray(int len) { return new double[len]; }
     }
     
     /*
-     ***************************************************************
-     * Static helper methods
-     ***************************************************************
+    /**********************************************************
+    /* Static helper methods
+    /**********************************************************
      */
 
     public static <T> HashSet<T> arrayToSet(T[] elements)

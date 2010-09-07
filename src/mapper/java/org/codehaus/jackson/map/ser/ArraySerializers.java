@@ -260,7 +260,7 @@ public final class ArraySerializers
             }
         }
         
-        //@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
             throws JsonMappingException
         {
@@ -334,7 +334,7 @@ public final class ArraySerializers
             }
         }
 
-        //@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
@@ -368,7 +368,7 @@ public final class ArraySerializers
             }
         }
 
-        //@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
@@ -399,6 +399,7 @@ public final class ArraySerializers
             jgen.writeBinary(value);
         }
 
+        @Override
         public void serializeWithType(byte[] value, JsonGenerator jgen, SerializerProvider provider,
                 TypeSerializer typeSer)
             throws IOException, JsonGenerationException
@@ -408,7 +409,7 @@ public final class ArraySerializers
             typeSer.writeTypeSuffixForScalar(value, jgen);
         }
         
-        //@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
@@ -440,7 +441,7 @@ public final class ArraySerializers
             }
         }
 
-        //@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             //no "short" type defined by json
@@ -501,8 +502,8 @@ public final class ArraySerializers
                 jgen.writeString(value, i, 1);
             }
         }
-        
-        //@Override
+
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
@@ -538,7 +539,7 @@ public final class ArraySerializers
             }
         }
 
-        //@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
@@ -568,7 +569,7 @@ public final class ArraySerializers
             }
         }
 
-        //@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
@@ -598,7 +599,7 @@ public final class ArraySerializers
             }
         }
 
-        //@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);
@@ -632,7 +633,7 @@ public final class ArraySerializers
             }
         }
 
-        //@Override
+        @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {
             ObjectNode o = createSchemaNode("array", true);

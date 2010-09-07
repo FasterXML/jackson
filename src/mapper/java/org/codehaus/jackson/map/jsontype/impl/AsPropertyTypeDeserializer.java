@@ -89,6 +89,7 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
      * this through bit more in future, but for now this does address issue and has
      * no negative side effects (at least within existing unit test suite).
      */
+    @Override
     public Object deserializeTypedFromAny(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {

@@ -70,6 +70,7 @@ public class CustomSerializationView
             _writer = w;
         }
 
+        @Override
         public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
             throws Exception
         {

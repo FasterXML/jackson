@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
+@Deprecated
 public @interface JsonWriteNullProperties
 {
     /**
