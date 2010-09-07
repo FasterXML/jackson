@@ -114,6 +114,52 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+1.5.6 [17-Aug-2010]
+
+  Fixes:
+
+  * [JACKSON-329] type information was not properly serialized for
+    Iterator or Iterable serializers
+   (reported by Yuanchen Z)
+  * [JACKSON-330] ObjectMapper.convertValue(): base64 conversions
+    do not work as expected
+  * [JACKSON-334] Support ISO-8601 date without milliseconds
+  * [JACKSON-340] Meta annotations missing for @JsonTypeResolver
+   (reported by Yuanchen Z)
+  * [JACKSON-341] Issue with static typing, array and subtyping
+    (reported by Yuanchen Z)
+
+1.5.5 [25-Jul-2010]
+
+  Fixes:
+
+  * [JACKSON-309] Serialization of null properties not working correctly
+    when using JAXB annotation introspector
+  * [JACKSON-318] Deserializer missing support for java.util.Currency
+    (reported by Geoffrey A)
+  * [JACKSON-319] Issues when trying to deserialize polymorphic type
+    with no data (just type information)
+    (reported by Chris C)
+  * [JACKSON-324] JsonParserBase: call releaseBuffers() in finally
+    block (within close())
+    (suggested by Steve C)
+  * [JACKSON-327] CustomSerializerFactory had a bug in handling of
+    interface registrations
+    (reported by Yuanchen Z)
+
+  (and all fixes from 1.4.x branch up to 1.4.5)
+
+1.5.4 [25-Jun-2010]
+
+  Fixes:
+
+  * [JACKSON-296]: Add support for JAXB/@XmlElementRef(s), fix related
+    issues uncovered (wrt. handling of polymorphic collection fields)
+   (reported by Ryan H)
+  * [JACKSON-311]: Problems handling polymorphic type information for
+    'untyped' (Object) bean properties, default typing
+   (reported by Eric S)
+
 1.5.3 [31-May-2010]
 
   Fixes:

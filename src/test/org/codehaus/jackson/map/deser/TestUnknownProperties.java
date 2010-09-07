@@ -44,6 +44,7 @@ public class TestUnknownProperties
     final static class MyHandler
         extends DeserializationProblemHandler
     {
+        @Override
         public boolean handleUnknownProperty(DeserializationContext ctxt, JsonDeserializer<?> deserializer,
                                              Object bean, String propertyName)
             throws IOException, JsonProcessingException

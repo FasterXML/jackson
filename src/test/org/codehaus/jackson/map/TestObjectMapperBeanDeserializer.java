@@ -94,6 +94,7 @@ public class TestObjectMapperBeanDeserializer
         public void setURL(URL value) { _url = value; }
         public void setMisc(Collection<?> value) { _misc = value; }
 
+        @Override
         public boolean equals(Object o)
         {
             if (o == null || o.getClass() != getClass()) return false;
@@ -106,6 +107,7 @@ public class TestObjectMapperBeanDeserializer
                 ;
         }
 
+        @Override
         public String toString()
         {
             StringBuilder sb = new StringBuilder();

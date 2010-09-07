@@ -108,6 +108,7 @@ public class TestAnnotations
 
     public final static class BogusSerializer extends JsonSerializer<Object>
     {
+        @Override
         public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
@@ -117,6 +118,7 @@ public class TestAnnotations
 
     private final static class StringSerializer extends JsonSerializer<Object>
     {
+        @Override
         public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {

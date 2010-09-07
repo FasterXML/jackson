@@ -71,6 +71,7 @@ public class TestFieldDeserialization
         @JsonProperty("x")
         protected int myX = 10;
 
+        @SuppressWarnings("hiding")
         public int y = 11;
     }
     

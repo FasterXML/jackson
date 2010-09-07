@@ -45,6 +45,7 @@ public class TestSimpleTypes
     static class IntBean2
         extends IntBean
     {
+        @Override
         void setV(int v2) { super.setV(v2+1); }
     }
 

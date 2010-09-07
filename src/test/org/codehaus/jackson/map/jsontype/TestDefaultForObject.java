@@ -37,6 +37,7 @@ public class TestDefaultForObject
     	
     	private ComplexChoice(boolean b) { state = b; }
     	
+        @Override
     	public String toString() { return String.valueOf(state); }
     }
 

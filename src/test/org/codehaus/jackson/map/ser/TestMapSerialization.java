@@ -33,6 +33,7 @@ public class TestMapSerialization
 
     static class MapSerializer extends JsonSerializer<Map<String,String>>
     {
+        @Override
         public void serialize(Map<String,String> value,
                               JsonGenerator jgen,
                               SerializerProvider provider)

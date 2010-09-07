@@ -12,9 +12,9 @@ public class TestCollectionSerialization
     extends BaseMapTest
 {
     /*
-    ////////////////////////////////////////////////////////////////
-    // Helper classes
-    ////////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
      */
 
     enum Key { A, B, C };
@@ -70,6 +70,7 @@ public class TestCollectionSerialization
 
     static class ListSerializer extends JsonSerializer<List<String>>
     {
+        @Override
         public void serialize(List<String> value,
                               JsonGenerator jgen,
                               SerializerProvider provider)
@@ -79,10 +80,11 @@ public class TestCollectionSerialization
             jgen.writeString(value.toString());
         }
     }
+
     /*
-    ////////////////////////////////////////////////////////////////
-    // Test methods
-    ////////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
      */
 
     public void testCollections()

@@ -13,6 +13,7 @@ public class TestCustomFactory
     static class DummySerializer<T>
         extends JsonSerializer<T>
     {
+        @Override
         public void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonProcessingException
         {

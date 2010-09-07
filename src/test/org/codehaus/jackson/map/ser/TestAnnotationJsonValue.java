@@ -45,7 +45,8 @@ public class TestAnnotationJsonValue
 
         // Also, need to use this annotation to help
         @JsonSerialize(using=ToStringSerializer.class)
-            @JsonValue T value() { return super.value(); }
+        @Override
+        @JsonValue T value() { return super.value(); }
     }
 
     final static class ToStringValueClass2

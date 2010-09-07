@@ -25,6 +25,7 @@ public class TestNodeFactoryConfig
     static class MyNodeFactory
         extends JsonNodeFactory
     {
+        @Override
         public ObjectNode objectNode() { return new MyObjectNode(this); }
         
     }

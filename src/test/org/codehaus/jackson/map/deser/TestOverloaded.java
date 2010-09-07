@@ -43,14 +43,12 @@ public class TestOverloaded
     */
 
     static class NumberBean {
-    	Object value;
+    	protected Object value;
     	
     	public void setValue(Number n) { value = n; }
     }
 
     static class WasNumberBean extends NumberBean {
-    	Object value;
-    	
     	public void setValue(String str) { value = str; }
     }
 

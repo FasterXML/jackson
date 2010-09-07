@@ -30,6 +30,7 @@ public class TestEnumDeserialization
     public static class DummySerializer extends StdDeserializer<Object>
     {
         public DummySerializer() { super(Object.class); }
+        @Override
         public Object deserialize(JsonParser jp, DeserializationContext ctxt)
         {
             return AnnotatedTestEnum.OK;
@@ -50,6 +51,7 @@ public class TestEnumDeserialization
     protected enum LowerCaseEnum {
         A, B, C;
         private LowerCaseEnum() { }
+        @Override
         public String toString() { return name().toLowerCase(); }
     }
 

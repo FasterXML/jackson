@@ -85,6 +85,7 @@ public class TestAnnotationUsing
     static class ValueDeserializer extends StdDeserializer<ValueClass>
     {
         public ValueDeserializer() { super(ValueClass.class); }
+        @Override
         public ValueClass deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
@@ -96,6 +97,7 @@ public class TestAnnotationUsing
     private final static class IntsDeserializer extends StdDeserializer<int[]>
     {
         public IntsDeserializer() { super(int[].class); }
+        @Override
         public int[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
@@ -105,6 +107,7 @@ public class TestAnnotationUsing
 
     private final static class MapKeyDeserializer extends KeyDeserializer
     {
+        @Override
         public Object deserializeKey(String key, DeserializationContext ctxt)
         {
             return new String[] { key };

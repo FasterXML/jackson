@@ -117,6 +117,7 @@ public class TestAnnotationJsonSerialize
 
     static class Bar294Serializer extends JsonSerializer<Bar294>
     {
+        @Override
         public void serialize(Bar294 bar, JsonGenerator jgen,
             SerializerProvider provider) throws IOException
         {

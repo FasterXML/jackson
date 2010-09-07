@@ -29,6 +29,7 @@ public class TestExceptionHandling
     static class SerializerWithErrors
         extends JsonSerializer<Bean>
     {
+        @Override
         public void serialize(Bean value, JsonGenerator jgen, SerializerProvider provider)
         {
             throw new IllegalArgumentException("test string");

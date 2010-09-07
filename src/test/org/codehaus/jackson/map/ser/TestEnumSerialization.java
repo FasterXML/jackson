@@ -80,6 +80,7 @@ public class TestEnumSerialization
     protected enum LowerCaseEnum {
         A, B, C;
         private LowerCaseEnum() { }
+        @Override
         public String toString() { return name().toLowerCase(); }
     }
 
