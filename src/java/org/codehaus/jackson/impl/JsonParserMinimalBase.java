@@ -3,6 +3,7 @@ package org.codehaus.jackson.impl;
 import java.io.IOException;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.io.NumberInput;
 
 /**
@@ -277,7 +278,7 @@ public abstract class JsonParserMinimalBase
     /**
      * Method called to report a problem with unquoted control character.
      * Note: starting with version 1.4, it is possible to suppress
-     * exception by enabling {@link JsonParser.Feature#ALLOW_UNQUOTED_CONTROL_CHARS}.
+     * exception by enabling {@link Feature#ALLOW_UNQUOTED_CONTROL_CHARS}.
      */
     protected void _throwUnquotedSpace(int i, String ctxtDesc)
         throws JsonParseException

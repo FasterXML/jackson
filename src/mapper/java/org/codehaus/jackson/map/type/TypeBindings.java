@@ -19,7 +19,7 @@ public class TypeBindings
 
     /**
      * Context type used for resolving all types, if specified. May be null,
-     * in which case {@link _contextClass} is used instead.
+     * in which case {@link #_contextClass} is used instead.
      */
     protected final JavaType _contextType;
 

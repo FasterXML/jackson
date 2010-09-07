@@ -444,7 +444,7 @@ public class TypeFactory
      */
     
     /**
-     * @param genericParams Mapping of formal parameter declarations (for generic
+     * @param context Mapping of formal parameter declarations (for generic
      *   types) into actual types
      */
     protected JavaType _fromClass(Class<?> clz, TypeBindings context)
@@ -685,10 +685,6 @@ public class TypeFactory
         return CollectionType.construct(rawClass, typeParams[0]);
     }    
 
-    /**
-     * 
-     * @param currentType Current generic type
-     */
     protected static JavaType _resolveVariableViaSubTypes(HierarchicType leafType, String variableName, TypeBindings bindings)
     {
         // can't resolve raw types; possible to have as-of-yet-unbound types too:

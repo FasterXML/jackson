@@ -356,7 +356,7 @@ public class DeserializationConfig
     protected AbstractTypeResolver _abstractTypeResolver;
     
     /**
-     * Factory used for constructing {@link JsonNode} instances.
+     * Factory used for constructing {@link org.codehaus.jackson.JsonNode} instances.
      * 
      * @since 1.6
      */

@@ -220,7 +220,7 @@ public class ObjectMapper
      * different minimum visibility levels for auto-detection. Note
      * that this is the global handler; individual types (classes)
      * can further override active checker used (using
-     * {@link JsonAutoDetect} annotation)
+     * {@link org.codehaus.jackson.annotate.JsonAutoDetect} annotation)
      * 
      * @since 1.5
      */

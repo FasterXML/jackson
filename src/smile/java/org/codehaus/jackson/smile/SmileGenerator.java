@@ -182,7 +182,7 @@ public class SmileGenerator
 
     /**
      * Intermediate buffer in which contents are buffered before
-     * being written using {@link #_writer}.
+     * being written using {@link #_out}.
      */
     protected byte[] _outputBuffer;
 
@@ -192,7 +192,7 @@ public class SmileGenerator
     protected int _outputTail = 0;
 
     /**
-     * Offset to index after the last valid index in {@link _outputBuffer}.
+     * Offset to index after the last valid index in {@link #_outputBuffer}.
      * Typically same as length of the buffer.
      */
     protected final int _outputEnd;

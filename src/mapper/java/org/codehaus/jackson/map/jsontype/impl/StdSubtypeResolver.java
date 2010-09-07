@@ -126,8 +126,6 @@ public class StdSubtypeResolver extends SubtypeResolver
 
     /**
      * Method called to find subtypes for a specific type (class)
-     * 
-     * @param property Member (method, field) to proces
      */
     protected void _collectAndResolve(AnnotatedClass annotatedType, NamedType namedType,
             MapperConfig<?> config, AnnotationIntrospector ai, HashMap<NamedType, NamedType> collectedSubtypes)

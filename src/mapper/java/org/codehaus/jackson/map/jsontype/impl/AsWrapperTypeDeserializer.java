@@ -3,13 +3,13 @@ package org.codehaus.jackson.map.jsontype.impl;
 import java.io.IOException;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
 
 /**
- * Type deserializer used with {@link JsonTypeInfo.As#WRAPPER_OBJECT}
+ * Type deserializer used with {@link As#WRAPPER_OBJECT}
  * inclusion mechanism. Simple since JSON structure used is always
  * the same, regardless of structure used for actual value: wrapping
  * is done using a single-element JSON Object where type id is the key,
@@ -25,8 +25,8 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
     }
 
     @Override
-    public JsonTypeInfo.As getTypeInclusion() {
-        return JsonTypeInfo.As.WRAPPER_OBJECT;
+    public As getTypeInclusion() {
+        return As.WRAPPER_OBJECT;
     }
 
     /**

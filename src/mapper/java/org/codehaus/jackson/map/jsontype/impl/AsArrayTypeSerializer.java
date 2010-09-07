@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
@@ -23,7 +23,7 @@ public class AsArrayTypeSerializer
     }
 
     @Override
-    public JsonTypeInfo.As getTypeInclusion() { return JsonTypeInfo.As.WRAPPER_ARRAY; }
+    public As getTypeInclusion() { return As.WRAPPER_ARRAY; }
     
     @Override
     public void writeTypePrefixForObject(Object value, JsonGenerator jgen)

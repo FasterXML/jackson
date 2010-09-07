@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.jsontype;
 import java.util.Collection;
 
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.type.JavaType;
@@ -83,22 +84,22 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
      * Method for specifying mechanism to use for including type metadata
      * in JSON.
      * If not explicitly called, setting defaults to
-     * {@link JsonTypeInfo.As#PROPERTY}.
+     * {@link As#PROPERTY}.
      * 
      * @param includeAs Mechanism used for including type metadata in JSON
      * 
      * @return Resulting builder instance (usually this builder,
      *   but not necessarily)
      */
-    public T inclusion(JsonTypeInfo.As includeAs);
+    public T inclusion(As includeAs);
 
     /**
      * Method for specifying name of property used for including type
      * information. Not used for all inclusiong mechanisms;
-     * usually only used with {@link JsonTypeInfo.As#PROPERTY}.
+     * usually only used with {@link As#PROPERTY}.
      *<p>
      * If not explicitly called, name of property to use is based on
-     * defaults for {@JsonTypeInfo.id} configured.
+     * defaults for {@link org.codehaus.jackson.annotate.JsonTypeInfo.Id} configured.
      * 
      * @param propName Name of JSON property to use for including
      *    type information

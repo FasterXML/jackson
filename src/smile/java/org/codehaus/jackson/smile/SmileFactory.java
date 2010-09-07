@@ -111,7 +111,7 @@ public class SmileFactory extends JsonFactory
 
     /**
      * Method for disabling specified parser features
-     * (check {@link JsonParser.Feature} for list of features)
+     * (check {@link SmileParser.Feature} for list of features)
      */
     public SmileFactory disable(SmileParser.Feature f) {
         _smileParserFeatures &= ~f.getMask();
@@ -133,7 +133,7 @@ public class SmileFactory extends JsonFactory
 
     /**
      * Method for enabling or disabling specified generator feature
-     * (check {@link JsonGenerator.Feature} for list of features)
+     * (check {@link org.codehaus.jackson.JsonGenerator.Feature} for list of features)
      *
      * @since 1.2
      */
@@ -149,7 +149,7 @@ public class SmileFactory extends JsonFactory
 
     /**
      * Method for enabling specified generator features
-     * (check {@link JsonGenerator.Feature} for list of features)
+     * (check {@link org.codehaus.jackson.JsonGenerator.Feature} for list of features)
      */
     public SmileFactory enable(SmileGenerator.Feature f) {
         _smileGeneratorFeatures |= f.getMask();
@@ -158,7 +158,7 @@ public class SmileFactory extends JsonFactory
 
     /**
      * Method for disabling specified generator feature
-     * (check {@link JsonGenerator.Feature} for list of features)
+     * (check {@link org.codehaus.jackson.JsonGenerator.Feature} for list of features)
      */
     public SmileFactory disable(SmileGenerator.Feature f) {
         _smileGeneratorFeatures &= ~f.getMask();

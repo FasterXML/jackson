@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
  * JSON Object property, if possible (when resulting serialization would
  * use JSON Object). If this is not possible (for JSON Arrays, scalars),
  * uses a JSON Array wrapper (similar to how
- * {@link JsonTypeInfo.As#WRAPPER_ARRAY} always works) as a fallback.
+ * {@link As#WRAPPER_ARRAY} always works) as a fallback.
  * 
  * @since 1.5
  * @author tatus
@@ -32,7 +32,7 @@ public class AsPropertyTypeSerializer
     public String getPropertyName() { return _propertyName; }
 
     @Override
-    public JsonTypeInfo.As getTypeInclusion() { return JsonTypeInfo.As.PROPERTY; }
+    public As getTypeInclusion() { return As.PROPERTY; }
     
     @Override
     public void writeTypePrefixForObject(Object value, JsonGenerator jgen)

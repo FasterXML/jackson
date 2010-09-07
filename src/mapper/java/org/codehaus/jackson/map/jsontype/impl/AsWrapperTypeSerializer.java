@@ -4,14 +4,14 @@ import java.io.IOException;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
  * Type wrapper that tries to use an extra JSON Object, with a single
  * entry that has type name as key, to serialize type information.
  * If this is not possible (value is serialize as array or primitive),
- * will use {@link JsonTypeInfo.As#WRAPPER_ARRAY} mechanism as fallback: that is,
+ * will use {@link As#WRAPPER_ARRAY} mechanism as fallback: that is,
  * just use a wrapping array with type information as the first element
  * and value as second.
  * 
@@ -27,7 +27,7 @@ public class AsWrapperTypeSerializer
     }
 
     @Override
-    public JsonTypeInfo.As getTypeInclusion() { return JsonTypeInfo.As.WRAPPER_OBJECT; }
+    public As getTypeInclusion() { return As.WRAPPER_OBJECT; }
     
     @Override
     public void writeTypePrefixForObject(Object value, JsonGenerator jgen)

@@ -3,7 +3,7 @@ package org.codehaus.jackson.map.jsontype.impl;
 import java.io.IOException;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
@@ -11,11 +11,11 @@ import org.codehaus.jackson.util.JsonParserSequence;
 import org.codehaus.jackson.util.TokenBuffer;
 
 /**
- * Type deserializer used with {@link JsonTypeInfo.As#PROPERTY}
+ * Type deserializer used with {@link As#PROPERTY}
  * inclusion mechanism.
  * Uses regular form (additional key/value entry before actual data)
  * when typed object is expressed as JSON Object; otherwise behaves similar to how
- * {@link JsonTypeInfo.As#WRAPPER_ARRAY} works.
+ * {@link As#WRAPPER_ARRAY} works.
  * Latter is used if JSON representation is polymorphic
  * 
  * @since 1.5
@@ -32,8 +32,8 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
     }
 
     @Override
-    public JsonTypeInfo.As getTypeInclusion() {
-        return JsonTypeInfo.As.PROPERTY;
+    public As getTypeInclusion() {
+        return As.PROPERTY;
     }
 
     @Override

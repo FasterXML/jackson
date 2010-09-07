@@ -3,7 +3,7 @@ package org.codehaus.jackson.map;
 import java.io.IOException;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
  * (when type inclusion has been enabled for type handled).
  *<p>
  * Separate deserialization methods are needed because serialized
- * form for inclusion mechanism {@link JsonTypeInfo.As#PROPERTY}
+ * form for inclusion mechanism {@link As#PROPERTY}
  * is slighty different if value is not expressed as JSON Object:
  * and as such both type deserializer and serializer need to
  * JSON Object form (array, object or other (== scalar)) being
@@ -34,7 +34,7 @@ public abstract class TypeDeserializer
      * that deserializer uses; indicates how type information
      * is (expected to be) embedded in JSON input.
      */
-    public abstract JsonTypeInfo.As getTypeInclusion();
+    public abstract As getTypeInclusion();
 
     /**
      * Name of property that contains type information, if
