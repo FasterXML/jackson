@@ -158,7 +158,18 @@ public class CustomDeserializerFactory
         return super.createBeanDeserializer(config, type, p);
     }
 
-    //public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p) throws JsonMappingException
+    public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p) throws JsonMappingException
+    {
+        Class<?> cls = type.getRawClass();
+        ClassKey key = new ClassKey(cls);
+        if (_directClassMappings != null) {
+            JsonDeserializer<Object> deser = _directClassMappings.get(key);
+            if (deser != null) {
+                return deser;
+            }
+        }
+        return super.createArrayDeserializer(config, type, p);
+    }
 
     //public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p) throws JsonMappingException
 
