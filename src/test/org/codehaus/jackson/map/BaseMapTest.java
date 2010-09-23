@@ -36,7 +36,7 @@ public abstract class BaseMapTest
      */
     protected static class StringWrapper {
         public final String str;
-        @JsonCreator StringWrapper(String value) {
+        @JsonCreator public StringWrapper(String value) {
             str = value;
         }
     }
@@ -44,12 +44,12 @@ public abstract class BaseMapTest
 
     protected static class ObjectWrapper {
         private final Object object;
-        ObjectWrapper(final Object object) {
+        protected ObjectWrapper(final Object object) {
             this.object = object;
         }
         public Object getObject() { return object; }
         @JsonCreator
-            static ObjectWrapper jsonValue(final Object object) {
+        static ObjectWrapper jsonValue(final Object object) {
             return new ObjectWrapper(object);
         }
     }
