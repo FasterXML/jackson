@@ -13,6 +13,9 @@ Description:
    (reported by Henry L)
   * [JACKSON-355] Handling of BigInteger with JsonNode not correct
    (reported by Adam S)
+  * [JACKSON-363] CustomDeserializerFactory did not work for custom
+    array deserializers.
+   (reported by Lubomir K)
 
 ------------------------------------------------------------------------
 == History: ==
