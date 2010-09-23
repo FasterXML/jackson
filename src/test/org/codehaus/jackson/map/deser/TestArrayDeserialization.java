@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
 import org.codehaus.jackson.map.BaseMapTest;
+import org.codehaus.jackson.map.DeserializationContext;
 
 import java.io.*;
 import java.util.*;
@@ -19,9 +20,9 @@ public class TestArrayDeserialization
     extends BaseMapTest
 {
     /*
-    /*****************************************
+    /**********************************************************
     /* Helper classes
-    /*****************************************
+    /**********************************************************
      */
 
     public final static class Bean1
@@ -90,17 +91,38 @@ public class TestArrayDeserialization
     }	
 
     static class ObjectWrapper {
-    	public Object wrapped;
+        public Object wrapped;
     }
 
     static class ObjectArrayWrapper {
     	public Object[] wrapped;
     }
+
+    static class CustomNonDeserArrayDeserializer extends JsonDeserializer<NonDeserializable[]>
+    {
+        @Override
+        public NonDeserializable[] deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException
+        {
+            List<NonDeserializable> list = new ArrayList<NonDeserializable>();
+            while (jp.nextToken() != JsonToken.END_ARRAY) {
+                list.add(new NonDeserializable(jp.getText(), false));
+            }
+            return list.toArray(new NonDeserializable[list.size()]);
+        }
+    }
+
+    static class NonDeserializable {
+        protected String value;
+        
+        public NonDeserializable(String v, boolean bogus) {
+            value = v;
+        }
+    }
     
     /*
-    /*****************************************
+    /**********************************************************
     /* Tests for "untyped" arrays, Object[]
-    /*****************************************
+    /**********************************************************
      */
 
     public void testUntypedArray() throws Exception
@@ -149,9 +171,9 @@ public class TestArrayDeserialization
     }
 
     /*
-    /*****************************************
+    /**********************************************************
     /* Arrays of arrays...
-    /*****************************************
+    /**********************************************************
      */
 
     public void testUntypedArrayOfArrays() throws Exception
@@ -183,9 +205,9 @@ public class TestArrayDeserialization
     }    
     
     /*
-    /*****************************************
+    /**********************************************************
     /* Tests for String arrays, char[]
-    /*****************************************
+    /**********************************************************
      */
 
     public void testStringArray() throws Exception
@@ -456,9 +478,9 @@ public class TestArrayDeserialization
     }
 
     /*
-    /*****************************************
+    /**********************************************************
     /* Tests for Bean arrays
-    /*****************************************
+    /**********************************************************
      */
 
     public void testBeanArray()
@@ -485,5 +507,24 @@ public class TestArrayDeserialization
         List<Bean1> result = mapper.readValue(sw.toString(), new TypeReference<List<Bean1>>() { });
         assertNotNull(result);
         assertEquals(src, result);
+    }
+
+    /*
+    /**********************************************************
+    /* And custom deserializers too
+    /**********************************************************
+     */
+
+    public void testCustomDeserializers() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        CustomDeserializerFactory dsf = new CustomDeserializerFactory();
+        mapper.setDeserializerProvider(new StdDeserializerProvider(dsf));
+        dsf.addSpecificMapping(NonDeserializable[].class, new CustomNonDeserArrayDeserializer());
+        
+        NonDeserializable[] result = mapper.readValue("[\"a\"]", NonDeserializable[].class);
+        assertNotNull(result);
+        assertEquals(1, result.length);
+        assertEquals("a", result[0].value);
     }
 }
