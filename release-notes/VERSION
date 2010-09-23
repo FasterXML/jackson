@@ -1,12 +1,20 @@
-Version: 1.6.0
+Version: 1.6.1
 
 Release date:
-  06-Sep-2010
+  xx-Sep-2010
 
 Description:
-  The official 1.6 release. Technically a minor release after 1.5 as API is
-  designed to be backwards compatible with earlier 1.x version (and 1.5
-  specifically).
+ First patch version for 1.6.
+
+ Fixes:
+
+ * all fixes from 1.5.x up to 1.5.7
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.6.0 [06-Sep-2010]
 
   Fixes:
 
@@ -108,11 +116,6 @@ Description:
   * [JACKSON-308] (see above) Configurable date formatting support for XMLGregorianCalendar:
     since default Date/Calendar formatting uses timestamp instead of textual serialization,
     default XMLGregorianCalendar serialization is changing.
-
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.5.6 [17-Aug-2010]
 
