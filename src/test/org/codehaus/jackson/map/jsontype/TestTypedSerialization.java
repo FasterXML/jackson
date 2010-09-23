@@ -63,6 +63,10 @@ public class TestTypedSerialization
     @JsonTypeInfo(use=Id.CLASS, include=As.WRAPPER_ARRAY)
     interface TypeWithArray { }
 
+    @JsonTypeInfo(use=Id.NAME)
+    @JsonTypeName("empty")
+    public class Empty { }
+    
     /*
     /**********************************************************
     /* Unit tests
@@ -164,5 +168,14 @@ public class TestTypedSerialization
         assertEquals(Dog.class.getName(), a2.get(classProp));
     }
 
+    /**
+     * Simple unit test to verify that serializing "empty" beans is ok
+     */
+    public void testEmptyBean() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
+        assertEquals("{\"@type\":\"empty\"}", m.writeValueAsString(new Empty()));
+    }
 }
 

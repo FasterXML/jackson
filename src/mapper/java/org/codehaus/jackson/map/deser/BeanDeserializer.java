@@ -287,6 +287,8 @@ public class BeanDeserializer
                     }
                     backProp = ((BeanDeserializer) contentDeser).findBackReference(refName);
                     isContainer = true;
+                } else if (valueDeser instanceof AbstractDeserializer) { // [JACKSON-368]: not easy to fix, alas  
+                    throw new IllegalArgumentException("Can not handle managed/back reference for abstract types (property "+_beanType.getRawClass().getName()+"."+prop.getPropertyName()+")");
                 } else {
                     throw new IllegalArgumentException("Can not handle managed/back reference '"+refName
                             +"': type for value deserializer is not BeanDeserializer or ContainerDeserializer, but "
