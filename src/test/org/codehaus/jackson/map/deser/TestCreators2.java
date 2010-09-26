@@ -38,6 +38,23 @@ public class TestCreators2
             return str.getBytes("UTF-8");
         }
     }
+
+    static class Primitives
+    {
+        protected int x = 3;
+        protected double d = -0.5;
+        protected boolean b = true;
+        
+        @JsonCreator
+        public Primitives(@JsonProperty("x") int x,
+                @JsonProperty("d") double d,
+                @JsonProperty("b") boolean b)
+        {
+            this.x = x;
+            this.d = d;
+            this.b = b;
+        }
+    }
     
     /*
     /**********************************************************
@@ -52,4 +69,14 @@ public class TestCreators2
         assertEquals("custom", test.type);
         assertEquals("abc", new String(test.bytes, "UTF-8"));
     }    
+
+    // Test for [JACKSON-372]
+    public void testMissingPrimitives() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        Primitives p = m.readValue("{}", Primitives.class);
+        assertFalse(p.b);
+        assertEquals(0, p.x);
+        assertEquals(0.0, p.d);
+    }
 }

@@ -302,6 +302,41 @@ public final class ClassUtil
         return null;
     }
 
+    /**
+     * Helper method used to get default value for wrappers used for primitive types
+     * (0 for Integer etc)
+     * 
+     * @since 1.6.1
+     */
+    public static Object defaultValue(Class<?> cls)
+    {
+        if (cls == Integer.TYPE) {
+            return Integer.valueOf(0);
+        }
+        if (cls == Long.TYPE) {
+            return Long.valueOf(0L);
+        }
+        if (cls == Boolean.TYPE) {
+            return Boolean.FALSE;
+        }
+        if (cls == Double.TYPE) {
+            return Double.valueOf(0.0);
+        }
+        if (cls == Float.TYPE) {
+            return Float.valueOf(0.0f);
+        }
+        if (cls == Byte.TYPE) {
+            return Byte.valueOf((byte) 0);
+        }
+        if (cls == Short.TYPE) {
+            return Short.valueOf((short) 0);
+        }
+        if (cls == Character.TYPE) {
+            return '\0';
+        }
+        throw new IllegalArgumentException("Class "+cls.getName()+" is not a primitive type");
+    }
+    
     /*
     /**********************************************************
     /* Access checking/handling methods

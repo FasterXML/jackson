@@ -20,7 +20,7 @@ public final class PropertyValueBuffer
      * instance
      */
     final Object[] _creatorParameters;
-
+    
     /**
      * Number of creator parameters we are still missing.
      *<p>
@@ -43,8 +43,27 @@ public final class PropertyValueBuffer
         _paramsNeeded = paramCount;
         _creatorParameters = new Object[paramCount];
     }
-    
-    protected final Object[] getParameters() { return _creatorParameters; }
+
+    /**
+     * @param defaults If any of parameters requires nulls to be replaced with a non-null
+     *    object (usually primitive types), this is a non-null array that has such replacement
+     *    values (and nulls for cases where nulls are ok)
+     */
+    protected final Object[] getParameters(Object[] defaults)
+    {
+        if (defaults != null) {
+            for (int i = 0, len = _creatorParameters.length; i < len; ++i) {
+                if (_creatorParameters[i] == null) {
+                    Object value = defaults[i];
+                    if (value != null) {
+                        _creatorParameters[i] = value;
+                    }
+                }
+            }
+        }
+        return _creatorParameters;
+    }
+
     protected PropertyValue buffered() { return _buffered; }
     
     /**

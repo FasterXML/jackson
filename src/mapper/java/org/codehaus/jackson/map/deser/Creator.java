@@ -195,9 +195,15 @@ abstract class Creator
          * parameter for that one), keyed by logical property name
          */
         protected final HashMap<String, SettableBeanProperty> _properties;
+
+        /**
+         * If some property values must always have a non-null value (like
+         * primitive types do), this array contains such default values.
+         */
+        protected final Object[]  _defaultValues;
         
         public PropertyBased(AnnotatedConstructor ctor, SettableBeanProperty[] ctorProps,
-                                    AnnotatedMethod factory, SettableBeanProperty[] factoryProps)
+                AnnotatedMethod factory, SettableBeanProperty[] factoryProps)
         {
             // We will only use one: and constructor has precedence over factory
             SettableBeanProperty[] props;
@@ -213,9 +219,19 @@ abstract class Creator
                 throw new IllegalArgumentException("Internal error: neither delegating constructor nor factory method passed");
             }
             _properties = new HashMap<String, SettableBeanProperty>();
-            for (SettableBeanProperty prop : props) {
+            // [JACKSON-372]: primitive types need extra care
+            Object[] defValues = null;
+            for (int i = 0, len = props.length; i < len; ++i) {
+                SettableBeanProperty prop = props[i];
                 _properties.put(prop.getPropertyName(), prop);
+                if (prop.getType().isPrimitive()) {
+                    if (defValues == null) {
+                        defValues = new Object[len];
+                    }
+                    defValues[i] = ClassUtil.defaultValue(prop.getType().getRawClass());
+                }
             }
+            _defaultValues = defValues;
         }
         
         public Collection<SettableBeanProperty> properties() {
@@ -240,9 +256,9 @@ abstract class Creator
             Object bean;
             try {
                 if (_ctor != null) {
-                    bean = _ctor.newInstance(buffer.getParameters());
+                    bean = _ctor.newInstance(buffer.getParameters(_defaultValues));
                 } else {
-                    bean =  _factoryMethod.invoke(null, buffer.getParameters());
+                    bean =  _factoryMethod.invoke(null, buffer.getParameters(_defaultValues));
                 }
             } catch (Exception e) {
                 ClassUtil.unwrapAndThrowAsIAE(e);

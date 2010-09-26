@@ -60,8 +60,8 @@ public final class CheckNumberSpeed
         Integer v = null;
         int reps = REPS;
         while (--reps > 0) {
-            for (int data : ints) {
-                v = Integer.valueOf(data);
+            for (int value : ints) {
+                v = Integer.valueOf(value);
             }
         }
         return v;
@@ -72,8 +72,8 @@ public final class CheckNumberSpeed
         Integer v = null;
         int reps = REPS;
         while (--reps > 0) {
-            for (int data : ints) {
-                v = new Integer(data);
+            for (int value : ints) {
+                v = new Integer(value);
             }
         }
         return v;
@@ -84,8 +84,8 @@ public final class CheckNumberSpeed
         Long v = null;
         int reps = REPS;
         while (--reps > 0) {
-            for (int data : ints) {
-                v = Long.valueOf(data);
+            for (int value : ints) {
+                v = Long.valueOf(value);
             }
         }
         return v;
@@ -96,8 +96,8 @@ public final class CheckNumberSpeed
         BigInteger v = null;
         int reps = REPS;
         while (--reps > 0) {
-            for (int data : ints) {
-                v = BigInteger.valueOf(data);
+            for (int value : ints) {
+                v = BigInteger.valueOf(value);
             }
         }
         return v;

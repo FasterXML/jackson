@@ -8,7 +8,8 @@ Description:
 
  Fixes:
 
- * all fixes from 1.5.x up to 1.5.7
+   * [JACKSON-372] handle missing primitive type values for @JsonCreator gracefully (with defaults)
+   * all fixes from 1.5.x up to 1.5.7
 
 ------------------------------------------------------------------------
 == History: ==

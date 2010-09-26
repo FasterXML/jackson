@@ -158,6 +158,7 @@ public class CustomDeserializerFactory
         return super.createBeanDeserializer(config, type, p);
     }
 
+    @Override
     public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p) throws JsonMappingException
     {
         Class<?> cls = type.getRawClass();
