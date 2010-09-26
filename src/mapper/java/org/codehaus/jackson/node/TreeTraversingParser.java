@@ -162,8 +162,10 @@ public class TreeTraversingParser extends JsonParserMinimalBase
     public JsonParser skipChildren() throws IOException, JsonParseException
     {
         if (_currToken == JsonToken.START_OBJECT) {
+            _startContainer = false;
             _currToken = JsonToken.END_OBJECT;
         } else if (_currToken == JsonToken.START_ARRAY) {
+            _startContainer = false;
             _currToken = JsonToken.END_ARRAY;
         }
         return this;

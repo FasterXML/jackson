@@ -5,11 +5,34 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.map.*;
 
 public class TestTreeTraversingParser
     extends BaseMapTest
 {
+    static class Person {
+        public String name;
+        public int magicNumber;
+        public List<String> kids;
+    }
+
+    // Helper class for [JACKSON-370]
+    @JsonIgnoreProperties(ignoreUnknown=true)
+    public static class Jackson370Bean {
+        public Inner inner;
+    }
+
+    public static class Inner {
+        public String value;
+    }
+    
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
+    
     public void testSimple() throws Exception
     {
         // For convenience, parse tree from JSON first
@@ -230,10 +253,16 @@ public class TestTreeTraversingParser
         assertEquals("Leia", tatu.kids.get(2));
     }
 
-    static class Person {
-        public String name;
-        public int magicNumber;
-        public List<String> kids;
+    // [JACKSON-370]
+    public void testSkipChildrenWrt370() throws Exception
+    {
+        ObjectMapper o = new ObjectMapper();
+        ObjectNode n = o.createObjectNode();
+        n.putObject("inner").put("value", "test");
+        n.putObject("unknown").putNull("inner");
+        Jackson370Bean obj = o.readValue(n.traverse(), Jackson370Bean.class);
+        assertNotNull(obj.inner);
+        assertEquals("test", obj.inner.value);        
     }
 }
 
