@@ -350,3 +350,8 @@ Henry Lai:
 Adam Sussman:
   * Reported [JACKSON-355] Handling of BigInteger with JsonNode not correct
    [1.5.7]
+
+Dimitry Lisay:
+  * Reported [JACKSON-370] TreeTraversingParser.skipChildren() was not
+    correctly skipping children
+   [1.5.7]

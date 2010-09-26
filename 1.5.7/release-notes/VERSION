@@ -16,6 +16,8 @@ Description:
   * [JACKSON-363] CustomDeserializerFactory did not work for custom
     array deserializers.
    (reported by Lubomir K)
+  * [JACKSON-370] TreeTraversingParser.skipChildren() not working correctly
+   (reported by Dmitry L)
 
 ------------------------------------------------------------------------
 == History: ==
