@@ -50,45 +50,45 @@ public class CustomSerializerFactory
     extends BeanSerializerFactory
 {
     /*
-    ////////////////////////////////////////////////////
-    // Configuration, direct/special mappings
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration, direct/special mappings
+    /**********************************************************
      */
 
     /**
      * Direct mappings that are only used for exact class type
      * matches, but not for sub-class checks.
      */
-    HashMap<ClassKey,JsonSerializer<?>> _directClassMappings = null;
+    protected HashMap<ClassKey,JsonSerializer<?>> _directClassMappings = null;
 
     /**
      * And for Enum handling we may specify a single default
      * serializer to use, regardless of actual enumeration.
      * Usually used to provide "toString - serializer".
      */
-    JsonSerializer<?> _enumSerializerOverride;
+    protected JsonSerializer<?> _enumSerializerOverride;
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration, generic (interface, super-class) mappings
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration, generic (interface, super-class) mappings
+    /**********************************************************
      */
 
     /**
      * And then class-based mappings that are used both for exact and
      * sub-class matches.
      */
-    HashMap<ClassKey,JsonSerializer<?>> _transitiveClassMappings = null;
+    protected HashMap<ClassKey,JsonSerializer<?>> _transitiveClassMappings = null;
 
     /**
      * And finally interface-based matches.
      */
-    HashMap<ClassKey,JsonSerializer<?>> _interfaceMappings = null;
+    protected HashMap<ClassKey,JsonSerializer<?>> _interfaceMappings = null;
 
     /*
-    ////////////////////////////////////////////////////
-    // Life-cycle, constructors
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle, constructors
+    /**********************************************************
      */
 
     public CustomSerializerFactory() {
@@ -96,9 +96,9 @@ public class CustomSerializerFactory
     }
 
     /*
-    ////////////////////////////////////////////////////
-    // Configuration: type-to-serializer mappings
-    ////////////////////////////////////////////////////
+    /**********************************************************
+    /* Configuration: type-to-serializer mappings
+    /**********************************************************
      */
 
     /**
@@ -187,9 +187,9 @@ public class CustomSerializerFactory
     }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* JsonSerializerFactory impl
-    /***************************************************
+    /**********************************************************
      */
 
     @Override
@@ -215,9 +215,9 @@ public class CustomSerializerFactory
     }
 
     /*
-    /***************************************************
+    /**********************************************************
     /* Internal methods
-    /***************************************************
+    /**********************************************************
      */
     
     protected JsonSerializer<?> findCustomSerializer(Class<?> type, SerializationConfig config)
