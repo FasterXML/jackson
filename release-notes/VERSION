@@ -10,7 +10,10 @@ Description:
 
    * [JACKSON-372] handle missing primitive type values for @JsonCreator gracefully (with defaults)
    * [JACKSON-376] writing binary data as object field value with Smile failed
-     (report by Shay B)
+     (reported by Shay B)
+   * [JACKSON-377] ThrowableDeserializer was not properly using information from
+      @JsonCreator or @JsonAnySetter
+     (reported by Kirill S)
    * all fixes from 1.5.x up to 1.5.7
 
 ------------------------------------------------------------------------

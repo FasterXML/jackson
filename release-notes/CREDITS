@@ -400,6 +400,9 @@ Igor Kolomets:
    * Suggested [JACKSON-308] Configurable date formatting support for XMLGregorianCalendar,
     XMLGregorianCalendar now uses same Date/Calendar serialization as other date types.
    [1.6.0]
-  
-  
+
+Kirill Stokoz:
+  * Reported [JACKSON-377] ThrowableDeserializer was not properly using information from
+    @JsonCreator or @JsonAnySetter
+   [1.6.1]
   
