@@ -37,12 +37,50 @@ public class TestSmileParserBinary
     {
         _testBinaryAsObject(false);
     }
+
+    public void testRawAsRootValue() throws IOException
+    {
+        _testBinaryAsRoot(true);
+    }
+
+    public void test7BitAsRootValue() throws IOException
+    {
+        _testBinaryAsRoot(false);
+    }
     
     /*
     /**********************************************************
     /* Helper methods
     /**********************************************************
      */
+
+    private void _testBinaryAsRoot(boolean raw) throws IOException
+    {
+        SmileFactory f = new SmileFactory();
+        f.configure(SmileGenerator.Feature.ENCODE_BINARY_AS_7BIT, !raw);
+        for (int size : SIZES) {
+            byte[] data = _generateData(size);
+            ByteArrayOutputStream bo = new ByteArrayOutputStream(size+10);            
+            SmileGenerator g = f.createJsonGenerator(bo);
+            g.writeBinary(data);
+            g.close();
+            byte[] smile = bo.toByteArray();            
+            
+            // and verify
+            SmileParser p = f.createJsonParser(smile);
+            assertToken(JsonToken.VALUE_EMBEDDED_OBJECT, p.nextToken());
+            byte[] result = p.getBinaryValue();
+            assertArrayEquals(data, result);
+            assertNull(p.nextToken());
+            p.close();
+
+            // and second time around, skipping
+            p = f.createJsonParser(smile);
+            assertToken(JsonToken.VALUE_EMBEDDED_OBJECT, p.nextToken());
+            assertNull(p.nextToken());
+            p.close();
+        }
+    }
 
     private void _testBinaryAsArray(boolean raw) throws IOException
     {
