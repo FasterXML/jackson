@@ -406,4 +406,6 @@ Igor Kolomets:
     XMLGregorianCalendar now uses same Date/Calendar serialization as other date types.
    [1.6.0]
 
-  
+Larry Yogman:
+   * Reported [JACKSON-371] Provide path of type error in ObjectMapper.convertValue()
+   [1.6.1]
