@@ -390,7 +390,11 @@ public class BeanDeserializer
             jp.nextToken(); // skip field, returns value token
             
             if (prop != null) { // normal case
-                prop.deserializeAndSet(jp, ctxt, bean);
+                try {
+                    prop.deserializeAndSet(jp, ctxt, bean);
+                } catch (Exception e) {
+                    wrapAndThrow(e, bean, propName);
+                }
                 continue;
             }
             /* As per [JACKSON-313], things marked as ignorable should not be
@@ -487,7 +491,11 @@ public class BeanDeserializer
             jp.nextToken();
             SettableBeanProperty prop = _props.get(propName);
             if (prop != null) { // normal case
-                prop.deserializeAndSet(jp, ctxt, bean);
+                try {
+                    prop.deserializeAndSet(jp, ctxt, bean);
+                } catch (Exception e) {
+                    wrapAndThrow(e, bean, propName);
+                }
                 continue;
             }
             /* As per [JACKSON-313], things marked as ignorable should not be
@@ -498,7 +506,11 @@ public class BeanDeserializer
                 continue;
             }
             if (_anySetter != null) {
-                _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
+                try {
+                    _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
+                } catch (Exception e) {
+                    wrapAndThrow(e, bean, propName);
+                }
                 continue;
             }
             // Unknown: let's call handler method
@@ -754,4 +766,63 @@ public class BeanDeserializer
         }
         return subDeser;
     }
+
+    /*
+    /**********************************************************
+    /* Helper methods for error reporting
+    /**********************************************************
+     */
+    
+    /**
+     * Method that will modify caught exception (passed in as argument)
+     * as necessary to include reference information, and to ensure it
+     * is a subtype of {@link IOException}, or an unchecked exception.
+     *<p>
+     * Rules for wrapping and unwrapping are bit complicated; essentially:
+     *<ul>
+     * <li>Errors are to be passed as is (if uncovered via unwrapping)
+     * <li>"Plain" IOExceptions (ones that are not of type
+     *   {@link JsonMappingException} are to be passed as is
+     *</ul>
+     */
+    public void wrapAndThrow(Throwable t, Object bean, String fieldName)
+        throws IOException
+    {
+        /* 05-Mar-2009, tatu: But one nasty edge is when we get
+         *   StackOverflow: usually due to infinite loop. But that
+         *   usually gets hidden within an InvocationTargetException...
+         */
+        while (t instanceof InvocationTargetException && t.getCause() != null) {
+            t = t.getCause();
+        }
+        // Errors and "plain" IOExceptions to be passed as is
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+        // Ditto for IOExceptions... except for mapping exceptions!
+        if (t instanceof IOException && !(t instanceof JsonMappingException)) {
+            throw (IOException) t;
+        }
+        // [JACKSON-55] Need to add reference information
+        throw JsonMappingException.wrapWithPath(t, bean, fieldName);
+    }
+
+    public void wrapAndThrow(Throwable t, Object bean, int index)
+        throws IOException
+    {
+        while (t instanceof InvocationTargetException && t.getCause() != null) {
+            t = t.getCause();
+        }
+        // Errors and "plain" IOExceptions to be passed as is
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+        // Ditto for IOExceptions... except for mapping exceptions!
+        if (t instanceof IOException && !(t instanceof JsonMappingException)) {
+            throw (IOException) t;
+        }
+        // [JACKSON-55] Need to add reference information
+        throw JsonMappingException.wrapWithPath(t, bean, index);
+    }
+
 }
