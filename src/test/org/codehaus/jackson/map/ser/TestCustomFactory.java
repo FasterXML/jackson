@@ -40,6 +40,37 @@ public class TestCustomFactory
             jgen.writeBoolean(true);
         }
     }
+
+    // for [JACKSON-373]
+    interface BaseInterface {
+        public int getX();
+        public void setX(int value);
+    }
+
+    interface SubInterface extends BaseInterface { }
+
+    class SubImpl implements SubInterface
+    {
+        protected int x;
+        public int getX() { return x; }
+        public void setX(int value) { x = value; }
+    }
+
+    static class BaseInterfaceSerializer extends JsonSerializer<BaseInterface> 
+    {
+        @Override
+        public void serialize(BaseInterface value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonProcessingException
+        {
+            jgen.writeBoolean(true);
+        }
+    }
+    
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
     
     /**
      * Simple test to verify specific mappings working
@@ -88,4 +119,18 @@ public class TestCustomFactory
 
         assertEquals("true", result);
     }
+
+    // Unit test for [JACKSON-373]
+    public void testRegisterForTransitiveInterface() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        CustomSerializerFactory sf = new CustomSerializerFactory();
+        sf.addGenericMapping(BaseInterface.class, new BaseInterfaceSerializer());
+        mapper.setSerializerFactory(sf);
+
+        String result = mapper.writeValueAsString(new SubImpl());
+
+        assertEquals("true", result);
+    }
+
 }

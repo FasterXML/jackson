@@ -261,13 +261,27 @@ public class CustomSerializerFactory
                 return ser;
             }
             for (Class<?> curr = type; (curr != null); curr = curr.getSuperclass()) {
-                for (Class<?> iface : curr.getInterfaces()) {
-                    key.reset(iface);
-                    ser = _interfaceMappings.get(key);
-                    if (ser != null) {
-                        return ser;
-                    }
+                ser = _findInterfaceMapping(curr, key);
+                if (ser != null) {
+                    return ser;
                 }
+            }
+        }
+        return null;
+    }
+
+    protected JsonSerializer<?> _findInterfaceMapping(Class<?> cls, ClassKey key)
+    {
+        for (Class<?> iface : cls.getInterfaces()) {
+            key.reset(iface);
+            JsonSerializer<?> ser = _interfaceMappings.get(key);
+            if (ser != null) {
+                return ser;
+            }
+            // [JACKSON-373] need to also check super-interfaces
+            ser = _findInterfaceMapping(iface, key);
+            if (ser != null) {
+                return ser;
             }
         }
         return null;
