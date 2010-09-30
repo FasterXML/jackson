@@ -13,12 +13,12 @@ import org.codehaus.jackson.type.JavaType;
 public class ThrowableDeserializer
     extends BeanDeserializer
 {
-    final static String PROP_NAME_MESSAGE = "message";
+    protected final static String PROP_NAME_MESSAGE = "message";
 
     /*
-    ///////////////////////////////////////////////////////
-    // Construction
-    ///////////////////////////////////////////////////////
+    /**********************************************************
+    /* Construction
+    /**********************************************************
      */
 
     public ThrowableDeserializer(JavaType type)
@@ -27,15 +27,32 @@ public class ThrowableDeserializer
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Overridden methods
-    ///////////////////////////////////////////////////////
+    /**********************************************************
+    /* Overridden methods
+    /**********************************************************
      */
 
     @Override
     public Object deserializeFromObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
+        // 30-Sep-2010, tatu: Need to allow use of @JsonCreator, so:
+        if (_propertyBasedCreator != null) { // proper @JsonCreator
+            return _deserializeUsingPropertyBased(jp, ctxt);
+        }
+        if (_delegatingCreator != null) { // delegate based one (single-arg, no property name)
+            return _delegatingCreator.deserialize(jp, ctxt);
+        }
+        if (_beanType.isAbstract()) { // for good measure, check this too
+            throw JsonMappingException.from(jp, "Can not instantiate abstract type "+_beanType
+                    +" (need to add/enable type information?)");
+        }
+        // and finally, verify we do have single-String arg constructor (if no @JsonCreator)
+        if (_stringCreator == null) {
+            throw new JsonMappingException("Can not deserialize Throwable of type "+_beanType
+                    +" without having either single-String-arg constructor; or explicit @JsonCreator");
+        }
+        
         Object throwable = null;
         Object[] pending = null;
         int pendingIx = 0;
@@ -71,6 +88,17 @@ public class ThrowableDeserializer
                     }
                     pending = null;
                 }
+                continue;
+            }
+            /* As per [JACKSON-313], things marked as ignorable should not be
+             * passed to any setter
+             */
+            if (_ignorableProps != null && _ignorableProps.contains(propName)) {
+                jp.skipChildren();
+                continue;
+            }
+            if (_anySetter != null) {
+                _anySetter.deserializeAndSet(jp, ctxt, throwable, propName);
                 continue;
             }
             // Unknown: let's call handler method

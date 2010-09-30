@@ -18,6 +18,9 @@ Description:
    (reported by Lubomir K)
   * [JACKSON-370] TreeTraversingParser.skipChildren() not working correctly
    (reported by Dmitry L)
+  * [JACKSON-377] ThrowableDeserializer was not properly using information from
+    @JsonCreator or @JsonAnySetter
+   (reported by Kirill S)
 
 ------------------------------------------------------------------------
 == History: ==
