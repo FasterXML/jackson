@@ -351,6 +351,12 @@ Adam Sussman:
   * Reported [JACKSON-355] Handling of BigInteger with JsonNode not correct
    [1.5.7]
 
+Lubomir Konstantinov:
+  * Reported [JACKSON-363] CustomDeserializerFactory did not work for custom
+    array deserializers.
+  * Reported [JACKSON-373] Interface inheritance not traversed when looking up
+    custom serializers
+
 Dimitry Lisay:
   * Reported [JACKSON-370] TreeTraversingParser.skipChildren() was not
     correctly skipping children

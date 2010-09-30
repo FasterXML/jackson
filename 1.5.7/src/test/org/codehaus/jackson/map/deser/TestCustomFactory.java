@@ -32,6 +32,12 @@ public class TestCustomFactory
         }
     }
 
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
+    
     public void testDateOverride() throws Exception
     {
         Date expResult = new Date(3L);
