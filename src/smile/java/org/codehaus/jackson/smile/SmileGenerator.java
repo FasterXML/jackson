@@ -722,13 +722,11 @@ public class SmileGenerator
     @Override
     public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len) throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write Binary value");
         if (data == null) {
             writeNull();
             return;
         }
         _verifyValueWrite("write Binary value");
-        
         if (this.isEnabled(Feature.ENCODE_BINARY_AS_7BIT)) {
             _writeByte((byte) TOKEN_MISC_BINARY_7BIT);
             _write7BitBinaryWithLength(data, offset, len);

@@ -9,6 +9,8 @@ Description:
  Fixes:
 
    * [JACKSON-372] handle missing primitive type values for @JsonCreator gracefully (with defaults)
+   * [JACKSON-376] writing binary data as object field value with Smile failed
+     (report by Shay B)
    * all fixes from 1.5.x up to 1.5.7
 
 ------------------------------------------------------------------------
