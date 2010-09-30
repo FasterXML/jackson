@@ -356,6 +356,11 @@ Adam Sussman:
   * Reported [JACKSON-355] Handling of BigInteger with JsonNode not correct
    [1.5.7]
 
+Dimitry Lisay:
+  * Reported [JACKSON-370] TreeTraversingParser.skipChildren() was not
+    correctly skipping children
+   [1.5.7]
+
 Brian Oberman:
   * Requested [JACKSON-289] Ability to serialize char[] values as JSON Arrays
     with String values of length 1 (and accepting these on deserialization)
@@ -401,8 +406,4 @@ Igor Kolomets:
     XMLGregorianCalendar now uses same Date/Calendar serialization as other date types.
    [1.6.0]
 
-Kirill Stokoz:
-  * Reported [JACKSON-377] ThrowableDeserializer was not properly using information from
-    @JsonCreator or @JsonAnySetter
-   [1.6.1]
   
