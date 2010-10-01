@@ -13,6 +13,9 @@ Description:
      (reported by Shay B)
    * [JACKSON-371] Provide path of type error in ObjectMapper.convertValue()
      (reported by Larry Y)
+   * [JACKSON-384] @JsonAnyGetter values were duplicated if method name was valid as a regular
+     getter name
+     (reported by Bruce R)
    * all fixes from 1.5.x up to 1.5.7
 
 ------------------------------------------------------------------------

@@ -438,17 +438,16 @@ compile.smile, compile.mrbean" />
        />
        <jar destfile="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-sources.jar"
           filesonly="true" compress="true" basedir="${dir.src.java.mapper}"
-          includes="org/codehaus/jackson/map/**"
+          includes="org/codehaus/jackson/**"
        />
 
        <jar destfile="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}-sources.jar"
           filesonly="true" compress="true" basedir="${dir.src.java.core}"
-          excludes="org/codehaus/jackson/map/**"
           includes="org/codehaus/jackson/**"
        />
        <jar destfile="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar"
           filesonly="true" compress="true" basedir="${dir.src.java.mapper}"
-          includes="org/codehaus/jackson/map/**"
+          includes="org/codehaus/jackson/**"
        />
        <jar destfile="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar"
           filesonly="true" compress="true" basedir="${dir.src.java.jaxrs}"

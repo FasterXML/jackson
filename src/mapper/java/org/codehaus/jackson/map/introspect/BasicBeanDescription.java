@@ -127,7 +127,7 @@ public class BasicBeanDescription extends BeanDescription
     
     @Override
     public LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
-                                                             Collection<String> ignoredProperties)
+            Collection<String> ignoredProperties)
     {
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
         for (AnnotatedMethod am : _classInfo.memberMethods()) {
@@ -170,6 +170,8 @@ public class BasicBeanDescription extends BeanDescription
                 }
                 // null return value means 'not valid'
                 if (propName == null) continue;
+                // [JACKSON-384] Plus, should not include "AnyGetter" as regular getter..
+                if (_annotationIntrospector.hasAnyGetterAnnotation(am)) continue;
             }
 
             if (ignoredProperties != null) {

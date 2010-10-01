@@ -409,3 +409,10 @@ Igor Kolomets:
 Larry Yogman:
    * Reported [JACKSON-371] Provide path of type error in ObjectMapper.convertValue()
    [1.6.1]
+
+Bruce Ritchie:
+   * Reported [JACKSON-384] @JsonAnyGetter values were duplicated if method name was valid
+     as a regular getter name
+   [1.6.1]
+   
+   

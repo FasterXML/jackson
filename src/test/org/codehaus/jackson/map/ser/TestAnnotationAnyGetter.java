@@ -25,7 +25,7 @@ public class TestAnnotationAnyGetter
         public int getX() { return 3; }
 
         @JsonAnyGetter
-        public Map<String,Boolean> extra() { return extra; }
+        public Map<String,Boolean> getExtra() { return extra; }
     }
     
     /*
