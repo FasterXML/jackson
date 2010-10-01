@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
 import java.util.EnumMap;
+import java.util.concurrent.TimeUnit;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -54,7 +55,7 @@ public class TestEnumDeserialization
         @Override
         public String toString() { return name().toLowerCase(); }
     }
-
+    
     /*
     /**********************************************************
     /* Tests
@@ -94,6 +95,19 @@ public class TestEnumDeserialization
         }
     }
 
+    /**
+     * Enums are considered complex if they have code (and hence sub-classes)... an
+     * example is TimeUnit
+     */
+    public void testComplexEnum() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(TimeUnit.HOURS);
+        assertEquals(quote("HOURS"), json);
+        TimeUnit result = mapper.readValue(json, TimeUnit.class);
+        assertSame(TimeUnit.HOURS, result);
+    }
+    
     /**
      * Testing to see that annotation override works
      */
