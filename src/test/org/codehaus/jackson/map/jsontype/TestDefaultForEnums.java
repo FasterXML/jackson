@@ -20,7 +20,6 @@ public class TestDefaultForEnums
         public EnumHolder(TestEnum e) { value = e; }
     }
 
-
     protected static class TimeUnitBean {
         public TimeUnit timeUnit;
     }
@@ -51,9 +50,6 @@ public class TestDefaultForEnums
         assertEquals(TimeUnit.HOURS, result.timeUnit);
     }
     
-    /**
-     * Serialization within Object[] is simpler, test first
-     */
     public void testSimpleEnumsInObjectArray() throws Exception
     {
         ObjectMapper m = new ObjectMapper();

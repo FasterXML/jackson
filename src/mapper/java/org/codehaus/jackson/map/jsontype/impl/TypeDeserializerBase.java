@@ -66,6 +66,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
         throws IOException, JsonProcessingException
     {
         JsonDeserializer<Object> deser;
+
         synchronized (_deserializers) {
             deser = _deserializers.get(typeId);
             if (deser == null) {

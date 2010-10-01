@@ -24,12 +24,20 @@ public class ClassNameIdResolver
     
     public String idFromValue(Object value)
     {
-        String str = value.getClass().getName();
-        /* 25-Jan-2009, tatus: There are some internal classes that
-         *   we can not access as is. We need better mechanism; for
-         *   now this has to do...
-         */
+        Class<?> cls = value.getClass();
+
+        // [JACKSON-380] Need to ensure that "enum subtypes" work too
+        if (Enum.class.isAssignableFrom(cls)) {
+            if (!cls.isEnum()) { // means that it's sub-class of base enum, so:
+                cls = cls.getSuperclass();
+            }
+        }
+        String str = cls.getName();
         if (str.startsWith("java.util")) {
+            /* 25-Jan-2009, tatus: There are some internal classes that
+             *   we can not access as is. We need better mechanism; for
+             *   now this has to do...
+             */
             /* Enum sets and maps are problematic since we MUST know
              * type of contained enums, to be able to deserialize.
              * In addition, EnumSet is not a concrete type either
