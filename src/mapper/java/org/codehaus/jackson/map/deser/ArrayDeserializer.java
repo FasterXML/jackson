@@ -20,24 +20,24 @@ public class ArrayDeserializer
 {
     // // Configuration
 
-    final JavaType _arrayType;
+    protected final JavaType _arrayType;
 
     /**
      * Flag that indicates whether the component type is Object or not.
      * Used for minor optimization when constructing result.
      */
-    final boolean _untyped;
+    protected final boolean _untyped;
 
     /**
      * Type of contained elements: needed for constructing actual
      * result array
      */
-    final Class<?> _elementClass;
+    protected final Class<?> _elementClass;
 
     /**
      * Element deserializer
      */
-    final JsonDeserializer<Object> _elementDeserializer;
+    protected final JsonDeserializer<Object> _elementDeserializer;
 
     /**
      * If element instances have polymorphic type information, this

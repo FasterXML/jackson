@@ -1,3 +1,4 @@
+package perf;
 import java.io.*;
 
 import org.codehaus.jackson.*;
@@ -6,9 +7,9 @@ import org.codehaus.jackson.map.*;
 public final class TestSerPerf
 {
     /*
-    /////////////////////////////////////////////////////
-    // Bean classes
-    /////////////////////////////////////////////////////
+    /**********************************************************
+    /* Bean classes
+    /**********************************************************
      */
 
     static class NonFinalBean {
