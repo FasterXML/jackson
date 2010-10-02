@@ -1,7 +1,5 @@
 package perf;
 
-import java.io.*;
-
 public class TestMethodDispatchSpeed
 {
     /*

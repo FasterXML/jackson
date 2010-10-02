@@ -15,9 +15,9 @@ public class TestFieldDeserialization
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes
+    /**********************************************************
      */
 
     static class SimpleFieldBean
@@ -89,9 +89,9 @@ public class TestFieldDeserialization
     }
 
     /*
-    //////////////////////////////////////////////
-    // Main tests
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Main tests
+    /**********************************************************
      */
 
     public void testSimpleAutoDetect() throws Exception
