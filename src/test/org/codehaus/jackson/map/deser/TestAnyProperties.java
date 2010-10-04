@@ -75,7 +75,7 @@ public class TestAnyProperties
             map.put(key, value);
         }        
     }
-    
+
     /*
     /**********************************************************
     /* Test methods
@@ -119,8 +119,20 @@ public class TestAnyProperties
     // [JACKSON-313]
     public void testIgnored() throws Exception
     {
-        Ignored bean = new ObjectMapper().readValue("{\"name\":\"Bob\", \"bogus\": [ 1, 2, 3], \"dummy\" : 13 }",
-                Ignored.class);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(org.codehaus.jackson.map.DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+        Ignored bean = mapper.readValue("{\"name\":\"Bob\", \"bogus\": [ 1, 2, 3], \"dummy\" : 13 }", Ignored.class);
+        assertNull(bean.map.get("dummy"));
+        assertNull(bean.map.get("bogus"));
+        assertEquals("Bob", bean.map.get("name"));
+        assertEquals(1, bean.map.size());
+    }
+
+    public void testIgnored383() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(org.codehaus.jackson.map.DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        Ignored bean = mapper.readValue("{\"name\":\"Bob\", \"bogus\": [ 1, 2, 3], \"dummy\" : 13 }", Ignored.class);
         assertNull(bean.map.get("dummy"));
         assertNull(bean.map.get("bogus"));
         assertEquals("Bob", bean.map.get("name"));

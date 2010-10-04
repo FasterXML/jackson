@@ -432,7 +432,11 @@ public class BeanDeserializerFactory
         // Or explicit/implicit definitions?
         HashSet<String> ignored = ArrayBuilders.arrayToSet(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));        
         // But let's only add these if we'd otherwise fail with exception (save some memory here)
-        if (!ignoreAny && config.isEnabled(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES)) {
+        /* 03-Oct-2010, tatu: As per [JACKSON-383], we can't optimize here,
+         *   since doing so may interfere with handling of @JsonAnySetter.
+         */
+        //if (!ignoreAny && config.isEnabled(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES))
+        {
             for (String propName : ignored) {
                 deser.addIgnorable(propName);
             }
