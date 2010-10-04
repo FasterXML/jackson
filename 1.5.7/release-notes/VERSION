@@ -1,10 +1,10 @@
 Version: 1.5.7
 
 Release date:
-  xx-Sep-2010
+  03-Oct-2010
 
 Description:
-  A patch release for 1.5
+  A patch release for 1.5, resolving multiple issues uncovered by 1.6.0 release
 
   Fixes:
 
