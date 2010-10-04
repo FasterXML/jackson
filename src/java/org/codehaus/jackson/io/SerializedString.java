@@ -1,7 +1,5 @@
 package org.codehaus.jackson.io;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * String token that can lazily serialize String contained and then reuse that
  * serialization later on. This is similar to JDBC prepared statements, for example,
@@ -15,18 +13,18 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class SerializedString
 {
-    private final String _value;
+    protected final String _value;
 
-    private final AtomicReference<byte[]> _quotedUTF8Ref = new AtomicReference<byte[]>();
+    protected volatile byte[] _quotedUTF8Ref;
 
-    private final AtomicReference<byte[]> _unquotedUTF8Ref = new AtomicReference<byte[]>();
+    protected volatile byte[] _unquotedUTF8Ref;
 
     /**
      * To save bit of memory, let's just use volatile for quoted characters; both because
      * this is unlikely to be used as often, and because use cases are less of high
      * performance ones to begin with.
      */
-    private volatile char[] _quotedChars;
+    protected volatile char[] _quotedChars;
 
     public SerializedString(String v) { _value = v; }
 
@@ -59,10 +57,10 @@ public class SerializedString
      */
     public byte[] asUnquotedUTF8()
     {
-        byte[] result = _unquotedUTF8Ref.get();
+        byte[] result = _unquotedUTF8Ref;
         if (result == null) {
             result = JsonStringEncoder.getInstance().encodeAsUTF8(_value);
-            _unquotedUTF8Ref.set(result);
+            _unquotedUTF8Ref  = result;
         }
         return result;
     }
@@ -73,10 +71,10 @@ public class SerializedString
      */
     public byte[] asQuotedUTF8()
     {
-        byte[] result = _quotedUTF8Ref.get();
+        byte[] result = _quotedUTF8Ref;
         if (result == null) {
             result = JsonStringEncoder.getInstance().quoteAsUTF8(_value);
-            _quotedUTF8Ref.set(result);
+            _quotedUTF8Ref = result;
         }
         return result;
     }
