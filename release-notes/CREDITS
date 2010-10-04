@@ -361,6 +361,14 @@ Dimitry Lisay:
     correctly skipping children
    [1.5.7]
 
+Kirill Stokoz:
+  * Reported [JACKSON-377] ThrowableDeserializer was not properly using information from
+    @JsonCreator or @JsonAnySetter
+   [1.5.7]
+  * Reported [JACKSON-383] @JsonAnySetter gets called for ignorable properties if
+    FAIL_ON_UNKNOWN_PROPERTIES set to false (related to [JACKSON-313])
+   [1.5.7]
+
 Brian Oberman:
   * Requested [JACKSON-289] Ability to serialize char[] values as JSON Arrays
     with String values of length 1 (and accepting these on deserialization)
