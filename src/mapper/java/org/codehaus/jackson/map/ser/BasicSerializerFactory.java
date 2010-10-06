@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
@@ -15,7 +16,6 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
-import org.codehaus.jackson.map.util.Provider;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
 
@@ -33,6 +33,7 @@ import org.codehaus.jackson.util.TokenBuffer;
 public class BasicSerializerFactory
     extends SerializerFactory
 {
+    
     /*
     /**********************************************************
     /* Configuration, lookup tables/maps
@@ -56,14 +57,6 @@ public class BasicSerializerFactory
      */
     protected final static HashMap<String, Class<? extends JsonSerializer<?>>> _concreteLazy =
         new HashMap<String, Class<? extends JsonSerializer<?>>>();
-    
-    /**
-     * There are also standard interfaces and abstract classes
-     * that we need to support without knowing conrecte implementation
-     * classes.
-     */
-    protected final static ArrayList<SerializerMapping> _abstractSerializers =
-        new ArrayList<SerializerMapping>();
 
     static {
         /* String and string-like types (note: date types explicitly
@@ -162,41 +155,8 @@ public class BasicSerializerFactory
         // (Q: can this ever be sub-classed?)
         _concreteLazy.put(TokenBuffer.class.getName(), StdSerializers.TokenBufferSerializer.class);
     }
-    
-    static {
-        /* 21-Nov-2009, tatu: Also, explicit support for basic Joda DateTime;
-         *    and can use same mechanism for javax.xml.datatype types as well.
-         */
-        for (String provStr : new String[] {
-            "org.codehaus.jackson.map.ext.CoreXMLSerializers"
-            ,"org.codehaus.jackson.map.ext.JodaSerializers"
-        }) {
-            Object ob = null;
-            try {
-                ob = Class.forName(provStr).newInstance();
-            }
-            catch (LinkageError e) { }
-            // too many different kinds to enumerate here:
-            catch (Exception e) { }
 
-            if (ob != null) {
-                @SuppressWarnings("unchecked")
-                    Provider<Map.Entry<Class<?>,JsonSerializer<?>>> prov =
-                    (Provider<Map.Entry<Class<?>,JsonSerializer<?>>>) ob;
-                for (Map.Entry<Class<?>,JsonSerializer<?>> en : prov.provide()) {
-                    /* 22-Nov-2009, tatu: For now this check suffices... may need
-                     *   to use other methods in future
-                     */
-                    Class<?> cls = en.getKey();
-                    if (ClassUtil.isConcrete(cls)) {
-                        _concrete.put(en.getKey().getName(), en.getValue());
-                    } else {
-                        _abstractSerializers.add(new SerializerMapping(cls, en.getValue()));
-                    }
-                }
-            }
-        }
-    }
+    protected OptionalHandlerFactory optionalHandlers = OptionalHandlerFactory.instance;
 
     /*
     /**********************************************************
@@ -326,7 +286,7 @@ public class BasicSerializerFactory
                 }
             }
         }
-
+        
         /* 08-Nov-2009, tatus: Some standard types may need customization;
          *    for now that just means Maps, but in future probably other
          *    collections as well. For strictly standard types this is
@@ -345,6 +305,9 @@ public class BasicSerializerFactory
             if (ser == ContainerSerializers.CollectionSerializer.instance) {
                 return buildCollectionSerializer(type, config, beanDesc);
             }
+        } else {
+            // Then check for optional/external serializers [JACKSON-386]
+            ser = optionalHandlers.findSerializer(type, config, beanDesc);
         }
         return ser;
     }
@@ -416,12 +379,6 @@ public class BasicSerializerFactory
         }
         if (java.util.Date.class.isAssignableFrom(cls)) {
             return StdSerializers.UtilDateSerializer.instance;
-        }
-        for (int i = 0, len = _abstractSerializers.size(); i < len; ++i) {
-            SerializerMapping map = _abstractSerializers.get(i);
-            if (map.matches(cls)) {
-                return map.getSerializer();
-            }
         }
         if (Collection.class.isAssignableFrom(cls)) {
             if (EnumSet.class.isAssignableFrom(cls)) {
@@ -611,28 +568,5 @@ public class BasicSerializerFactory
             return (t == JsonSerialize.Typing.STATIC);
         }
         return config.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING);
-    }
-    
-    /*
-    /**********************************************************
-    /* Helper classes
-    /**********************************************************
-     */
-
-    private final static class SerializerMapping
-    {
-        final Class<?> _class;
-        final JsonSerializer<?> _serializer;
-
-        public SerializerMapping(Class<?> c, JsonSerializer<?> ser) {
-            _class = c;
-            _serializer = ser;
-        }
-
-        public boolean matches(Class<?> c) {
-            return _class.isAssignableFrom(c);
-        }
-
-        public JsonSerializer<?> getSerializer() { return _serializer; }
     }
 }

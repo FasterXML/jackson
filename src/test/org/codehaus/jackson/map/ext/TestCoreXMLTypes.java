@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.ext;
 
 import javax.xml.datatype.*;
 import javax.xml.namespace.QName;

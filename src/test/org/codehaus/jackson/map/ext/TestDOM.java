@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.interop;
+package org.codehaus.jackson.map.ext;
 
 import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilderFactory;

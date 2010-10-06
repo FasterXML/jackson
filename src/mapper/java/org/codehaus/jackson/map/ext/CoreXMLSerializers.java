@@ -5,11 +5,10 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import org.w3c.dom.Node;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
@@ -46,7 +45,6 @@ public class CoreXMLSerializers
         _serializers.put(Duration.class, tss);
         _serializers.put(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
         _serializers.put(QName.class, tss);
-        _serializers.put(Node.class, new DOMSerializer());
     }
     
     public Collection<Map.Entry<Class<?>,JsonSerializer<?>>> provide() {

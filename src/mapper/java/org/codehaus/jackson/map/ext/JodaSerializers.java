@@ -31,9 +31,10 @@ public class JodaSerializers
         _serializers.put(LocalDateTime.class, new LocalDateTimeSerializer());
         _serializers.put(LocalDate.class, new LocalDateSerializer());
         _serializers.put(DateMidnight.class, new DateMidnightSerializer());
-        
-        }
+    }
 
+    public JodaSerializers() { }
+    
     public Collection<Map.Entry<Class<?>,JsonSerializer<?>>> provide() {
         return _serializers.entrySet();
     }
