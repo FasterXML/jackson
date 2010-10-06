@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.interop;
+package org.codehaus.jackson.map.ext;
 
 import java.io.*;
 import java.util.*;
@@ -16,9 +16,9 @@ public class TestJodaTime
     extends org.codehaus.jackson.map.BaseMapTest
 {
     /*
-    /**************************************************************8 
+    /**********************************************************
     /* Tests for DateTime (and closely related)
-    /**************************************************************8 
+    /**********************************************************
      */
 
     /**
@@ -63,19 +63,25 @@ public class TestJodaTime
     // @since 1.6    
     public void testDeserReadableDateTime() throws IOException
     {
-        ReadableDateTime date = new ObjectMapper().readValue(quote("1972-12-28T12:00:01.000+0000"),
-                ReadableDateTime.class);
+        ObjectMapper mapper = new ObjectMapper();
+        ReadableDateTime date = mapper.readValue(quote("1972-12-28T12:00:01.000+0000"), ReadableDateTime.class);
         assertNotNull(date);
         assertEquals("1972-12-28T12:00:01.000Z", date.toString());
+
+        // since 1.6.1, for [JACKSON-360]
+        assertNull(mapper.readValue(quote(""), ReadableDateTime.class));
     }
 
     // @since 1.6    
     public void testDeserReadableInstant() throws IOException
     {
-        ReadableInstant date = new ObjectMapper().readValue(quote("1972-12-28T12:00:01.000+0000"),
-                ReadableInstant.class);
+        ObjectMapper mapper = new ObjectMapper();
+        ReadableInstant date = mapper.readValue(quote("1972-12-28T12:00:01.000+0000"), ReadableInstant.class);
         assertNotNull(date);
         assertEquals("1972-12-28T12:00:01.000Z", date.toString());
+
+        // since 1.6.1, for [JACKSON-360]
+        assertNull(mapper.readValue(quote(""), ReadableInstant.class));
     }
     
     /*
@@ -111,8 +117,11 @@ public class TestJodaTime
         assertEquals(2005, date2.getYear());
         assertEquals(7, date2.getMonthOfYear());
         assertEquals(13, date2.getDayOfMonth());
-    }
 
+        // since 1.6.1, for [JACKSON-360]
+        assertNull(mapper.readValue(quote(""), DateMidnight.class));
+    }
+    
     /*
     /**********************************************************
     /* Tests for LocalDate type
@@ -146,6 +155,9 @@ public class TestJodaTime
         assertEquals(2005, date2.getYear());
         assertEquals(7, date2.getMonthOfYear());
         assertEquals(13, date2.getDayOfMonth());
+
+        // since 1.6.1, for [JACKSON-360]
+        assertNull(mapper.readValue(quote(""), LocalDate.class));
     }
 
     /*
@@ -192,5 +204,8 @@ public class TestJodaTime
         assertEquals(34, date2.getMinuteOfHour());
         assertEquals(9, date2.getSecondOfMinute());
         assertEquals(1, date2.getMillisOfSecond());
+
+        // since 1.6.1, for [JACKSON-360]
+        assertNull(mapper.readValue(quote(""), LocalDateTime.class));
     }
 }

@@ -356,6 +356,12 @@ Adam Sussman:
   * Reported [JACKSON-355] Handling of BigInteger with JsonNode not correct
    [1.5.7]
 
+Lubomir Konstantinov:
+  * Reported [JACKSON-363] CustomDeserializerFactory did not work for custom
+    array deserializers.
+  * Reported [JACKSON-373] Interface inheritance not traversed when looking up
+    custom serializers
+
 Dimitry Lisay:
   * Reported [JACKSON-370] TreeTraversingParser.skipChildren() was not
     correctly skipping children
@@ -367,7 +373,7 @@ Kirill Stokoz:
    [1.5.7]
   * Reported [JACKSON-383] @JsonAnySetter gets called for ignorable properties if
     FAIL_ON_UNKNOWN_PROPERTIES set to false (related to [JACKSON-313])
-   [1.5.7]
+   [1.6.1]
 
 Brian Oberman:
   * Requested [JACKSON-289] Ability to serialize char[] values as JSON Arrays
@@ -414,6 +420,10 @@ Igor Kolomets:
     XMLGregorianCalendar now uses same Date/Calendar serialization as other date types.
    [1.6.0]
 
+Shilpa Panaganti:
+  * Suggested [JACKSON-360] Convert "" to null for Joda date/time types
+   [1.6.1]
+
 Larry Yogman:
    * Reported [JACKSON-371] Provide path of type error in ObjectMapper.convertValue()
    [1.6.1]
@@ -422,5 +432,4 @@ Bruce Ritchie:
    * Reported [JACKSON-384] @JsonAnyGetter values were duplicated if method name was valid
      as a regular getter name
    [1.6.1]
-   
    

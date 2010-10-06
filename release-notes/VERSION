@@ -6,6 +6,10 @@ Release date:
 Description:
  First patch version for 1.6.
 
+ Improvements:
+   * [JACKSON-360] Convert empty String to null values for Joda
+     (suggested by Shilpa P)
+
  Fixes:
 
    * [JACKSON-372] handle missing primitive type values for @JsonCreator gracefully (with defaults)
@@ -128,6 +132,28 @@ Description:
     since default Date/Calendar formatting uses timestamp instead of textual serialization,
     default XMLGregorianCalendar serialization is changing.
 
+1.5.7 [03-Oct-2010]
+
+  Fixes:
+
+  * [JACKSON-352] Polymorphic deserialization for Object always assumes
+    array-wrapper style
+   (reported by Henry L)
+  * [JACKSON-355] Handling of BigInteger with JsonNode not correct
+   (reported by Adam S)
+  * [JACKSON-363] CustomDeserializerFactory did not work for custom
+    array deserializers.
+   (reported by Lubomir K)
+  * [JACKSON-370] TreeTraversingParser.skipChildren() not working correctly
+   (reported by Dmitry L)
+  * [JACKSON-373] Interface inheritance not traversed when looking up
+    custom serializers
+   (reported by Lubomir K)
+  * [JACKSON-377] ThrowableDeserializer was not properly using information from
+    @JsonCreator or @JsonAnySetter
+   (reported by Kirill S)
+  * [JACKSON-380] Incorrect type information serialized for some Enums
+  
 1.5.6 [17-Aug-2010]
 
   Fixes:

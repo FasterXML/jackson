@@ -54,7 +54,11 @@ public class JodaDeserializers
         protected DateTime parseLocal(JsonParser jp)
             throws IOException, JsonProcessingException
         {
-            return _localDateTimeFormat.parseDateTime(jp.getText());
+            String str = jp.getText().trim();
+            if (str.length() == 0) { // [JACKSON-360]
+                return null;
+            }
+            return _localDateTimeFormat.parseDateTime(str);
         }
     }
     
@@ -87,7 +91,11 @@ public class JodaDeserializers
                 return (T) new DateTime(jp.getLongValue(), DateTimeZone.UTC);
             }
             if (t == JsonToken.VALUE_STRING) {
-                return (T) new DateTime(jp.getText().trim(), DateTimeZone.UTC);
+                String str = jp.getText().trim();
+                if (str.length() == 0) { // [JACKSON-360]
+                    return null;
+                }
+                return (T) new DateTime(str, DateTimeZone.UTC);
             }
             throw ctxt.mappingException(getValueClass());
         }
@@ -110,7 +118,11 @@ public class JodaDeserializers
             case VALUE_NUMBER_INT:
                 return new LocalDate(jp.getLongValue());            
             case VALUE_STRING:
-                return parseLocal(jp).toLocalDate();
+                DateTime local = parseLocal(jp);
+                if (local == null) {
+                    return null;
+                }
+                return local.toLocalDate();
             case START_ARRAY:
                 jp.nextToken(); // VALUE_NUMBER_INT 
                 int year = jp.getIntValue(); 
@@ -145,7 +157,11 @@ public class JodaDeserializers
             case VALUE_NUMBER_INT:
                 return new LocalDateTime(jp.getLongValue());            
             case VALUE_STRING:
-                return parseLocal(jp).toLocalDateTime();
+                DateTime local = parseLocal(jp);
+                if (local == null) {
+                    return null;
+                }
+                return local.toLocalDateTime();
             case START_ARRAY:
                 jp.nextToken(); // VALUE_NUMBER_INT
                 int year = jp.getIntValue();
@@ -192,7 +208,11 @@ public class JodaDeserializers
             case VALUE_NUMBER_INT:
                 return new DateMidnight(jp.getLongValue());            
             case VALUE_STRING:
-                return parseLocal(jp).toDateMidnight();
+                DateTime local = parseLocal(jp);
+                if (local == null) {
+                    return null;
+                }
+                return local.toDateMidnight();
             case START_ARRAY:
                 jp.nextToken(); // VALUE_NUMBER_INT 
                 int year = jp.getIntValue(); 
