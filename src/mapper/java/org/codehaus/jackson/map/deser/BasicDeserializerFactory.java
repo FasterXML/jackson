@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
@@ -44,8 +45,7 @@ public abstract class BasicDeserializerFactory
      * types. These need not go through factory.
      */
     final static HashMap<JavaType, JsonDeserializer<Object>> _simpleDeserializers = StdDeserializers.constructAll();
-
-
+    
     /* We do some defaulting for abstract Map classes and
      * interfaces, to avoid having to use exact types or annotations in
      * cases where the most common concrete Maps will do.
@@ -54,7 +54,6 @@ public abstract class BasicDeserializerFactory
     final static HashMap<String, Class<? extends Map>> _mapFallbacks =
         new HashMap<String, Class<? extends Map>>();
     static {
-
         _mapFallbacks.put(Map.class.getName(), LinkedHashMap.class);
         _mapFallbacks.put(ConcurrentMap.class.getName(), ConcurrentHashMap.class);
         _mapFallbacks.put(SortedMap.class.getName(), TreeMap.class);
@@ -102,8 +101,14 @@ public abstract class BasicDeserializerFactory
      * And finally, we have special array deserializers for primitive
      * array types
      */
-    final static HashMap<JavaType,JsonDeserializer<Object>> _arrayDeserializers = ArrayDeserializers.getAll();
+    protected final static HashMap<JavaType,JsonDeserializer<Object>> _arrayDeserializers = ArrayDeserializers.getAll();
 
+    /**
+     * To support external/optional deserializers, we'll use this helper class
+     * (as per [JACKSON-386])
+     */
+    protected OptionalHandlerFactory optionalHandlers = OptionalHandlerFactory.instance;
+    
     /*
     /**********************************************************
     /* Life cycle
@@ -348,6 +353,11 @@ public abstract class BasicDeserializerFactory
         if (AtomicReference.class.isAssignableFrom(cls)) {
             JsonDeserializer<?> d2 = new StdDeserializer.AtomicReferenceDeserializer(type);
             return (JsonDeserializer<Object>)d2;
+        }
+        // [JACKSON-386]: External/optional type handlers are handled somewhat differently
+        JsonDeserializer<?> d = optionalHandlers.findDeserializer(type, config, p);
+        if (d != null) {
+            return (JsonDeserializer<Object>)d;
         }
         return null;
     }

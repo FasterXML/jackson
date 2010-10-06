@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.StdDeserializer;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.util.Provider;
 import org.codehaus.jackson.type.JavaType;
@@ -28,15 +29,26 @@ public class OptionalHandlerFactory
 
     private final static String SERIALIZERS_FOR_JODA_DATETIME = "org.codehaus.jackson.map.ext.JodaSerializers";
     private final static String SERIALIZERS_FOR_JAVAX_XML = "org.codehaus.jackson.map.ext.CoreXMLSerializers";
+    private final static String DESERIALIZERS_FOR_JODA_DATETIME = "org.codehaus.jackson.map.ext.JodaDeserializers";
+    private final static String DESERIALIZERS_FOR_JAVAX_XML = "org.codehaus.jackson.map.ext.CoreXMLDeserializers";
 
     // Plus we also have a single serializer for DOM Node:
     private final static String CLASS_NAME_DOM_NODE = "org.w3c.dom.Node";
+    private final static String CLASS_NAME_DOM_DOCUMENT = "org.w3c.dom.Node";
     private final static String SERIALIZER_FOR_DOM_NODE = "org.codehaus.jackson.map.ext.DOMSerializer";
+    private final static String DESERIALIZER_FOR_DOM_DOCUMENT = "org.codehaus.jackson.map.ext.DOMDeserializer$DocumentDeserializer";
+    private final static String DESERIALIZER_FOR_DOM_NODE = "org.codehaus.jackson.map.ext.DOMDeserializer$NodeDeserializer";
     
     public final static OptionalHandlerFactory instance = new OptionalHandlerFactory();
     
     protected OptionalHandlerFactory() { }
 
+    /*
+    /**********************************************************
+    /* Public API
+    /**********************************************************
+     */
+    
     public JsonSerializer<?> findSerializer(JavaType type, SerializationConfig config,
             BasicBeanDescription beanInfo)
     {
@@ -79,6 +91,48 @@ public class OptionalHandlerFactory
         return null;
     }
 
+    public JsonDeserializer<?> findDeserializer(JavaType type, DeserializationConfig config, DeserializerProvider p)
+    {
+        Class<?> rawType = type.getRawClass();
+        String className = rawType.getName();
+        String factoryName;
+        
+        if (className.startsWith(PACKAGE_PREFIX_JODA_DATETIME)) {
+            factoryName = DESERIALIZERS_FOR_JODA_DATETIME;
+        } else if (className.startsWith(PACKAGE_PREFIX_JAVAX_XML)
+                || hasSupertypeStartingWith(rawType, PACKAGE_PREFIX_JAVAX_XML)) {
+            factoryName = DESERIALIZERS_FOR_JAVAX_XML;
+        } else if (doesImplement(rawType, CLASS_NAME_DOM_DOCUMENT)) {
+            return (JsonDeserializer<?>) instantiate(DESERIALIZER_FOR_DOM_DOCUMENT);
+        } else if (doesImplement(rawType, CLASS_NAME_DOM_NODE)) {
+            return (JsonDeserializer<?>) instantiate(DESERIALIZER_FOR_DOM_NODE);
+        } else {
+            return null;
+        }
+        Object ob = instantiate(factoryName);
+        if (ob == null) { // could warn, if we had logging system (j.u.l?)
+            return null;
+        }
+        @SuppressWarnings("unchecked")
+        Provider<StdDeserializer<?>> prov = (Provider<StdDeserializer<?>>) ob;
+        Collection<StdDeserializer<?>> entries = prov.provide();
+
+        // first, check for exact match (concrete)
+        for (StdDeserializer<?> deser : entries) {
+            if (rawType == deser.getValueClass()) {
+                return deser;
+            }
+        }
+        // if no match, check super-type match
+        for (StdDeserializer<?> deser : entries) {
+            if (deser.getValueClass().isAssignableFrom(rawType)) {
+                return deser;
+            }
+        }
+        // but maybe there's just no match to be found?
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* Internal helper methods

@@ -4,7 +4,6 @@ import java.util.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.type.*;
-import org.codehaus.jackson.map.util.Provider;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -65,31 +64,6 @@ class StdDeserializers
         add(new FromStringDeserializer.URIDeserializer());
         add(new FromStringDeserializer.CurrencyDeserializer());
         add(new FromStringDeserializer.PatternDeserializer());
-
-        /* 25-Aug-2009, tatu: Looks like Google's Android and GAE
-         *   don't have "javax.xml.namespace" even though they are
-         *   standard part of JDK 1.5. So let's be defensive here
-         */
-        /* 21-Nov-2009, tatu: Also: we may want to add optional support
-         *   for other well-known non-JDK libs, such as Joda. So:
-         */
-        for (String provStr : new String[] {
-            "org.codehaus.jackson.map.ext.CoreXMLDeserializers",
-            "org.codehaus.jackson.map.ext.JodaDeserializers",
-        }) {
-            try {
-                Class<?> cls = Class.forName(provStr);
-                Object ob = cls.newInstance();
-                @SuppressWarnings("unchecked")
-                Provider<StdDeserializer<?>> prov = (Provider<StdDeserializer<?>>) ob;
-                for (StdDeserializer<?> deser : prov.provide()) {
-                    add(deser);
-                }
-            }
-            catch (LinkageError e) { }
-            // too many different kinds to enumerate here:
-            catch (Exception e) { }
-        }
 
         // And finally some odds and ends
 

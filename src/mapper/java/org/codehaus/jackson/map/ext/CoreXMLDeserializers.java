@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.ext;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.*;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -9,11 +8,6 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializer;
@@ -60,8 +54,6 @@ public class CoreXMLDeserializers
             new DurationDeserializer()
             ,new GregorianCalendarDeserializer()
             ,new QNameDeserializer()
-            ,new DOMDocumentDeserializer()
-            ,new DOMNodeDeserializer()
         });
     }
     
@@ -111,51 +103,4 @@ public class CoreXMLDeserializers
             return QName.valueOf(value);
         }
     }
-
-    /**
-     * Base for serializers that allows parsing DOM Documents from JSON Strings.
-     * Nominal type can be either {@link org.w3c.dom.Node} or
-     * {@link org.w3c.dom.Document}.
-     */
-    abstract static class DOMDeserializer<T> extends FromStringDeserializer<T>
-    {
-        final static DocumentBuilderFactory _parserFactory;
-        static {
-            _parserFactory = DocumentBuilderFactory.newInstance();
-            // yup, only cave men do XML without recognizing namespaces...
-            _parserFactory.setNamespaceAware(true);
-        }
-
-        protected DOMDeserializer(Class<T> cls) { super(cls); }
-
-        @Override
-        public abstract T _deserialize(String value, DeserializationContext ctxt);
-
-        protected final Document parse(String value) throws IllegalArgumentException
-        {
-            try {
-                return _parserFactory.newDocumentBuilder().parse(new InputSource(new StringReader(value)));
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to parse JSON String as XML: "+e.getMessage(), e);
-            }
-        }
-    }
-    
-    public static class DOMNodeDeserializer extends DOMDeserializer<Node>
-    {
-        public DOMNodeDeserializer() { super(Node.class); }
-        @Override
-        public Node _deserialize(String value, DeserializationContext ctxt) throws IllegalArgumentException {
-            return parse(value);
-        }
-    }    
-
-    public static class DOMDocumentDeserializer extends DOMDeserializer<Document>
-    {
-        public DOMDocumentDeserializer() { super(Document.class); }
-        @Override
-        public Document _deserialize(String value, DeserializationContext ctxt) throws IllegalArgumentException {
-            return parse(value);
-        }
-    }    
 }
