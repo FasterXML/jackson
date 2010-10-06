@@ -1,10 +1,20 @@
-Version: 1.5.7
+Version: 1.5.8
 
 Release date:
-  03-Oct-2010
 
 Description:
-  A patch release for 1.5, resolving multiple issues uncovered by 1.6.0 release
+  A patch release for 1.5.
+
+  Fixes:
+
+  * [JACKSON-359] TypeIdResolver.init() was not being called properly
+    (reported by Peter L)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.5.7 [03-Oct-2010]
 
   Fixes:
 
@@ -25,10 +35,6 @@ Description:
     @JsonCreator or @JsonAnySetter
    (reported by Kirill S)
   * [JACKSON-380] Incorrect type information serialized for some Enums
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.5.6 [17-Aug-2010]
 

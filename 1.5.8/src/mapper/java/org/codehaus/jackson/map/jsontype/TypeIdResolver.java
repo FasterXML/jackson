@@ -58,7 +58,8 @@ public interface TypeIdResolver
 
      /**
       * Accessor for mechanism that this resolver uses for determining
-      * type id from type.
+      * type id from type. Mostly informational; not required to be called
+      * or used.
       */
      public JsonTypeInfo.Id getMechanism();
 }

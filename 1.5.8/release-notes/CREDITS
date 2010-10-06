@@ -366,3 +366,7 @@ Kirill Stokoz:
   * Reported [JACKSON-377] ThrowableDeserializer was not properly using information from
     @JsonCreator or @JsonAnySetter
    [1.5.7]
+
+Peter Litvak:
+  * Reported [JACKSON-359] TypeIdResolver.init() was not being called properly
+   [1.5.8]

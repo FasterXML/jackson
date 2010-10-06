@@ -3,13 +3,12 @@ package org.codehaus.jackson.map.jsontype;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.ObjectMapper.DefaultTyping;
 
-public class TestDefaultForArrays
-    extends BaseMapTest
+public class TestDefaultForArrays extends BaseMapTest
 {
     /*
-    /****************************************************** 
+    /**********************************************************
     /* Helper types
-    /****************************************************** 
+    /**********************************************************
      */
 
     static class ArrayBean {
@@ -20,9 +19,9 @@ public class TestDefaultForArrays
     }
     
     /*
-    /****************************************************** 
+    /**********************************************************
     /* Unit tests
-    /****************************************************** 
+    /**********************************************************
      */
 
     /**
