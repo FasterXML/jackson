@@ -170,7 +170,10 @@ public class JacksonAnnotationIntrospector
         // Does it define a custom type id resolver?
         JsonTypeIdResolver idResInfo = ac.getAnnotation(JsonTypeIdResolver.class);
         TypeIdResolver idRes = (idResInfo == null) ? null
-                : ClassUtil.createInstance(idResInfo.value(), false);
+                : ClassUtil.createInstance(idResInfo.value(), true);
+        if (idRes != null) { // [JACKSON-359]
+            idRes.init(baseType);
+        }
         b = b.init(info.use(), idRes);
         b = b.inclusion(info.include());
         b = b.typeProperty(info.property());
