@@ -12,6 +12,8 @@ Description:
 
  Fixes:
 
+   * [JACKSON-359] TypeIdResolver.init() was not being called properly
+     (reported by Peter L)
    * [JACKSON-372] handle missing primitive type values for @JsonCreator gracefully (with defaults)
    * [JACKSON-376] writing binary data as object field value with Smile failed
      (reported by Shay B)
