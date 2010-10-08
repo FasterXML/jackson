@@ -1,3 +1,4 @@
+package sample;
 // no package, i.e. at root of sample/extra
 
 import java.io.*;
