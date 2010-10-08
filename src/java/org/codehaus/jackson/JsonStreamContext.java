@@ -45,9 +45,9 @@ public abstract class JsonStreamContext
     protected int _index;
 
     /*
-    //////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public JsonStreamContext(int type)
@@ -57,11 +57,15 @@ public abstract class JsonStreamContext
     }
 
     /*
-    //////////////////////////////////////////////////
-    // Public API, accessors
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API, accessors
+    /**********************************************************
      */
 
+    /**
+     * Accessor for finding parent context of this context; will
+     * return null for root context.
+     */
     public abstract JsonStreamContext getParent();
 
     /**
@@ -83,6 +87,11 @@ public abstract class JsonStreamContext
      */
     public final boolean inObject() { return _type == TYPE_OBJECT; }
 
+    /**
+     * Method for accessing simple type description of current context;
+     * either ROOT (for root-level values), OBJECT (for field names and
+     * values of JSON Objects) or ARRAY (for values of JSON Arrays)
+     */
     public final String getTypeDesc() {
         switch (_type) {
         case TYPE_ROOT: return "ROOT";
@@ -108,5 +117,10 @@ public abstract class JsonStreamContext
         return (_index < 0) ? 0 : _index;
     }
 
+    /**
+     * Method for accessing name associated with the current location.
+     * Non-null for <code>FIELD_NAME</code> and value events that directly
+     * follow field names; null for root level and array values.
+     */
     public abstract String getCurrentName();
 }
