@@ -1,15 +1,22 @@
-Version: 1.6.1
+Version: 1.7.0
 
 Release date:
-  06-Oct-2010
+  xx-Dec-2010
 
 Description:
- First patch version for 1.6.
+ Major new version that includes improvements to extensibility.
+
+ Fixes:
 
  Improvements:
-   * [JACKSON-360] Convert empty String to null values for Joda
-     (suggested by Shilpa P)
-   * [JACKSON-386] Improve registration for optional/external types (javax.xml, joda)
+
+ New features:
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.6.1 [06-Oct-2010]
 
  Fixes:
 
@@ -28,9 +35,12 @@ Description:
    (reported by Bruce R)
  * all fixes from 1.5.x up to 1.5.7
 
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
+ Improvements:
+
+   * [JACKSON-360] Convert empty String to null values for Joda
+     (suggested by Shilpa P)
+   * [JACKSON-386] Improve registration for optional/external types (javax.xml, joda)
+
 
 1.6.0 [06-Sep-2010]
 
