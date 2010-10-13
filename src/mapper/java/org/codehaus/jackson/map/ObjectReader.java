@@ -189,7 +189,7 @@ public class ObjectReader
             throw new IllegalArgumentException("cat not update null value");
         }
         JavaType t = TypeFactory.type(value.getClass());
-        return new ObjectReader(this, _config, t, _valueToUpdate);
+        return new ObjectReader(this, _config, t, value);
     }    
 
     /*

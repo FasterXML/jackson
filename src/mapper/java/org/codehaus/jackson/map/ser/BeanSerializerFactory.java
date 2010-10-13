@@ -212,6 +212,11 @@ public class BeanSerializerFactory
     protected JsonSerializer<Object> constructBeanSerializer(SerializationConfig config,
                                                              BasicBeanDescription beanDesc)
     {
+        // 13-Oct-2010, tatu: quick sanity check: never try to create bean serializer for plain Object
+        if (beanDesc.getBeanClass() == Object.class) {
+            throw new IllegalArgumentException("Can not create bean serializer for Object.class");
+        }
+        
         // First: any detectable (auto-detect, annotations) properties to serialize?
         List<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
         if (props == null || props.size() == 0) {
