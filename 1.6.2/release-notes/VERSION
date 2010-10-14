@@ -1,10 +1,21 @@
-Version: 1.6.1
+Version: 1.6.2
 
 Release date:
-  06-Oct-2010
+  xx-Oct-2010
 
 Description:
- First patch version for 1.6.
+  Second patch release for 1.6.
+
+  Fixes:
+
+  * [JACKSON-391] ObjectReader.withValueUpdate() passing wrong object
+   (reported by Kurtis)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.6.1 [06-Oct-2010]
 
  Improvements:
    * [JACKSON-360] Convert empty String to null values for Joda
@@ -27,10 +38,6 @@ Description:
    getter name
    (reported by Bruce R)
  * all fixes from 1.5.x up to 1.5.7
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.6.0 [06-Sep-2010]
 
