@@ -1,0 +1,89 @@
+<?xml version="1.0" standalone='yes'?>
+
+<!-- This Ant build file fragment contains targets needed to run
+     code coverage analysis
+  -->
+<project name="Code coverage tasks for Jackson" basedir=".">
+
+    <!-- Support for Cobertura code coverage tool -->
+    <property name="cobertura.coverage.dir" value="${dir.build}/coverage" />
+    <path id="cobertura.lib">
+      <fileset dir="${dir.lib}/cobertura" includes="*.jar" />
+      <fileset dir="${dir.lib}/ext/asm" includes="*.jar" />
+    </path>
+    <taskdef classpathref="cobertura.lib" resource="tasks.properties" />
+
+  <!-- Code coverage using Cobertura: -->
+
+  <target name="build.coverage" depends="test.compile">
+      <!-- First, need to instrument classes -->
+      <property name="cobertura.instr.dir" value="${dir.build}/cobertura-instr" />
+      <cobertura-instrument todir="${cobertura.instr.dir}">
+        <fileset dir="${dir.build.classes.core}">
+          <include name="org/codehaus/jackson/**/*.class"/>
+        </fileset>
+        <fileset dir="${dir.build.classes.mapper}">
+          <include name="org/codehaus/jackson/map/**/*.class"/>
+          <include name="org/codehaus/jackson/node/**/*.class"/>
+          <include name="org/codehaus/jackson/schema/**/*.class"/>
+        </fileset>
+      </cobertura-instrument>
+
+      <junit fork="once" printsummary="yes" haltonfailure="no" showoutput="yes"
+        maxmemory="300M"
+      >
+        <sysproperty key="net.sourceforge.cobertura.datafile" file="${basedir}/cobertura.ser" />
+            <batchtest fork="no" todir="${dir.test.xmlresults}">
+                <fileset dir="${dir.test.classes}">
+                    <!-- Need to exclude inner classes... -->
+                    <exclude name="**/*$*.class"/>
+                    <!-- and one particularly slow test? -->
+                    <exclude name="**/TestStringGeneration.class"/>
+                    <include name="**/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <!-- Order is important: must first have instrumented classes -->
+            <classpath location="${cobertura.instr.dir}" />
+
+            <!-- Actual tests: -->
+            <classpath path="${dir.test.classes}" />
+            <!-- Cobertura support: -->
+            <classpath refid="cobertura.lib" />
+            <classpath>
+                <!-- Note: while this may seem superfluous, it is actually
+                     needed because Cobertura does not instrument things
+                     like interfaces. So some of the class files are
+                     needed from non-instrumented location
+                  -->
+                <pathelement path="${dir.build.classes.core}" />
+                <pathelement path="${dir.build.classes.mapper}" />
+                <pathelement path="${dir.build.classes.xc}" />
+                <path refid="test-libs"/>
+            </classpath>     
+        </junit>
+        <!-- and then reporting -->
+        <cobertura-report format="html" destdir="${cobertura.coverage.dir}" >
+          <fileset dir="${dir.src.java.core}">
+            <include name="org/codehaus/**/*.java" />
+          </fileset>
+          <fileset dir="${dir.src.java.mapper}">
+            <include name="org/codehaus/**/*.java" />
+          </fileset>
+          <fileset dir="${dir.src.java.xc}">
+            <include name="org/codehaus/**/*.java" />
+          </fileset>
+        </cobertura-report>
+
+        <!-- Let's also report junit results? (at least if they fail) -->
+<!--
+        <junitreport todir="${dir.test.results}">
+            <fileset dir="${dir.test.xmlresults}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="${dir.test.results}" />
+        </junitreport>
+-->
+    </target>
+
+</project>
