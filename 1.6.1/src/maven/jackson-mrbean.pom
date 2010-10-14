@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+ <!-- General information -->
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.codehaus.jackson</groupId>
+  <artifactId>jackson-mrbean</artifactId>
+  <packaging>jar</packaging>
+  <name>Bean Materializer
+</name>
+  <version>@VERSION@</version>
+  <description>Functionality for implementing interfaces and abstract types
+dynamically ("bean materialization")
+</description>
+
+ <!-- Contact information -->
+
+  <url>http://jackson.codehaus.org</url>
+  <issueManagement>
+    <url>http://jira.codehaus.org/browse/JACKSON</url>
+  </issueManagement>
+
+ <!-- Dependency information -->
+ 
+  <dependencies>
+    <!-- builds on basic Jackson mapper functionality
+      -->
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>@VERSION@</version>
+    </dependency>
+  </dependencies>
+
+  <!-- Licensing: BSD, due to embedded ASM code -->
+  <licenses>
+    <license>
+      <name>BSD</name>
+      <url>http://www.opensource.org/licenses/bsd-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>FasterXML</name>
+    <url>http://fasterxml.com</url>
+  </organization>
+
+</project>

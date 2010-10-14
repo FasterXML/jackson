@@ -1,0 +1,13 @@
+This copy of Jackson JSON processor is licensed under the
+Lesser General Public License (LGPL), version 2.1 ("the License").
+See the License for details about distribution rights, and the
+specific rights regarding derivate works.
+
+You may obtain a copy of the License at:
+
+http://www.gnu.org/licenses/licenses.html
+
+A copy is also included with both the the downloadable source code package
+and jar that contains class bytecodes, as file "LGPL 2.1". In both cases,
+that file should be located next to this file: in source distribution
+the location should be "release-notes/lgpl"; and in jar "META-INF/"
