@@ -153,10 +153,17 @@ public final class ContainerSerializers
                 contentType = _elementType;
             }
             if (contentType != null) {
-                JsonSerializer<Object> ser = provider.findValueSerializer(contentType);
-                JsonNode schemaNode = (ser instanceof SchemaAware) ?
-                        ((SchemaAware) ser).getSchema(provider, null) :
-                        JsonSchema.getDefaultSchemaNode();
+                JsonNode schemaNode = null;
+                // 15-Oct-2010, tatu: We can't serialize plain Object.class; but what should it produce here? Untyped?
+                if (contentType.getRawClass() != Object.class) {
+                    JsonSerializer<Object> ser = provider.findValueSerializer(contentType);
+                    if (ser instanceof SchemaAware) {
+                        schemaNode = ((SchemaAware) ser).getSchema(provider, null);
+                    }
+                }
+                if (schemaNode == null) {
+                    schemaNode = JsonSchema.getDefaultSchemaNode();
+                }
                 o.put("items", schemaNode);
             }
             return o;

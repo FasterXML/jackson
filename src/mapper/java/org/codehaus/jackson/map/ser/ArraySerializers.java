@@ -269,11 +269,16 @@ public final class ArraySerializers
                 JavaType javaType = TypeFactory.type(typeHint);
                 if (javaType.isArrayType()) {
                     Class<?> componentType = ((ArrayType) javaType).getContentType().getRawClass();
-                    JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
-                    JsonNode schemaNode = (ser instanceof SchemaAware) ?
-                            ((SchemaAware) ser).getSchema(provider, null) :
-                            JsonSchema.getDefaultSchemaNode();
-                    o.put("items", schemaNode);
+                    // 15-Oct-2010, tatu: We can't serialize plain Object.class; but what should it produce here? Untyped?
+                    if (componentType == Object.class) {
+                        o.put("items", JsonSchema.getDefaultSchemaNode());
+                    } else {
+                        JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
+                        JsonNode schemaNode = (ser instanceof SchemaAware) ?
+                                ((SchemaAware) ser).getSchema(provider, null) :
+                                JsonSchema.getDefaultSchemaNode();
+                        o.put("items", schemaNode);
+                    }
                 }
             }
             return o;
