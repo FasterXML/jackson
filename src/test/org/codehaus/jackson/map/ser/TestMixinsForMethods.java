@@ -169,15 +169,21 @@ public class TestMixinsForMethods
         assertNotNull(ob);
         assertEquals(Integer.class, ob.getClass());
 
+        /* 15-Oct-2010, tatu: Actually, we now block serialization (attemps) of plain Objects, by default
+         *    (since generally that makes no sense -- may need to revisit). As such, need to comment out
+         *    this part of test
+         */
         /* Hmmh. For plain Object.class... I suppose getClass() does
          * get serialized (and can't really be blocked either).
          * Fine.
          */
-         result = writeAndMap(mapper, new Object());
+       /*
+        result = writeAndMap(mapper, new Object());
         assertEquals(2, result.size());
         ob = result.get("hashCode");
         assertNotNull(ob);
         assertEquals(Integer.class, ob.getClass());
         assertEquals("java.lang.Object", result.get("class"));
+        */
     }
 }
