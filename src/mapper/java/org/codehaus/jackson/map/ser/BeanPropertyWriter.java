@@ -5,6 +5,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.type.JavaType;
 
 import java.lang.reflect.Field;
@@ -48,7 +49,7 @@ public class BeanPropertyWriter
      * Logical name of the property; will be used as the field name
      * under which value for the property is written.
      */
-    protected final String _name;
+    protected final SerializedString _name;
 
     /**
      * Type to use for locating serializer; normally same as return
@@ -119,6 +120,18 @@ public class BeanPropertyWriter
                               boolean suppressNulls,
                               Object suppressableValue)
     {
+        this(new SerializedString(name), ser, typeSer, serType, acc, f, suppressNulls, suppressableValue);
+    }
+
+    /**
+     * @since 1.7.0
+     * 
+     * @param serName Efficiently serializable representation of property name
+     */
+    public BeanPropertyWriter(SerializedString name, JsonSerializer<Object> ser, TypeSerializer typeSer,
+            JavaType serType, Method acc, Field f,
+            boolean suppressNulls, Object suppressableValue)
+    {
         _name = name;
         _serializer = ser;
         _typeSerializer = typeSer;
@@ -183,7 +196,9 @@ public class BeanPropertyWriter
     /**********************************************************
      */
 
-    public final String getName() { return _name; }
+    public final String getName() { return _name.getValue(); }
+
+    public SerializedString getSerializedName() { return _name; }
     
     public boolean hasSerializer() { return _serializer != null; }
     
