@@ -20,27 +20,27 @@ public class TestParserWithObjects
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Simple numeric parsing
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Test for simple traversal with data mapping
+    /**********************************************************
      */
 
-    /*
-    //////////////////////////////////////////////////////
-    // Test for simple traversal with data mapping
-    //////////////////////////////////////////////////////
-     */
-
-    public void testNextValue()
-        throws IOException
+    public void testNextValue() throws IOException
     {
         // Let's test both byte-backed and Reader-based one
-        _testNextValue(false);
-        _testNextValue(true);
+        _testNextValueBasic(false);
+        _testNextValueBasic(true);
     }
 
-    public void testPojoReading()
-        throws IOException
+    // [JACKSON-395]
+    public void testNextValueNested() throws IOException
+    {
+        // Let's test both byte-backed and Reader-based one
+        _testNextValueNested(false);
+        _testNextValueNested(true);
+    }
+    
+    public void testPojoReading() throws IOException
     {
         JsonFactory jf = new MappingJsonFactory();
         final String JSON = "{ \"x\" : 9 }";
@@ -59,8 +59,7 @@ public class TestParserWithObjects
         jp.close();
     }
 
-    public void testReadingArrayAsTree()
-        throws IOException
+    public void testReadingArrayAsTree() throws IOException
     {
         JsonFactory jf = new MappingJsonFactory();
         final String JSON = "[ 1, 2, false ]";
@@ -112,9 +111,9 @@ public class TestParserWithObjects
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Tests for data binding
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Tests for data binding
+    /**********************************************************
      */
 
     /**
@@ -169,13 +168,12 @@ public class TestParserWithObjects
     }
 
     /*
-    //////////////////////////////////////////////
-    // Supporting methods
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Supporting methods
+    /**********************************************************
      */
 
-    private void  _testNextValue(boolean useStream)
-        throws IOException
+    private void  _testNextValueBasic(boolean useStream) throws IOException
     {
         // first array, no change to default
         JsonParser jp = _getParser("[ 1, 2, 3, 4 ]", useStream);
@@ -193,6 +191,7 @@ public class TestParserWithObjects
         assertToken(JsonToken.START_OBJECT, jp.nextValue());
         for (int i = 3; i <= 5; ++i) {
             assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextValue());
+            assertEquals(String.valueOf(i), jp.getCurrentName());
             assertEquals(i, jp.getIntValue());
         }
         assertToken(JsonToken.END_OBJECT, jp.nextValue());
@@ -213,6 +212,52 @@ public class TestParserWithObjects
         assertToken(JsonToken.END_OBJECT, jp.nextValue());
         assertToken(JsonToken.END_ARRAY, jp.nextValue());
 
+        assertNull(jp.nextValue());
+        jp.close();
+    }
+
+    // [JACKSON-395]
+    private void  _testNextValueNested(boolean useStream) throws IOException
+    {
+        // first array, no change to default
+        JsonParser jp;
+    
+        // then object with sub-objects...
+        jp = _getParser("{\"a\": { \"b\" : true, \"c\": false }, \"d\": 3 }", useStream);
+
+        assertToken(JsonToken.START_OBJECT, jp.nextValue());
+        assertNull(jp.getCurrentName());
+        assertToken(JsonToken.START_OBJECT, jp.nextValue());
+        assertEquals("a", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_TRUE, jp.nextValue());
+        assertEquals("b", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_FALSE, jp.nextValue());
+        assertEquals("c", jp.getCurrentName());
+        assertToken(JsonToken.END_OBJECT, jp.nextValue());
+        // ideally we should match closing marker with field, too:
+        assertEquals("a", jp.getCurrentName());
+
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextValue());
+        assertEquals("d", jp.getCurrentName());
+        assertToken(JsonToken.END_OBJECT, jp.nextValue());
+        assertNull(jp.getCurrentName());
+        assertNull(jp.nextValue());
+        jp.close();
+
+        // and arrays
+        jp = _getParser("{\"a\": [ false ] }", useStream);
+
+        assertToken(JsonToken.START_OBJECT, jp.nextValue());
+        assertNull(jp.getCurrentName());
+        assertToken(JsonToken.START_ARRAY, jp.nextValue());
+        assertEquals("a", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_FALSE, jp.nextValue());
+        assertNull(jp.getCurrentName());
+        assertToken(JsonToken.END_ARRAY, jp.nextValue());
+        // ideally we should match closing marker with field, too:
+        assertEquals("a", jp.getCurrentName());
+        assertToken(JsonToken.END_OBJECT, jp.nextValue());
+        assertNull(jp.getCurrentName());
         assertNull(jp.nextValue());
         jp.close();
     }
