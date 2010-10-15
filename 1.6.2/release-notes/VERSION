@@ -10,6 +10,8 @@ Description:
 
   * [JACKSON-391] ObjectReader.withValueUpdate() passing wrong object
    (reported by Kurtis)
+  * [JACKSON-395]: JsonParser.getCurrentName() not working with
+    JsonParser.nextValue() for nested JSON Arrays, Objects
 
 ------------------------------------------------------------------------
 == History: ==

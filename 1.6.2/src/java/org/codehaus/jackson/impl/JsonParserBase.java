@@ -208,6 +208,11 @@ public abstract class JsonParserBase
     public String getCurrentName()
         throws IOException, JsonParseException
     {
+        // [JACKSON-395]: start markers require information from parent
+        if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
+            JsonReadContext parent = _parsingContext.getParent();
+            return parent.getCurrentName();
+        }
         return _parsingContext.getCurrentName();
     }
 
