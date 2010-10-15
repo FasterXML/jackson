@@ -193,15 +193,7 @@ public class StdDeserializationContext
         String clsName = _calcName(targetClass);
         return JsonMappingException.from(_parser, "Can not deserialize instance of "+clsName+" out of "+_parser.getCurrentToken()+" token");
     }
-
-    protected String _calcName(Class<?> cls)
-    {
-        if (cls.isArray()) {
-            return _calcName(cls.getComponentType())+"[]";
-        }
-        return cls.getName();
-    }
-
+    
     @Override
     public JsonMappingException instantiationException(Class<?> instClass, Exception e)
     {
@@ -253,11 +245,6 @@ public class StdDeserializationContext
     {
         return JsonMappingException.from(_parser, "Could not resolve type id '"+id+"' into a subtype of "+type);
     }
-   
-    protected String determineClassName(Object instance)
-    {
-        return ClassUtil.getClassDescription(instance);
-    }
 
     /*
     /**********************************************************
@@ -274,12 +261,25 @@ public class StdDeserializationContext
         return _dateFormat;
     }
 
+    protected String determineClassName(Object instance)
+    {
+        return ClassUtil.getClassDescription(instance);
+    }
+    
     /*
     /**********************************************************
-    /* Internal methods
+    /* Other internal methods
     /**********************************************************
      */
 
+    protected String _calcName(Class<?> cls)
+    {
+        if (cls.isArray()) {
+            return _calcName(cls.getComponentType())+"[]";
+        }
+        return cls.getName();
+    }
+    
     protected String _valueDesc()
     {
         try {

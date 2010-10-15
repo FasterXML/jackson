@@ -152,6 +152,17 @@ public abstract class DeserializationContext
     public abstract JsonMappingException mappingException(Class<?> targetClass);
 
     /**
+     * Helper method for constructing generic mapping exception with specified
+     * message and current location information
+     * 
+     * @since 1.7
+     */
+    public JsonMappingException mappingException(String message)
+    {
+        return JsonMappingException.from(getParser(), message);
+    }
+    
+    /**
      * Helper method for constructing instantiation exception for specified type,
      * to indicate problem with physically constructing instance of
      * specified class (missing constructor, exception from constructor)

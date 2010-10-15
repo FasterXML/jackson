@@ -9,6 +9,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.util.TokenBuffer;
 
 /**
  * Unit tests for verifying handling of simple basic non-structured
@@ -349,14 +350,54 @@ public class TestSimpleTypes
 
     public void testUUID() throws Exception
     {
+        ObjectMapper mapper = new ObjectMapper();
         UUID value = UUID.fromString("76e6d183-5f68-4afa-b94a-922c1fdb83f8");
-        assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", UUID.class));
+        assertEquals(value, mapper.readValue("\""+value.toString()+"\"", UUID.class));
+
+        // [JACKSON-393] fix:
+
+        // first, null should come as null
+        TokenBuffer buf = new TokenBuffer(null);
+        buf.writeObject(null);
+        assertNull(mapper.readValue(buf.asParser(), UUID.class));
+
+        // then, UUID itself come as is:
+        buf = new TokenBuffer(null);
+        buf.writeObject(value);
+        assertSame(value, mapper.readValue(buf.asParser(), UUID.class));
+
+        // and finally from byte[]
+        // oh crap; JDK UUID just... sucks. Not even byte[] accessors or constructors? Huh?
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(bytes);
+        out.writeLong(value.getMostSignificantBits());
+        out.writeLong(value.getLeastSignificantBits());
+        byte[] data = bytes.toByteArray();
+        assertEquals(16, data.length);
+        
+        buf.writeObject(data);
+
+        UUID value2 = mapper.readValue(buf.asParser(), UUID.class);
+        
+        assertEquals(value, value2);
     }
 
     public void testURL() throws Exception
     {
+        ObjectMapper mapper = new ObjectMapper();
+
         URL value = new URL("http://foo.com");
-        assertEquals(value, new ObjectMapper().readValue("\""+value.toString()+"\"", URL.class));
+        assertEquals(value, mapper.readValue("\""+value.toString()+"\"", URL.class));
+
+        // trivial case; null to null, embedded URL to URL
+        TokenBuffer buf = new TokenBuffer(null);
+        buf.writeObject(null);
+        assertNull(mapper.readValue(buf.asParser(), URL.class));
+
+        // then, UUID itself come as is:
+        buf = new TokenBuffer(null);
+        buf.writeObject(value);
+        assertSame(value, mapper.readValue(buf.asParser(), URL.class));
     }
 
     public void testURI() throws Exception
