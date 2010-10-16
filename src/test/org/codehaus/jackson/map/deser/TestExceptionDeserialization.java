@@ -9,6 +9,7 @@ import org.codehaus.jackson.annotate.JsonAnySetter;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
  * Unit tests for verifying that simple exceptions can be deserialized.
@@ -72,5 +73,16 @@ public class TestExceptionDeserialization
         assertEquals(3, result.value);
         assertEquals(1, result.stuff.size());
         assertEquals(result.getFoo(), result.stuff.get("foo"));
+    }
+
+    // [JACKSON-388]
+    public void testWithNullMessage() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        String json = mapper.writeValueAsString(new IOException((String) null));
+        IOException result = mapper.readValue(json, IOException.class);
+        assertNotNull(result);
+        assertNull(result.getMessage());
     }
 }
