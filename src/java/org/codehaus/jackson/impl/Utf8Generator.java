@@ -4,13 +4,9 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import org.codehaus.jackson.Base64Variant;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonStreamContext;
-import org.codehaus.jackson.ObjectCodec;
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.io.NumberOutput;
-import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.util.CharTypes;
 
 public class Utf8Generator
@@ -192,7 +188,7 @@ public class Utf8Generator
     }
 
     @Override
-    protected void _writeFieldName(SerializedString name, boolean commaBefore)
+    protected void _writeFieldName(SerializableString name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
         if (_cfgPrettyPrinter != null) {
@@ -257,7 +253,7 @@ public class Utf8Generator
         }
     }
 
-    protected final void _writePPFieldName(SerializedString name, boolean commaBefore)
+    protected final void _writePPFieldName(SerializableString name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
         if (commaBefore) {

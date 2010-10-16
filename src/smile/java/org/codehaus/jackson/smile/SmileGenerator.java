@@ -7,7 +7,6 @@ import java.util.Arrays;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
-import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
 
@@ -444,7 +443,7 @@ public class SmileGenerator
     }
 
     @Override
-    protected void _writeFieldName(SerializedString name, boolean commaBefore) 
+    protected void _writeFieldName(SerializableString name, boolean commaBefore) 
         throws IOException, JsonGenerationException
     {
         final int charLen = name.charLength();

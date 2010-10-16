@@ -357,6 +357,25 @@ public abstract class JsonGenerator
         writeFieldName(name.getValue());
     }
 
+    /**
+     * Method similar to {@link #writeFieldName(String)}, main difference
+     * being that it may perform better as some of processing (such as
+     * quoting of certain characters, or encoding into external encoding
+     * if supported by generator) can be done just once and reused for
+     * later calls.
+     *<p>
+     * Default implementation simple uses unprocessed name container in
+     * serialized String; implementations are strongly encouraged to make
+     * use of more efficient methods argument object has.
+     * 
+     * @since 1.7
+     */
+    public void writeFieldName(SerializableString name)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(name.getValue());
+    }
+    
     /*
     /**********************************************************
     /* Public API, write methods, textual/binary

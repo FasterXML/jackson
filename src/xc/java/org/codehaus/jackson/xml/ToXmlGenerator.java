@@ -14,7 +14,6 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
 import org.codehaus.jackson.io.IOContext;
-import org.codehaus.jackson.io.SerializedString;
 
 /**
  * {@link JsonGenerator} that outputs JAXB-style XML output instead of JSON content.
@@ -201,7 +200,7 @@ public class ToXmlGenerator
     }
 
     @Override
-    protected void _writeFieldName(SerializedString name, boolean commaBefore)
+    protected void _writeFieldName(SerializableString name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
         // !!! TODO: improve

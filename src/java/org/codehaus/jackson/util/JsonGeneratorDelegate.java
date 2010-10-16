@@ -115,6 +115,13 @@ public class JsonGeneratorDelegate extends JsonGenerator
     {
         delegate.writeFieldName(name);
     }
+
+    @Override
+    public void writeFieldName(SerializableString name)
+        throws IOException, JsonGenerationException
+    {
+        delegate.writeFieldName(name);
+    }
     
     @Override
     public void writeNull() throws IOException, JsonGenerationException {

@@ -1,5 +1,7 @@
 package org.codehaus.jackson.io;
 
+import org.codehaus.jackson.SerializableString;
+
 /**
  * String token that can lazily serialize String contained and then reuse that
  * serialization later on. This is similar to JDBC prepared statements, for example,
@@ -11,7 +13,7 @@ package org.codehaus.jackson.io;
  *
  * @since 1.6
  */
-public class SerializedString
+public class SerializedString implements SerializableString
 {
     protected final String _value;
 
@@ -41,7 +43,7 @@ public class SerializedString
      */
     public final int charLength() { return _value.length(); }
     
-    public char[] asQuotedChars()
+    public final char[] asQuotedChars()
     {
         char[] result = _quotedChars;
         if (result == null) {
@@ -55,7 +57,7 @@ public class SerializedString
      * Accessor for accessing value that has been quoted using JSON
      * quoting rules, and encoded using UTF-8 encoding.
      */
-    public byte[] asUnquotedUTF8()
+    public final byte[] asUnquotedUTF8()
     {
         byte[] result = _unquotedUTF8Ref;
         if (result == null) {
@@ -69,7 +71,7 @@ public class SerializedString
      * Accessor for accessing value as is (without JSON quoting)
      * encoded using UTF-8 encoding.
      */
-    public byte[] asQuotedUTF8()
+    public final byte[] asQuotedUTF8()
     {
         byte[] result = _quotedUTF8Ref;
         if (result == null) {

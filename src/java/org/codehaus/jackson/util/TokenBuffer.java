@@ -8,7 +8,6 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.JsonParserMinimalBase;
 import org.codehaus.jackson.impl.JsonReadContext;
 import org.codehaus.jackson.impl.JsonWriteContext;
-import org.codehaus.jackson.io.SerializedString;
 
 /**
  * Utility class used for efficient storage of {@link JsonToken}
@@ -390,7 +389,7 @@ public class TokenBuffer
     }
 
     @Override
-    public void writeFieldName(SerializedString name)
+    public void writeFieldName(SerializableString name)
         throws IOException, JsonGenerationException
     {
         // Could this be optimized? (and does it need to)

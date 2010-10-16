@@ -162,7 +162,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-    public void _writeFieldName(SerializedString name, boolean commaBefore)
+    public void _writeFieldName(SerializableString name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
         if (_cfgPrettyPrinter != null) {
@@ -230,7 +230,7 @@ public final class WriterBasedGenerator
         }
     }
 
-    protected final void _writePPFieldName(SerializedString name, boolean commaBefore)
+    protected final void _writePPFieldName(SerializableString name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
         if (commaBefore) {
