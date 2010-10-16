@@ -374,6 +374,9 @@ Kirill Stokoz:
   * Reported [JACKSON-383] @JsonAnySetter gets called for ignorable properties if
     FAIL_ON_UNKNOWN_PROPERTIES set to false (related to [JACKSON-313])
    [1.6.1]
+  * Reported [JACKSON-388] Deserialization of Throwable fails with
+    Inclusion.NON_NULL
+   [1.6.2]
 
 Brian Oberman:
   * Requested [JACKSON-289] Ability to serialize char[] values as JSON Arrays

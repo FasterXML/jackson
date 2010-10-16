@@ -8,6 +8,8 @@ Description:
 
   Fixes:
 
+  * [JACKSON-388] Deserialization of Throwable fails with Inclusion.NON_NULL
+    (reported by Kirill S)
   * [JACKSON-391] ObjectReader.withValueUpdate() passing wrong object
    (reported by Kurtis)
   * [JACKSON-395]: JsonParser.getCurrentName() not working with

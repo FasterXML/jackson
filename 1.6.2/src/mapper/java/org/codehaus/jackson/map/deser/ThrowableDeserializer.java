@@ -106,7 +106,20 @@ public class ThrowableDeserializer
         }
         // Sanity check: did we find "message"?
         if (throwable == null) {
-            throw new JsonMappingException("No 'message' property found: could not deserialize "+_beanType);
+            /* 15-Oct-2010, tatu: Can't assume missing message is an error, since it may be
+             *   suppressed during serialization, as per [JACKSON-388].
+             *   
+             *   Should probably allow use of default constructor, too...
+             */
+            //throw new JsonMappingException("No 'message' property found: could not deserialize "+_beanType);
+            throwable = _stringCreator.construct(null);
+            // any pending values?
+            if (pending != null) {
+                for (int i = 0, len = pendingIx; i < len; i += 2) {
+                    SettableBeanProperty prop = (SettableBeanProperty)pending[i];
+                    prop.set(throwable, pending[i+1]);
+                }
+            }
         }
         return throwable;
     }
