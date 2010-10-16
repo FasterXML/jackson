@@ -159,12 +159,19 @@ public class MapSerializer
         typeSer.writeTypeSuffixForObject(value, jgen);
     }
 
+    /*
+    /**********************************************************
+    /* JsonSerializer implementation
+    /**********************************************************
+     */
+    
     /**
      * Method called to serialize fields, when the value type is not statically known.
      */
     protected void serializeFields(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
+        // If value type needs polymorphic type handling, some more work needed:
         if (_valueTypeSerializer != null) {
             serializeTypedFields(value, jgen, provider);
             return;
