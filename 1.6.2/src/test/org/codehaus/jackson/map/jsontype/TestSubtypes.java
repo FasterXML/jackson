@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.jsontype;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 
 public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
 {
@@ -22,6 +23,14 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
     static class SubD extends SuperType {
         public int d;
     }
+
+    // "Empty" bean, to test [JACKSON-366]
+    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME)
+    static abstract class BaseBean { }
+    
+    static class EmptyBean extends BaseBean { }
+
+    static class EmptyNonFinal { }
     
     /*
     /**********************************************************
@@ -70,5 +79,27 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
         bean = mapper.readValue("{\"@type\":\"TypeD\", \"d\":-4}", SuperType.class);
         assertSame(SubD.class, bean.getClass());
         assertEquals(-4, ((SubD) bean).d);
+    }
+
+    // Trying to reproduce [JACKSON-366]
+    public void testEmptyBean() throws Exception
+    {
+        // First, with annotations
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, true);
+        String json = mapper.writeValueAsString(new EmptyBean());
+        assertEquals("{\"@type\":\"TestSubtypes$EmptyBean\"}", json);
+
+        mapper = new ObjectMapper();
+        mapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
+        json = mapper.writeValueAsString(new EmptyBean());
+        assertEquals("{\"@type\":\"TestSubtypes$EmptyBean\"}", json);
+
+        // and then with defaults
+        mapper = new ObjectMapper();
+        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        mapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
+        json = mapper.writeValueAsString(new EmptyNonFinal());
+        assertEquals("[\"org.codehaus.jackson.map.jsontype.TestSubtypes$EmptyNonFinal\",{}]", json);
     }
 }
