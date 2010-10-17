@@ -8,11 +8,13 @@ Description:
 
   Fixes:
 
-  * [JACKSON-388] Deserialization of Throwable fails with Inclusion.NON_NULL
-    (reported by Kirill S)
-  * [JACKSON-391] ObjectReader.withValueUpdate() passing wrong object
+  *[JACKSON-388] Deserialization of Throwable fails with Inclusion.NON_NULL
+   (reported by Kirill S)
+  *[JACKSON-391] ObjectReader.withValueUpdate() passing wrong object
    (reported by Kurtis)
-  * [JACKSON-395]: JsonParser.getCurrentName() not working with
+  *[JACKSON-392] Beans with only @JsonAnyGetter fail on serialization
+   (reported by Kirill S)
+  *[JACKSON-395]: JsonParser.getCurrentName() not working with
     JsonParser.nextValue() for nested JSON Arrays, Objects
 
 ------------------------------------------------------------------------

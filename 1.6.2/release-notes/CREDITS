@@ -377,6 +377,8 @@ Kirill Stokoz:
   * Reported [JACKSON-388] Deserialization of Throwable fails with
     Inclusion.NON_NULL
    [1.6.2]
+  * Reported [JACKSON-392] Beans with only @JsonAnyGetter fail on serialization
+   [1.6.2]
 
 Brian Oberman:
   * Requested [JACKSON-289] Ability to serialize char[] values as JSON Arrays
