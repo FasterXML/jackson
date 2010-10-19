@@ -1,18 +1,26 @@
 package org.codehaus.jackson.map.introspect;
 
-import java.util.*;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
-import org.codehaus.jackson.map.annotate.*;
+import org.codehaus.jackson.map.annotate.JsonCachable;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonTypeIdResolver;
+import org.codehaus.jackson.map.annotate.JsonTypeResolver;
+import org.codehaus.jackson.map.annotate.JsonView;
+import org.codehaus.jackson.map.annotate.NoClass;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
+import org.codehaus.jackson.map.ser.RawSerializer;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
@@ -248,7 +256,7 @@ public class JacksonAnnotationIntrospector
     */
 
     @Override
-    public Class<? extends JsonSerializer<?>> findSerializer(Annotated a)
+    public Object findSerializer(Annotated a)
     {
         /* 21-May-2009, tatu: Slight change; primary annotation is now
          *    @JsonSerialize; @JsonUseSerializer is deprecated
@@ -260,12 +268,22 @@ public class JacksonAnnotationIntrospector
                 return serClass;
             }
         }
-        // 31-Jan-2010, tatus: @JsonUseSerializer removed as of 1.5
+        
+        /* 18=Oct-2010, tatu: [JACKSON-351] @JsonRawValue handled just here, for now;
+         *  if we need to get raw indicator from other sources need to add
+         *  separate accessor within {@link AnnotationIntrospector} interface.
+         */
+        JsonRawValue annRaw =  a.getAnnotation(JsonRawValue.class);
+        if ((annRaw != null) && annRaw.value()) {
+            // let's construct instance with nominal type:
+            Class<?> cls = a.getRawType();
+            return new RawSerializer<Object>(cls);
+        }       
         return null;
     }
 
     @SuppressWarnings("deprecation")
-	@Override
+    @Override
     public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue)
     {
         JsonSerialize ann = a.getAnnotation(JsonSerialize.class);

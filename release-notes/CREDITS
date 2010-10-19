@@ -433,3 +433,8 @@ Bruce Ritchie:
      as a regular getter name
    [1.6.1]
    
+Ga‘l Marziou:   
+  * Contributed [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
+    value into JSON
+   
+  
