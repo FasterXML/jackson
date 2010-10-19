@@ -15,6 +15,10 @@ Description:
 
   New features:
 
+  * [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
+    value into JSON
+   (contributed by Ga‘l Marziou)
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
