@@ -486,7 +486,8 @@ public class JacksonJsonProvider
          *   HTTP headers?
          */
         ObjectMapper mapper = locateMapper(type, mediaType);
-        JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(entityStream, JsonEncoding.UTF8);
+        JsonEncoding enc = findEncoding(mediaType, httpHeaders);
+        JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(entityStream, enc);
         jg.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
 
         // Want indentation?
@@ -504,12 +505,24 @@ public class JacksonJsonProvider
         // [JACKSON-245] Allow automatic JSONP wrapping
         if (_jsonpFunctionName != null) {
             mapper.writeValue(jg, new JSONPObject(_jsonpFunctionName, value, rootType));
+        } else if (rootType != null) {
+            mapper.typedWriter(rootType).writeValue(jg, value);
         } else {
-            // !!! TODO: 04-Mar-2010, tatus: As per [JACKSON-195], use root type!
             mapper.writeValue(jg, value);
         }
     }
 
+    /**
+     * Helper method to use for determining desired output encoding.
+     * For now, will always just use UTF-8...
+     * 
+     * @since 1.7.0
+     */
+    protected JsonEncoding findEncoding(MediaType mediaType, MultivaluedMap<String,Object> httpHeaders)
+    {
+        return JsonEncoding.UTF8;
+    }
+    
     /*
     /**********************************************************
     /* Public helper methods
