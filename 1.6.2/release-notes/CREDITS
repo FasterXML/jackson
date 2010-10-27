@@ -378,6 +378,8 @@ Kirill Stokoz:
     Inclusion.NON_NULL
    [1.6.2]
   * Reported [JACKSON-392] Beans with only @JsonAnyGetter fail on serialization
+  * Reported [JACKSON-398]: Root type information not correctly passed by
+    ObjectWriter when using JsonGenerator
    [1.6.2]
 
 Brian Oberman:

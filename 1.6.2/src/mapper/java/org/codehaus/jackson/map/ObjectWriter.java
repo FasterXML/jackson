@@ -231,7 +231,11 @@ public class ObjectWriter
         if (_config.isEnabled(SerializationConfig.Feature.CLOSE_CLOSEABLE) && (value instanceof Closeable)) {
             _writeCloseableValue(jgen, value, _config);
         } else {
-            _provider.serializeValue(_config, jgen, value, _serializerFactory);
+            if (_rootType == null) {
+                _provider.serializeValue(_config, jgen, value, _serializerFactory);
+            } else {
+                _provider.serializeValue(_config, jgen, value, _rootType, _serializerFactory);
+            }
             jgen.flush();
         }
     }
@@ -382,7 +386,11 @@ public class ObjectWriter
     {
         Closeable toClose = (Closeable) value;
         try {
-            _provider.serializeValue(cfg, jgen, value, _serializerFactory);
+            if (_rootType == null) {
+                _provider.serializeValue(cfg, jgen, value, _serializerFactory);
+            } else {
+                _provider.serializeValue(cfg, jgen, value, _rootType, _serializerFactory);
+            }
             JsonGenerator tmpJgen = jgen;
             jgen = null;
             tmpJgen.close();
@@ -415,7 +423,11 @@ public class ObjectWriter
     {
         Closeable toClose = (Closeable) value;
         try {
-            _provider.serializeValue(cfg, jgen, value, _serializerFactory);
+            if (_rootType == null) {
+                _provider.serializeValue(cfg, jgen, value, _serializerFactory);
+            } else {
+                _provider.serializeValue(cfg, jgen, value, _rootType, _serializerFactory);
+            }
             jgen.flush();
             Closeable tmpToClose = toClose;
             toClose = null;

@@ -10,14 +10,17 @@ Description:
 
   * [JACKSON-366] Type metadata not written for empty beans
    (reported by Patrick R)
-  *[JACKSON-388] Deserialization of Throwable fails with Inclusion.NON_NULL
+  * [JACKSON-388] Deserialization of Throwable fails with Inclusion.NON_NULL
    (reported by Kirill S)
-  *[JACKSON-391] ObjectReader.withValueUpdate() passing wrong object
+  * [JACKSON-391] ObjectReader.withValueUpdate() passing wrong object
    (reported by Kurtis)
-  *[JACKSON-392] Beans with only @JsonAnyGetter fail on serialization
+  * [JACKSON-392] Beans with only @JsonAnyGetter fail on serialization
    (reported by Kirill S)
-  *[JACKSON-395]: JsonParser.getCurrentName() not working with
+  * [JACKSON-395]: JsonParser.getCurrentName() not working with
     JsonParser.nextValue() for nested JSON Arrays, Objects
+  * [JACKSON-398]: Root type information not correctly passed by
+    ObjectWriter when using JsonGenerator
+    (reported by Kirill S)
 
 ------------------------------------------------------------------------
 == History: ==
@@ -25,10 +28,10 @@ Description:
 
 1.6.1 [06-Oct-2010]
 
- Improvements:
-   * [JACKSON-360] Convert empty String to null values for Joda
+  Improvements:
+  * [JACKSON-360] Convert empty String to null values for Joda
      (suggested by Shilpa P)
-   * [JACKSON-386] Improve registration for optional/external types (javax.xml, joda)
+  * [JACKSON-386] Improve registration for optional/external types (javax.xml, joda)
 
  Fixes:
 
