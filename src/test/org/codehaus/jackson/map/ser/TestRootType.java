@@ -1,9 +1,15 @@
 package org.codehaus.jackson.map.ser;
 
+import java.io.StringWriter;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
+import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Unit tests for verifying functioning of [JACKSON-195], ability to
@@ -37,6 +43,13 @@ public class TestRootType
         public String a2 = "x";
         
         public boolean getB2() { return true; }
+    }
+
+    @JsonTypeInfo(use=Id.NAME, include=As.PROPERTY, property="beanClass")
+    public abstract static class BaseClass398 { }
+
+    public static class TestClass398 extends BaseClass398 {
+       public String property = "aa";
     }
     
     /*
@@ -111,4 +124,28 @@ public class TestRootType
             verifyException(e, "Incompatible types");
         }
     }
+    
+    /**
+     * Unit test to verify [JACKSON-398]
+     */
+    public void testJackson398() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        JavaType collectionType = TypeFactory.collectionType(ArrayList.class, BaseClass398.class);
+        List<TestClass398> typedList = new ArrayList<TestClass398>();
+        typedList.add(new TestClass398());
+
+        final String EXP = "[{\"beanClass\":\"TestRootType$TestClass398\",\"property\":\"aa\"}]";
+        
+        // First simplest way:
+        String json = mapper.typedWriter(collectionType).writeValueAsString(typedList);
+        assertEquals(EXP, json);
+
+        StringWriter out = new StringWriter();
+        JsonFactory f = new JsonFactory();
+        mapper.typedWriter(collectionType).writeValue(f.createJsonGenerator(out), typedList);
+
+        assertEquals(EXP, out.toString());
+    }
+
 }
