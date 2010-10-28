@@ -144,7 +144,7 @@ public abstract class StreamBasedParserBase
             _inputEnd = 0;
         }
         _inputPtr = 0;
-        while (amount < minAvailable) {
+        while (_inputEnd < minAvailable) {
             int count = _inputStream.read(_inputBuffer, _inputEnd, _inputBuffer.length - _inputEnd);
             if (count < 1) {
                 // End of input
@@ -153,9 +153,9 @@ public abstract class StreamBasedParserBase
                 if (count == 0) {
                     throw new IOException("InputStream.read() returned 0 characters when trying to read "+amount+" bytes");
                 }
+                return false;
             }
             _inputEnd += count;
-            amount = _inputEnd - _inputPtr;
         }
         return true;
     }

@@ -201,7 +201,7 @@ public class SmileParser
             return false;
         }
         if (++_inputPtr >= _inputEnd) {
-        	loadMoreGuaranteed();        	
+            loadMoreGuaranteed();        	
         }
         if (_inputBuffer[_inputPtr] != SmileConstants.HEADER_BYTE_3) {
             if (throwException) {
