@@ -54,6 +54,9 @@ public class Tool
             encode(inputStream(filename));
         } else if ("-d".equals(oper)) {
             decode(inputStream(filename));
+        } else if ("-v".equals(oper)) {
+            // need to read twice (encode, verify/compare)
+            verify(inputStream(filename), inputStream(filename));
         } else {
             showUsage();
         }
@@ -104,12 +107,50 @@ public class Tool
         jg.close();
     }
 
+    private void verify(InputStream in, InputStream in2) throws IOException
+    {
+        JsonParser jp = jsonFactory.createJsonParser(in);
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(4000);
+        JsonGenerator jg = smileFactory.createJsonGenerator(bytes, JsonEncoding.UTF8);
+
+        // First, read, encode in memory buffer
+        while ((jp.nextToken()) != null) {
+            jg.copyCurrentEvent(jp);
+        }
+        jp.close();
+        jg.close();
+
+        // and then re-read both, verify
+        jp = jsonFactory.createJsonParser(in2);
+        byte[] smile = bytes.toByteArray();
+        JsonParser jp2 = smileFactory.createJsonParser(smile);
+
+        JsonToken t;
+        int count = 0;
+        while ((t = jp.nextToken()) != null) {
+            JsonToken t2 = jp2.nextToken();
+            ++count;
+            if (t != t2) {
+                throw new IOException("Input and encoded differ, token #"+count+"; expected "+t+", got "+t2);
+            }
+            // also, need to have same texts...
+            String text1 = jp.getText();
+            String text2 = jp2.getText();
+            if (!text1.equals(text2)) {
+                throw new IOException("Input and encoded differ, token #"+count+"; expected text '"+text1+"', got '"+text2+"'");
+            }
+        }
+
+        System.out.println("OK: verified "+count+" tokens (from "+smile.length+" bytes of Smile encoded data), input and encoded contents are identical");
+    }
+    
     protected void showUsage()
     {
         System.err.println("Usage: java "+getClass().getName()+" -e/-d [file]");
         System.err.println(" (if no file given, reads from stdin -- always writes to stdout)");
         System.err.println(" -d: decode Smile encoded input as JSON");
         System.err.println(" -e: encode JSON (text) input as Smile");
+        System.err.println(" -v: encode JSON (text) input as Smile; read back, verify, do not write out");
         System.exit(1);        
     }
 
