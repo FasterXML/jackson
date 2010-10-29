@@ -12,11 +12,11 @@
      <fileset dir="${basedir}/lib/ant" includes="bndtask*.jar" />
     </classpath>
   </taskdef>
-
+	
   <target name="jars.asl" depends="jar.core.asl, jar.mapper.asl" />
   <target name="jars.lgpl" depends="jar.core.lgpl, jar.mapper.lgpl" />
   <target name="jars.other" depends="jar.jaxrs, jar.xc, jar.smile, jar.mrbean" />
-  <target name="jar.all" depends="jars.asl, jars.other" />
+  <target name="jars.tools" depends="jar.tool.smile" />
 
   <!-- Let's build our JARs as OSGi bundles; then they work
         both within and outside of OSGi containers
@@ -374,4 +374,23 @@ org.codehaus.jackson.smile;version=${IMPL_VERSION}"
       </osgiJar>
     </target> 
 
+	<!-- 29-Oct-2010, tatu: one new tool, to help debug Smile... -->
+    <target name="jar.tool.smile" depends="compile.smile, jar.core.asl, jar.smile">
+      <jar jarfile="${dir.build}/smile-tool-${IMPL_VERSION}.jar">
+        <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title"   value="Smile Tool"/>
+            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+            <attribute name="Main-Class"  value="org.codehaus.jackson.smile.Tool"/>
+        </manifest>
+      	<!-- need everything from core, smile packages, but nothing else -->
+        <fileset dir="${dir.build.classes.core}">
+            <include name="org/codehaus/jackson/**/*.class" />
+        </fileset>
+        <fileset dir="${dir.build.classes.smile}">
+            <include name="org/codehaus/jackson/**/*.class" />
+        </fileset>
+      </jar>
+    </target> 
 </project>

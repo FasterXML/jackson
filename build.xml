@@ -158,7 +158,7 @@ compile.smile, compile.mrbean" />
     <target name="compile.core" depends="prepare">
         <javac srcdir="${dir.src.java.core}" destdir="${dir.build.classes.core}"
             source="1.5" target="1.5"
-            debug="true"
+            debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/**/*.java" />
@@ -170,7 +170,7 @@ compile.smile, compile.mrbean" />
     <target name="compile.mapper" depends="compile.core">
         <javac srcdir="${dir.src.java.mapper}" destdir="${dir.build.classes.mapper}"
             source="1.5" target="1.5"
-            debug="true"
+            debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/jackson/**/*.java" />
@@ -190,7 +190,7 @@ compile.smile, compile.mrbean" />
     <target name="compile.xc" depends="compile.mapper">
         <javac srcdir="${dir.src.java.xc}" destdir="${dir.build.classes.xc}"
             source="1.5" target="1.5"
-            debug="true"
+            debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/jackson/**/*.java" />
@@ -214,7 +214,7 @@ compile.smile, compile.mrbean" />
     <target name="compile.jaxrs" depends="compile.mapper,compile.xc">
         <javac srcdir="${dir.src.java.jaxrs}" destdir="${dir.build.classes.jaxrs}"
             source="1.5" target="1.5"
-            debug="true"
+            debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/jackson/**/*.java" />
@@ -236,7 +236,7 @@ compile.smile, compile.mrbean" />
     <target name="compile.smile" depends="compile.core">
         <javac srcdir="${dir.src.java.smile}" destdir="${dir.build.classes.smile}"
             source="1.5" target="1.5"
-            debug="true"
+            debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/jackson/smile/**/*.java" />
@@ -252,7 +252,7 @@ compile.smile, compile.mrbean" />
     <target name="compile.mrbean" depends="compile.core">
         <javac srcdir="${dir.src.java.mrbean}" destdir="${dir.build.classes.mrbean}"
             source="1.5" target="1.5"
-            debug="true"
+            debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
             <include name="org/codehaus/jackson/mrbean/**/*.java" />
@@ -277,7 +277,8 @@ compile.smile, compile.mrbean" />
 
     <target name="compile.extra" depends="compile.main">
         <javac destdir="${dir.build.classes.extra}"
-            source="1.5" target="1.5" debug="true"
+            source="1.5" target="1.5"
+            debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
             <src path="${dir.src.sample}" /> 
@@ -294,7 +295,8 @@ compile.smile, compile.mrbean" />
     <target name="compile.perf" depends="compile.main">
       <mkdir dir="${dir.build.classes.perf}" />
         <!-- Let's also compile micro-benchmarks... -->
-        <javac srcdir="${dir.src}/perf" destdir="${dir.build.classes.perf}" debug="true"
+        <javac srcdir="${dir.src}/perf" destdir="${dir.build.classes.perf}"
+            debug="true" includeantruntime="false"
         >
             <classpath>
                <fileset dir="${dir.lib}/perf">
@@ -309,9 +311,7 @@ compile.smile, compile.mrbean" />
     </target>
 
     <!-- Dummy target that just includes all individual jars... --> 
-    <target name="jars"
-       depends="jars.asl, jars.lgpl, jars.other, jar.all"
-    />
+    <target name="jars" depends="jars.asl, jars.other, jar.all, jars.tools" />
 
     <target name="javadoc" depends="compile.all">
         <!-- Build a dirpath that contains just the "source" tree -->

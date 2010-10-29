@@ -20,6 +20,7 @@ Description:
   * [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
     value into JSON
    (contributed by Ga‘l Marziou)
+  * [JACKSON-405]: Add smile command-line tool for manua Smile encoding/decoding
 
 ------------------------------------------------------------------------
 == History: ==
