@@ -52,7 +52,7 @@
 compile.xc, compile.jaxrs, compile.smile, compile.mrbean">  
         <javac srcdir="${dir.src.test}" destdir="${dir.test.classes}"
             source="1.5" target="1.5"
-            debug="true"
+            debug="true" includeantruntime="false"
         >
             <exclude name="org/codehaus/jackson/map/ext/*.java" />
             <exclude name="org/codehaus/jackson/map/interop/*.java" />
@@ -72,7 +72,7 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
         </javac>
         <javac srcdir="${dir.src.test}" destdir="${dir.test.classes}"
             source="1.5" target="1.5"
-            debug="true"
+            debug="true" includeantruntime="false"
         >
             <include name="org/codehaus/jackson/map/ext/*.java" />
             <include name="org/codehaus/jackson/map/interop/*.java" />

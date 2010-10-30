@@ -89,7 +89,21 @@ public class ToXmlGenerator
      * Assigned by either code that initiates serialization
      * or bean serializer.
      */
-    protected String _nextName = "unknown";
+    protected String _nextLocalName = "unknown";
+
+    /**
+     * Namespace URI of the next element or attribute to be output.
+     * Assigned by either code that initiates serialization
+     * or bean serializer.
+     */
+//    protected String _nextNamespace = "http://fasterxml.com/bogus";
+    protected String _nextNamespace = "";
+
+    /**
+     * Marker flag that indicates whether next name to write
+     * implies an attribute (true) or element (false)
+     */
+    protected boolean _nextIsAttribute = false;
     
     /*
     /**********************************************************
@@ -134,12 +148,31 @@ public class ToXmlGenerator
         }
         return this;
     }
-
+    
     /*
     /**********************************************************
     /* Extended API, passing XML specific settings
     /**********************************************************
      */
+
+    public void setNextIsAttribute(boolean isAttribute)
+    {
+        _nextIsAttribute = isAttribute;
+    }
+    
+    public void setNextElementName(String namespace, String localName)
+    {
+        _nextNamespace = (namespace == null) ? "" : namespace;
+        _nextLocalName = localName;
+        _nextIsAttribute = false;
+    }
+    
+    public void setNextAttributeName(String namespace, String localName)
+    {
+        _nextNamespace = (namespace == null) ? "" : namespace;
+        _nextLocalName = localName;
+        _nextIsAttribute = true;
+    }
     
     /*
     /**********************************************************
@@ -152,7 +185,7 @@ public class ToXmlGenerator
     {
         // !!! TODO: cases where there is no wrapper
         try {
-            _xmlWriter.writeStartElement(_nextName);
+            _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
         }
@@ -175,7 +208,9 @@ public class ToXmlGenerator
         throws IOException, JsonGenerationException
     {
         try {
-            _xmlWriter.writeStartElement(_nextName);
+            if (!_nextIsAttribute) { // attributes must be written along with value...
+                _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+            }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
         }
@@ -186,7 +221,12 @@ public class ToXmlGenerator
         throws IOException, JsonGenerationException
     {
         try {
-            _xmlWriter.writeEndElement();
+            // note: since attributes don't nest, can only have one attribute active, so:
+            if (_nextIsAttribute) {
+                _nextIsAttribute = false;
+            } else {
+                _xmlWriter.writeEndElement();
+            }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
         }
@@ -196,7 +236,7 @@ public class ToXmlGenerator
     protected void _writeFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
-        _nextName = name;
+        _nextLocalName = name;
     }
 
     @Override
@@ -218,10 +258,14 @@ public class ToXmlGenerator
     {
         _verifyValueWrite("write String value");
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeStartElement(_nextName);
-                _xmlWriter.writeCharacters(text);
-                _xmlWriter.writeEndElement();
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) { // must write attribute name and value with one call
+                    _xmlWriter.writeAttribute(_nextNamespace, _nextLocalName, text);
+                } else {
+                    _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+                    _xmlWriter.writeCharacters(text);
+                    _xmlWriter.writeEndElement();
+                } 
             } else {
                 _xmlWriter.writeCharacters(text);                
             }
@@ -235,10 +279,14 @@ public class ToXmlGenerator
     {
         _verifyValueWrite("write String value");
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeStartElement(_nextName);
-                _xmlWriter.writeCharacters(text, offset, len);
-                _xmlWriter.writeEndElement();
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) {
+                    _xmlWriter.writeAttribute(_nextNamespace, _nextLocalName, new String(text, offset, len));
+                } else {
+                    _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+                    _xmlWriter.writeCharacters(text, offset, len);
+                    _xmlWriter.writeEndElement();
+                }
             } else {
                 _xmlWriter.writeCharacters(text, offset, len);
             }
@@ -304,16 +352,35 @@ public class ToXmlGenerator
         }
         _verifyValueWrite("write Binary value");
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeStartElement(_nextName);
-                _xmlWriter.writeBinary(data, offset, len);
-                _xmlWriter.writeEndElement();
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) {
+                    // Stax2 API only has 'full buffer' write method:
+                    byte[] fullBuffer = toFullBuffer(data, offset, len);
+                    _xmlWriter.writeBinaryAttribute("", _nextNamespace, _nextLocalName, fullBuffer);
+                } else {
+                    _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+                    _xmlWriter.writeBinary(data, offset, len);
+                    _xmlWriter.writeEndElement();
+                }
             } else {
                 _xmlWriter.writeBinary(data, offset, len);
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
         }
+    }
+
+    private byte[] toFullBuffer(byte[] data, int offset, int len)
+    {
+        // might already be ok:
+        if (offset == 0 && len == data.length) {
+            return data;
+        }
+        byte[] result = new byte[len];
+        if (len > 0) {
+            System.arraycopy(data, offset, result, 0, len);
+        }
+        return result;
     }
     
     /*
@@ -327,12 +394,16 @@ public class ToXmlGenerator
     {
         _verifyValueWrite("write boolean value");
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeStartElement(_nextName);
-                _xmlWriter.writeBoolean(state);
-                _xmlWriter.writeEndElement();
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) {
+                    _xmlWriter.writeBooleanAttribute(null, _nextNamespace, _nextLocalName, state);
+                } else {
+                    _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+                    _xmlWriter.writeBoolean(state);
+                    _xmlWriter.writeEndElement();
+                }
             } else {
-                
+                // !!! TBI
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -345,8 +416,14 @@ public class ToXmlGenerator
         _verifyValueWrite("write null value");
         // !!! TODO: proper use of 'xsd:isNil'
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeEmptyElement(_nextName);
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) {
+                    /* With attributes, best just leave it out, right? (since there's no way
+                     * to use 'xsi:nil')
+                     */
+                } else {
+                    _xmlWriter.writeEmptyElement(_nextNamespace, _nextLocalName);
+                }
             } else {
                 // !!! TBI
             }
@@ -360,10 +437,14 @@ public class ToXmlGenerator
     {
         _verifyValueWrite("write number");
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeStartElement(_nextName);
-                _xmlWriter.writeInt(i);
-                _xmlWriter.writeEndElement();
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) {
+                    _xmlWriter.writeIntAttribute(null, _nextNamespace, _nextLocalName, i);
+                } else {
+                    _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+                    _xmlWriter.writeInt(i);
+                    _xmlWriter.writeEndElement();
+                }
             } else {
                 _xmlWriter.writeInt(i);
             }
@@ -377,10 +458,14 @@ public class ToXmlGenerator
     {
         _verifyValueWrite("write number");
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeStartElement(_nextName);
-                _xmlWriter.writeLong(l);
-                _xmlWriter.writeEndElement();
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) {
+                    _xmlWriter.writeLongAttribute(null, _nextNamespace, _nextLocalName, l);
+                } else {
+                    _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+                    _xmlWriter.writeLong(l);
+                    _xmlWriter.writeEndElement();
+                }
             } else {
                 _xmlWriter.writeLong(l);
             }
@@ -394,10 +479,14 @@ public class ToXmlGenerator
     {
         _verifyValueWrite("write number");
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeStartElement(_nextName);
-                _xmlWriter.writeDouble(d);
-                _xmlWriter.writeEndElement();
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) {
+                    _xmlWriter.writeDoubleAttribute(null, _nextNamespace, _nextLocalName, d);
+                } else {
+                    _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+                    _xmlWriter.writeDouble(d);
+                    _xmlWriter.writeEndElement();
+                }
             } else {
                 _xmlWriter.writeDouble(d);
             }
@@ -411,10 +500,14 @@ public class ToXmlGenerator
     {
         _verifyValueWrite("write number");
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeStartElement(_nextName);
-                _xmlWriter.writeFloat(f);
-                _xmlWriter.writeEndElement();
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) {
+                    _xmlWriter.writeFloatAttribute(null, _nextNamespace, _nextLocalName, f);
+                } else {
+                    _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+                    _xmlWriter.writeFloat(f);
+                    _xmlWriter.writeEndElement();
+                }
             } else {
                 _xmlWriter.writeFloat(f);
             }
@@ -432,10 +525,14 @@ public class ToXmlGenerator
         }
         _verifyValueWrite("write number");
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeStartElement(_nextName);
-                _xmlWriter.writeDecimal(dec);
-                _xmlWriter.writeEndElement();
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) {
+                    _xmlWriter.writeDecimalAttribute(null, _nextNamespace, _nextLocalName, dec);
+                } else {
+                    _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+                    _xmlWriter.writeDecimal(dec);
+                    _xmlWriter.writeEndElement();
+                }
             } else {
                 _xmlWriter.writeDecimal(dec);
             }
@@ -453,10 +550,14 @@ public class ToXmlGenerator
         }
         _verifyValueWrite("write number");
         try {
-            if (_nextName != null) {
-                _xmlWriter.writeStartElement(_nextName);
-                _xmlWriter.writeInteger(v);
-                _xmlWriter.writeEndElement();
+            if (_nextLocalName != null) {
+                if (_nextIsAttribute) {
+                    _xmlWriter.writeIntegerAttribute(null, _nextNamespace, _nextLocalName, v);
+                } else {
+                    _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
+                    _xmlWriter.writeInteger(v);
+                    _xmlWriter.writeEndElement();
+                }
             } else {
                 _xmlWriter.writeInteger(v);
             }
