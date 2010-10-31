@@ -4,6 +4,8 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
+import org.codehaus.stax2.io.Stax2ByteArraySource;
+
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
 
@@ -86,6 +88,8 @@ public class XmlFactory extends JsonFactory
         }
         // Better ensure namespaces get built properly, so:
         xmlOut.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
+        // and for parser, force coalescing as well (much simpler to use)
+        xmlIn.setProperty(XMLInputFactory.IS_COALESCING, true);
         _xmlInputFactory = xmlIn;
         _xmlOutputFactory = xmlOut;
     }
@@ -253,9 +257,15 @@ public class XmlFactory extends JsonFactory
     protected FromXmlParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        // !!! TBI
-        return null;
-        //return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
+        XMLStreamReader sr;
+        try {
+            sr = _xmlInputFactory.createXMLStreamReader(in);
+            sr = _initializeXmlReader(sr);
+        } catch (XMLStreamException e) {
+            return StaxUtil.throwXmlAsIOException(e);
+        }
+        return new FromXmlParser(ctxt, _generatorFeatures, _xmlGeneratorFeatures,
+                _objectCodec, sr);
     }
 
     /**
@@ -266,8 +276,15 @@ public class XmlFactory extends JsonFactory
     protected FromXmlParser _createJsonParser(Reader r, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        // !!! TBI
-        return null;
+        XMLStreamReader sr;
+        try {
+            sr = _xmlInputFactory.createXMLStreamReader(r);
+            sr = _initializeXmlReader(sr);
+        } catch (XMLStreamException e) {
+            return StaxUtil.throwXmlAsIOException(e);
+        }
+        return new FromXmlParser(ctxt, _generatorFeatures, _xmlGeneratorFeatures,
+                _objectCodec, sr);
     }
 
     /**
@@ -278,10 +295,15 @@ public class XmlFactory extends JsonFactory
     protected FromXmlParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        // !!! TBI
-        return null;
-        // true -> managed (doesn't really matter; we have no stream!)
-        //return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
+        XMLStreamReader sr;
+        try {
+            sr = _xmlInputFactory.createXMLStreamReader(new Stax2ByteArraySource(data, offset, len));
+            sr = _initializeXmlReader(sr);
+        } catch (XMLStreamException e) {
+            return StaxUtil.throwXmlAsIOException(e);
+        }
+        return new FromXmlParser(ctxt, _generatorFeatures, _xmlGeneratorFeatures,
+                _objectCodec, sr);
     }
 
     /*
@@ -293,7 +315,7 @@ public class XmlFactory extends JsonFactory
     protected XMLStreamWriter _createXmlWriter(OutputStream out) throws IOException
     {
         try {
-            return _configureXmlWriter(_xmlOutputFactory.createXMLStreamWriter(out, "UTF-8"));
+            return _initializeXmlWriter(_xmlOutputFactory.createXMLStreamWriter(out, "UTF-8"));
         } catch (XMLStreamException e) {
             return StaxUtil.throwXmlAsIOException(e);
         }
@@ -302,17 +324,27 @@ public class XmlFactory extends JsonFactory
     protected XMLStreamWriter _createXmlWriter(Writer w) throws IOException
     {
         try {
-            return _configureXmlWriter(_xmlOutputFactory.createXMLStreamWriter(w));
+            return _initializeXmlWriter(_xmlOutputFactory.createXMLStreamWriter(w));
         } catch (XMLStreamException e) {
             return StaxUtil.throwXmlAsIOException(e);
         }
     }
 
-    protected final XMLStreamWriter _configureXmlWriter(XMLStreamWriter sw) throws IOException, XMLStreamException
+    protected final XMLStreamWriter _initializeXmlWriter(XMLStreamWriter sw) throws IOException, XMLStreamException
     {
         // And just for Sun Stax parser (JDK default), seems that we better define default namespace
         // (Woodstox doesn't care) -- otherwise it'll add unnecessary odd declaration
         sw.setDefaultNamespace("");
         return sw;
     }
+
+    protected final XMLStreamReader _initializeXmlReader(XMLStreamReader sr) throws IOException, XMLStreamException
+    {
+        // for now, nothing to do... except let's find the root element
+        while (sr.next() != XMLStreamConstants.START_ELEMENT) {
+            ;
+        }
+        return sr;
+    }
+
 }
