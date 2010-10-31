@@ -84,7 +84,7 @@ public class XmlFactory extends JsonFactory
             //xmlOut = XMLOutputFactory.newFactory();
             xmlOut = XMLOutputFactory.newInstance();
         }
-        // 12-Jun-2010, tatu: Better ensure namespaces get built properly, so:
+        // Better ensure namespaces get built properly, so:
         xmlOut.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
         _xmlInputFactory = xmlIn;
         _xmlOutputFactory = xmlOut;
@@ -293,7 +293,7 @@ public class XmlFactory extends JsonFactory
     protected XMLStreamWriter _createXmlWriter(OutputStream out) throws IOException
     {
         try {
-            return _xmlOutputFactory.createXMLStreamWriter(out, "UTF-8");
+            return _configureXmlWriter(_xmlOutputFactory.createXMLStreamWriter(out, "UTF-8"));
         } catch (XMLStreamException e) {
             return StaxUtil.throwXmlAsIOException(e);
         }
@@ -302,10 +302,17 @@ public class XmlFactory extends JsonFactory
     protected XMLStreamWriter _createXmlWriter(Writer w) throws IOException
     {
         try {
-            return _xmlOutputFactory.createXMLStreamWriter(w);
+            return _configureXmlWriter(_xmlOutputFactory.createXMLStreamWriter(w));
         } catch (XMLStreamException e) {
             return StaxUtil.throwXmlAsIOException(e);
         }
     }
 
+    protected final XMLStreamWriter _configureXmlWriter(XMLStreamWriter sw) throws IOException, XMLStreamException
+    {
+        // And just for Sun Stax parser (JDK default), seems that we better define default namespace
+        // (Woodstox doesn't care) -- otherwise it'll add unnecessary odd declaration
+        sw.setDefaultNamespace("");
+        return sw;
+    }
 }
