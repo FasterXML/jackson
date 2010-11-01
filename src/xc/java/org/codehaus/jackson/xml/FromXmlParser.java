@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
@@ -84,7 +85,7 @@ public class FromXmlParser
 
     /*
     /**********************************************************
-    /* I/O and Parsing state
+    /* I/O state
     /**********************************************************
      */
 
@@ -96,6 +97,12 @@ public class FromXmlParser
     protected boolean _closed;
     
     final protected IOContext _ioContext;
+
+    /*
+    /**********************************************************
+    /* Parsing state
+    /**********************************************************
+     */
     
     /**
      * Information about parser context, context in which
@@ -103,6 +110,32 @@ public class FromXmlParser
      */
     protected JsonReadContext _parsingContext;
 
+    /**
+     * Secondary token related to the next token after current one;
+     * used if its type is known. This may be value token that
+     * follows FIELD_NAME, for example.
+     */
+    protected JsonToken _nextToken;
+    
+    /**
+     * Index of the next attribute of the current START_ELEMENT
+     * to return (as field name and value pair), if any; -1
+     * when no attributes to return
+     */
+    protected int _stateAttributeToReturn = -1;
+
+    /**
+     * Marker flag used to suppress END_ELEMENT from being returned
+     * as END_OBJECT (or END_ARRAY).
+     */
+    protected boolean _stateSuppressEndElem = false;
+    
+    /*
+    /**********************************************************
+    /* Parsing state, parsed values
+    /**********************************************************
+     */
+    
     /**
      * ByteArrayBuilder is needed if 'getBinaryValue' is called. If so,
      * we better reuse it for remainder of content.
@@ -116,6 +149,12 @@ public class FromXmlParser
      * than once.
      */
     protected byte[] _binaryValue;
+    
+    /**
+     * Sometimes we need to stash attribute or element text value during
+     * traversal
+     */
+    protected String _textValue;
     
     /*
     /**********************************************************
@@ -137,6 +176,13 @@ public class FromXmlParser
         _ioContext = ctxt;
         _objectCodec = codec;
         _xmlReader = Stax2ReaderAdapter.wrapIfNecessary(xmlReader);
+        // We should be initialized to START_ELEMENT; let's verify:
+        if (xmlReader.getEventType() != XMLStreamConstants.START_ELEMENT) {
+            throw new IllegalArgumentException("Invalid XMLStreamReader passed: should be pointing to START_ELEMENT ("
+                    +XMLStreamConstants.START_ELEMENT+"), instead got "+xmlReader.getEventType());
+        }
+        // and thereby start a scope
+        _nextToken = JsonToken.START_OBJECT;
     }
 
     @Override
@@ -223,8 +269,49 @@ public class FromXmlParser
     }
     
     @Override
-    public JsonToken nextToken() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
+    public JsonToken nextToken() throws IOException, JsonParseException
+    {
+        if (_nextToken != null) {
+            JsonToken t = _nextToken;
+            _nextToken = null;
+            return t;
+        }
+        // Attributes (of current START_ELEMENT) to return?
+        if (_stateAttributeToReturn >= 0) {
+            // either field name or string value...
+            // if at FIELD_NAME, must be string value
+            if (_currToken == JsonToken.FIELD_NAME) { // value
+                _textValue = _xmlReader.getAttributeValue(_stateAttributeToReturn);
+                // Any more attributes to handle?
+                if (++_stateAttributeToReturn >= _xmlReader.getAttributeCount()) { // nope
+                    _stateAttributeToReturn = -1;
+                }
+                return (_currToken = JsonToken.VALUE_STRING);
+            }
+            // otherwise, field name
+            _parsingContext.setCurrentName(_xmlReader.getAttributeLocalName(_stateAttributeToReturn));
+            return (_currToken = JsonToken.FIELD_NAME);
+        }
+        /* Otherwise, need to find next START_ELEMENT, END_ELEMENT, or textual node
+         * (CHARACTERS, or possibly CDATA, although latter should be converted to
+         * CHARACTES) -- ignoring anything else (PROCESSING_INSTRUCTION, COMMENT etc).
+         * 
+         * Main complication is that whitespace indentation may be received as
+         * CHARACTERS, but needs to be skipped.
+         */
+        try {
+            if (!_xmlReader.hasNext()) {
+                close();
+                _handleEOF();
+                return (_currToken = null);
+            }
+            int xmlToken = _xmlReader.next();
+            switch (xmlToken) {
+                // TODO: implement
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
         return null;
     }
     
@@ -236,25 +323,24 @@ public class FromXmlParser
 
     @Override
     public String getText() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
+        if (_textValue == null) {
+            _textValue = _xmlReader.getText();
+        }
+        return _textValue;
     }
 
     @Override
     public char[] getTextCharacters() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return null;
+        return getText().toCharArray();
     }
 
     @Override
     public int getTextLength() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
-        return 0;
+        return getText().length();
     }
 
     @Override
     public int getTextOffset() throws IOException, JsonParseException {
-        // TODO Auto-generated method stub
         return 0;
     }
 
