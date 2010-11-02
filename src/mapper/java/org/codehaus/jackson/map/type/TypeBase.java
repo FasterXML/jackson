@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map.type;
 
-import java.util.List;
-
 import org.codehaus.jackson.type.JavaType;
 
 public abstract class TypeBase extends JavaType
@@ -39,19 +37,6 @@ public abstract class TypeBase extends JavaType
 
     @Override
     public abstract StringBuilder getErasedSignature(StringBuilder sb);
-
-    @Override
-    public List<JavaType> findGenericTypesFor(Class<?> genericClass)
-    {
-        // first, sanity check: 
-        if (!genericClass.isAssignableFrom(_class)) {
-            return null;
-        }
-        // then need to start resolving...
-        
-        // !!! TBI
-        throw new Error();
-    }
     
     /*
     /**********************************************************
