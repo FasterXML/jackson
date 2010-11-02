@@ -9,6 +9,8 @@ Description:
 
   * [JACKSON-359] TypeIdResolver.init() was not being called properly
     (reported by Peter L)
+  * [JACKSON-404] Problem with XmlAdapter, generic types, deserialization
+    (reported by Davide)
 
 ------------------------------------------------------------------------
 == History: ==

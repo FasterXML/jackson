@@ -333,6 +333,183 @@ public class TypeFactory
         return instance._fromType(type, null);
     }
 
+    /**
+     * Method that is to figure out actual type parameters that given
+     * class binds to generic types defined by given (generic)
+     * interface or class.
+     * This could mean, for example, trying to figure out
+     * key and value types for Map implementations.
+     * 
+     * @since 1.6
+     */
+    public static JavaType[] findParameterTypes(Class<?> clz, Class<?> expType)
+    {
+        // First: find full inheritance chain
+        HierarchicType subType = _findSuperTypeChain(clz, expType);
+        // Caller is supposed to ensure this never happens, so:
+        if (subType == null) {
+            throw new IllegalArgumentException("Class "+clz.getName()+" is not a subtype of "+expType.getName());
+        }
+        // Ok and then go to the ultimate super-type:
+        HierarchicType superType = subType;
+        while (superType.getSuperType() != null) {
+            superType = superType.getSuperType();
+        }
+        // which ought to be generic (if not, it's raw type)
+        if (!superType.isGeneric()) {
+            return null;
+        }
+        // Otherwise this becomes a recursive thing
+
+        // otherwise need to start unwinding
+        ParameterizedType pt = superType.asGeneric();
+        Type[] actualTypes = pt.getActualTypeArguments();
+        JavaType[] resultTypes = new JavaType[actualTypes.length];
+        // TODO: rewrite TypeBindings to also work properly with renaming, aliasing
+        TypeBindings bindings = new TypeBindings(clz);
+        for (int i = 0, len = actualTypes.length; i < len; ++i) {
+            Type t = actualTypes[i];
+            // Only type variables need immediate resolution
+            if (t instanceof TypeVariable<?>) {
+                resultTypes[i] = _resolveVariableViaSubTypes(superType.getSubType(), ((TypeVariable<?>) t).getName(), bindings);
+            } else {
+                resultTypes[i] = instance._fromType(t, bindings);
+            }
+        }
+        return resultTypes;
+    }
+
+    /**
+     * Method that is to figure out actual type parameters that given
+     * class binds to generic types defined by given (generic)
+     * interface or class.
+     * This could mean, for example, trying to figure out
+     * key and value types for Map implementations.
+     * 
+     * @param type Sub-type (leaf type) that implements <code>expType</code>
+     * 
+     * @since 1.6
+     */
+    public static JavaType[] findParameterTypes(JavaType type, Class<?> expType)
+    {
+        /* Tricky part here is that some JavaType instances have been constructed
+         * from generic type (usually via TypeReference); and in those case
+         * types have been resolved. Alternative is that the leaf type is type-erased
+         * class, in which case this has not been done.
+         * For now simplest way to handle this is to split processing in two: latter
+         * case actually fully works; and former mostly works. In future may need to
+         * rewrite former part, which requires changes to JavaType as well.
+         */
+        Class<?> raw = type.getRawClass();
+        if (raw == expType) {
+            // Direct type info; good since we can return it as is
+            int count = type.containedTypeCount();
+            if (count == 0) return null;
+            JavaType[] result = new JavaType[count];
+            for (int i = 0; i < count; ++i) {
+                result[i] = type.containedType(i);
+            }
+            return result;
+        }
+        /* Otherwise need to go through type-erased class. This may miss cases where
+         * we get generic type; ideally JavaType/SimpleType would retain information
+         * about generic declaration at main level... but let's worry about that
+         * if/when there are problems; current handling is an improvement over earlier
+         * code.
+         */
+        return findParameterTypes(raw, expType);
+    }    
+
+    /**
+     * Helper method used to find inheritance (implements, extends) path
+     * between given types, if one exists (caller generally checks before
+     * calling this method). Returned type represents given <b>subtype</b>,
+     * with supertype linkage extending to <b>supertype</b>.
+     */
+    protected static HierarchicType  _findSuperTypeChain(Class<?> subtype, Class<?> supertype)
+    {
+        // If super-type is a class (not interface), bit simpler
+        if (supertype.isInterface()) {
+            return _findSuperInterfaceChain(subtype, supertype);
+        }
+        return _findSuperClassChain(subtype, supertype);
+    }
+
+    protected static HierarchicType _findSuperClassChain(Type currentType, Class<?> target)
+    {
+        HierarchicType current = new HierarchicType(currentType);
+        Class<?> raw = current.getRawClass();
+        if (raw == target) {
+            return current;
+        }
+        // Otherwise, keep on going down the rat hole...
+        Type parent = raw.getGenericSuperclass();
+        if (parent != null) {
+            HierarchicType sup = _findSuperClassChain(parent, target);
+            if (sup != null) {
+                sup.setSubType(current);
+                current.setSuperType(sup);
+                return current;
+            }
+        }
+        return null;
+    }
+
+    protected static HierarchicType _findSuperInterfaceChain(Type currentType, Class<?> target)
+    {
+        HierarchicType current = new HierarchicType(currentType);
+        Class<?> raw = current.getRawClass();
+        if (raw == target) {
+            return current;
+        }
+        // Otherwise, keep on going down the rat hole; first implemented interaces
+        Type[] parents = raw.getGenericInterfaces();
+        // as long as there are superclasses
+        // and unless we have already seen the type (<T extends X<T>>)
+        if (parents != null) {
+            for (Type parent : parents) {
+                HierarchicType sup = _findSuperInterfaceChain(parent, target);
+                if (sup != null) {
+                    sup.setSubType(current);
+                    current.setSuperType(sup);
+                    return current;
+                }
+            }
+        }
+        // and then super-class if any
+        Type parent = raw.getGenericSuperclass();
+        if (parent != null) {
+            HierarchicType sup = _findSuperInterfaceChain(parent, target);
+            if (sup != null) {
+                sup.setSubType(current);
+                current.setSuperType(sup);
+                return current;
+            }
+        }
+        return null;
+    }
+
+   protected static JavaType _resolveVariableViaSubTypes(HierarchicType leafType, String variableName, TypeBindings bindings)
+    {
+        // can't resolve raw types; possible to have as-of-yet-unbound types too:
+        if (leafType != null && leafType.isGeneric()) {
+            TypeVariable<?>[] typeVariables = leafType.getRawClass().getTypeParameters();
+            for (int i = 0, len = typeVariables.length; i < len; ++i) {
+                TypeVariable<?> tv = typeVariables[i];
+                if (variableName.equals(tv.getName())) {
+                    // further resolution needed?
+                    Type type = leafType.asGeneric().getActualTypeArguments()[i];
+                    if (type instanceof TypeVariable<?>) {
+                        return _resolveVariableViaSubTypes(leafType.getSubType(), ((TypeVariable<?>) type).getName(), bindings);
+                    }
+                    // no we're good for the variable (but it may have parameterization of its own)
+                    return instance._fromType(type, bindings);
+                }
+            }
+        }
+        return instance._unknownType();
+    }
+
     /*
     /*************************************************
     /* Internal methods
