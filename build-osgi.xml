@@ -321,6 +321,7 @@ javax.activation
 ,org.codehaus.jackson.map.jsontype;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.jsontype.impl;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.ser;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.type;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.node;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.schema;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.type;version='${IMPL_VERSION}'
