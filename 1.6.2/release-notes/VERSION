@@ -23,7 +23,8 @@ Description:
     (reported by Kirill S)
   * [JACKSON-403]: XMLGregorianCalendar could not be deserialized from timestamp
     (reported by Manual F)
-
+  * [JACKSON-404] Problem with XmlAdapter, generic types, deserialization
+    (reported by Davide)
 
 ------------------------------------------------------------------------
 == History: ==
