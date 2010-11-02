@@ -436,5 +436,5 @@ Bruce Ritchie:
 Ga‘l Marziou:   
   * Contributed [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
     value into JSON
-   
+   [1.7.0]   
   
