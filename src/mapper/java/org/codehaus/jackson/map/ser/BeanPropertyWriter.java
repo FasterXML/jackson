@@ -126,7 +126,7 @@ public class BeanPropertyWriter
     /**
      * @since 1.7.0
      * 
-     * @param serName Efficiently serializable representation of property name
+     * @param name Efficiently serializable representation of property name
      */
     public BeanPropertyWriter(SerializedString name, JsonSerializer<Object> ser, TypeSerializer typeSer,
             JavaType serType, Method acc, Field f,
