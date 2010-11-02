@@ -28,6 +28,7 @@ import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.VersionUtil;
 
@@ -765,10 +766,17 @@ public class JaxbAnnotationIntrospector
 
     protected Class<?> _doFindDeserializationType(Annotated a, JavaType baseType, String propName)
     {
+        /* As per [JACKSON-288], @XmlJavaTypeAdapter will complicate handling of type
+         * information; basically we better just ignore type we might find here altogether
+         * in that case
+         */
+        if (a.hasAnnotation(XmlJavaTypeAdapter.class)) {
+            return null;
+        }
+        
         /* false for class, package, super-class, since annotation can
          * only be attached to fields and methods
          */
-        //
         XmlElement annotation = findAnnotation(XmlElement.class, a, false, false, false);
         if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
             return annotation.type();
@@ -1093,11 +1101,8 @@ public class JaxbAnnotationIntrospector
             }
 
             if (adapterInfo != null) {
-                try {
-                    adapter = adapterInfo.value().newInstance(); //todo: cache this?
-                } catch (Exception e) {
-                    throw new IllegalStateException(e);
-                }
+                Class<? extends XmlAdapter> cls = adapterInfo.value();
+                adapter = ClassUtil.createInstance(cls, false);
             }
         }
         return adapter;
