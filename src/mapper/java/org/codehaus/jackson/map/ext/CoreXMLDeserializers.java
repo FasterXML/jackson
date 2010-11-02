@@ -9,9 +9,12 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializer;
 import org.codehaus.jackson.map.deser.FromStringDeserializer;
+import org.codehaus.jackson.map.deser.StdScalarDeserializer;
 import org.codehaus.jackson.map.util.Provider;
 
 /**
@@ -77,16 +80,20 @@ public class CoreXMLDeserializers
     }
 
     public static class GregorianCalendarDeserializer
-        extends FromStringDeserializer<XMLGregorianCalendar>
+        extends StdScalarDeserializer<XMLGregorianCalendar>
     {
         public GregorianCalendarDeserializer() { super(XMLGregorianCalendar.class); }
         
         @Override
-        protected XMLGregorianCalendar _deserialize(String value, DeserializationContext ctxt)
-                throws IllegalArgumentException, IOException {
-            Date date = _parseDate(ctxt.getParser(), ctxt);
+        public XMLGregorianCalendar deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException
+        {
+            Date d = _parseDate(jp, ctxt);
+            if (d == null) {
+                return null;
+            }
             GregorianCalendar calendar = new GregorianCalendar();
-            calendar.setTime(date);
+            calendar.setTime(d);
             return _dataTypeFactory.newXMLGregorianCalendar(calendar);
         }
     }
