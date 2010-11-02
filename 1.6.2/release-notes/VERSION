@@ -8,6 +8,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-288] Problems with JAXB annotation handling for combination of
+   @XmlJavaTypeAdapter, @XmlElement
+    (reported by Kent R)
   * [JACKSON-366] Type metadata not written for empty beans
    (reported by Patrick R)
   * [JACKSON-388] Deserialization of Throwable fails with Inclusion.NON_NULL

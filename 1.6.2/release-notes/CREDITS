@@ -445,10 +445,14 @@ Patrick Ryan:
    [1.6.2]
 
 Manuel Alejandro de Brito Fontes:
-  * [JACKSON-403]: XMLGregorianCalendar could not be deserialized from timestamp
+  * Reported [JACKSON-403]: XMLGregorianCalendar could not be deserialized from timestamp
    [1.6.2]
 
 Davide:
-  * [JACKSON-404]: Problem with XmlAdapter, generic types, deserialization
+  * Reported [JACKSON-404]: Problem with XmlAdapter, generic types, deserialization
    [1.6.2]
 
+Kent Rancourt:
+  * Reported [JACKSON-288]: Problems with JAXB annotation handling for combination of
+   @XmlJavaTypeAdapter, @XmlElement
+    [1.6.2]
