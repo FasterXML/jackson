@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map.type;
 
 import java.lang.reflect.Array;
-import java.util.List;
 
 import org.codehaus.jackson.type.JavaType;
 
@@ -121,12 +120,6 @@ public final class ArrayType
     public boolean hasGenericTypes() {
         // arrays are not parameterized, but element type may be:
         return _componentType.hasGenericTypes();
-    }
-
-    @Override
-    public List<JavaType> findGenericTypesFor(Class<?> genericClass) {
-        // any parameterization would be found from element type...
-        return _componentType.findGenericTypesFor(genericClass);
     }
     
     /**
