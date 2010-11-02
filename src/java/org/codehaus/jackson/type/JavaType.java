@@ -1,6 +1,5 @@
 package org.codehaus.jackson.type;
 
-import java.util.List;
 import java.lang.reflect.Modifier;
 
 /**
@@ -238,21 +237,6 @@ public abstract class JavaType
     {
         return containedTypeCount() > 0;
     }
-
-    /**
-     * Method for finding actual parametrization for specific generic class or interface,
-     * extended or implemented by this type.
-     * This calls is necessary since generic types may be declared at multiple levels
-     * on class hierarchy; and simple checked for immediate parent class is not necessarily
-     * enough to find out concrete type parameters of types like {@link java.util.Map}s
-     * or {@link java.util.Collection}s.
-     * 
-     * @return List of generic type declarations found, if any (always with size() > 0);
-     *    or null if no parameterization exists for given generic class or interface
-     * 
-     * @since 1.6
-     */
-    public abstract List<JavaType> findGenericTypesFor(Class<?> genericClass);
     
     /**
      * Method for accessing key type for this type, assuming type
