@@ -53,8 +53,6 @@ public class TestBeanConversions
     public void testErrorReporting() throws Exception
     {
         //String json = "{\"boolProp\":\"oops\"}";
-        ObjectMapper mapper = new ObjectMapper();
-        
         // First: unknown property
         try {
             mapper.readValue("{\"unknownProp\":true}", BooleanBean.class);
