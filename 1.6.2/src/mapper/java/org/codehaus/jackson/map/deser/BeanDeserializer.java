@@ -491,11 +491,12 @@ public class BeanDeserializer
             jp.nextToken();
             SettableBeanProperty prop = _props.get(propName);
             if (prop != null) { // normal case
-                try {
+                // As per [JACKSON-397], should NOT catch and rethrow for 1.6.1 (1.6.0 didn't), need to wait until 1.7.0
+                //try {
                     prop.deserializeAndSet(jp, ctxt, bean);
-                } catch (Exception e) {
-                    wrapAndThrow(e, bean, propName);
-                }
+                //} catch (Exception e) {
+                //    wrapAndThrow(e, bean, propName);
+                //}
                 continue;
             }
             /* As per [JACKSON-313], things marked as ignorable should not be
@@ -506,11 +507,12 @@ public class BeanDeserializer
                 continue;
             }
             if (_anySetter != null) {
-                try {
+                // As per [JACKSON-397], should NOT catch and rethrow for 1.6.1 (1.6.0 didn't), need to wait until 1.7.0
+                //try {
                     _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
-                } catch (Exception e) {
-                    wrapAndThrow(e, bean, propName);
-                }
+                //} catch (Exception e) {
+                //    wrapAndThrow(e, bean, propName);
+                //}
                 continue;
             }
             // Unknown: let's call handler method
