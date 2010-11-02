@@ -24,6 +24,21 @@ public class TestJaxbFieldAccess
         Fields(int x) { this.x = x; }
     }
 
+    @XmlAccessorType(XmlAccessType.NONE)
+    public static class Bean354
+    {
+        protected String name = "foo";
+    
+        @XmlElement
+        public String getName() { return name; }
+    } 
+
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+
     /**
      * Verify serialization wrt [JACKSON-202]
      */
@@ -44,4 +59,15 @@ public class TestJaxbFieldAccess
         Fields result = mapper.readValue("{ \"x\":3 }", Fields.class);
         assertEquals(3, result.x);
     }
+
+    /**
+     * Verify serialization wrt [JACKSON-354]
+     */
+    public void testJackson354Serialization() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        assertEquals("{\"name\":\"foo\"}", mapper.writeValueAsString(new Bean354()));
+    }
+
 }
