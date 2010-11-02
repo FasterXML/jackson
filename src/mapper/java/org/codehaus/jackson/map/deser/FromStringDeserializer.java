@@ -79,13 +79,15 @@ public abstract class FromStringDeserializer<T>
         extends FromStringDeserializer<UUID>
     {
         public UUIDDeserializer() { super(UUID.class); }
-        
+
+        @Override
         protected UUID _deserialize(String value, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
             return UUID.fromString(value);
         }
 
+        @Override
         protected UUID _deserializeEmbedded(Object ob, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
