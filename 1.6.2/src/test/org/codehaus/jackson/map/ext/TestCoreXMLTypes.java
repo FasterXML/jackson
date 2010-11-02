@@ -37,7 +37,7 @@ public class TestCoreXMLTypes
         assertEquals(quote(dur.toString()), serializeAsString(dur));
     }
 
-    public void testXMLGregorianCalendarSer() throws Exception
+    public void testXMLGregorianCalendarSerAndDeser() throws Exception
     {
         DatatypeFactory dtf = DatatypeFactory.newInstance();
         XMLGregorianCalendar cal = dtf.newXMLGregorianCalendar
@@ -46,8 +46,15 @@ public class TestCoreXMLTypes
          * and it defaults to using timestamp. So let's try couple of combinations.
          */
         ObjectMapper mapper = new ObjectMapper();
-        assertEquals(String.valueOf(cal.toGregorianCalendar().getTimeInMillis()),
-                mapper.writeValueAsString(cal));
+        long timestamp = cal.toGregorianCalendar().getTimeInMillis();
+        String numStr = String.valueOf(timestamp);
+        assertEquals(numStr, mapper.writeValueAsString(cal));
+
+        // [JACKSON-403] Needs to come back ok as well:
+        XMLGregorianCalendar calOut = mapper.readValue(numStr, XMLGregorianCalendar.class);
+        assertNotNull(calOut);
+        assertEquals(timestamp, calOut.toGregorianCalendar().getTimeInMillis());
+        
         // and then textual variant
         mapper.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
         // this is ALMOST same as default for XMLGregorianCalendar... just need to unify Z/+0000

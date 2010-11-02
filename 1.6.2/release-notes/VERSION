@@ -21,6 +21,9 @@ Description:
   * [JACKSON-398]: Root type information not correctly passed by
     ObjectWriter when using JsonGenerator
     (reported by Kirill S)
+  * [JACKSON-403]: XMLGregorianCalendar could not be deserialized from timestamp
+    (reported by Manual F)
+
 
 ------------------------------------------------------------------------
 == History: ==
