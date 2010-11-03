@@ -84,6 +84,15 @@ public final class SimpleType
         return new SimpleType(cls);
     }
 
+    // Since 1.7:
+    @Override
+    public SimpleType withTypeHandler(Object h)
+    {
+        SimpleType newInstance = new SimpleType(_class, _typeNames, _typeParameters);
+        newInstance._typeHandler = h;
+        return newInstance;
+    }
+    
     @Override
     protected String buildCanonicalName()
     {

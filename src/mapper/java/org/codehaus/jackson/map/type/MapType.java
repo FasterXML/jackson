@@ -66,6 +66,15 @@ public final class MapType
         return new MapType(_class, newKeyType, _valueType).copyHandlers(this);
     }
 
+    // Since 1.7:
+    @Override
+    public MapType withTypeHandler(Object h)
+    {
+        MapType newInstance = new MapType(_class, _keyType, _valueType);
+        newInstance._typeHandler = h;
+        return newInstance;
+    }
+    
     @Override
     protected String buildCanonicalName() {
         StringBuilder sb = new StringBuilder();

@@ -44,6 +44,15 @@ public final class ArrayType
         return new ArrayType(componentType, emptyInstance);
     }                                   
 
+    // Since 1.7:
+    @Override
+    public ArrayType withTypeHandler(Object h)
+    {
+        ArrayType newInstance = new ArrayType(_componentType, _emptyArray);
+        newInstance._typeHandler = h;
+        return newInstance;
+    }
+    
     @Override
     protected String buildCanonicalName() {
         return _class.getName();

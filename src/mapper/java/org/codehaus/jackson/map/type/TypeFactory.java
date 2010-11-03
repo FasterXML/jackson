@@ -74,6 +74,14 @@ public class TypeFactory
         return type(type, new TypeBindings(context));
     }
 
+    /**
+     * @since 1.7.0
+     */
+    public static JavaType type(Type type, JavaType context)
+    {
+        return type(type, new TypeBindings(context));
+    }
+    
     public static JavaType type(Type type, TypeBindings bindings)
     {
         return instance._fromType(type, bindings);
@@ -277,7 +285,7 @@ public class TypeFactory
                 }
                 h = baseType.getTypeHandler();
                 if (h != null) {
-                    subtype.setTypeHandler(h);
+                    subtype = subtype.withTypeHandler(h);
                 }
                 return subtype;
             }

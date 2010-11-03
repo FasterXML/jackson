@@ -48,6 +48,15 @@ public final class CollectionType
         return new CollectionType(rawType, elemT);
     }
 
+    // Since 1.7:
+    @Override
+    public CollectionType withTypeHandler(Object h)
+    {
+        CollectionType newInstance = new CollectionType(_class, _elementType);
+        newInstance._typeHandler = h;
+        return newInstance;
+    }
+    
     @Override
     protected String buildCanonicalName() {
         StringBuilder sb = new StringBuilder();

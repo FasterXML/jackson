@@ -59,6 +59,16 @@ public abstract class JavaType
     }
 
     /**
+     * "Copy method" that will construct a new instance that is identical to
+     * this instance, except that it will have specified type handler assigned.
+     * 
+     * @return Newly created type instance
+     * 
+     * @since 1.7
+     */
+    public abstract JavaType withTypeHandler(Object h);
+    
+    /**
      * Method that can be called to do a "narrowing" conversions; that is,
      * to return a type with a raw class that is assignable to the raw
      * class of this type. If this is not possible, an
@@ -79,7 +89,7 @@ public abstract class JavaType
             result.setValueHandler(_valueHandler);
         }
         if (_typeHandler != null) {
-            result.setTypeHandler(_typeHandler);
+            result = result.withTypeHandler(_typeHandler);
         }
         return result;
     }
@@ -101,7 +111,7 @@ public abstract class JavaType
             result.setValueHandler(_valueHandler);
         }
         if (_typeHandler != null) {
-            result.setTypeHandler(_typeHandler);
+            result = result.withTypeHandler(_typeHandler);
         }
         return result;
     }
@@ -159,9 +169,17 @@ public abstract class JavaType
      * if null passed, to remove such assignment
      * 
      * @since 1.5
+     * 
+     * @deprecated Used {@link #withTypeHandler} instead -- this method is dangerous as
+     *   it changes state, whereas all other functionality is stateless
      */
-    public void setTypeHandler(Object h) {
+    public void setTypeHandler(Object h)
+    {
         // sanity check, should be assigned just once
+        /* 03-Nov-2010: NOTE - some care has to be taken to ensure that types are not reused
+         *   between requests; one case I had to fix was that of passing root type by ObjectWriter
+         *   and ObjectReader (must clone/copy types!)
+         */
         if (h != null && _typeHandler != null) {
             throw new IllegalStateException("Trying to reset type handler for type ["+toString()
             		+"]; old handler of type "+_typeHandler.getClass().getName()+", new handler of type "+h.getClass().getName());
