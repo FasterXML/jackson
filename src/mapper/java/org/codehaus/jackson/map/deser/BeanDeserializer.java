@@ -528,7 +528,7 @@ public class BeanDeserializer
     	if (_delegatingCreator != null) {
     	    return _delegatingCreator.deserialize(jp, ctxt);
     	}
-        throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found");
+        throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found to deserialize from JSON String");
     }
 
     public Object deserializeFromNumber(JsonParser jp, DeserializationContext ctxt)
@@ -545,7 +545,7 @@ public class BeanDeserializer
     	if (_delegatingCreator != null) {
     	    return _delegatingCreator.deserialize(jp, ctxt);
     	}
-        throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found");
+        throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found to deserialize from JSON Number");
     }
 
     public Object deserializeUsingCreator(JsonParser jp, DeserializationContext ctxt)
