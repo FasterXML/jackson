@@ -590,7 +590,7 @@ public abstract class BasicDeserializerFactory
             if (a instanceof AnnotatedMember) {
             	TypeDeserializer contentTypeDeser = findPropertyContentTypeDeserializer(config, type, (AnnotatedMember) a);            	
             	if (contentTypeDeser != null) {
-            	    type.getContentType().setTypeHandler(contentTypeDeser);
+            	    type = _addTypeHandler(type, contentTypeDeser);
             	}
             }
         }
@@ -602,11 +602,23 @@ public abstract class BasicDeserializerFactory
             valueTypeDeser = findTypeDeserializer(config, type);
         }
     	if (valueTypeDeser != null) {
-            type.setTypeHandler(valueTypeDeser);
+            type = type.withTypeHandler(valueTypeDeser);
     	}
         return type;
     }
 
+    @SuppressWarnings("deprecation")
+    private JavaType _addTypeHandler(JavaType type, TypeDeserializer contentTypeDeser)
+    {
+        /* 03-Nov-2010, tatu: This is ugly, as we really should not be using 'setTypeHandler'
+         *   but rather construct new instance using 'withTypeHandler'.
+         *   But due to nesting that is easier said than done; as such, this last known use
+         *   is still retained for now. May have to revisit if problems occur...
+         */
+        type.getContentType().setTypeHandler(contentTypeDeser);
+        return type;
+    }
+    
     protected EnumResolver<?> constructEnumResolver(Class<?> enumClass, DeserializationConfig config)
     {
         // [JACKSON-212]: may need to use Enum.toString()
