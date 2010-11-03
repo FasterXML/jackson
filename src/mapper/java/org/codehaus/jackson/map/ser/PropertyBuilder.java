@@ -91,8 +91,8 @@ public class PropertyBuilder
                 throw new IllegalStateException("Problem trying to create BeanPropertyWriter for property '"
                         +name+"' (of type "+_beanDesc.getType()+"); serialization type "+serializationType+" has no content");
             }
-//            ct = ct.withTypeHandler(contentTypeSer);
-            ct.setTypeHandler(contentTypeSer);
+            serializationType = serializationType.withContentTypeHandler(contentTypeSer);
+            ct = serializationType.getContentType();
         }
         Object suppValue = null;
         boolean suppressNulls = false;

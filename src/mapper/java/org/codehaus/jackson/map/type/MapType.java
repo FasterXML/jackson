@@ -74,6 +74,13 @@ public final class MapType
         newInstance._typeHandler = h;
         return newInstance;
     }
+
+    // Since 1.7:
+    @Override
+    public MapType withContentTypeHandler(Object h)
+    {
+        return new MapType(_class, _keyType, _valueType.withTypeHandler(h));
+    }
     
     @Override
     protected String buildCanonicalName() {

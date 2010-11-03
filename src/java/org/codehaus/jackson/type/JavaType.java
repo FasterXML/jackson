@@ -67,6 +67,17 @@ public abstract class JavaType
      * @since 1.7
      */
     public abstract JavaType withTypeHandler(Object h);
+
+    /**
+     * "Copy method" that will construct a new instance that is identical to
+     * this instance, except that its content type will have specified
+     * type handler assigned.
+     * 
+     * @return Newly created type instance
+     * 
+     * @since 1.7
+     */
+    public abstract JavaType withContentTypeHandler(Object h);
     
     /**
      * Method that can be called to do a "narrowing" conversions; that is,

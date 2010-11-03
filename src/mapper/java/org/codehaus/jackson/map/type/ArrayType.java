@@ -52,6 +52,13 @@ public final class ArrayType
         newInstance._typeHandler = h;
         return newInstance;
     }
+
+    // Since 1.7:
+    @Override
+    public ArrayType withContentTypeHandler(Object h)
+    {
+        return new ArrayType(_componentType.withTypeHandler(h), _emptyArray);
+    }
     
     @Override
     protected String buildCanonicalName() {

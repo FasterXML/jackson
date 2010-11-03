@@ -56,6 +56,13 @@ public final class CollectionType
         newInstance._typeHandler = h;
         return newInstance;
     }
+
+    // Since 1.7:
+    @Override
+    public CollectionType withContentTypeHandler(Object h)
+    {
+        return new CollectionType(_class, _elementType.withTypeHandler(h));
+    }
     
     @Override
     protected String buildCanonicalName() {

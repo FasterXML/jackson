@@ -92,6 +92,14 @@ public final class SimpleType
         newInstance._typeHandler = h;
         return newInstance;
     }
+
+    // Since 1.7:
+    @Override
+    public JavaType withContentTypeHandler(Object h)
+    {
+        // no content type, so:
+        throw new IllegalArgumentException("Simple types have no content types; can not call withContenTypeHandler()");
+    }
     
     @Override
     protected String buildCanonicalName()

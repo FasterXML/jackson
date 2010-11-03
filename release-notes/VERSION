@@ -8,6 +8,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-356]: Type information not written for nested-generics root types
+    (reported by Alex R on mailing list)
+
   Improvements:
 
   * [JACKSON-345]: Make BeanSerializer use SerializedString for even faster serialization
@@ -19,7 +22,7 @@ Description:
 
   * [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
     value into JSON
-   (contributed by Ga‘l Marziou)
+   (contributed by Gaï¿½l Marziou)
   * [JACKSON-405]: Add smile command-line tool for manua Smile encoding/decoding
 
 ------------------------------------------------------------------------

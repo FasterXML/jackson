@@ -590,7 +590,7 @@ public abstract class BasicDeserializerFactory
             if (a instanceof AnnotatedMember) {
             	TypeDeserializer contentTypeDeser = findPropertyContentTypeDeserializer(config, type, (AnnotatedMember) a);            	
             	if (contentTypeDeser != null) {
-            	    type = _addTypeHandler(type, contentTypeDeser);
+            	    type = type.withContentTypeHandler(contentTypeDeser);
             	}
             }
         }
@@ -604,18 +604,6 @@ public abstract class BasicDeserializerFactory
     	if (valueTypeDeser != null) {
             type = type.withTypeHandler(valueTypeDeser);
     	}
-        return type;
-    }
-
-    @SuppressWarnings("deprecation")
-    private JavaType _addTypeHandler(JavaType type, TypeDeserializer contentTypeDeser)
-    {
-        /* 03-Nov-2010, tatu: This is ugly, as we really should not be using 'setTypeHandler'
-         *   but rather construct new instance using 'withTypeHandler'.
-         *   But due to nesting that is easier said than done; as such, this last known use
-         *   is still retained for now. May have to revisit if problems occur...
-         */
-        type.getContentType().setTypeHandler(contentTypeDeser);
         return type;
     }
     
