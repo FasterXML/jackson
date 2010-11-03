@@ -80,7 +80,7 @@ public class PropertyBuilder
              *    revisited if this causes problems.
              */
             if (serializationType == null) {
-                serializationType = TypeFactory.type(am.getGenericType());
+                serializationType = TypeFactory.type(am.getGenericType(), _beanDesc.getType());
             }
             JavaType ct = serializationType.getContentType();
             /* 03-Sep-2010, tatu: This is somehow related to [JACKSON-356], but I don't completely
@@ -91,6 +91,7 @@ public class PropertyBuilder
                 throw new IllegalStateException("Problem trying to create BeanPropertyWriter for property '"
                         +name+"' (of type "+_beanDesc.getType()+"); serialization type "+serializationType+" has no content");
             }
+//            ct = ct.withTypeHandler(contentTypeSer);
             ct.setTypeHandler(contentTypeSer);
         }
         Object suppValue = null;
@@ -146,7 +147,7 @@ public class PropertyBuilder
             useStaticTyping = (typing == JsonSerialize.Typing.STATIC);
         }
         if (useStaticTyping) {
-            return TypeFactory.type(a.getGenericType());
+            return TypeFactory.type(a.getGenericType(), _beanDesc.getType());
         }
         return null;
     }
