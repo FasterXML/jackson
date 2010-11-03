@@ -73,7 +73,7 @@ public class TestGenericListSerialization
 //        byte[] json = mapper.writeValueAsBytes(input);
 
 //        System.out.println("After Serialization: " + new String(json));
-
+        
         JSONResponse<List<Parent>> out = mapper.readValue(json, 0, json.length, rootType);
 
         List<Parent> deserializedContent = (List<Parent>) out.getResult();
@@ -86,7 +86,7 @@ public class TestGenericListSerialization
         assertFalse(deserializedContent.get(1) instanceof Child1);
 
         assertEquals("PARENT", ((Child1) deserializedContent.get(0)).parentContent);
-        assertEquals("PARENT", ((Child1) deserializedContent.get(1)).parentContent);
+        assertEquals("PARENT", ((Child2) deserializedContent.get(1)).parentContent);
         assertEquals("CHILD1", ((Child1) deserializedContent.get(0)).childContent1);
         assertEquals("CHILD2", ((Child2) deserializedContent.get(1)).childContent2);
     }
