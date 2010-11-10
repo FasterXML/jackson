@@ -31,7 +31,7 @@ public class XmlAdapterJsonSerializer extends SerializerBase<Object>
 
     @Override
     public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException
+        throws IOException
     {
         Object adapted;
         try {
