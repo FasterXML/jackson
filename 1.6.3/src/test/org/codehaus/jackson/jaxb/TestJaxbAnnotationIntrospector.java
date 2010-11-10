@@ -46,6 +46,7 @@ public class TestJaxbAnnotationIntrospector
         private List<String> wrappedElementProperty;
         private EnumExample enumProperty;
         private QName qname;
+        private QName qname1;
         private String propertyToIgnore;
 
         @XmlJavaTypeAdapter(QNameAdapter.class)
@@ -57,6 +58,16 @@ public class TestJaxbAnnotationIntrospector
         public void setQname(QName qname)
         {
             this.qname = qname;
+        }
+
+        public QName getQname1()
+        {
+            return qname1;
+        }
+
+        public void setQname1(QName qname1)
+        {
+            this.qname1 = qname1;
         }
 
         @XmlAttribute(name="myattribute")
@@ -294,6 +305,8 @@ public class TestJaxbAnnotationIntrospector
         JaxbExample ex = new JaxbExample();
         QName qname = new QName("urn:hi", "hello");
         ex.setQname(qname);
+        QName qname1 = new QName("urn:hi", "hello1");
+        ex.setQname1(qname1);
         ex.setAttributeProperty("attributeValue");
         ex.setElementProperty("elementValue");
         ex.setWrappedElementProperty(Arrays.asList("wrappedElementValue"));
@@ -324,6 +337,7 @@ public class TestJaxbAnnotationIntrospector
         //now make sure it gets deserialized correctly.
         JaxbExample readEx = mapper.readValue(json, JaxbExample.class);
         assertEquals(ex.qname, readEx.qname);
+        assertEquals(ex.qname1, readEx.qname1);
         assertEquals(ex.attributeProperty, readEx.attributeProperty);
         assertEquals(ex.elementProperty, readEx.elementProperty);
         assertEquals(ex.wrappedElementProperty, readEx.wrappedElementProperty);

@@ -1078,12 +1078,9 @@ public class JaxbAnnotationIntrospector
         }
 
         XmlJavaTypeAdapter adapterInfo = (XmlJavaTypeAdapter) potentialAdaptee.getAnnotation(XmlJavaTypeAdapter.class);
-        if (adapterInfo != null) {
-            try {
-                adapter = adapterInfo.value().newInstance(); //todo: cache this?
-            } catch (Exception e) {
-                throw new IllegalStateException(e);
-            }
+        if (adapterInfo != null) { // should we try caching this?
+            Class<? extends XmlAdapter> cls = adapterInfo.value();
+            adapter = ClassUtil.createInstance(cls, false);
         }
 
         if (adapter == null && isMember) {
@@ -1091,8 +1088,16 @@ public class JaxbAnnotationIntrospector
             if (adapterInfo == null) {
                 XmlJavaTypeAdapters adapters = findAnnotation(XmlJavaTypeAdapters.class, am, true, false, false);
                 if (adapters != null) {
+                    /* 09-Nov-2010, tatu: changed slightly, related to [JACKSON-411], but
+                     *   not yet quite confident it works as it should...
+                     */
+                    Class<?> memberType = am.getRawType();
+                    // ok; except for setters...
+                    if (memberType == Void.TYPE && (am instanceof AnnotatedMethod)) {
+                        memberType = ((AnnotatedMethod) am).getParameterClass(0);
+                    }
                     for (XmlJavaTypeAdapter info : adapters.value()) {
-                        if (info.type().isAssignableFrom(((Member) am.getAnnotated()).getDeclaringClass())) {
+                        if (info.type().isAssignableFrom(memberType)) {
                             adapterInfo = info;
                             break;
                         }
