@@ -483,7 +483,7 @@ public class JaxbAnnotationIntrospector
     @Override
     public JsonSerializer<?> findSerializer(Annotated am)
     {
-        XmlAdapter<Object,Object> adapter = findAdapter(am);
+        XmlAdapter<Object,Object> adapter = findAdapter(am, true);
         if (adapter != null) {
             return new XmlAdapterJsonSerializer(adapter);
         }
@@ -697,7 +697,7 @@ public class JaxbAnnotationIntrospector
     @Override
     public JsonDeserializer<?> findDeserializer(Annotated am)
     {
-        XmlAdapter<Object,Object> adapter = findAdapter(am);
+        XmlAdapter<Object,Object> adapter = findAdapter(am, false);
         if (adapter != null) {
             return new XmlAdapterJsonDeserializer(adapter);
         }
@@ -1060,57 +1060,74 @@ public class JaxbAnnotationIntrospector
      * Finds the XmlAdapter for the specified annotation.
      *
      * @param am The annotated element.
+     * @param forSerialization If true, adapter for serialization; if false, for deserialization
+     * 
      * @return The adapter, or null if none.
      */
-    @SuppressWarnings("unchecked")
-    protected XmlAdapter<Object,Object> findAdapter(Annotated am)
+    protected XmlAdapter<Object,Object> findAdapter(Annotated am, boolean forSerialization)
     {
-        XmlAdapter adapter = null;
-        Class potentialAdaptee;
-        boolean isMember;
+        // First of all, are we looking for annotations for class?
         if (am instanceof AnnotatedClass) {
-            potentialAdaptee = ((AnnotatedClass) am).getAnnotated();
-            isMember = false;
+            return findAdapterForClass((AnnotatedClass) am, forSerialization);
         }
-        else {
-            potentialAdaptee = ((Member) am.getAnnotated()).getDeclaringClass();
-            isMember = true;
+        // Otherwise for a member. First, let's figure out type of property
+        Class<?> memberType = am.getRawType();
+        // ok; except for setters...
+        if (memberType == Void.TYPE && (am instanceof AnnotatedMethod)) {
+            memberType = ((AnnotatedMethod) am).getParameterClass(0);
         }
 
+        // 09-Nov-2010, tatu: Not quite sure why we are to check declaring class... but that's how code was:
+        Class<?> potentialAdaptee = ((Member) am.getAnnotated()).getDeclaringClass();
         XmlJavaTypeAdapter adapterInfo = (XmlJavaTypeAdapter) potentialAdaptee.getAnnotation(XmlJavaTypeAdapter.class);
         if (adapterInfo != null) { // should we try caching this?
-            Class<? extends XmlAdapter> cls = adapterInfo.value();
-            adapter = ClassUtil.createInstance(cls, false);
+            XmlAdapter<Object,Object> adapter = checkAdapter(adapterInfo, memberType);
+            if (adapter != null) {
+                return adapter;
+            }
         }
 
-        if (adapter == null && isMember) {
-            adapterInfo = findAnnotation(XmlJavaTypeAdapter.class, am, true, false, false);
-            if (adapterInfo == null) {
-                XmlJavaTypeAdapters adapters = findAnnotation(XmlJavaTypeAdapters.class, am, true, false, false);
-                if (adapters != null) {
-                    /* 09-Nov-2010, tatu: changed slightly, related to [JACKSON-411], but
-                     *   not yet quite confident it works as it should...
-                     */
-                    Class<?> memberType = am.getRawType();
-                    // ok; except for setters...
-                    if (memberType == Void.TYPE && (am instanceof AnnotatedMethod)) {
-                        memberType = ((AnnotatedMethod) am).getParameterClass(0);
-                    }
-                    for (XmlJavaTypeAdapter info : adapters.value()) {
-                        if (info.type().isAssignableFrom(memberType)) {
-                            adapterInfo = info;
-                            break;
-                        }
-                    }
+        adapterInfo = findAnnotation(XmlJavaTypeAdapter.class, am, true, false, false);
+        if (adapterInfo != null) {
+            XmlAdapter<Object,Object> adapter = checkAdapter(adapterInfo, memberType);
+            if (adapter != null) {
+                return adapter;
+            }
+        }
+        XmlJavaTypeAdapters adapters = findAnnotation(XmlJavaTypeAdapters.class, am, true, false, false);
+        if (adapters != null) {
+            for (XmlJavaTypeAdapter info : adapters.value()) {
+                XmlAdapter<Object,Object> adapter = checkAdapter(info, memberType);
+                if (adapter != null) {
+                    return adapter;
                 }
             }
-
-            if (adapterInfo != null) {
-                Class<? extends XmlAdapter> cls = adapterInfo.value();
-                adapter = ClassUtil.createInstance(cls, false);
-            }
         }
-        return adapter;
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private final XmlAdapter<Object,Object> checkAdapter(XmlJavaTypeAdapter adapterInfo, Class<?> typeNeeded)
+    {
+        // if annotation has no type, it's applicable; if it has, must match
+        Class<?> adaptedType = adapterInfo.type();
+        if (adaptedType == XmlJavaTypeAdapter.DEFAULT.class
+                || adaptedType.isAssignableFrom(typeNeeded)) {
+            Class<? extends XmlAdapter> cls = adapterInfo.value();
+            return ClassUtil.createInstance(cls, false);
+        }
+        return null;
+    }
+    
+    @SuppressWarnings("unchecked")
+    protected XmlAdapter<Object,Object> findAdapterForClass(AnnotatedClass ac, boolean forSerialization)
+    {
+        XmlJavaTypeAdapter adapterInfo = ac.getAnnotation(XmlJavaTypeAdapter.class);
+        if (adapterInfo != null) { // should we try caching this?
+            Class<? extends XmlAdapter> cls = adapterInfo.value();
+            return ClassUtil.createInstance(cls, false);
+        }
+        return null;
     }
 
     /*
