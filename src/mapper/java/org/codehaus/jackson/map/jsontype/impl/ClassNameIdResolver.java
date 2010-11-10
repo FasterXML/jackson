@@ -1,8 +1,6 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
+import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
