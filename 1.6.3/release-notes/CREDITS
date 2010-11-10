@@ -456,3 +456,8 @@ Kent Rancourt:
   * Reported [JACKSON-288]: Problems with JAXB annotation handling for combination of
    @XmlJavaTypeAdapter, @XmlElement
     [1.6.2]
+
+Claudio Rossetto:
+  * Reported [JACKSON-228], suggested correct solution: XmlJavaTypeAdapter not
+    properly handled with package-level annotations
+   [1.6.3]
