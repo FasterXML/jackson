@@ -391,7 +391,12 @@ public abstract class JsonGeneratorBase
     public final void copyCurrentEvent(JsonParser jp)
         throws IOException, JsonProcessingException
     {
-        switch(jp.getCurrentToken()) {
+        JsonToken t = jp.getCurrentToken();
+        // sanity check; what to do?
+        if (t == null) {
+            _reportError("No current event to copy");
+        }
+        switch(t) {
         case START_OBJECT:
             writeStartObject();
             break;

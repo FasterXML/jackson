@@ -328,6 +328,34 @@ public class SmileGenerator
         }
         return this;
     }
+
+    /*
+    /**********************************************************
+    /* Extended API, cother
+    /**********************************************************
+     */
+
+    /**
+     * Method for directly inserting specified byte in output at
+     * current position.
+     *<p>
+     * NOTE: only use this method if you really know what you are doing.
+     */
+    public void writeRaw(byte b) throws IOException, JsonGenerationException
+    {
+        _writeByte(TOKEN_LITERAL_START_ARRAY);
+    }
+
+    /**
+     * Method for directly inserting specified bytes in output at
+     * current position.
+     *<p>
+     * NOTE: only use this method if you really know what you are doing.
+     */
+    public void writeBytes(byte[] data, int offset, int len) throws IOException
+    {
+        _writeBytes(data, offset, len);
+    }
     
     /*
     /**********************************************************
@@ -1040,7 +1068,7 @@ public class SmileGenerator
         // Internal buffer(s) generator has can now be released as well
         _releaseBuffers();
     }
-
+    
     /*
     /**********************************************************
     /* Internal methods, UTF-8 encoding

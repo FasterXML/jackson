@@ -33,7 +33,7 @@ public class FromXmlParser
     extends JsonParserMinimalBase
 {
     /**
-     * Enumeration that defines all togglable features for Smile generators.
+     * Enumeration that defines all togglable features for XML parsers
      */
     public enum Feature {
         DUMMY_PLACEHOLDER(false)
@@ -65,6 +65,13 @@ public class FromXmlParser
         public boolean enabledByDefault() { return _defaultState; }
         public int getMask() { return _mask; }
     }
+
+    /**
+     * In cases where a start element has both attributes and non-empty textual
+     * value, we have to create a bogus property; we will use this as
+     * the property name.
+     */
+    protected final static String UNNAMED_TEXT_PROPERTY = "";
 
     /*
     /**********************************************************
@@ -123,12 +130,6 @@ public class FromXmlParser
      * when no attributes to return
      */
     protected int _stateAttributeToReturn = -1;
-
-    /**
-     * Marker flag used to suppress END_ELEMENT from being returned
-     * as END_OBJECT (or END_ARRAY).
-     */
-    protected boolean _stateSuppressEndElem = false;
     
     /*
     /**********************************************************
@@ -176,6 +177,7 @@ public class FromXmlParser
         _ioContext = ctxt;
         _objectCodec = codec;
         _xmlReader = Stax2ReaderAdapter.wrapIfNecessary(xmlReader);
+        _parsingContext = JsonReadContext.createRootContext(-1, -1);
         // We should be initialized to START_ELEMENT; let's verify:
         if (xmlReader.getEventType() != XMLStreamConstants.START_ELEMENT) {
             throw new IllegalArgumentException("Invalid XMLStreamReader passed: should be pointing to START_ELEMENT ("
@@ -273,6 +275,7 @@ public class FromXmlParser
     {
         if (_nextToken != null) {
             JsonToken t = _nextToken;
+            _currToken = t;
             _nextToken = null;
             return t;
         }
@@ -292,27 +295,97 @@ public class FromXmlParser
             _parsingContext.setCurrentName(_xmlReader.getAttributeLocalName(_stateAttributeToReturn));
             return (_currToken = JsonToken.FIELD_NAME);
         }
-        /* Otherwise, need to find next START_ELEMENT, END_ELEMENT, or textual node
-         * (CHARACTERS, or possibly CDATA, although latter should be converted to
-         * CHARACTES) -- ignoring anything else (PROCESSING_INSTRUCTION, COMMENT etc).
-         * 
-         * Main complication is that whitespace indentation may be received as
-         * CHARACTERS, but needs to be skipped.
-         */
+
+        // important to know if we just handled attributes; if so, we may have a leaf
+        final int attrCount = (_xmlReader.getEventType() == XMLStreamConstants.START_ELEMENT)
+            ? _xmlReader.getAttributeCount() : -1;
+
         try {
+            /* Otherwise, need to find next START_ELEMENT, END_ELEMENT, or textual node
+             * (CHARACTERS, or possibly CDATA, although latter should be converted to
+             * CHARACTES) -- ignoring anything else (PROCESSING_INSTRUCTION, COMMENT etc).
+             * 
+             * Main complication is that whitespace indentation may be received as
+             * CHARACTERS, but needs to be skipped.
+             */
             if (!_xmlReader.hasNext()) {
                 close();
                 _handleEOF();
                 return (_currToken = null);
             }
-            int xmlToken = _xmlReader.next();
-            switch (xmlToken) {
-                // TODO: implement
+
+            String text = _collectUntilTag();
+            switch (_xmlReader.getEventType()) {
+            case XMLStreamConstants.END_ELEMENT:
+                /* Main possibilities; empty element (attrCount == 0),
+                 * element with just text (attrCount > 0), or
+                 * element that had other elements (attrCount == -1)
+                 */
+                if (attrCount == 0) { // no attributes, but had START_ELEMENT; can return string value
+                    _textValue = text;
+                    return (_currToken = JsonToken.VALUE_STRING);
+                }
+                if (attrCount > 0) { // had attributes beyond START_ELEMENT, must wrap, unless empty String
+                    // empty?
+                    if (_empty(text)) { // actually, we are good...
+                        _textValue = null;
+                        return (_currToken = JsonToken.END_OBJECT);
+                    }
+                    // nope; must create property/value pair...
+                    _nextToken = JsonToken.VALUE_STRING;
+                    _textValue = text;
+                    _parsingContext.setCurrentName(UNNAMED_TEXT_PROPERTY);
+                    return (_currToken = JsonToken.FIELD_NAME);
+                }
+                // did not start with START_ELEMENT, simple
+                _textValue = null;
+                return (_currToken = JsonToken.END_OBJECT);
+                
+            case XMLStreamConstants.START_ELEMENT: // first things first; element name
+                _parsingContext.setCurrentName(_xmlReader.getLocalName());
+                if (_xmlReader.getAttributeCount() > 0) {
+                    _stateAttributeToReturn = 0;
+                }
+                return (_currToken = JsonToken.FIELD_NAME);
+
+            default: // should never occur... let's bail out
+                break;
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
         }
         return null;
+    }
+
+    private final boolean _empty(String str)
+    {
+        if (str.length() == 0) return true;
+        str = str.trim();
+        return (str.length() == 0);
+    }
+    
+    private final String _collectUntilTag() throws XMLStreamException
+    {
+        String text = null;
+        while (true) {
+            switch (_xmlReader.next()) {
+            case XMLStreamConstants.START_ELEMENT:
+            case XMLStreamConstants.END_ELEMENT:
+            case XMLStreamConstants.END_DOCUMENT:
+                return (text == null) ? "" : text;
+                // note: SPACE is ignorable (and seldom seen), not to be included
+            case XMLStreamConstants.CHARACTERS:
+            case XMLStreamConstants.CDATA:
+                if (text == null) {
+                    text = _xmlReader.getText();
+                } else { // can be optimized in future, if need be:
+                    text += _xmlReader.getText();
+                }
+                break;
+            default:
+                // any other type (proc instr, comment etc) is just ignored
+            }
+        }
     }
     
     /*
