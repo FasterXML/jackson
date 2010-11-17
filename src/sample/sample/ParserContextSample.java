@@ -33,12 +33,12 @@ public class ParserContextSample
                 desc += "[" + ctxt.getCurrentIndex() + "]";
             }
         } else if (ctxt.inObject()) {
-            // dot used unless we are at root context
-            if (desc.length() > 1) {
-                desc += ".";
-            }
             // we are in object context when object starts, but don't yet have name
             if (currentToken != JsonToken.START_OBJECT) {
+                // dot used unless we are at root context
+                if (desc.length() > 1) {
+                    desc += ".";
+                }
                 desc += ctxt.getCurrentName();
             }
         } else { // root... what to add?

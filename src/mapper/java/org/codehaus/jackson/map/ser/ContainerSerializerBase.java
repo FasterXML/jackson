@@ -13,9 +13,9 @@ public abstract class ContainerSerializerBase<T>
     extends SerializerBase<T>
 {
     /*
-    /*********************************************
+    /**********************************************************
     /* Construction, initialization
-    /*********************************************
+    /**********************************************************
      */
 
     protected ContainerSerializerBase(Class<T> t) {
