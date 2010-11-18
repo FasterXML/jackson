@@ -51,21 +51,21 @@ public final class ClassKey
     }
 
     /*
-    //////////////////////////////////////////////////
-    // Comparable
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Comparable
+    /**********************************************************
      */
 
     public int compareTo(ClassKey other)
     {
-        // Just need to sort by name, ok to collide
+        // Just need to sort by name, ok to collide (unless used in TreeMap/Set!)
         return _className.compareTo(other._className);
     }
 
     /*
-    //////////////////////////////////////////////////
-    // Standard methods
-    //////////////////////////////////////////////////
+    /**********************************************************
+    /* Standard methods
+    /**********************************************************
      */
 
     @Override
@@ -76,9 +76,8 @@ public final class ClassKey
         if (o.getClass() != getClass()) return false;
         ClassKey other = (ClassKey) o;
 
-        /* 09-Dec-2008, tatu: Hmmh. Is it possible to have different Class object
-         *   for same name + class loader combo? Let's assume answer is no: if this
-         *   is wrong, will need to uncomment following functionality
+        /* Is it possible to have different Class object for same name + class loader combo?
+         * Let's assume answer is no: if this is wrong, will need to uncomment following functionality
          */
         /*
         return (other._className.equals(_className))

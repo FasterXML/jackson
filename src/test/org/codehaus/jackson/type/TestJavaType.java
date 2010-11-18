@@ -57,17 +57,6 @@ public class TestJavaType
         } catch (IllegalStateException iae) {
             verifyException(iae, "Trying to reset");
         }
-
-        // and similarly for 1.5...
-        baseType.setTypeHandler("abc"); // untyped
-        assertEquals("abc", baseType.getTypeHandler());
-        // illegal to re-set
-        try {
-            baseType.setTypeHandler("foobar");
-            fail("Shouldn't allow re-setting type handler");
-        } catch (IllegalStateException iae) {
-            verifyException(iae, "Trying to reset");
-        }
     }
 
     public void testMapType()

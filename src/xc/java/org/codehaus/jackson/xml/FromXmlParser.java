@@ -79,8 +79,6 @@ public class FromXmlParser
     /**********************************************************
      */
 
-    final protected XMLStreamReader2 _xmlReader;
-
     /**
      * Bit flag composed of bits that indicate which
      * {@link org.codehaus.jackson.smile.SmileGenerator.Feature}s
@@ -116,20 +114,16 @@ public class FromXmlParser
      * the next token is to be parsed (root, array, object).
      */
     protected JsonReadContext _parsingContext;
+    
+    protected final XmlTokenStream _xmlTokens;
 
     /**
-     * Secondary token related to the next token after current one;
-     * used if its type is known. This may be value token that
-     * follows FIELD_NAME, for example.
+     * We need special handling to keep track of whether a value
+     * may be exposed as simple leaf value.
      */
+    protected boolean _mayBeLeaf;
+
     protected JsonToken _nextToken;
-    
-    /**
-     * Index of the next attribute of the current START_ELEMENT
-     * to return (as field name and value pair), if any; -1
-     * when no attributes to return
-     */
-    protected int _stateAttributeToReturn = -1;
     
     /*
     /**********************************************************
@@ -150,18 +144,6 @@ public class FromXmlParser
      * than once.
      */
     protected byte[] _binaryValue;
-    
-    /**
-     * Sometimes we need to stash attribute or element text value during
-     * traversal
-     */
-    protected String _textValue;
-    
-    /*
-    /**********************************************************
-    /* Additional XML state
-    /**********************************************************
-     */
 
     /*
     /**********************************************************
@@ -176,15 +158,10 @@ public class FromXmlParser
         _xmlFeatures = xmlFeatures;
         _ioContext = ctxt;
         _objectCodec = codec;
-        _xmlReader = Stax2ReaderAdapter.wrapIfNecessary(xmlReader);
         _parsingContext = JsonReadContext.createRootContext(-1, -1);
-        // We should be initialized to START_ELEMENT; let's verify:
-        if (xmlReader.getEventType() != XMLStreamConstants.START_ELEMENT) {
-            throw new IllegalArgumentException("Invalid XMLStreamReader passed: should be pointing to START_ELEMENT ("
-                    +XMLStreamConstants.START_ELEMENT+"), instead got "+xmlReader.getEventType());
-        }
         // and thereby start a scope
         _nextToken = JsonToken.START_OBJECT;
+        _xmlTokens = new XmlTokenStream(xmlReader, ctxt.getSourceReference());
     }
 
     @Override
@@ -226,12 +203,10 @@ public class FromXmlParser
             _closed = true;
             try {
                 if (_ioContext.isResourceManaged() || isEnabled(JsonParser.Feature.AUTO_CLOSE_SOURCE)) {
-                    _xmlReader.closeCompletely();
+                    _xmlTokens.closeCompletely();
                 } else {
-                    _xmlReader.close();
+                    _xmlTokens.close();
                 }
-            } catch (XMLStreamException e) {
-                StaxUtil.throwXmlAsIOException(e);
             } finally {
                 // as per [JACKSON-324], do in finally block
                 // Also, internal buffer(s) can now be released as well
@@ -257,7 +232,7 @@ public class FromXmlParser
     @Override
     public JsonLocation getTokenLocation()
     {
-        return _extractLocation(_xmlReader.getLocationInfo().getStartLocation());
+        return _xmlTokens.getTokenLocation();
     }
 
     /**
@@ -267,7 +242,7 @@ public class FromXmlParser
     @Override
     public JsonLocation getCurrentLocation()
     {
-        return _extractLocation(_xmlReader.getLocationInfo().getCurrentLocation());
+        return _xmlTokens.getCurrentLocation();
     }
     
     @Override
@@ -277,115 +252,71 @@ public class FromXmlParser
             JsonToken t = _nextToken;
             _currToken = t;
             _nextToken = null;
+            switch (t) {
+            case START_OBJECT:
+                _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
+                break;
+            case START_ARRAY:
+                _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
+                break;
+            case END_OBJECT:
+            case END_ARRAY:
+                _parsingContext = _parsingContext.getParent();
+                break;
+            case FIELD_NAME:
+                _parsingContext.setCurrentName(_xmlTokens.getLocalName());
+                break;
+            case VALUE_STRING:
+                // should be fine as is?
+            }
             return t;
         }
-        // Attributes (of current START_ELEMENT) to return?
-        if (_stateAttributeToReturn >= 0) {
-            // either field name or string value...
-            // if at FIELD_NAME, must be string value
-            if (_currToken == JsonToken.FIELD_NAME) { // value
-                _textValue = _xmlReader.getAttributeValue(_stateAttributeToReturn);
-                // Any more attributes to handle?
-                if (++_stateAttributeToReturn >= _xmlReader.getAttributeCount()) { // nope
-                    _stateAttributeToReturn = -1;
-                }
+
+        switch (_xmlTokens.next()) {
+        case XmlTokenStream.XML_START_ELEMENT:
+            // If we thought we might get leaf, no such luck
+            if (_mayBeLeaf) {
+                _mayBeLeaf = false;
+                _nextToken = JsonToken.FIELD_NAME;
+                _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
+                return (_currToken = JsonToken.START_OBJECT);
+            }
+            _parsingContext.setCurrentName(_xmlTokens.getLocalName());
+            _mayBeLeaf = true;
+            return (_currToken = JsonToken.FIELD_NAME);
+            
+        case XmlTokenStream.XML_END_ELEMENT:
+            _parsingContext = _parsingContext.getParent();
+            return (_currToken = JsonToken.END_OBJECT);
+            
+        case XmlTokenStream.XML_ATTRIBUTE_NAME:
+            // If there was a chance of leaf node, no more...
+            if (_mayBeLeaf) {
+                _mayBeLeaf = false;
+                _nextToken = JsonToken.FIELD_NAME;
+                _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
+                return (_currToken = JsonToken.START_OBJECT);
+            }
+            _mayBeLeaf = false;
+            _parsingContext.setCurrentName(_xmlTokens.getLocalName());
+            return (_currToken = JsonToken.FIELD_NAME);
+        case XmlTokenStream.XML_ATTRIBUTE_VALUE:
+            return (_currToken = JsonToken.VALUE_STRING);
+        case XmlTokenStream.XML_TEXT:
+            if (_mayBeLeaf) {
+                _mayBeLeaf = false;
                 return (_currToken = JsonToken.VALUE_STRING);
             }
-            // otherwise, field name
-            _parsingContext.setCurrentName(_xmlReader.getAttributeLocalName(_stateAttributeToReturn));
+            // If not a leaf, need to transform into property...
+            _parsingContext.setCurrentName(UNNAMED_TEXT_PROPERTY);
+            _nextToken = JsonToken.VALUE_STRING;
             return (_currToken = JsonToken.FIELD_NAME);
+        case XmlTokenStream.XML_END:
+            return (_currToken = null);
         }
-
-        // important to know if we just handled attributes; if so, we may have a leaf
-        final int attrCount = (_xmlReader.getEventType() == XMLStreamConstants.START_ELEMENT)
-            ? _xmlReader.getAttributeCount() : -1;
-
-        try {
-            /* Otherwise, need to find next START_ELEMENT, END_ELEMENT, or textual node
-             * (CHARACTERS, or possibly CDATA, although latter should be converted to
-             * CHARACTES) -- ignoring anything else (PROCESSING_INSTRUCTION, COMMENT etc).
-             * 
-             * Main complication is that whitespace indentation may be received as
-             * CHARACTERS, but needs to be skipped.
-             */
-            if (!_xmlReader.hasNext()) {
-                close();
-                _handleEOF();
-                return (_currToken = null);
-            }
-
-            String text = _collectUntilTag();
-            switch (_xmlReader.getEventType()) {
-            case XMLStreamConstants.END_ELEMENT:
-                /* Main possibilities; empty element (attrCount == 0),
-                 * element with just text (attrCount > 0), or
-                 * element that had other elements (attrCount == -1)
-                 */
-                if (attrCount == 0) { // no attributes, but had START_ELEMENT; can return string value
-                    _textValue = text;
-                    return (_currToken = JsonToken.VALUE_STRING);
-                }
-                if (attrCount > 0) { // had attributes beyond START_ELEMENT, must wrap, unless empty String
-                    // empty?
-                    if (_empty(text)) { // actually, we are good...
-                        _textValue = null;
-                        return (_currToken = JsonToken.END_OBJECT);
-                    }
-                    // nope; must create property/value pair...
-                    _nextToken = JsonToken.VALUE_STRING;
-                    _textValue = text;
-                    _parsingContext.setCurrentName(UNNAMED_TEXT_PROPERTY);
-                    return (_currToken = JsonToken.FIELD_NAME);
-                }
-                // did not start with START_ELEMENT, simple
-                _textValue = null;
-                return (_currToken = JsonToken.END_OBJECT);
-                
-            case XMLStreamConstants.START_ELEMENT: // first things first; element name
-                _parsingContext.setCurrentName(_xmlReader.getLocalName());
-                if (_xmlReader.getAttributeCount() > 0) {
-                    _stateAttributeToReturn = 0;
-                }
-                return (_currToken = JsonToken.FIELD_NAME);
-
-            default: // should never occur... let's bail out
-                break;
-            }
-        } catch (XMLStreamException e) {
-            StaxUtil.throwXmlAsIOException(e);
-        }
+        // should never get here
+        _throwInternal();
         return null;
-    }
-
-    private final boolean _empty(String str)
-    {
-        if (str.length() == 0) return true;
-        str = str.trim();
-        return (str.length() == 0);
-    }
-    
-    private final String _collectUntilTag() throws XMLStreamException
-    {
-        String text = null;
-        while (true) {
-            switch (_xmlReader.next()) {
-            case XMLStreamConstants.START_ELEMENT:
-            case XMLStreamConstants.END_ELEMENT:
-            case XMLStreamConstants.END_DOCUMENT:
-                return (text == null) ? "" : text;
-                // note: SPACE is ignorable (and seldom seen), not to be included
-            case XMLStreamConstants.CHARACTERS:
-            case XMLStreamConstants.CDATA:
-                if (text == null) {
-                    text = _xmlReader.getText();
-                } else { // can be optimized in future, if need be:
-                    text += _xmlReader.getText();
-                }
-                break;
-            default:
-                // any other type (proc instr, comment etc) is just ignored
-            }
-        }
     }
     
     /*
@@ -395,21 +326,21 @@ public class FromXmlParser
      */
 
     @Override
-    public String getText() throws IOException, JsonParseException {
-        if (_textValue == null) {
-            _textValue = _xmlReader.getText();
-        }
-        return _textValue;
+    public String getText() throws IOException, JsonParseException
+    {
+        return _xmlTokens.getText();
     }
 
     @Override
     public char[] getTextCharacters() throws IOException, JsonParseException {
-        return getText().toCharArray();
+        String text = _xmlTokens.getText();
+        return (text == null)  ? null : getText().toCharArray();
     }
 
     @Override
     public int getTextLength() throws IOException, JsonParseException {
-        return getText().length();
+        String text = _xmlTokens.getText();
+        return (text == null)  ? 0 : text.length();
     }
 
     @Override
@@ -652,17 +583,6 @@ public class FromXmlParser
     /* Internal methods
     /**********************************************************
      */
-
-    protected JsonLocation _extractLocation(XMLStreamLocation2 location)
-    {
-        if (location == null) { // just for impls that might pass null...
-            return new JsonLocation(_ioContext.getSourceReference(), -1, -1, -1);
-        }
-        return new JsonLocation(_ioContext.getSourceReference(),
-                location.getCharacterOffset(),
-                location.getLineNumber(),
-                location.getColumnNumber());
-    }
 
     /**
      * Method called to release internal buffers owned by the base
