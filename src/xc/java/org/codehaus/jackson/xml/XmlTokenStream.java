@@ -117,11 +117,7 @@ public class XmlTokenStream
     
     public String getText()
     {
-        if (_currentState == XML_ATTRIBUTE_VALUE
-                || _currentState == XML_TEXT) {
-            return _textValue;
-        }
-        return null;
+        return _textValue;
     }
     
     public void closeCompletely() throws IOException
@@ -250,7 +246,6 @@ public class XmlTokenStream
         _attributeCount = _xmlReader.getAttributeCount();
         _localName = _xmlReader.getLocalName();
         _namespaceURI = _xmlReader.getNamespaceURI();
-        _textValue = null;
         return (_currentState = XML_START_ELEMENT);
     }
     
