@@ -109,6 +109,7 @@ public class XmlTokenStream
     }
 
     public int getCurrentToken() { return _currentState; }
+
     public String getText() { return _textValue; }
     public String getLocalName() { return _localName; }
     public String getNamespaceURI() { return _namespaceURI; }

@@ -262,7 +262,7 @@ public class FromXmlParser
             case FIELD_NAME:
                 _parsingContext.setCurrentName(_xmlTokens.getLocalName());
                 break;
-            case VALUE_STRING:
+            default: // VALUE_STRING, VALUE_NULL
                 // should be fine as is?
             }
             return t;
@@ -286,8 +286,7 @@ public class FromXmlParser
             // Simple, except that if this is a leaf, need to suppress end:
             if (_mayBeLeaf) {
                 _mayBeLeaf = false;
-                _currText = "";
-                return (_currToken = JsonToken.VALUE_STRING);
+                return (_currToken = JsonToken.VALUE_NULL);
             }
             _parsingContext = _parsingContext.getParent();
             return (_currToken = JsonToken.END_OBJECT);
@@ -342,7 +341,7 @@ public class FromXmlParser
         case VALUE_STRING:
             return _currText;
         }
-        return null;
+        return (_currToken == null) ? null : _currToken.asString();
     }
 
     @Override
