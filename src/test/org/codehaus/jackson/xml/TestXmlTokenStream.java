@@ -61,4 +61,27 @@ public class TestXmlTokenStream extends main.BaseTest
         assertEquals(XmlTokenStream.XML_END, tokens.next());
     }
 
+    public void testNested() throws Exception
+    {
+        String XML = "<root><a><b><c>abc</c></b></a></root>";
+        XMLStreamReader sr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(XML));
+        sr.nextTag();
+        XmlTokenStream tokens = new XmlTokenStream(sr, XML);
+        assertEquals(XmlTokenStream.XML_START_ELEMENT, tokens.getCurrentToken());
+        assertEquals("root", tokens.getLocalName());
+        assertEquals(XmlTokenStream.XML_START_ELEMENT, tokens.next());
+        assertEquals("a", tokens.getLocalName());
+        assertEquals(XmlTokenStream.XML_START_ELEMENT, tokens.next());
+        assertEquals("b", tokens.getLocalName());
+        assertEquals(XmlTokenStream.XML_START_ELEMENT, tokens.next());
+        assertEquals("c", tokens.getLocalName());
+        assertEquals(XmlTokenStream.XML_TEXT, tokens.next());
+        assertEquals("abc", tokens.getText());
+        assertEquals(XmlTokenStream.XML_END_ELEMENT, tokens.next());
+        assertEquals(XmlTokenStream.XML_END_ELEMENT, tokens.next());
+        assertEquals(XmlTokenStream.XML_END_ELEMENT, tokens.next());
+        assertEquals(XmlTokenStream.XML_END_ELEMENT, tokens.next());
+        assertEquals(XmlTokenStream.XML_END, tokens.next());
+    }
+    
 }

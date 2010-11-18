@@ -273,7 +273,7 @@ public class FromXmlParser
         case XmlTokenStream.XML_START_ELEMENT:
             // If we thought we might get leaf, no such luck
             if (_mayBeLeaf) {
-                _mayBeLeaf = false;
+                // leave _mayBeLeaf set, as we start a new context
                 _nextToken = JsonToken.FIELD_NAME;
                 _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
                 return (_currToken = JsonToken.START_OBJECT);
