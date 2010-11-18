@@ -4,13 +4,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-
-import org.codehaus.stax2.XMLStreamLocation2;
-import org.codehaus.stax2.XMLStreamReader2;
-import org.codehaus.stax2.ri.Stax2ReaderAdapter;
 
 import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.JsonLocation;
@@ -305,6 +299,8 @@ public class FromXmlParser
         case XmlTokenStream.XML_TEXT:
             if (_mayBeLeaf) {
                 _mayBeLeaf = false;
+                // Also: must skip following END_ELEMENT
+                _xmlTokens.skipEndElement();
                 return (_currToken = JsonToken.VALUE_STRING);
             }
             // If not a leaf, need to transform into property...

@@ -68,13 +68,15 @@ public class XmlTokenStream
     public XmlTokenStream(XMLStreamReader xmlReader, Object sourceRef)
     {
         _sourceReference = sourceRef;
-        // We should be initialized to START_ELEMENT; let's verify:
+        // Let's ensure we point to START_ELEMENT...
         if (xmlReader.getEventType() != XMLStreamConstants.START_ELEMENT) {
             throw new IllegalArgumentException("Invalid XMLStreamReader passed: should be pointing to START_ELEMENT ("
                     +XMLStreamConstants.START_ELEMENT+"), instead got "+xmlReader.getEventType());
         }
         _xmlReader = Stax2ReaderAdapter.wrapIfNecessary(xmlReader);
         _currentState = XML_START_ELEMENT;
+        _localName = _xmlReader.getLocalName();
+        _namespaceURI = _xmlReader.getNamespaceURI();
     }
 
     /*
@@ -93,6 +95,20 @@ public class XmlTokenStream
         }
     }
 
+    public void skipEndElement() throws IOException
+    {
+        try {
+            int type = _next();
+            if (type != XML_END_ELEMENT) {
+                throw new IOException("Expected END_ELEMENT, got event of type "+type);
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
+    }
+
+    public int getCurrentToken() { return _currentState; }
+    
     public String getLocalName() { return _localName; }
     public String getNamespaceURI() { return _namespaceURI; }
     public boolean hasAttributes() {
@@ -232,6 +248,9 @@ public class XmlTokenStream
     {
         _nextAttributeIndex = 0;
         _attributeCount = _xmlReader.getAttributeCount();
+        _localName = _xmlReader.getLocalName();
+        _namespaceURI = _xmlReader.getNamespaceURI();
+        _textValue = null;
         return (_currentState = XML_START_ELEMENT);
     }
     
