@@ -184,6 +184,7 @@ public abstract class JavaType
      * @deprecated Used {@link #withTypeHandler} instead -- this method is dangerous as
      *   it changes state, whereas all other functionality is stateless
      */
+    @Deprecated
     public void setTypeHandler(Object h)
     {
         // sanity check, should be assigned just once

@@ -118,6 +118,8 @@ public class FromXmlParser
     protected boolean _mayBeLeaf;
 
     protected JsonToken _nextToken;
+
+    protected String _currText;
     
     /*
     /**********************************************************
@@ -266,7 +268,8 @@ public class FromXmlParser
             return t;
         }
 
-        switch (_xmlTokens.next()) {
+        int token = _xmlTokens.next();
+        switch (token) {
         case XmlTokenStream.XML_START_ELEMENT:
             // If we thought we might get leaf, no such luck
             if (_mayBeLeaf) {
@@ -280,6 +283,12 @@ public class FromXmlParser
             return (_currToken = JsonToken.FIELD_NAME);
             
         case XmlTokenStream.XML_END_ELEMENT:
+            // Simple, except that if this is a leaf, need to suppress end:
+            if (_mayBeLeaf) {
+                _mayBeLeaf = false;
+                _currText = "";
+                return (_currToken = JsonToken.VALUE_STRING);
+            }
             _parsingContext = _parsingContext.getParent();
             return (_currToken = JsonToken.END_OBJECT);
             
@@ -288,6 +297,7 @@ public class FromXmlParser
             if (_mayBeLeaf) {
                 _mayBeLeaf = false;
                 _nextToken = JsonToken.FIELD_NAME;
+                _currText = _xmlTokens.getText();
                 _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
                 return (_currToken = JsonToken.START_OBJECT);
             }
@@ -295,8 +305,10 @@ public class FromXmlParser
             _parsingContext.setCurrentName(_xmlTokens.getLocalName());
             return (_currToken = JsonToken.FIELD_NAME);
         case XmlTokenStream.XML_ATTRIBUTE_VALUE:
+            _currText = _xmlTokens.getText();
             return (_currToken = JsonToken.VALUE_STRING);
         case XmlTokenStream.XML_TEXT:
+            _currText = _xmlTokens.getText();
             if (_mayBeLeaf) {
                 _mayBeLeaf = false;
                 // Also: must skip following END_ELEMENT
@@ -324,18 +336,24 @@ public class FromXmlParser
     @Override
     public String getText() throws IOException, JsonParseException
     {
-        return _xmlTokens.getText();
+        switch (_currToken) {
+        case FIELD_NAME:
+            return getCurrentName();
+        case VALUE_STRING:
+            return _currText;
+        }
+        return null;
     }
 
     @Override
     public char[] getTextCharacters() throws IOException, JsonParseException {
-        String text = _xmlTokens.getText();
-        return (text == null)  ? null : getText().toCharArray();
+        String text = getText();
+        return (text == null)  ? null : text.toCharArray();
     }
 
     @Override
     public int getTextLength() throws IOException, JsonParseException {
-        String text = _xmlTokens.getText();
+        String text = getText();
         return (text == null)  ? 0 : text.length();
     }
 

@@ -77,6 +77,7 @@ public class XmlTokenStream
         _currentState = XML_START_ELEMENT;
         _localName = _xmlReader.getLocalName();
         _namespaceURI = _xmlReader.getNamespaceURI();
+        _attributeCount = _xmlReader.getAttributeCount();
     }
 
     /*
@@ -108,16 +109,11 @@ public class XmlTokenStream
     }
 
     public int getCurrentToken() { return _currentState; }
-    
+    public String getText() { return _textValue; }
     public String getLocalName() { return _localName; }
     public String getNamespaceURI() { return _namespaceURI; }
     public boolean hasAttributes() {
         return (_currentState == XML_START_ELEMENT) && (_attributeCount > 0);
-    }
-    
-    public String getText()
-    {
-        return _textValue;
     }
     
     public void closeCompletely() throws IOException
@@ -239,7 +235,7 @@ public class XmlTokenStream
     /* Internal methods, other
     /**********************************************************
      */
-
+    
     private final int _initStartElement() throws XMLStreamException
     {
         _nextAttributeIndex = 0;

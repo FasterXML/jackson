@@ -27,4 +27,38 @@ public class TestXmlTokenStream extends main.BaseTest
         assertEquals(XmlTokenStream.XML_END_ELEMENT, tokens.next());
         assertEquals(XmlTokenStream.XML_END, tokens.next());
     }
+
+    public void testRootAttributes() throws Exception
+    {
+        String XML = "<root id='x' />";
+        XMLStreamReader sr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(XML));
+        // must point to START_ELEMENT, so:
+        sr.nextTag();
+        XmlTokenStream tokens = new XmlTokenStream(sr, XML);
+        assertEquals(XmlTokenStream.XML_START_ELEMENT, tokens.getCurrentToken());
+        assertEquals("root", tokens.getLocalName());
+        assertEquals(XmlTokenStream.XML_ATTRIBUTE_NAME, tokens.next());
+        assertEquals("id", tokens.getLocalName());
+        assertEquals(XmlTokenStream.XML_ATTRIBUTE_VALUE, tokens.next());
+        assertEquals("x", tokens.getText());
+        assertEquals(XmlTokenStream.XML_END_ELEMENT, tokens.next());
+        assertEquals(XmlTokenStream.XML_END, tokens.next());
+    }
+    
+    public void testEmptyTags() throws Exception
+    {
+        String XML = "<root><leaf /></root>";
+        XMLStreamReader sr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(XML));
+        // must point to START_ELEMENT, so:
+        sr.nextTag();
+        XmlTokenStream tokens = new XmlTokenStream(sr, XML);
+        assertEquals(XmlTokenStream.XML_START_ELEMENT, tokens.getCurrentToken());
+        assertEquals("root", tokens.getLocalName());
+        assertEquals(XmlTokenStream.XML_START_ELEMENT, tokens.next());
+        assertEquals("leaf", tokens.getLocalName());
+        assertEquals(XmlTokenStream.XML_END_ELEMENT, tokens.next());
+        assertEquals(XmlTokenStream.XML_END_ELEMENT, tokens.next());
+        assertEquals(XmlTokenStream.XML_END, tokens.next());
+    }
+
 }
