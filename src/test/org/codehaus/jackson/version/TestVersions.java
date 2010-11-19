@@ -20,6 +20,12 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
  */
 public class TestVersions extends main.BaseTest
 {
+    /**
+     * 18-Nov-2010, tatu: Not a good to do this, but has to do, for now...
+     */
+    private final static int MAJOR_VERSION = 1;
+    private final static int MINOR_VERSION = 7;
+    
     public void testCoreVersions()
     {
         /* 01-Sep-2010, tatu: Somewhat of a dirty hack; let's only run when specific system
@@ -28,9 +34,13 @@ public class TestVersions extends main.BaseTest
          */
         if (runsFromAnt()) {
             System.out.println("Note: running version tests (FROM_ANT=true)");
-            assertVersion(new JsonFactory().version(), 1, 6);
-            assertVersion(new ReaderBasedParser(getIOContext(), 0, null, null, null).version(), 1, 6);
-            assertVersion(new WriterBasedGenerator(getIOContext(), 0, null, null).version(), 1, 6);
+            assertVersion(new JsonFactory().version(), MAJOR_VERSION, MINOR_VERSION);
+            assertVersion(new ReaderBasedParser(getIOContext(), 0, null, null, null).version(),
+                    MAJOR_VERSION, MINOR_VERSION);
+            assertVersion(new WriterBasedGenerator(getIOContext(), 0, null, null).version(),
+                    MAJOR_VERSION, MINOR_VERSION);
+        } else {
+            System.out.println("Skipping version test (FROM_ANT=false)");
         }
     }
 
@@ -38,39 +48,41 @@ public class TestVersions extends main.BaseTest
     {
         if (runsFromAnt()) {
             ObjectMapper mapper = new ObjectMapper();
-            assertVersion(mapper.version(), 1, 6);
-            assertVersion(mapper.writer().version(), 1, 6);
-            assertVersion(mapper.reader().version(), 1, 6);
+            assertVersion(mapper.version(), MAJOR_VERSION, MINOR_VERSION);
+            assertVersion(mapper.writer().version(), MAJOR_VERSION, MINOR_VERSION);
+            assertVersion(mapper.reader().version(), MAJOR_VERSION, MINOR_VERSION);
         }
     }
 
     public void testXcVersions()
     {
         if (runsFromAnt()) {
-            assertVersion(new JaxbAnnotationIntrospector().version(), 1, 6);
+            assertVersion(new JaxbAnnotationIntrospector().version(), MAJOR_VERSION, MINOR_VERSION);
         }
     }
 
     public void testJaxRsVersions()
     {
         if (runsFromAnt()) {
-            assertVersion(new JacksonJsonProvider().version(), 1, 6);
+            assertVersion(new JacksonJsonProvider().version(), MAJOR_VERSION, MINOR_VERSION);
         }
     }
 
     public void testSmileVersions()
     {
         if (runsFromAnt()) {
-            assertVersion(new SmileFactory().version(), 1, 6);
-            assertVersion(new SmileGenerator(getIOContext(), 0, 0, null, null).version(), 1, 6);
-            assertVersion(new SmileParser(getIOContext(), 0, 0, null, null, null, null, 0, 0, false).version(), 1, 6);
+            assertVersion(new SmileFactory().version(), MAJOR_VERSION, MINOR_VERSION);
+            assertVersion(new SmileGenerator(getIOContext(), 0, 0, null, null).version(),
+                    MAJOR_VERSION, MINOR_VERSION);
+            assertVersion(new SmileParser(getIOContext(), 0, 0, null, null, null, null, 0, 0, false).version(),
+                    MAJOR_VERSION, MINOR_VERSION);
         }
     }
 
     public void testMrBeanVersions()
     {
         if (runsFromAnt()) {
-            assertVersion(new AbstractTypeMaterializer().version(), 1, 6);
+            assertVersion(new AbstractTypeMaterializer().version(), MAJOR_VERSION, MINOR_VERSION);
         }
     }
 

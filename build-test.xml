@@ -100,7 +100,6 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
     <target name="test.run.main" depends="test.compile">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
         <junit fork="no" printsummary="yes" haltonfailure="no" showoutput="yes">
-        	<sysproperty key="FROM_ANT" value="true"/>
             <batchtest fork="no" todir="${dir.test.xmlresults}">
                 <fileset dir="${dir.test.classes}">
                     <!-- Need to exclude inner classes... -->
@@ -184,6 +183,7 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
 
     <target name="test.run.versions" depends="test.compile">
         <junit fork="yes" printsummary="yes" haltonfailure="no" showoutput="yes">
+            <sysproperty key="FROM_ANT" value="true"/>
             <batchtest fork="no" todir="${dir.test.xmlresults}">
                 <fileset dir="${dir.test.classes}">
                     <include name="org/codehaus/jackson/version/*.class"/>
