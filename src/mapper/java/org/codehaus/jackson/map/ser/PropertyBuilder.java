@@ -132,12 +132,20 @@ public class PropertyBuilder
         // [JACKSON-120]: Check to see if serialization type is fixed
         Class<?> serializationType = _annotationIntrospector.findSerializationType(a);
         if (serializationType != null) {
-            // Must be a super type...
+            // Must be a super type to be usable
             Class<?> raw = a.getRawType();
-            if (!serializationType.isAssignableFrom(raw)) {
+            if (serializationType.isAssignableFrom(raw)) {
+                return TypeFactory.type(serializationType);
+            }
+            /* 18-Nov-2010, tatu: Related to fixing [JACKSON-416], an issue with such
+             *   check is that for deserialization more specific type makes sense;
+             *   and for serialization more generic. But alas JAXB uses but a single
+             *   annotation to do both... Hence, we must just discard type, as long as
+             *   types are related
+             */
+            if (!raw.isAssignableFrom(serializationType)) {
                 throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+a.getName()+"': class "+serializationType.getName()+" not a super-type of (declared) class "+raw.getName());
             }
-            return TypeFactory.type(serializationType);
         }
         /* [JACKSON-114]: if using static typing, declared type is known
          * to be the type...

@@ -24,6 +24,7 @@ Description:
     value into JSON
    (contributed by Ga�l Marziou)
   * [JACKSON-405]: Add smile command-line tool for manua Smile encoding/decoding
+  * [JACKSON-419] Add SmileGenerator.writeRaw(byte)
 
 ------------------------------------------------------------------------
 == History: ==

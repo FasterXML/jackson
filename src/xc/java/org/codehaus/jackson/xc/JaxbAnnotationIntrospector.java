@@ -519,10 +519,15 @@ public class JaxbAnnotationIntrospector
     @Override
     public Class<?> findSerializationType(Annotated a)
     {
-        /* 15-Feb-2010, tatu: May need to support in future; if so, would make use of
-         *    @XmlElement annotation. Reason it is not (yet) needed is that serialization
-         *    uses dynamic runtime types
+        // As per [JACKSON-416], need to allow coercing serialization type...
+        /* false for class, package, super-class, since annotation can
+         * only be attached to fields and methods
          */
+        // Note: caller does necessary sub/supertype checks
+        XmlElement annotation = findAnnotation(XmlElement.class, a, false, false, false);
+        if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
+            return annotation.type();
+        }
         return null;
     }
 

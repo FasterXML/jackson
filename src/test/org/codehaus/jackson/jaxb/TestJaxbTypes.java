@@ -105,7 +105,7 @@ public class TestJaxbTypes
 
     	public void setId(String id) { this.id = id; }
     }
-    
+
     /*
     /**********************************************************
     /* Unit tests
