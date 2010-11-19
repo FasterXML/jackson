@@ -18,9 +18,9 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
  * plugged-in dynamically.
  *<p>
  * NOTE: due to rapid addition of new methods (and changes to existing methods),
- * it is <b>strongly</b> recommended that custom implementations not directly
- * extends this class, but rather {@link NopAnnotationIntrospector}. This way
- * added methods will not break backwards compatibility of custom annotation
+ * it is <b>strongly</b> recommended that custom implementations should not directly
+ * extend this class, but rather extend {@link NopAnnotationIntrospector}.
+ * This way added methods will not break backwards compatibility of custom annotation
  * introspectors.
  */
 public abstract class AnnotationIntrospector

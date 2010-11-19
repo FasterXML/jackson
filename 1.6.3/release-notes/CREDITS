@@ -462,7 +462,13 @@ Claudio Rossetto:
     properly handled with package-level annotations
    [1.6.3]
 
+Sean Parmelee:
+  * Reported [JACKSON-416]: XmlElement.type() doesn't override type during
+    serialization
+   [1.6.3]
+
 Joe Jensen:
   * Reported [JACKSON-417] Deserialization of "native" types (String, Integer,
     Boolean) failed with abstract types
    [1.6.3]
+
