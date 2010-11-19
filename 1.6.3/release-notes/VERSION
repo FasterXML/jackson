@@ -1,4 +1,4 @@
-Version: 1.6.2
+Version: 1.6.3
 
 Release date:
   xx-Dec-2010
@@ -10,6 +10,9 @@ Description:
 
   * [JACKSON-228] XmlJavaTypeAdapter, package-level annotations not working
    (reported by Claudio R)
+  * [JACKSON-417] Deserialization of "native" types (String, Integer, Boolean)
+    failed with abstract types
+   (reported by Joe J)
 
 ------------------------------------------------------------------------
 == History: ==

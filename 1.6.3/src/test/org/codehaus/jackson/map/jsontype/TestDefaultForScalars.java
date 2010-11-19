@@ -16,6 +16,17 @@ import org.codehaus.jackson.map.*;
 public class TestDefaultForScalars
     extends BaseMapTest
 {
+    static class Jackson417Bean {
+        public String foo = "bar";
+        public java.io.Serializable bar = new Integer(13);
+    }
+
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+    
     /**
      * Unit test to verify that limited number of core types do NOT include
      * type information, even if declared as Object. This is only done for types
@@ -82,5 +93,19 @@ public class TestDefaultForScalars
         // and should deserialize back as well:
         Object[] output = m.readValue(json, Object[].class);
         assertArrayEquals(input, output);
+    }
+
+    /**
+     * Loosely scalar; for [JACKSON-417]
+     */
+    public void test417() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.enableDefaultTyping();
+        Jackson417Bean input = new Jackson417Bean();
+        String json = m.writeValueAsString(input);
+        Jackson417Bean result = m.readValue(json, Jackson417Bean.class);
+        assertEquals(input.foo, result.foo);
+        assertEquals(input.bar, result.bar);
     }
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.type.JavaType;
 
@@ -32,7 +33,51 @@ public class AbstractDeserializer
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException
     {
-        // should we check that type is as expected?
+        /* As per [JACKSON-417], there is a chance we might be "native" types (String, Boolean,
+         * Integer), which do not include any type information...
+         */
+        switch (jp.getCurrentToken()) {
+        /* First, so-called "native" types (ones that map
+         * naturally and thus do not need or use type ids)
+         */
+        case VALUE_STRING:
+            return jp.getText();
+
+        case VALUE_NUMBER_INT:
+            // For [JACKSON-100], see above:
+            if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_INTEGER_FOR_INTS)) {
+                return jp.getBigIntegerValue();
+            }
+            return jp.getIntValue();
+
+        case VALUE_NUMBER_FLOAT:
+            // For [JACKSON-72], see above
+            if (ctxt.isEnabled(DeserializationConfig.Feature.USE_BIG_DECIMAL_FOR_FLOATS)) {
+                return jp.getDecimalValue();
+            }
+            return Double.valueOf(jp.getDoubleValue());
+
+        case VALUE_TRUE:
+            return Boolean.TRUE;
+        case VALUE_FALSE:
+            return Boolean.FALSE;
+        case VALUE_EMBEDDED_OBJECT:
+            return jp.getEmbeddedObject();
+
+        case VALUE_NULL: // should not get this far really but...
+            return null;
+
+            // and then most common parts, wrappers...
+            /*
+        case START_ARRAY:
+        case START_OBJECT:
+        case FIELD_NAME:
+             */
+        }
+
+        // should we call 'fromAny' or 'fromObject'? We should get an object, for abstract types, right?
+        //return typeDeserializer.deserializeTypedFromAny(jp, ctxt);
+
         return typeDeserializer.deserializeTypedFromObject(jp, ctxt);
     }
 

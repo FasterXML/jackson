@@ -34,8 +34,7 @@ public class UntypedObjectDeserializer
         throws IOException, JsonProcessingException
     {
         switch (jp.getCurrentToken()) {
-            
-            // first, simple types:
+        // first, simple types:
         case VALUE_STRING:
             return jp.getText();
 

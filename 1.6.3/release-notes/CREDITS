@@ -461,3 +461,8 @@ Claudio Rossetto:
   * Reported [JACKSON-228], suggested correct solution: XmlJavaTypeAdapter not
     properly handled with package-level annotations
    [1.6.3]
+
+Joe Jensen:
+  * Reported [JACKSON-417] Deserialization of "native" types (String, Integer,
+    Boolean) failed with abstract types
+   [1.6.3]
