@@ -302,6 +302,9 @@ Raymond Feng:
   * Reported [JACKSON-269]: missing OSGi export by mapper (o.c.j.m.jsontype.impl)
     needed by jackson-xc module
    [1.5.1]
+  * Reported [JACKSON-411]: Problems with JAXB, XmlJavaTypeAdapter, package-level
+    annotations
+   [1.6.3]
 
 Martin Tomko:
   * Reported [JACKSON-266] Deserialization from JsonNode fails
