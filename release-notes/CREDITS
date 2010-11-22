@@ -432,6 +432,38 @@ Bruce Ritchie:
    * Reported [JACKSON-384] @JsonAnyGetter values were duplicated if method name was valid
      as a regular getter name
    [1.6.1]
+
+Patrick Ryan:
+  * Reported [JACKSON-366] Type metadata not written for empty beans
+   [1.6.2]
+
+Manuel Alejandro de Brito Fontes:
+  * Reported [JACKSON-403]: XMLGregorianCalendar could not be deserialized from timestamp
+   [1.6.2]
+
+Davide:
+  * Reported [JACKSON-404]: Problem with XmlAdapter, generic types, deserialization
+   [1.6.2]
+
+Kent Rancourt:
+  * Reported [JACKSON-288]: Problems with JAXB annotation handling for combination of
+   @XmlJavaTypeAdapter, @XmlElement
+    [1.6.2]
+
+Claudio Rossetto:
+  * Reported [JACKSON-228], suggested correct solution: XmlJavaTypeAdapter not
+    properly handled with package-level annotations
+   [1.6.3]
+
+Sean Parmelee:
+  * Reported [JACKSON-416]: XmlElement.type() doesn't override type during
+    serialization
+   [1.6.3]
+
+Joe Jensen:
+  * Reported [JACKSON-417] Deserialization of "native" types (String, Integer,
+    Boolean) failed with abstract types
+   [1.6.3]
    
 Ga‘l Marziou:   
   * Contributed [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual

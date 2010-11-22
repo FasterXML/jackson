@@ -1127,7 +1127,12 @@ public class JaxbAnnotationIntrospector
     @SuppressWarnings("unchecked")
     protected XmlAdapter<Object,Object> findAdapterForClass(AnnotatedClass ac, boolean forSerialization)
     {
-        XmlJavaTypeAdapter adapterInfo = ac.getAnnotation(XmlJavaTypeAdapter.class);
+        /* As per [JACKSON-411], XmlJavaTypeAdapter should not be inherited from super-class.
+         * It would still be nice to be able to use mix-ins; but unfortunately we seem to lose
+         * knowledge of class that actually declared the annotation. Thus, we'll only accept
+         * declaration from specific class itself.
+         */
+        XmlJavaTypeAdapter adapterInfo = ac.getAnnotated().getAnnotation(XmlJavaTypeAdapter.class);
         if (adapterInfo != null) { // should we try caching this?
             Class<? extends XmlAdapter> cls = adapterInfo.value();
             return ClassUtil.createInstance(cls, false);

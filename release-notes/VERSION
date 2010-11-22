@@ -30,6 +30,35 @@ Description:
 == History: ==
 ------------------------------------------------------------------------
 
+1.6.2 [02-Nov-2010]
+
+  Fixes:
+
+  * [JACKSON-288] Problems with JAXB annotation handling for combination of
+   @XmlJavaTypeAdapter, @XmlElement
+    (reported by Kent R)
+  * [JACKSON-366] Type metadata not written for empty beans
+   (reported by Patrick R)
+  * [JACKSON-388] Deserialization of Throwable fails with Inclusion.NON_NULL
+   (reported by Kirill S)
+  * [JACKSON-391] ObjectReader.withValueUpdate() passing wrong object
+   (reported by Kurtis)
+  * [JACKSON-392] Beans with only @JsonAnyGetter fail on serialization
+   (reported by Kirill S)
+  * [JACKSON-395]: JsonParser.getCurrentName() not working with
+    JsonParser.nextValue() for nested JSON Arrays, Objects
+  * [JACKSON-397] Reverted most of [JACKSON-371] from 1.6 branch, since it caused
+    externally visible change in exception handling; behavior now back to 1.6.0
+    (will change to catch and rethrow in 1.7.0)
+   (reported by Jon Berg)
+  * [JACKSON-398]: Root type information not correctly passed by
+    ObjectWriter when using JsonGenerator
+    (reported by Kirill S)
+  * [JACKSON-403]: XMLGregorianCalendar could not be deserialized from timestamp
+    (reported by Manual F)
+  * [JACKSON-404] Problem with XmlAdapter, generic types, deserialization
+    (reported by Davide)
+
 1.6.1 [06-Oct-2010]
 
   Fixes:
