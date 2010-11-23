@@ -68,6 +68,11 @@ public class BeanSerializerFactory
      */
     protected BeanSerializerFactory() { }
 
+    public SerializerFactory withAdditionalSerializers(Serializers additionalSerializer) {
+        // @TODO: Implement!
+        throw new UnsupportedOperationException();
+    }
+    
     /*
     /**********************************************************
     /* JsonSerializerFactory impl

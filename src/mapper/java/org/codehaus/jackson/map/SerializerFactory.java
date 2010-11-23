@@ -62,4 +62,21 @@ public abstract class SerializerFactory
         // Default implementation returns null for backwards compatibility reasons.
         return null;
     }
+
+    /*
+    /********************************************************
+    /* Additional configuration
+    /********************************************************
+     */
+
+    /**
+     * Method that can be used to register additional serializers to be provided;
+     * will return a factory that uses specified provider, usually a newly
+     * constructed factory instance.
+     * 
+     * @since 1.7
+     */
+    public SerializerFactory withAdditionalSerializers(Serializers additionalSerializer) {
+        throw new UnsupportedOperationException();
+    }
 }

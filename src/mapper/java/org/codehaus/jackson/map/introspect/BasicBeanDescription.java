@@ -60,8 +60,6 @@ public class BasicBeanDescription extends BeanDescription
     /**********************************************************
      */
 
-    public AnnotatedClass getClassInfo() { return _classInfo; }
-
     /**
      * Method for checking whether class being described has any
      * annotations recognized by registered annotation introspector.
@@ -69,6 +67,8 @@ public class BasicBeanDescription extends BeanDescription
     public boolean hasKnownClassAnnotations() {
         return _classInfo.hasAnnotations();
     }
+    
+    public AnnotatedClass getClassInfo() { return _classInfo; }
 
     public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
     {
@@ -105,6 +105,7 @@ public class BasicBeanDescription extends BeanDescription
         }
     }
 
+    @Override
     public TypeBindings bindingsForBeanType()
     {
         if (_bindings == null) {

@@ -4,20 +4,24 @@ import java.util.*;
 
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
+import org.codehaus.jackson.map.type.TypeBindings;
 import org.codehaus.jackson.type.JavaType;
 
 /**
  * Basic container for information gathered by {@link ClassIntrospector} to
  * help in constructing serializers and deserializers.
+ * Note that the main implementation type is
+ * {@link org.codehaus.jackson.map.introspect.BasicBeanDescription},
+ * meaning that it is safe to upcast to this type.
  * 
  * @author tatu
  */
 public abstract class BeanDescription
 {
     /*
-    /******************************************************
+    /**********************************************************
     /* Configuration
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -27,9 +31,9 @@ public abstract class BeanDescription
     protected final JavaType _type;
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Life-cycle
-    /******************************************************
+    /**********************************************************
      */
 
     protected BeanDescription(JavaType type)
@@ -38,9 +42,9 @@ public abstract class BeanDescription
     }
 
     /*
-    /******************************************************
+    /**********************************************************
     /* Simple accesors
-    /******************************************************
+    /**********************************************************
      */
 
     /**
@@ -50,13 +54,22 @@ public abstract class BeanDescription
     public JavaType getType() { return _type; }
 
     public Class<?> getBeanClass() { return _type.getRawClass(); }
-   
+
+    public abstract boolean hasKnownClassAnnotations();
+    
     /*
-    /******************************************************
+    /**********************************************************
     /* Basic API
-    /******************************************************
+    /**********************************************************
      */
 
+    /**
+     * Accessor for type bindings that may be needed to fully resolve
+     * types of member object, such as return and argument types of
+     * methods and constructors, and types of fields.
+     */
+    public abstract TypeBindings bindingsForBeanType();
+    
     /**
      * @param visibilityChecker Object that determines whether
      *    methods have enough visibility to be auto-detectable as getters
