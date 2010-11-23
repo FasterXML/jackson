@@ -536,6 +536,51 @@ public class ObjectMapper
     public void registerSubtypes(NamedType... types) {
         getSubtypeResolver().registerSubtypes(types);
     }
+
+    /**
+     * Method for registering a module that can extend functionality
+     * provided by this mapper; for example, by adding providers for
+     * custom serializers and deserializers.
+     * 
+     * @param module Module to register
+     * 
+     * @since 1.7
+     */
+    public void registerModule(Module module)
+    {
+        /* Let's ensure we have access to name and version information, 
+         * even if we do not have immediate use for either. This way we know
+         * that they will be available from beginning
+         */
+        String name = module.getModuleName();
+        if (name == null) {
+            throw new IllegalArgumentException("Module without defined name");
+        }
+        Version version = module.version();
+        if (version == null) {
+            throw new IllegalArgumentException("Module without defined version");
+        }
+
+        final ObjectMapper mapper = this;
+        
+        // And then call registration
+        module.setupModule(new Module.SetupContext() {
+            @Override
+            public Version getMapperVersion() {
+                return version();
+            }
+            
+            @Override
+            public void addSerializers(Serializers s) {
+                mapper._serializerFactory = mapper._serializerFactory.withAdditionalSerializers(s);
+            }
+            
+            @Override
+            public void addDeserializers(Deserializers d) {
+                // TODO Auto-generated method stub
+            }
+        });
+    }
     
     /*
     /**********************************************************

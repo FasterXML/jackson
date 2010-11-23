@@ -69,7 +69,7 @@ public abstract class Module
          * @param s Object that can be called to find serializer for types supported
          *   by module (null returned for non-supported types)
          */
-        public void addDeserializers(Serializers s);
+        public void addSerializers(Serializers s);
     
     }
 }

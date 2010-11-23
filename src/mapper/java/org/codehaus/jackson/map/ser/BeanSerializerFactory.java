@@ -44,6 +44,11 @@ import org.codehaus.jackson.type.JavaType;
  * (not factory) and there is no configurability, this
  * factory is stateless.
  * This means that a global singleton instance can be used.
+ *<p>
+ * Notes for version 1.7 (and above): the new module registration system
+ * required addition of {@link #withAdditionalSerializers}, which has to
+ * be redefined by sub-classes so that they can work properly with
+ * pluggable additional serializer providing components.
  */
 public class BeanSerializerFactory
     extends BasicSerializerFactory
@@ -53,24 +58,60 @@ public class BeanSerializerFactory
      * thus a single shared global (== singleton) instance can be used
      * without thread-safety issues.
      */
-    public final static BeanSerializerFactory instance = new BeanSerializerFactory();
+    public final static BeanSerializerFactory instance = new BeanSerializerFactory(null);
 
+    /**
+     * Provider for additional serializers, checked before considering default
+     * basic or bean serialializers.
+     * 
+     * @since 1.7
+     */
+    protected final Serializers _additionalSerializers;
+    
     /*
     /**********************************************************
     /* Life cycle
     /**********************************************************
      */
 
-    /**
-     * We will provide default constructor to allow sub-classing,
-     * but make it protected so that no non-singleton instances of
-     * the class will be instantiated.
-     */
-    protected BeanSerializerFactory() { }
+    protected BeanSerializerFactory() { this(null); }
 
-    public SerializerFactory withAdditionalSerializers(Serializers additionalSerializer) {
-        // @TODO: Implement!
-        throw new UnsupportedOperationException();
+    protected BeanSerializerFactory(Serializers additionalSer) {
+        _additionalSerializers = additionalSer;
+    }
+    
+    /**
+     * Method used by module registration functionality, to attach additional
+     * serializer providers into this serializer factory. This is typically
+     * handled by constructing a new instance with additional serializers,
+     * to ensure thread-safe access.
+     * 
+     * @since 1.7
+     */
+    public SerializerFactory withAdditionalSerializers(Serializers additionalSerializers)
+    {
+        /* 22-Nov-2010, tatu: Handling of subtypes is tricky if we do immutable-with-copy-ctor;
+         *    and we pretty much have to here either choose between losing subtype instance
+         *    when registering additional serializers, or losing serializers.
+         *    
+         *    Instead, let's actually just throw an error if this method is called when subtype
+         *    has not properly overridden this method, as that is better alternative than
+         *    continue with what is almost certainly broken or invalid configuration.
+         */
+        if (getClass() != BeanSerializerFactory.class) {
+            throw new IllegalStateException("Subtype of BeanSerializerFactory ("+getClass().getName()
+                    +") has not properly overridden method 'withAdditionalSerializers': can not instantiate subtype with "
+                    +"additional serializer definitions");
+        }
+        
+        Serializers s;
+        
+        if (_additionalSerializers == null) {
+            s = additionalSerializers;
+        } else {
+            s = new Serializers.Pair(additionalSerializers, _additionalSerializers);
+        }
+        return new BeanSerializerFactory(s);
     }
     
     /*
@@ -99,23 +140,29 @@ public class BeanSerializerFactory
         BasicBeanDescription beanDesc = config.introspect(type);
         JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ser == null) {
-            // First, fast lookup for exact type:
-            ser = super.findSerializerByLookup(type, config, beanDesc);
+            // 22-Nov-2010, tatu: Ok: additional module-provided serializers to consider?
+            if (_additionalSerializers != null) {
+                ser = _additionalSerializers.findSerializer(type, config, beanDesc);
+            }
             if (ser == null) {
-                // and then introspect for some safe (?) JDK types
-                ser = super.findSerializerByPrimaryType(type, config, beanDesc);
+                // First, fast lookup for exact type:
+                ser = super.findSerializerByLookup(type, config, beanDesc);
                 if (ser == null) {
-                    /* And this is where this class comes in: if type is
-                     * not a known "primary JDK type", perhaps it's a bean?
-                     * We can still get a null, if we can't find a single
-                     * suitable bean property.
-                     */
-                    ser = this.findBeanSerializer(type, config, beanDesc);
-                    /* Finally: maybe we can still deal with it as an
-                     * implementation of some basic JDK interface?
-                     */
+                    // and then introspect for some safe (?) JDK types
+                    ser = super.findSerializerByPrimaryType(type, config, beanDesc);
                     if (ser == null) {
-                        ser = super.findSerializerByAddonType(type, config, beanDesc);
+                        /* And this is where this class comes in: if type is
+                         * not a known "primary JDK type", perhaps it's a bean?
+                         * We can still get a null, if we can't find a single
+                         * suitable bean property.
+                         */
+                        ser = this.findBeanSerializer(type, config, beanDesc);
+                        /* Finally: maybe we can still deal with it as an
+                         * implementation of some basic JDK interface?
+                         */
+                        if (ser == null) {
+                            ser = super.findSerializerByAddonType(type, config, beanDesc);
+                        }
                     }
                 }
             }
