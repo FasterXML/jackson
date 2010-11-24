@@ -127,8 +127,6 @@ public class TestWithGenerics extends BaseMapTest
 
         String str = om.writeValueAsString( mc );
 
-        System.out.println( str );
-
         MyClass mc2 = om.readValue( str, MyClass.class );
         assertNotNull(mc2);
     }

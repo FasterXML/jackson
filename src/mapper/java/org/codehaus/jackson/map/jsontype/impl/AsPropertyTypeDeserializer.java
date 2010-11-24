@@ -93,6 +93,12 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
     public Object deserializeTypedFromAny(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
+        /* [JACKSON-387]: Sometimes, however, we get an array wrapper; specifically
+         *   when an array or list has been serialized with type information.
+         */
+        if (jp.getCurrentToken() == JsonToken.START_ARRAY) {
+            return super.deserializeTypedFromArray(jp, ctxt);
+        }
         return deserializeTypedFromObject(jp, ctxt);
     }    
     
