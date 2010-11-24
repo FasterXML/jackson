@@ -156,6 +156,10 @@ public class BasicSerializerFactory
         _concreteLazy.put(TokenBuffer.class.getName(), StdSerializers.TokenBufferSerializer.class);
     }
 
+    /**
+     * Helper object used to deal with serializers for optional JDK types (like ones
+     * omitted from GAE, Android)
+     */
     protected OptionalHandlerFactory optionalHandlers = OptionalHandlerFactory.instance;
 
     /*
@@ -168,7 +172,10 @@ public class BasicSerializerFactory
      * Stateless global singleton instance that should be used
      * for factories that want to use delegation to access
      * standard serializers.
+     * 
+     * @deprecated Since 1.7, this instance should not be used; instead, just 
      */
+    @Deprecated
     public final static BasicSerializerFactory instance = new BasicSerializerFactory();
 
     /**
@@ -185,11 +192,7 @@ public class BasicSerializerFactory
      */
 
     /**
-     * Main serializer constructor method. The base implementation within
-     * this class first calls a fast lookup method that can find serializers
-     * for well-known JDK classes; and if that fails, a slower one that
-     * tries to check out which interfaces given Class implements.
-     * Sub-classes can (and do) change this behavior to alter behavior.
+     * Implementation calls {@link #createSerializer(JavaType, SerializationConfig)}.
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -198,6 +201,13 @@ public class BasicSerializerFactory
         return (JsonSerializer<T>) createSerializer(TypeFactory.type(type), config);
     }
 
+    /**
+     * Main serializer constructor method. The base implementation within
+     * this class first calls a fast lookup method that can find serializers
+     * for well-known JDK classes; and if that fails, a slower one that
+     * tries to check out which interfaces given Class implements.
+     * Sub-classes can (and do) change this behavior to alter behavior.
+     */
     @Override
     @SuppressWarnings("unchecked")
     public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config)

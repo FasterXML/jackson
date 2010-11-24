@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.lang.reflect.*;
 import java.util.*;
 
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.*;
@@ -22,20 +23,164 @@ import org.codehaus.jackson.type.JavaType;
 public class BeanDeserializerFactory
     extends BasicDeserializerFactory
 {
+    protected final static Deserializers[] NO_DESERIALIZERS = new Deserializers[0];
+
     /**
      * Signature of <b>Throwable.initCause</b> method.
      */
     private final static Class<?>[] INIT_CAUSE_PARAMS = new Class<?>[] { Throwable.class };
 
+    /**
+     * Globally shareable thread-safe instance which has no additional custom deserializers
+     * registered
+     */
     public final static BeanDeserializerFactory instance = new BeanDeserializerFactory();
 
     /**
-     * We will provide default constructor to allow sub-classing,
-     * but make it protected so that no non-singleton instances of
-     * the class will be instantiated.
+     * Provider for additional serializers, checked before considering default
+     * basic or bean serialializers.
+     * 
+     * @since 1.7
      */
-    protected BeanDeserializerFactory() { super(); }
+    protected final Deserializers[] _additionalDeserializers;
 
+    @Deprecated
+    protected BeanDeserializerFactory() {
+        this(null);
+    }
+
+    protected BeanDeserializerFactory(Deserializers[] allAdditionalDeserializers)
+    {
+        if (allAdditionalDeserializers == null) {
+            allAdditionalDeserializers = NO_DESERIALIZERS;
+        }
+        _additionalDeserializers = allAdditionalDeserializers;
+    }
+
+    /**
+     * Method used by module registration functionality, to attach additional
+     * deserializer providers into this deserializer factory. This is typically
+     * handled by constructing a new instance with additional deserializers,
+     * to ensure thread-safe access.
+     * 
+     * @since 1.7
+     */
+    @Override
+    public DeserializerFactory withAdditionalDeserializers(Deserializers additional)
+    {
+        if (additional == null) {
+            throw new IllegalArgumentException("Can not pass null Deserializers");
+        }
+        
+        /* 22-Nov-2010, tatu: Handling of subtypes is tricky if we do immutable-with-copy-ctor;
+         *    and we pretty much have to here either choose between losing subtype instance
+         *    when registering additional serializers, or losing serializers.
+         *    
+         *    Instead, let's actually just throw an error if this method is called when subtype
+         *    has not properly overridden this method, as that is better alternative than
+         *    continue with what is almost certainly broken or invalid configuration.
+         */
+        if (getClass() != BeanDeserializerFactory.class) {
+            throw new IllegalStateException("Subtype of BeanDeserializerFactory ("+getClass().getName()
+                    +") has not properly overridden method 'withAdditionalDeserializers': can not instantiate subtype with "
+                    +"additional deserializer definitions");
+        }
+        
+        Deserializers[] s = ArrayBuilders.insertInList(_additionalDeserializers, additional);
+        return new BeanDeserializerFactory(s);
+    }
+
+    /*
+    /**********************************************************
+    /* Overrides for super-class methods used for finding
+    /* custom deserializers
+    /**********************************************************
+     */
+
+    @Override
+    protected JsonDeserializer<?> _findCustomArrayDeserializer(ArrayType type, DeserializationConfig config,
+            DeserializerProvider provider,
+            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+    {
+        for (Deserializers d  : _additionalDeserializers) {
+            JsonDeserializer<?> deser = d.findArrayDeserializer(type, config, provider, elementTypeDeserializer, elementDeserializer);
+            if (deser != null) {
+                return deser;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected JsonDeserializer<?> _findCustomCollectionDeserializer(CollectionType type, DeserializationConfig config,
+            DeserializerProvider provider, BasicBeanDescription beanDesc,
+            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+    {
+        for (Deserializers d  : _additionalDeserializers) {
+            JsonDeserializer<?> deser = d.findCollectionDeserializer(type, config, provider, beanDesc,
+                    elementTypeDeserializer, elementDeserializer);
+            if (deser != null) {
+                return deser;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected JsonDeserializer<?> _findCustomEnumDeserializer(Class<?> type, DeserializationConfig config,
+            BasicBeanDescription beanDesc)
+    {
+        for (Deserializers d  : _additionalDeserializers) {
+            JsonDeserializer<?> deser = d.findEnumDeserializer(type, config, beanDesc);
+            if (deser != null) {
+                return deser;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected JsonDeserializer<?> _findCustomMapDeserializer(MapType type, DeserializationConfig config,
+            DeserializerProvider provider, BasicBeanDescription beanDesc,
+            KeyDeserializer keyDeserializer,
+            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+    {
+        for (Deserializers d  : _additionalDeserializers) {
+            JsonDeserializer<?> deser = d.findMapDeserializer(type, config, provider, beanDesc,
+                    keyDeserializer, elementTypeDeserializer, elementDeserializer);
+            if (deser != null) {
+                return deser;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected JsonDeserializer<?> _findCustomTreeNodeDeserializer(Class<? extends JsonNode> type, DeserializationConfig config)
+    {
+        for (Deserializers d  : _additionalDeserializers) {
+            JsonDeserializer<?> deser = d.findTreeNodeDeserializer(type, config);
+            if (deser != null) {
+                return deser;
+            }
+        }
+        return null;
+    }
+
+    // Note: NOT overriding, superclass has no matching method
+    @SuppressWarnings("unchecked")
+    protected JsonDeserializer<Object> _findCustomBeanDeserializer(JavaType type, DeserializationConfig config,
+            DeserializerProvider provider, BasicBeanDescription beanDesc)
+    {
+        for (Deserializers d  : _additionalDeserializers) {
+            JsonDeserializer<?> deser = d.findBeanDeserializer(type, config, provider, beanDesc);
+            if (deser != null) {
+                return (JsonDeserializer<Object>) deser;
+            }
+        }
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* DeserializerFactory API implementation
@@ -51,6 +196,24 @@ public class BeanDeserializerFactory
     public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
         throws JsonMappingException
     {
+        // First things first: maybe explicit definition via annotations?
+        BasicBeanDescription beanDesc = config.introspect(type);
+        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
+        if (ad != null) {
+            return ad;
+        }
+        // Or value annotation that indicates more specific type to use:
+        JavaType newType =  modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type, null);
+        if (newType.getRawClass() != type.getRawClass()) {
+            type = newType;
+            beanDesc = config.introspect(type);
+        }
+        // We may also have custom overrides:
+        JsonDeserializer<Object> custom = _findCustomBeanDeserializer(type, config, p, beanDesc);
+        if (custom != null) {
+            return custom;
+        }
+
         /* Let's call super class first: it knows simple types for
          * which we have default deserializers
          */
@@ -61,18 +224,6 @@ public class BeanDeserializerFactory
         // Otherwise: could the class be a Bean class?
         if (!isPotentialBeanType(type.getRawClass())) {
             return null;
-        }
-        BasicBeanDescription beanDesc = config.introspect(type);
-        // maybe it's explicitly defined by annotations?
-        JsonDeserializer<Object> ad = findDeserializerFromAnnotation(config, beanDesc.getClassInfo());
-        if (ad != null) {
-            return ad;
-        }
-        // or has value annotation for redirection?
-        JavaType newType =  modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type, null);
-        if (newType.getRawClass() != type.getRawClass()) {
-            type = newType;
-            beanDesc = config.introspect(type);
         }
 
         /* One more thing to check: do we have an exception type

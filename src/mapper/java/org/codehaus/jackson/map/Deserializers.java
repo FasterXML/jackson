@@ -99,7 +99,7 @@ public interface Deserializers
      * a specific configuration override (annotations) to indicate instance to use. Otherwise
      * null is passed, and key deserializer needs to be obtained using {@link DeserializerProvider}
      * 
-     * @param type Type of {@link java.lang.Map} instances to deserialize
+     * @param type Type of {@link java.util.Map} instances to deserialize
      * @param config Configuration in effect
      * @param provider Provider that can be used to locate dependant deserializers if and as necessary
      *   (but note that in many cases resolution must be deferred by using {@link ResolvableDeserializer} callback)

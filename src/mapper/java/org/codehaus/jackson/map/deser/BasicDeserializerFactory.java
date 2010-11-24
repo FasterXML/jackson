@@ -111,6 +111,50 @@ public abstract class BasicDeserializerFactory
 
     protected BasicDeserializerFactory() { }
 
+    // can't be implemented quite here
+    @Override
+    public abstract DeserializerFactory withAdditionalDeserializers(Deserializers additionalSerializer);
+    
+    /*
+    /**********************************************************
+    /* Methods for sub-classes to override to provide
+    /* custom deserializers (since 1.7)
+    /**********************************************************
+     */
+    
+    protected JsonDeserializer<?> _findCustomArrayDeserializer(ArrayType type, DeserializationConfig config,
+            DeserializerProvider p,
+            TypeDeserializer elementTypeDeser, JsonDeserializer<?> elementDeser)
+    {
+        return null;
+    }
+
+    protected JsonDeserializer<?> _findCustomCollectionDeserializer(CollectionType type, DeserializationConfig config,
+            DeserializerProvider p, BasicBeanDescription beanDesc,
+            TypeDeserializer elementTypeDeser, JsonDeserializer<?> elementDeser)
+    {
+        return null;
+    }
+
+    protected JsonDeserializer<?> _findCustomEnumDeserializer(Class<?> type, DeserializationConfig config,
+            BasicBeanDescription beanDesc)
+    {
+        return null;
+    }
+
+    protected JsonDeserializer<?> _findCustomMapDeserializer(MapType type, DeserializationConfig config,
+            DeserializerProvider p, BasicBeanDescription beanDesc,
+            KeyDeserializer keyDeser,
+            TypeDeserializer elementTypeDeser, JsonDeserializer<?> elementDeser)
+    {
+        return null;
+    }
+
+    protected JsonDeserializer<?> _findCustomTreeNodeDeserializer(Class<? extends JsonNode> type, DeserializationConfig config)
+    {
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* JsonDeserializerFactory impl
@@ -127,16 +171,22 @@ public abstract class BasicDeserializerFactory
         JsonDeserializer<Object> contentDeser = elemType.getValueHandler();
         if (contentDeser == null) {
             // Maybe special array type, such as "primitive" arrays (int[] etc)
-            JsonDeserializer<Object> deser = _arrayDeserializers.get(elemType);
+            JsonDeserializer<?> deser = _arrayDeserializers.get(elemType);
             if (deser != null) {
+                /* 23-Nov-2010, tatu: Although not commonly needed, ability to override
+                 *   deserializers for all types (including primitive arrays) is useful
+                 *   so let's allow this
+                 */
+                JsonDeserializer<?> custom = _findCustomArrayDeserializer(type, config, p, null, null);
+                if (custom != null) {
+                    return custom;
+                }
                 return deser;
             }
             // If not, generic one:
             if (elemType.isPrimitive()) { // sanity check
                 throw new IllegalArgumentException("Internal error: primitive type ("+type+") passed, no array deserializer found");
             }
-            // 'null' -> arrays have no referring fields
-            contentDeser = p.findValueDeserializer(config, elemType, type, null);
         }
         // Then optional type info (1.5): if type has been resolved, we may already know type deserializer:
         TypeDeserializer elemTypeDeser = elemType.getTypeHandler();
@@ -144,9 +194,19 @@ public abstract class BasicDeserializerFactory
         if (elemTypeDeser == null) {
             elemTypeDeser = findTypeDeserializer(config, elemType);
         }
+        // 23-Nov-2010, tatu: Custom array deserializer?
+        JsonDeserializer<?> custom = _findCustomArrayDeserializer(type, config, p, elemTypeDeser, contentDeser);
+        if (custom != null) {
+            return custom;
+        }
+        
+        if (contentDeser == null) {
+            // 'null' -> arrays have no referring fields
+            contentDeser = p.findValueDeserializer(config, elemType, type, null);
+        }
         return new ArrayDeserializer(type, contentDeser, elemTypeDeser);
     }
-
+    
     @Override
     public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config,
     	    CollectionType type, DeserializerProvider p)
@@ -166,6 +226,20 @@ public abstract class BasicDeserializerFactory
         // Very first thing: is deserializer hard-coded for elements?
         JsonDeserializer<Object> contentDeser = contentType.getValueHandler();
 
+        // Then optional type info (1.5): if type has been resolved, we may already know type deserializer:
+        TypeDeserializer contentTypeDeser = contentType.getTypeHandler();
+        // but if not, may still be possible to find:
+        if (contentTypeDeser == null) {
+            contentTypeDeser = findTypeDeserializer(config, contentType);
+        }
+
+        // 23-Nov-2010, tatu: Custom deserializer?
+        JsonDeserializer<?> custom = _findCustomCollectionDeserializer(type, config, p, beanDesc,
+                contentTypeDeser, contentDeser);
+        if (custom != null) {
+            return custom;
+        }
+        
         if (contentDeser == null) { // not defined by annotation
             // One special type: EnumSet:
             if (EnumSet.class.isAssignableFrom(collectionClass)) {
@@ -193,14 +267,7 @@ public abstract class BasicDeserializerFactory
             }
             collectionClass = fallback;
         }
-        // Then optional type info (1.5): if type has been resolved, we may already know type deserializer:
         
-        TypeDeserializer contentTypeDeser = contentType.getTypeHandler();
-        // but if not, may still be possible to find:
-        if (contentTypeDeser == null) {
-            contentTypeDeser = findTypeDeserializer(config, contentType);
-        }
-
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         @SuppressWarnings("unchecked")
         Constructor<Collection<Object>> ctor = ClassUtil.findConstructor((Class<Collection<Object>>)collectionClass, fixAccess);
@@ -228,6 +295,26 @@ public abstract class BasicDeserializerFactory
         // First: is there annotation-specified deserializer for values?
         @SuppressWarnings("unchecked")
         JsonDeserializer<Object> contentDeser = (JsonDeserializer<Object>) contentType.getValueHandler();
+
+        // Ok: need a key deserializer (null indicates 'default' here)
+        KeyDeserializer keyDes = (KeyDeserializer) keyType.getValueHandler();
+        if (keyDes == null) {
+            keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(config, keyType);
+        }
+        // Then optional type info (1.5); either attached to type, or resolve separately:
+        TypeDeserializer contentTypeDeser = contentType.getTypeHandler();
+        // but if not, may still be possible to find:
+        if (contentTypeDeser == null) {
+            contentTypeDeser = findTypeDeserializer(config, contentType);
+        }
+
+        // 23-Nov-2010, tatu: Custom deserializer?
+        JsonDeserializer<?> custom = _findCustomMapDeserializer(type, config, p, beanDesc,
+                keyDes, contentTypeDeser, contentDeser);
+        if (custom != null) {
+            return custom;
+        }
+
         if (contentDeser == null) { // nope...
             // 'null' -> maps have no referring fields
             contentDeser = p.findValueDeserializer(config, contentType, type, null);
@@ -244,11 +331,6 @@ public abstract class BasicDeserializerFactory
         }
 
         // Otherwise, generic handler works ok.
-        // Ok: need a key deserializer (null indicates 'default' here)
-        KeyDeserializer keyDes = (KeyDeserializer) keyType.getValueHandler();
-        if (keyDes == null) {
-            keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(config, keyType);
-        }
 
         /* But there is one more twist: if we are being asked to instantiate
          * an interface or abstract Map, we need to either find something
@@ -281,12 +363,6 @@ public abstract class BasicDeserializerFactory
                 ClassUtil.checkAndFixAccess(defaultCtor);
             }
         }
-        // Then optional type info (1.5); either attached to type, or resolve separately:
-        TypeDeserializer contentTypeDeser = contentType.getTypeHandler();
-        // but if not, may still be possible to find:
-        if (contentTypeDeser == null) {
-            contentTypeDeser = findTypeDeserializer(config, contentType);
-        }
         MapDeserializer md = new MapDeserializer(type, defaultCtor, keyDes, contentDeser, contentTypeDeser);
         md.setIgnorableProperties(config.getAnnotationIntrospector().findPropertiesToIgnore(beanDesc.getClassInfo()));
         md.setCreators(findMapCreators(config, beanDesc));
@@ -308,6 +384,12 @@ public abstract class BasicDeserializerFactory
         if (des != null) {
             return des;
         }
+        // 23-Nov-2010, tatu: Custom deserializer?
+        JsonDeserializer<?> custom = _findCustomEnumDeserializer(enumClass, config, beanDesc);
+        if (custom != null) {
+            return custom;
+        }
+
         // [JACKSON-193] May have @JsonCreator for static factory method:
         for (AnnotatedMethod factory : beanDesc.getFactoryMethods()) {
             if (config.getAnnotationIntrospector().hasCreatorAnnotation(factory)) {
@@ -330,6 +412,11 @@ public abstract class BasicDeserializerFactory
     public JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p)
         throws JsonMappingException
     {
+        // 23-Nov-2010, tatu: Custom deserializer?
+        JsonDeserializer<?> custom = _findCustomTreeNodeDeserializer(nodeClass, config);
+        if (custom != null) {
+            return custom;
+        }
         return JsonNodeDeserializer.getDeserializer(nodeClass);
     }
 
@@ -338,6 +425,8 @@ public abstract class BasicDeserializerFactory
     public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
         throws JsonMappingException
     {
+        // note: we do NOT check for custom deserializers here; that's for sub-class to do
+        
         JsonDeserializer<Object> deser = _simpleDeserializers.get(type);
         if (deser != null) {
             return deser;

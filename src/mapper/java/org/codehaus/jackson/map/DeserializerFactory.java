@@ -100,4 +100,24 @@ public abstract class DeserializerFactory
         // Default implementation returns null for backwards compatibility reasons
         return null;
     }
+
+    /*
+    /********************************************************
+    /* Additional configuration
+    /********************************************************
+     */
+
+    /**
+     * Method that can be used to register additional deserializers to be provided;
+     * will return a factory that uses specified provider, usually a newly
+     * constructed factory instance.
+     *<p>
+     * Note that custom sub-classes <b>must override</b> implementation
+     * of this method, as it usually requires instantiating a new instance of
+     * factory type. Check out javadocs for
+     * {@link org.codehaus.jackson.map.deser.BeanDeserializerFactory} for more details.
+     * 
+     * @since 1.7
+     */
+    public abstract DeserializerFactory withAdditionalDeserializers(Deserializers additionalSerializer);
 }

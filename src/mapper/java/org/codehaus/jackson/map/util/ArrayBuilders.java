@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.util;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -171,6 +172,22 @@ public final class ArrayBuilders
         }
         list.add(element);
         return list;
+    }
+
+    /**
+     * Helper method for constructing a new array that contains specified
+     * element followed by contents of the given array
+     */
+    public static <T> T[] insertInList(T[] array, T element)
+    {
+        int len = array.length;
+        @SuppressWarnings("unchecked")
+        T[] result = (T[]) Array.newInstance(element.getClass(), len+1);
+        if (len > 0) {
+            System.arraycopy(array, 0, result, 1, len);
+        }
+        array[0] = element;
+        return result;
     }
 }
 

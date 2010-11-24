@@ -5,6 +5,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.ClassKey;
+import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -34,17 +35,11 @@ import org.codehaus.jackson.type.JavaType;
  *  </li>
  *</ul>
  *<p>
- * In near future, following features are planned to be added:
- *<ul>
- * <li>Ability to define "mix-in annotations": associations between types
- *   (classes, interfaces) to serialize, and a "mix-in" type which will
- *   be used so that all of its annotations are added to the serialized
- *   type. Mixed-in annotations have priority over annotations that the
- *   serialized type has. In effect this allows for overriding annotations
- *   types have; this is useful when type definition itself can not be
- *   modified
- *  </li>
- *</ul>
+ * Note: as of version 1.7, this class is not as useful as it used to
+ * be, due to addition of "modules", which allow simpler addition
+ * of custom serializers and deserializers. In fact, use of module system
+ * is recommended even when not exposing serializers or deserializers
+ * as a pluggable library (just using them locally).
  */
 public class CustomSerializerFactory
     extends BeanSerializerFactory
@@ -92,9 +87,33 @@ public class CustomSerializerFactory
      */
 
     public CustomSerializerFactory() {
-        super();
+        this(NO_SERIALIZERS);
     }
 
+    public CustomSerializerFactory(Serializers[] allAdditionalSerializers) {
+        super(allAdditionalSerializers);
+    }
+
+    
+    @Override
+    public SerializerFactory withAdditionalSerializers(Serializers additional)
+    {
+        if (additional == null) {
+            throw new IllegalArgumentException("Can not pass null Serializers");
+        }
+        /* 22-Nov-2010, tatu: As with BeanSerializerFactory, must ensure type won't change
+         *   with this method, so
+         */
+        if (getClass() != CustomSerializerFactory.class) {
+            throw new IllegalStateException("Subtype of CustomSerializerFactory ("+getClass().getName()
+                    +") has not properly overridden method 'withAdditionalSerializers': can not instantiate subtype with "
+                    +"additional serializer definitions");
+        }
+        
+        Serializers[] s = ArrayBuilders.insertInList(_additionalSerializers, additional);
+        return new CustomSerializerFactory(s);
+    }
+    
     /*
     /**********************************************************
     /* Configuration: type-to-serializer mappings

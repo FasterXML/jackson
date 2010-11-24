@@ -13,7 +13,7 @@ public class TestSerializerProvider
     {
         ObjectMapper mapper = new ObjectMapper();
         SerializationConfig config = mapper.getSerializationConfig();
-        SerializerFactory f = new BeanSerializerFactory();
+        SerializerFactory f = new BeanSerializerFactory(null);
         StdSerializerProvider prov = new StdSerializerProvider().createInstance(config, f);
 
         // Should have working default key and null key serializers

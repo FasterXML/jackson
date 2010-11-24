@@ -53,6 +53,8 @@ import org.codehaus.jackson.type.JavaType;
 public class BeanSerializerFactory
     extends BasicSerializerFactory
 {
+    protected final static Serializers[] NO_SERIALIZERS = new Serializers[0];
+    
     /**
      * Like {@link BasicSerializerFactory}, this factory is stateless, and
      * thus a single shared global (== singleton) instance can be used
@@ -66,7 +68,7 @@ public class BeanSerializerFactory
      * 
      * @since 1.7
      */
-    protected final Serializers _additionalSerializers;
+    protected final Serializers[] _additionalSerializers;
     
     /*
     /**********************************************************
@@ -74,10 +76,15 @@ public class BeanSerializerFactory
     /**********************************************************
      */
 
+    @Deprecated
     protected BeanSerializerFactory() { this(null); }
 
-    protected BeanSerializerFactory(Serializers additionalSer) {
-        _additionalSerializers = additionalSer;
+    protected BeanSerializerFactory(Serializers[] allAdditionalSerializers)
+    {
+        if (allAdditionalSerializers == null) {
+            allAdditionalSerializers = NO_SERIALIZERS;
+        }
+        _additionalSerializers = allAdditionalSerializers;
     }
     
     /**
@@ -88,8 +95,13 @@ public class BeanSerializerFactory
      * 
      * @since 1.7
      */
-    public SerializerFactory withAdditionalSerializers(Serializers additionalSerializers)
+    @Override
+    public SerializerFactory withAdditionalSerializers(Serializers additional)
     {
+        if (additional == null) {
+            throw new IllegalArgumentException("Can not pass null Serializers");
+        }
+        
         /* 22-Nov-2010, tatu: Handling of subtypes is tricky if we do immutable-with-copy-ctor;
          *    and we pretty much have to here either choose between losing subtype instance
          *    when registering additional serializers, or losing serializers.
@@ -104,13 +116,7 @@ public class BeanSerializerFactory
                     +"additional serializer definitions");
         }
         
-        Serializers s;
-        
-        if (_additionalSerializers == null) {
-            s = additionalSerializers;
-        } else {
-            s = new Serializers.Pair(additionalSerializers, _additionalSerializers);
-        }
+        Serializers[] s = ArrayBuilders.insertInList(_additionalSerializers, additional);
         return new BeanSerializerFactory(s);
     }
     
@@ -141,9 +147,7 @@ public class BeanSerializerFactory
         JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ser == null) {
             // 22-Nov-2010, tatu: Ok: additional module-provided serializers to consider?
-            if (_additionalSerializers != null) {
-                ser = _additionalSerializers.findSerializer(type, config, beanDesc);
-            }
+            ser = _findFirstSerializer(_additionalSerializers, type, config, beanDesc);
             if (ser == null) {
                 // First, fast lookup for exact type:
                 ser = super.findSerializerByLookup(type, config, beanDesc);
@@ -170,6 +174,18 @@ public class BeanSerializerFactory
         return (JsonSerializer<Object>) ser;
     }
 
+    private static JsonSerializer<?> _findFirstSerializer(Serializers[] sers,
+            JavaType type, SerializationConfig config, BeanDescription beanDesc)
+    {
+        for (Serializers ser : sers) {
+            JsonSerializer<?> js = ser.findSerializer(type, config, beanDesc);
+            if (js != null) {
+                return js;
+            }
+        }
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* Other public methods that are not part of

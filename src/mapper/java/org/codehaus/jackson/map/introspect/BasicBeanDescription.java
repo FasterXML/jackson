@@ -64,6 +64,7 @@ public class BasicBeanDescription extends BeanDescription
      * Method for checking whether class being described has any
      * annotations recognized by registered annotation introspector.
      */
+    @Override
     public boolean hasKnownClassAnnotations() {
         return _classInfo.hasAnnotations();
     }

@@ -30,32 +30,4 @@ public interface Serializers
      */
     public JsonSerializer<?> findSerializer(JavaType type, SerializationConfig config,
             BeanDescription beanDesc);
-
-    /*
-    /********************************************************
-    /* Helper classes
-    /********************************************************
-     */
-
-    public static class Pair implements Serializers
-    {
-        protected final Serializers _first;
-        protected final Serializers _second;
-        
-        public Pair(Serializers s1, Serializers s2)
-        {
-            _first = s1;
-            _second = s2;
-        }
-
-        public JsonSerializer<?> findSerializer(JavaType type, SerializationConfig config,
-                BeanDescription beanDesc)
-        {
-            JsonSerializer<?> ser = _first.findSerializer(type, config, beanDesc);
-            if (ser == null && _second != null) {
-                ser = _second.findSerializer(type, config, beanDesc);
-            }
-            return ser;
-        }
-    }
 }

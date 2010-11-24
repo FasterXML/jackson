@@ -77,7 +77,7 @@ public abstract class SerializerFactory
      * Note that custom sub-classes generally <b>must override</b> implementation
      * of this method, as it usually requires instantiating a new instance of
      * factory type. Check out javadocs for
-     * {@link org.codehaus.jackson.map.BeanSerializerFactory} for more details.
+     * {@link org.codehaus.jackson.map.ser.BeanSerializerFactory} for more details.
      * 
      * @since 1.7
      */
