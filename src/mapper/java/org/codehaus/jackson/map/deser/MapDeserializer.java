@@ -31,7 +31,7 @@ public class MapDeserializer
     final JavaType _mapType;
 
     /**
-     * Key deserializer used, if not null. If null, String from json
+     * Key deserializer used, if not null. If null, String from JSON
      * content is used as is.
      */
     final KeyDeserializer _keyDeserializer;

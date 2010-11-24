@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -9,10 +11,143 @@ import org.codehaus.jackson.type.JavaType;
  * does not support handling of the type. In latter case, further calls can be made
  * for other providers; in former case returned deserializer is used for handling of
  * instances of specified type.
+ *<p>
+ * Unlike with {@link Serializers}, multiple different methods are used since different
+ * kinds of types typically require different kinds of inputs.
  * 
  * @since 1.7
  */
 public interface Deserializers
 {
-    public JsonDeserializer<?> findDeserializer(JavaType type);
+    /**
+     * Method called to locate constructor for specified array type.
+     *<p>
+     * Deserializer for element type may be passed, if configured explicitly at higher level (by
+     * annotations, typically), but usually are not.
+     * Type deserializer for element is passed if one is needed based on contextual information
+     * (annotations on declared element class; or on field or method type is associated with).
+     * 
+     * @param type Type of array instances to deserialize
+     * @param config Configuration in effect
+     * @param provider Provider that can be used to locate deserializer for component type (if
+     *    one not provided, or needs to be overridden)
+     * @param elementTypeDeserializer If element type needs polymorphic type handling, this is
+     *    the type information deserializer to use; should usually be used as is when constructing
+     *    array deserializer.
+     * @param elementDeserializer Deserializer to use for elements, if explicitly defined (by using
+     *    annotations, for exmple). May be null, in which case it should be resolved here (or using
+     *    {@link ResolvableDeserializer} callback)
+     * 
+     * @return Deserializer to use for the type; or null if this provider does not know how to construct it
+     */
+    public JsonDeserializer<?> findArrayDeserializer(ArrayType type, DeserializationConfig config,
+            DeserializerProvider provider,
+            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer);
+
+    /**
+     * Method called to locate constructor for specified {@link java.util.Collection} (List, Set etc) type.
+     *<p>
+     * Deserializer for element type may be passed, if configured explicitly at higher level (by
+     * annotations, typically), but usually are not.
+     * Type deserializer for element is passed if one is needed based on contextual information
+     * (annotations on declared element class; or on field or method type is associated with).
+     * 
+     * @param type Type of collection instances to deserialize
+     * @param config Configuration in effect
+     * @param provider Provider that can be used to locate dependant deserializers if and as necessary
+     *   (but note that in many cases resolution must be deferred by using {@link ResolvableDeserializer} callback)
+     * @param beanDesc Definition of the enumeration type that contains class annotations and
+     *    other information typically needed for building deserializers (note: always instance
+     *    of {@link org.codehaus.jackson.map.introspect.BasicBeanDescription})
+     * @param elementTypeDeserializer If element type needs polymorphic type handling, this is
+     *    the type information deserializer to use; should usually be used as is when constructing
+     *    array deserializer.
+     * @param elementDeserializer Deserializer to use for elements, if explicitly defined (by using
+     *    annotations, for exmple). May be null, in which case it should be resolved here (or using
+     *    {@link ResolvableDeserializer} callback)
+     * 
+     * @return Deserializer to use for the type; or null if this provider does not know how to construct it
+     */
+    public JsonDeserializer<?> findCollectionDeserializer(CollectionType type, DeserializationConfig config,
+            DeserializerProvider provider,
+            BeanDescription beanDesc,
+            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer);
+
+    /**
+     * Method called to locate deserializer for specified {@link java.lang.Enum} type.
+     * 
+     * @param type Type of {@link java.lang.Enum} instances to deserialize
+     * @param config Configuration in effect
+     * @param beanDesc Definition of the enumeration type that contains class annotations and
+     *    other information typically needed for building deserializers (note: always instance
+     *    of {@link org.codehaus.jackson.map.introspect.BasicBeanDescription})
+     * 
+     * @return Deserializer to use for the type; or null if this provider does not know how to construct it
+     */
+    public JsonDeserializer<?> findEnumDeserializer(Class<?> type, DeserializationConfig config,
+            BeanDescription beanDesc);
+
+    /**
+     * Method called to locate deserializer for specified {@link java.util.Map} type.
+     *<p>
+     * Deserializer for element type may be passed, if configured explicitly at higher level (by
+     * annotations, typically), but usually are not.
+     * Type deserializer for element is passed if one is needed based on contextual information
+     * (annotations on declared element class; or on field or method type is associated with).
+     *<p>
+     * Similarly, a {@link KeyDeserializer} may be passed, but this is only done if there is
+     * a specific configuration override (annotations) to indicate instance to use. Otherwise
+     * null is passed, and key deserializer needs to be obtained using {@link DeserializerProvider}
+     * 
+     * @param type Type of {@link java.lang.Map} instances to deserialize
+     * @param config Configuration in effect
+     * @param provider Provider that can be used to locate dependant deserializers if and as necessary
+     *   (but note that in many cases resolution must be deferred by using {@link ResolvableDeserializer} callback)
+     * @param beanDesc Definition of the enumeration type that contains class annotations and
+     *    other information typically needed for building deserializers (note: always instance
+     *    of {@link org.codehaus.jackson.map.introspect.BasicBeanDescription})
+     * @param keyDeserializer Key deserializer use, if it is defined via annotations or other configuration;
+     *    null if default key deserializer for key type can be used.
+     * @param elementTypeDeserializer If element type needs polymorphic type handling, this is
+     *    the type information deserializer to use; should usually be used as is when constructing
+     *    array deserializer.
+     * @param elementDeserializer Deserializer to use for elements, if explicitly defined (by using
+     *    annotations, for exmple). May be null, in which case it should be resolved here (or using
+     *    {@link ResolvableDeserializer} callback)
+     * 
+     * @return Deserializer to use for the type; or null if this provider does not know how to construct it
+     */
+    public JsonDeserializer<?> findMapDeserializer(MapType type, DeserializationConfig config,
+            DeserializerProvider provider,
+            BeanDescription beanDesc,
+            KeyDeserializer keyDeserializer,
+            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer);
+
+    /**
+     * Method called to locate deserializer for specified JSON tree node type.
+     * 
+     * @param nodeType Specific type of JSON tree nodes to deserialize (subtype of {@link org.codehaus.jackson.JsonNode})
+     * @param config Configuration in effect
+     * 
+     * @return Deserializer to use for the type; or null if this provider does not know how to construct it
+     */
+    public JsonDeserializer<?> findTreeNodeDeserializer(Class<? extends JsonNode> nodeType, DeserializationConfig config);
+    
+    /**
+     * Method called to locate deserializer for specified value type which does not belong to any other
+     * category (not an Enum, Collection, Map, Array or tree node)
+     * 
+     * @param type Bean type to deserialize
+     * @param config Configuration in effect
+     * @param provider Provider that can be used to locate dependant deserializers if and as necessary
+     *   (but note that in many cases resolution must be deferred by using {@link ResolvableDeserializer} callback)
+     * @param beanDesc Definition of the enumeration type that contains class annotations and
+     *    other information typically needed for building deserializers (note: always instance
+     *    of {@link org.codehaus.jackson.map.introspect.BasicBeanDescription})
+     * 
+     * @return Deserializer to use for the type; or null if this provider does not know how to construct it
+     */
+    public JsonDeserializer<?> findBeanDeserializer(JavaType type, DeserializationConfig config,
+            DeserializerProvider provider,
+            BeanDescription beanDesc);
 }
