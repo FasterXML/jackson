@@ -16,6 +16,12 @@ import org.codehaus.jackson.type.JavaType;
 public abstract class DeserializationContext
 {
     protected final DeserializationConfig _config;
+
+    /*
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
+     */
     
     protected DeserializationContext(DeserializationConfig config)
     {

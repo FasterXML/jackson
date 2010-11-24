@@ -88,6 +88,13 @@ public class StdDeserializerProvider
         _factory = f;
     }
 
+    @Override
+    public DeserializerProvider withAdditionalDeserializers(Deserializers d)
+    {
+        _factory = _factory.withAdditionalDeserializers(d);
+        return this;
+    }
+    
     /*
     /**********************************************************
     /* Abstract methods impls

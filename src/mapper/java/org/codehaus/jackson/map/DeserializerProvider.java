@@ -11,6 +11,16 @@ public abstract class DeserializerProvider
 {
     protected DeserializerProvider() { }
 
+    /**
+     * Method that is to configure {@link DeserializerFactory} that provider has
+     * to use specified deserializer provider, with highest precedence (that is,
+     * additional providers have higher precedence than default one or previously
+     * added ones)
+     * 
+     * @since 1.7
+     */
+    public abstract DeserializerProvider withAdditionalDeserializers(Deserializers d);
+    
     /*
     /**********************************************************
     /* General deserializer locating method

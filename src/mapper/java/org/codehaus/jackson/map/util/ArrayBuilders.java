@@ -186,7 +186,7 @@ public final class ArrayBuilders
         if (len > 0) {
             System.arraycopy(array, 0, result, 1, len);
         }
-        array[0] = element;
+        result[0] = element;
         return result;
     }
 }

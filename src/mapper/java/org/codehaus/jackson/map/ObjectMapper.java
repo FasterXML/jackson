@@ -577,7 +577,7 @@ public class ObjectMapper
             
             @Override
             public void addDeserializers(Deserializers d) {
-                // TODO Auto-generated method stub
+                mapper._deserializerProvider = mapper._deserializerProvider.withAdditionalDeserializers(d);
             }
         });
     }

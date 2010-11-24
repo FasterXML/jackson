@@ -51,7 +51,11 @@ public class StdDeserializationContext
 
     protected DateFormat _dateFormat;
 
-    // // // Construction
+    /*
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
+     */
 
     public StdDeserializationContext(DeserializationConfig config, JsonParser jp,
             DeserializerProvider prov)
