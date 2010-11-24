@@ -11,6 +11,9 @@ Description:
   * [JACKSON-228], [JACKSON-411] XmlJavaTypeAdapter, package-level annotations not
     working
    (reported by Claudio R, Raymond F)
+  * [JACKSON-387]: Deserialization fails for certain objects serialized with
+    enableDefaultTyping
+   (reported by Peter L)
   * [JACKSON-416] XmlElement.type() doesn't override type during serialization
     (reported by Sean P)
   * [JACKSON-417] Deserialization of "native" types (String, Integer, Boolean)

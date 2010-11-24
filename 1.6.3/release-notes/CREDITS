@@ -475,3 +475,8 @@ Joe Jensen:
     Boolean) failed with abstract types
    [1.6.3]
 
+Peter LitvakL
+  * Reported [JACKSON-387]: Deserialization fails for certain objects serialized
+    with enableDefaultTyping
+   [1.6.3]
+
