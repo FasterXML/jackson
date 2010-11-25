@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.module;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.*;
 
 import org.codehaus.jackson.JsonGenerator;
@@ -9,6 +10,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.ser.SerializerBase;
 import org.codehaus.jackson.map.type.ArrayType;
 import org.codehaus.jackson.map.type.CollectionType;
 import org.codehaus.jackson.map.type.MapType;
@@ -56,10 +58,10 @@ public class TestSimpleModule extends BaseMapTest
         protected final HashMap<Class<?>, JsonSerializer<?>> _serializers = 
             new HashMap<Class<?>, JsonSerializer<?>>();
 
-        public MySerializers() { }
-        
-        public void add(Class<?> type, JsonSerializer<?> ser) {
-            _serializers.put(type, ser);
+        public MySerializers(JsonSerializer<?>... sers) {
+            for (JsonSerializer<?> ser : sers) {
+                _serializers.put(ser.handledType(), ser);
+            }
         }
         
         @Override
@@ -148,8 +150,13 @@ public class TestSimpleModule extends BaseMapTest
         }
     }
 
-    static class CustomBeanSerializer extends JsonSerializer<CustomBean>
+    // Extend SerializerBase to get access to declared handledType
+    static class CustomBeanSerializer extends SerializerBase<CustomBean>
     {
+        public CustomBeanSerializer() {
+            super(CustomBean.class);
+        }
+
         @Override
         public void serialize(CustomBean value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonProcessingException
@@ -157,7 +164,12 @@ public class TestSimpleModule extends BaseMapTest
             // We will write it as a String, with '|' as delimiter
             jgen.writeString(value.str + "|" + value.num);
         }
-        
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) throws JsonMappingException
+        {
+            return null;
+        }
     }
 
     static class CustomBeanDeserializer extends JsonDeserializer<CustomBean>
@@ -216,8 +228,7 @@ public class TestSimpleModule extends BaseMapTest
     public void testSimpleWithSerializers() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        MySerializers ser = new MySerializers();
-        ser.add(CustomBean.class, new CustomBeanSerializer());
+        MySerializers ser = new MySerializers(new CustomBeanSerializer());
         mapper.registerModule(new TestModule( null, ser));
         assertEquals(quote("abcde|5"),
                mapper.writeValueAsString(new CustomBean("abcde", 5)));
