@@ -45,6 +45,8 @@ public abstract class Module
      */
     public interface SetupContext
     {
+        // // // Accessors
+        
         /**
          * Method that returns version information about {@link ObjectMapper} 
          * that implements this context. Modules can use this to choose
@@ -54,6 +56,24 @@ public abstract class Module
         public Version getMapperVersion();
 
         /**
+         * Method that returns current deserialization configuration
+         * settings. Since modules may be interested in these settings,
+         * caller should make sure to make changes to settings before
+         * module registrations.
+         */
+        public DeserializationConfig getDeserializationConfig();
+
+        /**
+         * Method that returns current serialization configuration
+         * settings. Since modules may be interested in these settings,
+         * caller should make sure to make changes to settings before
+         * module registrations.
+         */
+        public SerializationConfig getSeserializationConfig();
+        
+        // // // Methods for registering handlers
+        
+        /**
          * Method that module can use to register additional deserializers to use for
          * handling types.
          * 
@@ -61,7 +81,7 @@ public abstract class Module
          *   by module (null returned for non-supported types)
          */
         public void addDeserializers(Deserializers d);
-
+        
         /**
          * Method that module can use to register additional serializers to use for
          * handling types.

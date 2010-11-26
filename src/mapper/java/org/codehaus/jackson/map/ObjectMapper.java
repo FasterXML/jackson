@@ -569,6 +569,14 @@ public class ObjectMapper
             public Version getMapperVersion() {
                 return version();
             }
+
+            public DeserializationConfig getDeserializationConfig() {
+                return mapper.getDeserializationConfig();
+            }
+
+            public SerializationConfig getSeserializationConfig() {
+                return mapper.getSerializationConfig();
+            }
             
             @Override
             public void addSerializers(Serializers s) {

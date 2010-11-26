@@ -47,11 +47,101 @@ public abstract class BaseTest
 
     /*
     /**********************************************************
+    /* Helper classes (beans)
+    /**********************************************************
+     */
+    
+    /**
+     * Sample class from Jackson tutorial ("JacksonInFiveMinutes")
+     */
+    protected static class FiveMinuteUser {
+        public enum Gender { MALE, FEMALE };
+
+        public static class Name
+        {
+          private String _first, _last;
+
+          public Name() { }
+          public Name(String f, String l) {
+              _first = f;
+              _last = l;
+          }
+          
+          public String getFirst() { return _first; }
+          public String getLast() { return _last; }
+
+          public void setFirst(String s) { _first = s; }
+          public void setLast(String s) { _last = s; }
+
+          @Override
+          public boolean equals(Object o)
+          {
+              if (o == this) return true;
+              if (o == null || o.getClass() != getClass()) return false;
+              Name other = (Name) o;
+              return _first.equals(other._first) && _last.equals(other._last); 
+          }
+        }
+
+        private Gender _gender;
+        private Name _name;
+        private boolean _isVerified;
+        private byte[] _userImage;
+
+        public FiveMinuteUser() { }
+
+        public FiveMinuteUser(String first, String last, boolean verified, Gender g, byte[] data)
+        {
+            _name = new Name(first, last);
+            _isVerified = verified;
+            _gender = g;
+            _userImage = data;
+        }
+        
+        public Name getName() { return _name; }
+        public boolean isVerified() { return _isVerified; }
+        public Gender getGender() { return _gender; }
+        public byte[] getUserImage() { return _userImage; }
+
+        public void setName(Name n) { _name = n; }
+        public void setVerified(boolean b) { _isVerified = b; }
+        public void setGender(Gender g) { _gender = g; }
+        public void setUserImage(byte[] b) { _userImage = b; }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (o == this) return true;
+            if (o == null || o.getClass() != getClass()) return false;
+            FiveMinuteUser other = (FiveMinuteUser) o;
+            if (_isVerified != other._isVerified) return false;
+            if (_gender != other._gender) return false; 
+            if (!_name.equals(other._name)) return false;
+            byte[] otherImage = other._userImage;
+            if (otherImage.length != _userImage.length) return false;
+            for (int i = 0, len = _userImage.length; i < len; ++i) {
+                if (_userImage[i] != otherImage[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+    
+    /*
+    /**********************************************************
     /* High-level helpers
     /**********************************************************
      */
 
     protected void verifyJsonSpecSampleDoc(JsonParser jp, boolean verifyContents)
+        throws IOException
+    {
+        verifyJsonSpecSampleDoc(jp, verifyContents, true);
+    }
+
+    protected void verifyJsonSpecSampleDoc(JsonParser jp, boolean verifyContents,
+            boolean requireNumbers)
         throws IOException
     {
         if (!jp.hasCurrentToken()) {
@@ -71,7 +161,7 @@ public abstract class BaseTest
             verifyFieldName(jp, "Width");
         }
 
-        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        verifyIntToken(jp.nextToken(), requireNumbers);
         if (verifyContents) {
             verifyIntValue(jp, SAMPLE_SPEC_VALUE_WIDTH);
         }
@@ -81,8 +171,10 @@ public abstract class BaseTest
             verifyFieldName(jp, "Height");
         }
 
-        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
-        verifyIntValue(jp, SAMPLE_SPEC_VALUE_HEIGHT);
+        verifyIntToken(jp.nextToken(), requireNumbers);
+        if (verifyContents) {
+            verifyIntValue(jp, SAMPLE_SPEC_VALUE_HEIGHT);
+        }
         assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Title'
         if (verifyContents) {
             verifyFieldName(jp, "Title");
@@ -107,8 +199,10 @@ public abstract class BaseTest
         if (verifyContents) {
             verifyFieldName(jp, "Height");
         }
-        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
-        verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_HEIGHT);
+        verifyIntToken(jp.nextToken(), requireNumbers);
+        if (verifyContents) {
+            verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_HEIGHT);
+        }
         assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Width'
         if (verifyContents) {
             verifyFieldName(jp, "Width");
@@ -122,19 +216,19 @@ public abstract class BaseTest
         assertToken(JsonToken.END_OBJECT, jp.nextToken()); // 'thumbnail' object
         assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'IDs'
         assertToken(JsonToken.START_ARRAY, jp.nextToken()); // 'ids' array
-        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken()); // ids[0]
+        verifyIntToken(jp.nextToken(), requireNumbers); // ids[0]
         if (verifyContents) {
             verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_ID1);
         }
-        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken()); // ids[1]
+        verifyIntToken(jp.nextToken(), requireNumbers); // ids[1]
         if (verifyContents) {
             verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_ID2);
         }
-        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken()); // ids[2]
+        verifyIntToken(jp.nextToken(), requireNumbers); // ids[2]
         if (verifyContents) {
             verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_ID3);
         }
-        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken()); // ids[3]
+        verifyIntToken(jp.nextToken(), requireNumbers); // ids[3]
         if (verifyContents) {
             verifyIntValue(jp, SAMPLE_SPEC_VALUE_TN_ID4);
         }
@@ -145,6 +239,20 @@ public abstract class BaseTest
         assertToken(JsonToken.END_OBJECT, jp.nextToken()); // main object
     }
 
+    private void verifyIntToken(JsonToken t, boolean requireNumbers)
+    {
+        if (t == JsonToken.VALUE_NUMBER_INT) {
+            return;
+        }
+        if (requireNumbers) { // to get error
+            assertToken(JsonToken.VALUE_NUMBER_INT, t);
+        }
+        // if not number, must be String
+        if (t != JsonToken.VALUE_STRING) {
+            fail("Expected INT or STRING value, got "+t);
+        }
+    }
+    
     protected void verifyFieldName(JsonParser jp, String expName)
         throws IOException
     {
