@@ -10,8 +10,6 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.ser.SerializerBase;
-import org.codehaus.jackson.map.type.*;
-import org.codehaus.jackson.type.JavaType;
 
 public class TestSimpleModule extends BaseMapTest
 {

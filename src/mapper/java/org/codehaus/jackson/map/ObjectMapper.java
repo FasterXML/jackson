@@ -564,7 +564,10 @@ public class ObjectMapper
         final ObjectMapper mapper = this;
         
         // And then call registration
-        module.setupModule(new Module.SetupContext() {
+        module.setupModule(new Module.SetupContext()
+        {
+            // // // Accessors
+
             @Override
             public Version getMapperVersion() {
                 return version();
@@ -577,6 +580,8 @@ public class ObjectMapper
             public SerializationConfig getSeserializationConfig() {
                 return mapper.getSerializationConfig();
             }
+
+            // // // Methods for registering handlers
             
             @Override
             public void addSerializers(Serializers s) {
@@ -586,6 +591,18 @@ public class ObjectMapper
             @Override
             public void addDeserializers(Deserializers d) {
                 mapper._deserializerProvider = mapper._deserializerProvider.withAdditionalDeserializers(d);
+            }
+
+            @Override
+            public void insertAnnotationIntrospector(AnnotationIntrospector ai) {
+                mapper._deserializationConfig.insertAnnotationIntrospector(ai);
+                mapper._serializationConfig.insertAnnotationIntrospector(ai);
+            }
+            
+            @Override
+            public void appendAnnotationIntrospector(AnnotationIntrospector ai) {
+                mapper._deserializationConfig.appendAnnotationIntrospector(ai);
+                mapper._serializationConfig.appendAnnotationIntrospector(ai);
             }
         });
     }

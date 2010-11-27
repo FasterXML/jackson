@@ -6,7 +6,7 @@ import org.codehaus.jackson.Versioned;
 /**
  * Simple interface for extensions that can be registered with {@link ObjectMapper}
  * to provide a well-defined set of extensions to default functionality; such as
- * support for new datatypes.
+ * support for new data types.
  *
  * @since 1.7
  */
@@ -90,6 +90,23 @@ public abstract class Module
          *   by module (null returned for non-supported types)
          */
         public void addSerializers(Serializers s);
-    
+
+        /**
+         * Method for registering specified {@link AnnotationIntrospector} as the highest
+         * priority introspector (will be chained with existing introspector(s) which
+         * will be used as fallbacks for cases this introspector does not handle)
+         * 
+         * @param ai Annotation introspector to register.
+         */
+        public void insertAnnotationIntrospector(AnnotationIntrospector ai);
+
+        /**
+         * Method for registering specified {@link AnnotationIntrospector} as the lowest
+         * priority introspector, chained with existing introspector(s) and called
+         * as fallback for cases not otherwise handled.
+         * 
+         * @param ai Annotation introspector to register.
+         */
+        public void appendAnnotationIntrospector(AnnotationIntrospector ai);
     }
 }

@@ -45,8 +45,38 @@ public interface MapperConfig<T extends MapperConfig<T>>
 
     public AnnotationIntrospector getAnnotationIntrospector();
 
+    /**
+     * Method for replacing existing annotation introspector(s) with specified
+     * introspector.
+     */
     public void setAnnotationIntrospector(AnnotationIntrospector introspector);
 
+    /**
+     * Method for registering specified {@link AnnotationIntrospector} as the highest
+     * priority introspector (will be chained with existing introspector(s) which
+     * will be used as fallbacks for cases this introspector does not handle)
+     * 
+     * @param ai Annotation introspector to register.
+     * 
+     * @since 1.7
+     */
+    public void insertAnnotationIntrospector(AnnotationIntrospector introspector);
+
+    /**
+     * Method for registering specified {@link AnnotationIntrospector} as the lowest
+     * priority introspector, chained with existing introspector(s) and called
+     * as fallback for cases not otherwise handled.
+     * 
+     * @param ai Annotation introspector to register.
+     * 
+     * @since 1.7
+     */
+    public void appendAnnotationIntrospector(AnnotationIntrospector ai);
+    
+    /**
+     * Method for replacing existing {@link ClassIntrospector} with
+     * specified replacement.
+     */
     public void setIntrospector(ClassIntrospector<? extends BeanDescription> i);
 
     /**

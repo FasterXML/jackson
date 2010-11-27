@@ -538,6 +538,18 @@ public class DeserializationConfig
         _annotationIntrospector = introspector;
     }
 
+    //@Override
+    public void insertAnnotationIntrospector(AnnotationIntrospector introspector)
+    {
+        _annotationIntrospector = AnnotationIntrospector.Pair.create(introspector, _annotationIntrospector);
+    }
+
+    //@Override
+    public void appendAnnotationIntrospector(AnnotationIntrospector introspector)
+    {
+        _annotationIntrospector = AnnotationIntrospector.Pair.create(_annotationIntrospector, introspector);
+    }
+    
     /**
      * Method to use for defining mix-in annotations to use for augmenting
      * annotations that deserializable classes have.

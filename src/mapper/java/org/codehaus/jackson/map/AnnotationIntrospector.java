@@ -703,7 +703,7 @@ public abstract class AnnotationIntrospector
     public static class Pair
         extends AnnotationIntrospector
     {
-        final AnnotationIntrospector _primary, _secondary;
+        protected final AnnotationIntrospector _primary, _secondary;
 
         public Pair(AnnotationIntrospector p,
                     AnnotationIntrospector s)
@@ -712,6 +712,25 @@ public abstract class AnnotationIntrospector
             _secondary = s;
         }
 
+        /**
+         * Helper method for constructing a Pair from two given introspectors (if
+         * neither is null); or returning non-null introspector if one is null
+         * (and return just null if both are null)
+         * 
+         * @since 1.7
+         */
+        public static AnnotationIntrospector create(AnnotationIntrospector primary,
+                AnnotationIntrospector secondary)
+        {
+            if (primary == null) {
+                return secondary;
+            }
+            if (secondary == null) {
+                return primary;
+            }
+            return new Pair(primary, secondary);
+        }
+        
         // // // Generic annotation properties, lookup
         
         @Override
