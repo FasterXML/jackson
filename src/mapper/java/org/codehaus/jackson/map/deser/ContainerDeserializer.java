@@ -31,7 +31,7 @@ public abstract class ContainerDeserializer<T>
     public abstract JavaType getContentType();
 
     /**
-     * Accesor for deserialized use for deserializing content values.
+     * Accesor for deserializer use for deserializing content values.
      */
     public abstract JsonDeserializer<Object> getContentDeserializer();
 }

@@ -42,7 +42,8 @@ public interface Deserializers
      */
     public JsonDeserializer<?> findArrayDeserializer(ArrayType type, DeserializationConfig config,
             DeserializerProvider provider,
-            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer);
+            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException;
 
     /**
      * Method called to locate constructor for specified {@link java.util.Collection} (List, Set etc) type.
@@ -71,7 +72,8 @@ public interface Deserializers
     public JsonDeserializer<?> findCollectionDeserializer(CollectionType type, DeserializationConfig config,
             DeserializerProvider provider,
             BeanDescription beanDesc,
-            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer);
+            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException;
 
     /**
      * Method called to locate deserializer for specified {@link java.lang.Enum} type.
@@ -85,7 +87,8 @@ public interface Deserializers
      * @return Deserializer to use for the type; or null if this provider does not know how to construct it
      */
     public JsonDeserializer<?> findEnumDeserializer(Class<?> type, DeserializationConfig config,
-            BeanDescription beanDesc);
+            BeanDescription beanDesc)
+        throws JsonMappingException;
 
     /**
      * Method called to locate deserializer for specified {@link java.util.Map} type.
@@ -121,7 +124,8 @@ public interface Deserializers
             DeserializerProvider provider,
             BeanDescription beanDesc,
             KeyDeserializer keyDeserializer,
-            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer);
+            TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException;
 
     /**
      * Method called to locate deserializer for specified JSON tree node type.
@@ -131,7 +135,8 @@ public interface Deserializers
      * 
      * @return Deserializer to use for the type; or null if this provider does not know how to construct it
      */
-    public JsonDeserializer<?> findTreeNodeDeserializer(Class<? extends JsonNode> nodeType, DeserializationConfig config);
+    public JsonDeserializer<?> findTreeNodeDeserializer(Class<? extends JsonNode> nodeType, DeserializationConfig config)
+        throws JsonMappingException;
     
     /**
      * Method called to locate deserializer for specified value type which does not belong to any other
@@ -148,6 +153,72 @@ public interface Deserializers
      * @return Deserializer to use for the type; or null if this provider does not know how to construct it
      */
     public JsonDeserializer<?> findBeanDeserializer(JavaType type, DeserializationConfig config,
-            DeserializerProvider provider,
-            BeanDescription beanDesc);
+            DeserializerProvider provider, BeanDescription beanDesc)
+            throws JsonMappingException;
+
+    /*
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+
+    /**
+     * Basic {@link Deserializers} implementation that implements all methods but provides
+     * no deserializers. Its main purpose is to serve as a base class so that
+     * sub-classes only need to override methods they need, as most of the time some
+     * of methods are not needed (especially enumeration and array deserializers are
+     * very rarely overridde).
+     * 
+     * @since 1.7
+     */
+    public abstract static class None implements Deserializers
+    {
+        public JsonDeserializer<?> findArrayDeserializer(ArrayType type, DeserializationConfig config,
+                DeserializerProvider provider,
+                TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+            throws JsonMappingException
+        {
+            return null;
+        }
+
+        public JsonDeserializer<?> findCollectionDeserializer(CollectionType type, DeserializationConfig config,
+                DeserializerProvider provider,
+                BeanDescription beanDesc,
+                TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+            throws JsonMappingException
+        {
+            return null;
+        }
+
+        public JsonDeserializer<?> findEnumDeserializer(Class<?> type, DeserializationConfig config,
+                BeanDescription beanDesc)
+            throws JsonMappingException
+        {
+            return null;
+        }
+
+        public JsonDeserializer<?> findMapDeserializer(MapType type, DeserializationConfig config,
+                DeserializerProvider provider,
+                BeanDescription beanDesc,
+                KeyDeserializer keyDeserializer,
+                TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException
+        {
+            return null;
+        }
+
+        public JsonDeserializer<?> findTreeNodeDeserializer(Class<? extends JsonNode> nodeType, DeserializationConfig config)
+            throws JsonMappingException
+        {
+            return null;
+        }
+
+        public JsonDeserializer<?> findBeanDeserializer(JavaType type, DeserializationConfig config,
+                DeserializerProvider provider, BeanDescription beanDesc)
+                throws JsonMappingException
+        {
+            return null;
+        }
+        
+    }
 }

@@ -101,6 +101,7 @@ public class BeanDeserializerFactory
     protected JsonDeserializer<?> _findCustomArrayDeserializer(ArrayType type, DeserializationConfig config,
             DeserializerProvider provider,
             TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException
     {
         for (Deserializers d  : _additionalDeserializers) {
             JsonDeserializer<?> deser = d.findArrayDeserializer(type, config, provider, elementTypeDeserializer, elementDeserializer);
@@ -115,6 +116,7 @@ public class BeanDeserializerFactory
     protected JsonDeserializer<?> _findCustomCollectionDeserializer(CollectionType type, DeserializationConfig config,
             DeserializerProvider provider, BasicBeanDescription beanDesc,
             TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException
     {
         for (Deserializers d  : _additionalDeserializers) {
             JsonDeserializer<?> deser = d.findCollectionDeserializer(type, config, provider, beanDesc,
@@ -129,6 +131,7 @@ public class BeanDeserializerFactory
     @Override
     protected JsonDeserializer<?> _findCustomEnumDeserializer(Class<?> type, DeserializationConfig config,
             BasicBeanDescription beanDesc)
+        throws JsonMappingException
     {
         for (Deserializers d  : _additionalDeserializers) {
             JsonDeserializer<?> deser = d.findEnumDeserializer(type, config, beanDesc);
@@ -144,6 +147,7 @@ public class BeanDeserializerFactory
             DeserializerProvider provider, BasicBeanDescription beanDesc,
             KeyDeserializer keyDeserializer,
             TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException
     {
         for (Deserializers d  : _additionalDeserializers) {
             JsonDeserializer<?> deser = d.findMapDeserializer(type, config, provider, beanDesc,
@@ -157,6 +161,7 @@ public class BeanDeserializerFactory
 
     @Override
     protected JsonDeserializer<?> _findCustomTreeNodeDeserializer(Class<? extends JsonNode> type, DeserializationConfig config)
+        throws JsonMappingException
     {
         for (Deserializers d  : _additionalDeserializers) {
             JsonDeserializer<?> deser = d.findTreeNodeDeserializer(type, config);
@@ -171,6 +176,7 @@ public class BeanDeserializerFactory
     @SuppressWarnings("unchecked")
     protected JsonDeserializer<Object> _findCustomBeanDeserializer(JavaType type, DeserializationConfig config,
             DeserializerProvider provider, BasicBeanDescription beanDesc)
+        throws JsonMappingException
     {
         for (Deserializers d  : _additionalDeserializers) {
             JsonDeserializer<?> deser = d.findBeanDeserializer(type, config, provider, beanDesc);

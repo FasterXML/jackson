@@ -122,38 +122,28 @@ public abstract class BasicDeserializerFactory
     /**********************************************************
      */
     
-    protected JsonDeserializer<?> _findCustomArrayDeserializer(ArrayType type, DeserializationConfig config,
+    protected abstract JsonDeserializer<?> _findCustomArrayDeserializer(ArrayType type, DeserializationConfig config,
             DeserializerProvider p,
             TypeDeserializer elementTypeDeser, JsonDeserializer<?> elementDeser)
-    {
-        return null;
-    }
-
-    protected JsonDeserializer<?> _findCustomCollectionDeserializer(CollectionType type, DeserializationConfig config,
+        throws JsonMappingException;
+    
+    protected abstract JsonDeserializer<?> _findCustomCollectionDeserializer(CollectionType type, DeserializationConfig config,
             DeserializerProvider p, BasicBeanDescription beanDesc,
             TypeDeserializer elementTypeDeser, JsonDeserializer<?> elementDeser)
-    {
-        return null;
-    }
+        throws JsonMappingException;
 
-    protected JsonDeserializer<?> _findCustomEnumDeserializer(Class<?> type, DeserializationConfig config,
+    protected abstract JsonDeserializer<?> _findCustomEnumDeserializer(Class<?> type, DeserializationConfig config,
             BasicBeanDescription beanDesc)
-    {
-        return null;
-    }
+        throws JsonMappingException;
 
-    protected JsonDeserializer<?> _findCustomMapDeserializer(MapType type, DeserializationConfig config,
+    protected abstract JsonDeserializer<?> _findCustomMapDeserializer(MapType type, DeserializationConfig config,
             DeserializerProvider p, BasicBeanDescription beanDesc,
             KeyDeserializer keyDeser,
             TypeDeserializer elementTypeDeser, JsonDeserializer<?> elementDeser)
-    {
-        return null;
-    }
+        throws JsonMappingException;
 
-    protected JsonDeserializer<?> _findCustomTreeNodeDeserializer(Class<? extends JsonNode> type, DeserializationConfig config)
-    {
-        return null;
-    }
+    protected abstract JsonDeserializer<?> _findCustomTreeNodeDeserializer(Class<? extends JsonNode> type, DeserializationConfig config)
+        throws JsonMappingException;
     
     /*
     /**********************************************************
