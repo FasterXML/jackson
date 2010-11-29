@@ -50,7 +50,7 @@
     <property name="IMPL_TITLE_SMILE" value="Jackson Binary format (aka Smile) handling functionality" />
     <property name="IMPL_TITLE_MRBEAN" value="Jackson Bean Materializer (aka Mr. Bean)" />
 
-    <property name="IMPL_VERSION" value="1.7.0-SNAPSHOT" />
+    <property name="IMPL_VERSION" value="1.7.0" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
     <patternset id="dist-all-source-files">
@@ -209,6 +209,7 @@ compile.smile, compile.mrbean" />
         </javac>
     	<!-- 1.6, [JACKSON-278]: need to copy VERSION info along (so unit tests see it) -->
         <copy file="${dir.build}/VERSION.txt" toDir="${dir.build.classes.xc}/org/codehaus/jackson/xc" />
+        <copy file="${dir.build}/VERSION.txt" toDir="${dir.build.classes.xc}/org/codehaus/jackson/xml" />
     </target>
 
     <target name="compile.jaxrs" depends="compile.mapper,compile.xc">

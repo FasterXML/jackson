@@ -12,6 +12,8 @@ import org.codehaus.jackson.smile.SmileFactory;
 import org.codehaus.jackson.smile.SmileGenerator;
 import org.codehaus.jackson.smile.SmileParser;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
+import org.codehaus.jackson.xml.XmlFactory;
+import org.codehaus.jackson.xml.XmlMapper;
 
 /**
  * Tests to verify [JACKSON-278]
@@ -58,6 +60,8 @@ public class TestVersions extends main.BaseTest
     {
         if (runsFromAnt()) {
             assertVersion(new JaxbAnnotationIntrospector().version(), MAJOR_VERSION, MINOR_VERSION);
+            assertVersion(new XmlFactory().version(), MAJOR_VERSION, MINOR_VERSION);
+            assertVersion(new XmlMapper().version(), MAJOR_VERSION, MINOR_VERSION);
         }
     }
 

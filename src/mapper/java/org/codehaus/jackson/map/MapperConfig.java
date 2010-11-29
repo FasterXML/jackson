@@ -56,7 +56,7 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * priority introspector (will be chained with existing introspector(s) which
      * will be used as fallbacks for cases this introspector does not handle)
      * 
-     * @param ai Annotation introspector to register.
+     * @param introspector Annotation introspector to register.
      * 
      * @since 1.7
      */
