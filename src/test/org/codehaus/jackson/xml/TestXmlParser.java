@@ -40,8 +40,8 @@ public class TestXmlParser extends main.BaseTest
     {
         // First: let's convert from sample JSON doc to default xml output
         JsonNode root = new ObjectMapper().readTree(SAMPLE_DOC_JSON_SPEC);
-        XmlFactory xf = new XmlFactory();
-        String xml = new ObjectMapper(xf).writeValueAsString(root);
+        XmlMapper mapper = new XmlMapper();
+        String xml = mapper.writeValueAsString(root);
 
         /* Here we would ideally use base class test method. Alas, it won't
          * work due to couple of problems;
@@ -51,7 +51,7 @@ public class TestXmlParser extends main.BaseTest
          */
 
         // So, for now, let's just do sort of minimal verification, manually
-        JsonParser jp = xf.createJsonParser(xml);
+        JsonParser jp = mapper.getJsonFactory().createJsonParser(xml);
         
         assertToken(JsonToken.START_OBJECT, jp.nextToken()); // main object
 

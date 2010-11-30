@@ -384,7 +384,7 @@ public class ObjectMapper
      */
     public ObjectMapper(JsonFactory jf,
                         SerializerProvider sp, DeserializerProvider dp,
-                       SerializationConfig sconfig, DeserializationConfig dconfig)
+                        SerializationConfig sconfig, DeserializationConfig dconfig)
     {
         /* 02-Mar-2009, tatu: Important: we MUST default to using
          *   the mapping factory, otherwise tree serialization will

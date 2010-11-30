@@ -136,7 +136,7 @@ public interface MapperConfig<T extends MapperConfig<T>>
     public DateFormat getDateFormat();
 
     /**
-     * Method that will define specific date format to use for reading/writing
+     * Method that wiTll define specific date format to use for reading/writing
      * Date and Calendar values; instance is used as is, without creating
      * a clone.
      * Format object can be access using
@@ -182,4 +182,19 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * @since 1.6
      */
     public void setSubtypeResolver(SubtypeResolver r);
+
+    /**
+     * Accessor for getting bean description that only contains class
+     * annotations: useful if no getter/setter/creator information is needed.
+     * 
+     * @since 1.7
+     */
+    public <DESC extends BeanDescription> DESC introspectClassAnnotations(Class<?> cls);
+
+    /**
+     * Accessor for getting bean description that only contains immediate class
+     * annotations: ones from the class, and its direct mix-in, if any, but
+     * not from super types.
+     */
+    public <DESC extends BeanDescription> DESC introspectDirectClassAnnotations(Class<?> cls);
 }

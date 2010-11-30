@@ -4,6 +4,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
@@ -27,6 +28,12 @@ import org.codehaus.jackson.io.IOContext;
 public class ToXmlGenerator
     extends JsonGeneratorBase
 {
+    /**
+     * If we support optional definition of element names, this is the element
+     * name to use...
+     */
+    protected final static String DEFAULT_UNKNOWN_ELEMENT = "unknown";
+    
     /**
      * Enumeration that defines all togglable extra XML-specific features
      */
@@ -89,7 +96,7 @@ public class ToXmlGenerator
      * Assigned by either code that initiates serialization
      * or bean serializer.
      */
-    protected String _nextLocalName = "unknown";
+    protected String _nextLocalName = null;
 
     /**
      * Namespace URI of the next element or attribute to be output.
@@ -159,6 +166,11 @@ public class ToXmlGenerator
     {
         _nextIsAttribute = isAttribute;
     }
+
+    public final void setNextElementName(QName name)
+    {
+        setNextElementName(name.getNamespaceURI(), name.getLocalPart());
+    }
     
     public void setNextElementName(String namespace, String localName)
     {
@@ -183,6 +195,9 @@ public class ToXmlGenerator
     @Override
     protected final void _writeStartArray() throws IOException, JsonGenerationException
     {
+        if (_nextLocalName == null) {
+            handleMissingName();
+        }
         // !!! TODO: cases where there is no wrapper
         try {
             _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
@@ -207,6 +222,9 @@ public class ToXmlGenerator
     protected void _writeStartObject()
         throws IOException, JsonGenerationException
     {
+        if (_nextLocalName == null) {
+            handleMissingName();
+        }
         try {
             if (!_nextIsAttribute) { // attributes must be written along with value...
                 _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
@@ -267,7 +285,8 @@ public class ToXmlGenerator
                     _xmlWriter.writeEndElement();
                 } 
             } else {
-                _xmlWriter.writeCharacters(text);                
+                handleMissingName();
+//                _xmlWriter.writeCharacters(text);                
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -288,7 +307,8 @@ public class ToXmlGenerator
                     _xmlWriter.writeEndElement();
                 }
             } else {
-                _xmlWriter.writeCharacters(text, offset, len);
+                handleMissingName();
+//                _xmlWriter.writeCharacters(text, offset, len);
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -363,7 +383,8 @@ public class ToXmlGenerator
                     _xmlWriter.writeEndElement();
                 }
             } else {
-                _xmlWriter.writeBinary(data, offset, len);
+                handleMissingName();
+//                _xmlWriter.writeBinary(data, offset, len);
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -403,7 +424,7 @@ public class ToXmlGenerator
                     _xmlWriter.writeEndElement();
                 }
             } else {
-                // !!! TBI
+                handleMissingName();
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -425,7 +446,7 @@ public class ToXmlGenerator
                     _xmlWriter.writeEmptyElement(_nextNamespace, _nextLocalName);
                 }
             } else {
-                // !!! TBI
+                handleMissingName();
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -446,7 +467,8 @@ public class ToXmlGenerator
                     _xmlWriter.writeEndElement();
                 }
             } else {
-                _xmlWriter.writeInt(i);
+                handleMissingName();
+//                _xmlWriter.writeInt(i);
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -467,7 +489,8 @@ public class ToXmlGenerator
                     _xmlWriter.writeEndElement();
                 }
             } else {
-                _xmlWriter.writeLong(l);
+                handleMissingName();
+//                _xmlWriter.writeLong(l);
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -488,7 +511,8 @@ public class ToXmlGenerator
                     _xmlWriter.writeEndElement();
                 }
             } else {
-                _xmlWriter.writeDouble(d);
+                handleMissingName();
+//                _xmlWriter.writeDouble(d);
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -509,7 +533,8 @@ public class ToXmlGenerator
                     _xmlWriter.writeEndElement();
                 }
             } else {
-                _xmlWriter.writeFloat(f);
+                handleMissingName();
+//                _xmlWriter.writeFloat(f);
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -534,7 +559,8 @@ public class ToXmlGenerator
                     _xmlWriter.writeEndElement();
                 }
             } else {
-                _xmlWriter.writeDecimal(dec);
+                handleMissingName();
+//                _xmlWriter.writeDecimal(dec);
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -559,7 +585,8 @@ public class ToXmlGenerator
                     _xmlWriter.writeEndElement();
                 }
             } else {
-                _xmlWriter.writeInteger(v);
+                handleMissingName();
+//                _xmlWriter.writeInteger(v);
             }
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
@@ -616,15 +643,22 @@ public class ToXmlGenerator
          */
         // First: let's see that we still have buffers...
         if (isEnabled(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT)) {
-            while (true) {
-                JsonStreamContext ctxt = getOutputContext();
-                if (ctxt.inArray()) {
-                    writeEndArray();
-                } else if (ctxt.inObject()) {
-                    writeEndObject();
-                } else {
-                    break;
+            try {
+                while (true) {
+                    JsonStreamContext ctxt = getOutputContext();
+                    if (ctxt.inArray()) {
+                        writeEndArray();
+                    } else if (ctxt.inObject()) {
+                        writeEndObject();
+                    } else {
+                        break;
+                    }
                 }
+            } catch (ArrayIndexOutOfBoundsException e) {
+                /* 29-Nov-2010, tatu: Stupid, stupid SJSXP doesn't do array checks, so we get
+                 *   hit by this as a collateral problem in some cases. Yuck.
+                 */
+                throw new JsonGenerationException(e);
             }
         }
         try {
@@ -641,5 +675,16 @@ public class ToXmlGenerator
     @Override
     protected void _releaseBuffers() {
         // Nothing to do here, as we have no buffers
+    }
+
+    /*
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
+     */
+    
+    protected void handleMissingName()
+    {
+        throw new IllegalStateException("No element/attribute name specified when trying to output element");
     }
 }

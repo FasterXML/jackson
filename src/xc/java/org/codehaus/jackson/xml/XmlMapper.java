@@ -2,6 +2,7 @@ package org.codehaus.jackson.xml;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.util.VersionUtil;
 
 /**
@@ -21,8 +22,12 @@ public class XmlMapper extends ObjectMapper
     /**********************************************************
      */
 
-    public XmlMapper() {
-        super(new XmlFactory());
+    public XmlMapper()
+    {
+        // Need to override serializer provider, so:
+        super(new XmlFactory(),
+                new XmlSerializerProvider(new RootNameLookup()),
+                new StdDeserializerProvider());
     }
 
     /**

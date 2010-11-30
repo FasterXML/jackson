@@ -637,6 +637,29 @@ public class DeserializationConfig
     public void setSubtypeResolver(SubtypeResolver r) {
         _subtypeResolver = r;
     }
+
+    /**
+     * Accessor for getting bean description that only contains class
+     * annotations: useful if no getter/setter/creator information is needed.
+     *<p>
+     * Note: part of {@link MapperConfig} since 1.7
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
+        return (T) _classIntrospector.forClassAnnotations(this, cls, this);
+    }
+
+    /**
+     * Accessor for getting bean description that only contains immediate class
+     * annotations: ones from the class, and its direct mix-in, if any, but
+     * not from super types.
+     *<p>
+     * Note: part of {@link MapperConfig} since 1.7
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
+        return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
+    }
     
     /*
     /**********************************************************
@@ -702,25 +725,6 @@ public class DeserializationConfig
     @SuppressWarnings("unchecked")
     public <T extends BeanDescription> T introspectForCreation(JavaType type) {
         return (T) _classIntrospector.forCreation(this, type, this);
-    }
-
-    /**
-     * Accessor for getting bean description that only contains class
-     * annotations: useful if no getter/setter/creator information is needed.
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forClassAnnotations(this, cls, this);
-    }
-
-    /**
-     * Accessor for getting bean description that only contains immediate class
-     * annotations: ones from the class, and its direct mix-in, if any, but
-     * not from super types.
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
     }
     
     /*
