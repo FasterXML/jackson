@@ -9,7 +9,6 @@ import static org.codehaus.jackson.org.objectweb.asm.Opcodes.*;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Heavy-lifter of mr. Bean package.
@@ -47,7 +46,7 @@ public class BeanBuilder
         ArrayList<Class<?>> implTypes = new ArrayList<Class<?>>();
         // First: find all supertypes:
         implTypes.add(_implementedType);
-        ClassUtil.findSuperTypes(_implementedType, Object.class, implTypes);
+        BeanUtil.findSuperTypes(_implementedType, Object.class, implTypes);
         
         for (Class<?> impl : implTypes) {
             // and then find all getters, setters, and other non-concrete methods therein:
@@ -66,7 +65,7 @@ public class BeanBuilder
                 }
                 // Otherwise, if concrete, or already handled, skip:
                 // !!! note: won't handle overloaded methods properly
-                if (ClassUtil.isConcrete(m) || _unsupportedMethods.containsKey(methodName)) {
+                if (BeanUtil.isConcrete(m) || _unsupportedMethods.containsKey(methodName)) {
                     continue;
                 }
                 if (failOnUnrecognized) {
@@ -280,7 +279,7 @@ public class BeanBuilder
         mv.visitMaxs(0, 0);  // don't care (real values: 3, 1 + method.getParameterTypes().length);
         mv.visitEnd();
     }
-    
+
     /*
     /**********************************************************
     /* Helper classes
@@ -320,12 +319,19 @@ public class BeanBuilder
             return _fieldName;
         }
 
+        /*
+        private static boolean isConcrete(Method m)
+        {
+            return m.getModifiers()
+        }
+        */
+        
         public boolean hasConcreteGetter() {
-            return (_getter != null) && ClassUtil.isConcrete(_getter);
+            return (_getter != null) && BeanUtil.isConcrete(_getter);
         }
 
         public boolean hasConcreteSetter() {
-            return (_setter != null) && ClassUtil.isConcrete(_setter);
+            return (_setter != null) && BeanUtil.isConcrete(_setter);
         }
         
         private TypeDescription getterType() {

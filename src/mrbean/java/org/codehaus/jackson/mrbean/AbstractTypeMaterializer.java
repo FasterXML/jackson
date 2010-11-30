@@ -2,7 +2,8 @@ package org.codehaus.jackson.mrbean;
 
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.Versioned;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.AbstractTypeResolver;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.VersionUtil;
@@ -201,7 +202,11 @@ public class AbstractTypeMaterializer
     /* Helper classes
     /**********************************************************
      */
-    
+
+    /**
+     * To support actual dynamic loading of bytecode we need a simple
+     * custom classloader.
+     */
     private static class MyClassLoader extends ClassLoader
     {
         public MyClassLoader(ClassLoader parent)

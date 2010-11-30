@@ -72,13 +72,18 @@ public class BeanSerializerFactory
     
     /*
     /**********************************************************
-    /* Life cycle
+    /* Life-cycle: creation, configuration
     /**********************************************************
      */
 
     @Deprecated
     protected BeanSerializerFactory() { this(null); }
 
+    /**
+     * 
+     * @param allAdditionalSerializers Additional serializer providers used for locating
+     *   serializer implementations; starting with the highest-priority one
+     */
     protected BeanSerializerFactory(Serializers[] allAdditionalSerializers)
     {
         if (allAdditionalSerializers == null) {
