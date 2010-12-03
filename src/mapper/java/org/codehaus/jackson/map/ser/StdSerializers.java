@@ -2,6 +2,8 @@ package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Calendar;
 
 import org.codehaus.jackson.JsonGenerationException;
@@ -280,10 +282,16 @@ public class StdSerializers
         public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
+            // As per [JACKSON-423], handling for BigInteger and BigDecimal was missing!
+            if (value instanceof BigDecimal) {
+                jgen.writeNumber((BigDecimal) value);
+            } else if (value instanceof BigInteger) {
+                jgen.writeNumber((BigInteger) value);
+                
             /* These shouldn't match (as there are more specific ones),
              * but just to be sure:
              */
-            if (value instanceof Double) {
+            } else if (value instanceof Double) {
                 jgen.writeNumber(((Double) value).doubleValue());
             } else if (value instanceof Float) {
                 jgen.writeNumber(((Float) value).floatValue());

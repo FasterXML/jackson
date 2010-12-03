@@ -211,13 +211,19 @@ public class TokenBuffer
                 break;
             case VALUE_NUMBER_FLOAT:
                 {
-                    Number n = (Number) segment.get(ptr);
+                    Object n = segment.get(ptr);
                     if (n instanceof BigDecimal) {
                         jgen.writeNumber((BigDecimal) n);
                     } else if (n instanceof Float) {
-                        jgen.writeNumber(n.floatValue());
+                        jgen.writeNumber(((Float) n).floatValue());
+                    } else if (n instanceof Double) {
+                        jgen.writeNumber(((Double) n).doubleValue());
+                    } else if (n == null) {
+                        jgen.writeNull();
+                    } else if (n instanceof String) {
+                        jgen.writeNumber((String) n);
                     } else {
-                        jgen.writeNumber(n.doubleValue());
+                        throw new JsonGenerationException("Unrecognized value type for VALUE_NUMBER_FLOAT: "+n.getClass().getName()+", can not serialize");
                     }
                 }
                 break;
@@ -497,10 +503,10 @@ public class TokenBuffer
 
     @Override
     public void writeNumber(String encodedValue) throws IOException, JsonGenerationException {
-        /* Hmmh... let's actually support this as regular String value write:
-         * should work since there is no quoting when buffering
+        /* 03-Dec-2010, tatu: related to [JACKSON-423], should try to keep as numeric
+         *   identity as long as possible
          */
-        writeString(encodedValue);
+        _append(JsonToken.VALUE_NUMBER_FLOAT, encodedValue);
     }
 
     @Override
