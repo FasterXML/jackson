@@ -17,6 +17,8 @@ Description:
   * [JACKSON-393]: Allow deserializing UUIDs from VALUE_EMBEDDED_OBJECT
   * [JACKSON-399]: JAX-RS is not passing generic type information as root type
     (reported by Kirill S) 
+  * [JACKSON-419]: Add explicit support for handling 'java.util.Locale'
+    (suggested by Brian R)
 
   New features:
 

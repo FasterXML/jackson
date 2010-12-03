@@ -46,8 +46,8 @@ public class TestJdkTypes
     public void testLocale() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
-        assertEquals(quote("EN"), mapper.writeValueAsString(new Locale("EN")));
+        assertEquals(quote("en"), mapper.writeValueAsString(new Locale("en")));
         assertEquals(quote("es_ES"), mapper.writeValueAsString(new Locale("es", "ES")));
-        assertEquals(quote("FI_fi_savo"), mapper.writeValueAsString(new Locale("FI", "fi", "savo")));
+        assertEquals(quote("fi_FI_savo"), mapper.writeValueAsString(new Locale("FI", "fi", "savo")));
     }
 }

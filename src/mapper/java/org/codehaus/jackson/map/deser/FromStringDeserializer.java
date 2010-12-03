@@ -3,8 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
-import java.util.Currency;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.codehaus.jackson.JsonProcessingException;
@@ -23,6 +22,21 @@ public abstract class FromStringDeserializer<T>
         super(vc);
     }
 
+    public static Iterable<FromStringDeserializer<?>>all()
+    {
+        ArrayList<FromStringDeserializer<?>> all = new ArrayList<FromStringDeserializer<?>>();
+
+        all.add(new UUIDDeserializer());
+        all.add(new URLDeserializer());
+        all.add(new URIDeserializer());
+        all.add(new CurrencyDeserializer());
+        all.add(new PatternDeserializer());
+        // since 1.7:
+        all.add(new FromStringDeserializer.LocaleDeserializer());
+
+        return all;
+    }
+    
     @SuppressWarnings("unchecked")
     @Override
     public final T deserialize(JsonParser jp, DeserializationContext ctxt)
@@ -160,4 +174,34 @@ public abstract class FromStringDeserializer<T>
             return Pattern.compile(value);
         }
     }
+
+    /**
+     * Kept protected as it's not meant to be extensible at this point
+     * 
+     * @since 1.7
+     */
+    protected static class LocaleDeserializer
+        extends FromStringDeserializer<Locale>
+    {
+        public LocaleDeserializer() { super(Locale.class); }
+        
+        @Override
+        protected Locale _deserialize(String value, DeserializationContext ctxt)
+            throws IOException
+        {
+            int ix = value.indexOf('_');
+            if (ix < 0) { // single argument
+                return new Locale(value);
+            }
+            String first = value.substring(0, ix);
+            value = value.substring(ix+1);
+            ix = value.indexOf('_');
+            if (ix < 0) { // two pieces
+                return new Locale(first, value);
+            }
+            String second = value.substring(0, ix);
+            return new Locale(first, second, value.substring(ix+1));
+        }
+    }
+
 }

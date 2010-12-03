@@ -36,6 +36,7 @@ public class JdkSerializers
         sers.put(Currency.class, sls);
         sers.put(UUID.class, sls);
         sers.put(java.util.regex.Pattern.class, sls);
+        sers.put(Locale.class, sls);
 
         // then atomic types
         sers.put(AtomicReference.class, AtomicReferenceSerializer.class);

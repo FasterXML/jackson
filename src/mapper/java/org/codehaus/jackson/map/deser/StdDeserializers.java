@@ -57,13 +57,11 @@ class StdDeserializers
          */
         add(new StdDeserializer.CalendarDeserializer(GregorianCalendar.class),
                 GregorianCalendar.class);
-        
-        // Then other simple types:
-        add(new FromStringDeserializer.UUIDDeserializer());
-        add(new FromStringDeserializer.URLDeserializer());
-        add(new FromStringDeserializer.URIDeserializer());
-        add(new FromStringDeserializer.CurrencyDeserializer());
-        add(new FromStringDeserializer.PatternDeserializer());
+
+        // From-string deserializers:
+        for (StdDeserializer<?> deser : FromStringDeserializer.all()) {
+            add(deser);
+        }
 
         // And finally some odds and ends
 

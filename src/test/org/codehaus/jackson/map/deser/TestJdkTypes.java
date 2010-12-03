@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.*;
 import java.util.Currency;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.codehaus.jackson.map.*;
@@ -39,4 +40,14 @@ public class TestJdkTypes
         Currency usd = Currency.getInstance("USD");
         assertEquals(usd, new ObjectMapper().readValue(quote("USD"), Currency.class));
     }
+
+    // @since 1.7
+    public void testLocale() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(new Locale("en"), mapper.readValue(quote("en"), Locale.class));
+        assertEquals(new Locale("es", "ES"), mapper.readValue(quote("es_ES"), Locale.class));
+        assertEquals(new Locale("FI", "fi", "savo"), mapper.readValue(quote("fi_FI_savo"), Locale.class));
+    }
+
 }
