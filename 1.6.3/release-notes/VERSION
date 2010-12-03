@@ -1,4 +1,4 @@
-n Version: 1.6.3
+Version: 1.6.3
 
 Release date:
   xx-Dec-2010
@@ -14,6 +14,8 @@ Description:
   * [JACKSON-387]: Deserialization fails for certain objects serialized with
     enableDefaultTyping
    (reported by Peter L)
+  * [JACKSON-415] XMLElement annotation ignored during schema generation
+    (reported by Sean P)
   * [JACKSON-416] XmlElement.type() doesn't override type during serialization
     (reported by Sean P)
   * [JACKSON-417] Deserialization of "native" types (String, Integer, Boolean)

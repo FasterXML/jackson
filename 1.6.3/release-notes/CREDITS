@@ -466,6 +466,8 @@ Claudio Rossetto:
    [1.6.3]
 
 Sean Parmelee:
+  * Reported [JACKSON-415]: XmlElement.type() ignored for Schema generation
+   [1.6.3]
   * Reported [JACKSON-416]: XmlElement.type() doesn't override type during
     serialization
    [1.6.3]
