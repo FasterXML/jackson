@@ -469,6 +469,9 @@ Sean Parmelee:
   * Reported [JACKSON-416]: XmlElement.type() doesn't override type during
     serialization
    [1.6.3]
+  * Reported [JACKSON-423]: Incorrect serialization of BigDecimal, BigInteger,
+    when using TokenBuffer
+   [1.6.3]
 
 Joe Jensen:
   * Reported [JACKSON-417] Deserialization of "native" types (String, Integer,
