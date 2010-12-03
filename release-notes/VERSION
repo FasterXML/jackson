@@ -34,6 +34,11 @@ Description:
   * [JACKSON-421] Add ability to register multiple sets of serializers
     without extending SerializerFactory (related to [JACKSON-297]
 
+  Backwards incompatible changes
+
+  * [JACKSON-419] (see above) 'java.util.Locale' now serialized as JSON String
+    (using Locale.toString()), instead of as bean-like JSON Object
+  
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
