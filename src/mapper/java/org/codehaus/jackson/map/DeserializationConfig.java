@@ -202,6 +202,20 @@ public class DeserializationConfig
          */
         FAIL_ON_UNKNOWN_PROPERTIES(true),
 
+        /**
+         * Feature that determines whether encountering of JSON null
+         * is an error when deserializing into Java primitive types
+         * (like 'int' or 'double'). If it is, a JsonProcessingException
+         * is thrown to indicate this; if not, default value is used
+         * (0 for 'int', 0.0 for double, same defaulting as what JVM uses).
+         *<p>
+         * Feature is disabled by default (to be consistent with behavior
+         * of Jackson 1.6).
+         * 
+         * @since 1.7
+         */
+        FAIL_ON_NULL_FOR_PRIMITIVES(false),
+        
         // // // Structural changes
 
         /**

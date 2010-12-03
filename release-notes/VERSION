@@ -30,7 +30,10 @@ Description:
    (implemented via 'org.codehaus.jackson.map.Deserializers')
    (contributed by Ga�l Marziou)
   * [JACKSON-405]: Add smile command-line tool for manua Smile encoding/decoding
-  * [JACKSON-419] Add SmileGenerator.writeRaw(byte)
+  * [JACKSON-409] Add SmileGenerator.writeRaw(byte)
+  * [JACKSON-420] Add 'DeserializationConfig.Feature.FAIL_ON_NULL_FOR_PRIMITIVES'
+    to optionally prevent JSON null from mapping to default value
+   (suggested by Thomas D)
   * [JACKSON-421] Add ability to register multiple sets of serializers
     without extending SerializerFactory (related to [JACKSON-297]
 

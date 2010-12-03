@@ -563,9 +563,11 @@ public abstract class StdDeserializer<T>
         }
         
         @Override
-        public final T getNullValue() { return _nullValue; }
+        public final T getNullValue() {
+            return _nullValue;
+        }
     }
-
+    
     /*
     /**********************************************************
     /* First, generic (Object, String, String-like, Class) deserializers

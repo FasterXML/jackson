@@ -50,9 +50,9 @@ class StdKeyDeserializers
     }
 
     /*
-    ////////////////////////////////////////////////////////////
-    // Dynamic factory methods
-    ////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Dynamic factory methods
+    /**********************************************************
      */
 
     public static KeyDeserializer constructEnumKeyDeserializer(DeserializationConfig config, JavaType type)

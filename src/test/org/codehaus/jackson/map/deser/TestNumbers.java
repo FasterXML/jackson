@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import org.codehaus.jackson.map.*;
 
 /**
- * Tests related to [WSTX-139]
+ * Tests related to [JACKSON-139]
  */
 public class TestNumbers
     extends BaseMapTest

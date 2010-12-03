@@ -10,6 +10,18 @@ import org.codehaus.jackson.map.*;
 public class TestJdkTypes
     extends org.codehaus.jackson.map.BaseMapTest
 {
+    static class PrimitivesBean
+    {
+        public boolean booleanValue = true;
+        public byte byteValue = 3;
+        public char charValue = 'a';
+        public short shortValue = 37;
+        public int intValue = 1;
+        public long longValue = 100L;
+        public float floatValue = 0.25f;
+        public double doubleValue = -1.0;
+    }
+    
     /**
      * Related to issue [JACKSON-155].
      */
@@ -41,7 +53,11 @@ public class TestJdkTypes
         assertEquals(usd, new ObjectMapper().readValue(quote("USD"), Currency.class));
     }
 
-    // @since 1.7
+    /**
+     * Test for [JACKSON-419]
+     * 
+     * @since 1.7
+     */
     public void testLocale() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -50,4 +66,86 @@ public class TestJdkTypes
         assertEquals(new Locale("FI", "fi", "savo"), mapper.readValue(quote("fi_FI_savo"), Locale.class));
     }
 
+    /**
+     * Test for [JACKSON-420] (add DeserializationConfig.FAIL_ON_NULL_FOR_PRIMITIVES)
+     * 
+     * @since 1.7
+     */
+    public void testNullForPrimitives() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // by default, ok to rely on defaults
+        PrimitivesBean bean = mapper.readValue("{\"intValue\":null, \"booleanValue\":null, \"doubleValue\":null}",
+                PrimitivesBean.class);
+        assertNotNull(bean);
+        assertEquals(0, bean.intValue);
+        assertEquals(false, bean.booleanValue);
+        assertEquals(0.0, bean.doubleValue);
+
+        bean = mapper.readValue("{\"byteValue\":null, \"longValue\":null, \"floatValue\":null}",
+                PrimitivesBean.class);
+        assertNotNull(bean);
+        assertEquals((byte) 0, bean.byteValue);
+        assertEquals(0L, bean.longValue);
+        assertEquals(0.0f, bean.floatValue);
+        
+        // but not when enabled
+        mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_NULL_FOR_PRIMITIVES, true);
+
+        // boolean
+        try {
+            mapper.readValue("{\"booleanValue\":null}", PrimitivesBean.class);
+            fail("Expected failure for boolean + null");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Can not map JSON null into type boolean");
+        }
+        // byte/char/short/int/long
+        try {
+            mapper.readValue("{\"byteValue\":null}", PrimitivesBean.class);
+            fail("Expected failure for byte + null");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Can not map JSON null into type byte");
+        }
+        try {
+            mapper.readValue("{\"charValue\":null}", PrimitivesBean.class);
+            fail("Expected failure for char + null");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Can not map JSON null into type char");
+        }
+        try {
+            mapper.readValue("{\"shortValue\":null}", PrimitivesBean.class);
+            fail("Expected failure for short + null");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Can not map JSON null into type short");
+        }
+        try {
+            mapper.readValue("{\"intValue\":null}", PrimitivesBean.class);
+            fail("Expected failure for int + null");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Can not map JSON null into type int");
+        }
+        try {
+            mapper.readValue("{\"longValue\":null}", PrimitivesBean.class);
+            fail("Expected failure for long + null");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Can not map JSON null into type long");
+        }
+
+        // float/double
+        try {
+            mapper.readValue("{\"floatValue\":null}", PrimitivesBean.class);
+            fail("Expected failure for float + null");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Can not map JSON null into type float");
+        }
+        try {
+            mapper.readValue("{\"doubleValue\":null}", PrimitivesBean.class);
+            fail("Expected failure for double + null");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Can not map JSON null into type double");
+        }
+    }
+        
 }

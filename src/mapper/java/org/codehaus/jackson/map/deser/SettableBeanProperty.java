@@ -23,8 +23,14 @@ public abstract class SettableBeanProperty
      */
     protected final String _propName;
 
+    /**
+     * Base type for property; may be a supertype of actual value.
+     */
     protected final JavaType _type;
 
+    /**
+     * Deserializer used for handling property value.
+     */
     protected JsonDeserializer<Object> _valueDeserializer;
 
     /**
@@ -35,11 +41,11 @@ public abstract class SettableBeanProperty
     protected TypeDeserializer _valueTypeDeserializer;
     
     /**
-     * Value to be used when 'null' literal is encountered in Json.
+     * Value to be used when 'null' literal is encountered in JSON.
      * For most types simply Java null, but for primitive types must
      * be a non-null value (like Integer.valueOf(0) for int).
      */
-    protected Object _nullValue;
+    protected NullProvider _nullProvider;
 
     /**
      * If property represents a managed (forward) reference
@@ -76,7 +82,8 @@ public abstract class SettableBeanProperty
             throw new IllegalStateException("Already had assigned deserializer for property '"+_propName+"' (class "+getDeclaringClass().getName()+")");
         }
         _valueDeserializer = deser;
-        _nullValue = _valueDeserializer.getNullValue();
+        Object nvl = _valueDeserializer.getNullValue();
+        _nullProvider = (nvl == null) ? null : new NullProvider(_type, nvl);
     }
 
     public void setManagedReferenceName(String n) {
@@ -141,7 +148,7 @@ public abstract class SettableBeanProperty
     {
         JsonToken t = jp.getCurrentToken();
         if (t == JsonToken.VALUE_NULL) {
-            return _nullValue;
+            return (_nullProvider == null) ? null : _nullProvider.nullValue(ctxt);
         }
         if (_valueTypeDeserializer != null) {
             return _valueDeserializer.deserializeWithType(jp, ctxt, _valueTypeDeserializer);
@@ -502,6 +509,36 @@ public abstract class SettableBeanProperty
                     _backProperty.set(value, instance);
                 }
             }
+        }
+    }
+
+    /**
+     * To support [JACKSON-420] we need bit more indirection; this is used to produce
+     * artificial failure for primitives that don't accept JSON null as value.
+     */
+    protected final static class NullProvider
+    {
+        private final Object _nullValue;
+
+        private final boolean _isPrimitive;
+        
+        private final Class<?> _rawType;
+        
+        protected NullProvider(JavaType type, Object nullValue)
+        {
+            _nullValue = nullValue;
+            // [JACKSON-420]
+            _isPrimitive = type.isPrimitive();
+            _rawType = type.getRawClass();
+        }
+
+        public Object nullValue(DeserializationContext ctxt) throws JsonProcessingException
+        {
+            if (_isPrimitive && ctxt.isEnabled(DeserializationConfig.Feature.FAIL_ON_NULL_FOR_PRIMITIVES)) {
+                throw ctxt.mappingException("Can not map JSON null into type "+_rawType.getName()
+                        +" (set DeserializationConfig.Feature.FAIL_ON_NULL_FOR_PRIMITIVES to 'false' to allow)");
+            }
+            return _nullValue;
         }
     }
 }

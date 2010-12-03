@@ -399,6 +399,9 @@ Thomas Dudziak:
   * Reported [JACKSON-328] Incorrect precedence between property fields, "getter-as-setter"
     fallbacks (former should have higher precedence)
    [1.6.0]
+  * Suggested [JACKSON-420] Add 'DeserializationConfig.Feature.FAIL_ON_NULL_FOR_PRIMITIVES'
+    to optionally prevent JSON null from mapping to default value
+   [1.7.0]
 
 Ant Elder:
   * Suggested [JACKSON-295] Create "jackson-all" jar for more convenient
@@ -465,7 +468,7 @@ Joe Jensen:
     Boolean) failed with abstract types
    [1.6.3]
    
-Ga‘l Marziou:   
+Gaï¿½l Marziou:   
   * Contributed [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
     value into JSON
    [1.7.0]   
