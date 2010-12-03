@@ -49,16 +49,16 @@ public final class BigIntegerNode
     }
 
     @Override
-        public int getIntValue() { return _value.intValue(); }
+    public int getIntValue() { return _value.intValue(); }
 
     @Override
-        public long getLongValue() { return _value.longValue(); }
+    public long getLongValue() { return _value.longValue(); }
 
     @Override
-        public BigInteger getBigIntegerValue() { return _value; }
+    public BigInteger getBigIntegerValue() { return _value; }
 
     @Override
-        public double getDoubleValue() { return _value.doubleValue(); }
+    public double getDoubleValue() { return _value.doubleValue(); }
 
     @Override
     public BigDecimal getDecimalValue() { return new BigDecimal(_value); }

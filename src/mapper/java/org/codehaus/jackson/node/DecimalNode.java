@@ -92,5 +92,5 @@ public final class DecimalNode
     }
 
     @Override
-        public int hashCode() { return _value.hashCode(); }
+    public int hashCode() { return _value.hashCode(); }
 }

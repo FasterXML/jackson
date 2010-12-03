@@ -41,4 +41,13 @@ public class TestJdkTypes
         Currency usd = Currency.getInstance("USD");
         assertEquals(quote("USD"), new ObjectMapper().writeValueAsString(usd));
     }
+
+    // @since 1.7
+    public void testLocale() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(quote("EN"), mapper.writeValueAsString(new Locale("EN")));
+        assertEquals(quote("es_ES"), mapper.writeValueAsString(new Locale("es", "ES")));
+        assertEquals(quote("FI_fi_savo"), mapper.writeValueAsString(new Locale("FI", "fi", "savo")));
+    }
 }

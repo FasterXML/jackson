@@ -169,6 +169,35 @@ public class FromXmlParser
     public void setCodec(ObjectCodec c) {
         _objectCodec = c;
     }
+
+    /*
+    /**********************************************************
+    /* Extended API, configuration
+    /**********************************************************
+     */
+
+    public FromXmlParser enable(Feature f) {
+        _xmlFeatures |= f.getMask();
+        return this;
+    }
+
+    public FromXmlParser disable(Feature f) {
+        _xmlFeatures &= ~f.getMask();
+        return this;
+    }
+
+    public final boolean isEnabled(Feature f) {
+        return (_xmlFeatures & f.getMask()) != 0;
+    }
+
+    public FromXmlParser configure(Feature f, boolean state) {
+        if (state) {
+            enable(f);
+        } else {
+            disable(f);
+        }
+        return this;
+    }
     
     /*
     /**********************************************************
