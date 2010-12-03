@@ -186,10 +186,9 @@ public class BeanSerializer
         ObjectNode propertiesNode = o.objectNode();
         for (int i = 0; i < _props.length; i++) {
             BeanPropertyWriter prop = _props[i];
-            Type hint = prop.getRawSerializationType();
-            if (hint == null) {
-                hint = prop.getGenericPropertyType();
-            }
+            JavaType propType = prop.getSerializationType();
+            // 03-Dec-2010, tatu: SchemaAware REALLY should JavaType, but alas it doesn't...
+            Type hint = (propType == null) ? prop.getGenericPropertyType() : propType.getRawClass();
             // Maybe it already has annotated/statically configured serializer?
             JsonSerializer<Object> ser = prop.getSerializer();
             if (ser == null) { // nope

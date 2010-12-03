@@ -118,7 +118,7 @@ public class TestGenerateJsonSchema
 
     /**
      * Additional unit test for verifying that schema object itself
-     * is properly serializable
+     * can be properly serialized
      *
      * @since 1.2
      */

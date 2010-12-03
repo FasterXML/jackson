@@ -73,6 +73,7 @@ public class PropertyBuilder
 
         // do we have annotation that forces type to use (to declared type or its super type)?
         JavaType serializationType = findSerializationType(am, defaultUseStaticTyping);
+
         // Container types can have separate type serializers for content (value / element) type
         if (contentTypeSer != null) {
             /* 04-Feb-2010, tatu: Let's force static typing for collection, if there is
@@ -146,6 +147,11 @@ public class PropertyBuilder
             if (!raw.isAssignableFrom(serializationType)) {
                 throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+a.getName()+"': class "+serializationType.getName()+" not a super-type of (declared) class "+raw.getName());
             }
+            /* 03-Dec-2010, tatu: Actually, ugh, to resolve [JACKSON-415] may further relax this
+             *   and actually accept subtypes too for serialization. Bit dangerous in theory
+             *   but need to trust user here...
+             */
+            return TypeFactory.type(serializationType);
         }
         /* [JACKSON-114]: if using static typing, declared type is known
          * to be the type...
