@@ -1235,7 +1235,7 @@ public class SmileGenerator
                 _outputBuffer[_outputTail++] = (byte)c;
                 // Let's calc how many ASCII chars we can copy at most:
                 int maxInCount = (len - inputPtr);
-                int maxOutCount = (_outputEnd - _outputTail);
+                int maxOutCount = (bufferEnd - _outputTail);
 
                 if (maxInCount > maxOutCount) {
                     maxInCount = maxOutCount;
@@ -1304,7 +1304,7 @@ public class SmileGenerator
                 _outputBuffer[_outputTail++] = (byte)c;
                 // Let's calc how many ASCII chars we can copy at most:
                 int maxInCount = (inputEnd - inputPtr);
-                int maxOutCount = (_outputEnd - _outputTail);
+                int maxOutCount = (bufferEnd - _outputTail);
 
                 if (maxInCount > maxOutCount) {
                     maxInCount = maxOutCount;
