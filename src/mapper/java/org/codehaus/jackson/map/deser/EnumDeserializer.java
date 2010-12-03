@@ -78,6 +78,13 @@ public class EnumDeserializer
         }
         // But let's consider int acceptable as well (if within ordinal range)
         if (curr == JsonToken.VALUE_NUMBER_INT) {
+            /* ... unless told not to do that. :-)
+             * (as per [JACKSON-412]
+             */
+            if (ctxt.isEnabled(DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS)) {
+                throw ctxt.mappingException("Not allowed to deserialize Enum value out of JSON number (disable DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS to allow)");
+            }
+            
             int index = jp.getIntValue();
             Enum<?> result = _resolver.getEnum(index);
             if (result == null) {

@@ -31,6 +31,9 @@ Description:
    (contributed by Ga�l Marziou)
   * [JACKSON-405]: Add smile command-line tool for manua Smile encoding/decoding
   * [JACKSON-409] Add SmileGenerator.writeRaw(byte)
+  * [JACKSON-412] Add 'DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS'
+    to optionally prevent mapping JSON integers into Java Enum values
+   (suggested by Patrick L)
   * [JACKSON-420] Add 'DeserializationConfig.Feature.FAIL_ON_NULL_FOR_PRIMITIVES'
     to optionally prevent JSON null from mapping to default value
    (suggested by Thomas D)

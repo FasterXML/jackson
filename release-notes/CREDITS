@@ -337,8 +337,7 @@ Steve Crane:
    [1.5.5]
 
 Yuanchen Zhu:
-  * Reported [JACKSON-327], submitted patch: CustomSerializerFactory incorrectl\
-y
+  * Reported [JACKSON-327], submitted patch: CustomSerializerFactory incorrectly
     looks up serializer for interfaces
    [1.5.5]
   * Reported [JACKSON-329], type information was not properly serialized for
@@ -413,7 +412,7 @@ David Melia:
     to not work correctly during deserialisation process
    [1.6.0]
  
- Valentin Brasov: 
+Valentin Brasov: 
    * Reported [JACKSON-268] Property ordering for JAXB did not work with "raw" property
     names (but just with renamed names like with Jackson annotations)
    [1.6.0]
@@ -471,5 +470,10 @@ Joe Jensen:
 Ga�l Marziou:   
   * Contributed [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
     value into JSON
+   [1.7.0]   
+
+Patrick Leamon:
+  * Suggested [JACKSON-412] Add 'DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS'
+    to optionally prevent mapping JSON integers into Java Enum values
    [1.7.0]   
   

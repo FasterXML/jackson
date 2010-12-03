@@ -210,11 +210,30 @@ public class DeserializationConfig
          * (0 for 'int', 0.0 for double, same defaulting as what JVM uses).
          *<p>
          * Feature is disabled by default (to be consistent with behavior
-         * of Jackson 1.6).
+         * of Jackson 1.6),
+         * i.e. to allow use of nulls for primitive properties.
          * 
          * @since 1.7
          */
         FAIL_ON_NULL_FOR_PRIMITIVES(false),
+
+        /**
+         * Feature that determines whether JSON integer numbers are valid
+         * values to be used for deserializing Java enum values.
+         * If set to 'false' numbers are acceptable and are used to map to
+         * ordinal() of matching enumeration value; if 'true', numbers are
+         * not allowed and a {@link JsonMappingException} will be thrown.
+         * Latter behavior makes sense if there is concern that accidental
+         * mapping from integer values to enums might happen (and when enums
+         * are always serialized as JSON Strings)
+         *<p>
+         * Feature is disabled by default (to be consistent with behavior
+         * of Jackson 1.6), 
+         * i.e. to allow use of JSON integers for Java enums.
+         * 
+         * @since 1.7
+         */
+        FAIL_ON_NUMBERS_FOR_ENUMS(false),
         
         // // // Structural changes
 

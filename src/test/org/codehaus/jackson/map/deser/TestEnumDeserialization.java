@@ -163,4 +163,24 @@ public class TestEnumDeserialization
                 new TypeReference<EnumMap<LowerCaseEnum,String>>() { });
         assertEquals("value", value.get(LowerCaseEnum.A));
     }
+
+    // [JACKSON-412], disallow use of numbers
+    public void testNumbersToEnums() throws Exception
+    {
+        // by default numbers are fine:
+        ObjectMapper mapper = new ObjectMapper();
+        assertFalse(mapper.getDeserializationConfig().isEnabled(DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS));
+        TestEnum value = mapper.readValue("1", TestEnum.class);
+        assertSame(TestEnum.RULES, value);
+
+        // but can also be changed to errors:
+        mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS, true);
+        try {
+            value = mapper.readValue("1", TestEnum.class);
+            fail("Expected an error");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Not allowed to deserialize Enum value out of JSON number");
+        }
+    }
 }

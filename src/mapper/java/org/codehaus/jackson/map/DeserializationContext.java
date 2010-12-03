@@ -17,6 +17,11 @@ public abstract class DeserializationContext
 {
     protected final DeserializationConfig _config;
 
+    /**
+     * @since 1.7
+     */
+    protected final int _featureFlags;
+    
     /*
     /**********************************************************
     /* Life-cycle
@@ -26,6 +31,7 @@ public abstract class DeserializationContext
     protected DeserializationContext(DeserializationConfig config)
     {
         _config = config;
+        _featureFlags = config._featureFlags;
     }
 
     /*
@@ -56,7 +62,10 @@ public abstract class DeserializationContext
      * feature is enabled
      */
     public boolean isEnabled(DeserializationConfig.Feature feat) {
-    	return _config.isEnabled(feat);
+        /* 03-Dec-2010, tatu: minor shortcut; since this is called quite often,
+         *   let's use a local copy of feature settings:
+         */
+        return (_featureFlags & feat.getMask()) != 0;
     }
 
     /**
