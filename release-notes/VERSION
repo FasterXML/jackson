@@ -29,7 +29,7 @@ Description:
   * [JACKSON-369]: Allow registering custom Collection and Map deserializers
    (implemented via 'org.codehaus.jackson.map.Deserializers')
    (contributed by Ga�l Marziou)
-  * [JACKSON-405]: Add smile command-line tool for manua Smile encoding/decoding
+  * [JACKSON-405]: Add smile command-line tool for manual Smile encoding/decoding
   * [JACKSON-409] Add SmileGenerator.writeRaw(byte)
   * [JACKSON-412] Add 'DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS'
     to optionally prevent mapping JSON integers into Java Enum values
