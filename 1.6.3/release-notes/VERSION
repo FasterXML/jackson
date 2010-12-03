@@ -24,6 +24,9 @@ Description:
   * [JACKSON-423] Incorrect serialization of BigDecimal, BigInteger,
     when using TokenBuffer
    (reported by Sean P)
+  * [JACKSON-424] ArrayIndexOutOfBounds with SmileGenerator, long Unicode
+    Strings
+   (reported by Shay B)
 
 ------------------------------------------------------------------------
 == History: ==
