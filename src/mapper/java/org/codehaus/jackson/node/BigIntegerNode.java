@@ -73,7 +73,12 @@ public final class BigIntegerNode
     public String getValueAsText() {
         return _value.toString();
     }
-        
+
+    @Override
+    public boolean getValueAsBoolean(boolean defaultValue) {
+        return !BigInteger.ZERO.equals(_value);
+    }
+    
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
         throws IOException, JsonProcessingException

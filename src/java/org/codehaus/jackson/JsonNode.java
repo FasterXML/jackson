@@ -383,6 +383,38 @@ public abstract class JsonNode
     public double getValueAsDouble(double defaultValue) {
         return defaultValue;
     }
+
+    /**
+     * Method that will try to convert value of this node to a Java <b>boolean</b>.
+     * JSON booleans map naturally; integer numbers other than 0 map to true, and
+     * 0 maps to false
+     * and Strings 'true' and 'false' map to corresponding values.
+     *<p>
+     * If representation can not be converted to a boolean value (including structured types
+     * like Objects and Arrays),
+     * default value of <b>false</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.7
+     */
+    public boolean getValueAsBoolean() {
+        return getValueAsBoolean(false);
+    }
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>boolean</b>.
+     * JSON booleans map naturally; integer numbers other than 0 map to true, and
+     * 0 maps to false
+     * and Strings 'true' and 'false' map to corresponding values.
+     *<p>
+     * If representation can not be converted to a boolean value (including structured types
+     * like Objects and Arrays),
+     * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.7
+     */
+    public boolean getValueAsBoolean(boolean defaultValue) {
+        return defaultValue;
+    }
     
     /*
     /**********************************************************

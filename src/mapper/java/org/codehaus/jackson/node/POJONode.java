@@ -38,6 +38,15 @@ public final class POJONode
     public String getValueAsText() {
         return (_value == null) ? "null" : _value.toString();
     }
+
+    @Override
+    public boolean getValueAsBoolean(boolean defaultValue)
+    {
+        if (_value != null && _value instanceof Boolean) {
+            return ((Boolean) _value).booleanValue();
+        }
+        return defaultValue;
+    }
     
     @Override
     public int getValueAsInt(int defaultValue)

@@ -180,6 +180,36 @@ public abstract class JsonParserMinimalBase
      */
 
     @Override
+    public boolean getValueAsBoolean(boolean defaultValue) throws IOException, JsonParseException
+    {
+        if (_currToken != null) {
+            switch (_currToken) {
+            case VALUE_NUMBER_INT:
+                return getIntValue() != 0;
+            case VALUE_TRUE:
+                return true;
+            case VALUE_FALSE:
+            case VALUE_NULL:
+                return false;
+            case VALUE_EMBEDDED_OBJECT:
+                {
+                    Object value = this.getEmbeddedObject();
+                    if (value instanceof Boolean) {
+                        return ((Boolean) value).booleanValue();
+                    }
+                }
+            case VALUE_STRING:
+                String str = getText().trim();
+                if ("true".equals(str)) {
+                    return true;
+                }
+                break;
+            }
+        }
+        return defaultValue;
+    }
+    
+    @Override
     public int getValueAsInt(int defaultValue) throws IOException, JsonParseException
     {
         if (_currToken != null) {
@@ -194,6 +224,13 @@ public abstract class JsonParserMinimalBase
                 return 0;
             case VALUE_STRING:
                 return NumberInput.parseAsInt(getText(), defaultValue);
+            case VALUE_EMBEDDED_OBJECT:
+                {
+                    Object value = this.getEmbeddedObject();
+                    if (value instanceof Number) {
+                        return ((Number) value).intValue();
+                    }
+                }
             }
         }
         return defaultValue;
@@ -214,6 +251,13 @@ public abstract class JsonParserMinimalBase
                 return 0;
             case VALUE_STRING:
                 return NumberInput.parseAsLong(getText(), defaultValue);
+            case VALUE_EMBEDDED_OBJECT:
+                {
+                    Object value = this.getEmbeddedObject();
+                    if (value instanceof Number) {
+                        return ((Number) value).longValue();
+                    }
+                }
             }
         }
         return defaultValue;
@@ -234,6 +278,13 @@ public abstract class JsonParserMinimalBase
                 return 0;
             case VALUE_STRING:
                 return NumberInput.parseAsDouble(getText(), defaultValue);
+            case VALUE_EMBEDDED_OBJECT:
+                {
+                    Object value = this.getEmbeddedObject();
+                    if (value instanceof Number) {
+                        return ((Number) value).doubleValue();
+                    }
+                }
             }
         }
         return defaultValue;

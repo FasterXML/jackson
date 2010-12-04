@@ -95,6 +95,11 @@ public final class IntNode
     }
 
     @Override
+    public boolean getValueAsBoolean(boolean defaultValue) {
+        return _value != 0;
+    }
+    
+    @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
         throws IOException, JsonProcessingException
     {

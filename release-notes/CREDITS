@@ -475,5 +475,8 @@ Ga�l Marziou:
 Patrick Leamon:
   * Suggested [JACKSON-412] Add 'DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS'
     to optionally prevent mapping JSON integers into Java Enum values
-   [1.7.0]   
-  
+   [1.7.0]
+
+Tauren Mills:
+  * Suggested [JACKSON-414] Add 'JsonNode.getValueAsBoolean()' (and 'JsonParser.getValueAsBoolean()')
+   [1.7.0]

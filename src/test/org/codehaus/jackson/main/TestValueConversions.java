@@ -53,6 +53,51 @@ public class TestValueConversions
         }     
     }
 
+    /**
+     * @since 1.7
+     */
+    public void testAsBoolean() throws Exception
+    {
+        final String input = "[ true, false, null, 1, 0, \"true\", \"false\", \"foo\" ]";
+        for (int i = 0; i < 2; ++i) {
+            JsonParser jp;
+            if (i == 0) {
+                jp = createParserUsingReader(input);                
+            } else {
+                jp = this.createParserUsingStream(input, "UTF-8");
+            }
+            assertToken(JsonToken.START_ARRAY, jp.nextToken());
+            assertEquals(false, jp.getValueAsBoolean());
+            assertEquals(true, jp.getValueAsBoolean(true));
+
+            assertToken(JsonToken.VALUE_TRUE, jp.nextToken());
+            assertEquals(true, jp.getValueAsBoolean());
+            assertToken(JsonToken.VALUE_FALSE, jp.nextToken());
+            assertEquals(false, jp.getValueAsBoolean());
+            assertToken(JsonToken.VALUE_NULL, jp.nextToken());
+            assertEquals(false, jp.getValueAsBoolean());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(1, jp.getIntValue());
+            assertEquals(true, jp.getValueAsBoolean());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(0, jp.getIntValue());
+            assertEquals(false, jp.getValueAsBoolean());
+
+            assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+            assertEquals(true, jp.getValueAsBoolean());
+            assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+            assertEquals(false, jp.getValueAsBoolean());
+            assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+            assertEquals(false, jp.getValueAsBoolean());
+            
+            assertToken(JsonToken.END_ARRAY, jp.nextToken());
+            assertEquals(false, jp.getValueAsBoolean());
+            assertEquals(true, jp.getValueAsBoolean(true));
+
+            jp.close();
+        }     
+    }
+    
     public void testAsLong() throws Exception
     {
         final String input = "[ 1, -3, 4.98, true, false, null, \"-17\", \"foo\" ]";

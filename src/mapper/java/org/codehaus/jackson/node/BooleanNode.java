@@ -44,6 +44,16 @@ public final class BooleanNode
     }
 
     @Override
+    public boolean getValueAsBoolean() {
+        return (this == TRUE);
+    }
+
+    @Override
+    public boolean getValueAsBoolean(boolean defaultValue) {
+        return (this == TRUE);
+    }
+    
+    @Override
     public int getValueAsInt(int defaultValue) {
         return (this == TRUE) ? 1 : 0;
     }

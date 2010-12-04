@@ -34,6 +34,8 @@ Description:
   * [JACKSON-412] Add 'DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS'
     to optionally prevent mapping JSON integers into Java Enum values
    (suggested by Patrick L)
+  * [JACKSON-414] Add 'JsonNode.getValueAsBoolean()' (and 'JsonParser.getValueAsBoolean()')
+   (suggested by Tauren M)
   * [JACKSON-420] Add 'DeserializationConfig.Feature.FAIL_ON_NULL_FOR_PRIMITIVES'
     to optionally prevent JSON null from mapping to default value
    (suggested by Thomas D)

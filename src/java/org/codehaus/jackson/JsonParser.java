@@ -954,7 +954,8 @@ public abstract class JsonParser
      */
     
     /**
-     * Method that will try to convert value of this node to a Java <b>int</b>.
+     * Method that will try to convert value of current token to a
+     * <b>int</b>.
      * Numbers are coerced using default Java rules; booleans convert to 0 (false)
      * and 1 (true), and Strings are parsed using default Java language integer
      * parsing rules.
@@ -970,7 +971,8 @@ public abstract class JsonParser
     }
     
     /**
-     * Method that will try to convert value of this node to a Java <b>int</b>.
+     * Method that will try to convert value of current token to a
+     * <b>int</b>.
      * Numbers are coerced using default Java rules; booleans convert to 0 (false)
      * and 1 (true), and Strings are parsed using default Java language integer
      * parsing rules.
@@ -986,7 +988,8 @@ public abstract class JsonParser
     }
 
     /**
-     * Method that will try to convert value of this node to a Java <b>long</b>.
+     * Method that will try to convert value of current token to a
+     * <b>long</b>.
      * Numbers are coerced using default Java rules; booleans convert to 0 (false)
      * and 1 (true), and Strings are parsed using default Java language integer
      * parsing rules.
@@ -1002,7 +1005,8 @@ public abstract class JsonParser
     }
     
     /**
-     * Method that will try to convert value of this node to a Java <b>long</b>.
+     * Method that will try to convert value of current token to a
+     * <b>long</b>.
      * Numbers are coerced using default Java rules; booleans convert to 0 (false)
      * and 1 (true), and Strings are parsed using default Java language integer
      * parsing rules.
@@ -1018,7 +1022,8 @@ public abstract class JsonParser
     }
     
     /**
-     * Method that will try to convert value of this node to a Java <b>double</b>.
+     * Method that will try to convert value of current token to a Java
+     * <b>double</b>.
      * Numbers are coerced using default Java rules; booleans convert to 0.0 (false)
      * and 1.0 (true), and Strings are parsed using default Java language integer
      * parsing rules.
@@ -1034,7 +1039,8 @@ public abstract class JsonParser
     }
     
     /**
-     * Method that will try to convert value of this node to a Java <b>double</b>.
+     * Method that will try to convert value of current token to a
+     * Java <b>double</b>.
      * Numbers are coerced using default Java rules; booleans convert to 0.0 (false)
      * and 1.0 (true), and Strings are parsed using default Java language integer
      * parsing rules.
@@ -1046,6 +1052,40 @@ public abstract class JsonParser
      * @since 1.6
      */
     public double getValueAsDouble(double defaultValue) throws IOException, JsonParseException {
+        return defaultValue;
+    }
+
+    /**
+     * Method that will try to convert value of current token to a
+     * <b>boolean</b>.
+     * JSON booleans map naturally; integer numbers other than 0 map to true, and
+     * 0 maps to false
+     * and Strings 'true' and 'false' map to corresponding values.
+     *<p>
+     * If representation can not be converted to a boolean value (including structured types
+     * like Objects and Arrays),
+     * default value of <b>false</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.7
+     */
+    public boolean getValueAsBoolean() throws IOException, JsonParseException {
+        return getValueAsBoolean(false);
+    }
+
+    /**
+     * Method that will try to convert value of current token to a
+     * <b>boolean</b>.
+     * JSON booleans map naturally; integer numbers other than 0 map to true, and
+     * 0 maps to false
+     * and Strings 'true' and 'false' map to corresponding values.
+     *<p>
+     * If representation can not be converted to a boolean value (including structured types
+     * like Objects and Arrays),
+     * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.7
+     */
+    public boolean getValueAsBoolean(boolean defaultValue) throws IOException, JsonParseException {
         return defaultValue;
     }
     

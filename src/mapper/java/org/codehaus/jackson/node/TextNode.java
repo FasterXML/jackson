@@ -159,6 +159,16 @@ public final class TextNode
     }
 
     // note: neither fast nor elegant, but these work for now:
+
+    @Override
+    public boolean getValueAsBoolean(boolean defaultValue) {
+        if (_value != null) {
+            if ("true".equals(_value.trim())) {
+                return true;
+            }
+        }
+        return defaultValue;
+    }
     
     @Override
     public int getValueAsInt(int defaultValue) {
