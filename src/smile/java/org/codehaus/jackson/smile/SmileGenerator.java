@@ -1027,7 +1027,9 @@ public class SmileGenerator
     public final void flush() throws IOException
     {
         _flushBuffer();
-        _out.flush();
+        if (isEnabled(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)) {
+            _out.flush();
+        }
     }
 
     @Override

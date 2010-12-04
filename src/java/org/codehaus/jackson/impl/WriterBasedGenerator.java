@@ -684,7 +684,12 @@ public final class WriterBasedGenerator
     {
         _flushBuffer();
         if (_writer != null) {
-            _writer.flush();
+System.err.println("DEBUG: flush; enabled? "+isEnabled(Feature.FLUSH_PASSED_TO_STREAM));
+            if (isEnabled(Feature.FLUSH_PASSED_TO_STREAM)) {
+System.err.println(" -> flush");                
+                _writer.flush();
+            }
+else System.err.println(" -> NO flush");                
         }
     }
 

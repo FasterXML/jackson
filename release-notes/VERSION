@@ -26,9 +26,12 @@ Description:
     tor third-party libraries, data types
   * [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
     value into JSON
+   (contributed by Ga�l Marziou)
   * [JACKSON-369]: Allow registering custom Collection and Map deserializers
    (implemented via 'org.codehaus.jackson.map.Deserializers')
-   (contributed by Ga�l Marziou)
+  * [JACKSON-401] Add features 'SerializationConfig.FLUSH_AFTER_WRITE_VALUE' and
+    'JsonGenerator.FLUSH_PASSED_TO_STREAM' to allow blocking of flush() calls to
+    underlying output stream or writer
   * [JACKSON-405]: Add smile command-line tool for manual Smile encoding/decoding
   * [JACKSON-409] Add SmileGenerator.writeRaw(byte)
   * [JACKSON-412] Add 'DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS'

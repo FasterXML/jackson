@@ -21,6 +21,70 @@ import java.io.*;
 public class TestGeneratorClosing
     extends BaseTest
 {
+    /*
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+
+    final static class MyWriter extends StringWriter
+    {
+        boolean mIsClosed = false;
+
+        public MyWriter() { }
+
+        @Override
+        public void close() throws IOException {
+            mIsClosed = true;
+            super.close();
+        }
+        public boolean isClosed() { return mIsClosed; }
+    }
+
+    final static class MyStream extends ByteArrayOutputStream
+    {
+        boolean mIsClosed = false;
+
+        public MyStream() { }
+
+        @Override
+        public void close() throws IOException {
+            mIsClosed = true;
+            super.close();
+        }
+        public boolean isClosed() { return mIsClosed; }
+    }
+
+    static class MyBytes extends ByteArrayOutputStream
+    {
+        public int flushed = 0;
+
+        @Override
+        public void flush() throws IOException
+        {
+            ++flushed;
+            super.flush();
+        }
+    }
+
+    static class MyChars extends StringWriter
+    {
+        public int flushed = 0;
+
+        @Override
+        public void flush()
+        {
+            ++flushed;
+            super.flush();
+        }
+    }
+    
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+    
     /**
      * This unit test checks the default behaviour; with no auto-close, no
      * automatic closing should occur, nor explicit one unless specific
@@ -119,38 +183,53 @@ public class TestGeneratorClosing
         assertEquals("{", sw.toString());
     }
 
-    /*
-    ///////////////////////////////////////////////
-    // Helper classes
-    ///////////////////////////////////////////////
-     */
-
-    final static class MyWriter extends StringWriter
+    // [JACKSON-401]
+    public void testAutoFlushOrNot() throws Exception
     {
-        boolean mIsClosed = false;
+        JsonFactory f = new JsonFactory();
+        assertTrue(f.isEnabled(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM));
+        MyChars sw = new MyChars();
+        JsonGenerator jg = f.createJsonGenerator(sw);
+        jg.writeStartArray();
+        jg.writeEndArray();
+        assertEquals(0, sw.flushed);
+        jg.flush();
+        assertEquals(1, sw.flushed);
+        jg.close();
+        
+        // ditto with stream
+        MyBytes bytes = new MyBytes();
+        jg = f.createJsonGenerator(bytes, JsonEncoding.UTF8);
+        jg.writeStartArray();
+        jg.writeEndArray();
+        assertEquals(0, bytes.flushed);
+        jg.flush();
+        assertEquals(1, bytes.flushed);
+        assertEquals(2, bytes.toByteArray().length);
+        jg.close();
 
-        public MyWriter() { }
+        // then disable and we should not see flushing again...
+        f.disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM);
+        // first with a Writer
+        sw = new MyChars();
+        jg = f.createJsonGenerator(sw);
+        jg.writeStartArray();
+        jg.writeEndArray();
+        assertEquals(0, sw.flushed);
+        jg.flush();
+        assertEquals(0, sw.flushed);
+        jg.close();
+        assertEquals("[]", sw.toString());
 
-        @Override
-        public void close() throws IOException {
-            mIsClosed = true;
-            super.close();
-        }
-        public boolean isClosed() { return mIsClosed; }
+        // and then with OutputStream
+        bytes = new MyBytes();
+        jg = f.createJsonGenerator(bytes, JsonEncoding.UTF8);
+        jg.writeStartArray();
+        jg.writeEndArray();
+        assertEquals(0, bytes.flushed);
+        jg.flush();
+        assertEquals(0, bytes.flushed);
+        jg.close();
+        assertEquals(2, bytes.toByteArray().length);
     }
-
-    final static class MyStream extends ByteArrayOutputStream
-    {
-        boolean mIsClosed = false;
-
-        public MyStream() { }
-
-        @Override
-        public void close() throws IOException {
-            mIsClosed = true;
-            super.close();
-        }
-        public boolean isClosed() { return mIsClosed; }
-    }
-
 }

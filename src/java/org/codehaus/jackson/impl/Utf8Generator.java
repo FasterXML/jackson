@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.io.NumberOutput;
 import org.codehaus.jackson.util.CharTypes;
@@ -731,7 +732,9 @@ public class Utf8Generator
     {
         _flushBuffer();
         if (_outputStream != null) {
-            _outputStream.flush();
+            if (isEnabled(Feature.FLUSH_PASSED_TO_STREAM)) {
+                _outputStream.flush();
+            }
         }
     }
 

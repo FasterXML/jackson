@@ -78,7 +78,7 @@ public abstract class JsonGenerator
          * associated Float values).
          * If feature is disabled, these numbers are still output using
          * associated literal values, resulting in non-conformant
-         * output
+         * output.
          *<p>
          * Feature is enabled by default.
          */
@@ -96,11 +96,28 @@ public abstract class JsonGenerator
          * should be done using 64-bit IEEE 754 floating point values,
          * result being that some 64-bit integer values can not be
          * accurately represent (as mantissa is only 51 bit wide).
+         *<p>
+         * Feature is disabled by default.
          *
          * @since 1.3
          */
-        WRITE_NUMBERS_AS_STRINGS(false)
+        WRITE_NUMBERS_AS_STRINGS(false),
 
+        /**
+         * Feature that specifies that calls to {@link #flush} will cause
+         * matching <code>flush()</code> to underlying {@link OutputStream}
+         * or {@link Writer}; if disabled this will not be done.
+         * Main reason to disable this feature is to prevent flushing at
+         * generator level, if it is not possible to prevent method being
+         * called by other code (like <code>ObjectMapper</code> or third
+         * party libraries).
+         *<p>
+         * Feature is enabled by default.
+         * 
+         * @since 1.7
+         */
+        FLUSH_PASSED_TO_STREAM(true)
+        
             ;
 
         final boolean _defaultState;
@@ -892,8 +909,7 @@ public abstract class JsonGenerator
      * target (output stream, writer), and to flush the target itself
      * as well.
      */
-    public abstract void flush()
-        throws IOException;
+    public abstract void flush() throws IOException;
 
     /**
      * Method that can be called to determine whether this generator

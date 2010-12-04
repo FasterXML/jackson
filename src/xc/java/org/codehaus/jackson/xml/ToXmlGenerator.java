@@ -624,10 +624,12 @@ public class ToXmlGenerator
     @Override
     public final void flush() throws IOException
     {
-        try {
-            _xmlWriter.flush();
-        } catch (XMLStreamException e) {
-            StaxUtil.throwXmlAsIOException(e);
+        if (isEnabled(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)) {
+            try {
+                _xmlWriter.flush();
+            } catch (XMLStreamException e) {
+                StaxUtil.throwXmlAsIOException(e);
+            }
         }
     }
 
