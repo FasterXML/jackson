@@ -467,6 +467,17 @@ compile.smile, compile.mrbean" />
           includes="org/codehaus/jackson/mrbean/**"
        />
 
+       <!-- Similarly package javadocs; sub-optimal since they are built just
+            once so there's plenty of replication. So let's actually
+            only do this for core and mapper, for now:
+         -->
+       <jar destfile="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-javadoc.jar"
+          filesonly="true" compress="true" basedir="${dir.javadoc}" includes="**/*"
+       />
+       <jar destfile="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-javadoc.jar"
+          filesonly="true" compress="true" basedir="${dir.javadoc}" includes="**/*"
+       />
+
        <!-- Then copy javadocs -->
        <copy todir="${dir.dist}">
          <fileset dir="${dir.javadoc}/.." includes="javadoc/**/*" />
