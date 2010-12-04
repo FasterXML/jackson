@@ -1,9 +1,9 @@
 package org.codehaus.jackson.map.ser;
 
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.BaseMapTest;
 
-import java.io.Closeable;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
@@ -17,9 +17,9 @@ public class TestFeatures
     extends BaseMapTest
 {
     /*
-    /********************************************************
+    /**********************************************************
     /* Helper classes
-    /*********************************************************
+    /**********************************************************
      */
 
     /**
@@ -81,9 +81,9 @@ public class TestFeatures
     }
     
     /*
-    /*********************************************************
+    /**********************************************************
     /* Test methods
-    /*********************************************************
+    /**********************************************************
      */
 
     public void testGlobalAutoDetection() throws IOException
@@ -175,5 +175,54 @@ public class TestFeatures
         // new feature: serialize as JSON array:
         m.configure(SerializationConfig.Feature.WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS, true);
         assertEquals("[\"a\",\"b\",\"c\"]", m.writeValueAsString(chars));
+    }
+
+    // Test for [JACKSON-401]
+    public void testFlushingAutomatic() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertTrue(mapper.getSerializationConfig().isEnabled(SerializationConfig.Feature.FLUSH_AFTER_WRITE_VALUE));
+        // default is to flush after writeValue()
+        StringWriter sw = new StringWriter();
+        JsonGenerator jgen = mapper.getJsonFactory().createJsonGenerator(sw);
+        mapper.writeValue(jgen, Integer.valueOf(13));
+        assertEquals("13", sw.toString());
+        jgen.close();
+
+        // ditto with ObjectWriter
+        sw = new StringWriter();
+        jgen = mapper.getJsonFactory().createJsonGenerator(sw);
+        ObjectWriter ow = mapper.writer();
+        ow.writeValue(jgen, Integer.valueOf(99));
+        assertEquals("99", sw.toString());
+        jgen.close();
+    }
+
+    // Test for [JACKSON-401]
+    public void testFlushingNotAutomatic() throws IOException
+    {
+        // but should not occur if configured otherwise
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationConfig.Feature.FLUSH_AFTER_WRITE_VALUE, false);
+        StringWriter sw = new StringWriter();
+        JsonGenerator jgen = mapper.getJsonFactory().createJsonGenerator(sw);
+
+        mapper.writeValue(jgen, Integer.valueOf(13));
+        // no flushing now:
+        assertEquals("", sw.toString());
+        // except when actually flushing
+        jgen.flush();
+        assertEquals("13", sw.toString());
+        jgen.close();
+        // Also, same should happen with ObjectWriter
+        sw = new StringWriter();
+        jgen = mapper.getJsonFactory().createJsonGenerator(sw);
+        ObjectWriter ow = mapper.writer();
+        ow.writeValue(jgen, Integer.valueOf(99));
+        assertEquals("", sw.toString());
+        // except when actually flushing
+        jgen.flush();
+        assertEquals("99", sw.toString());
+        jgen.close();
     }
 }

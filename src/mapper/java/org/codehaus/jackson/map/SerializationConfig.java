@@ -211,9 +211,23 @@ public class SerializationConfig
           * 
           * @since 1.6 (see [JACKSON-282 for details])
           */
-         CLOSE_CLOSEABLE(false),
+        CLOSE_CLOSEABLE(false),
+
+        /**
+         * Feature that determines whether <code>JsonGenerator.flush()</code> is
+         * called after <code>writeValue()</code> method <b>that takes JsonParser
+         * as an argument</b> completes or not (i.e. does NOT affect methods
+         * that use other destinations); same for methods in {@link ObjectWriter}.
+         * This usually makes sense; but there are cases where flushing
+         * should not be forced: for example when underlying stream is
+         * compressing and flush() causes compression state to be flushed
+         * (which occurs with some compression codecs).
+          * 
+          * @since 1.6 (see [JACKSON-401 for details])
+         */
+        FLUSH_AFTER_WRITE_VALUE(true),
          
-        // // // Features for datatype-specific serialization
+         // // // Features for datatype-specific serialization
 
         /**
          * Feature that determines whether {@link java.util.Date}s

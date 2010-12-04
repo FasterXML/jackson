@@ -1098,7 +1098,9 @@ public class ObjectMapper
             _writeCloseableValue(jgen, value, config);
         } else {
             _serializerProvider.serializeValue(config, jgen, value, _serializerFactory);
-            jgen.flush();
+            if (config.isEnabled(SerializationConfig.Feature.FLUSH_AFTER_WRITE_VALUE)) {
+                jgen.flush();
+            }
         }
     }
 
@@ -1117,7 +1119,9 @@ public class ObjectMapper
             _writeCloseableValue(jgen, value, config);
         } else {
             _serializerProvider.serializeValue(config, jgen, value, _serializerFactory);
-            jgen.flush();
+            if (config.isEnabled(SerializationConfig.Feature.FLUSH_AFTER_WRITE_VALUE)) {
+                jgen.flush();
+            }
         }
     }
 
@@ -1129,8 +1133,11 @@ public class ObjectMapper
     public void writeTree(JsonGenerator jgen, JsonNode rootNode)
         throws IOException, JsonProcessingException
     {
-        _serializerProvider.serializeValue(copySerializationConfig(), jgen, rootNode, _serializerFactory);
-        jgen.flush();
+        SerializationConfig config = copySerializationConfig();
+        _serializerProvider.serializeValue(config, jgen, rootNode, _serializerFactory);
+        if (config.isEnabled(SerializationConfig.Feature.FLUSH_AFTER_WRITE_VALUE)) {
+            jgen.flush();
+        }
     }
 
     /**
@@ -1144,7 +1151,9 @@ public class ObjectMapper
         throws IOException, JsonProcessingException
     {
         _serializerProvider.serializeValue(cfg, jgen, rootNode, _serializerFactory);
-        jgen.flush();
+        if (cfg.isEnabled(SerializationConfig.Feature.FLUSH_AFTER_WRITE_VALUE)) {
+            jgen.flush();
+        }
     }
 
     /*
@@ -1998,7 +2007,9 @@ public class ObjectMapper
         Closeable toClose = (Closeable) value;
         try {
             _serializerProvider.serializeValue(cfg, jgen, value, _serializerFactory);
-            jgen.flush();
+            if (cfg.isEnabled(SerializationConfig.Feature.FLUSH_AFTER_WRITE_VALUE)) {
+                jgen.flush();
+            }
             Closeable tmpToClose = toClose;
             toClose = null;
             tmpToClose.close();

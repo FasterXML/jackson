@@ -236,7 +236,9 @@ public class ObjectWriter
             } else {
                 _provider.serializeValue(_config, jgen, value, _rootType, _serializerFactory);
             }
-            jgen.flush();
+            if (_config.isEnabled(SerializationConfig.Feature.FLUSH_AFTER_WRITE_VALUE)) {
+                jgen.flush();
+            }
         }
     }
 
@@ -428,7 +430,9 @@ public class ObjectWriter
             } else {
                 _provider.serializeValue(cfg, jgen, value, _rootType, _serializerFactory);
             }
-            jgen.flush();
+            if (_config.isEnabled(SerializationConfig.Feature.FLUSH_AFTER_WRITE_VALUE)) {
+                jgen.flush();
+            }
             Closeable tmpToClose = toClose;
             toClose = null;
             tmpToClose.close();

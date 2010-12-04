@@ -12,9 +12,9 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.util.Provider;
 
 /**
- * Class used for namespacing and to contain serializers for misc
- * JDK types that can not use regular {@link ToStringSerializer} or
- * such
+ * Class that providers access to serializers user for non-structured JDK types that
+ * are serializer as scalars; some using basic {@link ToStringSerializer},
+ * others explicit serializers.
  */
 public class JdkSerializers
     implements Provider<Map.Entry<Class<?>,Object>>
@@ -38,6 +38,9 @@ public class JdkSerializers
         sers.put(java.util.regex.Pattern.class, sls);
         sers.put(Locale.class, sls);
 
+        // starting with 1.7, use compact String for Locale
+        sers.put(Locale.class, sls);
+        
         // then atomic types
         sers.put(AtomicReference.class, AtomicReferenceSerializer.class);
         sers.put(AtomicBoolean.class, AtomicBooleanSerializer.class);
@@ -61,7 +64,7 @@ public class JdkSerializers
      */
 
     public final static class AtomicBooleanSerializer
-        extends SerializerBase<AtomicBoolean>
+        extends ScalarSerializerBase<AtomicBoolean>
     {
         public AtomicBooleanSerializer() { super(AtomicBoolean.class, false); }
     
@@ -80,7 +83,7 @@ public class JdkSerializers
     }
     
     public final static class AtomicIntegerSerializer
-        extends SerializerBase<AtomicInteger>
+        extends ScalarSerializerBase<AtomicInteger>
     {
         public AtomicIntegerSerializer() { super(AtomicInteger.class, false); }
     
@@ -99,7 +102,7 @@ public class JdkSerializers
     }
 
     public final static class AtomicLongSerializer
-        extends SerializerBase<AtomicLong>
+        extends ScalarSerializerBase<AtomicLong>
     {
         public AtomicLongSerializer() { super(AtomicLong.class, false); }
     
@@ -137,9 +140,9 @@ public class JdkSerializers
     }
     
     /*
-    ********************************************************
-    * Specialized serializers, referential types
-    ********************************************************
+    /**********************************************************
+    /* Specialized serializers, referential types
+    /**********************************************************
      */
 
     /**
@@ -147,7 +150,7 @@ public class JdkSerializers
      * absolute (but not canonical) name as String value
      */
     public final static class FileSerializer
-        extends SerializerBase<File>
+        extends ScalarSerializerBase<File>
     {
         public FileSerializer() { super(File.class); }
 
@@ -171,7 +174,7 @@ public class JdkSerializers
      */
     @SuppressWarnings("unchecked")
     public final static class ClassSerializer
-        extends SerializerBase<Class>
+        extends ScalarSerializerBase<Class>
     {
         public ClassSerializer() { super(Class.class); }
 
@@ -189,4 +192,32 @@ public class JdkSerializers
             return createSchemaNode("string", true);
         }
     }
+
+    /*
+    /**********************************************************
+    /* Other serializers
+    /**********************************************************
+     */
+
+    /*
+    public final static class LocaleSerializer
+        extends ScalarSerializerBase<Locale>
+    {
+        public LocaleSerializer() { super(Locale.class); }
+
+        @Override
+        public void serialize(Locale value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException
+        {
+            jgen.writeString(value.toString());
+        }
+
+        @Override
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+            throws JsonMappingException
+        {
+            return createSchemaNode("string", true);
+        }
+    }
+    */
 }
