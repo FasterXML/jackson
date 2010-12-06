@@ -11,6 +11,7 @@ import org.codehaus.jackson.type.JavaType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 
 /**
  * Base bean property handler class, which implements common parts of
@@ -41,10 +42,21 @@ public class BeanPropertyWriter
 
     /*
     /**********************************************************
-    /* Serialization settings
+    /* Opaque internal data that bean serializer factory and
+    /* bean serializers can add.
+    /* 
+    /* @since 1.7
     /**********************************************************
      */
 
+    protected HashMap<Object,Object> _internalSettings;
+    
+    /*
+    /**********************************************************
+    /* Serialization settings
+    /**********************************************************
+     */
+    
     /**
      * Logical name of the property; will be used as the field name
      * under which value for the property is written.
@@ -155,6 +167,10 @@ public class BeanPropertyWriter
         _field = base._field;
         _suppressNulls = base._suppressNulls;
         _suppressableValue = base._suppressableValue;
+        // one more thing: copy internal settings, if any (since 1.7)
+        if (base._internalSettings != null) {
+            _internalSettings = new HashMap<Object,Object>(base._internalSettings);
+        }
     }
 
     /**
@@ -164,9 +180,14 @@ public class BeanPropertyWriter
      */
     public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
     {
-        return new BeanPropertyWriter(_name, ser, _typeSerializer, _cfgSerializationType,
+        BeanPropertyWriter w = new BeanPropertyWriter(_name, ser, _typeSerializer, _cfgSerializationType,
                                       _accessorMethod, _field,
                                       _suppressNulls, _suppressableValue);
+        // one more thing: copy internal settings, if any (since 1.7)
+        if (_internalSettings != null) {
+            w._internalSettings = new HashMap<Object,Object>(_internalSettings);
+        }
+        return w;
     }
 
     /**
@@ -188,6 +209,63 @@ public class BeanPropertyWriter
      */
     public void setNonTrivialBaseType(JavaType t) {
         _nonTrivialBaseType = t;
+    }
+
+    /*
+    /**********************************************************
+    /* Managing and accessing of opaque internal settings
+    /* (used by extensions)
+    /**********************************************************
+     */
+    
+    /**
+     * Method for accessing value of specified internal setting.
+     * 
+     * @return Value of the setting, if any; null if none.
+     * 
+     * @since 1.7
+     */
+    public Object getInternalSetting(Object key)
+    {
+        if (_internalSettings == null) {
+            return null;
+        }
+        return _internalSettings.get(key);
+    }
+    
+    /**
+     * Method for setting specific internal setting to given value
+     * 
+     * @return Old value of the setting, if any (null if none)
+     * 
+     * @since 1.7
+     */
+    public Object setInternalSetting(Object key, Object value)
+    {
+        if (_internalSettings == null) {
+            _internalSettings = new HashMap<Object,Object>();
+        }
+        return _internalSettings.put(key, value);
+    }
+
+    /**
+     * Method for removing entry for specified internal setting.
+     * 
+     * @return Existing value of the setting, if any (null if none)
+     * 
+     * @since 1.7
+     */
+    public Object removeInternalSetting(Object key)
+    {
+        Object removed = null;
+        if (_internalSettings != null) {
+            removed = _internalSettings.remove(key);
+            // to reduce memory usage, let's also drop the Map itself, if empty
+            if (_internalSettings.size() == 0) {
+                _internalSettings = null;
+            }
+        }
+        return removed;
     }
     
     /*

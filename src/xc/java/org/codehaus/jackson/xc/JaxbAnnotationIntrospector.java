@@ -182,22 +182,23 @@ public class JaxbAnnotationIntrospector
     }
 
     /**
-     *<p>
-     * !!! 12-Oct-2009, tatu: This is hideously slow implementation,
-     *   called potentially for every single enum value being
-     *   serialized. Need to improve somehow
+     * Here we assume fairly simple logic; if there is <code>XmlAttribute</code> to be found,
+     * we consider it an attibute; if <code>XmlElement</code>, not-an-attribute; and otherwise
+     * we will consider there to be no information.
+     * Caller is likely to default to considering things as elements.
      */
     @Override
-    public String findEnumValue(Enum<?> e)
+    public Boolean isOutputAsAttribute(Annotated ann)
     {
-        Class<?> enumClass = e.getDeclaringClass();
-        String enumValue = e.name();
-        try {
-            XmlEnumValue xmlEnumValue = enumClass.getDeclaredField(enumValue).getAnnotation(XmlEnumValue.class);
-            return (xmlEnumValue != null) ? xmlEnumValue.value() : enumValue;
-        } catch (NoSuchFieldException e1) {
-            throw new IllegalStateException("Could not locate Enum entry '"+enumValue+"' (Enum class "+enumClass.getName()+")", e1);
+        XmlAttribute attr = findAnnotation(XmlAttribute.class, ann, false, false, false);
+        if (attr != null) {
+            return Boolean.TRUE;
         }
+        XmlElement elem = findAnnotation(XmlElement.class, ann, false, false, false);
+        if (elem != null) {
+            return Boolean.FALSE;
+        }
+        return null;
     }
     
     /*
@@ -643,33 +644,22 @@ public class JaxbAnnotationIntrospector
     }
 
     /**
-     * Whether the specified field is invisible, per the JAXB visibility rules.
-     *
-     * @param f The field.
-     * @return Whether the field is invisible.
+     *<p>
+     * !!! 12-Oct-2009, tatu: This is hideously slow implementation,
+     *   called potentially for every single enum value being
+     *   serialized. Need to improve somehow
      */
-    protected boolean isInvisible(AnnotatedField f)
+    @Override
+    public String findEnumValue(Enum<?> e)
     {
-        boolean invisible = true;
-        
-        for (Annotation annotation : f.getAnnotated().getDeclaredAnnotations()) {
-            if (isHandled(annotation)) {
-                //if any JAXB annotations are present, it is NOT ignorable.
-                invisible = false;
-            }
+        Class<?> enumClass = e.getDeclaringClass();
+        String enumValue = e.name();
+        try {
+            XmlEnumValue xmlEnumValue = enumClass.getDeclaredField(enumValue).getAnnotation(XmlEnumValue.class);
+            return (xmlEnumValue != null) ? xmlEnumValue.value() : enumValue;
+        } catch (NoSuchFieldException e1) {
+            throw new IllegalStateException("Could not locate Enum entry '"+enumValue+"' (Enum class "+enumClass.getName()+")", e1);
         }
-
-        if (invisible) {
-            XmlAccessType accessType = XmlAccessType.PUBLIC_MEMBER;
-            XmlAccessorType at = findAnnotation(XmlAccessorType.class, f, true, true, true);
-            if (at != null) {
-                accessType = at.value();
-            }
-
-            invisible = accessType != XmlAccessType.FIELD &&
-                !(accessType == XmlAccessType.PUBLIC_MEMBER && Modifier.isPublic(f.getAnnotated().getModifiers()));
-        }
-        return invisible;
     }
 
     /*
@@ -859,6 +849,36 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
      */
 
+    /**
+     * Whether the specified field is invisible, per the JAXB visibility rules.
+     *
+     * @param f The field.
+     * @return Whether the field is invisible.
+     */
+    protected boolean isInvisible(AnnotatedField f)
+    {
+        boolean invisible = true;
+        
+        for (Annotation annotation : f.getAnnotated().getDeclaredAnnotations()) {
+            if (isHandled(annotation)) {
+                //if any JAXB annotations are present, it is NOT ignorable.
+                invisible = false;
+            }
+        }
+
+        if (invisible) {
+            XmlAccessType accessType = XmlAccessType.PUBLIC_MEMBER;
+            XmlAccessorType at = findAnnotation(XmlAccessorType.class, f, true, true, true);
+            if (at != null) {
+                accessType = at.value();
+            }
+
+            invisible = accessType != XmlAccessType.FIELD &&
+                !(accessType == XmlAccessType.PUBLIC_MEMBER && Modifier.isPublic(f.getAnnotated().getModifiers()));
+        }
+        return invisible;
+    }
+    
     /**
      * Finds an annotation associated with given annotatable thing; or if
      * not found, a default annotation it may have (from super class, package

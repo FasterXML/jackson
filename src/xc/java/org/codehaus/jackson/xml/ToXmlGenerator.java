@@ -168,6 +168,11 @@ public class ToXmlGenerator
         _nextIsAttribute = isAttribute;
     }
 
+    public void setNextNamespace(String namespace)
+    {
+        _nextNamespace = (namespace == null) ? "" : namespace;
+    }
+    
     public final void setNextElementName(QName name)
     {
         setNextElementName(name.getNamespaceURI(), name.getLocalPart());
@@ -227,9 +232,7 @@ public class ToXmlGenerator
             handleMissingName();
         }
         try {
-            if (!_nextIsAttribute) { // attributes must be written along with value...
-                _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
-            }
+            _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
         }
@@ -241,11 +244,8 @@ public class ToXmlGenerator
     {
         try {
             // note: since attributes don't nest, can only have one attribute active, so:
-            if (_nextIsAttribute) {
-                _nextIsAttribute = false;
-            } else {
-                _xmlWriter.writeEndElement();
-            }
+            _nextIsAttribute = false;
+            _xmlWriter.writeEndElement();
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
         }

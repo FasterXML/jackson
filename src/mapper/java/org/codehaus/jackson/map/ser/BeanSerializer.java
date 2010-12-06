@@ -164,14 +164,16 @@ public class BeanSerializer
                 _anyGetterWriter.getAndSerialize(bean, jgen, provider);
             }
         } catch (Exception e) {
-            wrapAndThrow(e, bean, props[i].getName());
+            String name = (i == props.length) ? "[anySetter]" : props[i].getName();
+            wrapAndThrow(e, bean, name);
         } catch (StackOverflowError e) {
             /* 04-Sep-2009, tatu: Dealing with this is tricky, since we do not
              *   have many stack frames to spare... just one or two; can't
              *   make many calls.
              */
             JsonMappingException mapE = new JsonMappingException("Infinite recursion (StackOverflowError)");
-            mapE.prependPath(new JsonMappingException.Reference(bean, props[i].getName()));
+            String name = (i == props.length) ? "[anySetter]" : props[i].getName();
+            mapE.prependPath(new JsonMappingException.Reference(bean, name));
             throw mapE;
         }
     }

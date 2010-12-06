@@ -76,8 +76,10 @@ public abstract class FilteredBeanPropertyWriter
         }
     }
 
+/*
     protected static boolean _assignableFrom(Class<?> activeView)
     {
         return false;
     }
+    */
 }

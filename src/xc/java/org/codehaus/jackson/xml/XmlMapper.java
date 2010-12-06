@@ -16,6 +16,8 @@ import org.codehaus.jackson.xml.util.RootNameLookup;
  */
 public class XmlMapper extends ObjectMapper
 {
+    private final static AnnotationIntrospector XML_ANNOTATION_INTROSPECTOR = new JacksonXmlAnnotationIntrospector();
+    
     /*
     /**********************************************************
     /* Life-cycle: construction, configuration
@@ -27,8 +29,12 @@ public class XmlMapper extends ObjectMapper
         /* Need to override serializer provider; deserializer provider is fine as is */
         super(new XmlFactory(),
                 new XmlSerializerProvider(new RootNameLookup()), null);
+        
         // Bean serializers are somewhat customized as well:
         _serializerFactory = new XmlBeanSerializerFactory(null);
+        // as is introspector
+        _deserializationConfig.setAnnotationIntrospector(XML_ANNOTATION_INTROSPECTOR);
+        _serializationConfig.setAnnotationIntrospector(XML_ANNOTATION_INTROSPECTOR);
     }
 
     /**

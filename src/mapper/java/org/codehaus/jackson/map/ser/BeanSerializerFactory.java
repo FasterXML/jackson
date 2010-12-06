@@ -441,7 +441,8 @@ public class BeanSerializerFactory
      * Overridable method that can filter out properties. Default implementation
      * checks annotations class may have.
      */
-    protected List<BeanPropertyWriter> filterBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc, List<BeanPropertyWriter> props)
+    protected List<BeanPropertyWriter> filterBeanProperties(SerializationConfig config,
+            BasicBeanDescription beanDesc, List<BeanPropertyWriter> props)
     {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         AnnotatedClass ac = beanDesc.getClassInfo();
@@ -469,7 +470,8 @@ public class BeanSerializerFactory
      * properties. Explicit custom ordering will override this implicit
      * default ordering.
      */
-    protected List<BeanPropertyWriter> sortBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc, List<BeanPropertyWriter> props)
+    protected List<BeanPropertyWriter> sortBeanProperties(SerializationConfig config,
+            BasicBeanDescription beanDesc, List<BeanPropertyWriter> props)
     {
         // Ok: so far so good. But do we need to (re)order these somehow?
         /* Yes; first, for [JACKSON-90] (explicit ordering and/or alphabetic)

@@ -131,6 +131,21 @@ public abstract class AnnotationIntrospector
         return null;
     }
 
+    /**
+     * Specialized method used to check whether given annotated element
+     * (field, method, constructor parameter) has indicator that suggest
+     * it be output as an attribute (which is only used with data formats
+     * that have distinction between attributes and element; meaning xml).
+     *<p>
+     * Default implementation returns null, meaning no such information
+     * is found.
+     * 
+     * @since 1.7
+     */
+    public Boolean isOutputAsAttribute(Annotated ann) {
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* General class annotations

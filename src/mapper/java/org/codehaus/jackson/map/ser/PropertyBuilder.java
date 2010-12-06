@@ -24,9 +24,9 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class PropertyBuilder
 {
-    final SerializationConfig _config;
-    final BasicBeanDescription _beanDesc;
-    final JsonSerialize.Inclusion _outputProps;
+    final protected SerializationConfig _config;
+    final protected BasicBeanDescription _beanDesc;
+    final protected JsonSerialize.Inclusion _outputProps;
 
     final AnnotationIntrospector _annotationIntrospector;
 
