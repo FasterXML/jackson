@@ -3,6 +3,7 @@ package org.codehaus.jackson.xml;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.util.VersionUtil;
+import org.codehaus.jackson.xml.util.RootNameLookup;
 
 /**
  * Customized {@link ObjectMapper} that will read and write XML instead of JSON,

@@ -8,6 +8,7 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.xml.util.RootNameLookup;
 
 import javax.xml.namespace.QName;
 

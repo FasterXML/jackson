@@ -1,5 +1,10 @@
 package org.codehaus.jackson.xml;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+
+import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
+
 public class TestSerialization extends main.BaseTest
 {
     static class StringBean
@@ -10,6 +15,12 @@ public class TestSerialization extends main.BaseTest
     static class StringBean2
     {
         public String text = "foobar";
+    }
+
+    static class AttributeBean
+    {
+        @XmlAttribute(name="attr")
+        public String text = "something";
     }
     
     /*
@@ -34,5 +45,11 @@ public class TestSerialization extends main.BaseTest
         }
     }
     
-
+    public void testAttributeVsElem() throws Exception
+    {
+        XmlMapper mapper = new XmlMapper();
+        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        String xml = mapper.writeValueAsString(new AttributeBean());
+        assertEquals("<AttributeBean attr=\"something\">", xml);
+    }
 }

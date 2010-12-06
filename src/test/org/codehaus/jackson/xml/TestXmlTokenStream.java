@@ -4,6 +4,8 @@ import java.io.*;
 
 import javax.xml.stream.*;
 
+import org.codehaus.jackson.xml.util.XmlTokenStream;
+
 public class TestXmlTokenStream extends main.BaseTest
 {
     public void testSimple() throws Exception

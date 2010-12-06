@@ -16,10 +16,13 @@ import java.util.Map;
 final class BeanPropertyMap
 {
     private final Bucket[] _buckets;
+
+    private final int _size;
     
     public BeanPropertyMap(Map<String,SettableBeanProperty> properties)
     {
         int size = findSize(properties.size());
+        _size = size;
         int hashMask = (size-1);
         Bucket[] buckets = new Bucket[size];
         for (Map.Entry<String,SettableBeanProperty> entry : properties.entrySet()) {
@@ -40,6 +43,14 @@ final class BeanPropertyMap
         }
         return result;
     }
+
+    /*
+    /**********************************************************
+    /* Public API
+    /**********************************************************
+     */
+
+    public int size() { return _size; }
     
     public SettableBeanProperty find(String key)
     {
@@ -54,6 +65,12 @@ final class BeanPropertyMap
         // Do we need fallback for non-interned Strings?
         return _findWithEquals(key, index);
     }
+
+    /*
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
+     */
     
     private SettableBeanProperty _findWithEquals(String key, int index)
     {
@@ -67,6 +84,12 @@ final class BeanPropertyMap
         return null;
     }
 
+    /*
+    /**********************************************************
+    /* Helper beans
+    /**********************************************************
+     */
+    
     private final static class Bucket
     {
         public final Bucket next;

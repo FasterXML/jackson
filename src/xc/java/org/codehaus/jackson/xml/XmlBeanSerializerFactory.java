@@ -1,7 +1,13 @@
 package org.codehaus.jackson.xml;
 
+import java.util.List;
+
+import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
 import org.codehaus.jackson.map.Serializers;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.ser.BeanPropertyWriter;
+import org.codehaus.jackson.map.ser.BeanSerializer;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 
@@ -48,6 +54,30 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
     /**********************************************************
      */
 
+    @Override
+    protected BeanSerializer instantiateBeanSerializer(SerializationConfig config,
+            BasicBeanDescription beanDesc,
+            List<BeanPropertyWriter> properties)
+    {
+        BeanPropertyWriter[] writers = properties.toArray(new BeanPropertyWriter[properties.size()]);
+        return new XmlBeanSerializer(beanDesc.getBeanClass(), writers, null);
+    }
+
+    /**
+     * Need to override to sort properties so that we will always start with attributes (if any),
+     * followed by elements.
+     */
+    @Override
+    protected List<BeanPropertyWriter> sortBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc,
+            List<BeanPropertyWriter> props)
+    {
+        props = super.sortBeanProperties(config, beanDesc, props);
+
+        // !!! TODO: sort
+        
+        return props;
+    }
+    
     /*
     /**********************************************************
     /* Internal helper methods

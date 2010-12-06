@@ -179,6 +179,11 @@ public class BeanSerializerFactory
         return (JsonSerializer<Object>) ser;
     }
 
+    /**
+     * Helper method used to try to find serializer from set of registered
+     * {@link Serializers} instances (provided by registered Modules),
+     * and return first one found, if any.
+     */
     private static JsonSerializer<?> _findFirstSerializer(Serializers[] sers,
             JavaType type, SerializationConfig config, BeanDescription beanDesc)
     {
@@ -265,23 +270,15 @@ public class BeanSerializerFactory
     
     /*
     /**********************************************************
-    /* Overridable non-public methods
+    /* Overridable non-public factory methods
     /**********************************************************
      */
 
     /**
-     * Helper method used to skip processing for types that we know
-     * can not be (i.e. are never consider to be) beans: 
-     * things like primitives, Arrays, Enums, and proxy types.
-     *<p>
-     * Note that usually we shouldn't really be getting these sort of
-     * types anyway; but better safe than sorry.
+     * Method called to construct serializer for serializing specified bean type.
+     * 
+     * @since 1.6
      */
-    protected boolean isPotentialBeanType(Class<?> type)
-    {
-        return (ClassUtil.canBeABeanType(type) == null) && !ClassUtil.isProxyType(type);
-    }
-
     protected JsonSerializer<Object> constructBeanSerializer(SerializationConfig config,
                                                              BasicBeanDescription beanDesc)
     {
@@ -313,7 +310,7 @@ public class BeanSerializerFactory
             // Do they need to be sorted in some special way?
             props = sortBeanProperties(config, beanDesc, props);
         }
-        BeanSerializer ser = new BeanSerializer(beanDesc.getBeanClass(), props);
+        BeanSerializer ser = instantiateBeanSerializer(config, beanDesc, props);
         if (anyGetter != null) { // since 1.6
             JavaType type = anyGetter.getType(beanDesc.bindingsForBeanType());
             // copied from BasicSerializerFactory.buildMapSerializer():
@@ -327,6 +324,55 @@ public class BeanSerializerFactory
         // One more thing: need to gather view information, if any:
         ser = processViews(config, beanDesc, ser, props);
         return ser;
+    }
+
+    /**
+     * Method called to construct a filtered writer, for given view
+     * definitions. Default implementation constructs filter that checks
+     * active view type to views property is to be included in.
+     */
+    protected BeanPropertyWriter constructFilteredBeanWriter(BeanPropertyWriter writer, Class<?>[] inViews)
+    {
+        return FilteredBeanPropertyWriter.constructViewBased(writer, inViews);
+    }
+    
+    protected PropertyBuilder constructPropertyBuilder(SerializationConfig config,
+                                                       BasicBeanDescription beanDesc)
+    {
+        return new PropertyBuilder(config, beanDesc);
+    }
+
+    /**
+     * Method called to construct specific subtype of {@link BeanSerializer} with
+     * all information gathered so far; main reason to expose this is to allow
+     * constructing an alternate sub-class.
+     * 
+     * @since 1.7
+     */
+    protected BeanSerializer instantiateBeanSerializer(SerializationConfig config,
+            BasicBeanDescription beanDesc,
+            List<BeanPropertyWriter> properties)
+    {
+        return new BeanSerializer(beanDesc.getBeanClass(), properties);
+    }
+    
+    /*
+    /**********************************************************
+    /* Overridable non-public introspection methods
+    /**********************************************************
+     */
+    
+    /**
+     * Helper method used to skip processing for types that we know
+     * can not be (i.e. are never consider to be) beans: 
+     * things like primitives, Arrays, Enums, and proxy types.
+     *<p>
+     * Note that usually we shouldn't really be getting these sort of
+     * types anyway; but better safe than sorry.
+     */
+    protected boolean isPotentialBeanType(Class<?> type)
+    {
+        return (ClassUtil.canBeABeanType(type) == null) && !ClassUtil.isProxyType(type);
     }
 
     /**
@@ -385,35 +431,12 @@ public class BeanSerializerFactory
         return props;
     }
 
-    /**
-     * Secondary helper method for constructing {@link BeanPropertyWriter} for
-     * given member (field or method).
+    /*
+    /**********************************************************
+    /* Overridable non-public methods for manipulating bean properties
+    /**********************************************************
      */
-    protected BeanPropertyWriter _constructWriter(SerializationConfig config, TypeBindings typeContext,
-            PropertyBuilder pb, boolean staticTyping, String name, AnnotatedMember propertyMember)
-    {
-        if (config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
-            propertyMember.fixAccess();
-        }
-        // Does member specify a serializer? If so, let's use it.
-        JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, propertyMember);
-        // And how about polymorphic typing? First special to cover JAXB per-field settings:
-        TypeSerializer contentTypeSer = null;
-        JavaType type = propertyMember.getType(typeContext);
-        if (ClassUtil.isCollectionMapOrArray(type.getRawClass())) {
-            contentTypeSer = findPropertyContentTypeSerializer(type, config, propertyMember);
-        }
-
-        // and if not JAXB collection/array with annotations, maybe regular type info?
-        TypeSerializer typeSer = findPropertyTypeSerializer(type, config, propertyMember);
-        BeanPropertyWriter pbw = pb.buildProperty(name, annotatedSerializer,
-        		typeSer, contentTypeSer, propertyMember, staticTyping);
-        // how about views? (1.4+)
-        AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        pbw.setViews(intr.findSerializationViews(propertyMember));
-        return pbw;
-    }
-
+    
     /**
      * Overridable method that can filter out properties. Default implementation
      * checks annotations class may have.
@@ -519,29 +542,42 @@ public class BeanSerializerFactory
         BeanPropertyWriter[] filtered = explicit.toArray(new BeanPropertyWriter[explicit.size()]);
         return ser.withFiltered(filtered);
     }
-
-    /**
-     * Method called to construct a filtered writer, for given view
-     * definitions. Default implementation constructs filter that checks
-     * active view type to views property is to be included in.
-     */
-    protected BeanPropertyWriter constructFilteredBeanWriter(BeanPropertyWriter writer, Class<?>[] inViews)
-    {
-        return FilteredBeanPropertyWriter.constructViewBased(writer, inViews);
-    }
     
-    protected PropertyBuilder constructPropertyBuilder(SerializationConfig config,
-                                                       BasicBeanDescription beanDesc)
-    {
-        return new PropertyBuilder(config, beanDesc);
-    }
-
     /*
     /**********************************************************
     /* Internal helper methods
     /**********************************************************
      */
 
+    /**
+     * Secondary helper method for constructing {@link BeanPropertyWriter} for
+     * given member (field or method).
+     */
+    protected BeanPropertyWriter _constructWriter(SerializationConfig config, TypeBindings typeContext,
+            PropertyBuilder pb, boolean staticTyping, String name, AnnotatedMember propertyMember)
+    {
+        if (config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+            propertyMember.fixAccess();
+        }
+        // Does member specify a serializer? If so, let's use it.
+        JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, propertyMember);
+        // And how about polymorphic typing? First special to cover JAXB per-field settings:
+        TypeSerializer contentTypeSer = null;
+        JavaType type = propertyMember.getType(typeContext);
+        if (ClassUtil.isCollectionMapOrArray(type.getRawClass())) {
+            contentTypeSer = findPropertyContentTypeSerializer(type, config, propertyMember);
+        }
+
+        // and if not JAXB collection/array with annotations, maybe regular type info?
+        TypeSerializer typeSer = findPropertyTypeSerializer(type, config, propertyMember);
+        BeanPropertyWriter pbw = pb.buildProperty(name, annotatedSerializer,
+                        typeSer, contentTypeSer, propertyMember, staticTyping);
+        // how about views? (1.4+)
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        pbw.setViews(intr.findSerializationViews(propertyMember));
+        return pbw;
+    }
+    
     /**
      * Helper method that will sort given List of properties according
      * to defined criteria (usually detected by annotations)

@@ -15,6 +15,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.xml.util.StaxUtil;
 
 /**
  * {@link JsonGenerator} that outputs JAXB-style XML output instead of JSON content.

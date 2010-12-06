@@ -1,4 +1,4 @@
-package org.codehaus.jackson.xml;
+package org.codehaus.jackson.xml.util;
 
 import javax.xml.namespace.QName;
 

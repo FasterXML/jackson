@@ -16,6 +16,7 @@ import org.codehaus.jackson.impl.JsonParserMinimalBase;
 import org.codehaus.jackson.impl.JsonReadContext;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.util.ByteArrayBuilder;
+import org.codehaus.jackson.xml.util.XmlTokenStream;
 
 /**
  * {@link JsonParser} implementation that exposes XML structure as

@@ -8,6 +8,7 @@ import org.codehaus.stax2.io.Stax2ByteArraySource;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.xml.util.StaxUtil;
 
 /**
 * Factory used for constructing {@link FromXmlParser} and {@link ToXmlGenerator}

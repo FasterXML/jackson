@@ -59,7 +59,7 @@ public class ThrowableDeserializer
 
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
-            SettableBeanProperty prop = _props.get(propName);
+            SettableBeanProperty prop = _beanProperties.find(propName);
             jp.nextToken(); // to point to field value
 
             if (prop != null) { // normal case
@@ -69,7 +69,7 @@ public class ThrowableDeserializer
                 }
                 // nope; need to defer
                 if (pending == null) {
-                    int len = _props.size();
+                    int len = _beanProperties.size();
                     pending = new Object[len + len];
                 }
                 pending[pendingIx++] = prop;
