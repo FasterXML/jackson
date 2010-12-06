@@ -98,9 +98,22 @@ public class BeanDeserializer
     /**
      * Things set via setters (modifiers) are included in this
      * Map.
+     * 
+     * @deprecated Since 1.7, this set is only used during
+     *   construction, and should NOT be accessed afterwards.
+     *   It will be cleared with future versions
      */
+    @Deprecated
     final protected HashMap<String, SettableBeanProperty> _props;
 
+    /**
+     * Mapping of property names to properties, built when serialized
+     * has been completely resolved.
+     * 
+     * @since 1.7
+     */
+    protected BeanPropertyMap _beanProperties;
+    
     /**
      * Fallback setter used for handling any properties that are not
      * mapped to regular setters. If setter is not null, it will be
@@ -201,6 +214,9 @@ public class BeanDeserializer
      * @since 1.6
      */
     public boolean hasProperty(String propertyName) {
+        if (_props == null) {
+            return _beanProperties.find(propertyName) != null;
+        }
         return _props.containsKey(propertyName);
     }
     
@@ -328,8 +344,25 @@ public class BeanDeserializer
                 }
             }
         }
+
+        /* 05-Dec-2010, tatu: One more thing: we may be able to use faster
+         *   lookup mechanism; if so, we need to wait until this point
+         *   to construct instance.
+         */
+        postProcessBeanProperties(_props);
     }
 
+    /**
+     * Internal method called after resolution has been completed and
+     * we can finalize settings for bean properties.
+     * 
+     * @since 1.7
+     */
+    protected void postProcessBeanProperties(Map<String,SettableBeanProperty> props)
+    {
+        _beanProperties = new BeanPropertyMap(_props);
+    }
+    
     /*
     /**********************************************************
     /* JsonDeserializer implementation
@@ -386,7 +419,7 @@ public class BeanDeserializer
         }
         for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String propName = jp.getCurrentName();
-            SettableBeanProperty prop = _props.get(propName);
+            SettableBeanProperty prop = _beanProperties.find(propName);
             jp.nextToken(); // skip field, returns value token
             
             if (prop != null) { // normal case
@@ -434,9 +467,17 @@ public class BeanDeserializer
     @Override public JavaType getValueType() { return _beanType; }
 
     /**
+     *<p>
+     * Note: method can <b>only be called before bean has been resolved</b>
+     * (as properties may not be accessible afterwards)
+     * 
      * @since 1.6
      */
-    public Iterable<SettableBeanProperty> properties() {
+    public Iterable<SettableBeanProperty> properties()
+    {
+        if (_props == null) { // since 1.7
+            throw new IllegalStateException("Can only call before BeanDeserializer has been resolved");
+        }
         return _props.values();
     }
 
@@ -489,7 +530,7 @@ public class BeanDeserializer
             String propName = jp.getCurrentName();
             // Skip field name:
             jp.nextToken();
-            SettableBeanProperty prop = _props.get(propName);
+            SettableBeanProperty prop = _beanProperties.find(propName);
             if (prop != null) { // normal case
                 try {
                     prop.deserializeAndSet(jp, ctxt, bean);
@@ -601,7 +642,7 @@ public class BeanDeserializer
                 continue;
             }
             // regular property? needs buffering
-            prop = _props.get(propName);
+            prop = _beanProperties.find(propName);
             if (prop != null) {
                 buffer.bufferProperty(prop, prop.deserialize(jp, ctxt));
                 continue;
