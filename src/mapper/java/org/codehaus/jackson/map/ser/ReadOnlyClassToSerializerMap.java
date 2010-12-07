@@ -13,11 +13,9 @@ import org.codehaus.jackson.map.ser.SerializerCache.*;
 public final class ReadOnlyClassToSerializerMap
 {
     /**
-     *<p>
-     * NOTE: keys are {@link ClassPairKey}s (for "typed" serializers) and
-     *    {@link JavaType}s (untyped)
+     * Actual mappings from type key to serializers
      */
-    final HashMap<Object, JsonSerializer<Object>> _map;
+    protected final JsonSerializerMap _map;
 
     /**
      * We'll reuse key class to avoid unnecessary instantiations; since
@@ -30,7 +28,7 @@ public final class ReadOnlyClassToSerializerMap
 
     final UntypedKeyRaw _untypedKeyRaw = new UntypedKeyRaw(getClass());
     
-    private ReadOnlyClassToSerializerMap(HashMap<Object, JsonSerializer<Object>> map)
+    private ReadOnlyClassToSerializerMap(JsonSerializerMap map)
     {
         _map = map;
     }
@@ -45,28 +43,27 @@ public final class ReadOnlyClassToSerializerMap
      * can not be used as is but just shared: to get an actual usable
      * instance, {@link #instance} has to be called first.
      */
-    @SuppressWarnings("unchecked")
     public static ReadOnlyClassToSerializerMap from(HashMap<Object, JsonSerializer<Object>> src)
     {
-        return new ReadOnlyClassToSerializerMap((HashMap<Object, JsonSerializer<Object>>)src.clone());
+        return new ReadOnlyClassToSerializerMap(new JsonSerializerMap(src));
     }
 
     public JsonSerializer<Object> typedValueSerializer(JavaType type)
     { 
         _typedKeyFull.reset(type);
-        return _map.get(_typedKeyFull);
+        return _map.find(_typedKeyFull);
     }
 
     public JsonSerializer<Object> typedValueSerializer(Class<?> cls)
     { 
         _typedKeyRaw.reset(cls);
-        return _map.get(_typedKeyRaw);
+        return _map.find(_typedKeyRaw);
     }
     
     public JsonSerializer<Object> untypedValueSerializer(Class<?> cls)
     { 
         _untypedKeyRaw.reset(cls);
-        return _map.get(_untypedKeyRaw);
+        return _map.find(_untypedKeyRaw);
     }
 
     /**
@@ -74,6 +71,6 @@ public final class ReadOnlyClassToSerializerMap
      */
     public JsonSerializer<Object> untypedValueSerializer(JavaType type)
     { 
-        return _map.get(type);
+        return _map.find(type);
     }
 }

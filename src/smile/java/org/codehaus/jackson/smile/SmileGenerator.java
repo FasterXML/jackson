@@ -31,7 +31,7 @@ public class SmileGenerator
          * Note, however, that omitting header means that default settings for
          * shared names/string values can not be changed.
          */
-        WRITE_HEADER(true)
+        WRITE_HEADER(true),
 
         /**
          * Whether write byte marker that signifies end of logical content segment
@@ -42,7 +42,7 @@ public class SmileGenerator
          *<p>
          * Default setting is false meaning that such marker is not written.
          */
-        ,WRITE_END_MARKER(false)
+        WRITE_END_MARKER(false),
         
         /**
          * Whether to use simple 7-bit per byte encoding for binary content when output.
@@ -54,7 +54,7 @@ public class SmileGenerator
          * Default setting is true, indicating that binary data is quoted as 7-bit bytes
          * instead of written raw.
          */
-        ,ENCODE_BINARY_AS_7BIT(true)
+        ENCODE_BINARY_AS_7BIT(true),
 
         /**
          * Whether generator should check if it can "share" field names during generating
@@ -64,7 +64,7 @@ public class SmileGenerator
          *<p>
          * Since field names tend to repeat quite often, this setting is enabled by default.
          */
-        ,CHECK_SHARED_NAMES(true)
+        CHECK_SHARED_NAMES(true),
 
         /**
          * Whether generator should check if it can "share" short (at most 64 bytes encoded)
@@ -77,7 +77,7 @@ public class SmileGenerator
          * this option is disabled by default, and should only be enabled if it is likely that
          * same values repeat relatively often.
          */
-        ,CHECK_SHARED_STRING_VALUES(false)
+        CHECK_SHARED_STRING_VALUES(false)
         ;
 
         protected final boolean _defaultState;

@@ -154,16 +154,25 @@ public final class SerializerCache
     /**************************************************************
      */
 
+    public abstract static class TypeKey
+    {
+        protected int _hashCode;
+
+        protected TypeKey() { }
+
+        @Override public final int hashCode() { return _hashCode; }
+
+        @Override public abstract boolean equals(Object o);
+    }
+    
     /**
      * Key object used for "typed" serializers (type serializer wrapping
      * value serializer). These are only used
      * for root-level (and similar) access.
      */
-    public final static class TypedKeyRaw
+    public final static class TypedKeyRaw extends TypeKey
     {
-         Class<?> _type;
-
-        int _hashCode;
+        protected Class<?> _type;
 
         public TypedKeyRaw(Class<?> cls) {
             reset(cls);
@@ -178,17 +187,14 @@ public final class SerializerCache
         public boolean equals(Object o)
         {
             if (o == this) return true;
-            if (o == null) return false;
-            if (o.getClass() != getClass()) return false;
+            if (o == null || o.getClass() != getClass()) return false;
             return ((TypedKeyRaw) o)._type == _type;
         }
-
-        @Override public int hashCode() { return _hashCode; }
     }
 
-    public final static class TypedKeyFull
+    public final static class TypedKeyFull extends TypeKey
     {
-        JavaType _type;
+        protected JavaType _type;
 
         public TypedKeyFull(JavaType type) {
             _type = type;
@@ -196,25 +202,21 @@ public final class SerializerCache
 
         public void reset(JavaType type) {
             _type = type;
+            _hashCode = type.hashCode();
         }
 
         @Override
         public boolean equals(Object o)
         {
             if (o == this) return true;
-            if (o == null) return false;
-            if (o.getClass() != getClass()) return false;
+            if (o == null || o.getClass() != getClass()) return false;
             return ((TypedKeyFull) o)._type.equals(_type);
         }
-
-        @Override public int hashCode() { return _type.hashCode(); }
     }
 
-    public final static class UntypedKeyRaw
+    public final static class UntypedKeyRaw extends TypeKey
     {
-         Class<?> _type;
-
-        int _hashCode;
+        protected Class<?> _type;
 
         public UntypedKeyRaw(Class<?> cls) {
             reset(cls);
@@ -233,7 +235,5 @@ public final class SerializerCache
             if (o.getClass() != getClass()) return false;
             return ((UntypedKeyRaw) o)._type == _type;
         }
-
-        @Override public int hashCode() { return _hashCode; }
     }
 }

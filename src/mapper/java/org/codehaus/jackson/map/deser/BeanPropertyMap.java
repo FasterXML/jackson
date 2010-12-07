@@ -103,5 +103,4 @@ final class BeanPropertyMap
             this.value = value;
         }
     }
-
 }
