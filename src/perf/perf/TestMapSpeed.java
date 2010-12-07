@@ -15,8 +15,8 @@ public class TestMapSpeed
 
     public final static String[] KEYS = new String[] {
         STRING1, STRING2, STRING3, STRING4
-//        ,STRING5, STRING6
-        //,STRING7, STRING8
+        ,STRING5, STRING6
+       ,STRING7, STRING8
     };
     
     /*
@@ -28,47 +28,6 @@ public class TestMapSpeed
     abstract static class MyMap
     {
         public abstract Integer find(String key);
-    }
-    
-    final static class SmallestMyMap extends MyMap
-    {
-        final String str1;
-        final String str2;
-        final String str3;
-        final String str4;
-
-        final Integer int1;
-        final Integer int2;
-        final Integer int3;
-        final Integer int4;
-        
-        public SmallestMyMap(String str1, Integer int1,
-                String str2, Integer int2,
-                String str3, Integer int3,
-                String str4, Integer int4
-                )
-        {
-            this.str1 = str1;
-            this.int1 = int1;
-            this.str2 = str2;
-            this.int2 = int2;
-            this.str3 = str3;
-            this.int3 = int3;
-            this.str4 = str4;
-            this.int4 = int4;
-        }
-
-        @Override
-        public Integer find(String key)
-        {
-//            int hash = key.hashCode();
-            if (key == str1) return int1;
-            if (key == str2) return int2;
-            if (key == str3) return int3;
-            if (key == str4) return int4;
-            return null;
-//            return Integer.valueOf(hash);
-        }
     }
 
     final static class SmallMyMap extends MyMap
@@ -132,7 +91,6 @@ public class TestMapSpeed
             if (key == str7) return int7;
             if (key == str8) return int8;
             return null;
-//            return Integer.valueOf(hash);
         }
     }
 
@@ -194,9 +152,21 @@ public class TestMapSpeed
                 }
                 bucket = bucket.next;
             }
-            return null;
+            return find2(key, index);
         }
 
+        private Integer find2(String key, int index)
+        {
+            Bucket bucket = _buckets[index];
+            while (bucket != null) {
+                if (key.equals(bucket.key)) {
+                    return bucket.value;
+                }
+                bucket = bucket.next;
+            }
+            return null;
+        }
+        
         private final static class Bucket
         {
             public final Bucket next;
@@ -222,7 +192,6 @@ public class TestMapSpeed
 
     private final HashMap<String,Integer> stdMap;
 
-    private final MyMap smallestMap;
     private final MyMap smallMap;
     private final MyMap bigMap;
 
@@ -234,12 +203,6 @@ public class TestMapSpeed
         for (int i = 0, len = KEYS.length; i < len; ++i) {
             stdMap.put(KEYS[i], Integer.valueOf(i+1));
         }
-        smallestMap = new SmallestMyMap(
-                STRING1, Integer.valueOf(1),
-                STRING2, Integer.valueOf(2),
-                STRING3, Integer.valueOf(3),
-                STRING4, Integer.valueOf(4)
-                );
         smallMap = new SmallMyMap(
                 STRING1, Integer.valueOf(1),
                 STRING2, Integer.valueOf(2),
@@ -261,7 +224,7 @@ public class TestMapSpeed
 
         while (true) {
             Thread.sleep(100L);
-            int round = (i++ % 5);
+            int round = (i++ % 4);
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -279,14 +242,10 @@ public class TestMapSpeed
                 result = testWithCustom(REPS, smallMap);
                 break;
             case 2:
-                msg = "Custom (smallest)";
-                result = testWithCustom(REPS, smallestMap);
-                break;
-            case 3:
                 msg = "Custom (big)";
                 result = testWithCustom(REPS, bigMap);
                 break;
-            case 4:
+            case 3:
                 msg = "Custom (HashMap)";
                 result = testWithBucketMap(REPS, bucketMap);
                 break;

@@ -26,9 +26,13 @@ public class XmlMapper extends ObjectMapper
 
     public XmlMapper()
     {
+        this(new XmlFactory());
+    }
+    
+    public XmlMapper(XmlFactory xmlFactory)
+    {
         /* Need to override serializer provider; deserializer provider is fine as is */
-        super(new XmlFactory(),
-                new XmlSerializerProvider(new RootNameLookup()), null);
+        super(xmlFactory, new XmlSerializerProvider(new RootNameLookup()), null);
         
         // Bean serializers are somewhat customized as well:
         _serializerFactory = new XmlBeanSerializerFactory(null);
