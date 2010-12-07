@@ -42,7 +42,7 @@ public final class SimpleType
 
     protected SimpleType(Class<?> cls,
                          String[] typeNames, JavaType[] typeParams) {
-        super(cls);
+        super(cls, 0);
         if (typeNames == null || typeNames.length == 0) {
             _typeNames = null;
             _typeParameters = null;

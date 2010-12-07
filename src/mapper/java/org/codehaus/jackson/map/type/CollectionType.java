@@ -21,9 +21,8 @@ public final class CollectionType
 
     private CollectionType(Class<?> collT, JavaType elemT)
     {
-        super(collT);
+        super(collT,  elemT.hashCode());
         _elementType = elemT;
-        _hashCode += elemT.hashCode();
     }
 
     @Override

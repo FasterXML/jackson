@@ -306,6 +306,11 @@ compile.smile, compile.mrbean" />
                <pathelement path="${dir.build.classes.core}"/>  
                <pathelement path="${dir.build.classes.mapper}"/>  
                <pathelement path="${dir.build.classes.smile}"/>  
+               <pathelement path="${dir.build.classes.xc}"/>
+                <pathelement path="${dir.lib}/xml"/>
+                <fileset dir="${dir.lib}/xml">
+                     <include name="*.jar" />
+                </fileset>
             </classpath>
             <include name="perf/**/*.java" />
         </javac>

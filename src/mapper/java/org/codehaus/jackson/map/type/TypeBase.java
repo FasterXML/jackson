@@ -9,8 +9,8 @@ public abstract class TypeBase extends JavaType
      */
     volatile String _canonicalName;
 
-    protected TypeBase(Class<?> raw) {
-        super(raw);
+    protected TypeBase(Class<?> raw, int hash) {
+        super(raw, hash);
     }
     
     @Override

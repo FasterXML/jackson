@@ -26,11 +26,9 @@ public final class MapType
 
     private MapType(Class<?> mapType, JavaType keyT, JavaType valueT)
     {
-        super(mapType);
+        super(mapType, keyT.hashCode() ^ valueT.hashCode());
         _keyType = keyT;
-        _hashCode += keyT.hashCode();
         _valueType = valueT;
-        _hashCode += valueT.hashCode();
     }
 
     public static MapType construct(Class<?> rawType, JavaType keyT, JavaType valueT)

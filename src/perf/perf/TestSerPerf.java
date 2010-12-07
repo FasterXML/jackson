@@ -62,6 +62,7 @@ public final class TestSerPerf
 
         final MediaItem item = buildItem();
         final ObjectMapper jsonMapper = new ObjectMapper();
+//        jsonMapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
         final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null,
                 new WstxInputFactory(), new WstxOutputFactory()));
 
@@ -77,7 +78,7 @@ public final class TestSerPerf
         
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            int round = (i++ % 2);
+            int round = (i++ % 1);
 
             long curr = System.currentTimeMillis();
             String msg;

@@ -26,10 +26,9 @@ public final class ArrayType
     
     private ArrayType(JavaType componentType, Object emptyInstance)
     {
-        super(emptyInstance.getClass());
+        super(emptyInstance.getClass(), componentType.hashCode());
         _componentType = componentType;
         _emptyArray = emptyInstance;
-        _hashCode += componentType.hashCode();
     }
 
     public static ArrayType construct(JavaType componentType)

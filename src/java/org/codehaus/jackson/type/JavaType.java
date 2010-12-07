@@ -20,7 +20,7 @@ public abstract class JavaType
      */
     protected final Class<?> _class;
 
-    protected int _hashCode;
+    protected final int _hashCode;
 
     /**
      * Optional handler (codec) that can be attached to indicate 
@@ -51,11 +51,11 @@ public abstract class JavaType
     /**********************************************************
      */
 
-    protected JavaType(Class<?> clz)
+    protected JavaType(Class<?> clz, int hash)
     {
         _class = clz;
         String name = clz.getName();
-        _hashCode = name.hashCode();
+        _hashCode = name.hashCode() + hash;
     }
 
     /**

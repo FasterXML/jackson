@@ -7,7 +7,7 @@ import org.codehaus.jackson.*;
  * core methods needed, and also exposes
  * more complete API to generator implementation classes.
  */
-public abstract class JsonWriteContext
+public class JsonWriteContext
     extends JsonStreamContext
 {
     // // // Return values for writeValue()
@@ -21,6 +21,12 @@ public abstract class JsonWriteContext
 
     protected final JsonWriteContext _parent;
 
+    /**
+     * Name of the field of which value is to be parsed; only
+     * used for OBJECT contexts
+     */
+    protected String _currentName;
+    
     /*
     /**********************************************************
     /* Simple instance reuse slots; speed up things
@@ -49,14 +55,14 @@ public abstract class JsonWriteContext
 
     public static JsonWriteContext createRootContext()
     {
-        return new RootWContext();
+        return new JsonWriteContext(TYPE_ROOT, null);
     }
 
     public final JsonWriteContext createChildArrayContext()
     {
         JsonWriteContext ctxt = _childArray;
         if (ctxt == null) {
-            _childArray = ctxt = new ArrayWContext(this);
+            _childArray = ctxt = new JsonWriteContext(TYPE_ARRAY, this);
         } else { // need to reset settings; parent is already ok
             ctxt._index = -1;
         }
@@ -67,7 +73,7 @@ public abstract class JsonWriteContext
     {
         JsonWriteContext ctxt = _childObject;
         if (ctxt == null) {
-            _childObject = ctxt = new ObjectWContext(this);
+            _childObject = ctxt = new JsonWriteContext(TYPE_OBJECT, this);
         } else { // need to reset settings; parent is already ok
             ctxt._index = -1;
         }
@@ -79,6 +85,9 @@ public abstract class JsonWriteContext
     @Override
     public final JsonWriteContext getParent() { return _parent; }
 
+    @Override
+    public final String getCurrentName() { return _currentName; }
+    
     // // // API sub-classes are to implement
 
     /**
@@ -86,13 +95,67 @@ public abstract class JsonWriteContext
      *
      * @return Index of the field entry (0-based)
      */
-    public abstract int writeFieldName(String name);
+    public final int writeFieldName(String name)
+    {
+        if (_type == TYPE_OBJECT) {
+            if (_currentName != null) { // just wrote a name...
+                return STATUS_EXPECT_VALUE;
+            }
+            _currentName = name;
+            return (_index < 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_COMMA;
+        }
+        return STATUS_EXPECT_VALUE;
+    }
+    
+    public final int writeValue()
+    {
+        // Most likely, object:
+        if (_type == TYPE_OBJECT) {
+            if (_currentName == null) {
+                return STATUS_EXPECT_NAME;
+            }
+            _currentName = null;
+            ++_index;
+            return STATUS_OK_AFTER_COLON;
+        }
 
-    public abstract int writeValue();
+        // Ok, array?
+        if (_type == TYPE_ARRAY) {
+            int ix = _index;
+            ++_index;
+            return (ix < 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_COMMA;
+        }
+        
+        // Nope, root context
+        // No commas within root context, but need space
+        ++_index;
+        return (_index == 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_SPACE;
+    }
 
     // // // Internally used abstract methods
 
-    protected abstract void appendDesc(StringBuilder sb);
+    protected final void appendDesc(StringBuilder sb)
+    {
+        if (_type == TYPE_OBJECT) {
+            sb.append('{');
+            if (_currentName != null) {
+                sb.append('"');
+                // !!! TODO: Name chars should be escaped?
+                sb.append(_currentName);
+                sb.append('"');
+            } else {
+                sb.append('?');
+            }
+            sb.append(']');
+        } else if (_type == TYPE_ARRAY) {
+            sb.append('[');
+            sb.append(getCurrentIndex());
+            sb.append(']');
+        } else {
+            // nah, ROOT:
+            sb.append("/");
+        }
+    }
 
     // // // Overridden standard methods
 
@@ -106,136 +169,5 @@ public abstract class JsonWriteContext
         StringBuilder sb = new StringBuilder(64);
         appendDesc(sb);
         return sb.toString();
-    }
-}
-
-/**
- * Root context is simple, as only state it keeps is the index of
- * the currently active entry.
- */
-final class RootWContext
-    extends JsonWriteContext
-{
-    public RootWContext()
-    {
-        super(TYPE_ROOT, null);
-    }
-
-    @Override
-    public String getCurrentName() { return null; }
-
-    @Override
-    public int writeFieldName(String name)
-    {
-        return STATUS_EXPECT_VALUE;
-    }
-
-    @Override
-    public int writeValue()
-    {
-        // No commas within root context, but need space
-        ++_index;
-        return (_index == 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_SPACE;
-    }
-
-    @Override
-    protected void appendDesc(StringBuilder sb)
-    {
-        sb.append("/");
-    }
-}
-
-final class ArrayWContext
-    extends JsonWriteContext
-{
-    public ArrayWContext(JsonWriteContext parent)
-    {
-        super(TYPE_ARRAY, parent);
-    }
-
-    @Override
-    public String getCurrentName() { return null; }
-
-    @Override
-    public int writeFieldName(String name)
-    {
-        return STATUS_EXPECT_VALUE;
-    }
-
-    @Override
-    public int writeValue()
-    {
-        int ix = _index;
-        ++_index;
-        return (ix < 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_COMMA;
-    }
-
-    @Override
-    protected void appendDesc(StringBuilder sb)
-    {
-        sb.append('[');
-        sb.append(getCurrentIndex());
-        sb.append(']');
-    }
-}
-
-final class ObjectWContext
-    extends JsonWriteContext
-{
-    /**
-     * Name of the field of which value is to be parsed.
-     */
-    protected String _currentName;
-
-    /**
-     * Flag to indicate that the context just received the
-     * field name, and is to get a value next
-     */
-    protected boolean _expectValue;
-
-    public ObjectWContext(JsonWriteContext parent)
-    {
-        super(TYPE_OBJECT, parent);
-        _currentName = null;
-        _expectValue = false;
-    }
-
-    @Override
-    public String getCurrentName() { return _currentName; }
-
-    @Override
-    public int writeFieldName(String name)
-    {
-        if (_currentName != null) { // just wrote a name...
-            return STATUS_EXPECT_VALUE;
-        }
-        _currentName = name;
-        return (_index < 0) ? STATUS_OK_AS_IS : STATUS_OK_AFTER_COMMA;
-    }
-
-    @Override
-    public int writeValue()
-    {
-        if (_currentName == null) {
-            return STATUS_EXPECT_NAME;
-        }
-        _currentName = null;
-        ++_index;
-        return STATUS_OK_AFTER_COLON;
-    }
-
-    @Override
-    protected void appendDesc(StringBuilder sb)
-    {
-        sb.append('{');
-        if (_currentName != null) {
-            sb.append('"');
-            // !!! TODO: Name chars should be escaped?
-            sb.append(_currentName);
-            sb.append('"');
-        } else {
-            sb.append('?');
-        }
-        sb.append(']');
     }
 }
