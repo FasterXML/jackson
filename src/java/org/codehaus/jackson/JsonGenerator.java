@@ -21,7 +21,7 @@ import java.math.BigInteger;
 import org.codehaus.jackson.io.SerializedString;
 
 /**
- * Base class that defines public API for writing Json content.
+ * Base class that defines public API for writing JSON content.
  * Instances are created using factory methods of
  * a {@link JsonFactory} instance.
  *

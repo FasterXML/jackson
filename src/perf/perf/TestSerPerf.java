@@ -19,10 +19,9 @@ public final class TestSerPerf
 
     private final int REPS;
 
-    private TestSerPerf()
-        throws Exception
+    private TestSerPerf() throws Exception
     {
-        // Let's try to guestimate suitable size... to get to 50 megs processed
+        // Let's try to guestimate suitable size...
         REPS = 10000;
     }
 
@@ -72,6 +71,7 @@ public final class TestSerPerf
             MediaItem back = jsonMapper.readValue(stuff, 0, stuff.length, MediaItem.class);
             System.out.println("Warmed up: data size is "+stuff.length+" bytes; "+REPS+" reps -> "
                     +((REPS * stuff.length) >> 10)+" kB per iteration");
+            System.out.println();
             stuff = xmlMapper.writeValueAsBytes(item);
             System.out.println(" xml size: "+stuff.length+" bytes");
         }

@@ -1,101 +1,78 @@
 package perf;
-import java.io.*;
 
-import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.xml.XmlFactory;
+import org.codehaus.jackson.xml.XmlMapper;
+
+import com.ctc.wstx.stax.WstxInputFactory;
+import com.ctc.wstx.stax.WstxOutputFactory;
 
 /**
  * Micro-benchmark for comparing performance of bean deserialization
- * using three methods: tree (JsonNode) deserialization; method-based
- * bean deserialization and field-based bean deserialization.
  */
 public final class TestDeserPerf
 {
     /*
-    /////////////////////////////////////////////////////
-    // Bean classes
-    /////////////////////////////////////////////////////
+    /**********************************************************
+    /* Actual test
+    /**********************************************************
      */
 
-    static class Bean {
-        Bean2 bean, bean2, bean3, bean4;
-
-        public void setBean(Bean2 v) { bean = v; }
-        public void setBean2(Bean2 v) { bean2 = v; }
-        public void setBean3(Bean2 v) { bean3 = v; }
-        public void setBean4(Bean2 v) { bean4 = v; }
-    }
-
-    static class Bean2 {
-        int x;
-        long y;
-        String name;
-
-        public void setX(int v) { x = v; }
-        public void setY(long v) { y = v; }
-        public void setName(String v) { name = v; }
-    }
-
-    final static class FieldBean
-    {
-        public FieldBean() { }
-        public FieldBean(FieldBean2 bean,
-                         FieldBean2 bean2,
-                         FieldBean2 bean3,
-                         FieldBean2 bean4)
-        {
-            this.bean = bean;
-            this.bean2 = bean2;
-            this.bean3 = bean3;
-            this.bean4 = bean4;
-        }
-
-        public FieldBean2 bean, bean2, bean3, bean4;
-    }
-
-    final static class FieldBean2 {
-        public int x;
-        public long y;
-        public String name;
-
-        public FieldBean2() { }
-
-        public FieldBean2(int x, long y, String name) {
-            this.x = x;
-            this.y = y;
-            this.name = name;
-        }
-    }
-
     private final int REPS;
-    private final ObjectMapper _mapper;
-    private final byte[] _data;
-    
-    public TestDeserPerf()
-        throws Exception
-    {
-        // Let's try to guestimate suitable size, to spend enough (but not too much) time per round
-        REPS = 20000;
-        _mapper = new ObjectMapper();
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        _mapper.writeValue(result, new FieldBean(
-)
-);
-        _data = result.toByteArray();
+
+    private TestDeserPerf() {
+        // Let's try to guestimate suitable size
+        REPS = 10000;
     }
 
+    private MediaItem buildItem()
+    {
+        MediaItem.Content content = new MediaItem.Content();
+        content.setPlayer(MediaItem.Content.Player.FLASH);
+        content.setUri("http://www.cowtowncoder.com");
+        content.setTitle("CowTown Blog Rulez Ok");
+        content.setWidth(640);
+        content.setHeight(480);
+        content.setFormat("mpeg");
+        content.setDuration(360000L);
+        content.setSize(256000000L);
+        content.setBitrate(320);
+        content.setCopyright("GPL");
+        content.addPerson("Cowtowncoder");
+        content.addPerson("Billy-bob");
+
+        MediaItem item = new MediaItem(content);
+
+        item.addPhoto(new MediaItem.Photo("http://images.r.us/foobar.jpeg", "Fabulous FUBAR incident", 320, 256, MediaItem.Photo.Size.SMALL));
+        item.addPhoto(new MediaItem.Photo("http://images.r.us/total-cluster.jpeg", "More of the same -- add keywords for SEO",
+                640, 480, MediaItem.Photo.Size.LARGE));
+        item.addPhoto(new MediaItem.Photo("http://images.r.us/barf.png", "One more angle, gotta see this", 320, 256, MediaItem.Photo.Size.SMALL));
+
+        return item;
+    }
+    
     public void test()
         throws Exception
     {
         int i = 0;
         int sum = 0;
 
-        System.out.println("START: content size "+_data.length+" bytes");
-        ByteArrayInputStream in = new ByteArrayInputStream(_data);
+        final MediaItem item = buildItem();
+        final ObjectMapper jsonMapper = new ObjectMapper();
+//        jsonMapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
+        final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null,
+                new WstxInputFactory(), new WstxOutputFactory()));
 
+        byte[] json = jsonMapper.writeValueAsBytes(item);
+        System.out.println("Warmed up: data size is "+json.length+" bytes; "+REPS+" reps -> "
+                +((REPS * json.length) >> 10)+" kB per iteration");
+        System.out.println();
+        byte[] xml = xmlMapper.writeValueAsBytes(item);
+        System.out.println(" xml size: "+xml.length+" bytes");
+        
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            int round = (i++ % 3);
+            int round = (i++ % 1);
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -104,17 +81,15 @@ public final class TestDeserPerf
             switch (round) {
 
             case 0:
-                msg = "Jackson, object+SET";
-                sum += testDeser(REPS, in, Bean.class);
+                msg = "Deserialize, JSON";
+                sum += testDeser(jsonMapper, json, REPS);
                 break;
+
             case 1:
-                msg = "Jackson, object+Field";
-                sum += testDeser(REPS, in, FieldBean.class);
+                msg = "Deserialize, xml";
+                sum += testDeser(xmlMapper, xml, REPS);
                 break;
-            case 2:
-                msg = "Jackson, tree";
-                sum += testDeser(REPS, in, JsonNode.class);
-                break;
+
             default:
                 throw new Error("Internal error");
             }
@@ -125,20 +100,19 @@ public final class TestDeserPerf
             }
             System.out.println("Test '"+msg+"' -> "+curr+" msecs ("
                                +(sum & 0xFF)+").");
-
         }
     }
 
-    protected <T> int testDeser(int reps, ByteArrayInputStream in, Class<T> beanType)
+    protected int testDeser(ObjectMapper mapper, byte[] input, int reps)
         throws Exception
     {
-        T result = null;
+        MediaItem item = null;
         for (int i = 0; i < reps; ++i) {
-            in.reset();
-            result = _mapper.readValue(in, beanType);
+            item = mapper.readValue(input, 0, input.length, MediaItem.class);
         }
-        return result.hashCode(); // just to get some non-optimizable number
+        return item.hashCode(); // just to get some non-optimizable number
     }
+
 
     public static void main(String[] args) throws Exception
     {
