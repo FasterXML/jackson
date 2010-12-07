@@ -4,9 +4,14 @@ package org.codehaus.jackson.xml;
 
 //import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
+import java.io.*;
+import java.util.*;
+
+import javax.xml.bind.JAXB;
+
 import org.codehaus.jackson.xml.annotate.JacksonXmlProperty;
 
-public class TestSerialization extends BaseXmlTest
+public class TestSerialization extends XmlTestBase
 {
     static class StringBean
     {
@@ -31,6 +36,18 @@ public class TestSerialization extends BaseXmlTest
         @JacksonXmlProperty(isAttribute=true, localName="id")
         public int attr = 42;
     }
+
+    static class ListBean
+    {
+        public final List<Integer> values = new ArrayList<Integer>();
+
+        public ListBean() { }
+        public ListBean(int... ints) {
+            for (int i : ints) {
+                values.add(Integer.valueOf(i));
+            }
+        }
+    }
     
     /*
     /**********************************************************
@@ -41,7 +58,7 @@ public class TestSerialization extends BaseXmlTest
     /**
      * Unit test to verify that root name is properly set
      */
-    public void testRootName() throws Exception
+    public void testRootName() throws IOException
     {
         XmlMapper mapper = new XmlMapper();
         String xml = mapper.writeValueAsString(new StringBean());
@@ -54,19 +71,39 @@ public class TestSerialization extends BaseXmlTest
         }
     }
     
-    public void testSimpleAttribute() throws Exception
+    public void testSimpleAttribute() throws IOException
     {
         XmlMapper mapper = new XmlMapper();
         String xml = mapper.writeValueAsString(new AttributeBean());
         xml = removeSjsxpNamespace(xml);
-        assertEquals("<AttributeBean attr=\"something\"></AttributeBean>", xml);
+        assertEquals("<AttributeBean attr=\"something\"/>", xml);
     }
 
-    public void testSimpleAttrAndElem() throws Exception
+    public void testSimpleAttrAndElem() throws IOException
     {
         XmlMapper mapper = new XmlMapper();
         String xml = mapper.writeValueAsString(new AttrAndElem());
         xml = removeSjsxpNamespace(xml);
         assertEquals("<AttrAndElem id=\"42\"><elem>whatever</elem></AttrAndElem>", xml);
     }
+
+    public void testSimpleList() throws IOException
+    {
+        XmlMapper mapper = new XmlMapper();
+        String xml = mapper.writeValueAsString(new ListBean(1, 2, 3));
+        xml = removeSjsxpNamespace(xml);
+        // 06-Dec-2010, tatu: Not completely ok; should default to not using wrapper...
+        assertEquals("<ListBean><values><values>1</values><values>2</values><values>3</values></values></ListBean>", xml);
+        
+    }
+
+    /*
+      // manual 'test':
+    public void testJAXB() throws Exception
+    {
+        StringWriter sw = new StringWriter();
+        JAXB.marshal(new ListBean(1, 2, 3), sw);
+        System.out.println("JAXB -> "+sw);
+    }
+    */
 }

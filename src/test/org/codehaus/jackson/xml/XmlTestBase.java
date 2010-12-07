@@ -1,10 +1,12 @@
 package org.codehaus.jackson.xml;
 
-import junit.framework.TestCase;
-
-public abstract class BaseXmlTest
-    extends TestCase
+public abstract class XmlTestBase
+    extends main.BaseTest
 {
+    protected XmlTestBase() {
+        super();
+    }
+    
     /**
      * Helper method that tries to remove unnecessary namespace
      * declaration that default JDK XML parser (SJSXP) seems fit

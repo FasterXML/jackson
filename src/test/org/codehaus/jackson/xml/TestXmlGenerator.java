@@ -2,7 +2,7 @@ package org.codehaus.jackson.xml;
 
 import java.io.*;
 
-public class TestXmlGenerator extends BaseXmlTest
+public class TestXmlGenerator extends XmlTestBase
 {
     /*
     public void testSimpleElement() throws Exception
@@ -41,7 +41,7 @@ public class TestXmlGenerator extends BaseXmlTest
         String xml = out.toString();
         // one more thing: remove that annoying 'xmlns' decl, if it's there:
         xml = removeSjsxpNamespace(xml);
-        assertEquals("<root attr=\"value\"></root>", xml);
+        assertEquals("<root attr=\"value\"/>", xml);
     }
 
     public void testSecondLevelAttribute() throws Exception
@@ -63,7 +63,7 @@ public class TestXmlGenerator extends BaseXmlTest
         String xml = out.toString();
         // one more thing: remove that annoying 'xmlns' decl, if it's there:
         xml = removeSjsxpNamespace(xml);
-        assertEquals("<root><elem attr=\"value\"></elem></root>", xml);
+        assertEquals("<root><elem attr=\"value\"/></root>", xml);
     }
 
     public void testAttrAndElem() throws Exception
