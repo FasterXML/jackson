@@ -1,13 +1,17 @@
 package org.codehaus.jackson.map.jsontype;
 
+import java.io.IOException;
 import java.util.*;
 
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.annotate.JsonSubTypes.Type;
 import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.TypeFactory;
 
 public class TestWithGenerics extends BaseMapTest
@@ -42,10 +46,77 @@ public class TestWithGenerics extends BaseMapTest
         public ContainerWithField(T a) { animal = a; }
     }
     
+    // Beans for [JACKSON-387], [JACKSON-430]
+    
+    private static class SomeObject {
+        @SuppressWarnings("unused")
+        public String someValue = UUID.randomUUID().toString();
+    }
+
+    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@classAttr1")
+    static class MyClass {
+        public List<MyParam<?>> params = new ArrayList<MyParam<?>>();
+    }
+
+    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@classAttr2")
+    static class MyParam<T>{
+        public T value;
+
+        public MyParam() { }
+        public MyParam(T v) { value = v; }
+    }
+
+    // Beans for [JACKSON-430]
+    
+    static class CustomJsonSerializer extends JsonSerializer<Object>
+        implements ResolvableSerializer
+    {
+        private final JsonSerializer<Object> beanSerializer;
+    
+        public CustomJsonSerializer( JsonSerializer<Object> beanSerializer ) { this.beanSerializer = beanSerializer; }
+    
+        @Override
+        public void serialize( Object value, JsonGenerator jgen, SerializerProvider provider )
+            throws IOException, JsonProcessingException
+        {
+            beanSerializer.serialize( value, jgen, provider );
+        }
+    
+        @Override
+        public Class<Object> handledType() { return beanSerializer.handledType(); }
+    
+        @Override
+        public void serializeWithType( Object value, JsonGenerator jgen, SerializerProvider provider, TypeSerializer typeSer )
+            throws IOException, JsonProcessingException
+        {
+            System.out.println("DEBUG: serWithType ("+value.getClass().getName()+"), "+typeSer);
+            beanSerializer.serializeWithType( value, jgen, provider, typeSer );
+        }
+
+        @Override
+        public void resolve(SerializerProvider provider) throws JsonMappingException
+        {
+            if (beanSerializer instanceof ResolvableSerializer) {
+                ((ResolvableSerializer) beanSerializer).resolve(provider);
+            }
+        }
+    }
+    
+    protected static class CustomJsonSerializerFactory extends BeanSerializerFactory
+    {
+        public CustomJsonSerializerFactory() { super(null); }
+
+        @Override
+        protected JsonSerializer<Object> constructBeanSerializer( SerializationConfig config, BasicBeanDescription beanDesc ) {
+            return new CustomJsonSerializer( super.constructBeanSerializer( config, beanDesc ) );
+        }
+    }
+
+    
     /*
-     ****************************************************** 
-     * Unit tests
-     ****************************************************** 
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
      */
 
     public void testWrapperWithGetter() throws Exception
@@ -76,22 +147,6 @@ public class TestWithGenerics extends BaseMapTest
             fail("polymorphic type not kept, result == "+json+"; should contain 'object-type':'...'");
         }
     }
-
-    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@classAttr1")
-    private static class MyClass {
-            public List<MyParam<?>> items = new ArrayList<MyParam<?>>();
-    }
-
-//    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@classAttr2")
-    private static class MyParam<T> {
-        @SuppressWarnings("unused")
-        public T value = null;
-    }
-
-    private static class SomeObject {
-        @SuppressWarnings("unused")
-        public String someValue = UUID.randomUUID().toString();
-    }
     
     public void testJackson387() throws Exception
     {
@@ -120,14 +175,33 @@ public class TestWithGenerics extends BaseMapTest
         MyParam<List<SomeObject>> moc4 = new MyParam<List<SomeObject>>();
         moc4.value = colist;
 
-        mc.items.add( moc1 );
-        mc.items.add( moc2 );
-        mc.items.add( moc3 );
-        mc.items.add( moc4 );
+        mc.params.add( moc1 );
+        mc.params.add( moc2 );
+        mc.params.add( moc3 );
+        mc.params.add( moc4 );
 
         String str = om.writeValueAsString( mc );
 
         MyClass mc2 = om.readValue( str, MyClass.class );
         assertNotNull(mc2);
+        assertNotNull(mc2.params);
+        assertEquals(4, mc2.params.size());
+    }
+
+    public void testJackson430() throws Exception
+    {
+        ObjectMapper om = new ObjectMapper();
+//        om.getSerializationConfig().setSerializationInclusion( Inclusion.NON_NULL );
+        om.setSerializerFactory( new CustomJsonSerializerFactory() );
+        MyClass mc = new MyClass();
+        mc.params.add(new MyParam<Integer>(1));
+
+        String str = om.writeValueAsString( mc );
+//        System.out.println( str );
+        
+        MyClass mc2 = om.readValue( str, MyClass.class );
+        assertNotNull(mc2);
+        assertNotNull(mc2.params);
+        assertEquals(1, mc2.params.size());
     }
 }
