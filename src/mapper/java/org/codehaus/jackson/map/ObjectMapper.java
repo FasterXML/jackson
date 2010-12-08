@@ -604,6 +604,12 @@ public class ObjectMapper
                 mapper._deserializationConfig.appendAnnotationIntrospector(ai);
                 mapper._serializationConfig.appendAnnotationIntrospector(ai);
             }
+
+            @Override
+            public void setMixInAnnotations(Class<?> target, Class<?> mixinSource) {
+                mapper._deserializationConfig.addMixInAnnotations(target, mixinSource);
+                mapper._serializationConfig.addMixInAnnotations(target, mixinSource);
+            }
         });
     }
     

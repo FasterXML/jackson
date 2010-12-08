@@ -13,6 +13,12 @@ import org.codehaus.jackson.Versioned;
 public abstract class Module
     implements Versioned
 {
+    /*
+    /**********************************************************
+    /* Simple accessors
+    /**********************************************************
+     */
+    
     /**
      * Method that returns identifier for module; this can be used by Jackson
      * for informational purposes, as well as in associating extensions with
@@ -26,6 +32,12 @@ public abstract class Module
      */
     public abstract Version version();
 
+    /*
+    /**********************************************************
+    /* Life-cycle: registration
+    /**********************************************************
+     */
+    
     /**
      * Method called by {@link ObjectMapper} when module is registered.
      * It is called to let module register functionality it provides,
@@ -45,7 +57,11 @@ public abstract class Module
      */
     public interface SetupContext
     {
-        // // // Accessors
+        /*
+        /**********************************************************
+        /* Simple accessors
+        /**********************************************************
+         */
         
         /**
          * Method that returns version information about {@link ObjectMapper} 
@@ -71,7 +87,11 @@ public abstract class Module
          */
         public SerializationConfig getSeserializationConfig();
         
-        // // // Methods for registering handlers
+        /*
+        /**********************************************************
+        /* Handler registration
+        /**********************************************************
+         */
         
         /**
          * Method that module can use to register additional deserializers to use for
@@ -108,5 +128,25 @@ public abstract class Module
          * @param ai Annotation introspector to register.
          */
         public void appendAnnotationIntrospector(AnnotationIntrospector ai);
+
+        /**
+         * Method used for defining mix-in annotations to use for augmenting
+         * specified class or interface.
+         * All annotations from
+         * <code>mixinSource</code> are taken to override annotations
+         * that <code>target</code> (or its supertypes) has.
+         *<p>
+         * Note: mix-ins are registered both for serialization and deserialization
+         * (which can be different internally).
+         *<p>
+         * Note: currently only one set of mix-in annotations can be defined for
+         * a single class; so if multiple modules register mix-ins, highest
+         * priority one (last one registered) will have priority over other modules.
+         *
+         * @param target Class (or interface) whose annotations to effectively override
+         * @param mixinSource Class (or interface) whose annotations are to
+         *   be "added" to target's annotations, overriding as necessary
+         */
+        public void setMixInAnnotations(Class<?> target, Class<?> mixinSource);
     }
 }
