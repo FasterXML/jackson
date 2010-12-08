@@ -129,6 +129,12 @@ public class TestJacksonAnnotationIntrospector
     @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS)
     @JsonTypeResolver(DummyBuilder.class)
     static class TypeResolverBean { }
+
+    // @since 1.7
+    @JsonIgnoreType
+    static class IgnoredType { }
+
+    static class IgnoredSubType extends IgnoredType { }
     
     /*
     /**********************************************************
@@ -174,4 +180,21 @@ public class TestJacksonAnnotationIntrospector
         assertNotNull(rb);
         assertSame(DummyBuilder.class, rb.getClass());
     }    
+
+    /**
+     * Tests to ensure that {@link JsonIgnoreType} is detected as expected
+     * by the standard introspector.
+     * 
+     * @since 1.7
+     */
+    public void testIgnoredType() throws Exception
+    {
+        JacksonAnnotationIntrospector ai = new JacksonAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.construct(IgnoredType.class, ai, null);
+        assertEquals(Boolean.TRUE, ai.isIgnorableType(ac));
+
+        // also, should inherit as expected
+        ac = AnnotatedClass.construct(IgnoredSubType.class, ai, null);
+        assertEquals(Boolean.TRUE, ai.isIgnorableType(ac));
+    }
 }

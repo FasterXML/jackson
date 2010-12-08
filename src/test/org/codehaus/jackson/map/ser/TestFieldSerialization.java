@@ -16,9 +16,9 @@ public class TestFieldSerialization
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes
+    /**********************************************************
      */
 
     static class SimpleFieldBean
@@ -113,9 +113,9 @@ public class TestFieldSerialization
     }
 
     /*
-    //////////////////////////////////////////////
-    // Main tests, success
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Main tests, success
+    /**********************************************************
      */
 
     public void testSimpleAutoDetect() throws Exception
@@ -189,9 +189,9 @@ public class TestFieldSerialization
     }
 
     /*
-    //////////////////////////////////////////////
-    // Main tests, failure
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Main tests, failure cases
+    /**********************************************************
      */
 
     public void testFailureDueToDups() throws Exception

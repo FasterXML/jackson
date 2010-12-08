@@ -400,10 +400,15 @@ public class BeanSerializerFactory
         LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(vchecker, null);
         LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findSerializableFields(vchecker, methodsByProp.keySet());
 
+        // [JACKSON-429]: ignore specified types
+        removeIgnorableTypes(config, beanDesc, methodsByProp);
+        removeIgnorableTypes(config, beanDesc, fieldsByProp);
+        
         // nothing? can't proceed (caller may or may not throw an exception)
         if (methodsByProp.isEmpty() && fieldsByProp.isEmpty()) {
             return null;
         }
+        
         // null is for value type serializer, which we don't have access to from here
         boolean staticTyping = usesStaticTyping(config, beanDesc, null);
         PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
@@ -533,7 +538,7 @@ public class BeanSerializerFactory
             // No views, return as is
             return ser;
         }
-        // Otherwise: only include fields with view definitions.
+        // Otherwise: only include fields with view definitions
         ArrayList<BeanPropertyWriter> explicit = new ArrayList<BeanPropertyWriter>(props.size());
         for (BeanPropertyWriter bpw : props) {
             Class<?>[] views = bpw.getViews();
@@ -543,6 +548,41 @@ public class BeanSerializerFactory
         }
         BeanPropertyWriter[] filtered = explicit.toArray(new BeanPropertyWriter[explicit.size()]);
         return ser.withFiltered(filtered);
+    }
+
+    /**
+     * Method that will apply by-type limitations (as per [JACKSON-429]);
+     * by default this is based on {@link JsonIgnoreType} annotation but
+     * can be supplied by module-provided introspectors too.
+     */
+    protected <T extends AnnotatedMember> void removeIgnorableTypes(SerializationConfig config, BasicBeanDescription beanDesc,
+            Map<String, T> props)
+    {
+        if (props.isEmpty()) {
+            return;
+        }
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        Iterator<Map.Entry<String,T>> it = props.entrySet().iterator();
+        HashMap<Class<?>,Boolean> ignores = new HashMap<Class<?>,Boolean>();
+        while (it.hasNext()) {
+            Map.Entry<String, T> entry = it.next();
+            Class<?> type = entry.getValue().getRawType();
+            Boolean result = ignores.get(type);
+            if (result == null) {
+                BasicBeanDescription desc = config.introspectClassAnnotations(type);
+                AnnotatedClass ac = desc.getClassInfo();
+                result = intr.isIgnorableType(ac);
+                // default to false, non-ignorable
+                if (result == null) {
+                    result = Boolean.FALSE;
+                }
+                ignores.put(type, result);
+            }
+            // lotsa work, and yes, it is ignorable type, so:
+            if (result.booleanValue()) {
+                it.remove();
+            }
+        }
     }
     
     /*

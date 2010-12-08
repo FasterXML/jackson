@@ -198,6 +198,23 @@ public abstract class AnnotationIntrospector
      */
     public abstract Boolean findIgnoreUnknownProperties(AnnotatedClass ac);
 
+    /**
+     * Method for checking whether properties that have specified type
+     * (class, not generics aware) should be completely ignored for
+     * serialization and deserialization purposes.
+     * 
+     * @param ac Type to check
+     * 
+     * @return Boolean.TRUE if properties of type should be ignored;
+     *   Boolean.FALSE if they are not to be ignored, null for default
+     *   handling (which is 'do not ignore')
+     *   
+     * @since 1.7
+     */
+    public Boolean isIgnorableType(AnnotatedClass ac) {
+        return null;
+    }
+
     /*
     /**********************************************************
     /* Property auto-detection
@@ -812,6 +829,16 @@ public abstract class AnnotationIntrospector
             }
             return result;
         }        
+
+        @Override
+        public Boolean isIgnorableType(AnnotatedClass ac)
+        {
+            Boolean result = _primary.isIgnorableType(ac);
+            if (result == null) {
+                result = _secondary.isIgnorableType(ac);
+            }
+            return result;
+        }
 
         /*
         /******************************************************

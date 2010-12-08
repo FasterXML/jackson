@@ -8,16 +8,17 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
 /**
- * This unit test suite tests use of @JsonIgnore annotations
- * with  bean serialization.
+ * This unit test suite tests use of {@link JsonIgnore} annotations
+ * with  bean serialization; as well as (since 1.7)
+ * {@link JsonIgnoreType}.
  */
 public class TestAnnotationIgnore
     extends BaseMapTest
 {
     /*
-    /***********************************************
+    /**********************************************************
     /* Annotated helper classes
-    /***********************************************
+    /**********************************************************
      */
 
     /// Class for testing enabled {@link JsonIgnore} annotation
@@ -60,10 +61,21 @@ public class TestAnnotationIgnore
         public int x() { return 3; }
     }
 
+    @JsonIgnoreType
+    static class IgnoredType { }
+
+    @JsonIgnoreType(false)
+    static class NonIgnoredType
+    {
+        public int value = 13;
+        
+        public IgnoredType ignored = new IgnoredType();
+    }
+    
     /*
-    /***********************************************
-    /* Main tests
-    /***********************************************
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
      */
 
     public void testSimpleIgnore() throws Exception
@@ -106,4 +118,12 @@ public class TestAnnotationIgnore
         assertEquals(Integer.valueOf(2), result.get("y"));
     }
 
+    /**
+     * @since 1.7
+     */
+    public void testIgnoreType() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        assertEquals("{\"value\":13}", m.writeValueAsString(new NonIgnoredType()));
+    }
 }

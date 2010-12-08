@@ -101,6 +101,12 @@ public class JacksonAnnotationIntrospector
         JsonIgnoreProperties ignore = ac.getAnnotation(JsonIgnoreProperties.class);
         return (ignore == null) ? null : ignore.ignoreUnknown();
     }
+
+    @Override
+    public Boolean isIgnorableType(AnnotatedClass ac) {
+        JsonIgnoreType ignore = ac.getAnnotation(JsonIgnoreType.class);
+        return (ignore == null) ? null : ignore.value();
+    }
     
     /*
     /**********************************************************

@@ -244,6 +244,12 @@ public class JaxbAnnotationIntrospector
         return null;
     }
 
+    @Override
+    public Boolean isIgnorableType(AnnotatedClass ac) {
+        // Does JAXB have any such indicators? No?
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* Property auto-detection

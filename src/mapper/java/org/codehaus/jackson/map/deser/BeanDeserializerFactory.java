@@ -484,7 +484,8 @@ public class BeanDeserializerFactory
 
     protected void _addDeserializerFactoryMethods
         (DeserializationConfig config, BasicBeanDescription beanDesc, VisibilityChecker<?> vchecker,
-         BeanDeserializer deser, AnnotationIntrospector intr,
+         BeanDeserializer deser, AnnotationIntrospector intr,        // define unusable constructor to prevent deserialization
+
          CreatorContainer creators)
         throws JsonMappingException
     {
@@ -609,12 +610,22 @@ public class BeanDeserializerFactory
                 deser.addIgnorable(af.getName());
             }
         }
+
+        HashMap<Class<?>,Boolean> ignoredTypes = new HashMap<Class<?>,Boolean>();
         
         // These are all valid setters, but we do need to introspect bit more
         for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
             String name = en.getKey();            
             if (!ignored.contains(name)) { // explicit ignoral using @JsonIgnoreProperties needs to block entries
-                SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, en.getValue());
+                AnnotatedMethod setter = en.getValue();
+                // [JACKSON-429] Some types are declared as ignorable as well
+                Class<?> type = setter.getParameterClass(0);
+                if (isIgnorableType(config, beanDesc, type, ignoredTypes)) {
+                    // important: make ignorable, to avoid errors if value is actually seen
+                    deser.addIgnorable(name);
+                    continue;
+                }
+                SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, setter);
                 if (prop != null) {
                     deser.addProperty(prop);
                 }
@@ -633,7 +644,15 @@ public class BeanDeserializerFactory
         for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
             String name = en.getKey();
             if (!ignored.contains(name) && !deser.hasProperty(name)) {
-                SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, en.getValue());
+                AnnotatedField field = en.getValue();
+                // [JACKSON-429] Some types are declared as ignorable as well
+                Class<?> type = field.getRawType();
+                if (isIgnorableType(config, beanDesc, type, ignoredTypes)) {
+                    // important: make ignorable, to avoid errors if value is actually seen
+                    deser.addIgnorable(name);
+                    continue;
+                }
+                SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, field);
                 if (prop != null) {
                     deser.addProperty(prop);
                     addedProps.add(name);
@@ -868,4 +887,25 @@ public class BeanDeserializerFactory
         }
     	return true;
     }
+
+    /**
+     * Helper method that will check whether given raw type is marked as always ignorable
+     * (for purpose of ignoring properties with type)
+     */
+    protected boolean isIgnorableType(DeserializationConfig config, BasicBeanDescription beanDesc,
+            Class<?> type, Map<Class<?>,Boolean> ignoredTypes)
+    {
+        Boolean status = ignoredTypes.get(type);
+        if (status == null) {
+            BasicBeanDescription desc = config.introspectClassAnnotations(type);
+            status = config.getAnnotationIntrospector().isIgnorableType(desc.getClassInfo());
+            // We default to 'false', ie. not ignorable
+            if (status == null) {
+                status = Boolean.FALSE;
+            }
+        }
+        return status;
+    }
+    
+
 }
