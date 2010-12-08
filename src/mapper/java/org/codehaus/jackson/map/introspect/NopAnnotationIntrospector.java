@@ -42,11 +42,6 @@ public class NopAnnotationIntrospector
      */
 
     @Override
-    public String findNamespace(Annotated ann) {
-        return null;
-    }
-
-    @Override
     public String findEnumValue(Enum<?> value) {
         return null;
     }

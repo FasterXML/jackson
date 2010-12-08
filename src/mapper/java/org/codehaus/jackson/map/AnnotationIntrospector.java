@@ -130,27 +130,6 @@ public abstract class AnnotationIntrospector
      * is handled by this introspector.
      */
     public abstract boolean isHandled(Annotation ann);
-
-    /*
-    /**********************************************************
-    /* General annotations for serialization+deserialization
-    /**********************************************************
-    */
-
-    /**
-     * Method that can be called to figure out generic namespace
-     * property for an annotated object. Most commonly used
-     * for XML compatibility purposes (since currently only
-     * JAXB annotations provide namespace information), but
-     * theoretically is not limited to XML.
-     *
-     * @return Null if annotated thing does not define any
-     *   namespace information; non-null namespace (which may
-     *   be empty String) otherwise
-     */
-    public String findNamespace(Annotated ann) {
-        return null;
-    }
     
     /*
     /**********************************************************
@@ -766,31 +745,6 @@ public abstract class AnnotationIntrospector
         public boolean isHandled(Annotation ann)
         {
             return _primary.isHandled(ann) || _secondary.isHandled(ann);
-        }
-
-        // // // General annotations
-
-        /**
-         * Combination logic is such that if the primary returns
-         * non-null non-empty namespace, that is returned.
-         * Otherwise, if secondary returns non-null non-empty
-         * namespace, that is returned.
-         * Otherwise empty String is returned if either one
-         * returned empty String; otherwise null is returned
-         * (in case where both returned null)
-         */
-        @Override
-        public String findNamespace(Annotated ann)
-        {
-            String ns1 = _primary.findNamespace(ann);
-            if (ns1 == null) {
-                return _secondary.findNamespace(ann);
-            } else if (ns1.length() > 0) {
-                return ns1;
-            }
-            // Ns1 is empty; how about secondary?
-            String ns2 = _secondary.findNamespace(ann);
-            return (ns2 == null) ? ns1 : ns2;
         }
 
         // // // General class annotations

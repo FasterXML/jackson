@@ -7,7 +7,7 @@ package org.codehaus.jackson.xml;
 import java.io.*;
 import java.util.*;
 
-import javax.xml.bind.JAXB;
+//import javax.xml.bind.JAXB;
 
 import org.codehaus.jackson.xml.annotate.JacksonXmlProperty;
 

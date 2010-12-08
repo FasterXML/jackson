@@ -62,13 +62,6 @@ public class JacksonAnnotationIntrospector
      */
 
     @Override
-    public String findNamespace(Annotated ann)
-    {
-        // Jackson has no annotations for this (JAXB does)
-        return null;
-    }
-
-    @Override
     public String findEnumValue(Enum<?> value)
     {
         return value.name();
