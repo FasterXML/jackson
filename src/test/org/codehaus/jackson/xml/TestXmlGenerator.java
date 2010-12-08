@@ -30,7 +30,7 @@ public class TestXmlGenerator extends XmlTestBase
         StringWriter out = new StringWriter();
         ToXmlGenerator gen = f.createJsonGenerator(out);
         // root name is special, need to be fed first:
-        gen.setNextElementName("", "root");
+        gen.setNextElementName("root");
         gen.writeStartObject();
         // and also need to force attribute
         gen.setNextIsAttribute(true);
@@ -49,7 +49,7 @@ public class TestXmlGenerator extends XmlTestBase
         XmlFactory f = new XmlFactory();
         StringWriter out = new StringWriter();
         ToXmlGenerator gen = f.createJsonGenerator(out);
-        gen.setNextElementName("", "root");
+        gen.setNextElementName("root");
         gen.writeStartObject();
         gen.writeFieldName("elem");
         gen.writeStartObject();
@@ -71,7 +71,7 @@ public class TestXmlGenerator extends XmlTestBase
         XmlFactory f = new XmlFactory();
         StringWriter out = new StringWriter();
         ToXmlGenerator gen = f.createJsonGenerator(out);
-        gen.setNextElementName("", "root");
+        gen.setNextElementName("root");
         gen.writeStartObject();
         // and also need to force attribute
         gen.writeFieldName("attr");

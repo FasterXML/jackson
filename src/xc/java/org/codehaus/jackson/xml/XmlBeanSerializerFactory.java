@@ -72,16 +72,28 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
             List<BeanPropertyWriter> properties)
     {
         BeanPropertyWriter[] writers = properties.toArray(new BeanPropertyWriter[properties.size()]);
-        // Ok: how many attributes do we have to write?
+        // Ok: how many attributes do we have to write? namespaces?
+        String[] namespaces = null;
         int attrCount = 0;
-
+        int i = 0;
         for (BeanPropertyWriter bpw : properties) {
-            if (!_isAttribute(bpw)) {
-                break;
+            XmlInfo info = (XmlInfo) bpw.getInternalSetting(KEY_XML_INFO);
+            if (info != null) {
+                if (info.isAttribute()) {
+                    ++attrCount;
+                }
+                String ns = info.getNamespace();
+                if (ns != null) {
+                    if (namespaces == null) {
+                        namespaces = new String[properties.size()];
+                    }
+                    namespaces[i] = ns;
+                }
             }
-            ++attrCount;
+            ++i;
         }
-        return new XmlBeanSerializer(beanDesc.getBeanClass(), writers, null, attrCount);
+        return new XmlBeanSerializer(beanDesc.getBeanClass(), writers, null, attrCount,
+                namespaces);
     }
 
     /**
@@ -118,6 +130,11 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
         propertyWriter.setInternalSetting(KEY_XML_INFO, new XmlInfo(isAttribute, ns));
         return propertyWriter;
     }
+    /*
+    /**********************************************************
+    /* Internal helper methods
+    /**********************************************************
+     */
 
     private String findNamespaceAnnotation(AnnotationIntrospector ai, AnnotatedMember prop)
     {
@@ -145,18 +162,6 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
         return null;
     }
     
-    /*
-    /**********************************************************
-    /* Internal helper methods
-    /**********************************************************
-     */
-
-    protected boolean _isAttribute(BeanPropertyWriter bpw)
-    {
-        XmlInfo info = (XmlInfo) bpw.getInternalSetting(KEY_XML_INFO);
-        return (info != null && info.isAttribute());
-    }
-    
     /**
      * Method for re-sorting lists of bean properties such that attributes are strictly
      * written before elements.
@@ -177,6 +182,12 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
         }
         return attrs;
     }    
+
+    private boolean _isAttribute(BeanPropertyWriter bpw)
+    {
+        XmlInfo info = (XmlInfo) bpw.getInternalSetting(KEY_XML_INFO);
+        return (info != null) && info.isAttribute();
+    }
     
     /*
     /**********************************************************

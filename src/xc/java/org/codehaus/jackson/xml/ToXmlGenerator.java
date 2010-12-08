@@ -175,19 +175,19 @@ public class ToXmlGenerator
     
     public final void setNextElementName(QName name)
     {
-        setNextElementName(name.getNamespaceURI(), name.getLocalPart());
+        String ns = name.getNamespaceURI();
+        _nextNamespace = (ns == null) ? "" : ns;
+        _nextLocalName = name.getLocalPart();
     }
     
-    public void setNextElementName(String namespace, String localName)
+    public void setNextElementName(String localName)
     {
-        _nextNamespace = (namespace == null) ? "" : namespace;
         _nextLocalName = localName;
         _nextIsAttribute = false;
     }
     
-    public void setNextAttributeName(String namespace, String localName)
+    public void setNextAttributeName(String localName)
     {
-        _nextNamespace = (namespace == null) ? "" : namespace;
         _nextLocalName = localName;
         _nextIsAttribute = true;
     }

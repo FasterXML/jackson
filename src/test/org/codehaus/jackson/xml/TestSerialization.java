@@ -1,9 +1,5 @@
 package org.codehaus.jackson.xml;
 
-//import javax.xml.bind.annotation.XmlAttribute;
-
-//import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
-
 import java.io.*;
 import java.util.*;
 
@@ -48,6 +44,18 @@ public class TestSerialization extends XmlTestBase
             }
         }
     }
+
+    static class NsElemBean
+    {
+        @JacksonXmlProperty(namespace="http://foo")
+        public String text = "blah";
+    }
+
+    static class NsAttrBean
+    {
+        @JacksonXmlProperty(namespace="http://foo", isAttribute=true)
+        public String attr = "3";
+    }
     
     /*
     /**********************************************************
@@ -87,16 +95,33 @@ public class TestSerialization extends XmlTestBase
         assertEquals("<AttrAndElem id=\"42\"><elem>whatever</elem></AttrAndElem>", xml);
     }
 
+    public void testSimpleNsElem() throws IOException
+    {
+        XmlMapper mapper = new XmlMapper();
+        String xml = mapper.writeValueAsString(new NsElemBean());
+        xml = removeSjsxpNamespace(xml);
+        // here we assume woodstox automatic prefixes, not very robust but:
+        assertEquals("<NsElemBean><wstxns1:text xmlns:wstxns1=\"http://foo\">blah</wstxns1:text></NsElemBean>", xml);
+    }
+
+    public void testSimpleNsAttr() throws IOException
+    {
+        XmlMapper mapper = new XmlMapper();
+        String xml = mapper.writeValueAsString(new NsAttrBean());
+        xml = removeSjsxpNamespace(xml);
+        // here we assume woodstox automatic prefixes, not very robust but:
+        assertEquals("<NsAttrBean xmlns:wstxns1=\"http://foo\" wstxns1:attr=\"3\"/>", xml);
+    }
+    
     public void testSimpleList() throws IOException
     {
         XmlMapper mapper = new XmlMapper();
         String xml = mapper.writeValueAsString(new ListBean(1, 2, 3));
         xml = removeSjsxpNamespace(xml);
         // 06-Dec-2010, tatu: Not completely ok; should default to not using wrapper...
-        assertEquals("<ListBean><values><values>1</values><values>2</values><values>3</values></values></ListBean>", xml);
-        
+        assertEquals("<ListBean><values><values>1</values><values>2</values>AttributeBean());<values>3</values></values></ListBean>", xml);
     }
-
+    
     /*
       // manual 'test':
     public void testJAXB() throws Exception

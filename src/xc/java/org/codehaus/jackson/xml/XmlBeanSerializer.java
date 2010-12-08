@@ -21,12 +21,19 @@ public class XmlBeanSerializer extends BeanSerializer
      * properties to write.
      */
     protected final int _attributeCount;
+
+    /**
+     * Array that contains namespace URIs associated with properties, if any;
+     * null if no namespace definitions have been assigned
+     */
+    protected final String[] _namespaces;
     
     public XmlBeanSerializer(Class<?> type, BeanPropertyWriter[] props,
-            BeanPropertyWriter[] filteredProps, int attrCount)
+            BeanPropertyWriter[] filteredProps, int attrCount, String[] ns)
     {
         super(type, props, filteredProps);
         _attributeCount = attrCount;
+        _namespaces = ns;
     }
 
     @Override
@@ -35,7 +42,7 @@ public class XmlBeanSerializer extends BeanSerializer
         if (filtered == null) {
             return this;
         }
-        return new XmlBeanSerializer(_class, _props, filtered, _attributeCount);
+        return new XmlBeanSerializer(_class, _props, filtered, _attributeCount, _namespaces);
     }
 
     /**
@@ -59,13 +66,16 @@ public class XmlBeanSerializer extends BeanSerializer
         if (attrCount > 0) {
             jgen.setNextIsAttribute(true);
         }
+        final String[] namespaces = _namespaces;
         
         int i = 0;
         try {
             for (final int len = props.length; i < len; ++i) {
+                String ns = (namespaces == null) ? null : namespaces[i];
                 if (i == attrCount) {
                     jgen.setNextIsAttribute(false);
                 }
+                jgen.setNextNamespace(ns);
                 BeanPropertyWriter prop = props[i];
                 if (prop != null) { // can have nulls in filtered list
                     prop.serializeAsField(bean, jgen, provider);
