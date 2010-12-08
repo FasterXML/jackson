@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.LRUMap;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.xml.XmlAnnotationIntrospector;
 
 /**
  * Helper class used for efficiently finding root element name used with
@@ -49,7 +50,7 @@ public class RootNameLookup
                     name = new QName("", localName);
                 } else {
                     // Otherwise let's see if there's namespace, too
-                    String ns = intr.findNamespace(ac);
+                    String ns = findNamespace(intr, ac);
                     if (ns == null) { // some QName impls barf on nulls...
                         ns = "";
                     }
@@ -59,5 +60,18 @@ public class RootNameLookup
             }
         }
         return name;
+    }
+
+    private String findNamespace(AnnotationIntrospector ai, AnnotatedClass ann)
+    {
+        for (AnnotationIntrospector intr : ai.allIntrospectors()) {
+            if (intr instanceof XmlAnnotationIntrospector) {
+                String ns = ((XmlAnnotationIntrospector) intr).findNamespace(ann);
+                if (ns != null) {
+                    return ns;
+                }
+            }
+        }
+        return null;
     }
 }

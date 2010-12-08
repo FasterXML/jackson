@@ -100,10 +100,25 @@ public abstract class AnnotationIntrospector
 
     /*
     /**********************************************************
-    /* Iteration of possibly chained introspector (1.7)
+    /* Access to possibly chained introspectors (1.7)
     /**********************************************************
      */
 
+    /**
+     * Method that can be used to collect all "real" introspectors that
+     * this introspector contains, if any; or this introspector
+     * if it is not a container. Used to get access to all container
+     * introspectors in their priority order.
+     *<p>
+     * Default implementation returns a Singleton list with this introspector
+     * as contents.
+     * This usually works for sub-classes, except for proxy or delegating "container
+     * introspectors" which need to override implementation.
+     */
+    public Collection<AnnotationIntrospector> allIntrospectors() {
+        return Collections.singletonList(this);
+    }
+    
     /**
      * Method that can be used to collect all "real" introspectors that
      * this introspector contains, if any; or this introspector
@@ -729,6 +744,11 @@ public abstract class AnnotationIntrospector
                 return primary;
             }
             return new Pair(primary, secondary);
+        }
+
+        @Override
+        public Collection<AnnotationIntrospector> allIntrospectors() {
+            return allIntrospectors(new ArrayList<AnnotationIntrospector>());
         }
 
         @Override

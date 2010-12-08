@@ -119,15 +119,30 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
         return propertyWriter;
     }
 
-    private String findNamespaceAnnotation(AnnotationIntrospector intr, AnnotatedMember prop)
+    private String findNamespaceAnnotation(AnnotationIntrospector ai, AnnotatedMember prop)
     {
-        // findNamespace happens to be in standard introspector too (historical reasons)
-        return intr.findNamespace(prop);
+        for (AnnotationIntrospector intr : ai.allIntrospectors()) {
+            if (intr instanceof XmlAnnotationIntrospector) {
+                String ns = ((XmlAnnotationIntrospector) intr).findNamespace(prop);
+                if (ns != null) {
+                    return ns;
+                }
+            }
+        }
+        return null;
     }
 
-    private Boolean findIsAttributeAnnotation(AnnotationIntrospector intr, AnnotatedMember prop)
+    private Boolean findIsAttributeAnnotation(AnnotationIntrospector ai, AnnotatedMember prop)
     {
-        return intr.isOutputAsAttribute(prop);
+        for (AnnotationIntrospector intr : ai.allIntrospectors()) {
+            if (intr instanceof XmlAnnotationIntrospector) {
+                Boolean b = ((XmlAnnotationIntrospector) intr).isOutputAsAttribute(prop);
+                if (b != null) {
+                    return b;
+                }
+            }
+        }
+        return null;
     }
     
     /*
