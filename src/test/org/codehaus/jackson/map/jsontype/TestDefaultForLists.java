@@ -7,6 +7,12 @@ import org.codehaus.jackson.map.*;
 public class TestDefaultForLists
     extends BaseMapTest
 {
+    /*
+    /**********************************************************
+    /* Helper types
+    /**********************************************************
+     */
+
     /**
      * Wrapper bean needed before there is a way to force
      * type of the root value. Long is used because it is a final
@@ -30,6 +36,12 @@ public class TestDefaultForLists
         }
     }
 
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+    
     public void testListOfLongs() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
