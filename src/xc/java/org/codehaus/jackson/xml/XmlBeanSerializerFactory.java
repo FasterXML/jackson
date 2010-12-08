@@ -113,10 +113,21 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
     {
         BeanPropertyWriter propertyWriter = super._constructWriter(config, typeContext, pb, staticTyping, name, propertyMember);
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        String ns = intr.findNamespace(propertyMember);
-        Boolean isAttribute = intr.isOutputAsAttribute(propertyMember);
+        String ns = findNamespaceAnnotation(intr, propertyMember);
+        Boolean isAttribute = findIsAttributeAnnotation(intr, propertyMember);
         propertyWriter.setInternalSetting(KEY_XML_INFO, new XmlInfo(isAttribute, ns));
         return propertyWriter;
+    }
+
+    private String findNamespaceAnnotation(AnnotationIntrospector intr, AnnotatedMember prop)
+    {
+        // findNamespace happens to be in standard introspector too (historical reasons)
+        return intr.findNamespace(prop);
+    }
+
+    private Boolean findIsAttributeAnnotation(AnnotationIntrospector intr, AnnotatedMember prop)
+    {
+        return intr.isOutputAsAttribute(prop);
     }
     
     /*

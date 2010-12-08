@@ -27,7 +27,7 @@ public abstract class AnnotationIntrospector
 {    
     /*
     /**********************************************************
-    /* Enumeration types
+    /* Helper types
     /**********************************************************
      */
 
@@ -97,6 +97,27 @@ public abstract class AnnotationIntrospector
     public static AnnotationIntrospector pair(AnnotationIntrospector a1, AnnotationIntrospector a2) {
         return new Pair(a1, a2);
     }
+
+    /*
+    /**********************************************************
+    /* Iteration of possibly chained introspector (1.7)
+    /**********************************************************
+     */
+
+    /**
+     * Method that can be used to collect all "real" introspectors that
+     * this introspector contains, if any; or this introspector
+     * if it is not a container. Used to get access to all container
+     * introspectors in their priority order.
+     *<p>
+     * Default implementation adds this introspector in result; this usually
+     * works for sub-classes, except for proxy or delegating "container
+     * introspectors" which need to override implementation.
+     */
+    public Collection<AnnotationIntrospector> allIntrospectors(Collection<AnnotationIntrospector> result) {
+        result.add(this);
+        return result;
+    }
     
     /*
     /**********************************************************
@@ -128,21 +149,6 @@ public abstract class AnnotationIntrospector
      *   be empty String) otherwise
      */
     public String findNamespace(Annotated ann) {
-        return null;
-    }
-
-    /**
-     * Specialized method used to check whether given annotated element
-     * (field, method, constructor parameter) has indicator that suggest
-     * it be output as an attribute (which is only used with data formats
-     * that have distinction between attributes and element; meaning xml).
-     *<p>
-     * Default implementation returns null, meaning no such information
-     * is found.
-     * 
-     * @since 1.7
-     */
-    public Boolean isOutputAsAttribute(Annotated ann) {
         return null;
     }
     
@@ -744,6 +750,14 @@ public abstract class AnnotationIntrospector
                 return primary;
             }
             return new Pair(primary, secondary);
+        }
+
+        @Override
+        public Collection<AnnotationIntrospector> allIntrospectors(Collection<AnnotationIntrospector> result)
+        {
+            _primary.allIntrospectors(result);
+            _secondary.allIntrospectors(result);
+            return result;
         }
         
         // // // Generic annotation properties, lookup

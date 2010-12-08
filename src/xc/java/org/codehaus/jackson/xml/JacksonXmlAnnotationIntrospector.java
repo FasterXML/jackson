@@ -16,14 +16,26 @@ import org.codehaus.jackson.xml.annotate.JacksonXmlProperty;
  * 
  * @since 1.7
  */
-public class JacksonXmlAnnotationIntrospector extends JacksonAnnotationIntrospector
+public class JacksonXmlAnnotationIntrospector
+    extends JacksonAnnotationIntrospector
+    implements XmlAnnotationIntrospector
 {    
     /*
     /**********************************************************
-    /* Overrides for XML specific things
+    /* XmlAnnotationIntrospector
     /**********************************************************
      */
-    
+
+    //@Override
+    public Boolean isOutputAsAttribute(Annotated ann)
+    {
+        JacksonXmlProperty prop = ann.getAnnotation(JacksonXmlProperty.class);
+        if (prop != null) {
+            return prop.isAttribute() ? Boolean.TRUE : Boolean.FALSE;
+        }
+        return null;
+    }
+
     @Override
     public String findNamespace(Annotated ann)
     {
@@ -31,19 +43,9 @@ public class JacksonXmlAnnotationIntrospector extends JacksonAnnotationIntrospec
         if (prop != null) {
             return prop.namespace();
         }
-        return super.findNamespace(ann);
+        return null;
     }
-
-    @Override
-    public Boolean isOutputAsAttribute(Annotated ann)
-    {
-        JacksonXmlProperty prop = ann.getAnnotation(JacksonXmlProperty.class);
-        if (prop != null) {
-            return prop.isAttribute() ? Boolean.TRUE : Boolean.FALSE;
-        }
-        return super.isOutputAsAttribute(ann);
-    }
-
+    
     /*
     /**********************************************************
     /* Overrides for name, property detection

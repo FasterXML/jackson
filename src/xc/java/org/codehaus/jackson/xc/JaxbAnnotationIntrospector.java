@@ -31,6 +31,7 @@ import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.VersionUtil;
+import org.codehaus.jackson.xml.XmlAnnotationIntrospector;
 
 /**
  * Annotation introspector that leverages JAXB annotations where applicable to JSON mapping.
@@ -73,7 +74,7 @@ import org.codehaus.jackson.util.VersionUtil;
  */
 public class JaxbAnnotationIntrospector
     extends AnnotationIntrospector
-    implements Versioned
+    implements Versioned, XmlAnnotationIntrospector
 {
     protected final static String MARKER_FOR_DEFAULT = "##default";
 
