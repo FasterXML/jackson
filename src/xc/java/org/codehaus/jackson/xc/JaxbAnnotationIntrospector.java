@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
+import javax.xml.namespace.QName;
 
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.Versioned;
@@ -198,6 +199,22 @@ public class JaxbAnnotationIntrospector
         XmlElement elem = findAnnotation(XmlElement.class, ann, false, false, false);
         if (elem != null) {
             return Boolean.FALSE;
+        }
+        return null;
+    }
+
+    @Override
+    public QName findWrapperElement(Annotated ann)
+    {
+        XmlElementWrapper w = findAnnotation(XmlElementWrapper.class, ann, false, false, false);
+        if (w != null) {
+            String ln = w.name();
+            String ns = w.namespace();
+            // if undefined, means "use property's name":
+            if (MARKER_FOR_DEFAULT.equals(ln)) {
+                ln = "";
+            }
+            return new QName(ns, ln);
         }
         return null;
     }

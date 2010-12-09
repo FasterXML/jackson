@@ -1,5 +1,7 @@
 package org.codehaus.jackson.xml;
 
+import javax.xml.namespace.QName;
+
 import org.codehaus.jackson.map.introspect.Annotated;
 
 /**
@@ -22,10 +24,17 @@ public interface XmlAnnotationIntrospector
     public String findNamespace(Annotated ann);
 
     /**
-     * Specialized method used to check whether given annotated element
+     * Method used to check whether given annotated element
      * (field, method, constructor parameter) has indicator that suggest
      * it be output as an XML attribute or not (as element)
      */
     public Boolean isOutputAsAttribute(Annotated ann);
 
+    /**
+     * Method to check if specified property has annotation that indicates
+     * that it should be wrapped in an element; and if so, name to use.
+     * Note: local name of "" is used to indicate that name should default
+     * to using name (local name and namespace) of property itself.
+     */
+    public QName findWrapperElement(Annotated ann);
 }

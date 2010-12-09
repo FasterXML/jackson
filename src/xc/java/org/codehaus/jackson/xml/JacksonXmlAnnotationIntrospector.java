@@ -1,11 +1,14 @@
 package org.codehaus.jackson.xml;
 
+import javax.xml.namespace.QName;
+
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 
+import org.codehaus.jackson.xml.annotate.JacksonXmlElementWrapper;
 import org.codehaus.jackson.xml.annotate.JacksonXmlProperty;
 
 /**
@@ -42,6 +45,16 @@ public class JacksonXmlAnnotationIntrospector
         JacksonXmlProperty prop = ann.getAnnotation(JacksonXmlProperty.class);
         if (prop != null) {
             return prop.namespace();
+        }
+        return null;
+    }
+
+    @Override
+    public QName findWrapperElement(Annotated ann)
+    {
+        JacksonXmlElementWrapper w = ann.getAnnotation(JacksonXmlElementWrapper.class);
+        if (w != null) {
+            return new QName(w.namespace(), w.localName());
         }
         return null;
     }

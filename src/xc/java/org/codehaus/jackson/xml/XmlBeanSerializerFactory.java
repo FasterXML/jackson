@@ -3,6 +3,8 @@ package org.codehaus.jackson.xml;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
@@ -127,7 +129,9 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         String ns = findNamespaceAnnotation(intr, propertyMember);
         Boolean isAttribute = findIsAttributeAnnotation(intr, propertyMember);
-        propertyWriter.setInternalSetting(KEY_XML_INFO, new XmlInfo(isAttribute, ns));
+        QName wrapperName = findWrapperName(intr, propertyMember);
+        
+        propertyWriter.setInternalSetting(KEY_XML_INFO, new XmlInfo(isAttribute, ns, wrapperName));
         return propertyWriter;
     }
     /*
@@ -156,6 +160,19 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
                 Boolean b = ((XmlAnnotationIntrospector) intr).isOutputAsAttribute(prop);
                 if (b != null) {
                     return b;
+                }
+            }
+        }
+        return null;
+    }
+
+    private QName findWrapperName(AnnotationIntrospector ai, AnnotatedMember prop)
+    {
+        for (AnnotationIntrospector intr : ai.allIntrospectors()) {
+            if (intr instanceof XmlAnnotationIntrospector) {
+                QName n = ((XmlAnnotationIntrospector) intr).findWrapperElement(prop);
+                if (n != null) {
+                    return n;
                 }
             }
         }
@@ -204,13 +221,18 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
         protected final String _namespace;
         protected final boolean _isAttribute;
 
-        public XmlInfo(Boolean isAttribute, String ns)
+        protected final QName _wrapperName;
+        
+        public XmlInfo(Boolean isAttribute, String ns, QName wrapperName)
         {
             _isAttribute = (isAttribute == null) ? false : isAttribute.booleanValue();
             _namespace = (ns == null) ? "" : ns;
+            _wrapperName = wrapperName;
         }
 
         public String getNamespace() { return _namespace; }
         public boolean isAttribute() { return _isAttribute; }
+
+        public QName getWrapperName() { return _wrapperName; }
     }
 }
