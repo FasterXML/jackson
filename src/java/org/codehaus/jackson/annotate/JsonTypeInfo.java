@@ -23,21 +23,33 @@ import java.lang.annotation.Target;
  *</pre>
  * Alternatively you can also define fully customized type handling by using
  * {@link org.codehaus.jackson.map.annotate.JsonTypeResolver} annotation.
+ *<p>
+ * NOTE: originally this annotation was only available to use with types (classes),
+ * but starting with 1.7, it is also allowed for properties (fields, methods,
+ * constructor parameters).
+ *<p>
+ * When used for properties (fields, methods), there annotation always defines
+ * to <b>values</b>: specifically, when applied to a <code>Collection</code> or
+ * <code>Map</code> property, it will <b>not</b> apply to container type but
+ * to contained values. This is identical to how JAXB handles type information
+ * annotations; and is chosen since it is the dominant use case. There is no
+ * per-property way to force type information to be included for type of
+ * container itself.
  * 
  * @see org.codehaus.jackson.map.annotate.JsonTypeResolver
- * @since 1.5
+ * @since 1.5 (but available to fields, methods and constructor params since 1.7)
  * 
  * @author tatu
  */
-@Target({ElementType.TYPE})
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonTypeInfo
 {    
     /*
-     *******************************************************************
-     * Value enumerations used for properties
-     *******************************************************************
+    /**********************************************************
+    /* Value enumerations used for properties
+    /**********************************************************
      */
     
     /**
@@ -141,9 +153,9 @@ public @interface JsonTypeInfo
     }
     
     /*
-     *******************************************************************
-     * Annotation properties
-     *******************************************************************
+    /**********************************************************
+    /* Annotation properties
+    /**********************************************************
      */
     
     /**

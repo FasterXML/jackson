@@ -27,9 +27,14 @@ public abstract class BaseMapTest
      */
     protected static class BooleanWrapper {
         public final Boolean b;
-        @JsonCreator BooleanWrapper(Boolean value) { b = value; }
+        @JsonCreator public BooleanWrapper(Boolean value) { b = value; }
     }
 
+    protected static class IntWrapper {
+        public final int i;
+        @JsonCreator public IntWrapper(int value) { i = value; }
+    }
+    
     /**
      * Simple wrapper around String type, usually to test value
      * conversions or wrapping
