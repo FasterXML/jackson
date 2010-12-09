@@ -634,7 +634,7 @@ public class BeanDeserializer
 			return handlePolymorphic(jp, ctxt, bean, unknown);
 		    }
                     if (unknown != null) { // nope, just extra unknown stuff...
-                        return handleUnknownProperties(ctxt, bean, unknown);
+                        bean = handleUnknownProperties(ctxt, bean, unknown);
 		    }
 		    // or just clean?
                     return deserialize(jp, ctxt, bean);

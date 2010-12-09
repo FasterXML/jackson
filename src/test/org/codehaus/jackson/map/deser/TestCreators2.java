@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.*;
@@ -56,6 +57,25 @@ public class TestCreators2
         }
     }
     
+    protected static class Test431Container {
+        protected final List<Item431> items;
+
+        @JsonCreator
+        public Test431Container(@JsonProperty("items") final List<Item431> i) {
+            items = i;
+        }
+}    
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    protected static class Item431 {
+        protected final String id;
+
+        @JsonCreator
+        public Item431(@JsonProperty("id") String id) {
+            this.id = id;
+        }
+    }
+
     /*
     /**********************************************************
     /* Unit tests
@@ -78,5 +98,18 @@ public class TestCreators2
         assertFalse(p.b);
         assertEquals(0, p.x);
         assertEquals(0.0, p.d);
+    }
+
+    public void testJackson431() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        final Test431Container foo = m.readValue(
+                "{\"items\":\n"
+                +"[{\"bar\": 0,\n"
+                +"\"id\": \"id123\",\n"
+                +"\"foo\": 1\n" 
+                +"}]}",
+                Test431Container.class);
+        assertNotNull(foo);
     }
 }
