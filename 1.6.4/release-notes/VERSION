@@ -1,10 +1,22 @@
-Version: 1.6.3
+Version: 1.6.4
 
 Release date:
   04-Dec-2010
 
 Description:
   Third patch release for 1.6.
+
+  Fixes:
+
+  * [JACKSON-431] Deserialization fails with JSON array with beans with
+    @JsonCreator, unmapped properties before and after creator properties
+   (reported by Hannu L)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.6.3 [04-Dec-2010]
 
   Fixes:
 
@@ -27,10 +39,6 @@ Description:
   * [JACKSON-424] ArrayIndexOutOfBounds with SmileGenerator, long Unicode
     Strings
    (reported by Shay B)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.6.2 [02-Nov-2010]
 

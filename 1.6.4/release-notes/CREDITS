@@ -483,8 +483,12 @@ Joe Jensen:
     Boolean) failed with abstract types
    [1.6.3]
 
-Peter LitvakL
+Peter Litvak:
   * Reported [JACKSON-387]: Deserialization fails for certain objects serialized
     with enableDefaultTyping
    [1.6.3]
 
+Hannu Leinonen:
+  * Reported [JACKSON-431] Deserialization fails with JSON array with beans
+   with @JsonCreator, unmapped properties before and after creator properties
+   [1.6.4]
