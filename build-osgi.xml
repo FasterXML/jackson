@@ -332,7 +332,7 @@ javax.activation
 ,org.codehaus.jackson.util;version='${IMPL_VERSION}'
 "
          dynamicImportPackage="org.w3c.dom
-,javax.xml.namespace, javax.xml.parsers, javax.xml.stream
+,javax.xml.namespace, javax.xml.parsers, javax.xml.stream, javax.xml.transform
 ,org.codehaus.stax2, org.codehaus.stax2.io, org.codehaus.stax2.ri
 "
          exportPackage="

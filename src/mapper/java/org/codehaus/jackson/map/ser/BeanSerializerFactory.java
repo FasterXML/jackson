@@ -552,7 +552,7 @@ public class BeanSerializerFactory
 
     /**
      * Method that will apply by-type limitations (as per [JACKSON-429]);
-     * by default this is based on {@link JsonIgnoreType} annotation but
+     * by default this is based on {@link org.codehaus.jackson.annotate.JsonIgnoreType} annotation but
      * can be supplied by module-provided introspectors too.
      */
     protected <T extends AnnotatedMember> void removeIgnorableTypes(SerializationConfig config, BasicBeanDescription beanDesc,

@@ -43,7 +43,7 @@ public class TestDefaultForMaps
     // !!!! Incomplete: does not reproduce issue, yet
     public void testJackson428() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
+//        ObjectMapper mapper = new ObjectMapper();
 
         /*
         TypeResolverBuilder<?> serializerTyper = new DefaultTypeResolverBuilder(DefaultTyping.NON_FINAL);
