@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonValue;
 
 import main.BaseTest;
 
@@ -26,13 +27,19 @@ public abstract class BaseMapTest
      * conversions or wrapping
      */
     protected static class BooleanWrapper {
-        public final Boolean b;
-        @JsonCreator public BooleanWrapper(Boolean value) { b = value; }
+        public Boolean b;
+
+        @JsonCreator
+        public BooleanWrapper(Boolean value) { b = value; }
+
+        @JsonValue public Boolean value() { return b; }
     }
 
     protected static class IntWrapper {
-        public final int i;
-        @JsonCreator public IntWrapper(int value) { i = value; }
+        public int i;
+
+        public IntWrapper() { }
+        public IntWrapper(int value) { i = value; }
     }
     
     /**
@@ -40,8 +47,10 @@ public abstract class BaseMapTest
      * conversions or wrapping
      */
     protected static class StringWrapper {
-        public final String str;
-        @JsonCreator public StringWrapper(String value) {
+        public String str;
+
+        public StringWrapper() { }
+        public StringWrapper(String value) {
             str = value;
         }
     }

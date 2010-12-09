@@ -152,10 +152,44 @@ public class JacksonAnnotationIntrospector
     @Override
     public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType)
     {
-        // First: maybe we have explicit type resolver?
+        return _findTypeResolver(ac, baseType);
+    }
+
+    /**
+     * Since 1.7, it is possible to use {@link JsonTypeInfo} from a property too.
+     */
+    @Override
+    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType)
+    {
+        /* As per definition of @JsonTypeInfo, should only apply to contents of container
+         * (collection, map) types, not container types themselves:
+         */
+        if (baseType.isContainerType()) return null;
+        // No per-member type overrides (yet)
+        return _findTypeResolver(am, baseType);
+    }
+
+    /**
+     * Since 1.7, it is possible to use {@link JsonTypeInfo} from a property too.
+     */
+    @Override
+    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType containerType)
+    {
+        /* First: let's ensure property is a container type: caller should have
+         * verified but just to be sure
+         */
+        if (!containerType.isContainerType()) {
+            throw new IllegalArgumentException("Must call method with a container type (got "+containerType+")");
+        }
+        return _findTypeResolver(am, containerType);
+    }
+    
+    private TypeResolverBuilder<?> _findTypeResolver(Annotated ann, JavaType baseType)
+    {
+    // First: maybe we have explicit type resolver?
         TypeResolverBuilder<?> b;
-        JsonTypeInfo info = ac.getAnnotation(JsonTypeInfo.class);
-        JsonTypeResolver resAnn = ac.getAnnotation(JsonTypeResolver.class);
+        JsonTypeInfo info = ann.getAnnotation(JsonTypeInfo.class);
+        JsonTypeResolver resAnn = ann.getAnnotation(JsonTypeResolver.class);
         if (resAnn != null) {
             /* 14-Aug-2010, tatu: not sure if this can ever happen normally, but unit
              *    tests were able to trigger this... so let's check:
@@ -175,7 +209,7 @@ public class JacksonAnnotationIntrospector
             b = new StdTypeResolverBuilder();
         }
         // Does it define a custom type id resolver?
-        JsonTypeIdResolver idResInfo = ac.getAnnotation(JsonTypeIdResolver.class);
+        JsonTypeIdResolver idResInfo = ann.getAnnotation(JsonTypeIdResolver.class);
         TypeIdResolver idRes = (idResInfo == null) ? null
                 : ClassUtil.createInstance(idResInfo.value(), true);
         if (idRes != null) { // [JACKSON-359]
@@ -185,20 +219,6 @@ public class JacksonAnnotationIntrospector
         b = b.inclusion(info.include());
         b = b.typeProperty(info.property());
         return b;
-    }
-
-    @Override
-    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType)
-    {
-        // No per-member type overrides (yet)
-        return null;
-    }
-
-    @Override
-    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType)
-    {
-        // No per-member type overrides (yet)
-        return null;
     }
     
     @Override

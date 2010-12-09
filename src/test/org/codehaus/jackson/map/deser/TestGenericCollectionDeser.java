@@ -23,10 +23,10 @@ public class TestGenericCollectionDeser
      * using annotations.
      */
     @JsonDeserialize(contentAs=StringWrapper.class)
-        static class AnnotatedStringList extends ArrayList<Object> { }
+    static class AnnotatedStringList extends ArrayList<Object> { }
 
     @JsonDeserialize(contentAs=BooleanWrapper.class)
-        static class AnnotatedBooleanList extends ArrayList<Object> { }
+    static class AnnotatedBooleanList extends ArrayList<Object> { }
 
     /*
     /**********************************************************

@@ -387,7 +387,7 @@ public class JaxbAnnotationIntrospector
          * verified but just to be sure
          */
         if (!containerType.isContainerType()) {
-        	throw new IllegalArgumentException("Must call method with a container type (got "+containerType+")");
+            throw new IllegalArgumentException("Must call method with a container type (got "+containerType+")");
         }
         return _typeResolverFromXmlElements(am);
     }
