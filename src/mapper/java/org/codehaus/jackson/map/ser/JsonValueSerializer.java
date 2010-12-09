@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -36,6 +37,16 @@ public final class JsonValueSerializer
     protected final Method _accessorMethod;
 
     protected JsonSerializer<Object> _valueSerializer;
+
+    /**
+     * This is a flag that is set in rare (?) cases where this serializer
+     * is used for "natural" types (boolean, int, String, double); and where
+     * we actually must force type information wrapping, even though
+     * one would not normally be added.
+     * 
+     * @since 1.7
+     */
+    protected boolean _forceTypeInformation;
     
     /**
      * @param ser Explicit serializer to use, if caller knows it (which
@@ -91,6 +102,58 @@ public final class JsonValueSerializer
     }
 
     @Override
+    public void serializeWithType(Object bean, JsonGenerator jgen, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonProcessingException
+    {
+        // Regardless of other parts, first need to find value to serialize:
+        Object value = null;
+        try {
+            value = _accessorMethod.invoke(bean);
+
+            // and if we got null, can also just write it directly
+            if (value == null) {
+                JsonSerializer<Object> ser = provider.getNullValueSerializer();
+                ser.serialize(value, jgen, provider);
+                return;
+            }
+            JsonSerializer<Object> ser = _valueSerializer;
+            if (ser != null) { // already got a serializer? fabulous, that be easy...
+                /* 09-Dec-2010, tatu: To work around natural type's refusal to add type info, we do
+                 *    this (note: type is for the wrapper type, not enclosed value!)
+                 */
+                if (_forceTypeInformation) {
+                    typeSer.writeTypePrefixForScalar(bean, jgen);
+                } 
+                ser.serializeWithType(value, jgen, provider, typeSer);
+                if (_forceTypeInformation) {
+                    typeSer.writeTypeSuffixForScalar(bean, jgen);
+                } 
+                return;
+            }
+            // But if not, it gets tad trickier (copied from main serialize() method)
+            Class<?> c = value.getClass();
+            ser = provider.findTypedValueSerializer(c, true);
+            // note: now we have bundled type serializer, so should NOT call with typed version
+            ser.serialize(value, jgen, provider);
+        } catch (IOException ioe) {
+            throw ioe;
+        } catch (Exception e) {
+            Throwable t = e;
+            // Need to unwrap this specific type, to see infinite recursion...
+            while (t instanceof InvocationTargetException && t.getCause() != null) {
+                t = t.getCause();
+            }
+            // Errors shouldn't be wrapped (and often can't, as well)
+            if (t instanceof Error) {
+                throw (Error) t;
+            }
+            // let's try to indicate the path best we can...
+            throw JsonMappingException.wrapWithPath(t, bean, _accessorMethod.getName() + "()");
+        }
+    }
+    
+    @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException
     {
@@ -127,10 +190,33 @@ public final class JsonValueSerializer
                  *   to serializer factory at this point... 
                  */
                 _valueSerializer = provider.findTypedValueSerializer(t, false);
+                /* 09-Dec-2010, tatu: Turns out we must add special handling for
+                 *   cases where "native" (aka "natural") type is being serialized,
+                 *   using standard serializer
+                 */
+                _forceTypeInformation = isNaturalTypeWithStdHandling(t, _valueSerializer);
             }
         }
     }
 
+    protected boolean isNaturalTypeWithStdHandling(JavaType type, JsonSerializer<?> ser)
+    {
+        Class<?> cls = type.getRawClass();
+        // First: do we have a natural type being handled?
+        if (type.isPrimitive()) {
+            if (cls != Integer.TYPE && cls != Boolean.TYPE && cls != Double.TYPE) {
+                return false;
+            }
+        } else {
+            if (cls != String.class &&
+                    cls != Integer.class && cls != Boolean.class && cls != Double.class) {
+                return false;
+            }
+        }
+        // Second: and it's handled with standard serializer?
+        return (ser.getClass().getAnnotation(JacksonStdImpl.class)) != null;
+    }
+    
     /*
     /*******************************************************
     /* Other methods
