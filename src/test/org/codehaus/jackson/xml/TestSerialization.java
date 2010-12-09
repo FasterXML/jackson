@@ -11,7 +11,10 @@ public class TestSerialization extends XmlTestBase
 {
     static class StringBean
     {
-        public String text = "foobar";
+        public String text;
+
+        public StringBean() { this("foobar"); }
+        public StringBean(String s) { text = s; }
     }
 
     static class StringBean2
@@ -45,6 +48,19 @@ public class TestSerialization extends XmlTestBase
         }
     }
 
+    static class StringListBean
+    {
+        public List<StringBean> strings;
+        
+        public StringListBean(String... texts)
+        {
+            strings = new ArrayList<StringBean>();
+            for (String text : texts) {
+                strings.add(new StringBean(text));
+            }
+        }
+    }
+    
     static class NsElemBean
     {
         @JacksonXmlProperty(namespace="http://foo")
@@ -119,7 +135,22 @@ public class TestSerialization extends XmlTestBase
         String xml = mapper.writeValueAsString(new ListBean(1, 2, 3));
         xml = removeSjsxpNamespace(xml);
         // 06-Dec-2010, tatu: Not completely ok; should default to not using wrapper...
-        assertEquals("<ListBean><values><values>1</values><values>2</values>AttributeBean());<values>3</values></values></ListBean>", xml);
+        assertEquals("<ListBean><values><values>1</values><values>2</values><values>3</values></values></ListBean>", xml);
+    }
+
+    public void testStringList() throws IOException
+    {
+        XmlMapper mapper = new XmlMapper();
+        StringListBean list = new StringListBean("a", "b", "c");
+        String xml = mapper.writeValueAsString(list);
+        xml = removeSjsxpNamespace(xml);
+        // 06-Dec-2010, tatu: Not completely ok; should default to not using wrapper...
+        System.out.println("xml == "+xml);
+        assertEquals("<StringListBean><string>"
+                +"<string><text>a</text></string>"
+                +"<string><text>b</text></string>"
+                +"<string><text>c</text></string>"
+                +"</string></StringListBean>", xml);
     }
     
     /*
