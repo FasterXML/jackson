@@ -11,6 +11,9 @@ Description:
     (reported by Peter L)
   * [JACKSON-404] Problem with XmlAdapter, generic types, deserialization
     (reported by Davide)
+  * [JACKSON-431] Deserialization fails with JSON array with beans with
+    @JsonCreator, unmapped properties before and after creator properties
+   (reported by Hannu L)
 
 ------------------------------------------------------------------------
 == History: ==
