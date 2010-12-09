@@ -315,6 +315,8 @@ javax.activation
 ,javax.xml.bind.annotation.adapters
 ,org.codehaus.jackson;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.annotate;version='${IMPL_VERSION}'
+,org.codehaus.jackson.impl;version='${IMPL_VERSION}'
+,org.codehaus.jackson.io;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.annotate;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.deser;version='${IMPL_VERSION}'
@@ -329,14 +331,14 @@ javax.activation
 ,org.codehaus.jackson.type;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.util;version='${IMPL_VERSION}'
 "
-         dynamicImportPackage="org.w3c.dom,
-javax.xml.namespace, javax.xml.parsers, javax.xml.stream,
-org.codehaus.stax2, org.codehaus.stax2.ri
+         dynamicImportPackage="org.w3c.dom
+,javax.xml.namespace, javax.xml.parsers, javax.xml.stream
+,org.codehaus.stax2, org.codehaus.stax2.io, org.codehaus.stax2.ri
 "
          exportPackage="
 org.codehaus.jackson.xc;version='${IMPL_VERSION}'
-org.codehaus.jackson.xml;version='${IMPL_VERSION}'
-org.codehaus.jackson.xml.annotate;version='${IMPL_VERSION}'
+,org.codehaus.jackson.xml;version='${IMPL_VERSION}'
+,org.codehaus.jackson.xml.annotate;version='${IMPL_VERSION}'
 "
          privatePackage="
 org.codehaus.jackson.xml.util;version='${IMPL_VERSION}'
