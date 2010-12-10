@@ -739,9 +739,8 @@ public class BeanDeserializerFactory
         // we know it's a 2-arg method, second arg is the vlaue
         Type rawType = am.getParameterType(1);
         JavaType type = TypeFactory.type(rawType);
-        Method m = am.getAnnotated();
         if (deser != null) {
-            SettableAnyProperty prop = new SettableAnyProperty(type, m);
+            SettableAnyProperty prop = new SettableAnyProperty(am, type);
             prop.setValueDeserializer(deser);
             return prop;
         }
@@ -749,7 +748,7 @@ public class BeanDeserializerFactory
          * value (no need to check if explicit deser was specified):
          */
         type = modifyTypeByAnnotation(config, am, type, null);
-        return new SettableAnyProperty(type, m);
+        return new SettableAnyProperty(am, type);
     }
 
     /**
@@ -780,11 +779,9 @@ public class BeanDeserializerFactory
          * If so, let's use it.
          */
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, setter);
-        
-        Method m = setter.getAnnotated();
         type = modifyTypeByAnnotation(config, setter, type, name);
         TypeDeserializer typeDeser = type.getTypeHandler();
-        SettableBeanProperty prop = new SettableBeanProperty.MethodProperty(name, type, typeDeser, m);
+        SettableBeanProperty prop = new SettableBeanProperty.MethodProperty(setter, name, type, typeDeser);
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);
         }
@@ -811,10 +808,9 @@ public class BeanDeserializerFactory
          * If so, let's use it.
          */
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, field);
-        Field f = field.getAnnotated();
         type = modifyTypeByAnnotation(config, field, type, name);
         TypeDeserializer typeDeser = type.getTypeHandler();
-        SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(name, type, typeDeser, f);
+        SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(field, name, type, typeDeser);
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);
         }
@@ -847,10 +843,9 @@ public class BeanDeserializerFactory
          * If so, let's use it.
          */
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, getter);        
-        Method m = getter.getAnnotated();
         type = modifyTypeByAnnotation(config, getter, type, name);
         TypeDeserializer typeDeser = type.getTypeHandler();
-        SettableBeanProperty prop = new SettableBeanProperty.SetterlessProperty(name, type, typeDeser, m);
+        SettableBeanProperty prop = new SettableBeanProperty.SetterlessProperty(getter, name, type, typeDeser);
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);
         }

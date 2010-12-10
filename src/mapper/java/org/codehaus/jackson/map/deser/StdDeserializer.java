@@ -13,6 +13,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
@@ -469,23 +470,26 @@ public abstract class StdDeserializer<T>
      * Helper method used to locate deserializers for properties the
      * type this deserializer handles contains (usually for properties of
      * bean types)
-     *
+     * 
+     * @param config Active deserialization configuration 
+     * @param provider Deserializer provider to use for actually finding deserializer(s)
      * @param type Type of property to deserialize
+     * @param propertyName Name of logical property being handled
+     * @param forProperty Actual property object (field, method, constuctor parameter) used
+     *     for passing deserialized values; provided so deserializer can be contextualized if necessary (since 1.7)
      */
     protected JsonDeserializer<Object> findDeserializer(DeserializationConfig config, DeserializerProvider provider,
                                                         JavaType type, String propertyName,
-                                                        Map<JavaType, JsonDeserializer<Object>> seen)
+                                                        AnnotatedMember forProperty)
         throws JsonMappingException
     {
-        JsonDeserializer<Object> deser = (seen == null) ? null : seen.get(type);
-        if (deser == null) {
-            deser = provider.findValueDeserializer(config, type, getValueType(), propertyName);
-            if (seen != null) {
-                if (deser instanceof BeanDeserializer) {
-                    seen.put(type, deser);
-                }
-            }
+        JsonDeserializer<Object> deser = provider.findValueDeserializer(config, type, getValueType(), propertyName);
+        // @TODO: Add contextualization!!!
+        /*
+        if (deser instanceof ContextualDeserializer) {
         }
+        */
+        
         return deser;
     }
 

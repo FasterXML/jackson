@@ -7,6 +7,8 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
+import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -19,25 +21,35 @@ import org.codehaus.jackson.type.JavaType;
  */
 public final class SettableAnyProperty
 {
-    final Method _setter;
+    /**
+     * Method used for setting "any" properties, along with annotation
+     * information. Retained to allow contextualization of any properties.
+     * 
+     * @since 1.7
+     */
+    final protected AnnotatedMethod _property;
+    
+    /**
+     * Physical JDK object used for assigning properties.
+     */
+    final protected Method _setter;
 
-    final JavaType _type;
+    final protected JavaType _type;
 
-    JsonDeserializer<Object> _valueDeserializer;
-
-    public SettableAnyProperty(JavaType type, Method setter)
-    {
-        _type = type;
-        _setter = setter;
-    }
+    protected JsonDeserializer<Object> _valueDeserializer;
 
     /*
-    /////////////////////////////////////////////////////////
-    // Public API
-    /////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
-
-    public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
+    
+    public SettableAnyProperty(AnnotatedMethod setter, JavaType type)
+    {
+        _property = setter;
+        _type = type;
+        _setter = setter.getAnnotated();
+    }
 
     public void setValueDeserializer(JsonDeserializer<Object> deser)
     {
@@ -46,9 +58,25 @@ public final class SettableAnyProperty
         }
         _valueDeserializer = deser;
     }
+    
+    /*
+    /**********************************************************
+    /* Public API, accessors
+    /**********************************************************
+     */
+
+    public AnnotatedMember getProperty() { return _property; }
+    
+    public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
 
     public JavaType getType() { return _type; }
 
+    /*
+    /**********************************************************
+    /* Public API, deserialization
+    /**********************************************************
+     */
+    
     /**
      * Method called to deserialize appropriate value, given parser (and
      * context), and set it using appropriate method (a setter method).
@@ -81,9 +109,9 @@ public final class SettableAnyProperty
     }
 
     /*
-    /////////////////////////////////////////////////////////
-    // Helper methods
-    /////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
      */
 
     /**

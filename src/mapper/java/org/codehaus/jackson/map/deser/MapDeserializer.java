@@ -128,10 +128,9 @@ public class MapDeserializer
     {
         // just need to worry about property-based one
         if (_propertyBasedCreator != null) {
-            // Need to / should not create separate
-            HashMap<JavaType, JsonDeserializer<Object>> seen = new HashMap<JavaType, JsonDeserializer<Object>>();
             for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
-                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(), seen));
+                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(),
+                        prop.getProperty()));
             }
         }
     }

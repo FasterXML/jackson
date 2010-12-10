@@ -81,7 +81,7 @@ public final class AnnotatedMethod
 
     @Override
     public AnnotatedParameter getParameter(int index) {
-        return new AnnotatedParameter(getParameterType(index), _paramAnnotations[index]);
+        return new AnnotatedParameter(this, getParameterType(index), _paramAnnotations[index]);
     }
 
     @Override

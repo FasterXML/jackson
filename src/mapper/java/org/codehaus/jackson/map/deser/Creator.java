@@ -8,6 +8,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -125,6 +126,13 @@ abstract class Creator
      */
     final static class Delegating
     {
+        /**
+         * Annotated creator object (single-argument constructor or
+         * single-argument static method) that is used for instantation;
+         * as well as for providing contextual information.
+         */
+        protected final AnnotatedMember _creator;
+        
 	/**
 	 * Type to deserialize JSON to, as well as the type to pass to
 	 * creator (constructor, factory method)
@@ -143,10 +151,12 @@ abstract class Creator
         public Delegating(AnnotatedConstructor ctor, AnnotatedMethod factory)
 	{
             if (ctor != null) {
+                _creator = ctor;
                 _ctor = ctor.getAnnotated();
                 _factoryMethod = null;
                 _valueType = TypeFactory.type(ctor.getParameterType(0));
             } else if (factory != null) {
+                _creator = factory;
                 _ctor = null;
                 _factoryMethod = factory.getAnnotated();
                 _valueType = TypeFactory.type(factory.getParameterType(0));
@@ -157,6 +167,8 @@ abstract class Creator
 
 	public JavaType getValueType() { return _valueType; }
 
+	public AnnotatedMember getCreator() { return _creator; }
+	
 	public void setDeserializer(JsonDeserializer<Object> deser)
 	{
 	    _deserializer = deser;

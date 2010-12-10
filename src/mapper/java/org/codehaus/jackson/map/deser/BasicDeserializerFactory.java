@@ -771,8 +771,8 @@ public abstract class BasicDeserializerFactory
         // If yes, we are mostly done:
         type = modifyTypeByAnnotation(config, param, type, name);
         TypeDeserializer typeDeser = findTypeDeserializer(config, type);
-        SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(name, type, typeDeser,
-                beanDesc.getBeanClass(), index);
+        SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(param,
+                name, type, typeDeser, beanDesc.getBeanClass(), index);
         if (deser != null) {
             prop.setValueDeserializer(deser);
         }

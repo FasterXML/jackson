@@ -271,20 +271,12 @@ public class BeanDeserializer
     public void resolve(DeserializationConfig config, DeserializerProvider provider)
         throws JsonMappingException
     {
-        // let's reuse same instances, not all are cached by provider
-        /* 04-Feb-2009, tatu: This is tricky now that we are to pass referrer
-         *   information, as there is no easy+reliable+efficient way to do
-         *   it. But we can use a quick heuristic: only cache "expensive"
-         *   BeanDeserializers; for them it is unlikely that different
-         *   references should lead to different deserializers, and for other
-         *   types cost is much lower so we can drop caching
-         */
-        HashMap<JavaType, JsonDeserializer<Object>> seen = new HashMap<JavaType, JsonDeserializer<Object>>();
         for (Map.Entry<String, SettableBeanProperty> en : _props.entrySet()) {
             SettableBeanProperty prop = en.getValue();
             // May already have deserializer from annotations, if so, skip:
             if (!prop.hasValueDeserializer()) {
-                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(), seen));
+                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(),
+                        prop.getProperty()));
             }
             // and for [JACKSON-235] need to finally link managed references with matching back references
             String refName = prop.getManagedReferenceName();
@@ -322,25 +314,27 @@ public class BeanDeserializer
                             +backRefType.getRawClass().getName()+") not compatible with managed type ("
                             +referredType.getRawClass().getName()+")");
                 }
-                en.setValue(new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp, isContainer));
+                en.setValue(new SettableBeanProperty.ManagedReferenceProperty(prop.getProperty(), refName, prop, backProp, isContainer));
             }
         }
 
         // Finally, "any setter" may also need to be resolved now
         if (_anySetter != null && !_anySetter.hasValueDeserializer()) {
-            _anySetter.setValueDeserializer(findDeserializer(config, provider, _anySetter.getType(), "[any]", seen));
+            _anySetter.setValueDeserializer(findDeserializer(config, provider, _anySetter.getType(), "[any]", _anySetter.getProperty()));
         }
 
         // as well as delegate-based constructor:
         if (_delegatingCreator != null) {
-            JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingCreator.getValueType(), "[constructor-arg[0]]", seen);
+            JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingCreator.getValueType(), "[constructor-arg[0]]",
+                    _delegatingCreator.getCreator());
             _delegatingCreator.setDeserializer(deser);
         }
         // or property-based one
         if (_propertyBasedCreator != null) {
             for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
                 if (!prop.hasValueDeserializer()) {
-                    prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(), seen));
+                    prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(),
+                            prop.getProperty()));
                 }
             }
         }
