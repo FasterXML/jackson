@@ -14,6 +14,12 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
 public class TestCustomFactory
     extends BaseMapTest
 {
+    /*
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+
     static class DummyDeserializer<T>
         extends StdDeserializer<T>
     {
@@ -49,6 +55,7 @@ public class TestCustomFactory
             this.b = b;
         }
     }
+
     static class CustomBeanDeserializer extends JsonDeserializer<CustomBean>
     {
         @Override
@@ -83,7 +90,7 @@ public class TestCustomFactory
     
     /*
     /**********************************************************
-    /* Test methods
+    /* Unit tests
     /**********************************************************
      */
     

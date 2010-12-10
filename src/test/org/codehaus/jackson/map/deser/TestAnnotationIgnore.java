@@ -10,6 +10,12 @@ import org.codehaus.jackson.map.*;
 public class TestAnnotationIgnore
     extends BaseMapTest
 {
+    /*
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+
     /// Class for testing {@link JsonIgnore} annotations with setters
     final static class SizeClassIgnore
     {
@@ -28,9 +34,9 @@ public class TestAnnotationIgnore
     }
 
     /*
-    //////////////////////////////////////////////
-    // Test methods
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
      */
 
     public void testSimpleIgnore() throws Exception
