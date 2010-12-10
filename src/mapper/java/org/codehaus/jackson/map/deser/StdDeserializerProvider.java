@@ -123,7 +123,7 @@ public class StdDeserializerProvider
         }
         // 10-Dec-2010, tatu: As per [JACKSON-385], need to support contextualization too
         if (deser instanceof ContextualDeserializer<?>) {
-            JsonDeserializer<?> d = ((ContextualDeserializer<?>) deser).createContextual(property, propertyName);
+            JsonDeserializer<?> d = ((ContextualDeserializer<?>) deser).createContextual(config, property, propertyName);
             deser = (JsonDeserializer<Object>) d;
         }
         return deser;

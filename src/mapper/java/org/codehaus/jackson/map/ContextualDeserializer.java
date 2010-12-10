@@ -23,6 +23,7 @@ public interface ContextualDeserializer<T>
      * and return a new instance. This instance should only be returned as-is, in case
      * it is already suitable for use.
      * 
+     * @param config Current deserialization configuration
      * @param property Method, field or constructor parameter that represents the property
      *   (and is used to assign deserialized value); contained within <code>contextType</code>.
      *   Should be available; but there may be cases where caller can not provide it (in
@@ -35,6 +36,7 @@ public interface ContextualDeserializer<T>
      * 
      * @throws JsonMappingException
      */
-    public JsonDeserializer<T> createContextual(AnnotatedMember property, String propertyName)
+    public JsonDeserializer<T> createContextual(DeserializationConfig config,
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 }
