@@ -22,17 +22,23 @@ public class TestDefaultForLists
         public List<Long> longs;
 
         public ListOfLongs() { }
-        public ListOfLongs(Long ... l) {
-            longs = Arrays.asList(l);
+        public ListOfLongs(Long ... ls) {
+            longs = new ArrayList<Long>();
+            for (Long l: ls) {
+                longs.add(l);
+            }
         }
     }
 
     static class ListOfNumbers {
-        public List<Number> longs;
+        public List<Number> nums;
 
         public ListOfNumbers() { }
-        public ListOfNumbers(Number ... l) {
-            longs = Arrays.asList(l);
+        public ListOfNumbers(Number ... numbers) {
+            nums = new ArrayList<Number>();
+            for (Number n : numbers) {
+                nums.add(n);
+            }
         }
     }
 
@@ -47,8 +53,10 @@ public class TestDefaultForLists
         ObjectMapper m = new ObjectMapper();
         m.enableDefaultTyping();
         ListOfLongs input = new ListOfLongs(1L, 2L, 3L);
-        String str = m.writeValueAsString(input);
-        ListOfLongs output = m.readValue(str, ListOfLongs.class);
+        String json = m.writeValueAsString(input);
+        assertEquals("{\"longs\":[\"java.util.ArrayList\",[1,2,3]]}", json);
+//System.err.println("Longs -> "+json);       
+        ListOfLongs output = m.readValue(json, ListOfLongs.class);
 
         assertNotNull(output.longs);
         assertEquals(3, output.longs.size());
@@ -68,13 +76,15 @@ public class TestDefaultForLists
         ObjectMapper m = new ObjectMapper();
         m.enableDefaultTyping();
         ListOfNumbers input = new ListOfNumbers(Long.valueOf(1L), Integer.valueOf(2), Double.valueOf(3.0));
-        String str = m.writeValueAsString(input);
-        ListOfNumbers output = m.readValue(str, ListOfNumbers.class);
+        String json = m.writeValueAsString(input);
+//System.err.println("Nums = "+json);        
+        assertEquals("{\"nums\":[\"java.util.ArrayList\",[[\"java.lang.Long\",1],2,3.0]]}", json);
+        ListOfNumbers output = m.readValue(json, ListOfNumbers.class);
 
-        assertNotNull(output.longs);
-        assertEquals(3, output.longs.size());
-        assertEquals(Long.valueOf(1L), output.longs.get(0));
-        assertEquals(Integer.valueOf(2), output.longs.get(1));
-        assertEquals(Double.valueOf(3.0), output.longs.get(2));
+        assertNotNull(output.nums);
+        assertEquals(3, output.nums.size());
+        assertEquals(Long.valueOf(1L), output.nums.get(0));
+        assertEquals(Integer.valueOf(2), output.nums.get(1));
+        assertEquals(Double.valueOf(3.0), output.nums.get(2));
     }
 }
