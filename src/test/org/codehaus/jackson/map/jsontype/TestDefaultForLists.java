@@ -55,7 +55,6 @@ public class TestDefaultForLists
         ListOfLongs input = new ListOfLongs(1L, 2L, 3L);
         String json = m.writeValueAsString(input);
         assertEquals("{\"longs\":[\"java.util.ArrayList\",[1,2,3]]}", json);
-//System.err.println("Longs -> "+json);       
         ListOfLongs output = m.readValue(json, ListOfLongs.class);
 
         assertNotNull(output.longs);
@@ -77,7 +76,6 @@ public class TestDefaultForLists
         m.enableDefaultTyping();
         ListOfNumbers input = new ListOfNumbers(Long.valueOf(1L), Integer.valueOf(2), Double.valueOf(3.0));
         String json = m.writeValueAsString(input);
-//System.err.println("Nums = "+json);        
         assertEquals("{\"nums\":[\"java.util.ArrayList\",[[\"java.lang.Long\",1],2,3.0]]}", json);
         ListOfNumbers output = m.readValue(json, ListOfNumbers.class);
 

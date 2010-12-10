@@ -154,7 +154,7 @@ public interface Deserializers
      */
     public JsonDeserializer<?> findBeanDeserializer(JavaType type, DeserializationConfig config,
             DeserializerProvider provider, BeanDescription beanDesc)
-            throws JsonMappingException;
+        throws JsonMappingException;
 
     /*
     /**********************************************************

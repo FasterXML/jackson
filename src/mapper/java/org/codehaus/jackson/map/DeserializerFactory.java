@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 
@@ -49,7 +50,8 @@ public abstract class DeserializerFactory
      * @param p Provider that can be called to create deserializers for
      *   contained member types
      */
-    public abstract JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
+    public abstract JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, DeserializerProvider p,
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 
     /**
@@ -61,23 +63,28 @@ public abstract class DeserializerFactory
      * @param p Provider that can be called to create deserializers for
      *   contained member types
      */
-    public abstract JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p)
+    public abstract JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, DeserializerProvider p,
+            ArrayType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p)
+    public abstract JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, DeserializerProvider p,
+            CollectionType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p)
+    public abstract JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config,DeserializerProvider p,
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, MapType type, DeserializerProvider p)
+    public abstract JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, DeserializerProvider p,
+            MapType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 
     /**
      * Method called to create and return a deserializer that can construct
      * JsonNode(s) from JSON content.
      */
-    public abstract JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p)
+    public abstract JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, DeserializerProvider p,
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 
     /**
@@ -95,12 +102,129 @@ public abstract class DeserializerFactory
      * 
      * @since 1.5
      */
-    public TypeDeserializer findTypeDeserializer(DeserializationConfig config, JavaType baseType)
+    public TypeDeserializer findTypeDeserializer(DeserializationConfig config, JavaType baseType,
+            AnnotatedMember property, String propertyName)
     {
         // Default implementation returns null for backwards compatibility reasons
         return null;
     }
 
+    /*
+    /********************************************************
+    /* Older deprecated versions of creator methods
+    /********************************************************
+     */
+    
+    /**
+     *<p>
+     * Note: declared final to prevent sub-classes from overriding; choice is between
+     * hard compile-time error and nastier runtime errors as this method should
+     * not be called by core framework any more.
+     * 
+     * @deprecated Since 1.7 should use method that takes in property definition
+     */
+    @Deprecated
+    final
+    public TypeDeserializer findTypeDeserializer(DeserializationConfig config, JavaType baseType)
+    {
+        return findTypeDeserializer(config, baseType, null, null);
+    }
+
+    /**
+     *<p>
+     * Note: declared final to prevent sub-classes from overriding; choice is between
+     * hard compile-time error and nastier runtime errors as this method should
+     * not be called by core framework any more.
+     * @deprecated Since 1.7 should use method that takes in property definition
+     */
+    @Deprecated
+    final
+    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        return createBeanDeserializer(config, p, type, null, null);
+    }
+
+    /**
+     *<p>
+     * Note: declared final to prevent sub-classes from overriding; choice is between
+     * hard compile-time error and nastier runtime errors as this method should
+     * not be called by core framework any more.
+     * 
+     * @deprecated Since 1.7 should use method that takes in property definition
+     */
+    @Deprecated
+    final
+    public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        return createArrayDeserializer(config, p, type, null, null);
+    }
+    
+    /**
+     *<p>
+     * Note: declared final to prevent sub-classes from overriding; choice is between
+     * hard compile-time error and nastier runtime errors as this method should
+     * not be called by core framework any more.
+     * 
+     * @deprecated Since 1.7 should use method that takes in property definition
+     */
+    @Deprecated
+    final
+    public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        return createCollectionDeserializer(config, p, type, null, null);
+    }
+    
+    /**
+     *<p>
+     * Note: declared final to prevent sub-classes from overriding; choice is between
+     * hard compile-time error and nastier runtime errors as this method should
+     * not be called by core framework any more.
+     * 
+     * @deprecated Since 1.7 should use method that takes in property definition
+     */
+    @Deprecated
+    final
+    public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        return createEnumDeserializer(config, p, TypeFactory.type(enumClass), null, null);
+    }
+    
+    /**
+     *<p>
+     * Note: declared final to prevent sub-classes from overriding; choice is between
+     * hard compile-time error and nastier runtime errors as this method should
+     * not be called by core framework any more.
+     * 
+     * @deprecated Since 1.7 should use method that takes in property definition
+     */
+    @Deprecated
+    final
+    public JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, MapType type, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        return createMapDeserializer(config, p, type, null, null);
+    }
+
+    /**
+     *<p>
+     * Note: declared final to prevent sub-classes from overriding; choice is between
+     * hard compile-time error and nastier runtime errors as this method should
+     * not be called by core framework any more.
+     * 
+     * @deprecated Since 1.7 should use method that takes in property definition
+     */
+    @Deprecated
+    final
+    public JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p)
+        throws JsonMappingException
+    {
+        return createTreeDeserializer(config, p, TypeFactory.type(nodeClass), null, null);
+    }
+    
     /*
     /********************************************************
     /* Additional configuration

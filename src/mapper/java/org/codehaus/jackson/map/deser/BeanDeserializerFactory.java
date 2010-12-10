@@ -34,7 +34,7 @@ public class BeanDeserializerFactory
      * Globally shareable thread-safe instance which has no additional custom deserializers
      * registered
      */
-    public final static BeanDeserializerFactory instance = new BeanDeserializerFactory();
+    public final static BeanDeserializerFactory instance = new BeanDeserializerFactory(null);
 
     /**
      * Provider for additional serializers, checked before considering default
@@ -199,7 +199,8 @@ public class BeanDeserializerFactory
      * enums.
      */
     @Override
-    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
+    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, DeserializerProvider p,
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         // First things first: maybe explicit definition via annotations?
@@ -223,7 +224,7 @@ public class BeanDeserializerFactory
         /* Let's call super class first: it knows simple types for
          * which we have default deserializers
          */
-        JsonDeserializer<Object> deser = super.createBeanDeserializer(config, type, p);
+        JsonDeserializer<Object> deser = super.createBeanDeserializer(config, p, type, property, propertyName);
         if (deser != null) {
             return deser;
         }
@@ -773,7 +774,7 @@ public class BeanDeserializerFactory
         }
 
         // note: this works since we know there's exactly one arg for methods
-        JavaType type = resolveType(config, beanDesc, setter.getParameterType(0), setter);
+        JavaType type = resolveType(config, beanDesc, setter.getParameterType(0), setter, name);
         
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
@@ -803,7 +804,7 @@ public class BeanDeserializerFactory
         if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
             field.fixAccess();
         }
-        JavaType type = resolveType(config, beanDesc, field.getGenericType(), field);
+        JavaType type = resolveType(config, beanDesc, field.getGenericType(), field, name);
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */

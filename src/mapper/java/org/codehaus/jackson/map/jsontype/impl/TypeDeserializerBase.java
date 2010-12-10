@@ -5,9 +5,11 @@ import java.util.HashMap;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.TypeDeserializer;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
 
@@ -21,16 +23,23 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
     
     protected final JavaType _baseType;
 
+    protected final AnnotatedMember _property;
+    
+    protected final String _propertyName;
+    
     /**
      * For efficient operation we will lazily build mappings from type ids
      * to actual deserializers, once needed.
      */
     protected final HashMap<String,JsonDeserializer<Object>> _deserializers;
     
-    protected TypeDeserializerBase(JavaType baseType, TypeIdResolver idRes)
+    protected TypeDeserializerBase(JavaType baseType, TypeIdResolver idRes,
+            AnnotatedMember property, String propertyName)
     {
         _baseType = baseType;
         _idResolver = idRes;
+        _property = property;
+        _propertyName = propertyName;
         _deserializers = new HashMap<String,JsonDeserializer<Object>>();
     }
 
@@ -74,7 +83,8 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
                 if (type == null) {
                     throw ctxt.unknownTypeException(_baseType, typeId);
                 }
-                deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, null, null);
+                DeserializationConfig config = ctxt.getConfig();
+                deser = ctxt.getDeserializerProvider().findValueDeserializer(config, type, _property, _propertyName);
                 _deserializers.put(typeId, deser);
             }
         }

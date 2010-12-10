@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -36,24 +37,22 @@ public abstract class DeserializerProvider
      * Note: this method is only called for value types; not for keys.
      * Key deserializers can be accessed using {@link #findKeyDeserializer}.
      *
-     * @param type Declared type of the value to deserializer (obtained using
+     * @param config Deserialization configuration
+     * @param propertyType Declared type of the value to deserializer (obtained using
      *   'setter' method signature and/or type annotations
-     * @param referrer Type that contains the value, if any: null for
-     *   root-level object.
-     * @param refPropName Logical name of the property within instance of
-     *   <code>referrer</code>, if through a property (field). Null for
-     *   Collection and Array types, where reference is not through a
-     *   field, as well as for "any property" fallback references
+     * @param propertyName propertyName Logical name of property being serialized, if
+     *    there is one; null if no name available
+     * @param property Object that represents accessor for property value; field,
+     *    setter method or constructor parameter.
      *
      * @throws JsonMappingException if there are fatal problems with
      *   accessing suitable deserializer; including that of not
      *   finding any serializer
      */
     public abstract JsonDeserializer<Object> findValueDeserializer(DeserializationConfig config,
-                                                                   JavaType type,
-                                                                   JavaType referrer, String refPropName)
+            JavaType propertyType, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
-
+    
     /**
      * Method called to locate deserializer for given type, as well as matching
      * type deserializer (if one is needed); and if type deserializer is needed,
@@ -66,7 +65,7 @@ public abstract class DeserializerProvider
      * @since 1.5
      */
     public abstract JsonDeserializer<Object> findTypedValueDeserializer(DeserializationConfig config,
-            JavaType type)
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 
     /**
@@ -77,7 +76,8 @@ public abstract class DeserializerProvider
      *   accessing suitable key deserializer; including that of not
      *   finding any serializer
      */
-    public abstract KeyDeserializer findKeyDeserializer(DeserializationConfig config, JavaType type)
+    public abstract KeyDeserializer findKeyDeserializer(DeserializationConfig config,
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 
     /**
@@ -86,6 +86,61 @@ public abstract class DeserializerProvider
      * through fields or membership in an array or collection)
      */
     public abstract boolean hasValueDeserializerFor(DeserializationConfig config, JavaType type);
+
+    /*
+    /**********************************************************
+    /* Deprecated deserializer locating methods (pre-1.7)
+    /**********************************************************
+     */
+
+    /**
+     * Deprecated version of accessor method that was used before version 1.7.
+     * Implemented as final to ensure that existing code does not accidentally
+     * try to redefine it (given that it is not called by core mapper code)
+     *   
+     * @deprecated As of version 1.7, use version that exposes property object
+     *    instead of just its type (needed for contextual deserializers)
+     */
+    @Deprecated
+    public final JsonDeserializer<Object> findValueDeserializer(DeserializationConfig config,
+            JavaType type, JavaType referrer, String refPropName)
+        throws JsonMappingException
+    {
+        return findValueDeserializer(config, type, (AnnotatedMember) null, refPropName);
+    }
+
+    /**
+     * Deprecated version of accessor method that was used before version 1.7.
+     * Implemented as final to ensure that existing code does not accidentally
+     * try to redefine it (given that it is not called by core mapper code)
+     *   
+     * @deprecated As of version 1.7, use version that exposes context class
+     *    and property, instead of just types
+     *    
+     * @since 1.5
+     */
+    public final JsonDeserializer<Object> findTypedValueDeserializer(DeserializationConfig config,
+            JavaType type)
+        throws JsonMappingException
+    {
+        return findTypedValueDeserializer(config, type, null, null);
+    }
+
+    /**
+     * Deprecated version of accessor method that was used before version 1.7.
+     * Implemented as final to ensure that existing code does not accidentally
+     * try to redefine it (given that it is not called by core mapper code)
+     *   
+     * @deprecated As of version 1.7, use version that exposes context class
+     *    and property, instead of just types
+     *    
+     * @since 1.5
+     */
+    public final KeyDeserializer findKeyDeserializer(DeserializationConfig config, JavaType type)
+        throws JsonMappingException
+    {
+        return findKeyDeserializer(config, type, null, null);
+    }
 
     /*
     /**********************************************************

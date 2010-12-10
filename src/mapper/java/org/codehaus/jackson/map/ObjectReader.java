@@ -418,7 +418,7 @@ public class ObjectReader
         }
 
         // Nope: need to ask provider to resolve it
-        deser = _provider.findTypedValueDeserializer(cfg, valueType);
+        deser = _provider.findTypedValueDeserializer(cfg, valueType, null, null);
         if (deser == null) { // can this happen?
             throw new JsonMappingException("Can not find a deserializer for type "+valueType);
         }

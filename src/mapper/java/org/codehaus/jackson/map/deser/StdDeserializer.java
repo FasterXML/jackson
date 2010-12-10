@@ -483,7 +483,7 @@ public abstract class StdDeserializer<T>
                                                         AnnotatedMember forProperty)
         throws JsonMappingException
     {
-        JsonDeserializer<Object> deser = provider.findValueDeserializer(config, type, getValueType(), propertyName);
+        JsonDeserializer<Object> deser = provider.findValueDeserializer(config, type, forProperty, propertyName);
         // @TODO: Add contextualization!!!
         /*
         if (deser instanceof ContextualDeserializer) {
@@ -987,7 +987,12 @@ public abstract class StdDeserializer<T>
         public void resolve(DeserializationConfig config, DeserializerProvider provider)
             throws JsonMappingException
         {
-            _valueDeserializer = provider.findValueDeserializer(config, _referencedType, getValueType(), "");
+            /* 09-Dec-2010, tatu: We should know property (AnnotatedMember, name), but we
+             *    really don't currently, so must just pass nulls.
+             */
+            // @TODO: store and pass property
+            AnnotatedMember property = null;
+            _valueDeserializer = provider.findValueDeserializer(config, _referencedType, property, null);
         }
     }
     

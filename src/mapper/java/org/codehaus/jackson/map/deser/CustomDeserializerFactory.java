@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 
@@ -174,7 +175,8 @@ public class CustomDeserializerFactory
      */
 
     @Override
-    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
+    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, DeserializerProvider p,
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         Class<?> cls = type.getRawClass();
@@ -188,42 +190,46 @@ public class CustomDeserializerFactory
             }
         }
         // If not, let super class do its job
-        return super.createBeanDeserializer(config, type, p);
+        return super.createBeanDeserializer(config, p, type, property, propertyName);
     }
 
     @Override
-    public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p) throws JsonMappingException
+    public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, DeserializerProvider p,
+            ArrayType type, AnnotatedMember property, String propertyName)
+        throws JsonMappingException
     {
-        Class<?> cls = type.getRawClass();
-        ClassKey key = new ClassKey(cls);
+        ClassKey key = new ClassKey(type.getRawClass());
         if (_directClassMappings != null) {
             JsonDeserializer<Object> deser = _directClassMappings.get(key);
             if (deser != null) {
                 return deser;
             }
         }
-        return super.createArrayDeserializer(config, type, p);
+        return super.createArrayDeserializer(config, p, type, property, propertyName);
     }
 
-    //public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p) throws JsonMappingException
+    //public JsonDeserializer<?> createCollectionDeserializer(...) throws JsonMappingException
 
     @Override
-    public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p) throws JsonMappingException
+    public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, DeserializerProvider p,
+            JavaType enumType, AnnotatedMember property, String propertyName)
+        throws JsonMappingException
     {
-        /* Enums can't extend anything (or implement); must be a direct
+        /* Enums can't extend anything; must be a direct
          * match, if anything:
+         * (theoretically they can implement interfaces, but that seems irrelevant)
          */
         if (_directClassMappings != null) {
-            ClassKey key = new ClassKey(enumClass);
+            ClassKey key = new ClassKey(enumType.getRawClass());
             JsonDeserializer<?> deser = _directClassMappings.get(key);
             if (deser != null) {
                 return deser;
             }
         }
-        return super.createEnumDeserializer(config, enumClass, p);
+        return super.createEnumDeserializer(config, p, enumType, property, propertyName);
     }
 
-    //public JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, MapType type, DeserializerProvider p) throws JsonMappingException
+    //public JsonDeserializer<?> createMapDeserializer(...) throws JsonMappingException
 
-    //public JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p) throws JsonMappingException
+    //public JsonDeserializer<?> createTreeDeserializer(...) throws JsonMappingException
 }

@@ -10,6 +10,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.BeanDeserializer;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
@@ -101,38 +102,40 @@ public class StdDeserializerProvider
     /**********************************************************
      */
 
+    @SuppressWarnings("unchecked")
     @Override
     public JsonDeserializer<Object> findValueDeserializer(DeserializationConfig config,
-                                                          JavaType type,
-                                                          JavaType referrer, String refPropName)
+            JavaType propertyType, AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
-        /* Maybe we have already resolved and cached this type?
-         * (not true for simple(st) types actually, just beans)
-         */
-        JsonDeserializer<Object> deser = _findCachedDeserializer(type);
+        JsonDeserializer<Object> deser = _findCachedDeserializer(propertyType);
         if (deser != null) {
             return deser;
         }
         // If not, need to request factory to construct (or recycle)
-        deser = _createAndCacheValueDeserializer(config, type, referrer, refPropName);
+        deser = _createAndCacheValueDeserializer(config, propertyType, property, propertyName);
         if (deser == null) {
             /* Should we let caller handle it? Let's have a helper method
              * decide it; can throw an exception, or return a valid
              * deserializer
              */
-            deser = _handleUnknownValueDeserializer(type);
+            deser = _handleUnknownValueDeserializer(propertyType);
+        }
+        // 10-Dec-2010, tatu: As per [JACKSON-385], need to support contextualization too
+        if (deser instanceof ContextualDeserializer<?>) {
+            JsonDeserializer<?> d = ((ContextualDeserializer<?>) deser).createContextual(property, propertyName);
+            deser = (JsonDeserializer<Object>) d;
         }
         return deser;
     }
-
+    
     @Override
     public JsonDeserializer<Object> findTypedValueDeserializer(DeserializationConfig config,
-            JavaType type)
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
-        JsonDeserializer<Object> deser = findValueDeserializer(config, type, null, null);
-        TypeDeserializer typeDeser = _factory.findTypeDeserializer(config, type);
+        JsonDeserializer<Object> deser = findValueDeserializer(config, type, property, propertyName);
+        TypeDeserializer typeDeser = _factory.findTypeDeserializer(config, type, property, propertyName);
         if (typeDeser != null) {
             return new WrappedDeserializer(typeDeser, deser);
         }
@@ -142,7 +145,7 @@ public class StdDeserializerProvider
     
     @Override
     public KeyDeserializer findKeyDeserializer(DeserializationConfig config,
-                                               JavaType type)
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         // No serializer needed if it's plain old String, or Object/untyped
@@ -223,9 +226,14 @@ public class StdDeserializerProvider
     /**
      * Method that will try to create a deserializer for given type,
      * and resolve and cache it if necessary
+     * 
+     * @param config Configuration
+     * @param type Type of property to deserializer
+     * @param property Property (field, setter, ctor arg) to use deserializer for
+     * @param propertyName Logical name of property to deserializer
      */
     protected JsonDeserializer<Object>_createAndCacheValueDeserializer(DeserializationConfig config,
-            JavaType type, JavaType referrer, String refPropName)
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         /* Only one thread to construct deserializers at any given point in time;
@@ -248,7 +256,7 @@ public class StdDeserializerProvider
             }
             // Nope: need to create and possibly cache
             try {
-                return _createAndCache2(config, type, referrer, refPropName);
+                return _createAndCache2(config, type, property, propertyName);
             } finally {
                 // also: any deserializers that have been created are complete by now
                 if (count == 0 && _incompleteDeserializers.size() > 0) {
@@ -263,12 +271,12 @@ public class StdDeserializerProvider
      * intermediate and eventual)
      */
     protected JsonDeserializer<Object> _createAndCache2(DeserializationConfig config, JavaType type,
-            JavaType referrer, String refPropName)
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         JsonDeserializer<Object> deser;
         try {
-            deser = _createDeserializer(config, type, referrer, refPropName);
+            deser = _createDeserializer(config, type, property, propertyName);
         } catch (IllegalArgumentException iae) {
             /* We better only expose checked exceptions, since those
              * are what caller is expected to handle
@@ -321,32 +329,32 @@ public class StdDeserializerProvider
      */
     @SuppressWarnings("unchecked")
     protected JsonDeserializer<Object> _createDeserializer(DeserializationConfig config, 
-                                                           JavaType type,
-                                                           JavaType referrer, String refPropName)
+            JavaType type, AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         if (type.isEnumType()) {
-            return (JsonDeserializer<Object>) _factory.createEnumDeserializer(config, type.getRawClass(), this);
+            return (JsonDeserializer<Object>) _factory.createEnumDeserializer(config, this, type, property, propertyName);
         }
         if (type.isContainerType()) {
             if (type instanceof ArrayType) {
-                return (JsonDeserializer<Object>)_factory.createArrayDeserializer(config, (ArrayType) type, this);
+                return (JsonDeserializer<Object>)_factory.createArrayDeserializer(config, this,
+                        (ArrayType) type, property, propertyName);
             }
             if (type instanceof MapType) {
-                return (JsonDeserializer<Object>)_factory.createMapDeserializer(config, (MapType) type, this);
+                return (JsonDeserializer<Object>)_factory.createMapDeserializer(config, this,
+                        (MapType) type, property, propertyName);
             }
             if (type instanceof CollectionType) {
-                return (JsonDeserializer<Object>)_factory.createCollectionDeserializer(config, (CollectionType) type, this);
+                return (JsonDeserializer<Object>)_factory.createCollectionDeserializer(config, this,
+                        (CollectionType) type, property, propertyName);
             }
         }
 
         // 02-Mar-2009, tatu: Let's consider JsonNode to be a type of its own
-        Class<?> rawClass = type.getRawClass();
-        if (JsonNode.class.isAssignableFrom(rawClass)) {
-            Class<? extends JsonNode> nodeClass = (Class<? extends JsonNode>) rawClass;
-            return (JsonDeserializer<Object>)_factory.createTreeDeserializer(config, nodeClass, this);
+        if (JsonNode.class.isAssignableFrom(type.getRawClass())) {
+            return (JsonDeserializer<Object>)_factory.createTreeDeserializer(config, this, type, property, propertyName);
         }
-        return (JsonDeserializer<Object>)_factory.createBeanDeserializer(config, type, this);
+        return (JsonDeserializer<Object>)_factory.createBeanDeserializer(config, this, type, property, propertyName);
     }
 
     protected void _resolveDeserializer(DeserializationConfig config, ResolvableDeserializer ser)

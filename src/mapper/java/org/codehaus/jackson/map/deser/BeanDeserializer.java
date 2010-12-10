@@ -7,6 +7,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -788,7 +789,11 @@ public class BeanDeserializer
         DeserializerProvider deserProv = ctxt.getDeserializerProvider();
         if (deserProv != null) {
             JavaType type = TypeFactory.type(bean.getClass());
-            subDeser = deserProv.findValueDeserializer(ctxt.getConfig(), type, null, "*this*");
+            /* 09-Dec-2010, tatu: Would be nice to know which property pointed to this
+             *    bean... but, alas, no such information is retained, so:
+             */
+            AnnotatedMember property = null;
+            subDeser = deserProv.findValueDeserializer(ctxt.getConfig(), type, property, "*this*");
             // Also, need to cache it
             if (subDeser != null) {
                 synchronized (this) {

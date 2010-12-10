@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.JsonParserSequence;
@@ -23,12 +24,14 @@ import org.codehaus.jackson.util.TokenBuffer;
  */
 public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
 {
-    protected final String _propertyName;
+    protected final String _typePropertyName;
 
-    public AsPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes, String propName)
+    public AsPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes,
+            AnnotatedMember property, String propertyName,
+            String typePropName)
     {
-        super(bt, idRes);
-        _propertyName = propName;
+        super(bt, idRes, property, propertyName);
+        _typePropertyName = typePropName;
     }
 
     @Override
@@ -37,7 +40,7 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
     }
 
     @Override
-    public String getPropertyName() { return _propertyName; }
+    public String getPropertyName() { return _typePropertyName; }
 
     /**
      * This is the trickiest thing to handle, since property we are looking
@@ -61,7 +64,7 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
         for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String name = jp.getCurrentName();
             jp.nextToken(); // to point to the value
-            if (_propertyName.equals(name)) { // gotcha!
+            if (_typePropertyName.equals(name)) { // gotcha!
                 JsonDeserializer<Object> deser = _findDeserializer(ctxt, jp.getText());
                 // deserializer should take care of closing END_OBJECT as well
                if (tb != null) {
@@ -82,7 +85,7 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
         }
         // Error if we get here...
         throw ctxt.wrongTokenException(jp, JsonToken.FIELD_NAME,
-                "missing property '"+_propertyName+"' that is to contain type id  (for class "+baseTypeName()+")");
+                "missing property '"+_typePropertyName+"' that is to contain type id  (for class "+baseTypeName()+")");
     }
 
     /* As per [JACKSON-352], also need to re-route "unknown" version. Need to think

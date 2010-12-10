@@ -7,6 +7,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.StdDeserializer;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
@@ -18,15 +19,17 @@ public class XmlAdapterJsonDeserializer
     extends StdDeserializer<Object>
 {
     protected final static JavaType ADAPTER_TYPE = TypeFactory.type(XmlAdapter.class);
-    
+
+    protected final AnnotatedMember _property;
     protected final XmlAdapter<Object,Object> _xmlAdapter;
     protected final JavaType _valueType;
 
     protected JsonDeserializer<?> _deserializer;
     
-    public XmlAdapterJsonDeserializer(XmlAdapter<Object,Object> xmlAdapter)
+    public XmlAdapterJsonDeserializer(AnnotatedMember property, XmlAdapter<Object,Object> xmlAdapter)
     {
         super(Object.class); // type not yet known (will be in a second), but that's ok...
+        _property = property;
         _xmlAdapter = xmlAdapter;
         /* [JACKSON-404] Need to figure out generic type parameters
          *   used...
@@ -46,8 +49,14 @@ public class XmlAdapterJsonDeserializer
          */
         JsonDeserializer<?> deser = _deserializer;
         if (deser == null) {
+            /* 09-Dec-2010, tatu: Won't really work very well with contextual deserializers,
+             *   as we do not keep enough information to pass (ideally should):
+             */
+            // This will be field/method name, not really property name; best we can
+            String name = _property.getName();
+            DeserializationConfig config = ctxt.getConfig();
             _deserializer = deser = ctxt.getDeserializerProvider().findValueDeserializer
-                (ctxt.getConfig(), _valueType, ADAPTER_TYPE, "");
+                (config, _valueType, _property, name);
         }
         Object boundObject = deser.deserialize(jp, ctxt);
         try {
@@ -62,9 +71,7 @@ public class XmlAdapterJsonDeserializer
             TypeDeserializer typeDeserializer)
         throws IOException, JsonProcessingException
     {
-        /* Output can be as JSON Object, Array or scalar: no way to know
-         * a priori. So:
-         */
+        // Output can be as JSON Object, Array or scalar: no way to know a priori. So:
         return typeDeserializer.deserializeTypedFromAny(jp, ctxt);
     }
 }

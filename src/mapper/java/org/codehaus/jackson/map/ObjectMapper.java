@@ -10,6 +10,7 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.io.SegmentedStringWriter;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
@@ -127,10 +128,10 @@ public class ObjectMapper
         }
 
         @Override
-        public TypeDeserializer buildTypeDeserializer(JavaType baseType,
-                Collection<NamedType> subtypes)
+        public TypeDeserializer buildTypeDeserializer(JavaType baseType, Collection<NamedType> subtypes,
+                AnnotatedMember property, String propertyName)
         {
-            return useForType(baseType) ? super.buildTypeDeserializer(baseType, subtypes) : null;
+            return useForType(baseType) ? super.buildTypeDeserializer(baseType, subtypes, property, propertyName) : null;
         }
 
         @Override
@@ -789,7 +790,7 @@ public class ObjectMapper
      */
 
     /**
-     * Convenience method that is equivalant to calling
+     * Convenience method that is equivalent to calling
      *<pre>
      *  enableObjectTyping(DefaultTyping.OBJECT_AND_NON_CONCRETE);
      *</pre>
@@ -2130,7 +2131,7 @@ public class ObjectMapper
             return deser;
         }
         // Nope: need to ask provider to resolve it
-        deser = _deserializerProvider.findTypedValueDeserializer(cfg, valueType);
+        deser = _deserializerProvider.findTypedValueDeserializer(cfg, valueType, null, null);
         if (deser == null) { // can this happen?
             throw new JsonMappingException("Can not find a deserializer for type "+valueType);
         }
