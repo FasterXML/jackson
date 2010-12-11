@@ -46,4 +46,54 @@ public interface BeanProperty
      * annotated field, method or constructor property.
      */
     public AnnotatedMember getMember();
+    
+    /*
+    /**********************************************************
+    /* Simple stand-alone implementation, useful as a placeholder
+    /**********************************************************
+     */
+
+    public static class Std implements BeanProperty
+    {
+        protected final String _name;
+        protected final JavaType _type;
+
+        /**
+         * Physical entity (field, method or constructor argument) that
+         * is used to access value of property (or in case of constructor
+         * property, just placeholder)
+         */
+        protected final AnnotatedMember _member;
+        
+        public Std(String name, JavaType type, AnnotatedMember member)
+        {
+            _name = name;
+            _type = type;
+            _member = member;
+        }
+
+        public Std withType(JavaType type) {
+            return new Std(_name, type, _member);
+        }
+        
+        @Override
+        public <A extends Annotation> A getAnnotation(Class<A> acls) {
+            return _member.getAnnotation(acls);
+        }
+        
+        @Override
+        public String getName() {
+            return _name;
+        }
+
+        @Override
+        public JavaType getType() {
+            return _type;
+        }
+
+        @Override
+        public AnnotatedMember getMember() {
+            return _member;
+        }
+    }
 }

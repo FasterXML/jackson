@@ -19,8 +19,7 @@ public final class AnnotatedMethod
     /*****************************************************
      */
 
-    public AnnotatedMethod(Method method,
-                           AnnotationMap classAnn, AnnotationMap[] paramAnn)
+    public AnnotatedMethod(Method method, AnnotationMap classAnn, AnnotationMap[] paramAnn)
     {
         super(classAnn, paramAnn);
         _method = method;

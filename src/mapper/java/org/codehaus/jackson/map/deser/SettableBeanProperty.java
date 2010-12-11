@@ -1,13 +1,16 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.InternCache;
 
@@ -18,15 +21,8 @@ import org.codehaus.jackson.util.InternCache;
  * setter-backed properties can be handled
  */
 public abstract class SettableBeanProperty
+    implements BeanProperty // since 1.7
 {
-    /**
-     * Logical property object which contains information such
-     * as mutator method or field and property nameBeanProperty property
-     * 
-     * @since 1.7
-     */
-    protected final BeanProperty _property;
-    
     /**
      * Logical name of the property (often but not always derived
      * from the setter method name)
@@ -37,7 +33,7 @@ public abstract class SettableBeanProperty
      * Base type for property; may be a supertype of actual value.
      */
     protected final JavaType _type;
-
+    
     /**
      * Deserializer used for handling property value.
      */
@@ -70,13 +66,11 @@ public abstract class SettableBeanProperty
     /**********************************************************
      */
 
-    protected SettableBeanProperty(BeanProperty property, JavaType type, TypeDeserializer typeDeser)
+    protected SettableBeanProperty(String propName, JavaType type, TypeDeserializer typeDeser)
     {
-        _property = property;
         /* 09-Jan-2009, tatu: Intern()ing makes sense since Jackson parsed
          *   field names are (usually) interned too, hence lookups will be faster.
          */
-        String propName = property.getName();
         // 23-Oct-2009, tatu: should this be disabled wrt [JACKSON-180]?
         if (propName == null || propName.length() == 0) {
             _propName = "";
@@ -101,21 +95,31 @@ public abstract class SettableBeanProperty
         _managedReferenceName = n;
     }
     
-    protected abstract Class<?> getDeclaringClass();
+    /*
+    /**********************************************************
+    /* BeanProperty impl
+    /**********************************************************
+     */
+    
+    public final String getName() { return _propName; }
 
+    public JavaType getType() { return _type; }
+
+    public abstract <A extends Annotation> A getAnnotation(Class<A> acls);
+
+    public abstract AnnotatedMember getMember();
+    
     /*
     /**********************************************************
     /* Accessors
     /**********************************************************
      */
 
-    /**
-     * @since 1.7
-     */
-    public BeanProperty getProperty() { return _property; }
+    protected final Class<?> getDeclaringClass() {
+        return getMember().getDeclaringClass();
+    }
     
     public String getPropertyName() { return _propName; }
-    public JavaType getType() { return _type; }
 
     public String getManagedReferenceName() { return _managedReferenceName; }
     
@@ -233,23 +237,42 @@ public abstract class SettableBeanProperty
     public final static class MethodProperty
         extends SettableBeanProperty
     {
+        protected final AnnotatedMethod _annotated;
+        
         /**
          * Setter method for modifying property value; used for
          * "regular" method-accessible properties.
          */
         protected final Method _setter;
 
-        public MethodProperty(BeanProperty property, AnnotatedMethod method, JavaType type, TypeDeserializer typeDeser)
+        public MethodProperty(String name, AnnotatedMethod method, JavaType type, TypeDeserializer typeDeser)
         {
-            super(property, type, typeDeser);
+            super(name, type, typeDeser);
+            _annotated = method;
             _setter = method.getAnnotated();
         }
 
+        /*
+        /**********************************************************
+        /* BeanProperty impl
+        /**********************************************************
+         */
+        
         @Override
-        protected Class<?> getDeclaringClass()
-        {
-            return _setter.getDeclaringClass();
+        public <A extends Annotation> A getAnnotation(Class<A> acls) {
+            return _annotated.getAnnotation(acls);
         }
+
+        @Override
+        public AnnotatedMember getMember() {
+            return _annotated;
+        }
+
+        /*
+        /**********************************************************
+        /* Overridden methods
+        /**********************************************************
+         */
 
         @Override
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
@@ -278,23 +301,42 @@ public abstract class SettableBeanProperty
     public final static class SetterlessProperty
         extends SettableBeanProperty
     {
+        protected final AnnotatedMethod _annotated;
+
         /**
          * Get method for accessing property value used to access property
          * (of Collection or Map type) to modify.
          */
         protected final Method _getter;
 
-        public SetterlessProperty(BeanProperty property, AnnotatedMethod method, JavaType type, TypeDeserializer typeDeser)
+        public SetterlessProperty(String name, AnnotatedMethod method, JavaType type, TypeDeserializer typeDeser)
         {
-            super(property, type, typeDeser);
+            super(name, type, typeDeser);
+            _annotated = method;
             _getter = method.getAnnotated();
         }
 
+        /*
+        /**********************************************************
+        /* BeanProperty impl
+        /**********************************************************
+         */
+        
         @Override
-        protected Class<?> getDeclaringClass()
-        {
-            return _getter.getDeclaringClass();
+        public <A extends Annotation> A getAnnotation(Class<A> acls) {
+            return _annotated.getAnnotation(acls);
         }
+
+        @Override
+        public AnnotatedMember getMember() {
+            return _annotated;
+        }
+
+        /*
+        /**********************************************************
+        /* Overridden methods
+        /**********************************************************
+         */
         
         @Override
         public final void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
@@ -343,22 +385,41 @@ public abstract class SettableBeanProperty
     public final static class FieldProperty
         extends SettableBeanProperty
     {
+        protected final AnnotatedField _annotated;
+
         /**
          * Actual field to set when deserializing this property.
          */
         protected final Field _field;
 
-        public FieldProperty(BeanProperty property, AnnotatedField field, JavaType type, TypeDeserializer typeDeser)
+        public FieldProperty(String name, AnnotatedField field, JavaType type, TypeDeserializer typeDeser)
         {
-            super(property, type, typeDeser);
+            super(name, type, typeDeser);
+            _annotated = field;
             _field = field.getAnnotated();
         }
 
+        /*
+        /**********************************************************
+        /* BeanProperty impl
+        /**********************************************************
+         */
+        
         @Override
-        protected Class<?> getDeclaringClass()
-        {
-            return _field.getDeclaringClass();
+        public <A extends Annotation> A getAnnotation(Class<A> acls) {
+            return _annotated.getAnnotation(acls);
         }
+
+        @Override
+        public AnnotatedMember getMember() {
+            return _annotated;
+        }
+
+        /*
+        /**********************************************************
+        /* Overridden methods
+        /**********************************************************
+         */
 
         @Override
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
@@ -387,21 +448,44 @@ public abstract class SettableBeanProperty
     public final static class CreatorProperty
         extends SettableBeanProperty
     {
-        final protected Class<?> _declaringClass;
+        protected final AnnotatedParameter _annotated;
 
         /**
          * Index of the property
          */
         final protected int _index;
 
-        public CreatorProperty(BeanProperty property, JavaType type, TypeDeserializer typeDeser,
+        public CreatorProperty(String name, AnnotatedParameter param, JavaType type,
+                TypeDeserializer typeDeser,
                 Class<?> declaringClass, int index)
         {
-            super(property, type, typeDeser);
-            _declaringClass = declaringClass;
+            super(name, type, typeDeser);
+            _annotated = param;
             _index = index;
         }
 
+        /*
+        /**********************************************************
+        /* BeanProperty impl
+        /**********************************************************
+         */
+        
+        @Override
+        public <A extends Annotation> A getAnnotation(Class<A> acls) {
+            return _annotated.getAnnotation(acls);
+        }
+
+        @Override
+        public AnnotatedMember getMember() {
+            return _annotated;
+        }
+
+        /*
+        /**********************************************************
+        /* Overridden methods
+        /**********************************************************
+         */
+        
         /**
          * Method to use for accessing index of the property (related to
          * other properties in the same context); currently only applicable
@@ -412,12 +496,6 @@ public abstract class SettableBeanProperty
          */
         @Override
         public int getCreatorIndex() { return _index; }
-        
-        @Override
-        protected Class<?> getDeclaringClass()
-        {
-            return _declaringClass;
-        }
 
         @Override
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
@@ -460,22 +538,38 @@ public abstract class SettableBeanProperty
 
         protected final SettableBeanProperty _backProperty;
         
-        public ManagedReferenceProperty(BeanProperty property, String refName,
+        public ManagedReferenceProperty(String refName,
                 SettableBeanProperty forward,
                 SettableBeanProperty backward, boolean isContainer)
         {
-            super(property, forward.getType(), forward._valueTypeDeserializer);
+            super(forward.getName(), forward.getType(), forward._valueTypeDeserializer);
             _referenceName = refName;
             _managedProperty = forward;
             _backProperty = backward;
             _isContainer = isContainer;
         }
 
+        /*
+        /**********************************************************
+        /* BeanProperty impl
+        /**********************************************************
+         */
+        
         @Override
-        protected Class<?> getDeclaringClass()
-        {
-            return _managedProperty.getDeclaringClass();
+        public <A extends Annotation> A getAnnotation(Class<A> acls) {
+            return _managedProperty.getAnnotation(acls);
         }
+
+        @Override
+        public AnnotatedMember getMember() {
+            return _managedProperty.getMember();
+        }
+
+        /*
+        /**********************************************************
+        /* Overridden methods
+        /**********************************************************
+         */
     
         @Override
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,

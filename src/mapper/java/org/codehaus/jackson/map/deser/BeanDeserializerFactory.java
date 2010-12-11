@@ -735,7 +735,7 @@ public class BeanDeserializerFactory
         }
         // we know it's a 2-arg method, second arg is the value
         JavaType type = TypeFactory.type(setter.getParameterType(1), beanDesc.bindingsForBeanType());
-        DeserializableBeanProperty property = new DeserializableBeanProperty(setter.getName(), type, setter);
+        BeanProperty.Std property = new BeanProperty.Std(setter.getName(), type, setter);
         type = resolveType(config, beanDesc, type, setter, property);
 
         /* AnySetter can be annotated with @JsonClass (etc) just like a
@@ -778,7 +778,7 @@ public class BeanDeserializerFactory
 
         // note: this works since we know there's exactly one arg for methods
         JavaType t0 = TypeFactory.type(setter.getParameterType(0), beanDesc.bindingsForBeanType());
-        DeserializableBeanProperty property = new DeserializableBeanProperty(name, t0, setter);
+        BeanProperty.Std property = new BeanProperty.Std(name, t0, setter);
         JavaType type = resolveType(config, beanDesc, t0, setter, property);
         // did type change?
         if (type != t0) {
@@ -791,7 +791,7 @@ public class BeanDeserializerFactory
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, setter, property);
         type = modifyTypeByAnnotation(config, setter, type, name);
         TypeDeserializer typeDeser = type.getTypeHandler();
-        SettableBeanProperty prop = new SettableBeanProperty.MethodProperty(property, setter, type, typeDeser);
+        SettableBeanProperty prop = new SettableBeanProperty.MethodProperty(name, setter, type, typeDeser);
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);
         }
@@ -812,7 +812,7 @@ public class BeanDeserializerFactory
             field.fixAccess();
         }
         JavaType t0 = TypeFactory.type(field.getGenericType(), beanDesc.bindingsForBeanType());
-        DeserializableBeanProperty property = new DeserializableBeanProperty(name, t0, field);
+        BeanProperty.Std property = new BeanProperty.Std(name, t0, field);
         JavaType type = resolveType(config, beanDesc, t0, field, property);
         // did type change?
         if (type != t0) {
@@ -824,7 +824,7 @@ public class BeanDeserializerFactory
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, field, property);
         type = modifyTypeByAnnotation(config, field, type, name);
         TypeDeserializer typeDeser = type.getTypeHandler();
-        SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(property, field, type, typeDeser);
+        SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(name, field, type, typeDeser);
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);
         }
@@ -856,12 +856,12 @@ public class BeanDeserializerFactory
         /* First: does the Method specify the deserializer to use?
          * If so, let's use it.
          */
-        DeserializableBeanProperty property = new DeserializableBeanProperty(name, type, getter);
+        BeanProperty.Std property = new BeanProperty.Std(name, type, getter);
         // @TODO: create BeanProperty to pass?
         JsonDeserializer<Object> propDeser = findDeserializerFromAnnotation(config, getter, property);
         type = modifyTypeByAnnotation(config, getter, type, name);
         TypeDeserializer typeDeser = type.getTypeHandler();
-        SettableBeanProperty prop = new SettableBeanProperty.SetterlessProperty(property, getter, type, typeDeser);
+        SettableBeanProperty prop = new SettableBeanProperty.SetterlessProperty(name, getter, type, typeDeser);
         if (propDeser != null) {
             prop.setValueDeserializer(propDeser);
         }

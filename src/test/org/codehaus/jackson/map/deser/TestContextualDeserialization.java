@@ -9,6 +9,8 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.annotate.JacksonAnnotation;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.module.SimpleModule;
 
@@ -30,7 +32,7 @@ public class TestContextualDeserialization extends BaseMapTest
     /* NOTE: important; MUST be considered a 'Jackson' annotation to be seen
      * (or recognized otherwise via AnnotationIntrospect.isHandled())
      */
-    @Target({ElementType.FIELD})
+    @Target({ElementType.FIELD, ElementType.PARAMETER})
     @Retention(RetentionPolicy.RUNTIME)
     @JacksonAnnotation
     public @interface Name {
@@ -51,6 +53,20 @@ public class TestContextualDeserialization extends BaseMapTest
         public ContextualType b;
     }
 
+    static class ContextualCtorBean
+    {
+        protected String a, b;
+
+        @JsonCreator
+        public ContextualCtorBean(
+                @Name("CtorA") @JsonProperty("a") ContextualType a,
+                @Name("CtorB") @JsonProperty("b") ContextualType b)
+        {
+            this.a = a.value;
+            this.b = b.value;
+        }
+    }
+    
     static class MyContextualDeserializer
         extends JsonDeserializer<ContextualType>
         implements ContextualDeserializer<ContextualType>
@@ -134,5 +150,16 @@ public class TestContextualDeserialization extends BaseMapTest
         ContextualBean bean = mapper.readValue("{\"a\":\"1\",\"b\":\"2\"}", ContextualBean.class);
         assertEquals("NameA=1", bean.a.value);
         assertEquals("NameB=2", bean.b.value);
+    }
+
+    public void testAnnotatedCtor() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
+        mapper.registerModule(module);
+        ContextualCtorBean bean = mapper.readValue("{\"a\":\"foo\",\"b\":\"bar\"}", ContextualCtorBean.class);
+        assertEquals("CtorA=foo", bean.a);
+        assertEquals("CtorB=bar", bean.b);
     }
 }

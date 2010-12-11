@@ -776,14 +776,8 @@ public abstract class BasicDeserializerFactory
             AnnotatedParameter param)
         throws JsonMappingException
     {
-        /*
-        // we know it's a 2-arg method, second arg is the value
-        JavaType type = TypeFactory.type(setter.getParameterType(1), beanDesc.bindingsForBeanType());
-        // We actually only need property for further type resolution...
-        type = resolveType(config, beanDesc, type, setter, property);
-         */
         JavaType t0 = TypeFactory.type(param.getParameterType(), beanDesc.bindingsForBeanType());
-        DeserializableBeanProperty property = new DeserializableBeanProperty(name, t0, param);
+        BeanProperty.Std property = new BeanProperty.Std(name, t0, param);
         JavaType type = resolveType(config, beanDesc, t0, param, property);
         if (type != t0) {
             property = property.withType(type);
@@ -793,7 +787,7 @@ public abstract class BasicDeserializerFactory
         // If yes, we are mostly done:
         type = modifyTypeByAnnotation(config, param, type, name);
         TypeDeserializer typeDeser = findTypeDeserializer(config, type, property);
-        SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(property,
+        SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(name, param,
                 type, typeDeser, beanDesc.getBeanClass(), index);
         if (deser != null) {
             prop.setValueDeserializer(deser);

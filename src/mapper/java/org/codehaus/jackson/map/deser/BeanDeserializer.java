@@ -284,8 +284,7 @@ public class BeanDeserializer
             SettableBeanProperty prop = en.getValue();
             // May already have deserializer from annotations, if so, skip:
             if (!prop.hasValueDeserializer()) {
-                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(),
-                        prop.getProperty()));
+                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
             }
             // and for [JACKSON-235] need to finally link managed references with matching back references
             String refName = prop.getManagedReferenceName();
@@ -323,7 +322,7 @@ public class BeanDeserializer
                             +backRefType.getRawClass().getName()+") not compatible with managed type ("
                             +referredType.getRawClass().getName()+")");
                 }
-                en.setValue(new SettableBeanProperty.ManagedReferenceProperty(prop.getProperty(), refName, prop, backProp, isContainer));
+                en.setValue(new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp, isContainer));
             }
         }
 
@@ -335,7 +334,7 @@ public class BeanDeserializer
         // as well as delegate-based constructor:
         if (_delegatingCreator != null) {
             // Need to create a temporary property to allow contextual deserializers:
-            DeserializableBeanProperty property = new DeserializableBeanProperty(null, _delegatingCreator.getValueType(),
+            BeanProperty.Std property = new BeanProperty.Std(null, _delegatingCreator.getValueType(),
                     _delegatingCreator.getCreator());
             JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingCreator.getValueType(), property);
             _delegatingCreator.setDeserializer(deser);
@@ -344,7 +343,7 @@ public class BeanDeserializer
         if (_propertyBasedCreator != null) {
             for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
                 if (!prop.hasValueDeserializer()) {
-                    prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getProperty()));
+                    prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
                 }
             }
         }
