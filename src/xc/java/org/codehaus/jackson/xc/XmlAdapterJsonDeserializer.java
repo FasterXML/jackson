@@ -21,15 +21,19 @@ public class XmlAdapterJsonDeserializer
     protected final static JavaType ADAPTER_TYPE = TypeFactory.type(XmlAdapter.class);
 
     protected final AnnotatedMember _property;
+    protected final String _propertyName;
+
     protected final XmlAdapter<Object,Object> _xmlAdapter;
     protected final JavaType _valueType;
 
     protected JsonDeserializer<?> _deserializer;
     
-    public XmlAdapterJsonDeserializer(AnnotatedMember property, XmlAdapter<Object,Object> xmlAdapter)
+    public XmlAdapterJsonDeserializer(XmlAdapter<Object,Object> xmlAdapter,
+            AnnotatedMember property, String propertyName)
     {
         super(Object.class); // type not yet known (will be in a second), but that's ok...
         _property = property;
+        _propertyName = propertyName;
         _xmlAdapter = xmlAdapter;
         /* [JACKSON-404] Need to figure out generic type parameters
          *   used...
@@ -49,14 +53,9 @@ public class XmlAdapterJsonDeserializer
          */
         JsonDeserializer<?> deser = _deserializer;
         if (deser == null) {
-            /* 09-Dec-2010, tatu: Won't really work very well with contextual deserializers,
-             *   as we do not keep enough information to pass (ideally should):
-             */
-            // This will be field/method name, not really property name; best we can
-            String name = _property.getName();
             DeserializationConfig config = ctxt.getConfig();
             _deserializer = deser = ctxt.getDeserializerProvider().findValueDeserializer
-                (config, _valueType, _property, name);
+                (config, _valueType, _property, _propertyName);
         }
         Object boundObject = deser.deserialize(jp, ctxt);
         try {

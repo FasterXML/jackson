@@ -17,7 +17,7 @@ public interface ContextualDeserializer<T>
 {
     /**
      * Method called to see if a different (or differently configured) deserializer
-     * is needed to deserializer values of specified property.
+     * is needed to deserialize values of specified property.
      * Note that instance that this method is called on is typically shared one and
      * as a result method should <b>NOT</b> modify this instance but rather construct
      * and return a new instance. This instance should only be returned as-is, in case
@@ -25,9 +25,9 @@ public interface ContextualDeserializer<T>
      * 
      * @param config Current deserialization configuration
      * @param property Method, field or constructor parameter that represents the property
-     *   (and is used to assign deserialized value); contained within <code>contextType</code>.
-     *   Should be available; but there may be cases where caller can not provide it (in
-     *   which case implementations typically just return 'this')
+     *   (and is used to assign deserialized value).
+     *   Should be available; but there may be cases where caller can not provide it and
+     *   null is passed instead (in which case impls usually pass 'this' deserializer as is)
      * @param propertyName Logical name of the property, if available (null if not; mostly
      *   just in cases where 'property' is also null)
      * 

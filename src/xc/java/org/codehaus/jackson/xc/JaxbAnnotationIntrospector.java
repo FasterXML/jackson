@@ -510,7 +510,9 @@ public class JaxbAnnotationIntrospector
     {
         XmlAdapter<Object,Object> adapter = findAdapter(am, true);
         if (adapter != null) {
-            return new XmlAdapterJsonSerializer(adapter);
+            // can it ever be something other than AnnotatedMember?
+            AnnotatedMember prop = (am instanceof AnnotatedMember) ? ((AnnotatedMember) am) : null;
+            return new XmlAdapterJsonSerializer(adapter, prop, null);
         }
 
         /* [JACKSON-150]: add support for additional core XML
@@ -720,7 +722,7 @@ public class JaxbAnnotationIntrospector
         if (adapter != null) {
             // can it ever be something other than AnnotatedMember?
             AnnotatedMember prop = (am instanceof AnnotatedMember) ? ((AnnotatedMember) am) : null;
-            return new XmlAdapterJsonDeserializer(prop, adapter);
+            return new XmlAdapterJsonDeserializer(adapter, prop, null);
         }
 
         /* [JACKSON-150]: add support for additional core XML

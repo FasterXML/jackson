@@ -9,6 +9,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.type.JavaType;
@@ -24,11 +25,21 @@ public class MapSerializer
     extends ContainerSerializerBase<Map<?,?>>
     implements ResolvableSerializer
 {
+    protected final static JavaType UNSPECIFIED_TYPE = TypeFactory.fastSimpleType(Object.class);
+    
     /**
-     * Default instance that can be used for Map types that have
-     * no specific custom annotations.
+     * Map-valued property being serialized with this instance
+     * 
+     * @since 1.7
      */
-    public final static MapSerializer instance = new MapSerializer();
+    protected final AnnotatedMember _property;
+
+    /**
+     * Logical name of Map-valued property being serialized with this instance
+     * 
+     * @since 1.7
+     */
+    protected final String _propertyName;
     
     /**
      * Set of entries to omit during serialization, if any
@@ -42,9 +53,23 @@ public class MapSerializer
     protected final boolean _valueTypeIsStatic;
 
     /**
+     * Declared type of keys
+     * 
+     * @since 1.7
+     */
+    protected final JavaType _keyType;
+
+    /**
      * Declared type of contained values
      */
     protected final JavaType _valueType;
+
+    /**
+     * Key serializer to use, if it can be statically determined
+     * 
+     * @since 1.7
+     */
+    protected JsonSerializer<Object> _keySerializer;
 
     /**
      * Value serializer to use, if it can be statically determined
@@ -54,28 +79,48 @@ public class MapSerializer
     protected JsonSerializer<Object> _valueSerializer;
 
     /**
-     * Type serializer used for values, if any.
+     * Type identifier serializer used for values, if any.
      */
     protected final TypeSerializer _valueTypeSerializer;
     
     protected MapSerializer() {
-        this((HashSet<String>)null, null, false, null);
+        this((HashSet<String>)null, null, null, false, null, null, null, null);
     }
-    
-    protected MapSerializer(HashSet<String> ignoredEntries, JavaType valueType, boolean valueTypeIsStatic,
+
+    /**
+     * Legacy constructor (as of 1.7)
+     * 
+     * @deprecated Use variant that takes Key type and property information
+     */
+    @Deprecated
+    protected MapSerializer(HashSet<String> ignoredEntries,
+            JavaType valueType, boolean valueTypeIsStatic,
             TypeSerializer vts)
     {
+        this(ignoredEntries, UNSPECIFIED_TYPE, valueType, valueTypeIsStatic, vts, null, null, null);
+    }
+    
+    protected MapSerializer(HashSet<String> ignoredEntries,
+            JavaType keyType, JavaType valueType, boolean valueTypeIsStatic,
+            TypeSerializer vts, JsonSerializer<Object> keySerializer,
+            AnnotatedMember property, String propertyName)
+    {
         super(Map.class, false);
+        _property = property;
+        _propertyName = propertyName;
         _ignoredEntries = ignoredEntries;
+        _keyType = keyType;
         _valueType = valueType;
         _valueTypeIsStatic = valueTypeIsStatic;
         _valueTypeSerializer = vts;
+        _keySerializer = keySerializer;
     }
     
     @Override
     public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
     {
-        MapSerializer ms = new MapSerializer(_ignoredEntries, _valueType, _valueTypeIsStatic, vts);
+        MapSerializer ms = new MapSerializer(_ignoredEntries, _keyType, _valueType, _valueTypeIsStatic, vts,
+                _keySerializer, _property, _propertyName);
         if (_valueSerializer != null) {
             ms._valueSerializer = _valueSerializer;
         }
@@ -93,22 +138,24 @@ public class MapSerializer
      * @param vts Type serializer to use for map entry values, if any
      */
     public static MapSerializer construct(String[] ignoredList, JavaType mapType,
-            boolean staticValueType, TypeSerializer vts)
+            boolean staticValueType, TypeSerializer vts,
+            AnnotatedMember property, String propertyName)
     {
         HashSet<String> ignoredEntries = toSet(ignoredList);
-        JavaType valueType = (mapType == null) ? TypeFactory.type(Object.class) : mapType.getContentType();
+        JavaType keyType, valueType;
+        
+        if (mapType == null) {
+            keyType = valueType = UNSPECIFIED_TYPE;
+        } else { 
+            keyType = mapType.getKeyType();
+            valueType = mapType.getContentType();
+        }
         // If value type is final, it's same as forcing static value typing:
         if (!staticValueType) {
             staticValueType = (valueType != null && valueType.isFinal());
         }
-        /* for plain vanilla case can return singleton; plain meaning that there are
-         * no ignored entries (no view), non-static type (can not statically determine
-         * value serializer) and no assigned value type serializer.
-         */
-        if (!staticValueType && (ignoredEntries == null) && (vts == null)) {
-            return instance;
-        }
-        return new MapSerializer(ignoredEntries, valueType, staticValueType, vts);
+        return new MapSerializer(ignoredEntries, keyType, valueType, staticValueType, vts,
+                null, property, propertyName);
     }
 
     private static HashSet<String> toSet(String[] ignoredEntries) {
@@ -176,8 +223,8 @@ public class MapSerializer
             serializeTypedFields(value, jgen, provider);
             return;
         }
+        final JsonSerializer<Object> keySerializer = _keySerializer;
         
-        final JsonSerializer<Object> keySerializer = provider.getKeySerializer();
         JsonSerializer<Object> prevValueSerializer = null;
         Class<?> prevValueClass = null;
         final HashSet<String> ignored = _ignoredEntries;
@@ -206,7 +253,7 @@ public class MapSerializer
                 if (cc == prevValueClass) {
                     currSerializer = prevValueSerializer;
                 } else {
-                    currSerializer = provider.findValueSerializer(cc);
+                    currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
                     prevValueSerializer = currSerializer;
                     prevValueClass = cc;
                 }
@@ -230,7 +277,7 @@ public class MapSerializer
             JsonSerializer<Object> ser)
             throws IOException, JsonGenerationException
     {
-        final JsonSerializer<Object> keySerializer = provider.getKeySerializer();
+        final JsonSerializer<Object> keySerializer = _keySerializer;
         final HashSet<String> ignored = _ignoredEntries;
         final TypeSerializer typeSer = _valueTypeSerializer;
         final boolean skipNulls = !provider.isEnabled(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES);
@@ -267,7 +314,7 @@ public class MapSerializer
     protected void serializeTypedFields(Map<?,?> value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
-        final JsonSerializer<Object> keySerializer = provider.getKeySerializer();
+        final JsonSerializer<Object> keySerializer = _keySerializer;
         JsonSerializer<Object> prevValueSerializer = null;
         Class<?> prevValueClass = null;
         final HashSet<String> ignored = _ignoredEntries;
@@ -296,7 +343,7 @@ public class MapSerializer
                 if (cc == prevValueClass) {
                     currSerializer = prevValueSerializer;
                 } else {
-                    currSerializer = provider.findValueSerializer(cc);
+                    currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
                     prevValueSerializer = currSerializer;
                     prevValueClass = cc;
                 }
@@ -328,8 +375,12 @@ public class MapSerializer
         throws JsonMappingException
     {
         if (_valueTypeIsStatic) {
-            _valueSerializer = provider.findValueSerializer(_valueType);
+            _valueSerializer = provider.findValueSerializer(_valueType, _property, _propertyName);
         }
+        /* 10-Dec-2010, tatu: Let's also fetch key serializer; and always assume we'll
+         *   do that just using static type information
+         */
+        _keySerializer = provider.getKeySerializer(_keyType, _property, _propertyName);
     }
 }
 

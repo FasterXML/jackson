@@ -74,6 +74,7 @@ public class TestJaxbPolymorphicMaps
         assertEquals("Pena", ((Whale) map.get(Integer.valueOf(3))).nickname);
     }
 
+    /*
     public void testPolymorphicMapElementRefs() throws Exception
     {
         ObjectMapper mapper = getJaxbMapper();
@@ -93,4 +94,5 @@ public class TestJaxbPolymorphicMaps
         assertEquals("Arska", ((Cow) map.get(Integer.valueOf(2))).nickname);
         assertEquals("Pena", ((Cow) map.get(Integer.valueOf(3))).nickname);
     }
+    */
 }

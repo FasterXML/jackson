@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
 
@@ -19,6 +21,8 @@ import org.codehaus.jackson.type.JavaType;
  */
 public abstract class SerializerProvider
 {
+    protected final static JavaType TYPE_OBJECT = TypeFactory.type(Object.class);
+    
     protected final SerializationConfig _config;
 
     /**
@@ -129,7 +133,8 @@ public abstract class SerializerProvider
      *   accessing suitable serializer; including that of not
      *   finding any serializer
      */
-    public abstract JsonSerializer<Object> findValueSerializer(Class<?> runtimeType)
+    public abstract JsonSerializer<Object> findValueSerializer(Class<?> runtimeType,
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 
     /**
@@ -138,7 +143,8 @@ public abstract class SerializerProvider
      * 
      * @since 1.5
      */
-    public abstract JsonSerializer<Object> findValueSerializer(JavaType serializationType)
+    public abstract JsonSerializer<Object> findValueSerializer(JavaType serializationType,
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException;
     
     /**
@@ -157,7 +163,7 @@ public abstract class SerializerProvider
      * @since 1.5
      */
     public abstract JsonSerializer<Object> findTypedValueSerializer(Class<?> valueType,
-            boolean cache)
+            boolean cache, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
 
     /**
@@ -177,14 +183,8 @@ public abstract class SerializerProvider
      * @since 1.5
      */
     public abstract JsonSerializer<Object> findTypedValueSerializer(JavaType valueType,
-            boolean cache)
+            boolean cache, AnnotatedMember property, String propertyName)
         throws JsonMappingException;
-    
-    /*
-    /********************************************************
-    /* Accessors for specialized serializers
-    /********************************************************
-     */
 
     /**
      * Method called to get the serializer to use for serializing
@@ -196,7 +196,98 @@ public abstract class SerializerProvider
      * Note that the serializer itself can be called with instances
      * of any Java object, but not nulls.
      */
-    public abstract JsonSerializer<Object> getKeySerializer();
+    public abstract JsonSerializer<Object> getKeySerializer(JavaType keyType,
+            AnnotatedMember property, String propertyName)
+        throws JsonMappingException;
+
+    /*
+    /**********************************************************
+    /* Deprecated serializer locating functionality (as of 1.7)
+    /**********************************************************
+     */
+
+    /**
+     * Deprecated version of accessor method that was used before version 1.7.
+     * Implemented as final to ensure that existing code does not accidentally
+     * try to redefine it (given that it is not called by core mapper code)
+     *   
+     * @deprecated As of version 1.7, use version that exposes property object
+     *    instead of just its type (needed for contextual serializers)
+     */
+    @Deprecated
+    public final JsonSerializer<Object> findValueSerializer(Class<?> runtimeType)
+        throws JsonMappingException
+    {
+        return findValueSerializer(runtimeType, null, null);
+    }
+
+    /**
+     * Deprecated version of accessor method that was used before version 1.7.
+     * Implemented as final to ensure that existing code does not accidentally
+     * try to redefine it (given that it is not called by core mapper code)
+     *   
+     * @deprecated As of version 1.7, use version that exposes property object
+     *    instead of just its type (needed for contextual serializers)
+     */
+    @Deprecated
+    public final JsonSerializer<Object> findValueSerializer(JavaType serializationType)
+        throws JsonMappingException
+    {
+        return findValueSerializer(serializationType, null, null);
+    }
+
+    /**
+     * Deprecated version of accessor method that was used before version 1.7.
+     * Implemented as final to ensure that existing code does not accidentally
+     * try to redefine it (given that it is not called by core mapper code)
+     *   
+     * @deprecated As of version 1.7, use version that exposes property object
+     *    instead of just its type (needed for contextual serializers)
+     */
+    @Deprecated
+    public final JsonSerializer<Object> findTypedValueSerializer(Class<?> valueType,
+            boolean cache)
+        throws JsonMappingException
+    {
+        return findTypedValueSerializer(valueType, cache, null, null);
+    }
+
+    /**
+     * Deprecated version of accessor method that was used before version 1.7.
+     * Implemented as final to ensure that existing code does not accidentally
+     * try to redefine it (given that it is not called by core mapper code)
+     *   
+     * @deprecated As of version 1.7, use version that exposes property object
+     *    instead of just its type (needed for contextual serializers)
+     */
+    @Deprecated
+    public final JsonSerializer<Object> findTypedValueSerializer(JavaType valueType,
+            boolean cache)
+        throws JsonMappingException
+    {
+        return findTypedValueSerializer(valueType, cache, null, null);
+    }
+
+    /**
+     * Deprecated version of accessor method that was used before version 1.7.
+     * Implemented as final to ensure that existing code does not accidentally
+     * try to redefine it (given that it is not called by core mapper code)
+     *   
+     * @deprecated As of version 1.7, use version that exposes property object
+     *    instead of just its type (needed for contextual serializers)
+     */
+    @Deprecated
+    public final JsonSerializer<Object> getKeySerializer()
+        throws JsonMappingException
+    {
+        return getKeySerializer(TYPE_OBJECT, null, null);
+    }
+    
+    /*
+    /********************************************************
+    /* Accessors for specialized serializers
+    /********************************************************
+     */
 
     /**
      * Method called to get the serializer to use for serializing

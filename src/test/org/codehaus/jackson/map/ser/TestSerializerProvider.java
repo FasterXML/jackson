@@ -9,7 +9,7 @@ public class TestSerializerProvider
         public int getX() { return 3; }
     }
 
-    public void testFindExplicit()
+    public void testFindExplicit() throws JsonMappingException
     {
         ObjectMapper mapper = new ObjectMapper();
         SerializationConfig config = mapper.getSerializationConfig();
@@ -17,7 +17,7 @@ public class TestSerializerProvider
         StdSerializerProvider prov = new StdSerializerProvider().createInstance(config, f);
 
         // Should have working default key and null key serializers
-        assertNotNull(prov.getKeySerializer());
+        assertNotNull(prov.getKeySerializer(null, null, null));
         assertNotNull(prov.getNullKeySerializer());
         // as well as 'unknown type' one (throws exception)
         assertNotNull(prov.getUnknownTypeSerializer(getClass()));

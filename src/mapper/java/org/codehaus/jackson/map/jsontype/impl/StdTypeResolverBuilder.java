@@ -54,34 +54,22 @@ public class StdTypeResolverBuilder
     }
 
     @Override
-    public TypeSerializer buildTypeSerializer(JavaType baseType,
-            Collection<NamedType> subtypes)
+    public TypeSerializer buildTypeSerializer(JavaType baseType, Collection<NamedType> subtypes,
+            AnnotatedMember property, String propertyName)
     {
         TypeIdResolver idRes = idResolver(baseType, subtypes, true, false);
         switch (_includeAs) {
         case WRAPPER_ARRAY:
-            return new AsArrayTypeSerializer(idRes);
+            return new AsArrayTypeSerializer(idRes, property, propertyName);
         case PROPERTY:
-            return new AsPropertyTypeSerializer(idRes, _typeProperty);
+            return new AsPropertyTypeSerializer(idRes, property, propertyName, _typeProperty);
         case WRAPPER_OBJECT:
-            return new AsWrapperTypeSerializer(idRes);
+            return new AsWrapperTypeSerializer(idRes, property, propertyName);
         }
         throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
     }
-
-    /**
-     * This is the deprecated method; defined final to force errors on sub-classes that
-     * try to implement it. Alternative would be to increase chance of invisible hard(er)
-     * to track errors, without immediate problems.
-     */
-    @Override
-    public final TypeDeserializer buildTypeDeserializer(JavaType baseType, Collection<NamedType> subtypes)
-    {
-        return buildTypeDeserializer(baseType, subtypes, null, null);
-    }
     
-    public TypeDeserializer buildTypeDeserializer(JavaType baseType,
-            Collection<NamedType> subtypes,
+    public TypeDeserializer buildTypeDeserializer(JavaType baseType, Collection<NamedType> subtypes,
             AnnotatedMember property, String propertyName)
     {
         TypeIdResolver idRes = idResolver(baseType, subtypes, false, true);

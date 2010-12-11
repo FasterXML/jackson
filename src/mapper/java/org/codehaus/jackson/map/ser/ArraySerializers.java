@@ -11,6 +11,7 @@ import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.type.ArrayType;
 
@@ -31,9 +32,10 @@ public final class ArraySerializers
      */
 
     public static ContainerSerializerBase<?> objectArraySerializer(JavaType elementType, boolean staticTyping,
-            TypeSerializer vts)
+            TypeSerializer vts,
+            AnnotatedMember property, String propertyName)
     {
-        return new ObjectArraySerializer(elementType, staticTyping, vts);
+        return new ObjectArraySerializer(elementType, staticTyping, vts, property, propertyName);
     }
 
     /*
@@ -49,14 +51,32 @@ public final class ArraySerializers
      private abstract static class AsArraySerializer<T>
         extends ContainerSerializerBase<T>
     {
-        /**
+         /**
          * Type serializer used for values, if any.
          */
         protected final TypeSerializer _valueTypeSerializer;
 
-        protected AsArraySerializer(Class<T> cls, TypeSerializer vts) {
+        /**
+         * Array-valued property being serialized with this instance
+         * 
+         * @since 1.7
+         */
+        protected final AnnotatedMember _property;
+
+        /**
+         * Logical name of array-valued property being serialized with this instance
+         * 
+         * @since 1.7
+         */
+        protected final String _propertyName;
+        
+        protected AsArraySerializer(Class<T> cls, TypeSerializer vts,
+                AnnotatedMember property, String propertyName)
+        {
             super(cls);
             _valueTypeSerializer = vts;
+            _property = property;
+            _propertyName = propertyName;
         }
         
         @Override
@@ -96,8 +116,6 @@ public final class ArraySerializers
         extends AsArraySerializer<Object[]>
         implements ResolvableSerializer
     {
-        public final static ObjectArraySerializer instance = new ObjectArraySerializer(null, false, null);
-
         protected final boolean _staticTyping;
 
         protected final JavaType _elementType;
@@ -110,9 +128,10 @@ public final class ArraySerializers
         protected JsonSerializer<Object> _elementSerializer;
 
         public ObjectArraySerializer(JavaType elemType, boolean staticTyping,
-                TypeSerializer vts)
+                TypeSerializer vts,
+                AnnotatedMember property, String propertyName)
         {
-            super(Object[].class, vts);
+            super(Object[].class, vts, property, propertyName);
             _elementType = elemType;
             _staticTyping = staticTyping;
         }
@@ -120,7 +139,8 @@ public final class ArraySerializers
         @Override
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
         {
-            return new ObjectArraySerializer(_elementType, _staticTyping, vts);
+            return new ObjectArraySerializer(_elementType, _staticTyping, vts,
+                    _property, _propertyName);
         }
         
         @Override
@@ -154,7 +174,7 @@ public final class ArraySerializers
                         currSerializer = prevSerializer;
                     } else {
                         // true -> do cache
-                        currSerializer = provider.findValueSerializer(cc);
+                        currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
                         prevSerializer = currSerializer;
                         prevClass = cc;
                     }
@@ -239,7 +259,7 @@ public final class ArraySerializers
                 if (cc == prevClass) {
                     currSerializer = prevSerializer;
                 } else {
-                    currSerializer = provider.findValueSerializer(cc);
+                    currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
                     prevSerializer = currSerializer;
                     prevClass = cc;
                 }
@@ -273,7 +293,7 @@ public final class ArraySerializers
                     if (componentType == Object.class) {
                         o.put("items", JsonSchema.getDefaultSchemaNode());
                     } else {
-                        JsonSerializer<Object> ser = provider.findValueSerializer(componentType);
+                        JsonSerializer<Object> ser = provider.findValueSerializer(componentType, _property, _propertyName);
                         JsonNode schemaNode = (ser instanceof SchemaAware) ?
                                 ((SchemaAware) ser).getSchema(provider, null) :
                                 JsonSchema.getDefaultSchemaNode();
@@ -292,7 +312,7 @@ public final class ArraySerializers
             throws JsonMappingException
         {
             if (_staticTyping) {
-                _elementSerializer = provider.findValueSerializer(_elementType);
+                _elementSerializer = provider.findValueSerializer(_elementType, _property, _propertyName);
             }
         }        
     }
@@ -301,7 +321,9 @@ public final class ArraySerializers
     public final static class StringArraySerializer
         extends AsArraySerializer<String[]>
     {
-        public StringArraySerializer() { super(String[].class, null); }
+        public StringArraySerializer() {
+            super(String[].class, null, null, null);
+        }
 
         /**
          * Strings never add type info; hence, even if type serializer is suggested,
@@ -352,7 +374,7 @@ public final class ArraySerializers
     public final static class BooleanArraySerializer
         extends AsArraySerializer<boolean[]>
     {
-        public BooleanArraySerializer() { super(boolean[].class, null); }
+        public BooleanArraySerializer() { super(boolean[].class, null, null, null); }
 
         /**
          * Booleans never add type info; hence, even if type serializer is suggested,
@@ -429,7 +451,7 @@ public final class ArraySerializers
         extends AsArraySerializer<short[]>
     {
         public ShortArraySerializer() { this(null); }
-        public ShortArraySerializer(TypeSerializer vts) { super(short[].class, vts); }
+        public ShortArraySerializer(TypeSerializer vts) { super(short[].class, vts, null, null); }
 
         @Override
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
@@ -523,7 +545,7 @@ public final class ArraySerializers
     public final static class IntArraySerializer
         extends AsArraySerializer<int[]>
     {
-        public IntArraySerializer() { super(int[].class, null); }
+        public IntArraySerializer() { super(int[].class, null, null, null); }
 
         /**
          * Ints never add type info; hence, even if type serializer is suggested,
@@ -558,7 +580,7 @@ public final class ArraySerializers
         extends AsArraySerializer<long[]>
     {
         public LongArraySerializer() { this(null); }
-        public LongArraySerializer(TypeSerializer vts) { super(long[].class, vts); }
+        public LongArraySerializer(TypeSerializer vts) { super(long[].class, vts, null, null); }
 
         @Override
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
@@ -588,7 +610,7 @@ public final class ArraySerializers
         extends AsArraySerializer<float[]>
     {
         public FloatArraySerializer() { this(null); }
-        public FloatArraySerializer(TypeSerializer vts) { super(float[].class, vts); }
+        public FloatArraySerializer(TypeSerializer vts) { super(float[].class, vts, null, null); }
 
         @Override
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
@@ -617,7 +639,7 @@ public final class ArraySerializers
     public final static class DoubleArraySerializer
         extends AsArraySerializer<double[]>
     {
-        public DoubleArraySerializer() { super(double[].class, null); }
+        public DoubleArraySerializer() { super(double[].class, null, null, null); }
 
         /**
          * Doubles never add type info; hence, even if type serializer is suggested,

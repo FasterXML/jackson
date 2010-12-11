@@ -20,13 +20,13 @@ import org.w3c.dom.Element;
 public class TestCustomSerializers
     extends org.codehaus.jackson.map.BaseMapTest
 {
-	/*
-	/***********************************************
-	/* Helper beans
-	/***********************************************
-	 */
+    /*
+    /**********************************************************
+    /* Helper beans
+    /**********************************************************
+     */
 
-	static class ElementSerializer extends JsonSerializer<Element>
+    static class ElementSerializer extends JsonSerializer<Element>
     {
         @Override
         public void serialize(Element value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
@@ -37,11 +37,11 @@ public class TestCustomSerializers
     @JsonSerialize(using = ElementSerializer.class)
     public static class ElementMixin {}
 
-	/*
-	/***********************************************
-	/* Unit tests
-	/***********************************************
-	 */
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+    */
     
     public void testCustomization() throws Exception
     {
@@ -54,18 +54,21 @@ public class TestCustomSerializers
     }
 
     @SuppressWarnings("unchecked")
-	public void testCustomLists() throws Exception
+    public void testCustomLists() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();    	
         CustomSerializerFactory sf = new CustomSerializerFactory();
+        JsonSerializer<?> ser = new ContainerSerializers.CollectionSerializer(null, false, null, null, null);
+        final JsonSerializer<Object> collectionSerializer = (JsonSerializer<Object>) ser;
+        
         sf.addGenericMapping(Collection.class, new JsonSerializer<Collection>() {
             @Override
             public void serialize(Collection value, JsonGenerator jgen, SerializerProvider provider)
                     throws IOException, JsonProcessingException {
                 if (value.size() != 0) {
-                    ContainerSerializers.CollectionSerializer.instance.serialize(value, jgen, provider);
+                    collectionSerializer.serialize(value, jgen, provider);
                 } else {
-                	jgen.writeNull();
+                    jgen.writeNull();
                 }
             }
         });

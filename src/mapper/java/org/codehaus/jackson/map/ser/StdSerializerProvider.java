@@ -6,6 +6,7 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
@@ -41,8 +42,6 @@ public class StdSerializerProvider
      * Setting for determining whether mappings for "unknown classes" should be
      * cached for faster resolution. Usually this isn't needed, but maybe it
      * is in some cases?
-     *<p>
-     * TODO: make configurable?
      */
     final static boolean CACHE_UNKNOWN_MAPPINGS = false;
 
@@ -277,7 +276,7 @@ public class StdSerializerProvider
         /* no need for embedded type information for JSON schema generation (all
          * type information it needs is accessible via "untyped" serializer)
          */
-        JsonSerializer<Object> ser = inst.findValueSerializer(type);
+        JsonSerializer<Object> ser = inst.findValueSerializer(type, null, null);
         JsonNode schemaNode = (ser instanceof SchemaAware) ?
                 ((SchemaAware) ser).getSchema(inst, null) : 
                 JsonSchema.getDefaultSchemaNode();
@@ -293,7 +292,7 @@ public class StdSerializerProvider
     public boolean hasSerializerFor(SerializationConfig config,
                                     Class<?> cls, SerializerFactory jsf)
     {
-        return createInstance(config, jsf)._findExplicitUntypedSerializer(cls) != null;
+        return createInstance(config, jsf)._findExplicitUntypedSerializer(cls, null, null) != null;
     }
 
     /**
@@ -308,8 +307,8 @@ public class StdSerializerProvider
             ser = getNullValueSerializer();
         } else {
             Class<?> cls = value.getClass();
-            // true, since we do want to cache root-level typed serializers
-            ser = findTypedValueSerializer(cls, true);
+            // true, since we do want to cache root-level typed serializers (ditto for null property)
+            ser = findTypedValueSerializer(cls, true, null, null);
         }
         try {
             ser.serialize(value, jgen, this);
@@ -345,7 +344,8 @@ public class StdSerializerProvider
                 throw new JsonMappingException("Incompatible types: declared root type ("+rootType+") vs "
                         +value.getClass().getName());
             }
-            ser = findTypedValueSerializer(rootType, true);
+            // root value, not reached via property:
+            ser = findTypedValueSerializer(rootType, true, null, null);
         }
         try {
             ser.serialize(value, jgen, this);
@@ -407,7 +407,8 @@ public class StdSerializerProvider
      */
 
     @Override
-    public JsonSerializer<Object> findValueSerializer(Class<?> valueType)
+    public JsonSerializer<Object> findValueSerializer(Class<?> valueType,
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         // Fast lookup from local lookup thingy works?
@@ -423,7 +424,7 @@ public class StdSerializerProvider
         if (ser != null) return ser;
 
         // If neither, must create
-        ser = _createAndCacheUntypedSerializer(valueType);
+        ser = _createAndCacheUntypedSerializer(valueType, property, propertyName);
         // Not found? Must use the unknown type serializer
         /* Couldn't create? Need to return the fallback serializer, which
          * most likely will report an error: but one question is whether
@@ -445,7 +446,8 @@ public class StdSerializerProvider
      * handling of external type information, to handle polymorphic types.
      */    
     @Override
-    public JsonSerializer<Object> findValueSerializer(JavaType valueType)
+    public JsonSerializer<Object> findValueSerializer(JavaType valueType,
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         // Fast lookup from local lookup thingy works?
@@ -460,7 +462,7 @@ public class StdSerializerProvider
         }
 
         // If neither, must create
-        ser = _createAndCacheUntypedSerializer(valueType);
+        ser = _createAndCacheUntypedSerializer(valueType, property, propertyName);
         // Not found? Must use the unknown type serializer
         /* Couldn't create? Need to return the fallback serializer, which
          * most likely will report an error: but one question is whether
@@ -481,8 +483,8 @@ public class StdSerializerProvider
      *    a hint 
      */
     @Override
-    public JsonSerializer<Object> findTypedValueSerializer(Class<?> valueType,
-            boolean cache)
+    public JsonSerializer<Object> findTypedValueSerializer(Class<?> valueType, boolean cache,
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         // Two-phase lookups; local non-shared cache, then shared:
@@ -497,8 +499,9 @@ public class StdSerializerProvider
         }
 
         // Well, let's just compose from pieces:
-        ser = findValueSerializer(valueType);
-        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(TypeFactory.type(valueType), _config);
+        ser = findValueSerializer(valueType, property, propertyName);
+        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(_config, TypeFactory.type(valueType),
+                property, propertyName);
         if (typeSer != null) {
             ser = new WrappedSerializer(typeSer, ser);
         }
@@ -509,14 +512,11 @@ public class StdSerializerProvider
     }
 
     @Override
-    public JsonSerializer<Object> findTypedValueSerializer(JavaType valueType,
-            boolean cache)
+    public JsonSerializer<Object> findTypedValueSerializer(JavaType valueType, boolean cache,
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         // Two-phase lookups; local non-shared cache, then shared:
-        /* 10-Mar-2010, tatu: This looks suspicious; could this not lead to problems for
-         *    generic type variations?
-         */
         JsonSerializer<Object> ser = _knownSerializers.typedValueSerializer(valueType);
         if (ser != null) {
             return ser;
@@ -528,8 +528,8 @@ public class StdSerializerProvider
         }
 
         // Well, let's just compose from pieces:
-        ser = findValueSerializer(valueType);
-        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(valueType, _config);
+        ser = findValueSerializer(valueType, property, propertyName);
+        TypeSerializer typeSer = _serializerFactory.createTypeSerializer(_config, valueType, property, propertyName);
         if (typeSer != null) {
             ser = new WrappedSerializer(typeSer, ser);
         }
@@ -546,7 +546,8 @@ public class StdSerializerProvider
      */
 
     @Override
-    public JsonSerializer<Object> getKeySerializer()
+    public JsonSerializer<Object> getKeySerializer(JavaType valueType,
+            AnnotatedMember property, String propertyName)
     {
         return _keySerializer;
     }
@@ -621,7 +622,8 @@ public class StdSerializerProvider
      *
      * @return Serializer if one can be found, null if not.
      */
-    protected JsonSerializer<Object> _findExplicitUntypedSerializer(Class<?> runtimeType)
+    protected JsonSerializer<Object> _findExplicitUntypedSerializer(Class<?> runtimeType,
+            AnnotatedMember property, String propertyName)
     {        
         // Fast lookup from local lookup thingy works?
         JsonSerializer<Object> ser = _knownSerializers.untypedValueSerializer(runtimeType);
@@ -634,7 +636,7 @@ public class StdSerializerProvider
             return ser;
         }
         try {
-            return _createAndCacheUntypedSerializer(runtimeType);
+            return _createAndCacheUntypedSerializer(runtimeType, property, propertyName);
         } catch (Exception e) {
             return null;
         }
@@ -644,12 +646,13 @@ public class StdSerializerProvider
      * Method that will try to construct a value serializer; and if
      * one is succesfully created, cache it for reuse.
      */
-    protected JsonSerializer<Object> _createAndCacheUntypedSerializer(Class<?> type)
+    protected JsonSerializer<Object> _createAndCacheUntypedSerializer(Class<?> type,
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {        
         JsonSerializer<Object> ser;
         try {
-            ser = _createUntypedSerializer(TypeFactory.type(type));
+            ser = _createUntypedSerializer(TypeFactory.type(type), property, propertyName);
         } catch (IllegalArgumentException iae) {
             /* We better only expose checked exceptions, since those
              * are what caller is expected to handle
@@ -672,12 +675,13 @@ public class StdSerializerProvider
     /**
      * @since 1.5
 ]     */
-    protected JsonSerializer<Object> _createAndCacheUntypedSerializer(JavaType type)
+    protected JsonSerializer<Object> _createAndCacheUntypedSerializer(JavaType type,
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {        
         JsonSerializer<Object> ser;
         try {
-            ser = _createUntypedSerializer(type);
+            ser = _createUntypedSerializer(type, property, propertyName);
         } catch (IllegalArgumentException iae) {
             /* We better only expose checked exceptions, since those
              * are what caller is expected to handle
@@ -697,7 +701,8 @@ public class StdSerializerProvider
         return ser;
     }
 
-    protected JsonSerializer<Object> _createUntypedSerializer(JavaType type)
+    protected JsonSerializer<Object> _createUntypedSerializer(JavaType type,
+            AnnotatedMember property, String propertyName)
         throws JsonMappingException
     {
         /* 10-Dec-2008, tatu: Is there a possibility of infinite loops
@@ -706,7 +711,7 @@ public class StdSerializerProvider
          *   and keep track of creation chain to look for loops -- fairly
          *   easy to do, but won't add yet since it seems unnecessary.
          */
-        return (JsonSerializer<Object>)_serializerFactory.createSerializer(type, _config);
+        return (JsonSerializer<Object>)_serializerFactory.createSerializer(_config, type, property, propertyName);
     }
 
     protected void _resolveSerializer(ResolvableSerializer ser)

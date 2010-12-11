@@ -37,7 +37,7 @@ public class JSONPObject
      * to include (if any).
      */
     protected final JavaType _serializationType;
-    
+
     public JSONPObject(String function, Object value) {
         this(function, value, (JavaType) null);
     }
@@ -77,10 +77,10 @@ public class JSONPObject
         if (_value == null) {
             provider.getNullValueSerializer().serialize(null, jgen, provider);
         } else if (_serializationType != null) {
-            provider.findTypedValueSerializer(_serializationType, true).serialize(_value, jgen, provider);
+            provider.findTypedValueSerializer(_serializationType, true, null, null).serialize(_value, jgen, provider);
         } else {
             Class<?> cls = _value.getClass();
-            provider.findTypedValueSerializer(cls, true).serialize(_value, jgen, provider);
+            provider.findTypedValueSerializer(cls, true, null, null).serialize(_value, jgen, provider);
         }
         jgen.writeRaw(')');
     }

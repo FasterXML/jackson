@@ -4,6 +4,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.type.JavaType;
@@ -213,24 +214,14 @@ public class CustomSerializerFactory
 
     @Override
     @SuppressWarnings("unchecked")    
-    public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
-    {
-        JsonSerializer<?> ser = findCustomSerializer(type, config);
-        if (ser != null) {
-            return (JsonSerializer<T>) ser;
-        }
-        return super.createSerializer(type, config);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")    
-    public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config)
+    public JsonSerializer<Object> createSerializer(SerializationConfig config, JavaType type,
+            AnnotatedMember property, String propertyName)
     {
         JsonSerializer<?> ser = findCustomSerializer(type.getRawClass(), config);
         if (ser != null) {
             return (JsonSerializer<Object>) ser;
         }
-        return super.createSerializer(type, config);
+        return super.createSerializer(config, type, property, propertyName);
     }
 
     /*

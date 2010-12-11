@@ -113,7 +113,8 @@ public class PropertyBuilder
                 break;
             }
         }
-        return new BeanPropertyWriter(name, ser, typeSer, serializationType, m, f, suppressNulls, suppValue);
+        return new BeanPropertyWriter(name, ser, typeSer, serializationType,
+                am, m, f, suppressNulls, suppValue);
     }
 
     /*

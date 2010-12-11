@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonTypeInfo.As;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
@@ -20,16 +21,18 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 public class AsPropertyTypeSerializer
     extends AsArrayTypeSerializer
 {
-    protected final String _propertyName;
+    protected final String _typePropertyName;
 
-    public AsPropertyTypeSerializer(TypeIdResolver idRes, String propName)
+    public AsPropertyTypeSerializer(TypeIdResolver idRes,
+            AnnotatedMember property, String propertyName,
+            String propName)
     {
-        super(idRes);
-        _propertyName = propName;
+        super(idRes, property, propertyName);
+        _typePropertyName = propName;
     }
 
     @Override
-    public String getPropertyName() { return _propertyName; }
+    public String getPropertyName() { return _typePropertyName; }
 
     @Override
     public As getTypeInclusion() { return As.PROPERTY; }
@@ -39,7 +42,7 @@ public class AsPropertyTypeSerializer
         throws IOException, JsonProcessingException
     {
         jgen.writeStartObject();
-        jgen.writeStringField(_propertyName, _idResolver.idFromValue(value));
+        jgen.writeStringField(_typePropertyName, _idResolver.idFromValue(value));
     }
 
     //public void writeTypePrefixForArray(Object value, JsonGenerator jgen)

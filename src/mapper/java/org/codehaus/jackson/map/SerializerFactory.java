@@ -1,6 +1,6 @@
 package org.codehaus.jackson.map;
 
-import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -17,34 +17,10 @@ public abstract class SerializerFactory
      */
 
     /**
-     * Method called to create (or, for immutable serializers, reuse)
-     * a serializer for given type.
-     *
-     * @param type Type to be serialized
-     * @param config Generic serialization configuration
-     * 
-     * @deprecated Use {@link #createSerializer(JavaType,SerializationConfig)} instead
-     */
-    @SuppressWarnings("unchecked")
-    @Deprecated
-    public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config) {
-        return (JsonSerializer<T>) createSerializer(TypeFactory.type(type), config);        
-    }
-
-    /**
-     * Method called to create (or, for immutable serializers, reuse)
-     * a serializer for given type.
-     *<p>
-     * Default implementation just calls {@link #createSerializer(Class, SerializationConfig)};
-     * sub-classes need to override method
-     *
-     * @param type Type to be serialized
-     * @param config Generic serialization configuration
-     */
-    @SuppressWarnings("unchecked")
-    public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config) {
-        return (JsonSerializer<Object>) createSerializer(type.getRawClass(), config);
-    }
+      * Method called to create (or, for immutable serializers, reuse) a serializer for given type. 
+      */
+    public abstract JsonSerializer<Object> createSerializer(SerializationConfig config, JavaType baseType,
+            AnnotatedMember property, String propertyName);
     
     /**
      * Method called to create a type information serializer for given base type,
@@ -55,18 +31,47 @@ public abstract class SerializerFactory
      * 
      * @return Type serializer to use for the base type, if one is needed; null if not.
      * 
-     * @since 1.5
+     * @since 1.7
      */
-    public TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config)
-    {
-        // Default implementation returns null for backwards compatibility reasons.
-        return null;
+    public abstract TypeSerializer createTypeSerializer(SerializationConfig config, JavaType baseType,
+            AnnotatedMember property, String propertyName);
+    
+    /*
+    /********************************************************
+    /* Deprecated (as of 1.7) SerializerFactory API:
+    /********************************************************
+     */
+
+    /**
+     * Deprecated version of accessor for type id serializer: as of 1.7 one needs
+     * to instead call version that passes property information through.
+     * 
+     * @since 1.5
+     * 
+     * @deprecated Since 1.7, call variant with more arguments
+     */
+    @Deprecated
+    public final JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config) {
+        return createSerializer(config, type, null, null);
+    }
+    
+    /**
+     * Deprecated version of accessor for type id serializer: as of 1.7 one needs
+     * to instead call version that passes property information through.
+     * 
+     * @since 1.5
+     * 
+     * @deprecated Since 1.7, call variant with more arguments
+     */
+    @Deprecated
+    public final TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config) {
+        return createTypeSerializer(config, baseType, null, null);
     }
 
     /*
-    /********************************************************
+    /**********************************************************
     /* Additional configuration
-    /********************************************************
+    /**********************************************************
      */
 
     /**
@@ -81,7 +86,5 @@ public abstract class SerializerFactory
      * 
      * @since 1.7
      */
-    public SerializerFactory withAdditionalSerializers(Serializers additionalSerializer) {
-        throw new UnsupportedOperationException();
-    }
+    public abstract SerializerFactory withAdditionalSerializers(Serializers additionalSerializer);
 }

@@ -42,21 +42,8 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
      * @param baseType Base type that constructed resolver will
      *    handle; super type of all types it will be used for.
      */
-    public TypeSerializer buildTypeSerializer(JavaType baseType, Collection<NamedType> subtypes);
-
-    /**
-     * Method for building type deserializer based on current configuration
-     * of this builder.
-     * 
-     * @param baseType Base type that constructed resolver will
-     *    handle; super type of all types it will be used for.
-     * @param subtypes Known subtypes of the base type.
-     *    
-     * @deprecated Since 1.7, should use versions that specify
-     *    context information
-     */
-    @Deprecated
-    public TypeDeserializer buildTypeDeserializer(JavaType baseType, Collection<NamedType> subtypes);
+    public TypeSerializer buildTypeSerializer(JavaType baseType, Collection<NamedType> subtypes,
+            AnnotatedMember property, String propertyName);
 
     /**
      * Method for building type deserializer based on current configuration

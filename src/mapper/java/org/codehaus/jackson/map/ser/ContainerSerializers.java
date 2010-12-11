@@ -10,6 +10,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
@@ -35,32 +36,41 @@ public final class ContainerSerializers
      */
     
     public static ContainerSerializerBase<?> indexedListSerializer(JavaType elemType,
-            boolean staticTyping, TypeSerializer vts)
+            boolean staticTyping, TypeSerializer vts,
+            AnnotatedMember property, String propertyName)
     {
-        return new IndexedListSerializer(elemType, staticTyping, vts);
+        return new IndexedListSerializer(elemType, staticTyping, vts,
+                property, propertyName);
     }
 
     public static ContainerSerializerBase<?> collectionSerializer(JavaType elemType,
-            boolean staticTyping, TypeSerializer vts)
+            boolean staticTyping, TypeSerializer vts,
+            AnnotatedMember property, String propertyName)
     {
-        return new CollectionSerializer(elemType, staticTyping, vts);
+        return new CollectionSerializer(elemType, staticTyping, vts,
+                property, propertyName);
     }
 
     public static ContainerSerializerBase<?> iteratorSerializer(JavaType elemType,
-            boolean staticTyping, TypeSerializer vts)
+            boolean staticTyping, TypeSerializer vts,
+            AnnotatedMember property, String propertyName)
     {
-        return new IteratorSerializer(elemType, staticTyping, vts);
+        return new IteratorSerializer(elemType, staticTyping, vts,
+                property, propertyName);
     }
 
     public static ContainerSerializerBase<?> iterableSerializer(JavaType elemType,
-            boolean staticTyping, TypeSerializer vts)
+            boolean staticTyping, TypeSerializer vts,
+            AnnotatedMember property, String propertyName)
     {
-        return new IterableSerializer(elemType, staticTyping, vts);
+        return new IterableSerializer(elemType, staticTyping, vts,
+                property, propertyName);
     }
 
-    public static JsonSerializer<?> enumSetSerializer(JavaType enumType)
+    public static JsonSerializer<?> enumSetSerializer(JavaType enumType,
+            AnnotatedMember property, String propertyName)
     {
-        return new EnumSetSerializer(enumType);
+        return new EnumSetSerializer(enumType, property, propertyName);
     }
     
     /*
@@ -93,8 +103,23 @@ public final class ContainerSerializers
          */
         protected JsonSerializer<Object> _elementSerializer;
 
+        /**
+         * Collection-valued property being serialized with this instance
+         * 
+         * @since 1.7
+         */
+        protected final AnnotatedMember _property;
+
+        /**
+         * Logical name of collection-valued property being serialized with this instance
+         * 
+         * @since 1.7
+         */
+        protected final String _propertyName;
+        
         protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping,
-                TypeSerializer vts)
+                TypeSerializer vts,
+                AnnotatedMember property, String propertyName)
         {
             // typing with generics is messy... have to resort to this:
             super(cls, false);
@@ -102,6 +127,8 @@ public final class ContainerSerializers
             // static if explicitly requested, or if element type is final
             _staticTyping = staticTyping || (et != null && et.isFinal());
             _valueTypeSerializer = vts;
+            _property = property;
+            _propertyName = propertyName;
         }
 
         @Override
@@ -156,7 +183,7 @@ public final class ContainerSerializers
                 JsonNode schemaNode = null;
                 // 15-Oct-2010, tatu: We can't serialize plain Object.class; but what should it produce here? Untyped?
                 if (contentType.getRawClass() != Object.class) {
-                    JsonSerializer<Object> ser = provider.findValueSerializer(contentType);
+                    JsonSerializer<Object> ser = provider.findValueSerializer(contentType, _property, _propertyName);
                     if (ser instanceof SchemaAware) {
                         schemaNode = ((SchemaAware) ser).getSchema(provider, null);
                     }
@@ -178,7 +205,7 @@ public final class ContainerSerializers
             throws JsonMappingException
         {
             if (_staticTyping && _elementType != null) {
-                _elementSerializer = provider.findValueSerializer(_elementType);
+                _elementSerializer = provider.findValueSerializer(_elementType, _property, _propertyName);
             }
         }
     }
@@ -198,16 +225,16 @@ public final class ContainerSerializers
     public static class IndexedListSerializer
         extends AsArraySerializer<List<?>>
     {
-        public final static IndexedListSerializer instance = new IndexedListSerializer(null, false, null);
-
-        public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts)
+        public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
+                AnnotatedMember property, String propertyName)
         {
-            super(List.class, elemType, staticTyping, vts);
+            super(List.class, elemType, staticTyping, vts, property, propertyName);
         }
 
         @Override
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
-            return new IndexedListSerializer(_elementType, _staticTyping, vts);
+            return new IndexedListSerializer(_elementType, _staticTyping, vts,
+                    _property, _propertyName);
         }
         
         @Override
@@ -238,7 +265,7 @@ public final class ContainerSerializers
                             if (cc == prevClass) {
                                 currSerializer = prevSerializer;
                             } else {
-                                currSerializer = provider.findValueSerializer(cc);
+                                currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
                                 prevSerializer = currSerializer;
                                 prevClass = cc;
                             }
@@ -296,7 +323,7 @@ public final class ContainerSerializers
                             if (cc == prevClass) {
                                 currSerializer = prevSerializer;
                             } else {
-                                currSerializer = provider.findValueSerializer(cc);
+                                currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
                                 prevSerializer = currSerializer;
                                 prevClass = cc;
                             }
@@ -322,17 +349,16 @@ public final class ContainerSerializers
     public static class CollectionSerializer
         extends AsArraySerializer<Collection<?>>
     {
-        public final static CollectionSerializer instance = new CollectionSerializer(null, false, null);
-
-        public CollectionSerializer(JavaType elemType, boolean staticTyping,
-                TypeSerializer vts)
+        public CollectionSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
+                AnnotatedMember property, String propertyName)
         {
-            super(Collection.class, elemType, staticTyping, vts);
+            super(Collection.class, elemType, staticTyping, vts, property, propertyName);
         }
 
         @Override
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
-            return new CollectionSerializer(_elementType, _staticTyping, vts);
+            return new CollectionSerializer(_elementType, _staticTyping, vts,
+                    _property, _propertyName);
         }
         
         @Override
@@ -362,7 +388,7 @@ public final class ContainerSerializers
                             if (cc == prevClass) {
                                 currSerializer = prevSerializer;
                             } else {
-                                currSerializer = provider.findValueSerializer(cc);
+                                currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
                                 prevSerializer = currSerializer;
                                 prevClass = cc;
                             }
@@ -415,16 +441,17 @@ public final class ContainerSerializers
     public static class IteratorSerializer
         extends AsArraySerializer<Iterator<?>>
     {
-        public final static IteratorSerializer instance = new IteratorSerializer(null, false, null);
+        public final static IteratorSerializer instance = new IteratorSerializer(null, false, null, null, null);
 
-        public IteratorSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts)
+        public IteratorSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
+                AnnotatedMember property, String propertyName)
         {
-            super(Iterator.class, elemType, staticTyping, vts);
+            super(Iterator.class, elemType, staticTyping, vts, property, propertyName);
         }
 
         @Override
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
-            return new IteratorSerializer(_elementType, _staticTyping, vts);
+            return new IteratorSerializer(_elementType, _staticTyping, vts, _property, _propertyName);
         }
         
         @Override
@@ -446,7 +473,7 @@ public final class ContainerSerializers
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = provider.findValueSerializer(cc);
+                            currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -465,16 +492,17 @@ public final class ContainerSerializers
     public static class IterableSerializer
         extends AsArraySerializer<Iterable<?>>
     {
-        public final static IterableSerializer instance = new IterableSerializer(null, false, null);
+        public final static IterableSerializer instance = new IterableSerializer(null, false, null, null, null);
 
-        public IterableSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts)
+        public IterableSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
+                AnnotatedMember property, String propertyName)
         {
-            super(Iterable.class, elemType, staticTyping, vts);
+            super(Iterable.class, elemType, staticTyping, vts, property, propertyName);
         }
 
         @Override
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
-            return new IterableSerializer(_elementType, _staticTyping, vts);
+            return new IterableSerializer(_elementType, _staticTyping, vts, _property, _propertyName);
         }
         
         @Override
@@ -498,7 +526,7 @@ public final class ContainerSerializers
                         if (cc == prevClass) {
                             currSerializer = prevSerializer;
                         } else {
-                            currSerializer = provider.findValueSerializer(cc);
+                            currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
                             prevSerializer = currSerializer;
                             prevClass = cc;
                         }
@@ -516,9 +544,10 @@ public final class ContainerSerializers
     public static class EnumSetSerializer
         extends AsArraySerializer<EnumSet<? extends Enum<?>>>
     {
-        public EnumSetSerializer(JavaType elemType)
+        public EnumSetSerializer(JavaType elemType,
+                AnnotatedMember property, String propertyName)
         {
-            super(EnumSet.class, elemType, true, null);
+            super(EnumSet.class, elemType, true, null, property, propertyName);
         }
 
         @Override
@@ -541,7 +570,7 @@ public final class ContainerSerializers
                     /* 12-Jan-2010, tatu: Since enums can not be polymorphic, let's
                      *   not bother with typed serializer variant here
                      */
-                    enumSer = provider.findValueSerializer(en.getDeclaringClass());
+                    enumSer = provider.findValueSerializer(en.getDeclaringClass(), _property, _propertyName);
                 }
                 enumSer.serialize(en, jgen, provider);
             }

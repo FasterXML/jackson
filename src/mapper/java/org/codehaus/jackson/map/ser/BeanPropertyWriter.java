@@ -5,6 +5,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.type.JavaType;
 
@@ -40,6 +41,15 @@ public class BeanPropertyWriter
      */
     protected final Field _field;
 
+    /*
+    /**********************************************************
+    /* Contextual information that may be needed
+    /* @since 1.7
+    /**********************************************************
+     */
+
+    protected final AnnotatedMember _property;
+    
     /*
     /**********************************************************
     /* Opaque internal data that bean serializer factory and
@@ -126,13 +136,11 @@ public class BeanPropertyWriter
      *
      * @param suppressableValue Value to suppress
      */
-    public BeanPropertyWriter(String name, JsonSerializer<Object> ser, TypeSerializer typeSer,
-                              JavaType serType,
-                              Method acc, Field f,
-                              boolean suppressNulls,
-                              Object suppressableValue)
+    public BeanPropertyWriter(String name, JsonSerializer<Object> ser, TypeSerializer typeSer, JavaType serType,
+            AnnotatedMember property, Method acc, Field f,
+            boolean suppressNulls, Object suppressableValue)
     {
-        this(new SerializedString(name), ser, typeSer, serType, acc, f, suppressNulls, suppressableValue);
+        this(new SerializedString(name), ser, typeSer, serType, property, acc, f, suppressNulls, suppressableValue);
     }
 
     /**
@@ -140,14 +148,15 @@ public class BeanPropertyWriter
      * 
      * @param name Efficiently serializable representation of property name
      */
-    public BeanPropertyWriter(SerializedString name, JsonSerializer<Object> ser, TypeSerializer typeSer,
-            JavaType serType, Method acc, Field f,
+    public BeanPropertyWriter(SerializedString name, JsonSerializer<Object> ser, TypeSerializer typeSer, JavaType serType,
+            AnnotatedMember property, Method acc, Field f,
             boolean suppressNulls, Object suppressableValue)
     {
         _name = name;
         _serializer = ser;
         _typeSerializer = typeSer;
         _cfgSerializationType = serType;
+        _property = property;
         _accessorMethod = acc;
         _field = f;
         _suppressNulls = suppressNulls;
@@ -163,6 +172,7 @@ public class BeanPropertyWriter
         _serializer = base._serializer;
         _typeSerializer = base._typeSerializer;
         _cfgSerializationType = base._cfgSerializationType;
+        _property = base._property;
         _accessorMethod = base._accessorMethod;
         _field = base._field;
         _suppressNulls = base._suppressNulls;
@@ -181,7 +191,7 @@ public class BeanPropertyWriter
     public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
     {
         BeanPropertyWriter w = new BeanPropertyWriter(_name, ser, _typeSerializer, _cfgSerializationType,
-                                      _accessorMethod, _field,
+                                      _property, _accessorMethod, _field,
                                       _suppressNulls, _suppressableValue);
         // one more thing: copy internal settings, if any (since 1.7)
         if (_internalSettings != null) {
@@ -316,6 +326,11 @@ public class BeanPropertyWriter
 
     public Class<?>[] getViews() { return _includeInViews; }
 
+    /**
+     * @since 1.7
+     */
+    public AnnotatedMember getPropertyMember() { return _property; }
+    
     /*
     /**********************************************************
     /* Serialization functionality
@@ -351,9 +366,9 @@ public class BeanPropertyWriter
             Class<?> cls = value.getClass();
             if (_nonTrivialBaseType != null) {
                 JavaType t = _nonTrivialBaseType.forcedNarrowBy(cls);
-                ser = prov.findValueSerializer(t);
+                ser = prov.findValueSerializer(t, _property, _name.getValue());
             } else {
-                ser = prov.findValueSerializer(cls);
+                ser = prov.findValueSerializer(cls, _property, _name.getValue());
             }
         }
         jgen.writeFieldName(_name);
