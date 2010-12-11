@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ClassIntrospector.MixInResolver;
+import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
 
@@ -115,8 +116,7 @@ public final class AnnotatedClass
      * configuring instances differently depending on use cases
      */
     private AnnotatedClass(Class<?> cls, List<Class<?>> superTypes,
-                           AnnotationIntrospector aintr,
-                           MixInResolver mir)
+            AnnotationIntrospector aintr, MixInResolver mir)
     {
         _class = cls;
         _superTypes = superTypes;
@@ -132,8 +132,7 @@ public final class AnnotatedClass
      * any method information.
      */
     public static AnnotatedClass construct(Class<?> cls,
-                                           AnnotationIntrospector aintr,
-                                           MixInResolver mir)
+            AnnotationIntrospector aintr, MixInResolver mir)
     {
         List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
         AnnotatedClass ac = new AnnotatedClass(cls, st, aintr, mir);
@@ -147,8 +146,7 @@ public final class AnnotatedClass
      * mix-ins it may have.
      */
     public static AnnotatedClass constructWithoutSuperTypes(Class<?> cls,
-            AnnotationIntrospector aintr,
-            MixInResolver mir)
+            AnnotationIntrospector aintr, MixInResolver mir)
     {
         List<Class<?>> empty = Collections.emptyList();
         AnnotatedClass ac = new AnnotatedClass(cls, empty, aintr, mir);
@@ -196,6 +194,11 @@ public final class AnnotatedClass
     /**********************************************************
      */
 
+    /**
+     * @return 1.7
+     */
+    public Annotations getAnnotations() { return _classAnnotations; }
+    
     public boolean hasAnnotations() { return _classAnnotations.size() > 0; }
 
     public AnnotatedConstructor getDefaultConstructor() { return _defaultConstructor; }

@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.BeanDescription;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.type.TypeBindings;
+import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
@@ -56,7 +57,7 @@ public class BasicBeanDescription extends BeanDescription
 
     /*
     /**********************************************************
-    /* Simple accessors
+    /* Simple accessors from BeanDescription
     /**********************************************************
      */
 
@@ -68,6 +69,26 @@ public class BasicBeanDescription extends BeanDescription
     public boolean hasKnownClassAnnotations() {
         return _classInfo.hasAnnotations();
     }
+
+    @Override
+    public Annotations getClassAnnotations() {
+        return _classInfo.getAnnotations();
+    }
+
+    @Override
+    public TypeBindings bindingsForBeanType()
+    {
+        if (_bindings == null) {
+            _bindings = new TypeBindings(_type);
+        }
+        return _bindings;
+    }
+    
+    /*
+    /**********************************************************
+    /* Simple accessors, extended
+    /**********************************************************
+     */
     
     public AnnotatedClass getClassInfo() { return _classInfo; }
 
@@ -104,15 +125,6 @@ public class BasicBeanDescription extends BeanDescription
             if (t instanceof RuntimeException) throw (RuntimeException) t;
             throw new IllegalArgumentException("Failed to instantiate bean of type "+_classInfo.getAnnotated().getName()+": ("+t.getClass().getName()+") "+t.getMessage(), t);
         }
-    }
-
-    @Override
-    public TypeBindings bindingsForBeanType()
-    {
-        if (_bindings == null) {
-            _bindings = new TypeBindings(_type);
-        }
-        return _bindings;
     }
     
     /*

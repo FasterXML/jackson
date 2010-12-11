@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import java.lang.annotation.Annotation;
 
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
+import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -39,7 +40,7 @@ public interface BeanProperty
      * but for constructor parameters it can contain annotations
      * from constructor first, then from enclosing class.
      */
-//    public <A extends Annotation> A getEnclosingAnnotation(Class<A> acls);
+    public <A extends Annotation> A getEnclosingAnnotation(Class<A> acls);
 
     /**
      * Method for accessing primary physical entity that represents the property;
@@ -64,34 +65,41 @@ public interface BeanProperty
          * property, just placeholder)
          */
         protected final AnnotatedMember _member;
+
+        /**
+         * Annotations defined in the context class (if any); may be null
+         * if no annotations were found
+         */
+        protected final Annotations _contextAnnotations;
         
-        public Std(String name, JavaType type, AnnotatedMember member)
+        public Std(String name, JavaType type, Annotations contextAnnotations, AnnotatedMember member)
         {
             _name = name;
             _type = type;
             _member = member;
+            _contextAnnotations = contextAnnotations;
         }
 
         public Std withType(JavaType type) {
-            return new Std(_name, type, _member);
+            return new Std(_name, type, _contextAnnotations, _member);
         }
         
-        @Override
         public <A extends Annotation> A getAnnotation(Class<A> acls) {
             return _member.getAnnotation(acls);
         }
+
+        public <A extends Annotation> A getEnclosingAnnotation(Class<A> acls) {
+            return (_contextAnnotations == null) ? null : _contextAnnotations.get(acls);
+        }
         
-        @Override
         public String getName() {
             return _name;
         }
 
-        @Override
         public JavaType getType() {
             return _type;
         }
 
-        @Override
         public AnnotatedMember getMember() {
             return _member;
         }

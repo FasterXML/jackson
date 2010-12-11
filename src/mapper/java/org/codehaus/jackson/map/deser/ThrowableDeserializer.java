@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -21,9 +22,9 @@ public class ThrowableDeserializer
     /**********************************************************
      */
 
-    public ThrowableDeserializer(JavaType type, BeanProperty property)
+    public ThrowableDeserializer(AnnotatedClass forClass, JavaType type, BeanProperty property)
     {
-        super(type, property);
+        super(forClass, type, property);
     }
 
     /*

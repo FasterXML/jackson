@@ -5,6 +5,7 @@ import java.util.*;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.type.TypeBindings;
+import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -56,12 +57,7 @@ public abstract class BeanDescription
     public Class<?> getBeanClass() { return _type.getRawClass(); }
 
     public abstract boolean hasKnownClassAnnotations();
-    
-    /*
-    /**********************************************************
-    /* Basic API
-    /**********************************************************
-     */
+
 
     /**
      * Accessor for type bindings that may be needed to fully resolve
@@ -69,6 +65,20 @@ public abstract class BeanDescription
      * methods and constructors, and types of fields.
      */
     public abstract TypeBindings bindingsForBeanType();
+    
+    /**
+     * Method for accessing collection of annotations the bean
+     * class has.
+     * 
+     * @since 1.7
+     */
+    public abstract Annotations getClassAnnotations();
+    
+    /*
+    /**********************************************************
+    /* Basic API
+    /**********************************************************
+     */
     
     /**
      * @param visibilityChecker Object that determines whether

@@ -607,7 +607,7 @@ public class BeanSerializerFactory
             accessor.fixAccess();
         }
         JavaType type = accessor.getType(typeContext);
-        BeanProperty.Std property = new BeanProperty.Std(name, type, accessor);
+        BeanProperty.Std property = new BeanProperty.Std(name, type, pb.getClassAnnotations(), accessor);
         
         // Does member specify a serializer? If so, let's use it.
         JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, accessor, property);

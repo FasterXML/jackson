@@ -777,7 +777,7 @@ public abstract class BasicDeserializerFactory
         throws JsonMappingException
     {
         JavaType t0 = TypeFactory.type(param.getParameterType(), beanDesc.bindingsForBeanType());
-        BeanProperty.Std property = new BeanProperty.Std(name, t0, param);
+        BeanProperty.Std property = new BeanProperty.Std(name, t0, beanDesc.getClassAnnotations(), param);
         JavaType type = resolveType(config, beanDesc, t0, param, property);
         if (type != t0) {
             property = property.withType(type);
@@ -787,8 +787,8 @@ public abstract class BasicDeserializerFactory
         // If yes, we are mostly done:
         type = modifyTypeByAnnotation(config, param, type, name);
         TypeDeserializer typeDeser = findTypeDeserializer(config, type, property);
-        SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(name, param,
-                type, typeDeser, beanDesc.getBeanClass(), index);
+        SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(name, type, typeDeser,
+                beanDesc.getClassAnnotations(), param, index);
         if (deser != null) {
             prop.setValueDeserializer(deser);
         }

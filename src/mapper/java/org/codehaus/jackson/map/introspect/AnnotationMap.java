@@ -3,15 +3,17 @@ package org.codehaus.jackson.map.introspect;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
+import org.codehaus.jackson.map.util.Annotations;
+
 /**
  * Simple helper class used to keep track of collection of
  * Jackson Annotations associated with annotatable things
  * (methods, constructors, classes).
  * Note that only Jackson-owned annotations are tracked (for now?).
  */
-public final class AnnotationMap
+public final class AnnotationMap implements Annotations
 {
-    HashMap<Class<? extends Annotation>,Annotation> _annotations;
+    protected HashMap<Class<? extends Annotation>,Annotation> _annotations;
 
     public AnnotationMap() { }
 
@@ -42,13 +44,12 @@ public final class AnnotationMap
     /**
      * Method called to add specified annotation in the Map.
      */
-    public void add(Annotation ann)
-    {
+    public void add(Annotation ann) {
         _add(ann);
     }
 
     @Override
-        public String toString()
+    public String toString()
     {
         if (_annotations == null) {
             return "[null]";
@@ -57,9 +58,9 @@ public final class AnnotationMap
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Helper methods
-    ///////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
      */
 
     protected final void _add(Annotation ann)

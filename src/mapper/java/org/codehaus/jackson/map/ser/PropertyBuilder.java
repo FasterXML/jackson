@@ -15,6 +15,7 @@ import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -52,6 +53,10 @@ public class PropertyBuilder
     /**********************************************************
      */
 
+    public Annotations getClassAnnotations() {
+        return _beanDesc.getClassAnnotations();
+    }
+    
     /**
      * @param contentTypeSer Optional explicit type information serializer
      *    to use for contained values (only used for properties that are
@@ -115,7 +120,7 @@ public class PropertyBuilder
                 break;
             }
         }
-        return new BeanPropertyWriter(am, name, declaredType, ser, typeSer, serializationType,
+        return new BeanPropertyWriter(am, _beanDesc.getClassInfo(), name, declaredType, ser, typeSer, serializationType,
                  m, f, suppressNulls, suppValue);
     }
     

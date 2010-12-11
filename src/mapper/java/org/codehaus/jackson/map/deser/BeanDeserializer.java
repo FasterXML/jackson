@@ -7,6 +7,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -34,6 +35,12 @@ public class BeanDeserializer
     /**********************************************************
      */
 
+    /**
+     * Class for which deserializer is built; used for accessing
+     * annotations.
+     */
+    final protected AnnotatedClass _forClass;
+    
     /**
      * Declared type of the bean this deserializer handles.
      */
@@ -166,9 +173,10 @@ public class BeanDeserializer
     /**********************************************************
      */
 
-    public BeanDeserializer(JavaType type, BeanProperty property)
+    public BeanDeserializer(AnnotatedClass forClass, JavaType type, BeanProperty property)
     {
         super(type.getRawClass());
+        _forClass = forClass;
         _beanType = type;
         _property = property;
         _props = new HashMap<String, SettableBeanProperty>();
@@ -322,7 +330,8 @@ public class BeanDeserializer
                             +backRefType.getRawClass().getName()+") not compatible with managed type ("
                             +referredType.getRawClass().getName()+")");
                 }
-                en.setValue(new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp, isContainer));
+                en.setValue(new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp,
+                        _forClass.getAnnotations(), isContainer));
             }
         }
 
@@ -335,7 +344,7 @@ public class BeanDeserializer
         if (_delegatingCreator != null) {
             // Need to create a temporary property to allow contextual deserializers:
             BeanProperty.Std property = new BeanProperty.Std(null, _delegatingCreator.getValueType(),
-                    _delegatingCreator.getCreator());
+                    _forClass.getAnnotations(), _delegatingCreator.getCreator());
             JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingCreator.getValueType(), property);
             _delegatingCreator.setDeserializer(deser);
         }
