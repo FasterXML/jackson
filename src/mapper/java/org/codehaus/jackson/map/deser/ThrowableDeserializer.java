@@ -21,9 +21,9 @@ public class ThrowableDeserializer
     /**********************************************************
      */
 
-    public ThrowableDeserializer(JavaType type)
+    public ThrowableDeserializer(JavaType type, BeanProperty property)
     {
-        super(type);
+        super(type, property);
     }
 
     /*

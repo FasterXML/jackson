@@ -395,9 +395,23 @@ public abstract class AnnotationIntrospector
      * {@link JsonSerializer}) or Class (of type
      * <code>Class<JsonSerializer></code>); if value of different
      * type is returned, a runtime exception may be thrown by caller.
+     * 
+     * @deprecated Should use version that gets property object
      */
-    public abstract Object findSerializer(Annotated am);
+    @Deprecated
+    public Object findSerializer(Annotated am) {
+        return findSerializer(am, null);
+    }
 
+    /**
+     * Method for getting a serializer definition on specified method
+     * or field. Type of definition is either instance (of type
+     * {@link JsonSerializer}) or Class (of type
+     * <code>Class<JsonSerializer></code>); if value of different
+     * type is returned, a runtime exception may be thrown by caller.
+     */
+    public abstract Object findSerializer(Annotated am, BeanProperty property);
+    
     /**
      * Method for checking whether given annotated entity (class, method,
      * field) defines which Bean/Map properties are to be included in
@@ -533,6 +547,14 @@ public abstract class AnnotationIntrospector
      */
 
     /**
+     * @deprecated Used version that takes property
+     */
+    @Deprecated
+    public final Object findDeserializer(Annotated am) {
+        return findDeserializer(am, null);
+    }
+
+    /**
      * Method for getting a deserializer definition on specified method
      * or field.
      * Type of definition is either instance (of type
@@ -540,7 +562,7 @@ public abstract class AnnotationIntrospector
      * <code>Class<JsonDeserializer></code>); if value of different
      * type is returned, a runtime exception may be thrown by caller.
      */
-    public abstract Object findDeserializer(Annotated am);
+    public abstract Object findDeserializer(Annotated am, BeanProperty property);
 
     /**
      * Method for getting a deserializer definition for keys of
@@ -951,15 +973,15 @@ public abstract class AnnotationIntrospector
         // // // Serialization: general annotations
 
         @Override
-        public Object findSerializer(Annotated am)
+        public Object findSerializer(Annotated am, BeanProperty property)
         {
-            Object result = _primary.findSerializer(am);
+            Object result = _primary.findSerializer(am, property);
             /* Are there non-null results that should be ignored?
              * (i.e. should some validation be done here)
              * For now let's assume no
              */
             if (result == null) {
-                result = _secondary.findSerializer(am);
+                result = _secondary.findSerializer(am, property);
             }
             return result;
         }
@@ -1102,11 +1124,11 @@ public abstract class AnnotationIntrospector
         // // // Deserialization: general annotations
 
         @Override
-        public Object findDeserializer(Annotated am)
+        public Object findDeserializer(Annotated am, BeanProperty property)
         {
-            Object result = _primary.findDeserializer(am);
+            Object result = _primary.findDeserializer(am, property);
             if (result == null) {
-                result = _secondary.findDeserializer(am);
+                result = _secondary.findDeserializer(am, property);
             }
             return result;
         }

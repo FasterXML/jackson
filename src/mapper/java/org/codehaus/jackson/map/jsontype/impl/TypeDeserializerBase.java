@@ -5,11 +5,11 @@ import java.util.HashMap;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.TypeDeserializer;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
 
@@ -23,9 +23,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
     
     protected final JavaType _baseType;
 
-    protected final AnnotatedMember _property;
-    
-    protected final String _propertyName;
+    protected final BeanProperty _property;
     
     /**
      * For efficient operation we will lazily build mappings from type ids
@@ -33,13 +31,11 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
      */
     protected final HashMap<String,JsonDeserializer<Object>> _deserializers;
     
-    protected TypeDeserializerBase(JavaType baseType, TypeIdResolver idRes,
-            AnnotatedMember property, String propertyName)
+    protected TypeDeserializerBase(JavaType baseType, TypeIdResolver idRes, BeanProperty property)
     {
         _baseType = baseType;
         _idResolver = idRes;
         _property = property;
-        _propertyName = propertyName;
         _deserializers = new HashMap<String,JsonDeserializer<Object>>();
     }
 
@@ -84,7 +80,7 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
                     throw ctxt.unknownTypeException(_baseType, typeId);
                 }
                 DeserializationConfig config = ctxt.getConfig();
-                deser = ctxt.getDeserializerProvider().findValueDeserializer(config, type, _property, _propertyName);
+                deser = ctxt.getDeserializerProvider().findValueDeserializer(config, type, _property);
                 _deserializers.put(typeId, deser);
             }
         }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
@@ -134,7 +133,7 @@ public abstract class SerializerProvider
      *   finding any serializer
      */
     public abstract JsonSerializer<Object> findValueSerializer(Class<?> runtimeType,
-            AnnotatedMember property, String propertyName)
+            BeanProperty property)
         throws JsonMappingException;
 
     /**
@@ -144,7 +143,7 @@ public abstract class SerializerProvider
      * @since 1.5
      */
     public abstract JsonSerializer<Object> findValueSerializer(JavaType serializationType,
-            AnnotatedMember property, String propertyName)
+            BeanProperty property)
         throws JsonMappingException;
     
     /**
@@ -163,7 +162,7 @@ public abstract class SerializerProvider
      * @since 1.5
      */
     public abstract JsonSerializer<Object> findTypedValueSerializer(Class<?> valueType,
-            boolean cache, AnnotatedMember property, String propertyName)
+            boolean cache, BeanProperty property)
         throws JsonMappingException;
 
     /**
@@ -183,7 +182,7 @@ public abstract class SerializerProvider
      * @since 1.5
      */
     public abstract JsonSerializer<Object> findTypedValueSerializer(JavaType valueType,
-            boolean cache, AnnotatedMember property, String propertyName)
+            boolean cache, BeanProperty property)
         throws JsonMappingException;
 
     /**
@@ -197,7 +196,7 @@ public abstract class SerializerProvider
      * of any Java object, but not nulls.
      */
     public abstract JsonSerializer<Object> getKeySerializer(JavaType keyType,
-            AnnotatedMember property, String propertyName)
+            BeanProperty property)
         throws JsonMappingException;
 
     /*
@@ -218,7 +217,7 @@ public abstract class SerializerProvider
     public final JsonSerializer<Object> findValueSerializer(Class<?> runtimeType)
         throws JsonMappingException
     {
-        return findValueSerializer(runtimeType, null, null);
+        return findValueSerializer(runtimeType, null);
     }
 
     /**
@@ -233,7 +232,7 @@ public abstract class SerializerProvider
     public final JsonSerializer<Object> findValueSerializer(JavaType serializationType)
         throws JsonMappingException
     {
-        return findValueSerializer(serializationType, null, null);
+        return findValueSerializer(serializationType, null);
     }
 
     /**
@@ -249,7 +248,7 @@ public abstract class SerializerProvider
             boolean cache)
         throws JsonMappingException
     {
-        return findTypedValueSerializer(valueType, cache, null, null);
+        return findTypedValueSerializer(valueType, cache, null);
     }
 
     /**
@@ -265,7 +264,7 @@ public abstract class SerializerProvider
             boolean cache)
         throws JsonMappingException
     {
-        return findTypedValueSerializer(valueType, cache, null, null);
+        return findTypedValueSerializer(valueType, cache, null);
     }
 
     /**
@@ -280,7 +279,7 @@ public abstract class SerializerProvider
     public final JsonSerializer<Object> getKeySerializer()
         throws JsonMappingException
     {
-        return getKeySerializer(TYPE_OBJECT, null, null);
+        return getKeySerializer(TYPE_OBJECT, null);
     }
     
     /*

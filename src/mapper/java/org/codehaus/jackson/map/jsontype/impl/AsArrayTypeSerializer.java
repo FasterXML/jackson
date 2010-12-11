@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonTypeInfo.As;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
+import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
@@ -18,10 +18,9 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 public class AsArrayTypeSerializer
     extends TypeSerializerBase
 {
-    public AsArrayTypeSerializer(TypeIdResolver idRes,
-            AnnotatedMember property, String propertyName)
+    public AsArrayTypeSerializer(TypeIdResolver idRes, BeanProperty property)
     {
-        super(idRes, property, propertyName);
+        super(idRes, property);
     }
 
     @Override

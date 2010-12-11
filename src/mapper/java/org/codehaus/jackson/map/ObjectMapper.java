@@ -10,7 +10,6 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.io.SegmentedStringWriter;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
@@ -129,16 +128,16 @@ public class ObjectMapper
 
         @Override
         public TypeDeserializer buildTypeDeserializer(JavaType baseType, Collection<NamedType> subtypes,
-                AnnotatedMember property, String propertyName)
+                BeanProperty property)
         {
-            return useForType(baseType) ? super.buildTypeDeserializer(baseType, subtypes, property, propertyName) : null;
+            return useForType(baseType) ? super.buildTypeDeserializer(baseType, subtypes, property) : null;
         }
 
         @Override
         public TypeSerializer buildTypeSerializer(JavaType baseType, Collection<NamedType> subtypes,
-                AnnotatedMember property, String propertyName)
+                BeanProperty property)
         {
-            return useForType(baseType) ? super.buildTypeSerializer(baseType, subtypes, property, propertyName) : null;            
+            return useForType(baseType) ? super.buildTypeSerializer(baseType, subtypes, property) : null;            
         }
 
         /**
@@ -2131,7 +2130,7 @@ public class ObjectMapper
             return deser;
         }
         // Nope: need to ask provider to resolve it
-        deser = _deserializerProvider.findTypedValueDeserializer(cfg, valueType, null, null);
+        deser = _deserializerProvider.findTypedValueDeserializer(cfg, valueType, null);
         if (deser == null) { // can this happen?
             throw new JsonMappingException("Can not find a deserializer for type "+valueType);
         }

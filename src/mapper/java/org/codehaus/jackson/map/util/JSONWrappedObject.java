@@ -87,10 +87,10 @@ public class JSONWrappedObject
         if (_value == null) {
             provider.getNullValueSerializer().serialize(null, jgen, provider);
         } else if (_serializationType != null) {
-            provider.findTypedValueSerializer(_serializationType, true, null, null).serialize(_value, jgen, provider);
+            provider.findTypedValueSerializer(_serializationType, true, null).serialize(_value, jgen, provider);
         } else {
             Class<?> cls = _value.getClass();
-            provider.findTypedValueSerializer(cls, true, null, null).serialize(_value, jgen, provider);
+            provider.findTypedValueSerializer(cls, true, null).serialize(_value, jgen, provider);
         }
         if (_suffix != null) jgen.writeRaw(_suffix);
     }

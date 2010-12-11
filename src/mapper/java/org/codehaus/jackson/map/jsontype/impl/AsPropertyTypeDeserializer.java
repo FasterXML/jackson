@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.JsonParserSequence;
@@ -26,11 +25,10 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
 {
     protected final String _typePropertyName;
 
-    public AsPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes,
-            AnnotatedMember property, String propertyName,
+    public AsPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes, BeanProperty property,
             String typePropName)
     {
-        super(bt, idRes, property, propertyName);
+        super(bt, idRes, property);
         _typePropertyName = typePropName;
     }
 

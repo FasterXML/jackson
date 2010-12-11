@@ -1,7 +1,6 @@
 package org.codehaus.jackson.map;
 
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 
@@ -51,7 +50,7 @@ public abstract class DeserializerFactory
      *   contained member types
      */
     public abstract JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, DeserializerProvider p,
-            JavaType type, AnnotatedMember property, String propertyName)
+            JavaType type, BeanProperty property)
         throws JsonMappingException;
 
     /**
@@ -64,19 +63,19 @@ public abstract class DeserializerFactory
      *   contained member types
      */
     public abstract JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, DeserializerProvider p,
-            ArrayType type, AnnotatedMember property, String propertyName)
+            ArrayType type, BeanProperty property)
         throws JsonMappingException;
 
     public abstract JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, DeserializerProvider p,
-            CollectionType type, AnnotatedMember property, String propertyName)
+            CollectionType type, BeanProperty property)
         throws JsonMappingException;
 
     public abstract JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config,DeserializerProvider p,
-            JavaType type, AnnotatedMember property, String propertyName)
+            JavaType type, BeanProperty property)
         throws JsonMappingException;
 
     public abstract JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, DeserializerProvider p,
-            MapType type, AnnotatedMember property, String propertyName)
+            MapType type, BeanProperty property)
         throws JsonMappingException;
 
     /**
@@ -84,7 +83,7 @@ public abstract class DeserializerFactory
      * JsonNode(s) from JSON content.
      */
     public abstract JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, DeserializerProvider p,
-            JavaType type, AnnotatedMember property, String propertyName)
+            JavaType type, BeanProperty property)
         throws JsonMappingException;
 
     /**
@@ -103,7 +102,7 @@ public abstract class DeserializerFactory
      * @since 1.5
      */
     public TypeDeserializer findTypeDeserializer(DeserializationConfig config, JavaType baseType,
-            AnnotatedMember property, String propertyName)
+            BeanProperty property)
     {
         // Default implementation returns null for backwards compatibility reasons
         return null;
@@ -127,7 +126,7 @@ public abstract class DeserializerFactory
     final
     public TypeDeserializer findTypeDeserializer(DeserializationConfig config, JavaType baseType)
     {
-        return findTypeDeserializer(config, baseType, null, null);
+        return findTypeDeserializer(config, baseType, null);
     }
 
     /**
@@ -142,7 +141,7 @@ public abstract class DeserializerFactory
     public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        return createBeanDeserializer(config, p, type, null, null);
+        return createBeanDeserializer(config, p, type, null);
     }
 
     /**
@@ -158,7 +157,7 @@ public abstract class DeserializerFactory
     public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        return createArrayDeserializer(config, p, type, null, null);
+        return createArrayDeserializer(config, p, type, null);
     }
     
     /**
@@ -174,7 +173,7 @@ public abstract class DeserializerFactory
     public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        return createCollectionDeserializer(config, p, type, null, null);
+        return createCollectionDeserializer(config, p, type, null);
     }
     
     /**
@@ -190,7 +189,7 @@ public abstract class DeserializerFactory
     public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p)
         throws JsonMappingException
     {
-        return createEnumDeserializer(config, p, TypeFactory.type(enumClass), null, null);
+        return createEnumDeserializer(config, p, TypeFactory.type(enumClass), null);
     }
     
     /**
@@ -206,7 +205,7 @@ public abstract class DeserializerFactory
     public JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, MapType type, DeserializerProvider p)
         throws JsonMappingException
     {
-        return createMapDeserializer(config, p, type, null, null);
+        return createMapDeserializer(config, p, type, null);
     }
 
     /**
@@ -222,7 +221,7 @@ public abstract class DeserializerFactory
     public JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p)
         throws JsonMappingException
     {
-        return createTreeDeserializer(config, p, TypeFactory.type(nodeClass), null, null);
+        return createTreeDeserializer(config, p, TypeFactory.type(nodeClass), null);
     }
     
     /*

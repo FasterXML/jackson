@@ -21,6 +21,7 @@ import org.codehaus.jackson.Versioned;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
@@ -506,13 +507,11 @@ public class JaxbAnnotationIntrospector
      */
 
     @Override
-    public JsonSerializer<?> findSerializer(Annotated am)
+    public JsonSerializer<?> findSerializer(Annotated am, BeanProperty property)
     {
         XmlAdapter<Object,Object> adapter = findAdapter(am, true);
         if (adapter != null) {
-            // can it ever be something other than AnnotatedMember?
-            AnnotatedMember prop = (am instanceof AnnotatedMember) ? ((AnnotatedMember) am) : null;
-            return new XmlAdapterJsonSerializer(adapter, prop, null);
+            return new XmlAdapterJsonSerializer(adapter, property);
         }
 
         /* [JACKSON-150]: add support for additional core XML
@@ -716,13 +715,11 @@ public class JaxbAnnotationIntrospector
     */
 
     @Override
-    public JsonDeserializer<?> findDeserializer(Annotated am)
+    public JsonDeserializer<?> findDeserializer(Annotated am, BeanProperty property)
     {
         XmlAdapter<Object,Object> adapter = findAdapter(am, false);
         if (adapter != null) {
-            // can it ever be something other than AnnotatedMember?
-            AnnotatedMember prop = (am instanceof AnnotatedMember) ? ((AnnotatedMember) am) : null;
-            return new XmlAdapterJsonDeserializer(adapter, prop, null);
+            return new XmlAdapterJsonDeserializer(adapter, property);
         }
 
         /* [JACKSON-150]: add support for additional core XML

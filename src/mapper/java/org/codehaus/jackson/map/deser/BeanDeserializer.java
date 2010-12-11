@@ -7,7 +7,6 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -40,6 +39,14 @@ public class BeanDeserializer
      */
     final protected JavaType _beanType;
 
+    /**
+     * Property that contains value to be deserialized using
+     * deserializer
+     * 
+     * @since 1.7
+     */
+    final protected BeanProperty _property;
+    
     /*
     /**********************************************************
     /* Construction configuration
@@ -159,10 +166,11 @@ public class BeanDeserializer
     /**********************************************************
      */
 
-    public BeanDeserializer(JavaType type) 
+    public BeanDeserializer(JavaType type, BeanProperty property)
     {
         super(type.getRawClass());
         _beanType = type;
+        _property = property;
         _props = new HashMap<String, SettableBeanProperty>();
         _ignorableProps = null;
     }
@@ -276,7 +284,7 @@ public class BeanDeserializer
             SettableBeanProperty prop = en.getValue();
             // May already have deserializer from annotations, if so, skip:
             if (!prop.hasValueDeserializer()) {
-                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(),
+                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(),
                         prop.getProperty()));
             }
             // and for [JACKSON-235] need to finally link managed references with matching back references
@@ -321,21 +329,22 @@ public class BeanDeserializer
 
         // Finally, "any setter" may also need to be resolved now
         if (_anySetter != null && !_anySetter.hasValueDeserializer()) {
-            _anySetter.setValueDeserializer(findDeserializer(config, provider, _anySetter.getType(), "[any]", _anySetter.getProperty()));
+            _anySetter.setValueDeserializer(findDeserializer(config, provider, _anySetter.getType(), _anySetter.getProperty()));
         }
 
         // as well as delegate-based constructor:
         if (_delegatingCreator != null) {
-            JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingCreator.getValueType(), "[constructor-arg[0]]",
+            // Need to create a temporary property to allow contextual deserializers:
+            DeserializableBeanProperty property = new DeserializableBeanProperty(null, _delegatingCreator.getValueType(),
                     _delegatingCreator.getCreator());
+            JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingCreator.getValueType(), property);
             _delegatingCreator.setDeserializer(deser);
         }
         // or property-based one
         if (_propertyBasedCreator != null) {
             for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
                 if (!prop.hasValueDeserializer()) {
-                    prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(),
-                            prop.getProperty()));
+                    prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getProperty()));
                 }
             }
         }
@@ -792,8 +801,7 @@ public class BeanDeserializer
             /* 09-Dec-2010, tatu: Would be nice to know which property pointed to this
              *    bean... but, alas, no such information is retained, so:
              */
-            AnnotatedMember property = null;
-            subDeser = deserProv.findValueDeserializer(ctxt.getConfig(), type, property, "*this*");
+            subDeser = deserProv.findValueDeserializer(ctxt.getConfig(), type, _property);
             // Also, need to cache it
             if (subDeser != null) {
                 synchronized (this) {

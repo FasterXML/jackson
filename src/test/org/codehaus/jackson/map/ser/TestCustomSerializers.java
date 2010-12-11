@@ -58,7 +58,7 @@ public class TestCustomSerializers
     {
         ObjectMapper mapper = new ObjectMapper();    	
         CustomSerializerFactory sf = new CustomSerializerFactory();
-        JsonSerializer<?> ser = new ContainerSerializers.CollectionSerializer(null, false, null, null, null);
+        JsonSerializer<?> ser = new ContainerSerializers.CollectionSerializer(null, false, null, null);
         final JsonSerializer<Object> collectionSerializer = (JsonSerializer<Object>) ser;
         
         sf.addGenericMapping(Collection.class, new JsonSerializer<Collection>() {

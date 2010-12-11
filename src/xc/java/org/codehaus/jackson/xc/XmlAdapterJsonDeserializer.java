@@ -7,7 +7,6 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.StdDeserializer;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
@@ -20,20 +19,17 @@ public class XmlAdapterJsonDeserializer
 {
     protected final static JavaType ADAPTER_TYPE = TypeFactory.type(XmlAdapter.class);
 
-    protected final AnnotatedMember _property;
-    protected final String _propertyName;
+    protected final BeanProperty _property;
 
     protected final XmlAdapter<Object,Object> _xmlAdapter;
     protected final JavaType _valueType;
 
     protected JsonDeserializer<?> _deserializer;
     
-    public XmlAdapterJsonDeserializer(XmlAdapter<Object,Object> xmlAdapter,
-            AnnotatedMember property, String propertyName)
+    public XmlAdapterJsonDeserializer(XmlAdapter<Object,Object> xmlAdapter, BeanProperty property)
     {
         super(Object.class); // type not yet known (will be in a second), but that's ok...
         _property = property;
-        _propertyName = propertyName;
         _xmlAdapter = xmlAdapter;
         /* [JACKSON-404] Need to figure out generic type parameters
          *   used...
@@ -55,7 +51,7 @@ public class XmlAdapterJsonDeserializer
         if (deser == null) {
             DeserializationConfig config = ctxt.getConfig();
             _deserializer = deser = ctxt.getDeserializerProvider().findValueDeserializer
-                (config, _valueType, _property, _propertyName);
+                (config, _valueType, _property);
         }
         Object boundObject = deser.deserialize(jp, ctxt);
         try {

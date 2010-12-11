@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
@@ -275,7 +276,7 @@ public class JacksonAnnotationIntrospector
     */
 
     @Override
-    public Object findSerializer(Annotated a)
+    public Object findSerializer(Annotated a, BeanProperty property)
     {
         /* 21-May-2009, tatu: Slight change; primary annotation is now
          *    @JsonSerialize; @JsonUseSerializer is deprecated
@@ -436,7 +437,7 @@ public class JacksonAnnotationIntrospector
      */
 
     @Override
-    public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a)
+    public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a, BeanProperty property)
     {
         /* 21-May-2009, tatu: Slight change; primary annotation is now
          *    @JsonDeserialize; @JsonUseDeserializer is deprecated

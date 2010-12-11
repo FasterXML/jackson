@@ -129,8 +129,7 @@ public class MapDeserializer
         // just need to worry about property-based one
         if (_propertyBasedCreator != null) {
             for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
-                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getPropertyName(),
-                        prop.getProperty()));
+                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop.getProperty()));
             }
         }
     }

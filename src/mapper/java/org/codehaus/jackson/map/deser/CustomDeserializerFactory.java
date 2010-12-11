@@ -4,7 +4,6 @@ import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 
@@ -176,7 +175,7 @@ public class CustomDeserializerFactory
 
     @Override
     public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, DeserializerProvider p,
-            JavaType type, AnnotatedMember property, String propertyName)
+            JavaType type, BeanProperty property)
         throws JsonMappingException
     {
         Class<?> cls = type.getRawClass();
@@ -190,12 +189,12 @@ public class CustomDeserializerFactory
             }
         }
         // If not, let super class do its job
-        return super.createBeanDeserializer(config, p, type, property, propertyName);
+        return super.createBeanDeserializer(config, p, type, property);
     }
 
     @Override
     public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, DeserializerProvider p,
-            ArrayType type, AnnotatedMember property, String propertyName)
+            ArrayType type, BeanProperty property)
         throws JsonMappingException
     {
         ClassKey key = new ClassKey(type.getRawClass());
@@ -205,14 +204,14 @@ public class CustomDeserializerFactory
                 return deser;
             }
         }
-        return super.createArrayDeserializer(config, p, type, property, propertyName);
+        return super.createArrayDeserializer(config, p, type, property);
     }
 
     //public JsonDeserializer<?> createCollectionDeserializer(...) throws JsonMappingException
 
     @Override
     public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, DeserializerProvider p,
-            JavaType enumType, AnnotatedMember property, String propertyName)
+            JavaType enumType, BeanProperty property)
         throws JsonMappingException
     {
         /* Enums can't extend anything; must be a direct
@@ -226,7 +225,7 @@ public class CustomDeserializerFactory
                 return deser;
             }
         }
-        return super.createEnumDeserializer(config, p, enumType, property, propertyName);
+        return super.createEnumDeserializer(config, p, enumType, property);
     }
 
     //public JsonDeserializer<?> createMapDeserializer(...) throws JsonMappingException

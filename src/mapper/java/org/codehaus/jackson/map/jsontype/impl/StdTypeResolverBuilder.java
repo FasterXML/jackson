@@ -3,9 +3,9 @@ package org.codehaus.jackson.map.jsontype.impl;
 import java.util.Collection;
 
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
@@ -55,33 +55,33 @@ public class StdTypeResolverBuilder
 
     @Override
     public TypeSerializer buildTypeSerializer(JavaType baseType, Collection<NamedType> subtypes,
-            AnnotatedMember property, String propertyName)
+            BeanProperty property)
     {
         TypeIdResolver idRes = idResolver(baseType, subtypes, true, false);
         switch (_includeAs) {
         case WRAPPER_ARRAY:
-            return new AsArrayTypeSerializer(idRes, property, propertyName);
+            return new AsArrayTypeSerializer(idRes, property);
         case PROPERTY:
-            return new AsPropertyTypeSerializer(idRes, property, propertyName, _typeProperty);
+            return new AsPropertyTypeSerializer(idRes, property, _typeProperty);
         case WRAPPER_OBJECT:
-            return new AsWrapperTypeSerializer(idRes, property, propertyName);
+            return new AsWrapperTypeSerializer(idRes, property);
         }
         throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
     }
     
     public TypeDeserializer buildTypeDeserializer(JavaType baseType, Collection<NamedType> subtypes,
-            AnnotatedMember property, String propertyName)
+            BeanProperty property)
     {
         TypeIdResolver idRes = idResolver(baseType, subtypes, false, true);
         
         // First, method for converting type info to type id:
         switch (_includeAs) {
         case WRAPPER_ARRAY:
-            return new AsArrayTypeDeserializer(baseType, idRes, property, propertyName);
+            return new AsArrayTypeDeserializer(baseType, idRes, property);
         case PROPERTY:
-            return new AsPropertyTypeDeserializer(baseType, idRes, property, propertyName, _typeProperty);
+            return new AsPropertyTypeDeserializer(baseType, idRes, property, _typeProperty);
         case WRAPPER_OBJECT:
-            return new AsWrapperTypeDeserializer(baseType, idRes, property, propertyName);
+            return new AsWrapperTypeDeserializer(baseType, idRes, property);
         }
         throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
     }

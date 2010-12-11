@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map;
 
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
-
 /**
  * Add-on interface that {@link JsonSerializer}s can implement to get a callback
  * that can be used to create contextual instances of serializer to use for
@@ -28,8 +26,6 @@ public interface ContextualSerializer<T>
      *   (and is used to access value to serialize).
      *   Should be available; but there may be cases where caller can not provide it and
      *   null is passed instead (in which case impls usually pass 'this' serializer as is)
-     * @param propertyName Logical name of the property, if available (null if not; mostly
-     *   just in cases where 'property' is also null)
      * 
      * @return Serializer to use for serializing values of specified property;
      *   may be this instance or a new instance.
@@ -37,6 +33,6 @@ public interface ContextualSerializer<T>
      * @throws JsonMappingException
      */
     public JsonSerializer<T> createContextual(SerializationConfig config,
-            AnnotatedMember property, String propertyName)
+            BeanProperty property)
         throws JsonMappingException;
 }

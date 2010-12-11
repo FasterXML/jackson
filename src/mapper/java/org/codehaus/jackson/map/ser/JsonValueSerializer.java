@@ -12,7 +12,6 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.schema.JsonSchema;
@@ -39,9 +38,7 @@ public final class JsonValueSerializer
 
     protected JsonSerializer<Object> _valueSerializer;
 
-    protected final AnnotatedMember _property;
-    
-    protected final String _propertyName;
+    protected final BeanProperty _property;
     
     /**
      * This is a flag that is set in rare (?) cases where this serializer
@@ -59,14 +56,12 @@ public final class JsonValueSerializer
      *            {@link org.codehaus.jackson.map.annotate.JsonSerialize#using}), otherwise
      *            null
      */
-    public JsonValueSerializer(Method valueMethod, JsonSerializer<Object> ser,
-            AnnotatedMember property, String propertyName)
+    public JsonValueSerializer(Method valueMethod, JsonSerializer<Object> ser, BeanProperty property)
     {
         super(Object.class);
         _accessorMethod = valueMethod;
         _valueSerializer = ser;
         _property = property;
-        _propertyName = propertyName;
     }
 
     @Override
@@ -88,7 +83,7 @@ public final class JsonValueSerializer
                      *   to serializer factory at this point... 
                      */
                     // let's cache it, may be needed soon again
-                    ser = prov.findTypedValueSerializer(c, true, _property, _propertyName);
+                    ser = prov.findTypedValueSerializer(c, true, _property);
                 }
             }
             ser.serialize(value, jgen, prov);
@@ -141,7 +136,7 @@ public final class JsonValueSerializer
             }
             // But if not, it gets tad trickier (copied from main serialize() method)
             Class<?> c = value.getClass();
-            ser = provider.findTypedValueSerializer(c, true, _property, _propertyName);
+            ser = provider.findTypedValueSerializer(c, true, _property);
             // note: now we have bundled type serializer, so should NOT call with typed version
             ser.serialize(value, jgen, provider);
         } catch (IOException ioe) {
@@ -197,7 +192,7 @@ public final class JsonValueSerializer
                  *   serializer from value serializer; but, alas, there's no access
                  *   to serializer factory at this point... 
                  */
-                _valueSerializer = provider.findTypedValueSerializer(t, false, _property, _propertyName);
+                _valueSerializer = provider.findTypedValueSerializer(t, false, _property);
                 /* 09-Dec-2010, tatu: Turns out we must add special handling for
                  *   cases where "native" (aka "natural") type is being serialized,
                  *   using standard serializer
@@ -226,9 +221,9 @@ public final class JsonValueSerializer
     }
     
     /*
-    /*******************************************************
+    /**********************************************************
     /* Other methods
-    /*******************************************************
+    /**********************************************************
      */
 
     @Override

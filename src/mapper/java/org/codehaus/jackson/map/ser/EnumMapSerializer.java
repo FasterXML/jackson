@@ -8,7 +8,6 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.type.JavaType;
@@ -42,14 +41,7 @@ public class EnumMapSerializer
      * 
      * @since 1.7
      */
-    protected final AnnotatedMember _property;
-
-    /**
-     * Logical name of property being serialized with this instance
-     * 
-     * @since 1.7
-     */
-    protected final String _propertyName;
+    protected final BeanProperty _property;
     
     /**
      * Value serializer to use, if it can be statically determined
@@ -64,8 +56,7 @@ public class EnumMapSerializer
     protected final TypeSerializer _valueTypeSerializer;
     
     public EnumMapSerializer(JavaType valueType, boolean staticTyping, EnumValues keyEnums,
-            TypeSerializer vts,
-            AnnotatedMember property, String propertyName)
+            TypeSerializer vts, BeanProperty property)
     {
         super(EnumMap.class, false);
         _staticTyping = staticTyping || (valueType != null && valueType.isFinal());
@@ -73,14 +64,12 @@ public class EnumMapSerializer
         _keyEnums = keyEnums;
         _valueTypeSerializer = vts;
         _property = property;
-        _propertyName = propertyName;
     }
 
     @Override
     public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
     {
-        return new EnumMapSerializer(_valueType, _staticTyping, _keyEnums, vts,
-                _property, _propertyName);
+        return new EnumMapSerializer(_valueType, _staticTyping, _keyEnums, vts,  _property);
     }
     
     @Override
@@ -127,7 +116,7 @@ public class EnumMapSerializer
                  */
                 // ... and lovely two-step casting process too...
                 SerializerBase<?> ser = (SerializerBase<?>) provider.findValueSerializer(
-                        key.getDeclaringClass(), _property, _propertyName);
+                        key.getDeclaringClass(), _property);
                 keyEnums = ((EnumSerializer) ser).getEnumValues();
             }
             jgen.writeFieldName(keyEnums.valueFor(key));
@@ -141,7 +130,7 @@ public class EnumMapSerializer
                 if (cc == prevClass) {
                     currSerializer = prevSerializer;
                 } else {
-                    currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
+                    currSerializer = provider.findValueSerializer(cc, _property);
                     prevSerializer = currSerializer;
                     prevClass = cc;
                 }
@@ -165,7 +154,7 @@ public class EnumMapSerializer
             if (keyEnums == null) {
                 // clumsy, but has to do for now:
                 SerializerBase<?> ser = (SerializerBase<?>) provider.findValueSerializer(key.getDeclaringClass(),
-                        _property, _propertyName);
+                        _property);
                 keyEnums = ((EnumSerializer) ser).getEnumValues();
             }
             jgen.writeFieldName(keyEnums.valueFor(key));
@@ -187,7 +176,7 @@ public class EnumMapSerializer
         throws JsonMappingException
     {
         if (_staticTyping) {
-            _valueSerializer = provider.findValueSerializer(_valueType, _property, _propertyName);
+            _valueSerializer = provider.findValueSerializer(_valueType, _property);
         }
     }
     
@@ -205,8 +194,7 @@ public class EnumMapSerializer
                 ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
                 Class<Enum<?>> enumClass = (Class<Enum<?>>) enumType.getRawClass();
                 for (Enum<?> enumValue : enumClass.getEnumConstants()) {
-                    JsonSerializer<Object> ser = provider.findValueSerializer(valueType.getRawClass(),
-                            _property, _propertyName);
+                    JsonSerializer<Object> ser = provider.findValueSerializer(valueType.getRawClass(), _property);
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
                             JsonSchema.getDefaultSchemaNode();

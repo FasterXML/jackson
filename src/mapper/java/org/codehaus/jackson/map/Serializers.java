@@ -24,10 +24,11 @@ public interface Serializers
      * @param beanDesc Additional information about type; will always be of type
      *    {@link org.codehaus.jackson.map.introspect.BasicBeanDescription} (that is,
      *    safe to cast to this more specific type)
+     * @param property Property that contains values to serialize
      *    
      * @return Configured serializer to use for the type; or null if implementation
      *    does not recognize or support type
      */
-    public JsonSerializer<?> findSerializer(JavaType type, SerializationConfig config,
-            BeanDescription beanDesc);
+    public JsonSerializer<?> findSerializer(SerializationConfig config,
+            JavaType type, BeanDescription beanDesc, BeanProperty property);
 }

@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map;
 
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
-
 /**
  * Add-on interface that {@link JsonDeserializer}s can implement to get a callback
  * that can be used to create contextual instances of deserializer to use for
@@ -28,8 +26,6 @@ public interface ContextualDeserializer<T>
      *   (and is used to assign deserialized value).
      *   Should be available; but there may be cases where caller can not provide it and
      *   null is passed instead (in which case impls usually pass 'this' deserializer as is)
-     * @param propertyName Logical name of the property, if available (null if not; mostly
-     *   just in cases where 'property' is also null)
      * 
      * @return Deserializer to use for deserializing values of specified property;
      *   may be this instance or a new instance.
@@ -37,6 +33,6 @@ public interface ContextualDeserializer<T>
      * @throws JsonMappingException
      */
     public JsonDeserializer<T> createContextual(DeserializationConfig config,
-            AnnotatedMember property, String propertyName)
+            BeanProperty property)
         throws JsonMappingException;
 }

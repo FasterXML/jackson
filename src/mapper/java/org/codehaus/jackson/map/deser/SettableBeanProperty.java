@@ -7,7 +7,6 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.InternCache;
@@ -21,13 +20,12 @@ import org.codehaus.jackson.util.InternCache;
 public abstract class SettableBeanProperty
 {
     /**
-     * Object that represents actual physical property object --
-     * field, method or constructor parameter -- used for
-     * deserialization.
+     * Logical property object which contains information such
+     * as mutator method or field and property nameBeanProperty property
      * 
      * @since 1.7
      */
-    protected final AnnotatedMember _property;
+    protected final BeanProperty _property;
     
     /**
      * Logical name of the property (often but not always derived
@@ -72,13 +70,13 @@ public abstract class SettableBeanProperty
     /**********************************************************
      */
 
-    protected SettableBeanProperty(AnnotatedMember property,
-            String propName, JavaType type, TypeDeserializer typeDeser)
+    protected SettableBeanProperty(BeanProperty property, JavaType type, TypeDeserializer typeDeser)
     {
         _property = property;
         /* 09-Jan-2009, tatu: Intern()ing makes sense since Jackson parsed
          *   field names are (usually) interned too, hence lookups will be faster.
          */
+        String propName = property.getName();
         // 23-Oct-2009, tatu: should this be disabled wrt [JACKSON-180]?
         if (propName == null || propName.length() == 0) {
             _propName = "";
@@ -114,7 +112,7 @@ public abstract class SettableBeanProperty
     /**
      * @since 1.7
      */
-    public AnnotatedMember getProperty() { return _property; }
+    public BeanProperty getProperty() { return _property; }
     
     public String getPropertyName() { return _propName; }
     public JavaType getType() { return _type; }
@@ -241,9 +239,9 @@ public abstract class SettableBeanProperty
          */
         protected final Method _setter;
 
-        public MethodProperty(AnnotatedMethod method, String propName, JavaType type, TypeDeserializer typeDeser)
+        public MethodProperty(BeanProperty property, AnnotatedMethod method, JavaType type, TypeDeserializer typeDeser)
         {
-            super((AnnotatedMember) method, propName, type, typeDeser);
+            super(property, type, typeDeser);
             _setter = method.getAnnotated();
         }
 
@@ -286,9 +284,9 @@ public abstract class SettableBeanProperty
          */
         protected final Method _getter;
 
-        public SetterlessProperty(AnnotatedMethod method, String propName, JavaType type, TypeDeserializer typeDeser)
+        public SetterlessProperty(BeanProperty property, AnnotatedMethod method, JavaType type, TypeDeserializer typeDeser)
         {
-            super(method, propName, type, typeDeser);
+            super(property, type, typeDeser);
             _getter = method.getAnnotated();
         }
 
@@ -350,9 +348,9 @@ public abstract class SettableBeanProperty
          */
         protected final Field _field;
 
-        public FieldProperty(AnnotatedField field, String propName, JavaType type, TypeDeserializer typeDeser)
+        public FieldProperty(BeanProperty property, AnnotatedField field, JavaType type, TypeDeserializer typeDeser)
         {
-            super(field, propName, type, typeDeser);
+            super(property, type, typeDeser);
             _field = field.getAnnotated();
         }
 
@@ -389,18 +387,17 @@ public abstract class SettableBeanProperty
     public final static class CreatorProperty
         extends SettableBeanProperty
     {
-        final Class<?> _declaringClass;
+        final protected Class<?> _declaringClass;
 
         /**
          * Index of the property
          */
-        final int _index;
+        final protected int _index;
 
-        public CreatorProperty(AnnotatedMember prop, String propName, JavaType type,
-                               TypeDeserializer typeDeser,
-                               Class<?> declaringClass, int index)
+        public CreatorProperty(BeanProperty property, JavaType type, TypeDeserializer typeDeser,
+                Class<?> declaringClass, int index)
         {
-            super(prop, propName, type, typeDeser);
+            super(property, type, typeDeser);
             _declaringClass = declaringClass;
             _index = index;
         }
@@ -463,11 +460,11 @@ public abstract class SettableBeanProperty
 
         protected final SettableBeanProperty _backProperty;
         
-        public ManagedReferenceProperty(AnnotatedMember prop, String refName,
+        public ManagedReferenceProperty(BeanProperty property, String refName,
                 SettableBeanProperty forward,
                 SettableBeanProperty backward, boolean isContainer)
         {
-            super(prop, forward.getPropertyName(), forward.getType(), forward._valueTypeDeserializer);
+            super(property, forward.getType(), forward._valueTypeDeserializer);
             _referenceName = refName;
             _managedProperty = forward;
             _backProperty = backward;

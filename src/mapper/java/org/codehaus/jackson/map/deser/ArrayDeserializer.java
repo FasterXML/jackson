@@ -21,7 +21,7 @@ public class ArrayDeserializer
     // // Configuration
 
     protected final JavaType _arrayType;
-
+    
     /**
      * Flag that indicates whether the component type is Object or not.
      * Used for minor optimization when constructing result.

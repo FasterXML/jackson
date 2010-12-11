@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.lang.reflect.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.type.JavaType;
 
@@ -27,7 +27,7 @@ public final class SettableAnyProperty
      * 
      * @since 1.7
      */
-    final protected AnnotatedMethod _property;
+    final protected BeanProperty _property;
     
     /**
      * Physical JDK object used for assigning properties.
@@ -44,9 +44,9 @@ public final class SettableAnyProperty
     /**********************************************************
      */
     
-    public SettableAnyProperty(AnnotatedMethod setter, JavaType type)
+    public SettableAnyProperty(BeanProperty property, AnnotatedMethod setter, JavaType type)
     {
-        _property = setter;
+        _property = property;
         _type = type;
         _setter = setter.getAnnotated();
     }
@@ -65,7 +65,7 @@ public final class SettableAnyProperty
     /**********************************************************
      */
 
-    public AnnotatedMember getProperty() { return _property; }
+    public BeanProperty getProperty() { return _property; }
     
     public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
 

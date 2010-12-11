@@ -10,7 +10,6 @@ import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -109,9 +108,9 @@ public class TestWithGenerics extends BaseMapTest
 
         @Override
         protected JsonSerializer<Object> constructBeanSerializer( SerializationConfig config, BasicBeanDescription beanDesc,
-                AnnotatedMember property, String propertyName)
+                BeanProperty property)
         {                
-            return new CustomJsonSerializer( super.constructBeanSerializer( config, beanDesc, property, propertyName ) );
+            return new CustomJsonSerializer( super.constructBeanSerializer( config, beanDesc, property) );
         }
     }
 

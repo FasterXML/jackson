@@ -89,8 +89,8 @@ public class SimpleSerializers implements Serializers
      */
     
     @Override
-    public JsonSerializer<?> findSerializer(JavaType type,
-            SerializationConfig config, BeanDescription beanDesc)
+    public JsonSerializer<?> findSerializer(SerializationConfig config, JavaType type,
+             BeanDescription beanDesc, BeanProperty property)
     {
         Class<?> cls = type.getRawClass();
         ClassKey key = new ClassKey(cls);

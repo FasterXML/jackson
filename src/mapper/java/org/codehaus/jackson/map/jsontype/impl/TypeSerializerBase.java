@@ -1,8 +1,8 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.TypeSerializer;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
@@ -13,16 +13,12 @@ public abstract class TypeSerializerBase extends TypeSerializer
 {
     protected final TypeIdResolver _idResolver;
 
-    protected final AnnotatedMember _property;
+    protected final BeanProperty _property;
     
-    protected final String _propertyName;
-
-    protected TypeSerializerBase(TypeIdResolver idRes,
-            AnnotatedMember property, String propertyName)
+    protected TypeSerializerBase(TypeIdResolver idRes, BeanProperty property)
     {
         _idResolver = idRes;
         _property = property;
-        _propertyName = propertyName;
     }
 
     @Override

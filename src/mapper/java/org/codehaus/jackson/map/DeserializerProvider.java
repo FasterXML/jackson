@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map;
 
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -40,8 +39,6 @@ public abstract class DeserializerProvider
      * @param config Deserialization configuration
      * @param propertyType Declared type of the value to deserializer (obtained using
      *   'setter' method signature and/or type annotations
-     * @param propertyName propertyName Logical name of property being serialized, if
-     *    there is one; null if no name available
      * @param property Object that represents accessor for property value; field,
      *    setter method or constructor parameter.
      *
@@ -50,7 +47,7 @@ public abstract class DeserializerProvider
      *   finding any serializer
      */
     public abstract JsonDeserializer<Object> findValueDeserializer(DeserializationConfig config,
-            JavaType propertyType, AnnotatedMember property, String propertyName)
+            JavaType propertyType, BeanProperty property)
         throws JsonMappingException;
     
     /**
@@ -65,7 +62,7 @@ public abstract class DeserializerProvider
      * @since 1.5
      */
     public abstract JsonDeserializer<Object> findTypedValueDeserializer(DeserializationConfig config,
-            JavaType type, AnnotatedMember property, String propertyName)
+            JavaType type, BeanProperty property)
         throws JsonMappingException;
 
     /**
@@ -77,7 +74,7 @@ public abstract class DeserializerProvider
      *   finding any serializer
      */
     public abstract KeyDeserializer findKeyDeserializer(DeserializationConfig config,
-            JavaType type, AnnotatedMember property, String propertyName)
+            JavaType type, BeanProperty property)
         throws JsonMappingException;
 
     /**
@@ -106,7 +103,7 @@ public abstract class DeserializerProvider
             JavaType type, JavaType referrer, String refPropName)
         throws JsonMappingException
     {
-        return findValueDeserializer(config, type, (AnnotatedMember) null, refPropName);
+        return findValueDeserializer(config, type, (BeanProperty) null);
     }
 
     /**
@@ -119,11 +116,12 @@ public abstract class DeserializerProvider
      *    
      * @since 1.5
      */
+    @Deprecated
     public final JsonDeserializer<Object> findTypedValueDeserializer(DeserializationConfig config,
             JavaType type)
         throws JsonMappingException
     {
-        return findTypedValueDeserializer(config, type, null, null);
+        return findTypedValueDeserializer(config, type, null);
     }
 
     /**
@@ -136,10 +134,11 @@ public abstract class DeserializerProvider
      *    
      * @since 1.5
      */
+    @Deprecated
     public final KeyDeserializer findKeyDeserializer(DeserializationConfig config, JavaType type)
         throws JsonMappingException
     {
-        return findKeyDeserializer(config, type, null, null);
+        return findKeyDeserializer(config, type, null);
     }
 
     /*

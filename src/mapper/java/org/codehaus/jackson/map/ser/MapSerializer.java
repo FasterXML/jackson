@@ -9,7 +9,6 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.type.JavaType;
@@ -32,14 +31,7 @@ public class MapSerializer
      * 
      * @since 1.7
      */
-    protected final AnnotatedMember _property;
-
-    /**
-     * Logical name of Map-valued property being serialized with this instance
-     * 
-     * @since 1.7
-     */
-    protected final String _propertyName;
+    protected final BeanProperty _property;
     
     /**
      * Set of entries to omit during serialization, if any
@@ -84,7 +76,7 @@ public class MapSerializer
     protected final TypeSerializer _valueTypeSerializer;
     
     protected MapSerializer() {
-        this((HashSet<String>)null, null, null, false, null, null, null, null);
+        this((HashSet<String>)null, null, null, false, null, null, null);
     }
 
     /**
@@ -97,17 +89,16 @@ public class MapSerializer
             JavaType valueType, boolean valueTypeIsStatic,
             TypeSerializer vts)
     {
-        this(ignoredEntries, UNSPECIFIED_TYPE, valueType, valueTypeIsStatic, vts, null, null, null);
+        this(ignoredEntries, UNSPECIFIED_TYPE, valueType, valueTypeIsStatic, vts, null, null);
     }
     
     protected MapSerializer(HashSet<String> ignoredEntries,
             JavaType keyType, JavaType valueType, boolean valueTypeIsStatic,
             TypeSerializer vts, JsonSerializer<Object> keySerializer,
-            AnnotatedMember property, String propertyName)
+            BeanProperty property)
     {
         super(Map.class, false);
         _property = property;
-        _propertyName = propertyName;
         _ignoredEntries = ignoredEntries;
         _keyType = keyType;
         _valueType = valueType;
@@ -120,7 +111,7 @@ public class MapSerializer
     public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
     {
         MapSerializer ms = new MapSerializer(_ignoredEntries, _keyType, _valueType, _valueTypeIsStatic, vts,
-                _keySerializer, _property, _propertyName);
+                _keySerializer, _property);
         if (_valueSerializer != null) {
             ms._valueSerializer = _valueSerializer;
         }
@@ -138,8 +129,7 @@ public class MapSerializer
      * @param vts Type serializer to use for map entry values, if any
      */
     public static MapSerializer construct(String[] ignoredList, JavaType mapType,
-            boolean staticValueType, TypeSerializer vts,
-            AnnotatedMember property, String propertyName)
+            boolean staticValueType, TypeSerializer vts, BeanProperty property)
     {
         HashSet<String> ignoredEntries = toSet(ignoredList);
         JavaType keyType, valueType;
@@ -155,7 +145,7 @@ public class MapSerializer
             staticValueType = (valueType != null && valueType.isFinal());
         }
         return new MapSerializer(ignoredEntries, keyType, valueType, staticValueType, vts,
-                null, property, propertyName);
+                null, property);
     }
 
     private static HashSet<String> toSet(String[] ignoredEntries) {
@@ -253,7 +243,7 @@ public class MapSerializer
                 if (cc == prevValueClass) {
                     currSerializer = prevValueSerializer;
                 } else {
-                    currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
+                    currSerializer = provider.findValueSerializer(cc, _property);
                     prevValueSerializer = currSerializer;
                     prevValueClass = cc;
                 }
@@ -343,7 +333,7 @@ public class MapSerializer
                 if (cc == prevValueClass) {
                     currSerializer = prevValueSerializer;
                 } else {
-                    currSerializer = provider.findValueSerializer(cc, _property, _propertyName);
+                    currSerializer = provider.findValueSerializer(cc, _property);
                     prevValueSerializer = currSerializer;
                     prevValueClass = cc;
                 }
@@ -375,12 +365,12 @@ public class MapSerializer
         throws JsonMappingException
     {
         if (_valueTypeIsStatic) {
-            _valueSerializer = provider.findValueSerializer(_valueType, _property, _propertyName);
+            _valueSerializer = provider.findValueSerializer(_valueType, _property);
         }
         /* 10-Dec-2010, tatu: Let's also fetch key serializer; and always assume we'll
          *   do that just using static type information
          */
-        _keySerializer = provider.getKeySerializer(_keyType, _property, _propertyName);
+        _keySerializer = provider.getKeySerializer(_keyType, _property);
     }
 }
 

@@ -28,7 +28,7 @@ public class PropertyBuilder
     final protected BasicBeanDescription _beanDesc;
     final protected JsonSerialize.Inclusion _outputProps;
 
-    final AnnotationIntrospector _annotationIntrospector;
+    final protected AnnotationIntrospector _annotationIntrospector;
 
     /**
      * If a property has serialization inclusion value of
@@ -57,7 +57,8 @@ public class PropertyBuilder
      *    to use for contained values (only used for properties that are
      *    of container type)
      */
-    protected BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
+    protected BeanPropertyWriter buildWriter(SerializableBeanProperty property,
+            JsonSerializer<Object> ser,
             TypeSerializer typeSer, TypeSerializer contentTypeSer,
             AnnotatedMember am, boolean defaultUseStaticTyping)
     {
@@ -81,7 +82,8 @@ public class PropertyBuilder
              *    revisited if this causes problems.
              */
             if (serializationType == null) {
-                serializationType = TypeFactory.type(am.getGenericType(), _beanDesc.getType());
+//                serializationType = TypeFactory.type(am.getGenericType(), _beanDesc.getType());
+                serializationType = property.getType();
             }
             JavaType ct = serializationType.getContentType();
             /* 03-Sep-2010, tatu: This is somehow related to [JACKSON-356], but I don't completely
@@ -90,7 +92,7 @@ public class PropertyBuilder
              */
             if (ct == null) {
                 throw new IllegalStateException("Problem trying to create BeanPropertyWriter for property '"
-                        +name+"' (of type "+_beanDesc.getType()+"); serialization type "+serializationType+" has no content");
+                        +property.getName()+"' (of type "+_beanDesc.getType()+"); serialization type "+serializationType+" has no content");
             }
             serializationType = serializationType.withContentTypeHandler(contentTypeSer);
             ct = serializationType.getContentType();
@@ -103,7 +105,7 @@ public class PropertyBuilder
         if (methodProps != null) {
             switch (methodProps) {
             case NON_DEFAULT:
-                suppValue = getDefaultValue(name, m, f);
+                suppValue = getDefaultValue(property.getName(), m, f);
                 if (suppValue == null) {
                     suppressNulls = true;
                 }
@@ -113,10 +115,10 @@ public class PropertyBuilder
                 break;
             }
         }
-        return new BeanPropertyWriter(name, ser, typeSer, serializationType,
-                am, m, f, suppressNulls, suppValue);
+        return new BeanPropertyWriter(property, ser, typeSer, serializationType,
+                 m, f, suppressNulls, suppValue);
     }
-
+    
     /*
     /**********************************************************
     /* Helper methods, generic

@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map;
 
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -20,7 +19,7 @@ public abstract class SerializerFactory
       * Method called to create (or, for immutable serializers, reuse) a serializer for given type. 
       */
     public abstract JsonSerializer<Object> createSerializer(SerializationConfig config, JavaType baseType,
-            AnnotatedMember property, String propertyName);
+            BeanProperty property);
     
     /**
      * Method called to create a type information serializer for given base type,
@@ -34,7 +33,7 @@ public abstract class SerializerFactory
      * @since 1.7
      */
     public abstract TypeSerializer createTypeSerializer(SerializationConfig config, JavaType baseType,
-            AnnotatedMember property, String propertyName);
+            BeanProperty property);
     
     /*
     /********************************************************
@@ -52,7 +51,7 @@ public abstract class SerializerFactory
      */
     @Deprecated
     public final JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config) {
-        return createSerializer(config, type, null, null);
+        return createSerializer(config, type, null);
     }
     
     /**
@@ -65,7 +64,7 @@ public abstract class SerializerFactory
      */
     @Deprecated
     public final TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config) {
-        return createTypeSerializer(config, baseType, null, null);
+        return createTypeSerializer(config, baseType, null);
     }
 
     /*

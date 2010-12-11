@@ -13,7 +13,6 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
@@ -479,17 +478,10 @@ public abstract class StdDeserializer<T>
      *     for passing deserialized values; provided so deserializer can be contextualized if necessary (since 1.7)
      */
     protected JsonDeserializer<Object> findDeserializer(DeserializationConfig config, DeserializerProvider provider,
-                                                        JavaType type, String propertyName,
-                                                        AnnotatedMember forProperty)
+                                                        JavaType type, BeanProperty property)
         throws JsonMappingException
     {
-        JsonDeserializer<Object> deser = provider.findValueDeserializer(config, type, forProperty, propertyName);
-        // @TODO: Add contextualization!!!
-        /*
-        if (deser instanceof ContextualDeserializer) {
-        }
-        */
-        
+        JsonDeserializer<Object> deser = provider.findValueDeserializer(config, type, property);
         return deser;
     }
 
@@ -960,12 +952,14 @@ public abstract class StdDeserializer<T>
          */
         protected final JavaType _referencedType;
 
+        protected final BeanProperty _property;
+        
         protected JsonDeserializer<?> _valueDeserializer;
         
         /**
          * @param type AtomicReference deserializer is to be constructed for
          */
-        public AtomicReferenceDeserializer(JavaType type)
+        public AtomicReferenceDeserializer(JavaType type, BeanProperty property)
         {
             super(type.getRawClass());
             JavaType[] refTypes = TypeFactory.findParameterTypes(type, AtomicReference.class);
@@ -974,6 +968,7 @@ public abstract class StdDeserializer<T>
             } else {
                 _referencedType = refTypes[0];
             }
+            _property = property;
         }
 
         @Override
@@ -987,12 +982,7 @@ public abstract class StdDeserializer<T>
         public void resolve(DeserializationConfig config, DeserializerProvider provider)
             throws JsonMappingException
         {
-            /* 09-Dec-2010, tatu: We should know property (AnnotatedMember, name), but we
-             *    really don't currently, so must just pass nulls.
-             */
-            // @TODO: store and pass property
-            AnnotatedMember property = null;
-            _valueDeserializer = provider.findValueDeserializer(config, _referencedType, property, null);
+            _valueDeserializer = provider.findValueDeserializer(config, _referencedType, _property);
         }
     }
     

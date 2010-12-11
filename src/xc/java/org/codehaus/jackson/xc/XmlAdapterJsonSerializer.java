@@ -10,10 +10,10 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.schema.JsonSchema;
+import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.ser.SerializerBase;
 
 /**
@@ -24,16 +24,13 @@ public class XmlAdapterJsonSerializer extends SerializerBase<Object>
 {
     private final XmlAdapter<Object,Object> xmlAdapter;
 
-    private final AnnotatedMember _property;
-    private final String _propertyName;
+    private final BeanProperty _property;
     
-    public XmlAdapterJsonSerializer(XmlAdapter<Object,Object> xmlAdapter,
-            AnnotatedMember property, String propertyName)
+    public XmlAdapterJsonSerializer(XmlAdapter<Object,Object> xmlAdapter, BeanProperty property)
     {
         super(Object.class);
         this.xmlAdapter = xmlAdapter;
         _property = property;
-        _propertyName = propertyName;
     }
 
     @Override
@@ -51,7 +48,7 @@ public class XmlAdapterJsonSerializer extends SerializerBase<Object>
         } else {
             Class<?> c = adapted.getClass();
             // true -> do cache for future lookups
-            provider.findTypedValueSerializer(c, true, _property, _propertyName).serialize(adapted, jgen, provider);
+            provider.findTypedValueSerializer(c, true, _property).serialize(adapted, jgen, provider);
         }
     }
 
@@ -60,7 +57,7 @@ public class XmlAdapterJsonSerializer extends SerializerBase<Object>
             throws JsonMappingException
     {
         // no type resolver needed for schema
-        JsonSerializer<Object> ser = provider.findValueSerializer(findValueClass(), _property, _propertyName);
+        JsonSerializer<Object> ser = provider.findValueSerializer(findValueClass(), _property);
         JsonNode schemaNode = (ser instanceof SchemaAware) ?
                 ((SchemaAware) ser).getSchema(provider, null) :
                 JsonSchema.getDefaultSchemaNode();

@@ -10,11 +10,12 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.annotate.JacksonAnnotation;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.module.SimpleModule;
 
 /**
- * Test cases 
+ * Test cases to verify that it is possible to define deserializers
+ * that can use contextual information (like field/method
+ * annotations) for configuration.
  * 
  * @since 1.7
  */
@@ -69,10 +70,10 @@ public class TestContextualDeserialization extends BaseMapTest
 
         @Override
         public JsonDeserializer<ContextualType> createContextual(DeserializationConfig config,
-                AnnotatedMember property, String propertyName)
+                BeanProperty property)
             throws JsonMappingException
         {
-            return new MyContextualDeserializer(propertyName);
+            return new MyContextualDeserializer(property.getName());
         }
     }
 
@@ -98,11 +99,11 @@ public class TestContextualDeserialization extends BaseMapTest
     
         @Override
         public JsonDeserializer<ContextualType> createContextual(DeserializationConfig config,
-                AnnotatedMember property, String propertyName)
+                BeanProperty property)
             throws JsonMappingException
         {
             Name ann = property.getAnnotation(Name.class);
-            propertyName = (ann == null) ? "UNKNOWN" : ann.value();
+            String propertyName = (ann == null) ? "UNKNOWN" : ann.value();
             return new MyContextualDeserializer(propertyName);
         }
     }
