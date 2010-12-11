@@ -607,7 +607,7 @@ public class BeanSerializerFactory
             accessor.fixAccess();
         }
         JavaType type = accessor.getType(typeContext);
-        SerializableBeanProperty property = new SerializableBeanProperty(name, type, accessor);
+        BeanProperty.Std property = new BeanProperty.Std(name, type, accessor);
         
         // Does member specify a serializer? If so, let's use it.
         JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, accessor, property);
@@ -619,7 +619,7 @@ public class BeanSerializerFactory
 
         // and if not JAXB collection/array with annotations, maybe regular type info?
         TypeSerializer typeSer = findPropertyTypeSerializer(type, config, accessor, property);
-        BeanPropertyWriter pbw = pb.buildWriter(property, annotatedSerializer,
+        BeanPropertyWriter pbw = pb.buildWriter(name, type, annotatedSerializer,
                         typeSer, contentTypeSer, accessor, staticTyping);
         // how about views? (1.4+)
         AnnotationIntrospector intr = config.getAnnotationIntrospector();

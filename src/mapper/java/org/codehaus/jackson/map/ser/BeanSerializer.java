@@ -198,7 +198,7 @@ public class BeanSerializer
                 if (serType == null) {
                     serType = prop.getPropertyType();
                 }
-                ser = provider.findValueSerializer(serType, prop.getProperty());
+                ser = provider.findValueSerializer(serType, prop);
             }
             JsonNode schemaNode = (ser instanceof SchemaAware) ?
                     ((SchemaAware) ser).getSchema(provider, hint) : 
@@ -246,7 +246,7 @@ public class BeanSerializer
                     continue;
                 }
             }
-            JsonSerializer<Object> ser = provider.findValueSerializer(type, prop.getProperty());
+            JsonSerializer<Object> ser = provider.findValueSerializer(type, prop);
             /* 04-Feb-2010, tatu: We may have stashed type serializer for content types
              *   too, earlier; if so, it's time to connect the dots here:
              */

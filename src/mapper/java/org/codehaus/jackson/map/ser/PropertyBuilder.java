@@ -57,7 +57,7 @@ public class PropertyBuilder
      *    to use for contained values (only used for properties that are
      *    of container type)
      */
-    protected BeanPropertyWriter buildWriter(SerializableBeanProperty property,
+    protected BeanPropertyWriter buildWriter(String name, JavaType declaredType,
             JsonSerializer<Object> ser,
             TypeSerializer typeSer, TypeSerializer contentTypeSer,
             AnnotatedMember am, boolean defaultUseStaticTyping)
@@ -83,7 +83,7 @@ public class PropertyBuilder
              */
             if (serializationType == null) {
 //                serializationType = TypeFactory.type(am.getGenericType(), _beanDesc.getType());
-                serializationType = property.getType();
+                serializationType = declaredType;
             }
             JavaType ct = serializationType.getContentType();
             /* 03-Sep-2010, tatu: This is somehow related to [JACKSON-356], but I don't completely
@@ -92,7 +92,7 @@ public class PropertyBuilder
              */
             if (ct == null) {
                 throw new IllegalStateException("Problem trying to create BeanPropertyWriter for property '"
-                        +property.getName()+"' (of type "+_beanDesc.getType()+"); serialization type "+serializationType+" has no content");
+                        +name+"' (of type "+_beanDesc.getType()+"); serialization type "+serializationType+" has no content");
             }
             serializationType = serializationType.withContentTypeHandler(contentTypeSer);
             ct = serializationType.getContentType();
@@ -105,7 +105,7 @@ public class PropertyBuilder
         if (methodProps != null) {
             switch (methodProps) {
             case NON_DEFAULT:
-                suppValue = getDefaultValue(property.getName(), m, f);
+                suppValue = getDefaultValue(name, m, f);
                 if (suppValue == null) {
                     suppressNulls = true;
                 }
@@ -115,7 +115,7 @@ public class PropertyBuilder
                 break;
             }
         }
-        return new BeanPropertyWriter(property, ser, typeSer, serializationType,
+        return new BeanPropertyWriter(am, name, declaredType, ser, typeSer, serializationType,
                  m, f, suppressNulls, suppValue);
     }
     
