@@ -405,35 +405,40 @@ public class StdSerializerProvider
      */
 
     @Override
+    @SuppressWarnings("unchecked")
     public JsonSerializer<Object> findValueSerializer(Class<?> valueType,
             BeanProperty property)
         throws JsonMappingException
     {
         // Fast lookup from local lookup thingy works?
         JsonSerializer<Object> ser = _knownSerializers.untypedValueSerializer(valueType);
-        if (ser != null) return ser;
-
-        // If not, maybe shared map already has it?
-        ser = _serializerCache.untypedValueSerializer(valueType);
-        if (ser != null) return ser;
-
-        // ... possibly as fully typed?
-        ser = _serializerCache.untypedValueSerializer(TypeFactory.type(valueType));
-        if (ser != null) return ser;
-
-        // If neither, must create
-        ser = _createAndCacheUntypedSerializer(valueType, property);
-        // Not found? Must use the unknown type serializer
-        /* Couldn't create? Need to return the fallback serializer, which
-         * most likely will report an error: but one question is whether
-         * we should cache it?
-         */
         if (ser == null) {
-            ser = getUnknownTypeSerializer(valueType);
-            // Should this be added to lookups?
-            if (CACHE_UNKNOWN_MAPPINGS) {
-                _serializerCache.addNonTypedSerializer(valueType, ser);
+            // If not, maybe shared map already has it?
+            ser = _serializerCache.untypedValueSerializer(valueType);
+            if (ser == null) {
+                // ... possibly as fully typed?
+                ser = _serializerCache.untypedValueSerializer(TypeFactory.type(valueType));
+                if (ser == null) {
+                    // If neither, must create
+                    ser = _createAndCacheUntypedSerializer(valueType, property);
+                    // Not found? Must use the unknown type serializer
+                    /* Couldn't create? Need to return the fallback serializer, which
+                     * most likely will report an error: but one question is whether
+                     * we should cache it?
+                     */
+                    if (ser == null) {
+                        ser = getUnknownTypeSerializer(valueType);
+                        // Should this be added to lookups?
+                        if (CACHE_UNKNOWN_MAPPINGS) {
+                            _serializerCache.addNonTypedSerializer(valueType, ser);
+                        }
+                        return ser;
+                    }
+                }
             }
+        }            
+        if (ser instanceof ContextualSerializer<?>) {
+            return ((ContextualSerializer<Object>) ser).createContextual(_config, property);
         }
         return ser;
     }
@@ -450,35 +455,29 @@ public class StdSerializerProvider
     {
         // Fast lookup from local lookup thingy works?
         JsonSerializer<Object> ser = _knownSerializers.untypedValueSerializer(valueType);
-        if (ser != null) {
-            return ser;
-        }
-        // If not, maybe shared map already has it?
-        ser = _serializerCache.untypedValueSerializer(valueType);
-        if (ser != null) {
-            if (ser instanceof ContextualSerializer<?>) {
-                return ((ContextualSerializer<Object>) ser).createContextual(_config, property);
-            }
-            return ser;
-        }
-
-        // If neither, must create
-        ser = _createAndCacheUntypedSerializer(valueType, property);
-        // Not found? Must use the unknown type serializer
-        /* Couldn't create? Need to return the fallback serializer, which
-         * most likely will report an error: but one question is whether
-         * we should cache it?
-         */
         if (ser == null) {
-            ser = getUnknownTypeSerializer(valueType.getRawClass());
-            // Should this be added to lookups?
-            if (CACHE_UNKNOWN_MAPPINGS) {
-                _serializerCache.addNonTypedSerializer(valueType, ser);
+            // If not, maybe shared map already has it?
+            ser = _serializerCache.untypedValueSerializer(valueType);
+            if (ser == null) {
+                // If neither, must create
+                ser = _createAndCacheUntypedSerializer(valueType, property);
+                // Not found? Must use the unknown type serializer
+                /* Couldn't create? Need to return the fallback serializer, which
+                 * most likely will report an error: but one question is whether
+                 * we should cache it?
+                 */
+                if (ser == null) {
+                    ser = getUnknownTypeSerializer(valueType.getRawClass());
+                    // Should this be added to lookups?
+                    if (CACHE_UNKNOWN_MAPPINGS) {
+                        _serializerCache.addNonTypedSerializer(valueType, ser);
+                    }
+                    return ser;
+                }
             }
-        } else {
-            if (ser instanceof ContextualSerializer<?>) {
-                return ((ContextualSerializer<Object>) ser).createContextual(_config, property);
-            }
+        }
+        if (ser instanceof ContextualSerializer<?>) {
+            return ((ContextualSerializer<Object>) ser).createContextual(_config, property);
         }
         return ser;
     }

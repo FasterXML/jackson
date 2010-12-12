@@ -308,9 +308,18 @@ public final class ArraySerializers
     @JacksonStdImpl
     public final static class StringArraySerializer
         extends AsArraySerializer<String[]>
+        implements ResolvableSerializer
     {
-        public StringArraySerializer() {
-            super(String[].class, null, null);
+        /**
+         * Value serializer to use, if it's not the standard one
+         * (if it is we can optimize serialization a lot)
+         * 
+         * @since 1.7
+         */
+        protected JsonSerializer<Object> _elementSerializer;
+
+        public StringArraySerializer(BeanProperty prop) {
+            super(String[].class, null, prop);
         }
 
         /**
@@ -318,8 +327,7 @@ public final class ArraySerializers
          * we'll ignore it...
          */
         @Override
-        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
-        {
+        public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
             return this;
         }
         
@@ -328,27 +336,63 @@ public final class ArraySerializers
             throws IOException, JsonGenerationException
         {
             final int len = value.length;
-            if (len > 0) {
-                /* 08-Dec-2008, tatus: If we want this to be fully overridable
-                 *  (for example, to support String cleanup during writing
-                 *  or something), we should find serializer  by provider.
-                 *  But for now, that seems like an overkill: and caller can
-                 *  add custom serializer if that is needed as well.
-                 * (ditto for null values)
-                 */
-                //JsonSerializer<String> ser = (JsonSerializer<String>)provider.findValueSerializer(String.class);
-                for (int i = 0; i < len; ++i) {
-                    String str = value[i];
-                    if (str == null) {
-                        jgen.writeNull();
-                    } else {
-                        //ser.serialize(value[i], jgen, provider);
-                        jgen.writeString(value[i]);
-                    }
+            if (len == 0) {
+                return;
+            }
+System.err.println("DEBUG: array; ser == "+_elementSerializer);      
+
+            if (_elementSerializer != null) {
+                serializeContentsSlow(value, jgen, provider, _elementSerializer);
+                return;
+            }
+            /* 08-Dec-2008, tatus: If we want this to be fully overridable
+             *  (for example, to support String cleanup during writing
+             *  or something), we should find serializer  by provider.
+             *  But for now, that seems like an overkill: and caller can
+             *  add custom serializer if that is needed as well.
+             * (ditto for null values)
+             */
+            //JsonSerializer<String> ser = (JsonSerializer<String>)provider.findValueSerializer(String.class);
+            for (int i = 0; i < len; ++i) {
+                String str = value[i];
+                if (str == null) {
+                    jgen.writeNull();
+                } else {
+                    //ser.serialize(value[i], jgen, provider);
+                    jgen.writeString(value[i]);
                 }
             }
         }
 
+        private void serializeContentsSlow(String[] value, JsonGenerator jgen, SerializerProvider provider,
+                JsonSerializer<Object> ser)
+            throws IOException, JsonGenerationException
+        {
+            for (int i = 0, len = value.length; i < len; ++i) {
+                String str = value[i];
+                if (str == null) {
+                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                } else {
+                    ser.serialize(value[i], jgen, provider);
+                }
+            }
+        }
+
+        /**
+         * Need to get callback to resolve value serializer, which may
+         * be overridden by custom serializer
+         */
+        public void resolve(SerializerProvider provider)
+            throws JsonMappingException
+        {
+            JsonSerializer<Object> ser = provider.findValueSerializer(String.class, _property);
+    System.err.println("DEBUG: resolve? ser == "+ser);            
+            // Retain if not the standard implementation
+            if (ser != null && ser.getClass().getAnnotation(JacksonStdImpl.class) == null) {
+                _elementSerializer = ser;
+            }
+        }        
+        
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
         {

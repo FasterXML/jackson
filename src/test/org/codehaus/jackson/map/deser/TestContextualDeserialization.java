@@ -1,10 +1,11 @@
 package org.codehaus.jackson.map.deser;
 
+import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.io.IOException;
+import java.util.*;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.Version;
@@ -13,6 +14,7 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.module.SimpleModule;
+import org.codehaus.jackson.map.ser.TestContextualSerialization.Prefix;
 
 /**
  * Test cases to verify that it is possible to define deserializers
@@ -74,6 +76,24 @@ public class TestContextualDeserialization extends BaseMapTest
 
         @Name("NameB")
         public ContextualType b;
+    }
+
+    static class ContextualArrayBean
+    {
+        @Prefix("array->")
+        public String[] beans;
+    }
+    
+    static class ContextualListBean
+    {
+        @Prefix("list->")
+        public List<String> beans;
+    }
+    
+    static class ContextualMapBean
+    {
+        @Prefix("map->")
+        public Map<String, String> beans;
     }
     
     static class MyContextualDeserializer
@@ -184,5 +204,40 @@ public class TestContextualDeserialization extends BaseMapTest
         ContextualCtorBean bean = mapper.readValue("{\"a\":\"foo\",\"b\":\"bar\"}", ContextualCtorBean.class);
         assertEquals("CtorA=foo", bean.a);
         assertEquals("CtorB=bar", bean.b);
+    }
+
+    public void testAnnotatedArray() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
+        mapper.registerModule(module);
+        ContextualArrayBean bean = mapper.readValue("{\"beans\":[\"x\"]}", ContextualArrayBean.class);
+        assertEquals(1, bean.beans.length);
+        assertEquals("array->x", bean.beans[0]);
+    }
+
+    public void testAnnotatedList() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
+        mapper.registerModule(module);
+        ContextualListBean bean = mapper.readValue("{\"beans\":[\"x\"]}", ContextualListBean.class);
+        assertEquals(1, bean.beans.size());
+        assertEquals("list->x", bean.beans.get(0));
+    }
+
+    public void testAnnotatedMap() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
+        mapper.registerModule(module);
+        ContextualMapBean bean = mapper.readValue("{\"beans\":{\"a\":\"b\"}}", ContextualMapBean.class);
+        assertEquals(1, bean.beans.size());
+        Map.Entry<String,String> entry = bean.beans.entrySet().iterator().next();
+        assertEquals("a", entry.getKey());
+        assertEquals("map->b", entry.getKey());
     }
 }

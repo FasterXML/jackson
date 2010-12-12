@@ -45,6 +45,17 @@ public class TestContextualSerialization extends BaseMapTest
         public String getValue() { return _value; }
     }
 
+    @Prefix("wrappedBean:")
+    static class ContextualBeanWrapper
+    {
+        @Prefix("wrapped:")
+        public ContextualBean wrapped;
+        
+        public ContextualBeanWrapper(String s) {
+            wrapped = new ContextualBean(s);
+        }
+    }
+    
     static class ContextualArrayBean
     {
         @Prefix("array->")
@@ -109,7 +120,6 @@ public class TestContextualSerialization extends BaseMapTest
         public JsonSerializer<String> createContextual(SerializationConfig config, BeanProperty property)
                 throws JsonMappingException
         {
-System.err.println("DEBUG: property == "+property);            
             String prefix = "UNKNOWN";
             Prefix ann = property.getAnnotation(Prefix.class);
             if (ann == null) {
@@ -132,7 +142,6 @@ System.err.println("DEBUG: property == "+property);
      * Test to verify that contextual serializer can make use of property
      * (method, field) annotations.
      */
-/*    
     public void testMethodAnnotations() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -141,13 +150,11 @@ System.err.println("DEBUG: property == "+property);
         mapper.registerModule(module);
         assertEquals("{\"value\":\"see:foobar\"}", mapper.writeValueAsString(new ContextualBean("foobar")));
     }
-*/
 
     /**
      * Test to verify that contextual serializer can also use annotations
      * for enclosing class.
      */
-/*    
     public void testClassAnnotations() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -156,7 +163,15 @@ System.err.println("DEBUG: property == "+property);
         mapper.registerModule(module);
         assertEquals("{\"value\":\"Voila->xyz\"}", mapper.writeValueAsString(new BeanWithClassConfig("xyz")));
     }
-*/
+
+    public void testWrappedBean() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addSerializer(String.class, new AnnotatedContextualSerializer());
+        mapper.registerModule(module);
+        assertEquals("{\"wrapped\":{\"value\":\"see:xyz\"}}", mapper.writeValueAsString(new ContextualBeanWrapper("xyz")));
+    }
     
     /**
      * Serializer should get passed property context even if contained in an array.

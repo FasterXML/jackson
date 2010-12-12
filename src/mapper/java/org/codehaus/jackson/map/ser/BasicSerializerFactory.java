@@ -56,14 +56,15 @@ public abstract class BasicSerializerFactory
         new HashMap<String, Class<? extends JsonSerializer<?>>>();
 
     // And then Java Collection classes
-    final static JsonSerializer<?> MARKER_INDEXED_LIST = 
-        new ContainerSerializers.IndexedListSerializer(null, false, null, null);
-    final static JsonSerializer<?> MARKER_COLLECTION =
-        new ContainerSerializers.CollectionSerializer(null, false, null, null);
-    final static JsonSerializer<?> MARKER_OBJECT_ARRAY =
-        new ArraySerializers.ObjectArraySerializer(null, false, null, null);
-    final static JsonSerializer<?> MARKER_OBJECT_MAP =
-        new MapSerializer();
+    final static JsonSerializer<?> MARKER_INDEXED_LIST
+        = new ContainerSerializers.IndexedListSerializer(null, false, null, null);
+    final static JsonSerializer<?> MARKER_COLLECTION
+        = new ContainerSerializers.CollectionSerializer(null, false, null, null);
+    final static JsonSerializer<?> MARKER_OBJECT_ARRAY
+        = new ArraySerializers.ObjectArraySerializer(null, false, null, null);
+    final static JsonSerializer<?> MARKER_STRING_ARRAY
+        = new ArraySerializers.StringArraySerializer(null);
+    final static JsonSerializer<?> MARKER_OBJECT_MAP = new MapSerializer();
     
     static {
         /* String and string-like types (note: date types explicitly
@@ -121,7 +122,7 @@ public abstract class BasicSerializerFactory
         _concrete.put(double[].class.getName(), new ArraySerializers.DoubleArraySerializer());
 
         _concrete.put(Object[].class.getName(), MARKER_OBJECT_ARRAY);
-        _concrete.put(String[].class.getName(), new ArraySerializers.StringArraySerializer());
+        _concrete.put(String[].class.getName(), MARKER_STRING_ARRAY);
 
         _concrete.put(ArrayList.class.getName(), MARKER_INDEXED_LIST);
         _concrete.put(Vector.class.getName(), MARKER_INDEXED_LIST);
@@ -287,12 +288,16 @@ public abstract class BasicSerializerFactory
          *    collections as well. For strictly standard types this is
          *    currently only needed due to mix-in annotations.
          */
+System.err.println("DEBUG: found, ser == "+ser);            
         if (ser != null ) {
             if (ser == MARKER_OBJECT_MAP) {
                 return buildMapSerializer(config, type, beanDesc, property);
             }
             if (ser == MARKER_OBJECT_ARRAY) {
                 return buildObjectArraySerializer(config, type, beanDesc, property);
+            }
+            if (ser == MARKER_STRING_ARRAY) {
+                return new ArraySerializers.StringArraySerializer(property);
             }
             if (ser == MARKER_INDEXED_LIST) {
                 return buildIndexedListSerializer(config, type, beanDesc, property);
@@ -473,7 +478,7 @@ public abstract class BasicSerializerFactory
 
     /**
      * Helper method that handles configuration details when constructing serializers for
-     * <code>Object[]</code> (and subtypes).
+     * <code>Object[]</code> (and subtypes, except for String).
      */
     protected JsonSerializer<?> buildObjectArraySerializer(SerializationConfig config, JavaType type,
             BasicBeanDescription beanDesc, BeanProperty property)
