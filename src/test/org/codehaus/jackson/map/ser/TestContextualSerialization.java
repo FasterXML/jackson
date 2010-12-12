@@ -1,10 +1,8 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
+import java.util.*;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.*;
@@ -46,6 +44,34 @@ public class TestContextualSerialization extends BaseMapTest
         @Prefix("see:")
         public String getValue() { return _value; }
     }
+
+    static class ContextualArrayBean
+    {
+        @Prefix("array->")
+        public final String[] beans;
+        
+        public ContextualArrayBean(String... strings) {
+            beans = strings;
+        }
+    }
+    
+    static class ContextualListBean
+    {
+        @Prefix("list->")
+        public final List<String> beans = new ArrayList<String>();
+
+        public ContextualListBean(String... strings) {
+            for (String string : strings) {
+                beans.add(string);
+            }
+        }
+    }
+    
+    static class ContextualMapBean
+    {
+        @Prefix("map->")
+        public final Map<String, String> beans = new HashMap<String, String>();
+    }
     
     /**
      * Another bean that has class annotations that should be visible for
@@ -83,6 +109,7 @@ public class TestContextualSerialization extends BaseMapTest
         public JsonSerializer<String> createContextual(SerializationConfig config, BeanProperty property)
                 throws JsonMappingException
         {
+System.err.println("DEBUG: property == "+property);            
             String prefix = "UNKNOWN";
             Prefix ann = property.getAnnotation(Prefix.class);
             if (ann == null) {
@@ -105,6 +132,7 @@ public class TestContextualSerialization extends BaseMapTest
      * Test to verify that contextual serializer can make use of property
      * (method, field) annotations.
      */
+/*    
     public void testMethodAnnotations() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -113,11 +141,13 @@ public class TestContextualSerialization extends BaseMapTest
         mapper.registerModule(module);
         assertEquals("{\"value\":\"see:foobar\"}", mapper.writeValueAsString(new ContextualBean("foobar")));
     }
+*/
 
     /**
      * Test to verify that contextual serializer can also use annotations
      * for enclosing class.
      */
+/*    
     public void testClassAnnotations() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -125,5 +155,46 @@ public class TestContextualSerialization extends BaseMapTest
         module.addSerializer(String.class, new AnnotatedContextualSerializer());
         mapper.registerModule(module);
         assertEquals("{\"value\":\"Voila->xyz\"}", mapper.writeValueAsString(new BeanWithClassConfig("xyz")));
+    }
+*/
+    
+    /**
+     * Serializer should get passed property context even if contained in an array.
+     */
+    public void testMethodAnnotationInArray() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addSerializer(String.class, new AnnotatedContextualSerializer());
+        mapper.registerModule(module);
+        ContextualArrayBean beans = new ContextualArrayBean("123");
+        assertEquals("{\"beans\":[\"array->123\"]}", mapper.writeValueAsString(beans));
+    }
+
+    /**
+     * Serializer should get passed property context even if contained in a Collection.
+     */
+    public void testMethodAnnotationInList() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addSerializer(String.class, new AnnotatedContextualSerializer());
+        mapper.registerModule(module);
+        ContextualListBean beans = new ContextualListBean("abc");
+        assertEquals("{\"beans\":[\"list->abc\"]}", mapper.writeValueAsString(beans));
+    }
+
+    /**
+     * Serializer should get passed property context even if contained in a Collection.
+     */
+    public void testMethodAnnotationInMap() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addSerializer(String.class, new AnnotatedContextualSerializer());
+        mapper.registerModule(module);
+        ContextualMapBean map = new ContextualMapBean();
+        map.beans.put("first", "In Map");
+        assertEquals("{\"beans\":{\"first\":\"map->In Map\"}}", mapper.writeValueAsString(map));
     }
 }

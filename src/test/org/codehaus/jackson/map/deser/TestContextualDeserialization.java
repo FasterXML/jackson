@@ -52,7 +52,7 @@ public class TestContextualDeserialization extends BaseMapTest
         @Name("NameB")
         public ContextualType b;
     }
-
+    
     static class ContextualCtorBean
     {
         protected String a, b;
