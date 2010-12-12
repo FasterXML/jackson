@@ -170,73 +170,109 @@ public class TestContextualDeserialization extends BaseMapTest
         ContextualBean bean = mapper.readValue("{\"a\":\"1\",\"b\":\"2\"}", ContextualBean.class);
         assertEquals("a=1", bean.a.value);
         assertEquals("b=2", bean.b.value);
+
+        // try again, to ensure caching etc works
+        bean = mapper.readValue("{\"a\":\"3\",\"b\":\"4\"}", ContextualBean.class);
+        assertEquals("a=3", bean.a.value);
+        assertEquals("b=4", bean.b.value);
     }
 
     public void testSimpleWithAnnotations() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
-        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
-        mapper.registerModule(module);
+        ObjectMapper mapper = _mapperWithAnnotatedContextual();
         ContextualBean bean = mapper.readValue("{\"a\":\"1\",\"b\":\"2\"}", ContextualBean.class);
         assertEquals("NameA=1", bean.a.value);
         assertEquals("NameB=2", bean.b.value);
+
+        // try again, to ensure caching etc works
+        bean = mapper.readValue("{\"a\":\"x\",\"b\":\"y\"}", ContextualBean.class);
+        assertEquals("NameA=x", bean.a.value);
+        assertEquals("NameB=y", bean.b.value);
     }
 
     public void testSimpleWithClassAnnotations() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
-        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
-        mapper.registerModule(module);
+        ObjectMapper mapper = _mapperWithAnnotatedContextual();
         ContextualClassBean bean = mapper.readValue("{\"a\":\"1\",\"b\":\"2\"}", ContextualClassBean.class);
         assertEquals("Class=1", bean.a.value);
         assertEquals("NameB=2", bean.b.value);
+        // and again
+        bean = mapper.readValue("{\"a\":\"123\",\"b\":\"345\"}", ContextualClassBean.class);
+        assertEquals("Class=123", bean.a.value);
+        assertEquals("NameB=345", bean.b.value);
     }
     
     public void testAnnotatedCtor() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
-        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
-        mapper.registerModule(module);
+        ObjectMapper mapper = _mapperWithAnnotatedContextual();
         ContextualCtorBean bean = mapper.readValue("{\"a\":\"foo\",\"b\":\"bar\"}", ContextualCtorBean.class);
         assertEquals("CtorA=foo", bean.a);
         assertEquals("CtorB=bar", bean.b);
+
+        bean = mapper.readValue("{\"a\":\"1\",\"b\":\"0\"}", ContextualCtorBean.class);
+        assertEquals("CtorA=1", bean.a);
+        assertEquals("CtorB=0", bean.b);
     }
 
     public void testAnnotatedArray() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
-        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
-        mapper.registerModule(module);
+        ObjectMapper mapper = _mapperWithAnnotatedContextual();
         ContextualArrayBean bean = mapper.readValue("{\"beans\":[\"x\"]}", ContextualArrayBean.class);
         assertEquals(1, bean.beans.length);
         assertEquals("array=x", bean.beans[0].value);
+
+        bean = mapper.readValue("{\"beans\":[\"a\",\"b\"]}", ContextualArrayBean.class);
+        assertEquals(2, bean.beans.length);
+        assertEquals("array=a", bean.beans[0].value);
+        assertEquals("array=b", bean.beans[1].value);
     }
 
     public void testAnnotatedList() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
-        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
-        mapper.registerModule(module);
+        ObjectMapper mapper = _mapperWithAnnotatedContextual();
         ContextualListBean bean = mapper.readValue("{\"beans\":[\"x\"]}", ContextualListBean.class);
         assertEquals(1, bean.beans.size());
         assertEquals("list=x", bean.beans.get(0).value);
+
+        bean = mapper.readValue("{\"beans\":[\"x\",\"y\",\"z\"]}", ContextualListBean.class);
+        assertEquals(3, bean.beans.size());
+        assertEquals("list=x", bean.beans.get(0).value);
+        assertEquals("list=y", bean.beans.get(1).value);
+        assertEquals("list=z", bean.beans.get(2).value);
     }
 
     public void testAnnotatedMap() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
-        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
-        mapper.registerModule(module);
+        ObjectMapper mapper = _mapperWithAnnotatedContextual();
         ContextualMapBean bean = mapper.readValue("{\"beans\":{\"a\":\"b\"}}", ContextualMapBean.class);
         assertEquals(1, bean.beans.size());
         Map.Entry<String,ContextualType> entry = bean.beans.entrySet().iterator().next();
         assertEquals("a", entry.getKey());
         assertEquals("map=b", entry.getValue().value);
+
+        bean = mapper.readValue("{\"beans\":{\"x\":\"y\",\"1\":\"2\"}}", ContextualMapBean.class);
+        assertEquals(2, bean.beans.size());
+        Iterator<Map.Entry<String,ContextualType>> it = bean.beans.entrySet().iterator();
+        entry = it.next();
+        assertEquals("x", entry.getKey());
+        assertEquals("map=y", entry.getValue().value);
+        entry = it.next();
+        assertEquals("1", entry.getKey());
+        assertEquals("map=2", entry.getValue().value);
+    }
+
+    /*
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
+     */
+
+    private ObjectMapper _mapperWithAnnotatedContextual()
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
+        mapper.registerModule(module);
+        return mapper;
     }
 }
