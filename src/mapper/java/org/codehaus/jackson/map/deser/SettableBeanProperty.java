@@ -94,7 +94,7 @@ public abstract class SettableBeanProperty
     public void setValueDeserializer(JsonDeserializer<Object> deser)
     {
         if (_valueDeserializer != null) { // sanity check
-            throw new IllegalStateException("Already had assigned deserializer for property '"+_propName+"' (class "+getDeclaringClass().getName()+")");
+            throw new IllegalStateException("Already had assigned deserializer for property '"+getName()+"' (class "+getDeclaringClass().getName()+")");
         }
         _valueDeserializer = deser;
         Object nvl = _valueDeserializer.getNullValue();
@@ -134,6 +134,10 @@ public abstract class SettableBeanProperty
         return getMember().getDeclaringClass();
     }
     
+    /**
+     * @deprecated Since 1.7, use {@link #getName} instead.
+     */
+    @Deprecated
     public String getPropertyName() { return _propName; }
 
     public String getManagedReferenceName() { return _managedReferenceName; }
@@ -237,7 +241,7 @@ public abstract class SettableBeanProperty
         throw new JsonMappingException(th.getMessage(), null, th);
     }
     
-    @Override public String toString() { return "[property '"+_propName+"']"; }
+    @Override public String toString() { return "[property '"+getName()+"']"; }
 
     /*
     /**********************************************************
@@ -382,7 +386,7 @@ public abstract class SettableBeanProperty
              * be compatible. If so, implementation could be changed.
              */
             if (toModify == null) {
-                throw new JsonMappingException("Problem deserializing 'setterless' property '"+getPropertyName()+"': get method returned null");
+                throw new JsonMappingException("Problem deserializing 'setterless' property '"+getName()+"': get method returned null");
             }
             _valueDeserializer.deserialize(jp, ctxt, toModify);
         }

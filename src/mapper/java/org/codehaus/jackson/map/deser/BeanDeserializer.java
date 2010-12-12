@@ -221,9 +221,9 @@ public class BeanDeserializer
      */
     public void addProperty(SettableBeanProperty prop)
     {
-        SettableBeanProperty old =  _props.put(prop.getPropertyName(), prop);
+        SettableBeanProperty old =  _props.put(prop.getName(), prop);
         if (old != null && old != prop) { // should never occur...
-            throw new IllegalArgumentException("Duplicate property '"+prop.getPropertyName()+"' for "+_beanType);
+            throw new IllegalArgumentException("Duplicate property '"+prop.getName()+"' for "+_beanType);
         }
     }
 
@@ -312,7 +312,7 @@ public class BeanDeserializer
                     backProp = ((BeanDeserializer) contentDeser).findBackReference(refName);
                     isContainer = true;
                 } else if (valueDeser instanceof AbstractDeserializer) { // [JACKSON-368]: not easy to fix, alas  
-                    throw new IllegalArgumentException("Can not handle managed/back reference for abstract types (property "+_beanType.getRawClass().getName()+"."+prop.getPropertyName()+")");
+                    throw new IllegalArgumentException("Can not handle managed/back reference for abstract types (property "+_beanType.getRawClass().getName()+"."+prop.getName()+")");
                 } else {
                     throw new IllegalArgumentException("Can not handle managed/back reference '"+refName
                             +"': type for value deserializer is not BeanDeserializer or ContainerDeserializer, but "

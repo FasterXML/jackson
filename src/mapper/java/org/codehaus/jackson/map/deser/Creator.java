@@ -235,7 +235,7 @@ abstract class Creator
             Object[] defValues = null;
             for (int i = 0, len = props.length; i < len; ++i) {
                 SettableBeanProperty prop = props[i];
-                _properties.put(prop.getPropertyName(), prop);
+                _properties.put(prop.getName(), prop);
                 if (prop.getType().isPrimitive()) {
                     if (defValues == null) {
                         defValues = new Object[len];
