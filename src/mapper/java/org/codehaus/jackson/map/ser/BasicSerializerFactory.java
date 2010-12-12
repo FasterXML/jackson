@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
@@ -33,6 +34,22 @@ public abstract class BasicSerializerFactory
 {
     /*
     /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+
+    /**
+     * Bogus class used to instantiate markers used as placeholders
+     * for specific serializable types.
+     */
+    private final static class SerializerMarker extends JsonSerializer<Object>
+    {
+        @Override
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider) { }
+    }
+    
+    /*
+    /**********************************************************
     /* Configuration, lookup tables/maps
     /**********************************************************
      */
@@ -56,15 +73,11 @@ public abstract class BasicSerializerFactory
         new HashMap<String, Class<? extends JsonSerializer<?>>>();
 
     // And then Java Collection classes
-    final static JsonSerializer<?> MARKER_INDEXED_LIST
-        = new ContainerSerializers.IndexedListSerializer(null, false, null, null);
-    final static JsonSerializer<?> MARKER_COLLECTION
-        = new ContainerSerializers.CollectionSerializer(null, false, null, null);
-    final static JsonSerializer<?> MARKER_OBJECT_ARRAY
-        = new ArraySerializers.ObjectArraySerializer(null, false, null, null);
-    final static JsonSerializer<?> MARKER_STRING_ARRAY
-        = new ArraySerializers.StringArraySerializer(null);
-    final static JsonSerializer<?> MARKER_OBJECT_MAP = new MapSerializer();
+    final static JsonSerializer<?> MARKER_INDEXED_LIST = new SerializerMarker();
+    final static JsonSerializer<?> MARKER_COLLECTION = new SerializerMarker();
+    final static JsonSerializer<?> MARKER_OBJECT_ARRAY = new SerializerMarker();
+    final static JsonSerializer<?> MARKER_STRING_ARRAY = new SerializerMarker();
+    final static JsonSerializer<?> MARKER_OBJECT_MAP = new SerializerMarker();
     
     static {
         /* String and string-like types (note: date types explicitly
@@ -484,7 +497,7 @@ public abstract class BasicSerializerFactory
     {
         JavaType valueType = type.getContentType();
         TypeSerializer vts = createTypeSerializer(config, valueType, property);
-        return ArraySerializers.objectArraySerializer(valueType,
+        return new ObjectArraySerializer(valueType,
                 usesStaticTyping(config, beanDesc, vts), vts, property);
     }
 

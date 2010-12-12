@@ -6,8 +6,8 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
-import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
+import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.type.JavaType;
 
@@ -40,11 +40,10 @@ public class BeanPropertyWriter
     protected final AnnotatedMember _member;
 
     /**
-     * Class that contains this property (either class that declares
-     * the property or one of its subclasses), class that is
-     * deserialized using deserializer that contains this property.
+     * Annotations from context (most often, class that declares property,
+     * or in case of sub-class serializer, from that sub-class)
      */
-    protected final AnnotatedClass _contextClass;
+    protected final Annotations _contextAnnotations;
     
     /**
      * Type property is declared to have, either in class definition 
@@ -148,24 +147,24 @@ public class BeanPropertyWriter
     /**********************************************************
      */
 
-    public BeanPropertyWriter(AnnotatedMember member, AnnotatedClass contextClass,
+    public BeanPropertyWriter(AnnotatedMember member, Annotations contextAnnotations,
             String name, JavaType declaredType,
             JsonSerializer<Object> ser, TypeSerializer typeSer, JavaType serType,
             Method m, Field f,
             boolean suppressNulls, Object suppressableValue)
     {
-        this(member, contextClass, new SerializedString(name), declaredType,
+        this(member, contextAnnotations, new SerializedString(name), declaredType,
                 ser, typeSer, serType,
                 m, f, suppressNulls, suppressableValue);
     }
     
-    public BeanPropertyWriter(AnnotatedMember member, AnnotatedClass contextClass,
+    public BeanPropertyWriter(AnnotatedMember member, Annotations contextAnnotations,
             SerializedString name, JavaType declaredType,
             JsonSerializer<Object> ser, TypeSerializer typeSer, JavaType serType,
             Method m, Field f, boolean suppressNulls, Object suppressableValue)
     {
         _member = member;
-        _contextClass = contextClass;
+        _contextAnnotations = contextAnnotations;
         _name = name;
         _declaredType = declaredType;
         _serializer = ser;
@@ -183,7 +182,7 @@ public class BeanPropertyWriter
     protected BeanPropertyWriter(BeanPropertyWriter base)
     {
         _member = base._member;
-        _contextClass = base._contextClass;
+        _contextAnnotations = base._contextAnnotations;
         _name = base._name;
         _declaredType = base._declaredType;
         _serializer = base._serializer;
@@ -206,7 +205,7 @@ public class BeanPropertyWriter
      */
     public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
     {
-        BeanPropertyWriter w = new BeanPropertyWriter(_member, _contextClass,
+        BeanPropertyWriter w = new BeanPropertyWriter(_member, _contextAnnotations,
                 _name, _declaredType, ser, _typeSerializer, _cfgSerializationType,
                  _accessorMethod, _field, _suppressNulls, _suppressableValue);
         // one more thing: copy internal settings, if any (since 1.7)
@@ -256,7 +255,7 @@ public class BeanPropertyWriter
     }
 
     public <A extends Annotation> A getContextAnnotation(Class<A> acls) {
-        return _contextClass.getAnnotation(acls);
+        return _contextAnnotations.get(acls);
     }
     
     public AnnotatedMember getMember() {

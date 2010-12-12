@@ -120,8 +120,8 @@ public class PropertyBuilder
                 break;
             }
         }
-        return new BeanPropertyWriter(am, _beanDesc.getClassInfo(), name, declaredType, ser, typeSer, serializationType,
-                 m, f, suppressNulls, suppValue);
+        return new BeanPropertyWriter(am, _beanDesc.getClassAnnotations(), name, declaredType,
+                ser, typeSer, serializationType, m, f, suppressNulls, suppValue);
     }
     
     /*
