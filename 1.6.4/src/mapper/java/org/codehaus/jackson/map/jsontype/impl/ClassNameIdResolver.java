@@ -91,33 +91,4 @@ public class ClassNameIdResolver
             throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): "+e.getMessage(), e);
         }
     }
-
-    public static void main(String[] args) throws Exception
-    {
-        System.err.println("DEBUG: class == "+Collections.emptyList().getClass().getName());
-        
-        Object[] obs = new Object[] {
-                "foo",
-                Integer.valueOf(3),
-                new String[1],
-                new boolean[1],
-        };
-        ClassNameIdResolver resolver = new ClassNameIdResolver(TypeFactory.type(Object.class));
-
-        for (Object ob : obs) {
-            String name = resolver.idFromValue(ob);
-            // first, with default class loader
-            System.out.println("Load/def '"+name+"' -> "+Class.forName(name));
-        }
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        for (Object ob : obs) {
-            String name = resolver.idFromValue(ob);
-            /*
-            name = name.replace('.', '/');
-            name = "L"+name+";";
-            */
-            // first, with default class loader
-            System.out.println("Load/CL '"+name+"' -> "+Class.forName(name, true, loader));
-        }
-    }
 }
