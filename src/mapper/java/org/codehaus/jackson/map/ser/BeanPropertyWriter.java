@@ -255,7 +255,7 @@ public class BeanPropertyWriter
         return _member.getAnnotation(acls);
     }
 
-    public <A extends Annotation> A getEnclosingAnnotation(Class<A> acls) {
+    public <A extends Annotation> A getContextAnnotation(Class<A> acls) {
         return _contextClass.getAnnotation(acls);
     }
     

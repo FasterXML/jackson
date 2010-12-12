@@ -119,7 +119,7 @@ public abstract class SettableBeanProperty
 
     public abstract AnnotatedMember getMember();
 
-    public <A extends Annotation> A getEnclosingAnnotation(Class<A> acls)
+    public <A extends Annotation> A getContextAnnotation(Class<A> acls)
     {
         return _contextAnnotations.get(acls);
     }

@@ -36,11 +36,10 @@ public interface BeanProperty
 
     /**
      * Method for finding annotation associated with context of
-     * this property; usually class in which member is declared,
-     * but for constructor parameters it can contain annotations
-     * from constructor first, then from enclosing class.
+     * this property; usually class in which member is declared
+     * (or its subtype if processing subtype).
      */
-    public <A extends Annotation> A getEnclosingAnnotation(Class<A> acls);
+    public <A extends Annotation> A getContextAnnotation(Class<A> acls);
 
     /**
      * Method for accessing primary physical entity that represents the property;
@@ -88,7 +87,7 @@ public interface BeanProperty
             return _member.getAnnotation(acls);
         }
 
-        public <A extends Annotation> A getEnclosingAnnotation(Class<A> acls) {
+        public <A extends Annotation> A getContextAnnotation(Class<A> acls) {
             return (_contextAnnotations == null) ? null : _contextAnnotations.get(acls);
         }
         

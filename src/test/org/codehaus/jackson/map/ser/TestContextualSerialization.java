@@ -46,7 +46,7 @@ public class TestContextualSerialization extends BaseMapTest
         @Prefix("see:")
         public String getValue() { return _value; }
     }
-
+    
     /**
      * Another bean that has class annotations that should be visible for
      * contextualizer, too
@@ -85,6 +85,9 @@ public class TestContextualSerialization extends BaseMapTest
         {
             String prefix = "UNKNOWN";
             Prefix ann = property.getAnnotation(Prefix.class);
+            if (ann == null) {
+                ann = property.getContextAnnotation(Prefix.class);
+            }
             if (ann != null) {
                 prefix = ann.value();
             }
@@ -115,14 +118,12 @@ public class TestContextualSerialization extends BaseMapTest
      * Test to verify that contextual serializer can also use annotations
      * for enclosing class.
      */
-    /*
     public void testClassAnnotations() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule module = new SimpleModule("test", Version.unknownVersion());
         module.addSerializer(String.class, new AnnotatedContextualSerializer());
         mapper.registerModule(module);
-        assertEquals("{\"value\":\"voila->xyz\"}", mapper.writeValueAsString(new BeanWithClassConfig("xyz")));
+        assertEquals("{\"value\":\"Voila->xyz\"}", mapper.writeValueAsString(new BeanWithClassConfig("xyz")));
     }
-*/
 }

@@ -32,7 +32,7 @@ public class TestContextualDeserialization extends BaseMapTest
     /* NOTE: important; MUST be considered a 'Jackson' annotation to be seen
      * (or recognized otherwise via AnnotationIntrospect.isHandled())
      */
-    @Target({ElementType.FIELD, ElementType.PARAMETER})
+    @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.TYPE})
     @Retention(RetentionPolicy.RUNTIME)
     @JacksonAnnotation
     public @interface Name {
@@ -65,6 +65,15 @@ public class TestContextualDeserialization extends BaseMapTest
             this.a = a.value;
             this.b = b.value;
         }
+    }
+
+    @Name("Class")
+    static class ContextualClassBean
+    {
+        public ContextualType a;
+
+        @Name("NameB")
+        public ContextualType b;
     }
     
     static class MyContextualDeserializer
@@ -119,7 +128,10 @@ public class TestContextualDeserialization extends BaseMapTest
             throws JsonMappingException
         {
             Name ann = property.getAnnotation(Name.class);
-            String propertyName = (ann == null) ? "UNKNOWN" : ann.value();
+            if (ann == null) {
+                ann = property.getContextAnnotation(Name.class);
+            }
+            String propertyName = (ann == null) ?  "UNKNOWN" : ann.value();
             return new MyContextualDeserializer(propertyName);
         }
     }
@@ -152,6 +164,17 @@ public class TestContextualDeserialization extends BaseMapTest
         assertEquals("NameB=2", bean.b.value);
     }
 
+    public void testSimpleWithClassAnnotations() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addDeserializer(ContextualType.class, new AnnotatedContextualDeserializer());
+        mapper.registerModule(module);
+        ContextualClassBean bean = mapper.readValue("{\"a\":\"1\",\"b\":\"2\"}", ContextualClassBean.class);
+        assertEquals("Class=1", bean.a.value);
+        assertEquals("NameB=2", bean.b.value);
+    }
+    
     public void testAnnotatedCtor() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
