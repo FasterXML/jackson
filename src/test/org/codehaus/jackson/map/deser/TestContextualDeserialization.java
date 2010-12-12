@@ -14,7 +14,6 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.module.SimpleModule;
-import org.codehaus.jackson.map.ser.TestContextualSerialization.Prefix;
 
 /**
  * Test cases to verify that it is possible to define deserializers
@@ -80,20 +79,20 @@ public class TestContextualDeserialization extends BaseMapTest
 
     static class ContextualArrayBean
     {
-        @Prefix("array->")
-        public String[] beans;
+        @Name("array")
+        public ContextualType[] beans;
     }
     
     static class ContextualListBean
     {
-        @Prefix("list->")
-        public List<String> beans;
+        @Name("list")
+        public List<ContextualType> beans;
     }
     
     static class ContextualMapBean
     {
-        @Prefix("map->")
-        public Map<String, String> beans;
+        @Name("map")
+        public Map<String, ContextualType> beans;
     }
     
     static class MyContextualDeserializer
@@ -214,7 +213,7 @@ public class TestContextualDeserialization extends BaseMapTest
         mapper.registerModule(module);
         ContextualArrayBean bean = mapper.readValue("{\"beans\":[\"x\"]}", ContextualArrayBean.class);
         assertEquals(1, bean.beans.length);
-        assertEquals("array->x", bean.beans[0]);
+        assertEquals("array=x", bean.beans[0].value);
     }
 
     public void testAnnotatedList() throws Exception
@@ -225,7 +224,7 @@ public class TestContextualDeserialization extends BaseMapTest
         mapper.registerModule(module);
         ContextualListBean bean = mapper.readValue("{\"beans\":[\"x\"]}", ContextualListBean.class);
         assertEquals(1, bean.beans.size());
-        assertEquals("list->x", bean.beans.get(0));
+        assertEquals("list=x", bean.beans.get(0).value);
     }
 
     public void testAnnotatedMap() throws Exception
@@ -236,8 +235,8 @@ public class TestContextualDeserialization extends BaseMapTest
         mapper.registerModule(module);
         ContextualMapBean bean = mapper.readValue("{\"beans\":{\"a\":\"b\"}}", ContextualMapBean.class);
         assertEquals(1, bean.beans.size());
-        Map.Entry<String,String> entry = bean.beans.entrySet().iterator().next();
+        Map.Entry<String,ContextualType> entry = bean.beans.entrySet().iterator().next();
         assertEquals("a", entry.getKey());
-        assertEquals("map->b", entry.getKey());
+        assertEquals("map=b", entry.getValue().value);
     }
 }
