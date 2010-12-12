@@ -89,7 +89,6 @@ public class TestWithGenerics extends BaseMapTest
         public void serializeWithType( Object value, JsonGenerator jgen, SerializerProvider provider, TypeSerializer typeSer )
             throws IOException, JsonProcessingException
         {
-            System.out.println("DEBUG: serWithType ("+value.getClass().getName()+"), "+typeSer);
             beanSerializer.serializeWithType( value, jgen, provider, typeSer );
         }
 

@@ -52,7 +52,6 @@ public class MinimalPrettyPrinter
     @Override
     public void writeRootValueSeparator(JsonGenerator jg) throws IOException, JsonGenerationException
     {
-System.err.println("DEBUG: root value separator == '"+_rootValueSeparator+"' (len "+_rootValueSeparator.length()+")"); 
         if (_rootValueSeparator != null) {
             jg.writeRaw(_rootValueSeparator);    
         }

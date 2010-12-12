@@ -288,7 +288,6 @@ public abstract class BasicSerializerFactory
          *    collections as well. For strictly standard types this is
          *    currently only needed due to mix-in annotations.
          */
-System.err.println("DEBUG: found, ser == "+ser);            
         if (ser != null ) {
             if (ser == MARKER_OBJECT_MAP) {
                 return buildMapSerializer(config, type, beanDesc, property);

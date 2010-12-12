@@ -339,8 +339,6 @@ public final class ArraySerializers
             if (len == 0) {
                 return;
             }
-System.err.println("DEBUG: array; ser == "+_elementSerializer);      
-
             if (_elementSerializer != null) {
                 serializeContentsSlow(value, jgen, provider, _elementSerializer);
                 return;
@@ -386,7 +384,6 @@ System.err.println("DEBUG: array; ser == "+_elementSerializer);
             throws JsonMappingException
         {
             JsonSerializer<Object> ser = provider.findValueSerializer(String.class, _property);
-    System.err.println("DEBUG: resolve? ser == "+ser);            
             // Retain if not the standard implementation
             if (ser != null && ser.getClass().getAnnotation(JacksonStdImpl.class) == null) {
                 _elementSerializer = ser;
