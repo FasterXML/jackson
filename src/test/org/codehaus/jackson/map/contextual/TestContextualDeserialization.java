@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.contextual;
 
 import java.io.IOException;
 import java.lang.annotation.ElementType;
