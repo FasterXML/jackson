@@ -17,16 +17,21 @@ public class SerializedString implements SerializableString
 {
     protected final String _value;
 
-    protected volatile byte[] _quotedUTF8Ref;
-
-    protected volatile byte[] _unquotedUTF8Ref;
-
-    /**
-     * To save bit of memory, let's just use volatile for quoted characters; both because
-     * this is unlikely to be used as often, and because use cases are less of high
-     * performance ones to begin with.
+    /* 13-Dec-2010, tatu: Whether use volatile or not is actually an important
+     *   decision for multi-core use cases. Cost of volatility can be non-trivial
+     *   for heavy use cases, and serialized-string instances are accessed often.
+     *   Given that all codepaths with common Jackson usage patterns go through
+     *   a few memory barries (mostly with cache/reuse pool access) it seems safe
+     *   enough to omit volatiles here, given how simple lazy initialization is.
+     *   This can be compared to how {@link String#intern} works; lazily and
+     *   without synchronization or use of volatile keyword.
      */
-    protected volatile char[] _quotedChars;
+    
+    protected /*volatile*/ byte[] _quotedUTF8Ref;
+
+    protected /*volatile*/ byte[] _unquotedUTF8Ref;
+
+    protected /*volatile*/ char[] _quotedChars;
 
     public SerializedString(String v) { _value = v; }
 
@@ -37,7 +42,7 @@ public class SerializedString implements SerializableString
      */
 
     public final String getValue() { return _value; }
-
+    
     /**
      * Returns length of the String as characters
      */

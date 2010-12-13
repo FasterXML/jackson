@@ -49,12 +49,10 @@ public class EnumSerializer
     }
     
     @Override
-    public void serialize(Enum<?> en, JsonGenerator jgen, SerializerProvider provider)
+    public final void serialize(Enum<?> en, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
-        SerializedString sstr = _values.serializedValueFor(en);
-        // @TODO: use SerializedString directly, once JsonGenerator supports it!
-        jgen.writeString(sstr.getValue());
+        jgen.writeString(_values.serializedValueFor(en));
     }
     
     @Override

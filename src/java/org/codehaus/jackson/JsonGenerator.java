@@ -404,12 +404,23 @@ public abstract class JsonGenerator
      * this means either array element, (object) field value or
      * a stand alone String; but in all cases, String will be
      * surrounded in double quotes, and contents will be properly
-     * escaped as required by Json specification.
+     * escaped as required by JSON specification.
      */
     public abstract void writeString(String text)
         throws IOException, JsonGenerationException;
 
     public abstract void writeString(char[] text, int offset, int len)
+        throws IOException, JsonGenerationException;
+
+    /**
+     * Method similar to {@link #writeString(text)}, but that takes
+     * {@link SerializableString} which can make this potentially
+     * more efficient to call as generator may be able to reuse
+     * quoted and/or encoded representation.
+     * 
+     * @since 1.7
+     */
+    public abstract void writeString(SerializableString text)
         throws IOException, JsonGenerationException;
 
     /**

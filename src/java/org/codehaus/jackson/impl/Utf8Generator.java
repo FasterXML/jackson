@@ -322,6 +322,22 @@ public class Utf8Generator
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
+    @Override
+    public final void writeString(SerializableString text)
+        throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write text value");
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
+        _writeBytes(text.asQuotedUTF8());
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
+    }
+    
     /*
     /**********************************************************
     /* Output method implementations, unprocessed ("raw")

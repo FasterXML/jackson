@@ -654,7 +654,6 @@ public class SmileGenerator
             return;
         }
         if (len <= MAX_SHORT_VALUE_STRING_BYTES) { // possibly short strings (not necessarily)
-            // !!! TODO: check for shared Strings
             // first: ensure we have enough space
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
                 _flushBuffer();
@@ -696,6 +695,56 @@ public class SmileGenerator
                 _slowUTF8Encode(text, offset, offset+len);
                 _writeByte(BYTE_MARKER_END_OF_STRING);
             }
+        }
+    }
+
+    @Override
+    public final void writeString(SerializableString sstr)
+        throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write String value");        
+        // First: is it empty?
+        String str = sstr.getValue();
+        int len = str.length();
+        if (len == 0) {
+            _writeByte(TOKEN_LITERAL_EMPTY_STRING);
+            return;
+        }
+        // Second: something we can share?
+        if (len <= MAX_SHARED_STRING_LENGTH_BYTES && _seenStringValueCount >= 0) {
+            int ix = _findSeenStringValue(str);
+            if (ix >= 0) {
+                if (ix < 31) { // add 1, as byte 0 is omitted
+                    _writeByte((byte) (TOKEN_PREFIX_SHARED_STRING_SHORT + 1 + ix));
+                } else {
+                    _writeBytes(((byte) (TOKEN_MISC_SHARED_STRING_LONG + (ix >> 8))), (byte) ix);
+                }
+                return;
+            }
+        }
+        // If not, use pre-encoded version
+        byte[] raw = sstr.asUnquotedUTF8();
+        final int byteLen = raw.length;
+        
+        if (byteLen <= MAX_SHORT_VALUE_STRING_BYTES) { // short string
+            // first: ensure we have enough space
+            if ((_outputTail + byteLen + 1) >= _outputEnd) {
+                _flushBuffer();
+            }
+            // Ascii or Unicode?
+            int typeToken = (byteLen == len)
+                    ? ((TOKEN_PREFIX_TINY_ASCII - 1) + byteLen)
+                    : ((TOKEN_PREFIX_TINY_UNICODE - 2) + byteLen)
+                    ;
+            _outputBuffer[_outputTail++] = (byte) typeToken;
+            System.arraycopy(raw, 0, _outputBuffer, _outputTail, byteLen);
+            _outputTail += byteLen;
+        } else { // "long" String, never shared
+            // but might still fit within buffer?
+            byte typeToken = (byteLen == len) ? TOKEN_BYTE_LONG_STRING_ASCII : TOKEN_BYTE_LONG_STRING_UNICODE;
+            _writeByte(typeToken);
+            _writeBytes(raw, 0, raw.length);
+            _writeByte(BYTE_MARKER_END_OF_STRING);
         }
     }
     
@@ -1462,17 +1511,32 @@ public class SmileGenerator
 
     private final void _writeBytes(byte[] data, int offset, int len) throws IOException
     {
-        if (len > 0) {
-            while (true) {
-                int currLen = Math.min(len, (_outputEnd - _outputTail));
-                System.arraycopy(data, offset, _outputBuffer, _outputTail, currLen);
-                _outputTail += currLen;
-                if ((len -= currLen) == 0) {
-                    break;
-                }
-                _flushBuffer();
-                offset += currLen;
+        if (len != 0) {
+            // common case first: stuff fits in
+            if ((_outputTail + len) <= _outputEnd) {
+                System.arraycopy(data, offset, _outputBuffer, _outputTail, len);
+                _outputTail += len;
+                return;
+            } else {
+                _writeBytesLong(data, offset, len);
             }
+        }
+    }
+    
+    private final void _writeBytesLong(byte[] data, int offset, int len) throws IOException
+    {
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        while (true) {
+            int currLen = Math.min(len, (_outputEnd - _outputTail));
+            System.arraycopy(data, offset, _outputBuffer, _outputTail, currLen);
+            _outputTail += currLen;
+            if ((len -= currLen) == 0) {
+                break;
+            }
+            offset += currLen;
+            _flushBuffer();
         }
     }
 

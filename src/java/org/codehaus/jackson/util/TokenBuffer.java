@@ -192,10 +192,25 @@ public class TokenBuffer
                 jgen.writeEndArray();
                 break;
             case FIELD_NAME:
-                jgen.writeFieldName((String) segment.get(ptr));
+            {
+                // 13-Dec-2010, tatu: Maybe we should start using different type tokens to reduce casting?
+                Object ob = segment.get(ptr);
+                if (ob instanceof SerializableString) {
+                    jgen.writeFieldName((SerializableString) ob);
+                } else {
+                    jgen.writeFieldName((String) ob);
+                }
+            }
                 break;
             case VALUE_STRING:
-                jgen.writeString((String) segment.get(ptr));
+                {
+                    Object ob = segment.get(ptr);
+                    if (ob instanceof SerializableString) {
+                        jgen.writeString((SerializableString) ob);
+                    } else {
+                        jgen.writeString((String) ob);
+                    }
+                }
                 break;
             case VALUE_NUMBER_INT:
                 {
@@ -398,8 +413,8 @@ public class TokenBuffer
     public void writeFieldName(SerializableString name)
         throws IOException, JsonGenerationException
     {
-        // Could this be optimized? (and does it need to)
-        writeFieldName(name.getValue());
+        _append(JsonToken.FIELD_NAME, name);
+        _writeContext.writeFieldName(name.getValue());
     }
     
     /*
@@ -422,6 +437,15 @@ public class TokenBuffer
         writeString(new String(text, offset, len));
     }
 
+    @Override
+    public void writeString(SerializableString text) throws IOException, JsonGenerationException {
+        if (text == null) {
+            writeNull();
+        } else {
+            _append(JsonToken.VALUE_STRING, text);
+        }
+    }
+    
     @Override
     public void writeRaw(String text) throws IOException, JsonGenerationException {
         _reportUnsupportedOperation();
@@ -590,7 +614,11 @@ public class TokenBuffer
             writeFieldName(jp.getCurrentName());
             break;
         case VALUE_STRING:
-            writeString(jp.getTextCharacters(), jp.getTextOffset(), jp.getTextLength());
+            if (jp.hasTextCharacters()) {
+                writeString(jp.getTextCharacters(), jp.getTextOffset(), jp.getTextLength());
+            } else {
+                writeString(jp.getText());
+            }
             break;
         case VALUE_NUMBER_INT:
             switch (jp.getNumberType()) {

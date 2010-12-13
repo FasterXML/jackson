@@ -299,6 +299,37 @@ public final class WriterBasedGenerator
         _outputBuffer[_outputTail++] = '"';
     }
 
+    @Override
+    public final void writeString(SerializableString sstr)
+        throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("write text value");
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = '"';
+        // Note: copied from writeRaw:
+        char[] text = sstr.asQuotedChars();
+        final int len = text.length;
+        // Only worth buffering if it's a short write?
+        if (len < SHORT_WRITE) {
+            int room = _outputEnd - _outputTail;
+            if (len > room) {
+                _flushBuffer();
+            }
+            System.arraycopy(text, 0, _outputBuffer, _outputTail, len);
+            _outputTail += len;
+        } else {
+            // Otherwise, better just pass through:
+            _flushBuffer();
+            _writer.write(text, 0, len);
+        }
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = '"';
+    }
+
     /*
     /**********************************************************
     /* Output method implementations, unprocessed ("raw")

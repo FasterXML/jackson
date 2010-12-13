@@ -18,9 +18,13 @@ public interface SerializableString
      * serialized forms for)
      */
     public String getValue();
-
+    
     /**
-     * Returns length of the String as characters.
+     * Returns length of the (unquoted) String as characters.
+     * Functionally equvalent to:
+     *<pre>
+     *   getValue().length();
+     *</pre>
      */
     public int charLength();
 

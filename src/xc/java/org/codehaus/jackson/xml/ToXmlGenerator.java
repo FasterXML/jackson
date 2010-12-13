@@ -315,6 +315,11 @@ public class ToXmlGenerator
             StaxUtil.throwXmlAsIOException(e);
         }
     }
+
+    @Override
+    public void writeString(SerializableString text) throws IOException, JsonGenerationException {
+        writeString(text.getValue());
+    }
     
     /*
     /**********************************************************
