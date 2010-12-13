@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.impl.StringCollectionDeserializer;
 import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
@@ -262,6 +263,11 @@ public abstract class BasicDeserializerFactory
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         @SuppressWarnings("unchecked")
         Constructor<Collection<Object>> ctor = ClassUtil.findConstructor((Class<Collection<Object>>)collectionClass, fixAccess);
+        // 13-Dec-2010, tatu: Can use more optimal deserializer if content type is String, so:
+        if (contentType.getRawClass() == String.class) {
+            // no value type deserializer because Strings are one of natural/native types:
+            return new StringCollectionDeserializer(type, contentDeser, ctor);
+        }
         return new CollectionDeserializer(type, contentDeser, contentTypeDeser, ctor);
     }
 

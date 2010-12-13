@@ -52,6 +52,19 @@ public abstract class StdDeserializer<T>
      */
     public JavaType getValueType() { return null; }
 
+    /**
+     * Method that can be called to determine if given deserializer is the default
+     * deserializer Jackson uses; as opposed to a custom deserializer installed by
+     * a module or calling application. Determination is done using
+     * {@link JacksonStdImpl} annotation on deserializer class.
+     * 
+     * @since 1.7
+     */
+    protected boolean isDefaultSerializer(JsonDeserializer<?> deserializer)
+    {
+        return (deserializer != null && deserializer.getClass().getAnnotation(JacksonStdImpl.class) != null);
+    }
+    
     /*
     /**********************************************************
     /* Partial JsonDeserializer implementation 

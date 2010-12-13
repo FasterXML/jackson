@@ -87,7 +87,7 @@ public class StringCollectionSerializer
         for (String str : value) {
             try {
                 if (str == null) {
-                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                    provider.defaultSerializeNull(jgen);
                 } else {
                     jgen.writeString(str);
                 }
@@ -106,7 +106,7 @@ public class StringCollectionSerializer
         for (String str : value) {
             try {
                 if (str == null) {
-                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                    provider.defaultSerializeNull(jgen);
                 } else {
                     ser.serialize(str, jgen, provider);
                 }

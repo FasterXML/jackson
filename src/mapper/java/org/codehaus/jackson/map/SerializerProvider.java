@@ -388,6 +388,16 @@ public abstract class SerializerProvider
     public abstract void defaultSerializeDateValue(Date date, JsonGenerator jgen)
         throws IOException, JsonProcessingException;
 
+
+    /**
+     * @since 1.7
+     */
+    public final void defaultSerializeNull(JsonGenerator jgen)
+        throws IOException, JsonProcessingException
+    {
+        getNullValueSerializer().serialize(null, jgen, this);
+    }
+    
     /*
     /********************************************************
     /* Access to caching details

@@ -75,40 +75,42 @@ public final class IndexedStringListSerializer
         typeSer.writeTypeSuffixForArray(value, jgen);
     }
     
-    private void serializeContents(List<String> value, JsonGenerator jgen, SerializerProvider provider)
+    private final void serializeContents(List<String> value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
-        final int len = value.size();
-        for (int i = 0; i < len; ++i) {
-            String str = value.get(i);
-            try {
+        int i = 0;
+        try {
+            final int len = value.size();
+            for (; i < len; ++i) {
+                String str = value.get(i);
                 if (str == null) {
-                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                    provider.defaultSerializeNull(jgen);
                 } else {
                     jgen.writeString(str);
                 }
-            } catch (Exception e) {
-                wrapAndThrow(e, value, i);
             }
+        } catch (Exception e) {
+            wrapAndThrow(e, value, i);
         }
     }
 
-    private void serializeUsingCustom(List<String> value, JsonGenerator jgen, SerializerProvider provider)
+    private final void serializeUsingCustom(List<String> value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
-        final int len = value.size();
-        final JsonSerializer<String> ser = _serializer;
-        for (int i = 0; i < len; ++i) {
-            String str = value.get(i);
-            try {
+        int i = 0;
+        try {
+            final int len = value.size();
+            final JsonSerializer<String> ser = _serializer;
+            for (i = 0; i < len; ++i) {
+                String str = value.get(i);
                 if (str == null) {
-                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                    provider.defaultSerializeNull(jgen);
                 } else {
                     ser.serialize(str, jgen, provider);
                 }
-            } catch (Exception e) {
-                wrapAndThrow(e, value, i);
             }
-       }
+        } catch (Exception e) {
+            wrapAndThrow(e, value, i);
+        }
     }
 }
