@@ -4,11 +4,12 @@ import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.ser.SerializerCache.*;
+import org.codehaus.jackson.map.ser.SerializerCache.TypeKey;
 
 /**
  * Optimized lookup table for accessing two types of serializers; typed
- * and non-typed.
+ * and non-typed. Only accessed from a single thread, so no synchronization
+ * needed for accessors.
  */
 public final class ReadOnlyClassToSerializerMap
 {
@@ -22,11 +23,7 @@ public final class ReadOnlyClassToSerializerMap
      * this is not shared between threads, we can just reuse single
      * instance.
      */
-    final TypedKeyRaw _typedKeyRaw = new TypedKeyRaw(getClass());
-
-    final TypedKeyFull _typedKeyFull = new TypedKeyFull(null);
-
-    final UntypedKeyRaw _untypedKeyRaw = new UntypedKeyRaw(getClass());
+    protected final TypeKey _cacheKey = new TypeKey(getClass(), false);
     
     private ReadOnlyClassToSerializerMap(JsonSerializerMap map)
     {
@@ -43,27 +40,27 @@ public final class ReadOnlyClassToSerializerMap
      * can not be used as is but just shared: to get an actual usable
      * instance, {@link #instance} has to be called first.
      */
-    public static ReadOnlyClassToSerializerMap from(HashMap<Object, JsonSerializer<Object>> src)
+    public static ReadOnlyClassToSerializerMap from(HashMap<TypeKey, JsonSerializer<Object>> src)
     {
         return new ReadOnlyClassToSerializerMap(new JsonSerializerMap(src));
     }
 
     public JsonSerializer<Object> typedValueSerializer(JavaType type)
     { 
-        _typedKeyFull.reset(type);
-        return _map.find(_typedKeyFull);
+        _cacheKey.resetTyped(type);
+        return _map.find(_cacheKey);
     }
 
     public JsonSerializer<Object> typedValueSerializer(Class<?> cls)
     { 
-        _typedKeyRaw.reset(cls);
-        return _map.find(_typedKeyRaw);
+        _cacheKey.resetTyped(cls);
+        return _map.find(_cacheKey);
     }
     
     public JsonSerializer<Object> untypedValueSerializer(Class<?> cls)
     { 
-        _untypedKeyRaw.reset(cls);
-        return _map.find(_untypedKeyRaw);
+        _cacheKey.resetUntyped(cls);
+        return _map.find(_cacheKey);
     }
 
     /**
@@ -71,6 +68,7 @@ public final class ReadOnlyClassToSerializerMap
      */
     public JsonSerializer<Object> untypedValueSerializer(JavaType type)
     { 
-        return _map.find(type);
+        _cacheKey.resetUntyped(type);
+        return _map.find(_cacheKey);
     }
 }

@@ -28,7 +28,7 @@ public final class SerializerCache
      * NOTE: keys are of various types (see below for key types), in addition to
      * basic {@link JavaType} used for "untyped" serializers.
      */
-    private HashMap<Object, JsonSerializer<Object>> _sharedMap = new HashMap<Object, JsonSerializer<Object>>(64);
+    private HashMap<TypeKey, JsonSerializer<Object>> _sharedMap = new HashMap<TypeKey, JsonSerializer<Object>>(64);
 
     /**
      * Most recent read-only instance, created from _sharedMap, if any.
@@ -61,7 +61,7 @@ public final class SerializerCache
     public JsonSerializer<Object> untypedValueSerializer(Class<?> type)
     {
         synchronized (this) {
-            return _sharedMap.get(new UntypedKeyRaw(type));
+            return _sharedMap.get(new TypeKey(type, false));
         }
     }
 
@@ -71,21 +71,21 @@ public final class SerializerCache
     public JsonSerializer<Object> untypedValueSerializer(JavaType type)
     {
         synchronized (this) {
-            return _sharedMap.get(type);
+            return _sharedMap.get(new TypeKey(type, false));
         }
     }
 
     public JsonSerializer<Object> typedValueSerializer(JavaType type)
     {
         synchronized (this) {
-            return _sharedMap.get(new TypedKeyFull(type));
+            return _sharedMap.get(new TypeKey(type, true));
         }
     }
 
     public JsonSerializer<Object> typedValueSerializer(Class<?> cls)
     {
         synchronized (this) {
-            return _sharedMap.get(new TypedKeyRaw(cls));
+            return _sharedMap.get(new TypeKey(cls, true));
         }
     }
     
@@ -97,7 +97,7 @@ public final class SerializerCache
     public void addTypedSerializer(JavaType type, JsonSerializer<Object> ser)
     {
         synchronized (this) {
-            if (_sharedMap.put(new TypedKeyFull(type), ser) == null) {
+            if (_sharedMap.put(new TypeKey(type, true), ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
@@ -107,7 +107,7 @@ public final class SerializerCache
     public void addTypedSerializer(Class<?> cls, JsonSerializer<Object> ser)
     {
         synchronized (this) {
-            if (_sharedMap.put(new TypedKeyRaw(cls), ser) == null) {
+            if (_sharedMap.put(new TypeKey(cls, true), ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
@@ -117,7 +117,7 @@ public final class SerializerCache
     public void addNonTypedSerializer(Class<?> type, JsonSerializer<Object> ser)
     {
         synchronized (this) {
-            if (_sharedMap.put(new UntypedKeyRaw(type), ser) == null) {
+            if (_sharedMap.put(new TypeKey(type, false), ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
@@ -130,7 +130,7 @@ public final class SerializerCache
     public void addNonTypedSerializer(JavaType type, JsonSerializer<Object> ser)
     {
         synchronized (this) {
-            if (_sharedMap.put(type, ser) == null) {
+            if (_sharedMap.put(new TypeKey(type, false), ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
@@ -154,86 +154,97 @@ public final class SerializerCache
     /**************************************************************
      */
 
-    public abstract static class TypeKey
+    /**
+     * Key that offers two "modes"; one with raw class, as used for
+     * cases were raw class type is available (for example, when using
+     * runtime type); and one with full generics-including.
+     */
+    public final static class TypeKey
     {
         protected int _hashCode;
 
-        protected TypeKey() { }
+        protected Class<?> _class;
 
-        @Override public final int hashCode() { return _hashCode; }
-
-        @Override public abstract boolean equals(Object o);
-    }
-    
-    /**
-     * Key object used for "typed" serializers (type serializer wrapping
-     * value serializer). These are only used
-     * for root-level (and similar) access.
-     */
-    public final static class TypedKeyRaw extends TypeKey
-    {
-        protected Class<?> _type;
-
-        public TypedKeyRaw(Class<?> cls) {
-            reset(cls);
-        }
-
-        public void reset(Class<?> cls) {
-            _type = cls;
-            _hashCode = cls.getName().hashCode();
-        }
-
-        @Override
-        public boolean equals(Object o)
-        {
-            if (o == this) return true;
-            if (o == null || o.getClass() != getClass()) return false;
-            return ((TypedKeyRaw) o)._type == _type;
-        }
-    }
-
-    public final static class TypedKeyFull extends TypeKey
-    {
         protected JavaType _type;
 
-        public TypedKeyFull(JavaType type) {
-            _type = type;
+        /**
+         * Indicator of whether serializer stored has a type serializer
+         * wrapper around it or not; if not, it is "untyped" serializer;
+         * if it has, it is "typed"
+         */
+        protected boolean _isTyped;
+        
+        public TypeKey(Class<?> key, boolean typed) {
+            _class = key;
+            _type = null;
+            _isTyped = typed;
+            _hashCode = hash(key);
         }
 
-        public void reset(JavaType type) {
-            _type = type;
-            _hashCode = type.hashCode();
+        public TypeKey(JavaType key, boolean typed) {
+            _type = key;
+            _class = null;
+            _isTyped = typed;
+            _hashCode = hash(key);
         }
 
-        @Override
-        public boolean equals(Object o)
+        private final static int hash(Class<?> cls) {
+            return cls.getName().hashCode() + 1;
+        }
+
+        private final static int hash(JavaType type) {
+            return type.hashCode();
+        }
+        
+        public void resetTyped(Class<?> cls) {
+            _type = null;
+            _class = cls;
+            _isTyped = true;
+            _hashCode = hash(cls);
+        }
+
+        public void resetUntyped(Class<?> cls) {
+            _type = null;
+            _class = cls;
+            _isTyped = false;
+            _hashCode = hash(cls);
+        }
+        
+        public void resetTyped(JavaType type) {
+            _type = type;
+            _class = null;
+            _isTyped = false;
+            _hashCode = hash(type);
+        }
+
+        public void resetUntyped(JavaType type) {
+            _type = type;
+            _class = null;
+            _isTyped = false;
+            _hashCode = hash(type);
+        }
+        
+        @Override public final int hashCode() { return _hashCode; }
+
+        @Override public final String toString() {
+            if (_class != null) {
+                return "{class: "+_class.getName()+", typed? "+_isTyped+"}";
+            }
+            return "{type: "+_type+", typed? "+_isTyped+"}";
+        }
+        
+        // note: we assume key is never used for anything other than as map key, so:
+        @Override public final boolean equals(Object o)
         {
             if (o == this) return true;
-            if (o == null || o.getClass() != getClass()) return false;
-            return ((TypedKeyFull) o)._type.equals(_type);
-        }
-    }
-
-    public final static class UntypedKeyRaw extends TypeKey
-    {
-        protected Class<?> _type;
-
-        public UntypedKeyRaw(Class<?> cls) {
-            reset(cls);
-        }
-
-        public void reset(Class<?> cls) {
-            _type = cls;
-            _hashCode = cls.getName().hashCode();
-        }
-
-        @Override
-        public boolean equals(Object o)
-        {
-            if (o == this) return true;
-            if (o == null) return false;
-            if (o.getClass() != getClass()) return false;
-            return ((UntypedKeyRaw) o)._type == _type;
-        }
+            TypeKey other = (TypeKey) o;
+            if (other._isTyped == _isTyped) {
+                if (_class != null) {
+                    return other._class == _class;
+                }
+                return _type.equals(other._type);
+            }
+            return false;
+        } 
     }
 }
