@@ -20,7 +20,7 @@ Description:
     (reported by Kirill S) 
   * [JACKSON-419]: Add explicit support for handling 'java.util.Locale'
     (suggested by Brian R)
-  * [JACKSON-428]: Add 'JsonGenerator.writeString(SerializableString)'
+  * [JACKSON-434]: Add 'JsonGenerator.writeString(SerializableString)'
 
   New features:
 

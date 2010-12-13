@@ -413,15 +413,22 @@ public abstract class JsonGenerator
         throws IOException, JsonGenerationException;
 
     /**
-     * Method similar to {@link #writeString(text)}, but that takes
+     * Method similar to {@link #writeString(String)}, but that takes
      * {@link SerializableString} which can make this potentially
      * more efficient to call as generator may be able to reuse
      * quoted and/or encoded representation.
+     *<p>
+     * Default implementation just calls {@link #writeString(String)};
+     * sub-classes should override it with more efficient implementation
+     * if possible.
      * 
      * @since 1.7
      */
-    public abstract void writeString(SerializableString text)
-        throws IOException, JsonGenerationException;
+    public void writeString(SerializableString text)
+        throws IOException, JsonGenerationException
+    {
+        writeString(text.getValue());
+    }
 
     /**
      * Fallback method which can be used to make generator copy
