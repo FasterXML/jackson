@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.ser.impl;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -14,6 +14,8 @@ import org.codehaus.jackson.map.ResolvableSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.ser.ArraySerializers;
+import org.codehaus.jackson.map.ser.ContainerSerializerBase;
 import org.codehaus.jackson.map.type.ArrayType;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;

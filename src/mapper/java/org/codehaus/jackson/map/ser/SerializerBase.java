@@ -10,6 +10,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.SchemaAware;
@@ -65,6 +66,19 @@ public abstract class SerializerBase<T>
         return schema;
     }
 
+    /**
+     * Method that can be called to determine if given serializer is the default
+     * serializer Jackson uses; as opposed to a custom serializer installed by
+     * a module or calling application. Determination is done using
+     * {@link JacksonStdImpl} annotation on serializer class.
+     * 
+     * @since 1.7
+     */
+    protected boolean isDefaultSerializer(JsonSerializer<?> serializer)
+    {
+        return (serializer != null && serializer.getClass().getAnnotation(JacksonStdImpl.class) != null);
+    }
+    
     /**
      * Method that will modify caught exception (passed in as argument)
      * as necessary to include reference information, and to ensure it

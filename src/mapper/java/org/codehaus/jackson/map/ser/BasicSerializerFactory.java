@@ -14,6 +14,9 @@ import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.ser.impl.IndexedStringListSerializer;
+import org.codehaus.jackson.map.ser.impl.ObjectArraySerializer;
+import org.codehaus.jackson.map.ser.impl.StringCollectionSerializer;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
@@ -312,9 +315,19 @@ public abstract class BasicSerializerFactory
                 return new ArraySerializers.StringArraySerializer(property);
             }
             if (ser == MARKER_INDEXED_LIST) {
+                // Ok: for some types we have specialized handlers
+                JavaType elemType = type.getContentType();
+                if (elemType.getRawClass() == String.class) {
+                    return new IndexedStringListSerializer(property);
+                }
                 return buildIndexedListSerializer(config, type, beanDesc, property);
             }
             if (ser == MARKER_COLLECTION) {
+                // Ok: for some types we have specialized handlers
+                JavaType elemType = type.getContentType();
+                if (elemType.getRawClass() == String.class) {
+                    return new StringCollectionSerializer(property);
+                }
                 return buildCollectionSerializer(config, type, beanDesc, property);
             }
         } else {

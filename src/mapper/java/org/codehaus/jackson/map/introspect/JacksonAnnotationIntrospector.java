@@ -21,7 +21,7 @@ import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
-import org.codehaus.jackson.map.ser.RawSerializer;
+import org.codehaus.jackson.map.ser.impl.RawSerializer;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 

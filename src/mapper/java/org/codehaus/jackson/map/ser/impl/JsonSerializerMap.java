@@ -1,10 +1,15 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.ser.impl;
 
 import java.util.Map;
 
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.ser.SerializerCache.TypeKey;
 
+/**
+ * Specialized read-only map used for storing and accessing serializers by type.
+ * 
+ * @since 1.7
+ */
 public class JsonSerializerMap
 {
     private final Bucket[] _buckets;

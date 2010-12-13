@@ -73,7 +73,7 @@ public final class ContainerSerializers
      * Base class for serializers that will output contents as JSON
      * arrays.
      */
-    private abstract static class AsArraySerializer<T>
+    public abstract static class AsArraySerializer<T>
         extends ContainerSerializerBase<T>
         implements ResolvableSerializer
     {
@@ -420,8 +420,6 @@ public final class ContainerSerializers
     public static class IteratorSerializer
         extends AsArraySerializer<Iterator<?>>
     {
-//        public final static IteratorSerializer instance = new IteratorSerializer(null, false, null, null);
-
         public IteratorSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
                 BeanProperty property)
         {
@@ -471,8 +469,6 @@ public final class ContainerSerializers
     public static class IterableSerializer
         extends AsArraySerializer<Iterable<?>>
     {
-//        public final static IterableSerializer instance = new IterableSerializer(null, false, null, null, );
-
         public IterableSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts, BeanProperty property)
         {
             super(Iterable.class, elemType, staticTyping, vts, property);

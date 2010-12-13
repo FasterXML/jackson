@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.ser.impl;
 
 import java.util.*;
 
@@ -10,6 +10,8 @@ import org.codehaus.jackson.map.ser.SerializerCache.TypeKey;
  * Optimized lookup table for accessing two types of serializers; typed
  * and non-typed. Only accessed from a single thread, so no synchronization
  * needed for accessors.
+ * 
+ * @since 1.7
  */
 public final class ReadOnlyClassToSerializerMap
 {
@@ -63,9 +65,6 @@ public final class ReadOnlyClassToSerializerMap
         return _map.find(_cacheKey);
     }
 
-    /**
-     * @since 1.5
-     */
     public JsonSerializer<Object> untypedValueSerializer(JavaType type)
     { 
         _cacheKey.resetUntyped(type);

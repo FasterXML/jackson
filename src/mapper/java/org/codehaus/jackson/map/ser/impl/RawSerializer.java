@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.ser.impl;
 
 import java.lang.reflect.Type;
 import java.io.IOException;
@@ -6,10 +6,13 @@ import java.io.IOException;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.ser.SerializerBase;
 
 /**
  * This is a simple dummy serializer that will just output raw values by calling toString()
  * on value to serialize.
+ * 
+ * @since 1.7
  */
 @JacksonStdImpl
 public class RawSerializer<T>

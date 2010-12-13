@@ -26,7 +26,7 @@ public final class ArraySerializers
      * Base class for serializers that will output contents as JSON
      * arrays.
      */
-    protected abstract static class AsArraySerializer<T>
+    public abstract static class AsArraySerializer<T>
         extends ContainerSerializerBase<T>
     {
          /**

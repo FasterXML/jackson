@@ -6,6 +6,7 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.ser.impl.ReadOnlyClassToSerializerMap;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
