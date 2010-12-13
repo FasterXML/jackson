@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -37,12 +38,6 @@ public class EnumSerializer
         _values = v;
     }
 
-    @Deprecated
-    public static EnumSerializer construct(Class<Enum<?>> enumClass, AnnotationIntrospector intr)
-    {
-        return new EnumSerializer(EnumValues.construct(enumClass, intr));
-    }
-
     public static EnumSerializer construct(Class<Enum<?>> enumClass, SerializationConfig config,
             BasicBeanDescription beanDesc)
     {
@@ -57,7 +52,9 @@ public class EnumSerializer
     public void serialize(Enum<?> en, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
-        jgen.writeString(_values.valueFor(en));
+        SerializedString sstr = _values.serializedValueFor(en);
+        // @TODO: use SerializedString directly, once JsonGenerator supports it!
+        jgen.writeString(sstr.getValue());
     }
     
     @Override
@@ -69,8 +66,8 @@ public class EnumSerializer
             JavaType type = TypeFactory.type(typeHint);
             if (type.isEnumType()) {
                 ArrayNode enumNode = objectNode.putArray("enum");
-                for (String value : _values.values()) {
-                    enumNode.add(value);
+                for (SerializedString value : _values.values()) {
+                    enumNode.add(value.getValue());
                 }
             }
         }

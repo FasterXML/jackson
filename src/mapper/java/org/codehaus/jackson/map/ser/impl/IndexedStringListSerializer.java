@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.ResolvableSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 
 /**
@@ -46,15 +47,37 @@ public final class IndexedStringListSerializer
             _serializer = (JsonSerializer<String>) ser;
         }
     }
-    
+
     @Override
-    public void serializeContents(List<String> value, JsonGenerator jgen, SerializerProvider provider)
+    public void serialize(List<String> value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
-        if (_serializer != null) {
+        jgen.writeStartArray();
+        if (_serializer == null) {
+            serializeContents(value, jgen, provider);
+        } else {
             serializeUsingCustom(value, jgen, provider);
-            return;
         }
+        jgen.writeEndArray();
+    }
+    
+    @Override
+    public void serializeWithType(List<String> value, JsonGenerator jgen, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonGenerationException
+    {
+        typeSer.writeTypePrefixForArray(value, jgen);
+        if (_serializer == null) {
+            serializeContents(value, jgen, provider);
+        } else {
+            serializeUsingCustom(value, jgen, provider);
+        }
+        typeSer.writeTypeSuffixForArray(value, jgen);
+    }
+    
+    private void serializeContents(List<String> value, JsonGenerator jgen, SerializerProvider provider)
+        throws IOException, JsonGenerationException
+    {
         final int len = value.size();
         for (int i = 0; i < len; ++i) {
             String str = value.get(i);
@@ -70,7 +93,7 @@ public final class IndexedStringListSerializer
         }
     }
 
-    protected void serializeUsingCustom(List<String> value, JsonGenerator jgen, SerializerProvider provider)
+    private void serializeUsingCustom(List<String> value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         final int len = value.size();

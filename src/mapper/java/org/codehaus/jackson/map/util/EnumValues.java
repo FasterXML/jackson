@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.util;
 
 import java.util.*;
 
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -10,10 +11,14 @@ import org.codehaus.jackson.map.*;
  */
 public final class EnumValues
 {
-    private final EnumMap<?,String> _values;
+    /**
+     * Since 1.7, we are storing values as SerializedStrings, to further
+     * speed up serialization.
+     */
+    private final EnumMap<?,SerializedString> _values;
 
     @SuppressWarnings("unchecked")
-    private EnumValues(Map<Enum<?>,String> v) {
+    private EnumValues(Map<Enum<?>,SerializedString> v) {
         _values = new EnumMap(v);
     }
 
@@ -31,9 +36,10 @@ public final class EnumValues
         Enum<?>[] values = cls.getEnumConstants();
         if (values != null) {
             // Type juggling... unfortunate
-            Map<Enum<?>,String> map = new HashMap<Enum<?>,String>();
+            Map<Enum<?>,SerializedString> map = new HashMap<Enum<?>,SerializedString>();
             for (Enum<?> en : values) {
-                map.put(en, intr.findEnumValue(en));
+                String value = intr.findEnumValue(en);
+                map.put(en, new SerializedString(value));
             }
             return new EnumValues(map);
         }
@@ -46,21 +52,31 @@ public final class EnumValues
         Enum<?>[] values = cls.getEnumConstants();
         if (values != null) {
             // Type juggling... unfortunate
-            Map<Enum<?>,String> map = new HashMap<Enum<?>,String>();
+            Map<Enum<?>,SerializedString> map = new HashMap<Enum<?>,SerializedString>();
             for (Enum<?> en : values) {
-                map.put(en, en.toString());
+                map.put(en, new SerializedString(en.toString()));
             }
             return new EnumValues(map);
         }
         throw new IllegalArgumentException("Can not determine enum constants for Class "+enumClass.getName());
     }
-    
+
+    /**
+     * @deprecated since 1.7, use {@link #serializedValueFor} instead
+     */
+    @Deprecated
     public String valueFor(Enum<?> key)
+    {
+        SerializedString sstr = _values.get(key);
+        return (sstr == null) ? null : sstr.getValue();
+    }
+
+    public SerializedString serializedValueFor(Enum<?> key)
     {
         return _values.get(key);
     }
-
-    public Collection<String> values() {
+    
+    public Collection<SerializedString> values() {
         return _values.values();
     }
 }

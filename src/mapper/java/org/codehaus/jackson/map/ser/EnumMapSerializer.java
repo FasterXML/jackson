@@ -119,7 +119,7 @@ public class EnumMapSerializer
                         key.getDeclaringClass(), _property);
                 keyEnums = ((EnumSerializer) ser).getEnumValues();
             }
-            jgen.writeFieldName(keyEnums.valueFor(key));
+            jgen.writeFieldName(keyEnums.serializedValueFor(key));
             // And then value
             Object valueElem = entry.getValue();
             if (valueElem == null) {
@@ -157,7 +157,7 @@ public class EnumMapSerializer
                         _property);
                 keyEnums = ((EnumSerializer) ser).getEnumValues();
             }
-            jgen.writeFieldName(keyEnums.valueFor(key));
+            jgen.writeFieldName(keyEnums.serializedValueFor(key));
             Object valueElem = entry.getValue();
             if (valueElem == null) {
                 provider.getNullValueSerializer().serialize(null, jgen, provider);

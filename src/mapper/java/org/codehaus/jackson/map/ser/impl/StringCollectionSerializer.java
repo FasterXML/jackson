@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.ResolvableSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 
 /**
@@ -49,7 +50,33 @@ public class StringCollectionSerializer
     }
 
     @Override
-    public final void serializeContents(Collection<String> value, JsonGenerator jgen, SerializerProvider provider)
+    public void serialize(Collection<String> value, JsonGenerator jgen, SerializerProvider provider)
+        throws IOException, JsonGenerationException
+    {
+        jgen.writeStartArray();
+        if (_serializer == null) {
+            serializeContents(value, jgen, provider);
+        } else {
+            serializeUsingCustom(value, jgen, provider);
+        }
+        jgen.writeEndArray();
+    }
+    
+    @Override
+    public void serializeWithType(Collection<String> value, JsonGenerator jgen, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonGenerationException
+    {
+        typeSer.writeTypePrefixForArray(value, jgen);
+        if (_serializer == null) {
+            serializeContents(value, jgen, provider);
+        } else {
+            serializeUsingCustom(value, jgen, provider);
+        }
+        typeSer.writeTypeSuffixForArray(value, jgen);
+    }
+    
+    private final void serializeContents(Collection<String> value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         if (_serializer != null) {
@@ -71,7 +98,7 @@ public class StringCollectionSerializer
         }
     }
 
-    protected void serializeUsingCustom(Collection<String> value, JsonGenerator jgen, SerializerProvider provider)
+    private void serializeUsingCustom(Collection<String> value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
         final JsonSerializer<String> ser = _serializer;
