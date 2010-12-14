@@ -146,18 +146,32 @@ public abstract class JsonNumericParserBase
 
     protected final JsonToken reset(boolean negative, int intLen, int fractLen, int expLen)
     {
+        if (fractLen < 1 && expLen < 1) { // integer
+            return resetInt(negative, intLen);
+        }
+        return resetFloat(negative, intLen, fractLen, expLen);
+    }
+        
+    protected final JsonToken resetInt(boolean negative, int intLen)
+    {
+        _numberNegative = negative;
+        mIntLength = intLen;
+        mFractLength = 0;
+        mExpLength = 0;
+        _numTypesValid = NR_UNKNOWN; // to force parsing
+        return JsonToken.VALUE_NUMBER_INT;
+    }
+
+    protected final JsonToken resetFloat(boolean negative, int intLen, int fractLen, int expLen)
+    {
         _numberNegative = negative;
         mIntLength = intLen;
         mFractLength = fractLen;
         mExpLength = expLen;
         _numTypesValid = NR_UNKNOWN; // to force parsing
-        if (fractLen < 1 && expLen < 1) { // integer
-            return JsonToken.VALUE_NUMBER_INT;
-        }
-        // Nope, floating point
         return JsonToken.VALUE_NUMBER_FLOAT;
     }
-
+    
     /*
     /**********************************************************
     /* Numeric accessors of public API

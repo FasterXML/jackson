@@ -16,6 +16,8 @@ public final class Utf8StreamParser
 {
     final static byte BYTE_LF = (byte) '\n';
 
+    private final static byte BYTE_0 = (byte) 0;
+    
     /*
     /**********************************************************
     /* Configuration, state
@@ -281,43 +283,110 @@ public final class Utf8StreamParser
                 loadMoreGuaranteed();
             }
             c = (int) _inputBuffer[_inputPtr++] & 0xFF;
+            // Note: must be followed by a digit
+            if (c < INT_0 || c > INT_9) {
+                reportInvalidNumber("Missing integer part (next char "+_getCharDesc(c)+")");
+            }
         }
 
-        int intLen = 0;
-        boolean eof = false;
+        // One special case: if first char is 0, must not be followed by a digit
+        if (c == INT_0) {
+            _verifyNoLeadingZeroes();
+        }
+        
+        // Ok: we can first just add digit we saw first:
+        outBuf[outPtr++] = (char) c;
+        int intLen = 1;
 
-        // Ok, first the obligatory integer part:
-        int_loop:
+        // And then figure out how far we can read without further checks:
+        int end = _inputPtr + outBuf.length;
+        if (end > _inputEnd) {
+            end = _inputEnd;
+        }
+
+        // With this, we have a nice and tight loop:
         while (true) {
+            if (_inputPtr >= end) {
+                // Long enough to be split across boundary, so:
+                return _parserNumber2(outBuf, outPtr, negative, intLen);
+            }
+            c = (int) _inputBuffer[_inputPtr++] & 0xFF;
             if (c < INT_0 || c > INT_9) {
-                break int_loop;
+                break;
             }
             ++intLen;
-            // Quickie check: no leading zeroes allowed
-            if (intLen == 2) {
-                if (outBuf[outPtr-1] == '0') {
-                    reportInvalidNumber("Leading zeroes not allowed");
+            outBuf[outPtr++] = (char) c;
+        }
+        if (c == '.' || c == 'e' || c == 'E') {
+            return _parseFloatText(outBuf, outPtr, c, negative, intLen);
+        }
+
+        --_inputPtr; // to push back trailing char (comma etc)
+        _textBuffer.setCurrentLength(outPtr);
+
+        // And there we have it!
+        return resetInt(negative, intLen);
+    }
+
+    /**
+     * Method called to handle parsing when input is split across buffer boundary
+     * (or output is longer than segment used to store it)
+     */
+    private final JsonToken _parserNumber2(char[] outBuf, int outPtr, boolean negative,
+            int intPartLength)
+        throws IOException, JsonParseException
+    {
+        // Ok, parse the rest
+        while (true) {
+            if (_inputPtr >= _inputEnd && !loadMore()) {
+                _textBuffer.setCurrentLength(outPtr);
+                return resetInt(negative, intPartLength);
+            }
+            int c = (int) _inputBuffer[_inputPtr++] & 0xFF;
+            if (c > INT_9 || c < INT_0) {
+                if (c == '.' || c == 'e' || c == 'E') {
+                    return _parseFloatText(outBuf, outPtr, c, negative, intPartLength);
                 }
+                break;
             }
             if (outPtr >= outBuf.length) {
                 outBuf = _textBuffer.finishCurrentSegment();
                 outPtr = 0;
             }
             outBuf[outPtr++] = (char) c;
-            if (_inputPtr >= _inputEnd && !loadMore()) {
-                // EOF is legal for main level int values
-                c = CHAR_NULL;
-                eof = true;
-                break int_loop;
-            }
-            c = (int) _inputBuffer[_inputPtr++] & 0xFF;
+            ++intPartLength;
         }
-        // Also, integer part is not optional
-        if (intLen == 0) {
-            reportInvalidNumber("Missing integer part (next char "+_getCharDesc(c)+")");
-        }
+        --_inputPtr; // to push back trailing char (comma etc)
+        _textBuffer.setCurrentLength(outPtr);
 
+        // And there we have it!
+        return resetInt(negative, intPartLength);
+        
+    }
+    
+    /**
+     * Method called when we have seen one zero, and want to ensure
+     * it is not followed by another
+     */
+    private final void _verifyNoLeadingZeroes()
+        throws IOException, JsonParseException
+    {
+        // Ok to have plain "0"
+        if (_inputPtr >= _inputEnd && !loadMore()) {
+            return;
+        }
+        if (_inputBuffer[_inputPtr] == BYTE_0) {
+            reportInvalidNumber("Leading zeroes not allowed");
+        }
+    }
+    
+    private final JsonToken _parseFloatText(char[] outBuf, int outPtr, int c,
+            boolean negative, int integerPartLength)
+        throws IOException, JsonParseException
+    {
         int fractLen = 0;
+        boolean eof = false;
+
         // And then see if we get other parts
         if (c == '.') { // yes, fraction
             outBuf[outPtr++] = (char) c;
@@ -398,7 +467,7 @@ public final class Utf8StreamParser
         _textBuffer.setCurrentLength(outPtr);
 
         // And there we have it!
-        return reset(negative, intLen, fractLen, expLen);
+        return resetFloat(negative, integerPartLength, fractLen, expLen);
     }
     
     /*

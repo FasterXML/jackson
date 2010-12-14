@@ -284,8 +284,9 @@ public abstract class JsonParserBase
     public String getText()
         throws IOException, JsonParseException
     {
-        if (_currToken != null) { // null only before/after document
-            switch (_currToken) {
+        JsonToken t = _currToken;
+        if (t != null) { // null only before/after document
+            switch (t) {
             case FIELD_NAME:
                 return _parsingContext.getCurrentName();
 
@@ -298,10 +299,8 @@ public abstract class JsonParserBase
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
                 return _textBuffer.contentsAsString();
-                
-            default:
-                return _currToken.asString();
             }
+            return t.asString();
         }
         return null;
     }
