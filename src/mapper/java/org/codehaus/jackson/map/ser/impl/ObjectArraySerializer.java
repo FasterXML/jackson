@@ -165,8 +165,6 @@ public class ObjectArraySerializer
     {
         final int len = value.length;
         final TypeSerializer typeSer = _valueTypeSerializer;
-        JsonSerializer<Object> prevSerializer = null;
-        Class<?> prevClass = null;
         int i = 0;
         Object elem = null;
         try {

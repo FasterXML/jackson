@@ -260,7 +260,7 @@ public abstract class JsonParser
     /**********************************************************
      */
 
-    protected JsonParser() { this(0); }
+    protected JsonParser() { }
     protected JsonParser(int features) {
         _features = features;
     }

@@ -183,7 +183,8 @@ public abstract class JsonParserBase
 
     protected JsonParserBase(IOContext ctxt, int features)
     {
-        super(features);
+        super();
+        _features = features;
         _ioContext = ctxt;
         _textBuffer = ctxt.constructTextBuffer();
         _parsingContext = JsonReadContext.createRootContext(_tokenInputRow, _tokenInputCol);

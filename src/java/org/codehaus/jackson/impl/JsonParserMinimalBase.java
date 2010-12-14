@@ -51,8 +51,8 @@ public abstract class JsonParserMinimalBase
     /**********************************************************
      */
 
-    protected JsonParserMinimalBase(int features)
-    {
+    protected JsonParserMinimalBase() { }
+    protected JsonParserMinimalBase(int features) {
         super(features);
     }
 
