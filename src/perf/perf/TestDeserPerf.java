@@ -1,6 +1,8 @@
 package perf;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.xml.XmlFactory;
 import org.codehaus.jackson.xml.XmlMapper;
 
@@ -106,9 +108,10 @@ public final class TestDeserPerf
     protected int testDeser(ObjectMapper mapper, byte[] input, int reps)
         throws Exception
     {
+        JavaType type = TypeFactory.type(MediaItem.class);
         MediaItem item = null;
         for (int i = 0; i < reps; ++i) {
-            item = mapper.readValue(input, 0, input.length, MediaItem.class);
+            item = mapper.readValue(input, 0, input.length, type);
         }
         return item.hashCode(); // just to get some non-optimizable number
     }

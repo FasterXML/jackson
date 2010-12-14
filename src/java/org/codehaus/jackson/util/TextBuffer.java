@@ -151,10 +151,11 @@ public final class TextBuffer
      */
     public void resetWithEmpty()
     {
-        _inputBuffer = null;
         _inputStart = -1; // indicates shared buffer not used
+        _currentSize = 0;
         _inputLen = 0;
 
+        _inputBuffer = null;
         _resultString = null;
         _resultArray = null;
 
@@ -162,7 +163,6 @@ public final class TextBuffer
         if (_hasSegments) {
             clearSegments();
         }
-        _currentSize = 0;
     }
 
     /**
@@ -496,9 +496,21 @@ public final class TextBuffer
         return _currentSegment;
     }
 
-    public char[] emptyAndGetCurrentSegment()
+    public final char[] emptyAndGetCurrentSegment()
     {
-        resetWithEmpty();
+        // inlined 'resetWithEmpty()'
+        _inputStart = -1; // indicates shared buffer not used
+        _currentSize = 0;
+        _inputLen = 0;
+
+        _inputBuffer = null;
+        _resultString = null;
+        _resultArray = null;
+
+        // And then reset internal input buffers, if necessary:
+        if (_hasSegments) {
+            clearSegments();
+        }
         char[] curr = _currentSegment;
         if (curr == null) {
             _currentSegment = curr = findBuffer(0);
