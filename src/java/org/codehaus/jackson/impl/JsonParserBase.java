@@ -127,13 +127,6 @@ public abstract class JsonParserBase
      */
     protected JsonToken _nextToken;
 
-    /**
-     * Flag that indicates that the current token has not yet
-     * been fully processed, and needs to be finished for
-     * some access (or skipped to obtain the next token)
-     */
-    protected boolean _tokenIncomplete = false;
-
     /*
     /**********************************************************
     /* Buffer(s) for local name(s) and text content
@@ -274,82 +267,6 @@ public abstract class JsonParserBase
     /**********************************************************
      */
     
-    /**
-     * Method for accessing textual representation of the current event;
-     * if no current event (before first call to {@link #nextToken}, or
-     * after encountering end-of-input), returns null.
-     * Method can be called for any event.
-     */
-    @Override
-    public String getText()
-        throws IOException, JsonParseException
-    {
-        JsonToken t = _currToken;
-        if (t == JsonToken.VALUE_STRING) {
-            if (_tokenIncomplete) {
-                _tokenIncomplete = false;
-                _finishString(); // only strings can be incomplete
-            }
-            return _textBuffer.contentsAsString();
-        }
-        return _getText2(t);
-    }
-    
-    private final String _getText2(JsonToken t)
-    {
-        if (t == null) {
-            return null;
-        }
-        switch (t) {
-        case FIELD_NAME:
-            return _parsingContext.getCurrentName();
-
-        case VALUE_STRING:
-            // fall through
-        case VALUE_NUMBER_INT:
-        case VALUE_NUMBER_FLOAT:
-            return _textBuffer.contentsAsString();
-        }
-        return t.asString();
-    }
-
-    @Override
-    public char[] getTextCharacters()
-        throws IOException, JsonParseException
-    {
-        if (_currToken != null) { // null only before/after document
-            switch (_currToken) {
-                
-            case FIELD_NAME:
-                if (!_nameCopied) {
-                    String name = _parsingContext.getCurrentName();
-                    int nameLen = name.length();
-                    if (_nameCopyBuffer == null) {
-                        _nameCopyBuffer = _ioContext.allocNameCopyBuffer(nameLen);
-                    } else if (_nameCopyBuffer.length < nameLen) {
-                        _nameCopyBuffer = new char[nameLen];
-                    }
-                    name.getChars(0, nameLen, _nameCopyBuffer, 0);
-                    _nameCopied = true;
-                }
-                return _nameCopyBuffer;
-    
-            case VALUE_STRING:
-                if (_tokenIncomplete) {
-                    _tokenIncomplete = false;
-                    _finishString(); // only strings can be incomplete
-                }
-                // fall through
-            case VALUE_NUMBER_INT:
-            case VALUE_NUMBER_FLOAT:
-                return _textBuffer.getTextBuffer();
-                
-            default:
-                return _currToken.asCharArray();
-            }
-        }
-        return null;
-    }
 
     @Override
     public boolean hasTextCharacters()
@@ -363,79 +280,6 @@ public abstract class JsonParserBase
             }        
         }
         return false;
-    }
-    
-    @Override
-    public int getTextLength()
-        throws IOException, JsonParseException
-    {
-        if (_currToken != null) { // null only before/after document
-            switch (_currToken) {
-                
-            case FIELD_NAME:
-                return _parsingContext.getCurrentName().length();
-            case VALUE_STRING:
-                if (_tokenIncomplete) {
-                    _tokenIncomplete = false;
-                    _finishString(); // only strings can be incomplete
-                }
-                // fall through
-            case VALUE_NUMBER_INT:
-            case VALUE_NUMBER_FLOAT:
-                return _textBuffer.size();
-                
-            default:
-                return _currToken.asCharArray().length;
-            }
-        }
-        return 0;
-    }
-
-    @Override
-    public int getTextOffset() throws IOException, JsonParseException
-    {
-        // Most have offset of 0, only some may have other values:
-        if (_currToken != null) {
-            switch (_currToken) {
-            case FIELD_NAME:
-                return 0;
-            case VALUE_STRING:
-                if (_tokenIncomplete) {
-                    _tokenIncomplete = false;
-                    _finishString(); // only strings can be incomplete
-                }
-                // fall through
-            case VALUE_NUMBER_INT:
-            case VALUE_NUMBER_FLOAT:
-                return _textBuffer.getTextOffset();
-            }
-        }
-        return 0;
-    }
-
-    @Override
-    public byte[] getBinaryValue(Base64Variant b64variant)
-        throws IOException, JsonParseException
-    {
-        if (_currToken != JsonToken.VALUE_STRING &&
-                (_currToken != JsonToken.VALUE_EMBEDDED_OBJECT || _binaryValue == null)) {
-            _reportError("Current token ("+_currToken+") not VALUE_STRING or VALUE_EMBEDDED_OBJECT, can not access as binary");
-        }
-        /* To ensure that we won't see inconsistent data, better clear up
-         * state...
-         */
-        if (_tokenIncomplete) {
-            try {
-                _binaryValue = _decodeBase64(b64variant);
-            } catch (IllegalArgumentException iae) {
-                throw _constructError("Failed to decode VALUE_STRING as base64 ("+b64variant+"): "+iae.getMessage());
-            }
-            /* let's clear incomplete only now; allows for accessing other
-             * textual content in error cases
-             */
-            _tokenIncomplete = false;
-        }        
-        return _binaryValue;
     }
     
     /*

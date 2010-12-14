@@ -97,6 +97,13 @@ public class SmileParser
      */
 
     /**
+     * Flag that indicates that the current token has not yet
+     * been fully processed, and needs to be finished for
+     * some access (or skipped to obtain the next token)
+     */
+    protected boolean _tokenIncomplete = false;
+    
+    /**
      * Type byte of the current token
      */
     protected int _typeByte;
