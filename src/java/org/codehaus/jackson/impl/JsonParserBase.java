@@ -285,24 +285,32 @@ public abstract class JsonParserBase
         throws IOException, JsonParseException
     {
         JsonToken t = _currToken;
-        if (t != null) { // null only before/after document
-            switch (t) {
-            case FIELD_NAME:
-                return _parsingContext.getCurrentName();
-
-            case VALUE_STRING:
-                if (_tokenIncomplete) {
-                    _tokenIncomplete = false;
-                    _finishString(); // only strings can be incomplete
-                }
-                // fall through
-            case VALUE_NUMBER_INT:
-            case VALUE_NUMBER_FLOAT:
-                return _textBuffer.contentsAsString();
+        if (t == JsonToken.VALUE_STRING) {
+            if (_tokenIncomplete) {
+                _tokenIncomplete = false;
+                _finishString(); // only strings can be incomplete
             }
-            return t.asString();
+            return _textBuffer.contentsAsString();
         }
-        return null;
+        return _getText2(t);
+    }
+    
+    private final String _getText2(JsonToken t)
+    {
+        if (t == null) {
+            return null;
+        }
+        switch (t) {
+        case FIELD_NAME:
+            return _parsingContext.getCurrentName();
+
+        case VALUE_STRING:
+            // fall through
+        case VALUE_NUMBER_INT:
+        case VALUE_NUMBER_FLOAT:
+            return _textBuffer.contentsAsString();
+        }
+        return t.asString();
     }
 
     @Override
