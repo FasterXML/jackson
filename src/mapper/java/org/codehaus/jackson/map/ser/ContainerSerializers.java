@@ -10,6 +10,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.ser.impl.PropertySerializerMap;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
@@ -99,6 +100,14 @@ public final class ContainerSerializers
          * @since 1.7
          */
         protected final BeanProperty _property;
+
+        /**
+         * If element type can not be statically determined, mapping from
+         * runtime type to serializer is handled using this object
+         * 
+         * @since 1.7
+         */
+        protected PropertySerializerMap _dynamicSerializers;
         
         protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping,
                 TypeSerializer vts, BeanProperty property)
@@ -110,6 +119,7 @@ public final class ContainerSerializers
             _staticTyping = staticTyping || (et != null && et.isFinal());
             _valueTypeSerializer = vts;
             _property = property;
+            _dynamicSerializers = PropertySerializerMap.emptyMap();
         }
 
         @Override
@@ -189,6 +199,20 @@ public final class ContainerSerializers
                 _elementSerializer = provider.findValueSerializer(_elementType, _property);
             }
         }
+
+        /**
+         * @since 1.7
+         */
+        protected final JsonSerializer<Object> _findAndAddDynamic(PropertySerializerMap map,
+                Class<?> type, SerializerProvider provider) throws JsonMappingException
+        {
+            PropertySerializerMap.SerializerAndMapResult result = map.findAndAddSerializer(type, provider, _property);
+            // did we get a new map of serializers? If so, start using it
+            if (map != result.map) {
+                _dynamicSerializers = result.map;
+            }
+            return result.serializer;
+        }
     }
     
     /*
@@ -198,7 +222,7 @@ public final class ContainerSerializers
      */
 
     /**
-     * This is an optimizied serializer for Lists that can be efficiently
+     * This is an optimized serializer for Lists that can be efficiently
      * traversed by index (as opposed to others, such as {@link LinkedList}
      * that can not}.
      */
@@ -230,91 +254,85 @@ public final class ContainerSerializers
                 return;
             }
             final int len = value.size();
-            if (len > 0) {
-                JsonSerializer<Object> prevSerializer = null;
-                Class<?> prevClass = null;
-                for (int i = 0; i < len; ++i) {
+            if (len == 0) {
+                return;
+            }
+            int i = 0;
+            try {
+                PropertySerializerMap serializers = _dynamicSerializers;
+                for (; i < len; ++i) {
                     Object elem = value.get(i);
-                    try {
-                        if (elem == null) {
-                            provider.getNullValueSerializer().serialize(null, jgen, provider);
-                        } else {
-                            // Minor optimization to avoid most lookups:
-                            Class<?> cc = elem.getClass();
-                            JsonSerializer<Object> currSerializer;
-                            if (cc == prevClass) {
-                                currSerializer = prevSerializer;
-                            } else {
-                                currSerializer = provider.findValueSerializer(cc, _property);
-                                prevSerializer = currSerializer;
-                                prevClass = cc;
-                            }
-                            currSerializer.serialize(elem, jgen, provider);
+                    if (elem == null) {
+                        provider.defaultSerializeNull(jgen);
+                    } else {
+                        Class<?> cc = elem.getClass();
+                        JsonSerializer<Object> serializer = serializers.serializerFor(cc);
+                        if (serializer == null) {
+                            serializer = _findAndAddDynamic(serializers, cc, provider);
                         }
-                    } catch (Exception e) {
-                        // [JACKSON-55] Need to add reference information
-                        wrapAndThrow(e, value, i);
+                        serializer.serialize(elem, jgen, provider);
                     }
                 }
-             }
+            } catch (Exception e) {
+                // [JACKSON-55] Need to add reference information
+                wrapAndThrow(e, value, i);
+            }
         }
-
+        
         public void serializeContentsUsing(List<?> value, JsonGenerator jgen, SerializerProvider provider,
                 JsonSerializer<Object> ser)
             throws IOException, JsonGenerationException
         {
             final int len = value.size();
-            if (len > 0) {
-                final TypeSerializer typeSer = _valueTypeSerializer;
-                for (int i = 0; i < len; ++i) {
-                    Object elem = value.get(i);
-                    try {
-                        if (elem == null) {
-                            provider.getNullValueSerializer().serialize(null, jgen, provider);
-                        } else if (typeSer == null) {
-                            ser.serialize(elem, jgen, provider);
-                        } else {
-                            ser.serializeWithType(elem, jgen, provider, typeSer);
-                        }
-                    } catch (Exception e) {
-                        // [JACKSON-55] Need to add reference information
-                        wrapAndThrow(e, value, i);
+            if (len == 0) {
+                return;
+            }
+            final TypeSerializer typeSer = _valueTypeSerializer;
+            for (int i = 0; i < len; ++i) {
+                Object elem = value.get(i);
+                try {
+                    if (elem == null) {
+                        provider.defaultSerializeNull(jgen);
+                    } else if (typeSer == null) {
+                        ser.serialize(elem, jgen, provider);
+                    } else {
+                        ser.serializeWithType(elem, jgen, provider, typeSer);
                     }
+                } catch (Exception e) {
+                    // [JACKSON-55] Need to add reference information
+                    wrapAndThrow(e, value, i);
                 }
-             }
+            }
         }
 
         public void serializeTypedContents(List<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             final int len = value.size();
-            if (len > 0) {
-                JsonSerializer<Object> prevSerializer = null;
-                Class<?> prevClass = null;
+            if (len == 0) {
+                return;
+            }
+            int i = 0;
+            try {
                 final TypeSerializer typeSer = _valueTypeSerializer;
-                for (int i = 0; i < len; ++i) {
+                PropertySerializerMap serializers = _dynamicSerializers;
+                for (; i < len; ++i) {
                     Object elem = value.get(i);
-                    try {
-                        if (elem == null) {
-                            provider.getNullValueSerializer().serialize(null, jgen, provider);
-                        } else {
-                            Class<?> cc = elem.getClass();
-                            JsonSerializer<Object> currSerializer;
-                            if (cc == prevClass) {
-                                currSerializer = prevSerializer;
-                            } else {
-                                currSerializer = provider.findValueSerializer(cc, _property);
-                                prevSerializer = currSerializer;
-                                prevClass = cc;
-                            }
-                            currSerializer.serializeWithType(elem, jgen, provider, typeSer);
+                    if (elem == null) {
+                        provider.defaultSerializeNull(jgen);
+                    } else {
+                        Class<?> cc = elem.getClass();
+                        JsonSerializer<Object> serializer = serializers.serializerFor(cc);
+                        if (serializer == null) {
+                            serializer = _findAndAddDynamic(serializers, cc, provider);
                         }
-                    } catch (Exception e) {
-                        // [JACKSON-55] Need to add reference information
-                        wrapAndThrow(e, value, i);
+                        serializer.serializeWithType(elem, jgen, provider, typeSer);
                     }
                 }
-             }
+            } catch (Exception e) {
+                // [JACKSON-55] Need to add reference information
+                wrapAndThrow(e, value, i);
+            }
         }
     }
 
@@ -349,40 +367,35 @@ public final class ContainerSerializers
                 return;
             }
             Iterator<?> it = value.iterator();
-            if (it.hasNext()) {
-                JsonSerializer<Object> prevSerializer = null;
-                Class<?> prevClass = null;
-                final TypeSerializer typeSer = _valueTypeSerializer;
-    
-                int i = 0;
+            if (!it.hasNext()) {
+                return;
+            }
+            PropertySerializerMap serializers = _dynamicSerializers;
+            final TypeSerializer typeSer = _valueTypeSerializer;
+
+            int i = 0;
+            try {
                 do {
                     Object elem = it.next();
-                    try {
-                        if (elem == null) {
-                            provider.getNullValueSerializer().serialize(null, jgen, provider);
-                        } else {
-                            // Minor optimization to avoid most lookups:
-                            Class<?> cc = elem.getClass();
-                            JsonSerializer<Object> currSerializer;
-                            if (cc == prevClass) {
-                                currSerializer = prevSerializer;
-                            } else {
-                                currSerializer = provider.findValueSerializer(cc, _property);
-                                prevSerializer = currSerializer;
-                                prevClass = cc;
-                            }
-                            if (typeSer == null) {
-                                currSerializer.serialize(elem, jgen, provider);
-                            } else {
-                                currSerializer.serializeWithType(elem, jgen, provider, typeSer);
-                            }
+                    if (elem == null) {
+                        provider.defaultSerializeNull(jgen);
+                    } else {
+                        Class<?> cc = elem.getClass();
+                        JsonSerializer<Object> serializer = serializers.serializerFor(cc);
+                        if (serializer == null) {
+                            serializer = _findAndAddDynamic(serializers, cc, provider);
                         }
-                    } catch (Exception e) {
-                        // [JACKSON-55] Need to add reference information
-                        wrapAndThrow(e, value, i);
+                        if (typeSer == null) {
+                            serializer.serialize(elem, jgen, provider);
+                        } else {
+                            serializer.serializeWithType(elem, jgen, provider, typeSer);
+                        }
                     }
                     ++i;
                 } while (it.hasNext());
+            } catch (Exception e) {
+                // [JACKSON-55] Need to add reference information
+                wrapAndThrow(e, value, i);
             }
         }
 
@@ -398,7 +411,7 @@ public final class ContainerSerializers
                     Object elem = it.next();
                     try {
                         if (elem == null) {
-                            provider.getNullValueSerializer().serialize(null, jgen, provider);
+                            provider.defaultSerializeNull(jgen);
                         } else {
                             if (typeSer == null) {
                                 ser.serialize(elem, jgen, provider);
@@ -442,7 +455,7 @@ public final class ContainerSerializers
                 do {
                     Object elem = value.next();
                     if (elem == null) {
-                        provider.getNullValueSerializer().serialize(null, jgen, provider);
+                        provider.defaultSerializeNull(jgen);
                     } else {
                         // Minor optimization to avoid most lookups:
                         Class<?> cc = elem.getClass();
@@ -492,7 +505,7 @@ public final class ContainerSerializers
                 do {
                     Object elem = it.next();
                     if (elem == null) {
-                        provider.getNullValueSerializer().serialize(null, jgen, provider);
+                        provider.defaultSerializeNull(jgen);
                     } else {
                         // Minor optimization to avoid most lookups:
                         Class<?> cc = elem.getClass();

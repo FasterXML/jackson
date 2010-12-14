@@ -75,7 +75,7 @@ public class JSONPObject
         jgen.writeRaw(_function);
         jgen.writeRaw('(');
         if (_value == null) {
-            provider.getNullValueSerializer().serialize(null, jgen, provider);
+            provider.defaultSerializeNull(jgen);
         } else if (_serializationType != null) {
             provider.findTypedValueSerializer(_serializationType, true, null).serialize(_value, jgen, provider);
         } else {

@@ -7,6 +7,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
+import org.codehaus.jackson.map.ser.impl.PropertySerializerMap;
 import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.type.JavaType;
@@ -101,6 +102,15 @@ public class BeanPropertyWriter
     protected final JsonSerializer<Object> _serializer;
 
     /**
+     * In case serializer is not known statically (i.e. <code>_serializer</code>
+     * is null), we will use a lookup structure for storing dynamically
+     * resolved mapping from type(s) to serializer(s).
+     * 
+     * @since 1.7
+     */
+    protected PropertySerializerMap _dynamicSerializers;
+    
+    /**
      * Flag to indicate that null values for this property are not
      * to be written out. That is, if property has value null,
      * no entry will be written
@@ -168,6 +178,7 @@ public class BeanPropertyWriter
         _name = name;
         _declaredType = declaredType;
         _serializer = ser;
+        _dynamicSerializers = (ser == null) ? PropertySerializerMap.emptyMap() : null;
         _typeSerializer = typeSer;
         _cfgSerializationType = serType;
         _accessorMethod = m;
@@ -186,6 +197,7 @@ public class BeanPropertyWriter
         _name = base._name;
         _declaredType = base._declaredType;
         _serializer = base._serializer;
+        _dynamicSerializers = base._dynamicSerializers;
         _typeSerializer = base._typeSerializer;
         _cfgSerializationType = base._cfgSerializationType;
         _accessorMethod = base._accessorMethod;
@@ -384,7 +396,7 @@ public class BeanPropertyWriter
         if (value == null) {
             if (!_suppressNulls) {
                 jgen.writeFieldName(_name);
-                prov.getNullValueSerializer().serialize(value, jgen, prov);
+                prov.defaultSerializeNull(jgen);
             }
             return;
         }
@@ -398,11 +410,10 @@ public class BeanPropertyWriter
         JsonSerializer<Object> ser = _serializer;
         if (ser == null) {
             Class<?> cls = value.getClass();
-            if (_nonTrivialBaseType != null) {
-                JavaType t = _nonTrivialBaseType.forcedNarrowBy(cls);
-                ser = prov.findValueSerializer(t, this);
-            } else {
-                ser = prov.findValueSerializer(cls, this);
+            PropertySerializerMap map = _dynamicSerializers;
+            ser = map.serializerFor(cls);
+            if (ser == null) {
+                ser = _findAndAddDynamic(map, cls, prov);
             }
         }
         jgen.writeFieldName(_name);
@@ -413,6 +424,26 @@ public class BeanPropertyWriter
         }
     }
 
+    /**
+     * @since 1.7
+     */
+    private final JsonSerializer<Object> _findAndAddDynamic(PropertySerializerMap map,
+            Class<?> type, SerializerProvider provider) throws JsonMappingException
+    {
+        PropertySerializerMap.SerializerAndMapResult result;
+        if (_nonTrivialBaseType != null) {
+            JavaType t = _nonTrivialBaseType.forcedNarrowBy(type);
+            result = map.findAndAddSerializer(t, provider, this);
+        } else {
+            result = map.findAndAddSerializer(type, provider, this);
+        }
+        // did we get a new map of serializers? If so, start using it
+        if (map != result.map) {
+            _dynamicSerializers = result.map;
+        }
+        return result.serializer;
+    }
+    
     /**
      * Method that can be used to access value of the property this
      * Object describes, from given bean instance.

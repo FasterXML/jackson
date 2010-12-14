@@ -123,7 +123,7 @@ public class EnumMapSerializer
             // And then value
             Object valueElem = entry.getValue();
             if (valueElem == null) {
-                provider.getNullValueSerializer().serialize(null, jgen, provider);
+                provider.defaultSerializeNull(jgen);
             } else {
                 Class<?> cc = valueElem.getClass();
                 JsonSerializer<Object> currSerializer;
@@ -160,7 +160,7 @@ public class EnumMapSerializer
             jgen.writeFieldName(keyEnums.serializedValueFor(key));
             Object valueElem = entry.getValue();
             if (valueElem == null) {
-                provider.getNullValueSerializer().serialize(null, jgen, provider);
+                provider.defaultSerializeNull(jgen);
             } else {
                 try {
                     valueSer.serialize(valueElem, jgen, provider);

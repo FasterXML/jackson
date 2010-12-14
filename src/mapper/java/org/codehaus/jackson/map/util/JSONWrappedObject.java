@@ -85,7 +85,7 @@ public class JSONWrappedObject
         // First, wrapping:
     	if (_prefix != null) jgen.writeRaw(_prefix);
         if (_value == null) {
-            provider.getNullValueSerializer().serialize(null, jgen, provider);
+            provider.defaultSerializeNull(jgen);
         } else if (_serializationType != null) {
             provider.findTypedValueSerializer(_serializationType, true, null).serialize(_value, jgen, provider);
         } else {

@@ -144,7 +144,7 @@ public final class ArraySerializers
             for (int i = 0, len = value.length; i < len; ++i) {
                 String str = value[i];
                 if (str == null) {
-                    provider.getNullValueSerializer().serialize(null, jgen, provider);
+                    provider.defaultSerializeNull(jgen);
                 } else {
                     ser.serialize(value[i], jgen, provider);
                 }

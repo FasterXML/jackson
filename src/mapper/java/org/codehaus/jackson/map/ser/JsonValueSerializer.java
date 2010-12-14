@@ -70,21 +70,20 @@ public final class JsonValueSerializer
     {
         try {
             Object value = _accessorMethod.invoke(bean);
-            JsonSerializer<Object> ser;
 
             if (value == null) {
-                ser = prov.getNullValueSerializer();
-            } else {
-                ser = _valueSerializer;
-                if (ser == null) {
-                    Class<?> c = value.getClass();
-                    /* 10-Mar-2010, tatu: Ideally we would actually separate out type
-                     *   serializer from value serializer; but, alas, there's no access
-                     *   to serializer factory at this point... 
-                     */
-                    // let's cache it, may be needed soon again
-                    ser = prov.findTypedValueSerializer(c, true, _property);
-                }
+                prov.defaultSerializeNull(jgen);
+                return;
+            }
+            JsonSerializer<Object> ser = _valueSerializer;
+            if (ser == null) {
+                Class<?> c = value.getClass();
+                /* 10-Mar-2010, tatu: Ideally we would actually separate out type
+                 *   serializer from value serializer; but, alas, there's no access
+                 *   to serializer factory at this point... 
+                 */
+                // let's cache it, may be needed soon again
+                ser = prov.findTypedValueSerializer(c, true, _property);
             }
             ser.serialize(value, jgen, prov);
         } catch (IOException ioe) {
@@ -116,8 +115,7 @@ public final class JsonValueSerializer
 
             // and if we got null, can also just write it directly
             if (value == null) {
-                JsonSerializer<Object> ser = provider.getNullValueSerializer();
-                ser.serialize(value, jgen, provider);
+                provider.defaultSerializeNull(jgen);
                 return;
             }
             JsonSerializer<Object> ser = _valueSerializer;

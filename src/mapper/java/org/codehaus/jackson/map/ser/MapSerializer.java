@@ -236,7 +236,7 @@ public class MapSerializer
 
             // And then value
             if (valueElem == null) {
-                provider.getNullValueSerializer().serialize(null, jgen, provider);
+                provider.defaultSerializeNull(jgen);
             } else {
                 Class<?> cc = valueElem.getClass();
                 JsonSerializer<Object> currSerializer;
@@ -284,7 +284,7 @@ public class MapSerializer
                 keySerializer.serialize(keyElem, jgen, provider);
             }
             if (valueElem == null) {
-                provider.getNullValueSerializer().serialize(null, jgen, provider);
+                provider.defaultSerializeNull(jgen);
             } else {
                 try {
                     if (typeSer == null) {
@@ -326,7 +326,7 @@ public class MapSerializer
     
             // And then value
             if (valueElem == null) {
-                provider.getNullValueSerializer().serialize(null, jgen, provider);
+                provider.defaultSerializeNull(jgen);
             } else {
                 Class<?> cc = valueElem.getClass();
                 JsonSerializer<Object> currSerializer;
