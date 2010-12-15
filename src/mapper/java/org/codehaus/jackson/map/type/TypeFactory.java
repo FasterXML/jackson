@@ -297,7 +297,7 @@ public class TypeFactory
     /**
      * Method that can be used if it is known for sure that given type
      * is not a structured type (array, Map, Collection).
-     * NOTE: use of this method is discourage due to its potential
+     * NOTE: use of this method is discouraged due to its potential
      * non-safety; in most cases you should just use basic
      * {@link #type(Type)} instead.
      * 
