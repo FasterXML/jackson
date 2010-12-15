@@ -14,14 +14,17 @@ public final class TestReadPerf
 
     final byte[] mData;
 
+    final String mDataStr; // if testing reader-backed parser
+    
     private TestReadPerf(File f)
         throws Exception
     {
         mJsonFactory = new JsonFactory();
         mData = readData(f);
+        mDataStr = new String(mData, "UTF-8");
         // Estimate about 10 megs worth of data...
         REPS = 1 + (int) (10000000L / mData.length);
-        System.out.println("Input size: "+mData.length+" bytes; use "+REPS+" reps");
+        System.out.println("Input size: "+mData.length+" bytes ("+mDataStr.length()+" chars); use "+REPS+" reps");
     }
 
     public void test()
@@ -52,7 +55,9 @@ public final class TestReadPerf
         int count = 0;
         JsonParser jp = null;
         while (--reps >= 0) {
+            // Bytes or chars?
             jp = mJsonFactory.createJsonParser(mData, 0, mData.length);
+            //jp = mJsonFactory.createJsonParser(new StringReader(mDataStr));
             JsonToken t;
 
             while ((t = jp.nextToken()) != null) {

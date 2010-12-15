@@ -2137,7 +2137,7 @@ public class ObjectMapper
         _rootDeserializers.put(valueType, deser);
         return deser;
     }
-
+    
     protected DeserializationContext _createDeserializationContext(JsonParser jp, DeserializationConfig cfg)
     {
         // 04-Jan-2010, tatu: we do actually need the provider too... (for polymorphic deser)

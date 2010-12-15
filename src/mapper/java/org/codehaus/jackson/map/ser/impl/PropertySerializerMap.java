@@ -110,6 +110,7 @@ public abstract class PropertySerializerMap
             return null; // empty, nothing to find
         }        
 
+        @Override
         protected PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer) {
             return new Single(type, serializer);
         }
@@ -140,6 +141,7 @@ public abstract class PropertySerializerMap
             return null;
         }
 
+        @Override
         protected PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer) {
             return new Double(_type, _serializer, type, serializer);
         }
@@ -171,6 +173,7 @@ public abstract class PropertySerializerMap
             return null;
         }        
 
+        @Override
         protected PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer) {
             // Ok: let's just create generic one
             TypeAndSerializer[] ts = new TypeAndSerializer[2];
@@ -210,6 +213,7 @@ public abstract class PropertySerializerMap
             return null;
         }
 
+        @Override
         protected PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer)
         {
             int len = _entries.length;

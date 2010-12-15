@@ -306,18 +306,18 @@ public final class Utf8StreamParser
          * Object contexts, since the intermediate 'expect-value'
          * state is never retained.
          */
-        boolean inObject = _parsingContext.inObject();
-        if (inObject) {
-            // First, field name itself:
-            Name n = _parseFieldName(i);
-            _parsingContext.setCurrentName(n.getName());
-            _currToken = JsonToken.FIELD_NAME;
-            i = _skipWS();
-            if (i != INT_COLON) {
-                _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
-            }
-            i = _skipWS();
+        if (!_parsingContext.inObject()) {
+            return _nextTokenNotInObject(i);
         }
+        // So first parse the field name itself:
+        Name n = _parseFieldName(i);
+        _parsingContext.setCurrentName(n.getName());
+        _currToken = JsonToken.FIELD_NAME;
+        i = _skipWS();
+        if (i != INT_COLON) {
+            _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+        }
+        i = _skipWS();
 
         // Ok: we must have a value... what is it?
 
@@ -329,15 +329,9 @@ public final class Utf8StreamParser
             t = JsonToken.VALUE_STRING;
             break;
         case INT_LBRACKET:
-            if (!inObject) {
-                _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
-            }
             t = JsonToken.START_ARRAY;
             break;
         case INT_LCURLY:
-            if (!inObject) {
-                _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
-            }
             t = JsonToken.START_OBJECT;
             break;
         case INT_RBRACKET:
@@ -378,15 +372,57 @@ public final class Utf8StreamParser
         default:
             t = _handleUnexpectedValue(i);
         }
-
-        if (inObject) {
-            _nextToken = t;
-            return _currToken;
-        }
-        _currToken = t;
-        return t;
+        _nextToken = t;
+        return _currToken;
     }
-        
+
+    private final JsonToken _nextTokenNotInObject(int i)
+        throws IOException, JsonParseException
+    {
+        switch (i) {
+        case INT_QUOTE:
+            _tokenIncomplete = true;
+            return (_currToken = JsonToken.VALUE_STRING);
+        case INT_LBRACKET:
+            _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
+            return (_currToken = JsonToken.START_ARRAY);
+        case INT_LCURLY:
+            _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
+            return (_currToken = JsonToken.START_OBJECT);
+        case INT_RBRACKET:
+        case INT_RCURLY:
+            // Error: neither is valid at this point; valid closers have
+            // been handled earlier
+            _reportUnexpectedChar(i, "expected a value");
+        case INT_t:
+            _matchToken(JsonToken.VALUE_TRUE);
+            return (_currToken = JsonToken.VALUE_TRUE);
+        case INT_f:
+            _matchToken(JsonToken.VALUE_FALSE);
+            return (_currToken = JsonToken.VALUE_FALSE);
+        case INT_n:
+            _matchToken(JsonToken.VALUE_NULL);
+            return (_currToken = JsonToken.VALUE_NULL);
+        case INT_MINUS:
+            /* Should we have separate handling for plus? Although
+             * it is not allowed per se, it may be erroneously used,
+             * and could be indicate by a more specific error message.
+             */
+        case INT_0:
+        case INT_1:
+        case INT_2:
+        case INT_3:
+        case INT_4:
+        case INT_5:
+        case INT_6:
+        case INT_7:
+        case INT_8:
+        case INT_9:
+            return (_currToken = parseNumberText(i));
+        }
+        return (_currToken = _handleUnexpectedValue(i));
+    }
+    
     private final JsonToken _nextAfterName()
     {
         _nameCopied = false; // need to invalidate if it was copied
