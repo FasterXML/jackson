@@ -56,11 +56,18 @@ final class BeanPropertyMap
     {
         int index = key.hashCode() & (_buckets.length-1);
         Bucket bucket = _buckets[index];
-        while (bucket != null) {
+        // Let's unroll first lookup since that is null or match in 90+% cases
+        if (bucket == null) {
+            return null;
+        }
+        // Primarily we do just identity comparison as keys should be interned
+        if (bucket.key == key) {
+            return bucket.value;
+        }
+        for (bucket = bucket.next; bucket != null; ) {
             if (bucket.key == key) {
                 return bucket.value;
             }
-            bucket = bucket.next;
         }
         // Do we need fallback for non-interned Strings?
         return _findWithEquals(key, index);

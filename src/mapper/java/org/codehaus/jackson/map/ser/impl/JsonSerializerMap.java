@@ -53,11 +53,20 @@ public class JsonSerializerMap
     {
         int index = key.hashCode() & (_buckets.length-1);
         Bucket bucket = _buckets[index];
-        while (bucket != null) {
+        /* Ok let's actually try unrolling loop slightly as this shows up in profiler;
+         * and also because in vast majority of cases first entry is either null
+         * or matches.
+         */
+        if (bucket == null) {
+            return null;
+        }
+        if (key.equals(bucket.key)) {
+            return bucket.value;
+        }
+        for (bucket = bucket.next; bucket != null; ) {
             if (key.equals(bucket.key)) {
                 return bucket.value;
             }
-            bucket = bucket.next;
         }
         return null;
     }
