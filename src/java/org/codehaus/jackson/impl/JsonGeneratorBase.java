@@ -219,48 +219,9 @@ public abstract class JsonGeneratorBase
         }
         _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
     }
-
-    @Override
-    public final void writeFieldName(SerializedString name)
-        throws IOException, JsonGenerationException
-    {
-        // Object is a value, need to verify it's allowed
-        int status = _writeContext.writeFieldName(name.getValue());
-        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
-            _reportError("Can not write a field name, expecting a value");
-        }
-        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
-    }
-
-    @Override
-    public final void writeFieldName(SerializableString name)
-        throws IOException, JsonGenerationException
-    {
-        // Object is a value, need to verify it's allowed
-        int status = _writeContext.writeFieldName(name.getValue());
-        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
-            _reportError("Can not write a field name, expecting a value");
-        }
-        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
-    }
     
     protected abstract void _writeFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException;
-
-    /**
-     * Non-optimal default implementation for serializing given
-     * {@link SerializedString}: sub-classes are strongly recommmended to
-     * implement this efficiently. Default implementation mostly exists
-     * to avoid introducing binary incompatibility.
-     * 
-     * @since 1.6
-     */
-    protected void _writeFieldName(SerializableString name, boolean commaBefore)
-        throws IOException, JsonGenerationException
-    {
-        // Note: sub-classes are strongly urged to override this method
-        _writeFieldName(name.getValue(), commaBefore);
-    }
     
     /*
     /**********************************************************

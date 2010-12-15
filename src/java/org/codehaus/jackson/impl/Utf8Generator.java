@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.io.NumberOutput;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.util.CharTypes;
 
 public class Utf8Generator
@@ -107,6 +108,36 @@ public class Utf8Generator
 
     /*
     /**********************************************************
+    /* Overridden methods
+    /**********************************************************
+     */
+    
+    @Override
+    public final void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        // Object is a value, need to verify it's allowed
+        int status = _writeContext.writeFieldName(name.getValue());
+        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
+            _reportError("Can not write a field name, expecting a value");
+        }
+        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+    }
+
+    @Override
+    public final void writeFieldName(SerializableString name)
+        throws IOException, JsonGenerationException
+    {
+        // Object is a value, need to verify it's allowed
+        int status = _writeContext.writeFieldName(name.getValue());
+        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
+            _reportError("Can not write a field name, expecting a value");
+        }
+        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+    }
+
+    /*
+    /**********************************************************
     /* Output method implementations, structural
     /**********************************************************
      */
@@ -187,7 +218,6 @@ public class Utf8Generator
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
-    @Override
     protected void _writeFieldName(SerializableString name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {

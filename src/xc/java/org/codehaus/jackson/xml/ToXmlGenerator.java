@@ -15,6 +15,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.xml.util.StaxUtil;
 
 /**
@@ -257,14 +258,6 @@ public class ToXmlGenerator
     {
         _nextLocalName = name;
     }
-
-    @Override
-    protected void _writeFieldName(SerializableString name, boolean commaBefore)
-        throws IOException, JsonGenerationException
-    {
-        // !!! TODO: improve
-        _writeFieldName(name.getValue(), commaBefore);
-    }
     
     /*
     /**********************************************************
@@ -272,6 +265,20 @@ public class ToXmlGenerator
     /**********************************************************
      */
 
+    @Override
+    public void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(name.getValue());
+    }
+
+    @Override
+    public void writeFieldName(SerializableString name)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(name.getValue());
+    }
+    
     @Override
     public void writeString(String text) throws IOException,JsonGenerationException
     {

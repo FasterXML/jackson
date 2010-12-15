@@ -1,6 +1,8 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.deser.impl;
 
 import java.util.Map;
+
+import org.codehaus.jackson.map.deser.SettableBeanProperty;
 
 /**
  * Helper class used for storing mapping from property name to
@@ -13,7 +15,7 @@ import java.util.Map;
  * 
  * @since 1.7
  */
-final class BeanPropertyMap
+public final class BeanPropertyMap
 {
     private final Bucket[] _buckets;
 
@@ -64,7 +66,7 @@ final class BeanPropertyMap
         if (bucket.key == key) {
             return bucket.value;
         }
-        for (bucket = bucket.next; bucket != null; ) {
+        while ((bucket = bucket.next) != null) {
             if (bucket.key == key) {
                 return bucket.value;
             }

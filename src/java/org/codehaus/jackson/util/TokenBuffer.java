@@ -8,6 +8,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.JsonParserMinimalBase;
 import org.codehaus.jackson.impl.JsonReadContext;
 import org.codehaus.jackson.impl.JsonWriteContext;
+import org.codehaus.jackson.io.SerializedString;
 
 /**
  * Utility class used for efficient storage of {@link JsonToken}
@@ -411,6 +412,14 @@ public class TokenBuffer
 
     @Override
     public void writeFieldName(SerializableString name)
+        throws IOException, JsonGenerationException
+    {
+        _append(JsonToken.FIELD_NAME, name);
+        _writeContext.writeFieldName(name.getValue());
+    }
+
+    @Override
+    public void writeFieldName(SerializedString name)
         throws IOException, JsonGenerationException
     {
         _append(JsonToken.FIELD_NAME, name);
@@ -841,7 +850,9 @@ public class TokenBuffer
             _currToken = _segment.type(_segmentPtr);
             // Field name? Need to update context
             if (_currToken == JsonToken.FIELD_NAME) {
-                _parsingContext.setCurrentName((String) _currentObject());
+                Object ob = _currentObject();
+                String name = (ob instanceof String) ? ((String) ob) : ob.toString();
+                _parsingContext.setCurrentName(name);
             } else if (_currToken == JsonToken.START_OBJECT) {
                 _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
             } else if (_currToken == JsonToken.START_ARRAY) {

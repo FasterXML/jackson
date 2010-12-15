@@ -85,4 +85,25 @@ public class SerializedString implements SerializableString
         }
         return result;
     }
+
+    /*
+    /**********************************************************
+    /* Standard method overrides
+    /**********************************************************
+     */
+
+    @Override
+    public final String toString() { return _value; }
+    
+    @Override
+    public final int hashCode() { return _value.hashCode(); }
+
+    @Override
+    public final boolean equals(Object o)
+    {
+        if (o == this) return true;
+        if (o == null || o.getClass() != getClass()) return false;
+        SerializedString other = (SerializedString) o;
+        return _value.equals(other._value);
+    }
 }

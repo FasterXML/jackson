@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
 
@@ -299,7 +300,37 @@ public class SmileGenerator
         }
         _writeBytes(HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, (byte) last);
     }
-    
+
+    /*
+    /**********************************************************
+    /* Overridden methods
+    /**********************************************************
+     */
+
+    @Override
+    public final void writeFieldName(SerializedString name)
+        throws IOException, JsonGenerationException
+    {
+        // Object is a value, need to verify it's allowed
+        if (_writeContext.writeFieldName(name.getValue()) == JsonWriteContext.STATUS_EXPECT_VALUE) {
+            _reportError("Can not write a field name, expecting a value");
+        }
+
+        _writeFieldName(name);
+    }
+
+    @Override
+    public final void writeFieldName(SerializableString name)
+        throws IOException, JsonGenerationException
+    {
+        // Object is a value, need to verify it's allowed
+        if (_writeContext.writeFieldName(name.getValue()) == JsonWriteContext.STATUS_EXPECT_VALUE) {
+            _reportError("Can not write a field name, expecting a value");
+        }
+
+        _writeFieldName(name);
+    }
+
     /*
     /**********************************************************
     /* Extended API, configuration
@@ -470,8 +501,7 @@ public class SmileGenerator
         }
     }
 
-    @Override
-    protected void _writeFieldName(SerializableString name, boolean commaBefore) 
+    protected void _writeFieldName(SerializableString name)
         throws IOException, JsonGenerationException
     {
         final int charLen = name.charLength();

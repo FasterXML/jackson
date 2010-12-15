@@ -63,7 +63,7 @@ public class JsonSerializerMap
         if (key.equals(bucket.key)) {
             return bucket.value;
         }
-        for (bucket = bucket.next; bucket != null; ) {
+        while ((bucket = bucket.next) != null) {
             if (key.equals(bucket.key)) {
                 return bucket.value;
             }

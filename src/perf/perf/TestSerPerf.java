@@ -1,13 +1,15 @@
 package perf;
 
 import java.io.*;
+import javax.xml.stream.XMLOutputFactory;
 
+import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.xml.XmlFactory;
 import org.codehaus.jackson.xml.XmlMapper;
 
-import com.ctc.wstx.stax.WstxInputFactory;
 import com.ctc.wstx.stax.WstxOutputFactory;
+//import com.fasterxml.aalto.stax.OutputFactoryImpl;
 
 public final class TestSerPerf
 {
@@ -58,10 +60,18 @@ public final class TestSerPerf
         ByteArrayOutputStream result = new ByteArrayOutputStream();
 
         final MediaItem item = buildItem();
-        final ObjectMapper jsonMapper = new ObjectMapper();
-//        jsonMapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
-        final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null,
-                new WstxInputFactory(), new WstxOutputFactory()));
+        final JsonFactory jsonF =
+//            new JsonFactory()
+            new org.codehaus.jackson.smile.SmileFactory();
+            ;
+        
+        final ObjectMapper jsonMapper = new ObjectMapper(jsonF);
+
+//      jsonMapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
+
+        XMLOutputFactory xmlOut = new WstxOutputFactory(); // Woodstox
+//        XMLOutputFactory xmlOut = new OutputFactoryImpl(); // Aalto
+        final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null, null, xmlOut));
 
         // Verify that we can roundtrip
         {
@@ -72,14 +82,14 @@ public final class TestSerPerf
                     +((REPS * stuff.length) >> 10)+" kB per iteration");
             System.out.println();
             stuff = xmlMapper.writeValueAsBytes(item);
-            System.out.println(" xml size: "+stuff.length+" bytes");
+            System.out.println(" xml size: "+stuff.length+" bytes; uses "+xmlOut.getClass().getName());
         }
         
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
             ++i;
 //            int round = (i % 1);
-            int round = 1;
+            int round = 0;
 
             long curr = System.currentTimeMillis();
             String msg;

@@ -392,8 +392,8 @@ public abstract class JsonGenerator
     {
         writeFieldName(name.getValue());
     }
-    
-    /*
+
+     /*
     /**********************************************************
     /* Public API, write methods, textual/binary
     /**********************************************************
