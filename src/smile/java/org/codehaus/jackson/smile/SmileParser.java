@@ -435,7 +435,6 @@ public class SmileParser
     private final JsonToken _handleSharedString(int index)
         throws IOException, JsonParseException
     {
-        // !!! TODO: implement
         if (index >= _seenStringValueCount) {
             _reportInvalidSharedStringValue(index);
         }
