@@ -319,15 +319,15 @@ public final class Utf8StreamParser
         }
         i = _skipWS();
 
-        // Ok: we must have a value... what is it?
-
+        // Ok: we must have a value... what is it? Strings are very common, check first:
+        if (i == INT_QUOTE) {
+            _tokenIncomplete = true;
+            _nextToken = JsonToken.VALUE_STRING;
+            return _currToken;
+        }        
         JsonToken t;
 
         switch (i) {
-        case INT_QUOTE:
-            _tokenIncomplete = true;
-            t = JsonToken.VALUE_STRING;
-            break;
         case INT_LBRACKET:
             t = JsonToken.START_ARRAY;
             break;
@@ -379,10 +379,11 @@ public final class Utf8StreamParser
     private final JsonToken _nextTokenNotInObject(int i)
         throws IOException, JsonParseException
     {
-        switch (i) {
-        case INT_QUOTE:
+        if (i == INT_QUOTE) {
             _tokenIncomplete = true;
             return (_currToken = JsonToken.VALUE_STRING);
+        }
+        switch (i) {
         case INT_LBRACKET:
             _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
             return (_currToken = JsonToken.START_ARRAY);
