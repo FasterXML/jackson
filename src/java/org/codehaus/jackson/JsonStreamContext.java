@@ -42,7 +42,7 @@ public abstract class JsonStreamContext
      * separator, or with new values if no separators are expected
      * (the case for root context).
      */
-    protected int _index;
+    protected int _index = -1;
 
     /*
     /**********************************************************
@@ -53,7 +53,6 @@ public abstract class JsonStreamContext
     public JsonStreamContext(int type)
     {
         _type = type;
-        _index = -1;
     }
 
     /*

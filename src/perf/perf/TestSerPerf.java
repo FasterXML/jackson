@@ -28,25 +28,23 @@ public final class TestSerPerf
     private MediaItem buildItem()
     {
         MediaItem.Content content = new MediaItem.Content();
-        content.setPlayer(MediaItem.Content.Player.FLASH);
-        content.setUri("http://www.cowtowncoder.com");
-        content.setTitle("CowTown Blog Rulez Ok");
+        content.setPlayer(MediaItem.Content.Player.JAVA);
+        content.setUri("http://javaone.com/keynote.mpg");
+        content.setTitle("Javaone Keynote");
         content.setWidth(640);
         content.setHeight(480);
-        content.setFormat("mpeg");
-        content.setDuration(360000L);
-        content.setSize(256000000L);
-        content.setBitrate(320);
-        content.setCopyright("GPL");
-        content.addPerson("Cowtowncoder");
-        content.addPerson("Billy-bob");
+        content.setFormat("video/mpeg4");
+        content.setDuration(18000000L);
+        content.setSize(58982400L);
+        content.setBitrate(262144);
+        content.setCopyright("None");
+        content.addPerson("Bill Gates");
+        content.addPerson("Steve Jobs");
 
         MediaItem item = new MediaItem(content);
 
-        item.addPhoto(new MediaItem.Photo("http://images.r.us/foobar.jpeg", "Fabulous FUBAR incident", 320, 256, MediaItem.Photo.Size.SMALL));
-        item.addPhoto(new MediaItem.Photo("http://images.r.us/total-cluster.jpeg", "More of the same -- add keywords for SEO",
-                640, 480, MediaItem.Photo.Size.LARGE));
-        item.addPhoto(new MediaItem.Photo("http://images.r.us/barf.png", "One more angle, gotta see this", 320, 256, MediaItem.Photo.Size.SMALL));
+        item.addPhoto(new MediaItem.Photo("http://javaone.com/keynote_large.jpg", "Javaone Keynote", 1024, 768, MediaItem.Photo.Size.LARGE));
+        item.addPhoto(new MediaItem.Photo("http://javaone.com/keynote_small.jpg", "Javaone Keynote", 320, 240, MediaItem.Photo.Size.SMALL));
 
         return item;
     }
@@ -79,7 +77,9 @@ public final class TestSerPerf
         
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            int round = (i++ % 1);
+            ++i;
+//            int round = (i % 1);
+            int round = 1;
 
             long curr = System.currentTimeMillis();
             String msg;

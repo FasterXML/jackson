@@ -38,10 +38,10 @@ public class RootNameLookup
         QName name;
         synchronized (_rootNames) {
             name = _rootNames.get(key);
-            BasicBeanDescription beanDesc = (BasicBeanDescription) config.introspectClassAnnotations(rootType);
-            AnnotationIntrospector intr = config.getAnnotationIntrospector();
-            AnnotatedClass ac = beanDesc.getClassInfo();
             if (name == null) {
+                BasicBeanDescription beanDesc = (BasicBeanDescription) config.introspectClassAnnotations(rootType);
+                AnnotationIntrospector intr = config.getAnnotationIntrospector();
+                AnnotatedClass ac = beanDesc.getClassInfo();
                 String localName = intr.findRootName(ac);
                 // No answer so far? Let's just default to using simple class name
                 if (localName == null) {
