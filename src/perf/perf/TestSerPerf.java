@@ -3,10 +3,11 @@ package perf;
 import java.io.*;
 import javax.xml.stream.XMLOutputFactory;
 
-import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.xml.XmlFactory;
 import org.codehaus.jackson.xml.XmlMapper;
+//import org.codehaus.jackson.smile.*;
 
 import com.ctc.wstx.stax.WstxOutputFactory;
 //import com.fasterxml.aalto.stax.OutputFactoryImpl;
@@ -24,7 +25,7 @@ public final class TestSerPerf
     private TestSerPerf() throws Exception
     {
         // Let's try to guestimate suitable size...
-        REPS = 10000;
+        REPS = 20000;
     }
 
     private MediaItem buildItem()
@@ -63,8 +64,9 @@ public final class TestSerPerf
         final JsonFactory jsonF =
 //            new JsonFactory()
             new org.codehaus.jackson.smile.SmileFactory();
-            ;
-        
+        ;
+//        ((SmileFactory) jsonF).configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, false);
+            
         final ObjectMapper jsonMapper = new ObjectMapper(jsonF);
 
 //      jsonMapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
@@ -86,7 +88,7 @@ public final class TestSerPerf
         }
         
         while (true) {
-            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
+//            Thread.sleep(150L);
             ++i;
 //            int round = (i % 1);
             int round = 0;

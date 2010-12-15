@@ -1730,25 +1730,29 @@ public class SmileGenerator
     {
         int hash = name.hashCode();
         SharedStringNode head = _seenNames[hash & (_seenNames.length-1)];
-        if (head != null) {
-            SharedStringNode node = head;
-            // first, identity match; assuming most of the time we get intern()ed String
-            do {
-                if (node.value == name) {
-                    return node.index;
-                }
-                node = node.next;
-            } while (node != null);
-            // and then comparison, if no match yet
-            node = head;
-            do {
-                String value = node.value;
-                if (value.hashCode() == hash && value.equals(name)) {
-                    return node.index;
-                }
-                node = node.next;
-            } while (node != null);
+        if (head == null) {
+            return -1;
         }
+        SharedStringNode node = head;
+        // first, identity match; assuming most of the time we get intern()ed String
+        // And do unrolled initial check; 90+% likelihood head node has all info we need:
+        if (node.value == name) {
+            return node.index;
+        }
+        while ((node = node.next) != null) {
+            if (node.value == name) {
+                return node.index;
+            }
+        }
+        // If not, equality check; we already know head is not null
+        node = head;
+        do {
+            String value = node.value;
+            if (value.hashCode() == hash && value.equals(name)) {
+                return node.index;
+            }
+            node = node.next;
+        } while (node != null);
         return -1;
     }
     
