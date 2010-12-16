@@ -211,7 +211,7 @@ public class ArrayDeserializers
 
             while (jp.nextToken() != JsonToken.END_ARRAY) {
                 // whether we should allow truncating conversions?
-                boolean value = _parseBoolean(jp, ctxt);
+                boolean value = _parseBooleanPrimitive(jp, ctxt);
                 if (ix >= chunk.length) {
                     chunk = builder.appendCompletedChunk(chunk, ix);
                     ix = 0;
