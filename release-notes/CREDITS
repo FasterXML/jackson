@@ -458,15 +458,34 @@ Claudio Rossetto:
    [1.6.3]
 
 Sean Parmelee:
+  * Reported [JACKSON-415]: XmlElement.type() ignored for Schema generation
+   [1.6.3]
   * Reported [JACKSON-416]: XmlElement.type() doesn't override type during
     serialization
    [1.6.3]
+  * Reported [JACKSON-423]: Incorrect serialization of BigDecimal, BigInteger,
+    when using TokenBuffer
+   [1.6.3]
+  * Reported [JACKSON-436]: @XmlElementType not working correctly with Collection
+    type properties
+   [1.6.4]
 
 Joe Jensen:
   * Reported [JACKSON-417] Deserialization of "native" types (String, Integer,
     Boolean) failed with abstract types
    [1.6.3]
-   
+
+Peter Litvak:
+  * Reported [JACKSON-387]: Deserialization fails for certain objects serialized
+    with enableDefaultTyping
+   [1.6.3]
+
+Hannu Leinonen:
+  * Reported [JACKSON-431] Deserialization fails with JSON array with beans
+   with @JsonCreator, unmapped properties before and after creator properties
+   [1.6.4]
+
+
 Ga�l Marziou:   
   * Contributed [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
     value into JSON

@@ -605,7 +605,11 @@ public class BeanDeserializer
         throws IOException, JsonProcessingException
     {
     	if (_delegatingCreator != null) {
-    	    return _delegatingCreator.deserialize(jp, ctxt);
+    	    try {
+    	        return _delegatingCreator.deserialize(jp, ctxt);
+            } catch (Exception e) {
+                wrapAndThrow(e, _beanType.getRawClass(), null);
+            }
     	}
     	throw ctxt.mappingException(getBeanClass());
     }
@@ -640,8 +644,14 @@ public class BeanDeserializer
                 Object value = prop.deserialize(jp, ctxt);
                 if (buffer.assignParameter(prop.getCreatorIndex(), value)) {
                     jp.nextToken(); // to move to following FIELD_NAME/END_OBJECT
-                    Object bean = creator.build(buffer);
-		    //  polymorphic?
+                    Object bean;
+                    try {
+                        bean = creator.build(buffer);
+                    } catch (Exception e) {
+                        wrapAndThrow(e, _beanType.getRawClass(), propName);
+                        continue; // never gets here
+                    }
+                //  polymorphic?
 		    if (bean.getClass() != _beanType.getRawClass()) {
 			return handlePolymorphic(jp, ctxt, bean, unknown);
 		    }

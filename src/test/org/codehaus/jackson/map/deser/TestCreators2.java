@@ -76,6 +76,14 @@ public class TestCreators2
         }
     }
 
+    // Test class for verifying that creator-call failures are reported as checked exceptions
+    static class BeanFor438 {
+        @JsonCreator
+        public BeanFor438(@JsonProperty("name") String s) {
+            throw new IllegalArgumentException("I don't like that name!");
+        }
+    }
+    
     /*
     /**********************************************************
     /* Unit tests
@@ -111,5 +119,20 @@ public class TestCreators2
                 +"}]}",
                 Test431Container.class);
         assertNotNull(foo);
+    }
+
+    // [JACKSON-438]: Catch and rethrow exceptions that Creator methods throw
+    public void testJackson438() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        try {
+            m.readValue("{ \"name\":\"foobar\" }", BeanFor438.class);
+            fail("Should have failed");
+        } catch (Exception e) {
+            if (!(e instanceof JsonMappingException)) {
+                fail("Should have received JsonMappingException, caught "+e.getClass().getName());
+            }
+            verifyException(e, "don't like that name");
+        }
     }
 }

@@ -21,6 +21,8 @@ Description:
   * [JACKSON-419]: Add explicit support for handling 'java.util.Locale'
     (suggested by Brian R)
   * [JACKSON-434]: Add 'JsonGenerator.writeString(SerializableString)'
+  * [JACKSON-438]: Wrap exceptions thrown by Creator methods as JsonMappingException
+    (suggested by Tim W)
 
   New features:
 
@@ -61,6 +63,30 @@ Description:
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
+
+1.6.3 [04-Dec-2010]
+
+  Fixes:
+
+  * [JACKSON-228], [JACKSON-411] XmlJavaTypeAdapter, package-level annotations not
+    working
+   (reported by Claudio R, Raymond F)
+  * [JACKSON-387]: Deserialization fails for certain objects serialized with
+    enableDefaultTyping
+   (reported by Peter L)
+  * [JACKSON-415] XMLElement annotation ignored during schema generation
+    (reported by Sean P)
+  * [JACKSON-416] XmlElement.type() doesn't override type during serialization
+    (reported by Sean P)
+  * [JACKSON-417] Deserialization of "native" types (String, Integer, Boolean)
+    failed with abstract types
+   (reported by Joe J)
+  * [JACKSON-423] Incorrect serialization of BigDecimal, BigInteger,
+    when using TokenBuffer
+   (reported by Sean P)
+  * [JACKSON-424] ArrayIndexOutOfBounds with SmileGenerator, long Unicode
+    Strings
+   (reported by Shay B)
 
 1.6.2 [02-Nov-2010]
 
