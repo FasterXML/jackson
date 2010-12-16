@@ -525,10 +525,19 @@ public class JaxbAnnotationIntrospector
          */
         // Note: caller does necessary sub/supertype checks
         XmlElement annotation = findAnnotation(XmlElement.class, a, false, false, false);
-        if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
-            return annotation.type();
+        if (annotation == null || annotation.type() == XmlElement.DEFAULT.class) {
+            return null;
         }
-        return null;
+        /* [JACKSON-436]: Apparently collection types (array, Collection, maybe Map)
+         *   require type definition to relate to contents, not collection type
+         *   itself. So; we must return null here for those cases, and modify content
+         *   type on another method.
+         */
+        Class<?> rawPropType = a.getRawType();
+        if (isIndexedType(rawPropType)) {
+            return null;
+        }
+        return annotation.type();
     }
 
     /**
@@ -766,7 +775,8 @@ public class JaxbAnnotationIntrospector
          *   I think it's rather short-sighted. Whatever, it is what it is, and here
          *   we are being given content type explicitly.
          */
-        return _doFindDeserializationType(a, baseContentType, propName);
+        Class<?> type = _doFindDeserializationType(a, baseContentType, propName);
+        return type;
     }
 
     protected Class<?> _doFindDeserializationType(Annotated a, JavaType baseType, String propName)
@@ -783,8 +793,11 @@ public class JaxbAnnotationIntrospector
          * only be attached to fields and methods
          */
         XmlElement annotation = findAnnotation(XmlElement.class, a, false, false, false);
-        if (annotation != null && annotation.type() != XmlElement.DEFAULT.class) {
-            return annotation.type();
+        if (annotation != null) {
+            Class<?> type = annotation.type();
+            if (type != XmlElement.DEFAULT.class) {
+                return type;
+            }
         }
         /* 16-Feb-2010, tatu: May also have annotation associated with field, not method
          *    itself... and findAnnotation() won't find that (nor property descriptor)
@@ -1135,6 +1148,16 @@ public class JaxbAnnotationIntrospector
         return null;
     }
 
+    /**
+     * Helper method used to distinguish structured type, which with JAXB use different
+     * rules for defining content types.
+     */
+    protected boolean isIndexedType(Class<?> raw)
+    {
+        return raw.isArray() || Collection.class.isAssignableFrom(raw)
+            || Map.class.isAssignableFrom(raw);
+    }
+    
     /*
     /**********************************************************
     /* Helper classes

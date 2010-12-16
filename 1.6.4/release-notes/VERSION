@@ -11,6 +11,9 @@ Description:
   * [JACKSON-431] Deserialization fails with JSON array with beans with
     @JsonCreator, unmapped properties before and after creator properties
    (reported by Hannu L)
+  * [JACKSON-436] @XmlElementType not working correctly with Collection type
+    properties
+   (reported by Sean P)
 
 ------------------------------------------------------------------------
 == History: ==

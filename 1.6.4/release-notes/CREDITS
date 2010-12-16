@@ -477,6 +477,9 @@ Sean Parmelee:
   * Reported [JACKSON-423]: Incorrect serialization of BigDecimal, BigInteger,
     when using TokenBuffer
    [1.6.3]
+  * Reported [JACKSON-436]: @XmlElementType not working correctly with Collection
+    type properties
+   [1.6.4]
 
 Joe Jensen:
   * Reported [JACKSON-417] Deserialization of "native" types (String, Integer,
