@@ -90,7 +90,7 @@ public abstract class StdDeserializer<T>
     /**********************************************************
      */
 
-    protected final boolean _parseBoolean(JsonParser jp, DeserializationContext ctxt)
+    protected final boolean _parseBooleanPrimitive(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.getCurrentToken();
@@ -99,6 +99,41 @@ public abstract class StdDeserializer<T>
         }
         if (t == JsonToken.VALUE_FALSE) {
             return false;
+        }
+        if (t == JsonToken.VALUE_NULL) {
+            return false;
+        }
+        // [JACKSON-78]: should accept ints too, (0 == false, otherwise true)
+        if (t == JsonToken.VALUE_NUMBER_INT) {
+            return (jp.getIntValue() != 0);
+        }
+        // And finally, let's allow Strings to be converted too
+        if (t == JsonToken.VALUE_STRING) {
+            String text = jp.getText().trim();
+            if ("true".equals(text)) {
+                return true;
+            }
+            if ("false".equals(text) || text.length() == 0) {
+                return Boolean.FALSE;
+            }
+            throw ctxt.weirdStringException(_valueClass, "only \"true\" or \"false\" recognized");
+        }
+        // Otherwise, no can do:
+        throw ctxt.mappingException(_valueClass);
+    }
+
+    protected final Boolean _parseBoolean(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        JsonToken t = jp.getCurrentToken();
+        if (t == JsonToken.VALUE_TRUE) {
+            return Boolean.TRUE;
+        }
+        if (t == JsonToken.VALUE_FALSE) {
+            return Boolean.FALSE;
+        }
+        if (t == JsonToken.VALUE_NULL) {
+            return null;
         }
         // [JACKSON-78]: should accept ints too, (0 == false, otherwise true)
         if (t == JsonToken.VALUE_NUMBER_INT) {
@@ -110,24 +145,21 @@ public abstract class StdDeserializer<T>
             if ("true".equals(text)) {
                 return Boolean.TRUE;
             }
-            if ("false".equals(text)) {
+            if ("false".equals(text) || text.length() == 0) {
                 return Boolean.FALSE;
             }
             throw ctxt.weirdStringException(_valueClass, "only \"true\" or \"false\" recognized");
         }
-        if (t == JsonToken.VALUE_NULL) {
-            return Boolean.FALSE;
-        }
         // Otherwise, no can do:
         throw ctxt.mappingException(_valueClass);
     }
-
+    
     protected final Short _parseShort(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.getCurrentToken();
         if (t == JsonToken.VALUE_NULL) {
-            return (short) 0;
+            return null;
         }
         if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
             return jp.getShortValue();
@@ -670,7 +702,7 @@ public abstract class StdDeserializer<T>
 	public Boolean deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            return _parseBoolean(jp, ctxt) ? Boolean.TRUE : Boolean.FALSE;
+            return _parseBoolean(jp, ctxt);
         }
 
         // 1.6: since we can never have type info ("natural type"; String, Boolean, Integer, Double):
@@ -680,7 +712,7 @@ public abstract class StdDeserializer<T>
                 TypeDeserializer typeDeserializer)
             throws IOException, JsonProcessingException
         {
-            return _parseBoolean(jp, ctxt) ? Boolean.TRUE : Boolean.FALSE;
+            return _parseBoolean(jp, ctxt);
         }
     }
 
@@ -952,7 +984,8 @@ public abstract class StdDeserializer<T>
         public AtomicBoolean deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            return new AtomicBoolean(_parseBoolean(jp, ctxt));
+            // 16-Dec-2010, tatu: Should we actually convert null to null AtomicBoolean?
+            return new AtomicBoolean(_parseBooleanPrimitive(jp, ctxt));
         }
     }
 
