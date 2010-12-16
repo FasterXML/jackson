@@ -60,8 +60,8 @@ public final class TestDeserPerf
 
         final MediaItem item = buildItem();
         JsonFactory jsonF =
-            new org.codehaus.jackson.smile.SmileFactory();
-//            new JsonFactory()
+//            new org.codehaus.jackson.smile.SmileFactory();
+            new JsonFactory()
         ;
         
         final ObjectMapper jsonMapper = new ObjectMapper(jsonF);
@@ -78,7 +78,8 @@ public final class TestDeserPerf
         
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            int round = (i++ % 1);
+//            int round = (i++ % 1);
+            int round = 0;
 
             long curr = System.currentTimeMillis();
             String msg;

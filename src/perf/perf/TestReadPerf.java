@@ -64,11 +64,9 @@ public final class TestReadPerf
                 if (t == JsonToken.VALUE_NUMBER_INT) {
                     count += jp.getIntValue();
                 }
-                /*
                 if (t == JsonToken.VALUE_STRING) {
                     count += jp.getText().length();
                 }
-                */
             }
             jp.close();
         }

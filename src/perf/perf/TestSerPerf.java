@@ -62,8 +62,8 @@ public final class TestSerPerf
 
         final MediaItem item = buildItem();
         final JsonFactory jsonF =
-//            new JsonFactory()
-            new org.codehaus.jackson.smile.SmileFactory();
+            new JsonFactory()
+//            new org.codehaus.jackson.smile.SmileFactory();
         ;
 //        ((SmileFactory) jsonF).configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, false);
             
