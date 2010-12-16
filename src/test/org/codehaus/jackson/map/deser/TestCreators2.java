@@ -133,6 +133,11 @@ public class TestCreators2
                 fail("Should have received JsonMappingException, caught "+e.getClass().getName());
             }
             verifyException(e, "don't like that name");
+            // Ok: also, let's ensure root cause is directly linked, without other extra wrapping:
+            Throwable t = e.getCause();
+            assertNotNull(t);
+            assertEquals(IllegalArgumentException.class, t.getClass());
+            verifyException(e, "don't like that name");
         }
     }
 }

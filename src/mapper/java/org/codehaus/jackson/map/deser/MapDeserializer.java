@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import org.codehaus.jackson.JsonProcessingException;
@@ -270,7 +271,13 @@ public class MapDeserializer
                 Object value = prop.deserialize(jp, ctxt);
                 if (buffer.assignParameter(prop.getCreatorIndex(), value)) {
                     jp.nextToken();
-                    Map<Object,Object> result = (Map<Object,Object>)creator.build(buffer);
+                    Map<Object,Object> result;
+                    try {
+                        result = (Map<Object,Object>)creator.build(buffer);
+                    } catch (Exception e) {
+                        wrapAndThrow(e, _mapType.getRawClass());
+                        return null;
+                    }
                     _readAndBind(jp, ctxt, result);
                     return result;
                 }
@@ -291,6 +298,31 @@ public class MapDeserializer
         }
         // end of JSON object?
         // if so, can just construct and leave...
-        return (Map<Object,Object>)creator.build(buffer);
+        try {
+            return (Map<Object,Object>)creator.build(buffer);
+        } catch (Exception e) {
+            wrapAndThrow(e, _mapType.getRawClass());
+            return null;
+        }
     }
+
+    // note: copied form BeanDeserializer; should try to share somehow...
+    protected void wrapAndThrow(Throwable t, Object ref)
+        throws IOException
+    {
+        // to handle StackOverflow:
+        while (t instanceof InvocationTargetException && t.getCause() != null) {
+            t = t.getCause();
+        }
+        // Errors and "plain" IOExceptions to be passed as is
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+        // ... except for mapping exceptions
+        if (t instanceof IOException && !(t instanceof JsonMappingException)) {
+            throw (IOException) t;
+        }
+        throw JsonMappingException.wrapWithPath(t, ref, null);
+    }
+
 }

@@ -263,7 +263,7 @@ abstract class Creator
         }
         
         public Object build(PropertyValueBuffer buffer)
-            throws IOException, JsonProcessingException
+            throws Exception
         {
             Object bean;
             try {
@@ -273,7 +273,7 @@ abstract class Creator
                     bean =  _factoryMethod.invoke(null, buffer.getParameters(_defaultValues));
                 }
             } catch (Exception e) {
-                ClassUtil.unwrapAndThrowAsIAE(e);
+                ClassUtil.throwRootCause(e);
                 return null; // never gets here
             }
             // Anything buffered?

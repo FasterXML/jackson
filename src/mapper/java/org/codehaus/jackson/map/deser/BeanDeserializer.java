@@ -690,7 +690,13 @@ public class BeanDeserializer
         }
 
         // We hit END_OBJECT, so:
-        Object bean =  creator.build(buffer);
+        Object bean;
+        try {
+            bean =  creator.build(buffer);
+        } catch (Exception e) {
+            wrapAndThrow(e, _beanType.getRawClass(), null);
+            return null; // never gets here
+        }
         if (unknown != null) {
             // polymorphic?
             if (bean.getClass() != _beanType.getRawClass()) {

@@ -220,11 +220,37 @@ public final class ClassUtil
         return t;
     }
 
+    /**
+     * Method that will unwrap root causes of given Throwable, and throw
+     * the innermost {@link Exception} or {@link Error} as is.
+     * This is useful in cases where mandatory wrapping is added, which
+     * is often done by Reflection API.
+     * 
+     * @since 1.7
+     */
+    public static void throwRootCause(Throwable t) throws Exception
+    {
+        t = getRootCause(t);
+        if (t instanceof Exception) {
+            throw (Exception) t;
+        }
+        throw (Error) t;
+    }
+    
+    /**
+     * Method that will wrap 't' as an {@link IllegalArgumentException} if it
+     * is a checked exception; otherwise (runtime exception or error) throw as is
+     */
     public static void throwAsIAE(Throwable t)
     {
         throwAsIAE(t, t.getMessage());
     }
 
+    /**
+     * Method that will wrap 't' as an {@link IllegalArgumentException} (and with
+     * specified message) if it
+     * is a checked exception; otherwise (runtime exception or error) throw as is
+     */
     public static void throwAsIAE(Throwable t, String msg)
     {
         if (t instanceof RuntimeException) {
@@ -236,11 +262,21 @@ public final class ClassUtil
         throw new IllegalArgumentException(msg, t);
     }
 
+    /**
+     * Method that will locate the innermost exception for given Throwable;
+     * and then wrap it as an {@link IllegalArgumentException} if it
+     * is a checked exception; otherwise (runtime exception or error) throw as is
+     */
     public static void unwrapAndThrowAsIAE(Throwable t)
     {
         throwAsIAE(getRootCause(t));
     }
 
+    /**
+     * Method that will locate the innermost exception for given Throwable;
+     * and then wrap it as an {@link IllegalArgumentException} if it
+     * is a checked exception; otherwise (runtime exception or error) throw as is
+     */
     public static void unwrapAndThrowAsIAE(Throwable t, String msg)
     {
         throwAsIAE(getRootCause(t), msg);
