@@ -77,7 +77,7 @@ public final class TestDeserPerf
         System.out.println(" xml size: "+xml.length+" bytes");
         
         while (true) {
-            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
+//            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
             int round = (i++ % 1);
 
             long curr = System.currentTimeMillis();

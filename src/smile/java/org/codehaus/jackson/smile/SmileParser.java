@@ -288,9 +288,12 @@ public class SmileParser
             _skipIncomplete();
         }
         _tokenInputTotal = _currInputProcessed + _inputPtr - 1;
-
-        // finally: clear any data retained so far
+        // also: clear any data retained so far
         _binaryValue = null;
+        // Two main modes: values, and field names.
+        if (_parsingContext.inObject() && _currToken != JsonToken.FIELD_NAME) {
+            return (_currToken = _handleFieldName());
+        }
         if (_inputPtr >= _inputEnd) {
             if (!loadMore()) {
                 _handleEOF();
@@ -304,11 +307,6 @@ public class SmileParser
         }
         int ch = _inputBuffer[_inputPtr++];
         _typeByte = ch;
-        // Two main modes: values, and field names.
-        if (_parsingContext.inObject() && _currToken != JsonToken.FIELD_NAME) {
-            return (_currToken = _handleFieldName());
-        }
-
         switch ((ch >> 5) & 0x7) {
         case 0: // short shared string value reference
             if (ch == 0) { // important: this is invalid, don't accept
@@ -502,25 +500,24 @@ public class SmileParser
     public String getText()
         throws IOException, JsonParseException
     {
-        if (_currToken != null) { // null only before/after document
-            if (_tokenIncomplete) {
-                _finishToken();
-            }
-            switch (_currToken) {
-            case VALUE_STRING:
-                return _textBuffer.contentsAsString();
-            case FIELD_NAME:
-                return _parsingContext.getCurrentName();
-            case VALUE_NUMBER_INT:
-            case VALUE_NUMBER_FLOAT:
-                // TODO: optimize
-                return getNumberValue().toString();
-                
-            default:
-                return _currToken.asString();
-            }
+        if (_tokenIncomplete) {
+            _finishToken();
         }
-        return null;
+        if (_currToken == JsonToken.VALUE_STRING) {
+            return _textBuffer.contentsAsString();
+        }
+        JsonToken t = _currToken;
+        if (t == null) { // null only before/after document
+            return null;
+        }
+        if (t == JsonToken.FIELD_NAME) {
+            return _parsingContext.getCurrentName();
+        }
+        if (t.isNumeric()) {
+            // TODO: optimize?
+            return getNumberValue().toString();
+        }
+        return _currToken.asString();
     }
 
     @Override
@@ -633,7 +630,12 @@ public class SmileParser
      */
     protected final JsonToken _handleFieldName() throws IOException, JsonParseException
     {    	
-        int ch = _typeByte;
+        if (_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        int ch = _inputBuffer[_inputPtr++];
+        // is this needed?
+        _typeByte = ch;
         switch ((ch >> 6) & 3) {
         case 0: // misc, including end marker
             switch (ch) {
