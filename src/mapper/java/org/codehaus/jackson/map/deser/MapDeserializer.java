@@ -29,28 +29,28 @@ public class MapDeserializer
 {
     // // Configuration: typing, deserializers
 
-    final JavaType _mapType;
+    final protected JavaType _mapType;
 
     /**
      * Key deserializer used, if not null. If null, String from JSON
      * content is used as is.
      */
-    final KeyDeserializer _keyDeserializer;
+    final protected KeyDeserializer _keyDeserializer;
 
     /**
      * Value deserializer.
      */
-    final JsonDeserializer<Object> _valueDeserializer;
+    final protected JsonDeserializer<Object> _valueDeserializer;
 
     /**
      * If value instances have polymorphic type information, this
      * is the type deserializer that can handle it
      */
-    final TypeDeserializer _valueTypeDeserializer;
+    final protected TypeDeserializer _valueTypeDeserializer;
     
     // // Instance construction settings:
 
-    final Constructor<Map<Object,Object>> _defaultCtor;
+    final protected Constructor<Map<Object,Object>> _defaultCtor;
 
     /**
      * If the Map is to be instantiated using non-default constructor
