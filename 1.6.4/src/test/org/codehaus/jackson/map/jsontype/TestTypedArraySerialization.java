@@ -6,6 +6,7 @@ import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonView;
 
 /**
  * Unit tests for verifying that types that serialize as JSON Arrays
@@ -61,6 +62,7 @@ public class TestTypedArraySerialization
     }
 
     static class BeanListWrapper {
+        @JsonView({Object.class})
         public List<Bean> beans = new ArrayList<Bean>();
         {
             beans.add(new Bean());
@@ -75,9 +77,14 @@ public class TestTypedArraySerialization
 
     public void testListWithPolymorphic() throws Exception
     {
-        assertEquals("{\"beans\":[{\"@type\":\"bean\",\"x\":0}]}", serializeAsString(new BeanListWrapper()));
+        ObjectMapper mapper = new ObjectMapper();
+        BeanListWrapper beans = new BeanListWrapper();
+        assertEquals("{\"beans\":[{\"@type\":\"bean\",\"x\":0}]}", mapper.writeValueAsString(beans));
+        // Related to [JACKSON-364]
+        ObjectWriter w = mapper.viewWriter(Object.class);
+        assertEquals("{\"beans\":[{\"@type\":\"bean\",\"x\":0}]}", w.writeValueAsString(beans));
     }
-    
+
     public void testIntList() throws Exception
     {
         TypedList<Integer> input = new TypedList<Integer>();
@@ -86,7 +93,7 @@ public class TestTypedArraySerialization
         // uses WRAPPER_ARRAY inclusion:
         assertEquals("[\""+TypedList.class.getName()+"\",[5,13]]", serializeAsString(input));
     }
-
+    
     /**
      * Similar to above, but this time let's request adding type info
      * as property. That would not work (since there's no JSON Object to

@@ -134,14 +134,20 @@ public class BeanPropertyWriter
      */
     protected BeanPropertyWriter(BeanPropertyWriter base)
     {
+	this(base, base._serializer);
+    }
+
+    protected BeanPropertyWriter(BeanPropertyWriter base, JsonSerializer<Object> ser)
+    {
         _name = base._name;
-        _serializer = base._serializer;
         _typeSerializer = base._typeSerializer;
         _cfgSerializationType = base._cfgSerializationType;
         _accessorMethod = base._accessorMethod;
         _field = base._field;
         _suppressNulls = base._suppressNulls;
         _suppressableValue = base._suppressableValue;
+
+        _serializer = ser;
     }
 
     /**
@@ -151,9 +157,7 @@ public class BeanPropertyWriter
      */
     public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
     {
-        return new BeanPropertyWriter(_name, ser, _typeSerializer, _cfgSerializationType,
-                                      _accessorMethod, _field,
-                                      _suppressNulls, _suppressableValue);
+        return new BeanPropertyWriter(this, ser);
     }
 
     /**

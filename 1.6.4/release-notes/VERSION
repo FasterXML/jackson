@@ -8,6 +8,8 @@ Description:
 
   Fixes:
 
+  * [JACKSON-364] @JsonTypeInfo not included properly for Collection types
+    when using JsonView functionality
   * [JACKSON-431] Deserialization fails with JSON array with beans with
     @JsonCreator, unmapped properties before and after creator properties
    (reported by Hannu L)

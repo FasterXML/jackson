@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 
 /**
@@ -36,6 +37,17 @@ public abstract class FilteredBeanPropertyWriter
             _view = view;
         }
 
+        protected SingleView(SingleView base, JsonSerializer<Object> ser) {
+            super(base, ser);
+            _view = base._view;
+        }
+
+        @Override
+	public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
+	{
+	    return new SingleView(this, ser);
+	}
+
         @Override
         public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
             throws Exception
@@ -56,6 +68,17 @@ public abstract class FilteredBeanPropertyWriter
             super(base);
             _views = views;
         }
+
+        protected MultiView(MultiView base, JsonSerializer<Object> ser) {
+            super(base, ser);
+            _views = base._views;
+        }
+
+        @Override
+	public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
+	{
+	    return new MultiView(this, ser);
+	}
 
         @Override
         public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
