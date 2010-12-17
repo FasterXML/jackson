@@ -48,11 +48,6 @@ public class TestWithGenerics extends BaseMapTest
     
     // Beans for [JACKSON-387], [JACKSON-430]
     
-    private static class SomeObject {
-        @SuppressWarnings("unused")
-        public String someValue = UUID.randomUUID().toString();
-    }
-
     @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@classAttr1")
     static class MyClass {
         public List<MyParam<?>> params = new ArrayList<MyParam<?>>();
@@ -66,6 +61,11 @@ public class TestWithGenerics extends BaseMapTest
         public MyParam(T v) { value = v; }
     }
 
+    private static class SomeObject {
+        @SuppressWarnings("unused")
+        public String someValue = UUID.randomUUID().toString();
+    }
+    
     // Beans for [JACKSON-430]
     
     static class CustomJsonSerializer extends JsonSerializer<Object>
@@ -158,32 +158,27 @@ public class TestWithGenerics extends BaseMapTest
 
         MyClass mc = new MyClass();
 
-        MyParam<Integer> moc1 = new MyParam<Integer>();
-        moc1.value = 1;
+        MyParam<Integer> moc1 = new MyParam<Integer>(1);
+        MyParam<String> moc2 = new MyParam<String>("valueX");
 
-        MyParam<String> moc2 = new MyParam<String>();
-        moc2.value = "valueX";
-
-        MyParam<SomeObject> moc3 = new MyParam<SomeObject>();
         SomeObject so = new SomeObject();
         so.someValue = "xxxxxx"; 
-        moc3.value = so;
+        MyParam<SomeObject> moc3 = new MyParam<SomeObject>(so);
 
         List<SomeObject> colist = new ArrayList<SomeObject>();
         colist.add( new SomeObject() );
         colist.add( new SomeObject() );
         colist.add( new SomeObject() );
-        MyParam<List<SomeObject>> moc4 = new MyParam<List<SomeObject>>();
-        moc4.value = colist;
+        MyParam<List<SomeObject>> moc4 = new MyParam<List<SomeObject>>(colist);
 
         mc.params.add( moc1 );
         mc.params.add( moc2 );
         mc.params.add( moc3 );
         mc.params.add( moc4 );
 
-        String str = om.writeValueAsString( mc );
-
-        MyClass mc2 = om.readValue( str, MyClass.class );
+        String json = om.writeValueAsString( mc );
+        
+        MyClass mc2 = om.readValue(json, MyClass.class );
         assertNotNull(mc2);
         assertNotNull(mc2.params);
         assertEquals(4, mc2.params.size());
