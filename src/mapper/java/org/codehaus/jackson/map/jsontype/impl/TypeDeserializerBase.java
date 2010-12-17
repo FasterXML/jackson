@@ -79,8 +79,18 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
                 if (type == null) {
                     throw ctxt.unknownTypeException(_baseType, typeId);
                 }
-                DeserializationConfig config = ctxt.getConfig();
-                deser = ctxt.getDeserializerProvider().findValueDeserializer(config, type, _property);
+                /* 16-Dec-2010, tatu: Since nominal type we get here has no (generic) type parameters,
+                 *   we actually now need to explicitly narrow from base type (which may have parameterization)
+                 *   using raw type.
+                 *   
+                 *   One complication, though; can not change 'type class' (simple type to container); otherwise
+                 *   we may try to narrow a SimpleType (Object.class) into MapType (Map.class), losing actual
+                 *   type in process (getting SimpleType of Map.class which will not work as expected)
+                 */
+                if (_baseType != null &&  _baseType.getClass() == type.getClass()) {
+                    type = _baseType.narrowBy(type.getRawClass());
+                }
+                deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, _property);
                 _deserializers.put(typeId, deser);
             }
         }
