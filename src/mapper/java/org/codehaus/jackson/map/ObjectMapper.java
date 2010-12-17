@@ -826,6 +826,26 @@ public class ObjectMapper
     }
 
     /**
+     * Method for enabling automatic inclusion of type information -- needed
+     * for proper deserialization of polymorphic types (unless types
+     * have been annotated with {@link org.codehaus.jackson.annotate.JsonTypeInfo}) --
+     * using "As.PROPERTY" inclusion mechanism and specified property name
+     * to use for inclusion (default being "@class" since default type information
+     * always uses class name as type identifier)
+     * 
+     * @since 1.7
+     */
+    public ObjectMapper enableDefaultTypingAsProperty(DefaultTyping applicability, String propertyName)
+    {
+        TypeResolverBuilder<?> typer = new DefaultTypeResolverBuilder(applicability);
+        // we'll always use full class name, when using defaulting
+        typer = typer.init(JsonTypeInfo.Id.CLASS, null);
+        typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
+        typer = typer.typeProperty(propertyName);
+        return setDefaultTyping(typer);
+    }
+    
+    /**
      * Method for disabling automatic inclusion of type information; if so, only
      * explicitly annotated types (ones with
      * {@link org.codehaus.jackson.annotate.JsonTypeInfo}) will have

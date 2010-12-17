@@ -20,6 +20,9 @@ Description:
     (reported by Kirill S) 
   * [JACKSON-419]: Add explicit support for handling 'java.util.Locale'
     (suggested by Brian R)
+  * [JACKSON-432]: Add 'ObjectMapper.enableDefaultTypingAsProperty()' to allow specifying
+    inclusion type 'As.PROPERTY' and property name to use
+    (suggested by Peter L)
   * [JACKSON-434]: Add 'JsonGenerator.writeString(SerializableString)'
   * [JACKSON-438]: Wrap exceptions thrown by Creator methods as JsonMappingException
     (suggested by Tim W)

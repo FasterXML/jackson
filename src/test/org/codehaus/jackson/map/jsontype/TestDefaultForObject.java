@@ -58,6 +58,7 @@ public class TestDefaultForObject
         public AbstractBean bean;
         
         public BeanHolder() { }
+        public BeanHolder(AbstractBean b) { bean = b; }
     }
 
     final static class ObjectHolder
@@ -318,6 +319,15 @@ public class TestDefaultForObject
         assertNotNull(wrapper.myBean);
         assertSame(DiscussBean.class, wrapper.myBean.getClass());
     }    
+
+    // Test to ensure we can also use "As.PROPERTY" inclusion and custom property name
+    public void testFeature432() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enableDefaultTypingAsProperty(ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE, "*CLASS*");
+        String json = mapper.writeValueAsString(new BeanHolder(new StringBean("punny")));
+        assertEquals("{\"bean\":{\"*CLASS*\":\"org.codehaus.jackson.map.jsontype.TestDefaultForObject$StringBean\",\"name\":\"punny\"}}", json);
+    }
     
     /*
     /**********************************************************

@@ -482,12 +482,14 @@ Peter Litvak:
   * Reported [JACKSON-387]: Deserialization fails for certain objects serialized
     with enableDefaultTyping
    [1.6.3]
+  * Suggested [JACKSON-432]: Add 'ObjectMapper.enableDefaultTypingAsProperty()' to allow
+    specifying inclusion type 'As.PROPERTY' and property name to use
+   [1.7.0]
 
 Hannu Leinonen:
   * Reported [JACKSON-431] Deserialization fails with JSON array with beans
    with @JsonCreator, unmapped properties before and after creator properties
    [1.6.4]
-
 
 Ga�l Marziou:   
   * Contributed [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
