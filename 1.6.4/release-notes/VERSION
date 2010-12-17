@@ -10,6 +10,9 @@ Description:
 
   * [JACKSON-364] @JsonTypeInfo not included properly for Collection types
     when using JsonView functionality
+  * [JACKSON-428] Type information, Map key deserializer definitions don't
+    work together
+    (reported by Patrick R)
   * [JACKSON-431] Deserialization fails with JSON array with beans with
     @JsonCreator, unmapped properties before and after creator properties
    (reported by Hannu L)
