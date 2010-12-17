@@ -268,7 +268,12 @@ public class TestParentChildReferences
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(parent);
 
-        AbstractNode root = mapper.readValue(json, AbstractNode.class);
+        AbstractNode root = null;
+        try {
+            root = mapper.readValue(json, AbstractNode.class);
+        } catch  (IllegalArgumentException e) {
+            fail("Did not expected an exception; got: "+e.getMessage());
+        }
         assertEquals(ConcreteNode.class, root.getClass());
         assertEquals("p", root.id);
         assertNull(root.prev);
