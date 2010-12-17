@@ -21,6 +21,8 @@ public class TestDefaultForMaps
         public String key;
 
         public MapKey(String k) { key = k; }
+
+        @Override public String toString() { return key; }
     }
 
     static class MapKeyDeserializer extends KeyDeserializer
@@ -43,7 +45,6 @@ public class TestDefaultForMaps
     /**********************************************************
      */
     
-    // !!!! Incomplete: does not reproduce issue, yet
     public void testJackson428() throws Exception
     {
         ObjectMapper serMapper = new ObjectMapper();
@@ -60,8 +61,6 @@ public class TestDefaultForMaps
         ints.add(Integer.valueOf(3));
         holder.map.put(new MapKey("key"), ints);
         String json = serMapper.writeValueAsString(holder);
-
-//System.out.println("JSON == "+json);        
 
         // Then deserialize: need separate mapper to initialize type id resolver appropriately
         ObjectMapper deserMapper = new ObjectMapper();
