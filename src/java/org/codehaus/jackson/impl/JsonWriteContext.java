@@ -47,8 +47,10 @@ public class JsonWriteContext
 
     protected JsonWriteContext(int type, JsonWriteContext parent)
     {
-        super(type);
+        super();
+        _type = type;
         _parent = parent;
+        _index = -1;
     }
 
     // // // Factory methods

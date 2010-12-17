@@ -19,14 +19,16 @@ abstract class NodeCursor
 
     public NodeCursor(int contextType, NodeCursor p)
     {
-        super(contextType);
+        super();
+        _type = contextType;
+        _index = -1;
         _parent = p;
     }
 
     /*
-     *********************************************
-     * JsonStreamContext impl
-     *********************************************
+    /**********************************************************
+    /* JsonStreamContext impl
+    /**********************************************************
      */
 
     // note: co-variant return type
@@ -37,9 +39,9 @@ abstract class NodeCursor
     public abstract String getCurrentName();
 
     /*
-     *********************************************
-     * Extended API
-     *********************************************
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
      */
 
     public abstract JsonToken nextToken();
@@ -66,9 +68,9 @@ abstract class NodeCursor
     }
 
     /*
-     *********************************************
-     * Concrete implementations
-     *********************************************
+    /**********************************************************
+    /* Concrete implementations
+    /**********************************************************
      */
 
     /**

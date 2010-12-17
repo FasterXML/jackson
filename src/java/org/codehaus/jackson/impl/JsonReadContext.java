@@ -44,10 +44,12 @@ public final class JsonReadContext
     public JsonReadContext(JsonReadContext parent,
                                int type, int lineNr, int colNr)
     {
-        super(type);
+        super();
+        _type = type;
         _parent = parent;
         _lineNr = lineNr;
         _columnNr = colNr;
+        _index = -1;
     }
 
     protected final void reset(int type, int lineNr, int colNr)
