@@ -438,6 +438,9 @@ Bruce Ritchie:
 Patrick Ryan:
   * Reported [JACKSON-366] Type metadata not written for empty beans
    [1.6.2]
+  * Reported [JACKSON-428]  Type information, Map key deserializer definitions don't
+    work together
+   [1.6.4]
 
 Manuel Alejandro de Brito Fontes:
   * Reported [JACKSON-403]: XMLGregorianCalendar could not be deserialized from timestamp
