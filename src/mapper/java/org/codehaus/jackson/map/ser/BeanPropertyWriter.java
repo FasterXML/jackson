@@ -192,11 +192,20 @@ public class BeanPropertyWriter
      */
     protected BeanPropertyWriter(BeanPropertyWriter base)
     {
+        this(base, base._serializer);
+    }
+    
+    /**
+     * "Copy constructor" to be used by filtering sub-classes
+     */
+    protected BeanPropertyWriter(BeanPropertyWriter base, JsonSerializer<Object> ser)
+    {
+        _serializer = ser;
+        
         _member = base._member;
         _contextAnnotations = base._contextAnnotations;
         _name = base._name;
         _declaredType = base._declaredType;
-        _serializer = base._serializer;
         _dynamicSerializers = base._dynamicSerializers;
         _typeSerializer = base._typeSerializer;
         _cfgSerializationType = base._cfgSerializationType;
@@ -208,7 +217,7 @@ public class BeanPropertyWriter
         if (base._internalSettings != null) {
             _internalSettings = new HashMap<Object,Object>(base._internalSettings);
         }
-    }
+   }
 
     /**
      * Method that will construct and return a new writer that has
@@ -217,14 +226,11 @@ public class BeanPropertyWriter
      */
     public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
     {
-        BeanPropertyWriter w = new BeanPropertyWriter(_member, _contextAnnotations,
-                _name, _declaredType, ser, _typeSerializer, _cfgSerializationType,
-                 _accessorMethod, _field, _suppressNulls, _suppressableValue);
-        // one more thing: copy internal settings, if any (since 1.7)
-        if (_internalSettings != null) {
-            w._internalSettings = new HashMap<Object,Object>(_internalSettings);
+        // sanity check to ensure sub-classes override...
+        if (getClass() != BeanPropertyWriter.class) {
+            throw new IllegalStateException("BeanPropertyWriter sub-class does not override 'withSerializer()'; needs to!");
         }
-        return w;
+        return new BeanPropertyWriter(this, ser);
     }
 
     /**
@@ -407,6 +413,7 @@ public class BeanPropertyWriter
         if (_suppressableValue != null && _suppressableValue.equals(value)) {
             return;
         }
+
         JsonSerializer<Object> ser = _serializer;
         if (ser == null) {
             Class<?> cls = value.getClass();

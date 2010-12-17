@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 
 /**
@@ -21,10 +22,10 @@ public abstract class FilteredBeanPropertyWriter
     }
 
     /*
-    ****************************************************
-    * Concrete sub-classes
-    ****************************************************
-    */
+    /**********************************************************
+    /* Concrete sub-classes
+    /**********************************************************
+     */
 
     private final static class SingleView
         extends BeanPropertyWriter
@@ -36,6 +37,17 @@ public abstract class FilteredBeanPropertyWriter
             _view = view;
         }
 
+        protected SingleView(SingleView fromView, JsonSerializer<Object> ser) {
+            super(fromView, ser);
+            _view = fromView._view;
+        }
+        
+        @Override
+        public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
+        {
+            return new SingleView(this, ser);
+        }
+        
         @Override
         public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
             throws Exception
@@ -57,6 +69,17 @@ public abstract class FilteredBeanPropertyWriter
             _views = views;
         }
 
+        protected MultiView(MultiView fromView, JsonSerializer<Object> ser) {
+            super(fromView, ser);
+            _views = fromView._views;
+        }
+        
+        @Override
+        public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
+        {
+            return new MultiView(this, ser);
+        }
+        
         @Override
         public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
             throws Exception
@@ -75,11 +98,4 @@ public abstract class FilteredBeanPropertyWriter
             super.serializeAsField(bean, jgen, prov);
         }
     }
-
-/*
-    protected static boolean _assignableFrom(Class<?> activeView)
-    {
-        return false;
-    }
-    */
 }

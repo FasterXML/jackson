@@ -79,12 +79,27 @@ public class BeanSerializer
         _class = type;
         _filteredProps = filteredProps;
     }
-
+    
     public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props)
     {
         this(type, props.toArray(new BeanPropertyWriter[props.size()]));
     }
 
+    /**
+     * "Copy-constructor" used when creating slightly differing instance(s)
+     * of an exisitng serializer
+     */
+    public BeanSerializer(BeanSerializer src, BeanPropertyWriter[] filtered)
+    {
+        super(src._class, false);
+        // mostly just copy stuff from source
+        _props = src._props;
+        _class = src._class;
+        _anyGetterWriter = src._anyGetterWriter;
+        // with one override
+        _filteredProps = filtered;
+    }
+    
     /**
      * Method for constructing dummy bean deserializer; one that
      * never outputs any properties
@@ -100,12 +115,13 @@ public class BeanSerializer
      *
      * @since 1.4
      */
-    public BeanSerializer withFiltered(BeanPropertyWriter[] filtered) {
+    public BeanSerializer withFiltered(BeanPropertyWriter[] filtered)
+    {
         // if no filters, no need to construct new instance...
         if (filtered == null) {
             return this;
         }
-        return new BeanSerializer(_class, _props, filtered);
+        return new BeanSerializer(this, filtered);
     }
 
     public void setAnyGetter(AnyGetterWriter agw) {
@@ -151,7 +167,6 @@ public class BeanSerializer
         } else {
             props = _props;
         }
-
         int i = 0;
         try {
             for (final int len = props.length; i < len; ++i) {
@@ -220,6 +235,7 @@ public class BeanSerializer
         throws JsonMappingException
     {
         //AnnotationIntrospector ai = provider.getConfig().getAnnotationIntrospector();
+        int filteredCount = (_filteredProps == null) ? 0 : _filteredProps.length;
         for (int i = 0, len = _props.length; i < len; ++i) {
             BeanPropertyWriter prop = _props[i];
             if (prop.hasSerializer()) {
@@ -251,7 +267,7 @@ public class BeanSerializer
              *   too, earlier; if so, it's time to connect the dots here:
              */
             if (type.isContainerType()) {
-            	TypeSerializer typeSer = type.getContentType().getTypeHandler();
+                TypeSerializer typeSer = type.getContentType().getTypeHandler();
                 if (typeSer != null) {
                     // for now, can do this only for standard containers...
                     if (ser instanceof ContainerSerializerBase<?>) {
@@ -262,7 +278,15 @@ public class BeanSerializer
                     }
                 }
             }
-            _props[i] = prop.withSerializer(ser);
+            prop = prop.withSerializer(ser);
+            _props[i] = prop;
+            // and maybe replace filtered property too? (see [JACKSON-364])
+            if (i < filteredCount) {
+                BeanPropertyWriter w2 = _filteredProps[i];
+                if (w2 != null) {
+                    _filteredProps[i] = w2.withSerializer(ser);
+                }
+            }
         }
 
         // also, any-getter may need to be resolved
