@@ -74,27 +74,22 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
     {
         BeanPropertyWriter[] writers = properties.toArray(new BeanPropertyWriter[properties.size()]);
         // Ok: how many attributes do we have to write? namespaces?
-        String[] namespaces = null;
+        QName[] xmlNames = new QName[properties.size()];
         int attrCount = 0;
         int i = 0;
         for (BeanPropertyWriter bpw : properties) {
             XmlInfo info = (XmlInfo) bpw.getInternalSetting(KEY_XML_INFO);
+            String ns = null;
             if (info != null) {
                 if (info.isAttribute()) {
                     ++attrCount;
                 }
-                String ns = info.getNamespace();
-                if (ns != null) {
-                    if (namespaces == null) {
-                        namespaces = new String[properties.size()];
-                    }
-                    namespaces[i] = ns;
-                }
+                ns = info.getNamespace();
             }
+            xmlNames[i] = new QName((ns == null) ? "" : ns, bpw.getName());
             ++i;
         }
-        return new XmlBeanSerializer(beanDesc.getBeanClass(), writers, null, attrCount,
-                namespaces);
+        return new XmlBeanSerializer(beanDesc.getBeanClass(), writers, null, attrCount, xmlNames);
     }
 
     /**

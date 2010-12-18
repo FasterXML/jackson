@@ -49,6 +49,8 @@ public class TestSerialization extends XmlTestBase
 
     static class StringListBean
     {
+        // to see what JAXB gives, uncomment:
+        //@javax.xml.bind.annotation.XmlElementWrapper(name="stringList")
         @JacksonXmlElementWrapper(localName="stringList")
         public List<StringBean> strings;
         
@@ -145,8 +147,7 @@ public class TestSerialization extends XmlTestBase
         StringListBean list = new StringListBean("a", "b", "c");
         String xml = mapper.writeValueAsString(list);
         xml = removeSjsxpNamespace(xml);
-        // 06-Dec-2010, tatu: Not completely ok; should default to not using wrapper...
-        System.out.println("xml == "+xml);
+        // 06-Dec-2010, tatu: Not completely ok; should default to not using wrapper... but it's what we have now
         assertEquals("<StringListBean><stringList>"
                 +"<strings><text>a</text></strings>"
                 +"<strings><text>b</text></strings>"
@@ -154,11 +155,13 @@ public class TestSerialization extends XmlTestBase
                 +"</stringList></StringListBean>", xml);
     }
     
-      // manual 'test':
+    // manual 'test' to see "what would JAXB do?"
+    /*
     public void testJAXB() throws Exception
     {
         StringWriter sw = new StringWriter();
         javax.xml.bind.JAXB.marshal(new StringListBean("a", "b", "c"), sw);
         System.out.println("JAXB -> "+sw);
     }
+    */
 }

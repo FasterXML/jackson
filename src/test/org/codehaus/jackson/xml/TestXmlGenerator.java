@@ -2,16 +2,17 @@ package org.codehaus.jackson.xml;
 
 import java.io.*;
 
+import javax.xml.namespace.QName;
+
 public class TestXmlGenerator extends XmlTestBase
 {
-    /*
     public void testSimpleElement() throws Exception
     {
         XmlFactory f = new XmlFactory();
         StringWriter out = new StringWriter();
         ToXmlGenerator gen = f.createJsonGenerator(out);
         // root name is special, need to be fed first:
-        gen.setNextElementName("", "root");
+        gen.setNextName(new QName("root"));
         gen.writeStartObject();
         gen.writeFieldName("elem");
         gen.writeString("value");
@@ -22,7 +23,6 @@ public class TestXmlGenerator extends XmlTestBase
         xml = removeSjsxpNamespace(xml);
         assertEquals("<root><elem>value</elem></root>", xml);
     }
-    */
 
     public void testSimpleAttribute() throws Exception
     {
@@ -30,7 +30,7 @@ public class TestXmlGenerator extends XmlTestBase
         StringWriter out = new StringWriter();
         ToXmlGenerator gen = f.createJsonGenerator(out);
         // root name is special, need to be fed first:
-        gen.setNextElementName("root");
+        gen.setNextName(new QName("root"));
         gen.writeStartObject();
         // and also need to force attribute
         gen.setNextIsAttribute(true);
@@ -49,7 +49,7 @@ public class TestXmlGenerator extends XmlTestBase
         XmlFactory f = new XmlFactory();
         StringWriter out = new StringWriter();
         ToXmlGenerator gen = f.createJsonGenerator(out);
-        gen.setNextElementName("root");
+        gen.setNextName(new QName("root"));
         gen.writeStartObject();
         gen.writeFieldName("elem");
         gen.writeStartObject();
@@ -71,7 +71,7 @@ public class TestXmlGenerator extends XmlTestBase
         XmlFactory f = new XmlFactory();
         StringWriter out = new StringWriter();
         ToXmlGenerator gen = f.createJsonGenerator(out);
-        gen.setNextElementName("root");
+        gen.setNextName(new QName("root"));
         gen.writeStartObject();
         // and also need to force attribute
         gen.writeFieldName("attr");

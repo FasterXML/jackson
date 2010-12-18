@@ -59,7 +59,7 @@ public class XmlSerializerProvider extends StdSerializerProvider
     {
         QName rootName = (value == null) ? ROOT_NAME_FOR_NULL
                 : _rootNameLookup.findRootName(value.getClass(), _config);
-        ((ToXmlGenerator) jgen).setNextElementName(rootName);
+        ((ToXmlGenerator) jgen).setNextName(rootName);
         super._serializeValue(jgen, value);
     }
 
@@ -68,14 +68,7 @@ public class XmlSerializerProvider extends StdSerializerProvider
         throws IOException, JsonProcessingException
     {
         QName rootName = _rootNameLookup.findRootName(rootType, _config);
-        ((ToXmlGenerator) jgen).setNextElementName(rootName);
+        ((ToXmlGenerator) jgen).setNextName(rootName);
         super._serializeValue(jgen, value, rootType);
     }
-
-    /*
-    /**********************************************************
-    /* Helper methods
-    /**********************************************************
-     */
-
 }

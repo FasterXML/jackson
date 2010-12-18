@@ -2,6 +2,8 @@ package org.codehaus.jackson.xml;
 
 import java.io.IOException;
 
+import javax.xml.namespace.QName;
+
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -26,14 +28,14 @@ public class XmlBeanSerializer extends BeanSerializer
      * Array that contains namespace URIs associated with properties, if any;
      * null if no namespace definitions have been assigned
      */
-    protected final String[] _namespaces;
+    protected final QName[] _xmlNames;
     
     public XmlBeanSerializer(Class<?> type, BeanPropertyWriter[] props,
-            BeanPropertyWriter[] filteredProps, int attrCount, String[] ns)
+            BeanPropertyWriter[] filteredProps, int attrCount, QName[] xmlNames)
     {
         super(type, props, filteredProps);
         _attributeCount = attrCount;
-        _namespaces = ns;
+        _xmlNames = xmlNames;
     }
 
     @Override
@@ -42,7 +44,7 @@ public class XmlBeanSerializer extends BeanSerializer
         if (filtered == null) {
             return this;
         }
-        return new XmlBeanSerializer(_class, _props, filtered, _attributeCount, _namespaces);
+        return new XmlBeanSerializer(_class, _props, filtered, _attributeCount, _xmlNames);
     }
 
     /**
@@ -66,16 +68,15 @@ public class XmlBeanSerializer extends BeanSerializer
         if (attrCount > 0) {
             jgen.setNextIsAttribute(true);
         }
-        final String[] namespaces = _namespaces;
+        final QName[] xmlNames = _xmlNames;
         
         int i = 0;
         try {
             for (final int len = props.length; i < len; ++i) {
-                String ns = (namespaces == null) ? null : namespaces[i];
                 if (i == attrCount) {
                     jgen.setNextIsAttribute(false);
                 }
-                jgen.setNextNamespace(ns);
+                jgen.setNextName(xmlNames[i]);
                 BeanPropertyWriter prop = props[i];
                 if (prop != null) { // can have nulls in filtered list
                     prop.serializeAsField(bean, jgen, provider);

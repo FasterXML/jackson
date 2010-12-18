@@ -43,6 +43,8 @@ public class TestXmlParser extends main.BaseTest
         XmlMapper mapper = new XmlMapper();
         String xml = mapper.writeValueAsString(root);
 
+System.out.println("XML = "+xml);        
+        
         /* Here we would ideally use base class test method. Alas, it won't
          * work due to couple of problems;
          * (a) All values are reported as Strings (not ints, for example
