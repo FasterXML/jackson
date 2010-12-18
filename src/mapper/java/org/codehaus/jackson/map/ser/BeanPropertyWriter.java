@@ -434,7 +434,7 @@ public class BeanPropertyWriter
     /**
      * @since 1.7
      */
-    private final JsonSerializer<Object> _findAndAddDynamic(PropertySerializerMap map,
+    protected final JsonSerializer<Object> _findAndAddDynamic(PropertySerializerMap map,
             Class<?> type, SerializerProvider provider) throws JsonMappingException
     {
         PropertySerializerMap.SerializerAndMapResult result;
@@ -467,6 +467,12 @@ public class BeanPropertyWriter
         return _field.get(bean);
     }
 
+    protected void _reportSelfReference(Object bean)
+        throws JsonMappingException
+    {
+        throw new JsonMappingException("Direct self-reference leading to cycle");
+    }
+
     @Override
     public String toString()
     {
@@ -479,11 +485,5 @@ public class BeanPropertyWriter
         }
         sb.append(')');
         return sb.toString();
-    }
-
-    protected void _reportSelfReference(Object bean)
-        throws JsonMappingException
-    {
-        throw new JsonMappingException("Direct self-reference leading to cycle");
     }
 }

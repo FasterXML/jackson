@@ -1,7 +1,6 @@
 package org.codehaus.jackson.xml;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -125,13 +124,35 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
     protected BeanPropertyWriter _constructWriter(SerializationConfig config, TypeBindings typeContext,
             PropertyBuilder pb, boolean staticTyping, String name, AnnotatedMember propertyMember)
     {
-        BeanPropertyWriter propertyWriter = super._constructWriter(config, typeContext, pb, staticTyping, name, propertyMember);
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         String ns = findNamespaceAnnotation(intr, propertyMember);
         Boolean isAttribute = findIsAttributeAnnotation(intr, propertyMember);
-        QName wrapperName = findWrapperName(intr, propertyMember);
+
+        BeanPropertyWriter propertyWriter = super._constructWriter(config, typeContext, pb, staticTyping, name, propertyMember);
+        propertyWriter.setInternalSetting(KEY_XML_INFO, new XmlInfo(isAttribute, ns));
+
+        // Actually: if we have a Collection type, easiest place to add wrapping would be here...
+        Class<?> type = propertyMember.getRawType();
+        if (_isContainerType(type)) {
+            String localName = null, wrapperNs = null;
+
+            QName wrappedName = new QName(ns, propertyWriter.getName());
+            QName wrapperName = findWrapperName(intr, propertyMember);
+            if (wrapperName != null) {
+                localName = wrapperName.getLocalPart();
+                wrapperNs = wrapperName.getNamespaceURI();
+            }
+            /* Empty/missing localName means "use property name as wrapper"; later on
+             * should probably make missing (null) mean "don't add a wrapper"
+             */
+            if (localName == null || localName.length() == 0) {
+                wrapperName = wrappedName;
+            } else {
+                wrapperName = new QName((wrapperNs == null) ? "" : wrapperNs, localName);
+            }
+            return new XmlBeanPropertyWriter(propertyWriter, wrapperName, wrappedName);
+        }
         
-        propertyWriter.setInternalSetting(KEY_XML_INFO, new XmlInfo(isAttribute, ns, wrapperName));
         return propertyWriter;
     }
     /*
@@ -140,6 +161,15 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
     /**********************************************************
      */
 
+    /**
+     * Helper method used for figuring out if given raw type is a collection ("indexed") type;
+     * in which case a wrapper element is typically added.
+     */
+    private boolean _isContainerType(Class<?> rawType)
+    {
+        return rawType.isArray() || Map.class.isAssignableFrom(rawType) || Collection.class.isAssignableFrom(rawType);
+    }
+    
     private String findNamespaceAnnotation(AnnotationIntrospector ai, AnnotatedMember prop)
     {
         for (AnnotationIntrospector intr : ai.allIntrospectors()) {
@@ -220,19 +250,14 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
     {
         protected final String _namespace;
         protected final boolean _isAttribute;
-
-        protected final QName _wrapperName;
         
-        public XmlInfo(Boolean isAttribute, String ns, QName wrapperName)
+        public XmlInfo(Boolean isAttribute, String ns)
         {
             _isAttribute = (isAttribute == null) ? false : isAttribute.booleanValue();
             _namespace = (ns == null) ? "" : ns;
-            _wrapperName = wrapperName;
         }
 
         public String getNamespace() { return _namespace; }
         public boolean isAttribute() { return _isAttribute; }
-
-        public QName getWrapperName() { return _wrapperName; }
     }
 }

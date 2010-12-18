@@ -3,8 +3,7 @@ package org.codehaus.jackson.xml;
 import java.io.*;
 import java.util.*;
 
-//import javax.xml.bind.JAXB;
-
+import org.codehaus.jackson.xml.annotate.JacksonXmlElementWrapper;
 import org.codehaus.jackson.xml.annotate.JacksonXmlProperty;
 
 public class TestSerialization extends XmlTestBase
@@ -50,8 +49,10 @@ public class TestSerialization extends XmlTestBase
 
     static class StringListBean
     {
+        @JacksonXmlElementWrapper(localName="stringList")
         public List<StringBean> strings;
         
+        public StringListBean() { strings = new ArrayList<StringBean>(); }
         public StringListBean(String... texts)
         {
             strings = new ArrayList<StringBean>();
@@ -146,20 +147,18 @@ public class TestSerialization extends XmlTestBase
         xml = removeSjsxpNamespace(xml);
         // 06-Dec-2010, tatu: Not completely ok; should default to not using wrapper...
         System.out.println("xml == "+xml);
-        assertEquals("<StringListBean><string>"
-                +"<string><text>a</text></string>"
-                +"<string><text>b</text></string>"
-                +"<string><text>c</text></string>"
-                +"</string></StringListBean>", xml);
+        assertEquals("<StringListBean><stringList>"
+                +"<strings><text>a</text></strings>"
+                +"<strings><text>b</text></strings>"
+                +"<strings><text>c</text></strings>"
+                +"</stringList></StringListBean>", xml);
     }
     
-    /*
       // manual 'test':
     public void testJAXB() throws Exception
     {
         StringWriter sw = new StringWriter();
-        JAXB.marshal(new ListBean(1, 2, 3), sw);
+        javax.xml.bind.JAXB.marshal(new StringListBean("a", "b", "c"), sw);
         System.out.println("JAXB -> "+sw);
     }
-    */
 }

@@ -3,6 +3,8 @@ package org.codehaus.jackson.xml;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -27,7 +29,7 @@ import org.codehaus.jackson.xml.util.StaxUtil;
  * 
  * @since 1.6
  */
-public class ToXmlGenerator
+public final class ToXmlGenerator
     extends JsonGeneratorBase
 {
     /**
@@ -114,6 +116,12 @@ public class ToXmlGenerator
      */
     protected boolean _nextIsAttribute = false;
     
+    /**
+     * Due to wrapping needed for array elements we need to keep some
+     * extra state
+     */
+    protected LinkedList<QName> _wrappedElementNames = null;
+    
     /*
     /**********************************************************
     /* Life-cycle
@@ -186,11 +194,60 @@ public class ToXmlGenerator
         _nextLocalName = localName;
         _nextIsAttribute = false;
     }
+
+    public void setNextElementName(String localName, String ns)
+    {
+        _nextLocalName = localName;
+        _nextNamespace = (ns == null) ? "" : ns;
+        _nextIsAttribute = false;
+    }
     
     public void setNextAttributeName(String localName)
     {
         _nextLocalName = localName;
         _nextIsAttribute = true;
+    }
+
+    /**
+     * Methdod called when a structured (collection, array, map) is being
+     * output.
+     * 
+     * @param wrapperName Element used as wrapper around elements, if any (null if none)
+     * @param wrappedName Element used around individual content items (can not
+     *   be null)
+     */
+    public void startWrappedValue(QName wrapperName, QName wrappedName) throws IOException, JsonGenerationException
+    {
+        if (wrapperName != null) {
+            try {
+                _xmlWriter.writeStartElement(wrapperName.getNamespaceURI(), wrapperName.getLocalPart());
+            } catch (XMLStreamException e) {
+                StaxUtil.throwXmlAsIOException(e);
+            }
+        }
+        if (_wrappedElementNames == null) {
+            _wrappedElementNames = new LinkedList<QName>();
+        }
+        _wrappedElementNames.add(wrappedName);
+        this.setNextElementName(wrappedName);
+    }
+
+    /**
+     * Method called after a structured collection output has completed
+     */
+    public void finishWrappedValue(QName wrapperName, QName wrappedName) throws IOException, JsonGenerationException
+    {
+        // First: wrapper to close?
+        if (wrapperName != null) {
+            try {
+                _xmlWriter.writeEndElement();
+            } catch (XMLStreamException e) {
+                StaxUtil.throwXmlAsIOException(e);
+            }
+        }
+        // and then pull off matching wrapped element
+        _wrappedElementNames.remove();
+        // and possibly 
     }
     
     /*
@@ -202,27 +259,14 @@ public class ToXmlGenerator
     @Override
     protected final void _writeStartArray() throws IOException, JsonGenerationException
     {
-        if (_nextLocalName == null) {
-            handleMissingName();
-        }
-        // !!! TODO: cases where there is no wrapper
-        try {
-            _xmlWriter.writeStartElement(_nextNamespace, _nextLocalName);
-        } catch (XMLStreamException e) {
-            StaxUtil.throwXmlAsIOException(e);
-        }
+        // nothing to do here; no-operation
     }
     
     @Override
     protected void _writeEndArray()
         throws IOException, JsonGenerationException
     {
-        // !!! TODO: cases where there is no wrapper
-        try {
-            _xmlWriter.writeEndElement();
-        } catch (XMLStreamException e) {
-            StaxUtil.throwXmlAsIOException(e);
-        }
+        // nothing to do here; no-operation
     }
 
     @Override

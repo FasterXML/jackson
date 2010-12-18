@@ -38,6 +38,9 @@ Description:
    (contributed by Ga�l Marziou)
   * [JACKSON-369]: Allow registering custom Collection and Map deserializers
    (implemented via 'org.codehaus.jackson.map.Deserializers')
+  * [JACKSON-385]: Support contextual serializers, deserializers; works by
+    implementing 'org.codehaus.jackson.map.ser.ContextualSerializer' or
+    'org.codehaus.jackson.map.deser.ContextualDeserializer'
   * [JACKSON-394] Add support for using data binding to/from XML (Stax) sources;
     sort of "mini-JAXB".
   * [JACKSON-401] Add features 'SerializationConfig.FLUSH_AFTER_WRITE_VALUE' and

@@ -53,6 +53,10 @@ import org.codehaus.jackson.type.JavaType;
 public class BeanSerializerFactory
     extends BasicSerializerFactory
 {
+    /**
+     * Constant for empty <code>Serializers</code> array (which by definition
+     * is stateless and reusable)
+     */
     protected final static Serializers[] NO_SERIALIZERS = new Serializers[0];
     
     /**
