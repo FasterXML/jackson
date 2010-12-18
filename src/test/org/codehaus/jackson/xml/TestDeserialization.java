@@ -34,6 +34,7 @@ public class TestDeserialization extends main.BaseTest
                 true, FiveMinuteUser.Gender.MALE, new byte[] { 1, 2, 3 , 4, 5 });
         XmlMapper mapper = new XmlMapper();
         String xml = mapper.writeValueAsString(user);
+System.out.println("DEBUG: xml == "+xml);        
         FiveMinuteUser result = mapper.readValue(xml, FiveMinuteUser.class);
         assertEquals(user, result);
     }

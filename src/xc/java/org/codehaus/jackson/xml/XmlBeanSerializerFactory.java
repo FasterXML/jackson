@@ -162,7 +162,14 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
      */
     private boolean _isContainerType(Class<?> rawType)
     {
-        return rawType.isArray() || Map.class.isAssignableFrom(rawType) || Collection.class.isAssignableFrom(rawType);
+        if (rawType.isArray()) {
+            // Just one special case; byte[] will be serialized as base64-encoded String, not real array, so:
+            if (rawType == byte[].class) {
+                return false;
+            }
+            return true;
+        }
+        return Map.class.isAssignableFrom(rawType) || Collection.class.isAssignableFrom(rawType);
     }
     
     private String findNamespaceAnnotation(AnnotationIntrospector ai, AnnotatedMember prop)

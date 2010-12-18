@@ -71,7 +71,8 @@ public class XmlBeanPropertyWriter
      */
 
     /**
-     * 
+     * Overridden version so that we can wrap output within wrapper element if
+     * and as necessary.
      */
     @Override
     public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)

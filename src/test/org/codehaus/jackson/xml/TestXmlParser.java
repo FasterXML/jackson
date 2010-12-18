@@ -42,8 +42,6 @@ public class TestXmlParser extends main.BaseTest
         JsonNode root = new ObjectMapper().readTree(SAMPLE_DOC_JSON_SPEC);
         XmlMapper mapper = new XmlMapper();
         String xml = mapper.writeValueAsString(root);
-
-System.out.println("XML = "+xml);        
         
         /* Here we would ideally use base class test method. Alas, it won't
          * work due to couple of problems;
@@ -90,27 +88,31 @@ System.out.println("XML = "+xml);
         assertEquals(SAMPLE_SPEC_VALUE_TN_WIDTH, getAndVerifyText(jp));
 
         assertToken(JsonToken.END_OBJECT, jp.nextToken()); // 'thumbnail' object
-        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'IDs'
 
-        assertToken(JsonToken.START_OBJECT, jp.nextToken()); // 'ids' array
+        // Note: arrays are "eaten"; wrapping is done using BeanPropertyWriter, so:
+        //assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'IDs'
+        //verifyFieldName(jp, "IDs");
+        //assertToken(JsonToken.START_OBJECT, jp.nextToken()); // 'ids' array
 
-        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Height'
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
         verifyFieldName(jp, "IDs");
         assertToken(JsonToken.VALUE_STRING, jp.nextToken());
         assertEquals(String.valueOf(SAMPLE_SPEC_VALUE_TN_ID1), getAndVerifyText(jp));
-        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Height'
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); 
         verifyFieldName(jp, "IDs");
         assertToken(JsonToken.VALUE_STRING, jp.nextToken());
         assertEquals(String.valueOf(SAMPLE_SPEC_VALUE_TN_ID2), getAndVerifyText(jp));
-        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Height'
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
         verifyFieldName(jp, "IDs");
         assertToken(JsonToken.VALUE_STRING, jp.nextToken());
         assertEquals(String.valueOf(SAMPLE_SPEC_VALUE_TN_ID3), getAndVerifyText(jp));
-        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); // 'Height'
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken()); 
         verifyFieldName(jp, "IDs");
         assertToken(JsonToken.VALUE_STRING, jp.nextToken());
         assertEquals(String.valueOf(SAMPLE_SPEC_VALUE_TN_ID4), getAndVerifyText(jp));
-        assertToken(JsonToken.END_OBJECT, jp.nextToken()); // 'ids' array
+
+        // no matching entry for array:
+        //assertToken(JsonToken.END_OBJECT, jp.nextToken()); // 'ids' array
 
         assertToken(JsonToken.END_OBJECT, jp.nextToken()); // 'image' object
 
