@@ -120,7 +120,68 @@ public class TestXmlParser extends main.BaseTest
         
         jp.close();
     }
+
+    /**
+     * Test to ensure functionality used to force an element to be reported
+     * as "JSON" Array, instead of default Object.
+     */
+    public void testForceElementAsArray() throws Exception
+    {
+        final String XML = "<array><elem>value</elem><elem><property>123</property></elem><elem>1</elem></array>";
+
+        XmlFactory xf = new XmlFactory();
+        FromXmlParser xp = (FromXmlParser) xf.createJsonParser(new StringReader(XML));
+
+        // First: verify handling without forcing array handling:
         
+        assertToken(JsonToken.START_OBJECT, xp.nextToken()); // <array>
+        assertToken(JsonToken.FIELD_NAME, xp.nextToken()); // <elem>
+        assertEquals("elem", xp.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, xp.nextToken());
+        assertEquals("value", xp.getText());
+
+        assertToken(JsonToken.FIELD_NAME, xp.nextToken()); // <elem>
+        assertEquals("elem", xp.getCurrentName());
+        assertToken(JsonToken.START_OBJECT, xp.nextToken()); // <property>
+        assertToken(JsonToken.FIELD_NAME, xp.nextToken());
+        assertEquals("property", xp.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, xp.nextToken());
+        assertEquals("123", xp.getText());
+        assertToken(JsonToken.END_OBJECT, xp.nextToken()); // <object>
+
+        assertToken(JsonToken.FIELD_NAME, xp.nextToken()); // <elem>
+        assertEquals("elem", xp.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, xp.nextToken());
+        assertEquals("1", xp.getText());
+
+        assertToken(JsonToken.END_OBJECT, xp.nextToken()); // </array>
+        xp.close();
+
+        // And then with array handling:
+        xp = (FromXmlParser) xf.createJsonParser(new StringReader(XML));
+
+        assertToken(JsonToken.START_OBJECT, xp.nextToken()); // <array>
+        // must request 'as-array' handling:
+//        xp.handleAsArray();
+        
+        assertToken(JsonToken.START_ARRAY, xp.nextToken()); // <elem>
+        assertToken(JsonToken.VALUE_STRING, xp.nextToken());
+        assertEquals("value", xp.getText());
+
+        assertToken(JsonToken.START_OBJECT, xp.nextToken()); // <property>
+        assertToken(JsonToken.FIELD_NAME, xp.nextToken());
+        assertEquals("property", xp.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, xp.nextToken());
+        assertEquals("123", xp.getText());
+        assertToken(JsonToken.END_OBJECT, xp.nextToken()); // <object>
+
+        assertToken(JsonToken.VALUE_STRING, xp.nextToken());
+        assertEquals("1", xp.getText());
+
+        assertToken(JsonToken.END_ARRAY, xp.nextToken()); // </array>
+        xp.close();
+    }
+    
     /*
     /**********************************************************
     /* Helper methods

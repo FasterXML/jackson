@@ -283,7 +283,7 @@ public class FromXmlParser
                 _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
                 break;
             case START_ARRAY:
-                _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
+                _parsingContext = _parsingContext.createChildArrayContext(-1, -1);
                 break;
             case END_OBJECT:
             case END_ARRAY:

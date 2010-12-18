@@ -920,6 +920,4 @@ public class BeanDeserializerFactory
         }
         return status;
     }
-    
-
 }

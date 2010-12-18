@@ -71,6 +71,11 @@ public class XmlFactory extends JsonFactory
         this(oc, null, null);
     }
 
+    public XmlFactory(XMLInputFactory xmlIn, XMLOutputFactory xmlOut)
+    {
+        this(null, xmlIn, xmlOut);
+    }
+    
     public XmlFactory(ObjectCodec oc,
             XMLInputFactory xmlIn, XMLOutputFactory xmlOut)
     {
@@ -78,7 +83,6 @@ public class XmlFactory extends JsonFactory
         if (xmlIn == null) {
             /* 24-Jun-2010, tatu: Ugh. JDK authors seem to waffle on what the name of
              *   factory constructor method is...
-             * 
              */
             //xmlIn = XMLInputFactory.newFactory();
             xmlIn = XMLInputFactory.newInstance();
