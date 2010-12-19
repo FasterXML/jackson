@@ -10,7 +10,6 @@ import org.codehaus.jackson.xml.XmlMapper;
 //import org.codehaus.jackson.smile.*;
 
 import com.ctc.wstx.stax.WstxOutputFactory;
-//import com.fasterxml.aalto.stax.OutputFactoryImpl;
 
 public final class TestSerPerf
 {
@@ -72,7 +71,7 @@ public final class TestSerPerf
 //      jsonMapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
 
         XMLOutputFactory xmlOut = new WstxOutputFactory(); // Woodstox
-//        XMLOutputFactory xmlOut = new OutputFactoryImpl(); // Aalto
+//        XMLOutputFactory xmlOut = new com.fasterxml.aalto.stax.OutputFactoryImpl(); // Aalto
         final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null, null, xmlOut));
 
         // Verify that we can roundtrip
@@ -91,7 +90,7 @@ public final class TestSerPerf
 //            Thread.sleep(150L);
             ++i;
 //            int round = (i % 1);
-            int round = 0;
+            int round = 1;
 
             long curr = System.currentTimeMillis();
             String msg;

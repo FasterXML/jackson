@@ -9,8 +9,7 @@ import org.codehaus.jackson.io.NumberInput;
 public class TestNumberParsing
     extends main.BaseTest
 {
-    public void testIntParsing()
-        throws Exception
+    public void testIntParsing() throws Exception
     {
         char[] testChars = "123456789".toCharArray();
 
@@ -32,6 +31,21 @@ public class TestNumberParsing
         assertEquals(0, NumberInput.parseInt(testChars, 1, 1));
     }
 
+    public void testIntParsingWithStrings() throws Exception
+    {
+        assertEquals(3, NumberInput.parseInt("3"));
+        assertEquals(0, NumberInput.parseInt("0"));
+        assertEquals(-3, NumberInput.parseInt("-3"));
+        assertEquals(27, NumberInput.parseInt("27"));
+        assertEquals(-31, NumberInput.parseInt("-31"));
+        assertEquals(271, NumberInput.parseInt("271"));
+        assertEquals(-131, NumberInput.parseInt("-131"));
+        assertEquals(2709, NumberInput.parseInt("2709"));
+        assertEquals(-9999, NumberInput.parseInt("-9999"));
+        assertEquals(Integer.MIN_VALUE, NumberInput.parseInt(""+Integer.MIN_VALUE));
+        assertEquals(Integer.MAX_VALUE, NumberInput.parseInt(""+Integer.MAX_VALUE));
+    }
+    
     public void testLongParsing()
         throws Exception
     {

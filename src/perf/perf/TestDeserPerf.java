@@ -1,5 +1,7 @@
 package perf;
 
+import javax.xml.stream.XMLOutputFactory;
+
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -8,7 +10,6 @@ import org.codehaus.jackson.xml.XmlFactory;
 import org.codehaus.jackson.xml.XmlMapper;
 
 import com.ctc.wstx.stax.WstxInputFactory;
-import com.ctc.wstx.stax.WstxOutputFactory;
 
 /**
  * Micro-benchmark for comparing performance of bean deserialization
@@ -67,7 +68,9 @@ public final class TestDeserPerf
         final ObjectMapper jsonMapper = new ObjectMapper(jsonF);
 //        jsonMapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
         final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null,
-                new WstxInputFactory(), new WstxOutputFactory()));
+                new WstxInputFactory() // woodstox
+//                new com.fasterxml.aalto.stax.InputFactoryImpl() // aalto
+            , null));
 
         byte[] json = jsonMapper.writeValueAsBytes(item);
         System.out.println("Warmed up: data size is "+json.length+" bytes; "+REPS+" reps -> "
@@ -79,7 +82,7 @@ public final class TestDeserPerf
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
 //            int round = (i++ % 1);
-            int round = 0;
+            int round = 1;
 
             long curr = System.currentTimeMillis();
             String msg;

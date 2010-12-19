@@ -11,6 +11,7 @@ import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.io.NumberInput;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -210,7 +211,7 @@ public abstract class StdDeserializer<T>
                 if (len == 0) {
                     return 0;
                 }
-                return Integer.parseInt(text);
+                return NumberInput.parseInt(text);
             } catch (IllegalArgumentException iae) {
                 throw ctxt.weirdStringException(_valueClass, "not a valid int value");
             }
@@ -244,7 +245,7 @@ public abstract class StdDeserializer<T>
                 if (len == 0) {
                     return null;
                 }
-                return Integer.parseInt(text);
+                return Integer.valueOf(NumberInput.parseInt(text));
             } catch (IllegalArgumentException iae) {
                 throw ctxt.weirdStringException(_valueClass, "not a valid Integer value");
             }
