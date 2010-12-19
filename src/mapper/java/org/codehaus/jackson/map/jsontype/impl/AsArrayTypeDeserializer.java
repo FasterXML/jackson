@@ -90,7 +90,7 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
     protected final String _locateTypeId(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+        if (!jp.isExpectedStartArrayToken()) {
             throw ctxt.wrongTokenException(jp, JsonToken.START_ARRAY,
                     "need JSON Array to contain As.WRAPPER_ARRAY type information for class "+baseTypeName());
         }

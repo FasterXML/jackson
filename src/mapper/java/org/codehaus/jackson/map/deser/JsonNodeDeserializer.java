@@ -101,7 +101,7 @@ public class JsonNodeDeserializer
         public ArrayNode deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            if (jp.getCurrentToken() == JsonToken.START_ARRAY) {
+            if (jp.isExpectedStartArrayToken()) {
                 return deserializeArray(jp, ctxt);
             }
             throw ctxt.mappingException(ArrayNode.class);

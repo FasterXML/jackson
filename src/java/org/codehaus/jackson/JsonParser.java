@@ -619,6 +619,29 @@ public abstract class JsonParser
         return _lastClearedToken;
     }
 
+    /**
+     * Specialized accessor that can be used to verify that the current
+     * token indicates start array (usually meaning that current token
+     * is {@link JsonToken#START_ARRAY}) when start array is expected.
+     * For some specialized parsers this can return true for other cases
+     * as well; this is usually done to emulate arrays.
+     *<p>
+     * Default implementation is equivalent to:
+     *<pre>
+     *   getCurrentToken() == JsonToken.START_ARRAY
+     *</pre>
+     * but may be overridden by custom parser implementations.
+     *
+     * @return True if the current token can be considered as a
+     *   start-array marker (such {@link JsonToken#START_ARRAY});
+     *   false if not.
+     * 
+     * @since 1.7
+     */
+    public boolean isExpectedStartArrayToken() {
+        return getCurrentToken() == JsonToken.START_ARRAY;
+    }
+    
     /*
     /**********************************************************
     /* Public API, access to token information, text

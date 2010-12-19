@@ -106,8 +106,8 @@ public class ArrayDeserializers
         public String[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            // Ok: must point to START_ARRAY
-            if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+            // Ok: must point to START_ARRAY (or equivalent)
+            if (!jp.isExpectedStartArrayToken()) {
                 throw ctxt.mappingException(_valueClass);
             }
             final ObjectBuffer buffer = ctxt.leaseObjectBuffer();
@@ -155,7 +155,7 @@ public class ArrayDeserializers
                 System.arraycopy(buffer, offset, result, 0, len);
                 return result;
             }
-            if (t == JsonToken.START_ARRAY) {
+            if (jp.isExpectedStartArrayToken()) {
                 // Let's actually build as a String, then get chars
                 StringBuilder sb = new StringBuilder(64);
                 while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
@@ -202,7 +202,7 @@ public class ArrayDeserializers
         public boolean[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+            if (!jp.isExpectedStartArrayToken()) {
                 throw ctxt.mappingException(_valueClass);
             }
             ArrayBuilders.BooleanBuilder builder = ctxt.getArrayBuilders().getBooleanBuilder();
@@ -249,8 +249,8 @@ public class ArrayDeserializers
                 if (ob instanceof byte[]) {
                     return (byte[]) ob;
                 }
-            }            
-            if (t != JsonToken.START_ARRAY) {
+            }
+            if (!jp.isExpectedStartArrayToken()) {
                 throw ctxt.mappingException(_valueClass);
             }
             ArrayBuilders.ByteBuilder builder = ctxt.getArrayBuilders().getByteBuilder();
@@ -290,7 +290,7 @@ public class ArrayDeserializers
         public short[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+            if (!jp.isExpectedStartArrayToken()) {
                 throw ctxt.mappingException(_valueClass);
             }
             ArrayBuilders.ShortBuilder builder = ctxt.getArrayBuilders().getShortBuilder();
@@ -319,7 +319,7 @@ public class ArrayDeserializers
         public int[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+            if (!jp.isExpectedStartArrayToken()) {
                 throw ctxt.mappingException(_valueClass);
             }
             ArrayBuilders.IntBuilder builder = ctxt.getArrayBuilders().getIntBuilder();
@@ -349,7 +349,7 @@ public class ArrayDeserializers
         public long[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+            if (!jp.isExpectedStartArrayToken()) {
                 throw ctxt.mappingException(_valueClass);
             }
             ArrayBuilders.LongBuilder builder = ctxt.getArrayBuilders().getLongBuilder();
@@ -378,7 +378,7 @@ public class ArrayDeserializers
         public float[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+            if (!jp.isExpectedStartArrayToken()) {
                 throw ctxt.mappingException(_valueClass);
             }
             ArrayBuilders.FloatBuilder builder = ctxt.getArrayBuilders().getFloatBuilder();
@@ -408,7 +408,7 @@ public class ArrayDeserializers
         public double[] deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+            if (!jp.isExpectedStartArrayToken()) {
                 throw ctxt.mappingException(_valueClass);
             }
             ArrayBuilders.DoubleBuilder builder = ctxt.getArrayBuilders().getDoubleBuilder();

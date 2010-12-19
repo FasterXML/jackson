@@ -270,6 +270,26 @@ public class FromXmlParser
     {
         return _xmlTokens.getCurrentLocation();
     }
+
+    /**
+     * Since xml representation can not really distinguish between array
+     * and object starts (both are represented with elements), this method
+     * is overridden and taken to mean that expecation is that the current
+     * start element is to mean 'start array', instead of default of
+     * 'start object'.
+     */
+    @Override
+    public boolean isExpectedStartArrayToken() {
+        JsonToken t = _currToken;
+        if (t == JsonToken.START_OBJECT) {
+            _currToken = JsonToken.START_ARRAY;
+            // Ok: must replace current context with array as well
+            _parsingContext = _parsingContext.getParent();
+            _parsingContext = _parsingContext.createChildArrayContext(-1, -1);
+            return true;
+        }
+        return (t == JsonToken.START_ARRAY);
+    }
     
     @Override
     public JsonToken nextToken() throws IOException, JsonParseException
@@ -299,8 +319,11 @@ public class FromXmlParser
         }
 
         int token = _xmlTokens.next();
-        switch (token) {
-        case XmlTokenStream.XML_START_ELEMENT:
+
+        /* Need to have a loop just because we may have to eat/convert
+         * a start-element that indicates an array element.
+         */
+        while (token == XmlTokenStream.XML_START_ELEMENT) {
             // If we thought we might get leaf, no such luck
             if (_mayBeLeaf) {
                 // leave _mayBeLeaf set, as we start a new context
@@ -308,18 +331,34 @@ public class FromXmlParser
                 _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
                 return (_currToken = JsonToken.START_OBJECT);
             }
+            if (_parsingContext.inArray()) {
+                /* Yup: in array, so this element could be verified; but it won't be reported
+                 * anyway, and we need to process following event.
+                 */
+                token = _xmlTokens.next();
+                _mayBeLeaf = true;
+                continue;
+            }
             _parsingContext.setCurrentName(_xmlTokens.getLocalName());
             _mayBeLeaf = true;
+            /* Ok: in array context we need to skip reporting field names. But what's the best way
+             * to find next token?
+             * 
+             */
             return (_currToken = JsonToken.FIELD_NAME);
-            
+        }
+
+        // Ok; beyond start element, what do we get?
+        switch (token) {
         case XmlTokenStream.XML_END_ELEMENT:
             // Simple, except that if this is a leaf, need to suppress end:
             if (_mayBeLeaf) {
                 _mayBeLeaf = false;
                 return (_currToken = JsonToken.VALUE_NULL);
             }
+            _currToken = _parsingContext.inArray() ? JsonToken.END_ARRAY : JsonToken.END_OBJECT;
             _parsingContext = _parsingContext.getParent();
-            return (_currToken = JsonToken.END_OBJECT);
+            return _currToken;
             
         case XmlTokenStream.XML_ATTRIBUTE_NAME:
             // If there was a chance of leaf node, no more...

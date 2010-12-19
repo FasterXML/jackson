@@ -114,6 +114,18 @@ public class JodaDeserializers
             throws IOException, JsonProcessingException
         {
             // We'll accept either long (timestamp) or array:
+            if (jp.isExpectedStartArrayToken()) {
+                jp.nextToken(); // VALUE_NUMBER_INT 
+                int year = jp.getIntValue(); 
+                jp.nextToken(); // VALUE_NUMBER_INT
+                int month = jp.getIntValue();
+                jp.nextToken(); // VALUE_NUMBER_INT
+                int day = jp.getIntValue();
+                if (jp.nextToken() != JsonToken.END_ARRAY) {
+                    ctxt.wrongTokenException(jp, JsonToken.END_ARRAY, "after LocalDate ints");
+                }
+                return new LocalDate(year, month, day);
+            }
             switch (jp.getCurrentToken()) {
             case VALUE_NUMBER_INT:
                 return new LocalDate(jp.getLongValue());            
@@ -123,19 +135,8 @@ public class JodaDeserializers
                     return null;
                 }
                 return local.toLocalDate();
-            case START_ARRAY:
-                jp.nextToken(); // VALUE_NUMBER_INT 
-                int year = jp.getIntValue(); 
-                jp.nextToken(); // VALUE_NUMBER_INT
-                int month = jp.getIntValue();
-                jp.nextToken(); // VALUE_NUMBER_INT
-                int day = jp.getIntValue();
-                if (jp.nextToken() != JsonToken.END_ARRAY) {
-                    ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected END_ARRAY after LocalDate ints");
-                }
-                return new LocalDate(year, month, day);
             }
-            ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected JSON Array or Number");
+            ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected JSON Array, String or Number");
             return null;
         }
     }
@@ -153,16 +154,7 @@ public class JodaDeserializers
             throws IOException, JsonProcessingException
         {
             // We'll accept either long (timestamp) or array:
-            switch (jp.getCurrentToken()) {
-            case VALUE_NUMBER_INT:
-                return new LocalDateTime(jp.getLongValue());            
-            case VALUE_STRING:
-                DateTime local = parseLocal(jp);
-                if (local == null) {
-                    return null;
-                }
-                return local.toLocalDateTime();
-            case START_ARRAY:
+            if (jp.isExpectedStartArrayToken()) {
                 jp.nextToken(); // VALUE_NUMBER_INT
                 int year = jp.getIntValue();
                 jp.nextToken(); // VALUE_NUMBER_INT
@@ -182,9 +174,20 @@ public class JodaDeserializers
                     jp.nextToken(); // END_ARRAY?
                 }
                 if (jp.getCurrentToken() != JsonToken.END_ARRAY) {
-                    ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected END_ARRAY after LocalDateTime ints");
+                    ctxt.wrongTokenException(jp, JsonToken.END_ARRAY, "after LocalDateTime ints");
                 }
                 return new LocalDateTime(year, month, day, hour, minute, second, millisecond);                 
+            }
+
+            switch (jp.getCurrentToken()) {
+            case VALUE_NUMBER_INT:
+                return new LocalDateTime(jp.getLongValue());            
+            case VALUE_STRING:
+                DateTime local = parseLocal(jp);
+                if (local == null) {
+                    return null;
+                }
+                return local.toLocalDateTime();
             }
             ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected JSON Array or Number");
             return null;
@@ -204,6 +207,18 @@ public class JodaDeserializers
             throws IOException, JsonProcessingException
         {
             // We'll accept either long (timestamp) or array:
+            if (jp.isExpectedStartArrayToken()) {
+                jp.nextToken(); // VALUE_NUMBER_INT 
+                int year = jp.getIntValue(); 
+                jp.nextToken(); // VALUE_NUMBER_INT
+                int month = jp.getIntValue();
+                jp.nextToken(); // VALUE_NUMBER_INT
+                int day = jp.getIntValue();
+                if (jp.nextToken() != JsonToken.END_ARRAY) {
+                    ctxt.wrongTokenException(jp, JsonToken.END_ARRAY, "after DateMidnight ints");
+                }
+                return new DateMidnight(year, month, day);
+            }
             switch (jp.getCurrentToken()) {
             case VALUE_NUMBER_INT:
                 return new DateMidnight(jp.getLongValue());            
@@ -213,17 +228,6 @@ public class JodaDeserializers
                     return null;
                 }
                 return local.toDateMidnight();
-            case START_ARRAY:
-                jp.nextToken(); // VALUE_NUMBER_INT 
-                int year = jp.getIntValue(); 
-                jp.nextToken(); // VALUE_NUMBER_INT
-                int month = jp.getIntValue();
-                jp.nextToken(); // VALUE_NUMBER_INT
-                int day = jp.getIntValue();
-                if (jp.nextToken() != JsonToken.END_ARRAY) {
-                    ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected END_ARRAY after DateMidnight ints");
-                }
-                return new DateMidnight(year, month, day);
             }
             ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected JSON Array, Number or String");
             return null;

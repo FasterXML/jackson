@@ -81,7 +81,7 @@ public final class StringCollectionDeserializer
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_ARRAY
-        if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+        if (!jp.isExpectedStartArrayToken()) {
             throw ctxt.mappingException(_collectionType.getRawClass());
         }
 

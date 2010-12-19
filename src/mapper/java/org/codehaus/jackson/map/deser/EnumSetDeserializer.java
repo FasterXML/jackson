@@ -39,8 +39,8 @@ public final class EnumSetDeserializer
     public EnumSet<?> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        // Ok: must point to START_ARRAY
-        if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+        // Ok: must point to START_ARRAY (or equivalent)
+        if (!jp.isExpectedStartArrayToken()) {
             throw ctxt.mappingException(EnumSet.class);
         }
         EnumSet result = constructSet();

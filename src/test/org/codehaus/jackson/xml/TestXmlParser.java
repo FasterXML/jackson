@@ -43,12 +43,11 @@ public class TestXmlParser extends main.BaseTest
         XmlMapper mapper = new XmlMapper();
         String xml = mapper.writeValueAsString(root);
         
-        /* Here we would ideally use base class test method. Alas, it won't
-         * work due to couple of problems;
-         * (a) All values are reported as Strings (not ints, for example
-         * (b) XML mangles arrays, so all we see are objects.
-         * Former could be worked around; latter less so at this point.
-         */
+        // Here we would ideally use base class test method. Alas, it won't
+        // work due to couple of problems;
+        // (a) All values are reported as Strings (not ints, for example
+        // (b) XML mangles arrays, so all we see are objects.
+        // Former could be worked around; latter less so at this point.
 
         // So, for now, let's just do sort of minimal verification, manually
         JsonParser jp = mapper.getJsonFactory().createJsonParser(xml);
@@ -133,7 +132,6 @@ public class TestXmlParser extends main.BaseTest
         FromXmlParser xp = (FromXmlParser) xf.createJsonParser(new StringReader(XML));
 
         // First: verify handling without forcing array handling:
-        
         assertToken(JsonToken.START_OBJECT, xp.nextToken()); // <array>
         assertToken(JsonToken.FIELD_NAME, xp.nextToken()); // <elem>
         assertEquals("elem", xp.getCurrentName());
@@ -159,26 +157,36 @@ public class TestXmlParser extends main.BaseTest
 
         // And then with array handling:
         xp = (FromXmlParser) xf.createJsonParser(new StringReader(XML));
+        assertTrue(xp.getParsingContext().inRoot());
 
         assertToken(JsonToken.START_OBJECT, xp.nextToken()); // <array>
-        // must request 'as-array' handling:
-//        xp.handleAsArray();
-        
-        assertToken(JsonToken.START_ARRAY, xp.nextToken()); // <elem>
+        assertTrue(xp.getParsingContext().inObject()); // true until we do following:
+
+        // must request 'as-array' handling, which will "convert" current token:
+        assertTrue("Should 'convert' START_OBJECT to START_ARRAY", xp.isExpectedStartArrayToken());
+        assertToken(JsonToken.START_ARRAY, xp.getCurrentToken()); // <elem>
+        assertTrue(xp.getParsingContext().inArray());
+
         assertToken(JsonToken.VALUE_STRING, xp.nextToken());
+        assertTrue(xp.getParsingContext().inArray());
         assertEquals("value", xp.getText());
 
         assertToken(JsonToken.START_OBJECT, xp.nextToken()); // <property>
+        assertTrue(xp.getParsingContext().inObject());
         assertToken(JsonToken.FIELD_NAME, xp.nextToken());
         assertEquals("property", xp.getCurrentName());
         assertToken(JsonToken.VALUE_STRING, xp.nextToken());
         assertEquals("123", xp.getText());
-        assertToken(JsonToken.END_OBJECT, xp.nextToken()); // <object>
+        assertTrue(xp.getParsingContext().inObject());
+        assertToken(JsonToken.END_OBJECT, xp.nextToken()); // </property>
+        assertTrue(xp.getParsingContext().inArray());
 
         assertToken(JsonToken.VALUE_STRING, xp.nextToken());
+        assertTrue(xp.getParsingContext().inArray());
         assertEquals("1", xp.getText());
 
         assertToken(JsonToken.END_ARRAY, xp.nextToken()); // </array>
+        assertTrue(xp.getParsingContext().inRoot());
         xp.close();
     }
     

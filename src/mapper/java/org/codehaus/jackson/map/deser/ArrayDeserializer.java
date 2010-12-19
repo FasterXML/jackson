@@ -88,8 +88,8 @@ public class ArrayDeserializer
     public Object[] deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        // Ok: must point to START_ARRAY
-        if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+        // Ok: must point to START_ARRAY (or equivalent)
+        if (!jp.isExpectedStartArrayToken()) {
             /* 04-Oct-2009, tatu: One exception; byte arrays are generally
              *   serialized as base64, so that should be handled
              */
