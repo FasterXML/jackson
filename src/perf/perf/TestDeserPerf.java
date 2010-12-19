@@ -1,15 +1,11 @@
 package perf;
 
-import javax.xml.stream.XMLOutputFactory;
-
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.xml.XmlFactory;
 import org.codehaus.jackson.xml.XmlMapper;
-
-import com.ctc.wstx.stax.WstxInputFactory;
 
 /**
  * Micro-benchmark for comparing performance of bean deserialization
@@ -68,7 +64,7 @@ public final class TestDeserPerf
         final ObjectMapper jsonMapper = new ObjectMapper(jsonF);
 //        jsonMapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
         final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null,
-                new WstxInputFactory() // woodstox
+                new com.ctc.wstx.stax.WstxInputFactory() // woodstox
 //                new com.fasterxml.aalto.stax.InputFactoryImpl() // aalto
             , null));
 

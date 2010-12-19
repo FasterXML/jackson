@@ -532,13 +532,7 @@ public class BeanDeserializer
             throw JsonMappingException.from(jp, "No suitable constructor found for type "+_beanType+": can not instantiate from JSON object (need to add/enable type information?)");
         }
 
-        Object bean;
-        try {
-            bean = _defaultConstructor.newInstance();
-        } catch (Exception e) {
-            ClassUtil.unwrapAndThrowAsIAE(e);
-            return null; // never gets here
-        }
+        final Object bean = constructDefaultInstance();
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             // Skip field name:
@@ -801,7 +795,7 @@ public class BeanDeserializer
 	}
 	return bean;
     }
-
+    
     /**
      * Helper method called to (try to) locate deserializer for given sub-type of
      * type that this deserializer handles.
@@ -837,6 +831,24 @@ public class BeanDeserializer
             }
         }
         return subDeser;
+    }
+
+    /**
+     * Method that is called to instantiate Object of type this deserializer
+     * produces, using the default (no-argument) constructor.
+     * 
+     * @return
+     * 
+     * @since 1.7
+     */
+    protected Object constructDefaultInstance()
+    {
+        try {
+            return _defaultConstructor.newInstance();
+        } catch (Exception e) {
+            ClassUtil.unwrapAndThrowAsIAE(e);
+            return null; // never gets here
+        }
     }
 
     /*
