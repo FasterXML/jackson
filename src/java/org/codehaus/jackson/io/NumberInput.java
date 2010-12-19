@@ -116,6 +116,19 @@ public final class NumberInput
         return val + (long) parseInt(digitChars, offset+len1, 9);
     }
 
+    public final static long parseLong(String str)
+    {
+        /* Ok, now; as the very first thing, let's just optimize case of "fake longs";
+         * that is, if we know they must be ints, call int parsing
+         */
+        int length = str.length();
+        if (length <= 9) {
+            return (long) parseInt(str);
+        }
+        // !!! TODO: implement efficient 2-int parsing...
+        return Long.parseLong(str);
+    }
+    
     /**
      * Helper method for determining if given String representation of
      * an integral number would fit in 64-bit Java long or not.

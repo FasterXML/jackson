@@ -274,7 +274,7 @@ public abstract class StdDeserializer<T>
                 return null;
             }
             try {
-                return Long.parseLong(text);
+                return Long.valueOf(NumberInput.parseLong(text));
             } catch (IllegalArgumentException iae) { }
             throw ctxt.weirdStringException(_valueClass, "not a valid Long value");
         }
@@ -298,7 +298,7 @@ public abstract class StdDeserializer<T>
                 return 0L;
             }
             try {
-                return Long.parseLong(text);
+                return NumberInput.parseLong(text);
             } catch (IllegalArgumentException iae) { }
             throw ctxt.weirdStringException(_valueClass, "not a valid long value");
         }
