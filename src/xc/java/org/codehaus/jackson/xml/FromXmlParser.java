@@ -286,6 +286,8 @@ public class FromXmlParser
             // Ok: must replace current context with array as well
             _parsingContext = _parsingContext.getParent();
             _parsingContext = _parsingContext.createChildArrayContext(-1, -1);
+            // And just in case a field name was to be returned, wipe it
+            _nextToken = null;
             return true;
         }
         return (t == JsonToken.START_ARRAY);
@@ -319,11 +321,12 @@ public class FromXmlParser
         }
 
         int token = _xmlTokens.next();
-
+        
         /* Need to have a loop just because we may have to eat/convert
          * a start-element that indicates an array element.
          */
         while (token == XmlTokenStream.XML_START_ELEMENT) {
+
             // If we thought we might get leaf, no such luck
             if (_mayBeLeaf) {
                 // leave _mayBeLeaf set, as we start a new context

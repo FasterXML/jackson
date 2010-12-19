@@ -1,6 +1,5 @@
 package org.codehaus.jackson.xml;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.codehaus.jackson.xml.annotate.JacksonXmlProperty;
@@ -15,7 +14,7 @@ public class TestDeserialization extends main.BaseTest
 
     static class ListBean
     {
-        public final List<Integer> values = new ArrayList<Integer>();
+        public List<Integer> values;
     }
     
     /*
@@ -34,7 +33,6 @@ public class TestDeserialization extends main.BaseTest
                 true, FiveMinuteUser.Gender.MALE, new byte[] { 1, 2, 3 , 4, 5 });
         XmlMapper mapper = new XmlMapper();
         String xml = mapper.writeValueAsString(user);
-System.out.println("DEBUG: xml == "+xml);        
         FiveMinuteUser result = mapper.readValue(xml, FiveMinuteUser.class);
         assertEquals(user, result);
     }
