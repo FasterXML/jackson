@@ -185,43 +185,6 @@ public class JacksonAnnotationIntrospector
         return _findTypeResolver(am, containerType);
     }
     
-    private TypeResolverBuilder<?> _findTypeResolver(Annotated ann, JavaType baseType)
-    {
-    // First: maybe we have explicit type resolver?
-        TypeResolverBuilder<?> b;
-        JsonTypeInfo info = ann.getAnnotation(JsonTypeInfo.class);
-        JsonTypeResolver resAnn = ann.getAnnotation(JsonTypeResolver.class);
-        if (resAnn != null) {
-            /* 14-Aug-2010, tatu: not sure if this can ever happen normally, but unit
-             *    tests were able to trigger this... so let's check:
-             */
-            if (info == null) {
-                return null;
-            }
-            /* let's not try to force access override (would need to pass
-             * settings through if we did, since that's not doable on some
-             * platforms)
-             */
-            b = ClassUtil.createInstance(resAnn.value(), false);
-        } else { // if not, use standard one, if indicated by annotations
-            if (info == null || info.use() == JsonTypeInfo.Id.NONE) {
-                return null;
-            }
-            b = new StdTypeResolverBuilder();
-        }
-        // Does it define a custom type id resolver?
-        JsonTypeIdResolver idResInfo = ann.getAnnotation(JsonTypeIdResolver.class);
-        TypeIdResolver idRes = (idResInfo == null) ? null
-                : ClassUtil.createInstance(idResInfo.value(), true);
-        if (idRes != null) { // [JACKSON-359]
-            idRes.init(baseType);
-        }
-        b = b.init(info.use(), idRes);
-        b = b.inclusion(info.include());
-        b = b.typeProperty(info.property());
-        return b;
-    }
-    
     @Override
     public List<NamedType> findSubtypes(Annotated a)
     {
@@ -678,4 +641,57 @@ public class JacksonAnnotationIntrospector
         JsonIgnore ann = a.getAnnotation(JsonIgnore.class);
         return (ann != null && ann.value());
     }
+
+    /**
+     * Helper method called to construct and initialize instance of {@link TypeResolverBuilder}
+     * if given annotated element indicates one is needed.
+     */
+    protected TypeResolverBuilder<?> _findTypeResolver(Annotated ann, JavaType baseType)
+    {
+        // First: maybe we have explicit type resolver?
+        TypeResolverBuilder<?> b;
+        JsonTypeInfo info = ann.getAnnotation(JsonTypeInfo.class);
+        JsonTypeResolver resAnn = ann.getAnnotation(JsonTypeResolver.class);
+        if (resAnn != null) {
+            /* 14-Aug-2010, tatu: not sure if this can ever happen normally, but unit
+             *    tests were able to trigger this... so let's check:
+             */
+            if (info == null) {
+                return null;
+            }
+            /* let's not try to force access override (would need to pass
+             * settings through if we did, since that's not doable on some
+             * platforms)
+             */
+            b = ClassUtil.createInstance(resAnn.value(), false);
+        } else { // if not, use standard one, if indicated by annotations
+            if (info == null || info.use() == JsonTypeInfo.Id.NONE) {
+                return null;
+            }
+            b = _constructStdTypeResolverBuilder();
+        }
+        // Does it define a custom type id resolver?
+        JsonTypeIdResolver idResInfo = ann.getAnnotation(JsonTypeIdResolver.class);
+        TypeIdResolver idRes = (idResInfo == null) ? null
+                : ClassUtil.createInstance(idResInfo.value(), true);
+        if (idRes != null) { // [JACKSON-359]
+            idRes.init(baseType);
+        }
+        b = b.init(info.use(), idRes);
+        b = b.inclusion(info.include());
+        b = b.typeProperty(info.property());
+        return b;
+    }
+
+    /**
+     * Helper method for constructing standard {@link TypeResolverBuilder}
+     * implementation.
+     * 
+     * @since 1.7
+     */
+    protected StdTypeResolverBuilder _constructStdTypeResolverBuilder()
+    {
+        return new StdTypeResolverBuilder();
+    }
+
 }

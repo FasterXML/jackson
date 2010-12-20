@@ -6,6 +6,12 @@ import org.codehaus.jackson.xml.annotate.JacksonXmlProperty;
 
 public class TestDeserialization extends main.BaseTest
 {
+    /*
+    /**********************************************************
+    /* Helper types
+    /**********************************************************
+     */
+
     static class AttributeBean
     {
         @JacksonXmlProperty(isAttribute=true, localName="attr")

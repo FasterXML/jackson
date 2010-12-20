@@ -52,7 +52,7 @@ public class StdTypeResolverBuilder
         _typeProperty = idType.getDefaultPropertyName();
         return this;
     }
-
+    
     @Override
     public TypeSerializer buildTypeSerializer(JavaType baseType, Collection<NamedType> subtypes,
             BeanProperty property)
@@ -99,23 +99,35 @@ public class StdTypeResolverBuilder
         _includeAs = includeAs;
         return this;
     }
-    
-    public StdTypeResolverBuilder typeProperty(String propName)
+
+    /**
+     * Method for constructing an instance with specified type property name
+     * (property name to use for type id when using "as-property" inclusion).
+     */
+    public StdTypeResolverBuilder typeProperty(String typeIdPropName)
     {
         // ok to have null/empty; will restore to use defaults
-        if (propName == null || propName.length() == 0) {
-            propName = _idType.getDefaultPropertyName();
+        if (typeIdPropName == null || typeIdPropName.length() == 0) {
+            typeIdPropName = _idType.getDefaultPropertyName();
         }
-        _typeProperty = propName;
+        _typeProperty = typeIdPropName;
         return this;
     }
 
     /*
     /**********************************************************
-    /* Internal methods
+    /* Accessors
     /**********************************************************
      */
 
+    public String getTypeProperty() { return _typeProperty; }
+    
+    /*
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
+     */
+    
     /**
      * Helper method that will either return configured custom
      * type id resolver, or construct a standard resolver
