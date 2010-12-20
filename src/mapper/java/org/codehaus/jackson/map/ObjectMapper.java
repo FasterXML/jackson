@@ -1717,8 +1717,7 @@ public class ObjectMapper
     /**
      * Factory method for constructing {@link ObjectWriter} that will
      * serialize objects using specified root type, instead of actual
-     * runtime type of value. Type must be a super-type of runtime
-     * type.
+     * runtime type of value. Type must be a super-type of runtime type.
      * 
      * @since 1.5
      */
@@ -1726,6 +1725,18 @@ public class ObjectMapper
         return new ObjectWriter(this, null, rootType, /*PrettyPrinter*/null);
     }
 
+    /**
+     * Factory method for constructing {@link ObjectWriter} that will
+     * serialize objects using specified root type, instead of actual
+     * runtime type of value. Type must be a super-type of runtime type.
+     * 
+     * @since 1.7
+     */
+    public ObjectWriter typedWriter(TypeReference<?> rootType) {
+        JavaType t = (rootType == null) ? null : TypeFactory.type(rootType);
+        return new ObjectWriter(this, null, t, /*PrettyPrinter*/null);
+    }
+    
     /**
      * Factory method for constructing {@link ObjectWriter} that will
      * serialize objects using specified pretty printer for indentation

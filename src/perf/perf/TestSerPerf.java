@@ -90,7 +90,7 @@ public final class TestSerPerf
 //            Thread.sleep(150L);
             ++i;
 //            int round = (i % 1);
-            int round = 1;
+            int round = 0;
 
             long curr = System.currentTimeMillis();
             String msg;

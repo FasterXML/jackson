@@ -9,10 +9,8 @@ import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
-import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 
-import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.xml.annotate.JacksonXmlElementWrapper;
 import org.codehaus.jackson.xml.annotate.JacksonXmlProperty;
 

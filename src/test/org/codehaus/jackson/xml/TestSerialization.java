@@ -8,6 +8,12 @@ import org.codehaus.jackson.xml.annotate.JacksonXmlProperty;
 
 public class TestSerialization extends XmlTestBase
 {
+    /*
+    /**********************************************************
+    /* Helper types
+    /**********************************************************
+     */
+
     static class StringBean
     {
         public String text;

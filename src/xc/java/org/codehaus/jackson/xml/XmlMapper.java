@@ -2,7 +2,6 @@ package org.codehaus.jackson.xml;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.util.VersionUtil;
 import org.codehaus.jackson.xml.util.RootNameLookup;
 
