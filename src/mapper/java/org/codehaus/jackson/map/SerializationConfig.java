@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdSubtypeResolver;
+import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.type.JavaType;
@@ -438,6 +439,14 @@ public class SerializationConfig
      * @since 1.6
      */
     protected SubtypeResolver _subtypeResolver;
+
+    /**
+     * Object used for resolving filter ids to filter instances.
+     * Non-null if explicitly defined; null by default.
+     * 
+     * @since 1.7
+     */
+    protected FilterProvider _filterProvider;
     
     /*
     /**********************************************************
@@ -446,21 +455,26 @@ public class SerializationConfig
      */
 
     public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr,
-                               AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
-                               SubtypeResolver subtypeResolver)
+            AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
+            SubtypeResolver subtypeResolver)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
         _typer = null;
         _visibilityChecker = vc;
         _subtypeResolver = subtypeResolver;
+        _filterProvider = null;
     }
 
+    /**
+     * @since 1.7
+     */
     protected SerializationConfig(SerializationConfig src,
-                                  HashMap<ClassKey,Class<?>> mixins,
-                                  TypeResolverBuilder<?> typer,
-                                  VisibilityChecker<?> vc,
-                                  SubtypeResolver subtypeResolver)
+            HashMap<ClassKey,Class<?>> mixins,
+            TypeResolverBuilder<?> typer,
+            VisibilityChecker<?> vc,
+            SubtypeResolver subtypeResolver,
+            FilterProvider filterProvider)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -472,6 +486,47 @@ public class SerializationConfig
         _typer = typer;
         _visibilityChecker = vc;
         _subtypeResolver = subtypeResolver;
+        _filterProvider = filterProvider;
+    }
+
+    /**
+     * Copy constructor used for creating a new instance that is same as
+     * this one, but with different <code>FilterProvider</code>.
+     * 
+     * @since 1.7
+     */
+    protected SerializationConfig(SerializationConfig src, FilterProvider filterProvider)
+    {
+        _classIntrospector = src._classIntrospector;
+        _annotationIntrospector = src._annotationIntrospector;
+        _featureFlags = src._featureFlags;
+        _dateFormat = src._dateFormat;
+        _serializationInclusion = src._serializationInclusion;
+        _serializationView = src._serializationView;
+        _mixInAnnotations = src._mixInAnnotations;
+        _typer = src._typer;
+        _visibilityChecker = src._visibilityChecker;
+        _subtypeResolver = src._subtypeResolver;
+        _filterProvider = filterProvider;
+    }
+    
+    public SerializationConfig withFilters(FilterProvider filterProvider) {
+        return new SerializationConfig(this, filterProvider);
+    }
+    
+    /**
+     * SerializationConfig-specific version for constructing unshared
+     * configuration object.
+     * 
+     * @since 1.7
+     */
+    public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
+                VisibilityChecker<?> vc, SubtypeResolver subtypeResolver,
+                FilterProvider filterProvider)
+    {
+        HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
+        _mixInAnnotationsShared = true;
+        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver, filterProvider);
     }
 
     /*
@@ -521,7 +576,7 @@ public class SerializationConfig
             set(Feature.USE_STATIC_TYPING, (typing == JsonSerialize.Typing.STATIC));
         }
     }
-    
+
     /**
      * Method that is called to create a non-shared copy of the configuration
      * to be used for a serialization operation.
@@ -532,11 +587,11 @@ public class SerializationConfig
      */
     //@Override
     public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
-    		VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
+            VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-    	return new SerializationConfig(this, mixins, typer, vc, subtypeResolver);
+        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver, null);
     }
 
     //@Override
@@ -807,7 +862,19 @@ public class SerializationConfig
     {
         _serializationView = view;
     }
-
+    
+    /**
+     * Method for getting provider used for locating filters given
+     * id (which is usually provided with filter annotations).
+     * Will be null if no provided was set for {@link ObjectWriter}
+     * (or if serialization directly called from {@link ObjectMapper})
+     * 
+     * @since 1.7
+     */
+    public FilterProvider getFilterProvider() {
+        return _filterProvider;
+    }
+    
     /*
     /**********************************************************
     /* Debug support

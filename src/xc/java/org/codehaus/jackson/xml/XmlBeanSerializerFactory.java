@@ -89,7 +89,9 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
             xmlNames[i] = new QName((ns == null) ? "" : ns, bpw.getName());
             ++i;
         }
-        return new XmlBeanSerializer(beanDesc.getBeanClass(), writers, null, attrCount, xmlNames);
+        return new XmlBeanSerializer(beanDesc.getBeanClass(), writers, null,
+                findFilterId(config, beanDesc),
+                attrCount, xmlNames);
     }
 
     /**

@@ -362,7 +362,21 @@ public class BeanSerializerFactory
             BasicBeanDescription beanDesc,
             List<BeanPropertyWriter> properties)
     {
-        return new BeanSerializer(beanDesc.getBeanClass(), properties);
+        // [JACKSON-312] Support per-serialization dynamic filtering:
+        return new BeanSerializer(beanDesc.getBeanClass(), properties,
+                findFilterId(config, beanDesc));
+    }
+
+    /**
+     * Method called to find filter that is configured to be used with bean
+     * serializer being built, if any.
+     * 
+     * @since 1.7
+     */
+    protected Object findFilterId(SerializationConfig config,
+            BasicBeanDescription beanDesc)
+    {
+        return config.getAnnotationIntrospector().findFilterId(beanDesc.getClassInfo());
     }
     
     /*

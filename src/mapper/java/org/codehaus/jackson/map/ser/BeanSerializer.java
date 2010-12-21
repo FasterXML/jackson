@@ -28,6 +28,12 @@ public class BeanSerializer
 {
     final protected static BeanPropertyWriter[] NO_PROPS = new BeanPropertyWriter[0];
 
+    /*
+    /**********************************************************
+    /* Configuration
+    /**********************************************************
+     */
+    
     /**
      * Value type of this serializer,
      * used for error reporting and debugging.
@@ -52,17 +58,38 @@ public class BeanSerializer
      * @since 1.6
      */
     protected AnyGetterWriter _anyGetterWriter;
+
+    /**
+     * Id of the bean property filter to use, if any; null if none.
+     */
+    final protected Object _propertyFilterId;
     
+    /*
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
+     */
+
     /**
      * 
      * @param type Nominal type of values handled by this serializer
      * @param writers Property writers used for actual serialization
      */
-    public BeanSerializer(Class<?> type, BeanPropertyWriter[] writers)
+    public BeanSerializer(Class<?> type, BeanPropertyWriter[] writers,
+            Object beanPropertyFilterId)
     {
-        this(type, writers, null);
+        this(type, writers, null, beanPropertyFilterId);
     }
 
+    /**
+     * @since 1.7, use method that takes bean property filter id
+     */
+    @Deprecated
+    public BeanSerializer(Class<?> type, BeanPropertyWriter[] writers)
+    {
+        this(type, writers, null, null);
+    }
+    
     /**
      * Alternate constructor used when class being serialized can
      * have dynamically enabled JSON Views
@@ -71,20 +98,40 @@ public class BeanSerializer
      *   an active view.
      */
     public BeanSerializer(Class<?> type, BeanPropertyWriter[] props,
-                          BeanPropertyWriter[] filteredProps)
+            BeanPropertyWriter[] filteredProps, Object filterId)
     {
         super(type, false);
         _props = props;
         // let's store this for debugging
         _class = type;
         _filteredProps = filteredProps;
+        _propertyFilterId = filterId;
     }
     
-    public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props)
-    {
-        this(type, props.toArray(new BeanPropertyWriter[props.size()]));
+    /**
+     * @since 1.7, use method that takes bean property filter id
+     */
+    @Deprecated
+    public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props) {
+        this(type, props, null);
     }
 
+    public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props,
+            Object filterId)
+    {
+        this(type, props.toArray(new BeanPropertyWriter[props.size()]), null, filterId);
+    }
+
+    /**
+     * @since 1.7, use method that takes bean property filter id
+     */
+    @Deprecated
+    public BeanSerializer(Class<?> type, BeanPropertyWriter[] props,
+                          BeanPropertyWriter[] filteredProps)
+    {
+        this(type, props, filteredProps, null);
+    }
+    
     /**
      * "Copy-constructor" used when creating slightly differing instance(s)
      * of an exisitng serializer
@@ -96,6 +143,7 @@ public class BeanSerializer
         _props = src._props;
         _class = src._class;
         _anyGetterWriter = src._anyGetterWriter;
+        _propertyFilterId = src._propertyFilterId;
         // with one override
         _filteredProps = filtered;
     }
@@ -106,7 +154,7 @@ public class BeanSerializer
      */
     public static BeanSerializer createDummy(Class<?> forType)
     {
-        return new BeanSerializer(forType, NO_PROPS);
+        return new BeanSerializer(forType, NO_PROPS, NO_PROPS, null);
     }
 
     /**
@@ -144,7 +192,11 @@ public class BeanSerializer
         throws IOException, JsonGenerationException
     {
         jgen.writeStartObject();
-        serializeFields(bean, jgen, provider);
+        if (_propertyFilterId != null) {
+            serializeFieldsFiltered(bean, jgen, provider);
+        } else {
+            serializeFields(bean, jgen, provider);
+        }
         jgen.writeEndObject();
     }
 
@@ -154,7 +206,11 @@ public class BeanSerializer
         throws IOException, JsonGenerationException
     {
         typeSer.writeTypePrefixForObject(bean, jgen);
-        serializeFields(bean, jgen, provider);
+        if (_propertyFilterId != null) {
+            serializeFieldsFiltered(bean, jgen, provider);
+        } else {
+            serializeFields(bean, jgen, provider);
+        }
         typeSer.writeTypeSuffixForObject(bean, jgen);
     }
     
@@ -191,6 +247,73 @@ public class BeanSerializer
             mapE.prependPath(new JsonMappingException.Reference(bean, name));
             throw mapE;
         }
+    }
+
+    /**
+     * Alternative serialization method that gets called when there is a
+     * {@link BeanPropertyFilter} that needs to be called to determine
+     * which properties are to be serialized (and possibly how)
+     * 
+     * @since 1.7
+     */
+    protected void serializeFieldsFiltered(Object bean, JsonGenerator jgen, SerializerProvider provider)
+        throws IOException, JsonGenerationException
+    {
+        /* note: almost verbatim copy of "serializeFields"; copied (instead of merged)
+         * so that old method need not add check for existence of filter.
+         */
+        
+        final BeanPropertyWriter[] props;
+        if (_filteredProps != null && provider.getSerializationView() != null) {
+            props = _filteredProps;
+        } else {
+            props = _props;
+        }
+        final BeanPropertyFilter filter = findFilter(provider);
+        int i = 0;
+        try {
+            for (final int len = props.length; i < len; ++i) {
+                BeanPropertyWriter prop = props[i];
+                if (prop != null) { // can have nulls in filtered list
+                    filter.serializeAsField(bean, jgen, provider, prop);
+                }
+            }
+            if (_anyGetterWriter != null) {
+                _anyGetterWriter.getAndSerialize(bean, jgen, provider);
+            }
+        } catch (Exception e) {
+            String name = (i == props.length) ? "[anySetter]" : props[i].getName();
+            wrapAndThrow(e, bean, name);
+        } catch (StackOverflowError e) {
+            JsonMappingException mapE = new JsonMappingException("Infinite recursion (StackOverflowError)");
+            String name = (i == props.length) ? "[anySetter]" : props[i].getName();
+            mapE.prependPath(new JsonMappingException.Reference(bean, name));
+            throw mapE;
+        }
+    }
+
+    /**
+     * Helper method used to locate filter that is needed, based on filter id
+     * this serializer was constructed with.
+     * 
+     * @since 1.7
+     */
+    protected BeanPropertyFilter findFilter(SerializerProvider provider)
+        throws JsonMappingException
+    {
+        final Object filterId = _propertyFilterId;
+        FilterProvider filters = provider.getFilterProvider();
+        // Not ok to miss the provider, if a filter is declared to be needed!
+        if (provider == null) {
+            throw new JsonMappingException("Can not resolve BeanPropertyFilter with id '"+filterId+"'; no FilterProvider configured");
+        }
+        BeanPropertyFilter filter = filters.findFilter(filterId);
+        // But is it ok not to find a filter? For now let's assume it is not; can add a feature to disable errors if need be
+        if (filter == null) {
+            throw new JsonMappingException("No filter configured with id '"+filterId+"' (type "
+                    +filterId.getClass().getName()+")");
+        }
+        return filter;
     }
     
     @Override

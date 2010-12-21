@@ -646,8 +646,9 @@ public class ObjectMapper
      * (like date format being used, see {@link SerializationConfig#setDateFormat}).
      */
     public SerializationConfig copySerializationConfig() {
+        // no filter provider with ObjectMapper (must use ObjectWriter)
         return _serializationConfig.createUnshared(_defaultTyper,
-                _visibilityChecker, _subtypeResolver);
+                _visibilityChecker, _subtypeResolver, null);
     }
 
     /**

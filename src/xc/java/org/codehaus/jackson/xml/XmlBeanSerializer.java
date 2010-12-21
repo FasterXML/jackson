@@ -31,20 +31,28 @@ public class XmlBeanSerializer extends BeanSerializer
     protected final QName[] _xmlNames;
     
     public XmlBeanSerializer(Class<?> type, BeanPropertyWriter[] props,
-            BeanPropertyWriter[] filteredProps, int attrCount, QName[] xmlNames)
+            BeanPropertyWriter[] filteredProps, Object filterId,
+            int attrCount, QName[] xmlNames)
     {
-        super(type, props, filteredProps);
+        super(type, props, filteredProps, filterId);
         _attributeCount = attrCount;
         _xmlNames = xmlNames;
     }
 
+    protected XmlBeanSerializer(XmlBeanSerializer src, BeanPropertyWriter[] filtered)
+    {
+        super(src, filtered);
+        _attributeCount = src._attributeCount;
+        _xmlNames = src._xmlNames;
+    }
+    
     @Override
     public BeanSerializer withFiltered(BeanPropertyWriter[] filtered)
     {
-        if (filtered == null) {
+        if (filtered == _filteredProps) {
             return this;
         }
-        return new XmlBeanSerializer(_class, _props, filtered, _attributeCount, _xmlNames);
+        return new XmlBeanSerializer(this, filtered);
     }
 
     /**

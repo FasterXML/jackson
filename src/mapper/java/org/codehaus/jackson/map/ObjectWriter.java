@@ -94,18 +94,9 @@ public class ObjectWriter
      */
     protected final PrettyPrinter _prettyPrinter;
     
-    /**
-     * Object used for resolving named filters (ids usually
-     * specified using {@link JsonFilter} annotation) to
-     * actual filter instances.
-     * 
-     * @since 1.7
-     */
-    protected final FilterProvider _filterProvider;
-    
     /*
     /**********************************************************
-    /* Life-cycle
+    /* Life-cycle, constructors
     /**********************************************************
      */
 
@@ -119,7 +110,8 @@ public class ObjectWriter
         _visibilityChecker = mapper._visibilityChecker;
         _subtypeResolver = mapper._subtypeResolver;
         // must make a copy at this point, to prevent further changes from trickling down
-        _config = mapper._serializationConfig.createUnshared(_defaultTyper, _visibilityChecker, _subtypeResolver);
+        _config = mapper._serializationConfig.createUnshared(_defaultTyper, _visibilityChecker,
+                _subtypeResolver, null);
         _config.setSerializationView(view);
 
         _provider = mapper._serializerProvider;
@@ -130,10 +122,12 @@ public class ObjectWriter
         _serializationView = view;
         _rootType = rootType;
         _prettyPrinter = pp;
-        _filterProvider = null;
     }
 
     /**
+     * Alternative constructor for initial instantiation; used when a filter provider
+     * is given.
+     * 
      * @since 1.7
      */
     protected ObjectWriter(ObjectMapper mapper, FilterProvider filterProvider)
@@ -142,21 +136,21 @@ public class ObjectWriter
         _visibilityChecker = mapper._visibilityChecker;
         _subtypeResolver = mapper._subtypeResolver;
         // must make a copy at this point, to prevent further changes from trickling down
-        _config = mapper._serializationConfig.createUnshared(_defaultTyper, _visibilityChecker, _subtypeResolver);
+        _config = mapper._serializationConfig.createUnshared(_defaultTyper, _visibilityChecker,
+                _subtypeResolver, filterProvider);
         _provider = mapper._serializerProvider;
         _serializerFactory = mapper._serializerFactory;
         _jsonFactory = mapper._jsonFactory;
         _serializationView = null;
         _rootType = null;
         _prettyPrinter = null;
-        _filterProvider = filterProvider;
     }
     
     /**
      * Copy constructor used for building variations.
      */
     protected ObjectWriter(ObjectWriter base, SerializationConfig config,
-            Class<?> view, JavaType rootType, PrettyPrinter pp, FilterProvider filterProvider)
+            Class<?> view, JavaType rootType, PrettyPrinter pp)
     {
         _config = config;
         _provider = base._provider;
@@ -170,9 +164,31 @@ public class ObjectWriter
         _serializationView = view;
         _rootType = rootType;
         _prettyPrinter = pp;
-        _filterProvider = filterProvider;
     }
 
+    /**
+     * Copy constructor used for building variations.
+     * 
+     * @since 1.7
+     */
+    protected ObjectWriter(ObjectWriter base, SerializationConfig config)
+    {
+        _config = config;
+
+        _provider = base._provider;
+        _serializerFactory = base._serializerFactory;
+
+        _jsonFactory = base._jsonFactory;
+        _defaultTyper = base._defaultTyper;
+        _visibilityChecker = base._visibilityChecker;
+        _subtypeResolver = base._subtypeResolver;
+        
+        _serializationView = base._serializationView;
+        _rootType = base._rootType;
+        _prettyPrinter = base._prettyPrinter;
+        
+    }
+    
     /**
      * Method that will return version information stored in and read from jar
      * that contains this class.
@@ -182,6 +198,12 @@ public class ObjectWriter
     public Version version() {
         return VersionUtil.versionFor(getClass());
     }
+    
+    /*
+    /**********************************************************
+    /* Life-cycle, fluent factories
+    /**********************************************************
+     */
     
     /**
      * Method that will construct a new instance that uses specified
@@ -195,7 +217,7 @@ public class ObjectWriter
         SerializationConfig config = _config.createUnshared(_defaultTyper,
                 _visibilityChecker, _subtypeResolver);
         config.setSerializationView(view);
-        return new ObjectWriter(this, config, view, _rootType, _prettyPrinter, _filterProvider);
+        return new ObjectWriter(this, config);
     }    
     
     /**
@@ -207,8 +229,7 @@ public class ObjectWriter
     {
         if (rootType == _rootType) return this;
         // type is stored here, no need to make a copy of config
-        return new ObjectWriter(this, _config, _serializationView, rootType, _prettyPrinter,
-                _filterProvider);
+        return new ObjectWriter(this, _config, _serializationView, rootType, _prettyPrinter);
     }    
 
     /**
@@ -233,8 +254,7 @@ public class ObjectWriter
         if (pp == null) {
             pp = NULL_PRETTY_PRINTER;
         }
-        return new ObjectWriter(this, _config, _serializationView, _rootType, pp,
-                _filterProvider);
+        return new ObjectWriter(this, _config, _serializationView, _rootType, pp);
     }
 
     /**
@@ -255,8 +275,10 @@ public class ObjectWriter
      * @since 1.7
      */
     public ObjectWriter withFilters(FilterProvider filterProvider) {
-        return new ObjectWriter(this, _config, _serializationView, _rootType, _prettyPrinter,
-                filterProvider);
+        if (filterProvider == _config.getFilterProvider()) { // no change?
+            return this;
+        }
+        return new ObjectWriter(this, _config.withFilters(filterProvider));
     }
     
     /*

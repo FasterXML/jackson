@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
@@ -100,12 +101,26 @@ public abstract class SerializerProvider
     }
 
     /**
-     * Convenience method, equivalent to calling
-     * {@link SerializationConfig#getSerializationView}.
+     * Convenience method, equivalent to:
+     *<pre>
+     *   getConfig().getSerializationView();
+     *</pre>
      *
      * @since 1.4
      */
     public final Class<?> getSerializationView() { return _serializationView; }
+
+    /**
+     * Convenience method, equivalent to calling:
+     *<pre>
+     *   getConfig().getFilterProvider();
+     *</pre>
+     *
+     * @since 1.4
+     */
+    public final FilterProvider getFilterProvider() {
+        return _config.getFilterProvider();
+    }
     
     /*
     /**********************************************************

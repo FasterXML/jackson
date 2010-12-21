@@ -33,6 +33,8 @@ Description:
     wrapping of output within single-property JSON Object.
   * [JACKSON-297] Add simple "module" abstraction to allow pluggable support
     tor third-party libraries, data types
+  * [JACKSON-312] Add ability to filter out specific properties on per-serialization
+    call basis.
   * [JACKSON-317] Add support for Guava (ex-Google-collections); implemented
     as a new module, see: https://github.com/FasterXML/jackson-module-guava
   * [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual

@@ -33,16 +33,16 @@ public class TestFiltering extends BaseMapTest
     public void testSimpleInclusionFilter() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        FilterProvider prov = new SimpleFilterProvider().addFilter("rootFilter",
+        FilterProvider prov = new SimpleFilterProvider().addFilter("RootFilter",
                 SimpleBeanPropertyFilter.filterOutAllExcept("a"));
-        assertEquals("{\"a\":\"a\"", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
+        assertEquals("{\"a\":\"a\"}", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
     }
 
     public void testSimpleExclusionFilter() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        FilterProvider prov = new SimpleFilterProvider().addFilter("rootFilter",
+        FilterProvider prov = new SimpleFilterProvider().addFilter("RootFilter",
                 SimpleBeanPropertyFilter.serializeAllExcept("a"));
-        assertEquals("{\"b\":\"b\"", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
+        assertEquals("{\"b\":\"b\"}", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
     }
 }
