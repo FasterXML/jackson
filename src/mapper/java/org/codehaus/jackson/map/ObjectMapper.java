@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
+import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.jsontype.NamedType;
@@ -1760,6 +1761,10 @@ public class ObjectMapper
     public ObjectWriter defaultPrettyPrintingWriter() {
         return new ObjectWriter(this, null, /*root type*/ null,
                 new DefaultPrettyPrinter());
+    }
+
+    public ObjectWriter filteredWriter(FilterProvider filterProvider) {
+        return new ObjectWriter(this, filterProvider);
     }
     
     /*

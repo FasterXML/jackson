@@ -215,6 +215,17 @@ public abstract class AnnotationIntrospector
         return null;
     }
 
+    /**
+     * Method for finding if annotated class has associated filter; and if so,
+     * to return id that is used to locate filter.
+     * 
+     * @return Id of the filter to use for filtering properties of annotated
+     *    class, if any; or null if none found.
+     */
+    public Object findFilterId(AnnotatedClass ac) {
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* Property auto-detection
@@ -806,7 +817,11 @@ public abstract class AnnotationIntrospector
             return _primary.isHandled(ann) || _secondary.isHandled(ann);
         }
 
-        // // // General class annotations
+        /*
+        /******************************************************
+        /* General class annotations
+        /******************************************************
+         */
 
         @Override
         public Boolean findCachability(AnnotatedClass ac)
@@ -862,6 +877,16 @@ public abstract class AnnotationIntrospector
             return result;
         }
 
+        @Override
+        public Object findFilterId(AnnotatedClass ac)
+        {
+            Object id = _primary.findFilterId(ac);
+            if (id == null) {
+                id = _secondary.findFilterId(ac);
+            }
+            return id;
+        }
+        
         /*
         /******************************************************
         /* Property auto-detection

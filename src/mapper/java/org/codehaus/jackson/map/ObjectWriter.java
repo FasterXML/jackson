@@ -7,6 +7,7 @@ import org.codehaus.jackson.io.SegmentedStringWriter;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.ByteArrayBuilder;
@@ -69,13 +70,6 @@ public class ObjectWriter
      */
     protected final SubtypeResolver _subtypeResolver;
     
-    /**
-     * To allow for dynamic enabling/disabling of pretty printing,
-     * pretty printer can be optionally configured for writer
-     * as well
-     */
-    protected final PrettyPrinter _prettyPrinter;
-    
     /*
     /**********************************************************
     /* Configuration that can be changed during building
@@ -92,6 +86,22 @@ public class ObjectWriter
      * as runtime type, but usually one of its super types
      */
     protected final JavaType _rootType;
+
+    /**
+     * To allow for dynamic enabling/disabling of pretty printing,
+     * pretty printer can be optionally configured for writer
+     * as well
+     */
+    protected final PrettyPrinter _prettyPrinter;
+    
+    /**
+     * Object used for resolving named filters (ids usually
+     * specified using {@link JsonFilter} annotation) to
+     * actual filter instances.
+     * 
+     * @since 1.7
+     */
+    protected final FilterProvider _filterProvider;
     
     /*
     /**********************************************************
@@ -120,13 +130,33 @@ public class ObjectWriter
         _serializationView = view;
         _rootType = rootType;
         _prettyPrinter = pp;
+        _filterProvider = null;
     }
 
+    /**
+     * @since 1.7
+     */
+    protected ObjectWriter(ObjectMapper mapper, FilterProvider filterProvider)
+    {
+        _defaultTyper = mapper._defaultTyper;
+        _visibilityChecker = mapper._visibilityChecker;
+        _subtypeResolver = mapper._subtypeResolver;
+        // must make a copy at this point, to prevent further changes from trickling down
+        _config = mapper._serializationConfig.createUnshared(_defaultTyper, _visibilityChecker, _subtypeResolver);
+        _provider = mapper._serializerProvider;
+        _serializerFactory = mapper._serializerFactory;
+        _jsonFactory = mapper._jsonFactory;
+        _serializationView = null;
+        _rootType = null;
+        _prettyPrinter = null;
+        _filterProvider = filterProvider;
+    }
+    
     /**
      * Copy constructor used for building variations.
      */
     protected ObjectWriter(ObjectWriter base, SerializationConfig config,
-            Class<?> view, JavaType rootType, PrettyPrinter pp)
+            Class<?> view, JavaType rootType, PrettyPrinter pp, FilterProvider filterProvider)
     {
         _config = config;
         _provider = base._provider;
@@ -140,6 +170,7 @@ public class ObjectWriter
         _serializationView = view;
         _rootType = rootType;
         _prettyPrinter = pp;
+        _filterProvider = filterProvider;
     }
 
     /**
@@ -164,7 +195,7 @@ public class ObjectWriter
         SerializationConfig config = _config.createUnshared(_defaultTyper,
                 _visibilityChecker, _subtypeResolver);
         config.setSerializationView(view);
-        return new ObjectWriter(this, config, view, _rootType, _prettyPrinter);
+        return new ObjectWriter(this, config, view, _rootType, _prettyPrinter, _filterProvider);
     }    
     
     /**
@@ -176,7 +207,8 @@ public class ObjectWriter
     {
         if (rootType == _rootType) return this;
         // type is stored here, no need to make a copy of config
-        return new ObjectWriter(this, _config, _serializationView, rootType, _prettyPrinter);
+        return new ObjectWriter(this, _config, _serializationView, rootType, _prettyPrinter,
+                _filterProvider);
     }    
 
     /**
@@ -201,7 +233,8 @@ public class ObjectWriter
         if (pp == null) {
             pp = NULL_PRETTY_PRINTER;
         }
-        return new ObjectWriter(this, _config, _serializationView, _rootType, pp);
+        return new ObjectWriter(this, _config, _serializationView, _rootType, pp,
+                _filterProvider);
     }
 
     /**
@@ -213,6 +246,17 @@ public class ObjectWriter
     public ObjectWriter withDefaultPrettyPrinter()
     {
         return withPrettyPrinter(new DefaultPrettyPrinter());
+    }
+
+    /**
+     * Method that will construct a new instance that uses specified
+     * provider for resolving filter instances by id.
+     * 
+     * @since 1.7
+     */
+    public ObjectWriter withFilters(FilterProvider filterProvider) {
+        return new ObjectWriter(this, _config, _serializationView, _rootType, _prettyPrinter,
+                filterProvider);
     }
     
     /*

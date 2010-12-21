@@ -12,6 +12,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonFilter;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonTypeIdResolver;
 import org.codehaus.jackson.map.annotate.JsonTypeResolver;
@@ -107,6 +108,20 @@ public class JacksonAnnotationIntrospector
     public Boolean isIgnorableType(AnnotatedClass ac) {
         JsonIgnoreType ignore = ac.getAnnotation(JsonIgnoreType.class);
         return (ignore == null) ? null : ignore.value();
+    }
+
+    @Override
+    public Object findFilterId(AnnotatedClass ac)
+    {
+        JsonFilter ann = ac.getAnnotation(JsonFilter.class);
+        if (ann != null) {
+            String id = ann.value();
+            // Empty String is same as not having annotation, to allow overrides
+            if (id.length() > 0) {
+                return id;
+            }
+        }
+        return null;
     }
     
     /*
