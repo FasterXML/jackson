@@ -3,7 +3,7 @@ package org.codehaus.jackson.xml;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.util.VersionUtil;
-import org.codehaus.jackson.xml.util.RootNameLookup;
+import org.codehaus.jackson.xml.util.XmlRootNameLookup;
 
 /**
  * Customized {@link ObjectMapper} that will read and write XML instead of JSON,
@@ -34,7 +34,7 @@ public class XmlMapper extends ObjectMapper
         /* Need to override serializer provider (due to root name handling);
          * deserializer provider fine as is
          */
-        super(xmlFactory, new XmlSerializerProvider(new RootNameLookup()), null);
+        super(xmlFactory, new XmlSerializerProvider(new XmlRootNameLookup()), null);
         
         // Bean serializers are somewhat customized as well:
         _serializerFactory = new XmlBeanSerializerFactory(null);

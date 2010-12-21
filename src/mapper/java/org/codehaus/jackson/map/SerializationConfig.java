@@ -156,7 +156,7 @@ public class SerializationConfig
          *<b>NOTE</b>: Support for this feature has <b>NOT</b> been
          * implemented -- it is reserved for future expansion.
          *
-         * @since 1.3
+         * @since 1.7
          */
         WRAP_ROOT_VALUE(false),
 
@@ -716,7 +716,7 @@ public class SerializationConfig
     public final boolean isEnabled(Feature f) {
         return (_featureFlags & f.getMask()) != 0;
     }
-
+    
     /*
     /**********************************************************
     /* Introspection methods

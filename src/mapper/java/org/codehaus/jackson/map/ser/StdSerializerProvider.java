@@ -8,6 +8,7 @@ import java.util.Date;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ser.impl.ReadOnlyClassToSerializerMap;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.util.RootNameLookup;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.schema.SchemaAware;
@@ -99,6 +100,8 @@ public class StdSerializerProvider
 
     final protected SerializerCache _serializerCache;
 
+    final protected RootNameLookup _rootNames;
+    
     /*
     /**********************************************************
     /* Configuration, specialized serializers
@@ -173,6 +176,7 @@ public class StdSerializerProvider
         _serializerCache = new SerializerCache();
         // Blueprints doesn't have access to any serializers...
         _knownSerializers = null;
+        _rootNames = new RootNameLookup();
     }
 
     /**
@@ -182,8 +186,7 @@ public class StdSerializerProvider
      * @param src Blueprint object used as the baseline for this instance
      */
     protected StdSerializerProvider(SerializationConfig config,
-                                    StdSerializerProvider src,
-                                    SerializerFactory f)
+            StdSerializerProvider src, SerializerFactory f)
     {
         super(config);
         if (config == null) {
@@ -196,6 +199,7 @@ public class StdSerializerProvider
         _keySerializer = src._keySerializer;
         _nullValueSerializer = src._nullValueSerializer;
         _nullKeySerializer = src._nullKeySerializer;
+        _rootNames = src._rootNames;
 
         /* Non-blueprint instances do have a read-only map; one that doesn't
          * need synchronization for lookups.
@@ -260,7 +264,7 @@ public class StdSerializerProvider
             throws JsonMappingException
     {
         if (type == null) {
-            throw new IllegalArgumentException("A class must be provided.");
+            throw new IllegalArgumentException("A class must be provided");
         }
 
         /* First: we need a separate instance, which will hold a copy of the
@@ -281,7 +285,7 @@ public class StdSerializerProvider
                 JsonSchema.getDefaultSchemaNode();
         if (!(schemaNode instanceof ObjectNode)) {
             throw new IllegalArgumentException("Class " + type.getName() +
-                    " would not be serialized as a JSON object and therefore has no schema.");
+                    " would not be serialized as a JSON object and therefore has no schema");
         }
 
         return new JsonSchema((ObjectNode) schemaNode);
@@ -292,71 +296,6 @@ public class StdSerializerProvider
                                     Class<?> cls, SerializerFactory jsf)
     {
         return createInstance(config, jsf)._findExplicitUntypedSerializer(cls, null) != null;
-    }
-
-    /**
-     * Method called on the actual non-blueprint provider instance object,
-     * to kick off the serialization.
-     */
-    protected  void _serializeValue(JsonGenerator jgen, Object value)
-        throws IOException, JsonProcessingException
-    {
-        JsonSerializer<Object> ser;
-        if (value == null) {
-            ser = getNullValueSerializer();
-        } else {
-            Class<?> cls = value.getClass();
-            // true, since we do want to cache root-level typed serializers (ditto for null property)
-            ser = findTypedValueSerializer(cls, true, null);
-        }
-        try {
-            ser.serialize(value, jgen, this);
-        } catch (IOException ioe) {
-            /* As per [JACKSON-99], should not wrap IOException or its
-             * sub-classes (like JsonProcessingException, JsonMappingException)
-             */
-            throw ioe;
-        } catch (Exception e) {
-            // but others are wrapped
-            String msg = e.getMessage();
-            if (msg == null) {
-                msg = "[no message for "+e.getClass().getName()+"]";
-            }
-            throw new JsonMappingException(msg, e);
-        }
-    }
-
-    /**
-     * Method called on the actual non-blueprint provider instance object,
-     * to kick off the serialization, when root type is explicitly
-     * specified and not determined from value.
-     */
-    protected  void _serializeValue(JsonGenerator jgen, Object value, JavaType rootType)
-        throws IOException, JsonProcessingException
-    {
-        JsonSerializer<Object> ser;
-        if (value == null) {
-            ser = getNullValueSerializer();
-        } else {
-            // Let's ensure types are compatible at this point
-            if (!rootType.getRawClass().isAssignableFrom(value.getClass())) {
-                throw new JsonMappingException("Incompatible types: declared root type ("+rootType+") vs "
-                        +value.getClass().getName());
-            }
-            // root value, not reached via property:
-            ser = findTypedValueSerializer(rootType, true, null);
-        }
-        try {
-            ser.serialize(value, jgen, this);
-        } catch (IOException ioe) { // no wrapping for IO (and derived)
-            throw ioe;
-        } catch (Exception e) { // but others do need to be, to get path etc
-            String msg = e.getMessage();
-            if (msg == null) {
-                msg = "[no message for "+e.getClass().getName()+"]";
-            }
-            throw new JsonMappingException(msg, e);
-        }
     }
     
     /*
@@ -618,6 +557,96 @@ public class StdSerializerProvider
     /* Helper methods: can be overridden by sub-classes
     /**********************************************************
      */
+    
+    /**
+     * Method called on the actual non-blueprint provider instance object,
+     * to kick off the serialization.
+     */
+    protected  void _serializeValue(JsonGenerator jgen, Object value)
+        throws IOException, JsonProcessingException
+    {
+        JsonSerializer<Object> ser;
+        boolean wrap;
+
+        if (value == null) {
+            ser = getNullValueSerializer();
+            wrap = false; // no name to use for wrapping; can't do!
+        } else {
+            Class<?> cls = value.getClass();
+            // true, since we do want to cache root-level typed serializers (ditto for null property)
+            ser = findTypedValueSerializer(cls, true, null);
+            // [JACKSON-163]
+            wrap = _config.isEnabled(SerializationConfig.Feature.WRAP_ROOT_VALUE);
+            if (wrap) {
+                jgen.writeStartObject();
+                jgen.writeFieldName(_rootNames.findRootName(value.getClass(), _config));
+            }
+        }
+        try {
+            ser.serialize(value, jgen, this);
+            if (wrap) {
+                jgen.writeEndObject();
+            }
+        } catch (IOException ioe) {
+            /* As per [JACKSON-99], should not wrap IOException or its
+             * sub-classes (like JsonProcessingException, JsonMappingException)
+             */
+            throw ioe;
+        } catch (Exception e) {
+            // but others are wrapped
+            String msg = e.getMessage();
+            if (msg == null) {
+                msg = "[no message for "+e.getClass().getName()+"]";
+            }
+            throw new JsonMappingException(msg, e);
+        }
+    }
+
+    /**
+     * Method called on the actual non-blueprint provider instance object,
+     * to kick off the serialization, when root type is explicitly
+     * specified and not determined from value.
+     */
+    protected  void _serializeValue(JsonGenerator jgen, Object value, JavaType rootType)
+        throws IOException, JsonProcessingException
+    {
+        // [JACKSON-163]
+        boolean wrap;
+
+        JsonSerializer<Object> ser;
+        if (value == null) {
+            ser = getNullValueSerializer();
+            wrap = false;
+        } else {
+            // Let's ensure types are compatible at this point
+            if (!rootType.getRawClass().isAssignableFrom(value.getClass())) {
+                throw new JsonMappingException("Incompatible types: declared root type ("+rootType+") vs "
+                        +value.getClass().getName());
+            }
+            // root value, not reached via property:
+            ser = findTypedValueSerializer(rootType, true, null);
+            // [JACKSON-163]
+            wrap = _config.isEnabled(SerializationConfig.Feature.WRAP_ROOT_VALUE);
+            if (wrap) {
+                jgen.writeStartObject();
+                jgen.writeFieldName(_rootNames.findRootName(rootType, _config));
+            }
+        }
+        try {
+            ser.serialize(value, jgen, this);
+            if (wrap) {
+                jgen.writeEndObject();
+            }
+        } catch (IOException ioe) { // no wrapping for IO (and derived)
+            throw ioe;
+        } catch (Exception e) { // but others do need to be, to get path etc
+            String msg = e.getMessage();
+            if (msg == null) {
+                msg = "[no message for "+e.getClass().getName()+"]";
+            }
+            throw new JsonMappingException(msg, e);
+        }
+    }
 
     /**
      * Method that will try to find a serializer, either from cache
@@ -723,7 +752,7 @@ public class StdSerializerProvider
     {
         ser.resolve(this);
     }
-
+    
     /*
     /**********************************************************
     /*  Helper classes

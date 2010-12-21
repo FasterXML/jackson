@@ -29,6 +29,8 @@ Description:
 
   New features:
 
+  * [JACKSON-163] Implement 'SerializationConfig.Feature.WRAP_ROOT_VALUE' which allows
+    wrapping of output within single-property JSON Object.
   * [JACKSON-297] Add simple "module" abstraction to allow pluggable support
     tor third-party libraries, data types
   * [JACKSON-317] Add support for Guava (ex-Google-collections); implemented

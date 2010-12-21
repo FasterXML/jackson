@@ -8,7 +8,7 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.type.JavaType;
-import org.codehaus.jackson.xml.util.RootNameLookup;
+import org.codehaus.jackson.xml.util.XmlRootNameLookup;
 
 import javax.xml.namespace.QName;
 
@@ -26,9 +26,9 @@ public class XmlSerializerProvider extends StdSerializerProvider
      */
     protected final static QName ROOT_NAME_FOR_NULL = new QName("null");
     
-    protected final RootNameLookup _rootNameLookup;
+    protected final XmlRootNameLookup _rootNameLookup;
     
-    protected XmlSerializerProvider(RootNameLookup rootNames)
+    protected XmlSerializerProvider(XmlRootNameLookup rootNames)
     {
         super();
         _rootNameLookup = rootNames;

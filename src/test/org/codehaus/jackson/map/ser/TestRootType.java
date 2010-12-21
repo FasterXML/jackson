@@ -148,4 +148,12 @@ public class TestRootType
         assertEquals(EXP, out.toString());
     }
 
+    // Test to verify [JACKSON-163]
+    public void testRootWrapping() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
+        String xml = mapper.writeValueAsString(new StringWrapper("abc"));
+        assertEquals("{\"StringWrapper\":{\"str\":\"abc\"}}", xml);
+    }
 }

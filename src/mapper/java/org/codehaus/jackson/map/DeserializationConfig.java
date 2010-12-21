@@ -238,18 +238,18 @@ public class DeserializationConfig
         // // // Structural changes
 
         /**
-         * Feature that can be enabled to handle "wrapped" values
+         * Feature that was planned to be enabled to handle "wrapped" values
          * (see {@link SerializationConfig.Feature#WRAP_ROOT_VALUE}
          * for details).
-         * If enabled, value being deserialized must be a single-property
-         * JSON Object where the key name matches expected "root name"
-         * (determined using annotation, or if none, fallback which is
-         * the unqualified class name of the expected value)
-         *<p>
-         * Default setting is false, meaning root value is not wrapped.
+         * <b>NOTE</b>: Not yet implemented (unliked its counterpart for serialization
+         * which was implemented in 1.7)
          *
          * @since 1.3
+         * 
+         * @deprecated Still not implemented; plus, incorrectly named: should be
+         *    "UNWRAP_ROOT_VALUE" to be of use. May be added with that name.
          */
+        @Deprecated
         WRAP_ROOT_VALUE(false)
         ;
 

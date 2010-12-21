@@ -17,7 +17,7 @@ import org.codehaus.jackson.xml.XmlAnnotationIntrospector;
  * 
  * @since 1.7
  */
-public class RootNameLookup
+public class XmlRootNameLookup
 {
     /**
      * For efficient operation, let's try to minimize number of times we
@@ -25,7 +25,7 @@ public class RootNameLookup
      */
     protected final LRUMap<ClassKey,QName> _rootNames = new LRUMap<ClassKey,QName>(40, 200);
 
-    public RootNameLookup() { }
+    public XmlRootNameLookup() { }
 
     public QName findRootName(JavaType rootType, MapperConfig<?> config)
     {
