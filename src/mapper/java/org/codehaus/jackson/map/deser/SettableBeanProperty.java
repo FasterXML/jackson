@@ -55,9 +55,11 @@ public abstract class SettableBeanProperty
     protected TypeDeserializer _valueTypeDeserializer;
     
     /**
-     * Value to be used when 'null' literal is encountered in JSON.
+     * Object used to figure out value to be used when 'null' literal is encountered in JSON.
      * For most types simply Java null, but for primitive types must
      * be a non-null value (like Integer.valueOf(0) for int).
+     * 
+     * @since 1.7
      */
     protected NullProvider _nullProvider;
 
@@ -67,6 +69,16 @@ public abstract class SettableBeanProperty
      * later linking.
      */
     protected String _managedReferenceName;
+
+    /**
+     * Index of property (within all property of a bean); assigned
+     * when all properties have been collected. Order of entries
+     * is arbitrary, but once indexes are assigned they are not
+     * changed.
+     * 
+     * @since 1.7
+     */
+    protected int _propertyIndex = -1;
     
     /*
     /**********************************************************
@@ -103,6 +115,18 @@ public abstract class SettableBeanProperty
 
     public void setManagedReferenceName(String n) {
         _managedReferenceName = n;
+    }
+
+    /**
+     * Method used to assign index for property.
+     * 
+     * @since 1.7
+     */
+    public void assignIndex(int index) {
+        if (_propertyIndex != -1) {
+            throw new IllegalStateException("Property '"+getName()+"' already had index ("+_propertyIndex+"), trying to assign "+index);
+        }
+        _propertyIndex = index;
     }
     
     /*
@@ -154,6 +178,17 @@ public abstract class SettableBeanProperty
      */
     public int getCreatorIndex() { return -1; }
 
+    /**
+     * Method for accessing unique index of this property; indexes are
+     * assigned once all properties of a {@link BeanDeserializer} have
+     * been collected.
+     * 
+     * @return Index of this property
+     * 
+     * @since 1.7
+     */
+    public int getProperytIndex() { return _propertyIndex; }
+    
     /*
     /**********************************************************
     /* Public API

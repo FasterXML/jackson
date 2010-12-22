@@ -373,7 +373,9 @@ public class BeanDeserializer
      */
     protected void postProcessBeanProperties(Map<String,SettableBeanProperty> props)
     {
-        _beanProperties = new BeanPropertyMap(_props);
+        BeanPropertyMap map = new BeanPropertyMap(_props);
+        map.assignIndexes();
+        _beanProperties = map;
     }
     
     /*

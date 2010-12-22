@@ -35,6 +35,18 @@ public final class BeanPropertyMap
         _buckets = buckets;
     }
 
+    public void assignIndexes()
+    {
+        // order is arbitrary, but stable:
+        int index = 0;
+        for (Bucket bucket : _buckets) {
+            while (bucket != null) {
+                bucket.value.assignIndex(index++);
+                bucket = bucket.next;
+            }
+        }
+    }
+    
     private final static int findSize(int size)
     {
         // For small enough results (32 or less), we'll require <= 50% fill rate; otherwise 80%
@@ -45,7 +57,7 @@ public final class BeanPropertyMap
         }
         return result;
     }
-
+    
     /*
     /**********************************************************
     /* Public API
