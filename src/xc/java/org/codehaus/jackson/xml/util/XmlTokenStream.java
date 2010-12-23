@@ -80,6 +80,10 @@ public class XmlTokenStream
         _attributeCount = _xmlReader.getAttributeCount();
     }
 
+    public XMLStreamReader2 getXmlReader() {
+        return _xmlReader;
+    }
+    
     /*
     /**********************************************************
     /* Public API

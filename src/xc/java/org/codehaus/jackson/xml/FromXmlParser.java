@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.JsonLocation;
@@ -198,6 +199,28 @@ public class FromXmlParser
             disable(f);
         }
         return this;
+    }
+
+    /*
+    /**********************************************************
+    /* Extended API, access to some internal components
+    /**********************************************************
+     */
+
+    /**
+     * Method that allows application direct access to underlying
+     * Stax {@link XMLStreamWriter}. Note that use of writer is
+     * discouraged, and may interfere with processing of this writer;
+     * however, occasionally it may be necessary.
+     *<p>
+     * Note: writer instance will always be of type
+     * {@link org.codehaus.stax2.XMLStreamWriter2} (including
+     * Typed Access API) so upcasts are safe.
+     * 
+     * @since 1.7
+     */
+    public XMLStreamReader getStaxReader() {
+        return _xmlTokens.getXmlReader();
     }
     
     /*
