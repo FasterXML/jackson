@@ -112,13 +112,13 @@ public abstract class JsonGeneratorBase
     }
 
     @Override
-    public final JsonGenerator useDefaultPrettyPrinter()
+    public JsonGenerator useDefaultPrettyPrinter()
     {
         return setPrettyPrinter(new DefaultPrettyPrinter());
     }
 
     @Override
-    public final JsonGenerator setCodec(ObjectCodec oc) {
+    public JsonGenerator setCodec(ObjectCodec oc) {
         _objectCodec = oc;
         return this;
     }

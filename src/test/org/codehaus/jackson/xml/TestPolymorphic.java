@@ -40,6 +40,21 @@ public class TestPolymorphic extends XmlTestBase
         public ClassArrayWrapper() { }
         public ClassArrayWrapper(String s) { wrapped = new SubTypeWithClassArray(s); }
     }
+
+    /*
+    /**********************************************************
+    /* Set up
+    /**********************************************************
+     */
+
+    protected XmlMapper _xmlMapper;
+
+    // let's actually reuse XmlMapper to make things bit faster
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        _xmlMapper = new XmlMapper();
+    }
     
     /*
     /**********************************************************
@@ -49,10 +64,9 @@ public class TestPolymorphic extends XmlTestBase
 
     public void testAsClassProperty() throws Exception
     {
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(new SubTypeWithClassProperty("Foobar"));
+        String xml = _xmlMapper.writeValueAsString(new SubTypeWithClassProperty("Foobar"));
 
-        Object result = mapper.readValue(xml, BaseTypeWithClassProperty.class);
+        Object result = _xmlMapper.readValue(xml, BaseTypeWithClassProperty.class);
         assertNotNull(result);
         assertEquals(SubTypeWithClassProperty.class, result.getClass());
         assertEquals("Foobar", ((SubTypeWithClassProperty) result).name);
@@ -65,10 +79,9 @@ public class TestPolymorphic extends XmlTestBase
     // property of a bean
     public void testAsClassArray() throws Exception
     {
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(new SubTypeWithClassArray("Foobar"));
+        String xml = _xmlMapper.writeValueAsString(new SubTypeWithClassArray("Foobar"));
 
-        Object result = mapper.readValue(xml, BaseTypeWithClassArray.class);
+        Object result = _xmlMapper.readValue(xml, BaseTypeWithClassArray.class);
         assertNotNull(result);
         assertEquals(SubTypeWithClassArray.class, result.getClass());
         assertEquals("Foobar", ((SubTypeWithClassArray) result).name);
@@ -78,11 +91,9 @@ public class TestPolymorphic extends XmlTestBase
     // array context when writing...
     public void testAsWrappedClassArray() throws Exception
     {
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(new ClassArrayWrapper("Foobar"));
-System.out.println("XML == "+xml);        
+        String xml = _xmlMapper.writeValueAsString(new ClassArrayWrapper("Foobar"));
 
-        ClassArrayWrapper result = mapper.readValue(xml, ClassArrayWrapper.class);
+        ClassArrayWrapper result = _xmlMapper.readValue(xml, ClassArrayWrapper.class);
         assertNotNull(result);
         assertEquals(SubTypeWithClassArray.class, result.wrapped.getClass());
         assertEquals("Foobar", ((SubTypeWithClassArray) result.wrapped).name);
@@ -96,10 +107,9 @@ System.out.println("XML == "+xml);
     /*
     public void testAsClassObject() throws Exception
     {
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(new SubTypeWithClassObject("Foobar"));
+        String xml = _xmlMapper.writeValueAsString(new SubTypeWithClassObject("Foobar"));
 
-        Object result = mapper.readValue(xml, BaseTypeWithClassObject.class);
+        Object result = _xmlMapper.readValue(xml, BaseTypeWithClassObject.class);
         assertNotNull(result);
         assertEquals(SubTypeWithClassObject.class, result.getClass());
         assertEquals("Foobar", ((SubTypeWithClassObject) result).name);

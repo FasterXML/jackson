@@ -1,7 +1,7 @@
 package org.codehaus.jackson.xml;
 
 public abstract class XmlTestBase
-    extends main.BaseTest
+    extends org.codehaus.jackson.map.BaseMapTest
 {
     protected XmlTestBase() {
         super();

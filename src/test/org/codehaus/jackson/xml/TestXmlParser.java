@@ -5,8 +5,27 @@ import java.io.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ObjectMapper;
 
-public class TestXmlParser extends main.BaseTest
+public class TestXmlParser extends XmlTestBase
 {
+    /*
+    /**********************************************************
+    /* Set up
+    /**********************************************************
+     */
+
+    protected JsonFactory _jsonFactory;
+    protected XmlFactory _xmlFactory;
+    protected XmlMapper _xmlMapper;
+
+    // let's actually reuse XmlMapper to make things bit faster
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        _jsonFactory = new JsonFactory();
+        _xmlFactory = new XmlFactory();
+        _xmlMapper = new XmlMapper();
+    }
+
     /*
     /**********************************************************
     /* Unit tests
@@ -40,8 +59,7 @@ public class TestXmlParser extends main.BaseTest
     {
         // First: let's convert from sample JSON doc to default xml output
         JsonNode root = new ObjectMapper().readTree(SAMPLE_DOC_JSON_SPEC);
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(root);
+        String xml = _xmlMapper.writeValueAsString(root);
         
         // Here we would ideally use base class test method. Alas, it won't
         // work due to couple of problems;
@@ -50,7 +68,7 @@ public class TestXmlParser extends main.BaseTest
         // Former could be worked around; latter less so at this point.
 
         // So, for now, let's just do sort of minimal verification, manually
-        JsonParser jp = mapper.getJsonFactory().createJsonParser(xml);
+        JsonParser jp = _xmlMapper.getJsonFactory().createJsonParser(xml);
         
         assertToken(JsonToken.START_OBJECT, jp.nextToken()); // main object
 
@@ -128,8 +146,7 @@ public class TestXmlParser extends main.BaseTest
     {
         final String XML = "<array><elem>value</elem><elem><property>123</property></elem><elem>1</elem></array>";
 
-        XmlFactory xf = new XmlFactory();
-        FromXmlParser xp = (FromXmlParser) xf.createJsonParser(new StringReader(XML));
+        FromXmlParser xp = (FromXmlParser) _xmlFactory.createJsonParser(new StringReader(XML));
 
         // First: verify handling without forcing array handling:
         assertToken(JsonToken.START_OBJECT, xp.nextToken()); // <array>
@@ -156,7 +173,7 @@ public class TestXmlParser extends main.BaseTest
         xp.close();
 
         // And then with array handling:
-        xp = (FromXmlParser) xf.createJsonParser(new StringReader(XML));
+        xp = (FromXmlParser) _xmlFactory.createJsonParser(new StringReader(XML));
         assertTrue(xp.getParsingContext().inRoot());
 
         assertToken(JsonToken.START_OBJECT, xp.nextToken()); // <array>
@@ -198,12 +215,10 @@ public class TestXmlParser extends main.BaseTest
 
     private String _readXmlWriteJson(String xml) throws IOException
     {
-        JsonFactory jf = new JsonFactory();
-        XmlFactory xf = new XmlFactory();
         StringWriter w = new StringWriter();
 
-        JsonParser jp = xf.createJsonParser(xml);
-        JsonGenerator jg = jf.createJsonGenerator(w);
+        JsonParser jp = _xmlFactory.createJsonParser(xml);
+        JsonGenerator jg = _jsonFactory.createJsonGenerator(w);
         while (jp.nextToken() != null) {
             jg.copyCurrentEvent(jp);
         }

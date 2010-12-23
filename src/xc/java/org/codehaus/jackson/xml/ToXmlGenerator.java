@@ -17,6 +17,7 @@ import org.codehaus.jackson.impl.JsonGeneratorBase;
 import org.codehaus.jackson.impl.JsonWriteContext;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.io.SerializedString;
+import org.codehaus.jackson.xml.util.DefaultXmlPrettyPrinter;
 import org.codehaus.jackson.xml.util.StaxUtil;
 
 /**
@@ -215,20 +216,20 @@ public final class ToXmlGenerator
      */
 
     @Override
-    protected final void _writeStartArray() throws IOException, JsonGenerationException
+    public final void _writeStartArray() throws IOException, JsonGenerationException
     {
         // nothing to do here; no-operation
     }
     
     @Override
-    protected void _writeEndArray()
+    public void _writeEndArray()
         throws IOException, JsonGenerationException
     {
         // nothing to do here; no-operation
     }
 
     @Override
-    protected void _writeStartObject()
+    public void _writeStartObject()
         throws IOException, JsonGenerationException
     {
         if (_nextName == null) {
@@ -244,7 +245,7 @@ public final class ToXmlGenerator
     }
 
     @Override
-    protected void _writeEndObject()
+    public void _writeEndObject()
         throws IOException, JsonGenerationException
     {
         // We may want to repeat same element, so:
@@ -259,7 +260,7 @@ public final class ToXmlGenerator
     }
 
     @Override
-    protected void _writeFieldName(String name, boolean commaBefore)
+    public void _writeFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
         // Should this ever get called?
@@ -602,7 +603,7 @@ public final class ToXmlGenerator
 
     /*
     /**********************************************************
-    /* Implementations for other methods
+    /* Implementations, overrides for other methods
     /**********************************************************
      */
     
@@ -616,6 +617,16 @@ public final class ToXmlGenerator
         }
     }
 
+    /**
+     * Standard JSON indenter does not work well with XML, use
+     * default XML indenter instead.
+     */
+    @Override
+    public final JsonGenerator useDefaultPrettyPrinter()
+    {
+        return setPrettyPrinter(new DefaultXmlPrettyPrinter());
+    }
+    
     /*
     /**********************************************************
     /* Low-level output handling
@@ -685,7 +696,7 @@ public final class ToXmlGenerator
     /* Internal methods
     /**********************************************************
      */
-    
+
     protected void handleMissingName()
     {
         throw new IllegalStateException("No element/attribute name specified when trying to output element");

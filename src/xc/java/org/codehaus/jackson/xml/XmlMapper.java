@@ -57,5 +57,19 @@ public class XmlMapper extends ObjectMapper
     /* Access to configuration settings
     /**********************************************************
      */
-    
+
+    /*
+    /**********************************************************
+    /* Overridden methods
+    /**********************************************************
+     */
+
+    /**
+     * XML indentation differs from JSON indentation, thereby
+     * need to change default pretty-printer
+     */
+    @Override
+    protected PrettyPrinter _defaultPrettyPrinter() {
+        return null; // new DefaultPrettyPrinter();
+    }
 }

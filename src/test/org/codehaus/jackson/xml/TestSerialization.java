@@ -81,6 +81,21 @@ public class TestSerialization extends XmlTestBase
         @JacksonXmlProperty(namespace="http://foo", isAttribute=true)
         public String attr = "3";
     }
+
+    /*
+    /**********************************************************
+    /* Set up
+    /**********************************************************
+     */
+
+    protected XmlMapper _xmlMapper;
+
+    // let's actually reuse XmlMapper to make things bit faster
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        _xmlMapper = new XmlMapper();
+    }
     
     /*
     /**********************************************************
@@ -93,8 +108,7 @@ public class TestSerialization extends XmlTestBase
      */
     public void testRootName() throws IOException
     {
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(new StringBean());
+        String xml = _xmlMapper.writeValueAsString(new StringBean());
         
         /* Hmmh. Looks like JDK Stax adds bogus ns declaration. As such,
          * let's just check that name starts ok...
@@ -106,24 +120,21 @@ public class TestSerialization extends XmlTestBase
     
     public void testSimpleAttribute() throws IOException
     {
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(new AttributeBean());
+        String xml = _xmlMapper.writeValueAsString(new AttributeBean());
         xml = removeSjsxpNamespace(xml);
         assertEquals("<AttributeBean attr=\"something\"/>", xml);
     }
 
     public void testSimpleAttrAndElem() throws IOException
     {
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(new AttrAndElem());
+        String xml = _xmlMapper.writeValueAsString(new AttrAndElem());
         xml = removeSjsxpNamespace(xml);
         assertEquals("<AttrAndElem id=\"42\"><elem>whatever</elem></AttrAndElem>", xml);
     }
 
     public void testSimpleNsElem() throws IOException
     {
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(new NsElemBean());
+        String xml = _xmlMapper.writeValueAsString(new NsElemBean());
         xml = removeSjsxpNamespace(xml);
         // here we assume woodstox automatic prefixes, not very robust but:
         assertEquals("<NsElemBean><wstxns1:text xmlns:wstxns1=\"http://foo\">blah</wstxns1:text></NsElemBean>", xml);
@@ -131,8 +142,7 @@ public class TestSerialization extends XmlTestBase
 
     public void testSimpleNsAttr() throws IOException
     {
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(new NsAttrBean());
+        String xml = _xmlMapper.writeValueAsString(new NsAttrBean());
         xml = removeSjsxpNamespace(xml);
         // here we assume woodstox automatic prefixes, not very robust but:
         assertEquals("<NsAttrBean xmlns:wstxns1=\"http://foo\" wstxns1:attr=\"3\"/>", xml);
@@ -140,8 +150,7 @@ public class TestSerialization extends XmlTestBase
     
     public void testSimpleList() throws IOException
     {
-        XmlMapper mapper = new XmlMapper();
-        String xml = mapper.writeValueAsString(new ListBean(1, 2, 3));
+        String xml = _xmlMapper.writeValueAsString(new ListBean(1, 2, 3));
         xml = removeSjsxpNamespace(xml);
         // 06-Dec-2010, tatu: Not completely ok; should default to not using wrapper...
         assertEquals("<ListBean><values><values>1</values><values>2</values><values>3</values></values></ListBean>", xml);
@@ -149,9 +158,8 @@ public class TestSerialization extends XmlTestBase
 
     public void testStringList() throws IOException
     {
-        XmlMapper mapper = new XmlMapper();
         StringListBean list = new StringListBean("a", "b", "c");
-        String xml = mapper.writeValueAsString(list);
+        String xml = _xmlMapper.writeValueAsString(list);
         xml = removeSjsxpNamespace(xml);
         // 06-Dec-2010, tatu: Not completely ok; should default to not using wrapper... but it's what we have now
         assertEquals("<StringListBean><stringList>"
