@@ -128,6 +128,15 @@ public final class ToXmlGenerator
         _ioContext = ctxt;
         _xmlWriter = Stax2WriterAdapter.wrapIfNecessary(sw);
     }
+
+    /**
+     * Method called before writing any other output, to optionally
+     * output XML declaration.
+     */
+    public void initGenerator()  throws IOException, JsonGenerationException
+    {
+        // !!! TODO
+    }
     
     /*
     /**********************************************************

@@ -10,7 +10,6 @@ import org.codehaus.jackson.xml.ToXmlGenerator;
 public class DefaultXmlPrettyPrinter
     implements PrettyPrinter
 {
-
     /*
     /**********************************************************
     /* Root-level values
