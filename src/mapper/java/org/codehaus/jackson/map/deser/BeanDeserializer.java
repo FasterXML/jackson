@@ -441,7 +441,7 @@ public class BeanDeserializer
                 try {
                     prop.deserializeAndSet(jp, ctxt, bean);
                 } catch (Exception e) {
-                    wrapAndThrow(e, bean, propName);
+                    wrapAndThrow(e, bean, propName, ctxt);
                 }
                 continue;
             }
@@ -544,7 +544,7 @@ public class BeanDeserializer
                 try {
                     prop.deserializeAndSet(jp, ctxt, bean);
                 } catch (Exception e) {
-                    wrapAndThrow(e, bean, propName);
+                    wrapAndThrow(e, bean, propName, ctxt);
                 }
                 continue;
             }
@@ -557,7 +557,7 @@ public class BeanDeserializer
                 try {
                     _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
                 } catch (Exception e) {
-                    wrapAndThrow(e, bean, propName);
+                    wrapAndThrow(e, bean, propName, ctxt);
                 }
                 continue;
             } else {
@@ -604,7 +604,7 @@ public class BeanDeserializer
     	    try {
     	        return _delegatingCreator.deserialize(jp, ctxt);
             } catch (Exception e) {
-                wrapAndThrow(e, _beanType.getRawClass(), null);
+                wrapAndThrow(e, _beanType.getRawClass(), null, ctxt);
             }
     	}
     	throw ctxt.mappingException(getBeanClass());
@@ -644,7 +644,7 @@ public class BeanDeserializer
                     try {
                         bean = creator.build(buffer);
                     } catch (Exception e) {
-                        wrapAndThrow(e, _beanType.getRawClass(), propName);
+                        wrapAndThrow(e, _beanType.getRawClass(), propName, ctxt);
                         continue; // never gets here
                     }
                 //  polymorphic?
@@ -690,7 +690,7 @@ public class BeanDeserializer
         try {
             bean =  creator.build(buffer);
         } catch (Exception e) {
-            wrapAndThrow(e, _beanType.getRawClass(), null);
+            wrapAndThrow(e, _beanType.getRawClass(), null, ctxt);
             return null; // never gets here
         }
         if (unknown != null) {
@@ -858,7 +858,7 @@ public class BeanDeserializer
     /* Helper methods for error reporting
     /**********************************************************
      */
-    
+
     /**
      * Method that will modify caught exception (passed in as argument)
      * as necessary to include reference information, and to ensure it
@@ -871,7 +871,8 @@ public class BeanDeserializer
      *   {@link JsonMappingException} are to be passed as is
      *</ul>
      */
-    public void wrapAndThrow(Throwable t, Object bean, String fieldName)
+    public void wrapAndThrow(Throwable t, Object bean, String fieldName,
+            DeserializationContext ctxt)
         throws IOException
     {
         /* 05-Mar-2009, tatu: But one nasty edge is when we get
@@ -885,15 +886,22 @@ public class BeanDeserializer
         if (t instanceof Error) {
             throw (Error) t;
         }
-        // Ditto for IOExceptions... except for mapping exceptions!
-        if (t instanceof IOException && !(t instanceof JsonMappingException)) {
-            throw (IOException) t;
+        boolean wrap = (ctxt == null) || ctxt.isEnabled(DeserializationConfig.Feature.WRAP_EXCEPTIONS);
+        // Ditto for IOExceptions; except we may want to wrap mapping exceptions
+        if (t instanceof IOException) {
+            if (!wrap || !(t instanceof JsonMappingException)) {
+                throw (IOException) t;
+            }
+        } else if (!wrap) { // [JACKSON-407] -- allow disabling wrapping for unchecked exceptions
+            if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            }
         }
         // [JACKSON-55] Need to add reference information
         throw JsonMappingException.wrapWithPath(t, bean, fieldName);
     }
 
-    public void wrapAndThrow(Throwable t, Object bean, int index)
+    public void wrapAndThrow(Throwable t, Object bean, int index, DeserializationContext ctxt)
         throws IOException
     {
         while (t instanceof InvocationTargetException && t.getCause() != null) {
@@ -903,12 +911,38 @@ public class BeanDeserializer
         if (t instanceof Error) {
             throw (Error) t;
         }
-        // Ditto for IOExceptions... except for mapping exceptions!
-        if (t instanceof IOException && !(t instanceof JsonMappingException)) {
-            throw (IOException) t;
+        boolean wrap = (ctxt == null) || ctxt.isEnabled(DeserializationConfig.Feature.WRAP_EXCEPTIONS);
+        // Ditto for IOExceptions; except we may want to wrap mapping exceptions
+        if (t instanceof IOException) {
+            if (!wrap || !(t instanceof JsonMappingException)) {
+                throw (IOException) t;
+            }
+        } else if (!wrap) { // [JACKSON-407] -- allow disabling wrapping for unchecked exceptions
+            if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            }
         }
         // [JACKSON-55] Need to add reference information
         throw JsonMappingException.wrapWithPath(t, bean, index);
     }
 
+    /**
+     * @deprecated Since 1.7 use variant that takes {@link DeserializationContext}
+     */
+    @Deprecated
+    public void wrapAndThrow(Throwable t, Object bean, String fieldName)
+        throws IOException
+    {
+        wrapAndThrow(t, bean, fieldName, null);
+    }
+    
+    /**
+     * @deprecated Since 1.7 use variant that takes {@link DeserializationContext}
+     */
+    @Deprecated
+    public void wrapAndThrow(Throwable t, Object bean, int index)
+        throws IOException
+    {
+        wrapAndThrow(t, bean, index, null);
+    }    
 }

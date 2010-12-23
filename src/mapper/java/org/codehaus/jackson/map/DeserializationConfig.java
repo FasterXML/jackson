@@ -38,7 +38,11 @@ public class DeserializationConfig
      * the serialization feature.
      */
     public enum Feature {
-        // // // Introspection configuration
+        /*
+        /******************************************************
+         *  Introspection features
+        /******************************************************
+         */
 
         /**
          * Feature that determines whether annotation introspection
@@ -129,7 +133,11 @@ public class DeserializationConfig
          */
         CAN_OVERRIDE_ACCESS_MODIFIERS(true),
 
-        // // // Type conversion configuration
+        /*
+        /******************************************************
+         *  Type conversion features
+        /******************************************************
+         */
 
         /**
          * Feature that determines whether Json floating point numbers
@@ -181,7 +189,11 @@ public class DeserializationConfig
          */
         READ_ENUMS_USING_TO_STRING(false),
         
-        // // // Problem handling
+        /*
+        /******************************************************
+         *  Error handling features
+        /******************************************************
+         */
 
         /**
          * Feature that determines whether encountering of unknown
@@ -234,8 +246,32 @@ public class DeserializationConfig
          * @since 1.7
          */
         FAIL_ON_NUMBERS_FOR_ENUMS(false),
+
+        /**
+         * Feature that determines whether Jackson code should catch
+         * and wrap {@link Exception}s (but never {@link Error}s!)
+         * to add additional information about
+         * location (within input) of problem or not. If enabled,
+         * most exceptions will be caught and re-thrown (exception
+         * specifically being that {@link java.io.IOException}s may be passed
+         * as is, since they are declared as throwable); this can be
+         * convenient both in that all exceptions will be checked and
+         * declared, and so there is more contextual information.
+         * However, sometimes calling application may just want "raw"
+         * unchecked exceptions passed as is.
+         *<p>
+         * Feature is enabled by default, and is similar in behavior
+         * to default prior to 1.7.
+         * 
+         * @since 1.7
+         */
+        WRAP_EXCEPTIONS(true),
         
-        // // // Structural changes
+        /*
+        /******************************************************
+         *  Structural conversion features
+        /******************************************************
+         */
 
         /**
          * Feature that was planned to be enabled to handle "wrapped" values

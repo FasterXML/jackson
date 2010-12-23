@@ -52,7 +52,6 @@ public final class TestDeserPerf
     public void test()
         throws Exception
     {
-        int i = 0;
         int sum = 0;
 
         final MediaItem item = buildItem();
@@ -77,7 +76,6 @@ public final class TestDeserPerf
         
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-//            int round = (i++ % 1);
             int round = 1;
 
             long curr = System.currentTimeMillis();

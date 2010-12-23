@@ -36,7 +36,11 @@ public class SerializationConfig
      * the serialization feature.
      */
     public enum Feature {
-        // // // Introspection configuration
+        /*
+        /******************************************************
+         *  Introspection features
+        /******************************************************
+         */
         
         /**
          * Feature that determines whether annotation introspection
@@ -112,7 +116,11 @@ public class SerializationConfig
          */
         CAN_OVERRIDE_ACCESS_MODIFIERS(true),
             
-        // // // Generic output features
+        /*
+        /******************************************************
+         * Generic output features
+        /******************************************************
+         */
 
         /**
          * Feature that determines the default settings of whether Bean
@@ -144,6 +152,24 @@ public class SerializationConfig
         USE_STATIC_TYPING(false),
 
         /**
+         * Feature that determines whether properties that have no view
+         * annotations are included in JSON serialization views (see
+         * {@link org.codehaus.jackson.map.annotate.JsonView} for more
+         * details on JSON Views).
+         * If enabled, non-annotated properties will be included;
+         * when disabled, they will be excluded. So this feature
+         * changes between "opt-in" (feature disabled) and
+         * "opt-out" (feature enabled) modes.
+         *<p>
+         * Default value is enabled, meaning that non-annotated
+         * properties are included in all views if there is no
+         * {@link org.codehaus.jackson.map.annotate.JsonView} annotation.
+         * 
+         * @since 1.5
+         */
+        DEFAULT_VIEW_INCLUSION(true),
+        
+        /**
          * Feature that can be enabled to make root value (usually JSON
          * Object but can be any type) wrapped within a single property
          * JSON object, where key as the "root name", as determined by
@@ -162,6 +188,31 @@ public class SerializationConfig
         WRAP_ROOT_VALUE(false),
 
         /**
+         * Feature that allows enabling (or disabling) indentation
+         * for the underlying generator, using the default pretty
+         * printer (see
+         * {@link org.codehaus.jackson.JsonGenerator#useDefaultPrettyPrinter}
+         * for details).
+         *<p>
+         * Note that this only affects cases where
+         * {@link org.codehaus.jackson.JsonGenerator}
+         * is constructed implicitly by ObjectMapper: if explicit
+         * generator is passed, its configuration is not changed.
+         *<p>
+         * Also note that if you want to configure details of indentation,
+         * you need to directly configure the generator: there is a
+         * method to use any <code>PrettyPrinter</code> instance.
+         * This feature will only allow using the default implementation.
+         */
+        INDENT_OUTPUT(false),
+        
+        /*
+        /******************************************************
+         *  Error handling features
+        /******************************************************
+         */
+        
+        /**
          * Feature that determines what happens when no accessors are
          * found for a type (and there are no annotations to indicate
          * it is meant to be serialized). If enabled (default), an
@@ -178,24 +229,32 @@ public class SerializationConfig
          */
         FAIL_ON_EMPTY_BEANS(true),
 
-         /**
-          * Feature that determines whether properties that have no view
-          * annotations are included in JSON serialization views (see
-          * {@link org.codehaus.jackson.map.annotate.JsonView} for more
-          * details on JSON Views).
-          * If enabled, non-annotated properties will be included;
-          * when disabled, they will be excluded. So this feature
-          * changes between "opt-in" (feature disabled) and
-          * "opt-out" (feature enabled) modes.
-          *<p>
-          * Default value is enabled, meaning that non-annotated
-          * properties are included in all views if there is no
-          * {@link org.codehaus.jackson.map.annotate.JsonView} annotation.
-          * 
-          * @since 1.5
-          */
-         DEFAULT_VIEW_INCLUSION(true),
+        /**
+         * Feature that determines whether Jackson code should catch
+         * and wrap {@link Exception}s (but never {@link Error}s!)
+         * to add additional information about
+         * location (within input) of problem or not. If enabled,
+         * most exceptions will be caught and re-thrown (exception
+         * specifically being that {@link java.io.IOException}s may be passed
+         * as is, since they are declared as throwable); this can be
+         * convenient both in that all exceptions will be checked and
+         * declared, and so there is more contextual information.
+         * However, sometimes calling application may just want "raw"
+         * unchecked exceptions passed as is.
+         *<p>
+         * Feature is enabled by default, and is similar in behavior
+         * to default prior to 1.7.
+         * 
+         * @since 1.7
+         */
+        WRAP_EXCEPTIONS(true),
 
+        /*
+        /******************************************************
+         * Output life cycle features
+        /******************************************************
+         */
+        
          /**
           * Feature that determines whether <code>close</code> method of
           * serialized <b>root level</b> objects (ones for which <code>ObjectMapper</code>'s
@@ -228,7 +287,11 @@ public class SerializationConfig
          */
         FLUSH_AFTER_WRITE_VALUE(true),
          
-         // // // Features for datatype-specific serialization
+        /*
+        /******************************************************
+         * Datatype-specific serialization configuration
+        /******************************************************
+         */
 
         /**
          * Feature that determines whether {@link java.util.Date}s
@@ -276,29 +339,8 @@ public class SerializationConfig
          * 
          * @since 1.6
          */
-        WRITE_NULL_MAP_VALUES(true),
-        
-        // // // Output fine tuning
-            
-        /**
-         * Feature that allows enabling (or disabling) indentation
-         * for the underlying generator, using the default pretty
-         * printer (see
-         * {@link org.codehaus.jackson.JsonGenerator#useDefaultPrettyPrinter}
-         * for details).
-         *<p>
-         * Note that this only affects cases where
-         * {@link org.codehaus.jackson.JsonGenerator}
-         * is constructed implicitly by ObjectMapper: if explicit
-         * generator is passed, its configuration is not changed.
-         *<p>
-         * Also note that if you want to configure details of indentation,
-         * you need to directly configure the generator: there is a
-         * method to use any <code>PrettyPrinter</code> instance.
-         * This feature will only allow using the default implementation.
-         */
-        INDENT_OUTPUT(false)
-            
+        WRITE_NULL_MAP_VALUES(true)           
+
             ;
 
         final boolean _defaultState;
