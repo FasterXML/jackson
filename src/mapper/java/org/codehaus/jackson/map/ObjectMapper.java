@@ -1747,7 +1747,7 @@ public class ObjectMapper
      * @since 1.5
      */
     public ObjectWriter prettyPrintingWriter(PrettyPrinter pp) {
-        if (pp == null) {
+        if (pp == null) { // need to use a marker to indicate explicit disabling of pp
             pp = ObjectWriter.NULL_PRETTY_PRINTER;
         }
         return new ObjectWriter(this, null, /*root type*/ null, pp);
@@ -1760,10 +1760,9 @@ public class ObjectMapper
      * @since 1.5
      */
     public ObjectWriter defaultPrettyPrintingWriter() {
-        return new ObjectWriter(this, null, /*root type*/ null,
-                new DefaultPrettyPrinter());
+        return new ObjectWriter(this, null, /*root type*/ null, _defaultPrettyPrinter());
     }
-
+    
     public ObjectWriter filteredWriter(FilterProvider filterProvider) {
         return new ObjectWriter(this, filterProvider);
     }
@@ -1946,6 +1945,17 @@ public class ObjectMapper
     /**********************************************************
      */
 
+    /**
+     * Helper method that should return default pretty-printer to
+     * use for generators constructed by this mapper, when instructed
+     * to use default pretty printer.
+     * 
+     * @since 1.7
+     */
+    protected PrettyPrinter _defaultPrettyPrinter() {
+        return new DefaultPrettyPrinter();
+    }
+    
     /**
      * Method called to configure the generator as necessary and then
      * call write functionality
