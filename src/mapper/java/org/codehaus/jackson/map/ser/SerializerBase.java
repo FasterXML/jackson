@@ -7,9 +7,7 @@ import java.lang.reflect.Type;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
@@ -91,7 +89,8 @@ public abstract class SerializerBase<T>
      *   {@link JsonMappingException} are to be passed as is
      *</ul>
      */
-    public void wrapAndThrow(Throwable t, Object bean, String fieldName)
+    public void wrapAndThrow(SerializerProvider provider,
+            Throwable t, Object bean, String fieldName)
         throws IOException
     {
         /* 05-Mar-2009, tatu: But one nasty edge is when we get
@@ -106,28 +105,59 @@ public abstract class SerializerBase<T>
             throw (Error) t;
         }
         // Ditto for IOExceptions... except for mapping exceptions!
-        if (t instanceof IOException && !(t instanceof JsonMappingException)) {
-            throw (IOException) t;
+        boolean wrap = (provider == null) || provider.isEnabled(SerializationConfig.Feature.WRAP_EXCEPTIONS);
+        if (t instanceof IOException) {
+            if (!wrap || !(t instanceof JsonMappingException)) {
+                throw (IOException) t;
+            }
+        } else if (!wrap) { // [JACKSON-407] -- allow disabling wrapping for unchecked exceptions
+            if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            }
         }
         // [JACKSON-55] Need to add reference information
         throw JsonMappingException.wrapWithPath(t, bean, fieldName);
     }
 
-    public void wrapAndThrow(Throwable t, Object bean, int index)
+    public void wrapAndThrow(SerializerProvider provider,
+            Throwable t, Object bean, int index)
         throws IOException
     {
         while (t instanceof InvocationTargetException && t.getCause() != null) {
             t = t.getCause();
         }
-        // Errors and "plain" IOExceptions to be passed as is
+        // Errors are to be passed as is
         if (t instanceof Error) {
             throw (Error) t;
         }
         // Ditto for IOExceptions... except for mapping exceptions!
-        if (t instanceof IOException && !(t instanceof JsonMappingException)) {
-            throw (IOException) t;
+        boolean wrap = (provider == null) || provider.isEnabled(SerializationConfig.Feature.WRAP_EXCEPTIONS);
+        if (t instanceof IOException) {
+            if (!wrap || !(t instanceof JsonMappingException)) {
+                throw (IOException) t;
+            }
+        } else if (!wrap) { // [JACKSON-407] -- allow disabling wrapping for unchecked exceptions
+            if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            }
         }
         // [JACKSON-55] Need to add reference information
         throw JsonMappingException.wrapWithPath(t, bean, index);
+    }
+
+    /**
+     * @deprecated Use version that takes <code>SerializerProvider</code> instead.
+     */
+    @Deprecated
+    public void wrapAndThrow(Throwable t, Object bean, String fieldName) throws IOException {
+        wrapAndThrow(null, t, bean, fieldName);
+    }
+
+    /**
+     * @deprecated Use version that takes <code>SerializerProvider</code> instead.
+     */
+    @Deprecated
+    public void wrapAndThrow(Throwable t, Object bean, int index) throws IOException {
+        wrapAndThrow(null, t, bean, index);
     }
 }

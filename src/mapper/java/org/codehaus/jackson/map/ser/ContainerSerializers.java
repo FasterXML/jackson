@@ -275,7 +275,7 @@ public final class ContainerSerializers
                 }
             } catch (Exception e) {
                 // [JACKSON-55] Need to add reference information
-                wrapAndThrow(e, value, i);
+                wrapAndThrow(provider, e, value, i);
             }
         }
         
@@ -300,7 +300,7 @@ public final class ContainerSerializers
                     }
                 } catch (Exception e) {
                     // [JACKSON-55] Need to add reference information
-                    wrapAndThrow(e, value, i);
+                    wrapAndThrow(provider, e, value, i);
                 }
             }
         }
@@ -331,7 +331,7 @@ public final class ContainerSerializers
                 }
             } catch (Exception e) {
                 // [JACKSON-55] Need to add reference information
-                wrapAndThrow(e, value, i);
+                wrapAndThrow(provider, e, value, i);
             }
         }
     }
@@ -395,7 +395,7 @@ public final class ContainerSerializers
                 } while (it.hasNext());
             } catch (Exception e) {
                 // [JACKSON-55] Need to add reference information
-                wrapAndThrow(e, value, i);
+                wrapAndThrow(provider, e, value, i);
             }
         }
 
@@ -422,7 +422,7 @@ public final class ContainerSerializers
                         ++i;
                     } catch (Exception e) {
                         // [JACKSON-55] Need to add reference information
-                        wrapAndThrow(e, value, i);
+                        wrapAndThrow(provider, e, value, i);
                     }
                 } while (it.hasNext());
             }

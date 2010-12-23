@@ -90,7 +90,7 @@ public final class IndexedStringListSerializer
                 }
             }
         } catch (Exception e) {
-            wrapAndThrow(e, value, i);
+            wrapAndThrow(provider, e, value, i);
         }
     }
 
@@ -110,7 +110,7 @@ public final class IndexedStringListSerializer
                 }
             }
         } catch (Exception e) {
-            wrapAndThrow(e, value, i);
+            wrapAndThrow(provider, e, value, i);
         }
     }
 }

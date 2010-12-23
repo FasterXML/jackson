@@ -23,6 +23,9 @@ public abstract class SerializerProvider
 {
     protected final static JavaType TYPE_OBJECT = TypeFactory.type(Object.class);
     
+    /**
+     * Serialization configuration to use for serialization processing.
+     */
     protected final SerializationConfig _config;
 
     /**
@@ -94,14 +97,25 @@ public abstract class SerializerProvider
     /**********************************************************
      */
 
+    /**
+     * Method for accessing configuration for the serialization processing.
+     */
     public final SerializationConfig getConfig() { return _config; }
 
-    public final boolean isEnabled(SerializationConfig.Feature f) {
-        return _config.isEnabled(f);
+    /**
+     * Convenience method for checking whether specified serialization
+     * feature is enabled or not.
+     * Shortcut for:
+     *<pre>
+     *  getConfig().isEnabled(feature);
+     *</pre>
+     */
+    public final boolean isEnabled(SerializationConfig.Feature feature) {
+        return _config.isEnabled(feature);
     }
 
     /**
-     * Convenience method, equivalent to:
+     * Convenience method for accessing serialization view in use (if any); equivalent to:
      *<pre>
      *   getConfig().getSerializationView();
      *</pre>
@@ -111,7 +125,8 @@ public abstract class SerializerProvider
     public final Class<?> getSerializationView() { return _serializationView; }
 
     /**
-     * Convenience method, equivalent to calling:
+     * Convenience method for accessing provider to find serialization filters used,
+     * equivalent to calling:
      *<pre>
      *   getConfig().getFilterProvider();
      *</pre>
@@ -305,7 +320,7 @@ public abstract class SerializerProvider
 
     /**
      * Method called to get the serializer to use for serializing
-     * Map keys that are nulls: this is needed since Json does not allow
+     * Map keys that are nulls: this is needed since JSON does not allow
      * any non-String value as key, including null.
      *<p>
      * Typically, returned serializer

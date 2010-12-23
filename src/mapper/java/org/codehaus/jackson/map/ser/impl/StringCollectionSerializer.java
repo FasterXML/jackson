@@ -93,7 +93,7 @@ public class StringCollectionSerializer
                 }
                 ++i;
             } catch (Exception e) {
-                wrapAndThrow(e, value, i);
+                wrapAndThrow(provider, e, value, i);
             }
         }
     }
@@ -111,7 +111,7 @@ public class StringCollectionSerializer
                     ser.serialize(str, jgen, provider);
                 }
             } catch (Exception e) {
-                wrapAndThrow(e, value, i);
+                wrapAndThrow(provider, e, value, i);
             }
        }
     }

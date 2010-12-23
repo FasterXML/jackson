@@ -51,6 +51,8 @@ Description:
     'JsonGenerator.FLUSH_PASSED_TO_STREAM' to allow blocking of flush() calls to
     underlying output stream or writer
   * [JACKSON-405]: Add smile command-line tool for manual Smile encoding/decoding
+  * [JACKSON-407]: Add features (SerializationConfig.Feature.WRAP_EXCEPTIONS,
+    DeserializationConfig.Feature.WRAP_EXCEPTIONS) to allow disabling wrapping of exceptions
   * [JACKSON-409] Add SmileGenerator.writeRaw(byte)
   * [JACKSON-412] Add 'DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS'
     to optionally prevent mapping JSON integers into Java Enum values

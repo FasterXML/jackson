@@ -252,7 +252,7 @@ public class MapSerializer
                 } catch (Exception e) {
                     // [JACKSON-55] Need to add reference information
                     String keyDesc = ""+keyElem;
-                    wrapAndThrow(e, value, keyDesc);
+                    wrapAndThrow(provider, e, value, keyDesc);
                 }
             }
         }
@@ -295,7 +295,7 @@ public class MapSerializer
                 } catch (Exception e) {
                     // [JACKSON-55] Need to add reference information
                     String keyDesc = ""+keyElem;
-                    wrapAndThrow(e, value, keyDesc);
+                    wrapAndThrow(provider, e, value, keyDesc);
                 }
             }
         }
@@ -342,7 +342,7 @@ public class MapSerializer
                 } catch (Exception e) {
                     // [JACKSON-55] Need to add reference information
                     String keyDesc = ""+keyElem;
-                    wrapAndThrow(e, value, keyDesc);
+                    wrapAndThrow(provider, e, value, keyDesc);
                 }
             }
         }

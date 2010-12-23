@@ -138,7 +138,7 @@ public class EnumMapSerializer
                     currSerializer.serialize(valueElem, jgen, provider);
                 } catch (Exception e) {
                     // [JACKSON-55] Need to add reference information
-                    wrapAndThrow(e, value, entry.getKey().name());
+                    wrapAndThrow(provider, e, value, entry.getKey().name());
                 }
             }
         }
@@ -165,7 +165,7 @@ public class EnumMapSerializer
                 try {
                     valueSer.serialize(valueElem, jgen, provider);
                 } catch (Exception e) {
-                    wrapAndThrow(e, value, entry.getKey().name());
+                    wrapAndThrow(provider, e, value, entry.getKey().name());
                 }
             }
         }

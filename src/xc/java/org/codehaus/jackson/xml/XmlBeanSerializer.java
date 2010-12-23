@@ -95,7 +95,7 @@ public class XmlBeanSerializer extends BeanSerializer
             }
         } catch (Exception e) {
             String name = (i == props.length) ? "[anySetter]" : props[i].getName();
-            wrapAndThrow(e, bean, name);
+            wrapAndThrow(provider, e, bean, name);
         } catch (StackOverflowError e) {
             /* 04-Sep-2009, tatu: Dealing with this is tricky, since we do not
              *   have many stack frames to spare... just one or two; can't
