@@ -42,7 +42,22 @@ public final class ToXmlGenerator
      * Enumeration that defines all togglable extra XML-specific features
      */
     public enum Feature {
-    	DUMMY(false)
+        /**
+         * Feature that controls whether XML declaration should be written before
+         * when generator is initialized (true) or not (false)
+         */
+        WRITE_XML_DECLARATION(false),
+
+        /**
+         * Feature that controls whether output should be done as XML 1.1; if so,
+         * certain aspects may differ from default (1.0) processing: for example,
+         * XML declaration will be automatically added (regardless of setting
+         * <code>WRITE_XML_DECLARATION</code>) as this is required for reader to
+         * know to use 1.1 compliant handling. XML 1.1 can be used to allow quoted
+         * control characters (Ascii codes 0 through 31) as well as additional linefeeds
+         * and name characters.
+         */
+        WRITE_XML_1_1(false)
         ;
 
         final boolean _defaultState;
@@ -135,7 +150,15 @@ public final class ToXmlGenerator
      */
     public void initGenerator()  throws IOException, JsonGenerationException
     {
-        // !!! TODO
+        try {
+            if ((_xmlFeatures & Feature.WRITE_XML_1_1.getMask()) != 0) {
+                _xmlWriter.writeStartDocument("UTF-8", "1.1");
+            } else if ((_xmlFeatures & Feature.WRITE_XML_DECLARATION.getMask()) != 0) {
+                _xmlWriter.writeStartDocument("UTF-8", "1.0");
+            }
+        } catch (XMLStreamException e) {
+            StaxUtil.throwXmlAsIOException(e);
+        }
     }
     
     /*

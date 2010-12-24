@@ -14,14 +14,6 @@ public class TestSerialization extends XmlTestBase
     /**********************************************************
      */
 
-    static class StringBean
-    {
-        public String text;
-
-        public StringBean() { this("foobar"); }
-        public StringBean(String s) { text = s; }
-    }
-
     static class StringBean2
     {
         public String text = "foobar";

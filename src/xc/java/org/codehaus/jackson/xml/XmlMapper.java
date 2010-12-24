@@ -58,6 +58,16 @@ public class XmlMapper extends ObjectMapper
     /**********************************************************
      */
 
+    public ObjectMapper configure(ToXmlGenerator.Feature f, boolean state) {
+        ((XmlFactory)_jsonFactory).configure(f, state);
+        return this;
+    }
+
+    public ObjectMapper configure(FromXmlParser.Feature f, boolean state) {
+        ((XmlFactory)_jsonFactory).configure(f, state);
+        return this;
+    }
+    
     /*
     /**********************************************************
     /* Overridden methods

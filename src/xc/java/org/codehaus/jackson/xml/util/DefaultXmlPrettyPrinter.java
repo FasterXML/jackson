@@ -7,6 +7,12 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.PrettyPrinter;
 import org.codehaus.jackson.xml.ToXmlGenerator;
 
+/**
+ * Indentation to use with XML is different from JSON, because JSON
+ * requires use of separator characters and XML just basic whitespace.
+ * 
+ * @since 1.7
+ */
 public class DefaultXmlPrettyPrinter
     implements PrettyPrinter
 {

@@ -504,3 +504,9 @@ Patrick Leamon:
 Tauren Mills:
   * Suggested [JACKSON-414] Add 'JsonNode.getValueAsBoolean()' (and 'JsonParser.getValueAsBoolean()')
    [1.7.0]
+
+Rostislav Hristov:
+  * Suggested [JACKSON-445] Add 'ToXmlGenerator.Feature.WRITE_XML_DECLARATION' and 'WRITE_XML_1_1'
+    to force writing of XML declaration.
+   [1.7.0]
+ 

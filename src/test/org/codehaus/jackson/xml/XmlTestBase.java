@@ -3,6 +3,20 @@ package org.codehaus.jackson.xml;
 public abstract class XmlTestBase
     extends org.codehaus.jackson.map.BaseMapTest
 {
+    /*
+    /**********************************************************
+    /* Helper types
+    /**********************************************************
+     */
+
+    protected static class StringBean
+    {
+        public String text;
+
+        public StringBean() { this("foobar"); }
+        public StringBean(String s) { text = s; }
+    }
+
     protected XmlTestBase() {
         super();
     }
