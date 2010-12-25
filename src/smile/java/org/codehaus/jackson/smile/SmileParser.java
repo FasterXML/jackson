@@ -770,11 +770,11 @@ public class SmileParser
         throws IOException, JsonParseException
     {
         // note: caller ensures we have enough bytes available
-        int outPtr = 0;
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-        int inPtr = _inputPtr;
-        _inputPtr += len;
+        int outPtr = 0;
         final byte[] inBuf = _inputBuffer;
+        int inPtr = _inputPtr;
+        
         // loop unrolling seems to help here:
         for (int inEnd = inPtr + len - 3; inPtr < inEnd; ) {
             outBuf[outPtr++] = (char) inBuf[inPtr++];            
@@ -782,10 +782,17 @@ public class SmileParser
             outBuf[outPtr++] = (char) inBuf[inPtr++];            
             outBuf[outPtr++] = (char) inBuf[inPtr++];            
         }
-        for (int inEnd = _inputPtr; inPtr < inEnd; ) {
+        int left = (len & 3);
+        if (left > 0) {
             outBuf[outPtr++] = (char) inBuf[inPtr++];
-        }
-        
+            if (left > 1) {
+                outBuf[outPtr++] = (char) inBuf[inPtr++];
+                if (left > 2) {
+                    outBuf[outPtr++] = (char) inBuf[inPtr++];
+                }
+            }
+        } 
+        _inputPtr = inPtr;
         _textBuffer.setCurrentLength(len);
         return _textBuffer.contentsAsString();
     }
@@ -1256,15 +1263,15 @@ public class SmileParser
         int outPtr = 0;
         // Note: we count on fact that buffer must have at least 'len' (<= 64) empty char slots
 	final char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+        final byte[] inBuf = _inputBuffer;
 	int inPtr = _inputPtr;
-	_inputPtr += len;
-	final byte[] inputBuf = _inputBuffer;
-	for (int end = inPtr + len; inPtr < end; ) {
-	    outBuf[outPtr++] = (char) inputBuf[inPtr++];
-	}
+        for (int end = inPtr + len; inPtr < end; ++inPtr) {
+            outBuf[outPtr++] = (char) inBuf[inPtr];            
+        }
+        _inputPtr = inPtr;
 	_textBuffer.setCurrentLength(len);
     }
-	
+
     protected final void _decodeShortUnicodeValue(int len)
         throws IOException, JsonParseException
     {

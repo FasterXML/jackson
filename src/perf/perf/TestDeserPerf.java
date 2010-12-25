@@ -3,6 +3,7 @@ package perf;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.smile.SmileFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.xml.XmlFactory;
 import org.codehaus.jackson.xml.XmlMapper;
@@ -66,6 +67,7 @@ public final class TestDeserPerf
                 new com.ctc.wstx.stax.WstxInputFactory() // woodstox
 //                new com.fasterxml.aalto.stax.InputFactoryImpl() // aalto
             , null));
+        final ObjectMapper smileMapper = new ObjectMapper(new SmileFactory());
 
         byte[] json = jsonMapper.writeValueAsBytes(item);
         System.out.println("Warmed up: data size is "+json.length+" bytes; "+REPS+" reps -> "
@@ -73,10 +75,12 @@ public final class TestDeserPerf
         System.out.println();
         byte[] xml = xmlMapper.writeValueAsBytes(item);
         System.out.println(" xml size: "+xml.length+" bytes");
+        byte[] smile = smileMapper.writeValueAsBytes(item);
+        System.out.println(" smile size: "+smile.length+" bytes");
         
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            int round = 0;
+            int round = 2;
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -94,6 +98,11 @@ public final class TestDeserPerf
                 sum += testDeser(xmlMapper, xml, REPS);
                 break;
 
+            case 2:
+                msg = "Deserialize, smile";
+                sum += testDeser(smileMapper, smile, REPS);
+                break;
+                
             default:
                 throw new Error("Internal error");
             }
