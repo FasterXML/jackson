@@ -334,7 +334,6 @@ public class SmileGenerator
         if (_writeContext.writeFieldName(name.getValue()) == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
-
         _writeFieldName(name);
     }
 
@@ -346,7 +345,6 @@ public class SmileGenerator
         if (_writeContext.writeFieldName(name.getValue()) == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
-
         _writeFieldName(name);
     }
 
@@ -472,7 +470,7 @@ public class SmileGenerator
             int byteLen = _shortUTF8Encode(_charBuffer, 0, len);
             byte typeToken;
             
-            // Ascii?
+            // ASCII?
             if (byteLen == len) {
                 if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) { // yes, is short indeed
                     typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
@@ -520,7 +518,7 @@ public class SmileGenerator
         }
     }
 
-    protected void _writeFieldName(SerializableString name)
+    protected final void _writeFieldName(SerializableString name)
         throws IOException, JsonGenerationException
     {
         final int charLen = name.charLength();
@@ -528,7 +526,13 @@ public class SmileGenerator
             _writeByte(TOKEN_KEY_EMPTY_STRING);
             return;
         }
-        // First: is it something we can share?
+        final byte[] bytes = name.asUnquotedUTF8();
+        final int byteLen = bytes.length;
+        if (byteLen != charLen) {
+            _writeFieldNameUnicode(name, bytes);
+            return;
+        }
+        // Then: is it something we can share?
         if (_seenNameCount >= 0) {
             int ix = _findSeenName(name.getValue());
             if (ix >= 0) {
@@ -540,37 +544,33 @@ public class SmileGenerator
                 return;
             }
         }
-        byte[] bytes = name.asUnquotedUTF8();
-        final int byteLen = bytes.length;
 
-        // Unicode?
-        if (byteLen != charLen) {
-            _writeFieldNameUnicode(name, bytes);
+        // Common case: short ASCII name that fits in buffer as is
+        if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) {
+            // output buffer is bigger than what we need, always, so
+            if ((_outputTail + byteLen) >= _outputEnd) { // need marker byte and actual bytes
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
+            System.arraycopy(bytes, 0, _outputBuffer, _outputTail, byteLen);
+            _outputTail += byteLen;
+            // Also, keep track if we can use back-references (shared names)
+            if (_seenNameCount >= 0) {
+                _addSeenName(name.getValue());
+            }
             return;
         }
-        byte typeToken;
-        boolean needEndMarker;
-        if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) {
-            typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
-            needEndMarker = false;
-        } else {
-            typeToken = TOKEN_KEY_LONG_STRING;
-            needEndMarker = true;
+
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
         }
+        _outputBuffer[_outputTail++] = TOKEN_KEY_LONG_STRING;
         // Ok. Enough room?
-        if ((_outputTail + byteLen + 2) < _outputEnd) {
-            _outputBuffer[_outputTail++] = typeToken;
+        if ((_outputTail + byteLen + 1) < _outputEnd) {
             System.arraycopy(bytes, 0, _outputBuffer, _outputTail, byteLen);
             _outputTail += byteLen;
         } else {
-            // quote either before or after flush...
-            if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) < _outputEnd) {
-                _outputBuffer[_outputTail++] = typeToken;
-                _flushBuffer();
-            } else {
-                _flushBuffer();
-                _outputBuffer[_outputTail++] = typeToken;
-            }
+            _flushBuffer();
             // either way, do intermediate copy if name is relatively short
             // Need to copy?
             if (byteLen < MIN_BUFFER_LENGTH) {
@@ -584,9 +584,7 @@ public class SmileGenerator
                 _out.write(bytes, 0, byteLen);
             }
         }
-        if (needEndMarker) {
-            _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
-        }
+        _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
         // Also, keep track if we can use back-references (shared names)
         if (_seenNameCount >= 0) {
             _addSeenName(name.getValue());
@@ -596,32 +594,47 @@ public class SmileGenerator
     protected final void _writeFieldNameUnicode(SerializableString name, byte[] bytes)
         throws IOException, JsonGenerationException
     {
-        byte typeToken;
-        boolean needEndMarker;
+        // Then: is it something we can share?
+        if (_seenNameCount >= 0) {
+            int ix = _findSeenName(name.getValue());
+            if (ix >= 0) {
+                if (ix < 64) {
+                    _writeByte((byte) (TOKEN_PREFIX_KEY_SHARED_SHORT + ix));
+                } else {
+                    _writeBytes(((byte) (TOKEN_PREFIX_KEY_SHARED_LONG + (ix >> 8))), (byte) ix);
+                } 
+                return;
+            }
+        }
+
         final int byteLen = bytes.length;
-        
+
+        // Common case: short Unicode name that fits in output buffer
         if (byteLen <= MAX_SHORT_NAME_UNICODE_BYTES) {
+            if ((_outputTail + byteLen) >= _outputEnd) { // need marker byte and actual bytes
+                _flushBuffer();
+            }
             // note: since 2 is smaller allowed length, offset differs from one used for
-            typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 2) + byteLen);
-            needEndMarker = false;
-        } else {
-            typeToken = TOKEN_KEY_LONG_STRING;
-            needEndMarker = true;
-        }            
+            _outputBuffer[_outputTail++] = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 2) + byteLen);
+
+            System.arraycopy(bytes, 0, _outputBuffer, _outputTail, byteLen);
+            _outputTail += byteLen;
+            // Also, keep track if we can use back-references (shared names)
+            if (_seenNameCount >= 0) {
+                _addSeenName(name.getValue());
+            }
+            return;
+        }
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = TOKEN_KEY_LONG_STRING;
         // Ok. Enough room?
-        if ((_outputTail + byteLen + 2) < _outputEnd) {
-            _outputBuffer[_outputTail++] = typeToken;
+        if ((_outputTail + byteLen + 1) < _outputEnd) {
             System.arraycopy(bytes, 0, _outputBuffer, _outputTail, byteLen);
             _outputTail += byteLen;
         } else {
-            // quote either before or after flush...
-            if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) < _outputEnd) {
-                _outputBuffer[_outputTail++] = typeToken;
-                _flushBuffer();
-            } else {
-                _flushBuffer();
-                _outputBuffer[_outputTail++] = typeToken;
-            }
+            _flushBuffer();
             // either way, do intermediate copy if name is relatively short
             // Need to copy?
             if (byteLen < MIN_BUFFER_LENGTH) {
@@ -635,8 +648,10 @@ public class SmileGenerator
                 _out.write(bytes, 0, byteLen);
             }
         }
-        if (needEndMarker) {
-            _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
+        _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
+        // Also, keep track if we can use back-references (shared names)
+        if (_seenNameCount >= 0) {
+            _addSeenName(name.getValue());
         }
     }
 
@@ -655,8 +670,13 @@ public class SmileGenerator
             _writeByte(TOKEN_LITERAL_EMPTY_STRING);
             return;
         }
-        // First: is it something we can share?
-        if (len <= MAX_SHARED_STRING_LENGTH_BYTES && _seenStringValueCount >= 0) {
+        // Longer string handling off-lined
+        if (len > MAX_SHARED_STRING_LENGTH_BYTES) {
+            _writeLongString(text, len);
+            return;
+        }
+        // Then: is it something we can share?
+        if (_seenStringValueCount >= 0) {
             int ix = _findSeenStringValue(text);
             if (ix >= 0) {
                 if (ix < 31) { // add 1, as byte 0 is omitted
@@ -667,64 +687,65 @@ public class SmileGenerator
                 return;
             }
         }
-        if (len <= MAX_SHORT_VALUE_STRING_BYTES) { // possibly short strings (not necessarily)
-            // first: ensure we have enough space
-            if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
-                _flushBuffer();
+            
+        // possibly short string (but not necessarily)
+        // first: ensure we have enough space
+        if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
+            _flushBuffer();
+        }
+        // then let's copy String chars to char buffer, faster than using getChar (measured, profiled)
+        text.getChars(0, len, _charBuffer, 0);
+        int origOffset = _outputTail;
+        ++_outputTail; // to leave room for type token
+        int byteLen = _shortUTF8Encode(_charBuffer, 0, len);
+        if (byteLen <= MAX_SHORT_VALUE_STRING_BYTES) { // yes, is short indeed
+            // plus keep reference, if it could be shared:
+            if (_seenStringValueCount >= 0) {
+                _addSeenStringValue(text);
             }
-            // then let's copy String chars to char buffer, faster than using getChar (measured, profiled)
-            text.getChars(0, len, _charBuffer, 0);
-            int origOffset = _outputTail;
-            ++_outputTail; // to leave room for type token
-            int byteLen = _shortUTF8Encode(_charBuffer, 0, len);
-            byte typeToken;
-            if (byteLen <= MAX_SHORT_VALUE_STRING_BYTES) { // yes, is short indeed
-                if (byteLen == len) { // and all ASCII
-                    typeToken = (byte) ((TOKEN_PREFIX_TINY_ASCII - 1) + byteLen);
-                } else { // not just ASCII
-                    // note: since length 1 can not be used here, value range is offset by 2, not 1
-                    typeToken = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 2) +  byteLen);
-                }
-                // plus keep reference, if it could be shared:
-                if (_seenStringValueCount >= 0) {
-                    _addSeenStringValue(text);
-                }
-            } else { // nope, longer String 
-                typeToken = (byteLen == len) ? TOKEN_BYTE_LONG_STRING_ASCII : TOKEN_BYTE_LONG_STRING_UNICODE;
-                // and we will need String end marker byte
-                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
+            if (byteLen == len) { // and all ASCII
+                _outputBuffer[origOffset] = (byte) ((TOKEN_PREFIX_TINY_ASCII - 1) + byteLen);
+            } else { // not just ASCII
+                // note: since length 1 can not be used here, value range is offset by 2, not 1
+                _outputBuffer[origOffset] = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 2) +  byteLen);
             }
-            // and then sneak in type token now that know the details
-            _outputBuffer[origOffset] = typeToken;            
-        } else { // "long" String, never shared
-            // but might still fit within buffer?
-            int maxLen = len + len + len + 2;
-            if (maxLen <= _outputBuffer.length) { // yes indeed
-                if ((_outputTail + maxLen) >= _outputEnd) {
-                    _flushBuffer();
-                }
-                int origOffset = _outputTail;
-                // can't say for sure if it's Ascii or Unicode, so:
-                _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
-                int byteLen;
-                if (len < _charBuffer.length) {
-                    text.getChars(0, len, _charBuffer, 0);
-                    byteLen = _shortUTF8Encode(_charBuffer, 0, len);
-                } else {
-                    byteLen = _mediumUTF8Encode(text);
-                }
-                // if it's ASCII, let's revise our type determination (to help decoder optimize)
-                if (byteLen == len) {
-                    _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_ASCII;
-                }
-                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
-            } else { // won't fit; can't efficiently rewrite Ascii/unicode marker, so:
-                _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
-                _slowUTF8Encode(text);
-                _writeByte(BYTE_MARKER_END_OF_STRING);
-            }
+        } else { // nope, longer String 
+            _outputBuffer[origOffset] = (byteLen == len) ? TOKEN_BYTE_LONG_STRING_ASCII : TOKEN_BYTE_LONG_STRING_UNICODE;
+            // and we will need String end marker byte
+            _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
         }
     }    
+
+    private final void _writeLongString(final String text, final int len) throws IOException,JsonGenerationException
+    {
+        // "long" String, never shared
+        // but might still fit within buffer?
+        int maxLen = len + len + len + 2;
+        if (maxLen <= _outputBuffer.length) { // yes indeed
+            if ((_outputTail + maxLen) >= _outputEnd) {
+                _flushBuffer();
+            }
+            int origOffset = _outputTail;
+            // can't say for sure if it's Ascii or Unicode, so:
+            _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
+            int byteLen;
+            if (len < _charBuffer.length) {
+                text.getChars(0, len, _charBuffer, 0);
+                byteLen = _shortUTF8Encode(_charBuffer, 0, len);
+            } else {
+                byteLen = _mediumUTF8Encode(text);
+            }
+            // if it's ASCII, let's revise our type determination (to help decoder optimize)
+            if (byteLen == len) {
+                _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_ASCII;
+            }
+            _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
+        } else { // won't fit; can't efficiently rewrite Ascii/unicode marker, so:
+            _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
+            _slowUTF8Encode(text);
+            _writeByte(BYTE_MARKER_END_OF_STRING);
+        }
+    }
     
     @Override
     public void writeString(char[] text, int offset, int len) throws IOException, JsonGenerationException

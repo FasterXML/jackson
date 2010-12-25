@@ -60,7 +60,7 @@ public final class SmileConstants
      * Two extra bytes need to be reserved as well; first for token indicator,
      * and second for terminating null byte (in case it's not a short String after all)
      */
-    public final static int MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING = 1 + (3 * 64);
+    public final static int MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING = 1 + (3 * 65);
 
     /*
     /**********************************************************
