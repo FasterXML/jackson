@@ -242,7 +242,7 @@ public class SmileParser
         _mayContainRawBinary = ((ch & SmileConstants.HEADER_BIT_HAS_RAW_BINARY) != 0);
         return true;
     }
-
+    
     /*
     /**********************************************************
     /* Overridden methods
@@ -501,6 +501,19 @@ public class SmileParser
         throws IOException, JsonParseException
     {
         if (_tokenIncomplete) {
+            _tokenIncomplete = false;
+            // Let's inline part of "_finishToken", common case
+            int tb = _typeByte;
+            int type = (tb >> 5) & 0x7;
+            if (type == 2 || type == 3) { // tiny & short ASCII
+                _decodeShortAsciiValue(1 + (tb & 0x3F));
+                return _textBuffer.contentsAsString();
+            }
+            if (type == 4 || type == 5) { // tiny & short Unicode
+                 // short unicode; note, lengths 2 - 65  (off-by-one compared to ASCII)
+                _decodeShortUnicodeValue(2 + (tb & 0x3F));
+                return _textBuffer.contentsAsString();
+            }
             _finishToken();
         }
         if (_currToken == JsonToken.VALUE_STRING) {
@@ -974,50 +987,21 @@ public class SmileParser
         _tokenIncomplete = false;
     	int tb = _typeByte;
 
-        switch ((tb >> 5) & 0x7) {
-        case 1: // simple literals, numbers
-            tb &= 0x1F;
-            switch (tb >> 2) {
-            case 1: // VInt (zigzag) or BigDecimal
-                int subtype = tb & 0x03;
-                if (subtype == 0) { // (v)int
-                    _finishInt();
-                } else if (subtype == 1) { // (v)long
-                    _finishLong();
-                } else if (subtype == 2) {
-                    _finishBigInteger();
-                } else {
-                    _throwInternal();
-                }
-                return;
-            case 2: // other numbers
-                switch (tb & 0x03) {
-                case 0: // float
-                    _finishFloat();
-                    return;
-                case 1: // double
-                    _finishDouble();
-                    return;
-                case 2: // big-decimal
-                    _finishBigDecimal();
-                    return;
-                }
-                break;
-            }
-            break;
-        case 2: // tiny ASCII
-            // fall through
-        case 3: // short ASCII
+    	int type = ((tb >> 5) & 0x7);
+        if (type == 1) { // simple literals, numbers
+            _finishNumberToken(tb);
+            return;
+        }
+        if (type <= 3) { // tiny & short ASCII
             _decodeShortAsciiValue(1 + (tb & 0x3F));
             return;
-
-        case 4: // tiny unicode
-            // fall through
-        case 5: // short unicode; note, lengths 2 - 65  (off-by-one compared to ASCII)
+    	}
+        if (type <= 5) { // tiny & short Unicode
+             // short unicode; note, lengths 2 - 65  (off-by-one compared to ASCII)
             _decodeShortUnicodeValue(2 + (tb & 0x3F));
             return;
-
-        case 7:
+    	}
+        if (type == 7) {
             tb &= 0x1F;
             // next 3 bytes define subtype
             switch (tb >> 2) {
@@ -1038,6 +1022,40 @@ public class SmileParser
     	_throwInternal();
     }
 
+    protected final void _finishNumberToken(int tb)
+        throws IOException, JsonParseException
+    {
+        tb &= 0x1F;
+        int type = (tb >> 2);
+        if (type == 1) { // VInt (zigzag) or BigDecimal
+            int subtype = tb & 0x03;
+            if (subtype == 0) { // (v)int
+                _finishInt();
+            } else if (subtype == 1) { // (v)long
+                _finishLong();
+            } else if (subtype == 2) {
+                _finishBigInteger();
+            } else {
+                _throwInternal();
+            }
+            return;
+        }
+        if (type == 2) { // other numbers
+            switch (tb & 0x03) {
+            case 0: // float
+                _finishFloat();
+                return;
+            case 1: // double
+                _finishDouble();
+                return;
+            case 2: // big-decimal
+                _finishBigDecimal();
+                return;
+            }
+        }
+        _throwInternal();
+    }
+    
     /*
     /**********************************************************
     /* Internal methods, secondary Number parsing
@@ -1253,21 +1271,45 @@ public class SmileParser
     /* Internal methods, secondary String parsing
     /**********************************************************
      */
-	
+
     protected final void _decodeShortAsciiValue(int len)
         throws IOException, JsonParseException
     {
         if ((_inputEnd - _inputPtr) < len) {
             _loadToHaveAtLeast(len);
         }
-        int outPtr = 0;
         // Note: we count on fact that buffer must have at least 'len' (<= 64) empty char slots
 	final char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+        int outPtr = 0;
         final byte[] inBuf = _inputBuffer;
 	int inPtr = _inputPtr;
-        for (int end = inPtr + len; inPtr < end; ++inPtr) {
+	
+        // loop unrolling SHOULD be faster (as with _decodeShortAsciiName), but somehow
+	// is NOT; as per testing, benchmarking... very weird.
+	/*
+        for (int inEnd = inPtr + len - 3; inPtr < inEnd; ) {
+            outBuf[outPtr++] = (char) inBuf[inPtr++];            
+            outBuf[outPtr++] = (char) inBuf[inPtr++];            
+            outBuf[outPtr++] = (char) inBuf[inPtr++];            
+            outBuf[outPtr++] = (char) inBuf[inPtr++];            
+        }
+        int left = (len & 3);
+        if (left > 0) {
+            outBuf[outPtr++] = (char) inBuf[inPtr++];
+            if (left > 1) {
+                outBuf[outPtr++] = (char) inBuf[inPtr++];
+                if (left > 2) {
+                    outBuf[outPtr++] = (char) inBuf[inPtr++];
+                }
+            }
+        }
+        */
+
+	// meaning: regular tight loop is no slower, typically faster here:
+	for (final int end = inPtr + len; inPtr < end; ++inPtr) {
             outBuf[outPtr++] = (char) inBuf[inPtr];            
         }
+	
         _inputPtr = inPtr;
 	_textBuffer.setCurrentLength(len);
     }
