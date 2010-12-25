@@ -7,7 +7,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.xml.XmlFactory;
 import org.codehaus.jackson.xml.XmlMapper;
-//import org.codehaus.jackson.smile.*;
+import org.codehaus.jackson.smile.*;
 
 import com.ctc.wstx.stax.WstxOutputFactory;
 
@@ -73,8 +73,9 @@ public final class TestSerPerf
         XMLOutputFactory xmlOut = new WstxOutputFactory(); // Woodstox
 //        XMLOutputFactory xmlOut = new com.fasterxml.aalto.stax.OutputFactoryImpl(); // Aalto
         final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null, null, xmlOut));
+        final ObjectMapper smileMapper = new ObjectMapper(new SmileFactory());
 
-        // Verify that we can roundtrip
+        // Verify that we can round trip
         {
             byte[] stuff = jsonMapper.writeValueAsBytes(item);
             @SuppressWarnings("unused")
@@ -84,13 +85,15 @@ public final class TestSerPerf
             System.out.println();
             stuff = xmlMapper.writeValueAsBytes(item);
             System.out.println(" xml size: "+stuff.length+" bytes; uses "+xmlOut.getClass().getName());
+            stuff = smileMapper.writeValueAsBytes(item);
+            System.out.println(" Smile size: "+stuff.length+" bytes");
         }
         
         while (true) {
 //            Thread.sleep(150L);
             ++i;
 //            int round = (i % 1);
-            int round = 0;
+            int round = 2;
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -108,6 +111,11 @@ public final class TestSerPerf
                 sum += testObjectSer(xmlMapper, item, REPS, result);
                 break;
 
+            case 2:
+                msg = "Serialize, Smile";
+                sum += testObjectSer(smileMapper, item, REPS, result);
+                break;
+                
             default:
                 throw new Error("Internal error");
             }

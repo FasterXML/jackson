@@ -543,35 +543,25 @@ public class SmileGenerator
         byte[] bytes = name.asUnquotedUTF8();
         final int byteLen = bytes.length;
 
+        // Unicode?
+        if (byteLen != charLen) {
+            _writeFieldNameUnicode(name, bytes);
+            return;
+        }
         byte typeToken;
         boolean needEndMarker;
-        // ASCII?
-        if (byteLen == charLen) {
-            if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) {
-                typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
-                needEndMarker = false;
-            } else {
-                typeToken = TOKEN_KEY_LONG_STRING;
-                needEndMarker = true;
-            }
-        } else { // nope, Unicode char(s)
-            if (byteLen <= MAX_SHORT_NAME_UNICODE_BYTES) {
-                // note: since 2 is smaller allowed length, offset differs from one used for
-                typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 2) + byteLen);
-                needEndMarker = false;
-            } else {
-                typeToken = TOKEN_KEY_LONG_STRING;
-                needEndMarker = true;
-            }            
+        if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) {
+            typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
+            needEndMarker = false;
+        } else {
+            typeToken = TOKEN_KEY_LONG_STRING;
+            needEndMarker = true;
         }
         // Ok. Enough room?
         if ((_outputTail + byteLen + 2) < _outputEnd) {
             _outputBuffer[_outputTail++] = typeToken;
             System.arraycopy(bytes, 0, _outputBuffer, _outputTail, byteLen);
             _outputTail += byteLen;
-            if (needEndMarker) {
-                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
-            }
         } else {
             // quote either before or after flush...
             if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) < _outputEnd) {
@@ -593,16 +583,63 @@ public class SmileGenerator
                 }
                 _out.write(bytes, 0, byteLen);
             }
-            if (needEndMarker) {
-                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
-            }
+        }
+        if (needEndMarker) {
+            _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
         }
         // Also, keep track if we can use back-references (shared names)
         if (_seenNameCount >= 0) {
             _addSeenName(name.getValue());
         }
     }
-    
+
+    protected final void _writeFieldNameUnicode(SerializableString name, byte[] bytes)
+        throws IOException, JsonGenerationException
+    {
+        byte typeToken;
+        boolean needEndMarker;
+        final int byteLen = bytes.length;
+        
+        if (byteLen <= MAX_SHORT_NAME_UNICODE_BYTES) {
+            // note: since 2 is smaller allowed length, offset differs from one used for
+            typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 2) + byteLen);
+            needEndMarker = false;
+        } else {
+            typeToken = TOKEN_KEY_LONG_STRING;
+            needEndMarker = true;
+        }            
+        // Ok. Enough room?
+        if ((_outputTail + byteLen + 2) < _outputEnd) {
+            _outputBuffer[_outputTail++] = typeToken;
+            System.arraycopy(bytes, 0, _outputBuffer, _outputTail, byteLen);
+            _outputTail += byteLen;
+        } else {
+            // quote either before or after flush...
+            if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) < _outputEnd) {
+                _outputBuffer[_outputTail++] = typeToken;
+                _flushBuffer();
+            } else {
+                _flushBuffer();
+                _outputBuffer[_outputTail++] = typeToken;
+            }
+            // either way, do intermediate copy if name is relatively short
+            // Need to copy?
+            if (byteLen < MIN_BUFFER_LENGTH) {
+                System.arraycopy(bytes, 0, _outputBuffer, _outputTail, byteLen);
+                _outputTail += byteLen;
+            } else {
+                // otherwise, just write as is
+                if (_outputTail > 0) {
+                    _flushBuffer();
+                }
+                _out.write(bytes, 0, byteLen);
+            }
+        }
+        if (needEndMarker) {
+            _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
+        }
+    }
+
     /*
     /**********************************************************
     /* Output method implementations, textual

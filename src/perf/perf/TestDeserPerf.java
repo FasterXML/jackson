@@ -100,7 +100,7 @@ public final class TestDeserPerf
 
             case 2:
                 msg = "Deserialize, smile";
-                sum += testDeser(smileMapper, smile, REPS);
+                sum += testDeser(smileMapper, smile, REPS * 2);
                 break;
                 
             default:
