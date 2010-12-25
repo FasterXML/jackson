@@ -1337,8 +1337,44 @@ public final class Utf8StreamParser
         throws IOException, JsonParseException
     {
         int outPtr = 0;
-        int c;
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+
+        final int[] codes = CharTypes.getInputCodeUtf8();
+        final byte[] inputBuffer = _inputBuffer;
+
+        // First, single tight loop for ASCII content, not split across input buffer boundary:
+        
+        int ptr = _inputPtr;
+        if (ptr >= _inputEnd) {
+            loadMoreGuaranteed();
+            ptr = _inputPtr;
+        }
+        if (outPtr >= outBuf.length) {
+            outBuf = _textBuffer.finishCurrentSegment();
+            outPtr = 0;
+        }
+        final int max = Math.min(_inputEnd, (ptr + (outBuf.length - outPtr)));
+        while (ptr < max) {
+            int c = (int) inputBuffer[ptr] & 0xFF;
+            if (codes[c] != 0) {
+                if (c == INT_QUOTE) {
+                    _inputPtr = ptr+1;
+                    _textBuffer.setCurrentLength(outPtr);
+                    return;
+                }
+                break;
+            }
+            ++ptr;
+            outBuf[outPtr++] = (char) c;
+        }
+        _inputPtr = ptr;
+        _finishString2(outBuf, outPtr);
+    }
+
+    private final void _finishString2(char[] outBuf, int outPtr)
+        throws IOException, JsonParseException
+    {
+        int c;
 
         // Here we do want to do full decoding, hence:
         final int[] codes = CharTypes.getInputCodeUtf8();
@@ -1346,7 +1382,7 @@ public final class Utf8StreamParser
 
         main_loop:
         while (true) {
-            // Then the tight ascii non-funny-char loop:
+            // Then the tight ASCII non-funny-char loop:
             ascii_loop:
             while (true) {
                 int ptr = _inputPtr;
@@ -1358,13 +1394,7 @@ public final class Utf8StreamParser
                     outBuf = _textBuffer.finishCurrentSegment();
                     outPtr = 0;
                 }
-                int max = _inputEnd;
-                {
-                    int max2 = ptr + (outBuf.length - outPtr);
-                    if (max2 < max) {
-                        max = max2;
-                    }
-                }
+                final int max = Math.min(_inputEnd, (ptr + (outBuf.length - outPtr)));
                 while (ptr < max) {
                     c = (int) inputBuffer[ptr++] & 0xFF;
                     if (codes[c] != 0) {

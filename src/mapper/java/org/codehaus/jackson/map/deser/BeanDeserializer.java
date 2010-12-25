@@ -839,7 +839,7 @@ public class BeanDeserializer
      * Method that is called to instantiate Object of type this deserializer
      * produces, using the default (no-argument) constructor.
      * 
-     * @return
+     * @return Instance of type this deserializer handles
      * 
      * @since 1.7
      */

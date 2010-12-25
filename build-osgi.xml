@@ -104,9 +104,7 @@ org.codehaus.jackson.node;version=${IMPL_VERSION},
 org.codehaus.jackson.schema;version=${IMPL_VERSION}
 "
          privatePackage="
-org.codehaus.jackson.map.ext,
-org.codehaus.jackson.map.deser.impl,
-org.codehaus.jackson.map.ser.impl
+org.codehaus.jackson.map.ext
 "
          includeResource="META-INF=release-notes/asl"
          includeIncludeResourceHeader="false"
@@ -202,9 +200,7 @@ org.codehaus.jackson.node;version=${IMPL_VERSION},
 org.codehaus.jackson.schema;version=${IMPL_VERSION}
 "
          privatePackage="
-org.codehaus.jackson.map.ext,
-org.codehaus.jackson.map.deser.impl,
-org.codehaus.jackson.map.ser.impl
+org.codehaus.jackson.map.ext
 "
          includeResource="META-INF=release-notes/lgpl"
          includeIncludeResourceHeader="false"

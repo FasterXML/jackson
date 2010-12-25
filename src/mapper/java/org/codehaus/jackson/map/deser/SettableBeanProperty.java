@@ -318,10 +318,7 @@ public abstract class SettableBeanProperty
             return _annotated.getAnnotation(acls);
         }
 
-        @Override
-        public AnnotatedMember getMember() {
-            return _annotated;
-        }
+        @Override public AnnotatedMember getMember() {  return _annotated; }
 
         /*
         /**********************************************************
@@ -383,10 +380,7 @@ public abstract class SettableBeanProperty
             return _annotated.getAnnotation(acls);
         }
 
-        @Override
-        public AnnotatedMember getMember() {
-            return _annotated;
-        }
+        @Override public AnnotatedMember getMember() {  return _annotated; }
 
         /*
         /**********************************************************
@@ -467,10 +461,7 @@ public abstract class SettableBeanProperty
             return _annotated.getAnnotation(acls);
         }
 
-        @Override
-        public AnnotatedMember getMember() {
-            return _annotated;
-        }
+        @Override public AnnotatedMember getMember() {  return _annotated; }
 
         /*
         /**********************************************************
@@ -532,10 +523,7 @@ public abstract class SettableBeanProperty
             return _annotated.getAnnotation(acls);
         }
 
-        @Override
-        public AnnotatedMember getMember() {
-            return _annotated;
-        }
+        @Override public AnnotatedMember getMember() {  return _annotated; }
 
         /*
         /**********************************************************
@@ -619,10 +607,7 @@ public abstract class SettableBeanProperty
             return _managedProperty.getAnnotation(acls);
         }
 
-        @Override
-        public AnnotatedMember getMember() {
-            return _managedProperty.getMember();
-        }
+        @Override public AnnotatedMember getMember() {  return _managedProperty.getMember(); }
 
         /*
         /**********************************************************
