@@ -304,7 +304,7 @@ public class BeanSerializer
         final Object filterId = _propertyFilterId;
         FilterProvider filters = provider.getFilterProvider();
         // Not ok to miss the provider, if a filter is declared to be needed!
-        if (provider == null) {
+        if (filters == null) {
             throw new JsonMappingException("Can not resolve BeanPropertyFilter with id '"+filterId+"'; no FilterProvider configured");
         }
         BeanPropertyFilter filter = filters.findFilter(filterId);

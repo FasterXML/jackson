@@ -45,4 +45,16 @@ public class TestFiltering extends BaseMapTest
                 SimpleBeanPropertyFilter.serializeAllExcept("a"));
         assertEquals("{\"b\":\"b\"}", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
     }
+
+    // should handle missing case gracefully
+    public void testMissingFilter() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            mapper.writeValueAsString(new Bean());
+            fail("Should have failed without configured filter");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Can not resolve BeanPropertyFilter with id 'RootFilter'");
+        }
+    }
 }
