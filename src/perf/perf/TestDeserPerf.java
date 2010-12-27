@@ -4,6 +4,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.smile.SmileFactory;
+import org.codehaus.jackson.smile.SmileGenerator;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.xml.XmlFactory;
 import org.codehaus.jackson.xml.XmlMapper;
@@ -67,7 +68,10 @@ public final class TestDeserPerf
                 new com.ctc.wstx.stax.WstxInputFactory() // woodstox
 //                new com.fasterxml.aalto.stax.InputFactoryImpl() // aalto
             , null));
-        final ObjectMapper smileMapper = new ObjectMapper(new SmileFactory());
+        final SmileFactory smileFactory = new SmileFactory();
+        final ObjectMapper smileMapper = new ObjectMapper(smileFactory);
+        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
+//        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
 
         byte[] json = jsonMapper.writeValueAsBytes(item);
         System.out.println("Warmed up: data size is "+json.length+" bytes; "+REPS+" reps -> "

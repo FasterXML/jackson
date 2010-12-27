@@ -4,8 +4,10 @@ import static org.codehaus.jackson.smile.SmileConstants.BYTE_MARKER_END_OF_STRIN
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.impl.StreamBasedParserBase;
@@ -59,16 +61,6 @@ public class SmileParser
     private final static int[] NO_INTS = new int[0];
 
     private final static String[] NO_STRINGS = new String[0];
-
-    /**
-     * Minimum number of seen (back-referenceable) names to buffer initially
-     */
-    private final static int MIN_SEEN_NAMES = 32;
-
-    /**
-     * Minimum number of seen (back-referenceable) text value to buffer initially
-     */
-    private final static int MIN_SEEN_TEXT_VALUES = 32;
     
     /*
     /**********************************************************
@@ -89,6 +81,14 @@ public class SmileParser
      * know this setting in case it does some direct (random) access.
      */
     protected boolean _mayContainRawBinary;
+
+    /**
+     * Helper object used for low-level recycling of Smile-generator
+     * specific buffers.
+     * 
+     * @since 1.7
+     */
+    final protected BufferRecycler _smileBufferRecycler;
     
     /*
     /**********************************************************
@@ -157,6 +157,20 @@ public class SmileParser
     
     /*
     /**********************************************************
+    /* Thread-local recycling
+    /**********************************************************
+     */
+    
+    /**
+     * This <code>ThreadLocal</code> contains a {@link java.lang.ref.SoftRerefence}
+     * to a {@link SmileBufferRecycler} used to provide a low-cost
+     * buffer recycling for Smile-specific buffers.
+     */
+    final protected static ThreadLocal<SoftReference<BufferRecycler>> _smileRecyclerRef
+        = new ThreadLocal<SoftReference<BufferRecycler>>();
+    
+    /*
+    /**********************************************************
     /* Life-cycle
     /**********************************************************
      */
@@ -172,6 +186,7 @@ public class SmileParser
         _symbols = sym;
         _tokenInputRow = -1;
         _tokenInputCol = -1;
+        _smileBufferRecycler = _smileBufferRecycler();
     }
 
     @Override
@@ -233,14 +248,28 @@ public class SmileParser
             _seenNames = null;
             _seenNameCount = -1;
         }
+        // conversely, shared string values must be explicitly enabled
         if ((ch & SmileConstants.HEADER_BIT_HAS_SHARED_STRING_VALUES) != 0) {
-            // conversely, shared string values must be explicitly enabled
             _seenStringValues = NO_STRINGS;
             _seenStringValueCount = 0;
         }
-//System.err.println(" DEBUG: seenNames "+_seenNameCount+", seenStrings "+_seenStringValueCount);
         _mayContainRawBinary = ((ch & SmileConstants.HEADER_BIT_HAS_RAW_BINARY) != 0);
         return true;
+    }
+
+    /**
+     * @since 1.7
+     */
+    protected final static BufferRecycler _smileBufferRecycler()
+    {
+        SoftReference<BufferRecycler> ref = _smileRecyclerRef.get();
+        BufferRecycler br = (ref == null) ? null : ref.get();
+
+        if (br == null) {
+            br = new BufferRecycler();
+            _smileRecyclerRef.set(new SoftReference<BufferRecycler>(br));
+        }
+        return br;
     }
     
     /*
@@ -264,6 +293,30 @@ public class SmileParser
         _symbols.release();
     }
 
+    @Override
+    protected void _releaseBuffers() throws IOException
+    {
+        super._releaseBuffers();
+        {
+            String[] nameBuf = _seenNames;
+            if (nameBuf != null && nameBuf.length > 0) {
+                _seenNames = null;
+                // Note: while not mandatory, it's probably good idea to clear up cruft to reduce memory retention
+                Arrays.fill(nameBuf, 0, _seenNameCount, null);
+                _smileBufferRecycler.releaseSeenNamesBuffer(nameBuf);
+            }
+        }
+        {
+            String[] valueBuf = _seenStringValues;
+            if (valueBuf != null && valueBuf.length > 0) {
+                _seenStringValues = null;
+                // Note: while not mandatory, it's probably good idea to clear up cruft to reduce memory retention
+                Arrays.fill(valueBuf, 0, _seenStringValueCount, null);
+                _smileBufferRecycler.releaseSeenStringValuesBuffer(valueBuf);
+            }
+        }
+    }
+    
     /*
     /**********************************************************
     /* Extended API
@@ -376,7 +429,6 @@ public class SmileParser
             // No need to decode, unless we have to keep track of back-references (for shared string values)
             _currToken = JsonToken.VALUE_STRING;
             if (_seenStringValueCount >= 0) { // shared text values enabled
-                _finishToken();
                 _addSeenStringValue();
             } else {
                 _tokenIncomplete = true;
@@ -441,31 +493,34 @@ public class SmileParser
     }
 
     private final void _addSeenStringValue()
+        throws IOException, JsonParseException
     {
-        if (_seenStringValues != null) {
-            if (_seenStringValueCount >= _seenStringValues.length) {
-                _seenStringValues = _expandSeenStringValues(_seenStringValues);
-            }
+        _finishToken();
+        if (_seenStringValueCount < _seenStringValues.length) {
             // !!! TODO: actually only store char[], first time around?
             _seenStringValues[_seenStringValueCount++] = _textBuffer.contentsAsString();
+            return;
         }
+        _expandSeenStringValues();
     }
     
-    private final String[] _expandSeenStringValues(String[] oldShared)
+    private final void _expandSeenStringValues()
     {
+        String[] oldShared = _seenStringValues;
         int len = oldShared.length;
         String[] newShared;
         if (len == 0) {
-            newShared = new String[MIN_SEEN_TEXT_VALUES];
+            newShared = _smileBufferRecycler.allocSeenStringValuesBuffer();
         } else if (len == SmileConstants.MAX_SHARED_STRING_VALUES) { // too many? Just flush...
            newShared = oldShared;
            _seenStringValueCount = 0; // could also clear, but let's not yet bother
         } else {
-            int newSize = (len == MIN_SEEN_TEXT_VALUES) ? 128 : SmileConstants.MAX_SHARED_STRING_VALUES;
+            int newSize = (len == BufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) ? 256 : SmileConstants.MAX_SHARED_STRING_VALUES;
             newShared = new String[newSize];
             System.arraycopy(oldShared, 0, newShared, 0, oldShared.length);
         }
-        return newShared;
+        _seenStringValues = newShared;
+        _seenStringValues[_seenStringValueCount++] = _textBuffer.contentsAsString();
     }
 
     @Override
@@ -755,12 +810,12 @@ public class SmileParser
         int len = oldShared.length;
         String[] newShared;
         if (len == 0) {
-            newShared = new String[MIN_SEEN_NAMES];
+            newShared = _smileBufferRecycler.allocSeenNamesBuffer();
         } else if (len == SmileConstants.MAX_SHARED_NAMES) { // too many? Just flush...
       	   newShared = oldShared;
       	   _seenNameCount = 0; // could also clear, but let's not yet bother
         } else {
-            int newSize = (len == MIN_SEEN_NAMES) ? 128 : SmileConstants.MAX_SHARED_NAMES;
+            int newSize = (len == BufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH) ? 256 : SmileConstants.MAX_SHARED_NAMES;
             newShared = new String[newSize];
             System.arraycopy(oldShared, 0, newShared, 0, oldShared.length);
         }
@@ -1772,5 +1827,58 @@ public class SmileParser
     {
         _inputPtr = ptr;
         _reportInvalidOther(mask);
+    }
+
+    /*
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+
+    /**
+     * Helper container class used for thread-local recycling of buffers needed for
+     * checking name and/or string value back references
+     */
+    private final static class BufferRecycler
+    {
+        protected final static int DEFAULT_NAME_BUFFER_LENGTH = 64;
+
+        protected final static int DEFAULT_STRING_VALUE_BUFFER_LENGTH = 64;
+        
+        protected String[] _seenNamesBuffer;
+
+        protected String[] _seenStringValuesBuffer;
+
+        public BufferRecycler() { }
+
+        public String[] allocSeenNamesBuffer()
+        {
+            String[] buffer = _seenNamesBuffer;
+            if (buffer == null) {
+                buffer = new String[DEFAULT_NAME_BUFFER_LENGTH];
+            } else {
+                _seenNamesBuffer = null;
+            }
+            return buffer;
+        }
+
+        public String[] allocSeenStringValuesBuffer()
+        {
+            String[] buffer = _seenStringValuesBuffer;
+            if (buffer == null) {
+                buffer = new String[DEFAULT_STRING_VALUE_BUFFER_LENGTH];
+            } else {
+                _seenStringValuesBuffer = null;
+            }
+            return buffer;
+        }
+        
+        public void releaseSeenNamesBuffer(String[] buffer) {
+            _seenNamesBuffer = buffer;
+        }
+
+        public void releaseSeenStringValuesBuffer(String[] buffer) {
+            _seenStringValuesBuffer = buffer;
+        }
     }
 }

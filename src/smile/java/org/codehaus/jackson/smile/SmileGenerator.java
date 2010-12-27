@@ -1,6 +1,7 @@
 package org.codehaus.jackson.smile;
 
 import java.io.*;
+import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -180,7 +181,7 @@ public class SmileGenerator
      * 
      * @since 1.7
      */
-    final protected SmileBufferRecycler _smileBufferRecycler;
+    final protected BufferRecycler _smileBufferRecycler;
     
     /*
     /**********************************************************
@@ -248,6 +249,20 @@ public class SmileGenerator
      * detection is enabled
      */
     protected int _seenStringValueCount;
+
+    /*
+    /**********************************************************
+    /* Thread-local recycling
+    /**********************************************************
+     */
+    
+    /**
+     * This <code>ThreadLocal</code> contains a {@link java.lang.ref.SoftRerefence}
+     * to a {@link SmileBufferRecycler} used to provide a low-cost
+     * buffer recycling for Smile-specific buffers.
+     */
+    final protected static ThreadLocal<SoftReference<BufferRecycler>> _smileRecyclerRef
+        = new ThreadLocal<SoftReference<BufferRecycler>>();
     
     /*
     /**********************************************************
@@ -255,14 +270,13 @@ public class SmileGenerator
     /**********************************************************
      */
     
-    public SmileGenerator(IOContext ctxt, SmileBufferRecycler smileBufferRecycler,
-            int jsonFeatures, int smileFeatures,
+    public SmileGenerator(IOContext ctxt, int jsonFeatures, int smileFeatures,
             ObjectCodec codec, OutputStream out)
     {
         super(jsonFeatures, codec);
         _smileFeatures = smileFeatures;
         _ioContext = ctxt;
-        _smileBufferRecycler = smileBufferRecycler;
+        _smileBufferRecycler = _smileBufferRecycler();
         _out = out;
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
         _outputEnd = _outputBuffer.length;
@@ -276,7 +290,7 @@ public class SmileGenerator
             _seenNames = null;
             _seenNameCount = -1;
         } else {
-            _seenNames = smileBufferRecycler.allocSeenNamesBuffer();
+            _seenNames = _smileBufferRecycler.allocSeenNamesBuffer();
             _seenNameCount = 0;
         }
 
@@ -284,7 +298,7 @@ public class SmileGenerator
             _seenStringValues = null;
             _seenStringValueCount = -1;
         } else {
-            _seenStringValues = smileBufferRecycler.allocSeenStringValuesBuffer();
+            _seenStringValues = _smileBufferRecycler.allocSeenStringValuesBuffer();
             _seenStringValueCount = 0;
         }
 }
@@ -311,6 +325,18 @@ public class SmileGenerator
         _writeBytes(HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, (byte) last);
     }
 
+    protected final static BufferRecycler _smileBufferRecycler()
+    {
+        SoftReference<BufferRecycler> ref = _smileRecyclerRef.get();
+        BufferRecycler br = (ref == null) ? null : ref.get();
+
+        if (br == null) {
+            br = new BufferRecycler();
+            _smileRecyclerRef.set(new SoftReference<BufferRecycler>(br));
+        }
+        return br;
+    }
+    
     /*
     /**********************************************************
     /* Overridden methods
@@ -1801,7 +1827,7 @@ public class SmileGenerator
          */
         {
             SharedStringNode[] nameBuf = _seenNames;
-            if (nameBuf != null && nameBuf.length == SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) {
+            if (nameBuf != null && nameBuf.length == BufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) {
                 _seenNames = null;
                 // Note: we must clean up stuff we've marked so far, to avoid accidental leakage
                 Arrays.fill(nameBuf, null);
@@ -1810,7 +1836,7 @@ public class SmileGenerator
         }
         {
             SharedStringNode[] valueBuf = _seenStringValues;
-            if (valueBuf != null && valueBuf.length == SmileBufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH) {
+            if (valueBuf != null && valueBuf.length == BufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH) {
                 _seenStringValues = null;
                 // Note: we must clean up stuff we've marked so far, to avoid accidental leakage
                 Arrays.fill(valueBuf, null);
@@ -1959,4 +1985,57 @@ public class SmileGenerator
     protected UnsupportedOperationException _notSupported() {
         return new UnsupportedOperationException();
     }    
+
+    /*
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+
+    /**
+     * Helper container class used for thread-local recycling of buffers needed for
+     * checking name and/or string value back references
+     */
+    private final static class BufferRecycler
+    {
+        protected final static int DEFAULT_NAME_BUFFER_LENGTH = 64;
+
+        protected final static int DEFAULT_STRING_VALUE_BUFFER_LENGTH = 64;
+        
+        protected SharedStringNode[] _seenNamesBuffer;
+
+        protected SharedStringNode[] _seenStringValuesBuffer;
+
+        public BufferRecycler() { }
+
+        public SharedStringNode[] allocSeenNamesBuffer()
+        {
+            SharedStringNode[] buffer = _seenNamesBuffer;
+            if (buffer == null) {
+                buffer = new SharedStringNode[DEFAULT_NAME_BUFFER_LENGTH];
+            } else {
+                _seenNamesBuffer = null;
+            }
+            return buffer;
+        }
+
+        public SharedStringNode[] allocSeenStringValuesBuffer()
+        {
+            SharedStringNode[] buffer = _seenStringValuesBuffer;
+            if (buffer == null) {
+                buffer = new SharedStringNode[DEFAULT_STRING_VALUE_BUFFER_LENGTH];
+            } else {
+                _seenStringValuesBuffer = null;
+            }
+            return buffer;
+        }
+        
+        public void releaseSeenNamesBuffer(SharedStringNode[] buffer) {
+            _seenNamesBuffer = buffer;
+        }
+
+        public void releaseSeenStringValuesBuffer(SharedStringNode[] buffer) {
+            _seenStringValuesBuffer = buffer;
+        }
+    }
 }
