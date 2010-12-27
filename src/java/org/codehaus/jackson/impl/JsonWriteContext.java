@@ -35,9 +35,7 @@ public class JsonWriteContext
     /**********************************************************
      */
 
-    protected JsonWriteContext _childArray = null;
-
-    protected JsonWriteContext _childObject = null;
+    protected JsonWriteContext _child = null;
 
     /*
     /**********************************************************
@@ -52,7 +50,7 @@ public class JsonWriteContext
         _parent = parent;
         _index = -1;
     }
-
+    
     // // // Factory methods
 
     public static JsonWriteContext createRootContext()
@@ -60,26 +58,31 @@ public class JsonWriteContext
         return new JsonWriteContext(TYPE_ROOT, null);
     }
 
+    private final JsonWriteContext reset(int type) {
+        _type = type;
+        _index = -1;
+        _currentName = null;
+        return this;
+    }
+    
     public final JsonWriteContext createChildArrayContext()
     {
-        JsonWriteContext ctxt = _childArray;
+        JsonWriteContext ctxt = _child;
         if (ctxt == null) {
-            _childArray = ctxt = new JsonWriteContext(TYPE_ARRAY, this);
-        } else { // need to reset settings; parent is already ok
-            ctxt._index = -1;
+            _child = ctxt = new JsonWriteContext(TYPE_ARRAY, this);
+            return ctxt;
         }
-        return ctxt;
+        return ctxt.reset(TYPE_ARRAY);
     }
 
     public final JsonWriteContext createChildObjectContext()
     {
-        JsonWriteContext ctxt = _childObject;
+        JsonWriteContext ctxt = _child;
         if (ctxt == null) {
-            _childObject = ctxt = new JsonWriteContext(TYPE_OBJECT, this);
-        } else { // need to reset settings; parent is already ok
-            ctxt._index = -1;
+            _child = ctxt = new JsonWriteContext(TYPE_OBJECT, this);
+            return ctxt;
         }
-        return ctxt;
+        return ctxt.reset(TYPE_OBJECT);
     }
 
     // // // Shared API

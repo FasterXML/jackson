@@ -75,7 +75,7 @@ public final class TestSerPerf
         final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null, null, xmlOut));
         final SmileFactory smileFactory = new SmileFactory();
         smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
-        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, false);
         final ObjectMapper smileMapper = new ObjectMapper(smileFactory);
 
         // Verify that we can round trip
