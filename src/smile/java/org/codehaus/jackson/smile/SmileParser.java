@@ -974,11 +974,11 @@ public class SmileParser
         throws IOException, JsonParseException
     {
     	// first, need enough buffer to store bytes as ints:
-    	{
-			int bufLen = (len  + 3) >> 2;
-	        if (bufLen > _quadBuffer.length) {
-	            _quadBuffer = _growArrayTo(_quadBuffer, bufLen);
-	        }
+        {
+            int bufLen = (len + 3) >> 2;
+            if (bufLen > _quadBuffer.length) {
+                _quadBuffer = _growArrayTo(_quadBuffer, bufLen);
+            }
     	}
     	// then decode, full quads first
     	int offset = 0;
@@ -1010,7 +1010,7 @@ public class SmileParser
     private static int[] _growArrayTo(int[] arr, int minSize)
     {
     	int[] newArray = new int[minSize + 4];
-        if (arr != null) {
+    	if (arr != null) {
             // !!! TODO: JDK 1.6, Arrays.copyOf
             System.arraycopy(arr, 0, newArray, 0, arr.length);
         }

@@ -69,7 +69,8 @@ public final class JsonReadContext
     {
         JsonReadContext ctxt = _child;
         if (ctxt == null) {
-            return (_child = new JsonReadContext(this, TYPE_ARRAY, lineNr, colNr));
+            _child = ctxt = new JsonReadContext(this, TYPE_ARRAY, lineNr, colNr);
+            return ctxt;
         }
         ctxt.reset(TYPE_ARRAY, lineNr, colNr);
         return ctxt;
@@ -79,7 +80,8 @@ public final class JsonReadContext
     {
         JsonReadContext ctxt = _child;
         if (ctxt == null) {
-            return (_child = new JsonReadContext(this, TYPE_OBJECT, lineNr, colNr));
+            _child = ctxt = new JsonReadContext(this, TYPE_OBJECT, lineNr, colNr);
+            return ctxt;
         }
         ctxt.reset(TYPE_OBJECT, lineNr, colNr);
         return ctxt;
