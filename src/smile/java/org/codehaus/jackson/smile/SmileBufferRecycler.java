@@ -34,11 +34,22 @@ public class SmileBufferRecycler
         return buffer;
     }
 
-    public void releaseSeenNamesBuffer(SharedStringNode[] buffer)
+    public SharedStringNode[] allocSeenStringValuesBuffer()
     {
-        /* Note: caller must ensure buffer is clean at this point, so we 
-         * have little to do here...
-         */
+        SharedStringNode[] buffer = _seenStringValuesBuffer;
+        if (buffer == null) {
+            buffer = new SharedStringNode[DEFAULT_STRING_VALUE_BUFFER_LENGTH];
+        } else {
+            _seenStringValuesBuffer = null;
+        }
+        return buffer;
+    }
+    
+    public void releaseSeenNamesBuffer(SharedStringNode[] buffer) {
         _seenNamesBuffer = buffer;
+    }
+
+    public void releaseSeenStringValuesBuffer(SharedStringNode[] buffer) {
+        _seenStringValuesBuffer = buffer;
     }
 }

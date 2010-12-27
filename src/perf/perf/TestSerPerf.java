@@ -73,7 +73,10 @@ public final class TestSerPerf
         XMLOutputFactory xmlOut = new WstxOutputFactory(); // Woodstox
 //        XMLOutputFactory xmlOut = new com.fasterxml.aalto.stax.OutputFactoryImpl(); // Aalto
         final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null, null, xmlOut));
-        final ObjectMapper smileMapper = new ObjectMapper(new SmileFactory());
+        final SmileFactory smileFactory = new SmileFactory();
+        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
+        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+        final ObjectMapper smileMapper = new ObjectMapper(smileFactory);
 
         // Verify that we can round trip
         {
@@ -92,8 +95,10 @@ public final class TestSerPerf
         while (true) {
 //            Thread.sleep(150L);
             ++i;
-//            int round = (i % 1);
-            int round = 3;
+            int round = (i % 1);
+
+            // override?
+            round = 3;
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -118,7 +123,7 @@ public final class TestSerPerf
 
             case 3:
                 msg = "Serialize, Smile/manual";
-                sum += testObjectSer(smileMapper.getJsonFactory(), item, REPS+REPS, result);
+                sum += testObjectSer(smileFactory, item, REPS+REPS, result);
                 break;
                 
             default:
@@ -131,6 +136,12 @@ public final class TestSerPerf
             }
             System.out.println("Test '"+msg+"' -> "+curr+" msecs ("
                                +(sum & 0xFF)+").");
+            if ((i & 0x1F) == 0) { // GC every 64 rounds
+                System.out.println("[GC]");
+                Thread.sleep(20L);
+                System.gc();
+                Thread.sleep(20L);
+            }
         }
     }
 

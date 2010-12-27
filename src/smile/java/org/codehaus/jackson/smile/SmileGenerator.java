@@ -284,7 +284,7 @@ public class SmileGenerator
             _seenStringValues = null;
             _seenStringValueCount = -1;
         } else {
-            _seenStringValues = new SharedStringNode[64];
+            _seenStringValues = smileBufferRecycler.allocSeenStringValuesBuffer();
             _seenStringValueCount = 0;
         }
 }
@@ -1796,15 +1796,26 @@ public class SmileGenerator
             _charBuffer = null;
             _ioContext.releaseConcatBuffer(cbuf);
         }
-        SharedStringNode[] nameBuf = _seenNames;
         /* Ok: since clearing up of larger arrays is much slower,
          * let's only recycle default-sized buffers...
          */
-        if (nameBuf != null && nameBuf.length == SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) {
-            _seenNames = null;
-            // Note: we must clean up stuff we've marked so far, to avoid accidental leakage
-            Arrays.fill(nameBuf, null);
-            _smileBufferRecycler.releaseSeenNamesBuffer(nameBuf);
+        {
+            SharedStringNode[] nameBuf = _seenNames;
+            if (nameBuf != null && nameBuf.length == SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) {
+                _seenNames = null;
+                // Note: we must clean up stuff we've marked so far, to avoid accidental leakage
+                Arrays.fill(nameBuf, null);
+                _smileBufferRecycler.releaseSeenNamesBuffer(nameBuf);
+            }
+        }
+        {
+            SharedStringNode[] valueBuf = _seenStringValues;
+            if (valueBuf != null && valueBuf.length == SmileBufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH) {
+                _seenStringValues = null;
+                // Note: we must clean up stuff we've marked so far, to avoid accidental leakage
+                Arrays.fill(valueBuf, null);
+                _smileBufferRecycler.releaseSeenStringValuesBuffer(valueBuf);
+            }
         }
     }
 

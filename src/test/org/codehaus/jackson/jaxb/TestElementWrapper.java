@@ -58,7 +58,7 @@ public class TestElementWrapper  extends BaseJaxbTest
         p.phones = phones;
 
         String json = mapper.writeValueAsString(p);
-        System.out.println("JSON == "+json);
+//        System.out.println("JSON == "+json);
 
         Person result = mapper.readValue(json, Person.class);
         assertNotNull(result.phones);
