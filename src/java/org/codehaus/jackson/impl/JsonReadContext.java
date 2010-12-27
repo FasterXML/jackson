@@ -17,8 +17,6 @@ public final class JsonReadContext
 
     // // // Location information (minus source reference)
 
-    //long mTotalChars;
-
     protected int _lineNr;
     protected int _columnNr;
 
@@ -33,7 +31,7 @@ public final class JsonReadContext
     /**********************************************************
      */
 
-    JsonReadContext _child = null;
+    protected JsonReadContext _child = null;
 
     /*
     /**********************************************************
@@ -41,8 +39,7 @@ public final class JsonReadContext
     /**********************************************************
      */
 
-    public JsonReadContext(JsonReadContext parent,
-                               int type, int lineNr, int colNr)
+    public JsonReadContext(JsonReadContext parent, int type, int lineNr, int colNr)
     {
         super();
         _type = type;
