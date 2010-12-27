@@ -57,4 +57,12 @@ public class TestFiltering extends BaseMapTest
             verifyException(e, "Can not resolve BeanPropertyFilter with id 'RootFilter'");
         }
     }
+    
+    // defaulting, as per [JACKSON-449]
+    public void testDefaultFilter() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        FilterProvider prov = new SimpleFilterProvider().setDefaultFilter(SimpleBeanPropertyFilter.filterOutAllExcept("b"));
+        assertEquals("{\"b\":\"b\"}", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
+    }
 }
