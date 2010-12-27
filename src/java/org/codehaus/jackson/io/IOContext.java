@@ -108,18 +108,17 @@ public final class IOContext
     /**********************************************************
      */
 
-    public Object getSourceReference() { return _sourceRef; }
-    public JsonEncoding getEncoding() { return _encoding; }
-    public boolean isResourceManaged() { return _managedResource; }
-
+    public final Object getSourceReference() { return _sourceRef; }
+    public final JsonEncoding getEncoding() { return _encoding; }
+    public final boolean isResourceManaged() { return _managedResource; }
+    
     /*
     /**********************************************************
     /* Public API, buffer management
     /**********************************************************
      */
 
-    public TextBuffer constructTextBuffer()
-    {
+    public final TextBuffer constructTextBuffer() {
         return new TextBuffer(_bufferRecycler);
     }
 
@@ -128,7 +127,7 @@ public final class IOContext
      * Note: the method can only be called once during its life cycle.
      * This is to protect against accidental sharing.
      */
-    public byte[] allocReadIOBuffer()
+    public final byte[] allocReadIOBuffer()
     {
         if (_readIOBuffer != null) {
             throw new IllegalStateException("Trying to call allocReadIOBuffer() second time");
@@ -137,7 +136,7 @@ public final class IOContext
         return _readIOBuffer;
     }
 
-    public byte[] allocWriteEncodingBuffer()
+    public final byte[] allocWriteEncodingBuffer()
     {
         if (_writeEncodingBuffer != null) {
             throw new IllegalStateException("Trying to call allocWriteEncodingBuffer() second time");
@@ -146,7 +145,7 @@ public final class IOContext
         return _writeEncodingBuffer;
     }
     
-    public char[] allocTokenBuffer()
+    public final char[] allocTokenBuffer()
     {
         if (_tokenCBuffer != null) {
             throw new IllegalStateException("Trying to call allocTokenBuffer() second time");
@@ -155,7 +154,7 @@ public final class IOContext
         return _tokenCBuffer;
     }
 
-    public char[] allocConcatBuffer()
+    public final char[] allocConcatBuffer()
     {
         if (_concatCBuffer != null) {
             throw new IllegalStateException("Trying to call allocConcatBuffer() second time");
@@ -164,7 +163,7 @@ public final class IOContext
         return _concatCBuffer;
     }
 
-    public char[] allocNameCopyBuffer(int minSize)
+    public final char[] allocNameCopyBuffer(int minSize)
     {
         if (_nameCopyBuffer != null) {
             throw new IllegalStateException("Trying to call allocNameCopyBuffer() second time");
@@ -177,7 +176,7 @@ public final class IOContext
      * Method to call when all the processing buffers can be safely
      * recycled.
      */
-    public void releaseReadIOBuffer(byte[] buf)
+    public final void releaseReadIOBuffer(byte[] buf)
     {
         if (buf != null) {
             /* Let's do sanity checks to ensure once-and-only-once release,
@@ -191,7 +190,7 @@ public final class IOContext
         }
     }
 
-    public void releaseWriteEncodingBuffer(byte[] buf)
+    public final void releaseWriteEncodingBuffer(byte[] buf)
     {
         if (buf != null) {
             /* Let's do sanity checks to ensure once-and-only-once release,
@@ -205,7 +204,7 @@ public final class IOContext
         }
     }
     
-    public void releaseTokenBuffer(char[] buf)
+    public final void releaseTokenBuffer(char[] buf)
     {
         if (buf != null) {
             if (buf != _tokenCBuffer) {
@@ -216,7 +215,7 @@ public final class IOContext
         }
     }
 
-    public void releaseConcatBuffer(char[] buf)
+    public final void releaseConcatBuffer(char[] buf)
     {
         if (buf != null) {
             if (buf != _concatCBuffer) {
@@ -227,7 +226,7 @@ public final class IOContext
         }
     }
 
-    public void releaseNameCopyBuffer(char[] buf)
+    public final void releaseNameCopyBuffer(char[] buf)
     {
         if (buf != null) {
             if (buf != _nameCopyBuffer) {
