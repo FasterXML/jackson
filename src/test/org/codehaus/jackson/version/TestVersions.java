@@ -8,6 +8,7 @@ import org.codehaus.jackson.util.BufferRecycler;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.mrbean.AbstractTypeMaterializer;
+import org.codehaus.jackson.smile.SmileBufferRecycler;
 import org.codehaus.jackson.smile.SmileFactory;
 import org.codehaus.jackson.smile.SmileGenerator;
 import org.codehaus.jackson.smile.SmileParser;
@@ -76,7 +77,7 @@ public class TestVersions extends main.BaseTest
     {
         if (runsFromAnt()) {
             assertVersion(new SmileFactory().version(), MAJOR_VERSION, MINOR_VERSION);
-            assertVersion(new SmileGenerator(getIOContext(), 0, 0, null, null).version(),
+            assertVersion(new SmileGenerator(getIOContext(), new SmileBufferRecycler(), 0, 0, null, null).version(),
                     MAJOR_VERSION, MINOR_VERSION);
             assertVersion(new SmileParser(getIOContext(), 0, 0, null, null, null, null, 0, 0, false).version(),
                     MAJOR_VERSION, MINOR_VERSION);

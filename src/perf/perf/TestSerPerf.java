@@ -93,7 +93,7 @@ public final class TestSerPerf
 //            Thread.sleep(150L);
             ++i;
 //            int round = (i % 1);
-            int round = 2;
+            int round = 3;
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -114,6 +114,11 @@ public final class TestSerPerf
             case 2:
                 msg = "Serialize, Smile";
                 sum += testObjectSer(smileMapper, item, REPS, result);
+                break;
+
+            case 3:
+                msg = "Serialize, Smile/manual";
+                sum += testObjectSer(smileMapper.getJsonFactory(), item, REPS+REPS, result);
                 break;
                 
             default:
@@ -139,6 +144,18 @@ public final class TestSerPerf
         return result.size(); // just to get some non-optimizable number
     }
 
+    protected int testObjectSer(JsonFactory jf, MediaItem value, int reps, ByteArrayOutputStream result)
+        throws Exception
+    {
+        for (int i = 0; i < reps; ++i) {
+            result.reset();
+            JsonGenerator jgen = jf.createJsonGenerator(result, JsonEncoding.UTF8);
+            value.serialize(jgen);
+            jgen.close();
+        }
+        return result.size(); // just to get some non-optimizable number
+    }
+    
     public static void main(String[] args) throws Exception
     {
         new TestSerPerf().test();

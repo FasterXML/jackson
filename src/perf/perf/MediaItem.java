@@ -1,6 +1,9 @@
 package perf;
 
+import java.io.IOException;
 import java.util.*;
+
+import org.codehaus.jackson.JsonGenerator;
 
 /**
  * Value class for performance tests
@@ -30,6 +33,36 @@ public class MediaItem
     public Content getContent() { return _content; }
     public void setContent(Content c) { _content = c; }
 
+    // Custom serializer
+    public void serialize(JsonGenerator jgen) throws IOException
+    {
+        jgen.writeStartObject();
+
+        if (_photos == null) {
+            jgen.writeNullField("images");
+        } else {
+            jgen.writeArrayFieldStart("images");
+            for (Photo photo : _photos) {
+                photo.serialize(jgen);
+            }
+            jgen.writeEndArray();
+        }
+        jgen.writeFieldName("content");
+        if (_content == null) {
+            jgen.writeNull();
+        } else {
+            _content.serialize(jgen);
+        }
+
+        jgen.writeEndObject();
+    }
+    
+    /*
+    /**********************************************************
+    /* Helper types
+    /**********************************************************
+     */
+    
     public static class Photo
     {
       public enum Size { SMALL, LARGE; }
@@ -61,6 +94,17 @@ public class MediaItem
       public void setWidth(int w) { _width = w; }
       public void setHeight(int h) { _height = h; }
       public void setSize(Size s) { _size = s; }
+
+      public void serialize(JsonGenerator jgen) throws IOException
+      {
+          jgen.writeStartObject();
+          jgen.writeStringField("uri", _uri);
+          jgen.writeStringField("title", _title);
+          jgen.writeNumberField("width", _width);
+          jgen.writeNumberField("height", _height);
+          jgen.writeStringField("size", (_size == null) ? null : _size.name());
+          jgen.writeEndObject();
+      }          
     }
 
     public static class Content
@@ -111,5 +155,30 @@ public class MediaItem
         public void setBitrate(int b) {  _bitrate = b; }
         public void setPersons(List<String> p) {  _persons = p; }
         public void setCopyright(String c) {  _copyright = c; }
+
+        public void serialize(JsonGenerator jgen) throws IOException
+        {
+            jgen.writeStartObject();
+            jgen.writeStringField("play", (_player == null) ? null : _player.name());
+            jgen.writeStringField("uri", _uri);
+            jgen.writeStringField("title", _title);
+            jgen.writeNumberField("width", _width);
+            jgen.writeNumberField("height", _height);
+            jgen.writeStringField("format", _format);
+            jgen.writeNumberField("duration", _duration);
+            jgen.writeNumberField("size", _size);
+            jgen.writeNumberField("bitrate", _bitrate);
+            jgen.writeStringField("copyright", _copyright);
+            if (_persons == null) {
+                jgen.writeNullField("persons");
+            } else {
+                jgen.writeArrayFieldStart("persons");
+                for (String p : _persons) {
+                    jgen.writeString(p);
+                }
+                jgen.writeEndArray();
+            }
+            jgen.writeEndObject();
+        }          
     }
 }

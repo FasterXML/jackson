@@ -1,6 +1,7 @@
 package org.codehaus.jackson.smile;
 
 import java.io.*;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 
 import org.codehaus.jackson.*;
@@ -55,7 +56,21 @@ public class SmileFactory extends JsonFactory
     protected int _smileParserFeatures = DEFAULT_SMILE_PARSER_FEATURE_FLAGS;
 
     protected int _smileGeneratorFeatures = DEFAULT_SMILE_GENERATOR_FEATURE_FLAGS;
+
+    /*
+    /**********************************************************
+    /* Additional recycling
+    /**********************************************************
+     */
     
+    /**
+     * This <code>ThreadLocal</code> contains a {@link java.lang.ref.SoftRerefence}
+     * to a {@link SmileBufferRecycler} used to provide a low-cost
+     * buffer recycling for Smile-specific buffers.
+     */
+    final protected static ThreadLocal<SoftReference<SmileBufferRecycler>> _smileRecyclerRef
+        = new ThreadLocal<SoftReference<SmileBufferRecycler>>();
+
     /*
     /**********************************************************
     /* Factory construction, configuration
@@ -319,8 +334,8 @@ public class SmileFactory extends JsonFactory
             return super._createWriter(out, enc, ctxt);
         }
         throw new UnsupportedOperationException("Can not create generator for non-byte-based target");
-    }    
-
+    }
+    
     /*
     /**********************************************************
     /* Internal methods
@@ -336,7 +351,8 @@ public class SmileFactory extends JsonFactory
          * But should we force writing, or throw exception, if settings are in conflict?
          * For now, let's error out...
          */
-        SmileGenerator gen = new SmileGenerator(ctxt, _generatorFeatures, feats, _objectCodec, out);
+        SmileGenerator gen = new SmileGenerator(ctxt, _getSmileBufferRecycler(),
+                _generatorFeatures, feats, _objectCodec, out);
         if ((feats & SmileGenerator.Feature.WRITE_HEADER.getMask()) != 0) {
             gen.writeHeader();
         } else {
@@ -352,5 +368,20 @@ public class SmileFactory extends JsonFactory
             }
         }
         return gen;
+    }
+
+    /**
+     * @since 1.7
+     */
+    protected final SmileBufferRecycler _getSmileBufferRecycler()
+    {
+        SoftReference<SmileBufferRecycler> ref = _smileRecyclerRef.get();
+        SmileBufferRecycler br = (ref == null) ? null : ref.get();
+
+        if (br == null) {
+            br = new SmileBufferRecycler();
+            _smileRecyclerRef.set(new SoftReference<SmileBufferRecycler>(br));
+        }
+        return br;
     }
 }

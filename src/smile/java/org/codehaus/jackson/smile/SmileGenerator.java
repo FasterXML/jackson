@@ -173,6 +173,14 @@ public class SmileGenerator
      * are enabled.
      */
     protected int _smileFeatures;
+
+    /**
+     * Helper object used for low-level recycling of Smile-generator
+     * specific buffers.
+     * 
+     * @since 1.7
+     */
+    final protected SmileBufferRecycler _smileBufferRecycler;
     
     /*
     /**********************************************************
@@ -246,13 +254,15 @@ public class SmileGenerator
     /* Life-cycle
     /**********************************************************
      */
-
-    public SmileGenerator(IOContext ctxt, int jsonFeatures, int smileFeatures,
-    		ObjectCodec codec, OutputStream out)
+    
+    public SmileGenerator(IOContext ctxt, SmileBufferRecycler smileBufferRecycler,
+            int jsonFeatures, int smileFeatures,
+            ObjectCodec codec, OutputStream out)
     {
         super(jsonFeatures, codec);
         _smileFeatures = smileFeatures;
         _ioContext = ctxt;
+        _smileBufferRecycler = smileBufferRecycler;
         _out = out;
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
         _outputEnd = _outputBuffer.length;
@@ -266,7 +276,7 @@ public class SmileGenerator
             _seenNames = null;
             _seenNameCount = -1;
         } else {
-            _seenNames = new SharedStringNode[64];
+            _seenNames = smileBufferRecycler.allocSeenNamesBuffer();
             _seenNameCount = 0;
         }
 
@@ -1785,6 +1795,16 @@ public class SmileGenerator
         if (cbuf != null) {
             _charBuffer = null;
             _ioContext.releaseConcatBuffer(cbuf);
+        }
+        SharedStringNode[] nameBuf = _seenNames;
+        /* Ok: since clearing up of larger arrays is much slower,
+         * let's only recycle default-sized buffers...
+         */
+        if (nameBuf != null && nameBuf.length == SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) {
+            _seenNames = null;
+            // Note: we must clean up stuff we've marked so far, to avoid accidental leakage
+            Arrays.fill(nameBuf, null);
+            _smileBufferRecycler.releaseSeenNamesBuffer(nameBuf);
         }
     }
 
