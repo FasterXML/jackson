@@ -12,6 +12,32 @@ import org.codehaus.jackson.map.*;
 public class TestArraySerialization
     extends BaseTest
 {
+    public void testLongStringArray() throws Exception
+    {
+        final int SIZE = 40000;
+
+        StringBuilder sb = new StringBuilder(SIZE*2);
+        for (int i = 0; i < SIZE; ++i) {
+            sb.append((char) i);
+        }
+        String str = sb.toString();
+        ObjectMapper mapper = new ObjectMapper();
+        byte[] data = mapper.writeValueAsBytes(new String[] { "abc", str, null, str });
+        JsonParser jp = mapper.getJsonFactory().createJsonParser(data);
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("abc", jp.getText());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        String actual = jp.getText();
+        assertEquals(str.length(), actual.length());
+        assertEquals(str, actual);
+        assertToken(JsonToken.VALUE_NULL, jp.nextToken());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals(str, jp.getText());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        assertNull(jp.nextToken());
+    }
+    
     public void testIntArray() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -29,10 +55,9 @@ public class TestArraySerialization
             ints[i] = i;
         }
 
-        /* Let's try couple of times, to ensure that state is handled
-         * correctly by ObjectMapper (wrt buffer recycling used
-         * with 'writeAsBytes()')
-         */
+        // Let's try couple of times, to ensure that state is handled
+        // correctly by ObjectMapper (wrt buffer recycling used
+        // with 'writeAsBytes()')
         JsonFactory f = mapper.getJsonFactory();
         for (int round = 0; round < 3; ++round) {
             byte[] data = mapper.writeValueAsBytes(ints);
@@ -62,30 +87,6 @@ public class TestArraySerialization
         assertEquals("[\"a\",\"\\\"foo\\\"\",null]", sw.toString().trim());
     }
 
-    public void testLongStringArray() throws Exception
-    {
-        final int SIZE = 40000;
-
-        StringBuilder sb = new StringBuilder(SIZE*2);
-        for (int i = 0; i < SIZE; ++i) {
-            sb.append((char) i);
-        }
-        String str = sb.toString();
-        ObjectMapper mapper = new ObjectMapper();
-        byte[] data = mapper.writeValueAsBytes(new String[] { "abc", str, null, str });
-        JsonParser jp = mapper.getJsonFactory().createJsonParser(data);
-        assertToken(JsonToken.START_ARRAY, jp.nextToken());
-        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
-        assertEquals("abc", jp.getText());
-        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
-        assertEquals(str, jp.getText());
-        assertToken(JsonToken.VALUE_NULL, jp.nextToken());
-        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
-        assertEquals(str, jp.getText());
-        assertToken(JsonToken.END_ARRAY, jp.nextToken());
-        assertNull(jp.nextToken());
-    }
-    
     public void testDoubleArray() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -102,5 +103,3 @@ public class TestArraySerialization
         assertEquals("[1.01,2.0,-7.0,\"NaN\",\"-Infinity\",\"Infinity\"]", sw.toString().trim());
     }
 }
-
-

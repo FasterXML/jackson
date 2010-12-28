@@ -76,13 +76,24 @@ public class Utf8Generator
      * End marker of the output buffer; one past the last valid position
      * within the buffer.
      */
-    protected int _outputEnd;
+    protected final int _outputEnd;
 
+    /**
+     * Maximum number of <code>char</code>s that we know will always fit
+     * in the output buffer after escaping
+     */
+    protected final int _outputMaxContiguous;
+    
     /**
      * Intermediate buffer in which characters of a String are copied
      * before being encoded.
      */
     protected char[] _charBuffer;
+    
+    /**
+     * Length of <code>_charBuffer</code>
+     */
+    protected final int _charBufferLength;
     
     /**
      * 6 character temporary buffer allocated if needed, for constructing
@@ -105,7 +116,13 @@ public class Utf8Generator
         _outputStream = out;
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
         _outputEnd = _outputBuffer.length;
+        /* To be exact, each char can take up to 6 bytes when escaped (Unicode
+         * escape with bacslash, 'u' and 4 hex digits); but to avoid fluctuation,
+         * we will actually round down to only do up to 1/8 number of chars
+         */
+        _outputMaxContiguous = _outputEnd >> 3;
         _charBuffer = ctxt.allocConcatBuffer();
+        _charBufferLength = _charBuffer.length;
     }
 
     /*
@@ -204,14 +221,25 @@ public class Utf8Generator
          * (Question: should quoting of spaces (etc) still be enabled?)
          */
         if (!isEnabled(Feature.QUOTE_FIELD_NAMES)) {
-            _writeString(name);
+            _writeStringSegments(name);
             return;
         }
 
         // we know there's room for at least one more char
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
         // The beef:
-        _writeString(name);
+        final int len = name.length();
+        if (len <= _charBufferLength) { // yes, fits right in
+            name.getChars(0, len, _charBuffer, 0);
+            // But as one segment, or multiple?
+            if (len <= _outputMaxContiguous) {
+                _writeStringSegment(_charBuffer, 0, len);
+            } else {
+                _writeStringSegments(_charBuffer, 0, len);
+            }
+        } else {
+            _writeStringSegments(name);
+        }
 
         // and closing quotes; need room for one more char:
         if (_outputTail >= _outputEnd) {
@@ -275,13 +303,24 @@ public class Utf8Generator
                 _flushBuffer();
             }
             _outputBuffer[_outputTail++] = BYTE_QUOTE;
-            _writeString(name);
+            final int len = name.length();
+            if (len <= _charBufferLength) { // yes, fits right in
+                name.getChars(0, len, _charBuffer, 0);
+                // But as one segment, or multiple?
+                if (len <= _outputMaxContiguous) {
+                    _writeStringSegment(_charBuffer, 0, len);
+                } else {
+                    _writeStringSegments(_charBuffer, 0, len);
+                }
+            } else {
+                _writeStringSegments(name);
+            }
             if (_outputTail >= _outputEnd) {
                 _flushBuffer();
             }
             _outputBuffer[_outputTail++] = BYTE_QUOTE;
         } else { // non-standard, omit quotes
-            _writeString(name);
+            _writeStringSegments(name);
         }
     }
 
@@ -329,15 +368,17 @@ public class Utf8Generator
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
-        // Inlined version of '_writeString(String)'
         final int len = text.length();
-        // simple cases: fits in input buffer as is
-        final char[] buf = _charBuffer;
-        if (len > buf.length) { // if not, need segemented
-            _writeSegmentedString(text);
+        if (len <= _charBufferLength) { // yes, fits right in
+            text.getChars(0, len, _charBuffer, 0);
+            // But as one segment, or multiple?
+            if (len <= _outputMaxContiguous) {
+                _writeStringSegment(_charBuffer, 0, len);
+            } else {
+                _writeStringSegments(_charBuffer, 0, len);
+            }
         } else {
-            text.getChars(0, len, buf, 0);
-            _writeStringSegment(buf, 0, len);
+            _writeStringSegments(text);
         }
         // And finally, closing quotes
         if (_outputTail >= _outputEnd) {
@@ -355,7 +396,12 @@ public class Utf8Generator
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
-        _writeStringSegment(text, offset, len);
+        // One or multiple segments?
+        if (len <= _outputMaxContiguous) {
+            _writeStringSegment(text, offset, len);
+        } else {
+            _writeStringSegments(text, offset, len);
+        }
         // And finally, closing quotes
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
@@ -441,6 +487,7 @@ public class Utf8Generator
         }
     }
 
+    // @TODO: rewrite for speed...
     @Override
     public final void writeRaw(char[] cbuf, int offset, int len)
         throws IOException, JsonGenerationException
@@ -909,155 +956,127 @@ public class Utf8Generator
         _outputTail += len;
     }
 
-    private final void _writeString(String text)
+    /**
+     * Method called when String to write is long enough not to fit
+     * completely in temporary copy buffer. If so, we will actually
+     * copy it in small enough chunks so it can be directly fed
+     * to single-segment writes (instead of maximum slices that
+     * would fit in copy buffer)
+     */
+    private final void _writeStringSegments(String text)
         throws IOException, JsonGenerationException
     {
-        final int len = text.length();
-        // simple cases: fits in input buffer as is
-        final char[] buf = _charBuffer;
-        if (len > buf.length) { // if not, need segemented
-            _writeSegmentedString(text);
-            return;
-        }
-        text.getChars(0, len, buf, 0);
-        _writeStringSegment(buf, 0, len);
-    }
-    
-    private final void _writeSegmentedString(String text)
-        throws IOException, JsonGenerationException
-    {
+        int left = text.length();
         int offset = 0;
-        int len = text.length();
-        final char[] buf = _charBuffer;
-        do {
-            final int blen = buf.length;
-            final int len2 = (len < blen) ? len : blen;
-            text.getChars(offset, offset+len2, buf, 0);
-            _writeStringSegment(buf, 0, len2);
-            offset += len2;
-            len -= len2;
-        } while (len > 0);
+        final char[] cbuf = _charBuffer;
+
+        while (left > 0) {
+            int len = Math.min(_outputMaxContiguous, left);
+            text.getChars(offset, offset+len, cbuf, 0);
+            _writeStringSegment(cbuf, 0, len);
+            offset += len;
+            left -= len;
+        }
     }
-    
-    
+
+    /**
+     * Method called when character sequence to write is long enough that
+     * its maximum encoded and escaped form is not guaranteed to fit in
+     * the output buffer. If so, we will need to choose smaller output
+     * chunks to write at a time.
+     */
+    private final void _writeStringSegments(char[] cbuf, int offset, int totalLen)
+        throws IOException, JsonGenerationException
+    {
+        do {
+            int len = Math.min(_outputMaxContiguous, totalLen);
+            _writeStringSegment(cbuf, offset, len);
+            offset += len;
+            totalLen -= len;
+        } while (totalLen > 0);
+    }
+
     /**
      * This method called when the string content is already in
-     * a char buffer, and need not be copied for processing.
+     * a char buffer, and its maximum total encoded and escaped length
+     * can not exceed size of the output buffer.
      */
     private final void _writeStringSegment(char[] cbuf, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        // First: if we have 2 x charCount spaces, we know it'll be fine for common case...
-        {
-            int len3 = len+len+len;
-            if ((_outputTail + len3) > _outputEnd) {
-                // maybe we could flush?
-                if (_outputEnd < len3) { // wouldn't be enough...
-                    _writeSegmentedString(cbuf, offset, len);
-                    return;
-                }
-                // yes, flushing brings enough space
-                _flushBuffer();
-            }
+        int outputPtr = _outputTail;
+        // First: assuming ASCII-only, do we have enough room?
+        if ((outputPtr + len) > _outputEnd) { // not yet
+            _flushBuffer(); // but yes once we flush (caller guarantees length restriction)
+            outputPtr = _outputTail;
         }
 
-        // Fast loop for chars not needing escaping
+        /* And then fast+tight loop for ASCII-only, no-escaping-needed
+         * output.
+         */
         len += offset; // becomes end marker, then
-        int ptr = _outputTail;
-        main_loop:
-        while (offset < len) {
-            final int[] escCodes = sOutputEscapes;
-            final byte[] outputBuffer = _outputBuffer;
 
-            inner_loop:
-            while (true) {
-                int ch = cbuf[offset];
-                if (ch > 0x7F || escCodes[ch] != 0) {
-                    break inner_loop;
-                }
-                outputBuffer[ptr++] = (byte) ch;
-                if (++offset >= len) {
-                    break main_loop;
-                }
+        final int[] escCodes = sOutputEscapes;
+        final byte[] outputBuffer = _outputBuffer;
+
+        while (offset < len) {
+            int ch = cbuf[offset];
+            if (ch > 0x7F || escCodes[ch] != 0) {
+                _outputTail = outputPtr;
+                _writeStringSegment2(cbuf, offset, len, outputPtr);
+                return;
             }
-            // Ok, so what did we hit?
-            int ch = (int) cbuf[offset++];
-            if (ch <= 0x7F) { // needs quoting
-                int escape = escCodes[ch];
-                if (escape > 0) { // 2-char escape, fine
-                    outputBuffer[ptr++] = BYTE_BACKSLASH;
-                    outputBuffer[ptr++] = (byte) escape;
-                    continue main_loop;
-                }
-                // ctrl-char, 6-byte escape...
-                ptr = _writeEscapedControlChar(escape, ptr);
-            } else if (ch <= 0x7FF) { // fine, just needs 2 byte output
-                outputBuffer[ptr++] = (byte) (0xc0 | (ch >> 6));
-                outputBuffer[ptr++] = (byte) (0x80 | (ch & 0x3f));
-                // fine, no need for checks
-                continue main_loop;
-            } else {
-                ptr = _outputMultiByteChar(ch, ptr);
-            }
-            // 3 or more byte for char, need to re-check bounds
-            int rem = len - offset;
-            int rem3 = rem+rem+rem;
-            if ((ptr + rem3) >= _outputEnd) {
-                _flushBuffer();
-                ptr = _outputTail;
-            }
+            outputBuffer[outputPtr++] = (byte) ch;
+            ++offset;
         }
-        _outputTail = ptr;
+        _outputTail = outputPtr;
     }
 
-    private void _writeSegmentedString(char[] cbuf, int offset, int len)
+    /**
+     * Secondary method called when content contains characters to escape,
+     * and/or multi-byte UTF-8 characters.
+     */
+    private final void _writeStringSegment2(final char[] cbuf, int offset, final int end,
+            int outputPtr)
         throws IOException, JsonGenerationException
     {
-        // Fast loop for chars not needing escaping
-        len += offset; // becomes end marker, then
-        int ptr = _outputTail;
+        // Ok: caller guarantees buffer can have room; but that may require flushing:
+        {
+            int maxLen = 6 * ((end - offset) + 1);
+            if ((outputPtr + maxLen) > _outputEnd) {
+                _flushBuffer();
+            }
+            outputPtr = _outputTail;
+        }
 
-        main_loop:
-        while (offset < len) {
-            final int[] escCodes = sOutputEscapes;
-            final int end = _outputEnd - 6; // let's always have room for 6 more bytes, simpler
-            final byte[] outputBuffer = _outputBuffer;
-
-            inner_loop:
-            while (true) {
-                if (ptr >= end) {
-                    _outputTail = ptr;
-                    _flushBuffer();
-                    ptr = _outputTail;
-                }
-                int ch = cbuf[offset];
-                if (ch > 0x7F || escCodes[ch] != 0) {
-                    break inner_loop;
-                }
-                outputBuffer[ptr++] = (byte) ch;
-                if (++offset >= len) {
-                    break main_loop;
-                }
-            }                
-            // (note: we have flushed earlier, if necessary)
-            int ch = (int) cbuf[offset++];
-            if (ch <= 0x7F) { // needs quoting
-                int escape = escCodes[ch];
+        final byte[] outputBuffer = _outputBuffer;
+        final int[] escCodes = sOutputEscapes;
+        
+        while (offset < end) {
+            int ch = cbuf[offset++];
+            if (ch <= 0x7F) {
+                 if (escCodes[ch] == 0) {
+                     outputBuffer[outputPtr++] = (byte) ch;
+                     continue;
+                 }
+                int escape = sOutputEscapes[ch];
                 if (escape > 0) { // 2-char escape, fine
-                    outputBuffer[ptr++] = BYTE_BACKSLASH;
-                    outputBuffer[ptr++] = (byte) escape;
-                    continue main_loop;
+                    outputBuffer[outputPtr++] = BYTE_BACKSLASH;
+                    outputBuffer[outputPtr++] = (byte) escape;
+                } else {
+                    // ctrl-char, 6-byte escape...
+                    outputPtr = _writeEscapedControlChar(escape, outputPtr);
                 }
-                // ctrl-char, 6-byte escape...
-                ptr = _writeEscapedControlChar(escape, ptr);
-            } else if (ch <= 0x7FF) { // fine, just needs 2 byte output
-                outputBuffer[ptr++] = (byte) (0xc0 | (ch >> 6));
-                outputBuffer[ptr++] = (byte) (0x80 | (ch & 0x3f));
+                continue;
+            }
+            if (ch <= 0x7FF) { // fine, just needs 2 byte output
+                outputBuffer[outputPtr++] = (byte) (0xc0 | (ch >> 6));
+                outputBuffer[outputPtr++] = (byte) (0x80 | (ch & 0x3f));
             } else {
-                ptr = _outputMultiByteChar(ch, ptr);
+                outputPtr = _outputMultiByteChar(ch, outputPtr);
             }
         }
-        _outputTail = ptr;
+        _outputTail = outputPtr;
     }
 
     protected void _writeBinary(Base64Variant b64variant, byte[] input, int inputPtr, final int inputEnd)

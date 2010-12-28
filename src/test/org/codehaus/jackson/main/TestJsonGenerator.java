@@ -40,7 +40,6 @@ public class TestJsonGenerator
                     }
                     gen.flush();
                     gen.close();
-                
                     JsonParser jp = jf.createJsonParser(new ByteArrayInputStream(bout.toByteArray()));
                 
                     JsonToken t = jp.nextToken();
