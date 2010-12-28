@@ -808,7 +808,7 @@ public class Utf8Generator
             _flushBuffer();
             // still not enough?
             if (len > MAX_BYTES_TO_BUFFER) {
-                _outputStream.write(_outputBuffer, 0, len);
+                _outputStream.write(bytes, 0, len);
                 return;
             }
         }
