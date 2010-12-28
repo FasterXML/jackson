@@ -262,6 +262,35 @@ public final class ToXmlGenerator
             }
         }
     }
+
+    /*
+    /**********************************************************
+    /* JsonGenerator method overrides
+    /**********************************************************
+     */
+    
+    /* Most overrides in this section are just to make methods final,
+     * to allow better inlining...
+     */
+
+    @Override
+    public final void writeFieldName(String name)  throws IOException, JsonGenerationException
+    {
+        if (_writeContext.writeFieldName(name) == JsonWriteContext.STATUS_EXPECT_VALUE) {
+            _reportError("Can not write a field name, expecting a value");
+        }
+        // Should this ever get called?
+        String ns = (_nextName == null) ? "" : _nextName.getNamespaceURI();
+        setNextName(new QName(ns, name));
+    }
+    
+    @Override
+    public final void writeStringField(String fieldName, String value)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeString(value);
+    }
     
     /*
     /**********************************************************
@@ -311,15 +340,6 @@ public final class ToXmlGenerator
         } catch (XMLStreamException e) {
             StaxUtil.throwXmlAsIOException(e);
         }
-    }
-
-    @Override
-    public void _writeFieldName(String name, boolean commaBefore)
-        throws IOException, JsonGenerationException
-    {
-        // Should this ever get called?
-        String ns = (_nextName == null) ? "" : _nextName.getNamespaceURI();
-        setNextName(new QName(ns, name));
     }
     
     /*

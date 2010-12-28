@@ -208,19 +208,8 @@ public abstract class JsonGeneratorBase
     protected abstract void _writeEndObject()
         throws IOException, JsonGenerationException;
 
-    @Override
-    public final void writeFieldName(String name)  throws IOException, JsonGenerationException
-    {
-        // Object is a value, need to verify it's allowed
-        int status = _writeContext.writeFieldName(name);
-        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
-            _reportError("Can not write a field name, expecting a value");
-        }
-        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
-    }
-    
-    protected abstract void _writeFieldName(String name, boolean commaBefore)
-        throws IOException, JsonGenerationException;
+
+    public abstract void writeFieldName(String name)  throws IOException, JsonGenerationException;
     
     /*
     /**********************************************************

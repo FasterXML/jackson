@@ -761,8 +761,10 @@ public abstract class JsonGenerator
      *  writeFieldName(fieldName);
      *  writeString(value);
      *</pre>
+     *<p>
+     * Note: many performance-sensitive implementations override this method
      */
-    public final void writeStringField(String fieldName, String value)
+    public void writeStringField(String fieldName, String value)
         throws IOException, JsonGenerationException
     {
         writeFieldName(fieldName);

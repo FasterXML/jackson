@@ -211,6 +211,8 @@ public class SmileGenerator
      * before being encoded.
      */
     protected char[] _charBuffer;
+
+    protected final int _charBufferLength;
     
     /**
      * Let's keep track of how many bytes have been output, may prove useful
@@ -281,6 +283,7 @@ public class SmileGenerator
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
         _outputEnd = _outputBuffer.length;
         _charBuffer = ctxt.allocConcatBuffer();
+        _charBufferLength = _charBuffer.length;
         // let's just sanity check to prevent nasty odd errors
         if (_outputEnd < MIN_BUFFER_LENGTH) {
             throw new IllegalStateException("Internal encoding buffer length ("+_outputEnd
@@ -361,6 +364,20 @@ public class SmileGenerator
     public JsonGenerator setPrettyPrinter(PrettyPrinter pp) {
         return this;
     }
+
+    /* And then methods overridden to make final, streamline some
+     * aspects...
+     */
+
+    @Override
+    public final void writeFieldName(String name)  throws IOException, JsonGenerationException
+    {
+        int status = _writeContext.writeFieldName(name);
+        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
+            _reportError("Can not write a field name, expecting a value");
+        }
+        _writeFieldName(name);
+    }
     
     @Override
     public final void writeFieldName(SerializedString name)
@@ -384,6 +401,18 @@ public class SmileGenerator
         _writeFieldName(name);
     }
 
+    @Override
+    public final void writeStringField(String fieldName, String value)
+        throws IOException, JsonGenerationException
+    {
+        int status = _writeContext.writeFieldName(fieldName);
+        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
+            _reportError("Can not write a field name, expecting a value");
+        }
+        _writeFieldName(fieldName);
+        writeString(value);
+    }
+    
     /*
     /**********************************************************
     /* Extended API, configuration
@@ -415,7 +444,7 @@ public class SmileGenerator
 
     /*
     /**********************************************************
-    /* Extended API, cother
+    /* Extended API, other
     /**********************************************************
      */
 
@@ -474,8 +503,7 @@ public class SmileGenerator
         _writeByte(TOKEN_LITERAL_END_OBJECT);
     }
 
-    @Override
-    protected void _writeFieldName(String name, boolean commaBefore) throws IOException, JsonGenerationException
+    private final void _writeFieldName(String name) throws IOException, JsonGenerationException
     {
         int len = name.length();
         if (len == 0) {
@@ -708,7 +736,7 @@ public class SmileGenerator
         }
         // Longer string handling off-lined
         if (len > MAX_SHARED_STRING_LENGTH_BYTES) {
-            _writeLongString(text, len);
+            _writeNonSharedString(text, len);
             return;
         }
         // Then: is it something we can share?
@@ -752,35 +780,43 @@ public class SmileGenerator
         }
     }    
 
-    private final void _writeLongString(final String text, final int len) throws IOException,JsonGenerationException
+    /**
+     * Helper method called to handle cases where String value to write is known
+     * to be long enough not to be shareable.
+     */
+    private final void _writeNonSharedString(final String text, final int len) throws IOException,JsonGenerationException
     {
-        // "long" String, never shared
-        // but might still fit within buffer?
-        int maxLen = len + len + len + 2;
-        if (maxLen <= _outputBuffer.length) { // yes indeed
-            if ((_outputTail + maxLen) >= _outputEnd) {
-                _flushBuffer();
-            }
-            int origOffset = _outputTail;
-            // can't say for sure if it's ASCII or Unicode, so:
-            _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
-            int byteLen;
-            if (len < _charBuffer.length) {
-                text.getChars(0, len, _charBuffer, 0);
-                byteLen = _shortUTF8Encode(_charBuffer, 0, len);
-            } else {
-                byteLen = _mediumUTF8Encode(text);
-            }
-            // if it's ASCII, let's revise our type determination (to help decoder optimize)
-            if (byteLen == len) {
-                _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_ASCII;
-            }
-            _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
-        } else { // won't fit; can't efficiently rewrite ASCII/unicode marker, so:
+        // First: can we at least make a copy to char[]?
+        if (len > _charBufferLength) { // nope; need to skip copy step (alas; this is slower)
             _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
             _slowUTF8Encode(text);
             _writeByte(BYTE_MARKER_END_OF_STRING);
+            return;
         }
+        text.getChars(0, len, _charBuffer, 0);
+        // Expansion can be 3x for Unicode; and then there's type byte and end marker, so:
+        int maxLen = len + len + len + 2;
+        // Next: does it always fit within output buffer?
+        if (maxLen > _outputBuffer.length) { // nope
+            // can't rewrite type buffer, so can't speculate it might be all-ASCII
+            _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
+            _slowUTF8Encode(_charBuffer, 0, len);
+            _writeByte(BYTE_MARKER_END_OF_STRING);
+            return;
+        }
+        
+        if ((_outputTail + maxLen) >= _outputEnd) {
+            _flushBuffer();
+        }
+        int origOffset = _outputTail;
+        // can't say for sure if it's ASCII or Unicode, so:
+        _writeByte(TOKEN_BYTE_LONG_STRING_ASCII);
+        int byteLen = _shortUTF8Encode(_charBuffer, 0, len);
+        // If not ASCII, fix type:
+        if (byteLen > len) {
+            _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_UNICODE;
+        }
+        _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
     }
     
     @Override
@@ -1322,6 +1358,10 @@ public class SmileGenerator
     /**********************************************************
     */
 
+    /**
+     * Helper method called when the whole character sequence is known to
+     * fit in the output buffer regardless of UTF-8 expansion.
+     */
     private final int _shortUTF8Encode(char[] str, int i, int end)
     {
         // First: let's see if it's all ASCII: that's rather fast
@@ -1339,6 +1379,11 @@ public class SmileGenerator
         return codedLen;
     }
 
+    /**
+     * Helper method called when the whole character sequence is known to
+     * fit in the output buffer, but not all characters are single-byte (ASCII)
+     * characters.
+     */
     private final int _shortUTF8Encode2(char[] str, int i, int end, int outputPtr)
     {
         final byte[] outBuf = _outputBuffer;

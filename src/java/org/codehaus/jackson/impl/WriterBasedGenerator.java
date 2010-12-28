@@ -85,6 +85,28 @@ public final class WriterBasedGenerator
     /* Overridden methods
     /**********************************************************
      */
+
+    /* Most overrides in this section are just to make methods final,
+     * to allow better inlining...
+     */
+
+    @Override
+    public final void writeFieldName(String name)  throws IOException, JsonGenerationException
+    {
+        int status = _writeContext.writeFieldName(name);
+        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
+            _reportError("Can not write a field name, expecting a value");
+        }
+        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+    }
+
+    @Override
+    public final void writeStringField(String fieldName, String value)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeString(value);
+    }
     
     @Override
     public final void writeFieldName(SerializedString name)
@@ -156,7 +178,6 @@ public final class WriterBasedGenerator
         _outputBuffer[_outputTail++] = '}';
     }
 
-    @Override
     protected void _writeFieldName(String name, boolean commaBefore)
         throws IOException, JsonGenerationException
     {
