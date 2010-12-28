@@ -359,6 +359,22 @@ public final class WriterBasedGenerator
         _outputBuffer[_outputTail++] = '"';
     }
 
+    @Override
+    public void writeEscapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        // could add support for buffering if we really want it...
+        _reportUnsupportedOperation();
+    }
+
+    @Override
+    public void writeUnescapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        // could add support for buffering if we really want it...
+        _reportUnsupportedOperation();
+    }
+    
     /*
     /**********************************************************
     /* Output method implementations, unprocessed ("raw")

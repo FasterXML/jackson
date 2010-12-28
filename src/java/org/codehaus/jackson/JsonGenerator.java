@@ -393,9 +393,9 @@ public abstract class JsonGenerator
         writeFieldName(name.getValue());
     }
 
-     /*
+    /*
     /**********************************************************
-    /* Public API, write methods, textual/binary
+    /* Public API, write methods, text/String values
     /**********************************************************
      */
 
@@ -409,6 +409,13 @@ public abstract class JsonGenerator
     public abstract void writeString(String text)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method for outputting a String value. Depending on context
+     * this means either array element, (object) field value or
+     * a stand alone String; but in all cases, String will be
+     * surrounded in double quotes, and contents will be properly
+     * escaped as required by JSON specification.
+     */
     public abstract void writeString(char[] text, int offset, int len)
         throws IOException, JsonGenerationException;
 
@@ -431,29 +438,114 @@ public abstract class JsonGenerator
     }
 
     /**
-     * Fallback method which can be used to make generator copy
+     * Method similar to {@link #writeString(String)} but that takes
+     * an already escaped and UTF-8 encoded String as input. This means
+     * that textual JSON backends can simply copy byte sequence without
+     * additional processing.
+     *<p>
+     * Note that some backends may choose not to support this method: for
+     * example, if underlying destination is a {@link java.io.Writer}
+     * using this method would require UTF-8 decoding. Also, non-JSON
+     * backends may not support use of JSON quoting, in which case it
+     * would be necessary to un-escape content first. In both cases
+     * generator implementation may instead choose to throw a
+     * {@link UnsupportedOperationException} due to ineffectiveness
+     * of having to add processing.
+     * 
+     * @since 1.7
+     */
+    public abstract void writeEscapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException;
+
+    /**
+     * Method similar to {@link #writeString(String)} but that takes
+     * a UTF-8 encoded String which has <b>not</b> yet been JSON escaped as input.
+     * This means that textual JSON backends need to check if value needs
+     * JSON escaping, but otherwise can just be copied as is to output.
+     *<p>
+     * Note that some backends may choose not to support this method: for
+     * example, if underlying destination is a {@link java.io.Writer}
+     * using this method would require UTF-8 decoding.
+     * In this case
+     * generator implementation may instead choose to throw a
+     * {@link UnsupportedOperationException} due to ineffectiveness
+     * of having to add processing.
+     * 
+     * @since 1.7
+     */
+    public abstract void writeUnescapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException;
+    
+    /*
+    /**********************************************************
+    /* Public API, write methods, binary/raw content
+    /**********************************************************
+     */
+    
+    /**
+     * Method that will force generator to copy
      * input text verbatim with <b>no</b> modifications (including
-     * that no quoting is done and no separators are added even
+     * that no escaping is done and no separators are added even
      * if context [array, object] would otherwise require such).
      * If such separators are desired, use
      * {@link #writeRawValue(String)} instead.
+     *<p>
+     * Note that not all generator implementations necessarily support
+     * such by-pass methods: those that do not will throw
+     * {@link UnsupportedOperationException}.
      */
     public abstract void writeRaw(String text)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method that will force generator to copy
+     * input text verbatim with <b>no</b> modifications (including
+     * that no escaping is done and no separators are added even
+     * if context [array, object] would otherwise require such).
+     * If such separators are desired, use
+     * {@link #writeRawValue(String)} instead.
+     *<p>
+     * Note that not all generator implementations necessarily support
+     * such by-pass methods: those that do not will throw
+     * {@link UnsupportedOperationException}.
+     */
     public abstract void writeRaw(String text, int offset, int len)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method that will force generator to copy
+     * input text verbatim with <b>no</b> modifications (including
+     * that no escaping is done and no separators are added even
+     * if context [array, object] would otherwise require such).
+     * If such separators are desired, use
+     * {@link #writeRawValue(String)} instead.
+     *<p>
+     * Note that not all generator implementations necessarily support
+     * such by-pass methods: those that do not will throw
+     * {@link UnsupportedOperationException}.
+     */
     public abstract void writeRaw(char[] text, int offset, int len)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Method that will force generator to copy
+     * input text verbatim with <b>no</b> modifications (including
+     * that no escaping is done and no separators are added even
+     * if context [array, object] would otherwise require such).
+     * If such separators are desired, use
+     * {@link #writeRawValue(String)} instead.
+     *<p>
+     * Note that not all generator implementations necessarily support
+     * such by-pass methods: those that do not will throw
+     * {@link UnsupportedOperationException}.
+     */
     public abstract void writeRaw(char c)
         throws IOException, JsonGenerationException;
 
     /**
-     * Fallback method which can be used to make generator copy
+     * Method that will force generator to copy
      * input text verbatim without any modifications, but assuming
-     * it must constitute a single legal Json value (number, string,
+     * it must constitute a single legal JSON value (number, string,
      * boolean, null, Array or List). Assuming this, proper separators
      * are added if and as needed (comma or colon), and generator
      * state updated to reflect this.
@@ -643,7 +735,7 @@ public abstract class JsonGenerator
         throws IOException, JsonProcessingException;
 
     /**
-     * Method for writing given Json tree (expressed as a tree
+     * Method for writing given JSON tree (expressed as a tree
      * where given JsonNode is the root) using this generator.
      * This will generally just call
      * {@link #writeObject} with given node, but is added

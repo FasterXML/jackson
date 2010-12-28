@@ -890,6 +890,22 @@ public class SmileGenerator
             _writeByte(BYTE_MARKER_END_OF_STRING);
         }
     }
+
+    @Override
+    public void writeEscapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        // @TODO
+        _reportUnsupportedOperation();
+    }
+
+    @Override
+    public void writeUnescapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        // @TODO
+        _reportUnsupportedOperation();
+    }
     
     /*
     /**********************************************************

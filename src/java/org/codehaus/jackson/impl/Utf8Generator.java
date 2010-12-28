@@ -367,6 +367,22 @@ public class Utf8Generator
         }
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
+
+    @Override
+    public void writeEscapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        // @TODO
+        _reportUnsupportedOperation();
+    }
+
+    @Override
+    public void writeUnescapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        // @TODO
+        _reportUnsupportedOperation();
+    }
     
     /*
     /**********************************************************

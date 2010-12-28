@@ -387,6 +387,22 @@ public final class ToXmlGenerator
         writeString(text.getValue());
     }
     
+    @Override
+    public void writeEscapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        // Already has JSON escaping; probably will never support
+        _reportUnsupportedOperation();
+    }
+
+    @Override
+    public void writeUnescapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        // could add support for this case if we really want it (and can make Stax2 support it)
+        _reportUnsupportedOperation();
+    }
+
     /*
     /**********************************************************
     /* Output method implementations, unprocessed ("raw")

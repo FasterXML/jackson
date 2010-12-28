@@ -456,6 +456,22 @@ public class TokenBuffer
     }
     
     @Override
+    public void writeEscapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        // could add support for buffering if we really want it...
+        _reportUnsupportedOperation();
+    }
+
+    @Override
+    public void writeUnescapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        // could add support for buffering if we really want it...
+        _reportUnsupportedOperation();
+    }
+
+    @Override
     public void writeRaw(String text) throws IOException, JsonGenerationException {
         _reportUnsupportedOperation();
     }

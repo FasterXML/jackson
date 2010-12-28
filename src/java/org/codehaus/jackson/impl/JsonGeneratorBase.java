@@ -547,8 +547,14 @@ public abstract class JsonGeneratorBase
                 +value.getClass().getName()+")");
     }    
 
-    protected final void _throwInternal()
-    {
+    protected final void _throwInternal() {
         throw new RuntimeException("Internal error: this code path should never get executed");
+    }
+
+    /**
+     * @since 1.7
+     */
+    protected void _reportUnsupportedOperation() {
+        throw new UnsupportedOperationException("Operation not supported by generator of type "+getClass().getName());
     }
 }

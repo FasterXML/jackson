@@ -231,6 +231,20 @@ public class JsonGeneratorDelegate extends JsonGenerator
     public void writeString(SerializableString text) throws IOException, JsonGenerationException {
         delegate.writeString(text);
     }
+
+    @Override
+    public void writeEscapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        delegate.writeEscapedUTF8String(text, offset, length);
+    }
+
+    @Override
+    public void writeUnescapedUTF8String(byte[] text, int offset, int length)
+        throws IOException, JsonGenerationException
+    {
+        delegate.writeUnescapedUTF8String(text, offset, length);
+    }
     
     @Override
     public void writeTree(JsonNode rootNode) throws IOException, JsonProcessingException {
