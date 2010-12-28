@@ -372,8 +372,7 @@ public class SmileGenerator
     @Override
     public final void writeFieldName(String name)  throws IOException, JsonGenerationException
     {
-        int status = _writeContext.writeFieldName(name);
-        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
+        if (_writeContext.writeFieldName(name) == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
         _writeFieldName(name);
@@ -405,8 +404,7 @@ public class SmileGenerator
     public final void writeStringField(String fieldName, String value)
         throws IOException, JsonGenerationException
     {
-        int status = _writeContext.writeFieldName(fieldName);
-        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
+        if (_writeContext.writeFieldName(fieldName) == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
         _writeFieldName(fieldName);
@@ -503,7 +501,8 @@ public class SmileGenerator
         _writeByte(TOKEN_LITERAL_END_OBJECT);
     }
 
-    private final void _writeFieldName(String name) throws IOException, JsonGenerationException
+    private final void _writeFieldName(String name)
+        throws IOException, JsonGenerationException
     {
         int len = name.length();
         if (len == 0) {
@@ -522,66 +521,78 @@ public class SmileGenerator
                 return;
             }
         }
-        if (len <= MAX_SHORT_NAME_ASCII_BYTES) { // possibly short strings (not necessarily)
-            // first: ensure we have enough space
-            if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
-                _flushBuffer();
+        if (len > MAX_SHORT_NAME_UNICODE_BYTES) { // can not be a 'short' String; off-line (rare case)
+            _writeNonShortFieldName(name, len);
+            return;
+        }
+
+        // first: ensure we have enough space
+        if ((_outputTail + MIN_BUFFER_FOR_POSSIBLE_SHORT_STRING) >= _outputEnd) {
+            _flushBuffer();
+        }
+        // then let's copy String chars to char buffer, faster than using getChar (measured, profiled)
+        name.getChars(0, len, _charBuffer, 0);
+        int origOffset = _outputTail;
+        ++_outputTail; // to reserve space for type token
+        int byteLen = _shortUTF8Encode(_charBuffer, 0, len);
+        byte typeToken;
+        
+        // ASCII?
+        if (byteLen == len) {
+            if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) { // yes, is short indeed
+                typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
+            } else { // longer albeit Ascii
+                typeToken = TOKEN_KEY_LONG_STRING;
+                // and we will need String end marker byte
+                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
             }
-            // then let's copy String chars to char buffer, faster than using getChar (measured, profiled)
-            name.getChars(0, len, _charBuffer, 0);
-            int origOffset = _outputTail;
-            ++_outputTail; // to reserve space for type token
-            int byteLen = _shortUTF8Encode(_charBuffer, 0, len);
-            byte typeToken;
-            
-            // ASCII?
-            if (byteLen == len) {
-                if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) { // yes, is short indeed
-                    typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
-                } else { // longer albeit Ascii
-                    typeToken = TOKEN_KEY_LONG_STRING;
-                    // and we will need String end marker byte
-                    _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
-                }
-            } else { // not all ASCII
-                if (byteLen <= MAX_SHORT_NAME_UNICODE_BYTES) { // yes, is short indeed
-                    // note: since 2 is smaller allowed length, offset differs from one used for
-                    typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 2) + byteLen);
-                } else { // nope, longer non-ASCII Strings
-                    typeToken = TOKEN_KEY_LONG_STRING;
-                    // and we will need String end marker byte
-                    _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
-                }
-            }
-            // and then sneak in type token now that know the details
-            _outputBuffer[origOffset] = typeToken;
-        } else { // "long" String, never shared
-            _writeByte(TOKEN_KEY_LONG_STRING);
-            // but might still fit within buffer?
-            int maxLen = len + len + len + 1;
-            if (maxLen <= _outputBuffer.length) { // yes indeed
-                if ((_outputTail + maxLen) >= _outputEnd) {
-                    _flushBuffer();
-                }
-                // can we make a copy of chars?                                 
-                if (_charBuffer.length >= len) {
-                    name.getChars(0, len, _charBuffer, 0);
-                     _shortUTF8Encode(_charBuffer, 0, len);
-                } else {
-                    _mediumUTF8Encode(name);
-                }
-                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
-            } else {
-                _slowUTF8Encode(name);
-                _writeByte(BYTE_MARKER_END_OF_STRING);
+        } else { // not all ASCII
+            if (byteLen <= MAX_SHORT_NAME_UNICODE_BYTES) { // yes, is short indeed
+                // note: since 2 is smaller allowed length, offset differs from one used for
+                typeToken = (byte) ((TOKEN_PREFIX_KEY_UNICODE - 2) + byteLen);
+            } else { // nope, longer non-ASCII Strings
+                typeToken = TOKEN_KEY_LONG_STRING;
+                // and we will need String end marker byte
+                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
             }
         }
+        // and then sneak in type token now that know the details
+        _outputBuffer[origOffset] = typeToken;
         // Also, keep track if we can use back-references (shared names)
         if (_seenNameCount >= 0) {
             _addSeenName(name);
         }
     }
 
+    private final void _writeNonShortFieldName(final String name, final int len)
+        throws IOException, JsonGenerationException
+    {
+        _writeByte(TOKEN_KEY_LONG_STRING);
+        // can we still make a temp copy?
+        if (len > _charBufferLength) { // nah, not even that
+            _slowUTF8Encode(name);
+        } else { // yep.
+            name.getChars(0, len, _charBuffer, 0);
+            // but will encoded version fit in buffer?
+            int maxLen = len + len + len;
+            if (maxLen <= _outputBuffer.length) { // yes indeed
+                if ((_outputTail + maxLen) >= _outputEnd) {
+                    _flushBuffer();
+                }
+                 _shortUTF8Encode(_charBuffer, 0, len);
+            } else { // nope, need bit slower variant
+                _mediumUTF8Encode(_charBuffer, 0, len);
+            }
+        }
+        if (_seenNameCount >= 0) {
+            _addSeenName(name);
+        }
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
+    }
+    
     protected final void _writeFieldName(SerializableString name)
         throws IOException, JsonGenerationException
     {
@@ -784,7 +795,8 @@ public class SmileGenerator
      * Helper method called to handle cases where String value to write is known
      * to be long enough not to be shareable.
      */
-    private final void _writeNonSharedString(final String text, final int len) throws IOException,JsonGenerationException
+    private final void _writeNonSharedString(final String text, final int len)
+        throws IOException,JsonGenerationException
     {
         // First: can we at least make a copy to char[]?
         if (len > _charBufferLength) { // nope; need to skip copy step (alas; this is slower)
@@ -800,7 +812,7 @@ public class SmileGenerator
         if (maxLen > _outputBuffer.length) { // nope
             // can't rewrite type buffer, so can't speculate it might be all-ASCII
             _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
-            _slowUTF8Encode(_charBuffer, 0, len);
+            _mediumUTF8Encode(_charBuffer, 0, len);
             _writeByte(BYTE_MARKER_END_OF_STRING);
             return;
         }
@@ -871,7 +883,7 @@ public class SmileGenerator
                 _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
             } else {
                 _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
-                _slowUTF8Encode(text, offset, offset+len);
+                _mediumUTF8Encode(text, offset, offset+len);
                 _writeByte(BYTE_MARKER_END_OF_STRING);
             }
         }
@@ -881,7 +893,7 @@ public class SmileGenerator
     public final void writeString(SerializableString sstr)
         throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write String value");        
+        _verifyValueWrite("write String value");
         // First: is it empty?
         String str = sstr.getValue();
         int len = str.length();
@@ -1429,80 +1441,6 @@ public class SmileGenerator
         return codedLen;
     }
     
-    /**
-     * Helper method used to encode Strings that are short enough that UTF-8
-     * encoded version is known to fit in the buffer
-     */
-    private final int _mediumUTF8Encode(String str)
-    {
-        int i = 0;
-        final int len = str.length();
-        int ptr = _outputTail;
-
-        // First: let's see if it's all ASCII: that's rather fast
-        final byte[] outBuf = _outputBuffer;
-        do {
-            int c = str.charAt(i);
-            if (c > 0x7F) {
-                break;
-            }
-            outBuf[ptr++] = (byte) c;
-        } while (++i < len);
-        int codedLen = ptr - _outputTail;
-        _outputTail = ptr;
-        if (i < len) { // offline not-all-ASCII case
-            ptr = _outputTail;            
-            _mediumUTF8Encode2(str, i);
-            codedLen += (_outputTail - ptr);
-        }
-        return codedLen;
-    }
-    /**
-     * Second part, slightly slower, which needs to deal with
-     * multi-byte aspects of UTF-8 encoding
-     */
-    private final void _mediumUTF8Encode2(String str, int i)
-    {
-        final int len = str.length();
-        do {
-            int c = str.charAt(i++);
-            if (c <= 0x7F) {
-                _outputBuffer[_outputTail++] = (byte) c;
-                continue;
-            }
-            // Nope, multi-byte:
-            if (c < 0x800) { // 2-byte
-                _outputBuffer[_outputTail++] = (byte) (0xc0 | (c >> 6));
-                _outputBuffer[_outputTail++] = (byte) (0x80 | (c & 0x3f));
-                continue;
-            }
-            // 3 or 4 bytes (surrogate)
-            // Surrogates?
-            if (c < SURR1_FIRST || c > SURR2_LAST) { // nope, regular 3-byte character
-                _outputBuffer[_outputTail++] = (byte) (0xe0 | (c >> 12));
-                _outputBuffer[_outputTail++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-                _outputBuffer[_outputTail++] = (byte) (0x80 | (c & 0x3f));
-                continue;
-            }
-            // Yup, a surrogate pair
-            if (c > SURR1_LAST) { // must be from first range; second won't do
-                _throwIllegalSurrogate(c);
-            }
-            // ... meaning it must have a pair
-            if (i >= len) {
-                _throwIllegalSurrogate(c);
-            }
-            c = _convertSurrogate(c, str.charAt(i++));
-            if (c > 0x10FFFF) { // illegal in JSON as well as in XML
-                _throwIllegalSurrogate(c);
-            }
-            _outputBuffer[_outputTail++] = (byte) (0xf0 | (c >> 18));
-            _outputBuffer[_outputTail++] = (byte) (0x80 | ((c >> 12) & 0x3f));
-            _outputBuffer[_outputTail++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-            _outputBuffer[_outputTail++] = (byte) (0x80 | (c & 0x3f));
-        } while (i < len);
-    }
-    
     private void _slowUTF8Encode(String str) throws IOException
     {
         final int len = str.length();
@@ -1574,7 +1512,7 @@ public class SmileGenerator
         }
     }
 
-    private void _slowUTF8Encode(char[] str, int inputPtr, int inputEnd) throws IOException
+    private void _mediumUTF8Encode(char[] str, int inputPtr, int inputEnd) throws IOException
     {
         final int bufferEnd = _outputEnd - 4;
         
