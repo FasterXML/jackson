@@ -41,6 +41,8 @@ public class Utf8Generator
     private final static byte[] NULL_BYTES = { 'n', 'u', 'l', 'l' };
     private final static byte[] TRUE_BYTES = { 't', 'r', 'u', 'e' };
     private final static byte[] FALSE_BYTES = { 'f', 'a', 'l', 's', 'e' };
+
+    private final static int[] sOutputEscapes = CharTypes.getOutputEscapes();
     
     /*
     /**********************************************************
@@ -327,7 +329,16 @@ public class Utf8Generator
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
-        _writeString(text);
+        // Inlined version of '_writeString(String)'
+        final int len = text.length();
+        // simple cases: fits in input buffer as is
+        final char[] buf = _charBuffer;
+        if (len > buf.length) { // if not, need segemented
+            _writeSegmentedString(text);
+        } else {
+            text.getChars(0, len, buf, 0);
+            _writeStringSegment(buf, 0, len);
+        }
         // And finally, closing quotes
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
@@ -897,7 +908,7 @@ public class Utf8Generator
         System.arraycopy(bytes, offset, _outputBuffer, _outputTail, len);
         _outputTail += len;
     }
-    
+
     private final void _writeString(String text)
         throws IOException, JsonGenerationException
     {
@@ -953,10 +964,9 @@ public class Utf8Generator
         // Fast loop for chars not needing escaping
         len += offset; // becomes end marker, then
         int ptr = _outputTail;
-
         main_loop:
         while (offset < len) {
-            final int[] escCodes = CharTypes.getOutputEscapes();
+            final int[] escCodes = sOutputEscapes;
             final byte[] outputBuffer = _outputBuffer;
 
             inner_loop:
@@ -969,7 +979,7 @@ public class Utf8Generator
                 if (++offset >= len) {
                     break main_loop;
                 }
-            }                
+            }
             // Ok, so what did we hit?
             int ch = (int) cbuf[offset++];
             if (ch <= 0x7F) { // needs quoting
@@ -1009,7 +1019,7 @@ public class Utf8Generator
 
         main_loop:
         while (offset < len) {
-            final int[] escCodes = CharTypes.getOutputEscapes();
+            final int[] escCodes = sOutputEscapes;
             final int end = _outputEnd - 6; // let's always have room for 6 more bytes, simpler
             final byte[] outputBuffer = _outputBuffer;
 
