@@ -788,7 +788,7 @@ public abstract class JsonGenerator
 
     /**
      * Convenience method for outputting a field entry ("member")
-     * that has Json literal value null. Equivalent to:
+     * that has JSON literal value null. Equivalent to:
      *<pre>
      *  writeFieldName(fieldName);
      *  writeNull();
@@ -800,7 +800,6 @@ public abstract class JsonGenerator
         writeFieldName(fieldName);
         writeNull();
     }
-
     /**
      * Convenience method for outputting a field entry ("member")
      * that has the specified numeric value. Equivalent to:
