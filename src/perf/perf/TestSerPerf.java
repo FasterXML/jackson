@@ -98,7 +98,7 @@ public final class TestSerPerf
             int round = (i % 1);
 
             // override?
-            round = 2;
+            round = 4;
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -124,6 +124,11 @@ public final class TestSerPerf
             case 3:
                 msg = "Serialize, Smile/manual";
                 sum += testObjectSer(smileFactory, item, REPS+REPS, result);
+                break;
+
+            case 4:
+                msg = "Serialize, JSON/manual";
+                sum += testObjectSer(jsonMapper.getJsonFactory(), item, REPS+REPS, result);
                 break;
                 
             default:
