@@ -762,7 +762,7 @@ public class SmileGenerator
                 _flushBuffer();
             }
             int origOffset = _outputTail;
-            // can't say for sure if it's Ascii or Unicode, so:
+            // can't say for sure if it's ASCII or Unicode, so:
             _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
             int byteLen;
             if (len < _charBuffer.length) {
@@ -776,7 +776,7 @@ public class SmileGenerator
                 _outputBuffer[origOffset] = TOKEN_BYTE_LONG_STRING_ASCII;
             }
             _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;                
-        } else { // won't fit; can't efficiently rewrite Ascii/unicode marker, so:
+        } else { // won't fit; can't efficiently rewrite ASCII/unicode marker, so:
             _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
             _slowUTF8Encode(text);
             _writeByte(BYTE_MARKER_END_OF_STRING);
@@ -1330,20 +1330,59 @@ public class SmileGenerator
         do {
             int c = str[i];
             if (c > 0x7F) {
-                break;
+                return _shortUTF8Encode2(str, i, end, ptr);
             }
             outBuf[ptr++] = (byte) c;
         } while (++i < end);
         int codedLen = ptr - _outputTail;
         _outputTail = ptr;
-        if (i < end) { // offline not-all-ASCII case
-            ptr = _outputTail;
-            _shortUTF8Encode2(str, i, end);
-            codedLen += (_outputTail - ptr);
-        }
         return codedLen;
     }
 
+    private final int _shortUTF8Encode2(char[] str, int i, int end, int outputPtr)
+    {
+        final byte[] outBuf = _outputBuffer;
+        while (i < end) {
+            int c = str[i++];
+            if (c <= 0x7F) {
+                outBuf[outputPtr++] = (byte) c;
+                continue;
+            }
+            // Nope, multi-byte:
+            if (c < 0x800) { // 2-byte
+                outBuf[outputPtr++] = (byte) (0xc0 | (c >> 6));
+                outBuf[outputPtr++] = (byte) (0x80 | (c & 0x3f));
+                continue;
+            }
+            // 3 or 4 bytes (surrogate)
+            // Surrogates?
+            if (c < SURR1_FIRST || c > SURR2_LAST) { // nope, regular 3-byte character
+                outBuf[outputPtr++] = (byte) (0xe0 | (c >> 12));
+                outBuf[outputPtr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
+                outBuf[outputPtr++] = (byte) (0x80 | (c & 0x3f));
+                continue;
+            }
+            // Yup, a surrogate pair
+            if (c > SURR1_LAST) { // must be from first range; second won't do
+                _throwIllegalSurrogate(c);
+            }
+            // ... meaning it must have a pair
+            if (i >= end) {
+                _throwIllegalSurrogate(c);
+            }
+            c = _convertSurrogate(c, str[i++]);
+            if (c > 0x10FFFF) { // illegal in JSON as well as in XML
+                _throwIllegalSurrogate(c);
+            }
+            outBuf[outputPtr++] = (byte) (0xf0 | (c >> 18));
+            outBuf[outputPtr++] = (byte) (0x80 | ((c >> 12) & 0x3f));
+            outBuf[outputPtr++] = (byte) (0x80 | ((c >> 6) & 0x3f));
+            outBuf[outputPtr++] = (byte) (0x80 | (c & 0x3f));
+        }
+        int codedLen = outputPtr - _outputTail;
+        _outputTail = outputPtr;
+        return codedLen;
+    }
     
     /**
      * Helper method used to encode Strings that are short enough that UTF-8
@@ -1368,18 +1407,16 @@ public class SmileGenerator
         _outputTail = ptr;
         if (i < len) { // offline not-all-ASCII case
             ptr = _outputTail;            
-            _shortUTF8Encode2(str, i);
+            _mediumUTF8Encode2(str, i);
             codedLen += (_outputTail - ptr);
         }
         return codedLen;
     }
-
-    
     /**
      * Second part, slightly slower, which needs to deal with
      * multi-byte aspects of UTF-8 encoding
      */
-    private final void _shortUTF8Encode2(String str, int i)
+    private final void _mediumUTF8Encode2(String str, int i)
     {
         final int len = str.length();
         do {
@@ -1419,47 +1456,6 @@ public class SmileGenerator
             _outputBuffer[_outputTail++] = (byte) (0x80 | ((c >> 6) & 0x3f));
             _outputBuffer[_outputTail++] = (byte) (0x80 | (c & 0x3f));
         } while (i < len);
-    }
-
-    private final void _shortUTF8Encode2(char[] str, int i, int end)
-    {
-        do {
-            int c = str[i++];
-            if (c <= 0x7F) {
-                _outputBuffer[_outputTail++] = (byte) c;
-                continue;
-            }
-            // Nope, multi-byte:
-            if (c < 0x800) { // 2-byte
-                _outputBuffer[_outputTail++] = (byte) (0xc0 | (c >> 6));
-                _outputBuffer[_outputTail++] = (byte) (0x80 | (c & 0x3f));
-                continue;
-            }
-            // 3 or 4 bytes (surrogate)
-            // Surrogates?
-            if (c < SURR1_FIRST || c > SURR2_LAST) { // nope, regular 3-byte character
-                _outputBuffer[_outputTail++] = (byte) (0xe0 | (c >> 12));
-                _outputBuffer[_outputTail++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-                _outputBuffer[_outputTail++] = (byte) (0x80 | (c & 0x3f));
-                continue;
-            }
-            // Yup, a surrogate pair
-            if (c > SURR1_LAST) { // must be from first range; second won't do
-                _throwIllegalSurrogate(c);
-            }
-            // ... meaning it must have a pair
-            if (i >= end) {
-                _throwIllegalSurrogate(c);
-            }
-            c = _convertSurrogate(c, str[i++]);
-            if (c > 0x10FFFF) { // illegal in JSON as well as in XML
-                _throwIllegalSurrogate(c);
-            }
-            _outputBuffer[_outputTail++] = (byte) (0xf0 | (c >> 18));
-            _outputBuffer[_outputTail++] = (byte) (0x80 | ((c >> 12) & 0x3f));
-            _outputBuffer[_outputTail++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-            _outputBuffer[_outputTail++] = (byte) (0x80 | (c & 0x3f));
-        } while (i < end);
     }
     
     private void _slowUTF8Encode(String str) throws IOException

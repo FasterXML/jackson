@@ -95,7 +95,7 @@ public final class TestSerPerf
         while (true) {
 //            Thread.sleep(150L);
             ++i;
-            int round = (i % 1);
+            int round = (i % 5);
 
             // override?
             round = 4;
@@ -112,24 +112,25 @@ public final class TestSerPerf
                 break;
 
             case 1:
+                msg = "Serialize, JSON/manual";
+                sum += testObjectSer(jsonMapper.getJsonFactory(), item, REPS+REPS, result);
+                break;
+                
+            case 2:
                 msg = "Serialize, xml";
                 sum += testObjectSer(xmlMapper, item, REPS, result);
                 break;
 
-            case 2:
+            case 3:
                 msg = "Serialize, Smile";
                 sum += testObjectSer(smileMapper, item, REPS, result);
                 break;
 
-            case 3:
+            case 4:
                 msg = "Serialize, Smile/manual";
                 sum += testObjectSer(smileFactory, item, REPS+REPS, result);
                 break;
 
-            case 4:
-                msg = "Serialize, JSON/manual";
-                sum += testObjectSer(jsonMapper.getJsonFactory(), item, REPS+REPS, result);
-                break;
                 
             default:
                 throw new Error("Internal error");
