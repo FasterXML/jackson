@@ -369,15 +369,23 @@ public class Utf8Generator
     }
 
     @Override
-    public void writeEscapedUTF8String(byte[] text, int offset, int length)
+    public void writeRawUTF8String(byte[] text, int offset, int length)
         throws IOException, JsonGenerationException
     {
-        // @TODO
-        _reportUnsupportedOperation();
+        _verifyValueWrite("write text value");
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
+        _writeBytes(text, offset, length);
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
     @Override
-    public void writeUnescapedUTF8String(byte[] text, int offset, int length)
+    public void writeUTF8String(byte[] text, int offset, int length)
         throws IOException, JsonGenerationException
     {
         // @TODO
@@ -868,11 +876,25 @@ public class Utf8Generator
             _flushBuffer();
             // still not enough?
             if (len > MAX_BYTES_TO_BUFFER) {
-                _outputStream.write(_outputBuffer, 0, len);
+                _outputStream.write(bytes, 0, len);
                 return;
             }
         }
         System.arraycopy(bytes, 0, _outputBuffer, _outputTail, len);
+        _outputTail += len;
+    }
+
+    private final void _writeBytes(byte[] bytes, int offset, int len) throws IOException
+    {
+        if ((_outputTail + len) > _outputEnd) {
+            _flushBuffer();
+            // still not enough?
+            if (len > MAX_BYTES_TO_BUFFER) {
+                _outputStream.write(bytes, offset, len);
+                return;
+            }
+        }
+        System.arraycopy(bytes, offset, _outputBuffer, _outputTail, len);
         _outputTail += len;
     }
     

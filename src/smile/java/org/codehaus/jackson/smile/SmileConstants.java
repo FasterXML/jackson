@@ -26,7 +26,7 @@ public final class SmileConstants
     public final static int MAX_SHORT_NAME_ASCII_BYTES = 64;
 
     /**
-     * Maximum byte length for short non-Ascii names is slightly
+     * Maximum byte length for short non-ASCII names is slightly
      * less due to having to reserve bytes 0xF8 and above (but
      * we get one more as values 0 and 1 are not valid)
      */

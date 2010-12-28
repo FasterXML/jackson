@@ -438,30 +438,33 @@ public abstract class JsonGenerator
     }
 
     /**
-     * Method similar to {@link #writeString(String)} but that takes
-     * an already escaped and UTF-8 encoded String as input. This means
-     * that textual JSON backends can simply copy byte sequence without
-     * additional processing.
+     * Method similar to {@link #writeString(String)} but that takes as
+     * its input a UTF-8 encoded String that is to be output as-is, without additional
+     * escaping (type of which depends on data format; backslashes for JSON).
+     * However, quoting that data format requires (like double-quotes for JSON) will be added
+     * around the value if and as necessary.
      *<p>
      * Note that some backends may choose not to support this method: for
      * example, if underlying destination is a {@link java.io.Writer}
-     * using this method would require UTF-8 decoding. Also, non-JSON
-     * backends may not support use of JSON quoting, in which case it
-     * would be necessary to un-escape content first. In both cases
-     * generator implementation may instead choose to throw a
+     * using this method would require UTF-8 decoding.
+     * If so, implementation may instead choose to throw a
      * {@link UnsupportedOperationException} due to ineffectiveness
-     * of having to add processing.
+     * of having to decode input.
      * 
      * @since 1.7
      */
-    public abstract void writeEscapedUTF8String(byte[] text, int offset, int length)
+    public abstract void writeRawUTF8String(byte[] text, int offset, int length)
         throws IOException, JsonGenerationException;
 
     /**
-     * Method similar to {@link #writeString(String)} but that takes
-     * a UTF-8 encoded String which has <b>not</b> yet been JSON escaped as input.
+     * Method similar to {@link #writeString(String)} but that takes as its input
+     * a UTF-8 encoded String which has <b>not</b> been escaped using whatever
+     * escaping scheme data format requires (for JSON that is backslash-escaping
+     * for control characters and double-quotes; for other formats something else).
      * This means that textual JSON backends need to check if value needs
      * JSON escaping, but otherwise can just be copied as is to output.
+     * Also, quoting that data format requires (like double-quotes for JSON) will be added
+     * around the value if and as necessary.
      *<p>
      * Note that some backends may choose not to support this method: for
      * example, if underlying destination is a {@link java.io.Writer}
@@ -469,11 +472,11 @@ public abstract class JsonGenerator
      * In this case
      * generator implementation may instead choose to throw a
      * {@link UnsupportedOperationException} due to ineffectiveness
-     * of having to add processing.
+     * of having to decode input.
      * 
      * @since 1.7
      */
-    public abstract void writeUnescapedUTF8String(byte[] text, int offset, int length)
+    public abstract void writeUTF8String(byte[] text, int offset, int length)
         throws IOException, JsonGenerationException;
     
     /*

@@ -182,7 +182,7 @@ public class TestGeneratorMisc
         assertToken(JsonToken.END_ARRAY, jp.nextToken());
         jp.close();
     }
-
+    
     /*
     /**********************************************************
     /* Tests for binary data

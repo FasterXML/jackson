@@ -874,7 +874,7 @@ public class SmileGenerator
             if ((_outputTail + byteLen + 1) >= _outputEnd) {
                 _flushBuffer();
             }
-            // Ascii or Unicode?
+            // ASCII or Unicode?
             int typeToken = (byteLen == len)
                     ? ((TOKEN_PREFIX_TINY_ASCII - 1) + byteLen)
                     : ((TOKEN_PREFIX_TINY_UNICODE - 2) + byteLen)
@@ -892,19 +892,56 @@ public class SmileGenerator
     }
 
     @Override
-    public void writeEscapedUTF8String(byte[] text, int offset, int length)
+    public void writeRawUTF8String(byte[] text, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        // @TODO
-        _reportUnsupportedOperation();
+        _verifyValueWrite("write String value");
+        // first: is it empty String?
+        if (len == 0) {
+            _writeByte(TOKEN_LITERAL_EMPTY_STRING);
+            return;
+        }
+        // Sanity check: shared-strings incompatible with raw String writing
+        if (_seenStringValueCount >= 0) {
+            throw new UnsupportedOperationException("Can not use direct UTF-8 write methods when 'Feature.CHECK_SHARED_STRING_VALUES' enabled");
+        } 
+        /* Other practical limitation is that we do not really know if it might be
+         * ASCII or not; and figuring it out is rather slow. So, best we can do is
+         * to declare we do not know it is ASCII (i.e. "is Unicode").
+         */
+        if (len <= MAX_SHARED_STRING_LENGTH_BYTES) { // up to 65 Unicode bytes
+            // first: ensure we have enough space
+            if ((_outputTail + len) >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 2) + len);
+            System.arraycopy(text, offset, _outputBuffer, _outputTail, len);
+            _outputTail += len;
+        } else { // "long" String
+            // but might still fit within buffer?
+            int maxLen = len + len + len + 2;
+            if (maxLen <= _outputBuffer.length) { // yes indeed
+                if ((_outputTail + maxLen) >= _outputEnd) {
+                    _flushBuffer();
+                }
+                _outputBuffer[_outputTail++] = TOKEN_BYTE_LONG_STRING_UNICODE;
+                System.arraycopy(text, offset, _outputBuffer, _outputTail, len);
+                _outputTail += len;
+                _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
+            } else {
+                _writeByte(TOKEN_BYTE_LONG_STRING_UNICODE);
+                _writeBytes(text, offset, len);
+                _writeByte(BYTE_MARKER_END_OF_STRING);
+            }
+        }
     }
 
     @Override
-    public void writeUnescapedUTF8String(byte[] text, int offset, int length)
+    public final void writeUTF8String(byte[] text, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        // @TODO
-        _reportUnsupportedOperation();
+        // Since no escaping is needed, same as 'writeRawUTF8String'
+        writeRawUTF8String(text, offset, len);
     }
     
     /*
@@ -1670,16 +1707,16 @@ public class SmileGenerator
 
     private final void _writeBytes(byte[] data, int offset, int len) throws IOException
     {
-        if (len != 0) {
-            // common case first: stuff fits in
-            if ((_outputTail + len) <= _outputEnd) {
-                System.arraycopy(data, offset, _outputBuffer, _outputTail, len);
-                _outputTail += len;
-                return;
-            } else {
-                _writeBytesLong(data, offset, len);
-            }
+        if (len == 0) {
+            return;
         }
+        if ((_outputTail + len) >= _outputEnd) {
+            _writeBytesLong(data, offset, len);
+            return;
+        }
+        // common case, non-empty, fits in just fine:
+        System.arraycopy(data, offset, _outputBuffer, _outputTail, len);
+        _outputTail += len;
     }
     
     private final void _writeBytesLong(byte[] data, int offset, int len) throws IOException

@@ -22,7 +22,7 @@ public class TestStringGeneration
         "\"\"\"", "\\r)'\"",
         "Longer text & other stuff:\twith some\r\n\r\n random linefeeds etc added in to cause some \"special\" handling \\\\ to occur...\n"
     };
-
+    
     public void testBasicEscaping()
         throws Exception
     {
@@ -57,9 +57,9 @@ public class TestStringGeneration
     }
 
     /*
-    ///////////////////////////////////////////////////////////////
-    // Internal methods
-    ///////////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
      */
 
     private String generateRandom(int len)
@@ -120,6 +120,7 @@ public class TestStringGeneration
     {
         ByteArrayOutputStream bow = new ByteArrayOutputStream(text.length());
         JsonGenerator gen = new JsonFactory().createJsonGenerator(bow, JsonEncoding.UTF8);
+
         gen.writeStartArray();
         if (charArray) {
             char[] buf = new char[text.length()];

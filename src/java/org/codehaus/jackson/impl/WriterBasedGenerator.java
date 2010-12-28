@@ -360,7 +360,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-    public void writeEscapedUTF8String(byte[] text, int offset, int length)
+    public void writeRawUTF8String(byte[] text, int offset, int length)
         throws IOException, JsonGenerationException
     {
         // could add support for buffering if we really want it...
@@ -368,7 +368,7 @@ public final class WriterBasedGenerator
     }
 
     @Override
-    public void writeUnescapedUTF8String(byte[] text, int offset, int length)
+    public void writeUTF8String(byte[] text, int offset, int length)
         throws IOException, JsonGenerationException
     {
         // could add support for buffering if we really want it...
